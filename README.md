@@ -6,7 +6,8 @@ A simple usage example:
 import 'package:hetu_script/hetu_script.dart';
 
 main() {
-  var awesome = new Awesome();
+  Hetu.init();
+  Hetu.eval('test.hs');
 }
 ```
 
@@ -14,4 +15,4 @@ main() {
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: http://example.com/issues/replaceme
+[tracker]: https://github.com/hythl0day/HetuScript/issues
