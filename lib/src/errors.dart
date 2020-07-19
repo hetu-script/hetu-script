@@ -32,3 +32,13 @@ class HetuErrorSymbolNotFound extends HetuError {
     }
   }
 }
+
+class HetuErrorRangeError extends HetuError {
+  HetuErrorRangeError(int length, [int lineNumber, int colNumber]) {
+    if ((lineNumber != null) && (colNumber != null)) {
+      message = '${HetuOutput.OutOfRange} [${length}] [${lineNumber}-${colNumber}]';
+    } else {
+      message = '${HetuOutput.OutOfRange} [${length}]';
+    }
+  }
+}

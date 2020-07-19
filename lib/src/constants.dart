@@ -138,6 +138,7 @@ abstract class Constants {
   static const Bool = 'bool';
   static const Str = 'string';
   static const Typedef = 'typedef';
+  static const List = 'list';
 
   static const Null = 'null';
   static const Static = 'static';
@@ -317,4 +318,5 @@ abstract class Constants {
 
 abstract class HetuOutput {
   static const UndefinedVariable = '(Environment) Undefined variable';
+  static const OutOfRange = '(Object) Index out of range, should be less than';
 }

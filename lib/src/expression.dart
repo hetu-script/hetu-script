@@ -35,10 +35,10 @@ abstract class ExprVisitor {
   dynamic visitAssignExpr(AssignExpr expr);
 
   /// 下标取值表达式
-  //dynamic visitSubGetExpr(SubGetExpr expr);
+  dynamic visitSubGetExpr(SubGetExpr expr);
 
   /// 下标赋值表达式
-  //dynamic visitSubSetExpr(SubSetExpr expr);
+  dynamic visitSubSetExpr(SubSetExpr expr);
 
   /// 属性取值表达式
   dynamic visitMemberGetExpr(MemberGetExpr expr);
@@ -171,40 +171,40 @@ class AssignExpr extends Expr {
   AssignExpr(this.variable, this.op, this.value) : super(op.lineNumber, op.colNumber);
 }
 
-// class SubGetExpr extends Expr {
-//   @override
-//   String get type => HetuTypes.SubGetExpr;
+class SubGetExpr extends Expr {
+  @override
+  String get type => Constants.SubGetExpr;
 
-//   @override
-//   HetuObject accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
 
-//   /// 数组
-//   final Token array;
+  /// 数组
+  final Token array;
 
-//   /// 索引
-//   final Expr index;
+  /// 索引
+  final Expr index;
 
-//   SubGetExpr(this.array, this.index);
-// }
+  SubGetExpr(this.array, this.index) : super(array.lineNumber, array.colNumber);
+}
 
-// class SubSetExpr extends Expr {
-//   @override
-//   String get type => HetuTypes.SubSetExpr;
+class SubSetExpr extends Expr {
+  @override
+  String get type => Constants.SubSetExpr;
 
-//   @override
-//   HetuObject accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
 
-//   /// 数组
-//   final Token array;
+  /// 数组
+  final Token array;
 
-//   /// 索引
-//   final Expr index;
+  /// 索引
+  final Expr index;
 
-//   /// 值
-//   final dynamic value;
+  /// 值
+  final dynamic value;
 
-//   SubSetExpr(this.array, this.index, this.value);
-// }
+  SubSetExpr(this.array, this.index, this.value) : super(array.lineNumber, array.colNumber);
+}
 
 class MemberGetExpr extends Expr {
   @override

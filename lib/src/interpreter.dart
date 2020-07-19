@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'errors.dart';
 import 'constants.dart';
 import 'token.dart';
@@ -42,7 +40,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (function == null) {
         throw HetuError('(Interpreter) Function [${name}] is null.');
       } else {
-        var func_obj = HetuFunction(name, call: function);
+        var func_obj = HetuFunction(name, extern: function);
         _globals.define(name, Constants.Function, value: func_obj);
       }
     }
@@ -139,7 +137,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           if (value is HetuNum) {
             result = HetuNum(-value.literal);
           } else {
-            throw HetuError('(Interpreter) Undefined negetive operator [${expr.op.text}] on [${value.name}].'
+            throw HetuError('(Interpreter) Undefined negetive operator [${expr.op.text}] on [${value}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
@@ -149,14 +147,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           if (value is HetuBool) {
             result = HetuBool(!value.literal);
           } else {
-            throw HetuError('(Interpreter) Undefined logical not operator [${expr.op.text}] on [${value.name}].'
+            throw HetuError('(Interpreter) Undefined logical not operator [${expr.op.text}] on [${value}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
         break;
       default:
         throw HetuError(
-            '(Environment) Unknown unary operator [${value.name}]. [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+            '(Environment) Unknown unary operator [${value}]. [${expr.op.lineNumber}, ${expr.op.colNumber}].');
         break;
     }
 
@@ -182,13 +180,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
                 result = HetuBool(left.literal && right.literal);
               }
             } else {
-              throw HetuError(
-                  '(Interpreter) Undefined logical operator [${expr.op.text}] on [${left.name}] and [${right.name}].'
+              throw HetuError('(Interpreter) Undefined logical operator [${expr.op.text}] on [${left}] and [${right}].'
                   ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
             }
           } else {
-            throw HetuError(
-                '(Interpreter) Undefined logical operator [${expr.op.text}] on [${left.name}] and [${right.name}].'
+            throw HetuError('(Interpreter) Undefined logical operator [${expr.op.text}] on [${left}] and [${right}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
@@ -211,8 +207,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
               result = HetuNum(left.literal - right.literal);
             }
           } else {
-            throw HetuError(
-                '(Interpreter) Undefined additive operator [${expr.op.text}] on [${left.name}] and [${right.name}].'
+            throw HetuError('(Interpreter) Undefined additive operator [${expr.op.text}] on [${left}] and [${right}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
@@ -244,12 +239,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
               }
             } else {
               throw HetuError(
-                  '(Interpreter) Undefined multipicative operator [${expr.op.text}] on [${left.name}] and [${right.name}].'
+                  '(Interpreter) Undefined multipicative operator [${expr.op.text}] on [${left}] and [${right}].'
                   ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
             }
           } else {
             throw HetuError(
-                '(Interpreter) Undefined multipicative operator [${expr.op.text}] on [${left.name}] and [${right.name}].'
+                '(Interpreter) Undefined multipicative operator [${expr.op.text}] on [${left}] and [${right}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
@@ -289,7 +284,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         }
       }
 
-      result = callee.call(args);
+      if (!callee.isConstructor) {
+        result = callee.call(args);
+      } else {
+        //TODO命名构造函数
+      }
     } else if (callee is HetuClass) {
       // for (var i = 0; i < callee.varStmts.length; ++i) {
       //   var param_type_token = callee.varStmts[i].typename;
@@ -433,9 +432,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     HetuObject object = evaluate(expr.collection);
     if (object is HetuInstance) {
       return object.memberGetByToken(expr.key);
-    } else if (object is HetuClass) {}
+    } else if (object is HetuClass) {
+      return object.getMethodByToken(expr.key);
+    }
 
-    throw HetuError('(Interpreter) [${object.name}] is not a collection or object.'
+    throw HetuError('(Interpreter) [${object}] is not a collection or object.'
         ' [${expr.key.lineNumber}, ${expr.key.colNumber}].');
   }
 

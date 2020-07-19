@@ -10,14 +10,9 @@ import 'token.dart';
 //const _typeId = <String, int>{};
 
 abstract class HetuObject {
-  final String name;
-
   String get type;
 
-  const HetuObject(this.name);
-
-  @override
-  String toString() => '[variable: "${name}", type: "${type}"]';
+  const HetuObject();
 
   static const Null = HetuNull();
 }
@@ -29,7 +24,7 @@ class HetuNull extends HetuObject {
   @override
   String toString() => Constants.Null;
 
-  const HetuNull() : super(Constants.Null);
+  const HetuNull();
 }
 
 // TODO: 字面常量也是对象和实例，应该可以直接用“2.toString()”这种方式调用函数
@@ -41,7 +36,7 @@ class HetuNum extends HetuObject {
   String toString() => literal.toString();
 
   num literal;
-  HetuNum(num value) : super('${value}[${Constants.Num}]') {
+  HetuNum(num value) {
     literal = value;
   }
 
@@ -57,7 +52,7 @@ class HetuString extends HetuObject {
   String toString() => literal;
 
   String literal;
-  HetuString(String value) : super('${value}[${Constants.Str}]') {
+  HetuString(String value) {
     literal = value;
   }
 
@@ -73,7 +68,7 @@ class HetuBool extends HetuObject {
   String toString() => literal.toString();
 
   bool literal;
-  HetuBool(bool value) : super('${value}[${Constants.Bool}]') {
+  HetuBool(bool value) {
     literal = value;
   }
 
@@ -90,13 +85,15 @@ class HetuFunction extends HetuObject {
   @override
   String toString() => '$name(${type})';
 
+  final String name;
   bool _binded = false;
 
   final FuncStmt funcStmt;
   final Environment closure;
   final bool isConstructor;
 
-  HetuFunctionCall call;
+  //TODO: extern关键字表明函数绑定到了脚本环境之外
+  HetuFunctionCall extern;
 
   int get arity {
     var a = -1;
@@ -106,9 +103,7 @@ class HetuFunction extends HetuObject {
     return a;
   }
 
-  HetuFunction(String name, {this.funcStmt, this.closure, this.isConstructor, HetuFunctionCall call}) : super(name) {
-    this.call = call ?? _call;
-  }
+  HetuFunction(this.name, {this.funcStmt, this.closure, this.isConstructor, this.extern});
 
   HetuFunction bind(HetuInstance instance) {
     _binded = true;
@@ -122,19 +117,22 @@ class HetuFunction extends HetuObject {
     );
   }
 
-  HetuObject _call(List<HetuObject> args) {
+  HetuObject call(List<HetuObject> args) {
     HetuObject result = HetuObject.Null;
 
-    var environment = Environment.enclose(closure);
-
-    if ((funcStmt != null) && (args != null)) {
-      for (var i = 0; i < funcStmt.params.length; i++) {
-        environment.declare(funcStmt.params[i].varname, funcStmt.params[i].typename.text, value: args[i]);
-      }
-    }
-
     try {
-      globalInterpreter.executeBlock(funcStmt.definition, environment);
+      if (extern == null) {
+        var environment = Environment.enclose(closure);
+        if ((funcStmt != null) && (args != null)) {
+          for (var i = 0; i < funcStmt.params.length; i++) {
+            environment.declare(funcStmt.params[i].varname, funcStmt.params[i].typename.text, value: args[i]);
+          }
+        }
+
+        globalInterpreter.executeBlock(funcStmt.definition, environment);
+      } else {
+        result = extern(args);
+      }
     } catch (returnValue) {
       if (returnValue is HetuObject) {
         result = returnValue;
@@ -164,27 +162,42 @@ class HetuClass extends HetuObject {
   @override
   String toString() => '$name(class)';
 
+  final String name;
   final HetuClass superClass;
 
   List<VarStmt> varStmts = [];
   Map<String, HetuFunction> methods = {};
 
-  HetuClass(String name, this.superClass, this.varStmts, this.methods) : super(name);
+  HetuClass(this.name, this.superClass, this.varStmts, this.methods);
 
-  HetuObject getMethod(String name) {
+  HetuObject getMethodByToken(Token name) {
     if (methods.containsKey(name)) {
       return methods[name];
     }
 
     if (superClass != null) {
-      return superClass.getMethod(name);
+      return superClass.getMethodByToken(name);
     }
 
-    return HetuObject.Null;
+    throw HetuError('(Object) The method "${name.text}" isn\'t defined for the type "$name".'
+        ' [${name.lineNumber}, ${name.colNumber}].');
+  }
+
+  HetuObject getMethodByName(String name) {
+    if (methods.containsKey(name)) {
+      return methods[name];
+    }
+
+    if (superClass != null) {
+      return superClass.getMethodByName(name);
+    }
+
+    throw HetuError('(Object) The method "${name}" isn\'t defined for the type "$name".');
   }
 
   HetuInstance getInstance(List<HetuObject> args) {
     var instance = HetuInstance(this);
+
     for (var stmt in varStmts) {
       HetuObject value;
       if (stmt.initializer != null) {
@@ -216,7 +229,7 @@ class HetuClass extends HetuObject {
     HetuFunction constructor;
 
     try {
-      constructor = getMethod(name);
+      constructor = getMethodByName(name);
     } catch (e) {
       if (e is! HetuErrorSymbolNotFound) {
         throw e;
@@ -236,18 +249,18 @@ class HetuInstance extends HetuObject {
   String get type => hetuClass.name;
 
   @override
-  String toString() => '$name(instance of class [${hetuClass.name}])';
+  String toString() => 'instance of class [${hetuClass.name}]';
 
   final HetuClass hetuClass;
   Map<String, VarWrapper> variables = {};
 
-  HetuInstance(this.hetuClass) : super('${hetuClass.name}${DateTime.now().millisecondsSinceEpoch}');
+  HetuInstance(this.hetuClass);
 
   HetuObject memberGetByName(String name) {
     if (variables.containsKey(name)) {
       return variables[name].value;
     } else {
-      var field = hetuClass.getMethod(name);
+      var field = hetuClass.getMethodByName(name);
       if (field is HetuFunction) {
         return field.bind(this);
       }
@@ -260,7 +273,7 @@ class HetuInstance extends HetuObject {
     if (variables.containsKey(name.text)) {
       return variables[name.text].value;
     } else {
-      var field = hetuClass.getMethod(name.text);
+      var field = hetuClass.getMethodByToken(name.text);
       if (field is HetuFunction) {
         return field.bind(this);
       }
@@ -294,8 +307,35 @@ class HetuInstance extends HetuObject {
             ' [${name.lineNumber}, ${name.colNumber}].');
       }
     } else {
-      throw HetuError('(object) Undefined property [${name.text}] of class [${hetuClass.name}], '
+      throw HetuError('(Object) Undefined property [${name.text}] of class [${hetuClass.name}], '
           ' [${name.lineNumber}, ${name.colNumber}].');
     }
   }
+}
+
+class HetuList extends HetuObject {
+  @override
+  String get type => Constants.List;
+
+  @override
+  String toString() => value.toString();
+
+  List<HetuObject> value;
+
+  HetuList(this.value);
+
+  HetuObject getByIndex(int index) {
+    if (value != null) {
+      if ((index >= 0) && (index < value.length)) return value[index];
+    }
+
+    throw HetuError('(Object) Can\'t get value from null list.');
+  }
+
+  void add(HetuObject obj) {
+    value.add(obj);
+  }
+
+  HetuObject get first => value.first;
+  HetuObject get last => value.last;
 }
