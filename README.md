@@ -11,7 +11,9 @@ main() {
 }
 ```
 
-```Content of 'test.hs'
+Content of 'test.hs':
+
+```dart
 class calculator {
   num x;
   num y;
