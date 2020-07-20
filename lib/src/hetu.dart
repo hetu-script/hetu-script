@@ -3,26 +3,23 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'errors.dart';
-import 'object.dart';
 import 'lexer.dart';
 import 'parser.dart';
 import 'resolver.dart';
 import 'interpreter.dart';
 import 'internal_functions.dart';
+import 'function.dart';
+import 'constants.dart';
+import 'class.dart';
 
 abstract class Hetu {
   static var _init = false;
   static bool get isInit => _init;
 
-  static void init(
-      {Interpreter interpreter, String preloadDir, String language, Map<String, HetuFunctionCall> bindMap}) {
+  static void init({Interpreter interpreter, String preloadDir, String language, Map<String, Call> bindMap}) {
     try {
-      if (interpreter != null) {
-        interpreter.bindAll(HetuBuildInFunction.bindmap);
-        interpreter.bindAll(bindMap);
-      }
-
       if (!isInit) {
+        globalInterpreter.define(Constants.Object, htObject);
         globalInterpreter.bindAll(HetuBuildInFunction.bindmap);
         globalInterpreter.bindAll(bindMap);
 
@@ -40,13 +37,21 @@ abstract class Hetu {
 
         _init = true;
       }
+
+      if (interpreter != null) {
+        interpreter.bindAll(HetuBuildInFunction.bindmap);
+        interpreter.bindAll(bindMap);
+      }
     } catch (e) {
       print(e);
       print('Hetu init failed!');
     }
   }
 
-  static void bind(String name, HetuFunctionCall function) => globalInterpreter.bind(name, function);
+  static void bind(String name, Call function, {Interpreter interpreter}) {
+    var itp = interpreter ?? globalInterpreter;
+    itp.bind(name, function);
+  }
 
   static void invoke(String name, {Interpreter interpreter, List<dynamic> args}) {
     HetuError.clear();
@@ -62,19 +67,20 @@ abstract class Hetu {
 
   static void eval(String script,
       {Interpreter interpreter,
-      ParserContext context = ParserContext.program,
+      ParserConlexeme conlexeme = ParserConlexeme.program,
       String invokeFunc = null,
       List<dynamic> args}) {
     var itp = interpreter ?? globalInterpreter;
 
     HetuError.clear();
     try {
-      var commandLine = ((context == ParserContext.commandLine) || (context == ParserContext.commandLineScript));
+      var commandLine =
+          ((conlexeme == ParserConlexeme.commandLine) || (conlexeme == ParserConlexeme.commandLineScript));
       final _lexer = Lexer();
       final _parser = Parser();
       final _resolver = Resolver();
       var tokens = _lexer.lex(script, commandLine: commandLine);
-      var statements = _parser.parse(tokens, context: context);
+      var statements = _parser.parse(tokens, conlexeme: conlexeme);
       var locals = _resolver.resolve(statements);
       itp.interpreter(
         statements,
@@ -93,39 +99,39 @@ abstract class Hetu {
   /// 解析文件
   static void evalf(String path,
           {Interpreter interpreter,
-          ParserContext context = ParserContext.program,
+          ParserConlexeme conlexeme = ParserConlexeme.program,
           String invokeFunc = null,
           List<dynamic> args}) =>
       eval(File(path).readAsStringSync(),
-          interpreter: interpreter, context: context, invokeFunc: invokeFunc, args: args);
+          interpreter: interpreter, conlexeme: conlexeme, invokeFunc: invokeFunc, args: args);
 
   /// 解析多个文件
   static void evalfs(Set<String> paths,
       {Interpreter interpreter,
-      ParserContext context = ParserContext.program,
+      ParserConlexeme conlexeme = ParserConlexeme.program,
       String invokeFunc = null,
       List<dynamic> args}) {
     String chunk = '';
     for (var file in paths) {
       chunk += File(file).readAsStringSync();
     }
-    eval(chunk, interpreter: interpreter, context: context, invokeFunc: invokeFunc, args: args);
+    eval(chunk, interpreter: interpreter, conlexeme: conlexeme, invokeFunc: invokeFunc, args: args);
   }
 
   /// 解析多个文件
   static void evalfs2(List<FileSystemEntity> paths,
       {Interpreter interpreter,
-      ParserContext context = ParserContext.program,
+      ParserConlexeme conlexeme = ParserConlexeme.program,
       String invokeFunc = null,
       List<dynamic> args}) {
     String chunk = '';
     for (var file in paths) {
       if (file is File) chunk += file.readAsStringSync();
     }
-    eval(chunk, interpreter: interpreter, context: context, invokeFunc: invokeFunc, args: args);
+    eval(chunk, interpreter: interpreter, conlexeme: conlexeme, invokeFunc: invokeFunc, args: args);
   }
 
   /// 解析命令行
   static void evalc(String commandLine, {List<dynamic> args}) =>
-      eval(commandLine, args: args, context: ParserContext.commandLine);
+      eval(commandLine, args: args, conlexeme: ParserConlexeme.commandLine);
 }

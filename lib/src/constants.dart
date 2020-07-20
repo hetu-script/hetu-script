@@ -78,7 +78,7 @@ abstract class Constants {
     Extends,
     Implements,
     Mixin,
-    Extern,
+    External,
     Import,
     Assert,
     Break,
@@ -136,7 +136,7 @@ abstract class Constants {
   static const Dynamic = 'dynamic';
   static const Num = 'num';
   static const Bool = 'bool';
-  static const Str = 'string';
+  static const Str = 'String';
   static const Typedef = 'typedef';
   static const List = 'list';
 
@@ -154,7 +154,7 @@ abstract class Constants {
   static const Extends = 'extends';
   static const Implements = 'implements';
   static const Mixin = 'mixin';
-  static const Extern = 'extern';
+  static const External = 'external';
   static const Import = 'import';
 
   static const Assert = 'assert';
@@ -180,6 +180,8 @@ abstract class Constants {
 
   static const Constructor = 'constructor';
   static const New = 'new';
+
+  static const Object = 'Object';
 
   /// 函数调用表达式
   static const LiteralExpr = 'literal_expression';
@@ -283,6 +285,22 @@ abstract class Constants {
   static const AngleRight = '>';
 
   static const Undefined = 'undefined';
+
+  static const ErrorUndefined = '(Namespace) Undefined variable';
+  static const ErrorRange = '(Iterable) Index out of range, should be less than';
+
+  static const ErrorType1 = '(Namespace) Assigned value type';
+  static const ErrorType2 = 'doesn\'t match declared type';
+
+  static const ErrorDefined1 = '(Namespace) Variable';
+  static const ErrorDefined2 = 'is already declared.';
+
+  static const ErrorUndefinedMember1 = '(Class) The member';
+  static const ErrorUndefinedMember2 = 'isn\'t defined for the class';
+
+  static const ErrorReturnType1 = '(Object) A value of type';
+  static const ErrorReturnType2 = 'can\'t be returned from function';
+  static const ErrorReturnType3 = 'because it has a return type of';
 }
 
 // Hetu运算符优先级
@@ -315,8 +333,3 @@ abstract class Constants {
 //  Conditional      e1 ? e2 : e3                         Right           3
 //  Cascade          ..                                   Left            2
 //  Assignment       =, *=, /=, +=, -=, &=, ˆ=, etc.      Right           1
-
-abstract class HetuOutput {
-  static const UndefinedVariable = '(Environment) Undefined variable';
-  static const OutOfRange = '(Object) Index out of range, should be less than';
-}

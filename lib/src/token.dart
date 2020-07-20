@@ -6,7 +6,7 @@ class Token {
   final int lineNumber;
   final int colNumber;
 
-  dynamic get text => type;
+  dynamic get lexeme => type;
   dynamic get literal => type;
 
   const Token(this.type, this.lineNumber, this.colNumber);
@@ -16,9 +16,10 @@ class Token {
 
 class TokenIdentifier extends Token {
   @override
-  final String text;
+  final String lexeme;
 
-  const TokenIdentifier(this.text, int lineNumber, int colNumber) : super(Constants.Identifier, lineNumber, colNumber);
+  const TokenIdentifier(this.lexeme, int lineNumber, int colNumber)
+      : super(Constants.Identifier, lineNumber, colNumber);
 }
 
 class TokenBoolLiteral extends Token {

@@ -1,22 +1,23 @@
 import 'dart:io';
 
-import 'object.dart';
+import 'class.dart';
+import 'function.dart';
 
 abstract class HetuBuildInFunction {
-  static Map<String, HetuFunctionCall> bindmap = {
+  static Map<String, Call> bindmap = {
     'println': println,
     'getln': getln,
     'now': now,
   };
 
-  static HetuObject println(List<HetuObject> args) {
+  static Instance println(List<Instance> args) {
     for (var arg in args) {
       print(arg);
     }
-    return HetuObject.Null;
+    return null;
   }
 
-  static HetuString getln(List<HetuObject> args) {
+  static ConstString getln(List<Instance> args) {
     if (args.isNotEmpty) {
       stdout.write('${args.first.toString()}');
     } else {
@@ -24,10 +25,10 @@ abstract class HetuBuildInFunction {
     }
     var input = stdin.readLineSync();
     stdout.write('\x1B[1F\x1B[0G\x1B[0K');
-    return HetuString(input);
+    return ConstString(input);
   }
 
-  static HetuNum now(List<HetuObject> args) {
-    return HetuNum(DateTime.now().millisecondsSinceEpoch);
+  static ConstNum now(List<Instance> args) {
+    return ConstNum(DateTime.now().millisecondsSinceEpoch);
   }
 }

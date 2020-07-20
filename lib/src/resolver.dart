@@ -33,11 +33,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
     if (_blocks.isNotEmpty) {
       var block = _blocks.last;
 
-      if (block.containsKey(varTok.text)) {
-        throw HetuError('(Resolver) Variable [${varTok.text}] already declared in this scope. '
+      if (block.containsKey(varTok.lexeme)) {
+        throw HetuError('(Resolver) Variable [${varTok.lexeme}] already declared in this scope. '
             ' [${varTok.lineNumber}, ${varTok.colNumber}].');
       }
-      block[varTok.text] = define;
+      block[varTok.lexeme] = define;
     }
   }
 
@@ -93,11 +93,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitVarExpr(VarExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HetuError('(Resolver) Cannot use uninitialized variable [${expr.name.text}] '
+      throw HetuError('(Resolver) Cannot use uninitialized variable [${expr.name.lexeme}] '
           ' [${expr.lineNumber}, ${expr.colNumber}].');
     }
 
-    _addLocal(expr, expr.name.text);
+    _addLocal(expr, expr.name.lexeme);
   }
 
   @override
@@ -126,7 +126,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
     _resolveExpr(expr.value);
-    _addLocal(expr, expr.variable.text);
+    _addLocal(expr, expr.variable.lexeme);
     return null;
   }
 
@@ -147,7 +147,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveExpr(stmt.initializer);
       _declare(stmt.varname, define: true);
     } else {
-      _define(stmt.varname.text);
+      _define(stmt.varname.lexeme);
     }
     return null;
   }
@@ -213,7 +213,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _declare(stmt.name, define: true);
 
     if (stmt.superClass != null) {
-      if (stmt.name.text == stmt.superClass.name.text) {
+      if (stmt.name.lexeme == stmt.superClass.name.lexeme) {
         throw HetuError('(Resolver) A class cannot inherit from itself, '
             ' [${stmt.name.lineNumber}, ${stmt.name.colNumber}].');
       }
@@ -256,6 +256,6 @@ class Resolver implements ExprVisitor, StmtVisitor {
           ' [${expr.keyword.lineNumber}, ${expr.keyword.colNumber}].');
     }
 
-    _addLocal(expr, expr.keyword.text);
+    _addLocal(expr, expr.keyword.lexeme);
   }
 }

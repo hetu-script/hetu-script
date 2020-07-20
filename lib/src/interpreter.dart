@@ -3,8 +3,9 @@ import 'constants.dart';
 import 'token.dart';
 import 'expression.dart';
 import 'statement.dart';
-import 'environment.dart';
-import 'object.dart';
+import 'namespace.dart';
+import 'class.dart';
+import 'function.dart';
 
 Interpreter globalInterpreter = Interpreter();
 
@@ -14,17 +15,17 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _locals = <Expr, int>{};
 
-  /// 当前模块变量
-  Environment _environment;
+  /// 保存当前语句所在的命名空间
+  Namespace _curSpace;
 
-  /// 全局变量
-  final _globals = Environment();
+  /// 全局命名空间
+  final _global = Namespace();
 
   Interpreter() {
-    _environment = _globals;
+    _curSpace = _global;
   }
 
-  void bindAll(Map<String, HetuFunctionCall> bindMap) {
+  void bindAll(Map<String, Call> bindMap) {
     // 绑定外部函数
     if (bindMap != null) {
       for (var key in bindMap.keys) {
@@ -33,33 +34,37 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void bind(String name, HetuFunctionCall function) {
-    if (_globals.contains(name)) {
-      throw HetuError('(Interpreter) Function [${name}] is already defined.');
+  void define(String name, Identifier value) {
+    if (_global.contains(name)) {
+      throw HetuErrorDefined(name);
     } else {
-      if (function == null) {
-        throw HetuError('(Interpreter) Function [${name}] is null.');
-      } else {
-        var func_obj = HetuFunction(name, extern: function);
-        _globals.define(name, Constants.Function, value: func_obj);
-      }
+      _global.define(name, value.type, value: value);
     }
   }
 
-  dynamic _getVar(Token varname, Expr expr) {
+  void bind(String name, Call function) {
+    if (_global.contains(name)) {
+      throw HetuErrorDefined(name);
+    } else {
+      var func_obj = Subroutine(name, extern: function);
+      _global.define(name, Constants.Function, value: func_obj);
+    }
+  }
+
+  dynamic _getVar(String name, Expr expr) {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试获取当前环境中的本地变量
-      return _environment.searchByToken(distance, varname);
+      return _curSpace.getVarAt(distance, name);
     } else {
       try {
         // 尝试获取当前实例中的类成员变量
-        HetuInstance instance = _environment.getByName(Constants.This);
-        return instance.memberGetByToken(varname);
+        Instance instance = _curSpace.getVar(Constants.This);
+        return instance.fieldGet(name);
       } catch (e) {
-        if (e is HetuErrorSymbolNotFound) {
+        if (e is HetuErrorUndefined) {
           // 尝试获取全局变量
-          return _globals.getByToken(varname);
+          return _global.getVar(name);
         } else {
           throw e;
         }
@@ -82,24 +87,24 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void invoke(String name, {List<HetuObject> args}) {
-    var func = _globals.getByName(name);
-    if (func is HetuFunction) {
+  void invoke(String name, {List<Instance> args}) {
+    var func = _global.getVar(name);
+    if (func is Subroutine) {
       func.call(args ?? []);
     } else {
       throw HetuError('(Interpreter) Could not find function "${name}".');
     }
   }
 
-  void executeBlock(List<Stmt> statements, Environment environment) {
-    var save = _environment;
+  void executeBlock(List<Stmt> statements, Namespace environment) {
+    var save = _curSpace;
     try {
-      _environment = environment;
+      _curSpace = environment;
       for (var stmt in statements) {
         execute(stmt);
       }
     } finally {
-      _environment = save;
+      _curSpace = save;
     }
   }
 
@@ -109,7 +114,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitLiteralExpr(LiteralExpr expr) {
-    HetuObject result = HetuObject.Null;
+    Instance result = NULL;
     if (expr.value.literal is num) {
       result = HetuNum(expr.value.literal);
     } else if (expr.value.literal is bool) {
@@ -128,16 +133,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
-    HetuObject result = HetuObject.Null;
-    HetuObject value = evaluate(expr.value);
+    Instance result = Instance.Null;
+    Instance value = evaluate(expr.value);
 
-    switch (expr.op.text) {
+    switch (expr.op.lexeme) {
       case Constants.Subtract:
         {
           if (value is HetuNum) {
             result = HetuNum(-value.literal);
           } else {
-            throw HetuError('(Interpreter) Undefined negetive operator [${expr.op.text}] on [${value}].'
+            throw HetuError('(Interpreter) Undefined negetive operator [${expr.op.lexeme}] on [${value}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
@@ -147,14 +152,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           if (value is HetuBool) {
             result = HetuBool(!value.literal);
           } else {
-            throw HetuError('(Interpreter) Undefined logical not operator [${expr.op.text}] on [${value}].'
+            throw HetuError('(Interpreter) Undefined logical not operator [${expr.op.lexeme}] on [${value}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
         break;
       default:
         throw HetuError(
-            '(Environment) Unknown unary operator [${value}]. [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+            '(Namespace) Unknown unary operator [${value}]. [${expr.op.lineNumber}, ${expr.op.colNumber}].');
         break;
     }
 
@@ -163,9 +168,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    HetuObject result = HetuObject.Null;
-    HetuObject left = evaluate(expr.left);
-    HetuObject right = evaluate(expr.right);
+    Instance result = Instance.Null;
+    Instance left = evaluate(expr.left);
+    Instance right = evaluate(expr.right);
 
     // TODO 操作符重载??
     switch (expr.op.type) {
@@ -180,11 +185,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
                 result = HetuBool(left.literal && right.literal);
               }
             } else {
-              throw HetuError('(Interpreter) Undefined logical operator [${expr.op.text}] on [${left}] and [${right}].'
+              throw HetuError(
+                  '(Interpreter) Undefined logical operator [${expr.op.lexeme}] on [${left}] and [${right}].'
                   ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
             }
           } else {
-            throw HetuError('(Interpreter) Undefined logical operator [${expr.op.text}] on [${left}] and [${right}].'
+            throw HetuError('(Interpreter) Undefined logical operator [${expr.op.lexeme}] on [${left}] and [${right}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
@@ -201,13 +207,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           if ((left is HetuString) || (right is HetuString)) {
             result = HetuString(left.toString() + right.toString());
           } else if ((left is HetuNum) && (right is HetuNum)) {
-            if (expr.op.text == Constants.Add) {
+            if (expr.op.lexeme == Constants.Add) {
               result = HetuNum(left.literal + right.literal);
-            } else if (expr.op.text == Constants.Subtract) {
+            } else if (expr.op.lexeme == Constants.Subtract) {
               result = HetuNum(left.literal - right.literal);
             }
           } else {
-            throw HetuError('(Interpreter) Undefined additive operator [${expr.op.text}] on [${left}] and [${right}].'
+            throw HetuError('(Interpreter) Undefined additive operator [${expr.op.lexeme}] on [${left}] and [${right}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
@@ -239,18 +245,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
               }
             } else {
               throw HetuError(
-                  '(Interpreter) Undefined multipicative operator [${expr.op.text}] on [${left}] and [${right}].'
+                  '(Interpreter) Undefined multipicative operator [${expr.op.lexeme}] on [${left}] and [${right}].'
                   ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
             }
           } else {
             throw HetuError(
-                '(Interpreter) Undefined multipicative operator [${expr.op.text}] on [${left}] and [${right}].'
+                '(Interpreter) Undefined multipicative operator [${expr.op.lexeme}] on [${left}] and [${right}].'
                 ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
           }
         }
         break;
       default:
-        throw HetuError('(Interpreter) Unknown binary operator [${expr.op.text}].'
+        throw HetuError('(Interpreter) Unknown binary operator [${expr.op.lexeme}].'
             ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
         break;
     }
@@ -260,14 +266,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
-    HetuObject callee = evaluate(expr.callee);
-    HetuObject result = HetuObject.Null;
-    var args = <HetuObject>[];
+    Instance callee = evaluate(expr.callee);
+    Instance result = Instance.Null;
+    var args = <Instance>[];
     for (var arg in expr.args) {
       args.add(evaluate(arg));
     }
 
-    if (callee is HetuFunction) {
+    if (callee is Subroutine) {
       if ((callee.arity >= 0) && (callee.arity != expr.args.length)) {
         throw HetuError(
             '(Interpreter) Number of arguments (${expr.args.length}) doesn\'t match the parameters (${callee.arity}). '
@@ -276,9 +282,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         for (var i = 0; i < callee.funcStmt.params.length; ++i) {
           var param_token = callee.funcStmt.params[i].typename;
           var arg = args[i];
-          if (arg.type != param_token.text) {
+          if (arg.type != param_token.lexeme) {
             throw HetuError(
-                '(Interpreter) The argument type "${arg.type}" can\'t be assigned to the parameter type "${param_token.text}".'
+                '(Interpreter) The argument type "${arg.type}" can\'t be assigned to the parameter type "${param_token.lexeme}".'
                 ' [${param_token.lineNumber}, ${param_token.colNumber}].');
           }
         }
@@ -293,14 +299,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       // for (var i = 0; i < callee.varStmts.length; ++i) {
       //   var param_type_token = callee.varStmts[i].typename;
       //   var arg = args[i];
-      //   if (arg.type != param_type_token.text) {
+      //   if (arg.type != param_type_token.lexeme) {
       //     throw HetuError(
-      //         '(Interpreter) The argument type "${arg.type}" can\'t be assigned to the parameter type "${param_type_token.text}".'
+      //         '(Interpreter) The argument type "${arg.type}" can\'t be assigned to the parameter type "${param_type_token.lexeme}".'
       //         ' [${param_type_token.lineNumber}, ${param_type_token.colNumber}].');
       //   }
       // }
 
-      result = callee.getInstance(args);
+      result = callee.generateInstance(args);
     } else {
       throw HetuError('(Interpreter) Object [${callee}] is not callable.'
           ' [${expr.callee.lineNumber}, ${expr.callee.colNumber}].');
@@ -316,16 +322,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      _environment.assignAt(distance, expr.variable, value);
+      _curSpace.assignAt(distance, expr.variable, value);
     } else {
       try {
         // 尝试设置当前实例中的类成员变量
-        HetuInstance instance = _environment.getByName(Constants.This);
+        Instance instance = _curSpace.getByName(Constants.This);
         instance.variableSet(expr.variable, value);
       } catch (e) {
-        if (e is HetuErrorSymbolNotFound) {
+        if (e is HetuErrorUndefined) {
           // 尝试设置全局变量
-          _globals.assign(expr.variable, value);
+          _global.assign(expr.variable, value);
         } else {
           throw e;
         }
@@ -343,30 +349,27 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitVarStmt(VarStmt stmt) {
-    HetuObject value;
+    Instance value;
     if (stmt.initializer != null) {
       value = evaluate(stmt.initializer);
-      if (value is HetuNull) {
+      if (value == NULL) {
         HetuError.add('(Interpreter) Don\'t explicitly initialize variables to null.'
             ' [${stmt.varname.lineNumber}, ${stmt.varname.colNumber}].');
       }
     }
 
-    if (stmt.typename.text == Constants.Dynamic) {
-      _environment.declare(stmt.varname, stmt.typename.text, value: value);
-    } else if (stmt.typename.text == Constants.Var) {
+    if (stmt.typename.lexeme == Constants.Dynamic) {
+      _curSpace.define(stmt.varname.lexeme, stmt.typename.lexeme, value: value);
+    } else if (stmt.typename.lexeme == Constants.Var) {
       // 如果用了var关键字，则从初始化表达式推断变量类型
       if (value != null) {
-        _environment.declare(stmt.varname, value.type, value: value);
+        _curSpace.define(stmt.varname.lexeme, value.type, value: value);
       } else {
-        _environment.declare(stmt.varname, Constants.Dynamic);
+        _curSpace.define(stmt.varname.lexeme, Constants.Dynamic);
       }
     } else {
-      if (value != null) {
-        _environment.declare(stmt.varname, stmt.typename.text, value: value);
-      } else {
-        _environment.declare(stmt.varname, stmt.typename.text);
-      }
+      // 接下来define函数会判断类型是否符合声明
+      _curSpace.define(stmt.varname.lexeme, stmt.typename.lexeme, value: value);
     }
   }
 
@@ -374,11 +377,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void visitExprStmt(ExprStmt stmt) => evaluate(stmt.expr);
 
   @override
-  void visitBlockStmt(BlockStmt stmt) => executeBlock(stmt.block, Environment.enclose(_environment));
+  void visitBlockStmt(BlockStmt stmt) => executeBlock(stmt.block, Namespace.enclose(_curSpace));
 
   @override
   void visitReturnStmt(ReturnStmt stmt) {
-    HetuObject value = HetuObject.Null;
+    Instance value = Instance.Null;
     if (stmt.expr != null) {
       value = evaluate(stmt.expr);
     }
@@ -429,8 +432,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    HetuObject object = evaluate(expr.collection);
-    if (object is HetuInstance) {
+    Instance object = evaluate(expr.collection);
+    if (object is Instance) {
       return object.memberGetByToken(expr.key);
     } else if (object is HetuClass) {
       return object.getMethodByToken(expr.key);
@@ -442,9 +445,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
-    HetuObject object = evaluate(expr.collection);
-    if (object is HetuInstance) {
-      HetuObject value = evaluate(expr.value);
+    Instance object = evaluate(expr.collection);
+    if (object is Instance) {
+      Instance value = evaluate(expr.value);
       object.variableSet(expr.key, value);
       return value;
     }
@@ -452,8 +455,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    var function = HetuFunction(stmt.name.text, funcStmt: stmt, closure: _environment, isConstructor: false);
-    _environment.declare(stmt.name, Constants.Function, value: function);
+    var function = Subroutine(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
+    _curSpace.declare(stmt.name, Constants.Function, value: function);
   }
 
   @override
@@ -462,34 +465,38 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitClassStmt(ClassStmt stmt) {
-    HetuClass superClass = null;
+    Class superClass;
 
     if (stmt.superClass != null) {
       superClass = evaluate(stmt.superClass);
-      if (superClass is! HetuClass) {
+      if (superClass is! Class) {
         throw HetuError('(Interpreter) [${superClass.name}] is not a classname.'
             ' [${stmt.superClass.lineNumber}, ${stmt.superClass.colNumber}].');
       }
 
-      _environment = Environment.enclose(_environment);
-      _environment.define(Constants.Super, Constants.Class, value: superClass);
+      _curSpace = Namespace(_curSpace);
+      _curSpace.define(Constants.Super, Constants.Class, value: superClass);
+    } else {
+      superClass = htObject;
     }
 
-    var methods = <String, HetuFunction>{};
+    var methods = <String, Subroutine>{};
     for (var stmt in stmt.methods) {
       if (stmt is FuncStmt) {
         var function =
-            HetuFunction(stmt.name.text, funcStmt: stmt, closure: _environment, isConstructor: stmt is ConstructorStmt);
-        methods[stmt.name.text] = function;
+            Subroutine(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: stmt is ConstructorStmt);
+        methods[stmt.name.lexeme] = function;
       }
     }
 
-    var hetuClass = HetuClass(stmt.name.text, superClass, stmt.variables, methods);
+    var hetuClass = Class(stmt.name.lexeme, superClass: superClass, decls: stmt.variables, methods: methods);
 
-    _environment.declare(stmt.name, Constants.Class, value: hetuClass);
+    // 在class中define static变量和函数
+
+    _curSpace.declare(stmt.name, Constants.Class, value: hetuClass);
 
     if (superClass != null) {
-      _environment = _environment.enclosing;
+      _curSpace = _curSpace.enclosing;
     }
   }
 }
