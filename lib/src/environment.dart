@@ -3,15 +3,6 @@ import 'token.dart';
 import 'object.dart';
 import 'constants.dart';
 
-class VarWrapper {
-  String type;
-  HetuObject value;
-
-  VarWrapper(this.type, {this.value}) {
-    value ??= HetuObject.Null;
-  }
-}
-
 class Environment {
   final Map<String, VarWrapper> _variables = {};
 

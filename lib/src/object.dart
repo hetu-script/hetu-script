@@ -12,10 +12,21 @@ import 'token.dart';
 abstract class HetuObject {
   String get type;
 
-  const HetuObject();
+  final Map<String, HetuObject> members = {};
 
-  static const Null = HetuNull();
+  HetuObject();
 }
+
+class HetuDecl {
+  String type;
+  HetuObject value;
+
+  HetuDecl(this.type, {this.value}) {
+    value ??= HetuNull();
+  }
+}
+
+class HetuTypeDef {}
 
 class HetuNull extends HetuObject {
   @override
@@ -24,7 +35,11 @@ class HetuNull extends HetuObject {
   @override
   String toString() => Constants.Null;
 
-  const HetuNull();
+  static final _instance = HetuNull._();
+
+  factory HetuNull() => _instance;
+
+  HetuNull._();
 }
 
 // TODO: 字面常量也是对象和实例，应该可以直接用“2.toString()”这种方式调用函数
@@ -39,9 +54,6 @@ class HetuNum extends HetuObject {
   HetuNum(num value) {
     literal = value;
   }
-
-  @override
-  bool operator ==(dynamic other) => (other is HetuNum) && (literal == other.literal);
 }
 
 class HetuString extends HetuObject {
@@ -55,9 +67,6 @@ class HetuString extends HetuObject {
   HetuString(String value) {
     literal = value;
   }
-
-  @override
-  bool operator ==(dynamic other) => (other is HetuString) && (literal == other.literal);
 }
 
 class HetuBool extends HetuObject {
@@ -71,9 +80,6 @@ class HetuBool extends HetuObject {
   HetuBool(bool value) {
     literal = value;
   }
-
-  @override
-  bool operator ==(dynamic other) => (other is HetuBool) && (literal == other.literal);
 }
 
 typedef HetuFunctionCall = HetuObject Function(List<HetuObject> args);
