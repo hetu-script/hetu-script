@@ -11,33 +11,33 @@ class Token {
 
   const Token(this.type, this.line, this.column);
 
-  static Token get EOF => Token(Common.EOF, -1, -1);
+  static Token get EOF => Token(HS_Common.EOF, -1, -1);
 }
 
 class TokenIdentifier extends Token {
   @override
   final String lexeme;
 
-  const TokenIdentifier(this.lexeme, int line, int column) : super(Common.Identifier, line, column);
+  const TokenIdentifier(this.lexeme, int line, int column) : super(HS_Common.Identifier, line, column);
 }
 
 class TokenBoolLiteral extends Token {
   @override
   final bool literal;
 
-  const TokenBoolLiteral(this.literal, int line, int column) : super(Common.Bool, line, column);
+  const TokenBoolLiteral(this.literal, int line, int column) : super(HS_Common.Bool, line, column);
 }
 
 class TokenNumLiteral extends Token {
   @override
   final num literal;
 
-  const TokenNumLiteral(this.literal, int line, int column) : super(Common.Num, line, column);
+  const TokenNumLiteral(this.literal, int line, int column) : super(HS_Common.Num, line, column);
 }
 
 class TokenStringLiteral extends Token {
   @override
   final String literal;
 
-  const TokenStringLiteral(this.literal, int line, int column) : super(Common.Str, line, column);
+  const TokenStringLiteral(this.literal, int line, int column) : super(HS_Common.Str, line, column);
 }

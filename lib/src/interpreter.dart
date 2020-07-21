@@ -15,13 +15,16 @@ class Context implements ExprVisitor, StmtVisitor {
   final _locals = <Expr, int>{};
 
   ///
-  final _literals = <Literal>[];
+  final _literals = <HSVal_Literal>[];
 
   /// 保存当前语句所在的命名空间
   Namespace _curSpace;
 
   /// 全局命名空间
   final _global = Namespace();
+
+  /// external函数的空间
+  final _external = Namespace();
 
   Context() {
     _curSpace = _global;
@@ -33,7 +36,7 @@ class Context implements ExprVisitor, StmtVisitor {
 
   /// 定义一个常量，然后返回数组下标
   /// 相同值的常量不会重复定义
-  int addLiteral(Literal literal) {
+  int addLiteral(HSVal_Literal literal) {
     for (var i = 0; i < _literals.length; ++i) {
       if (_literals[i].value == literal.value) {
         return i;
@@ -44,9 +47,9 @@ class Context implements ExprVisitor, StmtVisitor {
     return _literals.length - 1;
   }
 
-  void define(String name, Value value) {
+  void define(String name, HS_Value value) {
     if (_global.contains(name)) {
-      throw HetuErrorDefined(name);
+      throw HSErr_Defined(name);
     } else {
       _global.define(name, value.type, value: value);
     }
@@ -54,15 +57,15 @@ class Context implements ExprVisitor, StmtVisitor {
 
   void bind(String name, Call function) {
     if (_global.contains(name)) {
-      throw HetuErrorDefined(name);
+      throw HSErr_Defined(name);
     } else {
-      var func_obj = Subroutine(name, extern: function);
-      _global.define(name, Common.Function, value: func_obj);
+      var func_obj = HS_Function(name, bindFunc: function);
+      _global.define(name, HS_Common.Function, value: func_obj);
     }
   }
 
+  /// 绑定外部函数
   void bindAll(Map<String, Call> bindMap) {
-    // 绑定外部函数
     if (bindMap != null) {
       for (var key in bindMap.keys) {
         bind(key, bindMap[key]);
@@ -70,9 +73,27 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  Value fetch(String name) => _global.fetch(name);
+  void link(String name, Call function) {
+    if (_external.contains(name)) {
+      throw HSErr_Defined(name);
+    } else {
+      var func_obj = HS_Function(name, bindFunc: function);
+      _external.define(name, HS_Common.Function, value: func_obj);
+    }
+  }
 
-  Value _getVar(String name, Expr expr) {
+  /// 链接外部函数
+  void linkAll(Map<String, Call> linkMap) {
+    if (linkMap != null) {
+      for (var key in linkMap.keys) {
+        link(key, linkMap[key]);
+      }
+    }
+  }
+
+  HS_Value fetch(String name) => _global.fetch(name);
+
+  HS_Value _getVar(String name, Expr expr) {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试获取当前环境中的本地变量
@@ -80,10 +101,10 @@ class Context implements ExprVisitor, StmtVisitor {
     } else {
       try {
         // 尝试获取当前实例中的类成员变量
-        Instance instance = _curSpace.fetch(Common.This);
+        HS_Instance instance = _curSpace.fetch(HS_Common.This);
         return instance.get(name);
       } catch (e) {
-        if ((e is HetuErrorUndefinedMember) || (e is HetuErrorUndefined)) {
+        if ((e is HSErr_UndefinedMember) || (e is HSErr_Undefined)) {
           // 尝试获取全局变量
           return _global.fetch(name);
         } else {
@@ -93,7 +114,22 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void interpreter(List<Stmt> statements, {bool commandLine = false, String invokeFunc = null, List<Instance> args}) {
+  // HS_Value convert(dynamic value) {
+  //   if (value is HS_Value) {
+  //     return value;
+  //   } else if (value is num) {
+  //     return HSVal_Num(value);
+  //   } else if (value is bool) {
+  //     return HSVal_Bool(value);
+  //   } else if (value is String) {
+  //     return HSVal_String(value);
+  //   } else {
+  //     throw HSErr_Unsupport(value);
+  //   }
+  // }
+
+  void interpreter(List<Stmt> statements,
+      {bool commandLine = false, String invokeFunc = null, List<HS_Instance> args}) {
     for (var stmt in statements) {
       execute(stmt);
     }
@@ -103,12 +139,12 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void invoke(String name, {List<Instance> args}) {
+  void invoke(String name, {List<HS_Instance> args}) {
     var func = _global.fetch(name);
-    if (func is Subroutine) {
+    if (func is HS_Function) {
       func.call(args ?? []);
     } else {
-      throw HetuErrorUndefined(name);
+      throw HSErr_Undefined(name);
     }
   }
 
@@ -144,112 +180,112 @@ class Context implements ExprVisitor, StmtVisitor {
     var value = evaluate(expr.value);
 
     switch (expr.op.lexeme) {
-      case Common.Subtract:
+      case HS_Common.Subtract:
         {
-          if (value is num) {
-            return -value;
+          if (value is HSVal_Num) {
+            return HSVal_Num(-value.value);
           } else {
-            throw HetuErrorUndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            throw HSErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
-      case Common.Not:
+      case HS_Common.Not:
         {
-          if (value is bool) {
-            return !value;
+          if (value is HSVal_Bool) {
+            return HSVal_Bool(!value.value);
           } else {
-            throw HetuErrorUndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            throw HSErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
       default:
-        throw HetuErrorUndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+        throw HSErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
         break;
     }
   }
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    var left = evaluate(expr.left);
-    var right = evaluate(expr.right);
+    var left = (evaluate(expr.left) as HSVal_Literal).value;
+    var right = (evaluate(expr.right) as HSVal_Literal).value;
 
     // TODO 操作符重载
     switch (expr.op.type) {
-      case Common.Or:
-      case Common.And:
+      case HS_Common.Or:
+      case HS_Common.And:
         {
           if (left is bool) {
             if (right is bool) {
-              if (expr.op.type == Common.Or) {
-                return left || right;
-              } else if (expr.op.type == Common.And) {
-                return left && right;
+              if (expr.op.type == HS_Common.Or) {
+                return HSVal_Bool(left || right);
+              } else if (expr.op.type == HS_Common.And) {
+                return HSVal_Bool(left && right);
               }
             } else {
-              throw HetuErrorUndefinedOperator(right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+              throw HSErr_UndefinedOperator(right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
             }
           } else {
-            throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            throw HSErr_UndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
-      case Common.Equal:
-        return left == right;
+      case HS_Common.Equal:
+        return HSVal_Bool(left == right);
         break;
-      case Common.NotEqual:
-        return left != right;
+      case HS_Common.NotEqual:
+        return HSVal_Bool(left != right);
         break;
-      case Common.Add:
-      case Common.Subtract:
+      case HS_Common.Add:
+      case HS_Common.Subtract:
         {
           if ((left is String) || (right is String)) {
-            return left + right;
+            return HSVal_String(left + right);
           } else if ((left is num) && (right is num)) {
-            if (expr.op.lexeme == Common.Add) {
-              return left + right;
-            } else if (expr.op.lexeme == Common.Subtract) {
-              return left - right;
+            if (expr.op.lexeme == HS_Common.Add) {
+              return HSVal_Num(left + right);
+            } else if (expr.op.lexeme == HS_Common.Subtract) {
+              return HSVal_Num(left - right);
             }
           } else {
-            throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            throw HSErr_UndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
-      case Common.Multiply:
-      case Common.Devide:
-      case Common.Modulo:
-      case Common.Greater:
-      case Common.GreaterOrEqual:
-      case Common.Lesser:
-      case Common.LesserOrEqual:
+      case HS_Common.Multiply:
+      case HS_Common.Devide:
+      case HS_Common.Modulo:
+      case HS_Common.Greater:
+      case HS_Common.GreaterOrEqual:
+      case HS_Common.Lesser:
+      case HS_Common.LesserOrEqual:
         {
           if (left is num) {
             if (right is num) {
-              if (expr.op.type == Common.Multiply) {
-                return left * right;
-              } else if (expr.op.type == Common.Devide) {
-                return left / right;
-              } else if (expr.op.type == Common.Modulo) {
-                return left % right;
-              } else if (expr.op.type == Common.Greater) {
-                return left > right;
-              } else if (expr.op.type == Common.GreaterOrEqual) {
-                return left >= right;
-              } else if (expr.op.type == Common.Lesser) {
-                return left < right;
-              } else if (expr.op.type == Common.LesserOrEqual) {
-                return left <= right;
+              if (expr.op.type == HS_Common.Multiply) {
+                return HSVal_Num(left * right);
+              } else if (expr.op.type == HS_Common.Devide) {
+                return HSVal_Num(left / right);
+              } else if (expr.op.type == HS_Common.Modulo) {
+                return HSVal_Num(left % right);
+              } else if (expr.op.type == HS_Common.Greater) {
+                return HSVal_Bool(left > right);
+              } else if (expr.op.type == HS_Common.GreaterOrEqual) {
+                return HSVal_Bool(left >= right);
+              } else if (expr.op.type == HS_Common.Lesser) {
+                return HSVal_Bool(left < right);
+              } else if (expr.op.type == HS_Common.LesserOrEqual) {
+                return HSVal_Bool(left <= right);
               }
             } else {
-              throw HetuErrorUndefinedOperator(right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+              throw HSErr_UndefinedOperator(right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
             }
           } else {
-            throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            throw HSErr_UndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
       default:
-        throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+        throw HSErr_UndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
         break;
     }
   }
@@ -257,28 +293,22 @@ class Context implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitCallExpr(CallExpr expr) {
     var callee = evaluate(expr.callee);
-    var args = <Instance>[];
+    var args = <HS_Instance>[];
     for (var arg in expr.args) {
+      //var value = convert(evaluate(arg));
       var value = evaluate(arg);
-      if (value is num) {
-        value = LNum(value);
-      } else if (value is bool) {
-        value = LBool(value);
-      } else if (value is String) {
-        value = LString(value);
-      }
-      args.add(evaluate(arg));
+      args.add(value);
     }
 
-    if (callee is Subroutine) {
+    if (callee is HS_Function) {
       if ((callee.arity >= 0) && (callee.arity != expr.args.length)) {
-        throw HetuErrorArity(expr.args.length, callee.arity, expr.callee.line, expr.callee.column);
+        throw HSErr_Arity(expr.args.length, callee.arity, expr.callee.line, expr.callee.column);
       } else if (callee.funcStmt != null) {
         for (var i = 0; i < callee.funcStmt.params.length; ++i) {
           var param_token = callee.funcStmt.params[i].typename;
           var arg = args[i];
-          if (arg.type != param_token.lexeme) {
-            throw HetuErrorArgType(arg.type, param_token.lexeme, param_token.line, param_token.column);
+          if ((param_token.lexeme != HS_Common.Dynamic) && (arg.type != param_token.lexeme)) {
+            throw HSErr_ArgType(arg.type, param_token.lexeme, param_token.line, param_token.column);
           }
         }
       }
@@ -288,7 +318,7 @@ class Context implements ExprVisitor, StmtVisitor {
       } else {
         //TODO命名构造函数
       }
-    } else if (callee is Class) {
+    } else if (callee is HS_Class) {
       // for (var i = 0; i < callee.varStmts.length; ++i) {
       //   var param_type_token = callee.varStmts[i].typename;
       //   var arg = args[i];
@@ -301,12 +331,13 @@ class Context implements ExprVisitor, StmtVisitor {
 
       return callee.createInstance(args: args);
     } else {
-      throw HetuErrorCallable(callee.toString(), expr.callee.line, expr.callee.column);
+      throw HSErr_Callable(callee.toString(), expr.callee.line, expr.callee.column);
     }
   }
 
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
+    //var value = convert(evaluate(expr.value));
     var value = evaluate(expr.value);
 
     var distance = _locals[expr];
@@ -316,10 +347,10 @@ class Context implements ExprVisitor, StmtVisitor {
     } else {
       try {
         // 尝试设置当前实例中的类成员变量
-        Instance instance = _curSpace.fetch(Common.This);
+        HS_Instance instance = _curSpace.fetch(HS_Common.This);
         instance.set(expr.variable.lexeme, value);
       } catch (e) {
-        if (e is HetuErrorUndefined) {
+        if (e is HSErr_Undefined) {
           // 尝试设置全局变量
           _global.assign(expr.variable.lexeme, value);
         } else {
@@ -339,19 +370,20 @@ class Context implements ExprVisitor, StmtVisitor {
 
   @override
   void visitVarStmt(VarStmt stmt) {
-    Instance value;
+    HS_Instance value;
     if (stmt.initializer != null) {
+      //value = convert(evaluate(stmt.initializer));
       value = evaluate(stmt.initializer);
     }
 
-    if (stmt.typename.lexeme == Common.Dynamic) {
+    if (stmt.typename.lexeme == HS_Common.Dynamic) {
       _curSpace.define(stmt.varname.lexeme, stmt.typename.lexeme, value: value);
-    } else if (stmt.typename.lexeme == Common.Var) {
+    } else if (stmt.typename.lexeme == HS_Common.Var) {
       // 如果用了var关键字，则从初始化表达式推断变量类型
       if (value != null) {
         _curSpace.define(stmt.varname.lexeme, value.type, value: value);
       } else {
-        _curSpace.define(stmt.varname.lexeme, Common.Dynamic);
+        _curSpace.define(stmt.varname.lexeme, HS_Common.Dynamic);
       }
     } else {
       // 接下来define函数会判断类型是否符合声明
@@ -376,41 +408,41 @@ class Context implements ExprVisitor, StmtVisitor {
   @override
   void visitIfStmt(IfStmt stmt) {
     var value = evaluate(stmt.condition);
-    if (value is bool) {
-      if (value) {
+    if (value is HSVal_Bool) {
+      if (value.value) {
         execute(stmt.thenBranch);
       } else if (stmt.elseBranch != null) {
         execute(stmt.elseBranch);
       }
     } else {
-      throw HetuErrorCondition(stmt.condition.line, stmt.condition.column);
+      throw HSErr_Condition(stmt.condition.line, stmt.condition.column);
     }
   }
 
   @override
   void visitWhileStmt(WhileStmt stmt) {
     var value = evaluate(stmt.condition);
-    if (value is bool) {
+    if (value is HSVal_Bool) {
       try {
-        while ((value is bool) && (value)) {
+        while ((value is HSVal_Bool) && (value.value)) {
           execute(stmt.loop);
           value = evaluate(stmt.condition);
         }
       } catch (error) {
-        if (error is HetuBreak) {
+        if (error is HS_Break) {
           return;
         } else {
           throw error;
         }
       }
     } else {
-      throw HetuErrorCondition(stmt.condition.line, stmt.condition.column);
+      throw HSErr_Condition(stmt.condition.line, stmt.condition.column);
     }
   }
 
   @override
   void visitBreakStmt(BreakStmt stmt) {
-    throw HetuBreak();
+    throw HS_Break();
   }
 
   @override
@@ -422,20 +454,20 @@ class Context implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
     var object = evaluate(expr.collection);
-    if (object is Instance) {
+    if (object is HS_Instance) {
       return object.get(expr.key.lexeme);
-    } else if (object is Class) {
+    } else if (object is HS_Class) {
       return object.get(expr.key.lexeme);
     }
 
-    throw HetuErrorGet(object.toString(), expr.key.line, expr.key.column);
+    throw HSErr_Get(object.toString(), expr.key.line, expr.key.column);
   }
 
   @override
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
-    Instance object = evaluate(expr.collection);
-    if (object is Instance) {
-      Instance value = evaluate(expr.value);
+    HS_Instance object = evaluate(expr.collection);
+    if (object is HS_Instance) {
+      HS_Instance value = evaluate(expr.value);
       object.set(expr.key.lexeme, value);
       return value;
     }
@@ -443,8 +475,14 @@ class Context implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    var function = Subroutine(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
-    _curSpace.define(stmt.name.lexeme, Common.Function, value: function);
+    var function = HS_Function(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
+    _curSpace.define(stmt.name.lexeme, HS_Common.Function, value: function);
+  }
+
+  @override
+  void visitExternFuncStmt(ExternFuncStmt stmt) {
+    var externFunc = _external.fetch(stmt.name.lexeme);
+    _curSpace.define(stmt.name.lexeme, HS_Common.Function, value: externFunc);
   }
 
   @override
@@ -453,35 +491,39 @@ class Context implements ExprVisitor, StmtVisitor {
 
   @override
   void visitClassStmt(ClassStmt stmt) {
-    Class superClass;
+    HS_Class superClass;
 
     if ((stmt.superClass != null)) {
       superClass = evaluate(stmt.superClass);
-      if (superClass is! Class) {
-        throw HetuErrorExtends(superClass.name, stmt.superClass.line, stmt.superClass.column);
+      if (superClass is! HS_Class) {
+        throw HSErr_Extends(superClass.name, stmt.superClass.line, stmt.superClass.column);
       }
 
       _curSpace = Namespace(_curSpace);
-      _curSpace.define(Common.Super, Common.Class, value: superClass);
+      _curSpace.define(HS_Common.Super, HS_Common.Class, value: superClass);
     }
 
-    var methods = <String, Subroutine>{};
+    var methods = <String, HS_Function>{};
     for (var stmt in stmt.methods) {
-      if (stmt is FuncStmt) {
-        var function =
-            Subroutine(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: stmt is ConstructorStmt);
-        methods[stmt.name.lexeme] = function;
+      if (stmt is ExternFuncStmt) {
+        var externFunc = _external.fetch(stmt.name.lexeme);
+        methods[stmt.name.lexeme] = externFunc;
+      } else {
+        var func =
+            HS_Function(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: stmt is ConstructorStmt);
+        methods[stmt.name.lexeme] = func;
       }
     }
 
-    var hetuClass = Class(stmt.name.lexeme, superClass: superClass, decls: stmt.variables, methods: methods);
+    var hetuClass =
+        HS_Class(stmt.name.lexeme, superClassName: superClass?.name, decls: stmt.variables, methods: methods);
 
     // 在class中define static变量和函数
-
-    _curSpace.define(stmt.name.lexeme, Common.Class, value: hetuClass);
 
     if (superClass != null) {
       _curSpace = _curSpace.enclosing;
     }
+
+    _curSpace.define(stmt.name.lexeme, HS_Common.Class, value: hetuClass);
   }
 }

@@ -3,21 +3,19 @@ import 'class.dart';
 import 'common.dart';
 
 /// Value是命名空间、类和实例的基类
-abstract class Value {
+abstract class HS_Value {
   String get type;
 }
 
 class Definition {
   String type;
-  Value value;
+  HS_Value value;
 
   Definition(this.type, {this.value});
 }
 
-class ConstantMarker {}
-
-class Namespace extends Value {
-  String get type => Common.Namespace;
+class Namespace extends HS_Value {
+  String get type => HS_Common.Namespace;
 
   final Map<String, Definition> defs = {};
 
@@ -37,44 +35,44 @@ class Namespace extends Value {
     return namespace;
   }
 
-  Value fetch(String name) {
+  HS_Value fetch(String name) {
     if (defs.containsKey(name)) {
       return defs[name].value;
     }
 
     if (enclosing != null) return enclosing.fetch(name);
 
-    throw HetuErrorUndefined(name);
+    throw HSErr_Undefined(name);
   }
 
-  Value fetchAt(int distance, String name) => outer(distance).fetch(name);
+  HS_Value fetchAt(int distance, String name) => outer(distance).fetch(name);
 
   /// 在当前命名空间声明一个指定类型的变量
-  void define(String name, String type, {Value value}) {
+  void define(String name, String type, {HS_Value value}) {
     if (!defs.containsKey(name)) {
-      if ((type == Common.Dynamic) || ((value != null) && (type == value.type)) || (value == null)) {
+      if ((type == HS_Common.Dynamic) || ((value != null) && (type == value.type)) || (value == null)) {
         defs[name] = Definition(type, value: value);
       } else {
-        throw HetuErrorType(value.type, type);
+        throw HSErr_Type(value.type, type);
       }
     } else {
-      throw HetuErrorDefined(name);
+      throw HSErr_Defined(name);
     }
   }
 
   /// 向一个已经声明的变量赋值
-  void assign(String name, Value value) {
+  void assign(String name, HS_Value value) {
     if (defs.containsKey(name)) {
       var variableType = defs[name].type;
-      if ((variableType == Common.Dynamic) || (variableType == value.type)) {
+      if ((variableType == HS_Common.Dynamic) || (variableType == value.type)) {
         defs[name].value = value;
       } else {
-        throw HetuErrorType(value.type, variableType);
+        throw HSErr_Type(value.type, variableType);
       }
     } else if (enclosing != null) {
       enclosing.assign(name, value);
     } else {
-      throw HetuErrorUndefined(name);
+      throw HSErr_Undefined(name);
     }
   }
 

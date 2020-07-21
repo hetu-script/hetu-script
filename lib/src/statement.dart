@@ -36,6 +36,9 @@ abstract class StmtVisitor {
   /// 函数声明和定义
   void visitFuncStmt(FuncStmt stmt);
 
+  /// 外部函数
+  void visitExternFuncStmt(ExternFuncStmt stmt);
+
   /// 构造函数
   void visitConstructorStmt(ConstructorStmt stmt);
 
@@ -51,7 +54,7 @@ abstract class Stmt {
 
 class VarStmt extends Stmt {
   @override
-  String get type => Common.VarStmt;
+  String get type => HS_Common.VarStmt;
 
   @override
   void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
@@ -68,7 +71,7 @@ class VarStmt extends Stmt {
 
 class ExprStmt extends Stmt {
   @override
-  String get type => Common.ExprStmt;
+  String get type => HS_Common.ExprStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitExprStmt(this);
@@ -81,7 +84,7 @@ class ExprStmt extends Stmt {
 
 class BlockStmt extends Stmt {
   @override
-  String get type => Common.BlockStmt;
+  String get type => HS_Common.BlockStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBlockStmt(this);
@@ -93,7 +96,7 @@ class BlockStmt extends Stmt {
 
 class ReturnStmt extends Stmt {
   @override
-  String get type => Common.ReturnStmt;
+  String get type => HS_Common.ReturnStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitReturnStmt(this);
@@ -107,7 +110,7 @@ class ReturnStmt extends Stmt {
 
 class IfStmt extends Stmt {
   @override
-  String get type => Common.If;
+  String get type => HS_Common.If;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitIfStmt(this);
@@ -123,7 +126,7 @@ class IfStmt extends Stmt {
 
 class WhileStmt extends Stmt {
   @override
-  String get type => Common.While;
+  String get type => HS_Common.While;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitWhileStmt(this);
@@ -137,7 +140,7 @@ class WhileStmt extends Stmt {
 
 class BreakStmt extends Stmt {
   @override
-  String get type => Common.Break;
+  String get type => HS_Common.Break;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBreakStmt(this);
@@ -145,41 +148,51 @@ class BreakStmt extends Stmt {
 
 class FuncStmt extends Stmt {
   @override
-  String get type => Common.FuncStmt;
+  String get type => HS_Common.FuncStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitFuncStmt(this);
 
-  final String returntype;
+  final String returnType;
 
   final Token name;
 
   final List<VarStmt> params;
 
-  /// 可能是单独的变量名，也可能是一个表达式作为函数使用
   final List<Stmt> definition;
 
-  FuncStmt(this.returntype, this.name, this.params, this.definition);
+  FuncStmt(this.returnType, this.name, this.params, this.definition);
+}
+
+class ExternFuncStmt extends FuncStmt {
+  @override
+  String get type => HS_Common.ExternFuncStmt;
+
+  @override
+  dynamic accept(StmtVisitor visitor) => visitor.visitExternFuncStmt(this);
+
+  final String className;
+
+  ExternFuncStmt(String returnType, Token name, List<VarStmt> params, this.className)
+      : super(returnType, name, params, null);
 }
 
 class ConstructorStmt extends FuncStmt {
   @override
-  String get type => Common.ConstructorStmt;
+  String get type => HS_Common.ConstructorStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitConstructorStmt(this);
 
   final String className;
 
-  final Token name;
-
-  ConstructorStmt(this.className, this.name, List<VarStmt> params, List<Stmt> definition)
-      : super(Common.Void, name, params, definition);
+  ConstructorStmt(this.className, Token name, List<VarStmt> params, List<Stmt> definition)
+      : super(HS_Common.Void, name, params, definition);
 }
 
 class ClassStmt extends Stmt {
   @override
-  String get type => Common.ClassStmt;
+  String get type => HS_Common.ClassStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitClassStmt(this);

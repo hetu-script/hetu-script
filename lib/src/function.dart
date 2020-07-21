@@ -5,22 +5,21 @@ import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
 
-typedef Call = Instance Function(List<Instance> args);
+typedef Call = HS_Instance Function(List<HS_Instance> args);
 
 abstract class Callable {}
 
-class Subroutine extends Instance {
+class HS_Function extends HS_Instance {
   @override
   String toString() => '$name(${type})';
 
   final String name;
-
+  final String className;
   final FuncStmt funcStmt;
   final Namespace closure;
   final bool isConstructor;
 
-  //TODO: external关键字表明函数绑定到了脚本环境之外
-  Call extern;
+  Call bindFunc;
 
   int get arity {
     var a = -1;
@@ -30,12 +29,13 @@ class Subroutine extends Instance {
     return a;
   }
 
-  Subroutine(this.name, {this.funcStmt, this.closure, this.extern, this.isConstructor = false}) : super(htFunction);
+  HS_Function(this.name, {this.className, this.funcStmt, this.closure, this.bindFunc, this.isConstructor = false})
+      : super(HS_Common.Function);
 
-  Subroutine bind(Instance instance) {
+  HS_Function bind(HS_Instance instance) {
     Namespace namespace = Namespace(closure);
-    namespace.define(Common.This, instance.type, value: instance);
-    return Subroutine(
+    namespace.define(HS_Common.This, instance.type, value: instance);
+    return HS_Function(
       name,
       funcStmt: funcStmt,
       closure: namespace,
@@ -43,11 +43,11 @@ class Subroutine extends Instance {
     );
   }
 
-  Instance call(List<Instance> args) {
-    Instance result;
-
+  HS_Instance call(List<HS_Instance> args) {
     try {
-      if (extern == null) {
+      if (bindFunc != null) {
+        return bindFunc(args);
+      } else {
         var environment = Namespace(closure);
         if ((funcStmt != null) && (args != null)) {
           for (var i = 0; i < funcStmt.params.length; i++) {
@@ -56,25 +56,22 @@ class Subroutine extends Instance {
         }
 
         globalContext.executeBlock(funcStmt.definition, environment);
-      } else {
-        result = extern(args);
       }
     } catch (returnValue) {
-      if (returnValue is Instance) {
-        result = returnValue;
-        if ((funcStmt != null) && (funcStmt.returntype != result.type)) {
-          throw HetuErrorReturnType(result.type, name, funcStmt.returntype);
+      if (returnValue is HS_Instance) {
+        if ((funcStmt != null) && (funcStmt.returnType != returnValue.type)) {
+          throw HSErr_ReturnType(returnValue.type, name, funcStmt.returnType);
         }
-        return result;
+        return returnValue;
       } else {
         throw returnValue;
       }
     }
 
     if (isConstructor) {
-      return closure.fetchAt(0, Common.This);
+      return closure.fetchAt(0, HS_Common.This);
+    } else {
+      return null;
     }
-
-    return result;
   }
 }

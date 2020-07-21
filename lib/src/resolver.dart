@@ -35,7 +35,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       var block = _blocks.last;
 
       if (block.containsKey(varTok.lexeme)) {
-        throw HetuErrorDefined(varTok.lexeme, varTok.line, varTok.column);
+        throw HSErr_Defined(varTok.lexeme, varTok.line, varTok.column);
       }
       block[varTok.lexeme] = define;
     }
@@ -61,9 +61,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   void resolve(List<Stmt> statements, {Context context}) {
-    _context = context ?? globalContext;
-
     if (statements != null) {
+      _context = context ?? globalContext;
       for (var stmt in statements) {
         _resolveStmt(stmt);
       }
@@ -93,7 +92,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitVarExpr(VarExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HetuErrorUndefined(expr.name.lexeme, expr.line, expr.column);
+      throw HSErr_Undefined(expr.name.lexeme, expr.line, expr.column);
     }
 
     _addLocal(expr, expr.name.lexeme);
@@ -170,12 +169,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitReturnStmt(ReturnStmt stmt) {
     if (_curFuncType == _FunctionType.none) {
-      throw HetuErrorUnexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
+      throw HSErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
     }
 
     if (stmt.expr != null) {
       if (_curFuncType == _FunctionType.constructor) {
-        throw HetuErrorUnexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
+        throw HSErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
       }
       _resolveExpr(stmt.expr);
     }
@@ -206,6 +205,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
+  void visitExternFuncStmt(ExternFuncStmt stmt) {
+    _declare(stmt.name, define: true);
+    _resolveFunction(stmt, _FunctionType.normal);
+  }
+
+  @override
   void visitConstructorStmt(ConstructorStmt stmt) {
     _resolveFunction(stmt, _FunctionType.constructor);
   }
@@ -218,12 +223,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     if (stmt.superClass != null) {
       if (stmt.name.lexeme == stmt.superClass.name.lexeme) {
-        throw HetuErrorUnexpected(stmt.superClass.name.lexeme, stmt.superClass.name.line, stmt.superClass.name.column);
+        throw HSErr_Unexpected(stmt.superClass.name.lexeme, stmt.superClass.name.line, stmt.superClass.name.column);
       }
 
       _resolveExpr(stmt.superClass);
       _beginBlock();
-      _blocks.last[Common.Super] = true;
+      _blocks.last[HS_Common.Super] = true;
 
       _curClassType = _ClassType.subClass;
     } else {
@@ -231,7 +236,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     }
 
     _beginBlock();
-    _blocks.last[Common.This] = true;
+    _blocks.last[HS_Common.This] = true;
 
     for (var method in stmt.methods) {
       if (method is ConstructorStmt) {
@@ -255,7 +260,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitThisExpr(ThisExpr expr) {
     if (_curClassType == _ClassType.none) {
-      throw HetuErrorUnexpected(expr.keyword.lexeme, expr.line, expr.column);
+      throw HSErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column);
     }
 
     _addLocal(expr, expr.keyword.lexeme);

@@ -1,4 +1,6 @@
-abstract class Common {
+abstract class HS_Common {
+  static var coreLibPath = 'hetu_core';
+
   static var currentLanguage = enUS;
 
   static const zhHans = 'zh-Hans';
@@ -72,7 +74,6 @@ abstract class Common {
     Namespace,
     As,
     Class,
-    Function,
     This,
     Super,
     Extends,
@@ -147,7 +148,7 @@ abstract class Common {
   static const Namespace = 'namespace';
   static const As = 'as';
   static const Class = 'class';
-  static const Function = 'function';
+  static const Function = 'Function';
   static const Method = 'method';
   static const This = 'this';
   static const Super = 'super';
@@ -204,10 +205,11 @@ abstract class Common {
   static const VarStmt = 'variable_statement';
   static const ExprStmt = 'expression_statement';
   static const BlockStmt = 'block_statement';
-  static const ReturnStmt = 'return_statement'; // 返回语句
-  static const FuncStmt = 'function_statement'; // 函数
+  static const ReturnStmt = 'return_statement';
   static const ClassStmt = 'class_statement';
-  static const ConstructorStmt = 'constructor_statement'; // 函数
+  static const FuncStmt = 'function_statement';
+  static const ExternFuncStmt = 'external_function_statement';
+  static const ConstructorStmt = 'constructor_function_statement';
 
   /// 后缀操作符，包含多个符号
   static const UnaryPostfix = <String>[
@@ -286,9 +288,10 @@ abstract class Common {
 
   static const Undefined = 'undefined';
 
+  static const ErrorUnsupport = 'Unsupport value type';
   static const ErrorUnexpected = 'Unexpected identifier';
   static const ErrorUndefined = 'Undefined variable';
-  static const ErrorUndefinedOperator = 'Undefined operator method';
+  static const ErrorUndefinedOperator = 'Undefined operator';
   static const ErrorDefined = 'is already declared';
   static const ErrorRange = 'Index out of range, should be less than';
   static const ErrorInvalidLeftValue = 'Invalid left-value';

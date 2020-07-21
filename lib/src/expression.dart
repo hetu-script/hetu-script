@@ -1,6 +1,5 @@
 import 'token.dart';
 import 'common.dart';
-import 'class.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 ///
@@ -70,7 +69,7 @@ abstract class Expr {
 
 class LiteralExpr extends Expr {
   @override
-  String get type => Common.LiteralExpr;
+  String get type => HS_Common.LiteralExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralExpr(this);
@@ -87,7 +86,7 @@ class LiteralExpr extends Expr {
 
 class UnaryExpr extends Expr {
   @override
-  String get type => Common.UnaryExpr;
+  String get type => HS_Common.UnaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitUnaryExpr(this);
@@ -103,7 +102,7 @@ class UnaryExpr extends Expr {
 
 class BinaryExpr extends Expr {
   @override
-  String get type => Common.BinaryExpr;
+  String get type => HS_Common.BinaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitBinaryExpr(this);
@@ -122,7 +121,7 @@ class BinaryExpr extends Expr {
 
 class VarExpr extends Expr {
   @override
-  String get type => Common.VarExpr;
+  String get type => HS_Common.VarExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitVarExpr(this);
@@ -146,7 +145,7 @@ class VarExpr extends Expr {
 
 class GroupExpr extends Expr {
   @override
-  String get type => Common.VarExpr;
+  String get type => HS_Common.VarExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
@@ -158,7 +157,7 @@ class GroupExpr extends Expr {
 
 class AssignExpr extends Expr {
   @override
-  String get type => Common.AssignExpr;
+  String get type => HS_Common.AssignExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitAssignExpr(this);
@@ -177,7 +176,7 @@ class AssignExpr extends Expr {
 
 class SubGetExpr extends Expr {
   @override
-  String get type => Common.SubGetExpr;
+  String get type => HS_Common.SubGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
@@ -193,7 +192,7 @@ class SubGetExpr extends Expr {
 
 class SubSetExpr extends Expr {
   @override
-  String get type => Common.SubSetExpr;
+  String get type => HS_Common.SubSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
@@ -212,7 +211,7 @@ class SubSetExpr extends Expr {
 
 class MemberGetExpr extends Expr {
   @override
-  String get type => Common.MemberGetExpr;
+  String get type => HS_Common.MemberGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberGetExpr(this);
@@ -228,7 +227,7 @@ class MemberGetExpr extends Expr {
 
 class MemberSetExpr extends Expr {
   @override
-  String get type => Common.MemberSetExpr;
+  String get type => HS_Common.MemberSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberSetExpr(this);
@@ -247,7 +246,7 @@ class MemberSetExpr extends Expr {
 
 class CallExpr extends Expr {
   @override
-  String get type => Common.CallExpr;
+  String get type => HS_Common.CallExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitCallExpr(this);
@@ -275,7 +274,7 @@ class CallExpr extends Expr {
 
 class ThisExpr extends Expr {
   @override
-  String get type => Common.This;
+  String get type => HS_Common.This;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitThisExpr(this);

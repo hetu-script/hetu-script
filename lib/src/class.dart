@@ -5,29 +5,30 @@ import 'function.dart';
 import 'errors.dart';
 import 'statement.dart';
 
-/// [Class]的实例对应河图中的"class"声明
+/// [HS_Class]的实例对应河图中的"class"声明
 ///
-/// [Class]继承自命名空间[Namespace]，[Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
-class Class extends Namespace {
-  String get type => Common.Class;
+/// [HS_Class]继承自命名空间[Namespace]，[HS_Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
+class HS_Class extends Namespace {
+  String get type => HS_Common.Class;
 
   String toString() => '$name';
 
   final String name;
 
-  Class superClass;
+  HS_Class superClass;
 
   List<VarStmt> _decls = [];
 
-  Map<String, Subroutine> _methods = {};
+  Map<String, HS_Function> _methods = {};
 
-  Class(this.name, {this.superClass, List<VarStmt> decls, Map<String, Subroutine> methods}) {
-    if ((name != Common.Object) && (superClass == null)) superClass = htObject;
+  HS_Class(this.name, {String superClassName, List<VarStmt> decls, Map<String, HS_Function> methods}) {
+    if ((superClassName == null) && (name != HS_Common.Object)) superClassName = HS_Common.Object;
+    if (superClassName != null) superClass = globalContext.fetch(superClassName);
     if (decls != null) _decls.addAll(decls);
     if (methods != null) _methods.addAll(methods);
   }
 
-  Subroutine get(String name) {
+  HS_Function get(String name) {
     if (_methods.containsKey(name)) {
       return _methods[name];
     }
@@ -36,24 +37,24 @@ class Class extends Namespace {
       return superClass.get(name);
     }
 
-    throw HetuErrorUndefinedMember(name, this.name);
+    throw HSErr_UndefinedMember(name, this.name);
   }
 
-  Instance createInstance({String constructorName, List<Instance> args}) {
-    var instance = Instance(this);
+  HS_Instance createInstance({String constructorName, List<HS_Instance> args}) {
+    var instance = HS_Instance(name);
 
     for (var decl in _decls) {
-      Instance value;
+      HS_Instance value;
       if (decl.initializer != null) value = globalContext.evaluate(decl.initializer);
 
-      if (decl.typename.lexeme == Common.Dynamic) {
+      if (decl.typename.lexeme == HS_Common.Dynamic) {
         instance.define(decl.varname.lexeme, decl.typename.lexeme, value: value);
-      } else if (decl.typename.lexeme == Common.Var) {
+      } else if (decl.typename.lexeme == HS_Common.Var) {
         // 如果用了var关键字，则从初始化表达式推断变量类型
         if (value != null) {
           instance.define(decl.varname.lexeme, value.type, value: value);
         } else {
-          instance.define(decl.varname.lexeme, Common.Dynamic);
+          instance.define(decl.varname.lexeme, HS_Common.Dynamic);
         }
       } else {
         // 接下来define函数会判断类型是否符合声明
@@ -61,128 +62,78 @@ class Class extends Namespace {
       }
     }
 
-    Subroutine constructorFunction;
+    HS_Function constructorFunction;
     constructorName ??= name;
 
     try {
       constructorFunction = get(constructorName);
     } catch (e) {
-      if (e is! HetuErrorUndefined) {
+      if (e is! HSErr_Undefined) {
         throw e;
       }
     } finally {
-      if (constructorFunction is Subroutine) {
+      if (constructorFunction is HS_Function) {
         constructorFunction.bind(instance).call(args);
       }
     }
 
     return instance;
   }
-
-  static final NULL = Class(
-    Common.Null,
-    superClass: htObject,
-  );
 }
 
-class Instance extends Namespace {
-  String get type => ofClass.name;
+class HS_Instance extends Namespace {
+  String get type => _class.name;
 
   @override
-  String toString() => 'instance of class [${ofClass.name}]';
+  String toString() => 'instance of class [${_class.name}]';
 
-  final Class ofClass;
+  HS_Class _class;
 
-  Instance(this.ofClass);
+  HS_Instance(String class_name) {
+    _class = globalContext.fetch(class_name);
+    12.toString();
+  }
 
-  Instance get(String name) {
+  HS_Instance get(String name) {
     if (defs.containsKey(name)) {
       return defs[name].value;
     } else {
-      Subroutine method = ofClass.get(name);
+      HS_Function method = _class.get(name);
       if (method != null) return method.bind(this);
-      throw HetuErrorUndefined(name);
+      throw HSErr_Undefined(name);
     }
   }
 
-  void set(String name, Instance value) {
+  void set(String name, HS_Instance value) {
     if (defs.containsKey(name)) {
       var variableType = defs[name].type;
-      if ((variableType == Common.Dynamic) || (variableType == value.type)) {
-        // 直接改写wrapper里面的值就行，不用重新生成wrapper
+      if ((variableType == HS_Common.Dynamic) || (variableType == value.type)) {
         defs[name].value = value;
       } else {
-        throw HetuErrorType(value.type, variableType);
+        throw HSErr_Type(value.type, variableType);
       }
     } else {
-      throw HetuErrorUndefinedMember(name, ofClass.name);
+      throw HSErr_UndefinedMember(name, _class.name);
     }
   }
 }
 
-/// 一个叫做"Object"的class，是河图中所有对象的基类，在这里用Dart手写出其实例
-var htObject = Class(
-  Common.Object,
-  superClass: null,
-);
-
-var htFunction = Class(
-  Common.Function,
-  superClass: htObject,
-);
-
-var htNull = Class(
-  Common.Null,
-  superClass: htObject,
-);
-
-var htNum = Class(
-  Common.Num,
-  superClass: htObject,
-);
-
-var htBool = Class(
-  Common.Bool,
-  superClass: htObject,
-);
-
-var htString = Class(
-  Common.Str,
-  superClass: htObject,
-);
-
-abstract class Literal extends Instance {
+abstract class HSVal_Literal extends HS_Instance {
   dynamic value;
 
-  @override
-  String toString() => value.toString();
-
-  Literal(this.value, Class ofClass) : super(ofClass);
+  HSVal_Literal(this.value, String class_name) : super(class_name) {
+    define('_val', HS_Common.Dynamic, value: this);
+  }
 }
 
-class LNull extends Literal {
-  String get type => Common.Null;
-
-  LNull() : super(null, htNull);
+class HSVal_Num extends HSVal_Literal {
+  HSVal_Num(num value) : super(value, HS_Common.Num);
 }
 
-/// 只在get成员时使用，如果是计算的话，则直接使用Dart的字面量
-class LNum extends Literal {
-  String get type => Common.Num;
-
-  LNum(num value) : super(value.toString, htNum);
+class HSVal_Bool extends HSVal_Literal {
+  HSVal_Bool(bool value) : super(value, HS_Common.Bool);
 }
 
-/// 只在get成员时使用，如果是计算的话，则直接使用Dart的字面量
-class LBool extends Literal {
-  String get type => Common.Bool;
-
-  LBool(bool value) : super(value.toString, htBool);
-}
-
-/// 只在get成员时使用，如果是计算的话，则直接使用Dart的字面量
-class LString extends Literal {
-  String get type => Common.Str;
-
-  LString(String value) : super(value, htString);
+class HSVal_String extends HSVal_Literal {
+  HSVal_String(String value) : super(value, HS_Common.Str);
 }

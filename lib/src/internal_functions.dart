@@ -10,14 +10,16 @@ abstract class HetuBuildInFunction {
     'now': now,
   };
 
-  static Instance println(List<Instance> args) {
+  static Map<String, Call> linkmap = {};
+
+  static HS_Instance println(List<HS_Instance> args) {
     for (var arg in args) {
       print(arg);
     }
     return null;
   }
 
-  static LString getln(List<Instance> args) {
+  static HSVal_String getln(List<HS_Instance> args) {
     if (args.isNotEmpty) {
       stdout.write('${args.first.toString()}');
     } else {
@@ -25,10 +27,10 @@ abstract class HetuBuildInFunction {
     }
     var input = stdin.readLineSync();
     stdout.write('\x1B[1F\x1B[0G\x1B[0K');
-    return LString(input);
+    return HSVal_String(input);
   }
 
-  static LNum now(List<Instance> args) {
-    return LNum(DateTime.now().millisecondsSinceEpoch);
+  static HSVal_Num now(List<HS_Instance> args) {
+    return HSVal_Num(DateTime.now().millisecondsSinceEpoch);
   }
 }
