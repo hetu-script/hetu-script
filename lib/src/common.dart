@@ -1,4 +1,4 @@
-abstract class Constants {
+abstract class Common {
   static var currentLanguage = enUS;
 
   static const zhHans = 'zh-Hans';
@@ -286,21 +286,30 @@ abstract class Constants {
 
   static const Undefined = 'undefined';
 
-  static const ErrorUndefined = '(Namespace) Undefined variable';
-  static const ErrorRange = '(Iterable) Index out of range, should be less than';
+  static const ErrorUnexpected = 'Unexpected identifier';
+  static const ErrorUndefined = 'Undefined variable';
+  static const ErrorUndefinedOperator = 'Undefined operator method';
+  static const ErrorDefined = 'is already declared';
+  static const ErrorRange = 'Index out of range, should be less than';
+  static const ErrorInvalidLeftValue = 'Invalid left-value';
+  static const ErrorCallable = 'is not callable';
+  static const ErrorUndefinedMember = 'isn\'t defined for the class';
+  static const ErrorCondition = 'Condition expression must evaluate to type "bool"';
+  static const ErrorGet = 'is not a collection or object';
+  static const ErrorExtends = 'is not a class';
 
-  static const ErrorType1 = '(Namespace) Assigned value type';
+  static const ErrorType1 = 'Assigned value type';
   static const ErrorType2 = 'doesn\'t match declared type';
 
-  static const ErrorDefined1 = '(Namespace) Variable';
-  static const ErrorDefined2 = 'is already declared.';
+  static const ErrorArgType1 = 'Argument value type';
+  static const ErrorArgType2 = 'doesn\'t match parameter type';
 
-  static const ErrorUndefinedMember1 = '(Class) The member';
-  static const ErrorUndefinedMember2 = 'isn\'t defined for the class';
-
-  static const ErrorReturnType1 = '(Object) A value of type';
+  static const ErrorReturnType1 = 'Value of type';
   static const ErrorReturnType2 = 'can\'t be returned from function';
   static const ErrorReturnType3 = 'because it has a return type of';
+
+  static const ErrorArity1 = 'Number of arguments';
+  static const ErrorArity2 = 'doesn\'t match number of parameter';
 }
 
 // Hetu运算符优先级

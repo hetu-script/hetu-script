@@ -1,21 +1,23 @@
 import 'errors.dart';
 import 'class.dart';
-import 'constants.dart';
+import 'common.dart';
 
-/// Identifier是命名空间、类和实例的基类
-abstract class Identifier {
+/// Value是命名空间、类和实例的基类
+abstract class Value {
   String get type;
 }
 
 class Definition {
   String type;
-  Identifier value;
+  Value value;
 
   Definition(this.type, {this.value});
 }
 
-class Namespace extends Identifier {
-  String get type => Constants.Namespace;
+class ConstantMarker {}
+
+class Namespace extends Value {
+  String get type => Common.Namespace;
 
   final Map<String, Definition> defs = {};
 
@@ -26,7 +28,7 @@ class Namespace extends Identifier {
     _enclosing = enclosing;
   }
 
-  Namespace upper(int distance) {
+  Namespace outer(int distance) {
     var namespace = this;
     for (var i = 0; i < distance; i++) {
       namespace = namespace.enclosing;
@@ -35,22 +37,22 @@ class Namespace extends Identifier {
     return namespace;
   }
 
-  Instance getVar(String name) {
+  Value fetch(String name) {
     if (defs.containsKey(name)) {
       return defs[name].value;
     }
 
-    if (enclosing != null) return enclosing.getVar(name);
+    if (enclosing != null) return enclosing.fetch(name);
 
     throw HetuErrorUndefined(name);
   }
 
-  Instance getVarAt(int distance, String name) => upper(distance).getVar(name);
+  Value fetchAt(int distance, String name) => outer(distance).fetch(name);
 
   /// 在当前命名空间声明一个指定类型的变量
-  void define(String name, String type, {Identifier value}) {
+  void define(String name, String type, {Value value}) {
     if (!defs.containsKey(name)) {
-      if ((type == Constants.Dynamic) || ((value != null) && (type == value.type)) || (value == null)) {
+      if ((type == Common.Dynamic) || ((value != null) && (type == value.type)) || (value == null)) {
         defs[name] = Definition(type, value: value);
       } else {
         throw HetuErrorType(value.type, type);
@@ -61,10 +63,10 @@ class Namespace extends Identifier {
   }
 
   /// 向一个已经声明的变量赋值
-  void assign(String name, Identifier value) {
+  void assign(String name, Value value) {
     if (defs.containsKey(name)) {
       var variableType = defs[name].type;
-      if ((variableType == Constants.Dynamic) || (variableType == value.type)) {
+      if ((variableType == Common.Dynamic) || (variableType == value.type)) {
         defs[name].value = value;
       } else {
         throw HetuErrorType(value.type, variableType);
@@ -76,7 +78,7 @@ class Namespace extends Identifier {
     }
   }
 
-  void assignAt(int distance, String name, dynamic value) => upper(distance).assign(name, value);
+  void assignAt(int distance, String name, dynamic value) => outer(distance).assign(name, value);
 
   bool contains(String key) => defs.containsKey(key);
 

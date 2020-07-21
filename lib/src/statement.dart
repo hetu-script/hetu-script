@@ -1,5 +1,5 @@
 import 'token.dart';
-import 'constants.dart';
+import 'common.dart';
 import 'expression.dart';
 
 /// 抽象的访问者模式，包含访问语句的抽象语法树的接口
@@ -51,7 +51,7 @@ abstract class Stmt {
 
 class VarStmt extends Stmt {
   @override
-  String get type => Constants.VarStmt;
+  String get type => Common.VarStmt;
 
   @override
   void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
@@ -68,7 +68,7 @@ class VarStmt extends Stmt {
 
 class ExprStmt extends Stmt {
   @override
-  String get type => Constants.ExprStmt;
+  String get type => Common.ExprStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitExprStmt(this);
@@ -81,7 +81,7 @@ class ExprStmt extends Stmt {
 
 class BlockStmt extends Stmt {
   @override
-  String get type => Constants.BlockStmt;
+  String get type => Common.BlockStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBlockStmt(this);
@@ -93,7 +93,7 @@ class BlockStmt extends Stmt {
 
 class ReturnStmt extends Stmt {
   @override
-  String get type => Constants.ReturnStmt;
+  String get type => Common.ReturnStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitReturnStmt(this);
@@ -107,7 +107,7 @@ class ReturnStmt extends Stmt {
 
 class IfStmt extends Stmt {
   @override
-  String get type => Constants.If;
+  String get type => Common.If;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitIfStmt(this);
@@ -123,7 +123,7 @@ class IfStmt extends Stmt {
 
 class WhileStmt extends Stmt {
   @override
-  String get type => Constants.While;
+  String get type => Common.While;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitWhileStmt(this);
@@ -137,7 +137,7 @@ class WhileStmt extends Stmt {
 
 class BreakStmt extends Stmt {
   @override
-  String get type => Constants.Break;
+  String get type => Common.Break;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBreakStmt(this);
@@ -145,7 +145,7 @@ class BreakStmt extends Stmt {
 
 class FuncStmt extends Stmt {
   @override
-  String get type => Constants.FuncStmt;
+  String get type => Common.FuncStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitFuncStmt(this);
@@ -164,7 +164,7 @@ class FuncStmt extends Stmt {
 
 class ConstructorStmt extends FuncStmt {
   @override
-  String get type => Constants.ConstructorStmt;
+  String get type => Common.ConstructorStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitConstructorStmt(this);
@@ -174,12 +174,12 @@ class ConstructorStmt extends FuncStmt {
   final Token name;
 
   ConstructorStmt(this.className, this.name, List<VarStmt> params, List<Stmt> definition)
-      : super(Constants.Void, name, params, definition);
+      : super(Common.Void, name, params, definition);
 }
 
 class ClassStmt extends Stmt {
   @override
-  String get type => Constants.ClassStmt;
+  String get type => Common.ClassStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitClassStmt(this);

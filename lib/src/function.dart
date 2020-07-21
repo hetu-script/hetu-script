@@ -1,5 +1,5 @@
 import 'class.dart';
-import 'constants.dart';
+import 'common.dart';
 import 'namespace.dart';
 import 'statement.dart';
 import 'interpreter.dart';
@@ -30,11 +30,11 @@ class Subroutine extends Instance {
     return a;
   }
 
-  Subroutine(this.name, {this.funcStmt, this.closure, this.isConstructor, this.extern}) : super(htFunction);
+  Subroutine(this.name, {this.funcStmt, this.closure, this.extern, this.isConstructor = false}) : super(htFunction);
 
   Subroutine bind(Instance instance) {
     Namespace namespace = Namespace(closure);
-    namespace.define(Constants.This, instance.type, value: instance);
+    namespace.define(Common.This, instance.type, value: instance);
     return Subroutine(
       name,
       funcStmt: funcStmt,
@@ -55,7 +55,7 @@ class Subroutine extends Instance {
           }
         }
 
-        globalInterpreter.executeBlock(funcStmt.definition, environment);
+        globalContext.executeBlock(funcStmt.definition, environment);
       } else {
         result = extern(args);
       }
@@ -72,7 +72,7 @@ class Subroutine extends Instance {
     }
 
     if (isConstructor) {
-      return closure.getVarAt(0, Constants.This);
+      return closure.fetchAt(0, Common.This);
     }
 
     return result;

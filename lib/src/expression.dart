@@ -1,5 +1,6 @@
 import 'token.dart';
-import 'constants.dart';
+import 'common.dart';
+import 'class.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 ///
@@ -58,32 +59,35 @@ abstract class ExprVisitor {
 
 abstract class Expr {
   String get type;
-  final int lineNumber;
-  final int colNumber;
+  final int line;
+  final int column;
 
   /// 取表达式右值，返回值本身
   dynamic accept(ExprVisitor visitor);
 
-  Expr(this.lineNumber, this.colNumber);
+  Expr(this.line, this.column);
 }
 
 class LiteralExpr extends Expr {
   @override
-  String get type => Constants.LiteralExpr;
+  String get type => Common.LiteralExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralExpr(this);
 
-  final Token value;
+  int _constIndex;
+  int get constantIndex => _constIndex;
 
-  LiteralExpr(this.value) : super(value.lineNumber, value.colNumber);
+  LiteralExpr(int constantIndex, int line, int column) : super(line, column) {
+    _constIndex = constantIndex;
+  }
 }
 
 //TODO: 数组和字典的字面量
 
 class UnaryExpr extends Expr {
   @override
-  String get type => Constants.UnaryExpr;
+  String get type => Common.UnaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitUnaryExpr(this);
@@ -94,12 +98,12 @@ class UnaryExpr extends Expr {
   /// 变量名、表达式、函数调用
   final Expr value;
 
-  UnaryExpr(this.op, this.value) : super(op.lineNumber, op.colNumber);
+  UnaryExpr(this.op, this.value) : super(op.line, op.column);
 }
 
 class BinaryExpr extends Expr {
   @override
-  String get type => Constants.BinaryExpr;
+  String get type => Common.BinaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitBinaryExpr(this);
@@ -113,19 +117,19 @@ class BinaryExpr extends Expr {
   /// 变量名、表达式、函数调用
   final Expr right;
 
-  BinaryExpr(this.left, this.op, this.right) : super(op.lineNumber, op.colNumber);
+  BinaryExpr(this.left, this.op, this.right) : super(op.line, op.column);
 }
 
 class VarExpr extends Expr {
   @override
-  String get type => Constants.VarExpr;
+  String get type => Common.VarExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitVarExpr(this);
 
   final Token name;
 
-  VarExpr(this.name) : super(name.lineNumber, name.colNumber);
+  VarExpr(this.name) : super(name.line, name.column);
 }
 
 // class TypeExpr extends Expr {
@@ -137,24 +141,24 @@ class VarExpr extends Expr {
 
 //   final Token name;
 
-//   TypeExpr(this.name) : super(name.lineNumber, name.colNumber);
+//   TypeExpr(this.name) : super(name.line, name.column);
 // }
 
 class GroupExpr extends Expr {
   @override
-  String get type => Constants.VarExpr;
+  String get type => Common.VarExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
 
   final Expr expr;
 
-  GroupExpr(this.expr) : super(expr.lineNumber, expr.colNumber);
+  GroupExpr(this.expr) : super(expr.line, expr.column);
 }
 
 class AssignExpr extends Expr {
   @override
-  String get type => Constants.AssignExpr;
+  String get type => Common.AssignExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitAssignExpr(this);
@@ -168,12 +172,12 @@ class AssignExpr extends Expr {
   /// 变量名、表达式、函数调用
   final Expr value;
 
-  AssignExpr(this.variable, this.op, this.value) : super(op.lineNumber, op.colNumber);
+  AssignExpr(this.variable, this.op, this.value) : super(op.line, op.column);
 }
 
 class SubGetExpr extends Expr {
   @override
-  String get type => Constants.SubGetExpr;
+  String get type => Common.SubGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
@@ -184,12 +188,12 @@ class SubGetExpr extends Expr {
   /// 索引
   final Expr index;
 
-  SubGetExpr(this.array, this.index) : super(array.lineNumber, array.colNumber);
+  SubGetExpr(this.array, this.index) : super(array.line, array.column);
 }
 
 class SubSetExpr extends Expr {
   @override
-  String get type => Constants.SubSetExpr;
+  String get type => Common.SubSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
@@ -203,12 +207,12 @@ class SubSetExpr extends Expr {
   /// 值
   final dynamic value;
 
-  SubSetExpr(this.array, this.index, this.value) : super(array.lineNumber, array.colNumber);
+  SubSetExpr(this.array, this.index, this.value) : super(array.line, array.column);
 }
 
 class MemberGetExpr extends Expr {
   @override
-  String get type => Constants.MemberGetExpr;
+  String get type => Common.MemberGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberGetExpr(this);
@@ -219,12 +223,12 @@ class MemberGetExpr extends Expr {
   /// 属性
   final Token key;
 
-  MemberGetExpr(this.collection, this.key) : super(collection.lineNumber, collection.colNumber);
+  MemberGetExpr(this.collection, this.key) : super(collection.line, collection.column);
 }
 
 class MemberSetExpr extends Expr {
   @override
-  String get type => Constants.MemberSetExpr;
+  String get type => Common.MemberSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberSetExpr(this);
@@ -238,12 +242,12 @@ class MemberSetExpr extends Expr {
   /// 值
   final dynamic value;
 
-  MemberSetExpr(this.collection, this.key, this.value) : super(collection.lineNumber, collection.colNumber);
+  MemberSetExpr(this.collection, this.key, this.value) : super(collection.line, collection.column);
 }
 
 class CallExpr extends Expr {
   @override
-  String get type => Constants.CallExpr;
+  String get type => Common.CallExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitCallExpr(this);
@@ -254,7 +258,7 @@ class CallExpr extends Expr {
   /// 函数声明的参数是parameter，调用时传入的变量叫argument
   final List<Expr> args;
 
-  CallExpr(this.callee, this.args) : super(callee.lineNumber, callee.colNumber);
+  CallExpr(this.callee, this.args) : super(callee.line, callee.column);
 }
 
 // class NewExpr extends Expr {
@@ -266,17 +270,17 @@ class CallExpr extends Expr {
 
 //   final Token name;
 
-//   NewExpr(this.name) : super(name.lineNumber, name.colNumber);
+//   NewExpr(this.name) : super(name.line, name.column);
 // }
 
 class ThisExpr extends Expr {
   @override
-  String get type => Constants.This;
+  String get type => Common.This;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitThisExpr(this);
 
   final Token keyword;
 
-  ThisExpr(this.keyword) : super(keyword.lineNumber, keyword.colNumber);
+  ThisExpr(this.keyword) : super(keyword.line, keyword.column);
 }

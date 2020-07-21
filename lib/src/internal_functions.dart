@@ -17,7 +17,7 @@ abstract class HetuBuildInFunction {
     return null;
   }
 
-  static ConstString getln(List<Instance> args) {
+  static LString getln(List<Instance> args) {
     if (args.isNotEmpty) {
       stdout.write('${args.first.toString()}');
     } else {
@@ -25,10 +25,10 @@ abstract class HetuBuildInFunction {
     }
     var input = stdin.readLineSync();
     stdout.write('\x1B[1F\x1B[0G\x1B[0K');
-    return ConstString(input);
+    return LString(input);
   }
 
-  static ConstNum now(List<Instance> args) {
-    return ConstNum(DateTime.now().millisecondsSinceEpoch);
+  static LNum now(List<Instance> args) {
+    return LNum(DateTime.now().millisecondsSinceEpoch);
   }
 }

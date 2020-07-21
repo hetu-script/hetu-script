@@ -1,26 +1,20 @@
-class calculator {
-  num x;
-  num y;
-
-  calculator(num x, num y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  num meaning() {
-    return x * y;
-  }
-  
-  num get5(num x) {
-    return x * 5;
-  }
+class Person {
+	String name;
+	
+	Person(String name) {
+		this.name = name;
+	}
+	
+	void greeting() {
+		println(name);
+	}
 }
   
 void main(){
 
-  var cal = calculator(6, 7);
+  var p = Person('aleph42');
   
-  println('the meaning of life, universe and everything is ' + cal.meaning());
+	p.greeting();
   
   
 }

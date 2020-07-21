@@ -2,9 +2,11 @@ import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
 import 'token.dart';
-import 'constants.dart';
+import 'common.dart';
+import 'interpreter.dart';
+import 'class.dart';
 
-enum ParserConlexeme {
+enum ParseStyle {
   /// 程序脚本使用完整的标点符号规则，包括各种括号、逗号和分号
   ///
   /// 程序脚本中只能出现变量、类和函数的声明
@@ -49,14 +51,15 @@ enum ParserConlexeme {
 class Parser {
   final List<Token> _tokens = [];
   var _position = 0;
+  Context _context;
   String _curClassName;
 
-  static const List<String> _patternDecl = [Constants.Identifier, Constants.Identifier, Constants.Semicolon];
-  static const List<String> _patternInit = [Constants.Identifier, Constants.Identifier, Constants.Assign];
-  static const List<String> _patternFuncDecl = [Constants.Identifier, Constants.Identifier, Constants.RoundLeft];
-  static const List<String> _patternAssign = [Constants.Identifier, Constants.Assign];
-  static const List<String> _patternIf = [Constants.If, Constants.RoundLeft];
-  static const List<String> _patternWhile = [Constants.While, Constants.RoundLeft];
+  static const List<String> _patternDecl = [Common.Identifier, Common.Identifier, Common.Semicolon];
+  static const List<String> _patternInit = [Common.Identifier, Common.Identifier, Common.Assign];
+  static const List<String> _patternFuncDecl = [Common.Identifier, Common.Identifier, Common.RoundLeft];
+  static const List<String> _patternAssign = [Common.Identifier, Common.Assign];
+  static const List<String> _patternIf = [Common.If, Common.RoundLeft];
+  static const List<String> _patternWhile = [Common.While, Common.RoundLeft];
 
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
   ///
@@ -96,15 +99,18 @@ class Parser {
 
   List<Stmt> parse(
     List<Token> tokens, {
-    ParserConlexeme conlexeme = ParserConlexeme.program,
+    Context context,
+    ParseStyle style = ParseStyle.program,
   }) {
     _tokens.clear();
     _tokens.addAll(tokens);
     _position = 0;
 
+    _context = context ?? globalContext;
+
     var statements = <Stmt>[];
-    while (curTok.type != Constants.EOF) {
-      statements.add(_parseStmt(conlexeme: conlexeme));
+    while (curTok.type != Common.EOF) {
+      statements.add(_parseStmt(style: style));
     }
     return statements;
   }
@@ -120,7 +126,7 @@ class Parser {
   Expr _parseAssignmentExpr() {
     Expr expr = _parseLogicalOrExpr();
 
-    if (Constants.Assignment.contains(curTok.type)) {
+    if (Common.Assignment.contains(curTok.type)) {
       Token op = curTok;
       advance(1);
       Expr value = _parseAssignmentExpr();
@@ -132,7 +138,7 @@ class Parser {
         return MemberSetExpr(expr.collection, expr.key, value);
       }
 
-      throw HetuError('(Parser) Invalid assignment target. [${op.lineNumber}, ${op.colNumber}].');
+      throw HetuErrorInvalidLeftValue('', op.line, op.column);
     }
 
     return expr;
@@ -141,7 +147,7 @@ class Parser {
   /// 逻辑或 or ，优先级 5，左合并
   Expr _parseLogicalOrExpr() {
     var expr = _parseLogicalAndExpr();
-    while (curTok.type == Constants.Or) {
+    while (curTok.type == Common.Or) {
       var op = curTok;
       advance(1);
       var right = _parseLogicalAndExpr();
@@ -153,7 +159,7 @@ class Parser {
   /// 逻辑和 and ，优先级 6，左合并
   Expr _parseLogicalAndExpr() {
     var expr = _parseEqualityExpr();
-    while (curTok.type == Constants.And) {
+    while (curTok.type == Common.And) {
       var op = curTok;
       advance(1);
       var right = _parseEqualityExpr();
@@ -165,7 +171,7 @@ class Parser {
   /// 逻辑相等 ==, !=，优先级 7，无合并
   Expr _parseEqualityExpr() {
     var expr = _parseRelationalExpr();
-    while (Constants.Equality.contains(curTok.type)) {
+    while (Common.Equality.contains(curTok.type)) {
       var op = curTok;
       advance(1);
       var right = _parseRelationalExpr();
@@ -177,7 +183,7 @@ class Parser {
   /// 逻辑比较 <, >, <=, >=，优先级 8，无合并
   Expr _parseRelationalExpr() {
     var expr = _parseAdditiveExpr();
-    while (Constants.Relational.contains(curTok.type)) {
+    while (Common.Relational.contains(curTok.type)) {
       var op = curTok;
       advance(1);
       var right = _parseAdditiveExpr();
@@ -189,7 +195,7 @@ class Parser {
   /// 加法 +, -，优先级 13，左合并
   Expr _parseAdditiveExpr() {
     var expr = _parseMultiplicativeExpr();
-    while (Constants.Additive.contains(curTok.type)) {
+    while (Common.Additive.contains(curTok.type)) {
       var op = curTok;
       advance(1);
       var right = _parseMultiplicativeExpr();
@@ -201,7 +207,7 @@ class Parser {
   /// 乘法 *, /, %，优先级 14，左合并
   Expr _parseMultiplicativeExpr() {
     var expr = _parseUnaryPrefixExpr();
-    while (Constants.Multiplicative.contains(curTok.type)) {
+    while (Common.Multiplicative.contains(curTok.type)) {
       var op = curTok;
       advance(1);
       var right = _parseUnaryPrefixExpr();
@@ -214,7 +220,7 @@ class Parser {
   Expr _parseUnaryPrefixExpr() {
     // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
     Expr expr;
-    if (Constants.UnaryPrefix.contains(curTok.type)) {
+    if (Common.UnaryPrefix.contains(curTok.type)) {
       var op = curTok;
       advance(1);
       expr = UnaryExpr(op, _parseUnaryPostfixExpr());
@@ -229,26 +235,25 @@ class Parser {
     var expr = _parsePrimaryExpr();
     //多层函数调用可以合并
     while (true) {
-      if (curTok.lexeme == Constants.RoundLeft) {
+      if (curTok.lexeme == Common.RoundLeft) {
         advance(1);
         var params = <Expr>[];
-        while ((curTok.type != Constants.RoundRight) && (curTok.type != Constants.EOF)) {
+        while ((curTok.type != Common.RoundRight) && (curTok.type != Common.EOF)) {
           params.add(_parseExpr());
-          if (curTok.type == Constants.Comma) {
+          if (curTok.type == Common.Comma) {
             advance(1);
           }
         }
         expr = CallExpr(expr, params);
-        expect([Constants.RoundRight], consume: true);
-      } else if (curTok.lexeme == Constants.Dot) {
+        expect([Common.RoundRight], consume: true);
+      } else if (curTok.lexeme == Common.Dot) {
         advance(1);
-        if (curTok.type == Constants.Identifier) {
+        if (curTok.type == Common.Identifier) {
           Token name = curTok;
           expr = MemberGetExpr(expr, name);
           advance(1);
         } else {
-          throw HetuError(
-              '(Parser) Expected member identifier, get [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+          throw HetuErrorUnexpected(curTok.lexeme, curTok.line, curTok.column);
         }
       } else {
         break;
@@ -261,31 +266,39 @@ class Parser {
   /// 只有一个Token的简单表达式
   Expr _parsePrimaryExpr() {
     Expr expr;
-    if (Constants.Literals.contains(curTok.type)) {
-      expr = LiteralExpr(curTok);
+    if (Common.Literals.contains(curTok.type)) {
+      int index;
+      if (curTok.literal is num) {
+        index = _context.addLiteral(LNum(curTok.literal));
+      } else if (curTok.literal is bool) {
+        index = _context.addLiteral(LBool(curTok.literal));
+      } else if (curTok.literal is String) {
+        index = _context.addLiteral(LString(curTok.literal));
+      }
+      expr = LiteralExpr(index, curTok.line, curTok.column);
       advance(1);
-    } else if (curTok.type == Constants.This) {
+    } else if (curTok.type == Common.This) {
       expr = ThisExpr(curTok);
       advance(1);
-    } else if (curTok.type == Constants.Identifier) {
+    } else if (curTok.type == Common.Identifier) {
       expr = VarExpr(curTok);
       advance(1);
-    } else if (curTok.type == Constants.RoundLeft) {
+    } else if (curTok.type == Common.RoundLeft) {
       advance(1);
       var innerExpr = _parseExpr();
-      expect([Constants.RoundRight], consume: true);
+      expect([Common.RoundRight], consume: true);
       expr = GroupExpr(innerExpr);
     } else {
-      throw HetuError('(Parser) Unknown identifier [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+      throw HetuErrorUnexpected(curTok.lexeme, curTok.line, curTok.column);
     }
     return expr;
   }
 
-  Stmt _parseStmt({ParserConlexeme conlexeme = ParserConlexeme.program}) {
+  Stmt _parseStmt({ParseStyle style = ParseStyle.program}) {
     Stmt stmt;
 
-    switch (conlexeme) {
-      case ParserConlexeme.program:
+    switch (style) {
+      case ParseStyle.program:
         {
           // 如果是变量声明
           if (expect(_patternDecl)) {
@@ -297,22 +310,15 @@ class Parser {
           else if (expect(_patternFuncDecl)) {
             stmt = _parseFunctionStmt();
           } // 如果是类声明
-          else if (expect([Constants.Class, Constants.Identifier, Constants.CurlyLeft]) ||
-              expect([
-                Constants.Class,
-                Constants.Identifier,
-                Constants.Extends,
-                Constants.Identifier,
-                Constants.CurlyLeft
-              ])) {
+          else if (expect([Common.Class, Common.Identifier, Common.CurlyLeft]) ||
+              expect([Common.Class, Common.Identifier, Common.Extends, Common.Identifier, Common.CurlyLeft])) {
             stmt = _parseClassStmt();
           } else {
-            throw HetuError(
-                '(Parser) Unknown statement identifier [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+            throw HetuErrorUnexpected(curTok.lexeme, curTok.line, curTok.column);
           }
         }
         break;
-      case ParserConlexeme.functionDefinition:
+      case ParseStyle.functionDefinition:
         {
           // 如果是变量声明
           if (expect(_patternDecl)) {
@@ -324,10 +330,10 @@ class Parser {
           else if (expect(_patternAssign)) {
             stmt = _parseAssignStmt();
           } // 如果是跳出语句
-          else if (curTok.type == Constants.Break) {
+          else if (curTok.type == Common.Break) {
             stmt = BreakStmt();
           } // 如果是返回语句
-          else if (curTok.type == Constants.Return) {
+          else if (curTok.type == Common.Return) {
             stmt = _parseReturnStmt();
           } // 如果是If语句
           else if (expect(_patternIf)) {
@@ -341,7 +347,7 @@ class Parser {
           }
         }
         break;
-      case ParserConlexeme.classDefinition:
+      case ParseStyle.classDefinition:
         {
           // 如果是变量声明
           if (expect(_patternDecl)) {
@@ -351,21 +357,20 @@ class Parser {
             stmt = _parseVarInitStmt();
           } // 如果是构造函数
           // TODO：命名的构造函数
-          else if ((curTok.lexeme == _curClassName) && (peek(1).type == Constants.RoundLeft)) {
+          else if ((curTok.lexeme == _curClassName) && (peek(1).type == Common.RoundLeft)) {
             stmt = _parseConstructorStmt();
             // 如果是函数声明
           } else if (expect(_patternFuncDecl)) {
             stmt = _parseFunctionStmt();
           } else {
-            throw HetuError(
-                '(Parser) Unknown class field definition identifier [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+            throw HetuErrorUnexpected(curTok.lexeme, curTok.line, curTok.column);
           }
         }
         break;
-      case ParserConlexeme.commandLine:
+      case ParseStyle.commandLine:
         stmt = _parseCommandLine();
         break;
-      case ParserConlexeme.commandLineScript:
+      case ParseStyle.commandLineScript:
         stmt = _parseCommandLineScript();
         break;
     }
@@ -373,22 +378,22 @@ class Parser {
     return stmt;
   }
 
-  List<Stmt> _parseBlock({ParserConlexeme conlexeme = ParserConlexeme.program}) {
+  List<Stmt> _parseBlock({ParseStyle style = ParseStyle.program}) {
     var stmts = <Stmt>[];
-    while ((curTok.type != Constants.CurlyRight) && (curTok.type != Constants.EOF)) {
-      stmts.add(_parseStmt(conlexeme: conlexeme));
+    while ((curTok.type != Common.CurlyRight) && (curTok.type != Common.EOF)) {
+      stmts.add(_parseStmt(style: style));
     }
-    expect([Constants.CurlyRight], consume: true);
+    expect([Common.CurlyRight], consume: true);
     return stmts;
   }
 
-  BlockStmt _parseBlockStmt({ParserConlexeme conlexeme = ParserConlexeme.program}) {
+  BlockStmt _parseBlockStmt({ParseStyle style = ParseStyle.program}) {
     BlockStmt stmt;
     var stmts = <Stmt>[];
-    while ((curTok.type != Constants.CurlyRight) && (curTok.type != Constants.EOF)) {
-      stmts.add(_parseStmt(conlexeme: conlexeme));
+    while ((curTok.type != Common.CurlyRight) && (curTok.type != Common.EOF)) {
+      stmts.add(_parseStmt(style: style));
     }
-    if (expect([Constants.CurlyRight], consume: true)) {
+    if (expect([Common.CurlyRight], consume: true)) {
       stmt = BlockStmt(stmts);
     }
     return stmt;
@@ -397,15 +402,15 @@ class Parser {
   /// 无初始化的变量声明语句
   VarStmt _parseVarStmt() {
     VarStmt stmt;
-    if (!Constants.BuildInTypes.contains(curTok.lexeme)) {
-      throw HetuError('(Parser) Undefined typename [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+    if (!Common.BuildInTypes.contains(curTok.lexeme)) {
+      throw HetuErrorUndefined(curTok.lexeme, curTok.line, curTok.column);
     }
     var typename = curTok;
     var varname = peek(1);
     // 之前已经校验过了所以这里直接跳过
     advance(2);
     // 语句一定以分号结尾
-    if (expect([Constants.Semicolon], consume: true)) {
+    if (expect([Common.Semicolon], consume: true)) {
       stmt = VarStmt(typename, varname, null);
     }
     return stmt;
@@ -420,7 +425,7 @@ class Parser {
     advance(3);
     var initializer = _parseExpr();
     // 语句一定以分号结尾
-    if (expect([Constants.Semicolon], consume: true)) {
+    if (expect([Common.Semicolon], consume: true)) {
       stmt = VarStmt(typename, varname, initializer);
     }
     return stmt;
@@ -438,7 +443,7 @@ class Parser {
     advance(1);
     var value = _parseExpr();
     // 语句一定以分号结尾
-    if (expect([Constants.Semicolon], consume: true)) {
+    if (expect([Common.Semicolon], consume: true)) {
       expr = AssignExpr(name, assignTok, value);
       stmt = ExprStmt(expr);
     }
@@ -448,7 +453,7 @@ class Parser {
   ExprStmt _parseExprStmt() {
     var stmt = ExprStmt(_parseExpr());
     // 语句一定以分号结尾
-    expect([Constants.Semicolon], consume: true);
+    expect([Common.Semicolon], consume: true);
     return stmt;
   }
 
@@ -457,10 +462,10 @@ class Parser {
     var keyword = curTok;
     advance(1);
     Expr expr;
-    if (curTok.type != Constants.Semicolon) {
+    if (curTok.type != Common.Semicolon) {
       expr = _parseExpr();
     }
-    if (expect([Constants.Semicolon], consume: true)) {
+    if (expect([Common.Semicolon], consume: true)) {
       stmt = ReturnStmt(keyword, expr);
     }
     return stmt;
@@ -471,22 +476,22 @@ class Parser {
     // 之前已经校验过括号了所以这里直接跳过
     advance(2);
     var condition = _parseExpr();
-    expect([Constants.RoundRight], consume: true);
+    expect([Common.RoundRight], consume: true);
     Stmt thenBranch;
-    if (curTok.type == Constants.CurlyLeft) {
+    if (curTok.type == Common.CurlyLeft) {
       advance(1);
-      thenBranch = _parseBlockStmt(conlexeme: ParserConlexeme.functionDefinition);
+      thenBranch = _parseBlockStmt(style: ParseStyle.functionDefinition);
     } else {
-      thenBranch = _parseStmt(conlexeme: ParserConlexeme.functionDefinition);
+      thenBranch = _parseStmt(style: ParseStyle.functionDefinition);
     }
     Stmt elseBranch;
-    if (curTok.type == Constants.Else) {
+    if (curTok.type == Common.Else) {
       advance(1);
-      if (curTok.type == Constants.CurlyLeft) {
+      if (curTok.type == Common.CurlyLeft) {
         advance(1);
-        elseBranch = _parseBlockStmt(conlexeme: ParserConlexeme.functionDefinition);
+        elseBranch = _parseBlockStmt(style: ParseStyle.functionDefinition);
       } else {
-        elseBranch = _parseStmt(conlexeme: ParserConlexeme.functionDefinition);
+        elseBranch = _parseStmt(style: ParseStyle.functionDefinition);
       }
     }
     stmt = IfStmt(condition, thenBranch, elseBranch);
@@ -500,11 +505,11 @@ class Parser {
     var condition = _parseExpr();
     advance(1);
     Stmt loop;
-    if (curTok.type == Constants.CurlyLeft) {
+    if (curTok.type == Common.CurlyLeft) {
       advance(1);
-      loop = _parseBlockStmt(conlexeme: ParserConlexeme.functionDefinition);
+      loop = _parseBlockStmt(style: ParseStyle.functionDefinition);
     } else {
-      loop = _parseStmt(conlexeme: ParserConlexeme.functionDefinition);
+      loop = _parseStmt(style: ParseStyle.functionDefinition);
     }
     stmt = WhileStmt(condition, loop);
     return stmt;
@@ -512,33 +517,31 @@ class Parser {
 
   List<VarStmt> _parseParameters() {
     var result = <VarStmt>[];
-    while ((curTok.type != Constants.RoundRight) && (curTok.type != Constants.EOF)) {
-      if ((result.isNotEmpty) && (curTok.type == Constants.Comma)) {
+    while ((curTok.type != Common.RoundRight) && (curTok.type != Common.EOF)) {
+      if ((result.isNotEmpty) && (curTok.type == Common.Comma)) {
         advance(1);
       }
-      if (expect([Constants.Identifier, Constants.Identifier, Constants.Comma]) ||
-          expect([Constants.Identifier, Constants.Identifier, Constants.RoundRight])) {
-        if (Constants.ParametersTypes.contains(curTok.lexeme)) {
+      if (expect([Common.Identifier, Common.Identifier, Common.Comma]) ||
+          expect([Common.Identifier, Common.Identifier, Common.RoundRight])) {
+        if (Common.ParametersTypes.contains(curTok.lexeme)) {
           //TODO，参数默认值、可选参数、命名参数
           result.add(VarStmt(curTok, peek(1), null));
         } else {
-          throw HetuError(
-              '(Parser) Unsupported parameter type [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+          throw HetuErrorUnexpected(curTok.lexeme, curTok.line, curTok.column);
         }
       } else {
-        throw HetuError(
-            'Parser error: Expected parameter variable statement, get [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+        throw HetuErrorUnexpected(curTok.lexeme, curTok.line, curTok.column);
       }
       advance(2);
     }
-    expect([Constants.RoundRight], consume: true);
+    expect([Common.RoundRight], consume: true);
     return result;
   }
 
   FuncStmt _parseFunctionStmt() {
     FuncStmt stmt;
-    if (!Constants.FunctionReturnTypes.contains(curTok.lexeme)) {
-      throw HetuError('(Parser) Undefined typename [${curTok.lexeme}]. [${curTok.lineNumber}, ${curTok.colNumber}].');
+    if (!Common.FunctionReturnTypes.contains(curTok.lexeme)) {
+      throw HetuErrorUndefined(curTok.lexeme, curTok.line, curTok.column);
     }
     var return_type = curTok.lexeme;
     var func_name = peek(1);
@@ -546,8 +549,8 @@ class Parser {
     advance(3);
     var params = _parseParameters();
     // 处理函数定义部分的语句块
-    expect([Constants.CurlyLeft], consume: true);
-    var stmts = _parseBlock(conlexeme: ParserConlexeme.functionDefinition);
+    expect([Common.CurlyLeft], consume: true);
+    var stmts = _parseBlock(style: ParseStyle.functionDefinition);
     stmt = FuncStmt(return_type, func_name, params, stmts);
     return stmt;
   }
@@ -557,8 +560,8 @@ class Parser {
     var name = curTok;
     advance(2);
     var params = _parseParameters();
-    expect([Constants.CurlyLeft], consume: true);
-    var stmts = _parseBlock(conlexeme: ParserConlexeme.functionDefinition);
+    expect([Common.CurlyLeft], consume: true);
+    var stmts = _parseBlock(style: ParseStyle.functionDefinition);
     stmt = ConstructorStmt(_curClassName, name, params, stmts);
     return stmt;
   }
@@ -571,7 +574,7 @@ class Parser {
     VarExpr super_class;
     _curClassName = curTok.lexeme;
     advance(1);
-    if (curTok.type == Constants.Extends) {
+    if (curTok.type == Common.Extends) {
       advance(1);
       super_class = VarExpr(curTok);
       advance(2);
@@ -581,15 +584,15 @@ class Parser {
 
     var variables = <VarStmt>[];
     var methods = <FuncStmt>[];
-    while ((curTok.type != Constants.CurlyRight) && (curTok.type != Constants.EOF)) {
-      var stmt = _parseStmt(conlexeme: ParserConlexeme.classDefinition);
+    while ((curTok.type != Common.CurlyRight) && (curTok.type != Common.EOF)) {
+      var stmt = _parseStmt(style: ParseStyle.classDefinition);
       if (stmt is VarStmt) {
         variables.add(stmt);
       } else if (stmt is FuncStmt) {
         methods.add(stmt);
       }
     }
-    expect([Constants.CurlyRight], consume: true);
+    expect([Common.CurlyRight], consume: true);
 
     stmt = ClassStmt(class_name, super_class, variables, methods);
     _curClassName = null;
@@ -600,8 +603,17 @@ class Parser {
     var expr = VarExpr(curTok);
     advance(1);
     var params = <Expr>[];
-    while (curTok.type != Constants.EOF) {
-      params.add(LiteralExpr(curTok));
+    while (curTok.type != Common.EOF) {
+      int index;
+      if (curTok.literal is num) {
+        index = _context.addLiteral(LNum(curTok.literal));
+      } else if (curTok.literal is bool) {
+        index = _context.addLiteral(LBool(curTok.literal));
+      } else if (curTok.literal is String) {
+        index = _context.addLiteral(LString(curTok.literal));
+      }
+      var expr = LiteralExpr(index, curTok.line, curTok.column);
+      params.add(expr);
       advance(1);
     }
     return ExprStmt(CallExpr(expr, params));

@@ -2,7 +2,8 @@ import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
 import 'token.dart';
-import 'constants.dart';
+import 'common.dart';
+import 'interpreter.dart';
 
 //> function-type
 enum _FunctionType {
@@ -21,8 +22,8 @@ enum _ClassType {
 /// 负责对语句列表进行分析，并生成变量作用域
 class Resolver implements ExprVisitor, StmtVisitor {
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
-  final _blocks = <Map<String, bool>>[];
-  final _locals = <Expr, int>{};
+  var _blocks = <Map<String, bool>>[];
+  Context _context;
   _FunctionType _curFuncType = _FunctionType.none;
   _ClassType _curClassType = _ClassType.none;
 
@@ -34,8 +35,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       var block = _blocks.last;
 
       if (block.containsKey(varTok.lexeme)) {
-        throw HetuError('(Resolver) Variable [${varTok.lexeme}] already declared in this scope. '
-            ' [${varTok.lineNumber}, ${varTok.colNumber}].');
+        throw HetuErrorDefined(varTok.lexeme, varTok.line, varTok.column);
       }
       block[varTok.lexeme] = define;
     }
@@ -50,7 +50,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void _addLocal(Expr expr, String varname) {
     for (var i = _blocks.length - 1; i >= 0; --i) {
       if (_blocks[i].containsKey(varname)) {
-        _locals[expr] = _blocks.length - 1 - i;
+        var distance = _blocks.length - 1 - i;
+        _context.addLocal(expr, distance);
         return;
       }
     }
@@ -59,15 +60,14 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // Not found. Assume it is global.
   }
 
-  Map<Expr, int> resolve(List<Stmt> statements) {
-    var result = <Expr, int>{};
+  void resolve(List<Stmt> statements, {Context context}) {
+    _context = context ?? globalContext;
+
     if (statements != null) {
       for (var stmt in statements) {
         _resolveStmt(stmt);
       }
-      result = _locals;
     }
-    return result;
   }
 
   void _resolveExpr(Expr expr) => expr.accept(this);
@@ -81,7 +81,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     for (var param in stmt.params) {
       _declare(param.varname, define: true);
     }
-    resolve(stmt.definition);
+    resolve(stmt.definition, context: _context);
     _endBlock();
     _curFuncType = enclosingFunctionType;
   }
@@ -93,8 +93,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitVarExpr(VarExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HetuError('(Resolver) Cannot use uninitialized variable [${expr.name.lexeme}] '
-          ' [${expr.lineNumber}, ${expr.colNumber}].');
+      throw HetuErrorUndefined(expr.name.lexeme, expr.line, expr.column);
     }
 
     _addLocal(expr, expr.name.lexeme);
@@ -131,6 +130,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
+  dynamic visitSubGetExpr(SubGetExpr expr) {}
+
+  @override
+  dynamic visitSubSetExpr(SubSetExpr expr) {}
+
+  @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
     _resolveExpr(expr.collection);
   }
@@ -165,13 +170,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitReturnStmt(ReturnStmt stmt) {
     if (_curFuncType == _FunctionType.none) {
-      throw HetuError('(Resolver) Cannot return from top-level code. '
-          ' [${stmt.keyword.lineNumber}, ${stmt.keyword.colNumber}].');
+      throw HetuErrorUnexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
     }
+
     if (stmt.expr != null) {
       if (_curFuncType == _FunctionType.constructor) {
-        throw HetuError('(Resolver) Cannot return from an initializer, '
-            ' [${stmt.keyword.lineNumber}, ${stmt.keyword.colNumber}].');
+        throw HetuErrorUnexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
       }
       _resolveExpr(stmt.expr);
     }
@@ -214,13 +218,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     if (stmt.superClass != null) {
       if (stmt.name.lexeme == stmt.superClass.name.lexeme) {
-        throw HetuError('(Resolver) A class cannot inherit from itself, '
-            ' [${stmt.name.lineNumber}, ${stmt.name.colNumber}].');
+        throw HetuErrorUnexpected(stmt.superClass.name.lexeme, stmt.superClass.name.line, stmt.superClass.name.column);
       }
 
       _resolveExpr(stmt.superClass);
       _beginBlock();
-      _blocks.last[Constants.Super] = true;
+      _blocks.last[Common.Super] = true;
 
       _curClassType = _ClassType.subClass;
     } else {
@@ -228,7 +231,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     }
 
     _beginBlock();
-    _blocks.last[Constants.This] = true;
+    _blocks.last[Common.This] = true;
 
     for (var method in stmt.methods) {
       if (method is ConstructorStmt) {
@@ -252,8 +255,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitThisExpr(ThisExpr expr) {
     if (_curClassType == _ClassType.none) {
-      throw HetuError('(Resolver) Cannot use "this" outside of a method. '
-          ' [${expr.keyword.lineNumber}, ${expr.keyword.colNumber}].');
+      throw HetuErrorUnexpected(expr.keyword.lexeme, expr.line, expr.column);
     }
 
     _addLocal(expr, expr.keyword.lexeme);

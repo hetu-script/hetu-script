@@ -1,6 +1,6 @@
 import 'interpreter.dart';
 import 'namespace.dart';
-import 'constants.dart';
+import 'common.dart';
 import 'function.dart';
 import 'errors.dart';
 import 'statement.dart';
@@ -9,50 +9,51 @@ import 'statement.dart';
 ///
 /// [Class]继承自命名空间[Namespace]，[Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
 class Class extends Namespace {
-  String get type => Constants.Class;
+  String get type => Common.Class;
 
   String toString() => '$name';
 
   final String name;
 
-  final Class superClass;
+  Class superClass;
 
   List<VarStmt> _decls = [];
 
   Map<String, Subroutine> _methods = {};
 
   Class(this.name, {this.superClass, List<VarStmt> decls, Map<String, Subroutine> methods}) {
+    if ((name != Common.Object) && (superClass == null)) superClass = htObject;
     if (decls != null) _decls.addAll(decls);
     if (methods != null) _methods.addAll(methods);
   }
 
-  Subroutine getMethod(String name) {
+  Subroutine get(String name) {
     if (_methods.containsKey(name)) {
       return _methods[name];
     }
 
     if (superClass != null) {
-      return superClass.getMethod(name);
+      return superClass.get(name);
     }
 
     throw HetuErrorUndefinedMember(name, this.name);
   }
 
-  Instance generateInstance({String constructorName, List<Instance> args}) {
+  Instance createInstance({String constructorName, List<Instance> args}) {
     var instance = Instance(this);
 
     for (var decl in _decls) {
       Instance value;
-      if (decl.initializer != null) value = globalInterpreter.evaluate(decl.initializer);
+      if (decl.initializer != null) value = globalContext.evaluate(decl.initializer);
 
-      if (decl.typename.lexeme == Constants.Dynamic) {
+      if (decl.typename.lexeme == Common.Dynamic) {
         instance.define(decl.varname.lexeme, decl.typename.lexeme, value: value);
-      } else if (decl.typename.lexeme == Constants.Var) {
+      } else if (decl.typename.lexeme == Common.Var) {
         // 如果用了var关键字，则从初始化表达式推断变量类型
         if (value != null) {
           instance.define(decl.varname.lexeme, value.type, value: value);
         } else {
-          instance.define(decl.varname.lexeme, Constants.Dynamic);
+          instance.define(decl.varname.lexeme, Common.Dynamic);
         }
       } else {
         // 接下来define函数会判断类型是否符合声明
@@ -64,7 +65,7 @@ class Class extends Namespace {
     constructorName ??= name;
 
     try {
-      constructorFunction = getMethod(constructorName);
+      constructorFunction = get(constructorName);
     } catch (e) {
       if (e is! HetuErrorUndefined) {
         throw e;
@@ -79,7 +80,7 @@ class Class extends Namespace {
   }
 
   static final NULL = Class(
-    Constants.Null,
+    Common.Null,
     superClass: htObject,
   );
 }
@@ -94,19 +95,20 @@ class Instance extends Namespace {
 
   Instance(this.ofClass);
 
-  Instance fieldGet(String name) {
+  Instance get(String name) {
     if (defs.containsKey(name)) {
       return defs[name].value;
     } else {
-      Subroutine method = ofClass.getMethod(name);
-      return method.bind(this);
+      Subroutine method = ofClass.get(name);
+      if (method != null) return method.bind(this);
+      throw HetuErrorUndefined(name);
     }
   }
 
-  void fieldSet(String name, Instance value) {
+  void set(String name, Instance value) {
     if (defs.containsKey(name)) {
       var variableType = defs[name].type;
-      if ((variableType == Constants.Dynamic) || (variableType == value.type)) {
+      if ((variableType == Common.Dynamic) || (variableType == value.type)) {
         // 直接改写wrapper里面的值就行，不用重新生成wrapper
         defs[name].value = value;
       } else {
@@ -120,44 +122,67 @@ class Instance extends Namespace {
 
 /// 一个叫做"Object"的class，是河图中所有对象的基类，在这里用Dart手写出其实例
 var htObject = Class(
-  Constants.Object,
+  Common.Object,
   superClass: null,
 );
 
 var htFunction = Class(
-  Constants.Function,
+  Common.Function,
+  superClass: htObject,
+);
+
+var htNull = Class(
+  Common.Null,
   superClass: htObject,
 );
 
 var htNum = Class(
-  Constants.Num,
+  Common.Num,
   superClass: htObject,
 );
 
 var htBool = Class(
-  Constants.Bool,
+  Common.Bool,
   superClass: htObject,
 );
 
 var htString = Class(
-  Constants.Num,
+  Common.Str,
   superClass: htObject,
 );
 
-class ConstNum extends Instance {
-  num value;
+abstract class Literal extends Instance {
+  dynamic value;
 
-  ConstNum(this.value) : super(htNum);
+  @override
+  String toString() => value.toString();
+
+  Literal(this.value, Class ofClass) : super(ofClass);
 }
 
-class ConstBool extends Instance {
-  bool value;
+class LNull extends Literal {
+  String get type => Common.Null;
 
-  ConstBool(this.value) : super(htBool);
+  LNull() : super(null, htNull);
 }
 
-class ConstString extends Instance {
-  String value;
+/// 只在get成员时使用，如果是计算的话，则直接使用Dart的字面量
+class LNum extends Literal {
+  String get type => Common.Num;
 
-  ConstString(this.value) : super(htString);
+  LNum(num value) : super(value.toString, htNum);
+}
+
+/// 只在get成员时使用，如果是计算的话，则直接使用Dart的字面量
+class LBool extends Literal {
+  String get type => Common.Bool;
+
+  LBool(bool value) : super(value.toString, htBool);
+}
+
+/// 只在get成员时使用，如果是计算的话，则直接使用Dart的字面量
+class LString extends Literal {
+  String get type => Common.Str;
+
+  LString(String value) : super(value, htString);
 }

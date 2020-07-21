@@ -1,19 +1,21 @@
 import 'errors.dart';
-import 'constants.dart';
-import 'token.dart';
+import 'common.dart';
 import 'expression.dart';
 import 'statement.dart';
 import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
 
-Interpreter globalInterpreter = Interpreter();
+Context globalContext = Context();
 
 /// 负责对语句列表进行最终解释执行
-class Interpreter implements ExprVisitor, StmtVisitor {
+class Context implements ExprVisitor, StmtVisitor {
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _locals = <Expr, int>{};
+
+  ///
+  final _literals = <Literal>[];
 
   /// 保存当前语句所在的命名空间
   Namespace _curSpace;
@@ -21,20 +23,28 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 全局命名空间
   final _global = Namespace();
 
-  Interpreter() {
+  Context() {
     _curSpace = _global;
   }
 
-  void bindAll(Map<String, Call> bindMap) {
-    // 绑定外部函数
-    if (bindMap != null) {
-      for (var key in bindMap.keys) {
-        bind(key, bindMap[key]);
-      }
-    }
+  void addLocal(Expr expr, int distance) {
+    _locals[expr] = distance;
   }
 
-  void define(String name, Identifier value) {
+  /// 定义一个常量，然后返回数组下标
+  /// 相同值的常量不会重复定义
+  int addLiteral(Literal literal) {
+    for (var i = 0; i < _literals.length; ++i) {
+      if (_literals[i].value == literal.value) {
+        return i;
+      }
+    }
+
+    _literals.add(literal);
+    return _literals.length - 1;
+  }
+
+  void define(String name, Value value) {
     if (_global.contains(name)) {
       throw HetuErrorDefined(name);
     } else {
@@ -47,24 +57,35 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       throw HetuErrorDefined(name);
     } else {
       var func_obj = Subroutine(name, extern: function);
-      _global.define(name, Constants.Function, value: func_obj);
+      _global.define(name, Common.Function, value: func_obj);
     }
   }
 
-  dynamic _getVar(String name, Expr expr) {
+  void bindAll(Map<String, Call> bindMap) {
+    // 绑定外部函数
+    if (bindMap != null) {
+      for (var key in bindMap.keys) {
+        bind(key, bindMap[key]);
+      }
+    }
+  }
+
+  Value fetch(String name) => _global.fetch(name);
+
+  Value _getVar(String name, Expr expr) {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试获取当前环境中的本地变量
-      return _curSpace.getVarAt(distance, name);
+      return _curSpace.fetchAt(distance, name);
     } else {
       try {
         // 尝试获取当前实例中的类成员变量
-        Instance instance = _curSpace.getVar(Constants.This);
-        return instance.fieldGet(name);
+        Instance instance = _curSpace.fetch(Common.This);
+        return instance.get(name);
       } catch (e) {
-        if (e is HetuErrorUndefined) {
+        if ((e is HetuErrorUndefinedMember) || (e is HetuErrorUndefined)) {
           // 尝试获取全局变量
-          return _global.getVar(name);
+          return _global.fetch(name);
         } else {
           throw e;
         }
@@ -72,12 +93,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void interpreter(List<Stmt> statements, Map<Expr, int> locals,
-      {bool commandLine = false, String invokeFunc = null, List<dynamic> args}) {
-    if (locals != null) {
-      _locals.addAll(locals);
-    }
-
+  void interpreter(List<Stmt> statements, {bool commandLine = false, String invokeFunc = null, List<Instance> args}) {
     for (var stmt in statements) {
       execute(stmt);
     }
@@ -88,11 +104,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   void invoke(String name, {List<Instance> args}) {
-    var func = _global.getVar(name);
+    var func = _global.fetch(name);
     if (func is Subroutine) {
       func.call(args ?? []);
     } else {
-      throw HetuError('(Interpreter) Could not find function "${name}".');
+      throw HetuErrorUndefined(name);
     }
   }
 
@@ -114,205 +130,179 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitLiteralExpr(LiteralExpr expr) {
-    Instance result = NULL;
-    if (expr.value.literal is num) {
-      result = HetuNum(expr.value.literal);
-    } else if (expr.value.literal is bool) {
-      result = HetuBool(expr.value.literal);
-    } else if (expr.value.literal is String) {
-      result = HetuString(expr.value.literal);
-    }
-    return result;
+    return _literals[expr.constantIndex];
   }
 
   @override
-  dynamic visitVarExpr(VarExpr expr) => _getVar(expr.name, expr);
+  dynamic visitVarExpr(VarExpr expr) => _getVar(expr.name.lexeme, expr);
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) => evaluate(expr.expr);
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
-    Instance result = Instance.Null;
-    Instance value = evaluate(expr.value);
+    var value = evaluate(expr.value);
 
     switch (expr.op.lexeme) {
-      case Constants.Subtract:
+      case Common.Subtract:
         {
-          if (value is HetuNum) {
-            result = HetuNum(-value.literal);
+          if (value is num) {
+            return -value;
           } else {
-            throw HetuError('(Interpreter) Undefined negetive operator [${expr.op.lexeme}] on [${value}].'
-                ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+            throw HetuErrorUndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
-      case Constants.Not:
+      case Common.Not:
         {
-          if (value is HetuBool) {
-            result = HetuBool(!value.literal);
+          if (value is bool) {
+            return !value;
           } else {
-            throw HetuError('(Interpreter) Undefined logical not operator [${expr.op.lexeme}] on [${value}].'
-                ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+            throw HetuErrorUndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
       default:
-        throw HetuError(
-            '(Namespace) Unknown unary operator [${value}]. [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+        throw HetuErrorUndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
         break;
     }
-
-    return result;
   }
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    Instance result = Instance.Null;
-    Instance left = evaluate(expr.left);
-    Instance right = evaluate(expr.right);
+    var left = evaluate(expr.left);
+    var right = evaluate(expr.right);
 
-    // TODO 操作符重载??
+    // TODO 操作符重载
     switch (expr.op.type) {
-      case Constants.Or:
-      case Constants.And:
+      case Common.Or:
+      case Common.And:
         {
-          if (left is HetuBool) {
-            if (right is HetuBool) {
-              if (expr.op.type == Constants.Or) {
-                result = HetuBool(left.literal || right.literal);
-              } else if (expr.op.type == Constants.And) {
-                result = HetuBool(left.literal && right.literal);
+          if (left is bool) {
+            if (right is bool) {
+              if (expr.op.type == Common.Or) {
+                return left || right;
+              } else if (expr.op.type == Common.And) {
+                return left && right;
               }
             } else {
-              throw HetuError(
-                  '(Interpreter) Undefined logical operator [${expr.op.lexeme}] on [${left}] and [${right}].'
-                  ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+              throw HetuErrorUndefinedOperator(right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
             }
           } else {
-            throw HetuError('(Interpreter) Undefined logical operator [${expr.op.lexeme}] on [${left}] and [${right}].'
-                ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+            throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
-      case Constants.Equal:
-        result = HetuBool(left == right);
+      case Common.Equal:
+        return left == right;
         break;
-      case Constants.NotEqual:
-        result = HetuBool(left != right);
+      case Common.NotEqual:
+        return left != right;
         break;
-      case Constants.Add:
-      case Constants.Subtract:
+      case Common.Add:
+      case Common.Subtract:
         {
-          if ((left is HetuString) || (right is HetuString)) {
-            result = HetuString(left.toString() + right.toString());
-          } else if ((left is HetuNum) && (right is HetuNum)) {
-            if (expr.op.lexeme == Constants.Add) {
-              result = HetuNum(left.literal + right.literal);
-            } else if (expr.op.lexeme == Constants.Subtract) {
-              result = HetuNum(left.literal - right.literal);
+          if ((left is String) || (right is String)) {
+            return left + right;
+          } else if ((left is num) && (right is num)) {
+            if (expr.op.lexeme == Common.Add) {
+              return left + right;
+            } else if (expr.op.lexeme == Common.Subtract) {
+              return left - right;
             }
           } else {
-            throw HetuError('(Interpreter) Undefined additive operator [${expr.op.lexeme}] on [${left}] and [${right}].'
-                ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+            throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
-      case Constants.Multiply:
-      case Constants.Devide:
-      case Constants.Modulo:
-      case Constants.Greater:
-      case Constants.GreaterOrEqual:
-      case Constants.Lesser:
-      case Constants.LesserOrEqual:
+      case Common.Multiply:
+      case Common.Devide:
+      case Common.Modulo:
+      case Common.Greater:
+      case Common.GreaterOrEqual:
+      case Common.Lesser:
+      case Common.LesserOrEqual:
         {
-          if (left is HetuNum) {
-            if (right is HetuNum) {
-              if (expr.op.type == Constants.Multiply) {
-                result = HetuNum(left.literal * right.literal);
-              } else if (expr.op.type == Constants.Devide) {
-                result = HetuNum(left.literal / right.literal);
-              } else if (expr.op.type == Constants.Modulo) {
-                result = HetuNum(left.literal % right.literal);
-              } else if (expr.op.type == Constants.Greater) {
-                result = HetuBool(left.literal > right.literal);
-              } else if (expr.op.type == Constants.GreaterOrEqual) {
-                result = HetuBool(left.literal >= right.literal);
-              } else if (expr.op.type == Constants.Lesser) {
-                result = HetuBool(left.literal < right.literal);
-              } else if (expr.op.type == Constants.LesserOrEqual) {
-                result = HetuBool(left.literal <= right.literal);
+          if (left is num) {
+            if (right is num) {
+              if (expr.op.type == Common.Multiply) {
+                return left * right;
+              } else if (expr.op.type == Common.Devide) {
+                return left / right;
+              } else if (expr.op.type == Common.Modulo) {
+                return left % right;
+              } else if (expr.op.type == Common.Greater) {
+                return left > right;
+              } else if (expr.op.type == Common.GreaterOrEqual) {
+                return left >= right;
+              } else if (expr.op.type == Common.Lesser) {
+                return left < right;
+              } else if (expr.op.type == Common.LesserOrEqual) {
+                return left <= right;
               }
             } else {
-              throw HetuError(
-                  '(Interpreter) Undefined multipicative operator [${expr.op.lexeme}] on [${left}] and [${right}].'
-                  ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+              throw HetuErrorUndefinedOperator(right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
             }
           } else {
-            throw HetuError(
-                '(Interpreter) Undefined multipicative operator [${expr.op.lexeme}] on [${left}] and [${right}].'
-                ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+            throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
         break;
       default:
-        throw HetuError('(Interpreter) Unknown binary operator [${expr.op.lexeme}].'
-            ' [${expr.op.lineNumber}, ${expr.op.colNumber}].');
+        throw HetuErrorUndefinedOperator(left.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
         break;
     }
-
-    return result;
   }
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
-    Instance callee = evaluate(expr.callee);
-    Instance result = Instance.Null;
+    var callee = evaluate(expr.callee);
     var args = <Instance>[];
     for (var arg in expr.args) {
+      var value = evaluate(arg);
+      if (value is num) {
+        value = LNum(value);
+      } else if (value is bool) {
+        value = LBool(value);
+      } else if (value is String) {
+        value = LString(value);
+      }
       args.add(evaluate(arg));
     }
 
     if (callee is Subroutine) {
       if ((callee.arity >= 0) && (callee.arity != expr.args.length)) {
-        throw HetuError(
-            '(Interpreter) Number of arguments (${expr.args.length}) doesn\'t match the parameters (${callee.arity}). '
-            ' [${expr.callee.lineNumber}, ${expr.callee.colNumber}].');
+        throw HetuErrorArity(expr.args.length, callee.arity, expr.callee.line, expr.callee.column);
       } else if (callee.funcStmt != null) {
         for (var i = 0; i < callee.funcStmt.params.length; ++i) {
           var param_token = callee.funcStmt.params[i].typename;
           var arg = args[i];
           if (arg.type != param_token.lexeme) {
-            throw HetuError(
-                '(Interpreter) The argument type "${arg.type}" can\'t be assigned to the parameter type "${param_token.lexeme}".'
-                ' [${param_token.lineNumber}, ${param_token.colNumber}].');
+            throw HetuErrorArgType(arg.type, param_token.lexeme, param_token.line, param_token.column);
           }
         }
       }
 
       if (!callee.isConstructor) {
-        result = callee.call(args);
+        return callee.call(args);
       } else {
         //TODO命名构造函数
       }
-    } else if (callee is HetuClass) {
+    } else if (callee is Class) {
       // for (var i = 0; i < callee.varStmts.length; ++i) {
       //   var param_type_token = callee.varStmts[i].typename;
       //   var arg = args[i];
       //   if (arg.type != param_type_token.lexeme) {
       //     throw HetuError(
       //         '(Interpreter) The argument type "${arg.type}" can\'t be assigned to the parameter type "${param_type_token.lexeme}".'
-      //         ' [${param_type_token.lineNumber}, ${param_type_token.colNumber}].');
+      //         ' [${param_type_token.line}, ${param_type_token.column}].');
       //   }
       // }
 
-      result = callee.generateInstance(args);
+      return callee.createInstance(args: args);
     } else {
-      throw HetuError('(Interpreter) Object [${callee}] is not callable.'
-          ' [${expr.callee.lineNumber}, ${expr.callee.colNumber}].');
+      throw HetuErrorCallable(callee.toString(), expr.callee.line, expr.callee.column);
     }
-
-    return result;
   }
 
   @override
@@ -322,16 +312,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      _curSpace.assignAt(distance, expr.variable, value);
+      _curSpace.assignAt(distance, expr.variable.lexeme, value);
     } else {
       try {
         // 尝试设置当前实例中的类成员变量
-        Instance instance = _curSpace.getByName(Constants.This);
-        instance.variableSet(expr.variable, value);
+        Instance instance = _curSpace.fetch(Common.This);
+        instance.set(expr.variable.lexeme, value);
       } catch (e) {
         if (e is HetuErrorUndefined) {
           // 尝试设置全局变量
-          _global.assign(expr.variable, value);
+          _global.assign(expr.variable.lexeme, value);
         } else {
           throw e;
         }
@@ -344,7 +334,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitThisExpr(ThisExpr expr) {
-    return _getVar(expr.keyword, expr);
+    return _getVar(expr.keyword.lexeme, expr);
   }
 
   @override
@@ -352,20 +342,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     Instance value;
     if (stmt.initializer != null) {
       value = evaluate(stmt.initializer);
-      if (value == NULL) {
-        HetuError.add('(Interpreter) Don\'t explicitly initialize variables to null.'
-            ' [${stmt.varname.lineNumber}, ${stmt.varname.colNumber}].');
-      }
     }
 
-    if (stmt.typename.lexeme == Constants.Dynamic) {
+    if (stmt.typename.lexeme == Common.Dynamic) {
       _curSpace.define(stmt.varname.lexeme, stmt.typename.lexeme, value: value);
-    } else if (stmt.typename.lexeme == Constants.Var) {
+    } else if (stmt.typename.lexeme == Common.Var) {
       // 如果用了var关键字，则从初始化表达式推断变量类型
       if (value != null) {
         _curSpace.define(stmt.varname.lexeme, value.type, value: value);
       } else {
-        _curSpace.define(stmt.varname.lexeme, Constants.Dynamic);
+        _curSpace.define(stmt.varname.lexeme, Common.Dynamic);
       }
     } else {
       // 接下来define函数会判断类型是否符合声明
@@ -377,38 +363,36 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void visitExprStmt(ExprStmt stmt) => evaluate(stmt.expr);
 
   @override
-  void visitBlockStmt(BlockStmt stmt) => executeBlock(stmt.block, Namespace.enclose(_curSpace));
+  void visitBlockStmt(BlockStmt stmt) => executeBlock(stmt.block, Namespace(_curSpace));
 
   @override
   void visitReturnStmt(ReturnStmt stmt) {
-    Instance value = Instance.Null;
     if (stmt.expr != null) {
-      value = evaluate(stmt.expr);
+      throw evaluate(stmt.expr);
     }
-    throw value;
+    throw null;
   }
 
   @override
   void visitIfStmt(IfStmt stmt) {
-    HetuBool value = evaluate(stmt.condition);
-    if (value != null) {
-      if (value.literal) {
+    var value = evaluate(stmt.condition);
+    if (value is bool) {
+      if (value) {
         execute(stmt.thenBranch);
       } else if (stmt.elseBranch != null) {
         execute(stmt.elseBranch);
       }
     } else {
-      throw HetuError('(Interpreter) Condition expression must evaluate to type "bool".'
-          ' [${stmt.condition.lineNumber}, ${stmt.condition.colNumber}].');
+      throw HetuErrorCondition(stmt.condition.line, stmt.condition.column);
     }
   }
 
   @override
   void visitWhileStmt(WhileStmt stmt) {
-    HetuBool value = evaluate(stmt.condition);
-    if (value != null) {
+    var value = evaluate(stmt.condition);
+    if (value is bool) {
       try {
-        while ((value != null) && (value.literal)) {
+        while ((value is bool) && (value)) {
           execute(stmt.loop);
           value = evaluate(stmt.condition);
         }
@@ -420,8 +404,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         }
       }
     } else {
-      throw HetuError('(Interpreter) Condition expression must evaluate to type "bool".'
-          ' [${stmt.condition.lineNumber}, ${stmt.condition.colNumber}].');
+      throw HetuErrorCondition(stmt.condition.line, stmt.condition.column);
     }
   }
 
@@ -431,16 +414,21 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
+  dynamic visitSubGetExpr(SubGetExpr expr) {}
+
+  @override
+  dynamic visitSubSetExpr(SubSetExpr expr) {}
+
+  @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    Instance object = evaluate(expr.collection);
+    var object = evaluate(expr.collection);
     if (object is Instance) {
-      return object.memberGetByToken(expr.key);
-    } else if (object is HetuClass) {
-      return object.getMethodByToken(expr.key);
+      return object.get(expr.key.lexeme);
+    } else if (object is Class) {
+      return object.get(expr.key.lexeme);
     }
 
-    throw HetuError('(Interpreter) [${object}] is not a collection or object.'
-        ' [${expr.key.lineNumber}, ${expr.key.colNumber}].');
+    throw HetuErrorGet(object.toString(), expr.key.line, expr.key.column);
   }
 
   @override
@@ -448,7 +436,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     Instance object = evaluate(expr.collection);
     if (object is Instance) {
       Instance value = evaluate(expr.value);
-      object.variableSet(expr.key, value);
+      object.set(expr.key.lexeme, value);
       return value;
     }
   }
@@ -456,7 +444,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   void visitFuncStmt(FuncStmt stmt) {
     var function = Subroutine(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
-    _curSpace.declare(stmt.name, Constants.Function, value: function);
+    _curSpace.define(stmt.name.lexeme, Common.Function, value: function);
   }
 
   @override
@@ -467,17 +455,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void visitClassStmt(ClassStmt stmt) {
     Class superClass;
 
-    if (stmt.superClass != null) {
+    if ((stmt.superClass != null)) {
       superClass = evaluate(stmt.superClass);
       if (superClass is! Class) {
-        throw HetuError('(Interpreter) [${superClass.name}] is not a classname.'
-            ' [${stmt.superClass.lineNumber}, ${stmt.superClass.colNumber}].');
+        throw HetuErrorExtends(superClass.name, stmt.superClass.line, stmt.superClass.column);
       }
 
       _curSpace = Namespace(_curSpace);
-      _curSpace.define(Constants.Super, Constants.Class, value: superClass);
-    } else {
-      superClass = htObject;
+      _curSpace.define(Common.Super, Common.Class, value: superClass);
     }
 
     var methods = <String, Subroutine>{};
@@ -493,7 +478,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     // 在class中define static变量和函数
 
-    _curSpace.declare(stmt.name, Constants.Class, value: hetuClass);
+    _curSpace.define(stmt.name.lexeme, Common.Class, value: hetuClass);
 
     if (superClass != null) {
       _curSpace = _curSpace.enclosing;
