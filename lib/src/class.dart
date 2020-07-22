@@ -107,7 +107,6 @@ class HS_Instance extends Namespace {
 
   HS_Instance(String class_name) {
     _class = globalContext.fetch(class_name);
-    12.toString();
   }
 
   dynamic get(String name) {
@@ -136,7 +135,7 @@ class HS_Instance extends Namespace {
 
 abstract class HSVal_Literal extends HS_Instance {
   HSVal_Literal(dynamic value, String class_name) : super(class_name) {
-    assign('_val', value);
+    define('_val', HS_TypeOf(value), value: value);
   }
 }
 

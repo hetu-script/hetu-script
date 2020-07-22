@@ -7,64 +7,58 @@ import 'lexer.dart';
 import 'parser.dart';
 import 'resolver.dart';
 import 'interpreter.dart';
-import 'internal_functions.dart';
+import 'external.dart';
 import 'function.dart';
 import 'common.dart';
-import 'class.dart';
 
 abstract class Hetu {
   static var _init = false;
   static bool get isInit => _init;
 
-  static void loadDir(String path, {Context context}) {}
-
   static void init({
     Context context,
-    String preloadDir,
-    String language,
-    Map<String, Bind> bindMap,
-    Map<String, Bind> linkMap,
+    String sdkDir = 'hetu_core',
+    String importDir,
+    String language = 'enUS',
+    Map<String, HS_External> bindMap,
+    Map<String, HS_External> linkMap,
   }) {
     try {
       Directory dirObj;
       List<FileSystemEntity> fileList;
+      File file;
+      String libpath;
 
-      if (!isInit) {
-        print('Hetu: Core library path set to [${HS_Common.coreLibPath}].');
-        dirObj = Directory(HS_Common.coreLibPath);
-        fileList = dirObj.listSync();
-        for (var file in fileList) {
-          if (file is File) {
-            print('Hetu: Loaded libary [${path.basename(file.path)}].');
-            eval(file.readAsStringSync());
-          }
-        }
-
-        globalContext.bindAll(HS_Extern.bindmap);
-        globalContext.bindAll(bindMap);
-        globalContext.linkAll(HS_Extern.linkmap);
-        globalContext.linkAll(linkMap);
-
+      if ((!isInit) && (context != null)) {
+        init(sdkDir: sdkDir, language: language, bindMap: bindMap, linkMap: linkMap);
         _init = true;
       }
 
-      if (context != null) {
-        if (preloadDir != null) {
-          print('Hetu: Preload directory set to [$preloadDir].');
-          dirObj = Directory(preloadDir);
-          fileList = dirObj.listSync();
-          for (var file in fileList) {
-            if (file is File) {
-              print('Hetu: loading script file [${path.basename(file.path)}]...');
-              eval(file.readAsStringSync(), context: context);
-            }
-          }
-        }
+      // 加载河图本身的核心库
+      print('Hetu: Core library path set to [${HS_Common.coreLibPath}].');
+      libpath = path.join(sdkDir, 'object.hs');
+      file = File(libpath);
+      eval(file.readAsStringSync(), context: context);
+      print('Hetu: Loaded libary [object.hs].');
 
-        context.bindAll(HS_Extern.bindmap);
-        context.bindAll(bindMap);
-        context.linkAll(HS_Extern.linkmap);
-        context.linkAll(linkMap);
+      // 绑定外部函数
+      context.bindAll(HS_Extern.bindmap);
+      context.bindAll(bindMap);
+      context.linkAll(HS_Extern.linkmap);
+      context.linkAll(linkMap);
+
+      libpath = path.join(sdkDir, 'literals.hs');
+      file = File(libpath);
+      eval(file.readAsStringSync(), context: context);
+      print('Hetu: Loaded libary [literals.hs].');
+
+      // 加载本次脚本文件需要的库
+      dirObj = Directory(importDir);
+      fileList = dirObj.listSync();
+      for (var file in fileList) {
+        if (file is File) {
+          eval(file.readAsStringSync(), context: context);
+        }
       }
     } catch (e) {
       print(e);
@@ -72,7 +66,7 @@ abstract class Hetu {
     }
   }
 
-  static void bind(String name, Bind function, {Context context}) {
+  static void bind(String name, HS_External function, {Context context}) {
     var ctx = context ?? globalContext;
     ctx.bind(name, function);
   }
@@ -92,6 +86,7 @@ abstract class Hetu {
   static void eval(String script,
       {Context context, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<dynamic> args}) {
     var ctx = context ?? globalContext;
+    if (!_init) print('Hetu: (warning) evironment is not initialized yet.');
 
     HS_Error.clear();
     try {

@@ -299,6 +299,7 @@ abstract class HS_Common {
   static const ErrorCallable = 'is not callable';
   static const ErrorUndefinedMember = 'isn\'t defined for the class';
   static const ErrorCondition = 'Condition expression must evaluate to type "bool"';
+  static const ErrorMissingFuncDef = 'Missing function definition body of';
   static const ErrorGet = 'is not a collection or object';
   static const ErrorExtends = 'is not a class';
 

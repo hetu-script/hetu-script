@@ -10,9 +10,12 @@ abstract class HS_Value {
 class Definition {
   String type;
   dynamic value;
+  bool private;
 
-  Definition(this.type, {this.value});
+  Definition(this.type, {this.value, this.private});
 }
+
+// TODO：下划线开头的关键字表示私有声明
 
 class Namespace extends HS_Value {
   String get type => HS_Common.Namespace;

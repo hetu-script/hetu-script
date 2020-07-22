@@ -87,6 +87,11 @@ class HSErr_Condition extends HS_Error {
   HSErr_Condition([int line, int column]) : super(HS_Common.ErrorCondition, line, column);
 }
 
+class HSErr_MissingFuncDef extends HS_Error {
+  HSErr_MissingFuncDef(String symbol, [int line, int column])
+      : super('${HS_Common.ErrorMissingFuncDef} "${symbol}"', line, column);
+}
+
 class HSErr_Get extends HS_Error {
   HSErr_Get(String symbol, [int line, int column]) : super('"${symbol}" ${HS_Common.ErrorGet}', line, column);
 }

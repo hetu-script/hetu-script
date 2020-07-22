@@ -55,7 +55,8 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void bind(String name, Bind function) {
+  /// 绑定外部函数
+  void bind(String name, HS_External function) {
     if (_global.contains(name)) {
       throw HSErr_Defined(name);
     } else {
@@ -64,8 +65,7 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  /// 绑定外部函数
-  void bindAll(Map<String, Bind> bindMap) {
+  void bindAll(Map<String, HS_External> bindMap) {
     if (bindMap != null) {
       for (var key in bindMap.keys) {
         bind(key, bindMap[key]);
@@ -73,17 +73,16 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void link(String name, Bind function) {
+  /// 链接外部函数
+  void link(String name, HS_External function) {
     if (_external.contains(name)) {
       throw HSErr_Defined(name);
     } else {
-      var func_obj = HS_Function(name, extern: function);
-      _external.define(name, HS_Common.Function, value: func_obj);
+      _external.define(name, HS_Common.Dynamic, value: function);
     }
   }
 
-  /// 链接外部函数
-  void linkAll(Map<String, Bind> linkMap) {
+  void linkAll(Map<String, HS_External> linkMap) {
     if (linkMap != null) {
       for (var key in linkMap.keys) {
         link(key, linkMap[key]);
@@ -376,6 +375,37 @@ class Context implements ExprVisitor, StmtVisitor {
   }
 
   @override
+  dynamic visitSubGetExpr(SubGetExpr expr) {}
+
+  @override
+  dynamic visitSubSetExpr(SubSetExpr expr) {}
+
+  @override
+  dynamic visitMemberGetExpr(MemberGetExpr expr) {
+    var object = evaluateExpr(expr.collection);
+    if ((object is HS_Instance) || (object is HS_Class)) {
+      return object.get(expr.key.lexeme);
+    } else if (object is num) {
+      return HSVal_Num(object).get(expr.key.lexeme);
+    } else if (object is bool) {
+      return HSVal_Bool(object).get(expr.key.lexeme);
+    } else if (object is String) {
+      return HSVal_String(object).get(expr.key.lexeme);
+    }
+
+    throw HSErr_Get(object.toString(), expr.key.line, expr.key.column);
+  }
+
+  @override
+  dynamic visitMemberSetExpr(MemberSetExpr expr) {
+    dynamic object = evaluateExpr(expr.collection);
+    if (object is! HS_Instance) {}
+    var value = evaluateExpr(expr.value);
+    object.set(expr.key.lexeme, value);
+    return value;
+  }
+
+  @override
   void visitVarStmt(VarStmt stmt) {
     dynamic value;
     if (stmt.initializer != null) {
@@ -453,33 +483,6 @@ class Context implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitSubGetExpr(SubGetExpr expr) {}
-
-  @override
-  dynamic visitSubSetExpr(SubSetExpr expr) {}
-
-  @override
-  dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    var object = evaluateExpr(expr.collection);
-    if (object is HS_Instance) {
-      return object.get(expr.key.lexeme);
-    } else if (object is HS_Class) {
-      return object.get(expr.key.lexeme);
-    }
-
-    throw HSErr_Get(object.toString(), expr.key.line, expr.key.column);
-  }
-
-  @override
-  dynamic visitMemberSetExpr(MemberSetExpr expr) {
-    dynamic object = evaluateExpr(expr.collection);
-    if (object is! HS_Instance) {}
-    var value = evaluateExpr(expr.value);
-    object.set(expr.key.lexeme, value);
-    return value;
-  }
-
-  @override
   void visitFuncStmt(FuncStmt stmt) {
     var function = HS_Function(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
     _curSpace.define(stmt.name.lexeme, HS_Common.Function, value: function);
@@ -513,7 +516,8 @@ class Context implements ExprVisitor, StmtVisitor {
     for (var method in stmt.methods) {
       if (method is ExternFuncStmt) {
         var externFunc = _external.fetch('${stmt.name.lexeme}.${method.name.lexeme}');
-        methods[method.name.lexeme] = externFunc;
+        var func_obj = HS_Function(method.name.lexeme, extern: externFunc);
+        methods[method.name.lexeme] = func_obj;
       } else {
         var func =
             HS_Function(stmt.name.lexeme, funcStmt: method, closure: _curSpace, isConstructor: stmt is ConstructorStmt);

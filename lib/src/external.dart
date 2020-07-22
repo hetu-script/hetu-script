@@ -4,13 +4,13 @@ import 'class.dart';
 import 'function.dart';
 
 abstract class HS_Extern {
-  static Map<String, Bind> bindmap = {
+  static Map<String, HS_External> bindmap = {
     'println': _println,
     'getln': _getln,
     'now': _now,
   };
 
-  static Map<String, Bind> linkmap = {
+  static Map<String, HS_External> linkmap = {
     '_literal.toString': _literal_to_string,
   };
 
@@ -39,7 +39,7 @@ abstract class HS_Extern {
   static dynamic _literal_to_string(HS_Instance instance, List<dynamic> args) {
     if (instance != null) {
       var literal = instance.get('_val');
-      return HSVal_String(literal);
+      return literal.toString();
     }
   }
 }

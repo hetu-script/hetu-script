@@ -5,9 +5,7 @@ import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
 
-typedef Bind = dynamic Function(HS_Instance instance, List<dynamic> args);
-
-abstract class Callable {}
+typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
 
 class HS_Function extends HS_Instance {
   @override
@@ -18,7 +16,7 @@ class HS_Function extends HS_Instance {
   final Namespace closure;
   final bool isConstructor;
 
-  Bind extern;
+  HS_External extern;
 
   int get arity {
     var a = -1;
@@ -38,6 +36,7 @@ class HS_Function extends HS_Instance {
       name,
       funcStmt: funcStmt,
       closure: namespace,
+      extern: extern,
       isConstructor: isConstructor,
     );
   }
@@ -45,17 +44,20 @@ class HS_Function extends HS_Instance {
   dynamic call(List<dynamic> args) {
     try {
       if (extern != null) {
-        var instance = closure.fetchAt(0, HS_Common.This, report_exception: false);
+        var instance = closure?.fetchAt(0, HS_Common.This, report_exception: false);
         return extern(instance, args);
       } else {
         var environment = Namespace(closure);
-        if ((funcStmt != null) && (args != null)) {
-          for (var i = 0; i < funcStmt.params.length; i++) {
-            environment.define(funcStmt.params[i].varname.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
+        if (funcStmt != null) {
+          if (args != null) {
+            for (var i = 0; i < funcStmt.params.length; i++) {
+              environment.define(funcStmt.params[i].varname.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
+            }
           }
+          globalContext.executeBlock(funcStmt.definition, environment);
+        } else {
+          throw HSErr_MissingFuncDef(name);
         }
-
-        globalContext.executeBlock(funcStmt.definition, environment);
       }
     } catch (returnValue) {
       if ((returnValue is HS_Error) || (returnValue is Exception)) {
