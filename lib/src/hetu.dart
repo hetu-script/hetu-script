@@ -22,8 +22,8 @@ abstract class Hetu {
     Context context,
     String preloadDir,
     String language,
-    Map<String, Call> bindMap,
-    Map<String, Call> linkMap,
+    Map<String, Bind> bindMap,
+    Map<String, Bind> linkMap,
   }) {
     try {
       Directory dirObj;
@@ -40,9 +40,9 @@ abstract class Hetu {
           }
         }
 
-        globalContext.bindAll(HetuBuildInFunction.bindmap);
+        globalContext.bindAll(HS_Extern.bindmap);
         globalContext.bindAll(bindMap);
-        globalContext.linkAll(HetuBuildInFunction.linkmap);
+        globalContext.linkAll(HS_Extern.linkmap);
         globalContext.linkAll(linkMap);
 
         _init = true;
@@ -61,9 +61,9 @@ abstract class Hetu {
           }
         }
 
-        context.bindAll(HetuBuildInFunction.bindmap);
+        context.bindAll(HS_Extern.bindmap);
         context.bindAll(bindMap);
-        context.linkAll(HetuBuildInFunction.linkmap);
+        context.linkAll(HS_Extern.linkmap);
         context.linkAll(linkMap);
       }
     } catch (e) {
@@ -72,12 +72,12 @@ abstract class Hetu {
     }
   }
 
-  static void bind(String name, Call function, {Context context}) {
+  static void bind(String name, Bind function, {Context context}) {
     var ctx = context ?? globalContext;
     ctx.bind(name, function);
   }
 
-  static void invoke(String name, {Context context, List<HS_Instance> args}) {
+  static void invoke(String name, {Context context, List<dynamic> args}) {
     HS_Error.clear();
     var ctx = context ?? globalContext;
     try {
@@ -90,7 +90,7 @@ abstract class Hetu {
   }
 
   static void eval(String script,
-      {Context context, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<HS_Instance> args}) {
+      {Context context, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<dynamic> args}) {
     var ctx = context ?? globalContext;
 
     HS_Error.clear();
@@ -117,12 +117,12 @@ abstract class Hetu {
 
   /// 解析文件
   static void evalf(String path,
-          {Context context, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<HS_Instance> args}) =>
+          {Context context, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<dynamic> args}) =>
       eval(File(path).readAsStringSync(), context: context, style: style, invokeFunc: invokeFunc, args: args);
 
   /// 解析多个文件
   static void evalfs(Set<String> paths,
-      {Context interpreter, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<HS_Instance> args}) {
+      {Context interpreter, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<dynamic> args}) {
     String chunk = '';
     for (var file in paths) {
       chunk += File(file).readAsStringSync();
@@ -132,7 +132,7 @@ abstract class Hetu {
 
   /// 解析多个文件
   static void evalfs2(List<FileSystemEntity> paths,
-      {Context interpreter, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<HS_Instance> args}) {
+      {Context interpreter, ParseStyle style = ParseStyle.program, String invokeFunc = null, List<dynamic> args}) {
     String chunk = '';
     for (var file in paths) {
       if (file is File) chunk += file.readAsStringSync();
@@ -141,6 +141,6 @@ abstract class Hetu {
   }
 
   /// 解析命令行
-  static void evalc(String commandLine, {List<HS_Instance> args}) =>
+  static void evalc(String commandLine, {List<dynamic> args}) =>
       eval(commandLine, args: args, style: ParseStyle.commandLine);
 }

@@ -3,23 +3,25 @@ import 'dart:io';
 import 'class.dart';
 import 'function.dart';
 
-abstract class HetuBuildInFunction {
-  static Map<String, Call> bindmap = {
-    'println': println,
-    'getln': getln,
-    'now': now,
+abstract class HS_Extern {
+  static Map<String, Bind> bindmap = {
+    'println': _println,
+    'getln': _getln,
+    'now': _now,
   };
 
-  static Map<String, Call> linkmap = {};
+  static Map<String, Bind> linkmap = {
+    '_literal.toString': _literal_to_string,
+  };
 
-  static HS_Instance println(List<HS_Instance> args) {
+  static dynamic _println(HS_Instance instance, List<dynamic> args) {
     for (var arg in args) {
       print(arg);
     }
     return null;
   }
 
-  static HSVal_String getln(List<HS_Instance> args) {
+  static dynamic _getln(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       stdout.write('${args.first.toString()}');
     } else {
@@ -30,7 +32,14 @@ abstract class HetuBuildInFunction {
     return HSVal_String(input);
   }
 
-  static HSVal_Num now(List<HS_Instance> args) {
+  static dynamic _now(HS_Instance instance, List<dynamic> args) {
     return HSVal_Num(DateTime.now().millisecondsSinceEpoch);
+  }
+
+  static dynamic _literal_to_string(HS_Instance instance, List<dynamic> args) {
+    if (instance != null) {
+      var literal = instance.get('_val');
+      return HSVal_String(literal);
+    }
   }
 }

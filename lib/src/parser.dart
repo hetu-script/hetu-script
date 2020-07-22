@@ -57,6 +57,12 @@ class Parser {
   static const List<String> _patternDecl = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.Semicolon];
   static const List<String> _patternInit = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.Assign];
   static const List<String> _patternFuncDecl = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.RoundLeft];
+  static const List<String> _patternExternFuncDecl = [
+    HS_Common.External,
+    HS_Common.Identifier,
+    HS_Common.Identifier,
+    HS_Common.RoundLeft
+  ];
   static const List<String> _patternAssign = [HS_Common.Identifier, HS_Common.Assign];
   static const List<String> _patternIf = [HS_Common.If, HS_Common.RoundLeft];
   static const List<String> _patternWhile = [HS_Common.While, HS_Common.RoundLeft];
@@ -69,7 +75,7 @@ class Parser {
     for (var i = 0; i < tokenTypes.length; ++i) {
       if (consume) {
         if (curTok.type != tokenTypes[i]) {
-          result = false;
+          throw HSErr_Expected(tokenTypes[i], curTok.lexeme, curTok.line, curTok.column);
         }
         ++_position;
       } else {
@@ -269,11 +275,11 @@ class Parser {
     if (HS_Common.Literals.contains(curTok.type)) {
       int index;
       if (curTok.literal is num) {
-        index = _context.addLiteral(HSVal_Num(curTok.literal));
+        index = _context.addLiteral(curTok.literal);
       } else if (curTok.literal is bool) {
-        index = _context.addLiteral(HSVal_Bool(curTok.literal));
+        index = _context.addLiteral(curTok.literal);
       } else if (curTok.literal is String) {
-        index = _context.addLiteral(HSVal_String(curTok.literal));
+        index = _context.addLiteral(curTok.literal);
       }
       expr = LiteralExpr(index, curTok.line, curTok.column);
       advance(1);
@@ -366,6 +372,8 @@ class Parser {
           else if ((curTok.lexeme == _curClassName) && (peek(1).type == HS_Common.RoundLeft)) {
             stmt = _parseConstructorStmt();
             // 如果是函数声明
+          } else if (expect(_patternExternFuncDecl)) {
+            stmt = _parseExternFunctionStmt();
           } else if (expect(_patternFuncDecl)) {
             stmt = _parseFunctionStmt();
           } else {
@@ -464,21 +472,17 @@ class Parser {
   }
 
   ReturnStmt _parseReturnStmt() {
-    ReturnStmt stmt;
     var keyword = curTok;
     advance(1);
     Expr expr;
     if (curTok.type != HS_Common.Semicolon) {
       expr = _parseExpr();
     }
-    if (expect([HS_Common.Semicolon], consume: true)) {
-      stmt = ReturnStmt(keyword, expr);
-    }
-    return stmt;
+    expect([HS_Common.Semicolon], consume: true);
+    return ReturnStmt(keyword, expr);
   }
 
   IfStmt _parseIfStmt() {
-    IfStmt stmt;
     // 之前已经校验过括号了所以这里直接跳过
     advance(2);
     var condition = _parseExpr();
@@ -500,12 +504,10 @@ class Parser {
         elseBranch = _parseStmt(style: ParseStyle.functionDefinition);
       }
     }
-    stmt = IfStmt(condition, thenBranch, elseBranch);
-    return stmt;
+    return IfStmt(condition, thenBranch, elseBranch);
   }
 
   WhileStmt _parseWhileStmt() {
-    WhileStmt stmt;
     // 之前已经校验过括号了所以这里直接跳过
     advance(2);
     var condition = _parseExpr();
@@ -517,8 +519,7 @@ class Parser {
     } else {
       loop = _parseStmt(style: ParseStyle.functionDefinition);
     }
-    stmt = WhileStmt(condition, loop);
-    return stmt;
+    return WhileStmt(condition, loop);
   }
 
   List<VarStmt> _parseParameters() {
@@ -545,7 +546,6 @@ class Parser {
   }
 
   FuncStmt _parseFunctionStmt() {
-    FuncStmt stmt;
     if (!HS_Common.FunctionReturnTypes.contains(curTok.lexeme)) {
       throw HSErr_Undefined(curTok.lexeme, curTok.line, curTok.column);
     }
@@ -557,8 +557,22 @@ class Parser {
     // 处理函数定义部分的语句块
     expect([HS_Common.CurlyLeft], consume: true);
     var stmts = _parseBlock(style: ParseStyle.functionDefinition);
-    stmt = FuncStmt(return_type, func_name, params, stmts);
-    return stmt;
+    return FuncStmt(return_type, func_name, params, stmts);
+  }
+
+  ExternFuncStmt _parseExternFunctionStmt() {
+    // 之前已经校验过external关键字了所以这里直接跳过
+    advance(1);
+    if (!HS_Common.FunctionReturnTypes.contains(curTok.lexeme)) {
+      throw HSErr_Undefined(curTok.lexeme, curTok.line, curTok.column);
+    }
+    var return_type = curTok.lexeme;
+    var func_name = peek(1);
+    // 之前已经校验过左括号了所以这里直接跳过
+    advance(3);
+    var params = _parseParameters();
+    expect([HS_Common.Semicolon], consume: true);
+    return ExternFuncStmt(return_type, func_name, params, _curClassName);
   }
 
   ConstructorStmt _parseConstructorStmt() {

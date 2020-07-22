@@ -289,6 +289,7 @@ abstract class HS_Common {
   static const Undefined = 'undefined';
 
   static const ErrorUnsupport = 'Unsupport value type';
+  static const ErrorExpected = 'expected, get';
   static const ErrorUnexpected = 'Unexpected identifier';
   static const ErrorUndefined = 'Undefined variable';
   static const ErrorUndefinedOperator = 'Undefined operator';

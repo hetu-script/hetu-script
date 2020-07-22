@@ -5,7 +5,7 @@ import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
 
-typedef Call = HS_Instance Function(List<HS_Instance> args);
+typedef Bind = dynamic Function(HS_Instance instance, List<dynamic> args);
 
 abstract class Callable {}
 
@@ -14,12 +14,11 @@ class HS_Function extends HS_Instance {
   String toString() => '$name(${type})';
 
   final String name;
-  final String className;
   final FuncStmt funcStmt;
   final Namespace closure;
   final bool isConstructor;
 
-  Call bindFunc;
+  Bind extern;
 
   int get arity {
     var a = -1;
@@ -29,7 +28,7 @@ class HS_Function extends HS_Instance {
     return a;
   }
 
-  HS_Function(this.name, {this.className, this.funcStmt, this.closure, this.bindFunc, this.isConstructor = false})
+  HS_Function(this.name, {this.funcStmt, this.closure, this.extern, this.isConstructor = false})
       : super(HS_Common.Function);
 
   HS_Function bind(HS_Instance instance) {
@@ -43,10 +42,11 @@ class HS_Function extends HS_Instance {
     );
   }
 
-  HS_Instance call(List<HS_Instance> args) {
+  dynamic call(List<dynamic> args) {
     try {
-      if (bindFunc != null) {
-        return bindFunc(args);
+      if (extern != null) {
+        var instance = closure.fetchAt(0, HS_Common.This, report_exception: false);
+        return extern(instance, args);
       } else {
         var environment = Namespace(closure);
         if ((funcStmt != null) && (args != null)) {
@@ -58,14 +58,17 @@ class HS_Function extends HS_Instance {
         globalContext.executeBlock(funcStmt.definition, environment);
       }
     } catch (returnValue) {
-      if (returnValue is HS_Instance) {
-        if ((funcStmt != null) && (funcStmt.returnType != returnValue.type)) {
-          throw HSErr_ReturnType(returnValue.type, name, funcStmt.returnType);
-        }
-        return returnValue;
-      } else {
+      if ((returnValue is HS_Error) || (returnValue is Exception)) {
         throw returnValue;
       }
+
+      String returned_type = HS_TypeOf(returnValue);
+
+      if ((funcStmt != null) && (funcStmt.returnType != HS_Common.Dynamic) && (funcStmt.returnType != returned_type)) {
+        throw HSErr_ReturnType(returned_type, name, funcStmt.returnType);
+      }
+
+      return returnValue;
     }
 
     if (isConstructor) {

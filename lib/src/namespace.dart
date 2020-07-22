@@ -9,7 +9,7 @@ abstract class HS_Value {
 
 class Definition {
   String type;
-  HS_Value value;
+  dynamic value;
 
   Definition(this.type, {this.value});
 }
@@ -35,25 +35,27 @@ class Namespace extends HS_Value {
     return namespace;
   }
 
-  HS_Value fetch(String name) {
+  dynamic fetch(String name, {bool report_exception = true}) {
     if (defs.containsKey(name)) {
       return defs[name].value;
     }
 
     if (enclosing != null) return enclosing.fetch(name);
 
-    throw HSErr_Undefined(name);
+    if (report_exception) throw HSErr_Undefined(name);
+
+    return null;
   }
 
-  HS_Value fetchAt(int distance, String name) => outer(distance).fetch(name);
+  dynamic fetchAt(int distance, String name, {bool report_exception = true}) => outer(distance).fetch(name);
 
   /// 在当前命名空间声明一个指定类型的变量
-  void define(String name, String type, {HS_Value value}) {
+  void define(String name, String type, {dynamic value}) {
     if (!defs.containsKey(name)) {
-      if ((type == HS_Common.Dynamic) || ((value != null) && (type == value.type)) || (value == null)) {
+      if ((type == HS_Common.Dynamic) || ((value != null) && (type == HS_TypeOf(value))) || (value == null)) {
         defs[name] = Definition(type, value: value);
       } else {
-        throw HSErr_Type(value.type, type);
+        throw HSErr_Type(HS_TypeOf(value), type);
       }
     } else {
       throw HSErr_Defined(name);
@@ -61,13 +63,13 @@ class Namespace extends HS_Value {
   }
 
   /// 向一个已经声明的变量赋值
-  void assign(String name, HS_Value value) {
+  void assign(String name, dynamic value) {
     if (defs.containsKey(name)) {
-      var variableType = defs[name].type;
-      if ((variableType == HS_Common.Dynamic) || (variableType == value.type)) {
+      var type = defs[name].type;
+      if ((type == HS_Common.Dynamic) || (type == HS_TypeOf(value))) {
         defs[name].value = value;
       } else {
-        throw HSErr_Type(value.type, variableType);
+        throw HSErr_Type(HS_TypeOf(value), type);
       }
     } else if (enclosing != null) {
       enclosing.assign(name, value);

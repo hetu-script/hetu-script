@@ -12,9 +12,9 @@ abstract class HS_Error {
   @override
   String toString() {
     if ((line != null) && (column != null)) {
-      return '${message} [${line}-${column}]';
+      return 'Hetu: (error) ${message} : [${line}-${column}]';
     } else {
-      return '${message}';
+      return 'Hetu: (error) ${message}';
     }
   }
 
@@ -36,6 +36,11 @@ class HSErr_Unsupport extends HS_Error {
       : super('${HS_Common.ErrorUnsupport} "${symbol}"', line, column);
 }
 
+class HSErr_Expected extends HS_Error {
+  HSErr_Expected(String expected, String met, [int line, int column])
+      : super('"${expected}" ${HS_Common.ErrorExpected} "${met}"', line, column);
+}
+
 class HSErr_Unexpected extends HS_Error {
   HSErr_Unexpected(String symbol, [int line, int column])
       : super('${HS_Common.ErrorUnexpected} "${symbol}"', line, column);
@@ -49,6 +54,11 @@ class HSErr_Undefined extends HS_Error {
 class HSErr_UndefinedOperator extends HS_Error {
   HSErr_UndefinedOperator(String symbol1, String op, [int line, int column])
       : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}"', line, column);
+}
+
+class HSErr_UndefinedBinaryOperator extends HS_Error {
+  HSErr_UndefinedBinaryOperator(String symbol1, String symbol2, String op, [int line, int column])
+      : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}" "${symbol2}"', line, column);
 }
 
 class HSErr_Defined extends HS_Error {
@@ -98,7 +108,7 @@ class HSErr_ArgType extends HS_Error {
 class HSErr_ReturnType extends HS_Error {
   HSErr_ReturnType(String returned_type, String func_name, String decl_return_type, [int line, int column])
       : super(
-            '${HS_Common.ErrorReturnType1} "${returned_type}" ${HS_Common.ErrorReturnType2}'
+            '"${returned_type}" ${HS_Common.ErrorReturnType2}'
             ' "${func_name}" ${HS_Common.ErrorReturnType3} "${decl_return_type}"',
             line,
             column);
@@ -106,5 +116,5 @@ class HSErr_ReturnType extends HS_Error {
 
 class HSErr_Arity extends HS_Error {
   HSErr_Arity(int args_count, int params_count, [int line, int column])
-      : super('${HS_Common.ErrorArity1} "${args_count}" ${HS_Common.ErrorArity2} "${params_count}"', line, column);
+      : super('${HS_Common.ErrorArity1} [${args_count}] ${HS_Common.ErrorArity2} [${params_count}]', line, column);
 }

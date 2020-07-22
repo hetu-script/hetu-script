@@ -10,10 +10,6 @@ class calculator {
   num meaning() {
     return x * y;
   }
-  
-  num get5(num x) {
-    return x * 5;
-  }
 }
   
 void main(){
@@ -21,6 +17,5 @@ void main(){
   var cal = calculator(6, 7);
   
   println('the meaning of life, universe and everything is ' + cal.meaning());
-  
   
 }
