@@ -1,6 +1,5 @@
-## Usage
+## 简单的使用示例
 
-简单的使用示例：
 
 ```dart
 import 'package:hetu_script/hetu.dart';
@@ -16,13 +15,14 @@ void main() {
 ```
 
 输出结果为：
+```
 the meaning of life, universe and everything is 42
 hello
 world
 42!
+```
 
-Content of 'test.hs':
-
+脚本文件'test.hs'的内容如下：
 ```dart
 
 // 类的定义
