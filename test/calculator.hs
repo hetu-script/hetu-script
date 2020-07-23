@@ -26,5 +26,5 @@ void main(){
   var cal = calculator(6, 7);
   
   // 调用外部函数，调用外部成员函数，字符串类型检查
-  println('the meaning of life, universe and everything is ' + cal.meaning().toString());
+  System.print('the meaning of life, universe and everything is ' + cal.meaning().toString());
 }

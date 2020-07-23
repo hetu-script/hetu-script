@@ -15,11 +15,11 @@ abstract class HS_Common {
       r'([_\p{L}][_\p{L}0-9]*)|' // 标识符 group(2)
       r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-!,;{}\)\(\.])|' // 标点符号和运算符号 group(3)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
-      r"('(\\'|\\\\|\\n|[^'])*')|", // 字符串字面量 group(6)
+      r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
+      r'("(\\"|[^"])*"))',
       unicode: true,
       multiLine: true,
     ),
-    commandLine: RegExp(r'\S+'),
   };
 
   static const regCommentGrp = 1;

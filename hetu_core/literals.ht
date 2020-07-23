@@ -1,0 +1,12 @@
+class _Literal {
+
+  // external关键字表示函数体在host语言中定义
+	external String toString();
+
+}
+
+class num extends _Literal {}
+
+class bool extends _Literal {}
+
+class String extends _Literal {}

@@ -24,6 +24,10 @@ String HS_TypeOf(dynamic value) {
 /// [HS_Class]的实例对应河图中的"class"声明
 ///
 /// [HS_Class]继承自命名空间[Namespace]，[HS_Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
+///
+/// 类的方法单独定义在一个表中，通过[getMethod]获取
+///
+/// 类的静态成员定义在所继承的[Namespace]的表中，通过[define]和[fetch]定义和获取
 class HS_Class extends Namespace {
   String get type => HS_Common.Class;
 
@@ -37,23 +41,46 @@ class HS_Class extends Namespace {
 
   Map<String, HS_Function> _methods = {};
 
-  HS_Class(this.name, {String superClassName, List<VarStmt> decls, Map<String, HS_Function> methods}) {
+  HS_Class(this.name,
+      {String superClassName,
+      List<VarStmt> variables,
+      Map<String, HS_Function> methods,
+      Map<String, HS_Function> staticMethods}) {
     if ((superClassName == null) && (name != HS_Common.Object)) superClassName = HS_Common.Object;
-    if (superClassName != null) superClass = globalContext.fetch(superClassName);
-    if (decls != null) _decls.addAll(decls);
+    if (superClassName != null) superClass = globalContext.fetchGlobal(superClassName);
+    if (variables != null) _decls.addAll(variables);
     if (methods != null) _methods.addAll(methods);
+
+    for (var key in staticMethods.keys) {
+      var method = staticMethods[key];
+      if (method is HS_Function) {
+        define(key, HS_Common.Function, value: method);
+      } else {
+        define(key, HS_Common.Dynamic, value: method);
+      }
+    }
   }
 
-  HS_Function get(String name) {
+  HS_Function getMethod(String name) {
     if (_methods.containsKey(name)) {
       return _methods[name];
     }
 
     if (superClass != null) {
-      return superClass.get(name);
+      return superClass.getMethod(name);
     }
 
     throw HSErr_UndefinedMember(name, this.name);
+  }
+
+  dynamic fetch(String name, {bool report_exception = true}) {
+    if (defs.containsKey(name)) {
+      return defs[name].value;
+    }
+
+    if (report_exception) throw HSErr_Undefined(name);
+
+    return null;
   }
 
   HS_Instance createInstance({String constructorName, List<dynamic> args}) {
@@ -82,7 +109,7 @@ class HS_Class extends Namespace {
     constructorName ??= name;
 
     try {
-      constructorFunction = get(constructorName);
+      constructorFunction = getMethod(constructorName);
     } catch (e) {
       if (e is! HSErr_Undefined) {
         throw e;
@@ -106,16 +133,15 @@ class HS_Instance extends Namespace {
   HS_Class _class;
 
   HS_Instance(String class_name) {
-    _class = globalContext.fetch(class_name);
+    _class = globalContext.fetchGlobal(class_name);
   }
 
   dynamic get(String name) {
     if (defs.containsKey(name)) {
       return defs[name].value;
     } else {
-      HS_Function method = _class.get(name);
-      if (method != null) return method.bind(this);
-      throw HSErr_Undefined(name);
+      HS_Function method = _class.getMethod(name);
+      return method.bind(this);
     }
   }
 
@@ -130,6 +156,11 @@ class HS_Instance extends Namespace {
     } else {
       throw HSErr_UndefinedMember(name, _class.name);
     }
+  }
+
+  dynamic invoke(String name, {List<dynamic> args}) {
+    HS_Function method = _class.getMethod(name);
+    return method.bind(this).call(args);
   }
 }
 

@@ -45,7 +45,7 @@ class HS_Function extends HS_Instance {
     try {
       if (extern != null) {
         var instance = closure?.fetchAt(0, HS_Common.This, report_exception: false);
-        return extern(instance, args);
+        return extern(instance, args ?? []);
       } else {
         var environment = Namespace(closure);
         if (funcStmt != null) {

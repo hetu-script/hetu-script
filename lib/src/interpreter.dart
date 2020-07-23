@@ -6,7 +6,7 @@ import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
 
-Context globalContext = Context();
+Context globalContext;
 
 /// 负责对语句列表进行最终解释执行
 class Context implements ExprVisitor, StmtVisitor {
@@ -90,7 +90,8 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  dynamic fetch(String name) => _global.fetch(name);
+  dynamic fetchGlobal(String name) => _global.fetch(name);
+  dynamic fetchExternal(String name) => _external.fetch(name);
 
   dynamic _getVar(String name, Expr expr) {
     var distance = _locals[expr];
@@ -139,12 +140,26 @@ class Context implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void invoke(String name, {List<dynamic> args}) {
-    var func = _global.fetch(name);
-    if (func is HS_Function) {
-      func.call(args ?? []);
+  dynamic invoke(String name, {String classname, List<dynamic> args}) {
+    if (classname == null) {
+      var func = _global.fetch(name);
+      if (func is HS_Function) {
+        return func.call(args ?? []);
+      } else {
+        throw HSErr_Undefined(name);
+      }
     } else {
-      throw HSErr_Undefined(name);
+      var klass = _global.fetch(classname);
+      if (klass is HS_Class) {
+        var func = klass.fetch(name);
+        if (func is HS_Function) {
+          return func.call(args ?? []);
+        } else {
+          throw HSErr_Callable(name);
+        }
+      } else {
+        throw HSErr_Undefined(classname);
+      }
     }
   }
 
@@ -383,8 +398,10 @@ class Context implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
     var object = evaluateExpr(expr.collection);
-    if ((object is HS_Instance) || (object is HS_Class)) {
+    if (object is HS_Instance) {
       return object.get(expr.key.lexeme);
+    } else if (object is HS_Class) {
+      return object.fetch(expr.key.lexeme);
     } else if (object is num) {
       return HSVal_Num(object).get(expr.key.lexeme);
     } else if (object is bool) {
@@ -484,19 +501,17 @@ class Context implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    var function = HS_Function(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
-    _curSpace.define(stmt.name.lexeme, HS_Common.Function, value: function);
+    // 构造函数本身不注册为变量
+    if (!stmt.isConstructor) {
+      if (stmt.isExtern) {
+        var externFunc = _external.fetch(stmt.name.lexeme);
+        _curSpace.define(stmt.name.lexeme, HS_Common.Dynamic, value: externFunc);
+      } else {
+        var function = HS_Function(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
+        _curSpace.define(stmt.name.lexeme, HS_Common.Function, value: function);
+      }
+    }
   }
-
-  @override
-  void visitExternFuncStmt(ExternFuncStmt stmt) {
-    var externFunc = _external.fetch(stmt.name.lexeme);
-    _curSpace.define(stmt.name.lexeme, HS_Common.Function, value: externFunc);
-  }
-
-  @override
-  // 构造函数本身不注册为变量
-  void visitConstructorStmt(ConstructorStmt stmt) {}
 
   @override
   void visitClassStmt(ClassStmt stmt) {
@@ -513,22 +528,24 @@ class Context implements ExprVisitor, StmtVisitor {
     }
 
     var methods = <String, HS_Function>{};
+    var staticMethods = <String, HS_Function>{};
     for (var method in stmt.methods) {
-      if (method is ExternFuncStmt) {
+      dynamic func;
+      if (method.isExtern) {
         var externFunc = _external.fetch('${stmt.name.lexeme}.${method.name.lexeme}');
-        var func_obj = HS_Function(method.name.lexeme, extern: externFunc);
-        methods[method.name.lexeme] = func_obj;
+        func = HS_Function(method.name.lexeme, extern: externFunc);
       } else {
-        var func =
-            HS_Function(stmt.name.lexeme, funcStmt: method, closure: _curSpace, isConstructor: stmt is ConstructorStmt);
+        func = HS_Function(stmt.name.lexeme, funcStmt: method, closure: _curSpace, isConstructor: method.isConstructor);
+      }
+      if (!method.isStatic) {
         methods[method.name.lexeme] = func;
+      } else {
+        staticMethods[method.name.lexeme] = func;
       }
     }
 
-    var hetuClass =
-        HS_Class(stmt.name.lexeme, superClassName: superClass?.name, decls: stmt.variables, methods: methods);
-
-    // 在class中define static变量和函数
+    var hetuClass = HS_Class(stmt.name.lexeme,
+        superClassName: superClass?.name, variables: stmt.variables, methods: methods, staticMethods: staticMethods);
 
     if (superClass != null) {
       _curSpace = _curSpace.enclosing;

@@ -200,19 +200,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    _declare(stmt.name, define: true);
-    _resolveFunction(stmt, _FunctionType.normal);
-  }
-
-  @override
-  void visitExternFuncStmt(ExternFuncStmt stmt) {
-    _declare(stmt.name, define: true);
-    _resolveFunction(stmt, _FunctionType.normal);
-  }
-
-  @override
-  void visitConstructorStmt(ConstructorStmt stmt) {
-    _resolveFunction(stmt, _FunctionType.constructor);
+    if (!stmt.isConstructor) {
+      _declare(stmt.name, define: true);
+      _resolveFunction(stmt, _FunctionType.normal);
+    } else {
+      _resolveFunction(stmt, _FunctionType.constructor);
+    }
   }
 
   @override
@@ -239,7 +232,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _blocks.last[HS_Common.This] = true;
 
     for (var method in stmt.methods) {
-      if (method is ConstructorStmt) {
+      if (method.isConstructor) {
         _resolveFunction(method, _FunctionType.constructor);
       } else {
         _resolveFunction(method, _FunctionType.method);

@@ -4,21 +4,29 @@ import 'class.dart';
 import 'function.dart';
 
 abstract class HS_Extern {
-  static Map<String, HS_External> bindmap = {
-    'println': _println,
-    'getln': _getln,
-    'now': _now,
-  };
+  static Map<String, HS_External> bindmap = {};
 
   static Map<String, HS_External> linkmap = {
-    '_literal.toString': _literal_to_string,
+    'System.write': _write,
+    'System.writeln': _writeln,
+    'System.print': _print,
+    'System.getln': _getln,
+    'System.now': _now,
+    '_Literal.toString': _literal_to_string,
   };
 
-  static dynamic _println(HS_Instance instance, List<dynamic> args) {
+  static dynamic _write(HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) stdout.write('${args.first.toString()}');
+  }
+
+  static dynamic _writeln(HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) stdout.writeln('${args.first.toString()}');
+  }
+
+  static dynamic _print(HS_Instance instance, List<dynamic> args) {
     for (var arg in args) {
       print(arg);
     }
-    return null;
   }
 
   static dynamic _getln(HS_Instance instance, List<dynamic> args) {

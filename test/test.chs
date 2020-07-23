@@ -1,1 +1,1 @@
-println hello world 42!
+System.print hello world 42!

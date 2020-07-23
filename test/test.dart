@@ -3,7 +3,7 @@ import 'package:hetu_script/hetu.dart';
 import 'package:hetu_script/src/lexer.dart';
 
 void main() {
-  Hetu.init();
+  //var hetu = Hetu();
   var lexer = Lexer();
   group('Hetu test', () {
     test('consoleLog', () {

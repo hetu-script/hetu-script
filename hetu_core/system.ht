@@ -1,0 +1,15 @@
+class System {
+
+	// write a line without return
+	external static void write();
+	
+	// write a line ends with return
+	external static void writeln();
+	
+	// print multiple dynamic into lines
+	external static void print();
+	
+	external static String getln();
+	
+	external static num now();
+}

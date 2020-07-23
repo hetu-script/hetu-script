@@ -8,9 +8,9 @@ num fib(num x) {
 void main(){
 
   var before = now();
-	println(fib(15));
+	System.print(fib(15));
   var after = now();
-  println(after - before);
+  System.print(after - before);
   
   
 }

@@ -36,12 +36,6 @@ abstract class StmtVisitor {
   /// 函数声明和定义
   void visitFuncStmt(FuncStmt stmt);
 
-  /// 外部函数
-  void visitExternFuncStmt(ExternFuncStmt stmt);
-
-  /// 构造函数
-  void visitConstructorStmt(ConstructorStmt stmt);
-
   /// 类
   void visitClassStmt(ClassStmt stmt);
 }
@@ -157,37 +151,22 @@ class FuncStmt extends Stmt {
 
   final Token name;
 
+  final String className;
+
   final List<VarStmt> params;
 
-  final List<Stmt> definition;
+  List<Stmt> definition;
 
-  FuncStmt(this.returnType, this.name, this.params, this.definition);
-}
+  bool isExtern;
 
-class ExternFuncStmt extends FuncStmt {
-  @override
-  String get type => HS_Common.ExternFuncStmt;
+  bool isStatic;
 
-  @override
-  dynamic accept(StmtVisitor visitor) => visitor.visitExternFuncStmt(this);
+  bool isConstructor;
 
-  final String className;
-
-  ExternFuncStmt(String returnType, Token name, List<VarStmt> params, this.className)
-      : super(returnType, name, params, null);
-}
-
-class ConstructorStmt extends FuncStmt {
-  @override
-  String get type => HS_Common.ConstructorStmt;
-
-  @override
-  dynamic accept(StmtVisitor visitor) => visitor.visitConstructorStmt(this);
-
-  final String className;
-
-  ConstructorStmt(this.className, Token name, List<VarStmt> params, List<Stmt> definition)
-      : super(HS_Common.Void, name, params, definition);
+  FuncStmt(this.returnType, this.name, this.params,
+      {this.definition, this.className, this.isExtern = false, this.isStatic = false, this.isConstructor = false}) {
+    this.definition ??= <Stmt>[];
+  }
 }
 
 class ClassStmt extends Stmt {
