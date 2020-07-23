@@ -54,12 +54,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
       // Directory dirObj;
       // List<FileSystemEntity> fileList;
-      // String libpath;
+      String libpath;
 
-      // 加载河图基础对象
-      // print('Hetu: Core library path set to [${HS_Common.coreLibPath}].');
-      // libpath = path.join(_sdkDir, 'object.ht');
-      // evalf(libpath);
+      // 必须在绑定函数前加载河图基础类，因为函数本身也是对象
+      print('Hetu: Core library path set to [${HS_Common.coreLibPath}].');
+      libpath = path.join(_sdkDir, 'object.ht');
+      evalf(libpath);
 
       // 绑定外部函数
       bindAll(HS_Extern.bindmap);

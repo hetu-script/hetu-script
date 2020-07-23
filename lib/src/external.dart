@@ -14,6 +14,7 @@ abstract class HS_Extern {
     'System.writeln': _writeln,
     'System.print': _print,
     'System.getln': _getln,
+    'System.readfile': _readfile,
     'System.now': _now,
     '_Literal.toString': _literal_to_string,
   };
@@ -56,6 +57,13 @@ abstract class HS_Extern {
     }
     var input = stdin.readLineSync();
     return input;
+  }
+
+  static dynamic _readfile(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      var filepath = args.first.toString();
+      return File(filepath).readAsStringSync();
+    }
   }
 
   static dynamic _now(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {

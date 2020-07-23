@@ -16,5 +16,7 @@ class System {
 	
 	external static String getln();
 	
+	external static String readfile(String filepath);
+	
 	external static num now();
 }
