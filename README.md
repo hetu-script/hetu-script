@@ -1,17 +1,25 @@
 ## Usage
 
-A simple usage example:
+简单的使用示例：
 
 ```dart
 import 'package:hetu_script/hetu.dart';
 
 void main() {
   var hetu = Hetu();
+  // 执行脚本文件，以'main'作为入口函数
   hetu.evalf('test\\calculator.hs', invokeFunc: 'main');
 
+  // 以命令行模式解析
   hetu.evalc('System.print hello world 42!');
 }
 ```
+
+输出结果为：
+the meaning of life, universe and everything is 42
+hello
+world
+42!
 
 Content of 'test.hs':
 
