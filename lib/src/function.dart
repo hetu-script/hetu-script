@@ -5,7 +5,7 @@ import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
 
-typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
+typedef HS_External = dynamic Function(Interpreter interpreter, HS_Instance instance, List<dynamic> args);
 
 class HS_Function extends HS_Instance {
   @override
@@ -18,15 +18,9 @@ class HS_Function extends HS_Instance {
 
   HS_External extern;
 
-  int get arity {
-    var a = -1;
-    if (funcStmt != null) {
-      a = funcStmt.params.length;
-    }
-    return a;
-  }
+  final int arity;
 
-  HS_Function(this.name, {this.funcStmt, this.closure, this.extern, this.isConstructor = false})
+  HS_Function(this.name, {this.funcStmt, this.closure, this.extern, this.isConstructor = false, this.arity = -1})
       : super(HS_Common.Function);
 
   HS_Function bind(HS_Instance instance) {
@@ -45,7 +39,7 @@ class HS_Function extends HS_Instance {
     try {
       if (extern != null) {
         var instance = closure?.fetchAt(0, HS_Common.This, report_exception: false);
-        return extern(instance, args ?? []);
+        return extern(globalInterpreter, instance, args ?? []);
       } else {
         var environment = Namespace(closure);
         if (funcStmt != null) {
@@ -54,7 +48,7 @@ class HS_Function extends HS_Instance {
               environment.define(funcStmt.params[i].varname.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
             }
           }
-          globalContext.executeBlock(funcStmt.definition, environment);
+          globalInterpreter.executeBlock(funcStmt.definition, environment);
         } else {
           throw HSErr_MissingFuncDef(name);
         }

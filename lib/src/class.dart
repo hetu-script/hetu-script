@@ -47,7 +47,7 @@ class HS_Class extends Namespace {
       Map<String, HS_Function> methods,
       Map<String, HS_Function> staticMethods}) {
     if ((superClassName == null) && (name != HS_Common.Object)) superClassName = HS_Common.Object;
-    if (superClassName != null) superClass = globalContext.fetchGlobal(superClassName);
+    if (superClassName != null) superClass = globalInterpreter.fetchGlobal(superClassName);
     if (variables != null) _decls.addAll(variables);
     if (methods != null) _methods.addAll(methods);
 
@@ -88,7 +88,7 @@ class HS_Class extends Namespace {
 
     for (var decl in _decls) {
       dynamic value;
-      if (decl.initializer != null) value = globalContext.evaluateExpr(decl.initializer);
+      if (decl.initializer != null) value = globalInterpreter.evaluateExpr(decl.initializer);
 
       if (decl.typename.lexeme == HS_Common.Dynamic) {
         instance.define(decl.varname.lexeme, decl.typename.lexeme, value: value);
@@ -133,7 +133,7 @@ class HS_Instance extends Namespace {
   HS_Class _class;
 
   HS_Instance(String class_name) {
-    _class = globalContext.fetchGlobal(class_name);
+    _class = globalInterpreter.fetchGlobal(class_name);
   }
 
   dynamic get(String name) {

@@ -38,9 +38,10 @@ enum ParseStyle {
 class Parser {
   final List<Token> _tokens = [];
   var _position = 0;
-  Context _context;
+  Interpreter _context;
   String _curClassName;
 
+  static const List<String> _patternImport = [HS_Common.Import, HS_Common.Str];
   static const List<String> _patternVarDecl = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.Semicolon];
   static const List<String> _patternInit = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.Assign];
   static const List<String> _patternFuncDecl = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.RoundLeft];
@@ -86,14 +87,14 @@ class Parser {
 
   List<Stmt> parse(
     List<Token> tokens, {
-    Context context,
+    Interpreter interpreter,
     ParseStyle style = ParseStyle.library,
   }) {
     _tokens.clear();
     _tokens.addAll(tokens);
     _position = 0;
 
-    _context = context ?? globalContext;
+    _context = interpreter ?? globalInterpreter;
 
     var statements = <Stmt>[];
     while (curTok.type != HS_Common.EOF) {
@@ -299,8 +300,11 @@ class Parser {
     switch (style) {
       case ParseStyle.library:
         {
+          if (expect(_patternImport)) {
+            return _parseImportStmt();
+          }
           // 如果是变量声明
-          if (expect(_patternVarDecl)) {
+          else if (expect(_patternVarDecl)) {
             return _parseVarStmt();
           } // 如果是带初始化语句的变量声明
           else if (expect(_patternInit)) {
@@ -392,6 +396,14 @@ class Parser {
     }
     expect([HS_Common.CurlyRight], consume: true);
     return BlockStmt(stmts);
+  }
+
+  ImportStmt _parseImportStmt() {
+    advance(1);
+    var stmt = ImportStmt(curTok.literal);
+    advance(1);
+    expect([HS_Common.Semicolon], consume: true);
+    return stmt;
   }
 
   /// 无初始化的变量声明语句
@@ -525,7 +537,16 @@ class Parser {
     var func_name = peek(1);
     // 之前已经校验过左括号了所以这里直接跳过
     advance(3);
-    var params = _parseParameters();
+    var params = <VarStmt>[];
+    int arity;
+    if (curTok.type == HS_Common.Any) {
+      arity = -1;
+      advance(1);
+      expect([HS_Common.RoundRight], consume: true);
+    } else {
+      params = _parseParameters();
+      arity = params.length;
+    }
     var body = <Stmt>[];
     if (!isExtern) {
       // 处理函数定义部分的语句块
@@ -534,7 +555,8 @@ class Parser {
     } else {
       expect([HS_Common.Semicolon], consume: true);
     }
-    return FuncStmt(return_type, func_name, params, definition: body, isExtern: isExtern, isStatic: isStatic);
+    return FuncStmt(return_type, func_name, params,
+        arity: arity, definition: body, isExtern: isExtern, isStatic: isStatic);
   }
 
   FuncStmt _parseConstructorStmt() {

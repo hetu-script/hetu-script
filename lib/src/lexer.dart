@@ -18,6 +18,10 @@ class Lexer {
           if (match.group(HS_Common.regIdGrp) != null) {
             if (HS_Common.Keywords.contains(matchString)) {
               _tokens.add(Token(matchString, currentLine, column));
+            } else if (matchString == HS_Common.True) {
+              _tokens.add(TokenBoolLiteral(true, currentLine, column));
+            } else if (matchString == HS_Common.False) {
+              _tokens.add(TokenBoolLiteral(false, currentLine, column));
             } else {
               _tokens.add(TokenIdentifier(matchString, currentLine, column));
             }

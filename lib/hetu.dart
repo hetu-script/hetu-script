@@ -3,9 +3,12 @@
 ///
 library hetu_script;
 
+import 'package:hetu_script/src/interpreter.dart';
+
 export 'src/parser.dart' show ParseStyle;
 export 'src/interpreter.dart';
 export 'src/class.dart';
 export 'src/function.dart';
 export 'src/errors.dart';
-export 'src/hetu.dart';
+
+var hetu = globalInterpreter;

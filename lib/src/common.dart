@@ -13,7 +13,7 @@ abstract class HS_Common {
     enUS: RegExp(
       r'(//.*)|' // 注释 group(1)
       r'([_\p{L}][_\p{L}0-9]*)|' // 标识符 group(2)
-      r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-!,;{}\)\(\.])|' // 标点符号和运算符号 group(3)
+      r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,;{}\)\(\.])|' // 标点符号和运算符号 group(3)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
       r'("(\\"|[^"])*"))',
@@ -132,6 +132,7 @@ abstract class HS_Common {
 
   static const EOF = 'end_of_file'; // 文件末尾
   static const Void = 'void';
+  static const Any = '?';
 
   static const Var = 'var';
   static const Dynamic = 'dynamic';
@@ -291,7 +292,7 @@ abstract class HS_Common {
   static const ErrorUnsupport = 'Unsupport value type';
   static const ErrorExpected = 'expected, get';
   static const ErrorUnexpected = 'Unexpected identifier';
-  static const ErrorUndefined = 'Undefined variable';
+  static const ErrorUndefined = 'Undefined identifier';
   static const ErrorUndefinedOperator = 'Undefined operator';
   static const ErrorDefined = 'is already declared';
   static const ErrorRange = 'Index out of range, should be less than';

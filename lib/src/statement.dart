@@ -12,6 +12,9 @@ import 'expression.dart';
 ///
 /// 4，语句包含表达式，而表达式不包含语句
 abstract class StmtVisitor {
+  /// 导入语句
+  void visitImportStmt(ImportStmt stmt);
+
   /// 变量声明语句
   void visitVarStmt(VarStmt stmt);
 
@@ -44,6 +47,18 @@ abstract class Stmt {
   String get type;
 
   void accept(StmtVisitor visitor);
+}
+
+class ImportStmt extends Stmt {
+  @override
+  String get type => HS_Common.Import;
+
+  @override
+  void accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
+
+  final String filepath;
+
+  ImportStmt(this.filepath);
 }
 
 class VarStmt extends Stmt {
@@ -155,16 +170,23 @@ class FuncStmt extends Stmt {
 
   final List<VarStmt> params;
 
+  final int arity;
+
   List<Stmt> definition;
 
-  bool isExtern;
+  final bool isExtern;
 
-  bool isStatic;
+  final bool isStatic;
 
-  bool isConstructor;
+  final bool isConstructor;
 
   FuncStmt(this.returnType, this.name, this.params,
-      {this.definition, this.className, this.isExtern = false, this.isStatic = false, this.isConstructor = false}) {
+      {this.arity = 0,
+      this.definition,
+      this.className,
+      this.isExtern = false,
+      this.isStatic = false,
+      this.isConstructor = false}) {
     this.definition ??= <Stmt>[];
   }
 }

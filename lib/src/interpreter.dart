@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
+
 import 'errors.dart';
 import 'common.dart';
 import 'expression.dart';
@@ -5,11 +9,18 @@ import 'statement.dart';
 import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
+import 'external.dart';
+import 'lexer.dart';
+import 'parser.dart';
+import 'resolver.dart';
 
-Context globalContext;
+var globalInterpreter = Interpreter();
 
 /// 负责对语句列表进行最终解释执行
-class Context implements ExprVisitor, StmtVisitor {
+class Interpreter implements ExprVisitor, StmtVisitor {
+  static String _sdkDir;
+  String workingDir;
+
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _locals = <Expr, int>{};
@@ -26,8 +37,134 @@ class Context implements ExprVisitor, StmtVisitor {
   /// external函数的空间
   final _external = Namespace();
 
-  Context() {
+  Interpreter() {
     _curSpace = _global;
+  }
+
+  init({
+    String hetuSdkDir,
+    String workingDir,
+    String language = 'enUS',
+    Map<String, HS_External> bindMap,
+    Map<String, HS_External> linkMap,
+  }) {
+    try {
+      _sdkDir = hetuSdkDir ?? 'hetu_core';
+      this.workingDir = workingDir ?? path.current;
+
+      // Directory dirObj;
+      // List<FileSystemEntity> fileList;
+      // String libpath;
+
+      // 加载河图基础对象
+      // print('Hetu: Core library path set to [${HS_Common.coreLibPath}].');
+      // libpath = path.join(_sdkDir, 'object.ht');
+      // evalf(libpath);
+
+      // 绑定外部函数
+      bindAll(HS_Extern.bindmap);
+      bindAll(bindMap);
+      linkAll(HS_Extern.linkmap);
+      linkAll(linkMap);
+
+      // // 加载核心库
+      // for (var lib in _coreLib) {
+      //   libpath = path.join(_sdkDir, lib);
+      //   evalf(libpath);
+      // }
+
+      // TODO：使用import关键字决定加载顺序，而不是现在这样简单粗暴的遍历
+      // 加载本次脚本文件需要的库
+      // if (importDir != null) {
+      //   for (var dir in importDir) {
+      //     dirObj = Directory(dir);
+      //     fileList = dirObj.listSync();
+      //     for (var file in fileList) {
+      //       if (file is File) {
+      //         eval(file.readAsStringSync());
+      //         print('Hetu: Impoted file [${path.basename(file.path)}].');
+      //       }
+      //     }
+      //   }
+      // }
+    } catch (e) {
+      print(e);
+      print('Hetu init failed!');
+    }
+  }
+
+  void eval(String script, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+    HS_Error.clear();
+    try {
+      final _lexer = Lexer();
+      final _parser = Parser();
+      final _resolver = Resolver();
+      var tokens = _lexer.lex(script);
+      var statements = _parser.parse(tokens, interpreter: this, style: style);
+      _resolver.resolve(statements, interpreter: this);
+      interpreter(
+        statements,
+        invokeFunc: invokeFunc,
+        args: args,
+      );
+    } catch (e) {
+      print(e);
+    } finally {
+      HS_Error.output();
+    }
+  }
+
+  /// 解析文件
+  void evalf(String filepath, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+    print('Hetu: Loading $filepath...');
+    eval(File(filepath).readAsStringSync(), style: style, invokeFunc: invokeFunc, args: args);
+  }
+
+  /// 解析多个文件
+  void evalfs(Iterable<String> paths,
+      {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+    String chunk = '';
+    for (var file in paths) {
+      chunk += File(file).readAsStringSync();
+    }
+    eval(chunk, style: style, invokeFunc: invokeFunc, args: args);
+  }
+
+  /// 解析多个文件
+  void evalfs2(Iterable<FileSystemEntity> paths,
+      {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+    String chunk = '';
+    for (var file in paths) {
+      if (file is File) chunk += file.readAsStringSync();
+    }
+    eval(chunk, style: style, invokeFunc: invokeFunc, args: args);
+  }
+
+  var clReg = RegExp(r"('(\\'|[^'])*')|(\S+)");
+
+  /// 解析命令行
+  dynamic evalc(String input) {
+    var matches = clReg.allMatches(input);
+    var function = matches.first.group(3);
+    String classname;
+    if (function == null) throw Exception('命令行错误：无效的调用。');
+    if (function.contains('.')) {
+      var split = function.split('.');
+      function = split.last;
+      classname = split.first;
+    }
+    var args = <String>[];
+    for (var i = 1; i < matches.length; ++i) {
+      var word = matches.elementAt(i);
+      if (word.group(1) != null) {
+        String literal = word.group(1);
+        literal = literal.substring(1).substring(0, literal.length - 2);
+        args.add(literal);
+      } else {
+        args.add(word.group(0));
+      }
+    }
+    return invoke(function, classname: classname, args: args);
   }
 
   void addLocal(Expr expr, int distance) {
@@ -141,25 +278,32 @@ class Context implements ExprVisitor, StmtVisitor {
   }
 
   dynamic invoke(String name, {String classname, List<dynamic> args}) {
-    if (classname == null) {
-      var func = _global.fetch(name);
-      if (func is HS_Function) {
-        return func.call(args ?? []);
-      } else {
-        throw HSErr_Undefined(name);
-      }
-    } else {
-      var klass = _global.fetch(classname);
-      if (klass is HS_Class) {
-        var func = klass.fetch(name);
+    HS_Error.clear();
+    try {
+      if (classname == null) {
+        var func = _global.fetch(name);
         if (func is HS_Function) {
           return func.call(args ?? []);
         } else {
-          throw HSErr_Callable(name);
+          throw HSErr_Undefined(name);
         }
       } else {
-        throw HSErr_Undefined(classname);
+        var klass = _global.fetch(classname);
+        if (klass is HS_Class) {
+          var func = klass.fetch(name);
+          if (func is HS_Function) {
+            return func.call(args ?? []);
+          } else {
+            throw HSErr_Callable(name);
+          }
+        } else {
+          throw HSErr_Undefined(classname);
+        }
       }
+    } catch (e) {
+      print(e);
+    } finally {
+      HS_Error.output();
     }
   }
 
@@ -423,6 +567,18 @@ class Context implements ExprVisitor, StmtVisitor {
   }
 
   @override
+  dynamic visitImportStmt(ImportStmt stmt) {
+    String lib_name;
+    if (stmt.filepath.startsWith('hetu:')) {
+      lib_name = stmt.filepath.substring(5);
+      lib_name = path.join(_sdkDir, lib_name + '.ht');
+    } else {
+      lib_name = path.join(workingDir, stmt.filepath);
+    }
+    evalf(lib_name);
+  }
+
+  @override
   void visitVarStmt(VarStmt stmt) {
     dynamic value;
     if (stmt.initializer != null) {
@@ -507,7 +663,8 @@ class Context implements ExprVisitor, StmtVisitor {
         var externFunc = _external.fetch(stmt.name.lexeme);
         _curSpace.define(stmt.name.lexeme, HS_Common.Dynamic, value: externFunc);
       } else {
-        var function = HS_Function(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false);
+        var function =
+            HS_Function(stmt.name.lexeme, funcStmt: stmt, closure: _curSpace, isConstructor: false, arity: stmt.arity);
         _curSpace.define(stmt.name.lexeme, HS_Common.Function, value: function);
       }
     }
@@ -535,7 +692,8 @@ class Context implements ExprVisitor, StmtVisitor {
         var externFunc = _external.fetch('${stmt.name.lexeme}.${method.name.lexeme}');
         func = HS_Function(method.name.lexeme, extern: externFunc);
       } else {
-        func = HS_Function(stmt.name.lexeme, funcStmt: method, closure: _curSpace, isConstructor: method.isConstructor);
+        func = HS_Function(stmt.name.lexeme,
+            funcStmt: method, closure: _curSpace, isConstructor: method.isConstructor, arity: method.arity);
       }
       if (!method.isStatic) {
         methods[method.name.lexeme] = func;

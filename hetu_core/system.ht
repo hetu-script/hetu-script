@@ -1,13 +1,18 @@
 class System {
+	// interpret a command line string
+	external static dynamic evalc(String command);
+	
+	// invoke a global or static member function
+	// external static dynamic invoke();
 
 	// write a line without return
-	external static void write();
+	external static void write(String line);
 	
 	// write a line ends with return
-	external static void writeln();
+	external static void writeln(String line);
 	
 	// print multiple dynamic into lines
-	external static void print();
+	external static void print(?);
 	
 	external static String getln();
 	
