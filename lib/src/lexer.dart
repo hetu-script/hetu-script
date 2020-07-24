@@ -38,9 +38,7 @@ class Lexer {
           else if (match.group(HS_Common.regStrGrp) != null) {
             var literal = matchString.substring(1).substring(0, matchString.length - 2);
 
-            for (var key in HS_Common.stringReplaces.keys) {
-              literal = literal.replaceAll(key, HS_Common.stringReplaces[key]);
-            }
+            literal = HS_Common.convertEscapeCode(literal);
             _tokens.add(TokenStringLiteral(literal, currentLine, column));
           }
         }

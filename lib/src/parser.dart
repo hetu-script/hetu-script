@@ -261,7 +261,7 @@ class Parser {
       } else if (curTok.literal is bool) {
         index = _context.addLiteral(curTok.literal);
       } else if (curTok.literal is String) {
-        index = _context.addLiteral(curTok.literal);
+        index = _context.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
       }
       expr = LiteralExpr(index, curTok.line, curTok.column);
       advance(1);

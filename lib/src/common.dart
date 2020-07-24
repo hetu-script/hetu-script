@@ -28,11 +28,18 @@ abstract class HS_Common {
   static const regNumGrp = 4;
   static const regStrGrp = 6;
 
-  static const stringReplaces = <String, String>{
-    r'\\\\': '\\',
-    r'\\n': '\n',
-    r"\\'": "'",
+  static const _stringReplaces = <String, String>{
+    '\\\\': '\\',
+    '\\n': '\n',
+    "\\'": "'",
   };
+
+  static String convertEscapeCode(String line) {
+    for (var key in _stringReplaces.keys) {
+      line = line.replaceAll(key, _stringReplaces[key]);
+    }
+    return line;
+  }
 
   static const BuildInTypes = <String>[
     Dynamic,
@@ -141,6 +148,9 @@ abstract class HS_Common {
   static const Str = 'String';
   static const Typedef = 'typedef';
   static const List = 'list';
+  static const ListOfNum = 'list_of_num';
+  static const ListOfString = 'list_of_string';
+  static const ListOfDynamic = 'list_of_dynamic';
 
   static const Null = 'null';
   static const Static = 'static';
@@ -187,9 +197,6 @@ abstract class HS_Common {
 
   /// 函数调用表达式
   static const LiteralExpr = 'literal_expression';
-  static const ListOfNumExpr = 'list_of_num_expression';
-  static const ListOfStringExpr = 'list_of_string_expression';
-  static const ListOfDynamicExpr = 'list_of_dynamic_expression';
   static const MapExpr = 'map_expression';
   static const VarExpr = 'variable_expression';
   static const TypeExpr = 'type_expression';

@@ -10,12 +10,15 @@ abstract class HS_Extern {
   static Map<String, HS_External> linkmap = {
     'System.evalc': _evalc,
     'System.invoke': _invoke,
-    'System.write': _write,
-    'System.writeln': _writeln,
-    'System.print': _print,
-    'System.getln': _getln,
     'System.readfile': _readfile,
     'System.now': _now,
+    'Console.write': _write,
+    'Console.writeln': _writeln,
+    'Console.print': _print,
+    'Console.getln': _getln,
+    'Console.movCurUp': _movCurUp,
+    'Console.setTitle': _setTitle,
+    'Console.cls': _cls,
     '_Literal.toString': _literal_to_string,
   };
 
@@ -64,6 +67,21 @@ abstract class HS_Extern {
       var filepath = args.first.toString();
       return File(filepath).readAsStringSync();
     }
+  }
+
+  static dynamic _movCurUp(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    stdout.write('\x1B[1F\x1B[0G\x1B[0K');
+  }
+
+  static dynamic _setTitle(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      var title = args.first.toString();
+      stdout.write('\x1b]0;${title}\x07');
+    }
+  }
+
+  static dynamic _cls(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    stdout.write("\x1B[2J\x1B[0;0H");
   }
 
   static dynamic _now(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {

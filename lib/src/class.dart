@@ -181,3 +181,7 @@ class HSVal_Bool extends HSVal_Literal {
 class HSVal_String extends HSVal_Literal {
   HSVal_String(String value) : super(value, HS_Common.Str);
 }
+
+class HSVal_List extends HSVal_Literal {
+  HSVal_List(List value) : super(value, HS_Common.List);
+}

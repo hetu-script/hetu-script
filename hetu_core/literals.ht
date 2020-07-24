@@ -10,3 +10,10 @@ class num extends _Literal {}
 class bool extends _Literal {}
 
 class String extends _Literal {}
+
+class List extends _Literal {
+	
+	external add(dynamic value);
+	
+	external get length;
+}

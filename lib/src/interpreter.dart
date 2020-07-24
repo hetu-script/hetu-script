@@ -9,7 +9,7 @@ import 'statement.dart';
 import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
-import 'external.dart';
+import 'buildin.dart';
 import 'lexer.dart';
 import 'parser.dart';
 import 'resolver.dart';
@@ -20,6 +20,8 @@ var globalInterpreter = Interpreter();
 class Interpreter implements ExprVisitor, StmtVisitor {
   static String _sdkDir;
   String workingDir;
+
+  var _evaledFiles = <String>[];
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -93,7 +95,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void eval(String script, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+  void _eval(String script, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
     HS_Error.clear();
     try {
       final _lexer = Lexer();
@@ -117,27 +119,22 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 解析文件
   void evalf(String filepath, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
     print('Hetu: Loading $filepath...');
-    eval(File(filepath).readAsStringSync(), style: style, invokeFunc: invokeFunc, args: args);
+    var absolute_path = path.absolute(filepath);
+    if (!_evaledFiles.contains(absolute_path)) {
+      _evaledFiles.add(absolute_path);
+      _eval(File(absolute_path).readAsStringSync(), style: style, invokeFunc: invokeFunc, args: args);
+    } else {
+      print('Hetu: Already loaded, skipping file [filepath]');
+    }
   }
 
-  /// 解析多个文件
-  void evalfs(Iterable<String> paths,
-      {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
-    String chunk = '';
-    for (var file in paths) {
-      chunk += File(file).readAsStringSync();
+  /// 解析目录下所有文件
+  void evald(String dir, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+    var _dir = Directory(dir);
+    var filelist = _dir.listSync();
+    for (var file in filelist) {
+      if (file is File) evalf(file.path);
     }
-    eval(chunk, style: style, invokeFunc: invokeFunc, args: args);
-  }
-
-  /// 解析多个文件
-  void evalfs2(Iterable<FileSystemEntity> paths,
-      {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
-    String chunk = '';
-    for (var file in paths) {
-      if (file is File) chunk += file.readAsStringSync();
-    }
-    eval(chunk, style: style, invokeFunc: invokeFunc, args: args);
   }
 
   var clReg = RegExp(r"('(\\'|[^'])*')|(\S+)");
