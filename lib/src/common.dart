@@ -13,7 +13,7 @@ abstract class HS_Common {
     enUS: RegExp(
       r'(//.*)|' // 注释 group(1)
       r'([_\p{L}][_\p{L}0-9]*)|' // 标识符 group(2)
-      r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,;{}\)\(\.])|' // 标点符号和运算符号 group(3)
+      r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
       r'("(\\"|[^"])*"))',
@@ -74,6 +74,7 @@ abstract class HS_Common {
   ];
 
   static const Keywords = <String>[
+    Global,
     Null,
     Static,
     Const,
@@ -81,6 +82,9 @@ abstract class HS_Common {
     Namespace,
     As,
     Class,
+    Function,
+    Get,
+    Set,
     This,
     Super,
     Extends,
@@ -125,6 +129,7 @@ abstract class HS_Common {
     Or,
     Assign,
     Comma,
+    Colon,
     Semicolon,
     Dot,
     RoundLeft,
@@ -139,15 +144,19 @@ abstract class HS_Common {
 
   static const EOF = 'end_of_file'; // 文件末尾
   static const Void = 'void';
-  static const Any = '?';
+  static const Unknown = '?';
+  static const Private = '_';
+  static const InstanceName = 'instance of class ';
+  static const Global = 'Global';
 
+  static const UnknownType = 'unknown_type';
   static const Var = 'var';
   static const Dynamic = 'dynamic';
   static const Num = 'num';
   static const Bool = 'bool';
   static const Str = 'String';
   static const Typedef = 'typedef';
-  static const List = 'list';
+  static const List = 'List';
   static const ListOfNum = 'list_of_num';
   static const ListOfString = 'list_of_string';
   static const ListOfDynamic = 'list_of_dynamic';
@@ -155,11 +164,16 @@ abstract class HS_Common {
   static const Null = 'null';
   static const Static = 'static';
   static const Const = 'const';
+  static const Get = 'get';
+  static const Getter = '_get_';
+  static const Set = 'set';
+  static const Setter = '_set_';
   static const Final = 'final';
   static const Namespace = 'namespace';
   static const As = 'as';
   static const Class = 'class';
-  static const Function = 'Function';
+  static const Function = 'func';
+  static const FunctionObj = 'Function';
   static const Method = 'method';
   static const This = 'this';
   static const Super = 'super';
@@ -196,24 +210,32 @@ abstract class HS_Common {
   static const Object = 'Object';
 
   /// 函数调用表达式
+  static const NullExpr = 'null_expression';
   static const LiteralExpr = 'literal_expression';
+  static const ListExpr = 'list_expression';
   static const MapExpr = 'map_expression';
   static const VarExpr = 'variable_expression';
+  static const GroupExpr = 'group_expression';
   static const TypeExpr = 'type_expression';
   static const UnaryExpr = 'unary_expression';
   static const BinaryExpr = 'binary_expression';
   static const CallExpr = 'call_expression';
-  static const NewExpr = 'new_expression';
+  static const ThisExpr = 'this_expression';
   static const AssignExpr = 'assign_expression';
   static const SubGetExpr = 'subscript_get_expression';
   static const SubSetExpr = 'subscript_set_expression';
   static const MemberGetExpr = 'member_get_expression';
   static const MemberSetExpr = 'member_set_expression';
 
+  static const ImportStmt = 'import_statement';
   static const VarStmt = 'variable_statement';
   static const ExprStmt = 'expression_statement';
   static const BlockStmt = 'block_statement';
   static const ReturnStmt = 'return_statement';
+  static const BreakStmt = 'break_statement';
+  static const IfStmt = 'if_statement';
+  static const WhileStmt = 'while_statement';
+  static const ForInStmt = 'for_in_statement';
   static const ClassStmt = 'class_statement';
   static const FuncStmt = 'function_statement';
   static const ExternFuncStmt = 'external_function_statement';
@@ -283,6 +305,7 @@ abstract class HS_Common {
   static const Identifier = 'identifier'; // 标识符
 
   static const Comma = ',';
+  static const Colon = ':';
   static const Semicolon = ';';
   static const Dot = '.';
   static const RoundLeft = '(';
@@ -294,11 +317,14 @@ abstract class HS_Common {
   static const AngleLeft = '<';
   static const AngleRight = '>';
 
+  static const length = 'length';
+
   static const Undefined = 'undefined';
 
   static const ErrorUnsupport = 'Unsupport value type';
   static const ErrorExpected = 'expected, get';
   static const ErrorUnexpected = 'Unexpected identifier';
+  static const ErrorPrivate = 'Could not acess private member';
   static const ErrorUndefined = 'Undefined identifier';
   static const ErrorUndefinedOperator = 'Undefined operator';
   static const ErrorDefined = 'is already declared';
@@ -309,7 +335,10 @@ abstract class HS_Common {
   static const ErrorCondition = 'Condition expression must evaluate to type "bool"';
   static const ErrorMissingFuncDef = 'Missing function definition body of';
   static const ErrorGet = 'is not a collection or object';
+  static const ErrorSubGet = 'is not a List';
   static const ErrorExtends = 'is not a class';
+  static const ErrorSetter = 'Setter function\'s arity must be 1';
+  static const ErrorNullObject = 'is null';
 
   static const ErrorType1 = 'Assigned value type';
   static const ErrorType2 = 'doesn\'t match declared type';

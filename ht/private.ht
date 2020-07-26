@@ -1,0 +1,25 @@
+import 'hetu:core';
+
+class Entity {
+  String _name;
+
+  String get name {
+    return _name;
+  }
+
+  Entity(String name) {
+    _name = name;
+  }
+
+  static String getName(String entity) {
+    return entity.name;
+  }
+}
+
+void main() {
+  Entity val;
+
+  // Console.print(Entity.getName(ent));
+
+  Console.print(val == null);
+}

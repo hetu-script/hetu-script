@@ -9,7 +9,7 @@ class Console {
 	// print multiple dynamic into lines
 	external static void print(?);
 	
-	external static String getln();
+	external static String getln(String info);
 	
 	external static void movCurUp();
 	

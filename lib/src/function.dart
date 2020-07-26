@@ -7,48 +7,56 @@ import 'errors.dart';
 
 typedef HS_External = dynamic Function(Interpreter interpreter, HS_Instance instance, List<dynamic> args);
 
-class HS_Function extends HS_Instance {
+class HS_FuncObj extends HS_Instance {
   @override
   String toString() => '$name(${type})';
 
   final String name;
+  final String className;
   final FuncStmt funcStmt;
   final Namespace closure;
-  final bool isConstructor;
+  final FuncStmtType functype;
 
   HS_External extern;
 
   final int arity;
 
-  HS_Function(this.name, {this.funcStmt, this.closure, this.extern, this.isConstructor = false, this.arity = -1})
-      : super(HS_Common.Function);
+  HS_FuncObj(this.name,
+      {this.className, this.funcStmt, this.closure, this.extern, this.functype = FuncStmtType.normal, this.arity = 0})
+      : super(HS_Common.FunctionObj);
 
-  HS_Function bind(HS_Instance instance) {
-    Namespace namespace = Namespace(closure);
+  // 成员函数外层是实例
+  HS_FuncObj bind(HS_Instance instance) {
+    Namespace namespace = Namespace(enclosing: instance);
     namespace.define(HS_Common.This, instance.type, value: instance);
-    return HS_Function(
-      name,
-      funcStmt: funcStmt,
-      closure: namespace,
-      extern: extern,
-      isConstructor: isConstructor,
-    );
+    return HS_FuncObj(name,
+        className: className, funcStmt: funcStmt, closure: namespace, extern: extern, functype: functype, arity: arity);
   }
 
   dynamic call(List<dynamic> args) {
     try {
       if (extern != null) {
-        var instance = closure?.fetchAt(0, HS_Common.This, report_exception: false);
+        var instance = closure?.fetchAt(0, HS_Common.This, error: false);
         return extern(globalInterpreter, instance, args ?? []);
       } else {
-        var environment = Namespace(closure);
+        var environment = Namespace(enclosing: closure);
         if (funcStmt != null) {
           if (args != null) {
-            for (var i = 0; i < funcStmt.params.length; i++) {
-              environment.define(funcStmt.params[i].varname.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
-            }
+            if (arity != -1) {
+              for (var i = 0; i < funcStmt.params.length; i++) {
+                environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
+              }
+            } else {}
+          }
+          String before;
+          if (className != null) {
+            before = globalInterpreter.curClassName;
+            globalInterpreter.curClassName = className;
           }
           globalInterpreter.executeBlock(funcStmt.definition, environment);
+          if (className != null) {
+            globalInterpreter.curClassName = before;
+          }
         } else {
           throw HSErr_MissingFuncDef(name);
         }
@@ -60,14 +68,18 @@ class HS_Function extends HS_Instance {
 
       String returned_type = HS_TypeOf(returnValue);
 
-      if ((funcStmt != null) && (funcStmt.returnType != HS_Common.Dynamic) && (funcStmt.returnType != returned_type)) {
+      if ((funcStmt != null) &&
+          (funcStmt.returnType != HS_Common.Dynamic) &&
+          (returned_type != HS_Common.Null) &&
+          (funcStmt.returnType != returned_type)) {
         throw HSErr_ReturnType(returned_type, name, funcStmt.returnType);
       }
 
+      if (returnValue is NullThrownError) return null;
       return returnValue;
     }
 
-    if (isConstructor) {
+    if (functype == FuncStmtType.constructor) {
       return closure.fetchAt(0, HS_Common.This);
     } else {
       return null;

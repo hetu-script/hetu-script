@@ -11,8 +11,14 @@ import 'common.dart';
 ///
 /// 4，语句包含表达式，而表达式不包含语句
 abstract class ExprVisitor {
+  /// Null
+  dynamic visitNullExpr(NullExpr expr);
+
   /// 字面量
   dynamic visitLiteralExpr(LiteralExpr expr);
+
+  /// 数组
+  dynamic visitListExpr(ListExpr expr);
 
   /// 单目表达式
   dynamic visitUnaryExpr(UnaryExpr expr);
@@ -49,9 +55,6 @@ abstract class ExprVisitor {
   /// 函数调用表达式，即便返回值是void的函数仍然还是表达式
   dynamic visitCallExpr(CallExpr expr);
 
-  /// 新建对象表达式
-  //dynamic visitNewExpr(NewExpr expr);
-
   /// This表达式
   dynamic visitThisExpr(ThisExpr expr);
 }
@@ -65,6 +68,16 @@ abstract class Expr {
   dynamic accept(ExprVisitor visitor);
 
   Expr(this.line, this.column);
+}
+
+class NullExpr extends Expr {
+  @override
+  String get type => HS_Common.NullExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitNullExpr(this);
+
+  NullExpr(int line, int column) : super(line, column);
 }
 
 class LiteralExpr extends Expr {
@@ -82,7 +95,19 @@ class LiteralExpr extends Expr {
   }
 }
 
-//TODO: 数组和字典的字面量
+class ListExpr extends Expr {
+  @override
+  String get type => HS_Common.ListExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitListExpr(this);
+
+  List<Expr> list;
+
+  ListExpr(this.list, int line, int column) : super(line, column) {
+    list ??= [];
+  }
+}
 
 class UnaryExpr extends Expr {
   @override
@@ -131,28 +156,16 @@ class VarExpr extends Expr {
   VarExpr(this.name) : super(name.line, name.column);
 }
 
-// class TypeExpr extends Expr {
-//   @override
-//   String get type => HetuTypes.TypeExpr;
-
-//   @override
-//   dynamic accept(ExprVisitor visitor) => visitor.visitTypeExpr(this);
-
-//   final Token name;
-
-//   TypeExpr(this.name) : super(name.line, name.column);
-// }
-
 class GroupExpr extends Expr {
   @override
-  String get type => HS_Common.VarExpr;
+  String get type => HS_Common.GroupExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
 
-  final Expr expr;
+  final Expr inner;
 
-  GroupExpr(this.expr) : super(expr.line, expr.column);
+  GroupExpr(this.inner) : super(inner.line, inner.column);
 }
 
 class AssignExpr extends Expr {
@@ -182,7 +195,7 @@ class SubGetExpr extends Expr {
   dynamic accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
 
   /// 数组
-  final Token array;
+  final Expr array;
 
   /// 索引
   final Expr index;
@@ -198,13 +211,13 @@ class SubSetExpr extends Expr {
   dynamic accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
 
   /// 数组
-  final Token array;
+  final Expr array;
 
   /// 索引
   final Expr index;
 
   /// 值
-  final dynamic value;
+  final Expr value;
 
   SubSetExpr(this.array, this.index, this.value) : super(array.line, array.column);
 }
@@ -239,7 +252,7 @@ class MemberSetExpr extends Expr {
   final Token key;
 
   /// 值
-  final dynamic value;
+  final Expr value;
 
   MemberSetExpr(this.collection, this.key, this.value) : super(collection.line, collection.column);
 }
@@ -260,21 +273,9 @@ class CallExpr extends Expr {
   CallExpr(this.callee, this.args) : super(callee.line, callee.column);
 }
 
-// class NewExpr extends Expr {
-//   @override
-//   String get type => HetuTypes.NewExpr;
-
-//   @override
-//   dynamic accept(ExprVisitor visitor) => visitor.visitNewExpr(this);
-
-//   final Token name;
-
-//   NewExpr(this.name) : super(name.line, name.column);
-// }
-
 class ThisExpr extends Expr {
   @override
-  String get type => HS_Common.This;
+  String get type => HS_Common.ThisExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitThisExpr(this);

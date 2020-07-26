@@ -1,2 +1,3 @@
 import 'hetu:literals';
 import 'hetu:system';
+import 'hetu:console';

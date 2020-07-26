@@ -46,6 +46,10 @@ class HSErr_Unexpected extends HS_Error {
       : super('${HS_Common.ErrorUnexpected} "${symbol}"', line, column);
 }
 
+class HSErr_Private extends HS_Error {
+  HSErr_Private(String symbol, [int line, int column]) : super('${HS_Common.ErrorPrivate} "${symbol}"', line, column);
+}
+
 class HSErr_Undefined extends HS_Error {
   HSErr_Undefined(String symbol, [int line, int column])
       : super('${HS_Common.ErrorUndefined} "${symbol}"', line, column);
@@ -96,8 +100,21 @@ class HSErr_Get extends HS_Error {
   HSErr_Get(String symbol, [int line, int column]) : super('"${symbol}" ${HS_Common.ErrorGet}', line, column);
 }
 
+class HSErr_SubGet extends HS_Error {
+  HSErr_SubGet(String symbol, [int line, int column]) : super('"${symbol}" ${HS_Common.ErrorSubGet}', line, column);
+}
+
 class HSErr_Extends extends HS_Error {
   HSErr_Extends(String symbol, [int line, int column]) : super('"${symbol}" ${HS_Common.ErrorExtends}', line, column);
+}
+
+class HSErr_Setter extends HS_Error {
+  HSErr_Setter([int line, int column]) : super('${HS_Common.ErrorSetter}', line, column);
+}
+
+class HSErr_NullObject extends HS_Error {
+  HSErr_NullObject(String symbol, [int line, int column])
+      : super('"${symbol}" ${HS_Common.ErrorNullObject}', line, column);
 }
 
 class HSErr_Type extends HS_Error {

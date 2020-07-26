@@ -1,0 +1,32 @@
+
+// 类的定义
+class Calculator {
+  // 成员变量
+  num x;
+  num y;
+  
+  // 静态私有成员
+  static String _name = 'the calculator';
+  
+  static String get name {
+    // 类中的静态函数只能访问类中的静态对象
+    return _name;
+  }
+  
+  static set name(String new_name) {
+    _name = new_name;
+  }
+
+  // 带有参数的构造函数
+  Calculator(num x, num y) {
+    // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定
+    this.x = x;
+    this.y = y;
+  }
+
+  // 带有返回类型的成员函数
+  num meaning() {
+    // 可以不通过this直接使用成员变量
+    return x * y;
+  }
+}

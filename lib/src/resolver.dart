@@ -23,7 +23,7 @@ enum _ClassType {
 class Resolver implements ExprVisitor, StmtVisitor {
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   var _blocks = <Map<String, bool>>[];
-  Interpreter _context;
+  Interpreter _interpreter;
   _FunctionType _curFuncType = _FunctionType.none;
   _ClassType _curClassType = _ClassType.none;
 
@@ -51,7 +51,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     for (var i = _blocks.length - 1; i >= 0; --i) {
       if (_blocks[i].containsKey(varname)) {
         var distance = _blocks.length - 1 - i;
-        _context.addLocal(expr, distance);
+        _interpreter.addLocal(expr, distance);
         return;
       }
     }
@@ -62,7 +62,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   void resolve(List<Stmt> statements, {Interpreter interpreter}) {
     if (statements != null) {
-      _context = interpreter ?? globalInterpreter;
+      _interpreter = interpreter ?? globalInterpreter;
       for (var stmt in statements) {
         _resolveStmt(stmt);
       }
@@ -78,16 +78,27 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     _beginBlock();
     for (var param in stmt.params) {
-      _declare(param.varname, define: true);
+      _declare(param.name, define: true);
     }
-    resolve(stmt.definition, interpreter: _context);
+    resolve(stmt.definition, interpreter: _interpreter);
     _endBlock();
     _curFuncType = enclosingFunctionType;
   }
 
+  /// Null并没有任何变量需要解析，因此这里留空
+  @override
+  dynamic visitNullExpr(NullExpr expr) {}
+
   /// 字面量并没有任何变量需要解析，因此这里留空
   @override
   dynamic visitLiteralExpr(LiteralExpr expr) {}
+
+  @override
+  dynamic visitListExpr(ListExpr expr) {
+    for (var item in expr.list) {
+      _resolveExpr(item);
+    }
+  }
 
   @override
   dynamic visitVarExpr(VarExpr expr) {
@@ -99,7 +110,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitGroupExpr(GroupExpr expr) => _resolveExpr(expr.expr);
+  dynamic visitGroupExpr(GroupExpr expr) => _resolveExpr(expr.inner);
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
@@ -129,10 +140,15 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitSubGetExpr(SubGetExpr expr) {}
+  dynamic visitSubGetExpr(SubGetExpr expr) {
+    _resolveExpr(expr.index);
+  }
 
   @override
-  dynamic visitSubSetExpr(SubSetExpr expr) {}
+  dynamic visitSubSetExpr(SubSetExpr expr) {
+    _resolveExpr(expr.index);
+    _resolveExpr(expr.value);
+  }
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
@@ -152,9 +168,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void visitVarStmt(VarStmt stmt) {
     if (stmt.initializer != null) {
       _resolveExpr(stmt.initializer);
-      _declare(stmt.varname, define: true);
+      _declare(stmt.name, define: true);
     } else {
-      _define(stmt.varname.lexeme);
+      _define(stmt.name.lexeme);
     }
     return null;
   }
@@ -203,11 +219,13 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    if (!stmt.isConstructor) {
-      _declare(stmt.name, define: true);
-      _resolveFunction(stmt, _FunctionType.normal);
-    } else {
-      _resolveFunction(stmt, _FunctionType.constructor);
+    if (!stmt.isStatic) {
+      if (stmt.functype != FuncStmtType.constructor) {
+        _declare(stmt.name, define: true);
+        _resolveFunction(stmt, _FunctionType.normal);
+      } else {
+        _resolveFunction(stmt, _FunctionType.constructor);
+      }
     }
   }
 
@@ -233,19 +251,17 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     _beginBlock();
     _blocks.last[HS_Common.This] = true;
+    for (var variable in stmt.variables) {
+      visitVarStmt(variable);
+    }
 
     for (var method in stmt.methods) {
-      if (method.isConstructor) {
+      if (method.functype == FuncStmtType.constructor) {
         _resolveFunction(method, _FunctionType.constructor);
       } else {
         _resolveFunction(method, _FunctionType.method);
       }
     }
-
-    for (var variable in stmt.variables) {
-      visitVarStmt(variable);
-    }
-
     _endBlock();
 
     if (stmt.superClass != null) _endBlock();

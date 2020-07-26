@@ -6,13 +6,13 @@ class Lexer {
   List<Token> lex(String script) {
     var _tokens = <Token>[];
     var currentLine = 0;
-    var column = 0;
+    var column;
     for (var line in script.split('\n')) {
       ++currentLine;
       var matches = HS_Common.pattern.allMatches(line);
       for (var match in matches) {
         var matchString = match.group(0);
-        column = match.start;
+        column = match.start + 1;
         if (match.group(HS_Common.regCommentGrp) == null) {
           // 标识符
           if (match.group(HS_Common.regIdGrp) != null) {

@@ -51,7 +51,7 @@ abstract class Stmt {
 
 class ImportStmt extends Stmt {
   @override
-  String get type => HS_Common.Import;
+  String get type => HS_Common.ImportStmt;
 
   @override
   void accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
@@ -69,13 +69,16 @@ class VarStmt extends Stmt {
   void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
 
   final Token typename;
-  //final VarExpr typename;
 
-  final Token varname;
+  final Token name;
 
   final Expr initializer;
 
-  VarStmt(this.typename, this.varname, this.initializer);
+  final bool isExtern;
+
+  final bool isStatic;
+
+  VarStmt(this.typename, this.name, {this.initializer, this.isExtern = false, this.isStatic = false});
 }
 
 class ExprStmt extends Stmt {
@@ -119,7 +122,7 @@ class ReturnStmt extends Stmt {
 
 class IfStmt extends Stmt {
   @override
-  String get type => HS_Common.If;
+  String get type => HS_Common.IfStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitIfStmt(this);
@@ -135,7 +138,7 @@ class IfStmt extends Stmt {
 
 class WhileStmt extends Stmt {
   @override
-  String get type => HS_Common.While;
+  String get type => HS_Common.WhileStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitWhileStmt(this);
@@ -149,10 +152,17 @@ class WhileStmt extends Stmt {
 
 class BreakStmt extends Stmt {
   @override
-  String get type => HS_Common.Break;
+  String get type => HS_Common.BreakStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBreakStmt(this);
+}
+
+enum FuncStmtType {
+  normal,
+  getter,
+  setter,
+  constructor,
 }
 
 class FuncStmt extends Stmt {
@@ -166,6 +176,9 @@ class FuncStmt extends Stmt {
 
   final Token name;
 
+  String _internalName;
+  String get internalName => _internalName;
+
   final String className;
 
   final List<VarStmt> params;
@@ -178,7 +191,7 @@ class FuncStmt extends Stmt {
 
   final bool isStatic;
 
-  final bool isConstructor;
+  final FuncStmtType functype;
 
   FuncStmt(this.returnType, this.name, this.params,
       {this.arity = 0,
@@ -186,8 +199,15 @@ class FuncStmt extends Stmt {
       this.className,
       this.isExtern = false,
       this.isStatic = false,
-      this.isConstructor = false}) {
+      this.functype = FuncStmtType.normal}) {
     this.definition ??= <Stmt>[];
+    if (functype == FuncStmtType.getter) {
+      _internalName = HS_Common.Getter + name.lexeme;
+    } else if (functype == FuncStmtType.setter) {
+      _internalName = HS_Common.Setter + name.lexeme;
+    } else {
+      _internalName = name.lexeme;
+    }
   }
 }
 

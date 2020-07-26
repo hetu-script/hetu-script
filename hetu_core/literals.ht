@@ -1,19 +1,39 @@
-class _Literal {
+class _Value {
 
   // external关键字表示函数体在host语言中定义
 	external String toString();
 
 }
 
-class num extends _Literal {}
+class num extends _Value {}
 
-class bool extends _Literal {}
+class bool extends _Value {}
 
-class String extends _Literal {}
+class String extends _Value {}
 
-class List extends _Literal {
+class List extends _Value {
 	
-	external add(dynamic value);
+	external num get length;
 	
-	external get length;
+	external void add(?);
+	
+	external void clear();
+	
+	external void removeAt(num index);
+	
+	external num indexOf(dynamic value);
+	
+	external dynamic elementAt(num index);
+	
+	dynamic get first {
+    if (length > 0){
+      return elementAt(0);
+    }
+	}
+	
+	dynamic get last {
+    if (length > 0){
+      return elementAt(length - 1);
+    }
+  }
 }

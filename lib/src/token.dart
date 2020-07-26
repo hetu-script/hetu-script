@@ -6,7 +6,7 @@ class Token {
   final int line;
   final int column;
 
-  dynamic get lexeme => type;
+  String get lexeme => type;
   dynamic get literal => type;
 
   const Token(this.type, this.line, this.column);
@@ -25,6 +25,8 @@ class TokenBoolLiteral extends Token {
   @override
   final bool literal;
 
+  String get lexeme => literal.toString();
+
   const TokenBoolLiteral(this.literal, int line, int column) : super(HS_Common.Bool, line, column);
 }
 
@@ -32,12 +34,16 @@ class TokenNumLiteral extends Token {
   @override
   final num literal;
 
+  String get lexeme => literal.toString();
+
   const TokenNumLiteral(this.literal, int line, int column) : super(HS_Common.Num, line, column);
 }
 
 class TokenStringLiteral extends Token {
   @override
   final String literal;
+
+  String get lexeme => literal;
 
   const TokenStringLiteral(this.literal, int line, int column) : super(HS_Common.Str, line, column);
 }

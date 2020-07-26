@@ -1,10 +1,15 @@
 import 'dart:io';
 
+import 'package:hetu_script/hetu.dart';
+
+import 'common.dart';
 import 'class.dart';
 import 'function.dart';
 import 'interpreter.dart';
 
-abstract class HS_Extern {
+abstract class HS_Buildin {
+  static const coreLib = 'class Object {}\nclass Function {}\n';
+
   static Map<String, HS_External> bindmap = {};
 
   static Map<String, HS_External> linkmap = {
@@ -19,11 +24,23 @@ abstract class HS_Extern {
     'Console.movCurUp': _movCurUp,
     'Console.setTitle': _setTitle,
     'Console.cls': _cls,
-    '_Literal.toString': _literal_to_string,
+    '_Value.toString': HSVal_Value._to_string,
+    'List._get_length': HSVal_List._get_length,
+    'List.add': HSVal_List._add,
+    'List.clear': HSVal_List._clear,
+    'List.removeAt': HSVal_List._remove_at,
+    'List.indexOf': HSVal_List._index_of,
+    'List.elementAt': HSVal_List._element_at
   };
 
   static dynamic _evalc(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
-    if (args.isNotEmpty) interpreter.evalc(args.first.toString());
+    if (args.isNotEmpty) {
+      try {
+        interpreter.evalc(args.first.toString());
+      } catch (e) {
+        print(e);
+      }
+    }
   }
 
   static dynamic _invoke(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
@@ -87,11 +104,134 @@ abstract class HS_Extern {
   static dynamic _now(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     return HSVal_Num(DateTime.now().millisecondsSinceEpoch);
   }
+}
 
-  static dynamic _literal_to_string(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+abstract class HSVal_Value extends HS_Instance {
+  HSVal_Value(dynamic value, String class_name) : super(class_name) {
+    define('_val', HS_TypeOf(value), value: value);
+  }
+
+  static dynamic _to_string(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (instance != null) {
-      var literal = instance.get('_val');
-      return literal.toString();
+      var value = instance.fetch('_val', from: instance.type);
+      return value.toString();
+    }
+  }
+}
+
+class HSVal_Num extends HSVal_Value {
+  HSVal_Num(num value) : super(value, HS_Common.Num);
+}
+
+class HSVal_Bool extends HSVal_Value {
+  HSVal_Bool(bool value) : super(value, HS_Common.Bool);
+}
+
+class HSVal_String extends HSVal_Value {
+  HSVal_String(String value) : super(value, HS_Common.Str);
+}
+
+class HSVal_List extends HSVal_Value {
+  HSVal_List(List value) : super(value, HS_Common.List);
+
+  List get value => fetch('_val', error: false, from: type);
+
+  static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (instance != null) {
+      List value;
+      try {
+        value = instance.fetch('_val', from: instance.type);
+        return value.length;
+      } catch (e) {
+        if (e is HSErr_Undefined) {
+          throw HSErr_NullObject(instance.type);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  static dynamic _add(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (instance != null) {
+      List value;
+      try {
+        value = instance.fetch('_val', from: instance.type);
+        value.addAll(args);
+      } catch (e) {
+        if (e is HSErr_Undefined) {
+          throw HSErr_NullObject(instance.type);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  static dynamic _clear(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (instance != null) {
+      List value;
+      try {
+        value = instance.fetch('_val', from: instance.type);
+        value.clear();
+      } catch (e) {
+        if (e is HSErr_Undefined) {
+          throw HSErr_NullObject(instance.type);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  static dynamic _remove_at(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (instance != null) {
+      List value;
+      try {
+        value = instance.fetch('_val', from: instance.type);
+        num index = args.first;
+        value.removeAt(index);
+      } catch (e) {
+        if (e is HSErr_Undefined) {
+          throw HSErr_NullObject(instance.type);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  static dynamic _index_of(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (instance != null) {
+      List value;
+      try {
+        value = instance.fetch('_val', from: instance.type);
+        dynamic object = args.first;
+        return value.indexOf(object);
+      } catch (e) {
+        if (e is HSErr_Undefined) {
+          throw HSErr_NullObject(instance.type);
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  static dynamic _element_at(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (instance != null) {
+      List value;
+      try {
+        value = instance.fetch('_val', from: instance.type);
+        int index = args.first;
+        return value.elementAt(index);
+      } catch (e) {
+        if (e is HSErr_Undefined) {
+          throw HSErr_NullObject(instance.type);
+        } else {
+          throw e;
+        }
+      }
     }
   }
 }
