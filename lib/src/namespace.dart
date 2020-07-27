@@ -1,3 +1,5 @@
+import 'package:hetu_script/hetu.dart';
+
 import 'errors.dart';
 import 'class.dart';
 import 'common.dart';
@@ -40,7 +42,7 @@ class Namespace extends HS_Value {
 
   dynamic fetch(String name, {bool error = true, String from = HS_Common.Global}) {
     if (defs.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return defs[name].value;
       }
       throw HSErr_Private(name);
@@ -60,11 +62,23 @@ class Namespace extends HS_Value {
 
   /// 在当前命名空间声明一个指定类型的变量
   void define(String varname, String vartype, {dynamic value}) {
+    var val_type = HS_TypeOf(value);
     if (!defs.containsKey(varname)) {
-      if ((vartype == HS_Common.Dynamic) || ((value != null) && (vartype == HS_TypeOf(value))) || (value == null)) {
+      if ((vartype == HS_Common.Dynamic) || ((value != null) && (vartype == val_type)) || (value == null)) {
         defs[varname] = Definition(vartype, value: value);
-      } else {
-        throw HSErr_Type(HS_TypeOf(value), vartype);
+      } else if ((value != null) && (value is Map)) {
+        var klass = globalInterpreter.fetchGlobal(vartype, from: globalInterpreter.curSpace.blockName);
+        if (klass is HS_Class) {
+          var instance = klass.createInstance();
+          for (var key in value.keys) {
+            if (instance.contains(key)) {
+              instance.assign(key, value[key]);
+            }
+          }
+          defs[varname] = Definition(vartype, value: instance);
+        } else {
+          throw HSErr_Type(val_type, vartype);
+        }
       }
     } else {
       throw HSErr_Defined(varname);
@@ -74,7 +88,7 @@ class Namespace extends HS_Value {
   /// 向一个已经声明的变量赋值
   void assign(String varname, dynamic value, {String from = HS_Common.Global}) {
     if (defs.containsKey(varname)) {
-      if ((blockName == from) || (!varname.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         var vartype = defs[varname].type;
         if ((vartype == HS_Common.Dynamic) || ((value != null) && (vartype == HS_TypeOf(value))) || (value == null)) {
           defs[varname].value = value;

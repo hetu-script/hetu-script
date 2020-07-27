@@ -1,0 +1,17 @@
+import 'hetu:core';
+
+class HelloWord {
+  num hello;
+  num world;
+
+  String toString() {
+    return "hello" + hello.toString() + "world" + world.toString();
+  }
+}
+
+// 程序入口
+void main() {
+  HelloWord m = {"hello": 42, "world": 103};
+
+  Console.print(m.toString());
+}

@@ -41,6 +41,8 @@ class Parser {
   Interpreter _interpreter;
   String _curClassName;
 
+  static int internalVarIndex = 0;
+
   static const List<String> _patternImport = [HS_Common.Import, HS_Common.Str];
   static const List<String> _patternVarDecl = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.Semicolon];
   static const List<String> _patternVarDeclInit = [HS_Common.Identifier, HS_Common.Identifier, HS_Common.Assign];
@@ -516,13 +518,14 @@ class Parser {
   /// ForIn语句其实会在解析时转换为While语句
   BlockStmt _parseForInStmt() {
     var list_stmt = <Stmt>[];
+    var line = curTok.line;
+    var column = curTok.column;
     // 之前已经校验过括号了所以这里直接跳过
     advance(2);
     // 递增变量
-    String i = 'int${DateTime.now().millisecondsSinceEpoch}';
-    list_stmt.add(VarStmt(
-        TokenIdentifier(HS_Common.Num, curTok.line, curTok.column), TokenIdentifier(i, curTok.line, curTok.column),
-        initializer: LiteralExpr(globalInterpreter.addLiteral(0), curTok.line, curTok.column)));
+    String i = '__i${internalVarIndex++}';
+    list_stmt.add(VarStmt(TokenIdentifier(HS_Common.Num, line, column + 4), TokenIdentifier(i, line, column + 8),
+        initializer: LiteralExpr(globalInterpreter.addLiteral(0), line, column)));
     // 指针
     var typename = match(HS_Common.Identifier);
     var varname = match(HS_Common.Identifier);
@@ -530,23 +533,24 @@ class Parser {
     expect([HS_Common.In], consume: true);
     var list_obj = _parseExpr();
     // 条件语句
-    var get_length = MemberGetExpr(list_obj, Token(HS_Common.length, curTok.line, curTok.column));
-    var condition = BinaryExpr(VarExpr(TokenIdentifier(i, curTok.line, curTok.column)),
-        Token(HS_Common.Lesser, curTok.line, curTok.column), get_length);
+    var get_length = MemberGetExpr(list_obj, Token(HS_Common.length, line, column + 30));
+    var condition = BinaryExpr(
+        VarExpr(TokenIdentifier(i, line, column + 24)), Token(HS_Common.Lesser, line, column + 26), get_length);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <Stmt>[];
-    var sub_get_value = SubGetExpr(list_obj, VarExpr(TokenIdentifier(i, curTok.line, curTok.column)));
-    var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname.lexeme, curTok.line, curTok.column),
-        Token(HS_Common.Assign, curTok.line, curTok.column), sub_get_value));
+    // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
+    var sub_get_value = SubGetExpr(list_obj.clone(), VarExpr(TokenIdentifier(i, line + 1, column + 14)));
+    var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname.lexeme, line + 1, column),
+        Token(HS_Common.Assign, line + 1, column + 10), sub_get_value));
     loop_body.add(assign_stmt);
     // 递增下标变量
     var increment_expr = BinaryExpr(
-        VarExpr(TokenIdentifier(i, curTok.line, curTok.column)),
-        Token(HS_Common.Add, curTok.line, curTok.column),
-        LiteralExpr(globalInterpreter.addLiteral(1), curTok.line, curTok.column));
-    var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, curTok.line, curTok.column),
-        Token(HS_Common.Assign, curTok.line, curTok.column), increment_expr));
+        VarExpr(TokenIdentifier(i, line + 1, column + 18)),
+        Token(HS_Common.Add, line + 1, column + 22),
+        LiteralExpr(globalInterpreter.addLiteral(1), line + 1, column + 24));
+    var increment_stmt = ExprStmt(AssignExpr(
+        TokenIdentifier(i, line + 1, column), Token(HS_Common.Assign, line + 1, column + 20), increment_expr));
     loop_body.add(increment_stmt);
     // 循环体
     expect([HS_Common.RoundRight], consume: true);

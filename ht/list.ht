@@ -1,0 +1,11 @@
+import 'hetu:core';
+
+// 程序入口
+void main() {
+  // 列表的创建和添加元素
+  var list = ["hello", 2, 3];
+
+  for (var i in list) {
+    Console.print(i);
+  }
+}

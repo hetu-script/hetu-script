@@ -50,12 +50,12 @@ class HS_FuncObj extends HS_Instance {
           }
           String before;
           if (className != null) {
-            before = globalInterpreter.curClassName;
-            globalInterpreter.curClassName = className;
+            before = globalInterpreter.curBlockName;
+            globalInterpreter.curBlockName = closure.blockName;
           }
           globalInterpreter.executeBlock(funcStmt.definition, environment);
-          if (className != null) {
-            globalInterpreter.curClassName = before;
+          {
+            globalInterpreter.curBlockName = before;
           }
         } else {
           throw HSErr_MissingFuncDef(name);

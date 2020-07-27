@@ -55,10 +55,10 @@ class HS_Class extends Namespace {
 
   void addMethod(String name, HS_FuncObj func) => methods[name] = func;
 
-  dynamic fetchMethod(String name, {String from = HS_Common.Global}) {
+  dynamic fetchMethod(String name, {bool error = true, String from = HS_Common.Global}) {
     var getter = '${HS_Common.Getter}$name';
     if (methods.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return methods[name];
       }
       throw HSErr_Private(name);
@@ -67,22 +67,23 @@ class HS_Class extends Namespace {
     }
 
     if (superClass != null) {
-      return superClass.fetchMethod(name);
+      return superClass.fetchMethod(name, error: error);
     }
-
-    throw HSErr_UndefinedMember(name, this.name);
+    if (error) {
+      throw HSErr_UndefinedMember(name, this.name);
+    }
   }
 
   @override
   dynamic fetch(String name, {bool error = true, String from = HS_Common.Global}) {
     var getter = '${HS_Common.Getter}$name';
     if (defs.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return defs[name].value;
       }
       throw HSErr_Private(name);
     } else if (defs.containsKey(getter)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
         HS_FuncObj func = defs[getter].value;
         return func.call([]);
       }
@@ -101,7 +102,7 @@ class HS_Class extends Namespace {
   dynamic assign(String varname, dynamic value, {String from = HS_Common.Global}) {
     var setter = '${HS_Common.Setter}$varname';
     if (defs.containsKey(varname)) {
-      if ((blockName == from) || (!varname.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         var vartype = defs[varname].type;
         if ((vartype == HS_Common.Dynamic) || (vartype == HS_TypeOf(value))) {
           defs[varname].value = value;
@@ -112,7 +113,7 @@ class HS_Class extends Namespace {
         throw HSErr_Private(varname);
       }
     } else if (defs.containsKey(setter)) {
-      if ((blockName == from) || (!varname.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         HS_FuncObj setter_func = defs[setter].value;
         setter_func.call([value]);
       } else {
@@ -153,15 +154,9 @@ class HS_Class extends Namespace {
     HS_FuncObj constructorFunction;
     constructorName ??= name;
 
-    try {
-      constructorFunction = fetchMethod(constructorName);
-    } catch (e) {
-      if (e is! HSErr_Undefined) {
-        throw e;
-      }
-    }
+    constructorFunction = fetchMethod(constructorName, error: false);
 
-    if (constructorFunction is HS_FuncObj) {
+    if (constructorFunction != null) {
       constructorFunction.bind(instance).call(args);
     }
 
@@ -184,7 +179,7 @@ class HS_Instance extends Namespace {
   @override
   dynamic fetch(String name, {bool error = true, String from = HS_Common.Global}) {
     if (defs.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return defs[name].value;
       }
       throw HSErr_Private(name);
@@ -203,7 +198,7 @@ class HS_Instance extends Namespace {
   @override
   void assign(String varname, dynamic value, {String from = HS_Common.Global}) {
     if (defs.containsKey(varname)) {
-      if ((blockName == from) || (!varname.startsWith(HS_Common.Private))) {
+      if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         var vartype = defs[varname].type;
         if ((vartype == HS_Common.Dynamic) || (vartype == HS_TypeOf(value))) {
           defs[varname].value = value;

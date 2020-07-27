@@ -71,6 +71,8 @@ abstract class Expr {
   dynamic accept(ExprVisitor visitor);
 
   Expr(this.line, this.column);
+
+  Expr clone();
 }
 
 class NullExpr extends Expr {
@@ -81,6 +83,8 @@ class NullExpr extends Expr {
   dynamic accept(ExprVisitor visitor) => visitor.visitNullExpr(this);
 
   NullExpr(int line, int column) : super(line, column);
+
+  Expr clone() => this;
 }
 
 class LiteralExpr extends Expr {
@@ -96,6 +100,8 @@ class LiteralExpr extends Expr {
   LiteralExpr(int constantIndex, int line, int column) : super(line, column) {
     _constIndex = constantIndex;
   }
+
+  Expr clone() => LiteralExpr(_constIndex, line, column);
 }
 
 class ListExpr extends Expr {
@@ -110,6 +116,14 @@ class ListExpr extends Expr {
   ListExpr(this.list, int line, int column) : super(line, column) {
     list ??= [];
   }
+
+  Expr clone() {
+    var new_list = <Expr>[];
+    for (var expr in list) {
+      new_list.add(expr.clone());
+    }
+    return ListExpr(new_list, line, column);
+  }
 }
 
 class MapExpr extends Expr {
@@ -123,6 +137,14 @@ class MapExpr extends Expr {
 
   MapExpr(this.map, int line, int column) : super(line, column) {
     map ??= {};
+  }
+
+  Expr clone() {
+    var new_map = <Expr, Expr>{};
+    for (var expr in map.keys) {
+      new_map[expr.clone()] = map[expr].clone();
+    }
+    return MapExpr(new_map, line, column);
   }
 }
 
@@ -140,6 +162,8 @@ class UnaryExpr extends Expr {
   final Expr value;
 
   UnaryExpr(this.op, this.value) : super(op.line, op.column);
+
+  Expr clone() => UnaryExpr(op, value.clone());
 }
 
 class BinaryExpr extends Expr {
@@ -159,6 +183,8 @@ class BinaryExpr extends Expr {
   final Expr right;
 
   BinaryExpr(this.left, this.op, this.right) : super(op.line, op.column);
+
+  Expr clone() => BinaryExpr(left.clone(), op, right.clone());
 }
 
 class VarExpr extends Expr {
@@ -171,6 +197,8 @@ class VarExpr extends Expr {
   final Token name;
 
   VarExpr(this.name) : super(name.line, name.column);
+
+  Expr clone() => VarExpr(name);
 }
 
 class GroupExpr extends Expr {
@@ -183,6 +211,8 @@ class GroupExpr extends Expr {
   final Expr inner;
 
   GroupExpr(this.inner) : super(inner.line, inner.column);
+
+  Expr clone() => GroupExpr(inner.clone());
 }
 
 class AssignExpr extends Expr {
@@ -202,6 +232,8 @@ class AssignExpr extends Expr {
   final Expr value;
 
   AssignExpr(this.variable, this.op, this.value) : super(op.line, op.column);
+
+  Expr clone() => AssignExpr(variable, op, value.clone());
 }
 
 class SubGetExpr extends Expr {
@@ -218,6 +250,8 @@ class SubGetExpr extends Expr {
   final Expr key;
 
   SubGetExpr(this.collection, this.key) : super(collection.line, collection.column);
+
+  Expr clone() => SubGetExpr(collection.clone(), key.clone());
 }
 
 class SubSetExpr extends Expr {
@@ -237,6 +271,8 @@ class SubSetExpr extends Expr {
   final Expr value;
 
   SubSetExpr(this.collection, this.key, this.value) : super(collection.line, collection.column);
+
+  Expr clone() => SubSetExpr(collection.clone(), key.clone(), value.clone());
 }
 
 class MemberGetExpr extends Expr {
@@ -253,6 +289,8 @@ class MemberGetExpr extends Expr {
   final Token key;
 
   MemberGetExpr(this.collection, this.key) : super(collection.line, collection.column);
+
+  Expr clone() => MemberGetExpr(collection.clone(), key);
 }
 
 class MemberSetExpr extends Expr {
@@ -272,6 +310,8 @@ class MemberSetExpr extends Expr {
   final Expr value;
 
   MemberSetExpr(this.collection, this.key, this.value) : super(collection.line, collection.column);
+
+  Expr clone() => MemberSetExpr(collection.clone(), key, value.clone());
 }
 
 class CallExpr extends Expr {
@@ -288,6 +328,14 @@ class CallExpr extends Expr {
   final List<Expr> args;
 
   CallExpr(this.callee, this.args) : super(callee.line, callee.column);
+
+  Expr clone() {
+    var new_args = <Expr>[];
+    for (var expr in args) {
+      new_args.add(expr.clone());
+    }
+    return CallExpr(callee.clone(), new_args);
+  }
 }
 
 class ThisExpr extends Expr {
@@ -300,4 +348,6 @@ class ThisExpr extends Expr {
   final Token keyword;
 
   ThisExpr(this.keyword) : super(keyword.line, keyword.column);
+
+  Expr clone() => ThisExpr(keyword);
 }

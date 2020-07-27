@@ -33,7 +33,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 保存当前语句所在的命名空间
   Namespace _curSpace;
   Namespace get curSpace => _curSpace;
-  String curClassName = HS_Common.Global;
+  String curBlockName = HS_Common.Global;
 
   /// 全局命名空间
   final _global = Namespace();
@@ -198,14 +198,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  dynamic fetchGlobal(String name) => _global.fetch(name);
+  dynamic fetchGlobal(String name, {String from = HS_Common.Global}) => _global.fetch(name, from: from);
   dynamic fetchExternal(String name) => _external.fetch(name);
 
   dynamic _getVar(String name, Expr expr) {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试获取当前环境中的本地变量
-      return _curSpace.fetchAt(distance, name, from: curClassName);
+      return _curSpace.fetchAt(distance, name, from: curBlockName);
     } else {
       try {
         // 尝试获取当前实例中的类成员变量
@@ -280,6 +280,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   void executeBlock(List<Stmt> statements, Namespace environment) {
     var save = _curSpace;
+
     try {
       _curSpace = environment;
       for (var stmt in statements) {
@@ -499,12 +500,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      _curSpace.assignAt(distance, expr.variable.lexeme, value, from: curClassName);
+      _curSpace.assignAt(distance, expr.variable.lexeme, value, from: curBlockName);
     } else {
       try {
         // 尝试设置当前实例中的类成员变量
         HS_Instance instance = _curSpace.fetch(HS_Common.This, from: _curSpace.blockName);
-        instance.assign(expr.variable.lexeme, value, from: curClassName);
+        instance.assign(expr.variable.lexeme, value, from: curBlockName);
       } catch (e) {
         if (e is HSErr_Undefined) {
           // 尝试设置全局变量
@@ -520,9 +521,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitThisExpr(ThisExpr expr) {
-    return _getVar(expr.keyword.lexeme, expr);
-  }
+  dynamic visitThisExpr(ThisExpr expr) => _getVar(HS_Common.This, expr);
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
@@ -559,15 +558,17 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
     var object = evaluateExpr(expr.collection);
     if ((object is HS_Instance) || (object is HS_Class)) {
-      return object.fetch(expr.key.lexeme, from: curClassName);
+      return object.fetch(expr.key.lexeme, from: curBlockName);
     } else if (object is num) {
-      return HSVal_Num(object).fetch(expr.key.lexeme, from: curClassName);
+      return HSVal_Num(object).fetch(expr.key.lexeme, from: curBlockName);
     } else if (object is bool) {
-      return HSVal_Bool(object).fetch(expr.key.lexeme, from: curClassName);
+      return HSVal_Bool(object).fetch(expr.key.lexeme, from: curBlockName);
     } else if (object is String) {
-      return HSVal_String(object).fetch(expr.key.lexeme, from: curClassName);
+      return HSVal_String(object).fetch(expr.key.lexeme, from: curBlockName);
     } else if (object is List) {
-      return HSVal_List(object).fetch(expr.key.lexeme, from: curClassName);
+      return HSVal_List(object).fetch(expr.key.lexeme, from: curBlockName);
+    } else if (object is Map) {
+      return HSVal_Map(object).fetch(expr.key.lexeme, from: curBlockName);
     }
 
     throw HSErr_Get(object.toString(), expr.line, expr.column);
@@ -578,7 +579,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     dynamic object = evaluateExpr(expr.collection);
     var value = evaluateExpr(expr.value);
     if ((object is HS_Instance) || (object is HS_Class)) {
-      object.assign(expr.key.lexeme, value, from: curClassName);
+      object.assign(expr.key.lexeme, value, from: curBlockName);
       return value;
     } else {
       throw HSErr_Get(object.toString(), expr.key.line, expr.key.column);
@@ -623,7 +624,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void visitExprStmt(ExprStmt stmt) => evaluateExpr(stmt.expr);
 
   @override
-  void visitBlockStmt(BlockStmt stmt) => executeBlock(stmt.block, Namespace(enclosing: _curSpace));
+  void visitBlockStmt(BlockStmt stmt) {
+    executeBlock(stmt.block, Namespace(enclosing: _curSpace));
+  }
 
   @override
   void visitReturnStmt(ReturnStmt stmt) {

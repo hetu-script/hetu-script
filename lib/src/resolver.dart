@@ -150,10 +150,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
     _resolveExpr(expr.collection);
+    _resolveExpr(expr.key);
   }
 
   @override
   dynamic visitSubSetExpr(SubSetExpr expr) {
+    _resolveExpr(expr.collection);
     _resolveExpr(expr.key);
     _resolveExpr(expr.value);
   }
