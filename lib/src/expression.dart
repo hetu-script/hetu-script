@@ -20,6 +20,9 @@ abstract class ExprVisitor {
   /// 数组
   dynamic visitListExpr(ListExpr expr);
 
+  /// 数组
+  dynamic visitMapExpr(MapExpr expr);
+
   /// 单目表达式
   dynamic visitUnaryExpr(UnaryExpr expr);
 
@@ -109,6 +112,20 @@ class ListExpr extends Expr {
   }
 }
 
+class MapExpr extends Expr {
+  @override
+  String get type => HS_Common.MapExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitMapExpr(this);
+
+  Map<Expr, Expr> map;
+
+  MapExpr(this.map, int line, int column) : super(line, column) {
+    map ??= {};
+  }
+}
+
 class UnaryExpr extends Expr {
   @override
   String get type => HS_Common.UnaryExpr;
@@ -195,12 +212,12 @@ class SubGetExpr extends Expr {
   dynamic accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
 
   /// 数组
-  final Expr array;
+  final Expr collection;
 
   /// 索引
-  final Expr index;
+  final Expr key;
 
-  SubGetExpr(this.array, this.index) : super(array.line, array.column);
+  SubGetExpr(this.collection, this.key) : super(collection.line, collection.column);
 }
 
 class SubSetExpr extends Expr {
@@ -211,15 +228,15 @@ class SubSetExpr extends Expr {
   dynamic accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
 
   /// 数组
-  final Expr array;
+  final Expr collection;
 
   /// 索引
-  final Expr index;
+  final Expr key;
 
   /// 值
   final Expr value;
 
-  SubSetExpr(this.array, this.index, this.value) : super(array.line, array.column);
+  SubSetExpr(this.collection, this.key, this.value) : super(collection.line, collection.column);
 }
 
 class MemberGetExpr extends Expr {

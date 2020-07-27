@@ -160,6 +160,7 @@ abstract class HS_Common {
   static const ListOfNum = 'list_of_num';
   static const ListOfString = 'list_of_string';
   static const ListOfDynamic = 'list_of_dynamic';
+  static const Map = 'Map';
 
   static const Null = 'null';
   static const Static = 'static';
@@ -335,7 +336,7 @@ abstract class HS_Common {
   static const ErrorCondition = 'Condition expression must evaluate to type "bool"';
   static const ErrorMissingFuncDef = 'Missing function definition body of';
   static const ErrorGet = 'is not a collection or object';
-  static const ErrorSubGet = 'is not a List';
+  static const ErrorSubGet = 'is not a List or Map';
   static const ErrorExtends = 'is not a class';
   static const ErrorSetter = 'Setter function\'s arity must be 1';
   static const ErrorNullObject = 'is null';

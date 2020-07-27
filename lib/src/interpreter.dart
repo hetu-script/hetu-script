@@ -223,10 +223,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  HS_Value convert(dynamic value) {
-    if (value == null) {
-      return null;
-    } else if (value is HS_Value) {
+  dynamic unwrap(dynamic value) {
+    if (value is HS_Value) {
       return value;
     } else if (value is num) {
       return HSVal_Num(value);
@@ -235,7 +233,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     } else if (value is String) {
       return HSVal_String(value);
     } else {
-      throw HSErr_Unsupport(value);
+      return value;
     }
   }
 
@@ -294,7 +292,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   dynamic evaluateStmt(Stmt stmt) => stmt.accept(this);
 
-  dynamic evaluateExpr(Expr expr) => expr.accept(this); //convert(expr.accept(this));
+  //dynamic evaluateExpr(Expr expr) => unwrap(expr.accept(this));
+  dynamic evaluateExpr(Expr expr) => expr.accept(this);
 
   @override
   dynamic visitNullExpr(NullExpr expr) => null;
@@ -309,6 +308,17 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       list.add(evaluateExpr(item));
     }
     return list;
+  }
+
+  @override
+  dynamic visitMapExpr(MapExpr expr) {
+    var map = {};
+    for (var key_expr in expr.map.keys) {
+      var key = evaluateExpr(key_expr);
+      var value = evaluateExpr(expr.map[key_expr]);
+      map[key] = value;
+    }
+    return map;
   }
 
   @override
@@ -443,7 +453,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var callee = evaluateExpr(expr.callee);
     var args = <dynamic>[];
     for (var arg in expr.args) {
-      //var value = convert(evaluate(arg));
       var value = evaluateExpr(arg);
       args.add(value);
     }
@@ -485,7 +494,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
-    //var value = convert(evaluate(expr.value));
     var value = evaluateExpr(expr.value);
 
     var distance = _locals[expr];
@@ -518,19 +526,34 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
-    var array = evaluateExpr(expr.array);
-    var index = evaluateExpr(expr.index);
-    if (array is HSVal_List) {
-      return array.value.elementAt(index);
-    } else if (array is List) {
-      return array[index];
+    var collection = evaluateExpr(expr.collection);
+    var key = evaluateExpr(expr.key);
+    if (collection is HSVal_List) {
+      return collection.value.elementAt(key);
+    } else if (collection is List) {
+      return collection[key];
+    } else if (collection is HSVal_Map) {
+      return collection.value[key];
+    } else if (collection is Map) {
+      return collection[key];
     }
 
-    throw HSErr_SubGet(array.toString(), expr.line, expr.column);
+    throw HSErr_SubGet(collection.toString(), expr.line, expr.column);
   }
 
   @override
-  dynamic visitSubSetExpr(SubSetExpr expr) {}
+  dynamic visitSubSetExpr(SubSetExpr expr) {
+    var collection = evaluateExpr(expr.collection);
+    var key = evaluateExpr(expr.key);
+    var value = evaluateExpr(expr.value);
+    if ((collection is HSVal_List) || (collection is HSVal_Map)) {
+      collection.value[key] = value;
+    } else if ((collection is List) || (collection is Map)) {
+      return collection[key] = value;
+    }
+
+    throw HSErr_SubGet(collection.toString(), expr.line, expr.column);
+  }
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
@@ -578,7 +601,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void visitVarStmt(VarStmt stmt) {
     dynamic value;
     if (stmt.initializer != null) {
-      //value = convert(evaluate(stmt.initializer));
       value = evaluateExpr(stmt.initializer);
     }
 
@@ -670,23 +692,80 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void visitClassStmt(ClassStmt stmt) {
     HS_Class superClass;
 
-    if ((stmt.superClass != null)) {
+    if (stmt.superClass != null) {
       superClass = evaluateExpr(stmt.superClass);
       if (superClass is! HS_Class) {
         throw HSErr_Extends(superClass.name, stmt.superClass.line, stmt.superClass.column);
       }
-
-      _curSpace = Namespace(enclosing: _curSpace);
-      _curSpace.define(HS_Common.Super, HS_Common.Class, value: superClass);
     }
 
-    var hetuClass =
-        HS_Class(stmt.name.lexeme, superClassName: superClass?.name, variables: stmt.variables, methods: stmt.methods);
+    var klass = HS_Class(stmt.name.lexeme, superClassName: superClass?.name);
 
-    if (superClass != null) {
-      _curSpace = _curSpace.enclosing;
+    if (stmt.superClass != null) {
+      klass.define(HS_Common.Super, HS_Common.Class, value: superClass);
     }
 
-    _curSpace.define(stmt.name.lexeme, HS_Common.Class, value: hetuClass);
+    // 在开头就定义类变量，这样才可以在类定义体中使用类本身
+    _curSpace.define(stmt.name.lexeme, HS_Common.Class, value: klass);
+
+    for (var variable in stmt.variables) {
+      if (variable.isStatic) {
+        dynamic value;
+        if (variable.initializer != null) {
+          value = globalInterpreter.evaluateExpr(variable.initializer);
+        } else if (variable.isExtern) {
+          value = globalInterpreter.fetchExternal('${stmt.name.lexeme}${HS_Common.Dot}${variable.name.lexeme}');
+        }
+
+        if (variable.typename.lexeme == HS_Common.Dynamic) {
+          klass.define(variable.name.lexeme, variable.typename.lexeme, value: value);
+        } else if (variable.typename.lexeme == HS_Common.Var) {
+          // 如果用了var关键字，则从初始化表达式推断变量类型
+          if (value != null) {
+            klass.define(variable.name.lexeme, HS_TypeOf(value), value: value);
+          } else {
+            klass.define(variable.name.lexeme, HS_Common.Dynamic);
+          }
+        } else {
+          // 接下来define函数会判断类型是否符合声明
+          klass.define(variable.name.lexeme, variable.typename.lexeme, value: value);
+        }
+      } else {
+        klass.addVariable(variable);
+      }
+    }
+
+    for (var method in stmt.methods) {
+      HS_FuncObj func;
+      if (method.isExtern) {
+        var externFunc = globalInterpreter.fetchExternal('${stmt.name.lexeme}${HS_Common.Dot}${method.internalName}');
+        func = HS_FuncObj(method.internalName,
+            className: stmt.name.lexeme,
+            funcStmt: method,
+            extern: externFunc,
+            functype: method.functype,
+            arity: method.arity);
+      } else {
+        Namespace closure;
+        if (method.isStatic) {
+          // 静态函数外层是类本身
+          closure = klass;
+        } else {
+          // 成员函数外层是实例，在某个实例取出函数的时候才绑定到那个实例上
+          closure = null;
+        }
+        func = HS_FuncObj(method.internalName,
+            className: stmt.name.lexeme,
+            funcStmt: method,
+            closure: closure,
+            functype: method.functype,
+            arity: method.arity);
+      }
+      if (method.isStatic) {
+        klass.define(method.internalName, HS_Common.FunctionObj, value: func);
+      } else {
+        klass.addMethod(method.internalName, func);
+      }
+    }
   }
 }

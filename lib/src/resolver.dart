@@ -101,6 +101,14 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
+  dynamic visitMapExpr(MapExpr expr) {
+    for (var key in expr.map.keys) {
+      _resolveExpr(key);
+      _resolveExpr(expr.map[key]);
+    }
+  }
+
+  @override
   dynamic visitVarExpr(VarExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
       throw HSErr_Undefined(expr.name.lexeme, expr.line, expr.column);
@@ -141,12 +149,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
-    _resolveExpr(expr.index);
+    _resolveExpr(expr.collection);
   }
 
   @override
   dynamic visitSubSetExpr(SubSetExpr expr) {
-    _resolveExpr(expr.index);
+    _resolveExpr(expr.key);
     _resolveExpr(expr.value);
   }
 

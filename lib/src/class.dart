@@ -18,6 +18,8 @@ String HS_TypeOf(dynamic value) {
     return HS_Common.Str;
   } else if (value is List) {
     return HS_Common.List;
+  } else if (value is Map) {
+    return HS_Common.Map;
   } else {
     return HS_Common.UnknownType;
   }
@@ -44,63 +46,14 @@ class HS_Class extends Namespace {
   List<VarStmt> variables = [];
   Map<String, HS_FuncObj> methods = {};
 
-  HS_Class(this.name, {String superClassName, List<VarStmt> variables, List<FuncStmt> methods})
-      : super(blockName: name) {
+  HS_Class(this.name, {String superClassName}) : super(blockName: name) {
     if ((superClassName == null) && (name != HS_Common.Object)) superClassName = HS_Common.Object;
     if (superClassName != null) superClass = globalInterpreter.fetchGlobal(superClassName);
-
-    for (var variable in variables) {
-      if (variable.isStatic) {
-        dynamic value;
-        if (variable.initializer != null) {
-          value = globalInterpreter.evaluateExpr(variable.initializer);
-        } else if (variable.isExtern) {
-          value = globalInterpreter.fetchExternal('${name}${HS_Common.Dot}${variable.name.lexeme}');
-        }
-
-        if (variable.typename.lexeme == HS_Common.Dynamic) {
-          define(variable.name.lexeme, variable.typename.lexeme, value: value);
-        } else if (variable.typename.lexeme == HS_Common.Var) {
-          // 如果用了var关键字，则从初始化表达式推断变量类型
-          if (value != null) {
-            define(variable.name.lexeme, HS_TypeOf(value), value: value);
-          } else {
-            define(variable.name.lexeme, HS_Common.Dynamic);
-          }
-        } else {
-          // 接下来define函数会判断类型是否符合声明
-          define(variable.name.lexeme, variable.typename.lexeme, value: value);
-        }
-      } else {
-        this.variables.add(variable);
-      }
-    }
-
-    for (var method in methods) {
-      dynamic func;
-      if (method.isExtern) {
-        var externFunc = globalInterpreter.fetchExternal('${name}${HS_Common.Dot}${method.internalName}');
-        func = HS_FuncObj(method.internalName,
-            className: name, funcStmt: method, extern: externFunc, functype: method.functype, arity: method.arity);
-      } else {
-        Namespace closure;
-        if (method.isStatic) {
-          // 静态函数外层是类本身
-          closure = this;
-        } else {
-          // 成员函数外层是实例，在某个实例取出函数的时候才绑定到那个实例上
-          closure = null;
-        }
-        func = HS_FuncObj(method.internalName,
-            className: name, funcStmt: method, closure: closure, functype: method.functype, arity: method.arity);
-      }
-      if (method.isStatic) {
-        define(method.internalName, HS_Common.FunctionObj, value: func);
-      } else {
-        this.methods[method.internalName] = func;
-      }
-    }
   }
+
+  void addVariable(VarStmt stmt) => variables.add(stmt);
+
+  void addMethod(String name, HS_FuncObj func) => methods[name] = func;
 
   dynamic fetchMethod(String name, {String from = HS_Common.Global}) {
     var getter = '${HS_Common.Getter}$name';

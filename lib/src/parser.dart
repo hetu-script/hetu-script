@@ -148,7 +148,7 @@ class Parser {
       } else if (expr is MemberGetExpr) {
         return MemberSetExpr(expr.collection, expr.key, value);
       } else if (expr is SubGetExpr) {
-        return SubSetExpr(expr.array, expr.index, value);
+        return SubSetExpr(expr.collection, expr.key, value);
       }
 
       throw HSErr_InvalidLeftValue(op.lexeme, op.line, op.column);
@@ -305,6 +305,19 @@ class Parser {
       }
       expect([HS_Common.SquareRight], consume: true);
       return ListExpr(list_expr, line, col);
+    } else if (curTok.type == HS_Common.CurlyLeft) {
+      int line = curTok.line;
+      int col = advance(1).column;
+      var map_expr = <Expr, Expr>{};
+      while (curTok.type != HS_Common.CurlyRight) {
+        var key_expr = _parseExpr();
+        expect([HS_Common.Colon], consume: true);
+        var value_expr = _parseExpr();
+        expect([HS_Common.Comma], consume: true, error: false);
+        map_expr[key_expr] = value_expr;
+      }
+      expect([HS_Common.CurlyRight], consume: true);
+      return MapExpr(map_expr, line, col);
     } else {
       throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column);
     }

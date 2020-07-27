@@ -1,0 +1,90 @@
+class _Value {
+
+  // external关键字表示函数体在host语言中定义
+	external String toString();
+
+}
+
+class num extends _Value {
+
+	external static num parse(dynamic value);
+}
+
+class bool extends _Value {}
+
+class String extends _Value {
+	
+	external static String parse(dynamic value);
+}
+
+class List extends _Value {
+	
+	external num get length;
+	
+	bool get isEmpty {
+		return length == 0;
+	}
+	
+	bool get isNotEmpty {
+		return length != 0;
+	}
+	
+	dynamic get first {
+    if (length > 0){
+      return elementAt(0);
+    }
+	}
+	
+	dynamic get last {
+    if (length > 0){
+      return elementAt(length - 1);
+    }
+  }
+	
+	bool contains(dynamic value) {
+		return indexOf(value) != -1;
+	}
+	
+	external void add(?);
+	
+	external void clear();
+	
+	external void removeAt(num index);
+	
+	external num indexOf(dynamic value);
+	
+	external dynamic elementAt(num index);
+}
+
+class Map extends _Value {
+	
+	external num get length;
+	
+	bool get isEmpty {
+		return length == 0;
+	}
+	
+	bool get isNotEmpty {
+		return length != 0;
+	}
+
+  external List get keys;
+
+  external List get values;
+	
+	external bool containsKey(dynamic value);
+
+	external bool containsValue(dynamic value);
+	
+	external void setVal(dynamic key, dynamic value);
+	
+	external void addAll(Map other);
+	
+	external void clear();
+	
+	external void remove(dynamic key);
+	
+	external dynamic getVal(dynamic key);
+
+  external dynamic putIfAbsent(dynamic key, dynamic value);
+}

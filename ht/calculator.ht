@@ -1,18 +1,19 @@
+import 'hetu:core';
 
 // 类的定义
 class Calculator {
   // 成员变量
   num x;
   num y;
-  
+
   // 静态私有成员
   static String _name = 'the calculator';
-  
+
   static String get name {
     // 类中的静态函数只能访问类中的静态对象
     return _name;
   }
-  
+
   static set name(String new_name) {
     _name = new_name;
   }
@@ -30,3 +31,25 @@ class Calculator {
     return x * y;
   }
 }
+
+void calculate() {
+  // 带有初始化语句的变量定义
+  // 从类的构造函数获得对象的实例
+  Calculator cal = Calculator(6, 7);
+  // Calculator._name = 'the machine'; // 错误：不能在类代码之外访问私有变量
+  // setter函数
+  Calculator.name = 'the machine';
+  // Console.writeln(cal.meaning()); // 错误：参数类型不匹配
+  // 调用外部函数，访问类静态变量，getter函数，调用外部成员函数，字符串类型检查
+
+  // 列表的创建和添加元素
+  var list = [Calculator.name + ' says:'];
+  list.add('the meaning of life, universe and everything');
+  list.add('is ' + cal.meaning().toString());
+
+  for (var i in list) {
+    Console.print(i);
+  }
+}
+
+class SuperCalc extends Calculator {}
