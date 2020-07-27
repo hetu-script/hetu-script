@@ -2,5 +2,5 @@ import 'package:hetu_script/hetu.dart';
 
 void main() {
   hetu.init(workingDir: 'ht');
-  hetu.evalf('ht\\list.ht', invokeFunc: 'main');
+  hetu.evalf('ht\\class_members.ht', invokeFunc: 'main');
 }
