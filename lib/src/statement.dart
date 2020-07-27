@@ -36,6 +36,9 @@ abstract class StmtVisitor {
   /// Break语句
   void visitBreakStmt(BreakStmt stmt);
 
+  /// Continue语句
+  void visitContinueStmt(ContinueStmt stmt);
+
   /// 函数声明和定义
   void visitFuncStmt(FuncStmt stmt);
 
@@ -156,6 +159,14 @@ class BreakStmt extends Stmt {
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBreakStmt(this);
+}
+
+class ContinueStmt extends Stmt {
+  @override
+  String get type => HS_Common.ContinueStmt;
+
+  @override
+  dynamic accept(StmtVisitor visitor) => visitor.visitContinueStmt(this);
 }
 
 enum FuncStmtType {

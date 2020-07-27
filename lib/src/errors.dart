@@ -2,6 +2,8 @@ import 'common.dart';
 
 class HS_Break {}
 
+class HS_Continue {}
+
 abstract class HS_Error {
   String message;
   int line;

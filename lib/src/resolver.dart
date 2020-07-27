@@ -228,6 +228,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void visitBreakStmt(BreakStmt stmt) {}
 
   @override
+  void visitContinueStmt(ContinueStmt stmt) {}
+
+  @override
   void visitFuncStmt(FuncStmt stmt) {
     if (!stmt.isStatic) {
       if (stmt.functype != FuncStmtType.constructor) {

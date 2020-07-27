@@ -654,16 +654,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void visitWhileStmt(WhileStmt stmt) {
     var value = evaluateExpr(stmt.condition);
     if (value is bool) {
-      try {
-        while ((value is bool) && (value)) {
+      while ((value is bool) && (value)) {
+        try {
           evaluateStmt(stmt.loop);
           value = evaluateExpr(stmt.condition);
-        }
-      } catch (error) {
-        if (error is HS_Break) {
-          return;
-        } else {
-          throw error;
+        } catch (error) {
+          if (error is HS_Break) {
+            return;
+          } else if (error is HS_Continue) {
+            continue;
+          } else {
+            throw error;
+          }
         }
       }
     } else {
@@ -674,6 +676,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   void visitBreakStmt(BreakStmt stmt) {
     throw HS_Break();
+  }
+
+  @override
+  void visitContinueStmt(ContinueStmt stmt) {
+    throw HS_Continue();
   }
 
   @override

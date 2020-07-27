@@ -238,6 +238,7 @@ abstract class HS_Common {
   static const BlockStmt = 'block_statement';
   static const ReturnStmt = 'return_statement';
   static const BreakStmt = 'break_statement';
+  static const ContinueStmt = 'continue_statement';
   static const IfStmt = 'if_statement';
   static const WhileStmt = 'while_statement';
   static const ForInStmt = 'for_in_statement';

@@ -362,8 +362,11 @@ class Parser {
           else if (expect(_patternAssign)) {
             return _parseAssignStmt();
           } // 如果是跳出语句
-          else if (curTok.type == HS_Common.Break) {
+          else if (expect([HS_Common.Break, HS_Common.Semicolon], consume: true, error: false)) {
             return BreakStmt();
+          } // 如果是继续语句
+          else if (expect([HS_Common.Continue, HS_Common.Semicolon], consume: true, error: false)) {
+            return ContinueStmt();
           } // 如果是返回语句
           else if (curTok.type == HS_Common.Return) {
             return _parseReturnStmt();
