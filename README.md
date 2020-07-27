@@ -1,16 +1,18 @@
 ## 河图脚本语言（Hetu Script）
 
-河图脚本语言是在Bob Nystrom的[“Crafting Interpreters”](http://www.craftinginterpreters.com/)一书所创建的Lox脚本语言基础上，以Dart写成的。
+河图是一个以Dart写成的脚本语言解释器，同时也是一个脚本语言。主要用途是在不重新发布Dart程序的情况下，改变程序的运行逻辑等。
 
-河图将Lox的语法完全改造成和Dart一致的语法，并且增加了更多的语言特性：
+河图脚本语言是在Bob Nystrom的[“Crafting Interpreters”](http://www.craftinginterpreters.com/)一书所创建的Lox脚本语言基础上修改而成的，原书所使用的语言是Java和C，这里也改成了用Dart实现，这样更方便以Dart作为宿主程序，直接调用Dart的库等。
 
-1，赋值、函数调用时的类型检查，用void表示无返回值的函数（但和Dart一样，仍可以完全用dynamic类型来操作数据）
-2，类的成员变量、静态变量（static）、外部变量、外部函数的定义、类的构造函数、和Dart一样的get和set函数
-3，字面量增加null、List和Map类型（容器内部目前没有做类型检查，都视作dynamic成员）
-4，增加了import语句，可以导入其他文件模块
-5，增加了Dart调用脚本函数，以及脚本内调用Dart函数的双向绑定（external关键字）
-6，增加了命令行式函数调用（用空格而不是括号和逗号分开参数）
-7，增加了for...in语法，并且循环中支持break和continue语句
+河图将Lox的语法完全改造成和Dart的语法99%一致，并且增加了更多的语言特性：
+
+1，声明变量、函数时可以指定类型，使得赋值、函数调用时可以检查类型，用void表示无返回值的函数（但和Dart一样，仍可以完全用dynamic类型来操作不知道类型的数据）。
+2，类的成员变量、静态变量（static）、外部变量和函数（external）、构造函数、和Dart一样的get和set函数。
+3，null字面量，以及List和Map两种容器类型（容器内部目前没有做类型检查，都视作dynamic成员）。
+4，import语句，可以导入其他文件模块。
+5，Dart调用脚本函数，以及脚本内调用Dart函数的双向绑定（external关键字）。
+6，命令行式函数调用（用空格而不是括号和逗号分开参数）。
+7，for...in语法，并且循环中支持break和continue语句。
 
 ## 简单的使用示例
 
