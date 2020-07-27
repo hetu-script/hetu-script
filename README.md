@@ -5,7 +5,7 @@
 
 河图脚本语言是在 Bob Nystrom 的[“Crafting Interpreters”](http://www.craftinginterpreters.com/)一书所创建的 Lox 脚本语言基础上修改而成的，原书所使用的语言是 Java 和 C，这里也改成了用 Dart 实现，这样更方便以 Dart 作为宿主程序，直接调用 Dart 的库等。
 
-因为使用目的主要是嵌入现有的 Dart 语言使用，因此河图将 Lox 的语法完全改造成和 Dart 的语法 99%一致，并且在 Lox 的基础上增加了一些实用的语言特性：
+因为使用目的主要是嵌入现有的 Dart 语言使用，因此河图特意将 Lox 的语法改造成和 Dart 的语法规则和写作风格基本一致，并且在 Lox 的基础上增加了一些实用的语言特性：
 
 1，声明变量、函数时可以指定类型，使得赋值、函数调用时可以检查类型，用void表示无返回值的函数（但和Dart一样，仍可以完全用dynamic类型来操作不知道类型的数据）。
 2，类的成员变量、静态变量（static）、外部变量和函数（external）、构造函数、和Dart一样的get和set函数。
@@ -48,7 +48,7 @@ void main() {
 
 脚本文件'calculator.ht'的内容如下：
 
-```
+```dart
 import 'hetu:core';
 // 类的定义
 class Calculator {
