@@ -48,9 +48,8 @@ void main() {
 
 脚本文件'calculator.ht'的内容如下：
 
-​```dart
+```
 import 'hetu:core';
-
 // 类的定义
 class Calculator {
   // 成员变量
@@ -102,7 +101,6 @@ void calculate() {
     Console.print(i);
   }
 }
-
 ```
 
 ## Features and bugs
