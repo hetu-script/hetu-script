@@ -7,7 +7,7 @@ class Console {
 	external static void writeln(String line);
 	
 	// print multiple dynamic into lines
-	external static void print(?);
+	external static void print(? args);
 	
 	external static String getln(String info);
 	

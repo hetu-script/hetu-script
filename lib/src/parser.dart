@@ -196,7 +196,6 @@ class Parser {
     var expr = _parseAdditiveExpr();
     while (HS_Common.Relational.contains(curTok.type)) {
       var op = advance(1);
-
       var right = _parseAdditiveExpr();
       expr = BinaryExpr(expr, op, right);
     }
@@ -620,8 +619,9 @@ class Parser {
     if (functype != FuncStmtType.getter) {
       // 之前还没有校验过左括号
       expect([HS_Common.RoundLeft], consume: true);
-      if (expect([HS_Common.Unknown], consume: true, error: false)) {
+      if (expect([HS_Common.Unknown, HS_Common.Identifier])) {
         arity = -1;
+        params.add(VarStmt(advance(1), advance(1)));
         expect([HS_Common.RoundRight], consume: true);
       } else {
         params = _parseParameters();

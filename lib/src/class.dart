@@ -21,7 +21,7 @@ String HS_TypeOf(dynamic value) {
   } else if (value is Map) {
     return HS_Common.Map;
   } else {
-    return HS_Common.UnknownType;
+    return value.runtimeType.toString();
   }
 }
 
@@ -157,7 +157,7 @@ class HS_Class extends Namespace {
     constructorFunction = fetchMethod(constructorName, error: false);
 
     if (constructorFunction != null) {
-      constructorFunction.bind(instance).call(args);
+      constructorFunction.bind(instance).call(args ?? []);
     }
 
     return instance;
@@ -218,6 +218,6 @@ class HS_Instance extends Namespace {
 
   dynamic invoke(String name, {List<dynamic> args}) {
     HS_FuncObj method = _class.fetchMethod(name);
-    return method.bind(this).call(args);
+    return method.bind(this).call(args ?? []);
   }
 }

@@ -404,8 +404,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       case HS_Common.GreaterOrEqual:
       case HS_Common.Lesser:
       case HS_Common.LesserOrEqual:
+      case HS_Common.Is:
         {
-          if (left is num) {
+          if ((expr.op.type == HS_Common.Is) && (right is HS_Class)) {
+            return HS_TypeOf(left) == right.name;
+          } else if (left is num) {
             if (right is num) {
               if (expr.op.type == HS_Common.Multiply) {
                 return left * right;
@@ -449,20 +452,22 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     if (callee is HS_FuncObj) {
-      if ((callee.arity >= 0) && (callee.arity != expr.args.length)) {
-        throw HSErr_Arity(expr.args.length, callee.arity, expr.callee.line, expr.callee.column);
-      } else if (callee.funcStmt != null) {
-        for (var i = 0; i < callee.funcStmt.params.length; ++i) {
-          var param_token = callee.funcStmt.params[i].typename;
-          var arg_type = HS_TypeOf(args[i]);
-          if ((param_token.lexeme != HS_Common.Dynamic) && (param_token.lexeme != arg_type)) {
-            throw HSErr_ArgType(arg_type, param_token.lexeme, param_token.line, param_token.column);
+      if (callee.arity >= 0) {
+        if (callee.arity != expr.args.length) {
+          throw HSErr_Arity(expr.args.length, callee.arity, expr.callee.line, expr.callee.column);
+        } else if (callee.funcStmt != null) {
+          for (var i = 0; i < callee.funcStmt.params.length; ++i) {
+            var param_token = callee.funcStmt.params[i].typename;
+            var arg_type = HS_TypeOf(args[i]);
+            if ((param_token.lexeme != HS_Common.Dynamic) && (param_token.lexeme != arg_type)) {
+              throw HSErr_ArgType(arg_type, param_token.lexeme, param_token.line, param_token.column);
+            }
           }
         }
       }
 
       if (callee.functype != FuncStmtType.constructor) {
-        return callee.call(args);
+        return callee.call(args ?? []);
       } else {
         //TODO命名构造函数
       }

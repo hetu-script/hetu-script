@@ -1,0 +1,14 @@
+import 'hetu:core';
+
+void greetings(? arguments) {
+
+  for (var val in arguments) {
+    Console.print(val);
+  }
+}
+
+
+// 程序入口
+void main() {
+  greetings(42, 'unkown arguments', true);
+}

@@ -34,6 +34,7 @@ class HS_FuncObj extends HS_Instance {
   }
 
   dynamic call(List<dynamic> args) {
+    assert(args != null);
     try {
       if (extern != null) {
         var instance = closure?.fetchAt(0, HS_Common.This, error: false);
@@ -41,12 +42,14 @@ class HS_FuncObj extends HS_Instance {
       } else {
         var environment = Namespace(enclosing: closure);
         if (funcStmt != null) {
-          if (args != null) {
-            if (arity != -1) {
-              for (var i = 0; i < funcStmt.params.length; i++) {
-                environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
-              }
-            } else {}
+          if (arity != -1) {
+            for (var i = 0; i < funcStmt.params.length; i++) {
+              environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
+            }
+          } else {
+            assert(funcStmt.params.length == 1);
+            // “? args”形式的参数列表可以通过args这个List访问参数
+            environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, value: args);
           }
           globalInterpreter.curBlockName = closure.blockName;
           globalInterpreter.executeBlock(funcStmt.definition, environment);

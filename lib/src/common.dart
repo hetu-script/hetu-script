@@ -84,6 +84,7 @@ abstract class HS_Common {
     //Dict,
   ];
 
+  /// 保留字，不能用于变量名字
   static const Keywords = <String>[
     Global,
     Null,
@@ -92,6 +93,7 @@ abstract class HS_Common {
     Final,
     Namespace,
     As,
+    Abstract,
     Class,
     Function,
     Get,
@@ -121,6 +123,7 @@ abstract class HS_Common {
     Case,
     Default,
     New,
+    Is,
   ];
 
   static const Punctuations = <String>[
@@ -183,8 +186,9 @@ abstract class HS_Common {
   static const Final = 'final';
   static const Namespace = 'namespace';
   static const As = 'as';
+  static const Abstract = 'abstract';
   static const Class = 'class';
-  static const Function = 'func';
+  static const Function = 'function';
   static const FunctionObj = 'Function';
   static const Method = 'method';
   static const This = 'this';
@@ -292,11 +296,13 @@ abstract class HS_Common {
     GreaterOrEqual,
     Lesser,
     LesserOrEqual,
+    Is,
   ];
   static const Greater = '>';
   static const GreaterOrEqual = '>=';
   static const Lesser = '<';
   static const LesserOrEqual = '<=';
+  static const Is = 'is';
 
   /// 相等判断操作符，包含多个符号
   static const Equality = <String>[
@@ -368,16 +374,16 @@ abstract class HS_Common {
 }
 
 // Hetu运算符优先级
-// Description     Operator       Associativity   Precedence
+// Description     Operator           Associativity   Precedence
 //  Unary postfix   e., e()            None            16
-//  Unary prefix    -e, !e         None            15
-//  Multiplicative  *, /, %        Left            14
-//  Additive        +, -           Left            13
-//  Relational      <, >, <=, >=   None            8
-//  Equality        ==, !=         None            7
-//  Logical AND     &&             Left            6
-//  Logical Or      ||             Left            5
-//  Assignment      =              Right           1
+//  Unary prefix    -e, !e             None            15
+//  Multiplicative  *, /, %            Left            14
+//  Additive        +, -               Left            13
+//  Relational      <, >, <=, >=, is   None            8
+//  Equality        ==, !=             None            7
+//  Logical AND     &&                 Left            6
+//  Logical Or      ||                 Left            5
+//  Assignment      =                  Right           1
 
 // Dart运算符优先级（参考用）
 // Description      Operator                             Associativity   Precedence

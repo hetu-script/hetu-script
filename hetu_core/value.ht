@@ -45,7 +45,7 @@ class List extends _Value {
 		return indexOf(value) != -1;
 	}
 	
-	external void add(?);
+	external void add(? args);
 	
 	external void clear();
 	

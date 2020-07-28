@@ -75,8 +75,13 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _curFuncType = type;
 
     _beginBlock();
-    for (var param in stmt.params) {
-      _declare(param.name, define: true);
+    if (stmt.arity == -1) {
+      assert(stmt.params.length == 1);
+      _declare(stmt.params.first.name, define: true);
+    } else {
+      for (var param in stmt.params) {
+        _declare(param.name, define: true);
+      }
     }
     resolve(stmt.definition);
     _endBlock();
