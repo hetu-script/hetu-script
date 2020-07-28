@@ -20,15 +20,23 @@ class Definition {
 class Namespace extends HS_Value {
   String get type => HS_Common.Namespace;
 
-  final String blockName;
+  String _blockName;
+  String get blockName => _blockName;
 
   final Map<String, Definition> defs = {};
 
   Namespace _enclosing;
   Namespace get enclosing => _enclosing;
 
-  Namespace({Namespace enclosing, this.blockName = HS_Common.Global}) {
-    _enclosing = enclosing;
+  Namespace({Namespace enclosing, String blockName}) {
+    if (enclosing != null) {
+      _enclosing = enclosing;
+      _blockName = enclosing.blockName;
+    } else if (blockName != null) {
+      _blockName = blockName;
+    } else {
+      _blockName = HS_Common.Global;
+    }
   }
 
   Namespace outer(int distance) {
@@ -42,7 +50,7 @@ class Namespace extends HS_Value {
 
   dynamic fetch(String name, {bool error = true, String from = HS_Common.Global}) {
     if (defs.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
+      if ((blockName == HS_Common.Global) || (blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return defs[name].value;
       }
       throw HSErr_Private(name);

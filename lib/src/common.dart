@@ -1,3 +1,26 @@
+abstract class HS_LexPatterns {
+  static final enUS = RegExp(
+    r'(//.*)|' // 注释 group(1)
+    r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
+    r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
+    r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
+    r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
+    r'("(\\"|[^"])*"))',
+    unicode: true,
+    multiLine: true,
+  );
+  static final commandLine = RegExp(
+    r'(//.*)|' // 注释 group(1)
+    r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
+    r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!:\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
+    r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
+    r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
+    r'("(\\"|[^"])*"))',
+    unicode: true,
+    multiLine: true,
+  );
+}
+
 abstract class HS_Common {
   static var coreLibPath = 'hetu_core';
 
@@ -5,22 +28,6 @@ abstract class HS_Common {
 
   static const zhHans = 'zh-Hans';
   static const enUS = 'en-US';
-  static const commandLine = 'commandLine';
-
-  static get pattern => patterns[currentLanguage];
-
-  static final patterns = <String, RegExp>{
-    enUS: RegExp(
-      r'(//.*)|' // 注释 group(1)
-      r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-      r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
-      r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
-      r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
-      r'("(\\"|[^"])*"))',
-      unicode: true,
-      multiLine: true,
-    ),
-  };
 
   static const regCommentGrp = 1;
   static const regIdGrp = 2;

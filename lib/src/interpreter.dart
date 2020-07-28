@@ -78,8 +78,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       final _parser = Parser();
       final _resolver = Resolver();
       var tokens = _lexer.lex(script);
-      var statements = _parser.parse(tokens, interpreter: this, style: style);
-      _resolver.resolve(statements, interpreter: this);
+      var statements = _parser.parse(tokens, style: style);
+      _resolver.resolve(statements);
       interpreter(
         statements,
         invokeFunc: invokeFunc,
@@ -111,31 +111,20 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  var clReg = RegExp(r"('(\\'|[^'])*')|(\S+)");
-
   /// 解析命令行
   dynamic evalc(String input) {
-    var matches = clReg.allMatches(input);
-    var function = matches.first.group(3);
-    String classname;
-    if (function == null) throw Exception('命令行错误：无效的调用。');
-    if (function.contains('.')) {
-      var split = function.split('.');
-      function = split.last;
-      classname = split.first;
+    HS_Error.clear();
+    try {
+      final _lexer = Lexer();
+      final _parser = Parser();
+      var tokens = _lexer.lex(input, commandLine: true);
+      var statements = _parser.parse(tokens, style: ParseStyle.commandLine);
+      return executeBlock(statements, _global);
+    } catch (e) {
+      print(e);
+    } finally {
+      HS_Error.output();
     }
-    var args = <String>[];
-    for (var i = 1; i < matches.length; ++i) {
-      var word = matches.elementAt(i);
-      if (word.group(1) != null) {
-        String literal = word.group(1);
-        literal = literal.substring(1).substring(0, literal.length - 2);
-        args.add(literal);
-      } else {
-        args.add(word.group(0));
-      }
-    }
-    return invoke(function, classname: classname, args: args);
   }
 
   void addLocal(Expr expr, int distance) {
@@ -168,7 +157,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (_global.contains(name)) {
       throw HSErr_Defined(name);
     } else {
-      var func_obj = HS_FuncObj(name, extern: function);
+      // 绑定外部全局公共函数，参数列表数量设为-1，这样可以自由传递任何类型和数量
+      var func_obj = HS_FuncObj(name, arity: -1, extern: function);
       _global.define(name, HS_Common.FunctionObj, value: func_obj);
     }
   }
@@ -625,6 +615,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitBlockStmt(BlockStmt stmt) {
+    curBlockName = _curSpace.blockName;
     executeBlock(stmt.block, Namespace(enclosing: _curSpace));
   }
 

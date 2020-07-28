@@ -52,7 +52,7 @@ abstract class HS_Buildin {
   static dynamic _system_evalc(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       try {
-        interpreter.evalc(args.first.toString());
+        return globalInterpreter.evalc(args.first.toString());
       } catch (e) {
         print(e);
       }

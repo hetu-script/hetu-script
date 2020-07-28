@@ -3,13 +3,14 @@ import 'common.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
 class Lexer {
-  List<Token> lex(String script) {
+  List<Token> lex(String script, {bool commandLine = false}) {
     var _tokens = <Token>[];
     var currentLine = 0;
     var column;
+    var pattern = commandLine ? HS_LexPatterns.commandLine : HS_LexPatterns.enUS;
     for (var line in script.split('\n')) {
       ++currentLine;
-      var matches = HS_Common.pattern.allMatches(line);
+      var matches = pattern.allMatches(line);
       for (var match in matches) {
         var matchString = match.group(0);
         column = match.start + 1;

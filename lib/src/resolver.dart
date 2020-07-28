@@ -23,7 +23,6 @@ enum _ClassType {
 class Resolver implements ExprVisitor, StmtVisitor {
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   var _blocks = <Map<String, bool>>[];
-  Interpreter _interpreter;
   _FunctionType _curFuncType = _FunctionType.none;
   _ClassType _curClassType = _ClassType.none;
 
@@ -51,7 +50,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     for (var i = _blocks.length - 1; i >= 0; --i) {
       if (_blocks[i].containsKey(varname)) {
         var distance = _blocks.length - 1 - i;
-        _interpreter.addLocal(expr, distance);
+        globalInterpreter.addLocal(expr, distance);
         return;
       }
     }
@@ -60,9 +59,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // Not found. Assume it is global.
   }
 
-  void resolve(List<Stmt> statements, {Interpreter interpreter}) {
+  void resolve(List<Stmt> statements) {
     if (statements != null) {
-      _interpreter = interpreter ?? globalInterpreter;
       for (var stmt in statements) {
         _resolveStmt(stmt);
       }
@@ -80,7 +78,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     for (var param in stmt.params) {
       _declare(param.name, define: true);
     }
-    resolve(stmt.definition, interpreter: _interpreter);
+    resolve(stmt.definition);
     _endBlock();
     _curFuncType = enclosingFunctionType;
   }

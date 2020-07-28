@@ -3,9 +3,14 @@ import 'hetu:core';
 class HelloWord {
   num hello;
   num world;
+  num _privateNum = 99;
 
   String toString() {
     return "hello" + hello.toString() + "world" + world.toString();
+  }
+
+  num getPrivate() {
+    return _privateNum;
   }
 }
 
@@ -13,5 +18,5 @@ class HelloWord {
 void main() {
   HelloWord m = {"hello": 42, "world": 103};
 
-  Console.print(m.toString());
+  Console.print(m.getPrivate());
 }

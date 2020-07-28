@@ -18,6 +18,8 @@ enum ParseStyle {
 
   /// 类定义中只能出现变量和函数的声明
   classDefinition,
+
+  commandLine,
 }
 
 /// 负责对Token列表进行语法分析并生成语句列表
@@ -38,7 +40,6 @@ enum ParseStyle {
 class Parser {
   final List<Token> _tokens = [];
   var _tokPos = 0;
-  Interpreter _interpreter;
   String _curClassName;
 
   static int internalVarIndex = 0;
@@ -113,14 +114,11 @@ class Parser {
 
   List<Stmt> parse(
     List<Token> tokens, {
-    Interpreter interpreter,
     ParseStyle style = ParseStyle.library,
   }) {
     _tokens.clear();
     _tokens.addAll(tokens);
     _tokPos = 0;
-
-    _interpreter = interpreter ?? globalInterpreter;
 
     var statements = <Stmt>[];
     while (curTok.type != HS_Common.EOF) {
@@ -278,11 +276,11 @@ class Parser {
         advance(1);
         return NullExpr(peek(-1).line, peek(-1).column);
       } else if (curTok.literal is num) {
-        index = _interpreter.addLiteral(curTok.literal);
+        index = globalInterpreter.addLiteral(curTok.literal);
       } else if (curTok.literal is bool) {
-        index = _interpreter.addLiteral(curTok.literal);
+        index = globalInterpreter.addLiteral(curTok.literal);
       } else if (curTok.literal is String) {
-        index = _interpreter.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
+        index = globalInterpreter.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
       }
       advance(1);
       return LiteralExpr(index, peek(-1).line, peek(-1).column);
@@ -404,6 +402,17 @@ class Parser {
           }
         }
         break;
+      case ParseStyle.commandLine:
+        {
+          var callee = _parseExpr();
+          var params = <Expr>[];
+          while (curTok.type != HS_Common.EOF) {
+            params.add(LiteralExpr(globalInterpreter.addLiteral(curTok.lexeme), curTok.line, curTok.column));
+            advance(1);
+          }
+          return ExprStmt(CallExpr(callee, params));
+        }
+        break;
     }
     return null;
   }
@@ -465,10 +474,12 @@ class Parser {
     return ExprStmt(expr);
   }
 
-  ExprStmt _parseExprStmt() {
+  ExprStmt _parseExprStmt({bool commandLine = false}) {
     var stmt = ExprStmt(_parseExpr());
-    // 语句一定以分号结尾
-    expect([HS_Common.Semicolon], consume: true);
+    if (!commandLine) {
+      // 语句一定以分号结尾
+      expect([HS_Common.Semicolon], consume: true);
+    }
     return stmt;
   }
 
