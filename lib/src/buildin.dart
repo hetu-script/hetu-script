@@ -64,7 +64,7 @@ abstract class HS_Buildin {
       var func_name = args[0];
       var class_name = args[1];
       var arguments = args[2];
-      interpreter.invoke(func_name, classname: class_name, args: arguments);
+      interpreter.invoke(func_name, null, null, classname: class_name, args: arguments);
     }
   }
 
@@ -115,27 +115,27 @@ abstract class HS_Buildin {
   }
 
   static dynamic _system_now(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
-    return HSVal_Num(DateTime.now().millisecondsSinceEpoch);
+    return DateTime.now().millisecondsSinceEpoch;
   }
 }
 
 abstract class HSVal_Value extends HS_Instance {
-  HSVal_Value(dynamic value, String class_name) : super(class_name) {
-    define('_val', HS_TypeOf(value), value: value);
+  HSVal_Value(dynamic value, String class_name, int line, int column) : super(class_name, line, column) {
+    define('_val', HS_TypeOf(value), line, column, value: value);
   }
 
-  dynamic get value => fetch('_val', error: false, from: type);
+  dynamic get value => fetch('_val', line, column, error: false, from: type);
 
   static dynamic _to_string(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (instance != null) {
-      var value = instance.fetch('_val', from: instance.type);
+      var value = instance.fetch('_val', instance.line, instance.column, from: instance.type);
       return value.toString();
     }
   }
 }
 
 class HSVal_Num extends HSVal_Value {
-  HSVal_Num(num value) : super(value, HS_Common.Num);
+  HSVal_Num(num value, int line, int column) : super(value, HS_Common.Num, line, column);
 
   static dynamic _parse(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -145,11 +145,11 @@ class HSVal_Num extends HSVal_Value {
 }
 
 class HSVal_Bool extends HSVal_Value {
-  HSVal_Bool(bool value) : super(value, HS_Common.Bool);
+  HSVal_Bool(bool value, int line, int column) : super(value, HS_Common.Bool, line, column);
 }
 
 class HSVal_String extends HSVal_Value {
-  HSVal_String(String value) : super(value, HS_Common.Str);
+  HSVal_String(String value, int line, int column) : super(value, HS_Common.Str, line, column);
 
   static dynamic _parse(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -159,7 +159,7 @@ class HSVal_String extends HSVal_Value {
 }
 
 class HSVal_List extends HSVal_Value {
-  HSVal_List(List value) : super(value, HS_Common.List);
+  HSVal_List(List value, int line, int column) : super(value, HS_Common.List, line, column);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
@@ -214,7 +214,7 @@ class HSVal_List extends HSVal_Value {
 
 //TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
-  HSVal_Map(Map value) : super(value, HS_Common.Map);
+  HSVal_Map(Map value, int line, int column) : super(value, HS_Common.Map, line, column);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);

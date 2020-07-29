@@ -121,10 +121,15 @@ class Parser {
     _tokPos = 0;
 
     var statements = <Stmt>[];
-    while (curTok.type != HS_Common.EOF) {
-      statements.add(_parseStmt(style: style));
+    try {
+      while (curTok.type != HS_Common.EOF) {
+        statements.add(_parseStmt(style: style));
+      }
+    } catch (e) {
+      print(e);
+    } finally {
+      return statements;
     }
-    return statements;
   }
 
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
@@ -444,9 +449,6 @@ class Parser {
 
   /// 变量声明语句
   VarStmt _parseVarStmt({bool is_extern = false, bool is_static = false}) {
-    // if (!HS_Common.BuildInTypes.contains(curTok.lexeme)) {
-    //   throw HSErr_Undefined(curTok.lexeme, curTok.line, curTok.column);
-    // }
     var typename = curTok;
     var varname = peek(1);
     // 之前已经校验过了所以这里直接跳过

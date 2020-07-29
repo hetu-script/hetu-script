@@ -23,15 +23,15 @@ class HS_FuncObj extends HS_Instance {
 
   final int arity;
 
-  HS_FuncObj(this.name,
+  HS_FuncObj(this.name, int line, int column,
       {this.className, this.funcStmt, this.closure, this.extern, this.functype = FuncStmtType.normal, this.arity = 0})
-      : super(HS_Common.FunctionObj);
+      : super(HS_Common.FunctionObj, line, column);
 
   // 成员函数外层是实例
   HS_FuncObj bind(HS_Instance instance) {
-    Namespace namespace = Namespace(enclosing: instance);
-    namespace.define(HS_Common.This, instance.type, value: instance);
-    return HS_FuncObj(name,
+    Namespace namespace = Namespace(instance.line, instance.column, enclosing: instance);
+    namespace.define(HS_Common.This, instance.type, line, column, value: instance);
+    return HS_FuncObj(name, line, column,
         className: className, funcStmt: funcStmt, closure: namespace, extern: extern, functype: functype, arity: arity);
   }
 
@@ -39,10 +39,10 @@ class HS_FuncObj extends HS_Instance {
     assert(args != null);
     try {
       if (extern != null) {
-        var instance = closure?.fetchAt(0, HS_Common.This, error: false);
+        var instance = closure?.fetchAt(0, HS_Common.This, line, column, error: false);
         return extern(globalInterpreter, instance, args ?? []);
       } else {
-        var environment = Namespace(enclosing: closure);
+        var environment = Namespace(closure?.line, closure?.column, enclosing: closure);
         if (funcStmt != null) {
           if (arity >= 0) {
             if (arity != args.length) {
@@ -62,23 +62,26 @@ class HS_FuncObj extends HS_Instance {
 
           if (arity != -1) {
             for (var i = 0; i < funcStmt.params.length; i++) {
-              environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
+              environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column,
+                  value: args[i]);
             }
           } else {
             assert(funcStmt.params.length == 1);
             // “? args”形式的参数列表可以通过args这个List访问参数
-            environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, value: args);
+            environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, value: args);
           }
           _savedBlockName = globalInterpreter.curBlockName;
           globalInterpreter.curBlockName = closure.blockName;
           globalInterpreter.executeBlock(funcStmt.definition, environment);
         } else {
-          throw HSErr_MissingFuncDef(name);
+          throw HSErr_MissingFuncDef(name, line, column);
         }
       }
     } catch (returnValue) {
-      if ((returnValue is HS_Error) || (returnValue is Exception)) {
+      if (returnValue is HS_Error) {
         throw returnValue;
+      } else if ((returnValue is Exception) || (returnValue is NoSuchMethodError)) {
+        throw HS_Error(returnValue.toString(), line, column);
       }
 
       String returned_type = HS_TypeOf(returnValue);
@@ -87,7 +90,7 @@ class HS_FuncObj extends HS_Instance {
           (funcStmt.returnType != HS_Common.Dynamic) &&
           (returned_type != HS_Common.Null) &&
           (funcStmt.returnType != returned_type)) {
-        throw HSErr_ReturnType(returned_type, name, funcStmt.returnType);
+        throw HSErr_ReturnType(returned_type, name, funcStmt.returnType, line, column);
       }
 
       if (_savedBlockName != null) {
@@ -100,7 +103,7 @@ class HS_FuncObj extends HS_Instance {
     }
 
     if (functype == FuncStmtType.constructor) {
-      return closure.fetchAt(0, HS_Common.This);
+      return closure.fetchAt(0, HS_Common.This, line, column);
     } else {
       return null;
     }

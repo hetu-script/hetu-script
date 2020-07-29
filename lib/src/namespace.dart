@@ -7,6 +7,8 @@ import 'common.dart';
 /// Value是命名空间、类和实例的基类
 abstract class HS_Value {
   String get type;
+  final int line, column;
+  HS_Value(this.line, this.column);
 }
 
 class Definition {
@@ -28,7 +30,7 @@ class Namespace extends HS_Value {
   Namespace _enclosing;
   Namespace get enclosing => _enclosing;
 
-  Namespace({Namespace enclosing, String blockName}) {
+  Namespace(int line, int column, {Namespace enclosing, String blockName}) : super(line, column) {
     if (enclosing != null) {
       _enclosing = enclosing;
       _blockName = enclosing.blockName;
@@ -48,74 +50,75 @@ class Namespace extends HS_Value {
     return namespace;
   }
 
-  dynamic fetch(String name, {bool error = true, String from = HS_Common.Global}) {
+  dynamic fetch(String name, int line, int column, {bool error = true, String from = HS_Common.Global}) {
     if (defs.containsKey(name)) {
       if ((blockName == HS_Common.Global) || (blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return defs[name].value;
       }
-      throw HSErr_Private(name);
+      throw HSErr_Private(name, line, column);
     }
 
-    if (enclosing != null) return enclosing.fetch(name, error: error, from: from);
+    if (enclosing != null) return enclosing.fetch(name, line, column, error: error, from: from);
 
-    if (error) throw HSErr_Undefined(name);
+    if (error) throw HSErr_Undefined(name, line, column);
 
     return null;
   }
 
-  dynamic fetchAt(int distance, String name, {bool error = true, String from = HS_Common.Global}) {
+  dynamic fetchAt(int distance, String name, int line, int column,
+      {bool error = true, String from = HS_Common.Global}) {
     var space = outer(distance);
-    return space.fetch(name, error: error, from: from);
+    return space.fetch(name, line, column, error: error, from: from);
   }
 
   /// 在当前命名空间声明一个指定类型的变量
-  void define(String varname, String vartype, {dynamic value}) {
+  void define(String varname, String vartype, int line, int column, {dynamic value}) {
     var val_type = HS_TypeOf(value);
     if (!defs.containsKey(varname)) {
       if ((vartype == HS_Common.Dynamic) || ((value != null) && (vartype == val_type)) || (value == null)) {
         defs[varname] = Definition(vartype, value: value);
       } else if ((value != null) && (value is Map)) {
-        var klass = globalInterpreter.fetchGlobal(vartype, from: globalInterpreter.curSpace.blockName);
+        var klass = globalInterpreter.fetchGlobal(vartype, line, column, from: globalInterpreter.curSpace.blockName);
         if (klass is HS_Class) {
-          var instance = klass.createInstance();
+          var instance = klass.createInstance(line, column);
           for (var key in value.keys) {
             if (instance.contains(key)) {
-              instance.assign(key, value[key], from: instance.blockName);
+              instance.assign(key, value[key], line, column, from: instance.blockName);
             }
           }
           defs[varname] = Definition(vartype, value: instance);
         } else {
-          throw HSErr_Type(val_type, vartype);
+          throw HSErr_Type(val_type, vartype, line, column);
         }
       }
     } else {
-      throw HSErr_Defined(varname);
+      throw HSErr_Defined(varname, line, column);
     }
   }
 
   /// 向一个已经声明的变量赋值
-  void assign(String varname, dynamic value, {String from = HS_Common.Global}) {
+  void assign(String varname, dynamic value, int line, int column, {String from = HS_Common.Global}) {
     if (defs.containsKey(varname)) {
       if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         var vartype = defs[varname].type;
         if ((vartype == HS_Common.Dynamic) || ((value != null) && (vartype == HS_TypeOf(value))) || (value == null)) {
           defs[varname].value = value;
         } else {
-          throw HSErr_Type(HS_TypeOf(value), vartype);
+          throw HSErr_Type(HS_TypeOf(value), vartype, line, column);
         }
       } else {
-        throw HSErr_Private(varname);
+        throw HSErr_Private(varname, line, column);
       }
     } else if (enclosing != null) {
-      enclosing.assign(varname, value, from: from);
+      enclosing.assign(varname, value, line, column, from: from);
     } else {
-      throw HSErr_Undefined(varname);
+      throw HSErr_Undefined(varname, line, column);
     }
   }
 
-  void assignAt(int distance, String name, dynamic value, {String from = HS_Common.Global}) {
+  void assignAt(int distance, String name, dynamic value, int line, int column, {String from = HS_Common.Global}) {
     var space = outer(distance);
-    space.assign(name, value, from: from);
+    space.assign(name, value, line, column, from: from);
   }
 
   bool contains(String key) => defs.containsKey(key);

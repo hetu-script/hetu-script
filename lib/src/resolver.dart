@@ -28,12 +28,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void _beginBlock() => _blocks.add(<String, bool>{});
   void _endBlock() => _blocks.removeLast();
 
-  void _declare(String name, {bool define = false, bool error = true}) {
+  void _declare(String name, int line, int column, {bool define = false, bool error = true}) {
     if (_blocks.isNotEmpty) {
       var block = _blocks.last;
 
       if (block.containsKey(name) && error) {
-        throw HSErr_Defined(name);
+        throw HSErr_Defined(name, line, column);
       }
       block[name] = define;
     }
@@ -76,10 +76,10 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _beginBlock();
     if (stmt.arity == -1) {
       assert(stmt.params.length == 1);
-      _declare(stmt.params.first.name.lexeme, define: true);
+      _declare(stmt.params.first.name.lexeme, stmt.params.first.name.line, stmt.params.first.name.column, define: true);
     } else {
       for (var param in stmt.params) {
-        _declare(param.name.lexeme, define: true);
+        _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
       }
     }
     resolve(stmt.definition);
@@ -180,7 +180,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void visitVarStmt(VarStmt stmt) {
     if (stmt.initializer != null) {
       _resolveExpr(stmt.initializer);
-      _declare(stmt.name.lexeme, define: true);
+      _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
     } else {
       _define(stmt.name.lexeme);
     }
@@ -236,7 +236,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void visitFuncStmt(FuncStmt stmt) {
     if (!stmt.isStatic) {
       if (stmt.functype != FuncStmtType.constructor) {
-        _declare(stmt.name.lexeme, define: true);
+        _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
         _resolveFunction(stmt, _FunctionType.normal);
       } else {
         _resolveFunction(stmt, _FunctionType.constructor);
@@ -248,7 +248,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void visitClassStmt(ClassStmt stmt) {
     _ClassType enclosingClass = _curClassType;
 
-    _declare(stmt.name.lexeme, define: true);
+    _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
 
     if (stmt.superClass != null) {
       if (stmt.name.lexeme == stmt.superClass.name.lexeme) {
@@ -274,10 +274,10 @@ class Resolver implements ExprVisitor, StmtVisitor {
       if (method.functype == FuncStmtType.constructor) {
         _resolveFunction(method, _FunctionType.constructor);
       } else {
-        _declare(method.internalName, define: true);
+        _declare(method.internalName, method.name.line, method.name.column, define: true);
         if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
             !_blocks.last.containsKey(method.name.lexeme)) {
-          _declare(method.name.lexeme, define: true);
+          _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
         }
         _resolveFunction(method, _FunctionType.method);
       }

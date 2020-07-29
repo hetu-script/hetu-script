@@ -27,5 +27,5 @@ void main() {
 
   Types t = Types();
 
-  Console.print(t);
+  t.look();
 }
