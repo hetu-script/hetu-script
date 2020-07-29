@@ -56,7 +56,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       _sdkDir = hetuSdkDir ?? 'hetu_core';
       this.workingDir = workingDir ?? path.current;
 
-      // 必须在绑定函数前加载基础类，因为函数本身也是对象
+      // 必须在绑定函数前加载基础类Object和Function，因为函数本身也是对象
       print('Hetu: Loading core library.');
       eval(HS_Buildin.coreLib);
 
@@ -65,6 +65,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       bindAll(bindMap);
       linkAll(HS_Buildin.linkmap);
       linkAll(linkMap);
+
+      // 载入基础库
+      eval('import \'hetu:value\';import \'hetu:system\';import \'hetu:console\';');
     } catch (e) {
       print(e);
       print('Hetu init failed!');
@@ -452,20 +455,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     if (callee is HS_FuncObj) {
-      if (callee.arity >= 0) {
-        if (callee.arity != expr.args.length) {
-          throw HSErr_Arity(expr.args.length, callee.arity, expr.callee.line, expr.callee.column);
-        } else if (callee.funcStmt != null) {
-          for (var i = 0; i < callee.funcStmt.params.length; ++i) {
-            var param_token = callee.funcStmt.params[i].typename;
-            var arg_type = HS_TypeOf(args[i]);
-            if ((param_token.lexeme != HS_Common.Dynamic) && (param_token.lexeme != arg_type)) {
-              throw HSErr_ArgType(arg_type, param_token.lexeme, param_token.line, param_token.column);
-            }
-          }
-        }
-      }
-
       if (callee.functype != FuncStmtType.constructor) {
         return callee.call(args ?? []);
       } else {
@@ -620,8 +609,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitBlockStmt(BlockStmt stmt) {
+    var save = curBlockName;
     curBlockName = _curSpace.blockName;
     executeBlock(stmt.block, Namespace(enclosing: _curSpace));
+    curBlockName = save;
   }
 
   @override

@@ -17,6 +17,8 @@ class HS_FuncObj extends HS_Instance {
   final Namespace closure;
   final FuncStmtType functype;
 
+  String _savedBlockName;
+
   HS_External extern;
 
   final int arity;
@@ -42,6 +44,22 @@ class HS_FuncObj extends HS_Instance {
       } else {
         var environment = Namespace(enclosing: closure);
         if (funcStmt != null) {
+          if (arity >= 0) {
+            if (arity != args.length) {
+              throw HSErr_Arity(args.length, arity, funcStmt.name.line, funcStmt.name.column);
+            } else {
+              for (var i = 0; i < funcStmt.params.length; ++i) {
+                var type_token = funcStmt.params[i].typename;
+                var arg_type = HS_TypeOf(args[i]);
+                if ((type_token.lexeme != HS_Common.Dynamic) &&
+                    (type_token.lexeme != arg_type) &&
+                    (arg_type != HS_Common.Null)) {
+                  throw HSErr_ArgType(arg_type, type_token.lexeme, type_token.line, type_token.column);
+                }
+              }
+            }
+          }
+
           if (arity != -1) {
             for (var i = 0; i < funcStmt.params.length; i++) {
               environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, value: args[i]);
@@ -51,6 +69,7 @@ class HS_FuncObj extends HS_Instance {
             // “? args”形式的参数列表可以通过args这个List访问参数
             environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, value: args);
           }
+          _savedBlockName = globalInterpreter.curBlockName;
           globalInterpreter.curBlockName = closure.blockName;
           globalInterpreter.executeBlock(funcStmt.definition, environment);
         } else {
@@ -69,6 +88,11 @@ class HS_FuncObj extends HS_Instance {
           (returned_type != HS_Common.Null) &&
           (funcStmt.returnType != returned_type)) {
         throw HSErr_ReturnType(returned_type, name, funcStmt.returnType);
+      }
+
+      if (_savedBlockName != null) {
+        globalInterpreter.curBlockName = _savedBlockName;
+        _savedBlockName = null;
       }
 
       if (returnValue is NullThrownError) return null;

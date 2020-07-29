@@ -583,13 +583,9 @@ class Parser {
         expect([HS_Common.Comma], consume: true, error: false);
       }
       if (expect([HS_Common.Identifier, HS_Common.Identifier])) {
-        if (HS_Common.ParametersTypes.contains(curTok.lexeme)) {
-          //TODO，参数默认值、可选参数、命名参数
-          result.add(VarStmt(curTok, peek(1)));
-          advance(2);
-        } else {
-          throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column);
-        }
+        //TODO，参数默认值、可选参数、命名参数
+        result.add(VarStmt(curTok, peek(1)));
+        advance(2);
       } else {
         throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column);
       }
@@ -605,9 +601,6 @@ class Parser {
       return_type = HS_Common.Void;
       functype = FuncStmtType.setter;
     } else {
-      if (!HS_Common.FunctionReturnTypes.contains(curTok.lexeme)) {
-        throw HSErr_Undefined(curTok.lexeme, curTok.line, curTok.column);
-      }
       return_type = match(HS_Common.Identifier).lexeme;
       if (expect([HS_Common.Get], consume: true, error: false)) {
         functype = FuncStmtType.getter;

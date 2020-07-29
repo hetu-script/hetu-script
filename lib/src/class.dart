@@ -184,11 +184,13 @@ class HS_Instance extends Namespace {
       }
       throw HSErr_Private(name);
     } else {
-      HS_FuncObj method = _class.fetchMethod(name, from: from);
-      if (method.functype == FuncStmtType.normal) {
-        return method.bind(this);
-      } else if (method.functype == FuncStmtType.getter) {
-        return method.bind(this).call([]);
+      HS_FuncObj method = _class.fetchMethod(name, error: false, from: from);
+      if (method != null) {
+        if (method.functype == FuncStmtType.normal) {
+          return method.bind(this);
+        } else if (method.functype == FuncStmtType.getter) {
+          return method.bind(this).call([]);
+        }
       }
     }
 
@@ -197,6 +199,7 @@ class HS_Instance extends Namespace {
 
   @override
   void assign(String varname, dynamic value, {String from = HS_Common.Global}) {
+    var setter = '${HS_Common.Setter}$varname';
     if (defs.containsKey(varname)) {
       if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         var vartype = defs[varname].type;
@@ -209,7 +212,12 @@ class HS_Instance extends Namespace {
         throw HSErr_Private(varname);
       }
     } else {
-      throw HSErr_UndefinedMember(varname, _class.name);
+      HS_FuncObj setter_func = _class.fetchMethod(setter, error: false, from: _class.blockName);
+      if (setter_func != null) {
+        setter_func.bind(this).call([value]);
+      } else {
+        throw HSErr_UndefinedMember(varname, _class.name);
+      }
     }
   }
 

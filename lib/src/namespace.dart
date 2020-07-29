@@ -80,7 +80,7 @@ class Namespace extends HS_Value {
           var instance = klass.createInstance();
           for (var key in value.keys) {
             if (instance.contains(key)) {
-              instance.assign(key, value[key]);
+              instance.assign(key, value[key], from: instance.blockName);
             }
           }
           defs[varname] = Definition(vartype, value: instance);

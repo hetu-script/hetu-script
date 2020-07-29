@@ -1,4 +1,3 @@
-import 'hetu:core';
 
 // 程序入口
 void main() {

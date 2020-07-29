@@ -1,0 +1,19 @@
+class Types {
+  String _name = 'the machine';
+
+  String get name {
+    return _name;
+  }
+
+  set name(String value) {
+    _name = value;
+  }
+}
+
+// 程序入口
+void main() {
+  Types t = Types();
+  t.name = 'finch';
+
+  Console.print(t.name);
+}

@@ -1,4 +1,3 @@
-import 'hetu:core';
 
 class HelloWord {
   num hello;

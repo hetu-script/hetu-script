@@ -1,6 +1,6 @@
 import 'package:hetu_script/hetu.dart';
 
 void main() {
-  hetu.init(workingDir: 'ht_excample');
-  hetu.evalf('ht_excample\\type.ht', invokeFunc: 'main');
+  hetu.init(workingDir: 'ht_example');
+  hetu.evalf('ht_example\\gettersetter.ht', invokeFunc: 'main');
 }

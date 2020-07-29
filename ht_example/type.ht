@@ -1,0 +1,31 @@
+
+class Types {
+
+  static var _name = 'the machine';
+
+  static String get name {
+    return _name;
+  }
+
+  static set name(String value) {
+    _name = value;
+  }
+
+  static void greetings(? arguments) {
+    Console.print(_name);
+  }
+
+  static void look() {
+    Console.print(_get_name);
+  }
+
+}
+
+
+// 程序入口
+void main() {
+
+  Types t = Types();
+
+  Console.print(t);
+}

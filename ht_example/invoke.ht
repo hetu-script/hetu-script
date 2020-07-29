@@ -1,0 +1,7 @@
+void working(String content) {
+  Console.print('I\'m working on ' + content);
+}
+
+void main() {
+  System.invoke('working', null, ['strength']);
+}

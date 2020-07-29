@@ -1,4 +1,3 @@
-import 'hetu:core';
 
 // 类的定义
 class Calculator {

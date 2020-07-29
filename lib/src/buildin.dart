@@ -63,10 +63,7 @@ abstract class HS_Buildin {
     if (args.length >= 2) {
       var func_name = args[0];
       var class_name = args[1];
-      var arguments = <dynamic>[];
-      for (var i = 2; i < args.length; ++i) {
-        arguments.add(args[i]);
-      }
+      var arguments = args[2];
       interpreter.invoke(func_name, classname: class_name, args: arguments);
     }
   }
@@ -215,6 +212,7 @@ class HSVal_List extends HSVal_Value {
   }
 }
 
+//TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
   HSVal_Map(Map value) : super(value, HS_Common.Map);
 

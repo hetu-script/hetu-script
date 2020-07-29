@@ -56,25 +56,6 @@ abstract class HS_Common {
     Str,
   ];
 
-  static const ParametersTypes = <String>[
-    Dynamic,
-    Num,
-    Bool,
-    Str,
-    List,
-    Map,
-  ];
-
-  static const FunctionReturnTypes = <String>[
-    Void,
-    Dynamic,
-    Num,
-    Bool,
-    Str,
-    List,
-    Map,
-  ];
-
   static const Literals = <String>[
     Bool,
     Num,
