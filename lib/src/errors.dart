@@ -8,16 +8,22 @@ class HS_Error {
   String message;
   int line;
   int column;
+  String filename;
 
-  HS_Error(this.message, [this.line, this.column]);
+  HS_Error(this.message, this.line, this.column, this.filename);
 
   @override
   String toString() {
-    if ((line != null) && (column != null)) {
-      return 'Hetu error at [line-$line, column-$column]:\n${message}';
-    } else {
-      return 'Hetu error:\n${message}';
+    var result = StringBuffer();
+    result.write('Hetu error:');
+    if (filename != null) {
+      result.write(' [file: $filename]');
     }
+    if ((line != null) && (column != null)) {
+      result.write(' [line: $line, column: $column]');
+    }
+    result.writeln('\n${message}');
+    return result.toString();
   }
 
   static final _warnings = <String>[];
@@ -34,109 +40,123 @@ class HS_Error {
 }
 
 class HSErr_Unsupport extends HS_Error {
-  HSErr_Unsupport(String symbol, int line, int column) : super('${HS_Common.ErrorUnsupport} "${symbol}"', line, column);
+  HSErr_Unsupport(String symbol, int line, int column, String filename)
+      : super('${HS_Common.ErrorUnsupport} "${symbol}"', line, column, filename);
 }
 
 class HSErr_Expected extends HS_Error {
-  HSErr_Expected(String expected, String met, int line, int column)
-      : super('"${expected}" ${HS_Common.ErrorExpected} "${met}"', line, column);
+  HSErr_Expected(String expected, String met, int line, int column, String filename)
+      : super('"${expected}" ${HS_Common.ErrorExpected} "${met}"', line, column, filename);
 }
 
 class HSErr_Unexpected extends HS_Error {
-  HSErr_Unexpected(String symbol, int line, int column)
-      : super('${HS_Common.ErrorUnexpected} "${symbol}"', line, column);
+  HSErr_Unexpected(String symbol, int line, int column, String filename)
+      : super('${HS_Common.ErrorUnexpected} "${symbol}"', line, column, filename);
 }
 
 class HSErr_Private extends HS_Error {
-  HSErr_Private(String symbol, int line, int column) : super('${HS_Common.ErrorPrivate} "${symbol}"', line, column);
+  HSErr_Private(String symbol, int line, int column, String filename)
+      : super('${HS_Common.ErrorPrivate} "${symbol}"', line, column, filename);
 }
 
 class HSErr_Undefined extends HS_Error {
-  HSErr_Undefined(String symbol, int line, int column) : super('${HS_Common.ErrorUndefined} "${symbol}"', line, column);
+  HSErr_Undefined(String symbol, int line, int column, String filename)
+      : super('${HS_Common.ErrorUndefined} "${symbol}"', line, column, filename);
 }
 
 class HSErr_UndefinedOperator extends HS_Error {
-  HSErr_UndefinedOperator(String symbol1, String op, int line, int column)
-      : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}"', line, column);
+  HSErr_UndefinedOperator(String symbol1, String op, int line, int column, String filename)
+      : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}"', line, column, filename);
 }
 
 class HSErr_UndefinedBinaryOperator extends HS_Error {
-  HSErr_UndefinedBinaryOperator(String symbol1, String symbol2, String op, int line, int column)
-      : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}" "${symbol2}"', line, column);
+  HSErr_UndefinedBinaryOperator(String symbol1, String symbol2, String op, int line, int column, String filename)
+      : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}" "${symbol2}"', line, column, filename);
 }
 
 class HSErr_Defined extends HS_Error {
-  HSErr_Defined(String symbol, int line, int column) : super('"${symbol}" ${HS_Common.ErrorDefined}', line, column);
+  HSErr_Defined(String symbol, int line, int column, String filename)
+      : super('"${symbol}" ${HS_Common.ErrorDefined}', line, column, filename);
 }
 
 class HSErr_Range extends HS_Error {
-  HSErr_Range(int length, int line, int column) : super('${HS_Common.ErrorRange} "${length}"', line, column);
+  HSErr_Range(int length, int line, int column, String filename)
+      : super('${HS_Common.ErrorRange} "${length}"', line, column, filename);
 }
 
 class HSErr_InvalidLeftValue extends HS_Error {
-  HSErr_InvalidLeftValue(String symbol, int line, int column)
-      : super('${HS_Common.ErrorInvalidLeftValue} "${symbol}"', line, column);
+  HSErr_InvalidLeftValue(String symbol, int line, int column, String filename)
+      : super('${HS_Common.ErrorInvalidLeftValue} "${symbol}"', line, column, filename);
 }
 
 class HSErr_Callable extends HS_Error {
-  HSErr_Callable(String symbol, int line, int column) : super('"${symbol}" ${HS_Common.ErrorCallable}', line, column);
+  HSErr_Callable(String symbol, int line, int column, String filename)
+      : super('"${symbol}" ${HS_Common.ErrorCallable}', line, column, filename);
 }
 
 class HSErr_UndefinedMember extends HS_Error {
-  HSErr_UndefinedMember(String symbol, String type, int line, int column)
-      : super('"${symbol}" ${HS_Common.ErrorUndefinedMember} "${type}"', line, column);
+  HSErr_UndefinedMember(String symbol, String type, int line, int column, String filename)
+      : super('"${symbol}" ${HS_Common.ErrorUndefinedMember} "${type}"', line, column, filename);
 }
 
 class HSErr_Condition extends HS_Error {
-  HSErr_Condition(int line, int column) : super(HS_Common.ErrorCondition, line, column);
+  HSErr_Condition(int line, int column, String filename) : super(HS_Common.ErrorCondition, line, column, filename);
 }
 
 class HSErr_MissingFuncDef extends HS_Error {
-  HSErr_MissingFuncDef(String symbol, int line, int column)
-      : super('${HS_Common.ErrorMissingFuncDef} "${symbol}"', line, column);
+  HSErr_MissingFuncDef(String symbol, int line, int column, String filename)
+      : super('${HS_Common.ErrorMissingFuncDef} "${symbol}"', line, column, filename);
 }
 
 class HSErr_Get extends HS_Error {
-  HSErr_Get(String symbol, int line, int column) : super('"${symbol}" ${HS_Common.ErrorGet}', line, column);
+  HSErr_Get(String symbol, int line, int column, String filename)
+      : super('"${symbol}" ${HS_Common.ErrorGet}', line, column, filename);
 }
 
 class HSErr_SubGet extends HS_Error {
-  HSErr_SubGet(String symbol, int line, int column) : super('"${symbol}" ${HS_Common.ErrorSubGet}', line, column);
+  HSErr_SubGet(String symbol, int line, int column, String filename)
+      : super('"${symbol}" ${HS_Common.ErrorSubGet}', line, column, filename);
 }
 
 class HSErr_Extends extends HS_Error {
-  HSErr_Extends(String symbol, int line, int column) : super('"${symbol}" ${HS_Common.ErrorExtends}', line, column);
+  HSErr_Extends(String symbol, int line, int column, String filename)
+      : super('"${symbol}" ${HS_Common.ErrorExtends}', line, column, filename);
 }
 
 class HSErr_Setter extends HS_Error {
-  HSErr_Setter(int line, int column) : super('${HS_Common.ErrorSetter}', line, column);
+  HSErr_Setter(int line, int column, String filename) : super('${HS_Common.ErrorSetter}', line, column, filename);
 }
 
 class HSErr_NullObject extends HS_Error {
-  HSErr_NullObject(String symbol, int line, int column)
-      : super('"${symbol}" ${HS_Common.ErrorNullObject}', line, column);
+  HSErr_NullObject(String symbol, int line, int column, String filename)
+      : super('"${symbol}" ${HS_Common.ErrorNullObject}', line, column, filename);
 }
 
 class HSErr_Type extends HS_Error {
-  HSErr_Type(String assign_value, String decl_value, int line, int column)
-      : super('${HS_Common.ErrorType1} "${assign_value}" ${HS_Common.ErrorType2} "${decl_value}"', line, column);
+  HSErr_Type(String assign_value, String decl_value, int line, int column, String filename)
+      : super('${HS_Common.ErrorType1} "${assign_value}" ${HS_Common.ErrorType2} "${decl_value}"', line, column,
+            filename);
 }
 
 class HSErr_ArgType extends HS_Error {
-  HSErr_ArgType(String assign_value, String decl_value, int line, int column)
-      : super('${HS_Common.ErrorArgType1} "${assign_value}" ${HS_Common.ErrorArgType2} "${decl_value}"', line, column);
+  HSErr_ArgType(String assign_value, String decl_value, int line, int column, String filename)
+      : super('${HS_Common.ErrorArgType1} "${assign_value}" ${HS_Common.ErrorArgType2} "${decl_value}"', line, column,
+            filename);
 }
 
 class HSErr_ReturnType extends HS_Error {
-  HSErr_ReturnType(String returned_type, String func_name, String decl_return_type, int line, int column)
+  HSErr_ReturnType(
+      String returned_type, String func_name, String decl_return_type, int line, int column, String filename)
       : super(
             '"${returned_type}" ${HS_Common.ErrorReturnType2}'
             ' "${func_name}" ${HS_Common.ErrorReturnType3} "${decl_return_type}"',
             line,
-            column);
+            column,
+            filename);
 }
 
 class HSErr_Arity extends HS_Error {
-  HSErr_Arity(int args_count, int params_count, int line, int column)
-      : super('${HS_Common.ErrorArity1} [${args_count}] ${HS_Common.ErrorArity2}] [${params_count}]', line, column);
+  HSErr_Arity(int args_count, int params_count, int line, int column, String filename)
+      : super('${HS_Common.ErrorArity1} [${args_count}] ${HS_Common.ErrorArity2}] [${params_count}]', line, column,
+            filename);
 }

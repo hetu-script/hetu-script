@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:hetu_script/hetu.dart';
 
@@ -29,10 +30,12 @@ abstract class HS_Buildin {
     'Console.movCurUp': _console_movCurUp,
     'Console.setTitle': _console_setTitle,
     'Console.cls': _console_cls,
+    'Math.log': _math_log,
+    'Math.sin': _math_sin,
+    'Math.cos': _math_cos,
     '_Value.toString': HSVal_Value._to_string,
     'num.parse': HSVal_Num._parse,
-    'String._get_isEmpty': HSVal_String._is_not_empty,
-    'String._get_isNotEmpty': HSVal_String._is_empty,
+    'String._get_isEmpty': HSVal_String._is_empty,
     'String.parse': HSVal_String._parse,
     'List._get_length': HSVal_List._get_length,
     'List.add': HSVal_List._add,
@@ -74,7 +77,7 @@ abstract class HS_Buildin {
       var func_name = args[0];
       var class_name = args[1];
       var arguments = args[2];
-      interpreter.invoke(func_name, null, null, classname: class_name, args: arguments);
+      interpreter.invoke(func_name, classname: class_name, args: arguments);
     }
   }
 
@@ -124,28 +127,51 @@ abstract class HS_Buildin {
     stdout.write("\x1B[2J\x1B[0;0H");
   }
 
+  static dynamic _math_log(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      num value = args.first;
+      return log(value);
+    }
+  }
+
+  static dynamic _math_sin(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      num value = args.first;
+      return sin(value);
+    }
+  }
+
+  static dynamic _math_cos(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      num value = args.first;
+      return cos(value);
+    }
+  }
+
   static dynamic _system_now(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     return DateTime.now().millisecondsSinceEpoch;
   }
 }
 
 abstract class HSVal_Value extends HS_Instance {
-  HSVal_Value(dynamic value, String class_name, int line, int column) : super(class_name, line, column) {
-    define('_val', HS_TypeOf(value), line, column, value: value);
+  HSVal_Value(dynamic value, String class_name, int line, int column, String filename)
+      : super(globalInterpreter.fetchGlobal(class_name, line, column, filename) //, line, column, filename
+            ) {
+    define('_val', HS_TypeOf(value), line, column, filename, value: value);
   }
 
-  dynamic get value => fetch('_val', line, column, error: false, from: type);
+  dynamic get value => fetch('_val', null, null, null, error: false, from: type);
 
   static dynamic _to_string(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (instance != null) {
-      var value = instance.fetch('_val', instance.line, instance.column, from: instance.type);
+      var value = instance.fetch('_val', null, null, null, from: instance.type);
       return value.toString();
     }
   }
 }
 
 class HSVal_Num extends HSVal_Value {
-  HSVal_Num(num value, int line, int column) : super(value, HS_Common.Num, line, column);
+  HSVal_Num(num value, int line, int column, String filename) : super(value, HS_Common.Num, line, column, filename);
 
   static dynamic _parse(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -155,22 +181,17 @@ class HSVal_Num extends HSVal_Value {
 }
 
 class HSVal_Bool extends HSVal_Value {
-  HSVal_Bool(bool value, int line, int column) : super(value, HS_Common.Bool, line, column);
+  HSVal_Bool(bool value, int line, int column, String filename) : super(value, HS_Common.Bool, line, column, filename);
 }
 
 class HSVal_String extends HSVal_Value {
-  HSVal_String(String value, int line, int column) : super(value, HS_Common.Str, line, column);
+  HSVal_String(String value, int line, int column, String filename)
+      : super(value, HS_Common.Str, line, column, filename);
 
   static dynamic _is_empty(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
     String str = strObj?.value;
     return str?.isEmpty;
-  }
-
-  static dynamic _is_not_empty(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
-    var strObj = (instance as HSVal_String);
-    String str = strObj?.value;
-    return str?.isNotEmpty;
   }
 
   static dynamic _parse(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
@@ -181,7 +202,7 @@ class HSVal_String extends HSVal_Value {
 }
 
 class HSVal_List extends HSVal_Value {
-  HSVal_List(List value, int line, int column) : super(value, HS_Common.List, line, column);
+  HSVal_List(List value, int line, int column, String filename) : super(value, HS_Common.List, line, column, filename);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
@@ -236,7 +257,7 @@ class HSVal_List extends HSVal_Value {
 
 //TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
-  HSVal_Map(Map value, int line, int column) : super(value, HS_Common.Map, line, column);
+  HSVal_Map(Map value, int line, int column, String filename) : super(value, HS_Common.Map, line, column, filename);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);

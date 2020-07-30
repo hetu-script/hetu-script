@@ -1,0 +1,20 @@
+class Math {
+  static num max(num a, num b) {
+    if (a > b) return a;
+    return b;
+  }
+
+  static num min(num a, num b) {
+    if (a < b) return a;
+    return b;
+  }
+
+  static num abs(num x) {
+    if (x < 0) return -x;
+    return x;
+  }
+
+  external static num log(num x);
+  external static num sin(num x);
+  external static num cos(num x);
+}

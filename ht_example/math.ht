@@ -1,0 +1,15 @@
+import 'hetu:math';
+
+num getBeauty(num x, num cuteness, num sexy) {
+  num a = Math.min(cuteness, sexy);
+  num b = Math.max(cuteness, sexy);
+  if (x < ((a + b) / 2)) {
+    return (-(x - a) * (x - a)) / 50 + 100;
+  } else {
+    return (-(x - b) * (x - b)) / 50 + 100;
+  }
+}
+
+void main() {
+  Console.print(getBeauty(200, 50, 100));
+}

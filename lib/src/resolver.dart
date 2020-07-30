@@ -33,7 +33,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       var block = _blocks.last;
 
       if (block.containsKey(name) && error) {
-        throw HSErr_Defined(name, line, column);
+        throw HSErr_Defined(name, line, column, globalInterpreter.curFileName);
       }
       block[name] = define;
     }
@@ -113,7 +113,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitVarExpr(VarExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HSErr_Undefined(expr.name.lexeme, expr.line, expr.column);
+      throw HSErr_Undefined(expr.name.lexeme, expr.line, expr.column, globalInterpreter.curFileName);
     }
 
     _addLocal(expr, expr.name.lexeme);
@@ -200,12 +200,14 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitReturnStmt(ReturnStmt stmt) {
     if (_curFuncType == _FunctionType.none) {
-      throw HSErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
+      throw HSErr_Unexpected(
+          stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, globalInterpreter.curFileName);
     }
 
     if (stmt.expr != null) {
       if (_curFuncType == _FunctionType.constructor) {
-        throw HSErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column);
+        throw HSErr_Unexpected(
+            stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, globalInterpreter.curFileName);
       }
       _resolveExpr(stmt.expr);
     }
@@ -252,7 +254,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     if (stmt.superClass != null) {
       if (stmt.name.lexeme == stmt.superClass.name.lexeme) {
-        throw HSErr_Unexpected(stmt.superClass.name.lexeme, stmt.superClass.name.line, stmt.superClass.name.column);
+        throw HSErr_Unexpected(stmt.superClass.name.lexeme, stmt.superClass.name.line, stmt.superClass.name.column,
+            globalInterpreter.curFileName);
       }
 
       _resolveExpr(stmt.superClass);
@@ -292,7 +295,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitThisExpr(ThisExpr expr) {
     if (_curClassType == _ClassType.none) {
-      throw HSErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column);
+      throw HSErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column, globalInterpreter.curFileName);
     }
 
     _addLocal(expr, expr.keyword.lexeme);

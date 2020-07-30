@@ -66,11 +66,12 @@ abstract class Expr {
   String get type;
   final int line;
   final int column;
+  final String filename;
 
   /// 取表达式右值，返回值本身
   dynamic accept(ExprVisitor visitor);
 
-  Expr(this.line, this.column);
+  Expr(this.line, this.column, this.filename);
 
   Expr clone();
 }
@@ -82,7 +83,7 @@ class NullExpr extends Expr {
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitNullExpr(this);
 
-  NullExpr(int line, int column) : super(line, column);
+  NullExpr(int line, int column, String filename) : super(line, column, filename);
 
   Expr clone() => this;
 }
@@ -97,11 +98,11 @@ class LiteralExpr extends Expr {
   int _constIndex;
   int get constantIndex => _constIndex;
 
-  LiteralExpr(int constantIndex, int line, int column) : super(line, column) {
+  LiteralExpr(int constantIndex, int line, int column, String filename) : super(line, column, filename) {
     _constIndex = constantIndex;
   }
 
-  Expr clone() => LiteralExpr(_constIndex, line, column);
+  Expr clone() => LiteralExpr(_constIndex, line, column, filename);
 }
 
 class ListExpr extends Expr {
@@ -113,7 +114,7 @@ class ListExpr extends Expr {
 
   List<Expr> list;
 
-  ListExpr(this.list, int line, int column) : super(line, column) {
+  ListExpr(this.list, int line, int column, String filename) : super(line, column, filename) {
     list ??= [];
   }
 
@@ -122,7 +123,7 @@ class ListExpr extends Expr {
     for (var expr in list) {
       new_list.add(expr.clone());
     }
-    return ListExpr(new_list, line, column);
+    return ListExpr(new_list, line, column, filename);
   }
 }
 
@@ -135,7 +136,7 @@ class MapExpr extends Expr {
 
   Map<Expr, Expr> map;
 
-  MapExpr(this.map, int line, int column) : super(line, column) {
+  MapExpr(this.map, int line, int column, String filename) : super(line, column, filename) {
     map ??= {};
   }
 
@@ -144,7 +145,7 @@ class MapExpr extends Expr {
     for (var expr in map.keys) {
       new_map[expr.clone()] = map[expr].clone();
     }
-    return MapExpr(new_map, line, column);
+    return MapExpr(new_map, line, column, filename);
   }
 }
 
@@ -161,9 +162,9 @@ class UnaryExpr extends Expr {
   /// 变量名、表达式、函数调用
   final Expr value;
 
-  UnaryExpr(this.op, this.value) : super(op.line, op.column);
+  UnaryExpr(this.op, this.value, filename) : super(op.line, op.column, filename);
 
-  Expr clone() => UnaryExpr(op, value.clone());
+  Expr clone() => UnaryExpr(op, value.clone(), filename);
 }
 
 class BinaryExpr extends Expr {
@@ -182,9 +183,9 @@ class BinaryExpr extends Expr {
   /// 变量名、表达式、函数调用
   final Expr right;
 
-  BinaryExpr(this.left, this.op, this.right) : super(op.line, op.column);
+  BinaryExpr(this.left, this.op, this.right, String filename) : super(op.line, op.column, filename);
 
-  Expr clone() => BinaryExpr(left.clone(), op, right.clone());
+  Expr clone() => BinaryExpr(left.clone(), op, right.clone(), filename);
 }
 
 class VarExpr extends Expr {
@@ -196,9 +197,9 @@ class VarExpr extends Expr {
 
   final Token name;
 
-  VarExpr(this.name) : super(name.line, name.column);
+  VarExpr(this.name, String filename) : super(name.line, name.column, filename);
 
-  Expr clone() => VarExpr(name);
+  Expr clone() => VarExpr(name, filename);
 }
 
 class GroupExpr extends Expr {
@@ -210,9 +211,9 @@ class GroupExpr extends Expr {
 
   final Expr inner;
 
-  GroupExpr(this.inner) : super(inner.line, inner.column);
+  GroupExpr(this.inner, String filename) : super(inner.line, inner.column, filename);
 
-  Expr clone() => GroupExpr(inner.clone());
+  Expr clone() => GroupExpr(inner.clone(), filename);
 }
 
 class AssignExpr extends Expr {
@@ -231,9 +232,9 @@ class AssignExpr extends Expr {
   /// 变量名、表达式、函数调用
   final Expr value;
 
-  AssignExpr(this.variable, this.op, this.value) : super(op.line, op.column);
+  AssignExpr(this.variable, this.op, this.value, String filename) : super(op.line, op.column, filename);
 
-  Expr clone() => AssignExpr(variable, op, value.clone());
+  Expr clone() => AssignExpr(variable, op, value.clone(), filename);
 }
 
 class SubGetExpr extends Expr {
@@ -249,9 +250,9 @@ class SubGetExpr extends Expr {
   /// 索引
   final Expr key;
 
-  SubGetExpr(this.collection, this.key) : super(collection.line, collection.column);
+  SubGetExpr(this.collection, this.key, String filename) : super(collection.line, collection.column, filename);
 
-  Expr clone() => SubGetExpr(collection.clone(), key.clone());
+  Expr clone() => SubGetExpr(collection.clone(), key.clone(), filename);
 }
 
 class SubSetExpr extends Expr {
@@ -270,9 +271,10 @@ class SubSetExpr extends Expr {
   /// 值
   final Expr value;
 
-  SubSetExpr(this.collection, this.key, this.value) : super(collection.line, collection.column);
+  SubSetExpr(this.collection, this.key, this.value, String filename)
+      : super(collection.line, collection.column, filename);
 
-  Expr clone() => SubSetExpr(collection.clone(), key.clone(), value.clone());
+  Expr clone() => SubSetExpr(collection.clone(), key.clone(), value.clone(), filename);
 }
 
 class MemberGetExpr extends Expr {
@@ -288,9 +290,9 @@ class MemberGetExpr extends Expr {
   /// 属性
   final Token key;
 
-  MemberGetExpr(this.collection, this.key) : super(collection.line, collection.column);
+  MemberGetExpr(this.collection, this.key, String filename) : super(collection.line, collection.column, filename);
 
-  Expr clone() => MemberGetExpr(collection.clone(), key);
+  Expr clone() => MemberGetExpr(collection.clone(), key, filename);
 }
 
 class MemberSetExpr extends Expr {
@@ -309,9 +311,10 @@ class MemberSetExpr extends Expr {
   /// 值
   final Expr value;
 
-  MemberSetExpr(this.collection, this.key, this.value) : super(collection.line, collection.column);
+  MemberSetExpr(this.collection, this.key, this.value, String filename)
+      : super(collection.line, collection.column, filename);
 
-  Expr clone() => MemberSetExpr(collection.clone(), key, value.clone());
+  Expr clone() => MemberSetExpr(collection.clone(), key, value.clone(), filename);
 }
 
 class CallExpr extends Expr {
@@ -327,14 +330,14 @@ class CallExpr extends Expr {
   /// 函数声明的参数是parameter，调用时传入的变量叫argument
   final List<Expr> args;
 
-  CallExpr(this.callee, this.args) : super(callee.line, callee.column);
+  CallExpr(this.callee, this.args, String filename) : super(callee.line, callee.column, filename);
 
   Expr clone() {
     var new_args = <Expr>[];
     for (var expr in args) {
       new_args.add(expr.clone());
     }
-    return CallExpr(callee.clone(), new_args);
+    return CallExpr(callee.clone(), new_args, filename);
   }
 }
 
@@ -347,7 +350,7 @@ class ThisExpr extends Expr {
 
   final Token keyword;
 
-  ThisExpr(this.keyword) : super(keyword.line, keyword.column);
+  ThisExpr(this.keyword, String filename) : super(keyword.line, keyword.column, filename);
 
-  Expr clone() => ThisExpr(keyword);
+  Expr clone() => ThisExpr(keyword, filename);
 }

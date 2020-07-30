@@ -35,7 +35,11 @@ class bool extends _Value {
 
 class String extends _Value {
 	
-	external static bool get isEmpty;
+	external bool get isEmpty;
+	
+	bool get isNotEmpty {
+		return !isEmpty;
+	}
 
 	external static String parse(dynamic value);
 }

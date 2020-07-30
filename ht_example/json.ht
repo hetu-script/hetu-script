@@ -1,4 +1,5 @@
 // 程序入口
 void main() {
-  var map = Console.print(map is Map);
+  var map = {"hello": 42};
+  Console.print(map is Map);
 }
