@@ -347,95 +347,111 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
     var left = evaluateExpr(expr.left);
-    var right = evaluateExpr(expr.right);
-
-    // TODO 操作符重载
-    switch (expr.op.type) {
-      case HS_Common.Or:
-      case HS_Common.And:
-        {
-          if (left is bool) {
-            if (right is bool) {
-              if (expr.op.type == HS_Common.Or) {
-                return left || right;
-              } else if (expr.op.type == HS_Common.And) {
-                return left && right;
-              }
-            } else {
-              throw HSErr_UndefinedBinaryOperator(
-                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
-            }
+    var right;
+    if (expr.op == HS_Common.And) {
+      if (left is bool) {
+        // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
+        if (!left) {
+          return false;
+        } else {
+          right = evaluateExpr(expr.right);
+          if (right is bool) {
+            return left && right;
           } else {
             throw HSErr_UndefinedBinaryOperator(
                 left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
           }
         }
-        break;
-      case HS_Common.Equal:
-        return left == right;
-        break;
-      case HS_Common.NotEqual:
-        return left != right;
-        break;
-      case HS_Common.Add:
-      case HS_Common.Subtract:
-        {
-          if ((left is String) && (right is String)) {
-            return left + right;
-          } else if ((left is num) && (right is num)) {
-            if (expr.op.lexeme == HS_Common.Add) {
-              return left + right;
-            } else if (expr.op.lexeme == HS_Common.Subtract) {
-              return left - right;
-            }
-          } else {
-            throw HSErr_UndefinedBinaryOperator(
-                left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
-          }
-        }
-        break;
-      case HS_Common.Multiply:
-      case HS_Common.Devide:
-      case HS_Common.Modulo:
-      case HS_Common.Greater:
-      case HS_Common.GreaterOrEqual:
-      case HS_Common.Lesser:
-      case HS_Common.LesserOrEqual:
-      case HS_Common.Is:
-        {
-          if ((expr.op.type == HS_Common.Is) && (right is HS_Class)) {
-            return HS_TypeOf(left) == right.name;
-          } else if (left is num) {
-            if (right is num) {
-              if (expr.op.type == HS_Common.Multiply) {
-                return left * right;
-              } else if (expr.op.type == HS_Common.Devide) {
-                return left / right;
-              } else if (expr.op.type == HS_Common.Modulo) {
-                return left % right;
-              } else if (expr.op.type == HS_Common.Greater) {
-                return left > right;
-              } else if (expr.op.type == HS_Common.GreaterOrEqual) {
-                return left >= right;
-              } else if (expr.op.type == HS_Common.Lesser) {
-                return left < right;
-              } else if (expr.op.type == HS_Common.LesserOrEqual) {
-                return left <= right;
-              }
-            } else {
-              throw HSErr_UndefinedBinaryOperator(
-                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
-            }
-          } else {
-            throw HSErr_UndefinedBinaryOperator(
-                left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
-          }
-        }
-        break;
-      default:
+      } else {
         throw HSErr_UndefinedBinaryOperator(
             left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
-        break;
+      }
+    } else {
+      right = evaluateExpr(expr.right);
+
+      // TODO 操作符重载
+      switch (expr.op.type) {
+        case HS_Common.Or:
+          {
+            if (left is bool) {
+              if (right is bool) {
+                return left || right;
+              } else {
+                throw HSErr_UndefinedBinaryOperator(
+                    left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+              }
+            } else {
+              throw HSErr_UndefinedBinaryOperator(
+                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            }
+          }
+          break;
+        case HS_Common.Equal:
+          return left == right;
+          break;
+        case HS_Common.NotEqual:
+          return left != right;
+          break;
+        case HS_Common.Add:
+        case HS_Common.Subtract:
+          {
+            if ((left is String) && (right is String)) {
+              return left + right;
+            } else if ((left is num) && (right is num)) {
+              if (expr.op.lexeme == HS_Common.Add) {
+                return left + right;
+              } else if (expr.op.lexeme == HS_Common.Subtract) {
+                return left - right;
+              }
+            } else {
+              throw HSErr_UndefinedBinaryOperator(
+                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            }
+          }
+          break;
+        case HS_Common.Multiply:
+        case HS_Common.Devide:
+        case HS_Common.Modulo:
+        case HS_Common.Greater:
+        case HS_Common.GreaterOrEqual:
+        case HS_Common.Lesser:
+        case HS_Common.LesserOrEqual:
+        case HS_Common.Is:
+          {
+            if ((expr.op == HS_Common.Is) && (right is HS_Class)) {
+              return HS_TypeOf(left) == right.name;
+            } else if (left is num) {
+              if (right is num) {
+                if (expr.op == HS_Common.Multiply) {
+                  return left * right;
+                } else if (expr.op == HS_Common.Devide) {
+                  return left / right;
+                } else if (expr.op == HS_Common.Modulo) {
+                  return left % right;
+                } else if (expr.op == HS_Common.Greater) {
+                  return left > right;
+                } else if (expr.op == HS_Common.GreaterOrEqual) {
+                  return left >= right;
+                } else if (expr.op == HS_Common.Lesser) {
+                  return left < right;
+                } else if (expr.op == HS_Common.LesserOrEqual) {
+                  return left <= right;
+                }
+              } else {
+                throw HSErr_UndefinedBinaryOperator(
+                    left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+              }
+            } else {
+              throw HSErr_UndefinedBinaryOperator(
+                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+            }
+          }
+          break;
+        default:
+          throw HSErr_UndefinedBinaryOperator(
+              left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column);
+          break;
+      }
     }
   }
 

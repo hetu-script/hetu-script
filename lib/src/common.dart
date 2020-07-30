@@ -351,7 +351,7 @@ abstract class HS_Common {
   static const ErrorReturnType3 = 'because it has a return type of';
 
   static const ErrorArity1 = 'Number of arguments';
-  static const ErrorArity2 = 'doesn\'t match number of parameter';
+  static const ErrorArity2 = 'doesn\'t match parameter requirement';
 }
 
 // Hetu运算符优先级

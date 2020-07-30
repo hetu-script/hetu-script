@@ -1,12 +1,4 @@
-
 // 程序入口
 void main() {
-  var map = {
-    "洞穴": {"entityId": "cs_shulin_4", "look": "一个不起眼的[洞穴]掩映在绿植之中，看不清楚深浅。"},
-    "空地": {"entityId": "cs_shulin_2", "look": "从山坡上下来之后是一片[空地]。"}
-  };
-
-  for (var key in map.keys) {
-    Console.print(map[key]["entityId"]);
-  }
+  var map = Console.print(map is Map);
 }

@@ -138,5 +138,5 @@ class HSErr_ReturnType extends HS_Error {
 
 class HSErr_Arity extends HS_Error {
   HSErr_Arity(int args_count, int params_count, int line, int column)
-      : super('${HS_Common.ErrorArity1} [${args_count}] ${HS_Common.ErrorArity2} [${params_count}]', line, column);
+      : super('${HS_Common.ErrorArity1} [${args_count}] ${HS_Common.ErrorArity2}] [${params_count}]', line, column);
 }

@@ -45,16 +45,21 @@ class HS_FuncObj extends HS_Instance {
         var environment = Namespace(closure?.line, closure?.column, enclosing: closure);
         if (funcStmt != null) {
           if (arity >= 0) {
-            if (arity != args.length) {
+            if (args.length < arity) {
               throw HSErr_Arity(args.length, arity, funcStmt.name.line, funcStmt.name.column);
+            } else if (args.length > funcStmt.params.length) {
+              throw HSErr_Arity(args.length, funcStmt.params.length, funcStmt.name.line, funcStmt.name.column);
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
-                var type_token = funcStmt.params[i].typename;
-                var arg_type = HS_TypeOf(args[i]);
-                if ((type_token.lexeme != HS_Common.Dynamic) &&
-                    (type_token.lexeme != arg_type) &&
-                    (arg_type != HS_Common.Null)) {
-                  throw HSErr_ArgType(arg_type, type_token.lexeme, type_token.line, type_token.column);
+                // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
+                if (i < args.length) {
+                  var type_token = funcStmt.params[i].typename;
+                  var arg_type = HS_TypeOf(args[i]);
+                  if ((type_token.lexeme != HS_Common.Dynamic) &&
+                      (type_token.lexeme != arg_type) &&
+                      (arg_type != HS_Common.Null)) {
+                    throw HSErr_ArgType(arg_type, type_token.lexeme, type_token.line, type_token.column);
+                  }
                 }
               }
             }
@@ -62,8 +67,17 @@ class HS_FuncObj extends HS_Instance {
 
           if (arity != -1) {
             for (var i = 0; i < funcStmt.params.length; i++) {
-              environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column,
-                  value: args[i]);
+              // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
+              if (i < args.length) {
+                environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column,
+                    value: args[i]);
+              } else {
+                var initializer = funcStmt.params[i].initializer;
+                var init_value;
+                if (initializer != null) init_value = globalInterpreter.evaluateExpr(funcStmt.params[i].initializer);
+                environment.define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column,
+                    value: init_value);
+              }
             }
           } else {
             assert(funcStmt.params.length == 1);
@@ -73,6 +87,11 @@ class HS_FuncObj extends HS_Instance {
           _savedBlockName = globalInterpreter.curBlockName;
           globalInterpreter.curBlockName = closure.blockName;
           globalInterpreter.executeBlock(funcStmt.definition, environment);
+
+          if (_savedBlockName != null) {
+            globalInterpreter.curBlockName = _savedBlockName;
+            _savedBlockName = null;
+          }
         } else {
           throw HSErr_MissingFuncDef(name, line, column);
         }

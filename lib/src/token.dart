@@ -12,6 +12,10 @@ class Token {
   const Token(this.type, this.line, this.column);
 
   static Token get EOF => Token(HS_Common.EOF, -1, -1);
+
+  operator ==(dynamic tokenType) {
+    return type == tokenType;
+  }
 }
 
 class TokenIdentifier extends Token {

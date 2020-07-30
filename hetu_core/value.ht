@@ -10,10 +10,33 @@ class num extends _Value {
 	external static num parse(dynamic value);
 }
 
-class bool extends _Value {}
+class bool extends _Value {
+
+	static bool parse(dynamic value) {
+    if (value is bool) {
+      return value;
+    } else if (value is num) {
+      if (value != 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (value is String) {
+      return value.isEmpty;
+    } else {
+      if (value != null) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+}
 
 class String extends _Value {
 	
+	external static bool get isEmpty;
+
 	external static String parse(dynamic value);
 }
 

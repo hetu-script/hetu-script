@@ -13,7 +13,9 @@ abstract class HS_Buildin {
       '}\n'
       'class Function {}\n';
 
-  static Map<String, HS_External> bindmap = {};
+  static Map<String, HS_External> bindmap = {
+    'typeOf': _type_of,
+  };
 
   static Map<String, HS_External> linkmap = {
     'System.evalc': _system_evalc,
@@ -29,6 +31,8 @@ abstract class HS_Buildin {
     'Console.cls': _console_cls,
     '_Value.toString': HSVal_Value._to_string,
     'num.parse': HSVal_Num._parse,
+    'String._get_isEmpty': HSVal_String._is_not_empty,
+    'String._get_isNotEmpty': HSVal_String._is_empty,
     'String.parse': HSVal_String._parse,
     'List._get_length': HSVal_List._get_length,
     'List.add': HSVal_List._add,
@@ -48,6 +52,12 @@ abstract class HS_Buildin {
     'Map.getVal': HSVal_Map._get_val,
     'Map.putIfAbsent': HSVal_Map._put_if_absent,
   };
+
+  static dynamic _type_of(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      return HS_TypeOf(args.first);
+    }
+  }
 
   static dynamic _system_evalc(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -150,6 +160,18 @@ class HSVal_Bool extends HSVal_Value {
 
 class HSVal_String extends HSVal_Value {
   HSVal_String(String value, int line, int column) : super(value, HS_Common.Str, line, column);
+
+  static dynamic _is_empty(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    var strObj = (instance as HSVal_String);
+    String str = strObj?.value;
+    return str?.isEmpty;
+  }
+
+  static dynamic _is_not_empty(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    var strObj = (instance as HSVal_String);
+    String str = strObj?.value;
+    return str?.isNotEmpty;
+  }
 
   static dynamic _parse(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
