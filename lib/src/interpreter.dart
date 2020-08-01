@@ -15,6 +15,7 @@ import 'parser.dart';
 import 'resolver.dart';
 
 var globalInterpreter = Interpreter();
+var globalNamespace = Namespace();
 
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
@@ -37,13 +38,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   String curFileName;
 
   /// 全局命名空间
-  final _global = Namespace();
+  Namespace _context;
 
   /// external函数的空间
   final _external = Namespace();
 
-  Interpreter() {
-    _curSpace = _global;
+  Interpreter({Namespace context}) {
+    _context = context == null ? globalNamespace : context;
+    _curSpace = _context;
   }
 
   init({
@@ -117,7 +119,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       final _parser = Parser();
       var tokens = _lexer.lex(input, commandLine: true);
       var statements = _parser.parse(tokens, style: ParseStyle.commandLine);
-      return executeBlock(statements, _global);
+      return executeBlock(statements, _context);
     } catch (e) {
       print(e);
     } finally {
@@ -143,23 +145,23 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   void define(String name, dynamic value) {
-    if (_global.contains(name)) {
+    if (_context.contains(name)) {
       throw HSErr_Defined(name, null, null, null);
     } else {
-      _global.define(name, value.type, null, null, null, value: value);
+      _context.define(name, value.type, null, null, null, value: value);
     }
   }
 
   /// 绑定外部函数
   void bind(String name, HS_External function) {
-    if (_global.contains(name)) {
+    if (_context.contains(name)) {
       throw HSErr_Defined(name, null, null, null);
     } else {
       // 绑定外部全局公共函数，参数列表数量设为-1，这样可以自由传递任何类型和数量
       var func_obj = HS_FuncObj(name, // null, null, null,
           arity: -1,
           extern: function);
-      _global.define(name, HS_Common.FunctionObj, null, null, null, value: func_obj);
+      _context.define(name, HS_Common.FunctionObj, null, null, null, value: func_obj);
     }
   }
 
@@ -188,8 +190,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  dynamic fetchGlobal(String name, int line, int column, String filename, {String from = HS_Common.Global}) =>
-      _global.fetch(name, line, column, filename, from: from);
+  dynamic fetch(String name, int line, int column, String filename, {String from = HS_Common.Global}) =>
+      _context.fetch(name, line, column, filename, from: from);
   dynamic fetchExternal(String name, int line, int column, String filename) =>
       _external.fetch(name, line, column, filename);
 
@@ -208,7 +210,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       } catch (e) {
         if ((e is HSErr_UndefinedMember) || (e is HSErr_Undefined)) {
           // 尝试获取全局变量
-          return _global.fetch(name, expr.line, expr.column, expr.filename);
+          return _context.fetch(name, expr.line, expr.column, expr.filename);
         } else {
           throw e;
         }
@@ -244,14 +246,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     HS_Error.clear();
     try {
       if (classname == null) {
-        var func = _global.fetch(name, null, null, null);
+        var func = _context.fetch(name, null, null, null);
         if (func is HS_FuncObj) {
           return func.call(null, null, null, args ?? []);
         } else {
           throw HSErr_Undefined(name, null, null, null);
         }
       } else {
-        var klass = _global.fetch(classname, null, null, null);
+        var klass = _context.fetch(classname, null, null, null);
         if (klass is HS_Class) {
           // 只能调用公共函数
           var func = klass.fetch(name, null, null, null);
@@ -511,7 +513,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       } catch (e) {
         if (e is HSErr_Undefined) {
           // 尝试设置全局变量
-          _global.assign(expr.variable.lexeme, value, expr.line, expr.column, expr.filename);
+          _context.assign(expr.variable.lexeme, value, expr.line, expr.column, expr.filename);
         } else {
           throw e;
         }
@@ -722,7 +724,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     if (stmt.superClass == null) {
       if (stmt.name.lexeme != HS_Common.Object)
-        superClass = globalInterpreter.fetchGlobal(HS_Common.Object, stmt.name.line, stmt.name.column, curFileName);
+        superClass = globalInterpreter.fetch(HS_Common.Object, stmt.name.line, stmt.name.column, curFileName);
     } else {
       superClass = evaluateExpr(stmt.superClass);
       if (superClass is! HS_Class) {
@@ -776,6 +778,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     for (var method in stmt.methods) {
+      if (klass.contains(method.name.lexeme)) {
+        throw HSErr_Defined(method.name.lexeme, method.name.line, method.name.column, curFileName);
+      }
+
       HS_FuncObj func;
       if (method.isExtern) {
         var externFunc = globalInterpreter.fetchExternal('${stmt.name.lexeme}${HS_Common.Dot}${method.internalName}',
@@ -806,7 +812,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         klass.define(method.internalName, HS_Common.FunctionObj, method.name.line, method.name.column, curFileName,
             value: func);
       } else {
-        klass.addMethod(method.internalName, func);
+        klass.addMethod(method.internalName, func, method.name.line, method.name.column, curFileName);
       }
     }
   }

@@ -1,4 +1,3 @@
-
 // 类的定义
 class Calculator {
   // 成员变量
@@ -15,6 +14,11 @@ class Calculator {
 
   static set name(String new_name) {
     _name = new_name;
+    greeting();
+  }
+
+  static void greeting() {
+    Console.print('hello! I\'m' + _name);
   }
 
   // 带有参数的构造函数

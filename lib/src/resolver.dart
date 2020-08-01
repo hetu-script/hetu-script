@@ -22,6 +22,9 @@ enum _ClassType {
 class Resolver implements ExprVisitor, StmtVisitor {
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   var _blocks = <Map<String, bool>>[];
+
+  var _funcStmts = <FuncStmt, _FunctionType>{};
+
   _FunctionType _curFuncType = _FunctionType.none;
   _ClassType _curClassType = _ClassType.none;
 
@@ -59,10 +62,17 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   void resolve(List<Stmt> statements) {
-    if (statements != null) {
-      for (var stmt in statements) {
-        _resolveStmt(stmt);
-      }
+    for (var stmt in statements) {
+      _resolveStmt(stmt);
+    }
+    for (var stmt in _funcStmts.keys) {
+      _resolveFunction(stmt, _funcStmts[stmt]);
+    }
+  }
+
+  void _resolveBlock(List<Stmt> statements) {
+    for (var stmt in statements) {
+      _resolveStmt(stmt);
     }
   }
 
@@ -82,7 +92,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
         _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
       }
     }
-    resolve(stmt.definition);
+    _resolveBlock(stmt.definition);
     _endBlock();
     _curFuncType = enclosingFunctionType;
   }
@@ -193,7 +203,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitBlockStmt(BlockStmt stmt) {
     _beginBlock();
-    resolve(stmt.block);
+    _resolveBlock(stmt.block);
     _endBlock();
   }
 
@@ -236,14 +246,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    if (!stmt.isStatic) {
-      if (stmt.functype != FuncStmtType.constructor) {
-        _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
-        _resolveFunction(stmt, _FunctionType.normal);
-      } else {
-        _resolveFunction(stmt, _FunctionType.constructor);
-      }
-    }
+    _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+    _funcStmts[stmt] = _FunctionType.normal;
   }
 
   @override
@@ -273,18 +277,28 @@ class Resolver implements ExprVisitor, StmtVisitor {
       visitVarStmt(variable);
     }
 
+    var save = _funcStmts;
+    _funcStmts = <FuncStmt, _FunctionType>{};
+    // 先注册函数名
     for (var method in stmt.methods) {
+      _declare(method.internalName, method.name.line, method.name.column, define: true);
+      if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
+          !_blocks.last.containsKey(method.name.lexeme)) {
+        _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
+      }
       if (method.functype == FuncStmtType.constructor) {
-        _resolveFunction(method, _FunctionType.constructor);
+        _funcStmts[method] = _FunctionType.constructor;
       } else {
-        _declare(method.internalName, method.name.line, method.name.column, define: true);
-        if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
-            !_blocks.last.containsKey(method.name.lexeme)) {
-          _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
-        }
-        _resolveFunction(method, _FunctionType.method);
+        _funcStmts[method] = _FunctionType.method;
       }
     }
+    // 然后再解析函数定义
+    for (var stmt in _funcStmts.keys) {
+      _resolveFunction(stmt, _funcStmts[stmt]);
+    }
+
+    _funcStmts = save;
+
     _endBlock();
 
     if (stmt.superClass != null) _endBlock();

@@ -43,7 +43,7 @@ class HS_Class extends Namespace {
 
   HS_Class superClass;
 
-  List<VarStmt> variables = [];
+  Map<String, VarStmt> variables = {};
   Map<String, HS_FuncObj> methods = {};
 
   HS_Class(this.name,
@@ -53,9 +53,19 @@ class HS_Class extends Namespace {
             //line, column, filename,
             blockName: name);
 
-  void addVariable(VarStmt stmt) => variables.add(stmt);
+  void addVariable(VarStmt stmt) {
+    if (!variables.containsKey(stmt.name.lexeme))
+      variables[stmt.name.lexeme] = stmt;
+    else
+      throw HSErr_Defined(name, stmt.name.line, stmt.name.column, globalInterpreter.curFileName);
+  }
 
-  void addMethod(String name, HS_FuncObj func) => methods[name] = func;
+  void addMethod(String name, HS_FuncObj func, int line, int column, String filename) {
+    if (!methods.containsKey(name))
+      methods[name] = func;
+    else
+      throw HSErr_Defined(name, line, column, filename);
+  }
 
   dynamic fetchMethod(String name, int line, int column, String filename,
       {bool error = true, String from = HS_Common.Global}) {
@@ -138,7 +148,7 @@ class HS_Class extends Namespace {
   HS_Instance createInstance(int line, int column, String filename, {String constructorName, List<dynamic> args}) {
     var instance = HS_Instance(this);
 
-    for (var decl in variables) {
+    for (var decl in variables.values) {
       dynamic value;
       if (decl.initializer != null) value = globalInterpreter.evaluateExpr(decl.initializer);
 
@@ -197,10 +207,10 @@ class HS_Instance extends Namespace {
     } else {
       HS_FuncObj method = ofClass.fetchMethod(name, line, column, filename, error: false, from: from);
       if (method != null) {
-        if (method.functype == FuncStmtType.normal) {
-          return method.bind(this, line, column, filename);
-        } else if (method.functype == FuncStmtType.getter) {
+        if (method.functype == FuncStmtType.getter) {
           return method.bind(this, line, column, filename).call(line, column, filename, []);
+        } else {
+          return method.bind(this, line, column, filename);
         }
       }
     }

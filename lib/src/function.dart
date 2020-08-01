@@ -30,7 +30,7 @@ class HS_FuncObj extends HS_Instance {
       this.extern,
       this.functype = FuncStmtType.normal,
       this.arity = 0})
-      : super(globalInterpreter.fetchGlobal(HS_Common.FunctionObj, null, null, null)); //, line, column, filename);
+      : super(globalInterpreter.fetch(HS_Common.FunctionObj, null, null, null)); //, line, column, filename);
 
   // 成员函数外层是实例
   HS_FuncObj bind(HS_Instance instance, int line, int column, String filename) {

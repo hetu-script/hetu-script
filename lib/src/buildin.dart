@@ -155,7 +155,7 @@ abstract class HS_Buildin {
 
 abstract class HSVal_Value extends HS_Instance {
   HSVal_Value(dynamic value, String class_name, int line, int column, String filename)
-      : super(globalInterpreter.fetchGlobal(class_name, line, column, filename) //, line, column, filename
+      : super(globalInterpreter.fetch(class_name, line, column, filename) //, line, column, filename
             ) {
     define('_val', HS_TypeOf(value), line, column, filename, value: value);
   }

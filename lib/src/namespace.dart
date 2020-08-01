@@ -86,7 +86,7 @@ class Namespace extends HS_Value {
         defs[varname] = Definition(vartype, value: value);
       } else if ((value != null) && (value is Map)) {
         var klass =
-            globalInterpreter.fetchGlobal(vartype, line, column, filename, from: globalInterpreter.curSpace.blockName);
+            globalInterpreter.fetch(vartype, line, column, filename, from: globalInterpreter.curSpace.blockName);
         if (klass is HS_Class) {
           var instance = klass.createInstance(line, column, filename);
           for (var key in value.keys) {

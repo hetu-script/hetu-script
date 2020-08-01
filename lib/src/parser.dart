@@ -619,7 +619,7 @@ class Parser {
   }
 
   FuncStmt _parseFunctionStmt({bool is_extern = false, bool is_static = false}) {
-    FuncStmtType functype = FuncStmtType.normal;
+    FuncStmtType functype = _curClassName == null ? FuncStmtType.normal : FuncStmtType.method;
     var return_type;
     if (expect([HS_Common.Set], consume: true, error: false)) {
       return_type = HS_Common.Void;
