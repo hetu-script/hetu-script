@@ -213,7 +213,10 @@ class FuncStmt extends Stmt {
       this.isStatic = false,
       this.functype = FuncStmtType.normal}) {
     this.definition ??= <Stmt>[];
-    if (functype == FuncStmtType.getter) {
+    if (functype == FuncStmtType.constructor) {
+      //_internalName = name.lexeme;
+      _internalName = HS_Common.Constructor + name.lexeme;
+    } else if (functype == FuncStmtType.getter) {
       _internalName = HS_Common.Getter + name.lexeme;
     } else if (functype == FuncStmtType.setter) {
       _internalName = HS_Common.Setter + name.lexeme;

@@ -1,3 +1,7 @@
+class Wrapper {
+  Calculator cal;
+}
+
 // 类的定义
 class Calculator {
   // 成员变量
@@ -18,7 +22,7 @@ class Calculator {
   }
 
   static void greeting() {
-    Console.print('hello! I\'m' + _name);
+    Console.print('hello! I\'m ' + _name);
   }
 
   // 带有参数的构造函数
@@ -26,6 +30,7 @@ class Calculator {
     // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定
     this.x = x;
     this.y = y;
+    Calculator.greeting();
   }
 
   // 带有返回类型的成员函数
@@ -39,7 +44,9 @@ class Calculator {
 void main() {
   // 带有初始化语句的变量定义
   // 从类的构造函数获得对象的实例
-  Calculator cal = Calculator(6, 7);
+
+  Wrapper w = Wrapper();
+  w.cal = Calculator(6, 7);
   // Calculator._name = 'the machine'; // 错误：不能在类代码之外访问私有变量
   // setter函数
   Calculator.name = 'the machine';
@@ -49,7 +56,7 @@ void main() {
   // 列表的创建和添加元素
   var list = [Calculator.name + ' says:'];
   list.add('the meaning of life, universe and everything');
-  list.add('is ' + cal.meaning().toString());
+  list.add('is ' + w.cal.meaning().toString());
 
   for (var i in list) {
     Console.print(i);

@@ -11,7 +11,7 @@ class Console {
 	
 	external static String getln(String info);
 	
-	external static void movCurUp();
+	external static void eraseLine();
 	
 	external static void setTitle(String title);
 	

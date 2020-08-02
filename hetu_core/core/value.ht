@@ -8,6 +8,8 @@ class _Value {
 class num extends _Value {
 
 	external static num parse(dynamic value);
+
+  external num toStringAsFixed([num fractionDigits = 0]);
 }
 
 class bool extends _Value {
@@ -42,6 +44,8 @@ class String extends _Value {
 	}
 
 	external static String parse(dynamic value);
+
+	external static String substring(num startIndex, [num endIndex]);
 }
 
 class List extends _Value {

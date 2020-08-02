@@ -17,4 +17,4 @@ export 'src/function.dart';
 export 'src/errors.dart';
 
 var hetu = globalInterpreter;
-var global = globalNamespace;
+var global = globalContext;

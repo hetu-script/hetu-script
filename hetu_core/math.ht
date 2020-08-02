@@ -14,6 +14,7 @@ class Math {
     return x;
   }
 
+  external static num sqrt(num x);
   external static num log(num x);
   external static num sin(num x);
   external static num cos(num x);

@@ -67,7 +67,6 @@ abstract class HS_Common {
 
   /// 保留字，不能用于变量名字
   static const Keywords = <String>[
-    Global,
     Null,
     Static,
     Const,
@@ -160,6 +159,8 @@ abstract class HS_Common {
   static const Null = 'null';
   static const Static = 'static';
   static const Const = 'const';
+  static const Construct = 'construct';
+  static const Constructor = '_constructor_';
   static const Get = 'get';
   static const Getter = '_get_';
   static const Set = 'set';
@@ -201,7 +202,6 @@ abstract class HS_Common {
   static const True = 'true';
   static const False = 'false';
 
-  static const Constructor = 'constructor';
   static const New = 'new';
 
   static const Object = 'Object';
@@ -351,7 +351,7 @@ abstract class HS_Common {
   static const ErrorReturnType3 = 'because it has a return type of';
 
   static const ErrorArity1 = 'Number of arguments';
-  static const ErrorArity2 = 'doesn\'t match parameter requirement';
+  static const ErrorArity2 = 'doesn\'t match parameter requirement of function';
 }
 
 // Hetu运算符优先级

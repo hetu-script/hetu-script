@@ -68,7 +68,7 @@ class Parser {
     error ??= consume;
     for (var i = 0; i < tokTypes.length; ++i) {
       if (consume) {
-        if (curTok.type != tokTypes[i]) {
+        if (curTok != tokTypes[i]) {
           if (error) {
             throw HSErr_Expected(tokTypes[i], curTok.lexeme, curTok.line, curTok.column, globalInterpreter.curFileName);
           }
@@ -76,7 +76,7 @@ class Parser {
         }
         ++_tokPos;
       } else {
-        if (peek(i).type != tokTypes[i]) {
+        if (peek(i) != tokTypes[i]) {
           return false;
         }
       }
@@ -123,7 +123,7 @@ class Parser {
 
     var statements = <Stmt>[];
     try {
-      while (curTok.type != HS_Common.EOF) {
+      while (curTok != HS_Common.EOF) {
         statements.add(_parseStmt(style: style));
       }
     } catch (e) {

@@ -27,16 +27,19 @@ abstract class HS_Buildin {
     'Console.writeln': _console_writeln,
     'Console.print': _console_print,
     'Console.getln': _console_getln,
-    'Console.movCurUp': _console_movCurUp,
-    'Console.setTitle': _console_setTitle,
+    'Console.eraseLine': _console_erase_line,
+    'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
+    'Math.sqrt': _math_sqrt,
     'Math.log': _math_log,
     'Math.sin': _math_sin,
     'Math.cos': _math_cos,
     '_Value.toString': HSVal_Value._to_string,
     'num.parse': HSVal_Num._parse,
+    'num.toStringAsFixed': HSVal_Num._to_string_as_fixed,
     'String._get_isEmpty': HSVal_String._is_empty,
     'String.parse': HSVal_String._parse,
+    'String.substring': HSVal_String._substring,
     'List._get_length': HSVal_List._get_length,
     'List.add': HSVal_List._add,
     'List.clear': HSVal_List._clear,
@@ -112,11 +115,11 @@ abstract class HS_Buildin {
     }
   }
 
-  static dynamic _console_movCurUp(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
-    stdout.write('\x1B[1F\x1B[0G\x1B[0K');
+  static dynamic _console_erase_line(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    stdout.write('\x1B[1F\x1B[1G\x1B[1K');
   }
 
-  static dynamic _console_setTitle(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+  static dynamic _console_set_title(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var title = args.first.toString();
       stdout.write('\x1b]0;${title}\x07');
@@ -125,6 +128,13 @@ abstract class HS_Buildin {
 
   static dynamic _console_cls(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     stdout.write("\x1B[2J\x1B[0;0H");
+  }
+
+  static dynamic _math_sqrt(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      num value = args.first;
+      return sqrt(value);
+    }
   }
 
   static dynamic _math_log(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
@@ -154,39 +164,53 @@ abstract class HS_Buildin {
 }
 
 abstract class HSVal_Value extends HS_Instance {
-  HSVal_Value(dynamic value, String class_name, int line, int column, String filename)
-      : super(globalInterpreter.fetch(class_name, line, column, filename) //, line, column, filename
+  HSVal_Value(dynamic value, String class_name, int line, int column, String file_name)
+      : super(globalInterpreter.fetchGlobal(class_name, line, column, file_name,
+                from: globalInterpreter.curContext.spaceName) //, line, column, file_name
             ) {
-    define('_val', HS_TypeOf(value), line, column, filename, value: value);
+    define('_val', HS_TypeOf(value), line, column, file_name, value: value);
   }
 
-  dynamic get value => fetch('_val', null, null, null, error: false, from: type);
+  dynamic get value => fetch('_val', null, null, globalInterpreter.curFileName, error: false, from: type);
 
   static dynamic _to_string(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (instance != null) {
-      var value = instance.fetch('_val', null, null, null, from: instance.type);
+      var value = instance.fetch('_val', null, null, globalInterpreter.curFileName, from: instance.type);
       return value.toString();
     }
   }
 }
 
 class HSVal_Num extends HSVal_Value {
-  HSVal_Num(num value, int line, int column, String filename) : super(value, HS_Common.Num, line, column, filename);
+  HSVal_Num(num value, int line, int column, String file_name) : super(value, HS_Common.Num, line, column, file_name);
 
   static dynamic _parse(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       return num.tryParse(args.first);
     }
   }
+
+  static dynamic _to_string_as_fixed(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      int fractionDigits = 0;
+      if (args.isNotEmpty) {
+        fractionDigits = args.first;
+      }
+      var numObj = (instance as HSVal_Num);
+      num number = numObj?.value;
+      return number.toStringAsFixed(fractionDigits);
+    }
+  }
 }
 
 class HSVal_Bool extends HSVal_Value {
-  HSVal_Bool(bool value, int line, int column, String filename) : super(value, HS_Common.Bool, line, column, filename);
+  HSVal_Bool(bool value, int line, int column, String file_name)
+      : super(value, HS_Common.Bool, line, column, file_name);
 }
 
 class HSVal_String extends HSVal_Value {
-  HSVal_String(String value, int line, int column, String filename)
-      : super(value, HS_Common.Str, line, column, filename);
+  HSVal_String(String value, int line, int column, String file_name)
+      : super(value, HS_Common.Str, line, column, file_name);
 
   static dynamic _is_empty(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
@@ -199,10 +223,24 @@ class HSVal_String extends HSVal_Value {
       return args.first.toString();
     }
   }
+
+  static dynamic _substring(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    var strObj = (instance as HSVal_String);
+    String str = strObj?.value;
+    if (args.isNotEmpty) {
+      int startIndex = args[0];
+      int endIndex;
+      if (args.length >= 1) {
+        endIndex = args[1];
+      }
+      str?.substring(startIndex, endIndex);
+    }
+  }
 }
 
 class HSVal_List extends HSVal_Value {
-  HSVal_List(List value, int line, int column, String filename) : super(value, HS_Common.List, line, column, filename);
+  HSVal_List(List value, int line, int column, String file_name)
+      : super(value, HS_Common.List, line, column, file_name);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
@@ -218,13 +256,14 @@ class HSVal_List extends HSVal_Value {
 
   static dynamic _clear(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
-    listObj?.value?.clear();
+    List list = listObj?.value;
+    list?.clear();
   }
 
   static dynamic _remove_at(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     List list = listObj?.value;
-    if ((args != null) && (args.isNotEmpty)) {
+    if (args.isNotEmpty) {
       list?.removeAt(args.first);
     }
   }
@@ -232,7 +271,7 @@ class HSVal_List extends HSVal_Value {
   static dynamic _index_of(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     List list = listObj?.value;
-    if ((args != null) && (args.isNotEmpty)) {
+    if (args.isNotEmpty) {
       return list?.indexOf(args.first);
     }
     return -1;
@@ -257,7 +296,7 @@ class HSVal_List extends HSVal_Value {
 
 //TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
-  HSVal_Map(Map value, int line, int column, String filename) : super(value, HS_Common.Map, line, column, filename);
+  HSVal_Map(Map value, int line, int column, String file_name) : super(value, HS_Common.Map, line, column, file_name);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);

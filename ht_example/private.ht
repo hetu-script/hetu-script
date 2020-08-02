@@ -1,0 +1,13 @@
+void _privateFunc() {
+  Console.print('this is a prive func of this library.');
+}
+
+void publicFunc() {
+  Console.print('this is a public func of this library.');
+}
+
+class _privateClass {
+  static void greeting() {
+    Console.print('this is a private class of this library.');
+  }
+}

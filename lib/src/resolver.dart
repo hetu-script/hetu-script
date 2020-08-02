@@ -62,12 +62,14 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   void resolve(List<Stmt> statements) {
+    _beginBlock();
     for (var stmt in statements) {
       _resolveStmt(stmt);
     }
     for (var stmt in _funcStmts.keys) {
       _resolveFunction(stmt, _funcStmts[stmt]);
     }
+    _endBlock();
   }
 
   void _resolveBlock(List<Stmt> statements) {

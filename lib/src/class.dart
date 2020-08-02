@@ -47,11 +47,12 @@ class HS_Class extends Namespace {
   Map<String, HS_FuncObj> methods = {};
 
   HS_Class(this.name,
-      //int line, int column, String filename,
+      //int line, int column, String file_name,
       {this.superClass})
-      : super(
-            //line, column, filename,
-            blockName: name);
+      : super(globalInterpreter.curFileName,
+            enclosing: globalInterpreter.curContext,
+            //line, column, file_name,
+            spaceName: name);
 
   void addVariable(VarStmt stmt) {
     if (!variables.containsKey(stmt.name.lexeme))
@@ -60,92 +61,92 @@ class HS_Class extends Namespace {
       throw HSErr_Defined(name, stmt.name.line, stmt.name.column, globalInterpreter.curFileName);
   }
 
-  void addMethod(String name, HS_FuncObj func, int line, int column, String filename) {
+  void addMethod(String name, HS_FuncObj func, int line, int column, String file_name) {
     if (!methods.containsKey(name))
       methods[name] = func;
     else
-      throw HSErr_Defined(name, line, column, filename);
+      throw HSErr_Defined(name, line, column, file_name);
   }
 
-  dynamic fetchMethod(String name, int line, int column, String filename,
+  dynamic fetchMethod(String name, int line, int column, String file_name,
       {bool error = true, String from = HS_Common.Global}) {
     var getter = '${HS_Common.Getter}$name';
     if (methods.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
+      if ((spaceName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return methods[name];
       }
-      throw HSErr_Private(name, line, column, filename);
+      throw HSErr_Private(name, line, column, file_name);
     } else if (methods.containsKey(getter)) {
       return methods[getter];
     }
 
     if (superClass != null) {
-      return superClass.fetchMethod(name, line, column, filename, error: error);
+      return superClass.fetchMethod(name, line, column, file_name, error: error);
     }
     if (error) {
-      throw HSErr_UndefinedMember(name, this.name, line, column, filename);
+      throw HSErr_UndefinedMember(name, this.name, line, column, file_name);
     }
   }
 
   @override
-  dynamic fetch(String name, int line, int column, String filename,
+  dynamic fetch(String name, int line, int column, String file_name,
       {bool error = true, String from = HS_Common.Global}) {
     var getter = '${HS_Common.Getter}$name';
     if (defs.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
+      if ((spaceName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return defs[name].value;
       }
-      throw HSErr_Private(name, line, column, filename);
+      throw HSErr_Private(name, line, column, file_name);
     } else if (defs.containsKey(getter)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
+      if ((spaceName == from) || (!name.startsWith(HS_Common.Underscore))) {
         HS_FuncObj func = defs[getter].value;
-        return func.call(line, column, filename, []);
+        return func.call(line, column, file_name, []);
       }
-      throw HSErr_Private(name, line, column, filename);
+      throw HSErr_Private(name, line, column, file_name);
     }
 
     if (superClass != null) {
-      return superClass.fetch(name, line, column, filename, error: error, from: superClass.blockName);
+      return superClass.fetch(name, line, column, file_name, error: error, from: superClass.spaceName);
     }
 
-    if (error) throw HSErr_Undefined(name, line, column, filename);
+    if (error) throw HSErr_Undefined(name, line, column, file_name);
     return null;
   }
 
   @override
-  dynamic assign(String varname, dynamic value, int line, int column, String filename,
+  dynamic assign(String varname, dynamic value, int line, int column, String file_name,
       {String from = HS_Common.Global}) {
     var setter = '${HS_Common.Setter}$varname';
     if (defs.containsKey(varname)) {
-      if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
+      if ((spaceName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         var vartype = defs[varname].type;
         if ((vartype == HS_Common.Dynamic) || (vartype == HS_TypeOf(value))) {
           defs[varname].value = value;
         } else {
-          throw HSErr_Type(HS_TypeOf(value), vartype, line, column, filename);
+          throw HSErr_Type(HS_TypeOf(value), vartype, line, column, file_name);
         }
       } else {
-        throw HSErr_Private(varname, line, column, filename);
+        throw HSErr_Private(varname, line, column, file_name);
       }
     } else if (defs.containsKey(setter)) {
-      if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
+      if ((spaceName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         HS_FuncObj setter_func = defs[setter].value;
-        setter_func.call(line, column, filename, [value]);
+        setter_func.call(line, column, file_name, [value]);
       } else {
-        throw HSErr_Private(varname, line, column, filename);
+        throw HSErr_Private(varname, line, column, file_name);
       }
     } else if (superClass != null) {
-      superClass.assign(varname, value, line, column, filename, from: from);
+      superClass.assign(varname, value, line, column, file_name, from: from);
     } else {
-      throw HSErr_Undefined(varname, line, column, filename);
+      throw HSErr_Undefined(varname, line, column, file_name);
     }
   }
 
   @override
-  void assignAt(int distance, String name, dynamic value, int line, int column, String filename,
+  void assignAt(int distance, String name, dynamic value, int line, int column, String file_name,
       {String from = HS_Common.Global}) {}
 
-  HS_Instance createInstance(int line, int column, String filename, {String constructorName, List<dynamic> args}) {
+  HS_Instance createInstance(int line, int column, String file_name, {String constructorName, List<dynamic> args}) {
     var instance = HS_Instance(this);
 
     for (var decl in variables.values) {
@@ -153,27 +154,27 @@ class HS_Class extends Namespace {
       if (decl.initializer != null) value = globalInterpreter.evaluateExpr(decl.initializer);
 
       if (decl.typename.lexeme == HS_Common.Dynamic) {
-        instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, filename, value: value);
+        instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, file_name, value: value);
       } else if (decl.typename.lexeme == HS_Common.Var) {
         // 如果用了var关键字，则从初始化表达式推断变量类型
         if (value != null) {
-          instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, filename, value: value);
+          instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, file_name, value: value);
         } else {
-          instance.define(decl.name.lexeme, HS_Common.Dynamic, line, column, filename);
+          instance.define(decl.name.lexeme, HS_Common.Dynamic, line, column, file_name);
         }
       } else {
         // 接下来define函数会判断类型是否符合声明
-        instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, filename, value: value);
+        instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, file_name, value: value);
       }
     }
 
     HS_FuncObj constructorFunction;
-    constructorName ??= name;
+    constructorName ??= HS_Common.Constructor + name;
 
-    constructorFunction = fetchMethod(constructorName, line, column, filename, error: false);
+    constructorFunction = fetchMethod(constructorName, line, column, file_name, error: false, from: name);
 
     if (constructorFunction != null) {
-      constructorFunction.bind(instance, line, column, filename).call(line, column, filename, args ?? []);
+      constructorFunction.bind(instance, line, column, file_name).call(line, column, file_name, args ?? []);
     }
 
     return instance;
@@ -188,63 +189,65 @@ class HS_Instance extends Namespace {
 
   HS_Class ofClass;
 
-  HS_Instance(this.ofClass) //, int line, int column, String filename)
-      : super(
-            //line, column, filename,
+  HS_Instance(this.ofClass) //, int line, int column, String file_name)
+      : super(globalInterpreter.curFileName,
+            //line, column, file_name,
 
-            blockName: ofClass.name) {
-    //ofClass = globalInterpreter.fetchGlobal(class_name, line, column, filename);
+            spaceName: ofClass.name) {
+    //ofClass = globalInterpreter.fetchGlobal(class_name, line, column, file_name);
   }
 
   @override
-  dynamic fetch(String name, int line, int column, String filename,
+  dynamic fetch(String name, int line, int column, String file_name,
       {bool error = true, String from = HS_Common.Global}) {
     if (defs.containsKey(name)) {
-      if ((blockName == from) || (!name.startsWith(HS_Common.Underscore))) {
+      if ((spaceName == from) || (!name.startsWith(HS_Common.Underscore))) {
         return defs[name].value;
       }
-      throw HSErr_Private(name, line, column, filename);
+      throw HSErr_Private(name, line, column, file_name);
     } else {
-      HS_FuncObj method = ofClass.fetchMethod(name, line, column, filename, error: false, from: from);
+      HS_FuncObj method = ofClass.fetchMethod(name, line, column, file_name, error: false, from: from);
       if (method != null) {
         if (method.functype == FuncStmtType.getter) {
-          return method.bind(this, line, column, filename).call(line, column, filename, []);
+          return method.bind(this, line, column, file_name).call(line, column, file_name, []);
         } else {
-          return method.bind(this, line, column, filename);
+          return method.bind(this, line, column, file_name);
         }
       }
     }
 
-    if (error) throw HSErr_UndefinedMember(name, this.type, line, column, filename);
+    if (error) throw HSErr_UndefinedMember(name, this.type, line, column, file_name);
   }
 
   @override
-  void assign(String varname, dynamic value, int line, int column, String filename, {String from = HS_Common.Global}) {
+  void assign(String varname, dynamic value, int line, int column, String file_name, {String from = HS_Common.Global}) {
     var setter = '${HS_Common.Setter}$varname';
     if (defs.containsKey(varname)) {
-      if ((blockName == from) || (!varname.startsWith(HS_Common.Underscore))) {
+      if ((spaceName == from) || (!varname.startsWith(HS_Common.Underscore))) {
         var vartype = defs[varname].type;
         if ((vartype == HS_Common.Dynamic) || (vartype == HS_TypeOf(value))) {
           defs[varname].value = value;
         } else {
-          throw HSErr_Type(HS_TypeOf(value), vartype, line, column, filename);
+          throw HSErr_Type(HS_TypeOf(value), vartype, line, column, file_name);
         }
       } else {
-        throw HSErr_Private(varname, line, column, filename);
+        throw HSErr_Private(varname, line, column, file_name);
       }
     } else {
       HS_FuncObj setter_func =
-          ofClass.fetchMethod(setter, line, column, filename, error: false, from: ofClass.blockName);
-      setter_func.bind(this, line, column, filename).call(line, column, filename, [value]);
+          ofClass.fetchMethod(setter, line, column, file_name, error: false, from: ofClass.spaceName);
+      setter_func.bind(this, line, column, file_name).call(line, column, file_name, [value]);
     }
   }
 
   @override
-  void assignAt(int distance, String name, dynamic value, int line, int column, String filename,
+  void assignAt(int distance, String name, dynamic value, int line, int column, String file_name,
       {String from = HS_Common.Global}) {}
 
   dynamic invoke(String name, {List<dynamic> args}) {
-    HS_FuncObj method = ofClass.fetchMethod(name, null, null, null);
-    return method.bind(this, null, null, null).call(null, null, null, args ?? []);
+    HS_FuncObj method = ofClass.fetchMethod(name, null, null, globalInterpreter.curFileName);
+    return method
+        .bind(this, null, null, globalInterpreter.curFileName)
+        .call(null, null, globalInterpreter.curFileName, args ?? []);
   }
 }
