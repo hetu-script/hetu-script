@@ -14,11 +14,10 @@ abstract class HS_Buildin {
       '}\n'
       'class Function {}\n';
 
-  static Map<String, HS_External> bindmap = {
-    'typeOf': _type_of,
-  };
+  static Map<String, HS_External> bindmap = {};
 
   static Map<String, HS_External> linkmap = {
+    'typeOf': _type_of,
     'System.evalc': _system_evalc,
     'System.invoke': _system_invoke,
     'System.readfile': _system_readfile,
@@ -30,10 +29,6 @@ abstract class HS_Buildin {
     'Console.eraseLine': _console_erase_line,
     'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
-    'Math.sqrt': _math_sqrt,
-    'Math.log': _math_log,
-    'Math.sin': _math_sin,
-    'Math.cos': _math_cos,
     '_Value.toString': HSVal_Value._to_string,
     'num.parse': HSVal_Num._parse,
     'num.toStringAsFixed': HSVal_Num._to_string_as_fixed,
@@ -57,6 +52,12 @@ abstract class HS_Buildin {
     'Map.remove': HSVal_Map._remove,
     'Map.getVal': HSVal_Map._get_val,
     'Map.putIfAbsent': HSVal_Map._put_if_absent,
+    'random': _math_random,
+    'randomInt': _math_random_int,
+    'sqrt': _math_sqrt,
+    'log': _math_log,
+    'sin': _math_sin,
+    'cos': _math_cos,
   };
 
   static dynamic _type_of(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
@@ -128,6 +129,17 @@ abstract class HS_Buildin {
 
   static dynamic _console_cls(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     stdout.write("\x1B[2J\x1B[0;0H");
+  }
+
+  static dynamic _math_random(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    return Random().nextDouble();
+  }
+
+  static dynamic _math_random_int(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      int value = (args.first as num).truncate();
+      return Random().nextInt(value);
+    }
   }
 
   static dynamic _math_sqrt(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {

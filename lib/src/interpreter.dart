@@ -615,7 +615,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     } else {
       lib_name = path.join(workingDir, stmt.filepath);
     }
-    evalf(lib_name);
+    evalf(lib_name, spaceName: stmt.spacename);
   }
 
   @override

@@ -1,21 +1,26 @@
-class Math {
-  static num max(num a, num b) {
-    if (a > b) return a;
-    return b;
-  }
-
-  static num min(num a, num b) {
-    if (a < b) return a;
-    return b;
-  }
-
-  static num abs(num x) {
-    if (x < 0) return -x;
-    return x;
-  }
-
-  external static num sqrt(num x);
-  external static num log(num x);
-  external static num sin(num x);
-  external static num cos(num x);
+num max(num a, num b) {
+  if (a > b) return a;
+  return b;
 }
+
+num min(num a, num b) {
+  if (a < b) return a;
+  return b;
+}
+
+num abs(num x) {
+  if (x < 0) return -x;
+  return x;
+}
+
+external num random();
+
+external num randomInt(num max);
+
+external num sqrt(num x);
+
+external num log(num x);
+
+external num sin(num x);
+
+external num cos(num x);

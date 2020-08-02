@@ -444,7 +444,12 @@ class Parser {
   ImportStmt _parseImportStmt() {
     // 之前校验过了所以这里直接跳过
     advance(1);
-    var stmt = ImportStmt(match(HS_Common.Str).literal);
+    String filename = match(HS_Common.Str).literal;
+    String spacename;
+    if (expect([HS_Common.As], consume: true, error: false)) {
+      spacename = match(HS_Common.Identifier).lexeme;
+    }
+    var stmt = ImportStmt(filename, spacename: spacename);
     expect([HS_Common.Semicolon], consume: true);
     return stmt;
   }

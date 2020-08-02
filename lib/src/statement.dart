@@ -61,7 +61,9 @@ class ImportStmt extends Stmt {
 
   final String filepath;
 
-  ImportStmt(this.filepath);
+  final String spacename;
+
+  ImportStmt(this.filepath, {this.spacename});
 }
 
 class VarStmt extends Stmt {

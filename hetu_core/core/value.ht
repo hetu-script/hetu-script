@@ -1,3 +1,5 @@
+external String typeOf(dynamic value);
+
 class _Value {
 
   // external关键字表示函数体在host语言中定义
