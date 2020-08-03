@@ -37,6 +37,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   Namespace curContext;
   String _curFileName;
   String get curFileName => _curFileName;
+  bool _isGlobal = true;
 
   /// external函数的空间
   final _external = Namespace(HS_Common.Global);
@@ -283,15 +284,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   void executeBlock(List<Stmt> statements, Namespace environment) {
-    var save = curContext;
+    var saved_context = curContext;
+    var saved_is_global = _isGlobal;
 
     try {
       curContext = environment;
+      _isGlobal = false;
       for (var stmt in statements) {
         evaluateStmt(stmt);
       }
     } finally {
-      curContext = save;
+      curContext = saved_context;
+      _isGlobal = saved_is_global;
     }
   }
 
@@ -626,7 +630,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     Namespace space;
-    stmt.name.lexeme.startsWith(HS_Common.Underscore) ? space = curContext : space = _globalContext;
+    space = _isGlobal && !stmt.name.lexeme.startsWith(HS_Common.Underscore) ? _globalContext : curContext;
 
     if (stmt.typename.lexeme == HS_Common.Dynamic) {
       space.define(stmt.name.lexeme, stmt.typename.lexeme, stmt.typename.line, stmt.typename.column, curFileName,
@@ -752,9 +756,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       klass.define(HS_Common.Super, HS_Common.Class, stmt.name.line, stmt.name.column, curFileName, value: superClass);
     }
 
-    // 在开头就定义类变量，这样才可以在类定义体中使用类本身
+    // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     Namespace space;
-    stmt.name.lexeme.startsWith(HS_Common.Underscore) ? space = curContext : space = _globalContext;
+    space = _isGlobal && !stmt.name.lexeme.startsWith(HS_Common.Underscore) ? _globalContext : curContext;
     space.define(stmt.name.lexeme, HS_Common.Class, stmt.name.line, stmt.name.column, curFileName, value: klass);
 
     for (var variable in stmt.variables) {
