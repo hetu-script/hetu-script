@@ -215,7 +215,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         return curContext.fetch(name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
       } catch (e) {
         try {
-          fg
+          //TODO:在resolver中，每个expr保存一个Namespace的name，在Interpreter中，取出name，然后在对应的namespace中找到对应的value；
         } catch (e) {
           // 尝试获取全局变量
           return _globalContext.fetch(name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
