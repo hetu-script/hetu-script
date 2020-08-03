@@ -12,6 +12,8 @@ class num extends _Value {
 	external static num parse(dynamic value);
 
   external num toStringAsFixed([num fractionDigits = 0]);
+
+  external num truncate();
 }
 
 class bool extends _Value {

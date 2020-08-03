@@ -43,9 +43,12 @@ class Namespace extends HS_Value {
 
     if (enclosing != null) {
       _enclosing = enclosing;
-      _spaceName = enclosing.spaceName;
-    } else if (spaceName != null) {
+    }
+
+    if (spaceName != null) {
       _spaceName = spaceName;
+    } else if (enclosing != null) {
+      _spaceName = enclosing.spaceName;
     } else {
       _spaceName = fileName;
     }

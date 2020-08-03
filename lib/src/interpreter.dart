@@ -212,17 +212,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       return curContext.fetchAt(distance, name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
     } else {
       try {
-        // 尝试获取当前实例中的类成员变量
-        HS_Instance instance =
-            curContext.fetch(HS_Common.This, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
-        // 这里无法取出private成员
-        return instance.fetch(name, expr.line, expr.column, expr.file_name);
+        return curContext.fetch(name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
       } catch (e) {
-        if ((e is HSErr_UndefinedMember) || (e is HSErr_Undefined)) {
+        try {
+          fg
+        } catch (e) {
           // 尝试获取全局变量
           return _globalContext.fetch(name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
-        } else {
-          throw e;
         }
       }
     }

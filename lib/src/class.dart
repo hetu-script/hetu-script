@@ -151,7 +151,12 @@ class HS_Class extends Namespace {
 
     for (var decl in variables.values) {
       dynamic value;
-      if (decl.initializer != null) value = globalInterpreter.evaluateExpr(decl.initializer);
+      if (decl.initializer != null) {
+        var save = globalInterpreter.curContext;
+        globalInterpreter.curContext = this;
+        value = globalInterpreter.evaluateExpr(decl.initializer);
+        globalInterpreter.curContext = save;
+      }
 
       if (decl.typename.lexeme == HS_Common.Dynamic) {
         instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, file_name, value: value);

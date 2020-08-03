@@ -54,11 +54,3 @@ void getNewNum() {
   farmerConsume(farmer_num);
   lumberConsume(lumber_num);
 }
-
-void main() {
-  month = 1;
-  while (month <= 12) {
-    getNewNum();
-    month = month + 1;
-  }
-}

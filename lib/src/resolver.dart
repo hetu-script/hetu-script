@@ -190,13 +190,14 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitVarStmt(VarStmt stmt) {
-    if (stmt.initializer != null) {
-      _resolveExpr(stmt.initializer);
-      _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
-    } else {
-      _define(stmt.name.lexeme);
+    if (!stmt.isStatic) {
+      if (stmt.initializer != null) {
+        _resolveExpr(stmt.initializer);
+        _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+      } else {
+        _define(stmt.name.lexeme);
+      }
     }
-    return null;
   }
 
   @override
@@ -283,15 +284,17 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _funcStmts = <FuncStmt, _FunctionType>{};
     // 先注册函数名
     for (var method in stmt.methods) {
-      _declare(method.internalName, method.name.line, method.name.column, define: true);
-      if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
-          !_blocks.last.containsKey(method.name.lexeme)) {
-        _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
-      }
-      if (method.functype == FuncStmtType.constructor) {
-        _funcStmts[method] = _FunctionType.constructor;
-      } else {
-        _funcStmts[method] = _FunctionType.method;
+      if (!method.isStatic) {
+        _declare(method.internalName, method.name.line, method.name.column, define: true);
+        if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
+            !_blocks.last.containsKey(method.name.lexeme)) {
+          _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
+        }
+        if (method.functype == FuncStmtType.constructor) {
+          _funcStmts[method] = _FunctionType.constructor;
+        } else {
+          _funcStmts[method] = _FunctionType.method;
+        }
       }
     }
     // 然后再解析函数定义

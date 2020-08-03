@@ -52,7 +52,21 @@ class HS_FuncObj extends HS_Instance {
     assert(args != null);
     try {
       if (extern != null) {
-        var instance = closure?.fetchAt(0, HS_Common.This, line, column, file_name, error: false);
+        if (arity != -1) {
+          for (var i = 0; i < funcStmt.params.length; i++) {
+            // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
+            if (i >= args.length) {
+              var initializer = funcStmt.params[i].initializer;
+              if (initializer != null) {
+                var init_value = globalInterpreter.evaluateExpr(funcStmt.params[i].initializer);
+                args.add(init_value);
+              }
+            }
+          }
+        }
+
+        var instance =
+            closure?.fetchAt(0, HS_Common.This, line, column, file_name, error: false, from: closure.spaceName);
         return extern(globalInterpreter, instance, args ?? []);
       } else {
         var environment = Namespace(globalInterpreter.curFileName,
@@ -101,7 +115,6 @@ class HS_FuncObj extends HS_Instance {
             // “? args”形式的参数列表可以通过args这个List访问参数
             environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, file_name, value: args);
           }
-          _saved = globalInterpreter.curContext;
           globalInterpreter.executeBlock(funcStmt.definition, environment);
         } else {
           throw HSErr_MissingFuncDef(name, line, column, file_name);
@@ -123,17 +136,12 @@ class HS_FuncObj extends HS_Instance {
         throw HSErr_ReturnType(returned_type, name, funcStmt.returnType, line, column, file_name);
       }
 
-      if (_saved != null) {
-        globalInterpreter.curContext = _saved;
-        _saved = null;
-      }
-
       if (returnValue is NullThrownError) return null;
       return returnValue;
     }
 
     if (functype == FuncStmtType.constructor) {
-      return closure.fetchAt(0, HS_Common.This, line, column, file_name);
+      return closure.fetchAt(0, HS_Common.This, line, column, file_name, from: closure.spaceName);
     } else {
       return null;
     }

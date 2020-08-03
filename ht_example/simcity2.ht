@@ -1,0 +1,118 @@
+import 'hetu:math';
+
+class Profession {
+  static String farmer = 'farmer';
+  static String worker = 'worker';
+  static String soldier = 'soldier';
+}
+
+class Pleb {
+  num age; // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
+  List professions;
+
+  num get ageByYear {
+    return age / (12 * 30).truncate();
+  }
+
+  Pleb(List professions, [num age]) {
+    this.professions = professions;
+    if (age != null)
+      this.age = age;
+    else
+      this.age = 6000 + randomInt(6000);
+  }
+}
+
+class Organization {
+  List population = [];
+
+  // <String, num>每个职业对应的人口数量
+  Map profStats = {};
+
+  static String child = '0-15';
+  static String young = '16-30';
+  static String middle = '31-45';
+  static String old = '45-60';
+  static String dotage = '60+';
+
+  // <String, num>每个年龄段对应的人口数量：
+  Map ageStats = {
+    child: 0,
+    young: 0,
+    middle: 0,
+    old: 0,
+    dotage: 0,
+  };
+
+  void debug() {
+    Console.print('population: ' + population.length.toString());
+    for (var prof in profStats.keys) {
+      Console.print('  ' +
+          prof +
+          ': ' +
+          profStats[prof].toStringAsFixed() +
+          '(' +
+          ((profStats[prof] / population.length) * 100).toStringAsFixed(2) +
+          '%)');
+    }
+    Console.print('----------------');
+    for (var period in ageStats.keys) {
+      Console.print('  ' +
+          period +
+          ': ' +
+          ageStats[period].toStringAsFixed() +
+          '(' +
+          ((ageStats[period] / population.length) * 100).toStringAsFixed(2) +
+          '%)');
+    }
+  }
+
+  void addPleb(Pleb p) {
+    population.add(p);
+
+    for (var prof in p.professions) {
+      if (profStats[prof] == null) profStats[prof] = 0;
+      profStats[prof] = profStats[prof] + 1;
+    }
+
+    var age = p.ageByYear;
+
+    if (age <= 15) {
+      ageStats[child] = ageStats[child] + 1;
+    } else if (age <= 30) {
+      ageStats[young] = ageStats[young] + 1;
+    } else if (age <= 45) {
+      ageStats[middle] = ageStats[middle] + 1;
+    } else if (age <= 60) {
+      ageStats[old] = ageStats[old] + 1;
+    } else {
+      ageStats[dotage] = ageStats[dotage] + 1;
+    }
+  }
+}
+
+void main() {
+  var huaxia = Organization();
+
+  var i = 0;
+  while (i <= 6) {
+    i = i + 1;
+    huaxia.addPleb(Pleb(['farmer']));
+  }
+  i = 0;
+  while (i <= 3) {
+    i = i + 1;
+    huaxia.addPleb(Pleb(['worker']));
+  }
+  i = 0;
+  while (i <= 2) {
+    i = i + 1;
+    huaxia.addPleb(Pleb(['soldier']));
+  }
+
+  huaxia.addPleb(Pleb(['farmer', 'soldier']));
+  huaxia.addPleb(Pleb(['farmer', 'worker']));
+  huaxia.addPleb(Pleb(['soldier', 'worker']));
+
+  huaxia.debug();
+}

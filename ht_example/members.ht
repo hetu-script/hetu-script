@@ -30,7 +30,7 @@ class Calculator {
     // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定
     this.x = x;
     this.y = y;
-    Calculator.greeting();
+    greeting();
   }
 
   // 带有返回类型的成员函数

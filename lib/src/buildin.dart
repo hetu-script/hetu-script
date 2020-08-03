@@ -32,6 +32,7 @@ abstract class HS_Buildin {
     '_Value.toString': HSVal_Value._to_string,
     'num.parse': HSVal_Num._parse,
     'num.toStringAsFixed': HSVal_Num._to_string_as_fixed,
+    'num.truncate': HSVal_Num._truncate,
     'String._get_isEmpty': HSVal_String._is_empty,
     'String.parse': HSVal_String._parse,
     'String.substring': HSVal_String._substring,
@@ -212,6 +213,12 @@ class HSVal_Num extends HSVal_Value {
       num number = numObj?.value;
       return number.toStringAsFixed(fractionDigits);
     }
+  }
+
+  static dynamic _truncate(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
+    var numObj = (instance as HSVal_Num);
+    num number = numObj?.value;
+    return number.truncate();
   }
 }
 
