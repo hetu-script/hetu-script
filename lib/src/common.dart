@@ -140,10 +140,10 @@ abstract class HS_Common {
   static const Void = 'void';
   static const Unknown = '?';
   static const Underscore = '_';
-  static const InstanceName = 'instance of class ';
   static const Global = '__global__';
   static const Extern = '__extern__';
   static const Instance = '__instance__';
+  static const InstanceString = 'instance of class ';
 
   static const UnknownType = 'unknown_type';
   static const Var = 'var';

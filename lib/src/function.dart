@@ -5,54 +5,42 @@ import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
 
-typedef HS_External = dynamic Function(Interpreter interpreter, HS_Instance instance, List<dynamic> args);
+typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
 
-class HS_FuncObj extends HS_Instance {
+class HS_Function extends Namespace {
   @override
-  String toString() => '$name(${type})';
+  String get type => HS_Common.FunctionObj;
+
+  @override
+  String toString() => '$name(${HS_Common.FunctionObj})';
 
   final String name;
-  final String className;
   final FuncStmt funcStmt;
-  final Namespace closure;
-  final FuncStmtType functype;
-
-  Namespace _saved;
 
   HS_External extern;
 
-  final int arity;
-
-  HS_FuncObj(this.name, // int line, int column, String fileName,
-      {this.className,
+  HS_Function(
+      this.name, // int line, int column, String fileName,
       this.funcStmt,
-      this.closure,
-      this.extern,
-      this.functype = FuncStmtType.normal,
-      this.arity = 0})
-      : super(globalInterpreter.fetchGlobal(
-            HS_Common.Function, null, null, globalInterpreter.curFileName)); //, line, column, fileName);
+      {this.extern,
+      Namespace closure})
+      : super(name: name, closure: closure); //, line, column, fileName);
 
-  // 成员函数外层是实例
-  HS_FuncObj bind(HS_Instance instance, int line, int column, String fileName) {
-    Namespace namespace = Namespace(globalInterpreter.curFileName,
-        //instance.line, instance.column, instance.fileName,
-        enclosing: instance);
-    namespace.define(HS_Common.This, instance.type, line, column, fileName, value: instance);
-    return HS_FuncObj(name, // line, column, fileName,
-        className: className,
-        funcStmt: funcStmt,
-        closure: namespace,
+  // 成员函数需要绑定到实例
+  HS_Function enclose(Namespace closure, int line, int column, Interpreter interpreter) {
+    if (closure is HS_Instance) closure.define(HS_Common.This, closure.type, line, column, interpreter, value: closure);
+    return HS_Function(
+        name, // line, column, fileName,
+        funcStmt,
         extern: extern,
-        functype: functype,
-        arity: arity);
+        closure: closure);
   }
 
-  dynamic call(int line, int column, String fileName, List<dynamic> args) {
+  dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args) {
     assert(args != null);
     try {
       if (extern != null) {
-        if (arity != -1) {
+        if (funcStmt.arity != -1) {
           for (var i = 0; i < funcStmt.params.length; i++) {
             // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
             if (i >= args.length) {
@@ -65,19 +53,19 @@ class HS_FuncObj extends HS_Instance {
           }
         }
 
-        var instance =
-            closure?.fetchAt(0, HS_Common.This, line, column, fileName, error: false, from: closure.spaceName);
-        return extern(globalInterpreter, instance, args ?? []);
+        var instance = fetch(HS_Common.This, line, column, interpreter, error: false, from: closure.fullName);
+        return extern(instance, args ?? []);
       } else {
-        var environment = Namespace(globalInterpreter.curFileName,
-            //closure?.line, closure?.column, closure?.fileName,
-            enclosing: closure);
+        //var environment = Namespace(
+        //globalInterpreter.curFileName,
+        //closure?.line, closure?.column, closure?.fileName,
+        //closure: closure);
         if (funcStmt != null) {
-          if (arity >= 0) {
-            if (args.length < arity) {
-              throw HSErr_Arity(name, args.length, arity, line, column, fileName);
+          if (funcStmt.arity >= 0) {
+            if (args.length < funcStmt.arity) {
+              throw HSErr_Arity(name, args.length, funcStmt.arity, line, column, interpreter.curFileName);
             } else if (args.length > funcStmt.params.length) {
-              throw HSErr_Arity(name, args.length, funcStmt.params.length, line, column, fileName);
+              throw HSErr_Arity(name, args.length, funcStmt.params.length, line, column, interpreter.curFileName);
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
@@ -87,44 +75,42 @@ class HS_FuncObj extends HS_Instance {
                   if ((type_token.lexeme != HS_Common.Dynamic) &&
                       (type_token.lexeme != arg_type) &&
                       (arg_type != HS_Common.Null)) {
-                    throw HSErr_ArgType(arg_type, type_token.lexeme, line, column, fileName);
+                    throw HSErr_ArgType(arg_type, type_token.lexeme, line, column, interpreter.curFileName);
                   }
                 }
               }
             }
           }
 
-          if (arity != -1) {
+          if (funcStmt.arity != -1) {
             for (var i = 0; i < funcStmt.params.length; i++) {
               // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
               if (i < args.length) {
-                environment.define(
-                    funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, fileName,
+                define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
                     value: args[i]);
               } else {
                 var initializer = funcStmt.params[i].initializer;
                 var init_value;
                 if (initializer != null) init_value = globalInterpreter.evaluateExpr(funcStmt.params[i].initializer);
-                environment.define(
-                    funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, fileName,
+                define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
                     value: init_value);
               }
             }
           } else {
             assert(funcStmt.params.length == 1);
             // “? args”形式的参数列表可以通过args这个List访问参数
-            environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, fileName, value: args);
+            define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, interpreter, value: args);
           }
-          globalInterpreter.executeBlock(funcStmt.definition, environment);
+          interpreter.executeBlock(funcStmt.definition, this);
         } else {
-          throw HSErr_MissingFuncDef(name, line, column, fileName);
+          throw HSErr_MissingFuncDef(name, line, column, interpreter.curFileName);
         }
       }
     } catch (returnValue) {
       if (returnValue is HS_Error) {
         throw returnValue;
       } else if ((returnValue is Exception) || (returnValue is NoSuchMethodError)) {
-        throw HS_Error(returnValue.toString(), line, column, fileName);
+        throw HS_Error(returnValue.toString(), line, column, interpreter.curFileName);
       }
 
       String returned_type = HS_TypeOf(returnValue);
@@ -133,17 +119,17 @@ class HS_FuncObj extends HS_Instance {
           (funcStmt.returnType != HS_Common.Dynamic) &&
           (returned_type != HS_Common.Null) &&
           (funcStmt.returnType != returned_type)) {
-        throw HSErr_ReturnType(returned_type, name, funcStmt.returnType, line, column, fileName);
+        throw HSErr_ReturnType(returned_type, name, funcStmt.returnType, line, column, interpreter.curFileName);
       }
 
       if (returnValue is NullThrownError) return null;
       return returnValue;
     }
 
-    if (functype == FuncStmtType.constructor) {
-      return closure.fetchAt(0, HS_Common.This, line, column, fileName, from: closure.spaceName);
-    } else {
-      return null;
-    }
+    // if (functype == FuncStmtType.constructor) {
+    //   return closure.fetch(HS_Common.This, line, column, fileName, from: closure.fullName);
+    // } else {
+    //   return null;
+    // }
   }
 }

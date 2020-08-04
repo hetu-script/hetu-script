@@ -38,9 +38,12 @@ enum ParseStyle {
 ///
 /// <运算符>    ::=   <运算符>
 class Parser {
+  final Interpreter interpreter;
+
   final List<Token> _tokens = [];
   var _tokPos = 0;
   String _curClassName;
+  String _curFileName;
 
   static int internalVarIndex = 0;
 
@@ -59,6 +62,8 @@ class Parser {
     HS_Common.In
   ];
 
+  Parser(this.interpreter);
+
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
   ///
   /// 如果consume为true，则在符合要求时向前移动Token指针
@@ -70,7 +75,7 @@ class Parser {
       if (consume) {
         if (curTok != tokTypes[i]) {
           if (error) {
-            throw HSErr_Expected(tokTypes[i], curTok.lexeme, curTok.line, curTok.column, globalInterpreter.curFileName);
+            throw HSErr_Expected(tokTypes[i], curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
           return false;
         }
@@ -90,8 +95,7 @@ class Parser {
       return advance(1);
     }
 
-    if (error)
-      throw HSErr_Expected(tokenType, curTok.lexeme, curTok.line, curTok.column, globalInterpreter.curFileName);
+    if (error) throw HSErr_Expected(tokenType, curTok.lexeme, curTok.line, curTok.column, _curFileName);
     return Token.EOF;
   }
 
@@ -114,12 +118,14 @@ class Parser {
   Token get curTok => peek(0);
 
   List<Stmt> parse(
-    List<Token> tokens, {
+    List<Token> tokens,
+    String fileName, {
     ParseStyle style = ParseStyle.library,
   }) {
     _tokens.clear();
     _tokens.addAll(tokens);
     _tokPos = 0;
+    _curFileName = fileName;
 
     var statements = <Stmt>[];
     try {
@@ -150,14 +156,14 @@ class Parser {
 
       if (expr is VarExpr) {
         Token name = expr.name;
-        return AssignExpr(name, op, value, globalInterpreter.curFileName);
+        return AssignExpr(name, op, value, _curFileName);
       } else if (expr is MemberGetExpr) {
-        return MemberSetExpr(expr.collection, expr.key, value, globalInterpreter.curFileName);
+        return MemberSetExpr(expr.collection, expr.key, value, _curFileName);
       } else if (expr is SubGetExpr) {
-        return SubSetExpr(expr.collection, expr.key, value, globalInterpreter.curFileName);
+        return SubSetExpr(expr.collection, expr.key, value, _curFileName);
       }
 
-      throw HSErr_InvalidLeftValue(op.lexeme, op.line, op.column, globalInterpreter.curFileName);
+      throw HSErr_InvalidLeftValue(op.lexeme, op.line, op.column, _curFileName);
     }
 
     return expr;
@@ -169,7 +175,7 @@ class Parser {
     while (curTok == HS_Common.Or) {
       var op = advance(1);
       var right = _parseLogicalAndExpr();
-      expr = BinaryExpr(expr, op, right, globalInterpreter.curFileName);
+      expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
   }
@@ -180,7 +186,7 @@ class Parser {
     while (curTok == HS_Common.And) {
       var op = advance(1);
       var right = _parseEqualityExpr();
-      expr = BinaryExpr(expr, op, right, globalInterpreter.curFileName);
+      expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
   }
@@ -192,7 +198,7 @@ class Parser {
       var op = advance(1);
 
       var right = _parseRelationalExpr();
-      expr = BinaryExpr(expr, op, right, globalInterpreter.curFileName);
+      expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
   }
@@ -203,7 +209,7 @@ class Parser {
     while (HS_Common.Relational.contains(curTok.type)) {
       var op = advance(1);
       var right = _parseAdditiveExpr();
-      expr = BinaryExpr(expr, op, right, globalInterpreter.curFileName);
+      expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
   }
@@ -215,7 +221,7 @@ class Parser {
       var op = advance(1);
 
       var right = _parseMultiplicativeExpr();
-      expr = BinaryExpr(expr, op, right, globalInterpreter.curFileName);
+      expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
   }
@@ -227,7 +233,7 @@ class Parser {
       var op = advance(1);
 
       var right = _parseUnaryPrefixExpr();
-      expr = BinaryExpr(expr, op, right, globalInterpreter.curFileName);
+      expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
   }
@@ -239,7 +245,7 @@ class Parser {
     if (HS_Common.UnaryPrefix.contains(curTok.type)) {
       var op = advance(1);
 
-      expr = UnaryExpr(op, _parseUnaryPostfixExpr(), globalInterpreter.curFileName);
+      expr = UnaryExpr(op, _parseUnaryPostfixExpr(), _curFileName);
     } else {
       expr = _parseUnaryPostfixExpr();
     }
@@ -258,14 +264,14 @@ class Parser {
           match(HS_Common.Comma, error: false);
         }
         expect([HS_Common.RoundRight], consume: true);
-        expr = CallExpr(expr, params, globalInterpreter.curFileName);
+        expr = CallExpr(expr, params, _curFileName);
       } else if (expect([HS_Common.Dot], consume: true, error: false)) {
         Token name = match(HS_Common.Identifier);
-        expr = MemberGetExpr(expr, name, globalInterpreter.curFileName);
+        expr = MemberGetExpr(expr, name, _curFileName);
       } else if (expect([HS_Common.SquareLeft], consume: true, error: false)) {
         var index_expr = _parseExpr();
         expect([HS_Common.SquareRight], consume: true);
-        expr = SubGetExpr(expr, index_expr, globalInterpreter.curFileName);
+        expr = SubGetExpr(expr, index_expr, _curFileName);
       } else {
         break;
       }
@@ -279,27 +285,27 @@ class Parser {
       int index;
       if (curTok.literal == HS_Common.Null) {
         advance(1);
-        return NullExpr(peek(-1).line, peek(-1).column, globalInterpreter.curFileName);
+        return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
       } else if (curTok.literal is num) {
-        index = globalInterpreter.addLiteral(curTok.literal);
+        index = interpreter.addLiteral(curTok.literal);
       } else if (curTok.literal is bool) {
-        index = globalInterpreter.addLiteral(curTok.literal);
+        index = interpreter.addLiteral(curTok.literal);
       } else if (curTok.literal is String) {
-        index = globalInterpreter.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
+        index = interpreter.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
       }
       advance(1);
-      return LiteralExpr(index, peek(-1).line, peek(-1).column, globalInterpreter.curFileName);
+      return LiteralExpr(index, peek(-1).line, peek(-1).column, _curFileName);
     } else if (curTok == HS_Common.This) {
       advance(1);
-      return ThisExpr(peek(-1), globalInterpreter.curFileName);
+      return ThisExpr(peek(-1), _curFileName);
     } else if (curTok == HS_Common.Identifier) {
       advance(1);
-      return VarExpr(peek(-1), globalInterpreter.curFileName);
+      return VarExpr(peek(-1), _curFileName);
     } else if (curTok == HS_Common.RoundLeft) {
       advance(1);
       var innerExpr = _parseExpr();
       expect([HS_Common.RoundRight], consume: true);
-      return GroupExpr(innerExpr, globalInterpreter.curFileName);
+      return GroupExpr(innerExpr, _curFileName);
     } else if (curTok == HS_Common.SquareLeft) {
       int line = curTok.line;
       int col = advance(1).column;
@@ -309,7 +315,7 @@ class Parser {
         match(HS_Common.Comma, error: false);
       }
       expect([HS_Common.SquareRight], consume: true);
-      return ListExpr(list_expr, line, col, globalInterpreter.curFileName);
+      return ListExpr(list_expr, line, col, _curFileName);
     } else if (curTok == HS_Common.CurlyLeft) {
       int line = curTok.line;
       int col = advance(1).column;
@@ -322,9 +328,9 @@ class Parser {
         map_expr[key_expr] = value_expr;
       }
       expect([HS_Common.CurlyRight], consume: true);
-      return MapExpr(map_expr, line, col, globalInterpreter.curFileName);
+      return MapExpr(map_expr, line, col, _curFileName);
     } else {
-      throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, globalInterpreter.curFileName);
+      throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
     }
   }
 
@@ -412,11 +418,10 @@ class Parser {
           var callee = _parseExpr();
           var params = <Expr>[];
           while (curTok.type != HS_Common.EOF) {
-            params.add(LiteralExpr(globalInterpreter.addLiteral(curTok.lexeme), curTok.line, curTok.column,
-                globalInterpreter.curFileName));
+            params.add(LiteralExpr(interpreter.addLiteral(curTok.lexeme), curTok.line, curTok.column, _curFileName));
             advance(1);
           }
-          return ExprStmt(CallExpr(callee, params, globalInterpreter.curFileName));
+          return ExprStmt(CallExpr(callee, params, _curFileName));
         }
         break;
     }
@@ -478,7 +483,7 @@ class Parser {
     var value = _parseExpr();
     // 语句一定以分号结尾
     expect([HS_Common.Semicolon], consume: true);
-    var expr = AssignExpr(name, assignTok, value, globalInterpreter.curFileName);
+    var expr = AssignExpr(name, assignTok, value, _curFileName);
     return ExprStmt(expr);
   }
 
@@ -547,7 +552,7 @@ class Parser {
     // 递增变量
     String i = '__i${internalVarIndex++}';
     list_stmt.add(VarStmt(TokenIdentifier(HS_Common.Num, line, column + 4), TokenIdentifier(i, line, column + 8),
-        initializer: LiteralExpr(globalInterpreter.addLiteral(0), line, column, globalInterpreter.curFileName)));
+        initializer: LiteralExpr(interpreter.addLiteral(0), line, column, _curFileName)));
     // 指针
     var typename = match(HS_Common.Identifier);
     var varname = match(HS_Common.Identifier);
@@ -555,28 +560,26 @@ class Parser {
     expect([HS_Common.In], consume: true);
     var list_obj = _parseExpr();
     // 条件语句
-    var get_length = MemberGetExpr(list_obj, Token(HS_Common.length, line, column + 30), globalInterpreter.curFileName);
-    var condition = BinaryExpr(VarExpr(TokenIdentifier(i, line, column + 24), globalInterpreter.curFileName),
-        Token(HS_Common.Lesser, line, column + 26), get_length, globalInterpreter.curFileName);
+    var get_length = MemberGetExpr(list_obj, Token(HS_Common.length, line, column + 30), _curFileName);
+    var condition = BinaryExpr(VarExpr(TokenIdentifier(i, line, column + 24), _curFileName),
+        Token(HS_Common.Lesser, line, column + 26), get_length, _curFileName);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <Stmt>[];
     // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
-    var sub_get_value = SubGetExpr(
-        list_obj.clone(),
-        VarExpr(TokenIdentifier(i, line + 1, column + 14), globalInterpreter.curFileName),
-        globalInterpreter.curFileName);
+    var sub_get_value =
+        SubGetExpr(list_obj.clone(), VarExpr(TokenIdentifier(i, line + 1, column + 14), _curFileName), _curFileName);
     var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname.lexeme, line + 1, column),
-        Token(HS_Common.Assign, line + 1, column + 10), sub_get_value, globalInterpreter.curFileName));
+        Token(HS_Common.Assign, line + 1, column + 10), sub_get_value, _curFileName));
     loop_body.add(assign_stmt);
     // 递增下标变量
     var increment_expr = BinaryExpr(
-        VarExpr(TokenIdentifier(i, line + 1, column + 18), globalInterpreter.curFileName),
+        VarExpr(TokenIdentifier(i, line + 1, column + 18), _curFileName),
         Token(HS_Common.Add, line + 1, column + 22),
-        LiteralExpr(globalInterpreter.addLiteral(1), line + 1, column + 24, globalInterpreter.curFileName),
-        globalInterpreter.curFileName);
+        LiteralExpr(interpreter.addLiteral(1), line + 1, column + 24, _curFileName),
+        _curFileName);
     var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, line + 1, column),
-        Token(HS_Common.Assign, line + 1, column + 20), increment_expr, globalInterpreter.curFileName));
+        Token(HS_Common.Assign, line + 1, column + 20), increment_expr, _curFileName));
     loop_body.add(increment_stmt);
     // 循环体
     expect([HS_Common.RoundRight], consume: true);
@@ -649,7 +652,7 @@ class Parser {
         arity = _parseParameters(params);
       }
       if ((functype == FuncStmtType.setter) && (arity != 1))
-        throw HSErr_Setter(func_name.line, func_name.column, globalInterpreter.curFileName);
+        throw HSErr_Setter(func_name.line, func_name.column, _curFileName);
     }
     var body = <Stmt>[];
     if (!is_extern) {
@@ -706,7 +709,7 @@ class Parser {
     VarExpr super_class;
     // 继承父类
     if (expect([HS_Common.Extends], consume: true, error: false)) {
-      super_class = VarExpr(match(HS_Common.Identifier), globalInterpreter.curFileName);
+      super_class = VarExpr(match(HS_Common.Identifier), _curFileName);
     }
     // 类的定义体
     expect([HS_Common.CurlyLeft], consume: true);
