@@ -701,7 +701,7 @@ class Parser {
     ClassStmt stmt;
     // 已经判断过了所以直接跳过Class关键字
     advance(1);
-    var class_name = curTok;
+    var className = curTok;
     _curClassName = advance(1).lexeme;
     VarExpr super_class;
     // 继承父类
@@ -722,7 +722,7 @@ class Parser {
     }
     expect([HS_Common.CurlyRight], consume: true);
 
-    stmt = ClassStmt(class_name, super_class, variables, methods);
+    stmt = ClassStmt(className, super_class, variables, methods);
     _curClassName = null;
     return stmt;
   }

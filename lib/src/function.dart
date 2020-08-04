@@ -23,7 +23,7 @@ class HS_FuncObj extends HS_Instance {
 
   final int arity;
 
-  HS_FuncObj(this.name, // int line, int column, String file_name,
+  HS_FuncObj(this.name, // int line, int column, String fileName,
       {this.className,
       this.funcStmt,
       this.closure,
@@ -31,15 +31,15 @@ class HS_FuncObj extends HS_Instance {
       this.functype = FuncStmtType.normal,
       this.arity = 0})
       : super(globalInterpreter.fetchGlobal(
-            HS_Common.FunctionObj, null, null, globalInterpreter.curFileName)); //, line, column, file_name);
+            HS_Common.Function, null, null, globalInterpreter.curFileName)); //, line, column, fileName);
 
   // 成员函数外层是实例
-  HS_FuncObj bind(HS_Instance instance, int line, int column, String file_name) {
+  HS_FuncObj bind(HS_Instance instance, int line, int column, String fileName) {
     Namespace namespace = Namespace(globalInterpreter.curFileName,
-        //instance.line, instance.column, instance.file_name,
+        //instance.line, instance.column, instance.fileName,
         enclosing: instance);
-    namespace.define(HS_Common.This, instance.type, line, column, file_name, value: instance);
-    return HS_FuncObj(name, // line, column, file_name,
+    namespace.define(HS_Common.This, instance.type, line, column, fileName, value: instance);
+    return HS_FuncObj(name, // line, column, fileName,
         className: className,
         funcStmt: funcStmt,
         closure: namespace,
@@ -48,7 +48,7 @@ class HS_FuncObj extends HS_Instance {
         arity: arity);
   }
 
-  dynamic call(int line, int column, String file_name, List<dynamic> args) {
+  dynamic call(int line, int column, String fileName, List<dynamic> args) {
     assert(args != null);
     try {
       if (extern != null) {
@@ -66,18 +66,18 @@ class HS_FuncObj extends HS_Instance {
         }
 
         var instance =
-            closure?.fetchAt(0, HS_Common.This, line, column, file_name, error: false, from: closure.spaceName);
+            closure?.fetchAt(0, HS_Common.This, line, column, fileName, error: false, from: closure.spaceName);
         return extern(globalInterpreter, instance, args ?? []);
       } else {
         var environment = Namespace(globalInterpreter.curFileName,
-            //closure?.line, closure?.column, closure?.file_name,
+            //closure?.line, closure?.column, closure?.fileName,
             enclosing: closure);
         if (funcStmt != null) {
           if (arity >= 0) {
             if (args.length < arity) {
-              throw HSErr_Arity(name, args.length, arity, line, column, file_name);
+              throw HSErr_Arity(name, args.length, arity, line, column, fileName);
             } else if (args.length > funcStmt.params.length) {
-              throw HSErr_Arity(name, args.length, funcStmt.params.length, line, column, file_name);
+              throw HSErr_Arity(name, args.length, funcStmt.params.length, line, column, fileName);
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
@@ -87,7 +87,7 @@ class HS_FuncObj extends HS_Instance {
                   if ((type_token.lexeme != HS_Common.Dynamic) &&
                       (type_token.lexeme != arg_type) &&
                       (arg_type != HS_Common.Null)) {
-                    throw HSErr_ArgType(arg_type, type_token.lexeme, line, column, file_name);
+                    throw HSErr_ArgType(arg_type, type_token.lexeme, line, column, fileName);
                   }
                 }
               }
@@ -99,32 +99,32 @@ class HS_FuncObj extends HS_Instance {
               // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
               if (i < args.length) {
                 environment.define(
-                    funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, file_name,
+                    funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, fileName,
                     value: args[i]);
               } else {
                 var initializer = funcStmt.params[i].initializer;
                 var init_value;
                 if (initializer != null) init_value = globalInterpreter.evaluateExpr(funcStmt.params[i].initializer);
                 environment.define(
-                    funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, file_name,
+                    funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, fileName,
                     value: init_value);
               }
             }
           } else {
             assert(funcStmt.params.length == 1);
             // “? args”形式的参数列表可以通过args这个List访问参数
-            environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, file_name, value: args);
+            environment.define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, fileName, value: args);
           }
           globalInterpreter.executeBlock(funcStmt.definition, environment);
         } else {
-          throw HSErr_MissingFuncDef(name, line, column, file_name);
+          throw HSErr_MissingFuncDef(name, line, column, fileName);
         }
       }
     } catch (returnValue) {
       if (returnValue is HS_Error) {
         throw returnValue;
       } else if ((returnValue is Exception) || (returnValue is NoSuchMethodError)) {
-        throw HS_Error(returnValue.toString(), line, column, file_name);
+        throw HS_Error(returnValue.toString(), line, column, fileName);
       }
 
       String returned_type = HS_TypeOf(returnValue);
@@ -133,7 +133,7 @@ class HS_FuncObj extends HS_Instance {
           (funcStmt.returnType != HS_Common.Dynamic) &&
           (returned_type != HS_Common.Null) &&
           (funcStmt.returnType != returned_type)) {
-        throw HSErr_ReturnType(returned_type, name, funcStmt.returnType, line, column, file_name);
+        throw HSErr_ReturnType(returned_type, name, funcStmt.returnType, line, column, fileName);
       }
 
       if (returnValue is NullThrownError) return null;
@@ -141,7 +141,7 @@ class HS_FuncObj extends HS_Instance {
     }
 
     if (functype == FuncStmtType.constructor) {
-      return closure.fetchAt(0, HS_Common.This, line, column, file_name, from: closure.spaceName);
+      return closure.fetchAt(0, HS_Common.This, line, column, fileName, from: closure.spaceName);
     } else {
       return null;
     }

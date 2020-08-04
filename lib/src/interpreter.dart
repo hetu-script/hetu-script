@@ -14,13 +14,10 @@ import 'lexer.dart';
 import 'parser.dart';
 import 'resolver.dart';
 
-var globalInterpreter = Interpreter();
-
-/// 全局命名空间
-var globalContext = Namespace(HS_Common.Global);
+var globalInterpreter = _Interpreter();
 
 /// 负责对语句列表进行最终解释执行
-class Interpreter implements ExprVisitor, StmtVisitor {
+class _Interpreter implements ExprVisitor, StmtVisitor {
   static String _sdkDir;
   String workingDir;
 
@@ -28,7 +25,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  final _locals = <Expr, int>{};
+  //final _locals = <Expr, int>{};
+
+  final _varPos = <Expr, String>{};
 
   /// 常量表
   final _constants = <dynamic>[];
@@ -40,12 +39,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   bool _isGlobal = true;
 
   /// external函数的空间
-  final _external = Namespace(HS_Common.Global);
+  final _external = Namespace(HS_Common.Global, null);
 
   Namespace _globalContext;
 
   Interpreter({Namespace global}) {
-    _globalContext = global != null ? global : globalContext;
+    _globalContext = global != null ? global : Namespace.global;
   }
 
   void init({
@@ -80,32 +79,44 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void eval(String script, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+  void eval(String script, String fileName, String libName,
+      {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
     final _lexer = Lexer();
     final _parser = Parser();
     final _resolver = Resolver();
     var tokens = _lexer.lex(script);
     var statements = _parser.parse(tokens, style: style);
-    _resolver.resolve(statements);
-    interpreter(
-      statements,
-      invokeFunc: invokeFunc,
-      args: args,
-    );
+    _resolver.resolve(statements, fileName, libName);
+    for (var stmt in statements) {
+      evaluateStmt(stmt);
+    }
+    if ((style != ParseStyle.commandLine) && (invokeFunc != null)) {
+      invoke(invokeFunc, args: args);
+    }
+    // interpreter(
+    //   statements,
+    //   invokeFunc: invokeFunc,
+    //   args: args,
+    // );
   }
 
   /// 解析文件
   void evalf(String filepath,
-      {String spaceName, ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+      {String libName = HS_Common.Global,
+      ParseStyle style = ParseStyle.library,
+      String invokeFunc = null,
+      List<dynamic> args}) {
     _curFileName = path.absolute(filepath);
     if (!_evaledFiles.contains(curFileName)) {
       print('Hetu: Loading $filepath...');
       _evaledFiles.add(curFileName);
       curContext = Namespace(curFileName, enclosing: _globalContext);
-      if (spaceName != null)
-        _globalContext.define(spaceName, HS_Common.Namespace, null, null, _curFileName, value: curContext);
+      // if (libName != null) {
+      //   _globalContext.define(libName, HS_Common.Namespace, null, null, _curFileName, value: curContext);
+      // }
 
-      eval(File(curFileName).readAsStringSync(), style: style, invokeFunc: invokeFunc, args: args);
+      eval(File(curFileName).readAsStringSync(), curFileName, libName,
+          style: style, invokeFunc: invokeFunc, args: args);
     }
     _curFileName = null;
   }
@@ -135,8 +146,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void addLocal(Expr expr, int distance) {
-    _locals[expr] = distance;
+  // void addLocal(Expr expr, int distance) {
+  //   _locals[expr] = distance;
+  // }
+
+  void addVarPos(Expr expr, String fullName) {
+    _varPos[expr] = fullName;
   }
 
   /// 定义一个常量，然后返回数组下标
@@ -200,53 +215,53 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  dynamic fetchGlobal(String name, int line, int column, String file_name, {String from}) =>
-      _globalContext.fetch(name, line, column, file_name, from: from);
-  dynamic fetchExternal(String name, int line, int column, String file_name) =>
-      _external.fetch(name, line, column, file_name);
+  dynamic fetchGlobal(String name, int line, int column, String fileName) =>
+      _globalContext.fetch(name, line, column, fileName);
+  dynamic fetchExternal(String name, int line, int column, String fileName) =>
+      _external.fetch(name, line, column, fileName);
 
   dynamic _getVar(String name, Expr expr) {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试获取当前环境中的本地变量
-      return curContext.fetchAt(distance, name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      return curContext.fetchAt(distance, name, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
     } else {
       try {
-        return curContext.fetch(name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+        return curContext.fetch(name, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
       } catch (e) {
         try {
           //TODO:在resolver中，每个expr保存一个Namespace的name，在Interpreter中，取出name，然后在对应的namespace中找到对应的value；
         } catch (e) {
           // 尝试获取全局变量
-          return _globalContext.fetch(name, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+          return _globalContext.fetch(name, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
         }
       }
     }
   }
 
-  dynamic unwrap(dynamic value, int line, int column, String file_name) {
+  dynamic unwrap(dynamic value, int line, int column, String fileName) {
     if (value is HS_Value) {
       return value;
     } else if (value is num) {
-      return HSVal_Num(value, line, column, file_name);
+      return HSVal_Num(value, line, column, fileName);
     } else if (value is bool) {
-      return HSVal_Bool(value, line, column, file_name);
+      return HSVal_Bool(value, line, column, fileName);
     } else if (value is String) {
-      return HSVal_String(value, line, column, file_name);
+      return HSVal_String(value, line, column, fileName);
     } else {
       return value;
     }
   }
 
-  void interpreter(List<Stmt> statements, {bool commandLine = false, String invokeFunc = null, List<dynamic> args}) {
-    for (var stmt in statements) {
-      evaluateStmt(stmt);
-    }
+  // void interpreter(List<Stmt> statements, {bool commandLine = false, String invokeFunc = null, List<dynamic> args}) {
+  //   for (var stmt in statements) {
+  //     evaluateStmt(stmt);
+  //   }
 
-    if ((!commandLine) && (invokeFunc != null)) {
-      invoke(invokeFunc, args: args);
-    }
-  }
+  //   if ((!commandLine) && (invokeFunc != null)) {
+  //     invoke(invokeFunc, args: args);
+  //   }
+  // }
 
   dynamic invoke(String name, {String classname, List<dynamic> args}) {
     HS_Error.clear();
@@ -483,7 +498,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     if (callee is HS_FuncObj) {
       if (callee.functype != FuncStmtType.constructor) {
-        return callee.call(expr.line, expr.column, expr.file_name, args ?? []);
+        return callee.call(expr.line, expr.column, expr.fileName, args ?? []);
       } else {
         //TODO命名构造函数
       }
@@ -498,7 +513,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       //   }
       // }
 
-      return callee.createInstance(expr.line, expr.column, expr.file_name, args: args);
+      return callee.createInstance(expr.line, expr.column, expr.fileName, args: args);
     } else {
       throw HSErr_Callable(callee.toString(), expr.callee.line, expr.callee.column, curFileName);
     }
@@ -511,19 +526,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var distance = _locals[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      curContext.assignAt(distance, expr.variable.lexeme, value, expr.line, expr.column, expr.file_name,
+      curContext.assignAt(distance, expr.variable.lexeme, value, expr.line, expr.column, expr.fileName,
           from: curContext.spaceName);
     } else {
       try {
         // 尝试设置当前实例中的类成员变量
         HS_Instance instance =
-            curContext.fetch(HS_Common.This, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
-        instance.assign(expr.variable.lexeme, value, expr.line, expr.column, expr.file_name,
-            from: curContext.spaceName);
+            curContext.fetch(HS_Common.This, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
+        instance.assign(expr.variable.lexeme, value, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
       } catch (e) {
         if (e is HSErr_Undefined) {
           // 尝试设置全局变量
-          _globalContext.assign(expr.variable.lexeme, value, expr.line, expr.column, expr.file_name);
+          _globalContext.assign(expr.variable.lexeme, value, expr.line, expr.column, expr.fileName);
         } else {
           throw e;
         }
@@ -551,7 +565,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       return collection[key];
     }
 
-    throw HSErr_SubGet(collection.toString(), expr.line, expr.column, expr.file_name);
+    throw HSErr_SubGet(collection.toString(), expr.line, expr.column, expr.fileName);
   }
 
   @override
@@ -565,32 +579,32 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       return collection[key] = value;
     }
 
-    throw HSErr_SubGet(collection.toString(), expr.line, expr.column, expr.file_name);
+    throw HSErr_SubGet(collection.toString(), expr.line, expr.column, expr.fileName);
   }
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
     var object = evaluateExpr(expr.collection);
     if ((object is HS_Instance) || (object is HS_Class)) {
-      return object.fetch(expr.key.lexeme, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      return object.fetch(expr.key.lexeme, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
     } else if (object is num) {
-      return HSVal_Num(object, expr.line, expr.column, expr.file_name)
-          .fetch(expr.key.lexeme, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      return HSVal_Num(object, expr.line, expr.column, expr.fileName)
+          .fetch(expr.key.lexeme, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
     } else if (object is bool) {
-      return HSVal_Bool(object, expr.line, expr.column, expr.file_name)
-          .fetch(expr.key.lexeme, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      return HSVal_Bool(object, expr.line, expr.column, expr.fileName)
+          .fetch(expr.key.lexeme, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
     } else if (object is String) {
-      return HSVal_String(object, expr.line, expr.column, expr.file_name)
-          .fetch(expr.key.lexeme, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      return HSVal_String(object, expr.line, expr.column, expr.fileName)
+          .fetch(expr.key.lexeme, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
     } else if (object is List) {
-      return HSVal_List(object, expr.line, expr.column, expr.file_name)
-          .fetch(expr.key.lexeme, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      return HSVal_List(object, expr.line, expr.column, expr.fileName)
+          .fetch(expr.key.lexeme, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
     } else if (object is Map) {
-      return HSVal_Map(object, expr.line, expr.column, expr.file_name)
-          .fetch(expr.key.lexeme, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      return HSVal_Map(object, expr.line, expr.column, expr.fileName)
+          .fetch(expr.key.lexeme, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
     }
 
-    throw HSErr_Get(object.toString(), expr.line, expr.column, expr.file_name);
+    throw HSErr_Get(object.toString(), expr.line, expr.column, expr.fileName);
   }
 
   @override
@@ -598,10 +612,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     dynamic object = evaluateExpr(expr.collection);
     var value = evaluateExpr(expr.value);
     if ((object is HS_Instance) || (object is HS_Class)) {
-      object.assign(expr.key.lexeme, value, expr.line, expr.column, expr.file_name, from: curContext.spaceName);
+      object.assign(expr.key.lexeme, value, expr.line, expr.column, expr.fileName, from: curContext.spaceName);
       return value;
     } else {
-      throw HSErr_Get(object.toString(), expr.key.line, expr.key.column, expr.file_name);
+      throw HSErr_Get(object.toString(), expr.key.line, expr.key.column, expr.fileName);
     }
   }
 
@@ -672,7 +686,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         evaluateStmt(stmt.elseBranch);
       }
     } else {
-      throw HSErr_Condition(stmt.condition.line, stmt.condition.column, stmt.condition.file_name);
+      throw HSErr_Condition(stmt.condition.line, stmt.condition.column, stmt.condition.fileName);
     }
   }
 
@@ -695,7 +709,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         }
       }
     } else {
-      throw HSErr_Condition(stmt.condition.line, stmt.condition.column, stmt.condition.file_name);
+      throw HSErr_Condition(stmt.condition.line, stmt.condition.column, stmt.condition.fileName);
     }
   }
 
@@ -734,6 +748,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   void visitClassStmt(ClassStmt stmt) {
     HS_Class superClass;
+
+    //TODO: while superClass != null, inherit all...
 
     if (stmt.superClass == null) {
       if (stmt.name.lexeme != HS_Common.Object)
@@ -796,7 +812,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     for (var method in stmt.methods) {
-      if (klass.contains(method.name.lexeme)) {
+      if (klass.containsKey(method.name.lexeme)) {
         throw HSErr_Defined(method.name.lexeme, method.name.line, method.name.column, curFileName);
       }
 

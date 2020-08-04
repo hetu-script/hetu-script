@@ -80,9 +80,9 @@ abstract class HS_Buildin {
   static dynamic _system_invoke(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.length >= 2) {
       var func_name = args[0];
-      var class_name = args[1];
+      var className = args[1];
       var arguments = args[2];
-      interpreter.invoke(func_name, classname: class_name, args: arguments);
+      interpreter.invoke(func_name, classname: className, args: arguments);
     }
   }
 
@@ -177,11 +177,11 @@ abstract class HS_Buildin {
 }
 
 abstract class HSVal_Value extends HS_Instance {
-  HSVal_Value(dynamic value, String class_name, int line, int column, String file_name)
-      : super(globalInterpreter.fetchGlobal(class_name, line, column, file_name,
-                from: globalInterpreter.curContext.spaceName) //, line, column, file_name
+  HSVal_Value(dynamic value, String className, int line, int column, String fileName)
+      : super(globalInterpreter.fetchGlobal(className, line, column, fileName,
+                from: globalInterpreter.curContext.spaceName) //, line, column, fileName
             ) {
-    define('_val', HS_TypeOf(value), line, column, file_name, value: value);
+    define('_val', HS_TypeOf(value), line, column, fileName, value: value);
   }
 
   dynamic get value => fetch('_val', null, null, globalInterpreter.curFileName, error: false, from: type);
@@ -195,7 +195,7 @@ abstract class HSVal_Value extends HS_Instance {
 }
 
 class HSVal_Num extends HSVal_Value {
-  HSVal_Num(num value, int line, int column, String file_name) : super(value, HS_Common.Num, line, column, file_name);
+  HSVal_Num(num value, int line, int column, String fileName) : super(value, HS_Common.Num, line, column, fileName);
 
   static dynamic _parse(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -223,13 +223,12 @@ class HSVal_Num extends HSVal_Value {
 }
 
 class HSVal_Bool extends HSVal_Value {
-  HSVal_Bool(bool value, int line, int column, String file_name)
-      : super(value, HS_Common.Bool, line, column, file_name);
+  HSVal_Bool(bool value, int line, int column, String fileName) : super(value, HS_Common.Bool, line, column, fileName);
 }
 
 class HSVal_String extends HSVal_Value {
-  HSVal_String(String value, int line, int column, String file_name)
-      : super(value, HS_Common.Str, line, column, file_name);
+  HSVal_String(String value, int line, int column, String fileName)
+      : super(value, HS_Common.Str, line, column, fileName);
 
   static dynamic _is_empty(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
@@ -258,8 +257,7 @@ class HSVal_String extends HSVal_Value {
 }
 
 class HSVal_List extends HSVal_Value {
-  HSVal_List(List value, int line, int column, String file_name)
-      : super(value, HS_Common.List, line, column, file_name);
+  HSVal_List(List value, int line, int column, String fileName) : super(value, HS_Common.List, line, column, fileName);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
@@ -315,7 +313,7 @@ class HSVal_List extends HSVal_Value {
 
 //TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
-  HSVal_Map(Map value, int line, int column, String file_name) : super(value, HS_Common.Map, line, column, file_name);
+  HSVal_Map(Map value, int line, int column, String fileName) : super(value, HS_Common.Map, line, column, fileName);
 
   static dynamic _get_length(Interpreter interpreter, HS_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);

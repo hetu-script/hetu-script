@@ -1,75 +1,98 @@
+import 'package:hetu_script/hetu.dart';
+
 import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
 import 'common.dart';
 import 'interpreter.dart';
+import 'namespace.dart';
 
 //> function-type
-enum _FunctionType {
-  none,
-  normal,
-  constructor,
-  method,
-}
+// enum _FunctionType {
+//   none,
+//   normal,
+//   constructor,
+//   method,
+// }
 
-enum _ClassType {
-  none,
-  normal,
-  subClass,
-}
+// enum _ClassType {
+//   none,
+//   normal,
+//   subClass,
+// }
 
 /// 负责对语句列表进行分析，并生成变量作用域
 class Resolver implements ExprVisitor, StmtVisitor {
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
-  var _blocks = <Map<String, bool>>[];
+  // var _blocks = <Map<String, bool>>[];
 
-  var _funcStmts = <FuncStmt, _FunctionType>{};
+  var _funcStmts = <FuncStmt, String>{};
 
-  _FunctionType _curFuncType = _FunctionType.none;
-  _ClassType _curClassType = _ClassType.none;
+  //_FunctionType _curFuncType = _FunctionType.none;
+  //_ClassType _curClassType = _ClassType.none;
 
-  void _beginBlock() => _blocks.add(<String, bool>{});
-  void _endBlock() => _blocks.removeLast();
+  Namespace _curSpace;
+  String _curFileName;
 
-  void _declare(String name, int line, int column, {bool define = false, bool error = true}) {
-    if (_blocks.isNotEmpty) {
-      var block = _blocks.last;
+  // void _beginBlock() => _blocks.add(<String, bool>{});
+  // void _endBlock() => _blocks.removeLast();
 
-      if (block.containsKey(name) && error) {
-        throw HSErr_Defined(name, line, column, globalInterpreter.curFileName);
-      }
-      block[name] = define;
-    }
-  }
+  // void _declare(String name, int line, int column, {bool define = false, bool error = true}) {
+  //   if (_blocks.isNotEmpty) {
+  //     var block = _blocks.last;
 
-  void _define(String name) {
-    if (_blocks.isNotEmpty) {
-      _blocks.last[name] = true;
-    }
-  }
+  //     if (block.containsKey(name) && error) {
+  //       throw HSErr_Defined(name, line, column, globalInterpreter.curFileName);
+  //     }
+  //     block[name] = define;
+  //   }
+  // }
 
-  void _addLocal(Expr expr, String varname) {
-    for (var i = _blocks.length - 1; i >= 0; --i) {
-      if (_blocks[i].containsKey(varname)) {
-        var distance = _blocks.length - 1 - i;
-        globalInterpreter.addLocal(expr, distance);
-        return;
-      }
-    }
+  // void _define(String name) {
+  //   if (_blocks.isNotEmpty) {
+  //     _blocks.last[name] = true;
+  //   }
+  // }
 
-    //print('$varname not found in local.');
-    // Not found. Assume it is global.
-  }
+  // void _addLocal(Expr expr, String varname) {
+  //   for (var i = _blocks.length - 1; i >= 0; --i) {
+  //     if (_blocks[i].containsKey(varname)) {
+  //       var distance = _blocks.length - 1 - i;
+  //       globalInterpreter.addLocal(expr, distance);
+  //       return;
+  //     }
+  //   }
 
-  void resolve(List<Stmt> statements) {
-    _beginBlock();
+  //   //print('$varname not found in local.');
+  //   // Not found. Assume it is global.
+  // }
+
+  void resolve(List<Stmt> statements, String fileName, String libName) {
+    _curSpace = Namespace(libName, enclosing: Namespace.global);
+    _curFileName = fileName;
+
+    //_beginBlock();
     for (var stmt in statements) {
       _resolveStmt(stmt);
     }
     for (var stmt in _funcStmts.keys) {
-      _resolveFunction(stmt, _funcStmts[stmt]);
+      _resolveFunction(stmt, _funcStmts[stmt]); //, _funcStmts[stmt]);
     }
-    _endBlock();
+    //_endBlock();
+  }
+
+  void _addExpr(Expr expr, String varname) {
+    var space = _curSpace;
+    String fullName = _curSpace.fullName;
+    while (!space.containsKey(varname)) {
+      space = _curSpace.enclosing;
+      if (space == null) {
+        throw HSErr_Undefined(varname, null, null, _curFileName);
+      }
+      fullName += HS_Common.Dot + space.name;
+    }
+
+    globalInterpreter.addVarPos(expr, fullName);
   }
 
   void _resolveBlock(List<Stmt> statements) {
@@ -78,26 +101,34 @@ class Resolver implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void _resolveExpr(Expr expr) => expr.accept(this);
-  void _resolveStmt(Stmt stmt) => stmt.accept(this);
+  void _resolveFunction(FuncStmt stmt, String fullName, {HS_Class klass}) //, _FunctionType type)
+  {
+    //var enclosingFunctionType = _curFuncType;
+    //_curFuncType = type;
+    var save = _curSpace;
+    _curSpace = Namespace.fetchSpace(fullName, null, null, _curFileName);
+    _curSpace.declare(HS_Common.This, null, null, _curFileName);
 
-  void _resolveFunction(FuncStmt stmt, _FunctionType type) {
-    var enclosingFunctionType = _curFuncType;
-    _curFuncType = type;
-
-    _beginBlock();
+    //_beginBlock();
     if (stmt.arity == -1) {
       assert(stmt.params.length == 1);
-      _declare(stmt.params.first.name.lexeme, stmt.params.first.name.line, stmt.params.first.name.column, define: true);
+      _curSpace.declare(
+          stmt.params.first.name.lexeme, stmt.params.first.name.line, stmt.params.first.name.column, _curFileName);
+      //_declare(stmt.params.first.name.lexeme, stmt.params.first.name.line, stmt.params.first.name.column, define: true);
     } else {
       for (var param in stmt.params) {
-        _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
+        _curSpace.declare(param.name.lexeme, param.name.line, param.name.column, _curFileName);
+        //_declare(param.name.lexeme, param.name.line, param.name.column, define: true);
       }
     }
     _resolveBlock(stmt.definition);
-    _endBlock();
-    _curFuncType = enclosingFunctionType;
+    _curSpace = save;
+    //_endBlock();
+    //_curFuncType = enclosingFunctionType;
   }
+
+  void _resolveExpr(Expr expr) => expr.accept(this);
+  void _resolveStmt(Stmt stmt) => stmt.accept(this);
 
   /// Null并没有任何变量需要解析，因此这里留空
   @override
@@ -123,13 +154,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitVarExpr(VarExpr expr) {
-    if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HSErr_Undefined(expr.name.lexeme, expr.line, expr.column, globalInterpreter.curFileName);
-    }
+  dynamic visitVarExpr(VarExpr expr) => _addExpr(expr, expr.name.lexeme);
+  // if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
+  //   throw HSErr_Undefined(expr.name.lexeme, expr.line, expr.column, globalInterpreter.curFileName);
+  // }
 
-    _addLocal(expr, expr.name.lexeme);
-  }
+  // _addLocal(expr, expr.name.lexeme);
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) => _resolveExpr(expr.inner);
@@ -157,7 +187,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
     _resolveExpr(expr.value);
-    _addLocal(expr, expr.variable.lexeme);
+    //_addLocal(expr, expr.variable.lexeme);
     return null;
   }
 
@@ -190,13 +220,15 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitVarStmt(VarStmt stmt) {
-    if (!stmt.isStatic) {
+    if (stmt.isStatic) {
+      //if (!stmt.isStatic) {
       if (stmt.initializer != null) {
         _resolveExpr(stmt.initializer);
-        _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+        //_declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
       } else {
-        _define(stmt.name.lexeme);
+        //_define(stmt.name.lexeme);
       }
+      _curSpace.declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, _curFileName);
     }
   }
 
@@ -205,25 +237,31 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitBlockStmt(BlockStmt stmt) {
-    _beginBlock();
+    var save = _curSpace;
+    _curSpace = Namespace(null, enclosing: _curSpace);
+    //_beginBlock();
     _resolveBlock(stmt.block);
-    _endBlock();
+    _curSpace = save;
+    //_endBlock();
   }
 
   @override
   void visitReturnStmt(ReturnStmt stmt) {
-    if (_curFuncType == _FunctionType.none) {
+    //if (_curFuncType == _FunctionType.none) {
+    if (_curSpace is HS_FuncObj) {
+      if (stmt.expr != null) {
+        if ((_curSpace as HS_FuncObj).functype == FuncStmtType.constructor //_FunctionType.constructor
+            ) {
+          throw HSErr_Unexpected(
+              stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, globalInterpreter.curFileName);
+        }
+        _resolveExpr(stmt.expr);
+      }
+    } else {
       throw HSErr_Unexpected(
           stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, globalInterpreter.curFileName);
     }
-
-    if (stmt.expr != null) {
-      if (_curFuncType == _FunctionType.constructor) {
-        throw HSErr_Unexpected(
-            stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, globalInterpreter.curFileName);
-      }
-      _resolveExpr(stmt.expr);
-    }
+    //}
   }
 
   @override
@@ -249,52 +287,50 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
-    _funcStmts[stmt] = _FunctionType.normal;
+    _curSpace.declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, _curFileName);
+    //_declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+    _funcStmts[stmt] = _curSpace.fullName; //_FunctionType.normal;
   }
 
   @override
   void visitClassStmt(ClassStmt stmt) {
-    _ClassType enclosingClass = _curClassType;
+    var klass = HS_Class(stmt.name.lexeme);
 
-    _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+    // 因为类本身就是一个命名空间，因此这里需要define而不是declare
+    _curSpace.define(stmt.name.lexeme, HS_Common.Class, stmt.name.line, stmt.name.column, _curFileName, value: klass);
 
-    if (stmt.superClass != null) {
-      if (stmt.name.lexeme == stmt.superClass.name.lexeme) {
-        throw HSErr_Unexpected(stmt.superClass.name.lexeme, stmt.superClass.name.line, stmt.superClass.name.column,
-            globalInterpreter.curFileName);
-      }
+    var savedSpace = _curSpace;
+    _curSpace = klass;
 
-      _resolveExpr(stmt.superClass);
-      _beginBlock();
-      _blocks.last[HS_Common.Super] = true;
-
-      _curClassType = _ClassType.subClass;
-    } else {
-      _curClassType = _ClassType.normal;
-    }
-
-    _beginBlock();
-    _blocks.last[HS_Common.This] = true;
     for (var variable in stmt.variables) {
-      visitVarStmt(variable);
+      if (variable.isStatic) {
+        if (klass.containsKey(variable.name.lexeme)) {
+          throw HSErr_Defined(variable.name.lexeme, variable.name.line, variable.name.column, _curFileName);
+        }
+
+        if (variable.initializer != null) {
+          _resolveExpr(variable.initializer);
+        }
+
+        klass.declare(variable.name.lexeme, variable.name.line, variable.name.column, _curFileName);
+      }
     }
 
-    var save = _funcStmts;
-    _funcStmts = <FuncStmt, _FunctionType>{};
+    var savedFuncStmts = _funcStmts;
+    _funcStmts = <FuncStmt, String>{};
     // 先注册函数名
     for (var method in stmt.methods) {
+      if (klass.containsKey(method.name.lexeme)) {
+        throw HSErr_Defined(method.name.lexeme, method.name.line, method.name.column, _curFileName);
+      }
+
       if (!method.isStatic) {
-        _declare(method.internalName, method.name.line, method.name.column, define: true);
+        klass.declare(method.internalName, method.name.line, method.name.column, _curFileName);
         if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
-            !_blocks.last.containsKey(method.name.lexeme)) {
-          _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
+            !klass.containsKey(method.name.lexeme)) {
+          klass.declare(method.name.lexeme, method.name.line, method.name.column, _curFileName);
         }
-        if (method.functype == FuncStmtType.constructor) {
-          _funcStmts[method] = _FunctionType.constructor;
-        } else {
-          _funcStmts[method] = _FunctionType.method;
-        }
+        _funcStmts[method] = klass.fullName + HS_Common.Dot + method.internalName;
       }
     }
     // 然后再解析函数定义
@@ -302,21 +338,17 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveFunction(stmt, _funcStmts[stmt]);
     }
 
-    _funcStmts = save;
+    _funcStmts = savedFuncStmts;
 
-    _endBlock();
-
-    if (stmt.superClass != null) _endBlock();
-
-    _curClassType = enclosingClass;
+    _curSpace = savedSpace;
   }
 
   @override
   void visitThisExpr(ThisExpr expr) {
-    if (_curClassType == _ClassType.none) {
+    if (_curSpace.enclosing is! HS_Class) {
       throw HSErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column, globalInterpreter.curFileName);
     }
 
-    _addLocal(expr, expr.keyword.lexeme);
+    _addExpr(expr, expr.keyword.lexeme);
   }
 }

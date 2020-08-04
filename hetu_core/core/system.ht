@@ -1,13 +1,13 @@
 class System {
-	// interpret a command line string
-	external static dynamic evalc(String command);
-	
-	// invoke a global or static member function
-	//
-	// for member function, func_name should be: "className.FuncName"
-	external static dynamic invoke(String func_name, String class_name, List args);
-	
-	external static String readfile(String filepath);
-	
-	external static num now();
+  // interpret a command line string
+  external static dynamic evalc(String command);
+
+  // invoke a global or static member function
+  //
+  // for member function, func_name should be: "className.FuncName"
+  external static dynamic invoke(String func_name, String className, List args);
+
+  external static String readfile(String filepath);
+
+  external static num now();
 }

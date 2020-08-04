@@ -141,7 +141,9 @@ abstract class HS_Common {
   static const Unknown = '?';
   static const Underscore = '_';
   static const InstanceName = 'instance of class ';
-  static const Global = 'Global';
+  static const Global = '__global__';
+  static const Extern = '__extern__';
+  static const Instance = '__instance__';
 
   static const UnknownType = 'unknown_type';
   static const Var = 'var';
@@ -327,7 +329,8 @@ abstract class HS_Common {
   static const ErrorPrivate = 'Could not acess private member';
   static const ErrorUndefined = 'Undefined identifier';
   static const ErrorUndefinedOperator = 'Undefined operator';
-  static const ErrorDefined = 'is already declared';
+  static const ErrorDeclared = 'is already declared';
+  static const ErrorDefined = 'is already defined';
   static const ErrorRange = 'Index out of range, should be less than';
   static const ErrorInvalidLeftValue = 'Invalid left-value';
   static const ErrorCallable = 'is not callable';
