@@ -143,6 +143,11 @@ class HSErr_Type extends HS_Error {
             fileName);
 }
 
+class HSErr_Mutable extends HS_Error {
+  HSErr_Mutable(String symbol, int line, int column, String fileName)
+      : super('"${symbol}" ${HS_Common.ErrorMutable}', line, column, fileName);
+}
+
 class HSErr_ArgType extends HS_Error {
   HSErr_ArgType(String assign_value, String decl_value, int line, int column, String fileName)
       : super('${HS_Common.ErrorArgType1} "${assign_value}" ${HS_Common.ErrorArgType2} "${decl_value}"', line, column,

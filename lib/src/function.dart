@@ -27,8 +27,7 @@ class HS_Function extends Namespace {
       : super(name: name, closure: closure); //, line, column, fileName);
 
   // 成员函数需要绑定到实例
-  HS_Function enclose(Namespace closure, int line, int column, Interpreter interpreter) {
-    if (closure is HS_Instance) closure.define(HS_Common.This, closure.type, line, column, interpreter, value: closure);
+  HS_Function bind(HS_Instance instance, int line, int column, Interpreter interpreter) {
     return HS_Function(
         name, // line, column, fileName,
         funcStmt,
@@ -46,7 +45,7 @@ class HS_Function extends Namespace {
             if (i >= args.length) {
               var initializer = funcStmt.params[i].initializer;
               if (initializer != null) {
-                var init_value = globalInterpreter.evaluateExpr(funcStmt.params[i].initializer);
+                var init_value = interpreter.evaluateExpr(funcStmt.params[i].initializer);
                 args.add(init_value);
               }
             }
@@ -91,7 +90,7 @@ class HS_Function extends Namespace {
               } else {
                 var initializer = funcStmt.params[i].initializer;
                 var init_value;
-                if (initializer != null) init_value = globalInterpreter.evaluateExpr(funcStmt.params[i].initializer);
+                if (initializer != null) init_value = interpreter.evaluateExpr(funcStmt.params[i].initializer);
                 define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
                     value: init_value);
               }

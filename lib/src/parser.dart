@@ -454,7 +454,7 @@ class Parser {
     if (expect([HS_Common.As], consume: true, error: false)) {
       spacename = match(HS_Common.Identifier).lexeme;
     }
-    var stmt = ImportStmt(filename, spacename: spacename);
+    var stmt = ImportStmt(filename, asspace: spacename);
     expect([HS_Common.Semicolon], consume: true);
     return stmt;
   }

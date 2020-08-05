@@ -16,5 +16,4 @@ export 'src/class.dart';
 export 'src/function.dart';
 export 'src/errors.dart';
 
-var hetu = globalInterpreter;
-var global = globalContext;
+var hetu = Interpreter();

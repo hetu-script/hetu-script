@@ -13,13 +13,13 @@ abstract class HS_Value {
 
 }
 
-class Definition {
+class Field {
   final String type;
-
   // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HS_Value
   dynamic value;
+  bool mutable;
 
-  Definition(this.type, {this.value});
+  Field(this.type, {this.value, this.mutable = true});
 }
 
 class Namespace extends HS_Value {
@@ -30,7 +30,7 @@ class Namespace extends HS_Value {
   String _fullName;
   String get fullName => _fullName;
 
-  final Map<String, Definition> defs = {};
+  final Map<String, Field> defs = {};
   Namespace _closure;
   Namespace get closure => _closure;
   void set closure(Namespace closure) {
@@ -58,18 +58,72 @@ class Namespace extends HS_Value {
     String fullName,
     Namespace closure,
   }) {
-    _closure = closure == null ? global : closure;
     _name = name == null ? '__namespace${_anonymousSpaceIndex++}' : name;
+    _closure = closure;
     _fullName = fullName == null ? getFullName(_name, this) : fullName;
   }
 
-  Namespace outer(int distance) {
-    var namespace = this;
-    for (var i = 0; i < distance; i++) {
-      namespace = namespace.closure;
-    }
+  // Namespace outer(int distance) {
+  //   var namespace = this;
+  //   for (var i = 0; i < distance; i++) {
+  //     namespace = namespace.closure;
+  //   }
 
-    return namespace;
+  //   return namespace;
+  // }
+
+  bool contains(String varName) {
+    if (defs.containsKey(varName)) return true;
+    if (closure != null) return closure.contains(varName);
+    return false;
+  }
+
+  String lookUp(String varName) {
+    String fullName = name;
+    var space = this;
+    while (!space.contains(varName)) {
+      space = space.closure;
+      if (space == null) {
+        return null;
+      }
+      fullName = space.name + HS_Common.Dot + fullName;
+    }
+    return fullName;
+  }
+
+  //dynamic fetchAt(int distance, String name, int line, int column, String fileName,
+  //    {bool error = true, String from = HS_Common.Global}) {
+  //  var space = outer(distance);
+  //  return space.fetch(name, line, column, fileName, error: error, from: from);
+  //}
+
+  /// 在当前命名空间声明一个变量名称
+  void declare(String varName, int line, int column, String fileName) {
+    if (!defs.containsKey(varName)) {
+      defs[varName] = null;
+    } else {
+      throw HSErr_Defined(varName, line, column, fileName);
+    }
+  }
+
+  /// 在当前命名空间定义一个变量的类型
+  void define(String varName, String varType, int line, int column, Interpreter interpreter, {dynamic value}) {
+    var val_type = HS_TypeOf(value);
+    assert(defs.containsKey(varName));
+    if ((varType == HS_Common.Dynamic) || ((value != null) && (varType == val_type)) || (value == null)) {
+      defs[varName] = Field(varType, value: value);
+    } else if ((value != null) && (value is Map)) {
+      var klass = interpreter.global.fetch(varType, line, column, interpreter);
+      if (klass is HS_Class) {
+        var instance = klass.createInstance(interpreter, line, column, this);
+        for (var key in value.keys) {
+          instance.setValue(key, value[key], line, column, interpreter, error: false);
+        }
+        defs[varName] = Field(varType, value: instance);
+      } else {
+        throw HSErr_Type(val_type, varType, line, column, interpreter.curFileName);
+      }
+    }
   }
 
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
@@ -88,61 +142,24 @@ class Namespace extends HS_Value {
     return null;
   }
 
-  //dynamic fetchAt(int distance, String name, int line, int column, String fileName,
-  //    {bool error = true, String from = HS_Common.Global}) {
-  //  var space = outer(distance);
-  //  return space.fetch(name, line, column, fileName, error: error, from: from);
-  //}
-
-  /// 在当前命名空间声明一个变量名称
-  void declare(String varname, int line, int column, String fileName) {
-    if (!defs.containsKey(varname)) {
-      defs[varname] = null;
-    } else {
-      throw HSErr_Defined(varname, line, column, fileName);
-    }
-  }
-
-  /// 在当前命名空间定义一个变量的类型
-  void define(String varname, String vartype, int line, int column, Interpreter interpreter, {dynamic value}) {
-    var val_type = HS_TypeOf(value);
-    assert(defs.containsKey(varname));
-    if ((vartype == HS_Common.Dynamic) || ((value != null) && (vartype == val_type)) || (value == null)) {
-      defs[varname] = Definition(vartype, value: value);
-    } else if ((value != null) && (value is Map)) {
-      var klass = globalInterpreter.fetchGlobal(vartype, line, column, interpreter.curFileName);
-      if (klass is HS_Class) {
-        var instance = klass.createInstance(interpreter, line, column, this);
-        for (var key in value.keys) {
-          if (instance.contains(key)) {
-            instance.assign(key, value[key], line, column, interpreter.curFileName, from: instance.name);
-          }
-        }
-        defs[varname] = Definition(vartype, value: instance);
-      } else {
-        throw HSErr_Type(val_type, vartype, line, column, interpreter.curFileName);
-      }
-    }
-  }
-
   /// 向一个已经定义的变量赋值
-  void assign(String varname, dynamic value, int line, int column, Interpreter interpreter,
-      {String from = HS_Common.Global}) {
-    if (defs.containsKey(varname)) {
-      if (from.startsWith(this.fullName) || (!varname.startsWith(HS_Common.Underscore))) {
-        var vartype = defs[varname].type;
-        if ((vartype == HS_Common.Dynamic) || ((value != null) && (vartype == HS_TypeOf(value))) || (value == null)) {
-          defs[varname].value = value;
+  void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
+      {String from = HS_Common.Global, bool recursive = true}) {
+    if (defs.containsKey(varName)) {
+      if (from.startsWith(this.fullName) || (!varName.startsWith(HS_Common.Underscore))) {
+        var varType = defs[varName].type;
+        if ((varType == HS_Common.Dynamic) || ((value != null) && (varType == HS_TypeOf(value))) || (value == null)) {
+          defs[varName].value = value;
         } else {
-          throw HSErr_Type(HS_TypeOf(value), vartype, line, column, interpreter.curFileName);
+          throw HSErr_Type(HS_TypeOf(value), varType, line, column, interpreter.curFileName);
         }
       } else {
-        throw HSErr_Private(varname, line, column, interpreter.curFileName);
+        throw HSErr_Private(varName, line, column, interpreter.curFileName);
       }
-    } else if (closure != null) {
-      closure.assign(varname, value, line, column, interpreter, from: from);
+    } else if (recursive && (closure != null)) {
+      closure.assign(varName, value, line, column, interpreter, from: from);
     } else {
-      throw HSErr_Undefined(varname, line, column, interpreter.curFileName);
+      throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
     }
   }
 
@@ -151,8 +168,4 @@ class Namespace extends HS_Value {
   //   var space = outer(distance);
   //   space.assign(name, value, line, column, interpreter, from: from);
   // }
-
-  bool contains(String key) => defs.containsKey(key);
-
-  void clear() => defs.clear();
 }

@@ -342,6 +342,7 @@ abstract class HS_Common {
   static const ErrorExtends = 'is not a class';
   static const ErrorSetter = 'Setter function\'s arity must be 1';
   static const ErrorNullObject = 'is null';
+  static const ErrorMutable = 'is immutable';
 
   static const ErrorType1 = 'Assigned value type';
   static const ErrorType2 = 'doesn\'t match declared type';
