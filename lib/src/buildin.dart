@@ -68,7 +68,7 @@ abstract class HS_Buildin {
   static dynamic _system_evalc(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       try {
-        return globalInterpreter.evalc(args.first.toString());
+        return hetu.evalc(args.first.toString());
       } catch (e) {
         print(e);
       }
@@ -80,7 +80,7 @@ abstract class HS_Buildin {
       var func_name = args[0];
       var className = args[1];
       var arguments = args[2];
-      globalInterpreter.invoke(func_name, classname: className, args: arguments);
+      hetu.invoke(func_name, classname: className, args: arguments);
     }
   }
 

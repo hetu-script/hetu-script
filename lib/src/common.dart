@@ -327,6 +327,7 @@ abstract class HS_Common {
   static const ErrorExpected = 'expected, get';
   static const ErrorUnexpected = 'Unexpected identifier';
   static const ErrorPrivate = 'Could not acess private member';
+  static const ErrorInitialized = 'has not initialized';
   static const ErrorUndefined = 'Undefined identifier';
   static const ErrorUndefinedOperator = 'Undefined operator';
   static const ErrorDeclared = 'is already declared';

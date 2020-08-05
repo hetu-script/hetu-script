@@ -59,6 +59,11 @@ class HSErr_Private extends HS_Error {
       : super('${HS_Common.ErrorPrivate} "${symbol}"', line, column, fileName);
 }
 
+class HSErr_Initialized extends HS_Error {
+  HSErr_Initialized(String symbol, int line, int column, String fileName)
+      : super('"${symbol}" ${HS_Common.ErrorInitialized}', line, column, fileName);
+}
+
 class HSErr_Undefined extends HS_Error {
   HSErr_Undefined(String symbol, int line, int column, String fileName)
       : super('${HS_Common.ErrorUndefined} "${symbol}"', line, column, fileName);

@@ -31,6 +31,7 @@ class Calculator {
     this.x = x;
     this.y = y;
     greeting();
+    Console.print(meaning().toString());
   }
 
   // 带有返回类型的成员函数
@@ -54,11 +55,11 @@ void main() {
   // 调用外部函数，访问类静态变量，getter函数，调用外部成员函数，字符串类型检查
 
   // 列表的创建和添加元素
-  var list = [Calculator.name + ' says:'];
-  list.add('the meaning of life, universe and everything');
-  list.add('is ' + w.cal.meaning().toString());
+  // var list = [Calculator.name + ' says:'];
+  // list.add('the meaning of life, universe and everything');
+  // list.add('is ' + w.cal.meaning().toString());
 
-  for (var i in list) {
-    Console.print(i);
-  }
+  // for (var i in list) {
+  //   Console.print(i);
+  // }
 }

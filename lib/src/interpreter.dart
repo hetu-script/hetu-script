@@ -21,24 +21,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   var _evaledFiles = <String>[];
 
+  /// 全局命名空间
   final global = Namespace(name: HS_Common.Global);
   final extern = Namespace(name: HS_Common.Extern);
-
-  /// 全局命名空间
-  final Map<String, Namespace> _spaces = {};
-
-  Namespace getSpace(String fullName, int line, int column, String fileName, {Namespace closure}) {
-    if (!_spaces.containsKey(fullName)) {
-      _spaces[fullName] = Namespace(name: fullName.split('.').last, fullName: fullName, closure: closure);
-    }
-    return _spaces[fullName];
-  }
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   //final _locals = <Expr, int>{};
 
-  final _varPos = <Expr, String>{};
+  final _distances = <Expr, int>{};
 
   /// 常量表
   final _constants = <dynamic>[];
@@ -47,13 +38,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   Namespace curContext;
   String _curFileName;
   String get curFileName => _curFileName;
-
-  Interpreter() {
-    _spaces.addAll({
-      HS_Common.Global: global,
-      HS_Common.Extern: extern,
-    });
-  }
 
   void init({
     String hetuSdkDir,
@@ -76,9 +60,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       linkAll(linkMap);
 
       // 载入基础库
-      evalf(path.join(hetuSdkDir, 'value.ht'));
-      evalf(path.join(hetuSdkDir, 'system.ht'));
-      evalf(path.join(hetuSdkDir, 'console.ht'));
+      evalf(path.join(_sdkDir, 'value.ht'));
+      evalf(path.join(_sdkDir, 'system.ht'));
+      evalf(path.join(_sdkDir, 'console.ht'));
     } catch (e) {
       stdout.write('\x1B[32m');
       print(e);
@@ -95,12 +79,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if ((libName != null) && (libName != HS_Common.Global)) {
       curContext = Namespace(name: libName);
     }
-    final _lexer = Lexer();
-    final _parser = Parser(this);
-    final _resolver = Resolver(this);
-    var tokens = _lexer.lex(script);
-    var statements = _parser.parse(tokens, fileName, style: style);
-    _resolver.resolve(statements, curContext, fileName);
+    var statements = Parser(this).parse(Lexer().lex(script), fileName, style: style);
+    Resolver(this).resolve(statements, fileName);
     for (var stmt in statements) {
       evaluateStmt(stmt);
     }
@@ -155,8 +135,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   //   _locals[expr] = distance;
   // }
 
-  void addVarPos(Expr expr, String fullName) {
-    _varPos[expr] = fullName;
+  void addVarPos(Expr expr, int distance) {
+    _distances[expr] = distance;
   }
 
   /// 定义一个常量，然后返回数组下标
@@ -192,13 +172,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   dynamic _getVar(String name, Expr expr) {
-    var full_name = _varPos[expr];
-    if (full_name != null) {
-      // 尝试获取当前环境中的本地变量
-      return _spaces[full_name].fetch(name, expr.line, expr.column, this, from: curContext.fullName, recursive: false);
+    var distance = _distances[expr];
+    if (distance != null) {
+      return curContext.fetchAt(name, distance, expr.line, expr.column, this);
     }
 
-    return curContext.fetch(name, expr.line, expr.column, this, from: curContext.fullName, recursive: true);
+    return global.fetch(name, expr.line, expr.column, this);
   }
 
   dynamic unwrap(dynamic value, int line, int column, String fileName) {
@@ -481,16 +460,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
     var value = evaluateExpr(expr.value);
-    var full_name = _varPos[expr];
-    if (full_name != null) {
-      // 尝试设置当前环境中的本地变量
-      _spaces[full_name].assign(expr.variable.lexeme, value, expr.line, expr.column, this,
-          from: curContext.fullName, recursive: false);
-    } else {
-      // 尝试设置当前实例中的类成员变量
-      HS_Instance instance = curContext.fetch(HS_Common.This, expr.line, expr.column, this);
-      instance.setValue(expr.variable.lexeme, value, expr.line, expr.column, this);
-    }
+    var distance = _distances[expr];
+    // 尝试设置当前环境中的本地变量
+    curContext.assignAt(expr.variable.lexeme, value, distance, expr.line, expr.column, this);
 
     // 返回右值
     return value;
@@ -546,9 +518,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       object = HSVal_Map(object, expr.line, expr.column, this);
     }
 
-    if (object is HS_Instance) {
-      return object.getValue(expr.key.lexeme, expr.line, expr.column, this);
-    } else if (object is HS_Class) {
+    if ((object is HS_Instance) || (object is HS_Class)) {
       return object.fetch(expr.key.lexeme, expr.line, expr.column, this, from: curContext.fullName);
     }
 
@@ -559,9 +529,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
     dynamic object = evaluateExpr(expr.collection);
     var value = evaluateExpr(expr.value);
-    if (object is HS_Instance) {
-      object.setValue(expr.key.lexeme, value, expr.line, expr.column, this);
-    } else if (object is HS_Class) {
+    if ((object is HS_Instance) || (object is HS_Class)) {
       object.assign(expr.key.lexeme, value, expr.line, expr.column, this, from: curContext.fullName);
       return value;
     }
@@ -612,7 +580,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitBlockStmt(BlockStmt stmt) {
-    executeBlock(stmt.block, defineSpace(Namespace(closure: curContext)));
+    executeBlock(stmt.block, Namespace(closure: curContext));
   }
 
   @override
@@ -691,27 +659,20 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     //TODO: while superClass != null, inherit all...
 
-    // if (stmt.superClass == null) {
-    //   if (stmt.name.lexeme != HS_Common.Object)
-    //     superClass = global.fetch(HS_Common.Object, stmt.name.line, stmt.name.column, this);
-    // } else {
-    //   superClass = evaluateExpr(stmt.superClass);
-    //   if (superClass is! HS_Class) {
-    //     throw HSErr_Extends(superClass.name, stmt.superClass.line, stmt.superClass.column, curFileName);
-    //   }
-    // }
-
-    var klass = HS_Class(stmt.name.lexeme);
-    //,superClass: superClass);
-
-    if (stmt.superClass != null) {
-      klass.define(HS_Common.Super, HS_Common.Class, stmt.name.line, stmt.name.column, curFileName, value: superClass);
+    if (stmt.superClass == null) {
+      if (stmt.name.lexeme != HS_Common.Object)
+        superClass = global.fetch(HS_Common.Object, stmt.name.line, stmt.name.column, this);
+    } else {
+      superClass = evaluateExpr(stmt.superClass);
+      if (superClass is! HS_Class) {
+        throw HSErr_Extends(superClass.name, stmt.superClass.line, stmt.superClass.column, curFileName);
+      }
     }
 
+    var klass = HS_Class(stmt.name.lexeme, superClass: superClass, closure: curContext);
+
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    Namespace space;
-    space = _isGlobal && !stmt.name.lexeme.startsWith(HS_Common.Underscore) ? _globalContext : curContext;
-    space.define(stmt.name.lexeme, HS_Common.Class, stmt.name.line, stmt.name.column, curFileName, value: klass);
+    curContext.define(stmt.name.lexeme, HS_Common.Class, stmt.name.line, stmt.name.column, this, value: klass);
 
     for (var variable in stmt.variables) {
       if (variable.isStatic) {
@@ -719,31 +680,31 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         if (variable.initializer != null) {
           var save = curContext;
           curContext = klass;
-          value = globalInterpreter.evaluateExpr(variable.initializer);
+          value = evaluateExpr(variable.initializer);
           curContext = save;
         } else if (variable.isExtern) {
-          value = globalInterpreter.fetchExternal('${stmt.name.lexeme}${HS_Common.Dot}${variable.name.lexeme}',
-              variable.name.line, variable.name.column, curFileName);
+          value = extern.fetch('${stmt.name.lexeme}${HS_Common.Dot}${variable.name.lexeme}', variable.name.line,
+              variable.name.column, this,
+              from: HS_Common.Extern);
         }
 
         if (variable.typename.lexeme == HS_Common.Dynamic) {
-          klass.define(variable.name.lexeme, variable.typename.lexeme, variable.typename.line, variable.typename.column,
-              curFileName,
+          klass.define(
+              variable.name.lexeme, variable.typename.lexeme, variable.typename.line, variable.typename.column, this,
               value: value);
         } else if (variable.typename.lexeme == HS_Common.Var) {
           // 如果用了var关键字，则从初始化表达式推断变量类型
           if (value != null) {
-            klass.define(
-                variable.name.lexeme, HS_TypeOf(value), variable.typename.line, variable.typename.column, curFileName,
+            klass.define(variable.name.lexeme, HS_TypeOf(value), variable.typename.line, variable.typename.column, this,
                 value: value);
           } else {
             klass.define(
-                variable.name.lexeme, HS_Common.Dynamic, variable.typename.line, variable.typename.column, curFileName);
+                variable.name.lexeme, HS_Common.Dynamic, variable.typename.line, variable.typename.column, this);
           }
         } else {
           // 接下来define函数会判断类型是否符合声明
-          klass.define(variable.name.lexeme, variable.typename.lexeme, variable.typename.line, variable.typename.column,
-              curFileName,
+          klass.define(
+              variable.name.lexeme, variable.typename.lexeme, variable.typename.line, variable.typename.column, this,
               value: value);
         }
       } else {
@@ -752,42 +713,27 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     for (var method in stmt.methods) {
-      if (klass.containsKey(method.name.lexeme)) {
+      if (klass.contains(method.internalName)) {
         throw HSErr_Defined(method.name.lexeme, method.name.line, method.name.column, curFileName);
       }
 
       HS_Function func;
-      if (method.isExtern) {
-        var externFunc = globalInterpreter.fetchExternal('${stmt.name.lexeme}${HS_Common.Dot}${method.internalName}',
-            method.name.line, method.name.column, curFileName);
-        func = HS_Function(method.internalName, //method.name.line, method.name.column, curFileName,
-            className: stmt.name.lexeme,
-            funcStmt: method,
-            extern: externFunc,
-            functype: method.functype,
-            arity: method.arity);
-      } else {
-        Namespace closure;
-        if (method.isStatic) {
-          // 静态函数外层是类本身
-          closure = klass;
-        } else {
-          // 成员函数外层是实例，在某个实例取出函数的时候才绑定到那个实例上
-          closure = null;
-        }
-        func = HS_Function(method.internalName, //method.name.line, method.name.column, curFileName,
-            className: stmt.name.lexeme,
-            funcStmt: method,
-            closure: closure,
-            functype: method.functype,
-            arity: method.arity);
-      }
+      Namespace closure;
+      HS_External externFunc;
       if (method.isStatic) {
-        klass.define(method.internalName, HS_Common.FunctionObj, method.name.line, method.name.column, curFileName,
-            value: func);
+        // 静态函数外层是类本身
+        closure = klass;
       } else {
-        klass.addMethod(method.internalName, func, method.name.line, method.name.column, curFileName);
+        // 成员函数外层是实例，在某个实例取出函数的时候才绑定到那个实例上
+        closure = null;
       }
+      if (method.isExtern) {
+        externFunc = extern.fetch(
+            '${stmt.name.lexeme}${HS_Common.Dot}${method.internalName}', method.name.line, method.name.column, this,
+            from: HS_Common.Extern);
+      }
+      func = HS_Function(method.internalName, method, extern: externFunc, closure: closure);
+      klass.define(method.internalName, HS_Common.FunctionObj, method.name.line, method.name.column, this, value: func);
     }
   }
 }

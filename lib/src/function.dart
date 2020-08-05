@@ -32,7 +32,7 @@ class HS_Function extends Namespace {
         name, // line, column, fileName,
         funcStmt,
         extern: extern,
-        closure: closure);
+        closure: instance);
   }
 
   dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args) {
@@ -52,7 +52,7 @@ class HS_Function extends Namespace {
           }
         }
 
-        var instance = fetch(HS_Common.This, line, column, interpreter, error: false, from: closure.fullName);
+        var instance = fetch(HS_Common.This, line, column, interpreter, nonExistError: false, from: closure.fullName);
         return extern(instance, args ?? []);
       } else {
         //var environment = Namespace(
@@ -76,23 +76,15 @@ class HS_Function extends Namespace {
                       (arg_type != HS_Common.Null)) {
                     throw HSErr_ArgType(arg_type, type_token.lexeme, line, column, interpreter.curFileName);
                   }
+                  define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
+                      value: args[i]);
+                } else {
+                  var initializer = funcStmt.params[i].initializer;
+                  var init_value;
+                  if (initializer != null) init_value = interpreter.evaluateExpr(funcStmt.params[i].initializer);
+                  define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
+                      value: init_value);
                 }
-              }
-            }
-          }
-
-          if (funcStmt.arity != -1) {
-            for (var i = 0; i < funcStmt.params.length; i++) {
-              // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
-              if (i < args.length) {
-                define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
-                    value: args[i]);
-              } else {
-                var initializer = funcStmt.params[i].initializer;
-                var init_value;
-                if (initializer != null) init_value = interpreter.evaluateExpr(funcStmt.params[i].initializer);
-                define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
-                    value: init_value);
               }
             }
           } else {
@@ -100,6 +92,7 @@ class HS_Function extends Namespace {
             // “? args”形式的参数列表可以通过args这个List访问参数
             define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, interpreter, value: args);
           }
+
           interpreter.executeBlock(funcStmt.definition, this);
         } else {
           throw HSErr_MissingFuncDef(name, line, column, interpreter.curFileName);
