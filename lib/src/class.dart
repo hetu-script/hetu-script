@@ -156,7 +156,7 @@ class HS_Class extends Namespace {
     var instance = HS_Instance(this);
 
     var save = interpreter.curContext;
-    interpreter.curContext = this;
+    interpreter.curContext = instance;
     for (var decl in variables.values) {
       dynamic value;
       if (decl.initializer != null) {

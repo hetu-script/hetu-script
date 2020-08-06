@@ -43,8 +43,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     String hetuSdkDir,
     String workingDir,
     String language = 'enUS',
-    Map<String, HS_External> bindMap,
-    Map<String, HS_External> linkMap,
+    Map<String, HS_External> externs,
   }) {
     try {
       _sdkDir = hetuSdkDir ?? 'hetu_core';
@@ -56,8 +55,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       eval(HS_Buildin.coreLib, 'core.ht');
 
       // 绑定外部函数
-      linkAll(HS_Buildin.linkmap);
-      linkAll(linkMap);
+      linkAll(HS_Buildin.externs);
+      linkAll(externs);
 
       // 载入基础库
       evalf(path.join(_sdkDir, 'value.ht'));
@@ -79,7 +78,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if ((libName != null) && (libName != HS_Common.Global)) {
       curContext = Namespace(name: libName);
     }
-    var statements = Parser(this).parse(Lexer().lex(script), fileName, style: style);
+    var tokens = Lexer().lex(script);
+    var statements = Parser(this).parse(tokens, fileName, style: style);
     Resolver(this).resolve(statements, fileName);
     for (var stmt in statements) {
       evaluateStmt(stmt);

@@ -14,7 +14,7 @@ abstract class HS_Buildin {
       '}\n'
       'class Function {}\n';
 
-  static Map<String, HS_External> linkmap = {
+  static Map<String, HS_External> externs = {
     'typeOf': _type_of,
     'System.evalc': _system_evalc,
     'System.invoke': _system_invoke,
@@ -317,7 +317,7 @@ class HSVal_List extends HSVal_Value {
 //TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
   HSVal_Map(Map value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.List, line, column, interpreter);
+      : super(value, HS_Common.Map, line, column, interpreter);
 
   static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);

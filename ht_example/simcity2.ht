@@ -1,20 +1,34 @@
 import 'hetu:math';
 
-class Profession {
-  static String farmer = 'farmer';
-  static String worker = 'worker';
-  static String soldier = 'soldier';
-}
+String child = '0-15';
+String young = '16-30';
+String middle = '31-45';
+String old = '45-60';
+String dotage = '60+';
 
-class Pleb {
+String food = 'food';
+String energy = 'energy';
+String material = 'material';
+St ring money = 'money';
+
+String klass = 'class';
+String age = 'age';
+String resource = 'resource';
+
+String farmer = 'farmer';
+String worker = 'worker';
+String soldier = 'soldier';
+
+class Char {
   num age; // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
+  String job;
   List professions;
 
   num get ageByYear {
     return age / (12 * 30).truncate();
   }
 
-  Pleb(List professions, [num age]) {
+  Char(List professions, [num age]) {
     this.professions = professions;
     if (age != null)
       this.age = age;
@@ -29,12 +43,6 @@ class Organization {
   // <String, num>每个职业对应的人口数量
   Map profStats = {};
 
-  static String child = '0-15';
-  static String young = '16-30';
-  static String middle = '31-45';
-  static String old = '45-60';
-  static String dotage = '60+';
-
   // <String, num>每个年龄段对应的人口数量：
   Map ageStats = {
     child: 0,
@@ -44,30 +52,52 @@ class Organization {
     dotage: 0,
   };
 
-  void debug() {
-    Console.print('population: ' + population.length.toString());
-    for (var prof in profStats.keys) {
-      Console.print('  ' +
-          prof +
-          ': ' +
-          profStats[prof].toStringAsFixed() +
-          '(' +
-          ((profStats[prof] / population.length) * 100).toStringAsFixed(2) +
-          '%)');
-    }
+  Map resources = {
+    food: 0,
+    energy: 0,
+    material: 0,
+    money: 0,
+  };
+
+  void debug(List info) {
     Console.print('----------------');
-    for (var period in ageStats.keys) {
-      Console.print('  ' +
-          period +
-          ': ' +
-          ageStats[period].toStringAsFixed() +
-          '(' +
-          ((ageStats[period] / population.length) * 100).toStringAsFixed(2) +
-          '%)');
+    Console.print('population: ' + population.length.toString());
+    if (info.contains('class')) {
+      Console.print('----------------');
+      Console.print('  classes:');
+      for (var prof in profStats.keys) {
+        Console.print('  ' +
+            prof +
+            ': ' +
+            profStats[prof].toStringAsFixed() +
+            '(' +
+            ((profStats[prof] / population.length) * 100).toStringAsFixed(2) +
+            '%)');
+      }
+    }
+    if (info.contains('age')) {
+      Console.print('----------------');
+      Console.print('  age:');
+      for (var period in ageStats.keys) {
+        Console.print('  ' +
+            period +
+            ': ' +
+            ageStats[period].toStringAsFixed() +
+            '(' +
+            ((ageStats[period] / population.length) * 100).toStringAsFixed(2) +
+            '%)');
+      }
+    }
+    if (info.contains('resource')) {
+      Console.print('----------------');
+      Console.print('  resource:');
+      for (var resource in resources.keys) {
+        Console.print('  ' + resource + ': ' + resources[resource].toStringAsFixed());
+      }
     }
   }
 
-  void addPleb(Pleb p) {
+  void addChar(Char p) {
     population.add(p);
 
     for (var prof in p.professions) {
@@ -97,22 +127,22 @@ void main() {
   var i = 0;
   while (i <= 6) {
     i = i + 1;
-    huaxia.addPleb(Pleb(['farmer']));
+    huaxia.addChar(Char(['farmer']));
   }
   i = 0;
   while (i <= 3) {
     i = i + 1;
-    huaxia.addPleb(Pleb(['worker']));
+    huaxia.addChar(Char(['worker']));
   }
   i = 0;
   while (i <= 2) {
     i = i + 1;
-    huaxia.addPleb(Pleb(['soldier']));
+    huaxia.addChar(Char(['soldier']));
   }
 
-  huaxia.addPleb(Pleb(['farmer', 'soldier']));
-  huaxia.addPleb(Pleb(['farmer', 'worker']));
-  huaxia.addPleb(Pleb(['soldier', 'worker']));
+  huaxia.addChar(Char(['farmer', 'soldier']));
+  huaxia.addChar(Char(['farmer', 'worker']));
+  huaxia.addChar(Char(['soldier', 'worker']));
 
-  huaxia.debug();
+  huaxia.debug([klass, age, resource]);
 }
