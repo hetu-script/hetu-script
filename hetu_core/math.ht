@@ -1,26 +1,26 @@
-num max(num a, num b) {
+func max(a: num, b: num): num {
   if (a > b) return a;
   return b;
 }
 
-num min(num a, num b) {
+func min(a: num, b: num): num {
   if (a < b) return a;
   return b;
 }
 
-num abs(num x) {
+func abs(x: num): num {
   if (x < 0) return -x;
   return x;
 }
 
-external num random();
+external func random(): num;
 
-external num randomInt(num max);
+external func randomInt(max: num): num;
 
-external num sqrt(num x);
+external func sqrt(x: num): num;
 
-external num log(num x);
+external func log(x: num): num;
 
-external num sin(num x);
+external func sin(x: num): num;
 
-external num cos(num x);
+external func cos(x: num): num;

@@ -9,10 +9,10 @@ typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args)
 
 class HS_Function extends Namespace {
   @override
-  String get type => HS_Common.FunctionObj;
+  String get type => HS_Common.Function;
 
   @override
-  String toString() => '$name(${HS_Common.FunctionObj})';
+  String toString() => '$name(${HS_Common.Function})';
 
   final String name;
   final FuncStmt funcStmt;
@@ -55,10 +55,6 @@ class HS_Function extends Namespace {
         var instance = fetch(HS_Common.This, line, column, interpreter, nonExistError: false, from: closure.fullName);
         return extern(instance, args ?? []);
       } else {
-        //var environment = Namespace(
-        //globalInterpreter.curFileName,
-        //closure?.line, closure?.column, closure?.fileName,
-        //closure: closure);
         if (funcStmt != null) {
           if (funcStmt.arity >= 0) {
             if (args.length < funcStmt.arity) {
@@ -68,30 +64,35 @@ class HS_Function extends Namespace {
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
+                var type_token = funcStmt.params[i].typename;
+                var arg_type_decl;
+                if (type_token != null) {
+                  arg_type_decl = type_token.lexeme;
+                } else {
+                  arg_type_decl = HS_Common.Dynamic;
+                }
+
                 if (i < args.length) {
-                  var type_token = funcStmt.params[i].typename;
                   var arg_type = HS_TypeOf(args[i]);
-                  if ((type_token.lexeme != HS_Common.Dynamic) &&
-                      (type_token.lexeme != arg_type) &&
+                  if ((arg_type_decl != HS_Common.Dynamic) &&
+                      (arg_type_decl != arg_type) &&
                       (arg_type != HS_Common.Null)) {
-                    throw HSErr_ArgType(arg_type, type_token.lexeme, line, column, interpreter.curFileName);
+                    throw HSErr_ArgType(arg_type, arg_type_decl, line, column, interpreter.curFileName);
                   }
-                  define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
-                      value: args[i]);
+
+                  define(funcStmt.params[i].name.lexeme, arg_type_decl, line, column, interpreter, value: args[i]);
                 } else {
                   var initializer = funcStmt.params[i].initializer;
                   var init_value;
                   if (initializer != null) init_value = interpreter.evaluateExpr(funcStmt.params[i].initializer);
-                  define(funcStmt.params[i].name.lexeme, funcStmt.params[i].typename.lexeme, line, column, interpreter,
-                      value: init_value);
+                  define(funcStmt.params[i].name.lexeme, arg_type_decl, line, column, interpreter, value: init_value);
                 }
               }
             }
-          } else {
-            assert(funcStmt.params.length == 1);
-            // “? args”形式的参数列表可以通过args这个List访问参数
-            define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, interpreter, value: args);
           }
+
+          // “?”形式的参数列表只能通过arguments这个List访问参数
+          define(HS_Common.Arguments, HS_Common.List, line, column, interpreter, value: args);
 
           interpreter.executeBlock(funcStmt.definition, this);
         } else {

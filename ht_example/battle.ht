@@ -1,13 +1,13 @@
 import 'hetu:math';
 
-String next_char_name;
+var next_char_name: String;
 
 class char_info {
-  String name;
-  num strength;
-  num vitality;
-  num initiative;
-  bool ko = false;
+  var name: String;
+  var strength: num;
+  var vitality: num;
+  var initiative: num;
+  var ko = false;
 }
 
 var player = char_info();
@@ -15,7 +15,7 @@ var enemy = char_info();
 
 var charList = [player, enemy];
 
-void main() {
+func main {
   player.strength = 76;
   player.vitality = 76 * 1.2;
   player.name = 'player';
@@ -26,7 +26,7 @@ void main() {
   start(92, 103);
 }
 
-void start(num player_dex, num enemy_dex) {
+func start(num player_dex, num enemy_dex) {
   Console.print('战斗开始！');
 
   player.initiative = 1000 / Math.sqrt(player_dex) - 20;

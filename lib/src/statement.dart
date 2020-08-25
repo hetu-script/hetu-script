@@ -83,7 +83,7 @@ class VarStmt extends Stmt {
 
   final bool isStatic;
 
-  VarStmt(this.typename, this.name, {this.initializer, this.isExtern = false, this.isStatic = false});
+  VarStmt(this.name, this.typename, {this.initializer, this.isExtern = false, this.isStatic = false});
 }
 
 class ExprStmt extends Stmt {
@@ -176,7 +176,7 @@ enum FuncStmtType {
   method,
   getter,
   setter,
-  constructor,
+  initter,
 }
 
 class FuncStmt extends Stmt {
@@ -215,9 +215,9 @@ class FuncStmt extends Stmt {
       this.isStatic = false,
       this.functype = FuncStmtType.normal}) {
     this.definition ??= <Stmt>[];
-    if (functype == FuncStmtType.constructor) {
+    if (functype == FuncStmtType.initter) {
       //_internalName = name.lexeme;
-      _internalName = HS_Common.Constructor + name.lexeme;
+      _internalName = HS_Common.Initter + name.lexeme;
     } else if (functype == FuncStmtType.getter) {
       _internalName = HS_Common.Getter + name.lexeme;
     } else if (functype == FuncStmtType.setter) {

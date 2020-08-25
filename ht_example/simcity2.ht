@@ -1,34 +1,34 @@
 import 'hetu:math';
 
-String child = '0-15';
-String young = '16-30';
-String middle = '31-45';
-String old = '45-60';
-String dotage = '60+';
+var child = '0-15';
+var young = '16-30';
+var middle = '31-45';
+var old = '45-60';
+var dotage = '60+';
 
-String food = 'food';
-String energy = 'energy';
-String material = 'material';
-St ring money = 'money';
+var food = 'food';
+var energy = 'energy';
+var material = 'material';
+var money = 'money';
 
-String klass = 'class';
-String age = 'age';
-String resource = 'resource';
+var klass = 'class';
+var age = 'age';
+var resource = 'resource';
 
-String farmer = 'farmer';
-String worker = 'worker';
-String soldier = 'soldier';
+var farmer = 'farmer';
+var worker = 'worker';
+var soldier = 'soldier';
 
 class Char {
-  num age; // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
-  String job;
-  List professions;
+  var age: num; // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
+  var job: String;
+  var professions: List;
 
-  num get ageByYear {
+  get ageByYear: num {
     return age / (12 * 30).truncate();
   }
 
-  Char(List professions, [num age]) {
+  init (List professions, [num age]) {
     this.professions = professions;
     if (age != null)
       this.age = age;
@@ -38,13 +38,13 @@ class Char {
 }
 
 class Organization {
-  List population = [];
+  var population = [];
 
   // <String, num>每个职业对应的人口数量
-  Map profStats = {};
+  var profStats = {};
 
   // <String, num>每个年龄段对应的人口数量：
-  Map ageStats = {
+  var ageStats = {
     child: 0,
     young: 0,
     middle: 0,
@@ -52,14 +52,14 @@ class Organization {
     dotage: 0,
   };
 
-  Map resources = {
+  var resources = {
     food: 0,
     energy: 0,
     material: 0,
     money: 0,
   };
 
-  void debug(List info) {
+  func debug(info: List) {
     Console.print('----------------');
     Console.print('population: ' + population.length.toString());
     if (info.contains('class')) {
@@ -97,7 +97,7 @@ class Organization {
     }
   }
 
-  void addChar(Char p) {
+  func addChar(p: Char) {
     population.add(p);
 
     for (var prof in p.professions) {
@@ -121,7 +121,7 @@ class Organization {
   }
 }
 
-void main() {
+func main {
   var huaxia = Organization();
 
   var i = 0;

@@ -16,13 +16,13 @@ abstract class HS_Buildin {
 
   static Map<String, HS_External> externs = {
     'typeOf': _type_of,
+    'print': _print,
     'System.evalc': _system_evalc,
     'System.invoke': _system_invoke,
     'System.readfile': _system_readfile,
     'System.now': _system_now,
     'Console.write': _console_write,
     'Console.writeln': _console_writeln,
-    'Console.print': _console_print,
     'Console.getln': _console_getln,
     'Console.eraseLine': _console_erase_line,
     'Console.setTitle': _console_set_title,
@@ -65,6 +65,12 @@ abstract class HS_Buildin {
     }
   }
 
+  static dynamic _print(HS_Instance instance, List<dynamic> args) {
+    for (var arg in args) {
+      print(arg);
+    }
+  }
+
   static dynamic _system_evalc(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       try {
@@ -90,12 +96,6 @@ abstract class HS_Buildin {
 
   static dynamic _console_writeln(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) stdout.writeln(args.first);
-  }
-
-  static dynamic _console_print(HS_Instance instance, List<dynamic> args) {
-    for (var arg in args) {
-      print(arg);
-    }
   }
 
   static dynamic _console_getln(HS_Instance instance, List<dynamic> args) {

@@ -1,11 +1,11 @@
-num fib(num x) {
+func fib(num x): num {
   
   if (x < 2) return x;
   else return fib(x - 2) + fib(x - 1);
 
 }
   
-void main(){
+func main {
 
   var before = now();
 	System.print(fib(15));

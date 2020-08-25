@@ -95,8 +95,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     _beginBlock();
     if (stmt.arity == -1) {
-      assert(stmt.params.length == 1);
-      _declare(stmt.params.first.name.lexeme, stmt.params.first.name.line, stmt.params.first.name.column, define: true);
+      _declare(HS_Common.Arguments, stmt.name.line, stmt.name.column, define: true);
     } else {
       for (var param in stmt.params) {
         _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
@@ -140,7 +139,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
             !_blocks.last.containsKey(method.name.lexeme)) {
           _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
         }
-        if (method.functype != FuncStmtType.constructor) {
+        if (method.functype != FuncStmtType.initter) {
           _funcs.add(method);
         }
       }
@@ -162,7 +161,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // 成员函数，先注册函数名
     for (var method in stmt.methods) {
       if (!method.isStatic) {
-        if (method.functype != FuncStmtType.constructor) {
+        if (method.functype != FuncStmtType.initter) {
           _declare(method.internalName, method.name.line, method.name.column, define: true);
           if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
               !_blocks.last.containsKey(method.name.lexeme)) {
@@ -295,7 +294,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitReturnStmt(ReturnStmt stmt) {
-    if ((_curFuncType == null) || (_curFuncType == FuncStmtType.constructor)) {
+    if ((_curFuncType == null) || (_curFuncType == FuncStmtType.initter)) {
       throw HSErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, _curFileName);
     }
 

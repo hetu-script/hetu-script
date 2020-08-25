@@ -1,7 +1,7 @@
-void working(String content) {
+func working(String content) {
   Console.print('I\'m working on ' + content);
 }
 
-void main() {
+func main {
   System.invoke('working', null, ['strength']);
 }

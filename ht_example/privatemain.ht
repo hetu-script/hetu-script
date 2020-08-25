@@ -1,16 +1,16 @@
 import 'private.ht';
 
 class _CC {
-  static void greetings() {
+  static func greetings {
     Console.print('this is a private class in the same file.');
   }
 }
 
-void _privateFuncInSameFile() {
+func _privateFuncInSameFile {
   Console.print('this is a private func in the same file.');
 }
 
-void main() {
+func main() {
   //_privateFunc();
   //_privateFuncInSameFile();
   //publicFunc();

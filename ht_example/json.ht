@@ -1,5 +1,5 @@
 // 程序入口
-void main() {
+func main {
   var map = {"hello": 42};
   Console.print(map is Map);
 }

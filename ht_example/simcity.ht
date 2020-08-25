@@ -1,16 +1,16 @@
-num month;
-num population = 10;
-num birthrate = 0.002;
+var month: num;
+var population = 10;
+var birthrate = 0.002;
 
-num food = 100;
-num energy = 100;
-num material = 100;
-num money = 100;
+var food = 100;
+var energy = 100;
+var material = 100;
+var money = 100;
 
-num farmer_num = 5;
-num lumber_num = 5;
+var farmer_num = 5;
+var lumber_num = 5;
 
-void farmerConsume(num worker_num) {
+func farmerConsume(worker_num: num) {
   var consumption = worker_num * 1;
   Console.print('农民消费了：' + consumption.toStringAsFixed(2) + '份食物');
   food = food - consumption;
@@ -19,13 +19,13 @@ void farmerConsume(num worker_num) {
   energy = energy - consumption;
 }
 
-void farmerProduce(num worker_num) {
+func farmerProduce(worker_num: num) {
   var production = worker_num * 1;
   Console.print('农民生产了：' + production.toStringAsFixed(2) + '份食物');
   food = food + production;
 }
 
-void lumberConsume(num worker_num) {
+func lumberConsume(worker_num: num) {
   var consumption = worker_num * 1;
   Console.print('伐木工消费了：' + consumption.toStringAsFixed(2) + '份食物');
   food = food - consumption;
@@ -34,13 +34,13 @@ void lumberConsume(num worker_num) {
   energy = energy - consumption;
 }
 
-void lumberProduce(num worker_num) {
+func lumberProduce(worker_num: num) {
   var production = worker_num * 1;
   Console.print('伐木工生产了：' + production.toStringAsFixed(2) + '份能源');
   energy = energy + production;
 }
 
-void getNewNum() {
+func getNewNum {
   Console.print('----------------');
   Console.print('第' + month.toString() + '月，人口：' + population.toStringAsFixed(2));
   Console.print('食物：' + food.toStringAsFixed(2));

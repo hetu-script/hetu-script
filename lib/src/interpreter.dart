@@ -59,6 +59,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       linkAll(externs);
 
       // 载入基础库
+      evalf(path.join(_sdkDir, 'core.ht'));
       evalf(path.join(_sdkDir, 'value.ht'));
       evalf(path.join(_sdkDir, 'system.ht'));
       evalf(path.join(_sdkDir, 'console.ht'));
@@ -435,7 +436,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     if (callee is HS_Function) {
-      if (callee.funcStmt.functype != FuncStmtType.constructor) {
+      if (callee.funcStmt.functype != FuncStmtType.initter) {
         return callee.call(this, expr.line, expr.column, args ?? []);
       } else {
         //TODO命名构造函数
@@ -557,21 +558,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       value = evaluateExpr(stmt.initializer);
     }
 
-    if (stmt.typename.lexeme == HS_Common.Dynamic) {
-      curContext.define(stmt.name.lexeme, stmt.typename.lexeme, stmt.typename.line, stmt.typename.column, this,
-          value: value);
-    } else if (stmt.typename.lexeme == HS_Common.Var) {
-      // 如果用了var关键字，则从初始化表达式推断变量类型
-      if (value != null) {
-        curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.typename.line, stmt.typename.column, this,
-            value: value);
-      } else {
-        curContext.define(stmt.name.lexeme, HS_Common.Dynamic, stmt.typename.line, stmt.typename.column, this);
-      }
+    if (stmt.typename != null) {
+      // TODO: 解析类型名，判断是否是class
+      curContext.define(stmt.name.lexeme, stmt.typename.lexeme, stmt.name.line, stmt.name.column, this, value: value);
     } else {
-      // 接下来define函数会判断类型是否符合声明
-      curContext.define(stmt.name.lexeme, stmt.typename.lexeme, stmt.typename.line, stmt.typename.column, this,
-          value: value);
+      // 从初始化表达式推断变量类型
+      if (value != null) {
+        curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this, value: value);
+      } else {
+        curContext.define(stmt.name.lexeme, HS_Common.Dynamic, stmt.name.line, stmt.name.column, this);
+      }
     }
   }
 
@@ -641,7 +637,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   void visitFuncStmt(FuncStmt stmt) {
     // 构造函数本身不注册为变量
-    if (stmt.functype != FuncStmtType.constructor) {
+    if (stmt.functype != FuncStmtType.initter) {
       HS_Function func;
       HS_External externFunc;
       if (stmt.isExtern) {
@@ -649,7 +645,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
       func = HS_Function(stmt.internalName, stmt, extern: externFunc, closure: curContext);
 
-      curContext.define(stmt.name.lexeme, HS_Common.FunctionObj, stmt.name.line, stmt.name.column, this, value: func);
+      curContext.define(stmt.name.lexeme, HS_Common.Function, stmt.name.line, stmt.name.column, this, value: func);
     }
   }
 
@@ -688,24 +684,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
               from: HS_Common.Extern);
         }
 
-        if (variable.typename.lexeme == HS_Common.Dynamic) {
-          klass.define(
-              variable.name.lexeme, variable.typename.lexeme, variable.typename.line, variable.typename.column, this,
+        if (variable.typename != null) {
+          // TODO: 解析类型名，判断是否是class
+          klass.define(variable.name.lexeme, variable.typename.lexeme, variable.name.line, variable.name.column, this,
               value: value);
-        } else if (variable.typename.lexeme == HS_Common.Var) {
-          // 如果用了var关键字，则从初始化表达式推断变量类型
+        } else {
+          // 从初始化表达式推断变量类型
           if (value != null) {
-            klass.define(variable.name.lexeme, HS_TypeOf(value), variable.typename.line, variable.typename.column, this,
+            klass.define(variable.name.lexeme, HS_TypeOf(value), variable.name.line, variable.name.column, this,
                 value: value);
           } else {
-            klass.define(
-                variable.name.lexeme, HS_Common.Dynamic, variable.typename.line, variable.typename.column, this);
+            klass.define(variable.name.lexeme, HS_Common.Dynamic, variable.name.line, variable.name.column, this);
           }
-        } else {
-          // 接下来define函数会判断类型是否符合声明
-          klass.define(
-              variable.name.lexeme, variable.typename.lexeme, variable.typename.line, variable.typename.column, this,
-              value: value);
         }
       } else {
         klass.addVariable(variable);
@@ -733,7 +723,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             from: HS_Common.Extern);
       }
       func = HS_Function(method.internalName, method, extern: externFunc, closure: closure);
-      klass.define(method.internalName, HS_Common.FunctionObj, method.name.line, method.name.column, this, value: func);
+      klass.define(method.internalName, HS_Common.Function, method.name.line, method.name.column, this, value: func);
     }
   }
 }

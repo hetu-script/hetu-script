@@ -71,11 +71,14 @@ abstract class HS_Common {
     Static,
     Const,
     Final,
+    Var,
     Namespace,
     As,
     Abstract,
     Class,
-    Function,
+    Func,
+    Arguments,
+    Init,
     Get,
     Set,
     This,
@@ -161,8 +164,8 @@ abstract class HS_Common {
   static const Null = 'null';
   static const Static = 'static';
   static const Const = 'const';
-  static const Construct = 'construct';
-  static const Constructor = '_constructor_';
+  static const Init = 'init';
+  static const Initter = '_init_';
   static const Get = 'get';
   static const Getter = '_get_';
   static const Set = 'set';
@@ -172,8 +175,9 @@ abstract class HS_Common {
   static const As = 'as';
   static const Abstract = 'abstract';
   static const Class = 'class';
-  static const Function = 'function';
-  static const FunctionObj = 'Function';
+  static const Func = 'func';
+  static const Arguments = 'arguments';
+  static const Function = 'Function';
   static const Method = 'method';
   static const This = 'this';
   static const Super = 'super';

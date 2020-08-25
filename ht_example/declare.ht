@@ -2,6 +2,6 @@ var a = 12;
 
 var b = a;
 
-void main() {
+func main {
   Console.print(b);
 }

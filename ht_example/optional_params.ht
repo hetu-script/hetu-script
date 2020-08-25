@@ -1,8 +1,8 @@
-void hello(String words, [num times = 112]) {
+func hello(String words, [num times = 112]) {
   Console.print(words, times);
 }
 
 // 程序入口
-void main() {
+func main {
   hello('hello');
 }

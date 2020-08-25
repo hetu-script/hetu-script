@@ -152,7 +152,7 @@ class HS_Class extends Namespace {
   }
 
   HS_Instance createInstance(Interpreter interpreter, int line, int column, Namespace closure,
-      {String constructorName, List<dynamic> args}) {
+      {String initterName, List<dynamic> args}) {
     var instance = HS_Instance(this);
 
     var save = interpreter.curContext;
@@ -163,25 +163,23 @@ class HS_Class extends Namespace {
         value = interpreter.evaluateExpr(decl.initializer);
       }
 
-      if (decl.typename.lexeme == HS_Common.Dynamic) {
+      if (decl.typename != null) {
         instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, interpreter, value: value);
-      } else if (decl.typename.lexeme == HS_Common.Var) {
-        // 如果用了var关键字，则从初始化表达式推断变量类型
+      } else {
+        // 从初始化表达式推断变量类型
         if (value != null) {
           instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, interpreter, value: value);
         } else {
           instance.define(decl.name.lexeme, HS_Common.Dynamic, line, column, interpreter);
         }
-      } else {
-        // 接下来define函数会判断类型是否符合声明
-        instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, interpreter, value: value);
       }
     }
+
     interpreter.curContext = save;
 
-    constructorName = HS_Common.Constructor + (constructorName == null ? name : constructorName);
+    initterName = HS_Common.Initter + (initterName == null ? name : initterName);
 
-    var constructor = fetch(constructorName, line, column, interpreter, nonExistError: false, from: name);
+    var constructor = fetch(initterName, line, column, interpreter, nonExistError: false, from: name);
 
     if (constructor is HS_Function) {
       constructor.bind(instance, line, column, interpreter).call(interpreter, line, column, args ?? []);

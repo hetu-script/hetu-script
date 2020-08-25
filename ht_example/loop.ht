@@ -1,6 +1,6 @@
 
 // 程序入口
-void main() {
+func main {
   var i = 0;
   while (true) {
     i = i + 1;
@@ -14,7 +14,7 @@ void main() {
   }
 
   var list = ['jimmy', 'tommy', 'larry', 'perry'];
-  for (var i in list) {
-    Console.print(i);
+  for (item in list) {
+    Console.print(item);
   }
 }
