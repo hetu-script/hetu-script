@@ -62,9 +62,9 @@ dependencies:
 ```dart
 import 'package:hetu_script/hetu.dart';
 
-void main() {
-  hetu.init(workingDir: 'ht_example');
-  hetu.evalf('ht_example\\members.ht', invokeFunc: 'main');
+func main {
+  hetu.init(workingDir: 'ht_excample');
+  hetu.evalf('ht_excample\\members.ht', invokeFunc: 'main');
 }
 ```
 
