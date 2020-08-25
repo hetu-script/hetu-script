@@ -2,7 +2,7 @@ abstract class HS_LexPatterns {
   static final enUS = RegExp(
     r'(//.*)|' // 注释 group(1)
     r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-    r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
+    r'(\n|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
     r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
     r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
     r'("(\\"|[^"])*"))',
@@ -67,6 +67,8 @@ abstract class HS_Common {
 
   /// 保留字，不能用于变量名字
   static const Keywords = <String>[
+    Newline,
+    Multiline,
     Null,
     Static,
     Const,
@@ -140,6 +142,8 @@ abstract class HS_Common {
   ];
 
   static const EOF = 'end_of_file'; // 文件末尾
+  static const Newline = '\n';
+  static const Multiline = '\\';
   static const Void = 'void';
   static const Unknown = '?';
   static const Underscore = '_';

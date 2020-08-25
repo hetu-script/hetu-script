@@ -1,37 +1,37 @@
 class _Value {
 
   // external关键字表示函数体在host语言中定义
-	external func toString(): String;
+	external func toString(): String
 
 }
 
 class num extends _Value {
 
-	external static func parse(value): num;
+	external static func parse(value): num
 
-  external func toStringAsFixed([fractionDigits: num = 0]): num;
+  external func toStringAsFixed([fractionDigits: num = 0]): num
 
-  external func truncate(): num;
+  external func truncate(): num
 }
 
 class bool extends _Value {
 
 	static func parse(value): bool {
     if (value is bool) {
-      return value;
+      return value
     } else if (value is num) {
       if (value != 0) {
-        return true;
+        return true
       } else {
-        return false;
+        return false
       }
     } else if (value is String) {
-      return value.isNotEmpty;
+      return value.isNotEmpty
     } else {
       if (value != null) {
-        return true;
+        return true
       } else {
-        return false;
+        return false
       }
     }
   }
@@ -39,85 +39,85 @@ class bool extends _Value {
 
 class String extends _Value {
 	
-	external get isEmpty: bool;
-	
+	external get isEmpty: bool
+
 	get isNotEmpty: bool {
-		return !isEmpty;
+		return !isEmpty
 	}
 
-	external static func parse(value): String;
+	external static func parse(value): String
 
-	external static func substring(startIndex: num, [endIndex: num]): String;
+	external static func substring(startIndex: num, [endIndex: num]): String
 }
 
 class List extends _Value {
 	
-	external get length: num;
+	external get length: num
 	
 	get isEmpty: bool {
-		return length == 0;
+		return length == 0
 	}
 	
 	get isNotEmpty: bool {
-		return length != 0;
+		return length != 0
 	}
 	
 	get first: dynamic {
     if (length > 0){
-      return elementAt(0);
+      return elementAt(0)
     }
 	}
 	
 	get last: dynamic {
     if (length > 0){
-      return elementAt(length - 1);
+      return elementAt(length - 1)
     }
   }
 	
 	func contains(value): bool {
-		return indexOf(value) != -1;
+		return indexOf(value) != -1
 	}
 	
-	external func add(?);
+	external func add(?)
 	
-	external func clear();
+	external func clear()
 	
-	external func removeAt(index: num);
+	external func removeAt(index: num)
 	
-	external func indexOf(value): num;
+	external func indexOf(value): num
 	
-	external func elementAt(index: num): dynamic;
+	external func elementAt(index: num): dynamic
 }
 
 class Map extends _Value {
 	
-	external get length: num;
+	external get length: num
 	
 	get isEmpty: bool {
-		return length == 0;
+		return length == 0
 	}
 	
 	get isNotEmpty: bool {
-		return length != 0;
+		return length != 0
 	}
 
-  external get keys: List;
+  external get keys: List
 
-  external get values: List;
+  external get values: List
 	
-	external func containsKey(value): bool;
+	external func containsKey(value): bool
 
-	external func containsValue(value): bool;
+	external func containsValue(value): bool
 	
-	external func setVal(key, value);
+	external func setVal(key, value)
 	
-	external func addAll(other: Map);
+	external func addAll(other: Map)
 	
-	external func clear();
+	external func clear()
 	
-	external func remove(key);
+	external func remove(key)
 	
-	external func getVal(key): dynamic;
+	external func getVal(key): dynamic
 
-  external func putIfAbsent(key, value): dynamic;
+  external func putIfAbsent(key, value): dynamic
 }

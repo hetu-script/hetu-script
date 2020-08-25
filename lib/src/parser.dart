@@ -102,7 +102,14 @@ class Parser {
   }
 
   /// 获得当前Token
-  Token get curTok => peek(0);
+  Token get curTok {
+    var cur = peek(0);
+    if (cur == HS_Common.Multiline) {
+      advance(1);
+      cur = peek(0);
+    }
+    return cur;
+  }
 
   List<Stmt> parse(
     List<Token> tokens,
@@ -326,6 +333,7 @@ class Parser {
   }
 
   Stmt _parseStmt({ParseStyle style = ParseStyle.library}) {
+    if (curTok == HS_Common.Newline) advance(1);
     switch (style) {
       case ParseStyle.library:
         {
@@ -357,10 +365,10 @@ class Parser {
           else if (expect(_patternAssign)) {
             return _parseAssignStmt();
           } // 跳出语句
-          else if (expect([HS_Common.Break, HS_Common.Semicolon], consume: true, error: false)) {
+          else if (expect([HS_Common.Break, HS_Common.Newline], consume: true, error: false)) {
             return BreakStmt();
           } // 继续语句
-          else if (expect([HS_Common.Continue, HS_Common.Semicolon], consume: true, error: false)) {
+          else if (expect([HS_Common.Continue, HS_Common.Newline], consume: true, error: false)) {
             return ContinueStmt();
           } // 返回语句
           else if (curTok == HS_Common.Return) {
@@ -448,7 +456,7 @@ class Parser {
       spacename = match(HS_Common.Identifier).lexeme;
     }
     var stmt = ImportStmt(filename, asspace: spacename);
-    expect([HS_Common.Semicolon], consume: true);
+    expect([HS_Common.Newline], consume: true);
     return stmt;
   }
 
@@ -465,8 +473,8 @@ class Parser {
     if (expect([HS_Common.Assign], consume: true, error: false)) {
       initializer = _parseExpr();
     }
-    // 语句一定以分号结尾
-    expect([HS_Common.Semicolon], consume: true);
+    // 语句一定以回车结尾
+    expect([HS_Common.Newline], consume: true);
     return VarStmt(varname, typename, initializer: initializer, isExtern: is_extern, isStatic: is_static);
   }
 
@@ -478,7 +486,7 @@ class Parser {
     var assignTok = advance(1);
     var value = _parseExpr();
     // 语句一定以分号结尾
-    expect([HS_Common.Semicolon], consume: true);
+    expect([HS_Common.Newline], consume: true);
     var expr = AssignExpr(name, assignTok, value, _curFileName);
     return ExprStmt(expr);
   }
@@ -486,8 +494,8 @@ class Parser {
   ExprStmt _parseExprStmt({bool commandLine = false}) {
     var stmt = ExprStmt(_parseExpr());
     if (!commandLine) {
-      // 语句一定以分号结尾
-      expect([HS_Common.Semicolon], consume: true);
+      // 语句一定以回车结尾
+      expect([HS_Common.Newline], consume: true);
     }
     return stmt;
   }
@@ -495,10 +503,10 @@ class Parser {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance(1);
     Expr expr;
-    if (curTok.type != HS_Common.Semicolon) {
+    if (curTok.type != HS_Common.Newline) {
       expr = _parseExpr();
     }
-    expect([HS_Common.Semicolon], consume: true);
+    expect([HS_Common.Newline], consume: true);
     return ReturnStmt(keyword, expr);
   }
 
@@ -667,7 +675,7 @@ class Parser {
       expect([HS_Common.CurlyLeft], consume: true);
       body = _parseBlock(style: ParseStyle.function);
     } else {
-      expect([HS_Common.Semicolon], consume: true);
+      expect([HS_Common.Newline], consume: true);
     }
     return FuncStmt(return_type, func_name, params,
         arity: arity,

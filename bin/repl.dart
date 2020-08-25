@@ -22,6 +22,8 @@ void main() {
     String input = stdin.readLineSync();
     if (input.endsWith('\\')) {
       input += '\n' + stdin.readLineSync();
+    } else {
+      input += '\n';
     }
 
     if ((input == 'exit') ||
