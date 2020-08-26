@@ -1,7 +1,7 @@
 func working(String content) {
-  Console.print('I\'m working on ' + content);
+  Console.print('I\'m working on ' + content)
 }
 
 func main {
-  System.invoke('working', null, ['strength']);
+  System.invoke('working', null, ['strength'])
 }

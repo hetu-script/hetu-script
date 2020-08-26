@@ -1,4 +1,4 @@
 func main {
-  Console.print((3 + 33 * 34.2) / 8);
-  Console.print(true && (33 is num));
+  Console.print((3 + 33 * 34.2) / 8)
+  Console.print(true && (33 is num))
 }

@@ -46,12 +46,13 @@ class HSErr_Unsupport extends HS_Error {
 
 class HSErr_Expected extends HS_Error {
   HSErr_Expected(String expected, String met, int line, int column, String fileName)
-      : super('"${expected}" ${HS_Common.ErrorExpected} "${met}"', line, column, fileName);
+      : super('"${expected != '\n' ? expected : '\\n'}" ${HS_Common.ErrorExpected} "${met != '\n' ? met : '\\n'}"',
+            line, column, fileName);
 }
 
 class HSErr_Unexpected extends HS_Error {
   HSErr_Unexpected(String symbol, int line, int column, String fileName)
-      : super('${HS_Common.ErrorUnexpected} "${symbol}"', line, column, fileName);
+      : super('${HS_Common.ErrorUnexpected} "${symbol != '\n' ? symbol : '\\n'}"', line, column, fileName);
 }
 
 class HSErr_Private extends HS_Error {

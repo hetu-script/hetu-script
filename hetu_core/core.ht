@@ -1,4 +1,4 @@
-external func typeOf(value): String;
-	
+external func typeOf(value): String
+
 // print multiple dynamic into lines
-external func print(?);
+external func print(?)

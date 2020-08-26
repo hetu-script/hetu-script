@@ -1,7 +1,7 @@
-var a = 12;
+var a = 12
 
-var b = a;
+var b = a
 
 func main {
-  Console.print(b);
+  Console.print(b)
 }

@@ -1,90 +1,90 @@
-import 'hetu:math';
+import 'hetu:math'
 
-var next_char_name: String;
+var next_char_name: String
 
 class char_info {
-  var name: String;
-  var strength: num;
-  var vitality: num;
-  var initiative: num;
-  var ko = false;
+  var name: String
+  var strength: num
+  var vitality: num
+  var initiative: num
+  var ko = false
 }
 
-var player = char_info();
-var enemy = char_info();
+var player = char_info()
+var enemy = char_info()
 
-var charList = [player, enemy];
+var charList = [player, enemy]
 
 func main {
-  player.strength = 76;
-  player.vitality = 76 * 1.2;
-  player.name = 'player';
-  enemy.strength = 130;
-  enemy.vitality = 130 * 1.2;
-  enemy.name = 'enemy';
+  player.strength = 76
+  player.vitality = 76 * 1.2
+  player.name = 'player'
+  enemy.strength = 130
+  enemy.vitality = 130 * 1.2
+  enemy.name = 'enemy'
 
-  start(92, 103);
+  start(92, 103)
 }
 
 func start(num player_dex, num enemy_dex) {
-  Console.print('战斗开始！');
+  Console.print('战斗开始！')
 
-  player.initiative = 1000 / Math.sqrt(player_dex) - 20;
-  enemy.initiative = 1000 / Math.sqrt(enemy_dex);
+  player.initiative = 1000 / Math.sqrt(player_dex) - 20
+  enemy.initiative = 1000 / Math.sqrt(enemy_dex)
 
   while ((player.vitality > 0) && (enemy.vitality > 0)) {
     if (player.initiative >= enemy.initiative) {
-      next_char_name = enemy.name;
+      next_char_name = enemy.name
     } else {
-      next_char_name = player.name;
+      next_char_name = player.name
     }
 
     for (var char in charList) {
       Console.print(
-          '角色：' + char.name + '，生命：' + char.vitality.toStringAsFixed(2) + '，先机：' + char.initiative.toStringAsFixed(2));
+          '角色：' + char.name + '，生命：' + char.vitality.toStringAsFixed(2) + '，先机：' + char.initiative.toStringAsFixed(2))
     }
 
     if (next_char_name == 'player') {
       while (true) {
-        var input = Console.getln('输入指令>');
+        var input = Console.getln('输入指令>')
         if (input == 'attack') {
-          player.initiative = player.initiative + 10;
-          enemy.vitality = enemy.vitality - 15;
-          Console.print('你进行了攻击！');
-          Console.print('敌人生命减少15，现在为：' + enemy.vitality.toStringAsFixed(2));
-          break;
+          player.initiative = player.initiative + 10
+          enemy.vitality = enemy.vitality - 15
+          Console.print('你进行了攻击！')
+          Console.print('敌人生命减少15，现在为：' + enemy.vitality.toStringAsFixed(2))
+          break
         } else if (input == 'ultimate') {
-          player.initiative = player.initiative + 100;
-          enemy.vitality = enemy.vitality - 100;
-          Console.print('你释放了大招！');
-          Console.print('敌人生命减少100，现在为：' + enemy.vitality.toStringAsFixed(2));
-          break;
+          player.initiative = player.initiative + 100
+          enemy.vitality = enemy.vitality - 100
+          Console.print('你释放了大招！')
+          Console.print('敌人生命减少100，现在为：' + enemy.vitality.toStringAsFixed(2))
+          break
         } else {
-          Console.print('无效的指令。');
+          Console.print('无效的指令。')
         }
       }
     } else {
-      enemy.initiative = enemy.initiative + 10;
-      player.vitality = player.vitality - 20;
-      Console.print('你受到了攻击！');
-      Console.print('你的生命减少20，现在为：' + player.vitality.toStringAsFixed(2));
+      enemy.initiative = enemy.initiative + 10
+      player.vitality = player.vitality - 20
+      Console.print('你受到了攻击！')
+      Console.print('你的生命减少20，现在为：' + player.vitality.toStringAsFixed(2))
     }
 
-    Console.getln('按回车继续...');
-    Console.eraseLine();
+    Console.getln('按回车继续...')
+    Console.eraseLine()
 
     for (var char in charList) {
       if (char.vitality <= 0) {
-        char.ko = true;
-        break;
+        char.ko = true
+        break
       }
     }
   }
 
-  Console.print('战斗结束！');
+  Console.print('战斗结束！')
   if (player.vitality <= 0) {
-    Console.print('你输了！');
+    Console.print('你输了！')
   } else {
-    Console.print('你赢了！');
+    Console.print('你赢了！')
   }
 }

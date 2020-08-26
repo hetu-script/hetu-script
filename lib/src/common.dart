@@ -67,6 +67,8 @@ abstract class HS_Common {
 
   /// 保留字，不能用于变量名字
   static const Keywords = <String>[
+    //Newline,
+    //Multiline,
     Null,
     Static,
     Const,
@@ -140,6 +142,8 @@ abstract class HS_Common {
   ];
 
   static const EOF = 'end_of_file'; // 文件末尾
+  static const Newline = '\n';
+  static const Multiline = '\\';
   static const Void = 'void';
   static const Unknown = '?';
   static const Underscore = '_';

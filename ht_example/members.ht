@@ -1,43 +1,43 @@
 class Wrapper {
-  var cal: Calculator;
+  var cal: Calculator
 }
 
 // 类的定义
 class Calculator {
   // 成员变量
-  var x: num;
-  var y: num;
+  var x: num
+  var y: num
 
   // 静态私有成员
-  static var _name = 'the calculator';
+  static var _name = 'the calculator'
 
   static get name: String {
     // 类中的静态函数只能访问类中的静态对象
-    return _name;
+    return _name
   }
 
   static set name(new_name: String) {
-    _name = new_name;
-    greeting();
+    _name = new_name
+    greeting()
   }
 
   static func greeting {
-    Console.print('hello! I\'m ' + _name);
+    Console.print('hello! I\'m ' + _name)
   }
 
   // 带有参数的构造函数
   init (x: num, y: num) {
     // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定
-    this.x = x;
-    this.y = y;
-    greeting();
-    Console.print(meaning().toString());
+    this.x = x
+    this.y = y
+    greeting()
+    Console.print(meaning().toString())
   }
 
   // 带有返回类型的成员函数
   func meaning: num {
     // 可以不通过this直接使用成员变量
-    return x * y;
+    return x * y
   }
 }
 
@@ -46,20 +46,20 @@ func main {
   // 带有初始化语句的变量定义
   // 从类的构造函数获得对象的实例
 
-  var w = Wrapper();
-  w.cal = Calculator(6, 7);
-  // Calculator._name = 'the machine'; // 错误：不能在类代码之外访问私有变量
+  var w = Wrapper()
+  w.cal = Calculator(6, 7)
+  // Calculator._name = 'the machine' // 错误：不能在类代码之外访问私有变量
   // setter函数
-  Calculator.name = 'the machine';
-  // Console.writeln(cal.meaning()); // 错误：参数类型不匹配
+  Calculator.name = 'the machine'
+  // Console.writeln(cal.meaning()) // 错误：参数类型不匹配
   // 调用外部函数，访问类静态变量，getter函数，调用外部成员函数，字符串类型检查
 
   // 列表的创建和添加元素
-  // var list = [Calculator.name + ' says:'];
-  // list.add('the meaning of life, universe and everything');
-  // list.add('is ' + w.cal.meaning().toString());
+  // var list = [Calculator.name + ' says:']
+  // list.add('the meaning of life, universe and everything')
+  // list.add('is ' + w.cal.meaning().toString())
 
   // for (var i in list) {
-  //   Console.print(i);
+  //   Console.print(i)
   // }
 }

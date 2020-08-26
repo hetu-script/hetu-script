@@ -1,20 +1,20 @@
 
 // 程序入口
 func main {
-  var i = 0;
+  var i = 0
   while (true) {
-    i = i + 1;
+    i = i + 1
     if (i == 10) {
-      break;
+      break
     } else if (i % 2 == 0) {
-      Console.print(i);
+      Console.print(i)
     } else {
-      continue;
+      continue
     }
   }
 
-  var list = ['jimmy', 'tommy', 'larry', 'perry'];
+  var list = ['jimmy', 'tommy', 'larry', 'perry']
   for (item in list) {
-    Console.print(item);
+    Console.print(item)
   }
 }

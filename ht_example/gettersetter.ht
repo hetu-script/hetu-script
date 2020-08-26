@@ -1,19 +1,19 @@
 class Types {
-  var _name = 'the machine';
+  var _name = 'the machine'
 
   get name: String {
-    return _name;
+    return _name
   }
 
   set name(value: String) {
-    _name = value;
+    _name = value
   }
 }
 
 // 程序入口
 func main {
-  var t = Types();
-  t.name = 'finch';
+  var t = Types()
+  t.name = 'finch'
 
-  Console.print(t.name);
+  Console.print(t.name)
 }

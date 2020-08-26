@@ -9,9 +9,7 @@ import 'function.dart';
 import 'interpreter.dart';
 
 abstract class HS_Buildin {
-  static const coreLib = 'class Object {\n'
-      '  // external String toString();\n'
-      '}\n'
+  static const coreLib = 'class Object {}\n'
       'class Function {}\n';
 
   static Map<String, HS_External> externs = {
