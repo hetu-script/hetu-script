@@ -1,7 +1,7 @@
-func working(String content) {
+fun working(content: String) {
   Console.print('I\'m working on ' + content)
 }
 
-func main {
+fun main {
   System.invoke('working', null, ['strength'])
 }

@@ -1,4 +1,8 @@
-external func typeOf(value): String
+external fun typeof(value): String
 
-// print multiple dynamic into lines
-external func print(?)
+// print any type values into lines
+external fun print(... args)
+
+// external fun concact(... args): String
+
+// fun help(value): String

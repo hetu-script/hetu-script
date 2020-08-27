@@ -11,7 +11,7 @@ class Types {
 }
 
 // 程序入口
-func main {
+fun main {
   var t = Types()
   t.name = 'finch'
 

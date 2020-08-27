@@ -1,22 +1,22 @@
 class _Value {
 
   // external关键字表示函数体在host语言中定义
-	external func toString(): String
+	external fun toString(): String
 
 }
 
 class num extends _Value {
 
-	external static func parse(value): num
+	external static fun parse(value): num
 
-  external func toStringAsFixed([fractionDigits: num = 0]): num
+  external fun toStringAsFixed([fractionDigits: num = 0]): num
 
-  external func truncate(): num
+  external fun truncate(): num
 }
 
 class bool extends _Value {
 
-	static func parse(value): bool {
+	static fun parse(value): bool {
     if (value is bool) {
       return value
     } else if (value is num) {
@@ -45,9 +45,9 @@ class String extends _Value {
 		return !isEmpty
 	}
 
-	external static func parse(value): String
+	external fun substring(startIndex: num, [endIndex: num]): String
 
-	external static func substring(startIndex: num, [endIndex: num]): String
+	external static fun parse(value): String
 }
 
 class List extends _Value {
@@ -62,31 +62,31 @@ class List extends _Value {
 		return length != 0
 	}
 	
-	get first: dynamic {
+	get first: any {
     if (length > 0){
       return elementAt(0)
     }
 	}
 	
-	get last: dynamic {
+	get last: any {
     if (length > 0){
       return elementAt(length - 1)
     }
   }
 	
-	func contains(value): bool {
+	fun contains(value): bool {
 		return indexOf(value) != -1
 	}
 	
-	external func add(?)
+	external fun add(... args)
 	
-	external func clear()
+	external fun clear()
 	
-	external func removeAt(index: num)
+	external fun removeAt(index: num)
 	
-	external func indexOf(value): num
+	external fun indexOf(value): num
 	
-	external func elementAt(index: num): dynamic
+	external fun elementAt(index: num): any
 }
 
 class Map extends _Value {
@@ -105,19 +105,19 @@ class Map extends _Value {
 
   external get values: List
 	
-	external func containsKey(value): bool
+	external fun containsKey(value): bool
 
-	external func containsValue(value): bool
+	external fun containsValue(value): bool
 	
-	external func setVal(key, value)
+	external fun setVal(key, value)
 	
-	external func addAll(other: Map)
+	external fun addAll(other: Map)
 	
-	external func clear()
+	external fun clear()
 	
-	external func remove(key)
+	external fun remove(key)
 	
-	external func getVal(key): dynamic
+	external fun getVal(key): any
 
-  external func putIfAbsent(key, value): dynamic
+  external fun putIfAbsent(key, value): any
 }

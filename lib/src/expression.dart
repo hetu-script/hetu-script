@@ -17,11 +17,14 @@ abstract class ExprVisitor {
   /// 字面量
   dynamic visitLiteralExpr(LiteralExpr expr);
 
-  /// 数组
+  /// 圆括号表达式
+  dynamic visitGroupExpr(GroupExpr expr);
+
+  /// 花括号表达式
   dynamic visitListExpr(ListExpr expr);
 
   /// 数组
-  dynamic visitMapExpr(MapExpr expr);
+  dynamic visitBlockExpr(BlockExpr expr);
 
   /// 单目表达式
   dynamic visitUnaryExpr(UnaryExpr expr);
@@ -30,13 +33,10 @@ abstract class ExprVisitor {
   dynamic visitBinaryExpr(BinaryExpr expr);
 
   /// 变量
-  dynamic visitVarExpr(VarExpr expr);
+  dynamic visitIdExpr(IdExpr expr);
 
   /// 类型
   // dynamic visitTypeExpr(TypeExpr expr);
-
-  /// 括号表达式
-  dynamic visitGroupExpr(GroupExpr expr);
 
   /// 赋值表达式，返回右值，执行顺序优先右边
   ///
@@ -105,9 +105,23 @@ class LiteralExpr extends Expr {
   Expr clone() => LiteralExpr(_constIndex, line, column, fileName);
 }
 
+class GroupExpr extends Expr {
+  @override
+  String get type => HS_Common.GroupExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
+
+  final Expr inner;
+
+  GroupExpr(this.inner, String fileName) : super(inner.line, inner.column, fileName);
+
+  Expr clone() => GroupExpr(inner.clone(), fileName);
+}
+
 class ListExpr extends Expr {
   @override
-  String get type => HS_Common.ListExpr;
+  String get type => HS_Common.VectorExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitListExpr(this);
@@ -127,25 +141,31 @@ class ListExpr extends Expr {
   }
 }
 
-class MapExpr extends Expr {
+class BlockExpr extends Expr {
   @override
-  String get type => HS_Common.MapExpr;
+  String get type => HS_Common.BlockExpr;
 
   @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitMapExpr(this);
+  dynamic accept(ExprVisitor visitor) => visitor.visitBlockExpr(this);
 
   Map<Expr, Expr> map;
 
-  MapExpr(this.map, int line, int column, String fileName) : super(line, column, fileName) {
+  BlockExpr(this.map, int line, int column, String fileName) : super(line, column, fileName) {
     map ??= {};
   }
+
+  // List<Expr> list;
+
+  // BlockExpr(this.list, int line, int column, String fileName) : super(line, column, fileName) {
+  //   list ??= [];
+  // }
 
   Expr clone() {
     var new_map = <Expr, Expr>{};
     for (var expr in map.keys) {
-      new_map[expr.clone()] = map[expr].clone();
+      new_map[expr.clone()] = map[expr];
     }
-    return MapExpr(new_map, line, column, fileName);
+    return BlockExpr(new_map, line, column, fileName);
   }
 }
 
@@ -188,32 +208,18 @@ class BinaryExpr extends Expr {
   Expr clone() => BinaryExpr(left.clone(), op, right.clone(), fileName);
 }
 
-class VarExpr extends Expr {
+class IdExpr extends Expr {
   @override
   String get type => HS_Common.VarExpr;
 
   @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitVarExpr(this);
+  dynamic accept(ExprVisitor visitor) => visitor.visitIdExpr(this);
 
   final Token name;
 
-  VarExpr(this.name, String fileName) : super(name.line, name.column, fileName);
+  IdExpr(this.name, String fileName) : super(name.line, name.column, fileName);
 
-  Expr clone() => VarExpr(name, fileName);
-}
-
-class GroupExpr extends Expr {
-  @override
-  String get type => HS_Common.GroupExpr;
-
-  @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
-
-  final Expr inner;
-
-  GroupExpr(this.inner, String fileName) : super(inner.line, inner.column, fileName);
-
-  Expr clone() => GroupExpr(inner.clone(), fileName);
+  Expr clone() => IdExpr(name, fileName);
 }
 
 class AssignExpr extends Expr {

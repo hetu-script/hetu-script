@@ -2,6 +2,6 @@ var a = 12
 
 var b = a
 
-func main {
+fun main {
   Console.print(b)
 }

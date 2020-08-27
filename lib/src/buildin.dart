@@ -13,7 +13,7 @@ abstract class HS_Buildin {
       'class Function {}\n';
 
   static Map<String, HS_External> externs = {
-    'typeOf': _type_of,
+    'typeof': _typeof,
     'print': _print,
     'System.evalc': _system_evalc,
     'System.invoke': _system_invoke,
@@ -57,7 +57,7 @@ abstract class HS_Buildin {
     'cos': _math_cos,
   };
 
-  static dynamic _type_of(HS_Instance instance, List<dynamic> args) {
+  static dynamic _typeof(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       return HS_TypeOf(args.first);
     }
@@ -236,12 +236,6 @@ class HSVal_String extends HSVal_Value {
     return str?.isEmpty;
   }
 
-  static dynamic _parse(HS_Instance instance, List<dynamic> args) {
-    if (args.isNotEmpty) {
-      return args.first.toString();
-    }
-  }
-
   static dynamic _substring(HS_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
     String str = strObj?.value;
@@ -251,7 +245,13 @@ class HSVal_String extends HSVal_Value {
       if (args.length >= 1) {
         endIndex = args[1];
       }
-      str?.substring(startIndex, endIndex);
+      return str?.substring(startIndex, endIndex);
+    }
+  }
+
+  static dynamic _parse(HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      return args.first.toString();
     }
   }
 }

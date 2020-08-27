@@ -127,11 +127,11 @@ class HS_Class extends Namespace {
     if (defs.containsKey(varName)) {
       if (from.startsWith(this.fullName) || !varName.startsWith(HS_Common.Underscore)) {
         var vartype = defs[varName].type;
-        if ((vartype == HS_Common.Dynamic) || (vartype == HS_TypeOf(value))) {
+        if ((vartype == HS_Common.Any) || (vartype == HS_TypeOf(value))) {
           defs[varName].value = value;
           return;
         }
-        throw HSErr_Type(HS_TypeOf(value), vartype, line, column, interpreter.curFileName);
+        throw HSErr_Type(varName, HS_TypeOf(value), vartype, line, column, interpreter.curFileName);
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(setter)) {
@@ -170,7 +170,7 @@ class HS_Class extends Namespace {
         if (value != null) {
           instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, interpreter, value: value);
         } else {
-          instance.define(decl.name.lexeme, HS_Common.Dynamic, line, column, interpreter);
+          instance.define(decl.name.lexeme, HS_Common.Any, line, column, interpreter);
         }
       }
     }
@@ -244,14 +244,14 @@ class HS_Instance extends Namespace {
     if (defs.containsKey(varName)) {
       if (!varName.startsWith(HS_Common.Underscore)) {
         var varType = defs[varName].type;
-        if ((varType == HS_Common.Dynamic) || ((value != null) && (varType == HS_TypeOf(value))) || (value == null)) {
+        if ((varType == HS_Common.Any) || ((value != null) && (varType == HS_TypeOf(value))) || (value == null)) {
           if (defs[varName].mutable) {
             defs[varName].value = value;
             return;
           }
           throw HSErr_Mutable(varName, line, column, interpreter.curFileName);
         }
-        throw HSErr_Type(HS_TypeOf(value), varType, line, column, interpreter.curFileName);
+        throw HSErr_Type(varName, HS_TypeOf(value), varType, line, column, interpreter.curFileName);
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else {

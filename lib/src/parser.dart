@@ -102,14 +102,15 @@ class Parser {
   }
 
   /// 获得当前Token
-  Token get curTok {
-    var cur = peek(0);
-    if (cur == HS_Common.Multiline) {
-      advance(1);
-      cur = peek(0);
-    }
-    return cur;
-  }
+  Token get curTok => peek(0);
+  // {
+  // var cur = peek(0);
+  // if (cur == HS_Common.Multiline) {
+  //   advance(1);
+  //   cur = peek(0);
+  // }
+  // return cur;
+  // }
 
   List<Stmt> parse(
     List<Token> tokens,
@@ -149,7 +150,7 @@ class Parser {
       Token op = advance(1);
       Expr value = _parseAssignmentExpr();
 
-      if (expr is VarExpr) {
+      if (expr is IdExpr) {
         Token name = expr.name;
         return AssignExpr(name, op, value, _curFileName);
       } else if (expr is MemberGetExpr) {
@@ -297,7 +298,7 @@ class Parser {
       return ThisExpr(peek(-1), _curFileName);
     } else if (curTok == HS_Common.Identifier) {
       advance(1);
-      return VarExpr(peek(-1), _curFileName);
+      return IdExpr(peek(-1), _curFileName);
     } else if (curTok == HS_Common.RoundLeft) {
       advance(1);
       var innerExpr = _parseExpr();
@@ -327,7 +328,7 @@ class Parser {
         map_expr[key_expr] = value_expr;
       }
       expect([HS_Common.CurlyRight], consume: true);
-      return MapExpr(map_expr, line, col, _curFileName);
+      return BlockExpr(map_expr, line, col, _curFileName);
     } else {
       throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
     }
@@ -569,20 +570,20 @@ class Parser {
     var list_obj = _parseExpr();
     // 条件语句
     var get_length = MemberGetExpr(list_obj, Token(HS_Common.length, line, column + 30), _curFileName);
-    var condition = BinaryExpr(VarExpr(TokenIdentifier(i, line, column + 24), _curFileName),
+    var condition = BinaryExpr(IdExpr(TokenIdentifier(i, line, column + 24), _curFileName),
         Token(HS_Common.Lesser, line, column + 26), get_length, _curFileName);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <Stmt>[];
     // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
     var sub_get_value =
-        SubGetExpr(list_obj.clone(), VarExpr(TokenIdentifier(i, line + 1, column + 14), _curFileName), _curFileName);
+        SubGetExpr(list_obj.clone(), IdExpr(TokenIdentifier(i, line + 1, column + 14), _curFileName), _curFileName);
     var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname.lexeme, line + 1, column),
         Token(HS_Common.Assign, line + 1, column + 10), sub_get_value, _curFileName));
     loop_body.add(assign_stmt);
     // 递增下标变量
     var increment_expr = BinaryExpr(
-        VarExpr(TokenIdentifier(i, line + 1, column + 18), _curFileName),
+        IdExpr(TokenIdentifier(i, line + 1, column + 18), _curFileName),
         Token(HS_Common.Add, line + 1, column + 22),
         LiteralExpr(interpreter.addLiteral(1), line + 1, column + 24, _curFileName),
         _curFileName);
@@ -648,8 +649,11 @@ class Parser {
     if (functype != FuncStmtType.getter) {
       // 之前还没有校验过左括号
       if (expect([HS_Common.RoundLeft], consume: true, error: false)) {
-        if (expect([HS_Common.Unknown], consume: true, error: false)) {
+        if (expect([HS_Common.VariadicArguments])) {
           arity = -1;
+          var typename = advance(1);
+          var varname = match(HS_Common.Identifier);
+          params.add(VarStmt(varname, typename));
           expect([HS_Common.RoundRight], consume: true);
         } else {
           params = _parseParameters();
@@ -666,7 +670,7 @@ class Parser {
 
     if (functype != FuncStmtType.initter) {
       if (expect([HS_Common.Colon], consume: true, error: false)) {
-        return_type = match(HS_Common.Identifier).lexeme;
+        return_type = advance(1).lexeme;
       }
     }
 
@@ -693,10 +697,10 @@ class Parser {
     advance(1);
     var className = curTok;
     _curClassName = advance(1);
-    VarExpr super_class;
+    IdExpr super_class;
     // 继承父类
     if (expect([HS_Common.Extends], consume: true, error: false)) {
-      super_class = VarExpr(match(HS_Common.Identifier), _curFileName);
+      super_class = IdExpr(match(HS_Common.Identifier), _curFileName);
     }
     // 类的定义体
     expect([HS_Common.CurlyLeft], consume: true);

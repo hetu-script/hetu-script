@@ -1,11 +1,11 @@
-func fib(num x): num {
+fun fib(x: Number): Number {
   
   if (x < 2) return x
   else return fib(x - 2) + fib(x - 1)
 
 }
   
-func main {
+fun main {
 
   var before = now()
 	System.print(fib(15))

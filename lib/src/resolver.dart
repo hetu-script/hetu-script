@@ -192,6 +192,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
   dynamic visitLiteralExpr(LiteralExpr expr) {}
 
   @override
+  dynamic visitGroupExpr(GroupExpr expr) => _resolveExpr(expr.inner);
+
+  @override
   dynamic visitListExpr(ListExpr expr) {
     for (var item in expr.list) {
       _resolveExpr(item);
@@ -199,7 +202,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitMapExpr(MapExpr expr) {
+  dynamic visitBlockExpr(BlockExpr expr) {
     for (var key in expr.map.keys) {
       _resolveExpr(key);
       _resolveExpr(expr.map[key]);
@@ -207,16 +210,13 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitVarExpr(VarExpr expr) {
+  dynamic visitIdExpr(IdExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
       throw HSErr_Initialized(expr.name.lexeme, expr.line, expr.column, _curFileName);
     }
 
     _lookUpVar(expr, expr.name.lexeme);
   }
-
-  @override
-  dynamic visitGroupExpr(GroupExpr expr) => _resolveExpr(expr.inner);
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {

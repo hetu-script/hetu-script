@@ -69,14 +69,12 @@ class HS_Function extends Namespace {
                 if (type_token != null) {
                   arg_type_decl = type_token.lexeme;
                 } else {
-                  arg_type_decl = HS_Common.Dynamic;
+                  arg_type_decl = HS_Common.Any;
                 }
 
                 if (i < args.length) {
                   var arg_type = HS_TypeOf(args[i]);
-                  if ((arg_type_decl != HS_Common.Dynamic) &&
-                      (arg_type_decl != arg_type) &&
-                      (arg_type != HS_Common.Null)) {
+                  if ((arg_type_decl != HS_Common.Any) && (arg_type_decl != arg_type) && (arg_type != HS_Common.Null)) {
                     throw HSErr_ArgType(arg_type, arg_type_decl, line, column, interpreter.curFileName);
                   }
 
@@ -89,10 +87,10 @@ class HS_Function extends Namespace {
                 }
               }
             }
+          } else {
+            // “...”形式的参数列表通过List访问参数
+            define(funcStmt.params.first.name.lexeme, HS_Common.List, line, column, interpreter, value: args);
           }
-
-          // “?”形式的参数列表只能通过arguments这个List访问参数
-          define(HS_Common.Arguments, HS_Common.List, line, column, interpreter, value: args);
 
           interpreter.executeBlock(funcStmt.definition, this);
         } else {
@@ -109,7 +107,7 @@ class HS_Function extends Namespace {
       String returned_type = HS_TypeOf(returnValue);
 
       if ((funcStmt != null) &&
-          (funcStmt.returnType != HS_Common.Dynamic) &&
+          (funcStmt.returnType != HS_Common.Any) &&
           (returned_type != HS_Common.Null) &&
           (funcStmt.returnType != returned_type)) {
         throw HSErr_ReturnType(returned_type, name, funcStmt.returnType, line, column, interpreter.curFileName);

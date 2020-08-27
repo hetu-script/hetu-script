@@ -5,8 +5,8 @@ class Wrapper {
 // 类的定义
 class Calculator {
   // 成员变量
-  var x: num
-  var y: num
+  var x: Number
+  var y: Number
 
   // 静态私有成员
   static var _name = 'the calculator'
@@ -21,12 +21,12 @@ class Calculator {
     greeting()
   }
 
-  static func greeting {
+  static fun greeting {
     Console.print('hello! I\'m ' + _name)
   }
 
   // 带有参数的构造函数
-  init (x: num, y: num) {
+  init (x: Number, y: Number) {
     // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定
     this.x = x
     this.y = y
@@ -35,14 +35,14 @@ class Calculator {
   }
 
   // 带有返回类型的成员函数
-  func meaning: num {
+  fun meaning: Number {
     // 可以不通过this直接使用成员变量
     return x * y
   }
 }
 
 // 程序入口
-func main {
+fun main {
   // 带有初始化语句的变量定义
   // 从类的构造函数获得对象的实例
 

@@ -1,6 +1,6 @@
 import 'hetu:math'
 
-func getBeauty(num x, num cuteness, num sexy): num {
+fun getBeauty(x: Number, cuteness: Number, sexy: Number): Number {
   var a = Math.min(cuteness, sexy)
   var b = Math.max(cuteness, sexy)
   if (x < ((a + b) / 2)) {
@@ -10,6 +10,6 @@ func getBeauty(num x, num cuteness, num sexy): num {
   }
 }
 
-func main {
+fun main {
   Console.print(getBeauty(200, 50, 100))
 }

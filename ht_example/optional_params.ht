@@ -1,8 +1,8 @@
-func hello(String words, [num times = 112]) {
-  Console.print(words, times)
+fun hello(words: String, [times: Number = 112]) {
+  print(words, times)
 }
 
 // 程序入口
-func main {
+fun main {
   hello('hello')
 }

@@ -144,8 +144,11 @@ class HSErr_NullObject extends HS_Error {
 }
 
 class HSErr_Type extends HS_Error {
-  HSErr_Type(String assign_value, String decl_value, int line, int column, String fileName)
-      : super('${HS_Common.ErrorType1} "${assign_value}" ${HS_Common.ErrorType2} "${decl_value}"', line, column,
+  HSErr_Type(String assign_value, String value_type, String decl_value, int line, int column, String fileName)
+      : super(
+            '${HS_Common.ErrorType1} "${assign_value}" ${HS_Common.ErrorType2} "${value_type}" ${HS_Common.ErrorType3} "${decl_value}"',
+            line,
+            column,
             fileName);
 }
 

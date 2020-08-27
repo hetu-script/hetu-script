@@ -20,15 +20,15 @@ var worker = 'worker'
 var soldier = 'soldier'
 
 class Char {
-  var age: num // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
+  var age: Number // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
   var job: String
   var professions: List
 
-  get ageByYear: num {
+  get ageByYear: Number {
     return age / (12 * 30).truncate()
   }
 
-  init (List professions, [num age]) {
+  init (List professions, [Number age]) {
     this.professions = professions
     if (age != null)
       this.age = age
@@ -40,10 +40,10 @@ class Char {
 class Organization {
   var population = []
 
-  // <String, num>每个职业对应的人口数量
+  // <String, Number>每个职业对应的人口数量
   var profStats = {}
 
-  // <String, num>每个年龄段对应的人口数量：
+  // <String, Number>每个年龄段对应的人口数量：
   var ageStats = {
     child: 0,
     young: 0,
@@ -59,7 +59,7 @@ class Organization {
     money: 0,
   }
 
-  func debug(info: List) {
+  fun debug(info: List) {
     Console.print('----------------')
     Console.print('population: ' + population.length.toString())
     if (info.contains('class')) {
@@ -97,7 +97,7 @@ class Organization {
     }
   }
 
-  func addChar(p: Char) {
+  fun addChar(p: Char) {
     population.add(p)
 
     for (var prof in p.professions) {
@@ -121,7 +121,7 @@ class Organization {
   }
 }
 
-func main {
+fun main {
   var huaxia = Organization()
 
   var i = 0

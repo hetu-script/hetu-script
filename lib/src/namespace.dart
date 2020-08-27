@@ -105,7 +105,7 @@ class Namespace extends HS_Value {
   void define(String varName, String varType, int line, int column, Interpreter interpreter,
       {dynamic value, bool mutable = true}) {
     var val_type = HS_TypeOf(value);
-    if ((varType == HS_Common.Dynamic) || ((value != null) && (varType == val_type)) || (value == null)) {
+    if ((varType == HS_Common.Any) || ((value != null) && (varType == val_type)) || (value == null)) {
       defs[varName] = Field(varType, value: value, mutable: mutable, initialized: (value == null ? false : true));
     } else if ((value != null) && (value is Map)) {
       var klass = interpreter.global.fetch(varType, line, column, interpreter);
@@ -116,8 +116,10 @@ class Namespace extends HS_Value {
         }
         defs[varName] = Field(varType, value: instance);
       } else {
-        throw HSErr_Type(val_type, varType, line, column, interpreter.curFileName);
+        throw HSErr_Type(val_type, varType, val_type, line, column, interpreter.curFileName);
       }
+    } else {
+      throw HSErr_Type(varName, varType, val_type, line, column, interpreter.curFileName);
     }
   }
 
@@ -151,14 +153,14 @@ class Namespace extends HS_Value {
     if (defs.containsKey(varName)) {
       if (from.startsWith(this.fullName) || (!varName.startsWith(HS_Common.Underscore))) {
         var varType = defs[varName].type;
-        if ((varType == HS_Common.Dynamic) || ((value != null) && (varType == HS_TypeOf(value))) || (value == null)) {
+        if ((varType == HS_Common.Any) || ((value != null) && (varType == HS_TypeOf(value))) || (value == null)) {
           if (defs[varName].mutable) {
             defs[varName].value = value;
             return;
           }
           throw HSErr_Mutable(varName, line, column, interpreter.curFileName);
         }
-        throw HSErr_Type(HS_TypeOf(value), varType, line, column, interpreter.curFileName);
+        throw HSErr_Type(varName, HS_TypeOf(value), varType, line, column, interpreter.curFileName);
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (recursive && (closure != null)) {

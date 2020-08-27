@@ -160,7 +160,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (extern.contains(name)) {
       throw HSErr_Defined(name, null, null, curFileName);
     } else {
-      extern.define(name, HS_Common.Dynamic, null, null, this, value: function);
+      extern.define(name, HS_Common.Any, null, null, this, value: function);
     }
   }
 
@@ -261,6 +261,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitLiteralExpr(LiteralExpr expr) => _constants[expr.constantIndex];
 
   @override
+  dynamic visitGroupExpr(GroupExpr expr) => evaluateExpr(expr.inner);
+
+  @override
   dynamic visitListExpr(ListExpr expr) {
     var list = [];
     for (var item in expr.list) {
@@ -270,7 +273,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitMapExpr(MapExpr expr) {
+  dynamic visitBlockExpr(BlockExpr expr) {
     var map = {};
     for (var key_expr in expr.map.keys) {
       var key = evaluateExpr(key_expr);
@@ -281,10 +284,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitVarExpr(VarExpr expr) => _getVar(expr.name.lexeme, expr);
-
-  @override
-  dynamic visitGroupExpr(GroupExpr expr) => evaluateExpr(expr.inner);
+  dynamic visitIdExpr(IdExpr expr) => _getVar(expr.name.lexeme, expr);
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
@@ -566,7 +566,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (value != null) {
         curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this, value: value);
       } else {
-        curContext.define(stmt.name.lexeme, HS_Common.Dynamic, stmt.name.line, stmt.name.column, this);
+        curContext.define(stmt.name.lexeme, HS_Common.Any, stmt.name.line, stmt.name.column, this);
       }
     }
   }
@@ -694,7 +694,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             klass.define(variable.name.lexeme, HS_TypeOf(value), variable.name.line, variable.name.column, this,
                 value: value);
           } else {
-            klass.define(variable.name.lexeme, HS_Common.Dynamic, variable.name.line, variable.name.column, this);
+            klass.define(variable.name.lexeme, HS_Common.Any, variable.name.line, variable.name.column, this);
           }
         }
       } else {

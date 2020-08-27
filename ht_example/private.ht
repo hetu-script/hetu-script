@@ -1,13 +1,13 @@
-func _privateFunc {
-  Console.print('this is a prive func of this library.')
+fun _privateFunc {
+  print('this is a prive fun of this library.')
 }
 
-func publicFunc {
-  Console.print('this is a public func of this library.')
+fun publicFunc {
+  print('this is a public fun of this library.')
 }
 
 class _privateClass {
-  static func greeting {
-    Console.print('this is a private class of this library.')
+  static fun greeting {
+    print('this is a private class of this library.')
   }
 }

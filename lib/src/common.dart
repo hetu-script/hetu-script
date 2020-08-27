@@ -2,7 +2,7 @@ abstract class HS_LexPatterns {
   static final enUS = RegExp(
     r'(//.*)|' // 注释 group(1)
     r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-    r'(\n|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
+    r'(\.\.\.|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
     r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
     r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
     r'("(\\"|[^"])*"))',
@@ -48,14 +48,6 @@ abstract class HS_Common {
     return line;
   }
 
-  static const BuildInTypes = <String>[
-    Dynamic,
-    Var,
-    Num,
-    Bool,
-    Str,
-  ];
-
   static const Literals = <String>[
     Bool,
     Num,
@@ -74,12 +66,15 @@ abstract class HS_Common {
     Const,
     Final,
     Var,
+    Let,
+    Any,
     Namespace,
     As,
     Abstract,
     Class,
     Func,
-    Arguments,
+    //Arguments,
+    VariadicArguments,
     Init,
     Get,
     Set,
@@ -145,24 +140,23 @@ abstract class HS_Common {
   static const Newline = '\n';
   static const Multiline = '\\';
   static const Void = 'void';
-  static const Unknown = '?';
+  static const VariadicArguments = '...';
   static const Underscore = '_';
   static const Global = '__global__';
   static const Extern = '__extern__';
   static const Instance = '__instance__';
   static const InstanceString = 'instance of class ';
 
-  static const UnknownType = 'unknown_type';
+  static const Unknown = 'unknown';
   static const Var = 'var';
-  static const Dynamic = 'dynamic';
+  static const Let = 'let';
+  // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
+  static const Any = 'any';
   static const Num = 'num';
   static const Bool = 'bool';
   static const Str = 'String';
   static const Typedef = 'typedef';
   static const List = 'List';
-  static const ListOfNum = 'list_of_num';
-  static const ListOfString = 'list_of_string';
-  static const ListOfDynamic = 'list_of_dynamic';
   static const Map = 'Map';
 
   static const Null = 'null';
@@ -179,7 +173,7 @@ abstract class HS_Common {
   static const As = 'as';
   static const Abstract = 'abstract';
   static const Class = 'class';
-  static const Func = 'func';
+  static const Func = 'fun';
   static const Arguments = 'arguments';
   static const Function = 'Function';
   static const Method = 'method';
@@ -219,10 +213,10 @@ abstract class HS_Common {
   /// 函数调用表达式
   static const NullExpr = 'null_expression';
   static const LiteralExpr = 'literal_expression';
-  static const ListExpr = 'list_expression';
-  static const MapExpr = 'map_expression';
-  static const VarExpr = 'variable_expression';
   static const GroupExpr = 'group_expression';
+  static const VectorExpr = 'vector_expression';
+  static const BlockExpr = 'block_expression';
+  static const VarExpr = 'variable_expression';
   static const TypeExpr = 'type_expression';
   static const UnaryExpr = 'unary_expression';
   static const BinaryExpr = 'binary_expression';
@@ -353,8 +347,9 @@ abstract class HS_Common {
   static const ErrorNullObject = 'is null';
   static const ErrorMutable = 'is immutable';
 
-  static const ErrorType1 = 'Assigned value type';
-  static const ErrorType2 = 'doesn\'t match declared type';
+  static const ErrorType1 = 'Variable';
+  static const ErrorType2 = 'of type';
+  static const ErrorType3 = 'can\'t be assigned with type';
 
   static const ErrorArgType1 = 'Argument value type';
   static const ErrorArgType2 = 'doesn\'t match parameter type';

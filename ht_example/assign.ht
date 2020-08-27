@@ -1,20 +1,20 @@
 
 class HelloWord {
-  var hello: num
-  var world: num
+  var hello: Number
+  var world: Number
   var _privateNum = 99
 
-  func toString: String {
+  fun toString: String {
     return "hello" + hello.toString() + "world" + world.toString()
   }
 
-  func getPrivate: num {
+  fun getPrivate: Number {
     return _privateNum
   }
 }
 
 // 程序入口
-func main {
+fun main {
   var m: HelloWord = {"hello": 42, "world": 103}
 
   Console.print(m.getPrivate())

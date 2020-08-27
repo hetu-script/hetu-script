@@ -205,6 +205,8 @@ class FuncStmt extends Stmt {
 
   final bool isStatic;
 
+  final bool isConst;
+
   final FuncStmtType functype;
 
   FuncStmt(this.returnType, this.name, this.params,
@@ -213,6 +215,7 @@ class FuncStmt extends Stmt {
       this.className,
       this.isExtern = false,
       this.isStatic = false,
+      this.isConst = false,
       this.functype = FuncStmtType.normal}) {
     this.definition ??= <Stmt>[];
     if (functype == FuncStmtType.initter) {
@@ -237,7 +240,7 @@ class ClassStmt extends Stmt {
 
   final Token name;
 
-  final VarExpr superClass;
+  final IdExpr superClass;
 
   final List<VarStmt> variables;
 
