@@ -1,8 +1,8 @@
 func hello(String words, [num times = 112]) {
-  Console.print(words, times);
+  Console.print(words, times)
 }
 
 // 程序入口
 func main {
-  hello('hello');
+  hello('hello')
 }

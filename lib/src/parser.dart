@@ -124,7 +124,8 @@ class Parser {
     var statements = <Stmt>[];
     try {
       while (curTok != HS_Common.EOF) {
-        statements.add(_parseStmt(style: style));
+        var stmt = _parseStmt(style: style);
+        if (stmt != null) statements.add(stmt);
       }
     } catch (e) {
       print(e);
@@ -279,14 +280,14 @@ class Parser {
   Expr _parsePrimaryExpr() {
     if (HS_Common.Literals.contains(curTok.type)) {
       int index;
-      if (curTok.literal == HS_Common.Null) {
+      if (curTok == HS_Common.Null) {
         advance(1);
         return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
-      } else if (curTok.literal is num) {
+      } else if (curTok == HS_Common.Num) {
         index = interpreter.addLiteral(curTok.literal);
-      } else if (curTok.literal is bool) {
+      } else if (curTok == HS_Common.Bool) {
         index = interpreter.addLiteral(curTok.literal);
-      } else if (curTok.literal is String) {
+      } else if (curTok == HS_Common.Str) {
         index = interpreter.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
       }
       advance(1);
@@ -365,10 +366,10 @@ class Parser {
           else if (expect(_patternAssign)) {
             return _parseAssignStmt();
           } // 跳出语句
-          else if (expect([HS_Common.Break, HS_Common.Newline], consume: true, error: false)) {
+          else if (expect([HS_Common.Break])) {
             return BreakStmt();
           } // 继续语句
-          else if (expect([HS_Common.Continue, HS_Common.Newline], consume: true, error: false)) {
+          else if (expect([HS_Common.Continue])) {
             return ContinueStmt();
           } // 返回语句
           else if (curTok == HS_Common.Return) {
@@ -456,7 +457,7 @@ class Parser {
       spacename = match(HS_Common.Identifier).lexeme;
     }
     var stmt = ImportStmt(filename, asspace: spacename);
-    expect([HS_Common.Newline], consume: true);
+    expect([HS_Common.Semicolon], consume: true, error: false);
     return stmt;
   }
 
@@ -473,8 +474,8 @@ class Parser {
     if (expect([HS_Common.Assign], consume: true, error: false)) {
       initializer = _parseExpr();
     }
-    // 语句一定以回车结尾
-    expect([HS_Common.Newline], consume: true);
+    // 语句结尾
+    expect([HS_Common.Semicolon], consume: true, error: false);
     return VarStmt(varname, typename, initializer: initializer, isExtern: is_extern, isStatic: is_static);
   }
 
@@ -485,8 +486,8 @@ class Parser {
     var name = advance(1);
     var assignTok = advance(1);
     var value = _parseExpr();
-    // 语句一定以分号结尾
-    expect([HS_Common.Newline], consume: true);
+    // 语句结尾
+    expect([HS_Common.Semicolon], consume: true, error: false);
     var expr = AssignExpr(name, assignTok, value, _curFileName);
     return ExprStmt(expr);
   }
@@ -494,8 +495,8 @@ class Parser {
   ExprStmt _parseExprStmt({bool commandLine = false}) {
     var stmt = ExprStmt(_parseExpr());
     if (!commandLine) {
-      // 语句一定以回车结尾
-      expect([HS_Common.Newline], consume: true);
+      // 语句结尾
+      expect([HS_Common.Semicolon], consume: true, error: false);
     }
     return stmt;
   }
@@ -503,10 +504,10 @@ class Parser {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance(1);
     Expr expr;
-    if (curTok.type != HS_Common.Newline) {
+    if (curTok.type != HS_Common.CurlyRight) {
       expr = _parseExpr();
     }
-    expect([HS_Common.Newline], consume: true);
+    expect([HS_Common.Semicolon], consume: true, error: false);
     return ReturnStmt(keyword, expr);
   }
 
@@ -547,7 +548,7 @@ class Parser {
     return WhileStmt(condition, loop);
   }
 
-  /// ForIn语句其实会在解析时转换为While语句
+  /// For语句其实会在解析时转换为While语句
   BlockStmt _parseForStmt() {
     var list_stmt = <Stmt>[];
     var line = curTok.line;
@@ -675,7 +676,7 @@ class Parser {
       expect([HS_Common.CurlyLeft], consume: true);
       body = _parseBlock(style: ParseStyle.function);
     } else {
-      expect([HS_Common.Newline], consume: true);
+      expect([HS_Common.Semicolon], consume: true, error: false);
     }
     return FuncStmt(return_type, func_name, params,
         arity: arity,
@@ -701,15 +702,19 @@ class Parser {
     expect([HS_Common.CurlyLeft], consume: true);
     var variables = <VarStmt>[];
     var methods = <FuncStmt>[];
-    while ((curTok.type != HS_Common.CurlyRight) && (curTok.type != HS_Common.EOF)) {
-      var stmt = _parseStmt(style: ParseStyle.classDefinition);
-      if (stmt is VarStmt) {
-        variables.add(stmt);
-      } else if (stmt is FuncStmt) {
-        methods.add(stmt);
+    if (curTok != HS_Common.CurlyRight) {
+      while ((curTok.type != HS_Common.CurlyRight) && (curTok.type != HS_Common.EOF)) {
+        var stmt = _parseStmt(style: ParseStyle.classDefinition);
+        if (stmt is VarStmt) {
+          variables.add(stmt);
+        } else if (stmt is FuncStmt) {
+          methods.add(stmt);
+        }
       }
+      expect([HS_Common.CurlyRight], consume: true);
+    } else {
+      advance(1);
     }
-    expect([HS_Common.CurlyRight], consume: true);
 
     stmt = ClassStmt(className, super_class, variables, methods);
     _curClassName = null;

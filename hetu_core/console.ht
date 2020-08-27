@@ -13,5 +13,5 @@ class Console {
 	external static func setTitle(title: String)
 	
 	external static func cls()
-	
+
 }

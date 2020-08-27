@@ -67,8 +67,8 @@ abstract class HS_Common {
 
   /// 保留字，不能用于变量名字
   static const Keywords = <String>[
-    Newline,
-    Multiline,
+    //Newline,
+    //Multiline,
     Null,
     Static,
     Const,

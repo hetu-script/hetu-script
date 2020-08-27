@@ -1,9 +1,14 @@
 // 程序入口
 func main {
   // 列表的创建和添加元素
-  var list = ["hello", 2, 3];
+  var list = ["hello", 2, 3]
+
+  var element = list
+  ;[0]
 
   for (i in list) {
-    print(i);
+    print(i)
   }
+
+  print(element)
 }

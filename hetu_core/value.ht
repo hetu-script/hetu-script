@@ -40,7 +40,7 @@ class bool extends _Value {
 class String extends _Value {
 	
 	external get isEmpty: bool
-
+	
 	get isNotEmpty: bool {
 		return !isEmpty
 	}

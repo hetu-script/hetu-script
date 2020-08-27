@@ -1,16 +1,16 @@
 func fib(num x): num {
   
-  if (x < 2) return x;
-  else return fib(x - 2) + fib(x - 1);
+  if (x < 2) return x
+  else return fib(x - 2) + fib(x - 1)
 
 }
   
 func main {
 
-  var before = now();
-	System.print(fib(15));
-  var after = now();
-  System.print(after - before);
+  var before = now()
+	System.print(fib(15))
+  var after = now()
+  System.print(after - before)
   
   
 }
