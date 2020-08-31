@@ -23,6 +23,7 @@ abstract class HS_LexPatterns {
 
 abstract class HS_Common {
   static var coreLibPath = 'hetu_core';
+  static var mainFunc = 'main';
 
   static var currentLanguage = enUS;
 
@@ -152,8 +153,8 @@ abstract class HS_Common {
   static const Let = 'let';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const Any = 'any';
-  static const Num = 'num';
-  static const Bool = 'bool';
+  static const Num = 'Number';
+  static const Bool = 'Boolean';
   static const Str = 'String';
   static const Typedef = 'typedef';
   static const List = 'List';
@@ -175,7 +176,7 @@ abstract class HS_Common {
   static const Class = 'class';
   static const Func = 'fun';
   static const Arguments = 'arguments';
-  static const Function = 'Function';
+  static const Function = 'function';
   static const Method = 'method';
   static const This = 'this';
   static const Super = 'super';

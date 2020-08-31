@@ -7,32 +7,37 @@ import 'errors.dart';
 
 typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
 
-class HS_Function extends Namespace {
+class HS_Function extends HS_Namespace {
   @override
   String get type => HS_Common.Function;
 
   @override
-  String toString() => '$name(${HS_Common.Function})';
+  String toString() {
+    String result = '${HS_Common.Function} $name(';
+    if (funcStmt.arity >= 0) {
+      for (var param in funcStmt.params) {
+        result += param.name.lexeme + ': ' + (param.typename?.lexeme ?? HS_Common.Any);
+        //if (param.initializer != null)
+        if (funcStmt.params.length > 1) result += ', ';
+      }
+    } else {
+      result += '...';
+    }
+    result += '): ' + funcStmt.returnType;
+    return result;
+  }
 
   final String name;
   final FuncStmt funcStmt;
 
   HS_External extern;
 
-  HS_Function(
-      this.name, // int line, int column, String fileName,
-      this.funcStmt,
-      {this.extern,
-      Namespace closure})
-      : super(name: name, closure: closure); //, line, column, fileName);
+  HS_Function(this.funcStmt, {this.name, this.extern, HS_Namespace closure})
+      : super(name: name ?? funcStmt.name.lexeme, closure: closure); //, line, column, fileName);
 
   // 成员函数需要绑定到实例
   HS_Function bind(HS_Instance instance, int line, int column, Interpreter interpreter) {
-    return HS_Function(
-        name, // line, column, fileName,
-        funcStmt,
-        extern: extern,
-        closure: instance);
+    return HS_Function(funcStmt, name: name, extern: extern, closure: instance);
   }
 
   dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args) {

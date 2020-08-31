@@ -7,39 +7,19 @@ import 'function.dart';
 import 'errors.dart';
 import 'statement.dart';
 
-String HS_TypeOf(dynamic value) {
-  if ((value == null) || (value is NullThrownError)) {
-    return HS_Common.Null;
-  } else if (value is HS_Value) {
-    return value.type;
-  } else if (value is num) {
-    return HS_Common.Num;
-  } else if (value is bool) {
-    return HS_Common.Bool;
-  } else if (value is String) {
-    return HS_Common.Str;
-  } else if (value is List) {
-    return HS_Common.List;
-  } else if (value is Map) {
-    return HS_Common.Map;
-  } else {
-    return value.runtimeType.toString();
-  }
-}
-
 /// [HS_Class]的实例对应河图中的"class"声明
 ///
-/// [HS_Class]继承自命名空间[Namespace]，[HS_Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
+/// [HS_Class]继承自命名空间[HS_Namespace]，[HS_Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
 ///
 /// 类的方法单独定义在一个表中，通过[fetchMethod]获取
 ///
-/// 类的静态成员定义在所继承的[Namespace]的表中，通过[define]和[fetch]定义和获取
+/// 类的静态成员定义在所继承的[HS_Namespace]的表中，通过[define]和[fetch]定义和获取
 ///
 /// TODO：对象初始化时从父类逐个调用构造函数
-class HS_Class extends Namespace {
+class HS_Class extends HS_Namespace {
   String get type => HS_Common.Class;
 
-  String toString() => '$name';
+  String toString() => '${HS_Common.Class} $name';
 
   final String name;
   HS_Class superClass;
@@ -47,7 +27,7 @@ class HS_Class extends Namespace {
   Map<String, VarStmt> variables = {};
   //Map<String, HS_Function> methods = {};
 
-  HS_Class(this.name, {Namespace closure, this.superClass}) : super(name: name, closure: closure);
+  HS_Class(this.name, {HS_Namespace closure, this.superClass}) : super(name: name, closure: closure);
 
   @override
   bool contains(String varName) =>
@@ -151,7 +131,7 @@ class HS_Class extends Namespace {
     if (nonExistError) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
   }
 
-  HS_Instance createInstance(Interpreter interpreter, int line, int column, Namespace closure,
+  HS_Instance createInstance(Interpreter interpreter, int line, int column, HS_Namespace closure,
       {String initterName, List<dynamic> args}) {
     var instance = HS_Instance(this);
 
@@ -189,7 +169,7 @@ class HS_Class extends Namespace {
   }
 }
 
-class HS_Instance extends Namespace {
+class HS_Instance extends HS_Namespace {
   @override
   String get type => klass.name;
 

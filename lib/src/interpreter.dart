@@ -22,8 +22,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   var _evaledFiles = <String>[];
 
   /// 全局命名空间
-  final global = Namespace(name: HS_Common.Global);
-  final extern = Namespace(name: HS_Common.Extern);
+  final global = HS_Namespace(name: HS_Common.Global);
+  final extern = HS_Namespace(name: HS_Common.Extern);
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -35,11 +35,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   final _constants = <dynamic>[];
 
   /// 当前语句所在的命名空间
-  Namespace curContext;
+  HS_Namespace curContext;
   String _curFileName;
   String get curFileName => _curFileName;
 
   void init({
+    bool displayLoadingInfo = true,
     String hetuSdkDir,
     String workingDir,
     String language = 'enUS',
@@ -51,7 +52,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
       // 必须在绑定函数前加载基础类Object和Function，因为函数本身也是对象
       curContext = global;
-      print('Hetu: Loading core library.');
+      if (displayLoadingInfo) print('Hetu: Loading core library.');
       eval(HS_Buildin.coreLib, 'core.ht');
 
       // 绑定外部函数
@@ -59,10 +60,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       linkAll(externs);
 
       // 载入基础库
-      evalf(path.join(_sdkDir, 'core.ht'));
-      evalf(path.join(_sdkDir, 'value.ht'));
-      evalf(path.join(_sdkDir, 'system.ht'));
-      evalf(path.join(_sdkDir, 'console.ht'));
+      evalf(path.join(_sdkDir, 'core.ht'), displayLoadingInfo: displayLoadingInfo);
+      evalf(path.join(_sdkDir, 'value.ht'), displayLoadingInfo: displayLoadingInfo);
+      evalf(path.join(_sdkDir, 'system.ht'), displayLoadingInfo: displayLoadingInfo);
+      evalf(path.join(_sdkDir, 'console.ht'), displayLoadingInfo: displayLoadingInfo);
     } catch (e) {
       stdout.write('\x1B[32m');
       print(e);
@@ -71,34 +72,37 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void eval(String script, String fileName,
+  dynamic eval(String script, String fileName,
       {String libName = HS_Common.Global,
       ParseStyle style = ParseStyle.library,
       String invokeFunc = null,
       List<dynamic> args}) {
     if ((libName != null) && (libName != HS_Common.Global)) {
-      curContext = Namespace(name: libName);
+      curContext = HS_Namespace(name: libName);
     }
     var tokens = Lexer().lex(script);
     var statements = Parser(this).parse(tokens, fileName, style: style);
     Resolver(this).resolve(statements, fileName);
+    dynamic result;
     for (var stmt in statements) {
-      evaluateStmt(stmt);
+      result = evaluateStmt(stmt);
     }
     if ((style != ParseStyle.commandLine) && (invokeFunc != null)) {
-      invoke(invokeFunc, args: args);
+      result = invoke(invokeFunc, args: args);
     }
+    return result;
   }
 
   /// 解析文件
   void evalf(String filepath,
-      {String libName = HS_Common.Global,
+      {bool displayLoadingInfo = true,
+      String libName = HS_Common.Global,
       ParseStyle style = ParseStyle.library,
       String invokeFunc = null,
       List<dynamic> args}) {
     _curFileName = path.absolute(filepath);
     if (!_evaledFiles.contains(curFileName)) {
-      print('Hetu: Loading $filepath...');
+      if (displayLoadingInfo) print('Hetu: Loading $filepath...');
       _evaledFiles.add(curFileName);
 
       eval(File(curFileName).readAsStringSync(), curFileName,
@@ -236,7 +240,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void executeBlock(List<Stmt> statements, Namespace environment) {
+  void executeBlock(List<Stmt> statements, HS_Namespace environment) {
     var saved_context = curContext;
 
     try {
@@ -576,7 +580,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitBlockStmt(BlockStmt stmt) {
-    executeBlock(stmt.block, Namespace(closure: curContext));
+    executeBlock(stmt.block, HS_Namespace(closure: curContext));
   }
 
   @override
@@ -643,7 +647,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (stmt.isExtern) {
         externFunc = extern.fetch(stmt.name.lexeme, stmt.name.line, stmt.name.column, this, from: HS_Common.Extern);
       }
-      func = HS_Function(stmt.internalName, stmt, extern: externFunc, closure: curContext);
+      func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, closure: curContext);
 
       curContext.define(stmt.name.lexeme, HS_Common.Function, stmt.name.line, stmt.name.column, this, value: func);
     }
@@ -708,7 +712,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
 
       HS_Function func;
-      Namespace closure;
+      HS_Namespace closure;
       HS_External externFunc;
       if (method.isStatic) {
         // 静态函数外层是类本身
@@ -722,7 +726,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             '${stmt.name.lexeme}${HS_Common.Dot}${method.internalName}', method.name.line, method.name.column, this,
             from: HS_Common.Extern);
       }
-      func = HS_Function(method.internalName, method, extern: externFunc, closure: closure);
+      func = HS_Function(method, name: method.internalName, extern: externFunc, closure: closure);
       klass.define(method.internalName, HS_Common.Function, method.name.line, method.name.column, this, value: func);
     }
   }

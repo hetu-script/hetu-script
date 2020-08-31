@@ -13,6 +13,26 @@ abstract class HS_Value {
 
 }
 
+String HS_TypeOf(dynamic value) {
+  if ((value == null) || (value is NullThrownError)) {
+    return HS_Common.Null;
+  } else if (value is HS_Value) {
+    return value.type;
+  } else if (value is num) {
+    return HS_Common.Num;
+  } else if (value is bool) {
+    return HS_Common.Bool;
+  } else if (value is String) {
+    return HS_Common.Str;
+  } else if (value is List) {
+    return HS_Common.List;
+  } else if (value is Map) {
+    return HS_Common.Map;
+  } else {
+    return value.runtimeType.toString();
+  }
+}
+
 class Field {
   final String type;
   // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HS_Value
@@ -23,8 +43,10 @@ class Field {
   Field(this.type, {this.value, this.mutable = true, this.initialized = false});
 }
 
-class Namespace extends HS_Value {
+class HS_Namespace extends HS_Value {
   String get type => HS_Common.Namespace;
+
+  String toString() => '${HS_Common.Namespace} $name';
 
   String _name;
   String get name => _name;
@@ -32,16 +54,16 @@ class Namespace extends HS_Value {
   String get fullName => _fullName;
 
   final Map<String, Field> defs = {};
-  Namespace _closure;
-  Namespace get closure => _closure;
-  void set closure(Namespace closure) {
+  HS_Namespace _closure;
+  HS_Namespace get closure => _closure;
+  void set closure(HS_Namespace closure) {
     _closure = closure;
     _fullName = getFullName(_name, _closure);
   }
 
   static int spaceIndex = 0;
 
-  static String getFullName(String name, Namespace space) {
+  static String getFullName(String name, HS_Namespace space) {
     var fullName = name;
     var cur_space = space.closure;
     while ((cur_space != null) && (cur_space.name != HS_Common.Global)) {
@@ -51,20 +73,20 @@ class Namespace extends HS_Value {
     return fullName;
   }
 
-  Namespace(
+  HS_Namespace(
       //int line, int column, String fileName,
       //this.fileName,
       {
     String name,
     String fullName,
-    Namespace closure,
+    HS_Namespace closure,
   }) {
     _name = name == null ? '__namespace${spaceIndex++}' : name;
     _closure = closure;
     _fullName = fullName == null ? getFullName(_name, this) : fullName;
   }
 
-  Namespace closureAt(int distance) {
+  HS_Namespace closureAt(int distance) {
     var namespace = this;
     for (var i = 0; i < distance; i++) {
       namespace = namespace.closure;

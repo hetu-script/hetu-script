@@ -651,14 +651,11 @@ class Parser {
       if (expect([HS_Common.RoundLeft], consume: true, error: false)) {
         if (expect([HS_Common.VariadicArguments])) {
           arity = -1;
-          var typename = advance(1);
-          var varname = match(HS_Common.Identifier);
-          params.add(VarStmt(varname, typename));
-          expect([HS_Common.RoundRight], consume: true);
-        } else {
-          params = _parseParameters();
-          arity = params.length;
+          advance(1);
         }
+        params = _parseParameters();
+
+        if (arity != -1) arity = params.length;
 
         // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
         if ((functype == FuncStmtType.setter) && (arity != 1))
@@ -666,7 +663,7 @@ class Parser {
       }
     }
 
-    String return_type = HS_Common.Null;
+    String return_type = HS_Common.Void;
 
     if (functype != FuncStmtType.initter) {
       if (expect([HS_Common.Colon], consume: true, error: false)) {

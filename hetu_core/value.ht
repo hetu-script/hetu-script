@@ -1,25 +1,25 @@
-class _Value {
+class Value {
 
   // external关键字表示函数体在host语言中定义
 	external fun toString(): String
 
 }
 
-class num extends _Value {
+class Number extends Value {
 
-	external static fun parse(value): num
+	external static fun parse(value): Number
 
-  external fun toStringAsFixed([fractionDigits: num = 0]): num
+  external fun toStringAsFixed([fractionDigits: Number = 0]): Number
 
-  external fun truncate(): num
+  external fun truncate(): Number
 }
 
-class bool extends _Value {
+class Boolean extends Value {
 
-	static fun parse(value): bool {
-    if (value is bool) {
+	static fun parse(value): Boolean {
+    if (value is Boolean) {
       return value
-    } else if (value is num) {
+    } else if (value is Number) {
       if (value != 0) {
         return true
       } else {
@@ -37,28 +37,28 @@ class bool extends _Value {
   }
 }
 
-class String extends _Value {
+class String extends Value {
 	
-	external get isEmpty: bool
+	external get isEmpty: Boolean
 	
-	get isNotEmpty: bool {
+	get isNotEmpty: Boolean {
 		return !isEmpty
 	}
 
-	external fun substring(startIndex: num, [endIndex: num]): String
+	external fun substring(startIndex: Number, [endIndex: Number]): String
 
 	external static fun parse(value): String
 }
 
-class List extends _Value {
+class List extends Value {
 	
-	external get length: num
+	external get length: Number
 	
-	get isEmpty: bool {
+	get isEmpty: Boolean {
 		return length == 0
 	}
 	
-	get isNotEmpty: bool {
+	get isNotEmpty: Boolean {
 		return length != 0
 	}
 	
@@ -74,7 +74,7 @@ class List extends _Value {
     }
   }
 	
-	fun contains(value): bool {
+	fun contains(value): Boolean {
 		return indexOf(value) != -1
 	}
 	
@@ -82,22 +82,22 @@ class List extends _Value {
 	
 	external fun clear()
 	
-	external fun removeAt(index: num)
+	external fun removeAt(index: Number)
 	
-	external fun indexOf(value): num
+	external fun indexOf(value): Number
 	
-	external fun elementAt(index: num): any
+	external fun elementAt(index: Number): any
 }
 
-class Map extends _Value {
+class Map extends Value {
 	
-	external get length: num
+	external get length: Number
 	
-	get isEmpty: bool {
+	get isEmpty: Boolean {
 		return length == 0
 	}
 	
-	get isNotEmpty: bool {
+	get isNotEmpty: Boolean {
 		return length != 0
 	}
 
@@ -105,9 +105,9 @@ class Map extends _Value {
 
   external get values: List
 	
-	external fun containsKey(value): bool
+	external fun containsKey(value): Boolean
 
-	external fun containsValue(value): bool
+	external fun containsValue(value): Boolean
 	
 	external fun setVal(key, value)
 	

@@ -14,7 +14,9 @@ abstract class HS_Buildin {
 
   static Map<String, HS_External> externs = {
     'typeof': _typeof,
+    'help': _help,
     'print': _print,
+    'string': _string,
     'System.evalc': _system_evalc,
     'System.invoke': _system_invoke,
     'System.readfile': _system_readfile,
@@ -25,10 +27,10 @@ abstract class HS_Buildin {
     'Console.eraseLine': _console_erase_line,
     'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
-    '_Value.toString': HSVal_Value._to_string,
-    'num.parse': HSVal_Num._parse,
-    'num.toStringAsFixed': HSVal_Num._to_string_as_fixed,
-    'num.truncate': HSVal_Num._truncate,
+    'Value.toString': HSVal_Value._to_string,
+    'Number.parse': HSVal_Num._parse,
+    'Number.toStringAsFixed': HSVal_Num._to_string_as_fixed,
+    'Number.truncate': HSVal_Num._truncate,
     'String._get_isEmpty': HSVal_String._is_empty,
     'String.parse': HSVal_String._parse,
     'String.substring': HSVal_String._substring,
@@ -63,10 +65,29 @@ abstract class HS_Buildin {
     }
   }
 
+  static dynamic _help(HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      var value = args.first;
+      if (value is HS_Value) {
+        return value is HS_Namespace ? value.toString() : value.type;
+      } else {
+        return HS_TypeOf(value);
+      }
+    }
+  }
+
   static dynamic _print(HS_Instance instance, List<dynamic> args) {
     for (var arg in args) {
       print(arg);
     }
+  }
+
+  static dynamic _string(HS_Instance instance, List<dynamic> args) {
+    var result = StringBuffer();
+    for (var arg in args) {
+      result.write(arg);
+    }
+    return result.toString();
   }
 
   static dynamic _system_evalc(HS_Instance instance, List<dynamic> args) {
