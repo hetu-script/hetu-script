@@ -29,7 +29,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   //final _locals = <Expr, int>{};
 
-  final _distances = <Expr, int>{};
+  final _varDistances = <Expr, int>{};
 
   /// 常量表
   final _constants = <dynamic>[];
@@ -141,7 +141,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   // }
 
   void addVarPos(Expr expr, int distance) {
-    _distances[expr] = distance;
+    _varDistances[expr] = distance;
   }
 
   /// 定义一个常量，然后返回数组下标
@@ -177,7 +177,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   dynamic _getVar(String name, Expr expr) {
-    var distance = _distances[expr];
+    var distance = _varDistances[expr];
     if (distance != null) {
       return curContext.fetchAt(name, distance, expr.line, expr.column, this);
     }
@@ -268,9 +268,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitGroupExpr(GroupExpr expr) => evaluateExpr(expr.inner);
 
   @override
-  dynamic visitListExpr(ListExpr expr) {
+  dynamic visitVectorExpr(VectorExpr expr) {
     var list = [];
-    for (var item in expr.list) {
+    for (var item in expr.vector) {
       list.add(evaluateExpr(item));
     }
     return list;
@@ -287,8 +287,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     return map;
   }
 
+  // @override
+  // dynamic visitTypeExpr(TypeExpr expr) {}
+
   @override
-  dynamic visitIdExpr(IdExpr expr) => _getVar(expr.name.lexeme, expr);
+  dynamic visitVarExpr(VarExpr expr) => _getVar(expr.name.lexeme, expr);
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
@@ -465,7 +468,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
     var value = evaluateExpr(expr.value);
-    var distance = _distances[expr];
+    var distance = _varDistances[expr];
     // 尝试设置当前环境中的本地变量
     curContext.assignAt(expr.variable.lexeme, value, distance, expr.line, expr.column, this);
 
@@ -564,7 +567,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     if (stmt.typename != null) {
       // TODO: 解析类型名，判断是否是class
-      curContext.define(stmt.name.lexeme, stmt.typename.lexeme, stmt.name.line, stmt.name.column, this, value: value);
+      curContext.define(stmt.name.lexeme, stmt.typename, stmt.name.line, stmt.name.column, this, value: value);
     } else {
       // 从初始化表达式推断变量类型
       if (value != null) {
@@ -690,7 +693,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
         if (variable.typename != null) {
           // TODO: 解析类型名，判断是否是class
-          klass.define(variable.name.lexeme, variable.typename.lexeme, variable.name.line, variable.name.column, this,
+          klass.define(variable.name.lexeme, variable.typename, variable.name.line, variable.name.column, this,
               value: value);
         } else {
           // 从初始化表达式推断变量类型

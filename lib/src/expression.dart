@@ -17,13 +17,13 @@ abstract class ExprVisitor {
   /// 字面量
   dynamic visitLiteralExpr(LiteralExpr expr);
 
-  /// 圆括号表达式
+  /// 圆括号表达式 - 元组
   dynamic visitGroupExpr(GroupExpr expr);
 
-  /// 花括号表达式
-  dynamic visitListExpr(ListExpr expr);
+  /// 方括号表达式 - 数组
+  dynamic visitVectorExpr(VectorExpr expr);
 
-  /// 数组
+  /// 花括号表达式 - 字典
   dynamic visitBlockExpr(BlockExpr expr);
 
   /// 单目表达式
@@ -32,8 +32,11 @@ abstract class ExprVisitor {
   /// 双目表达式
   dynamic visitBinaryExpr(BinaryExpr expr);
 
-  /// 变量
-  dynamic visitIdExpr(IdExpr expr);
+  /// 类型名
+  // dynamic visitTypeExpr(TypeExpr expr);
+
+  /// 变量名
+  dynamic visitVarExpr(VarExpr expr);
 
   /// 类型
   // dynamic visitTypeExpr(TypeExpr expr);
@@ -119,25 +122,25 @@ class GroupExpr extends Expr {
   Expr clone() => GroupExpr(inner.clone(), fileName);
 }
 
-class ListExpr extends Expr {
+class VectorExpr extends Expr {
   @override
   String get type => HS_Common.VectorExpr;
 
   @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitListExpr(this);
+  dynamic accept(ExprVisitor visitor) => visitor.visitVectorExpr(this);
 
-  List<Expr> list;
+  List<Expr> vector;
 
-  ListExpr(this.list, int line, int column, String fileName) : super(line, column, fileName) {
-    list ??= [];
+  VectorExpr(this.vector, int line, int column, String fileName) : super(line, column, fileName) {
+    vector ??= [];
   }
 
   Expr clone() {
     var new_list = <Expr>[];
-    for (var expr in list) {
+    for (var expr in vector) {
       new_list.add(expr.clone());
     }
-    return ListExpr(new_list, line, column, fileName);
+    return VectorExpr(new_list, line, column, fileName);
   }
 }
 
@@ -208,18 +211,34 @@ class BinaryExpr extends Expr {
   Expr clone() => BinaryExpr(left.clone(), op, right.clone(), fileName);
 }
 
-class IdExpr extends Expr {
+// class TypeExpr extends Expr {
+//   @override
+//   String get type => HS_Common.VarExpr;
+
+//   @override
+//   dynamic accept(ExprVisitor visitor) => visitor.visitTypeExpr(this);
+
+//   final Token name;
+
+//   final List<Token> typeParams;
+
+//   TypeExpr(this.name, this.typeParams, String fileName) : super(name.line, name.column, fileName);
+
+//   Expr clone() => TypeExpr(name, typeParams, fileName);
+// }
+
+class VarExpr extends Expr {
   @override
   String get type => HS_Common.VarExpr;
 
   @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitIdExpr(this);
+  dynamic accept(ExprVisitor visitor) => visitor.visitVarExpr(this);
 
   final Token name;
 
-  IdExpr(this.name, String fileName) : super(name.line, name.column, fileName);
+  VarExpr(this.name, String fileName) : super(name.line, name.column, fileName);
 
-  Expr clone() => IdExpr(name, fileName);
+  Expr clone() => VarExpr(name, fileName);
 }
 
 class AssignExpr extends Expr {

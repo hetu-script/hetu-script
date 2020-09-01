@@ -24,10 +24,17 @@ class HS_Class extends HS_Namespace {
   final String name;
   HS_Class superClass;
 
+  List<String> typeParams = [];
+
   Map<String, VarStmt> variables = {};
   //Map<String, HS_Function> methods = {};
 
-  HS_Class(this.name, {HS_Namespace closure, this.superClass}) : super(name: name, closure: closure);
+  HS_Class(this.name, {List<String> typeParams, HS_Namespace closure, this.superClass})
+      : super(name: name, closure: closure) {
+    if (typeParams != null) {
+      this.typeParams.addAll(typeParams);
+    }
+  }
 
   @override
   bool contains(String varName) =>
@@ -144,7 +151,7 @@ class HS_Class extends HS_Namespace {
       }
 
       if (decl.typename != null) {
-        instance.define(decl.name.lexeme, decl.typename.lexeme, line, column, interpreter, value: value);
+        instance.define(decl.name.lexeme, decl.typename, line, column, interpreter, value: value);
       } else {
         // 从初始化表达式推断变量类型
         if (value != null) {

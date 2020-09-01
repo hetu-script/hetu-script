@@ -16,7 +16,7 @@ class HS_Function extends HS_Namespace {
     String result = '${HS_Common.Function} $name(';
     if (funcStmt.arity >= 0) {
       for (var param in funcStmt.params) {
-        result += param.name.lexeme + ': ' + (param.typename?.lexeme ?? HS_Common.Any);
+        result += param.name.lexeme + ': ' + (param.typename ?? HS_Common.Any);
         //if (param.initializer != null)
         if (funcStmt.params.length > 1) result += ', ';
       }
@@ -69,10 +69,10 @@ class HS_Function extends HS_Namespace {
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
-                var type_token = funcStmt.params[i].typename;
+                var typename = funcStmt.params[i].typename;
                 var arg_type_decl;
-                if (type_token != null) {
-                  arg_type_decl = type_token.lexeme;
+                if (typename != null) {
+                  arg_type_decl = typename;
                 } else {
                   arg_type_decl = HS_Common.Any;
                 }

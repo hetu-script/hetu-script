@@ -73,9 +73,11 @@ class VarStmt extends Stmt {
   @override
   void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
 
-  final Token typename;
-
   final Token name;
+
+  final String typename;
+
+  final List<String> typeparams = [];
 
   final Expr initializer;
 
@@ -83,7 +85,12 @@ class VarStmt extends Stmt {
 
   final bool isStatic;
 
-  VarStmt(this.name, this.typename, {this.initializer, this.isExtern = false, this.isStatic = false});
+  VarStmt(this.name, this.typename,
+      {List<String> typeparams, this.initializer, this.isExtern = false, this.isStatic = false}) {
+    if (typeparams != null) {
+      this.typeparams.addAll(typeparams);
+    }
+  }
 }
 
 class ExprStmt extends Stmt {
@@ -188,6 +195,8 @@ class FuncStmt extends Stmt {
 
   final String returnType;
 
+  final List<String> returnTypeParams = [];
+
   final Token name;
 
   String _internalName;
@@ -210,7 +219,8 @@ class FuncStmt extends Stmt {
   final FuncStmtType functype;
 
   FuncStmt(this.returnType, this.name, this.params,
-      {this.arity = 0,
+      {List<String> returnTypeParams,
+      this.arity = 0,
       this.definition,
       this.className,
       this.isExtern = false,
@@ -228,6 +238,10 @@ class FuncStmt extends Stmt {
     } else {
       _internalName = name.lexeme;
     }
+
+    if (returnTypeParams != null) {
+      this.returnTypeParams.addAll(returnTypeParams);
+    }
   }
 }
 
@@ -240,11 +254,17 @@ class ClassStmt extends Stmt {
 
   final Token name;
 
-  final IdExpr superClass;
+  final List<String> typeParams = [];
+
+  final VarExpr superClass;
 
   final List<VarStmt> variables;
 
   final List<FuncStmt> methods;
 
-  ClassStmt(this.name, this.superClass, this.variables, this.methods);
+  ClassStmt(this.name, this.superClass, this.variables, this.methods, {List<String> typeParams}) {
+    if (typeParams != null) {
+      this.typeParams.addAll(typeParams);
+    }
+  }
 }

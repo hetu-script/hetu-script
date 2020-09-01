@@ -37,10 +37,11 @@ class Field {
   final String type;
   // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HS_Value
   dynamic value;
+  final bool nullable;
   final bool mutable;
   final bool initialized;
 
-  Field(this.type, {this.value, this.mutable = true, this.initialized = false});
+  Field(this.type, {this.value, this.nullable = false, this.mutable = true, this.initialized = false});
 }
 
 class HS_Namespace extends HS_Value {
