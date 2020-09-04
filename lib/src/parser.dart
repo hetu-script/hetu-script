@@ -44,6 +44,8 @@ class Parser {
   var _tokPos = 0;
   Token _curClassName;
   String _curFileName;
+  // TODO：死代码判断：return之后的代码
+  bool _returned = false;
 
   static int internalVarIndex = 0;
 
@@ -284,9 +286,9 @@ class Parser {
       if (curTok == HS_Common.Null) {
         advance(1);
         return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
-      } else if (curTok == HS_Common.Num) {
+      } else if (curTok == HS_Common.Number) {
         index = interpreter.addLiteral(curTok.literal);
-      } else if (curTok == HS_Common.Bool) {
+      } else if (curTok == HS_Common.Boolean) {
         index = interpreter.addLiteral(curTok.literal);
       } else if (curTok == HS_Common.Str) {
         index = interpreter.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
@@ -574,7 +576,7 @@ class Parser {
     expect([HS_Common.For, HS_Common.RoundLeft], consume: true);
     // 递增变量
     String i = '__i${internalVarIndex++}';
-    list_stmt.add(VarStmt(TokenIdentifier(i, line, column + 4), HS_Common.Num,
+    list_stmt.add(VarStmt(TokenIdentifier(i, line, column + 4), HS_Common.Number,
         initializer: LiteralExpr(interpreter.addLiteral(0), line, column, _curFileName)));
     // 指针
     var varname = match(HS_Common.Identifier);

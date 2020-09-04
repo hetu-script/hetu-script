@@ -4,6 +4,7 @@ import 'namespace.dart';
 import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
+import 'value.dart';
 
 typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
 
@@ -69,10 +70,10 @@ class HS_Function extends HS_Namespace {
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
-                var typename = funcStmt.params[i].typename;
+                var var_stmt = funcStmt.params[i];
                 var arg_type_decl;
-                if (typename != null) {
-                  arg_type_decl = typename;
+                if (var_stmt.typename != null) {
+                  arg_type_decl = var_stmt.typename;
                 } else {
                   arg_type_decl = HS_Common.Any;
                 }
@@ -83,12 +84,14 @@ class HS_Function extends HS_Namespace {
                     throw HSErr_ArgType(arg_type, arg_type_decl, line, column, interpreter.curFileName);
                   }
 
-                  define(funcStmt.params[i].name.lexeme, arg_type_decl, line, column, interpreter, value: args[i]);
+                  define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter,
+                      value: args[i], varTypeParams: var_stmt.typeparams);
                 } else {
-                  var initializer = funcStmt.params[i].initializer;
+                  var initializer = var_stmt.initializer;
                   var init_value;
-                  if (initializer != null) init_value = interpreter.evaluateExpr(funcStmt.params[i].initializer);
-                  define(funcStmt.params[i].name.lexeme, arg_type_decl, line, column, interpreter, value: init_value);
+                  if (initializer != null) init_value = interpreter.evaluateExpr(var_stmt.initializer);
+                  define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter,
+                      value: init_value, varTypeParams: var_stmt.typeparams);
                 }
               }
             }

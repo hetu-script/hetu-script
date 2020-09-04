@@ -7,6 +7,7 @@ import 'common.dart';
 import 'class.dart';
 import 'function.dart';
 import 'interpreter.dart';
+import 'value.dart';
 
 abstract class HS_Buildin {
   static const coreLib = 'class Object {}\n'
@@ -61,7 +62,19 @@ abstract class HS_Buildin {
 
   static dynamic _typeof(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
-      return HS_TypeOf(args.first);
+      var type = HS_TypeOf(args.first);
+      var type_params = HS_TypeParamsOf(args.first);
+      if (type_params.isNotEmpty) {
+        String fullname = '$type<';
+        for (var i = 0; i < type_params.length; i++) {
+          fullname += type_params[i];
+          if ((type_params.length > 1) && (i != type_params.length - 1)) fullname += ', ';
+        }
+        fullname += '>';
+        return fullname;
+      } else {
+        return type;
+      }
     }
   }
 
@@ -215,7 +228,7 @@ abstract class HSVal_Value extends HS_Instance {
 
 class HSVal_Num extends HSVal_Value {
   HSVal_Num(num value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.Num, line, column, interpreter);
+      : super(value, HS_Common.Number, line, column, interpreter);
 
   static dynamic _parse(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -244,7 +257,7 @@ class HSVal_Num extends HSVal_Value {
 
 class HSVal_Bool extends HSVal_Value {
   HSVal_Bool(bool value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.Num, line, column, interpreter);
+      : super(value, HS_Common.Number, line, column, interpreter);
 }
 
 class HSVal_String extends HSVal_Value {
@@ -278,7 +291,9 @@ class HSVal_String extends HSVal_Value {
 }
 
 class HSVal_List extends HSVal_Value {
-  HSVal_List(List value, int line, int column, Interpreter interpreter)
+  final String valueType;
+
+  HSVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType = HS_Common.Any})
       : super(value, HS_Common.List, line, column, interpreter);
 
   static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
@@ -335,7 +350,11 @@ class HSVal_List extends HSVal_Value {
 
 //TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
-  HSVal_Map(Map value, int line, int column, Interpreter interpreter)
+  final String keyType;
+  final String valueType;
+
+  HSVal_Map(Map value, int line, int column, Interpreter interpreter,
+      {this.keyType = HS_Common.Any, this.valueType = HS_Common.Any})
       : super(value, HS_Common.Map, line, column, interpreter);
 
   static dynamic _get_length(HS_Instance instance, List<dynamic> args) {

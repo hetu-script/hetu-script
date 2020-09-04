@@ -50,8 +50,8 @@ abstract class HS_Common {
   }
 
   static const Literals = <String>[
-    Bool,
-    Num,
+    Boolean,
+    Number,
     Str,
     Null,
     //Array,
@@ -153,8 +153,8 @@ abstract class HS_Common {
   static const Let = 'let';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const Any = 'any';
-  static const Num = 'Number';
-  static const Bool = 'Boolean';
+  static const Number = 'Number';
+  static const Boolean = 'Boolean';
   static const Str = 'String';
   static const Typedef = 'typedef';
   static const List = 'List';
@@ -351,6 +351,9 @@ abstract class HS_Common {
   static const ErrorType1 = 'Variable';
   static const ErrorType2 = 'of type';
   static const ErrorType3 = 'can\'t be assigned with type';
+
+  static const ErrorTypeParam1 = 'Type parameter declared as';
+  static const ErrorTypeParam2 = 'can\'t be assigned with type argument';
 
   static const ErrorArgType1 = 'Argument value type';
   static const ErrorArgType2 = 'doesn\'t match parameter type';

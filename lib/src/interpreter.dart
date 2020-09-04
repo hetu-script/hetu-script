@@ -6,6 +6,7 @@ import 'errors.dart';
 import 'common.dart';
 import 'expression.dart';
 import 'statement.dart';
+import 'value.dart';
 import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
@@ -501,10 +502,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var collection = evaluateExpr(expr.collection);
     var key = evaluateExpr(expr.key);
     var value = evaluateExpr(expr.value);
-    if ((collection is HSVal_List) || (collection is HSVal_Map)) {
-      collection.value[key] = value;
-    } else if ((collection is List) || (collection is Map)) {
+    if ((collection is List) || (collection is Map)) {
       return collection[key] = value;
+    } else if ((collection is HSVal_List) || (collection is HSVal_Map)) {
+      collection.value[key] = value;
     }
 
     throw HSErr_SubGet(collection.toString(), expr.line, expr.column, expr.fileName);
@@ -567,11 +568,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     if (stmt.typename != null) {
       // TODO: 解析类型名，判断是否是class
-      curContext.define(stmt.name.lexeme, stmt.typename, stmt.name.line, stmt.name.column, this, value: value);
+      curContext.define(stmt.name.lexeme, stmt.typename, stmt.name.line, stmt.name.column, this,
+          value: value, varTypeParams: stmt.typeparams);
     } else {
       // 从初始化表达式推断变量类型
       if (value != null) {
-        curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this, value: value);
+        curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this,
+            value: value, varTypeParams: stmt.typeparams);
       } else {
         curContext.define(stmt.name.lexeme, HS_Common.Any, stmt.name.line, stmt.name.column, this);
       }
@@ -694,14 +697,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         if (variable.typename != null) {
           // TODO: 解析类型名，判断是否是class
           klass.define(variable.name.lexeme, variable.typename, variable.name.line, variable.name.column, this,
-              value: value);
+              value: value, varTypeParams: variable.typeparams);
         } else {
           // 从初始化表达式推断变量类型
           if (value != null) {
             klass.define(variable.name.lexeme, HS_TypeOf(value), variable.name.line, variable.name.column, this,
-                value: value);
+                value: value, varTypeParams: variable.typeparams);
           } else {
-            klass.define(variable.name.lexeme, HS_Common.Any, variable.name.line, variable.name.column, this);
+            klass.define(variable.name.lexeme, HS_Common.Any, variable.name.line, variable.name.column, this,
+                varTypeParams: variable.typeparams);
           }
         }
       } else {

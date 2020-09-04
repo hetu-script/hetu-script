@@ -31,7 +31,7 @@ class TokenBoolLiteral extends Token {
 
   String get lexeme => literal.toString();
 
-  const TokenBoolLiteral(this.literal, int line, int column) : super(HS_Common.Bool, line, column);
+  const TokenBoolLiteral(this.literal, int line, int column) : super(HS_Common.Boolean, line, column);
 }
 
 class TokenNumLiteral extends Token {
@@ -40,7 +40,7 @@ class TokenNumLiteral extends Token {
 
   String get lexeme => literal.toString();
 
-  const TokenNumLiteral(this.literal, int line, int column) : super(HS_Common.Num, line, column);
+  const TokenNumLiteral(this.literal, int line, int column) : super(HS_Common.Number, line, column);
 }
 
 class TokenStringLiteral extends Token {

@@ -6,6 +6,7 @@ import 'common.dart';
 import 'function.dart';
 import 'errors.dart';
 import 'statement.dart';
+import 'value.dart';
 
 /// [HS_Class]的实例对应河图中的"class"声明
 ///
@@ -21,7 +22,6 @@ class HS_Class extends HS_Namespace {
 
   String toString() => '${HS_Common.Class} $name';
 
-  final String name;
   HS_Class superClass;
 
   List<String> typeParams = [];
@@ -29,7 +29,7 @@ class HS_Class extends HS_Namespace {
   Map<String, VarStmt> variables = {};
   //Map<String, HS_Function> methods = {};
 
-  HS_Class(this.name, {List<String> typeParams, HS_Namespace closure, this.superClass})
+  HS_Class(String name, {List<String> typeParams, HS_Namespace closure, this.superClass})
       : super(name: name, closure: closure) {
     if (typeParams != null) {
       this.typeParams.addAll(typeParams);
@@ -151,13 +151,15 @@ class HS_Class extends HS_Namespace {
       }
 
       if (decl.typename != null) {
-        instance.define(decl.name.lexeme, decl.typename, line, column, interpreter, value: value);
+        instance.define(decl.name.lexeme, decl.typename, line, column, interpreter,
+            value: value, varTypeParams: decl.typeparams);
       } else {
         // 从初始化表达式推断变量类型
         if (value != null) {
-          instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, interpreter, value: value);
+          instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, interpreter,
+              value: value, varTypeParams: decl.typeparams);
         } else {
-          instance.define(decl.name.lexeme, HS_Common.Any, line, column, interpreter);
+          instance.define(decl.name.lexeme, HS_Common.Any, line, column, interpreter, varTypeParams: decl.typeparams);
         }
       }
     }

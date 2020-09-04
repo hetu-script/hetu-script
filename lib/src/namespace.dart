@@ -3,46 +3,7 @@ import 'package:hetu_script/hetu.dart';
 import 'errors.dart';
 import 'class.dart';
 import 'common.dart';
-
-/// Value是命名空间、类和实例的基类
-abstract class HS_Value {
-  String get type;
-  //final int line, column;
-  //final String fileName;
-  HS_Value(); //this.line, this.column, this.fileName);
-
-}
-
-String HS_TypeOf(dynamic value) {
-  if ((value == null) || (value is NullThrownError)) {
-    return HS_Common.Null;
-  } else if (value is HS_Value) {
-    return value.type;
-  } else if (value is num) {
-    return HS_Common.Num;
-  } else if (value is bool) {
-    return HS_Common.Bool;
-  } else if (value is String) {
-    return HS_Common.Str;
-  } else if (value is List) {
-    return HS_Common.List;
-  } else if (value is Map) {
-    return HS_Common.Map;
-  } else {
-    return value.runtimeType.toString();
-  }
-}
-
-class Field {
-  final String type;
-  // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HS_Value
-  dynamic value;
-  final bool nullable;
-  final bool mutable;
-  final bool initialized;
-
-  Field(this.type, {this.value, this.nullable = false, this.mutable = true, this.initialized = false});
-}
+import 'value.dart';
 
 class HS_Namespace extends HS_Value {
   String get type => HS_Common.Namespace;
@@ -126,9 +87,23 @@ class HS_Namespace extends HS_Value {
 
   /// 在当前命名空间定义一个变量的类型
   void define(String varName, String varType, int line, int column, Interpreter interpreter,
-      {dynamic value, bool mutable = true}) {
+      {List<String> varTypeParams, dynamic value, bool mutable = true}) {
     var val_type = HS_TypeOf(value);
+    var val_type_params = HS_TypeParamsOf(value);
     if ((varType == HS_Common.Any) || ((value != null) && (varType == val_type)) || (value == null)) {
+      if (varTypeParams != null) {
+        for (int i = 0; i < val_type_params.length; i++) {
+          if (i < varTypeParams.length) {
+            var param = val_type_params[i];
+            var decl_param = varTypeParams[i];
+            if ((decl_param != HS_Common.Any) && (decl_param != param)) {
+              throw HSErr_TypeParam(param, decl_param, line, column, interpreter.curFileName);
+            }
+          } else {
+            varTypeParams.add(HS_Common.Any);
+          }
+        }
+      }
       defs[varName] = Field(varType, value: value, mutable: mutable, initialized: (value == null ? false : true));
     } else if ((value != null) && (value is Map)) {
       var klass = interpreter.global.fetch(varType, line, column, interpreter);
@@ -139,7 +114,7 @@ class HS_Namespace extends HS_Value {
         }
         defs[varName] = Field(varType, value: instance);
       } else {
-        throw HSErr_Type(val_type, varType, val_type, line, column, interpreter.curFileName);
+        throw HSErr_Type(varName, varType, val_type, line, column, interpreter.curFileName);
       }
     } else {
       throw HSErr_Type(varName, varType, val_type, line, column, interpreter.curFileName);
