@@ -1,5 +1,5 @@
 abstract class HS_LexPatterns {
-  static final enUS = RegExp(
+  static final script = RegExp(
     r'(//.*)|' // 注释 group(1)
     r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
     r'(\.\.\.|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
@@ -39,7 +39,7 @@ abstract class HS_Common {
   static const _stringReplaces = <String, String>{
     '\\\\': '\\',
     '\\n': '\n',
-    "\\'": "'",
+    '\\\'': '\'',
   };
 
   static String convertEscapeCode(String line) {
@@ -49,173 +49,169 @@ abstract class HS_Common {
     return line;
   }
 
-  static const Literals = <String>[
-    Boolean,
-    Number,
-    Str,
-    Null,
+  static const literals = <String>[
+    boolean,
+    number,
+    string,
+    NULL,
     //Array,
     //Dict,
   ];
 
   /// 保留字，不能用于变量名字
-  static const Keywords = <String>[
+  static const keywords = <String>[
     //Newline,
     //Multiline,
-    Null,
-    Static,
-    Const,
-    Final,
-    Var,
-    Let,
-    Any,
-    Namespace,
-    As,
-    Abstract,
-    Class,
-    Func,
+    NULL,
+    STATIC,
+    //CONST,
+    //Final,
+    VAR,
+    LET,
+    ANY,
+    TYPEDEF,
+    NAMESPACE,
+    AS,
+    ABSTRACT,
+    CLASS,
+    FUN,
     //Arguments,
-    VariadicArguments,
-    Init,
-    Get,
-    Set,
-    This,
-    Super,
-    Extends,
-    Implements,
-    Mixin,
-    External,
-    Import,
-    Assert,
-    Break,
-    Continue,
-    For,
-    In,
-    If,
-    Else,
-    Return,
-    Throw,
-    While,
-    Do,
-    Try,
-    Catch,
-    Finally,
-    Switch,
-    Case,
-    Default,
-    New,
-    Is,
+    CONSTRUCT,
+    GET,
+    SET,
+    THIS,
+    SUPER,
+    EXTENDS,
+    IMPLEMENTS,
+    MIXIN,
+    EXTERNAL,
+    IMPORT,
+    //Assert,
+    BREAK,
+    CONTINUE,
+    FOR,
+    IN,
+    IF,
+    ELSE,
+    RETURN,
+    THROW,
+    WHILE,
+    DO,
+    WHEN,
+    //TRY,
+    //CATCH,
+    //FINALLY,
+    IS,
   ];
 
   static const Punctuations = <String>[
-    Not,
-    Multiply,
-    Devide,
-    Modulo,
-    Add,
-    Subtract,
-    Greater,
-    GreaterOrEqual,
-    Lesser,
-    LesserOrEqual,
-    Equal,
-    NotEqual,
-    And,
-    Or,
-    Assign,
-    Comma,
-    Colon,
-    Semicolon,
-    Dot,
-    RoundLeft,
-    RoundRight,
-    CurlyLeft,
-    CurlyRight,
-    SquareLeft,
-    SquareRight,
-    AngleLeft,
-    AngleRight,
+    not,
+    multiply,
+    devide,
+    modulo,
+    add,
+    subtract,
+    greater,
+    greaterOrEqual,
+    lesser,
+    lesserOrEqual,
+    equal,
+    notEqual,
+    and,
+    or,
+    assign,
+    comma,
+    colon,
+    semicolon,
+    dot,
+    roundLeft,
+    roundRight,
+    curlyLeft,
+    curlyRight,
+    squareLeft,
+    squareRight,
+    angleLeft,
+    angleRight,
   ];
 
-  static const EOF = 'end_of_file'; // 文件末尾
-  static const Newline = '\n';
-  static const Multiline = '\\';
-  static const Void = 'void';
-  static const VariadicArguments = '...';
-  static const Underscore = '_';
-  static const Global = '__global__';
-  static const Extern = '__extern__';
-  static const Instance = '__instance__';
-  static const InstanceString = 'instance of class ';
+  static const endOfFile = 'end_of_file'; // 文件末尾
+  static const newline = '\n';
+  static const multiline = '\\';
+  static const variadicArguments = '...';
+  static const underscore = '_';
+  static const global = '__global__';
+  static const extern = '__extern__';
+  static const instance = '__instance_of_';
+  static const instanceName = 'instance of class ';
+  static const constructFun = '_construct_';
+  static const getFun = '_get_';
+  static const setFun = '_set_';
 
-  static const Unknown = 'unknown';
-  static const Var = 'var';
-  static const Let = 'let';
+  static const object = 'Object';
+  static const number = 'Number';
+  static const boolean = 'Boolean';
+  static const string = 'String';
+  static const list = 'List';
+  static const map = 'Map';
+  static const length = 'length';
+  static const function = 'function';
+  static const method = 'method';
+  static const identifier = 'identifier';
+
+  static const TRUE = 'true';
+  static const FALSE = 'false';
+  static const NULL = 'null';
+
+  static const VOID = 'void';
+  static const VAR = 'var';
+  static const LET = 'let';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
-  static const Any = 'any';
-  static const Number = 'Number';
-  static const Boolean = 'Boolean';
-  static const Str = 'String';
-  static const Typedef = 'typedef';
-  static const List = 'List';
-  static const Map = 'Map';
+  static const ANY = 'any';
+  static const TYPEDEF = 'typedef';
 
-  static const Null = 'null';
-  static const Static = 'static';
-  static const Const = 'const';
-  static const Init = 'init';
-  static const Initter = '_init_';
-  static const Get = 'get';
-  static const Getter = '_get_';
-  static const Set = 'set';
-  static const Setter = '_set_';
-  static const Final = 'final';
-  static const Namespace = 'namespace';
-  static const As = 'as';
-  static const Abstract = 'abstract';
-  static const Class = 'class';
-  static const Func = 'fun';
+  static const STATIC = 'static';
+  static const CONST = 'const';
+  static const CONSTRUCT = 'construct';
+  static const GET = 'get';
+  static const SET = 'set';
+  //static const Final = 'final';
+  static const NAMESPACE = 'namespace';
+  static const AS = 'as';
+  static const ABSTRACT = 'abstract';
+  static const CLASS = 'class';
+  static const STRUCT = 'struct';
+  static const UNION = 'union';
+  static const FUN = 'fun';
   static const Arguments = 'arguments';
-  static const Function = 'function';
-  static const Method = 'method';
-  static const This = 'this';
-  static const Super = 'super';
-  static const Extends = 'extends';
-  static const Implements = 'implements';
-  static const Mixin = 'mixin';
-  static const External = 'external';
-  static const Import = 'import';
+  static const THIS = 'this';
+  static const SUPER = 'super';
+  static const EXTENDS = 'extends';
+  static const IMPLEMENTS = 'implements';
+  static const MIXIN = 'mixin';
+  static const EXTERNAL = 'external';
+  static const IMPORT = 'import';
 
   static const Assert = 'assert';
-  static const Break = 'break';
-  static const Continue = 'continue';
-  static const For = 'for';
-  static const In = 'in';
-  static const If = 'if';
-  static const Else = 'else';
-  static const Return = 'return';
-  static const Throw = 'throw';
-  static const While = 'while';
-  static const Do = 'do';
-  static const Try = 'try';
-  static const Catch = 'catch';
-  static const Finally = 'finally';
-  static const Switch = 'switch';
-  static const Case = 'case';
-  static const Default = 'default';
-
-  static const True = 'true';
-  static const False = 'false';
-
-  static const New = 'new';
-
-  static const Object = 'Object';
+  static const BREAK = 'break';
+  static const CONTINUE = 'continue';
+  static const FOR = 'for';
+  static const IN = 'in';
+  static const IF = 'if';
+  static const ELSE = 'else';
+  static const RETURN = 'return';
+  static const THROW = 'throw';
+  static const WHILE = 'while';
+  static const DO = 'do';
+  static const WHEN = 'when';
+  static const TRY = 'try';
+  static const CATCH = 'catch';
+  static const FINALLY = 'finally';
 
   /// 函数调用表达式
-  static const NullExpr = 'null_expression';
-  static const LiteralExpr = 'literal_expression';
-  static const GroupExpr = 'group_expression';
-  static const VectorExpr = 'vector_expression';
+  static const nullExpr = 'null_expression';
+  static const literalExpr = 'literal_expression';
+  static const groupExpr = 'group_expression';
+  static const vectorExpr = 'vector_expression';
   static const BlockExpr = 'block_expression';
   static const VarExpr = 'variable_expression';
   static const TypeExpr = 'type_expression';
@@ -245,98 +241,91 @@ abstract class HS_Common {
   static const ConstructorStmt = 'constructor_function_statement';
 
   /// 后缀操作符，包含多个符号
-  static const UnaryPostfix = <String>[
-    Dot,
-    RoundLeft,
-    SquareLeft,
+  static const unaryPostfixs = <String>[
+    dot,
+    roundLeft,
+    squareLeft,
   ];
 
   /// 前缀操作符，包含多个符号
-  static const UnaryPrefix = <String>[
-    Not,
-    Subtract,
+  static const unaryPrefixs = <String>[
+    not,
+    subtract,
   ];
-  static const Not = '!';
+  static const not = '!';
 
   /// 乘除操作符，包含多个符号
-  static const Multiplicative = <String>[
-    Multiply,
-    Devide,
-    Modulo,
+  static const multiplicatives = <String>[
+    multiply,
+    devide,
+    modulo,
   ];
-  static const Multiply = '*';
-  static const Devide = '/';
-  static const Modulo = '%';
+  static const multiply = '*';
+  static const devide = '/';
+  static const modulo = '%';
 
   /// 加减操作符，包含多个符号
-  static const Additive = <String>[
-    Add,
-    Subtract,
+  static const additives = <String>[
+    add,
+    subtract,
   ];
-  static const Add = '+';
-  static const Subtract = '-';
+  static const add = '+';
+  static const subtract = '-';
 
   /// 大小判断操作符，包含多个符号
-  static const Relational = <String>[
-    Greater,
-    GreaterOrEqual,
-    Lesser,
-    LesserOrEqual,
-    Is,
+  static const relationals = <String>[
+    greater,
+    greaterOrEqual,
+    lesser,
+    lesserOrEqual,
+    IS,
   ];
-  static const Greater = '>';
-  static const GreaterOrEqual = '>=';
-  static const Lesser = '<';
-  static const LesserOrEqual = '<=';
-  static const Is = 'is';
+  static const greater = '>';
+  static const greaterOrEqual = '>=';
+  static const lesser = '<';
+  static const lesserOrEqual = '<=';
+  static const IS = 'is';
 
   /// 相等判断操作符，包含多个符号
-  static const Equality = <String>[
-    Equal,
-    NotEqual,
+  static const equalitys = <String>[
+    equal,
+    notEqual,
   ];
-  static const Equal = '==';
-  static const NotEqual = '!=';
+  static const equal = '==';
+  static const notEqual = '!=';
 
-  static const And = '&&';
-  static const Or = '||';
+  static const and = '&&';
+  static const or = '||';
 
   /// 赋值类型操作符，包含多个符号
-  static const Assignment = <String>[
-    Assign,
+  static const assignments = <String>[
+    assign,
   ];
-  static const Assign = '=';
+  static const assign = '=';
+  static const comma = ',';
+  static const colon = ':';
+  static const semicolon = ';';
+  static const dot = '.';
+  static const roundLeft = '(';
+  static const roundRight = ')';
+  static const curlyLeft = '{';
+  static const curlyRight = '}';
+  static const squareLeft = '[';
+  static const squareRight = ']';
+  static const angleLeft = '<';
+  static const angleRight = '>';
 
-  static const Identifier = 'identifier'; // 标识符
-
-  static const Comma = ',';
-  static const Colon = ':';
-  static const Semicolon = ';';
-  static const Dot = '.';
-  static const RoundLeft = '(';
-  static const RoundRight = ')';
-  static const CurlyLeft = '{';
-  static const CurlyRight = '}';
-  static const SquareLeft = '[';
-  static const SquareRight = ']';
-  static const AngleLeft = '<';
-  static const AngleRight = '>';
-
-  static const length = 'length';
-
-  static const Undefined = 'undefined';
-
-  static const ErrorUnsupport = 'Unsupport value type';
-  static const ErrorExpected = 'expected, get';
-  static const ErrorUnexpected = 'Unexpected identifier';
-  static const ErrorPrivate = 'Could not acess private member';
-  static const ErrorInitialized = 'has not initialized';
-  static const ErrorUndefined = 'Undefined identifier';
-  static const ErrorUndefinedOperator = 'Undefined operator';
-  static const ErrorDeclared = 'is already declared';
-  static const ErrorDefined = 'is already defined';
-  static const ErrorRange = 'Index out of range, should be less than';
-  static const ErrorInvalidLeftValue = 'Invalid left-value';
+  static const errorUnsupport = 'Unsupport value type';
+  static const errorExpected = 'expected, get';
+  static const errorUnexpected = 'Unexpected identifier';
+  static const errorPrivate = 'Could not acess private member';
+  static const errorInitialized = 'has not initialized';
+  static const errorUndefined = 'Undefined identifier';
+  static const errorUndefinedOperator = 'Undefined operator';
+  static const errorDeclared = 'is already declared';
+  static const errorDefined = 'is already defined';
+  static const errorRange = 'Index out of range, should be less than';
+  static const errorInvalidLeftValue = 'Invalid left-value';
   static const ErrorCallable = 'is not callable';
   static const ErrorUndefinedMember = 'isn\'t defined for the class';
   static const ErrorCondition = 'Condition expression must evaluate to type "bool"';

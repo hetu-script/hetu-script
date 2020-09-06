@@ -23,8 +23,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   var _evaledFiles = <String>[];
 
   /// 全局命名空间
-  final global = HS_Namespace(name: HS_Common.Global);
-  final extern = HS_Namespace(name: HS_Common.Extern);
+  final global = HS_Namespace(name: HS_Common.global);
+  final extern = HS_Namespace(name: HS_Common.extern);
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -44,7 +44,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     bool displayLoadingInfo = true,
     String hetuSdkDir,
     String workingDir,
-    String language = 'enUS',
     Map<String, HS_External> externs,
   }) {
     try {
@@ -74,11 +73,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   dynamic eval(String script, String fileName,
-      {String libName = HS_Common.Global,
+      {String libName = HS_Common.global,
       ParseStyle style = ParseStyle.library,
       String invokeFunc = null,
       List<dynamic> args}) {
-    if ((libName != null) && (libName != HS_Common.Global)) {
+    if ((libName != null) && (libName != HS_Common.global)) {
       curContext = HS_Namespace(name: libName);
     }
     var tokens = Lexer().lex(script);
@@ -97,7 +96,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 解析文件
   void evalf(String filepath,
       {bool displayLoadingInfo = true,
-      String libName = HS_Common.Global,
+      String libName = HS_Common.global,
       ParseStyle style = ParseStyle.library,
       String invokeFunc = null,
       List<dynamic> args}) {
@@ -165,7 +164,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (extern.contains(name)) {
       throw HSErr_Defined(name, null, null, curFileName);
     } else {
-      extern.define(name, HS_Common.Any, null, null, this, value: function);
+      extern.define(name, HS_Type.any, null, null, this, value: function);
     }
   }
 
@@ -190,9 +189,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (value is HS_Value) {
       return value;
     } else if (value is num) {
-      return HSVal_Num(value, line, column, this);
+      return HSVal_Number(value, line, column, this);
     } else if (value is bool) {
-      return HSVal_Bool(value, line, column, this);
+      return HSVal_Boolean(value, line, column, this);
     } else if (value is String) {
       return HSVal_String(value, line, column, this);
     } else {
@@ -299,7 +298,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var value = evaluateExpr(expr.value);
 
     switch (expr.op.lexeme) {
-      case HS_Common.Subtract:
+      case HS_Common.subtract:
         {
           if (value is num) {
             return -value;
@@ -308,7 +307,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           }
         }
         break;
-      case HS_Common.Not:
+      case HS_Common.not:
         {
           if (value is bool) {
             return !value;
@@ -327,7 +326,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitBinaryExpr(BinaryExpr expr) {
     var left = evaluateExpr(expr.left);
     var right;
-    if (expr.op == HS_Common.And) {
+    if (expr.op == HS_Common.and) {
       if (left is bool) {
         // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
         if (!left) {
@@ -350,7 +349,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
       // TODO 操作符重载
       switch (expr.op.type) {
-        case HS_Common.Or:
+        case HS_Common.or:
           {
             if (left is bool) {
               if (right is bool) {
@@ -365,21 +364,21 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             }
           }
           break;
-        case HS_Common.Equal:
+        case HS_Common.equal:
           return left == right;
           break;
-        case HS_Common.NotEqual:
+        case HS_Common.notEqual:
           return left != right;
           break;
-        case HS_Common.Add:
-        case HS_Common.Subtract:
+        case HS_Common.add:
+        case HS_Common.subtract:
           {
             if ((left is String) && (right is String)) {
               return left + right;
             } else if ((left is num) && (right is num)) {
-              if (expr.op.lexeme == HS_Common.Add) {
+              if (expr.op.lexeme == HS_Common.add) {
                 return left + right;
-              } else if (expr.op.lexeme == HS_Common.Subtract) {
+              } else if (expr.op.lexeme == HS_Common.subtract) {
                 return left - right;
               }
             } else {
@@ -388,32 +387,32 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             }
           }
           break;
-        case HS_Common.Multiply:
-        case HS_Common.Devide:
-        case HS_Common.Modulo:
-        case HS_Common.Greater:
-        case HS_Common.GreaterOrEqual:
-        case HS_Common.Lesser:
-        case HS_Common.LesserOrEqual:
-        case HS_Common.Is:
+        case HS_Common.multiply:
+        case HS_Common.devide:
+        case HS_Common.modulo:
+        case HS_Common.greater:
+        case HS_Common.greaterOrEqual:
+        case HS_Common.lesser:
+        case HS_Common.lesserOrEqual:
+        case HS_Common.IS:
           {
-            if ((expr.op == HS_Common.Is) && (right is HS_Class)) {
+            if ((expr.op == HS_Common.IS) && (right is HS_Class)) {
               return HS_TypeOf(left) == right.name;
             } else if (left is num) {
               if (right is num) {
-                if (expr.op == HS_Common.Multiply) {
+                if (expr.op == HS_Common.multiply) {
                   return left * right;
-                } else if (expr.op == HS_Common.Devide) {
+                } else if (expr.op == HS_Common.devide) {
                   return left / right;
-                } else if (expr.op == HS_Common.Modulo) {
+                } else if (expr.op == HS_Common.modulo) {
                   return left % right;
-                } else if (expr.op == HS_Common.Greater) {
+                } else if (expr.op == HS_Common.greater) {
                   return left > right;
-                } else if (expr.op == HS_Common.GreaterOrEqual) {
+                } else if (expr.op == HS_Common.greaterOrEqual) {
                   return left >= right;
-                } else if (expr.op == HS_Common.Lesser) {
+                } else if (expr.op == HS_Common.lesser) {
                   return left < right;
-                } else if (expr.op == HS_Common.LesserOrEqual) {
+                } else if (expr.op == HS_Common.lesserOrEqual) {
                   return left <= right;
                 }
               } else {
@@ -444,7 +443,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     if (callee is HS_Function) {
-      if (callee.funcStmt.functype != FuncStmtType.initter) {
+      if (callee.funcStmt.funcType != FuncStmtType.constructor) {
         return callee.call(this, expr.line, expr.column, args ?? []);
       } else {
         //TODO命名构造函数
@@ -478,7 +477,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitThisExpr(ThisExpr expr) => _getVar(HS_Common.This, expr);
+  dynamic visitThisExpr(ThisExpr expr) => _getVar(HS_Common.THIS, expr);
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
@@ -516,9 +515,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var object = evaluateExpr(expr.collection);
 
     if (object is num) {
-      object = HSVal_Num(object, expr.line, expr.column, this);
+      object = HSVal_Number(object, expr.line, expr.column, this);
     } else if (object is bool) {
-      object = HSVal_Bool(object, expr.line, expr.column, this);
+      object = HSVal_Boolean(object, expr.line, expr.column, this);
     } else if (object is String) {
       object = HSVal_String(object, expr.line, expr.column, this);
     } else if (object is List) {
@@ -566,17 +565,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       value = evaluateExpr(stmt.initializer);
     }
 
-    if (stmt.typename != null) {
+    if (stmt.declType != null) {
       // TODO: 解析类型名，判断是否是class
-      curContext.define(stmt.name.lexeme, stmt.typename, stmt.name.line, stmt.name.column, this,
-          value: value, varTypeParams: stmt.typeparams);
+      curContext.define(stmt.name.lexeme, stmt.declType, stmt.name.line, stmt.name.column, this, value: value);
     } else {
       // 从初始化表达式推断变量类型
       if (value != null) {
-        curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this,
-            value: value, varTypeParams: stmt.typeparams);
+        curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this, value: value);
       } else {
-        curContext.define(stmt.name.lexeme, HS_Common.Any, stmt.name.line, stmt.name.column, this);
+        curContext.define(stmt.name.lexeme, HS_Type.any, stmt.name.line, stmt.name.column, this);
       }
     }
   }
@@ -647,15 +644,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   void visitFuncStmt(FuncStmt stmt) {
     // 构造函数本身不注册为变量
-    if (stmt.functype != FuncStmtType.initter) {
+    if (stmt.funcType != FuncStmtType.constructor) {
       HS_Function func;
       HS_External externFunc;
       if (stmt.isExtern) {
-        externFunc = extern.fetch(stmt.name.lexeme, stmt.name.line, stmt.name.column, this, from: HS_Common.Extern);
+        externFunc = extern.fetch(stmt.name, stmt.keyword.line, stmt.keyword.column, this, from: HS_Common.extern);
       }
       func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, closure: curContext);
-
-      curContext.define(stmt.name.lexeme, HS_Common.Function, stmt.name.line, stmt.name.column, this, value: func);
+      var func_type = HS_Type();
+      curContext.define(stmt.name, func.type, stmt.keyword.line, stmt.keyword.column, this, value: func);
     }
   }
 
@@ -665,20 +662,19 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     //TODO: while superClass != null, inherit all...
 
-    if (stmt.superClass == null) {
-      if (stmt.name.lexeme != HS_Common.Object)
-        superClass = global.fetch(HS_Common.Object, stmt.name.line, stmt.name.column, this);
+    if ((stmt.superClass == null) && (stmt.className.name != HS_Common.object)) {
+      superClass = global.fetch(HS_Common.object, stmt.keyword.line, stmt.keyword.column, this);
     } else {
-      superClass = evaluateExpr(stmt.superClass);
-      if (superClass is! HS_Class) {
-        throw HSErr_Extends(superClass.name, stmt.superClass.line, stmt.superClass.column, curFileName);
-      }
+      superClass = global.fetch(stmt.superClass.name, stmt.keyword.line, stmt.keyword.column, this);
+    }
+    if (superClass is! HS_Class) {
+      throw HSErr_Extends(superClass.name, stmt.keyword.line, stmt.keyword.column, curFileName);
     }
 
-    var klass = HS_Class(stmt.name.lexeme, superClass: superClass, closure: curContext);
+    var klass = HS_Class(stmt.className, superClass: superClass, closure: curContext);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curContext.define(stmt.name.lexeme, HS_Common.Class, stmt.name.line, stmt.name.column, this, value: klass);
+    curContext.define(stmt.name.lexeme, HS_Type.CLASS, stmt.name.line, stmt.name.column, this, value: klass);
 
     for (var variable in stmt.variables) {
       if (variable.isStatic) {
@@ -689,14 +685,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           value = evaluateExpr(variable.initializer);
           curContext = save;
         } else if (variable.isExtern) {
-          value = extern.fetch('${stmt.name.lexeme}${HS_Common.Dot}${variable.name.lexeme}', variable.name.line,
+          value = extern.fetch('${stmt.name.lexeme}${HS_Common.dot}${variable.name.lexeme}', variable.name.line,
               variable.name.column, this,
-              from: HS_Common.Extern);
+              from: HS_Common.extern);
         }
 
-        if (variable.typename != null) {
+        if (variable.declType != null) {
           // TODO: 解析类型名，判断是否是class
-          klass.define(variable.name.lexeme, variable.typename, variable.name.line, variable.name.column, this,
+          klass.define(variable.name.lexeme, variable.declType, variable.name.line, variable.name.column, this,
               value: value, varTypeParams: variable.typeparams);
         } else {
           // 从初始化表达式推断变量类型
@@ -704,7 +700,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             klass.define(variable.name.lexeme, HS_TypeOf(value), variable.name.line, variable.name.column, this,
                 value: value, varTypeParams: variable.typeparams);
           } else {
-            klass.define(variable.name.lexeme, HS_Common.Any, variable.name.line, variable.name.column, this,
+            klass.define(variable.name.lexeme, HS_Common.ANY, variable.name.line, variable.name.column, this,
                 varTypeParams: variable.typeparams);
           }
         }
@@ -730,11 +726,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
       if (method.isExtern) {
         externFunc = extern.fetch(
-            '${stmt.name.lexeme}${HS_Common.Dot}${method.internalName}', method.name.line, method.name.column, this,
-            from: HS_Common.Extern);
+            '${stmt.name.lexeme}${HS_Common.dot}${method.internalName}', method.name.line, method.name.column, this,
+            from: HS_Common.extern);
       }
       func = HS_Function(method, name: method.internalName, extern: externFunc, closure: closure);
-      klass.define(method.internalName, HS_Common.Function, method.name.line, method.name.column, this, value: func);
+      klass.define(method.internalName, HS_Common.function, method.name.line, method.name.column, this, value: func);
     }
   }
 }

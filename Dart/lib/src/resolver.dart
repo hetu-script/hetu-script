@@ -58,8 +58,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // Not found. Assume it is global.
   }
 
-  void resolve(List<Stmt> statements, String fileName, {String libName = HS_Common.Global}) {
-    if ((libName != null) && (libName != HS_Common.Global)) {
+  void resolve(List<Stmt> statements, String fileName, {String libName = HS_Common.global}) {
+    if ((libName != null) && (libName != HS_Common.global)) {
       _beginBlock();
     }
     _curFileName = fileName;
@@ -75,7 +75,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveFunction(func);
     }
     _endBlock();
-    if ((libName != null) && (libName != HS_Common.Global)) {
+    if ((libName != null) && (libName != HS_Common.global)) {
       _endBlock();
     }
   }
@@ -91,11 +91,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   void _resolveFunction(FuncStmt stmt) {
     var save = _curFuncType;
-    _curFuncType = stmt.functype;
+    _curFuncType = stmt.funcType;
 
     _beginBlock();
     if (stmt.arity == -1) {
-      _declare(HS_Common.Arguments, stmt.name.line, stmt.name.column, define: true);
+      _declare(HS_Common.Arguments, stmt.keyword.line, stmt.keyword.column, define: true);
     } else {
       for (var param in stmt.params) {
         _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
@@ -110,12 +110,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _ClassType savedClassType = _curClassType;
 
     if (stmt.superClass != null) {
-      if (stmt.name.lexeme == stmt.superClass.name.lexeme) {
-        throw HSErr_Unexpected(
-            stmt.superClass.name.lexeme, stmt.superClass.name.line, stmt.superClass.name.column, _curFileName);
+      if (stmt.name == stmt.superClass.name) {
+        throw HSErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
       }
 
-      _resolveExpr(stmt.superClass);
+      //_resolveExpr(stmt.superClass);
 
       _curClassType = _ClassType.subClass;
     } else {
@@ -134,12 +133,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // 类静态函数，先注册函数名
     for (var method in stmt.methods) {
       if (method.isStatic) {
-        _declare(method.internalName, method.name.line, method.name.column, define: true);
-        if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
-            !_blocks.last.containsKey(method.name.lexeme)) {
-          _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
+        _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
+        if ((method.internalName.startsWith(HS_Common.getFun) || method.internalName.startsWith(HS_Common.setFun)) &&
+            !_blocks.last.containsKey(method.name)) {
+          _declare(method.name, method.keyword.line, method.keyword.column, define: true);
         }
-        if (method.functype != FuncStmtType.initter) {
+        if (method.funcType != FuncStmtType.constructor) {
           _funcs.add(method);
         }
       }
@@ -152,7 +151,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _funcs = <FuncStmt>[];
     _beginBlock();
     // 注册实例中的成员变量
-    _blocks.last[HS_Common.This] = true;
+    _blocks.last[HS_Common.THIS] = true;
     for (var variable in stmt.variables) {
       if (!variable.isStatic) {
         visitVarStmt(variable);
@@ -161,11 +160,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // 成员函数，先注册函数名
     for (var method in stmt.methods) {
       if (!method.isStatic) {
-        if (method.functype != FuncStmtType.initter) {
-          _declare(method.internalName, method.name.line, method.name.column, define: true);
-          if ((method.internalName.startsWith(HS_Common.Getter) || method.internalName.startsWith(HS_Common.Setter)) &&
-              !_blocks.last.containsKey(method.name.lexeme)) {
-            _declare(method.name.lexeme, method.name.line, method.name.column, define: true);
+        if (method.funcType != FuncStmtType.constructor) {
+          _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
+          if ((method.internalName.startsWith(HS_Common.getFun) || method.internalName.startsWith(HS_Common.setFun)) &&
+              !_blocks.last.containsKey(method.name)) {
+            _declare(method.name, method.keyword.line, method.keyword.column, define: true);
           }
         }
         _funcs.add(method);
@@ -296,7 +295,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitReturnStmt(ReturnStmt stmt) {
-    if ((_curFuncType == null) || (_curFuncType == FuncStmtType.initter)) {
+    if ((_curFuncType == null) || (_curFuncType == FuncStmtType.constructor)) {
       throw HSErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, _curFileName);
     }
 
@@ -337,13 +336,13 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
-    _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+    _declare(stmt.name, stmt.keyword.line, stmt.keyword.column, define: true);
     _funcs.add(stmt);
   }
 
   @override
   void visitClassStmt(ClassStmt stmt) {
-    _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+    _declare(stmt.name, stmt.keyword.line, stmt.keyword.column, define: true);
     _classes.add(stmt);
   }
 }

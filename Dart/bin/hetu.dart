@@ -51,7 +51,7 @@ void main(List<String> args) {
       }
     } else {
       var style = ParseStyle.function;
-      String libname = HS_Common.Global;
+      String libname = HS_Common.global;
       String entrance;
 
       if (args.length > 1) {

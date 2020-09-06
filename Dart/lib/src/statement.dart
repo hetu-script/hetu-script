@@ -1,6 +1,7 @@
 import 'token.dart';
 import 'common.dart';
 import 'expression.dart';
+import 'value.dart';
 
 /// 抽象的访问者模式，包含访问语句的抽象语法树的接口
 ///
@@ -75,9 +76,7 @@ class VarStmt extends Stmt {
 
   final Token name;
 
-  final String typename;
-
-  final List<String> typeparams = [];
+  final HS_Type declType;
 
   final Expr initializer;
 
@@ -85,12 +84,7 @@ class VarStmt extends Stmt {
 
   final bool isStatic;
 
-  VarStmt(this.name, this.typename,
-      {List<String> typeparams, this.initializer, this.isExtern = false, this.isStatic = false}) {
-    if (typeparams != null) {
-      this.typeparams.addAll(typeparams);
-    }
-  }
+  VarStmt(this.name, this.declType, {this.initializer, this.isExtern = false, this.isStatic = false});
 }
 
 class ExprStmt extends Stmt {
@@ -183,7 +177,7 @@ enum FuncStmtType {
   method,
   getter,
   setter,
-  initter,
+  constructor,
 }
 
 class FuncStmt extends Stmt {
@@ -193,11 +187,13 @@ class FuncStmt extends Stmt {
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitFuncStmt(this);
 
-  final String returnType;
+  final Token keyword;
 
-  final List<String> returnTypeParams = [];
+  final String name;
 
-  final Token name;
+  final List<String> typeParams = [];
+
+  final HS_Type returnType;
 
   String _internalName;
   String get internalName => _internalName;
@@ -216,32 +212,30 @@ class FuncStmt extends Stmt {
 
   final bool isConst;
 
-  final FuncStmtType functype;
+  final FuncStmtType funcType;
 
-  FuncStmt(this.returnType, this.name, this.params,
-      {List<String> returnTypeParams,
+  FuncStmt(this.keyword, this.name, this.returnType, this.params,
+      {List<String> typeParams,
       this.arity = 0,
       this.definition,
       this.className,
       this.isExtern = false,
       this.isStatic = false,
       this.isConst = false,
-      this.functype = FuncStmtType.normal}) {
+      this.funcType = FuncStmtType.normal}) {
     this.definition ??= <Stmt>[];
-    if (functype == FuncStmtType.initter) {
+    if (funcType == FuncStmtType.constructor) {
       //_internalName = name.lexeme;
-      _internalName = HS_Common.Initter + name.lexeme;
-    } else if (functype == FuncStmtType.getter) {
-      _internalName = HS_Common.Getter + name.lexeme;
-    } else if (functype == FuncStmtType.setter) {
-      _internalName = HS_Common.Setter + name.lexeme;
+      _internalName = HS_Common.constructFun + name;
+    } else if (funcType == FuncStmtType.getter) {
+      _internalName = HS_Common.getFun + name;
+    } else if (funcType == FuncStmtType.setter) {
+      _internalName = HS_Common.setFun + name;
     } else {
-      _internalName = name.lexeme;
+      _internalName = name;
     }
 
-    if (returnTypeParams != null) {
-      this.returnTypeParams.addAll(returnTypeParams);
-    }
+    if (typeParams != null) this.typeParams.addAll(typeParams);
   }
 }
 
@@ -252,19 +246,19 @@ class ClassStmt extends Stmt {
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitClassStmt(this);
 
-  final Token name;
+  final Token keyword;
+
+  final String name;
 
   final List<String> typeParams = [];
 
-  final VarExpr superClass;
+  final HS_Type superClass;
 
   final List<VarStmt> variables;
 
   final List<FuncStmt> methods;
 
-  ClassStmt(this.name, this.superClass, this.variables, this.methods, {List<String> typeParams}) {
-    if (typeParams != null) {
-      this.typeParams.addAll(typeParams);
-    }
+  ClassStmt(this.keyword, this.name, this.superClass, this.variables, this.methods, {List<String> typeParams}) {
+    if (typeParams != null) this.typeParams.addAll(typeParams);
   }
 }

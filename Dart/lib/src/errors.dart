@@ -41,63 +41,63 @@ class HS_Error {
 
 class HSErr_Unsupport extends HS_Error {
   HSErr_Unsupport(String symbol, int line, int column, String fileName)
-      : super('${HS_Common.ErrorUnsupport} "${symbol}"', line, column, fileName);
+      : super('${HS_Common.errorUnsupport} "${symbol}"', line, column, fileName);
 }
 
 class HSErr_Expected extends HS_Error {
   HSErr_Expected(String expected, String met, int line, int column, String fileName)
-      : super('"${expected != '\n' ? expected : '\\n'}" ${HS_Common.ErrorExpected} "${met != '\n' ? met : '\\n'}"',
+      : super('"${expected != '\n' ? expected : '\\n'}" ${HS_Common.errorExpected} "${met != '\n' ? met : '\\n'}"',
             line, column, fileName);
 }
 
 class HSErr_Unexpected extends HS_Error {
   HSErr_Unexpected(String symbol, int line, int column, String fileName)
-      : super('${HS_Common.ErrorUnexpected} "${symbol != '\n' ? symbol : '\\n'}"', line, column, fileName);
+      : super('${HS_Common.errorUnexpected} "${symbol != '\n' ? symbol : '\\n'}"', line, column, fileName);
 }
 
 class HSErr_Private extends HS_Error {
   HSErr_Private(String symbol, int line, int column, String fileName)
-      : super('${HS_Common.ErrorPrivate} "${symbol}"', line, column, fileName);
+      : super('${HS_Common.errorPrivate} "${symbol}"', line, column, fileName);
 }
 
 class HSErr_Initialized extends HS_Error {
   HSErr_Initialized(String symbol, int line, int column, String fileName)
-      : super('"${symbol}" ${HS_Common.ErrorInitialized}', line, column, fileName);
+      : super('"${symbol}" ${HS_Common.errorInitialized}', line, column, fileName);
 }
 
 class HSErr_Undefined extends HS_Error {
   HSErr_Undefined(String symbol, int line, int column, String fileName)
-      : super('${HS_Common.ErrorUndefined} "${symbol}"', line, column, fileName);
+      : super('${HS_Common.errorUndefined} "${symbol}"', line, column, fileName);
 }
 
 class HSErr_UndefinedOperator extends HS_Error {
   HSErr_UndefinedOperator(String symbol1, String op, int line, int column, String fileName)
-      : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}"', line, column, fileName);
+      : super('${HS_Common.errorUndefinedOperator} "${symbol1}" "${op}"', line, column, fileName);
 }
 
 class HSErr_UndefinedBinaryOperator extends HS_Error {
   HSErr_UndefinedBinaryOperator(String symbol1, String symbol2, String op, int line, int column, String fileName)
-      : super('${HS_Common.ErrorUndefinedOperator} "${symbol1}" "${op}" "${symbol2}"', line, column, fileName);
+      : super('${HS_Common.errorUndefinedOperator} "${symbol1}" "${op}" "${symbol2}"', line, column, fileName);
 }
 
 class HSErr_Declared extends HS_Error {
   HSErr_Declared(String symbol, int line, int column, String fileName)
-      : super('"${symbol}" ${HS_Common.ErrorDeclared}', line, column, fileName);
+      : super('"${symbol}" ${HS_Common.errorDeclared}', line, column, fileName);
 }
 
 class HSErr_Defined extends HS_Error {
   HSErr_Defined(String symbol, int line, int column, String fileName)
-      : super('"${symbol}" ${HS_Common.ErrorDefined}', line, column, fileName);
+      : super('"${symbol}" ${HS_Common.errorDefined}', line, column, fileName);
 }
 
 class HSErr_Range extends HS_Error {
   HSErr_Range(int length, int line, int column, String fileName)
-      : super('${HS_Common.ErrorRange} "${length}"', line, column, fileName);
+      : super('${HS_Common.errorRange} "${length}"', line, column, fileName);
 }
 
 class HSErr_InvalidLeftValue extends HS_Error {
   HSErr_InvalidLeftValue(String symbol, int line, int column, String fileName)
-      : super('${HS_Common.ErrorInvalidLeftValue} "${symbol}"', line, column, fileName);
+      : super('${HS_Common.errorInvalidLeftValue} "${symbol}"', line, column, fileName);
 }
 
 class HSErr_Callable extends HS_Error {

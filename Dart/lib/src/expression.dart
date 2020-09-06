@@ -81,7 +81,7 @@ abstract class Expr {
 
 class NullExpr extends Expr {
   @override
-  String get type => HS_Common.NullExpr;
+  String get type => HS_Common.nullExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitNullExpr(this);
@@ -93,7 +93,7 @@ class NullExpr extends Expr {
 
 class LiteralExpr extends Expr {
   @override
-  String get type => HS_Common.LiteralExpr;
+  String get type => HS_Common.literalExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralExpr(this);
@@ -110,7 +110,7 @@ class LiteralExpr extends Expr {
 
 class GroupExpr extends Expr {
   @override
-  String get type => HS_Common.GroupExpr;
+  String get type => HS_Common.groupExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
@@ -124,7 +124,7 @@ class GroupExpr extends Expr {
 
 class VectorExpr extends Expr {
   @override
-  String get type => HS_Common.VectorExpr;
+  String get type => HS_Common.vectorExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitVectorExpr(this);

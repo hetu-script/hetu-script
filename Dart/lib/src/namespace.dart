@@ -6,21 +6,17 @@ import 'common.dart';
 import 'value.dart';
 
 class HS_Namespace extends HS_Value {
-  String get type => HS_Common.Namespace;
+  String toString() => '${HS_Common.NAMESPACE} $name';
 
-  String toString() => '${HS_Common.Namespace} $name';
-
-  String _name;
-  String get name => _name;
   String _fullName;
   String get fullName => _fullName;
 
-  final Map<String, Field> defs = {};
+  final Map<String, Declaration> defs = {};
   HS_Namespace _closure;
   HS_Namespace get closure => _closure;
   void set closure(HS_Namespace closure) {
     _closure = closure;
-    _fullName = getFullName(_name, _closure);
+    _fullName = getFullName(this.name, _closure);
   }
 
   static int spaceIndex = 0;
@@ -28,29 +24,24 @@ class HS_Namespace extends HS_Value {
   static String getFullName(String name, HS_Namespace space) {
     var fullName = name;
     var cur_space = space.closure;
-    while ((cur_space != null) && (cur_space.name != HS_Common.Global)) {
-      fullName = cur_space.name + HS_Common.Dot + fullName;
+    while ((cur_space != null) && (cur_space.name != HS_Common.global)) {
+      fullName = cur_space.name + HS_Common.dot + fullName;
       cur_space = cur_space.closure;
     }
     return fullName;
   }
 
-  HS_Namespace(
-      //int line, int column, String fileName,
-      //this.fileName,
-      {
+  HS_Namespace({
     String name,
-    String fullName,
     HS_Namespace closure,
-  }) {
-    _name = name == null ? '__namespace${spaceIndex++}' : name;
+  }) : super(name: name ?? '__namespace${spaceIndex++}') {
+    _fullName = getFullName(this.name, this);
     _closure = closure;
-    _fullName = fullName == null ? getFullName(_name, this) : fullName;
   }
 
   HS_Namespace closureAt(int distance) {
     var namespace = this;
-    for (var i = 0; i < distance; i++) {
+    for (var i = 0; i < distance; ++i) {
       namespace = namespace.closure;
     }
 
@@ -86,45 +77,45 @@ class HS_Namespace extends HS_Value {
   // }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(String varName, String varType, int line, int column, Interpreter interpreter,
-      {List<String> varTypeParams, dynamic value, bool mutable = true}) {
+  void define(String id, HS_Type declType, int line, int column, Interpreter interpreter,
+      {dynamic value, bool mutable = true}) {
     var val_type = HS_TypeOf(value);
-    var val_type_params = HS_TypeParamsOf(value);
-    if ((varType == HS_Common.Any) || ((value != null) && (varType == val_type)) || (value == null)) {
-      if (varTypeParams != null) {
-        for (int i = 0; i < val_type_params.length; i++) {
-          if (i < varTypeParams.length) {
-            var param = val_type_params[i];
-            var decl_param = varTypeParams[i];
-            if ((decl_param != HS_Common.Any) && (decl_param != param)) {
-              throw HSErr_TypeParam(param, decl_param, line, column, interpreter.curFileName);
+    if ((declType == HS_Common.ANY) || ((value != null) && (declType.isA(val_type))) || (value == null)) {
+      if (declType.typeArgs.isNotEmpty) {
+        for (int i = 0; i < val_type.typeArgs.length; ++i) {
+          if (i < declType.typeArgs.length) {
+            var decl_type_param = declType.typeArgs[i];
+            var val_type_param = val_type.typeArgs[i];
+            if ((decl_type_param != HS_Common.ANY) && (decl_type_param != val_type_param)) {
+              throw HSErr_TypeParam(
+                  val_type_param.toString(), decl_type_param.toString(), line, column, interpreter.curFileName);
             }
           } else {
-            varTypeParams.add(HS_Common.Any);
+            declType.typeArgs.add(HS_Type.any);
           }
         }
       }
-      defs[varName] = Field(varType, value: value, mutable: mutable, initialized: (value == null ? false : true));
+      defs[id] = Declaration(declType, value: value, mutable: mutable);
     } else if ((value != null) && (value is Map)) {
-      var klass = interpreter.global.fetch(varType, line, column, interpreter);
+      var klass = interpreter.global.fetch(id, line, column, interpreter);
       if (klass is HS_Class) {
         var instance = klass.createInstance(interpreter, line, column, this);
         for (var key in value.keys) {
           instance.assign(key, value[key], line, column, interpreter);
         }
-        defs[varName] = Field(varType, value: instance);
+        defs[id] = Declaration(declType, value: instance);
       } else {
-        throw HSErr_Type(varName, varType, val_type, line, column, interpreter.curFileName);
+        throw HSErr_Type(id, declType.toString(), val_type.toString(), line, column, interpreter.curFileName);
       }
     } else {
-      throw HSErr_Type(varName, varType, val_type, line, column, interpreter.curFileName);
+      throw HSErr_Type(id, declType.toString(), val_type.toString(), line, column, interpreter.curFileName);
     }
   }
 
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool nonExistError = true, String from = HS_Common.Global, bool recursive = true}) {
+      {bool nonExistError = true, String from = HS_Common.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      if (from.startsWith(this.fullName) || (name == HS_Common.Global) || !varName.startsWith(HS_Common.Underscore)) {
+      if (from.startsWith(this.fullName) || (name == HS_Common.global) || !varName.startsWith(HS_Common.underscore)) {
         return defs[varName].value;
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
@@ -139,7 +130,7 @@ class HS_Namespace extends HS_Value {
   }
 
   dynamic fetchAt(String varName, int distance, int line, int column, Interpreter interpreter,
-      {bool nonExistError = true, String from = HS_Common.Global, bool recursive = true}) {
+      {bool nonExistError = true, String from = HS_Common.global, bool recursive = true}) {
     var space = closureAt(distance);
     return space.fetch(varName, line, column, interpreter,
         nonExistError: nonExistError, from: space.fullName, recursive: false);
@@ -147,18 +138,19 @@ class HS_Namespace extends HS_Value {
 
   /// 向一个已经定义的变量赋值
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool nonExistError = true, String from = HS_Common.Global, bool recursive = true}) {
+      {bool nonExistError = true, String from = HS_Common.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      if (from.startsWith(this.fullName) || (!varName.startsWith(HS_Common.Underscore))) {
-        var varType = defs[varName].type;
-        if ((varType == HS_Common.Any) || ((value != null) && (varType == HS_TypeOf(value))) || (value == null)) {
+      var declType = defs[varName].type;
+      var varType = HS_TypeOf(value);
+      if (from.startsWith(this.fullName) || (!varName.startsWith(HS_Common.underscore))) {
+        if ((declType == HS_Common.ANY) || ((value != null) && (declType == varType)) || (value == null)) {
           if (defs[varName].mutable) {
             defs[varName].value = value;
             return;
           }
           throw HSErr_Mutable(varName, line, column, interpreter.curFileName);
         }
-        throw HSErr_Type(varName, HS_TypeOf(value), varType, line, column, interpreter.curFileName);
+        throw HSErr_Type(varName, varType.toString(), declType.toString(), line, column, interpreter.curFileName);
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (recursive && (closure != null)) {
@@ -170,7 +162,7 @@ class HS_Namespace extends HS_Value {
   }
 
   void assignAt(String varName, dynamic value, int distance, int line, int column, Interpreter interpreter,
-      {String from = HS_Common.Global, bool recursive = true}) {
+      {String from = HS_Common.global, bool recursive = true}) {
     var space = closureAt(distance);
     space.assign(varName, value, line, column, interpreter, from: space.fullName, recursive: false);
   }

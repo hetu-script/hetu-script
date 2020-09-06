@@ -29,9 +29,9 @@ abstract class HS_Buildin {
     'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
     'Value.toString': HSVal_Value._to_string,
-    'Number.parse': HSVal_Num._parse,
-    'Number.toStringAsFixed': HSVal_Num._to_string_as_fixed,
-    'Number.truncate': HSVal_Num._truncate,
+    'Number.parse': HSVal_Number._parse,
+    'Number.toStringAsFixed': HSVal_Number._to_string_as_fixed,
+    'Number.truncate': HSVal_Number._truncate,
     'String._get_isEmpty': HSVal_String._is_empty,
     'String.parse': HSVal_String._parse,
     'String.substring': HSVal_String._substring,
@@ -62,27 +62,15 @@ abstract class HS_Buildin {
 
   static dynamic _typeof(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
-      var type = HS_TypeOf(args.first);
-      var type_params = HS_TypeParamsOf(args.first);
-      if (type_params.isNotEmpty) {
-        String fullname = '$type<';
-        for (var i = 0; i < type_params.length; i++) {
-          fullname += type_params[i];
-          if ((type_params.length > 1) && (i != type_params.length - 1)) fullname += ', ';
-        }
-        fullname += '>';
-        return fullname;
-      } else {
-        return type;
-      }
+      return HS_TypeOf(args.first).toString();
     }
   }
 
   static dynamic _help(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var value = args.first;
-      if (value is HS_Value) {
-        return value is HS_Namespace ? value.toString() : value.type;
+      if (value is HS_Instance) {
+        return value.type;
       } else {
         return HS_TypeOf(value);
       }
@@ -226,9 +214,9 @@ abstract class HSVal_Value extends HS_Instance {
   }
 }
 
-class HSVal_Num extends HSVal_Value {
-  HSVal_Num(num value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.Number, line, column, interpreter);
+class HSVal_Number extends HSVal_Value {
+  HSVal_Number(num value, int line, int column, Interpreter interpreter)
+      : super(value, HS_Common.number, line, column, interpreter);
 
   static dynamic _parse(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -242,27 +230,27 @@ class HSVal_Num extends HSVal_Value {
       if (args.isNotEmpty) {
         fractionDigits = args.first;
       }
-      var numObj = (instance as HSVal_Num);
+      var numObj = (instance as HSVal_Number);
       num number = numObj?.value;
       return number.toStringAsFixed(fractionDigits);
     }
   }
 
   static dynamic _truncate(HS_Instance instance, List<dynamic> args) {
-    var numObj = (instance as HSVal_Num);
+    var numObj = (instance as HSVal_Number);
     num number = numObj?.value;
     return number.truncate();
   }
 }
 
-class HSVal_Bool extends HSVal_Value {
-  HSVal_Bool(bool value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.Number, line, column, interpreter);
+class HSVal_Boolean extends HSVal_Value {
+  HSVal_Boolean(bool value, int line, int column, Interpreter interpreter)
+      : super(value, HS_Common.number, line, column, interpreter);
 }
 
 class HSVal_String extends HSVal_Value {
   HSVal_String(String value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.Str, line, column, interpreter);
+      : super(value, HS_Common.string, line, column, interpreter);
 
   static dynamic _is_empty(HS_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
@@ -293,8 +281,8 @@ class HSVal_String extends HSVal_Value {
 class HSVal_List extends HSVal_Value {
   final String valueType;
 
-  HSVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType = HS_Common.Any})
-      : super(value, HS_Common.List, line, column, interpreter);
+  HSVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType = HS_Common.ANY})
+      : super(value, HS_Common.list, line, column, interpreter);
 
   static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
@@ -354,8 +342,8 @@ class HSVal_Map extends HSVal_Value {
   final String valueType;
 
   HSVal_Map(Map value, int line, int column, Interpreter interpreter,
-      {this.keyType = HS_Common.Any, this.valueType = HS_Common.Any})
-      : super(value, HS_Common.Map, line, column, interpreter);
+      {this.keyType = HS_Common.ANY, this.valueType = HS_Common.ANY})
+      : super(value, HS_Common.map, line, column, interpreter);
 
   static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);
