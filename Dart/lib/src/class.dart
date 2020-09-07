@@ -20,8 +20,6 @@ import 'value.dart';
 class HS_Class extends HS_Namespace {
   String toString() => '${HS_Common.CLASS} $name';
 
-  List<HS_Type> typeArgs = [];
-
   HS_Class superClass;
 
   Map<String, VarStmt> variables = {};

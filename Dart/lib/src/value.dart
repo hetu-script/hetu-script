@@ -6,6 +6,8 @@ import 'common.dart';
 class HS_Type {
   // List<HS_Type> get inheritances;
   // List<HS_Type> get compositions;
+  String name;
+  List<HS_Type> arguments = [];
 
   static var any = HS_Type()..name = HS_Common.ANY;
   static var number = HS_Type()..name = HS_Common.number;

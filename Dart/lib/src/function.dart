@@ -8,11 +8,13 @@ import 'value.dart';
 
 typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
 
-class HS_Function extends HS_Namespace with HS_TypedFunc {
+class HS_TypeFunction extends HS_Type {}
+
+class HS_Function extends HS_Namespace {
   final FuncStmt funcStmt;
   final List<HS_Type> typeArgs = [];
 
-  String get type {}
+  HS_Function type;
 
   String toString() {
     var result = StringBuffer();
