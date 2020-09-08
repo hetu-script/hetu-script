@@ -694,7 +694,7 @@ class Parser {
       }
     }
 
-    HS_Type return_type;
+    HS_Type return_type = HS_Type();
     if (functype != FuncStmtType.constructor) {
       if (expect([HS_Common.colon], consume: true, error: false)) {
         return_type = _parseTypeId();

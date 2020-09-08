@@ -81,20 +81,6 @@ class HS_Namespace extends HS_Value {
       {dynamic value, bool mutable = true}) {
     var val_typeid = HS_TypeOf(value);
     if (val_typeid.isA(typeid)) {
-      if (typeid.arguments.isNotEmpty) {
-        for (int i = 0; i < val_typeid.typeArgs.length; ++i) {
-          if (i < typeid.typeArgs.length) {
-            var decl_type_param = typeid.typeArgs[i];
-            var val_type_param = val_typeid.typeArgs[i];
-            if ((decl_type_param != HS_Common.ANY) && (decl_type_param != val_type_param)) {
-              throw HSErr_TypeParam(
-                  val_type_param.toString(), decl_type_param.toString(), line, column, interpreter.curFileName);
-            }
-          } else {
-            typeid.typeArgs.add(HS_Type.any);
-          }
-        }
-      }
       defs[id] = Declaration(typeid, value: value, mutable: mutable);
     } else if ((value != null) && (value is Map)) {
       var klass = interpreter.global.fetch(id, line, column, interpreter);
@@ -113,7 +99,7 @@ class HS_Namespace extends HS_Value {
   }
 
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool nonExistError = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       if (from.startsWith(this.fullName) || (name == HS_Common.global) || !varName.startsWith(HS_Common.underscore)) {
         return defs[varName].value;
@@ -122,35 +108,34 @@ class HS_Namespace extends HS_Value {
     }
 
     if (recursive && (closure != null))
-      return closure.fetch(varName, line, column, interpreter, nonExistError: nonExistError, from: from);
+      return closure.fetch(varName, line, column, interpreter, error: error, from: from);
 
-    if (nonExistError) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
+    if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
 
     return null;
   }
 
   dynamic fetchAt(String varName, int distance, int line, int column, Interpreter interpreter,
-      {bool nonExistError = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
     var space = closureAt(distance);
-    return space.fetch(varName, line, column, interpreter,
-        nonExistError: nonExistError, from: space.fullName, recursive: false);
+    return space.fetch(varName, line, column, interpreter, error: error, from: space.fullName, recursive: false);
   }
 
   /// 向一个已经定义的变量赋值
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool nonExistError = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      var declType = defs[varName].typeid;
-      var varType = HS_TypeOf(value);
+      var decl_type = defs[varName].typeid;
+      var var_type = HS_TypeOf(value);
       if (from.startsWith(this.fullName) || (!varName.startsWith(HS_Common.underscore))) {
-        if ((declType == HS_Common.ANY) || ((value != null) && (declType == varType)) || (value == null)) {
+        if (var_type.isA(decl_type)) {
           if (defs[varName].mutable) {
             defs[varName].value = value;
             return;
           }
           throw HSErr_Mutable(varName, line, column, interpreter.curFileName);
         }
-        throw HSErr_Type(varName, varType.toString(), declType.toString(), line, column, interpreter.curFileName);
+        throw HSErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (recursive && (closure != null)) {
@@ -158,7 +143,7 @@ class HS_Namespace extends HS_Value {
       return;
     }
 
-    if (nonExistError) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
+    if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
   }
 
   void assignAt(String varName, dynamic value, int distance, int line, int column, Interpreter interpreter,

@@ -14,6 +14,7 @@ class HS_Type {
   }
 
   static final NULL = HS_Type(name: HS_Common.NULL);
+  static final CLASS = HS_Type(name: HS_Common.CLASS);
   static final number = HS_Type(name: HS_Common.number);
   static final boolean = HS_Type(name: HS_Common.boolean);
   static final string = HS_Type(name: HS_Common.string);
@@ -61,7 +62,9 @@ class HS_Type {
 
 HS_Type HS_TypeOf(dynamic value) {
   if ((value == null) || (value is NullThrownError)) {
-    return null;
+    return HS_Type.NULL;
+  } else if (value is HS_Class) {
+    return HS_Type.CLASS;
   } else if (value is HS_Instance) {
     return value.typeid;
   } else if (value is HS_Function) {

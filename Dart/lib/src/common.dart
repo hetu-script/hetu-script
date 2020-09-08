@@ -142,7 +142,7 @@ abstract class HS_Common {
   static const global = '__global__';
   static const extern = '__extern__';
   static const instance = '__instance_of_';
-  static const instanceName = 'instance of class ';
+  static const instancePrefix = 'instance of ';
   static const constructFun = '_construct_';
   static const getFun = '_get_';
   static const setFun = '_set_';

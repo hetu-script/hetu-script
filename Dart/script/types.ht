@@ -1,0 +1,23 @@
+fun greeting2 {
+  return '\'sup'
+}
+
+class Person {
+  fun greeting {
+    return 'hello'
+  }
+}
+
+fun main {
+  var p = Person()
+
+  print(p)
+  print(typeof(p))
+
+  print(p.greeting())
+  print(p.greeting)
+
+  p.greeting = greeting2
+
+  print(p.greeting())
+}

@@ -565,17 +565,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       value = evaluateExpr(stmt.initializer);
     }
 
+    var decl_type = HS_Type();
     if (stmt.declType != null) {
       // TODO: 解析类型名，判断是否是class
-      curContext.define(stmt.name.lexeme, stmt.declType, stmt.name.line, stmt.name.column, this, value: value);
+      decl_type = stmt.declType;
     } else {
       // 从初始化表达式推断变量类型
       if (value != null) {
-        curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this, value: value);
-      } else {
-        curContext.define(stmt.name.lexeme, HS_Type(), stmt.name.line, stmt.name.column, this);
+        decl_type = HS_TypeOf(value);
       }
     }
+
+    curContext.define(stmt.name.lexeme, decl_type, stmt.name.line, stmt.name.column, this, value: value);
   }
 
   @override
@@ -651,7 +652,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         externFunc = extern.fetch(stmt.name, stmt.keyword.line, stmt.keyword.column, this, from: HS_Common.extern);
       }
       func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, closure: curContext);
-      var func_type = HS_Type();
       curContext.define(stmt.name, func.typeid, stmt.keyword.line, stmt.keyword.column, this, value: func);
     }
   }
@@ -662,19 +662,21 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     //TODO: while superClass != null, inherit all...
 
-    if ((stmt.superClass == null) && (stmt.className.name != HS_Common.object)) {
-      superClass = global.fetch(HS_Common.object, stmt.keyword.line, stmt.keyword.column, this);
-    } else {
-      superClass = global.fetch(stmt.superClass.name, stmt.keyword.line, stmt.keyword.column, this);
-    }
-    if (superClass is! HS_Class) {
-      throw HSErr_Extends(superClass.name, stmt.keyword.line, stmt.keyword.column, curFileName);
+    if (stmt.name != HS_Common.object) {
+      if (stmt.superClass == null) {
+        superClass = global.fetch(HS_Common.object, stmt.keyword.line, stmt.keyword.column, this);
+      } else {
+        superClass = global.fetch(stmt.superClass.name, stmt.keyword.line, stmt.keyword.column, this);
+      }
+      if (superClass is! HS_Class) {
+        throw HSErr_Extends(superClass.name, stmt.keyword.line, stmt.keyword.column, curFileName);
+      }
     }
 
-    var klass = HS_Class(stmt.className, superClass: superClass, closure: curContext);
+    var klass = HS_Class(stmt.name, superClass: superClass, closure: curContext);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curContext.define(stmt.name.lexeme, HS_Type.CLASS, stmt.name.line, stmt.name.column, this, value: klass);
+    curContext.define(stmt.name, HS_Type.CLASS, stmt.keyword.line, stmt.keyword.column, this, value: klass);
 
     for (var variable in stmt.variables) {
       if (variable.isStatic) {
@@ -685,8 +687,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           value = evaluateExpr(variable.initializer);
           curContext = save;
         } else if (variable.isExtern) {
-          value = extern.fetch('${stmt.name.lexeme}${HS_Common.dot}${variable.name.lexeme}', variable.name.line,
-              variable.name.column, this,
+          value = extern.fetch(
+              '${stmt.name}${HS_Common.dot}${variable.name.lexeme}', variable.name.line, variable.name.column, this,
               from: HS_Common.extern);
         }
 
@@ -709,7 +711,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     for (var method in stmt.methods) {
       if (klass.contains(method.internalName)) {
-        throw HSErr_Defined(method.name.lexeme, method.name.line, method.name.column, curFileName);
+        throw HSErr_Defined(method.name, method.keyword.line, method.keyword.column, curFileName);
       }
 
       HS_Function func;
@@ -724,11 +726,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
       if (method.isExtern) {
         externFunc = extern.fetch(
-            '${stmt.name.lexeme}${HS_Common.dot}${method.internalName}', method.name.line, method.name.column, this,
+            '${stmt.name}${HS_Common.dot}${method.internalName}', method.keyword.line, method.keyword.column, this,
             from: HS_Common.extern);
       }
       func = HS_Function(method, name: method.internalName, extern: externFunc, closure: closure);
-      klass.define(method.internalName, HS_Common.function, method.name.line, method.name.column, this, value: func);
+      klass.define(method.internalName, func.typeid, method.keyword.line, method.keyword.column, this, value: func);
     }
   }
 }
