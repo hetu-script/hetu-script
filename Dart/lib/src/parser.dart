@@ -141,20 +141,18 @@ class Parser {
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
   Expr _parseExpr() => _parseAssignmentExpr();
 
-  HS_Type _parseType() {
-    String typename = advance(1).lexeme;
-    var typeParams = <HS_Type>[];
+  HS_Type _parseTypeId() {
+    String type_name = advance(1).lexeme;
+    var type_args = <HS_Type>[];
     if (expect([HS_Common.angleLeft], consume: true, error: false)) {
       while ((curTok != HS_Common.angleRight) && (curTok != HS_Common.endOfFile)) {
-        typeParams.add(_parseType());
+        type_args.add(_parseTypeId());
         expect([HS_Common.comma], consume: true, error: false);
       }
       expect([HS_Common.angleRight], consume: true);
     }
 
-    return HS_Type()
-      ..name = typename
-      ..typeArgs = typeParams;
+    return HS_Type(name: type_name, arguments: type_args);
   }
 
   /// 赋值 = ，优先级 1，右合并
@@ -485,10 +483,10 @@ class Parser {
   /// 变量声明语句
   VarStmt _parseVarStmt({bool is_extern = false, bool is_static = false}) {
     advance(1);
-    var varname = match(HS_Common.identifier);
-    HS_Type vartype;
+    var name = match(HS_Common.identifier);
+    HS_Type typeid;
     if (expect([HS_Common.colon], consume: true, error: false)) {
-      vartype = _parseType();
+      typeid = _parseTypeId();
     }
 
     var initializer;
@@ -497,7 +495,7 @@ class Parser {
     }
     // 语句结尾
     expect([HS_Common.semicolon], consume: true, error: false);
-    return VarStmt(varname, vartype, initializer: initializer, isExtern: is_extern, isStatic: is_static);
+    return VarStmt(name, typeid, initializer: initializer, isExtern: is_extern, isStatic: is_static);
   }
 
   /// 为了避免涉及复杂的左值右值问题，赋值语句在河图中不作为表达式处理
@@ -581,11 +579,11 @@ class Parser {
         initializer: LiteralExpr(interpreter.addLiteral(0), line, column, _curFileName)));
     // 指针
     var varname = match(HS_Common.identifier);
-    HS_Type typename;
+    HS_Type typeid;
     if (expect([HS_Common.colon], consume: true, error: false)) {
-      typename = _parseType();
+      typeid = _parseTypeId();
     }
-    list_stmt.add(VarStmt(varname, typename));
+    list_stmt.add(VarStmt(varname, typeid));
     expect([HS_Common.IN], consume: true);
     var list_obj = _parseExpr();
     // 条件语句
@@ -633,10 +631,10 @@ class Parser {
       if (!optionalStarted) {
         optionalStarted = expect([HS_Common.squareLeft], error: false, consume: true);
       }
-      var varname = match(HS_Common.identifier);
-      HS_Type vartype;
+      var name = match(HS_Common.identifier);
+      HS_Type typeid;
       if (expect([HS_Common.colon], consume: true, error: false)) {
-        vartype = _parseType();
+        typeid = _parseTypeId();
       }
 
       Expr initializer;
@@ -646,7 +644,7 @@ class Parser {
           initializer = _parseExpr();
         }
       }
-      params.add(VarStmt(varname, vartype, initializer: initializer));
+      params.add(VarStmt(name, typeid, initializer: initializer));
     }
 
     if (optionalStarted) expect([HS_Common.squareRight], consume: true);
@@ -699,7 +697,7 @@ class Parser {
     HS_Type return_type;
     if (functype != FuncStmtType.constructor) {
       if (expect([HS_Common.colon], consume: true, error: false)) {
-        return_type = _parseType();
+        return_type = _parseTypeId();
       }
     }
 
@@ -743,7 +741,7 @@ class Parser {
     HS_Type super_class;
     // 继承父类
     if (expect([HS_Common.EXTENDS], consume: true, error: false)) {
-      super_class = _parseType();
+      super_class = _parseTypeId();
     }
     // 类的定义体
     expect([HS_Common.curlyLeft], consume: true);

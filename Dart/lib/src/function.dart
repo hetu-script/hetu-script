@@ -1,3 +1,4 @@
+import '../hetu.dart';
 import 'class.dart';
 import 'common.dart';
 import 'namespace.dart';
@@ -8,13 +9,22 @@ import 'value.dart';
 
 typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
 
-class HS_TypeFunction extends HS_Type {}
+class HS_TypeFunction extends HS_Type {
+  final HS_Type returnType;
+  final List<HS_Type> paramsTypes = [];
+
+  HS_TypeFunction(String name, {List<HS_Type> arguments, this.returnType, List<HS_Type> paramsTypes})
+      : super(name, arguments: arguments) {
+    if (paramsTypes != null) this.paramsTypes.addAll(paramsTypes);
+  }
+}
 
 class HS_Function extends HS_Namespace {
-  final FuncStmt funcStmt;
-  final List<HS_Type> typeArgs = [];
+  List<HS_Type> typeArgs = [];
 
-  HS_Function type;
+  final FuncStmt funcStmt;
+
+  HS_TypeFunction typeid;
 
   String toString() {
     var result = StringBuffer();

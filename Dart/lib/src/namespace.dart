@@ -77,25 +77,25 @@ class HS_Namespace extends HS_Value {
   // }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(String id, HS_Type declType, int line, int column, Interpreter interpreter,
+  void define(String id, HS_Type typeid, int line, int column, Interpreter interpreter,
       {dynamic value, bool mutable = true}) {
-    var val_type = HS_TypeOf(value);
-    if ((declType == HS_Common.ANY) || ((value != null) && (declType.isA(val_type))) || (value == null)) {
-      if (declType.typeArgs.isNotEmpty) {
-        for (int i = 0; i < val_type.typeArgs.length; ++i) {
-          if (i < declType.typeArgs.length) {
-            var decl_type_param = declType.typeArgs[i];
-            var val_type_param = val_type.typeArgs[i];
+    var val_typeid = HS_TypeOf(value);
+    if (val_typeid.isA(typeid)) {
+      if (typeid.arguments.isNotEmpty) {
+        for (int i = 0; i < val_typeid.typeArgs.length; ++i) {
+          if (i < typeid.typeArgs.length) {
+            var decl_type_param = typeid.typeArgs[i];
+            var val_type_param = val_typeid.typeArgs[i];
             if ((decl_type_param != HS_Common.ANY) && (decl_type_param != val_type_param)) {
               throw HSErr_TypeParam(
                   val_type_param.toString(), decl_type_param.toString(), line, column, interpreter.curFileName);
             }
           } else {
-            declType.typeArgs.add(HS_Type.any);
+            typeid.typeArgs.add(HS_Type.any);
           }
         }
       }
-      defs[id] = Declaration(declType, value: value, mutable: mutable);
+      defs[id] = Declaration(typeid, value: value, mutable: mutable);
     } else if ((value != null) && (value is Map)) {
       var klass = interpreter.global.fetch(id, line, column, interpreter);
       if (klass is HS_Class) {
@@ -103,12 +103,12 @@ class HS_Namespace extends HS_Value {
         for (var key in value.keys) {
           instance.assign(key, value[key], line, column, interpreter);
         }
-        defs[id] = Declaration(declType, value: instance);
+        defs[id] = Declaration(typeid, value: instance);
       } else {
-        throw HSErr_Type(id, declType.toString(), val_type.toString(), line, column, interpreter.curFileName);
+        throw HSErr_Type(id, typeid.toString(), val_typeid.toString(), line, column, interpreter.curFileName);
       }
     } else {
-      throw HSErr_Type(id, declType.toString(), val_type.toString(), line, column, interpreter.curFileName);
+      throw HSErr_Type(id, typeid.toString(), val_typeid.toString(), line, column, interpreter.curFileName);
     }
   }
 
@@ -140,7 +140,7 @@ class HS_Namespace extends HS_Value {
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
       {bool nonExistError = true, String from = HS_Common.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      var declType = defs[varName].type;
+      var declType = defs[varName].typeid;
       var varType = HS_TypeOf(value);
       if (from.startsWith(this.fullName) || (!varName.startsWith(HS_Common.underscore))) {
         if ((declType == HS_Common.ANY) || ((value != null) && (declType == varType)) || (value == null)) {

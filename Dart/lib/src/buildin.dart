@@ -70,7 +70,7 @@ abstract class HS_Buildin {
     if (args.isNotEmpty) {
       var value = args.first;
       if (value is HS_Instance) {
-        return value.type;
+        return value.typeid;
       } else {
         return HS_TypeOf(value);
       }

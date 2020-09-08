@@ -18,6 +18,8 @@ import 'value.dart';
 ///
 /// TODO：对象初始化时从父类逐个调用构造函数
 class HS_Class extends HS_Namespace {
+  List<String> typeParams = [];
+
   String toString() => '${HS_Common.CLASS} $name';
 
   HS_Class superClass;
@@ -149,7 +151,7 @@ class HS_Class extends HS_Namespace {
         if (value != null) {
           instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, interpreter, value: value);
         } else {
-          instance.define(decl.name.lexeme, HS_Type.any, line, column, interpreter);
+          instance.define(decl.name.lexeme, HS_Type(), line, column, interpreter);
         }
       }
     }
@@ -179,25 +181,11 @@ class HS_Instance extends HS_Namespace {
       : super(
             // name: HS_Common.instance + (_instanceIndex++).toString(),
             closure: klass) {
-    define(HS_Common.THIS, this, null, null, null, value: this);
+    define(HS_Common.THIS, typeid, null, null, null, value: this);
     //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);
   }
 
-  String get type {
-    var typename = StringBuffer();
-    if (typeArgs.isEmpty) {
-      typename.write(klass.name);
-    } else {
-      typename.write('${klass.name}<');
-      for (var i = 0; i < typeArgs.length; ++i) {
-        typename.write(typeArgs[i]);
-        if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) typename.write(', ');
-      }
-      typename.write('>');
-      return typename.toString();
-    }
-    return typename.toString();
-  }
+  HS_Type typeid;
 
   @override
   bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${HS_Common.getFun}$varName');
@@ -224,7 +212,7 @@ class HS_Instance extends HS_Namespace {
     }
 
     if (nonExistError)
-      throw HSErr_UndefinedMember(varName, this.type.toString(), line, column, interpreter.curFileName);
+      throw HSErr_UndefinedMember(varName, this.typeid.toString(), line, column, interpreter.curFileName);
   }
 
   @override

@@ -220,7 +220,7 @@ class BinaryExpr extends Expr {
 
 //   final Token name;
 
-//   final List<Token> typeParams;
+//   final List<TypeExpr> arguments;
 
 //   TypeExpr(this.name, this.typeParams, String fileName) : super(name.line, name.column, fileName);
 

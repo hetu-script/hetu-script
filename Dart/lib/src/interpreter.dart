@@ -164,7 +164,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (extern.contains(name)) {
       throw HSErr_Defined(name, null, null, curFileName);
     } else {
-      extern.define(name, HS_Type.any, null, null, this, value: function);
+      extern.define(name, HS_Type(), null, null, this, value: function);
     }
   }
 
@@ -573,7 +573,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (value != null) {
         curContext.define(stmt.name.lexeme, HS_TypeOf(value), stmt.name.line, stmt.name.column, this, value: value);
       } else {
-        curContext.define(stmt.name.lexeme, HS_Type.any, stmt.name.line, stmt.name.column, this);
+        curContext.define(stmt.name.lexeme, HS_Type(), stmt.name.line, stmt.name.column, this);
       }
     }
   }
@@ -652,7 +652,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
       func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, closure: curContext);
       var func_type = HS_Type();
-      curContext.define(stmt.name, func.type, stmt.keyword.line, stmt.keyword.column, this, value: func);
+      curContext.define(stmt.name, func.typeid, stmt.keyword.line, stmt.keyword.column, this, value: func);
     }
   }
 
@@ -690,20 +690,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
               from: HS_Common.extern);
         }
 
+        var typeid = HS_Type();
         if (variable.declType != null) {
           // TODO: 解析类型名，判断是否是class
-          klass.define(variable.name.lexeme, variable.declType, variable.name.line, variable.name.column, this,
-              value: value, varTypeParams: variable.typeparams);
+          typeid = variable.declType;
         } else {
           // 从初始化表达式推断变量类型
           if (value != null) {
-            klass.define(variable.name.lexeme, HS_TypeOf(value), variable.name.line, variable.name.column, this,
-                value: value, varTypeParams: variable.typeparams);
-          } else {
-            klass.define(variable.name.lexeme, HS_Common.ANY, variable.name.line, variable.name.column, this,
-                varTypeParams: variable.typeparams);
+            typeid = HS_TypeOf(value);
           }
         }
+
+        klass.define(variable.name.lexeme, typeid, variable.name.line, variable.name.column, this);
       } else {
         klass.addVariable(variable);
       }
