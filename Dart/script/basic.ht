@@ -1,10 +1,5 @@
-// Define a function.
-fun fib(n: num): num {
-  if (n == 0 || n == 1) return n;
-  return fib(n - 1) + fib(n - 2);
-}
 
 // This is where the app starts executing.
 fun main {
-  print(fib(2))
+  print('hello world!')
 }

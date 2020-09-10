@@ -1,9 +1,9 @@
-fun greeting2 {
+fun greeting2: any {
   return '\'sup'
 }
 
 class Person {
-  fun greeting {
+  fun greeting: any {
     return 'hello'
   }
 }

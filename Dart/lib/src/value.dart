@@ -14,6 +14,7 @@ class HS_Type {
   }
 
   static final NULL = HS_Type(name: HS_Common.NULL);
+  static final VOID = HS_Type(name: HS_Common.VOID);
   static final CLASS = HS_Type(name: HS_Common.CLASS);
   static final namespace = HS_Type(name: HS_Common.NAMESPACE);
   static final number = HS_Type(name: HS_Common.number);

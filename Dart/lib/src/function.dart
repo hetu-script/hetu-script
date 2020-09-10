@@ -7,6 +7,7 @@ import 'interpreter.dart';
 import 'errors.dart';
 import 'value.dart';
 
+// TODO: instance参数应该是可选的
 typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
 
 class HS_TypeFunction extends HS_Type {
@@ -43,7 +44,15 @@ class HS_TypeFunction extends HS_Type {
   }
 }
 
-class HS_Function extends HS_Namespace {
+class HS_Function {
+  static int functionIndex = 0;
+
+  final HS_Namespace declContext;
+  HS_Namespace _closure;
+  //HS_Namespace _save;
+  final String internalName;
+  String get name => internalName ?? funcStmt.name;
+
   final FuncStmt funcStmt;
 
   HS_TypeFunction _typeid;
@@ -51,8 +60,9 @@ class HS_Function extends HS_Namespace {
 
   final HS_External extern;
 
-  HS_Function(this.funcStmt, {List<HS_Type> typeArgs, String name, this.extern, HS_Namespace closure})
-      : super(name: name ?? funcStmt.name, closure: closure) {
+  HS_Function(this.funcStmt, {this.internalName, List<HS_Type> typeArgs, String name, this.extern, this.declContext}) {
+    //_save = _closure = closure;
+
     var paramsTypes = <HS_Type>[];
     for (var param in funcStmt.params) {
       paramsTypes.add(param.declType);
@@ -90,12 +100,7 @@ class HS_Function extends HS_Namespace {
     return result.toString();
   }
 
-  // 成员函数需要绑定到实例
-  HS_Function bind(HS_Instance instance, int line, int column, Interpreter interpreter) {
-    return HS_Function(funcStmt, name: name, extern: extern, closure: instance);
-  }
-
-  dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args) {
+  dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args, {HS_Instance instance}) {
     assert(args != null);
     try {
       if (extern != null) {
@@ -112,10 +117,18 @@ class HS_Function extends HS_Namespace {
           }
         }
 
-        var instance = fetch(HS_Common.THIS, line, column, interpreter, error: false, from: closure.fullName);
         return extern(instance, args ?? []);
       } else {
         if (funcStmt != null) {
+          //_save = _closure;
+          //assert(closure != null);
+          if (instance != null) {
+            _closure = HS_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
+            _closure.define(HS_Common.THIS, instance.typeid, line, column, interpreter, mutable: false);
+          } else {
+            _closure = HS_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
+          }
+
           if (funcStmt.arity >= 0) {
             if (args.length < funcStmt.arity) {
               throw HSErr_Arity(name, args.length, funcStmt.arity, line, column, interpreter.curFileName);
@@ -125,11 +138,9 @@ class HS_Function extends HS_Namespace {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
                 var var_stmt = funcStmt.params[i];
-                HS_Type arg_type_decl;
+                HS_Type arg_type_decl = HS_Type();
                 if (var_stmt.declType != null) {
                   arg_type_decl = var_stmt.declType;
-                } else {
-                  arg_type_decl = HS_Type();
                 }
 
                 if (i < args.length) {
@@ -139,21 +150,22 @@ class HS_Function extends HS_Namespace {
                         interpreter.curFileName);
                   }
 
-                  define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter, value: args[i]);
+                  _closure.define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter, value: args[i]);
                 } else {
                   var initializer = var_stmt.initializer;
-                  var init_value;
+                  dynamic init_value;
                   if (initializer != null) init_value = interpreter.evaluateExpr(var_stmt.initializer);
-                  define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter, value: init_value);
+                  _closure.define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter, value: init_value);
                 }
               }
             }
           } else {
             // “...”形式的参数列表通过List访问参数
-            define(funcStmt.params.first.name.lexeme, HS_Type.list, line, column, interpreter, value: args);
+            _closure.define(funcStmt.params.first.name.lexeme, HS_Type.list, line, column, interpreter, value: args);
           }
 
-          interpreter.executeBlock(funcStmt.definition, this);
+          interpreter.executeBlock(funcStmt.definition, _closure);
+          //_closure = _save;
         } else {
           throw HSErr_MissingFuncDef(name, line, column, interpreter.curFileName);
         }
@@ -173,6 +185,8 @@ class HS_Function extends HS_Namespace {
       }
 
       if (returnValue is NullThrownError) return null;
+
+      //_closure = _save;
       return returnValue;
     }
 

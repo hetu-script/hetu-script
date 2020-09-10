@@ -1,8 +1,8 @@
 // 类的定义
 class Calculator {
   // 成员变量
-  // var x: Number
-  // var y: Number
+  // var x: num
+  // var y: num
 
   // 静态私有成员
   static var _name = 'the calculator'
@@ -21,14 +21,14 @@ class Calculator {
   }
 
   // 带有参数的构造函数
-  // construct (x: Number, y: Number) {
+  // construct (x: num, y: num) {
   //   // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定
   //   this.x = x
   //   this.y = y
   // }
 
   // 带有返回类型的成员函数
-  // fun meaning: Number {
+  // fun meaning: num {
   //   // 可以不通过this直接使用成员变量
   //   return x * y
   // }

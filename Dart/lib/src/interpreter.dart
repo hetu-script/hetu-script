@@ -82,8 +82,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     for (var stmt in statements) {
       result = evaluateStmt(stmt);
     }
-    if ((style != ParseStyle.commandLine) && (invokeFunc != null)) {
+    if ((style == ParseStyle.library) && (invokeFunc != null)) {
       result = invoke(invokeFunc, args: args);
+    } else if (style == ParseStyle.program) {
+      result = invoke(HS_Common.mainFunc, args: args);
     }
     return result;
   }
@@ -101,7 +103,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       _evaledFiles.add(curFileName);
 
       HS_Namespace library_namespace;
-      if (libName != HS_Common.global) {
+      if ((libName != null) && (libName != HS_Common.global)) {
         global.define(libName, HS_Type.namespace, null, null, this);
         library_namespace = HS_Namespace(name: libName, closure: library_namespace);
       }
@@ -650,7 +652,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (stmt.isExtern) {
         externFunc = extern.fetch(stmt.name, stmt.keyword.line, stmt.keyword.column, this, from: HS_Common.extern);
       }
-      func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, closure: curContext);
+      func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, declContext: curContext);
       curContext.define(stmt.name, func.typeid, stmt.keyword.line, stmt.keyword.column, this, value: func);
     }
   }
@@ -714,21 +716,17 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
 
       HS_Function func;
-      HS_Namespace closure;
       HS_External externFunc;
-      if (method.isStatic) {
-        // 静态函数外层是类本身
-        closure = klass;
-      } else {
-        // 成员函数外层是实例，在某个实例取出函数的时候才绑定到那个实例上
-        closure = null;
-      }
       if (method.isExtern) {
         externFunc = extern.fetch(
             '${stmt.name}${HS_Common.dot}${method.internalName}', method.keyword.line, method.keyword.column, this,
             from: HS_Common.extern);
       }
-      func = HS_Function(method, name: method.internalName, extern: externFunc, closure: closure);
+      if (method.isStatic) {
+        func = HS_Function(method, name: method.internalName, extern: externFunc, declContext: klass);
+      } else {
+        func = HS_Function(method, name: method.internalName, extern: externFunc);
+      }
       klass.define(method.internalName, func.typeid, method.keyword.line, method.keyword.column, this, value: func);
     }
   }

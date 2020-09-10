@@ -48,34 +48,6 @@ class HS_Class extends HS_Namespace {
     }
   }
 
-  // void addMethod(String name, HS_FuncObj func, int line, int column, String fileName) {
-  //   if (!methods.containsKey(name))
-  //     methods[name] = func;
-  //   else
-  //     throw HSErr_Defined(name, line, column, fileName);
-  // }
-
-  // dynamic fetchMethod(String name, int line, int column, String fileName,
-  //     {bool error = true, String from = HS_Common.Global}) {
-  //   var getter = '${HS_Common.Getter}$name';
-  //   if (methods.containsKey(name)) {
-  //     if (from.startsWith(from) || (!name.startsWith(HS_Common.Underscore))) {
-  //       return methods[name];
-  //     }
-  //     throw HSErr_Private(name, line, column, fileName);
-  //   } else if (methods.containsKey(getter)) {
-  //     return methods[getter];
-  //   }
-
-  //   // if (superClass is HS_Class) {
-  //   //   (closure as HS_Class).fetchMethod(name, line, column, fileName, error: error);
-  //   // }
-
-  //   if (error) {
-  //     throw HSErr_UndefinedMember(name, this.name, line, column, fileName);
-  //   }
-  // }
-
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
       {bool error = true, String from = HS_Common.global, bool recursive = true}) {
@@ -166,7 +138,7 @@ class HS_Class extends HS_Namespace {
     var constructor = fetch(initterName, line, column, interpreter, error: false, from: name);
 
     if (constructor is HS_Function) {
-      constructor.bind(instance, line, column, interpreter).call(interpreter, line, column, args ?? []);
+      constructor.call(interpreter, line, column, args ?? [], instance: instance);
     }
 
     return instance;
@@ -210,12 +182,12 @@ class HS_Instance extends HS_Namespace {
       if (klass.contains(getter)) {
         HS_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
-          return method.bind(this, line, column, interpreter).call(interpreter, line, column, []);
+          return method.call(interpreter, line, column, [], instance: this);
         }
       } else if (klass.contains(varName)) {
         HS_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
-          return method.bind(this, line, column, interpreter);
+          return method;
         }
       }
     }
@@ -245,7 +217,7 @@ class HS_Instance extends HS_Namespace {
       if (klass.contains(setter)) {
         HS_Function method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
-          method.bind(this, line, column, interpreter).call(interpreter, line, column, [value]);
+          method.call(interpreter, line, column, [value], instance: this);
           return;
         }
       }
@@ -258,7 +230,7 @@ class HS_Instance extends HS_Namespace {
       {bool error = true, List<dynamic> args}) {
     HS_Function method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
-      return method.bind(this, line, column, interpreter).call(interpreter, null, null, args ?? []);
+      return method.call(interpreter, null, null, args ?? [], instance: this);
     }
 
     if (error) throw HSErr_Undefined(methodName, line, column, interpreter.curFileName);

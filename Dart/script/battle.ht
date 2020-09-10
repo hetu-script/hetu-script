@@ -4,9 +4,9 @@ var next_char_name: String
 
 class char_info {
   var name: String
-  var strength: Number
-  var vitality: Number
-  var initiative: Number
+  var strength: num
+  var vitality: num
+  var initiative: num
   var ko = false
 }
 
@@ -26,7 +26,7 @@ fun main {
   start(92, 103)
 }
 
-fun start(player_dex: Number, enemy_dex: Number) {
+fun start(player_dex: num, enemy_dex: num) {
   Console.print('战斗开始！')
 
   player.initiative = 1000 / Math.sqrt(player_dex) - 20

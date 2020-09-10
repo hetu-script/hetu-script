@@ -1,14 +1,14 @@
 
 class HelloWord {
-  var hello: Number
-  var world: Number
+  var hello: num
+  var world: num
   var _privateNum = 99
 
   fun toString: String {
     return "hello" + hello.toString() + "world" + world.toString()
   }
 
-  fun getPrivate: Number {
+  fun getPrivate: num {
     return _privateNum
   }
 }

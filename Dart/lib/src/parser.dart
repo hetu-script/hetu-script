@@ -9,9 +9,10 @@ import 'value.dart';
 enum ParseStyle {
   /// 程序脚本使用完整的标点符号规则，包括各种括号、逗号和分号
   ///
-  /// 程序脚本中只能出现变量、类和函数的声明
-  ///
   /// 程序脚本中必有一个叫做main的完整函数作为入口
+  program,
+
+  /// 库脚本中只能出现变量、类和函数的声明
   library,
 
   /// 函数语句块中只能出现变量声明、控制语句和函数调用
@@ -353,6 +354,7 @@ class Parser {
     if (curTok == HS_Common.newline) advance(1);
     switch (style) {
       case ParseStyle.library:
+      case ParseStyle.program:
         {
           bool is_extern = expect([HS_Common.EXTERNAL], consume: true, error: false);
           if (expect([HS_Common.IMPORT])) {
@@ -392,9 +394,11 @@ class Parser {
             return _parseForStmt();
           } // 跳出语句
           else if (expect([HS_Common.BREAK])) {
+            advance(1);
             return BreakStmt();
           } // 继续语句
           else if (expect([HS_Common.CONTINUE])) {
+            advance(1);
             return ContinueStmt();
           } // 函数声明
           else if (expect([HS_Common.FUN])) {
@@ -555,7 +559,7 @@ class Parser {
   WhileStmt _parseWhileStmt() {
     // 之前已经校验过括号了所以这里直接跳过
     advance(1);
-    expect([HS_Common.curlyLeft], consume: true);
+    expect([HS_Common.roundLeft], consume: true);
     var condition = _parseExpr();
     expect([HS_Common.roundRight], consume: true);
     Stmt loop;
@@ -694,7 +698,7 @@ class Parser {
       }
     }
 
-    HS_Type return_type = HS_Type();
+    HS_Type return_type = HS_Type.VOID;
     if (functype != FuncStmtType.constructor) {
       if (expect([HS_Common.colon], consume: true, error: false)) {
         return_type = _parseTypeId();
