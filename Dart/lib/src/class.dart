@@ -108,14 +108,14 @@ class HS_Class extends HS_Namespace {
       {bool error = true, String from = HS_Common.global, bool recursive = true}) {
     var setter = '${HS_Common.setFun}$varName';
     if (defs.containsKey(varName)) {
-      var declType = defs[varName].typeid;
-      var varType = HS_TypeOf(value);
+      var decl_type = defs[varName].typeid;
+      var var_type = HS_TypeOf(value);
       if (from.startsWith(this.fullName) || !varName.startsWith(HS_Common.underscore)) {
-        if (varType.isA(declType)) {
+        if (var_type.isA(decl_type)) {
           defs[varName].value = value;
           return;
         }
-        throw HSErr_Type(varName, varType.toString(), declType.toString(), line, column, interpreter.curFileName);
+        throw HSErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(setter)) {

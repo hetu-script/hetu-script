@@ -73,13 +73,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   dynamic eval(String script, String fileName,
-      {String libName = HS_Common.global,
-      ParseStyle style = ParseStyle.library,
-      String invokeFunc = null,
-      List<dynamic> args}) {
-    if ((libName != null) && (libName != HS_Common.global)) {
-      curContext = HS_Namespace(name: libName);
-    }
+      {HS_Namespace context, ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+    curContext = context ?? global;
     var tokens = Lexer().lex(script);
     var statements = Parser(this).parse(tokens, fileName, style: style);
     Resolver(this).resolve(statements, fileName);
@@ -105,8 +100,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (displayLoadingInfo) print('Hetu: Loading $filepath...');
       _evaledFiles.add(curFileName);
 
+      HS_Namespace library_namespace;
+      if (libName != HS_Common.global) {
+        global.define(libName, HS_Type.namespace, null, null, this);
+        library_namespace = HS_Namespace(name: libName, closure: library_namespace);
+      }
+
       eval(File(curFileName).readAsStringSync(), curFileName,
-          libName: libName, style: style, invokeFunc: invokeFunc, args: args);
+          context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
     _curFileName = null;
   }
@@ -255,7 +256,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   dynamic evaluateStmt(Stmt stmt) => stmt.accept(this);
 
-  //dynamic evaluateExpr(Expr expr) => unwrap(expr.accept(this));
   dynamic evaluateExpr(Expr expr) => expr.accept(this);
 
   @override
@@ -550,12 +550,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitImportStmt(ImportStmt stmt) {
     String file_path;
     if (stmt.filepath.startsWith('hetu:')) {
-      file_path = stmt.filepath.substring(5);
-      file_path = path.join(_sdkDir, file_path + '.ht');
+      file_path = path.join(_sdkDir, stmt.filepath.substring(5) + '.ht');
     } else {
       file_path = path.join(workingDir, stmt.filepath);
     }
-    evalf(file_path, libName: stmt.asspace);
+    evalf(file_path, libName: stmt.nameSpace);
   }
 
   @override
@@ -678,14 +677,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     curContext.define(stmt.name, HS_Type.CLASS, stmt.keyword.line, stmt.keyword.column, this, value: klass);
 
+    var save = curContext;
+    curContext = klass;
     for (var variable in stmt.variables) {
       if (variable.isStatic) {
         dynamic value;
         if (variable.initializer != null) {
-          var save = curContext;
-          curContext = klass;
           value = evaluateExpr(variable.initializer);
-          curContext = save;
         } else if (variable.isExtern) {
           value = extern.fetch(
               '${stmt.name}${HS_Common.dot}${variable.name.lexeme}', variable.name.line, variable.name.column, this,
@@ -703,11 +701,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           }
         }
 
-        klass.define(variable.name.lexeme, typeid, variable.name.line, variable.name.column, this);
+        klass.define(variable.name.lexeme, typeid, variable.name.line, variable.name.column, this, value: value);
       } else {
         klass.addVariable(variable);
       }
     }
+    curContext = save;
 
     for (var method in stmt.methods) {
       if (klass.contains(method.internalName)) {

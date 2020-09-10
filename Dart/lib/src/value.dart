@@ -15,6 +15,7 @@ class HS_Type {
 
   static final NULL = HS_Type(name: HS_Common.NULL);
   static final CLASS = HS_Type(name: HS_Common.CLASS);
+  static final namespace = HS_Type(name: HS_Common.NAMESPACE);
   static final number = HS_Type(name: HS_Common.number);
   static final boolean = HS_Type(name: HS_Common.boolean);
   static final string = HS_Type(name: HS_Common.string);
@@ -43,12 +44,13 @@ class HS_Type {
     } else {
       if (this.name == typeid.name) {
         if (this.arguments.length >= typeid.arguments.length) {
+          result = true;
           for (var i = 0; i < typeid.arguments.length; ++i) {
-            if ((typeid.arguments[i].isA(typeid)) && (this.arguments[i] != HS_Common.NULL)) {
+            if (this.arguments[i].isNotA(typeid.arguments[i])) {
               result = false;
+              break;
             }
           }
-          result = true;
         } else {
           result = false;
         }

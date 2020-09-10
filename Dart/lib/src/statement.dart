@@ -55,21 +55,21 @@ abstract class Stmt {
 
 class ImportStmt extends Stmt {
   @override
-  String get type => HS_Common.ImportStmt;
+  String get type => HS_Common.importStmt;
 
   @override
   void accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
 
   final String filepath;
 
-  final String asspace;
+  final String nameSpace;
 
-  ImportStmt(this.filepath, {this.asspace});
+  ImportStmt(this.filepath, {this.nameSpace});
 }
 
 class VarStmt extends Stmt {
   @override
-  String get type => HS_Common.VarStmt;
+  String get type => HS_Common.varStmt;
 
   @override
   void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
@@ -89,7 +89,7 @@ class VarStmt extends Stmt {
 
 class ExprStmt extends Stmt {
   @override
-  String get type => HS_Common.ExprStmt;
+  String get type => HS_Common.exprStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitExprStmt(this);
@@ -102,7 +102,7 @@ class ExprStmt extends Stmt {
 
 class BlockStmt extends Stmt {
   @override
-  String get type => HS_Common.BlockStmt;
+  String get type => HS_Common.blockStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBlockStmt(this);
@@ -114,7 +114,7 @@ class BlockStmt extends Stmt {
 
 class ReturnStmt extends Stmt {
   @override
-  String get type => HS_Common.ReturnStmt;
+  String get type => HS_Common.returnStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitReturnStmt(this);
@@ -128,7 +128,7 @@ class ReturnStmt extends Stmt {
 
 class IfStmt extends Stmt {
   @override
-  String get type => HS_Common.IfStmt;
+  String get type => HS_Common.ifStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitIfStmt(this);
@@ -144,7 +144,7 @@ class IfStmt extends Stmt {
 
 class WhileStmt extends Stmt {
   @override
-  String get type => HS_Common.WhileStmt;
+  String get type => HS_Common.whileStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitWhileStmt(this);
@@ -158,7 +158,7 @@ class WhileStmt extends Stmt {
 
 class BreakStmt extends Stmt {
   @override
-  String get type => HS_Common.BreakStmt;
+  String get type => HS_Common.breakStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBreakStmt(this);
@@ -166,7 +166,7 @@ class BreakStmt extends Stmt {
 
 class ContinueStmt extends Stmt {
   @override
-  String get type => HS_Common.ContinueStmt;
+  String get type => HS_Common.continueStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitContinueStmt(this);
@@ -182,7 +182,7 @@ enum FuncStmtType {
 
 class FuncStmt extends Stmt {
   @override
-  String get type => HS_Common.FuncStmt;
+  String get type => HS_Common.funcStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitFuncStmt(this);
@@ -241,7 +241,7 @@ class FuncStmt extends Stmt {
 
 class ClassStmt extends Stmt {
   @override
-  String get type => HS_Common.ClassStmt;
+  String get type => HS_Common.classStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitClassStmt(this);

@@ -29,21 +29,21 @@ abstract class HS_Buildin {
     'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
     'Value.toString': HSVal_Value._to_string,
-    'Number.parse': HSVal_Number._parse,
-    'Number.toStringAsFixed': HSVal_Number._to_string_as_fixed,
-    'Number.truncate': HSVal_Number._truncate,
-    'String._get_isEmpty': HSVal_String._is_empty,
+    'num.parse': HSVal_Number._parse,
+    'num.toStringAsFixed': HSVal_Number._to_string_as_fixed,
+    'num.truncate': HSVal_Number._truncate,
+    'String.__get__isEmpty': HSVal_String._is_empty,
     'String.parse': HSVal_String._parse,
     'String.substring': HSVal_String._substring,
-    'List._get_length': HSVal_List._get_length,
+    'List.__get__length': HSVal_List._get_length,
     'List.add': HSVal_List._add,
     'List.clear': HSVal_List._clear,
     'List.removeAt': HSVal_List._remove_at,
     'List.indexOf': HSVal_List._index_of,
     'List.elementAt': HSVal_List._element_at,
-    'Map._get_length': HSVal_Map._get_length,
-    'Map._get_keys': HSVal_Map._get_keys,
-    'Map._get_values': HSVal_Map._get_values,
+    'Map.__get__length': HSVal_Map._get_length,
+    'Map.__get__keys': HSVal_Map._get_keys,
+    'Map.__get__values': HSVal_Map._get_values,
     'Map.containsKey': HSVal_Map._contains_key,
     'Map.containsValue': HSVal_Map._contains_value,
     'Map.setVal': HSVal_Map._set_val,
@@ -78,9 +78,11 @@ abstract class HS_Buildin {
   }
 
   static dynamic _print(HS_Instance instance, List<dynamic> args) {
+    var sb = StringBuffer();
     for (var arg in args) {
-      print(arg);
+      sb.write('$arg ');
     }
+    print(sb.toString());
   }
 
   static dynamic _string(HS_Instance instance, List<dynamic> args) {
@@ -225,15 +227,13 @@ class HSVal_Number extends HSVal_Value {
   }
 
   static dynamic _to_string_as_fixed(HS_Instance instance, List<dynamic> args) {
+    int fractionDigits = 0;
     if (args.isNotEmpty) {
-      int fractionDigits = 0;
-      if (args.isNotEmpty) {
-        fractionDigits = args.first;
-      }
-      var numObj = (instance as HSVal_Number);
-      num number = numObj?.value;
-      return number.toStringAsFixed(fractionDigits);
+      fractionDigits = args.first;
     }
+    var numObj = (instance as HSVal_Number);
+    num number = numObj?.value;
+    return number.toStringAsFixed(fractionDigits);
   }
 
   static dynamic _truncate(HS_Instance instance, List<dynamic> args) {

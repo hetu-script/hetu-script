@@ -77,24 +77,26 @@ class HS_Namespace extends HS_Value {
   // }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(String id, HS_Type typeid, int line, int column, Interpreter interpreter,
+  void define(String id, HS_Type declType, int line, int column, Interpreter interpreter,
       {dynamic value, bool mutable = true}) {
-    var val_typeid = HS_TypeOf(value);
-    if (val_typeid.isA(typeid)) {
-      defs[id] = Declaration(typeid, value: value, mutable: mutable);
-    } else if ((value != null) && (value is Map)) {
-      var klass = interpreter.global.fetch(id, line, column, interpreter);
-      if (klass is HS_Class) {
-        var instance = klass.createInstance(interpreter, line, column, this);
-        for (var key in value.keys) {
-          instance.assign(key, value[key], line, column, interpreter);
-        }
-        defs[id] = Declaration(typeid, value: instance);
-      } else {
-        throw HSErr_Type(id, typeid.toString(), val_typeid.toString(), line, column, interpreter.curFileName);
-      }
-    } else {
-      throw HSErr_Type(id, typeid.toString(), val_typeid.toString(), line, column, interpreter.curFileName);
+    var val_type = HS_TypeOf(value);
+    if (val_type.isA(declType)) {
+      defs[id] = Declaration(value == null ? declType : val_type, value: value, mutable: mutable);
+    }
+    //  else if ((value != null) && (value is Map)) {
+    //   var klass = interpreter.global.fetch(id, line, column, interpreter);
+    //   if (klass is HS_Class) {
+    //     var instance = klass.createInstance(interpreter, line, column, this);
+    //     for (var key in value.keys) {
+    //       instance.assign(key, value[key], line, column, interpreter);
+    //     }
+    //     defs[id] = Declaration(typeid, value: instance);
+    //   } else {
+    //     throw HSErr_Type(id, val_typeid.toString(), typeid.toString(), line, column, interpreter.curFileName);
+    //   }
+    // }
+    else {
+      throw HSErr_Type(id, val_type.toString(), declType.toString(), line, column, interpreter.curFileName);
     }
   }
 

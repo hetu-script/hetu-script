@@ -17,7 +17,12 @@ fun main {
   print(p.greeting())
   print(p.greeting)
 
-  p.greeting = greeting2
+  print(typeof(p.greeting))
 
-  print(p.greeting())
+  var t = Person
+
+  // t = Person() // 类型错误
+
+  print(t)
+  print(typeof(t))
 }

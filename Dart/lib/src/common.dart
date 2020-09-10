@@ -60,12 +60,8 @@ abstract class HS_Common {
 
   /// 保留字，不能用于变量名字
   static const keywords = <String>[
-    //Newline,
-    //Multiline,
     NULL,
     STATIC,
-    //CONST,
-    //Final,
     VAR,
     LET,
     ANY,
@@ -75,7 +71,6 @@ abstract class HS_Common {
     ABSTRACT,
     CLASS,
     FUN,
-    //Arguments,
     CONSTRUCT,
     GET,
     SET,
@@ -85,8 +80,8 @@ abstract class HS_Common {
     IMPLEMENTS,
     MIXIN,
     EXTERNAL,
+    LIBRARY,
     IMPORT,
-    //Assert,
     BREAK,
     CONTINUE,
     FOR,
@@ -98,9 +93,6 @@ abstract class HS_Common {
     WHILE,
     DO,
     WHEN,
-    //TRY,
-    //CATCH,
-    //FINALLY,
     IS,
   ];
 
@@ -143,13 +135,13 @@ abstract class HS_Common {
   static const extern = '__extern__';
   static const instance = '__instance_of_';
   static const instancePrefix = 'instance of ';
-  static const constructFun = '_construct_';
-  static const getFun = '_get_';
-  static const setFun = '_set_';
+  static const constructFun = '__construct__';
+  static const getFun = '__get__';
+  static const setFun = '__set__';
 
   static const object = 'Object';
-  static const number = 'Number';
-  static const boolean = 'Boolean';
+  static const number = 'num';
+  static const boolean = 'bool';
   static const string = 'String';
   static const list = 'List';
   static const map = 'Map';
@@ -170,7 +162,8 @@ abstract class HS_Common {
   static const TYPEDEF = 'typedef';
 
   static const STATIC = 'static';
-  static const CONST = 'const';
+  // static const CONST = 'const';
+  static const FINAL = 'final';
   static const CONSTRUCT = 'construct';
   static const GET = 'get';
   static const SET = 'set';
@@ -189,6 +182,7 @@ abstract class HS_Common {
   static const IMPLEMENTS = 'implements';
   static const MIXIN = 'mixin';
   static const EXTERNAL = 'external';
+  static const LIBRARY = 'library';
   static const IMPORT = 'import';
 
   static const Assert = 'assert';
@@ -212,33 +206,33 @@ abstract class HS_Common {
   static const literalExpr = 'literal_expression';
   static const groupExpr = 'group_expression';
   static const vectorExpr = 'vector_expression';
-  static const BlockExpr = 'block_expression';
-  static const VarExpr = 'variable_expression';
-  static const TypeExpr = 'type_expression';
-  static const UnaryExpr = 'unary_expression';
-  static const BinaryExpr = 'binary_expression';
-  static const CallExpr = 'call_expression';
-  static const ThisExpr = 'this_expression';
-  static const AssignExpr = 'assign_expression';
-  static const SubGetExpr = 'subscript_get_expression';
-  static const SubSetExpr = 'subscript_set_expression';
-  static const MemberGetExpr = 'member_get_expression';
-  static const MemberSetExpr = 'member_set_expression';
+  static const blockExpr = 'block_expression';
+  static const varExpr = 'variable_expression';
+  static const typeExpr = 'type_expression';
+  static const unaryExpr = 'unary_expression';
+  static const binaryExpr = 'binary_expression';
+  static const callExpr = 'call_expression';
+  static const thisExpr = 'this_expression';
+  static const assignExpr = 'assign_expression';
+  static const subGetExpr = 'subscript_get_expression';
+  static const subSetExpr = 'subscript_set_expression';
+  static const memberGetExpr = 'member_get_expression';
+  static const memberSetExpr = 'member_set_expression';
 
-  static const ImportStmt = 'import_statement';
-  static const VarStmt = 'variable_statement';
-  static const ExprStmt = 'expression_statement';
-  static const BlockStmt = 'block_statement';
-  static const ReturnStmt = 'return_statement';
-  static const BreakStmt = 'break_statement';
-  static const ContinueStmt = 'continue_statement';
-  static const IfStmt = 'if_statement';
-  static const WhileStmt = 'while_statement';
-  static const ForInStmt = 'for_in_statement';
-  static const ClassStmt = 'class_statement';
-  static const FuncStmt = 'function_statement';
-  static const ExternFuncStmt = 'external_function_statement';
-  static const ConstructorStmt = 'constructor_function_statement';
+  static const importStmt = 'import_statement';
+  static const varStmt = 'variable_statement';
+  static const exprStmt = 'expression_statement';
+  static const blockStmt = 'block_statement';
+  static const returnStmt = 'return_statement';
+  static const breakStmt = 'break_statement';
+  static const continueStmt = 'continue_statement';
+  static const ifStmt = 'if_statement';
+  static const whileStmt = 'while_statement';
+  static const forInStmt = 'for_in_statement';
+  static const classStmt = 'class_statement';
+  static const funcStmt = 'function_statement';
+  static const externFuncStmt = 'external_function_statement';
+  static const constructorStmt = 'constructor_function_statement';
 
   /// 后缀操作符，包含多个符号
   static const unaryPostfixs = <String>[
@@ -326,33 +320,31 @@ abstract class HS_Common {
   static const errorDefined = 'is already defined';
   static const errorRange = 'Index out of range, should be less than';
   static const errorInvalidLeftValue = 'Invalid left-value';
-  static const ErrorCallable = 'is not callable';
-  static const ErrorUndefinedMember = 'isn\'t defined for the class';
-  static const ErrorCondition = 'Condition expression must evaluate to type "bool"';
-  static const ErrorMissingFuncDef = 'Missing function definition body of';
-  static const ErrorGet = 'is not a collection or object';
-  static const ErrorSubGet = 'is not a List or Map';
-  static const ErrorExtends = 'is not a class';
-  static const ErrorSetter = 'Setter function\'s arity must be 1';
-  static const ErrorNullObject = 'is null';
-  static const ErrorMutable = 'is immutable';
+  static const errorCallable = 'is not callable';
+  static const errorUndefinedMember = 'isn\'t defined for the class';
+  static const errorCondition = 'Condition expression must evaluate to type "bool"';
+  static const errorMissingFuncDef = 'Missing function definition body of';
+  static const errorGet = 'is not a collection or object';
+  static const errorSubGet = 'is not a List or Map';
+  static const errorExtends = 'is not a class';
+  static const errorSetter = 'Setter function\'s arity must be 1';
+  static const errorNullObject = 'is null';
+  static const errorMutable = 'is immutable';
 
-  static const ErrorType1 = 'Variable';
-  static const ErrorType2 = 'of type';
-  static const ErrorType3 = 'can\'t be assigned with type';
+  static const errorOfType = 'of type';
 
-  static const ErrorTypeParam1 = 'Type parameter declared as';
-  static const ErrorTypeParam2 = 'can\'t be assigned with type argument';
+  static const errorType1 = 'Variable';
+  static const errorType2 = 'can\'t be assigned with type';
 
-  static const ErrorArgType1 = 'Argument value type';
-  static const ErrorArgType2 = 'doesn\'t match parameter type';
+  static const errorArgType1 = 'Argument';
+  static const errorArgType2 = 'doesn\'t match parameter type';
 
-  static const ErrorReturnType1 = 'Value of type';
-  static const ErrorReturnType2 = 'can\'t be returned from function';
-  static const ErrorReturnType3 = 'because it has a return type of';
+  static const errorReturnType1 = 'Value of type';
+  static const errorReturnType2 = 'can\'t be returned from function';
+  static const errorReturnType3 = 'because it has a return type of';
 
-  static const ErrorArity1 = 'Number of arguments';
-  static const ErrorArity2 = 'doesn\'t match parameter requirement of function';
+  static const errorArity1 = 'Number of arguments';
+  static const errorArity2 = 'doesn\'t match parameter requirement of function';
 }
 
 // Hetu运算符优先级

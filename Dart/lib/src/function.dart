@@ -135,8 +135,8 @@ class HS_Function extends HS_Namespace {
                 if (i < args.length) {
                   var arg_type = HS_TypeOf(args[i]);
                   if (arg_type.isNotA(arg_type_decl)) {
-                    throw HSErr_ArgType(
-                        arg_type.toString(), arg_type_decl.toString(), line, column, interpreter.curFileName);
+                    throw HSErr_ArgType(args[i].toString(), arg_type.toString(), arg_type_decl.toString(), line, column,
+                        interpreter.curFileName);
                   }
 
                   define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter, value: args[i]);
@@ -175,5 +175,7 @@ class HS_Function extends HS_Namespace {
       if (returnValue is NullThrownError) return null;
       return returnValue;
     }
+
+    return null;
   }
 }

@@ -9,5 +9,5 @@ class System {
 
   external static fun readfile(filepath: String): String
 
-  external static fun now(): Number
+  external static fun now(): num
 }

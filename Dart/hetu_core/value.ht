@@ -5,21 +5,21 @@ class Value {
 
 }
 
-class Number extends Value {
+class num extends Value {
 
-	external static fun parse(value): Number
+	external static fun parse(value): num
 
-  external fun toStringAsFixed([fractionDigits: Number = 0]): Number
+  external fun toStringAsFixed([fractionDigits: num = 0]): num
 
-  external fun truncate(): Number
+  external fun truncate(): num
 }
 
-class Boolean extends Value {
+class bool extends Value {
 
-	static fun parse(value): Boolean {
-    if (value is Boolean) {
+	static fun parse(value): bool {
+    if (value is bool) {
       return value
-    } else if (value is Number) {
+    } else if (value is num) {
       if (value != 0) {
         return true
       } else {
@@ -39,26 +39,26 @@ class Boolean extends Value {
 
 class String extends Value {
 	
-	external get isEmpty: Boolean
+	external get isEmpty: bool
 	
-	get isNotEmpty: Boolean {
+	get isNotEmpty: bool {
 		return !isEmpty
 	}
 
-	external fun substring(startIndex: Number, [endIndex: Number]): String
+	external fun substring(startIndex: num, [endIndex: num]): String
 
 	external static fun parse(value): String
 }
 
 class List extends Value {
 	
-	external get length: Number
+	external get length: num
 	
-	get isEmpty: Boolean {
+	get isEmpty: bool {
 		return length == 0
 	}
 	
-	get isNotEmpty: Boolean {
+	get isNotEmpty: bool {
 		return length != 0
 	}
 	
@@ -74,7 +74,7 @@ class List extends Value {
     }
   }
 	
-	fun contains(value): Boolean {
+	fun contains(value): bool {
 		return indexOf(value) != -1
 	}
 	
@@ -82,22 +82,22 @@ class List extends Value {
 	
 	external fun clear()
 	
-	external fun removeAt(index: Number)
+	external fun removeAt(index: num)
 	
-	external fun indexOf(value): Number
+	external fun indexOf(value): num
 	
-	external fun elementAt(index: Number): any
+	external fun elementAt(index: num): any
 }
 
 class Map extends Value {
 	
-	external get length: Number
+	external get length: num
 	
-	get isEmpty: Boolean {
+	get isEmpty: bool {
 		return length == 0
 	}
 	
-	get isNotEmpty: Boolean {
+	get isNotEmpty: bool {
 		return length != 0
 	}
 
@@ -105,9 +105,9 @@ class Map extends Value {
 
   external get values: List
 	
-	external fun containsKey(value): Boolean
+	external fun containsKey(value): bool
 
-	external fun containsValue(value): Boolean
+	external fun containsValue(value): bool
 	
 	external fun setVal(key, value)
 	

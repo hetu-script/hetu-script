@@ -475,7 +475,7 @@ class Parser {
     if (expect([HS_Common.AS], consume: true, error: false)) {
       spacename = match(HS_Common.identifier).lexeme;
     }
-    var stmt = ImportStmt(filename, asspace: spacename);
+    var stmt = ImportStmt(filename, nameSpace: spacename);
     expect([HS_Common.semicolon], consume: true, error: false);
     return stmt;
   }
@@ -523,7 +523,7 @@ class Parser {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance(1);
     Expr expr;
-    if (curTok.type != HS_Common.curlyRight) {
+    if (!expect([HS_Common.semicolon], consume: true, error: false)) {
       expr = _parseExpr();
     }
     expect([HS_Common.semicolon], consume: true, error: false);
