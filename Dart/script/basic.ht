@@ -1,5 +1,12 @@
+class Person {
+
+  var name: String
+}
 
 // This is where the app starts executing.
 fun main {
-  print('hello world!')
+  var p = Person()
+  var list = [p]
+
+  print(typeof(list))
 }

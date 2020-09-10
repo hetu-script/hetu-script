@@ -1,8 +1,6 @@
 // return the runtime type of a value
 external fun typeof(value): String
 
-external fun help(value): String
-
 // print values of any type into lines
 external fun print(... args)
 

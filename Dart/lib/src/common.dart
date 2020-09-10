@@ -140,6 +140,7 @@ abstract class HS_Common {
   static const setFun = '__set__';
 
   static const object = 'Object';
+  static const unknown = '__unknown__';
   static const number = 'num';
   static const boolean = 'bool';
   static const string = 'String';

@@ -16,7 +16,8 @@ class HS_Type {
   static final NULL = HS_Type(name: HS_Common.NULL);
   static final VOID = HS_Type(name: HS_Common.VOID);
   static final CLASS = HS_Type(name: HS_Common.CLASS);
-  static final namespace = HS_Type(name: HS_Common.NAMESPACE);
+  static final NAMESPACE = HS_Type(name: HS_Common.NAMESPACE);
+  static final unknown = HS_Type(name: HS_Common.unknown);
   static final number = HS_Type(name: HS_Common.number);
   static final boolean = HS_Type(name: HS_Common.boolean);
   static final string = HS_Type(name: HS_Common.string);
@@ -79,32 +80,47 @@ HS_Type HS_TypeOf(dynamic value) {
   } else if (value is String) {
     return HS_Type.string;
   } else if (value is List) {
-    var valType = HS_TypeOf(value.first);
-    for (var value in value) {
-      if (HS_TypeOf(value) != valType) {
-        valType = HS_Type();
-        break;
+    // var list_darttype = value.runtimeType.toString();
+    // var item_darttype = list_darttype.substring(list_darttype.indexOf('<') + 1, list_darttype.indexOf('>'));
+    // if ((item_darttype != 'dynamic') && (value.isNotEmpty)) {
+    //   valType = HS_TypeOf(value.first);
+    // }
+    HS_Type valType = HS_Type();
+    if (value.isNotEmpty) {
+      valType = HS_TypeOf(value.first);
+      for (var item in value) {
+        if (HS_TypeOf(item) != valType) {
+          valType = HS_Type();
+          break;
+        }
       }
     }
+
     return HS_Type(name: HS_Common.list, arguments: [valType]);
   } else if (value is Map) {
-    var keyType = HS_TypeOf(value.keys.first);
-    for (var key in value.keys) {
-      if (HS_TypeOf(key) != keyType) {
-        keyType = HS_Type();
-        break;
+    HS_Type keyType = HS_Type();
+    HS_Type valType = HS_Type();
+    if (value.keys.isNotEmpty) {
+      keyType = HS_TypeOf(value.keys.first);
+      for (var key in value.keys) {
+        if (HS_TypeOf(key) != keyType) {
+          keyType = HS_Type();
+          break;
+        }
       }
     }
-    var valType = HS_TypeOf(value.values.first);
-    for (var value in value.values) {
-      if (HS_TypeOf(value) != valType) {
-        valType = HS_Type();
-        break;
+    if (value.values.isNotEmpty) {
+      valType = HS_TypeOf(value.values.first);
+      for (var value in value.values) {
+        if (HS_TypeOf(value) != valType) {
+          valType = HS_Type();
+          break;
+        }
       }
     }
     return HS_Type(name: HS_Common.map, arguments: [keyType, valType]);
   } else {
-    return HS_Type(name: value.toString());
+    return HS_Type.unknown;
   }
 }
 

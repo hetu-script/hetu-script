@@ -80,7 +80,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     Resolver(this).resolve(statements, fileName);
     dynamic result;
     for (var stmt in statements) {
-      result = evaluateStmt(stmt);
+      evaluateStmt(stmt);
     }
     if ((style == ParseStyle.library) && (invokeFunc != null)) {
       result = invoke(invokeFunc, args: args);
@@ -104,7 +104,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
       HS_Namespace library_namespace;
       if ((libName != null) && (libName != HS_Common.global)) {
-        global.define(libName, HS_Type.namespace, null, null, this);
+        global.define(libName, HS_Type.NAMESPACE, null, null, this);
         library_namespace = HS_Namespace(name: libName, closure: library_namespace);
       }
 
