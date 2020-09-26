@@ -1,7 +1,6 @@
 import 'package:hetu_script/hetu.dart';
 
 import 'errors.dart';
-import 'class.dart';
 import 'common.dart';
 import 'value.dart';
 

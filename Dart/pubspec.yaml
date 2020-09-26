@@ -4,7 +4,7 @@ description: A lightweight scripting language written by Dart.
 # homepage: https://www.example.com
 
 environment:
-  sdk: '>=2.8.1 <3.0.0'
+  sdk: ">=2.8.1 <3.0.0"
 
 dependencies:
   path: ^1.7.0

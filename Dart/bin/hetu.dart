@@ -7,9 +7,10 @@ abstract class Hetu_Env {
   static const version = '版本：0.0.1';
 }
 
-void main(List<String> args) {
+void main(List<String> args) async {
   try {
-    hetu.init(displayLoadingInfo: false);
+    await hetu.init(debugMode: false, loadAll: true);
+
     if (args.isNotEmpty) {
       if ((args.first == '--help') || (args.first == '-h')) {
         String doc = File(path.join('doc', 'cli_help.md')).readAsStringSync();
@@ -21,7 +22,6 @@ void main(List<String> args) {
         print('\n${Hetu_Env.title} ${Hetu_Env.version}\n'
             '输入指令并按回车即可执行，输入\'quit\'退出REPL环境。以\'\\\'结尾的指令可以换行继续输入。\n');
         var quit = false;
-        var currentFileName = DateTime.now().millisecondsSinceEpoch.toString();
 
         while (!quit) {
           stdout.write('>>>');
@@ -43,22 +43,17 @@ void main(List<String> args) {
 
             dynamic result;
             try {
-              result = hetu.eval(input, currentFileName, style: ParseStyle.function);
+              result = await hetu.eval(input, 'REPL', style: ParseStyle.function);
+              if (result != null) print(result);
             } catch (e) {
               print(e);
             }
-            if (result != null) print(result);
           }
         }
       } else if (args.first == '-s') {
-        var style = ParseStyle.function;
-
-        hetu.evalf(args.first, displayLoadingInfo: false, style: style);
+        await hetu.evalf(args.first, style: ParseStyle.function);
       } else {
-        var style = ParseStyle.library;
-        String entrance = HS_Common.mainFunc;
-
-        hetu.evalf(args.first, displayLoadingInfo: false, style: style, invokeFunc: entrance);
+        await hetu.evalf(args.first, style: ParseStyle.library, invokeFunc: HS_Common.mainFunc);
       }
     } else {
       String doc = File(path.join('doc', 'cli_help.md')).readAsStringSync();

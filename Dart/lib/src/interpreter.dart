@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-
 import 'errors.dart';
 import 'common.dart';
 import 'expression.dart';
@@ -15,10 +13,16 @@ import 'lexer.dart';
 import 'parser.dart';
 import 'resolver.dart';
 
+typedef _LoadStringFunc = Future<String> Function(String filepath);
+
+Future<String> defaultLoadString(String filapath) async => await File(filapath).readAsString();
+
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
-  static String _sdkDir;
-  String workingDir;
+  String _sdkDir = 'hetu_core/';
+  String _workingDir = 'scripts/';
+  _LoadStringFunc _loadString = defaultLoadString;
+  bool _debugMode = true;
 
   var _evaledFiles = <String>[];
 
@@ -41,29 +45,38 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   String get curFileName => _curFileName;
 
   void init({
-    bool displayLoadingInfo = true,
-    String hetuSdkDir,
+    _LoadStringFunc loadStringFunc,
+    String sdkLocation,
     String workingDir,
+    bool debugMode,
     Map<String, HS_External> externs,
-  }) {
+    bool loadAll = false,
+  }) async {
     try {
-      _sdkDir = hetuSdkDir ?? 'hetu_core';
-      this.workingDir = workingDir ?? path.current;
+      if (sdkLocation != null) _sdkDir = sdkLocation;
+      if (workingDir != null) _workingDir = workingDir;
+      if (loadStringFunc != null) _loadString = loadStringFunc;
+      if (debugMode != null) _debugMode = debugMode;
 
       // 必须在绑定函数前加载基础类Object和Function，因为函数本身也是对象
       curContext = global;
-      if (displayLoadingInfo) print('Hetu: Loading core library.');
-      eval(HS_Buildin.coreLib, 'core.ht');
+      if (_debugMode) print('Hetu: Loading core library.');
+      await eval(HS_Buildin.coreLib, 'core.ht');
 
       // 绑定外部函数
       linkAll(HS_Buildin.externs);
       linkAll(externs);
 
       // 载入基础库
-      evalf(path.join(_sdkDir, 'core.ht'), displayLoadingInfo: displayLoadingInfo);
-      evalf(path.join(_sdkDir, 'value.ht'), displayLoadingInfo: displayLoadingInfo);
-      evalf(path.join(_sdkDir, 'system.ht'), displayLoadingInfo: displayLoadingInfo);
-      evalf(path.join(_sdkDir, 'console.ht'), displayLoadingInfo: displayLoadingInfo);
+      await evalf(_sdkDir + 'core.ht');
+      await evalf(_sdkDir + 'value.ht');
+      await evalf(_sdkDir + 'system.ht');
+      await evalf(_sdkDir + 'console.ht');
+
+      if (loadAll) {
+        await evalf(_sdkDir + 'math.ht');
+        await evalf(_sdkDir + 'help.ht');
+      }
     } catch (e) {
       stdout.write('\x1B[32m');
       print(e);
@@ -72,10 +85,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  dynamic eval(String script, String fileName,
-      {HS_Namespace context, ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
+  dynamic eval(String content, String fileName,
+      {HS_Namespace context,
+      ParseStyle style = ParseStyle.library,
+      String invokeFunc = null,
+      List<dynamic> args}) async {
     curContext = context ?? global;
-    var tokens = Lexer().lex(script);
+    var tokens = Lexer().lex(content);
     var statements = Parser(this).parse(tokens, fileName, style: style);
     Resolver(this).resolve(statements, fileName);
     dynamic result;
@@ -83,23 +99,23 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       evaluateStmt(stmt);
     }
     if ((style == ParseStyle.library) && (invokeFunc != null)) {
-      result = invoke(invokeFunc, args: args);
+      result = await invoke(invokeFunc, args: args);
     } else if (style == ParseStyle.program) {
-      result = invoke(HS_Common.mainFunc, args: args);
+      result = await invoke(HS_Common.mainFunc, args: args);
     }
     return result;
   }
 
   /// 解析文件
-  void evalf(String filepath,
-      {bool displayLoadingInfo = true,
-      String libName = HS_Common.global,
+  dynamic evalf(String filepath,
+      {String libName = HS_Common.global,
       ParseStyle style = ParseStyle.library,
       String invokeFunc = null,
-      List<dynamic> args}) {
-    _curFileName = path.absolute(filepath);
+      List<dynamic> args}) async {
+    _curFileName = filepath;
+    dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
-      if (displayLoadingInfo) print('Hetu: Loading $filepath...');
+      if (_debugMode) print('Hetu: Loading $filepath...');
       _evaledFiles.add(curFileName);
 
       HS_Namespace library_namespace;
@@ -108,19 +124,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         library_namespace = HS_Namespace(name: libName, closure: library_namespace);
       }
 
-      eval(File(curFileName).readAsStringSync(), curFileName,
+      var content = await _loadString(_curFileName);
+      result = await eval(content, curFileName,
           context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
     _curFileName = null;
-  }
-
-  /// 解析目录下所有文件
-  void evald(String dir, {ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
-    var _dir = Directory(dir);
-    var filelist = _dir.listSync();
-    for (var file in filelist) {
-      if (file is File) evalf(file.path);
-    }
+    return result;
   }
 
   /// 解析命令行
@@ -131,7 +140,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       final _parser = Parser(this);
       var tokens = _lexer.lex(input, commandLine: true);
       var statements = _parser.parse(tokens, null, style: ParseStyle.commandLine);
-      return executeBlock(statements, curContext);
+      executeBlock(statements, curContext);
     } catch (e) {
       print(e);
     } finally {
@@ -212,7 +221,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   //   }
   // }
 
-  dynamic invoke(String name, {String classname, List<dynamic> args}) {
+  dynamic invoke(String name, {String classname, List<dynamic> args}) async {
     HS_Error.clear();
     try {
       if (classname == null) {
@@ -471,8 +480,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitAssignExpr(AssignExpr expr) {
     var value = evaluateExpr(expr.value);
     var distance = _varDistances[expr];
-    // 尝试设置当前环境中的本地变量
-    curContext.assignAt(expr.variable.lexeme, value, distance, expr.line, expr.column, this);
+    if (distance != null) {
+      // 尝试设置当前环境中的本地变量
+      curContext.assignAt(expr.variable.lexeme, value, distance, expr.line, expr.column, this);
+    } else {
+      global.assign(expr.variable.lexeme, value, expr.line, expr.column, this);
+    }
 
     // 返回右值
     return value;
@@ -549,14 +562,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   // TODO: import as 命名空间
   @override
-  dynamic visitImportStmt(ImportStmt stmt) {
-    String file_path;
-    if (stmt.filepath.startsWith('hetu:')) {
-      file_path = path.join(_sdkDir, stmt.filepath.substring(5) + '.ht');
+  dynamic visitImportStmt(ImportStmt stmt) async {
+    String file_loc;
+    if (stmt.location.startsWith('hetu:')) {
+      file_loc = _sdkDir + stmt.location.substring(5) + '.ht';
     } else {
-      file_path = path.join(workingDir, stmt.filepath);
+      file_loc = _workingDir + stmt.location;
     }
-    evalf(file_path, libName: stmt.nameSpace);
+    await evalf(file_loc, libName: stmt.nameSpace);
   }
 
   @override

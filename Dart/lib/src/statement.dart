@@ -60,11 +60,11 @@ class ImportStmt extends Stmt {
   @override
   void accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
 
-  final String filepath;
+  final String location;
 
   final String nameSpace;
 
-  ImportStmt(this.filepath, {this.nameSpace});
+  ImportStmt(this.location, {this.nameSpace});
 }
 
 class VarStmt extends Stmt {

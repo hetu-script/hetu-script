@@ -47,7 +47,7 @@ class Parser {
   String _curClassName;
   String _curFileName;
   // TODO：死代码判断：return之后的代码
-  bool _returned = false;
+  // bool _returned = false;
 
   static int internalVarIndex = 0;
 

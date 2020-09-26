@@ -7,7 +7,5 @@ class System {
   // for member function, func_name should be: "className.FuncName"
   external static fun invoke(func_name: String, className: String, args: List): any
 
-  external static fun readfile(filepath: String): String
-
   external static fun now(): num
 }

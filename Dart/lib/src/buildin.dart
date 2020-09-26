@@ -15,12 +15,11 @@ abstract class HS_Buildin {
 
   static Map<String, HS_External> externs = {
     'typeof': _typeof,
-    //'help': _help,
+    'help': _help,
     'print': _print,
     'string': _string,
     'System.evalc': _system_evalc,
     'System.invoke': _system_invoke,
-    'System.readfile': _system_readfile,
     'System.now': _system_now,
     'Console.write': _console_write,
     'Console.writeln': _console_writeln,
@@ -66,16 +65,16 @@ abstract class HS_Buildin {
     }
   }
 
-  // static dynamic _help(HS_Instance instance, List<dynamic> args) {
-  //   if (args.isNotEmpty) {
-  //     var value = args.first;
-  //     if (value is HS_Instance) {
-  //       return value.typeid;
-  //     } else {
-  //       return HS_TypeOf(value);
-  //     }
-  //   }
-  // }
+  static dynamic _help(HS_Instance instance, List<dynamic> args) {
+    if (args.isNotEmpty) {
+      var value = args.first;
+      if (value is HS_Instance) {
+        return value.typeid;
+      } else {
+        return HS_TypeOf(value);
+      }
+    }
+  }
 
   static dynamic _print(HS_Instance instance, List<dynamic> args) {
     var sb = StringBuffer();
@@ -128,13 +127,6 @@ abstract class HS_Buildin {
     }
     var input = stdin.readLineSync();
     return input;
-  }
-
-  static dynamic _system_readfile(HS_Instance instance, List<dynamic> args) {
-    if (args.isNotEmpty) {
-      var filepath = args.first.toString();
-      return File(filepath).readAsStringSync();
-    }
   }
 
   static dynamic _console_erase_line(HS_Instance instance, List<dynamic> args) {

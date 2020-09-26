@@ -1,6 +1,6 @@
 import 'package:hetu_script/hetu.dart';
 
-void main() {
-  hetu.init(workingDir: 'ht_example');
-  hetu.evalf('script\\basic.ht', invokeFunc: 'main');
+void main() async {
+  await hetu.init(workingDir: 'scripts');
+  await hetu.evalf('scripts/basic.ht', invokeFunc: 'main');
 }
