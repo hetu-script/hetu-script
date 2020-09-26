@@ -1,0 +1,28 @@
+fun greeting2: any {
+  return '\'sup'
+}
+
+class Person {
+  fun greeting: any {
+    return 'hello'
+  }
+}
+
+fun main {
+  var p = Person()
+
+  print(p)
+  print(typeof(p))
+
+  print(p.greeting())
+  print(p.greeting)
+
+  print(typeof(p.greeting))
+
+  var t = Person
+
+  // t = Person() // 类型错误
+
+  print(t)
+  print(typeof(t))
+}

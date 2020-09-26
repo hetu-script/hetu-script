@@ -15,7 +15,7 @@ abstract class HS_Buildin {
 
   static Map<String, HS_External> externs = {
     'typeof': _typeof,
-    'help': _help,
+    //'help': _help,
     'print': _print,
     'string': _string,
     'System.evalc': _system_evalc,
@@ -66,16 +66,16 @@ abstract class HS_Buildin {
     }
   }
 
-  static dynamic _help(HS_Instance instance, List<dynamic> args) {
-    if (args.isNotEmpty) {
-      var value = args.first;
-      if (value is HS_Instance) {
-        return value.typeid;
-      } else {
-        return HS_TypeOf(value);
-      }
-    }
-  }
+  // static dynamic _help(HS_Instance instance, List<dynamic> args) {
+  //   if (args.isNotEmpty) {
+  //     var value = args.first;
+  //     if (value is HS_Instance) {
+  //       return value.typeid;
+  //     } else {
+  //       return HS_TypeOf(value);
+  //     }
+  //   }
+  // }
 
   static dynamic _print(HS_Instance instance, List<dynamic> args) {
     var sb = StringBuffer();

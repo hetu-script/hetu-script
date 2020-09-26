@@ -1,0 +1,20 @@
+
+// 程序入口
+fun main {
+  var i = 0
+  while (true) {
+    i = i + 1
+    if (i == 10) {
+      break
+    } else if (i % 2 == 0) {
+      Console.print(i)
+    } else {
+      continue
+    }
+  }
+
+  var list = ['jimmy', 'tommy', 'larry', 'perry']
+  for (item in list) {
+    Console.print(item)
+  }
+}

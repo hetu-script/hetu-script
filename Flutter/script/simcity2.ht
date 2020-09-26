@@ -1,0 +1,148 @@
+import 'hetu:math'
+
+var child = '0-15'
+var young = '16-30'
+var middle = '31-45'
+var old = '45-60'
+var dotage = '60+'
+
+var food = 'food'
+var energy = 'energy'
+var material = 'material'
+var money = 'money'
+
+var klass = 'class'
+var age = 'age'
+var resource = 'resource'
+
+var farmer = 'farmer'
+var worker = 'worker'
+var soldier = 'soldier'
+
+class Char {
+  var age: num // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
+  var job: String
+  var professions: List
+
+  get ageByYear: num {
+    return age / (12 * 30).truncate()
+  }
+
+  init (List professions, [num age]) {
+    this.professions = professions
+    if (age != null)
+      this.age = age
+    else
+      this.age = 6000 + randomInt(6000)
+  }
+}
+
+class Organization {
+  var population = []
+
+  // <String, num>每个职业对应的人口数量
+  var profStats = {}
+
+  // <String, num>每个年龄段对应的人口数量：
+  var ageStats = {
+    child: 0,
+    young: 0,
+    middle: 0,
+    old: 0,
+    dotage: 0,
+  }
+
+  var resources = {
+    food: 0,
+    energy: 0,
+    material: 0,
+    money: 0,
+  }
+
+  fun debug(info: List) {
+    Console.print('----------------')
+    Console.print('population: ' + population.length.toString())
+    if (info.contains('class')) {
+      Console.print('----------------')
+      Console.print('  classes:')
+      for (var prof in profStats.keys) {
+        Console.print('  ' +
+            prof +
+            ': ' +
+            profStats[prof].toStringAsFixed() +
+            '(' +
+            ((profStats[prof] / population.length) * 100).toStringAsFixed(2) +
+            '%)')
+      }
+    }
+    if (info.contains('age')) {
+      Console.print('----------------')
+      Console.print('  age:')
+      for (var period in ageStats.keys) {
+        Console.print('  ' +
+            period +
+            ': ' +
+            ageStats[period].toStringAsFixed() +
+            '(' +
+            ((ageStats[period] / population.length) * 100).toStringAsFixed(2) +
+            '%)')
+      }
+    }
+    if (info.contains('resource')) {
+      Console.print('----------------')
+      Console.print('  resource:')
+      for (var resource in resources.keys) {
+        Console.print('  ' + resource + ': ' + resources[resource].toStringAsFixed())
+      }
+    }
+  }
+
+  fun addChar(p: Char) {
+    population.add(p)
+
+    for (var prof in p.professions) {
+      if (profStats[prof] == null) profStats[prof] = 0
+      profStats[prof] = profStats[prof] + 1
+    }
+
+    var age = p.ageByYear
+
+    if (age <= 15) {
+      ageStats[child] = ageStats[child] + 1
+    } else if (age <= 30) {
+      ageStats[young] = ageStats[young] + 1
+    } else if (age <= 45) {
+      ageStats[middle] = ageStats[middle] + 1
+    } else if (age <= 60) {
+      ageStats[old] = ageStats[old] + 1
+    } else {
+      ageStats[dotage] = ageStats[dotage] + 1
+    }
+  }
+}
+
+fun main {
+  var huaxia = Organization()
+
+  var i = 0
+  while (i <= 6) {
+    i = i + 1
+    huaxia.addChar(Char(['farmer']))
+  }
+  i = 0
+  while (i <= 3) {
+    i = i + 1
+    huaxia.addChar(Char(['worker']))
+  }
+  i = 0
+  while (i <= 2) {
+    i = i + 1
+    huaxia.addChar(Char(['soldier']))
+  }
+
+  huaxia.addChar(Char(['farmer', 'soldier']))
+  huaxia.addChar(Char(['farmer', 'worker']))
+  huaxia.addChar(Char(['soldier', 'worker']))
+
+  huaxia.debug([klass, age, resource])
+}

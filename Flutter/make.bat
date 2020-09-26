@@ -1,0 +1,1 @@
+dart2native bin/hetu.dart -o hetu.exe

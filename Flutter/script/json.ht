@@ -1,0 +1,5 @@
+// 程序入口
+fun main {
+  var map = {"hello": 42}
+  Console.print(map is Map)
+}

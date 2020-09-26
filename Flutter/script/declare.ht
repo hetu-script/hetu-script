@@ -1,0 +1,7 @@
+var a = 12
+
+var b = a
+
+fun main {
+  Console.print(b)
+}
