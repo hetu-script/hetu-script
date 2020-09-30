@@ -19,10 +19,10 @@ Future<String> defaultLoadString(String filapath) async => await File(filapath).
 
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
-  String _sdkDir = 'hetu_core/';
-  String _workingDir = 'scripts/';
-  _LoadStringFunc _loadString = defaultLoadString;
-  bool _debugMode = true;
+  _LoadStringFunc _loadString;
+  String _sdkDir;
+  String _workingDir;
+  bool _debugMode;
 
   var _evaledFiles = <String>[];
 
@@ -45,18 +45,18 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   String get curFileName => _curFileName;
 
   void init({
-    _LoadStringFunc loadStringFunc,
-    String sdkLocation,
-    String workingDir,
-    bool debugMode,
+    _LoadStringFunc loadStringFunc = defaultLoadString,
+    String sdkLocation = 'hetu_core/',
+    String workingDir = 'scripts/',
+    bool debugMode = true,
     Map<String, HS_External> externs,
-    bool loadAll = false,
+    bool extra = false,
   }) async {
     try {
-      if (sdkLocation != null) _sdkDir = sdkLocation;
-      if (workingDir != null) _workingDir = workingDir;
-      if (loadStringFunc != null) _loadString = loadStringFunc;
-      if (debugMode != null) _debugMode = debugMode;
+      _sdkDir = sdkLocation;
+      _workingDir = workingDir;
+      _loadString = loadStringFunc;
+      _debugMode = debugMode;
 
       // 必须在绑定函数前加载基础类Object和Function，因为函数本身也是对象
       curContext = global;
@@ -73,7 +73,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       await evalf(_sdkDir + 'system.ht');
       await evalf(_sdkDir + 'console.ht');
 
-      if (loadAll) {
+      if (extra) {
         await evalf(_sdkDir + 'math.ht');
         await evalf(_sdkDir + 'help.ht');
       }
