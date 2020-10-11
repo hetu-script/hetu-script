@@ -1,0 +1,10 @@
+fun main {
+  // 列表的创建和添加元素
+  var list = [Calculator.name + ' says:']
+  list.add('the meaning of life, universe and everything')
+  list.add('is ' + w.cal.meaning().toString())
+
+  for (var i in list) {
+    print(i)
+  }
+}

@@ -1,0 +1,16 @@
+
+
+// 程序入口
+fun main {
+  // 列表的创建和添加元素
+  var list1 = ['hello', 'world']
+  print(typeof(list1))
+  var list2 = ['meaning', 42]
+  print(typeof(list2))
+  var map1 = {'hello': 42, 'world': 233}
+  print(typeof(map1))
+  var map2: Map<String> = {'foo': 42, 'bar': false}
+  
+  print(typeof(map2))
+
+}

@@ -1,0 +1,56 @@
+var month: num
+var population = 10
+var birthrate = 0.002
+
+var food = 100
+var energy = 100
+var material = 100
+var money = 100
+
+var farmer_num = 5
+var lumber_num = 5
+
+fun farmerConsume(worker_num: num) {
+  var consumption = worker_num * 1
+  Console.print('农民消费了：' + consumption.toStringAsFixed(2) + '份食物')
+  food = food - consumption
+  consumption = worker_num * 0.5
+  Console.print('农民消费了：' + consumption.toStringAsFixed(2) + '份能源')
+  energy = energy - consumption
+}
+
+fun farmerProduce(worker_num: num) {
+  var production = worker_num * 1
+  Console.print('农民生产了：' + production.toStringAsFixed(2) + '份食物')
+  food = food + production
+}
+
+fun lumberConsume(worker_num: num) {
+  var consumption = worker_num * 1
+  Console.print('伐木工消费了：' + consumption.toStringAsFixed(2) + '份食物')
+  food = food - consumption
+  consumption = worker_num * 0.5
+  Console.print('伐木工消费了：' + consumption.toStringAsFixed(2) + '份能源')
+  energy = energy - consumption
+}
+
+fun lumberProduce(worker_num: num) {
+  var production = worker_num * 1
+  Console.print('伐木工生产了：' + production.toStringAsFixed(2) + '份能源')
+  energy = energy + production
+}
+
+fun getNewNum {
+  Console.print('----------------')
+  Console.print('第' + month.toString() + '月，人口：' + population.toStringAsFixed(2))
+  Console.print('食物：' + food.toStringAsFixed(2))
+  Console.print('能量：' + energy.toStringAsFixed(2))
+  Console.print('材料：' + material.toStringAsFixed(2))
+  Console.print('金钱：' + money.toStringAsFixed(2))
+
+  population = population + population * birthrate
+  farmerProduce(farmer_num)
+  lumberProduce(lumber_num)
+  farmerConsume(farmer_num)
+  lumberConsume(lumber_num)
+}
