@@ -9,7 +9,7 @@ abstract class Hetu_Env {
 
 void main(List<String> args) async {
   try {
-    await hetu.init(debugMode: false, loadAll: true);
+    await hetu.init(debugMode: false);
 
     if (args.isNotEmpty) {
       if ((args.first == '--help') || (args.first == '-h')) {

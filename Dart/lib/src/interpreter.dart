@@ -19,10 +19,15 @@ Future<String> defaultLoadString(String filapath) async => await File(filapath).
 
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
+  bool _initted = false;
+
   _LoadStringFunc _loadString;
   String _sdkDir;
   String _workingDir;
   bool _debugMode;
+
+  bool staticType = true;
+  bool requireDeclaration = true;
 
   var _evaledFiles = <String>[];
 
@@ -51,12 +56,17 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     bool debugMode = true,
     Map<String, HS_External> externs,
     bool extra = false,
+    bool staticType = true,
+    bool requireDeclaration = true,
   }) async {
     try {
       _sdkDir = sdkLocation;
       _workingDir = workingDir;
       _loadString = loadStringFunc;
       _debugMode = debugMode;
+
+      this.staticType = staticType;
+      this.requireDeclaration = requireDeclaration;
 
       // 必须在绑定函数前加载基础类Object和Function，因为函数本身也是对象
       curContext = global;
@@ -77,6 +87,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         await evalf(_sdkDir + 'math.ht');
         await evalf(_sdkDir + 'help.ht');
       }
+
+      _initted = true;
     } catch (e) {
       stdout.write('\x1B[32m');
       print(e);
