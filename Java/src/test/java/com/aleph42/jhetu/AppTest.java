@@ -1,4 +1,4 @@
-package com.aleph42.hetu;
+package com.aleph42.jhetu;
 
 import org.junit.jupiter.api.Test;
 
