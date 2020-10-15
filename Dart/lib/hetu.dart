@@ -16,5 +16,3 @@ export 'src/statement.dart';
 export 'src/class.dart';
 export 'src/function.dart';
 export 'src/errors.dart';
-
-var hetu = Interpreter();

@@ -269,7 +269,7 @@ class Parser {
     var expr = _parsePrimaryExpr();
     //多层函数调用可以合并
     while (true) {
-      if (expect([HS_Common.roundLeft], consume: true, error: false)) {
+      if (expect([HS_Common.call], consume: true, error: false)) {
         var params = <Expr>[];
         while ((curTok != HS_Common.roundRight) && (curTok != HS_Common.endOfFile)) {
           params.add(_parseExpr());
@@ -279,10 +279,10 @@ class Parser {
         }
         expect([HS_Common.roundRight], consume: true);
         expr = CallExpr(expr, params, _curFileName);
-      } else if (expect([HS_Common.dot], consume: true, error: false)) {
+      } else if (expect([HS_Common.memberGet], consume: true, error: false)) {
         Token name = match(HS_Common.identifier);
         expr = MemberGetExpr(expr, name, _curFileName);
-      } else if (expect([HS_Common.squareLeft], consume: true, error: false)) {
+      } else if (expect([HS_Common.subGet], consume: true, error: false)) {
         var index_expr = _parseExpr();
         expect([HS_Common.squareRight], consume: true);
         expr = SubGetExpr(expr, index_expr, _curFileName);
@@ -295,18 +295,11 @@ class Parser {
 
   /// 只有一个Token的简单表达式
   Expr _parsePrimaryExpr() {
-    if (HS_Common.literals.contains(curTok.type)) {
-      int index;
-      if (curTok == HS_Common.NULL) {
-        advance(1);
-        return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
-      } else if (curTok == HS_Common.number) {
-        index = interpreter.addLiteral(curTok.literal);
-      } else if (curTok == HS_Common.boolean) {
-        index = interpreter.addLiteral(curTok.literal);
-      } else if (curTok == HS_Common.string) {
-        index = interpreter.addLiteral(HS_Common.convertEscapeCode(curTok.literal));
-      }
+    if (curTok == HS_Common.NULL) {
+      advance(1);
+      return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
+    } else if (HS_Common.literals.contains(curTok.type)) {
+      var index = interpreter.addLiteral(curTok.literal);
       advance(1);
       return LiteralExpr(index, peek(-1).line, peek(-1).column, _curFileName);
     } else if (curTok == HS_Common.THIS) {
@@ -351,7 +344,7 @@ class Parser {
   }
 
   Stmt _parseStmt({ParseStyle style = ParseStyle.library}) {
-    if (curTok == HS_Common.newline) advance(1);
+    if (curTok == HS_Common.newLine) advance(1);
     switch (style) {
       case ParseStyle.library:
       case ParseStyle.program:

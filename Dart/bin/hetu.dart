@@ -53,7 +53,7 @@ void main(List<String> args) async {
       } else if (args.first == '-s') {
         await hetu.evalf(args.first, style: ParseStyle.function);
       } else {
-        await hetu.evalf(args.first, style: ParseStyle.library, invokeFunc: HS_Common.mainFunc);
+        await hetu.evalf(args.first, style: ParseStyle.library, invokeFunc: HS_Common.defaultProgramMainFunc);
       }
     } else {
       String doc = File(path.join('doc', 'cli_help.md')).readAsStringSync();

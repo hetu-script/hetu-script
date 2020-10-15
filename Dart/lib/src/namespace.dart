@@ -23,8 +23,8 @@ class HS_Namespace extends HS_Value {
   static String getFullName(String name, HS_Namespace space) {
     var fullName = name;
     var cur_space = space.closure;
-    while ((cur_space != null) && (cur_space.name != HS_Common.global)) {
-      fullName = cur_space.name + HS_Common.dot + fullName;
+    while ((cur_space != null) && (cur_space.name != HS_Common.globals)) {
+      fullName = cur_space.name + HS_Common.memberGet + fullName;
       cur_space = cur_space.closure;
     }
     return fullName;
@@ -100,9 +100,9 @@ class HS_Namespace extends HS_Value {
   }
 
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      if (from.startsWith(this.fullName) || (name == HS_Common.global) || !varName.startsWith(HS_Common.underscore)) {
+      if (from.startsWith(this.fullName) || (name == HS_Common.globals) || !varName.startsWith(HS_Common.underscore)) {
         return defs[varName].value;
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
@@ -117,14 +117,14 @@ class HS_Namespace extends HS_Value {
   }
 
   dynamic fetchAt(String varName, int distance, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
     var space = closureAt(distance);
     return space.fetch(varName, line, column, interpreter, error: error, from: space.fullName, recursive: false);
   }
 
   /// 向一个已经定义的变量赋值
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HS_TypeOf(value);
@@ -148,7 +148,7 @@ class HS_Namespace extends HS_Value {
   }
 
   void assignAt(String varName, dynamic value, int distance, int line, int column, Interpreter interpreter,
-      {String from = HS_Common.global, bool recursive = true}) {
+      {String from = HS_Common.globals, bool recursive = true}) {
     var space = closureAt(distance);
     space.assign(varName, value, line, column, interpreter, from: space.fullName, recursive: false);
   }

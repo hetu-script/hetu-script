@@ -58,8 +58,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // Not found. Assume it is global.
   }
 
-  void resolve(List<Stmt> statements, String fileName, {String libName = HS_Common.global}) {
-    if ((libName != null) && (libName != HS_Common.global)) {
+  void resolve(List<Stmt> statements, String fileName, {String libName = HS_Common.globals}) {
+    if ((libName != null) && (libName != HS_Common.globals)) {
       _beginBlock();
     }
     _curFileName = fileName;
@@ -75,7 +75,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveFunction(func);
     }
     _endBlock();
-    if ((libName != null) && (libName != HS_Common.global)) {
+    if ((libName != null) && (libName != HS_Common.globals)) {
       _endBlock();
     }
   }

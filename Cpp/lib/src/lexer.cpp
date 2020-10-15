@@ -12,7 +12,9 @@ namespace hetu {
                         "  print('hello world')\n"
                         "}";
 
-    std::regex regexp("([_]?[a-zA-Z]+[a-zA-Z_0-9]*)");
+    //std::regex regexp("([_]?[a-zA-Z]+[a-zA-Z_0-9]*)");
+
+    std::regex regexp(R"(//.*)|([_]?[\a-zA-Z]+[a-zA-Z_0-9]*)|(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|'(\d+(\.\d+)?)|(('(\\'|[^'])*')|("(\\"|[^"]) * "))");
 
     // flag type for determining the matching behavior (in this case on string objects)
     std::smatch m;

@@ -3,32 +3,29 @@
 #include <string>
 #include <regex>
 
+
+typedef std::basic_regex<char32_t> u32regex;
+typedef std::match_results<const char32_t*> u32matches;
+
 int main()
 {
-  //hetu::run();
+	std::u32string input = L"// main function entrance.\n"
+		"// another comment.\n"
+		"fun main(): void {\n"
+		"  print('hello world', 6 * 7)\n"
+		"}";
 
-  std::string s = "fun main(): void {\n"
-    "  print('hello world')\n"
-    "}";
+	std::regex reg_exp("(//.*)|([_]?[\\p{L}]+[\\p{L}_0-9]*)");
 
-  std::regex e("(//.*)|" // 注释 group(1)
-    "([_]?[a-zA-Z]+[a-zA-Z_0-9]*)|" // 标识符 group(2)
-    "(...|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|" // 标点符号和运算符号 group(3)
-    "(\d+(\.\d+)?)|" // 数字字面量 group(4)
-    "(('(\\'|[^'])*')|" // 字符串字面量 group(6)
-    "(\"(\\\"|[^\"])*\"))");
+	// flag type for determining the matching behavior (in this case on string objects)
+	std::smatch matches;
 
-  // flag type for determining the matching behavior (in this case on string objects)
-  std::smatch m;
+	// regex_search that searches pattern regexp in the string mystr  
+	std::regex_search(input, matches, reg_exp);
 
-  // regex_search that searches pattern regexp in the string mystr  
-
-  std::cout << "String that matches the pattern:" << std::endl;
-  while (std::regex_search(s, m, e)) {
-    for (auto x : m) {
-      std::cout << x << " ";
-    }
-    std::cout << std::endl;
-    s = m.suffix().str();
-  }
+	std::cout << "String that matches the pattern:" << std::endl;
+	while (std::regex_search(input, matches, reg_exp)) {
+		std::cout << '[' << matches.str() << ']' << std::endl;
+		input = matches.suffix().str();
+	}
 }

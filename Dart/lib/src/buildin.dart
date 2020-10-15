@@ -13,7 +13,7 @@ abstract class HS_Buildin {
   static const coreLib = 'class Object {}\n'
       'class Function {}\n';
 
-  static Map<String, HS_External> externs = {
+  static Map<String, HS_External> functions = {
     'typeof': _typeof,
     'help': _help,
     'print': _print,
@@ -192,7 +192,7 @@ abstract class HSVal_Value extends HS_Instance {
   final dynamic value;
 
   HSVal_Value(this.value, String className, int line, int column, Interpreter interpreter)
-      : super(interpreter.global.fetch(
+      : super(interpreter.globals.fetch(
           className, line, column, interpreter,
           //from: globalInterpreter.curContext.spaceName
         ) //, line, column, fileName

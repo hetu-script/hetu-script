@@ -1,11 +1,12 @@
-abstract class HS_LexPatterns {
+package com.aleph42.jhetu;
+
+public abstract class Common {
   static final script = RegExp(
-    '(//.*)|' +  // 注释 group(1)
-    '([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-    r'(\.\.\.|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
-    r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
-    r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
-    r'("(\\"|[^"])*"))',
+    "(//.*)|" +  // 注释 group(1)
+    "([_]?[\\p{L}]+[\\p{L}_0-9]*)|" + // 标识符 group(2)
+    "'(\.\.\.|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|" + // 标点符号和运算符号 group(3)
+    "'(\d+(\.\d+)?)|" + // 数字字面量 group(4)
+    "(('(\\'|[^'])*')|("(\\"|[^"])*"))", // 字符串字面量 group(6)
     unicode: true,
     multiLine: true,
   );
@@ -19,10 +20,8 @@ abstract class HS_LexPatterns {
     unicode: true,
     multiLine: true,
   );
-}
 
-  abstract class HS_Common {
-  static var coreLibPath = 'hetu_core';
+  static const coreLibPath = 'hetu_core';
   static var mainFunc = 'main';
 
     static var currentLanguage = enUS;

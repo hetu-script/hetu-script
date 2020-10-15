@@ -1,355 +1,5 @@
-abstract class HS_LexPatterns {
-  static final script = RegExp(
-    r'(//.*)|' // 注释 group(1)
-    r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-    r'(\.\.\.|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
-    r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
-    r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
-    r'("(\\"|[^"])*"))',
-    unicode: true,
-    multiLine: true,
-  );
-  static final commandLine = RegExp(
-    r'(//.*)|' // 注释 group(1)
-    r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-    r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!:\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
-    r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
-    r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
-    r'("(\\"|[^"])*"))',
-    unicode: true,
-    multiLine: true,
-  );
-}
-
-abstract class HS_Common {
-  static var coreLibPath = 'hetu_core';
-  static var mainFunc = 'main';
-
-  static var currentLanguage = enUS;
-
-  static const zhHans = 'zh-Hans';
-  static const enUS = 'en-US';
-
-  static const regCommentGrp = 1;
-  static const regIdGrp = 2;
-  static const regPuncGrp = 3;
-  static const regNumGrp = 4;
-  static const regStrGrp = 6;
-
-  static const _stringReplaces = <String, String>{
-    '\\\\': '\\',
-    '\\n': '\n',
-    '\\\'': '\'',
-  };
-
-  static String convertEscapeCode(String line) {
-    for (var key in _stringReplaces.keys) {
-      line = line.replaceAll(key, _stringReplaces[key]);
-    }
-    return line;
-  }
-
-  static const literals = <String>[
-    boolean,
-    number,
-    string,
-    NULL,
-    //Array,
-    //Dict,
-  ];
-
-  /// 保留字，不能用于变量名字
-  static const keywords = <String>[
-    NULL,
-    STATIC,
-    VAR,
-    LET,
-    ANY,
-    TYPEDEF,
-    NAMESPACE,
-    AS,
-    ABSTRACT,
-    CLASS,
-    FUN,
-    CONSTRUCT,
-    GET,
-    SET,
-    THIS,
-    SUPER,
-    EXTENDS,
-    IMPLEMENTS,
-    MIXIN,
-    EXTERNAL,
-    LIBRARY,
-    IMPORT,
-    BREAK,
-    CONTINUE,
-    FOR,
-    IN,
-    IF,
-    ELSE,
-    RETURN,
-    THROW,
-    WHILE,
-    DO,
-    WHEN,
-    IS,
-  ];
-
-  static const Punctuations = <String>[
-    not,
-    multiply,
-    devide,
-    modulo,
-    add,
-    subtract,
-    greater,
-    greaterOrEqual,
-    lesser,
-    lesserOrEqual,
-    equal,
-    notEqual,
-    and,
-    or,
-    assign,
-    comma,
-    colon,
-    semicolon,
-    dot,
-    roundLeft,
-    roundRight,
-    curlyLeft,
-    curlyRight,
-    squareLeft,
-    squareRight,
-    angleLeft,
-    angleRight,
-  ];
-
-  static const endOfFile = 'end_of_file'; // 文件末尾
-  static const newline = '\n';
-  static const multiline = '\\';
-  static const variadicArguments = '...';
-  static const underscore = '_';
-  static const global = '__global__';
-  static const extern = '__extern__';
-  static const instance = '__instance_of_';
-  static const instancePrefix = 'instance of ';
-  static const constructFun = '__construct__';
-  static const getFun = '__get__';
-  static const setFun = '__set__';
-
-  static const object = 'Object';
-  static const unknown = '__unknown__';
-  static const number = 'num';
-  static const boolean = 'bool';
-  static const string = 'String';
-  static const list = 'List';
-  static const map = 'Map';
-  static const length = 'length';
-  static const function = 'function';
-  static const method = 'method';
-  static const identifier = 'identifier';
-
-  static const TRUE = 'true';
-  static const FALSE = 'false';
-  static const NULL = 'null';
-
-  static const VOID = 'void';
-  static const VAR = 'var';
-  static const LET = 'let';
-  // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
-  static const ANY = 'any';
-  static const TYPEDEF = 'typedef';
-
-  static const STATIC = 'static';
-  // static const CONST = 'const';
-  static const FINAL = 'final';
-  static const CONSTRUCT = 'construct';
-  static const GET = 'get';
-  static const SET = 'set';
-  //static const Final = 'final';
-  static const NAMESPACE = 'namespace';
-  static const AS = 'as';
-  static const ABSTRACT = 'abstract';
-  static const CLASS = 'class';
-  static const STRUCT = 'struct';
-  static const UNION = 'union';
-  static const FUN = 'fun';
-  static const Arguments = 'arguments';
-  static const THIS = 'this';
-  static const SUPER = 'super';
-  static const EXTENDS = 'extends';
-  static const IMPLEMENTS = 'implements';
-  static const MIXIN = 'mixin';
-  static const EXTERNAL = 'external';
-  static const LIBRARY = 'library';
-  static const IMPORT = 'import';
-
-  static const Assert = 'assert';
-  static const BREAK = 'break';
-  static const CONTINUE = 'continue';
-  static const FOR = 'for';
-  static const IN = 'in';
-  static const IF = 'if';
-  static const ELSE = 'else';
-  static const RETURN = 'return';
-  static const THROW = 'throw';
-  static const WHILE = 'while';
-  static const DO = 'do';
-  static const WHEN = 'when';
-  static const TRY = 'try';
-  static const CATCH = 'catch';
-  static const FINALLY = 'finally';
-
-  /// 函数调用表达式
-  static const nullExpr = 'null_expression';
-  static const literalExpr = 'literal_expression';
-  static const groupExpr = 'group_expression';
-  static const vectorExpr = 'vector_expression';
-  static const blockExpr = 'block_expression';
-  static const varExpr = 'variable_expression';
-  static const typeExpr = 'type_expression';
-  static const unaryExpr = 'unary_expression';
-  static const binaryExpr = 'binary_expression';
-  static const callExpr = 'call_expression';
-  static const thisExpr = 'this_expression';
-  static const assignExpr = 'assign_expression';
-  static const subGetExpr = 'subscript_get_expression';
-  static const subSetExpr = 'subscript_set_expression';
-  static const memberGetExpr = 'member_get_expression';
-  static const memberSetExpr = 'member_set_expression';
-
-  static const importStmt = 'import_statement';
-  static const varStmt = 'variable_statement';
-  static const exprStmt = 'expression_statement';
-  static const blockStmt = 'block_statement';
-  static const returnStmt = 'return_statement';
-  static const breakStmt = 'break_statement';
-  static const continueStmt = 'continue_statement';
-  static const ifStmt = 'if_statement';
-  static const whileStmt = 'while_statement';
-  static const forInStmt = 'for_in_statement';
-  static const classStmt = 'class_statement';
-  static const funcStmt = 'function_statement';
-  static const externFuncStmt = 'external_function_statement';
-  static const constructorStmt = 'constructor_function_statement';
-
-  /// 后缀操作符，包含多个符号
-  static const unaryPostfixs = <String>[
-    dot,
-    roundLeft,
-    squareLeft,
-  ];
-
-  /// 前缀操作符，包含多个符号
-  static const unaryPrefixs = <String>[
-    not,
-    subtract,
-  ];
-  static const not = '!';
-
-  /// 乘除操作符，包含多个符号
-  static const multiplicatives = <String>[
-    multiply,
-    devide,
-    modulo,
-  ];
-  static const multiply = '*';
-  static const devide = '/';
-  static const modulo = '%';
-
-  /// 加减操作符，包含多个符号
-  static const additives = <String>[
-    add,
-    subtract,
-  ];
-  static const add = '+';
-  static const subtract = '-';
-
-  /// 大小判断操作符，包含多个符号
-  static const relationals = <String>[
-    greater,
-    greaterOrEqual,
-    lesser,
-    lesserOrEqual,
-    IS,
-  ];
-  static const greater = '>';
-  static const greaterOrEqual = '>=';
-  static const lesser = '<';
-  static const lesserOrEqual = '<=';
-  static const IS = 'is';
-
-  /// 相等判断操作符，包含多个符号
-  static const equalitys = <String>[
-    equal,
-    notEqual,
-  ];
-  static const equal = '==';
-  static const notEqual = '!=';
-
-  static const and = '&&';
-  static const or = '||';
-
-  /// 赋值类型操作符，包含多个符号
-  static const assignments = <String>[
-    assign,
-  ];
-  static const assign = '=';
-  static const comma = ',';
-  static const colon = ':';
-  static const semicolon = ';';
-  static const dot = '.';
-  static const roundLeft = '(';
-  static const roundRight = ')';
-  static const curlyLeft = '{';
-  static const curlyRight = '}';
-  static const squareLeft = '[';
-  static const squareRight = ']';
-  static const angleLeft = '<';
-  static const angleRight = '>';
-
-  static const errorUnsupport = 'Unsupport value type';
-  static const errorExpected = 'expected, get';
-  static const errorUnexpected = 'Unexpected identifier';
-  static const errorPrivate = 'Could not acess private member';
-  static const errorInitialized = 'has not initialized';
-  static const errorUndefined = 'Undefined identifier';
-  static const errorUndefinedOperator = 'Undefined operator';
-  static const errorDeclared = 'is already declared';
-  static const errorDefined = 'is already defined';
-  static const errorRange = 'Index out of range, should be less than';
-  static const errorInvalidLeftValue = 'Invalid left-value';
-  static const errorCallable = 'is not callable';
-  static const errorUndefinedMember = 'isn\'t defined for the class';
-  static const errorCondition = 'Condition expression must evaluate to type "bool"';
-  static const errorMissingFuncDef = 'Missing function definition body of';
-  static const errorGet = 'is not a collection or object';
-  static const errorSubGet = 'is not a List or Map';
-  static const errorExtends = 'is not a class';
-  static const errorSetter = 'Setter function\'s arity must be 1';
-  static const errorNullObject = 'is null';
-  static const errorMutable = 'is immutable';
-
-  static const errorOfType = 'of type';
-
-  static const errorType1 = 'Variable';
-  static const errorType2 = 'can\'t be assigned with type';
-
-  static const errorArgType1 = 'Argument';
-  static const errorArgType2 = 'doesn\'t match parameter type';
-
-  static const errorReturnType1 = 'Value of type';
-  static const errorReturnType2 = 'can\'t be returned from function';
-  static const errorReturnType3 = 'because it has a return type of';
-
-  static const errorArity1 = 'Number of arguments';
-  static const errorArity2 = 'doesn\'t match parameter requirement of function';
-}
-
-// Hetu运算符优先级
-// Description     Operator           Associativity   Precedence
+/// Hetu运算符优先级
+/// Description     Operator           Associativity   Precedence
 //  Unary postfix   e., e()            None            16
 //  Unary prefix    -e, !e             None            15
 //  Multiplicative  *, /, %            Left            14
@@ -360,8 +10,8 @@ abstract class HS_Common {
 //  Logical Or      ||                 Left            5
 //  Assignment      =                  Right           1
 
-// Dart运算符优先级（参考用）
-// Description      Operator                             Associativity   Precedence
+/// Dart运算符优先级（参考用）
+/// Description      Operator                             Associativity   Precedence
 //  Unary postfix    e., e?., e++, e--, e1[e2], e()       None            16
 //  Unary prefix     -e, !e, ˜e, ++e, --e, await e        None            15
 //  Multiplicative   *, /, ˜/, %                          Left            14
@@ -378,3 +28,346 @@ abstract class HS_Common {
 //  Conditional      e1 ? e2 : e3                         Right           3
 //  Cascade          ..                                   Left            2
 //  Assignment       =, *=, /=, +=, -=, &=, ˆ=, etc.      Right           1
+
+class HS_Lexicons {
+  const HS_Lexicons();
+
+  String get defaultProgramMainFunc => 'main';
+
+  RegExp get regexp => RegExp(
+        r'(//.*)|' // 注释 group(1)
+        r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
+        r'(\.\.\.|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
+        r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
+        r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
+        r'("(\\"|[^"])*"))',
+        unicode: true,
+        multiLine: true,
+      );
+
+  int get tokenGroupComment => 1;
+  int get tokenGroupIdentifier => 2;
+  int get tokenGroupPunctuation => 3;
+  int get tokenGroupNumber => 4;
+  int get tokenGroupString => 6;
+
+  String get number => 'num';
+  String get boolean => 'bool';
+  String get string => 'str';
+
+  Set<String> get literals => {
+        number,
+        boolean,
+        string,
+      };
+
+  String get endOfFile => 'end_of_file'; // 文件末尾
+  String get newLine => '\n';
+  String get multiline => '\\';
+  String get variadicArguments => '...';
+  String get underscore => '_';
+  String get globals => '__globals__';
+  String get externs => '__externs__';
+  String get instance => '__instance_of_';
+  String get instancePrefix => 'instance of ';
+  String get constructFun => '__construct__';
+  String get getFun => '__get__';
+  String get setFun => '__set__';
+
+  String get object => 'Object';
+  String get unknown => '__unknown__';
+  String get list => 'List';
+  String get map => 'Map';
+  String get length => 'length';
+  String get function => 'function';
+  String get method => 'method';
+  String get identifier => 'identifier';
+
+  String get TRUE => 'true';
+  String get FALSE => 'false';
+  String get NULL => 'null';
+
+  String get VOID => 'void';
+  String get VAR => 'var';
+  String get LET => 'let';
+  // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
+  String get ANY => 'any';
+  String get TYPEDEF => 'typedef';
+
+  String get STATIC => 'static';
+  // static const CONST => 'const';
+  String get FINAL => 'final';
+  String get CONSTRUCT => 'construct';
+  String get GET => 'get';
+  String get SET => 'set';
+  //static const Final => 'final';
+  String get NAMESPACE => 'namespace';
+  String get AS => 'as';
+  String get ABSTRACT => 'abstract';
+  String get CLASS => 'class';
+  String get STRUCT => 'struct';
+  String get UNION => 'union';
+  String get FUN => 'fun';
+  String get Arguments => 'arguments';
+  String get THIS => 'this';
+  String get SUPER => 'super';
+  String get EXTENDS => 'extends';
+  String get IMPLEMENTS => 'implements';
+  String get MIXIN => 'mixin';
+  String get EXTERNAL => 'external';
+  String get LIBRARY => 'library';
+  String get IMPORT => 'import';
+
+  String get Assert => 'assert';
+  String get BREAK => 'break';
+  String get CONTINUE => 'continue';
+  String get FOR => 'for';
+  String get IN => 'in';
+  String get IF => 'if';
+  String get ELSE => 'else';
+  String get RETURN => 'return';
+  String get THROW => 'throw';
+  String get WHILE => 'while';
+  String get DO => 'do';
+  String get WHEN => 'when';
+  String get TRY => 'try';
+  String get CATCH => 'catch';
+  String get FINALLY => 'finally';
+
+  String get IS => 'is';
+
+  /// 保留字，不能用于变量名字
+  Set<String> get keywords => {
+        NULL,
+        STATIC,
+        VAR,
+        LET,
+        ANY,
+        TYPEDEF,
+        NAMESPACE,
+        AS,
+        ABSTRACT,
+        CLASS,
+        FUN,
+        CONSTRUCT,
+        GET,
+        SET,
+        THIS,
+        SUPER,
+        EXTENDS,
+        IMPLEMENTS,
+        MIXIN,
+        EXTERNAL,
+        LIBRARY,
+        IMPORT,
+        BREAK,
+        CONTINUE,
+        FOR,
+        IN,
+        IF,
+        ELSE,
+        RETURN,
+        THROW,
+        WHILE,
+        DO,
+        WHEN,
+        IS,
+      };
+
+  /// 函数调用表达式
+  String get nullExpr => 'null_expression';
+  String get literalExpr => 'literal_expression';
+  String get groupExpr => 'group_expression';
+  String get vectorExpr => 'vector_expression';
+  String get blockExpr => 'block_expression';
+  String get varExpr => 'variable_expression';
+  String get typeExpr => 'type_expression';
+  String get unaryExpr => 'unary_expression';
+  String get binaryExpr => 'binary_expression';
+  String get callExpr => 'call_expression';
+  String get thisExpr => 'this_expression';
+  String get assignExpr => 'assign_expression';
+  String get subGetExpr => 'subscript_get_expression';
+  String get subSetExpr => 'subscript_set_expression';
+  String get memberGetExpr => 'member_get_expression';
+  String get memberSetExpr => 'member_set_expression';
+
+  String get importStmt => 'import_statement';
+  String get varStmt => 'variable_statement';
+  String get exprStmt => 'expression_statement';
+  String get blockStmt => 'block_statement';
+  String get returnStmt => 'return_statement';
+  String get breakStmt => 'break_statement';
+  String get continueStmt => 'continue_statement';
+  String get ifStmt => 'if_statement';
+  String get whileStmt => 'while_statement';
+  String get forInStmt => 'for_in_statement';
+  String get classStmt => 'class_statement';
+  String get funcStmt => 'function_statement';
+  String get externFuncStmt => 'external_function_statement';
+  String get constructorStmt => 'constructor_function_statement';
+
+  String get memberGet => '.';
+  String get subGet => '[';
+  String get call => '(';
+
+  /// 后缀操作符，包含多个符号
+  Set<String> get unaryPostfixs => {
+        memberGet,
+        subGet,
+        call,
+      };
+
+  String get not => '!';
+  String get negative => '-';
+
+  /// 前缀操作符，包含多个符号
+  Set<String> get unaryPrefixs => {
+        not,
+        negative,
+      };
+
+  String get multiply => '*';
+  String get devide => '/';
+  String get modulo => '%';
+
+  /// 乘除操作符，包含多个符号
+  Set<String> get multiplicatives => {
+        multiply,
+        devide,
+        modulo,
+      };
+
+  String get add => '+';
+  String get subtract => '-';
+
+  /// 加减操作符，包含多个符号
+  Set<String> get additives => {
+        add,
+        subtract,
+      };
+
+  String get greater => '>';
+  String get greaterOrEqual => '>=>';
+  String get lesser => '<';
+  String get lesserOrEqual => '<=>';
+
+  /// 大小判断操作符，包含多个符号
+  Set<String> get relationals => {
+        greater,
+        greaterOrEqual,
+        lesser,
+        lesserOrEqual,
+        IS,
+      };
+
+  String get equal => '=>=>';
+  String get notEqual => '!=>';
+
+  /// 相等判断操作符，包含多个符号
+  Set<String> get equalitys => {
+        equal,
+        notEqual,
+      };
+
+  String get and => '&&';
+  String get or => '||';
+
+  String get assign => '=>';
+
+  /// 赋值类型操作符，包含多个符号
+  Set<String> get assignments => {
+        assign,
+      };
+
+  String get comma => ',';
+  String get colon => ':';
+  String get semicolon => ';';
+  String get roundLeft => '(';
+  String get roundRight => ')';
+  String get curlyLeft => '{';
+  String get curlyRight => '}';
+  String get squareLeft => '[';
+  String get squareRight => ']';
+  String get angleLeft => '<';
+  String get angleRight => '>';
+
+  Set<String> get Punctuations => {
+        not,
+        multiply,
+        devide,
+        modulo,
+        add,
+        subtract,
+        greater,
+        greaterOrEqual,
+        lesser,
+        lesserOrEqual,
+        equal,
+        notEqual,
+        and,
+        or,
+        assign,
+        comma,
+        colon,
+        semicolon,
+        memberGet,
+        roundLeft,
+        roundRight,
+        curlyLeft,
+        curlyRight,
+        squareLeft,
+        squareRight,
+        angleLeft,
+        angleRight,
+      };
+
+  String get errorUnsupport => 'Unsupport value type';
+  String get errorExpected => 'expected, get';
+  String get errorUnexpected => 'Unexpected identifier';
+  String get errorPrivate => 'Could not acess private member';
+  String get errorInitialized => 'has not initialized';
+  String get errorUndefined => 'Undefined identifier';
+  String get errorUndefinedOperator => 'Undefined operator';
+  String get errorDeclared => 'is already declared';
+  String get errorDefined => 'is already defined';
+  String get errorRange => 'Index out of range, should be less than';
+  String get errorInvalidLeftValue => 'Invalid left-value';
+  String get errorCallable => 'is not callable';
+  String get errorUndefinedMember => 'isn\'t defined for the class';
+  String get errorCondition => 'Condition expression must evaluate to type "bool"';
+  String get errorMissingFuncDef => 'Missing function definition body of';
+  String get errorGet => 'is not a collection or object';
+  String get errorSubGet => 'is not a List or Map';
+  String get errorExtends => 'is not a class';
+  String get errorSetter => 'Setter function\'s arity must be 1';
+  String get errorNullObject => 'is null';
+  String get errorMutable => 'is immutable';
+  String get errorNotType => 'is not a type.';
+
+  String get errorOfType => 'of type';
+
+  String get errorType1 => 'Variable';
+  String get errorType2 => 'can\'t be assigned with type';
+
+  String get errorArgType1 => 'Argument';
+  String get errorArgType2 => 'doesn\'t match parameter type';
+
+  String get errorReturnType1 => 'Value of type';
+  String get errorReturnType2 => 'can\'t be returned from function';
+  String get errorReturnType3 => 'because it has a return type of';
+
+  String get errorArity1 => 'Number of arguments';
+  String get errorArity2 => 'doesn\'t match parameter requirement of function';
+}
+
+final regexCommandLine = RegExp(
+  r'(//.*)|' // 注释 group(1)
+  r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
+  r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!:\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
+  r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
+  r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
+  r'("(\\"|[^"])*"))',
+  unicode: true,
+  multiLine: true,
+);

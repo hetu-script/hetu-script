@@ -50,7 +50,7 @@ class HS_Class extends HS_Namespace {
 
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
     var getter = '${HS_Common.getFun}$varName';
     if (defs.containsKey(varName)) {
       if (from.startsWith(this.fullName) || !varName.startsWith(HS_Common.underscore)) {
@@ -77,7 +77,7 @@ class HS_Class extends HS_Namespace {
 
   @override
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
     var setter = '${HS_Common.setFun}$varName';
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
@@ -171,7 +171,7 @@ class HS_Instance extends HS_Namespace {
 
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       if (!varName.startsWith(HS_Common.underscore)) {
         return defs[varName].value;
@@ -197,7 +197,7 @@ class HS_Instance extends HS_Namespace {
 
   @override
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.global, bool recursive = true}) {
+      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HS_TypeOf(value);
