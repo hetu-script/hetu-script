@@ -1,35 +1,18 @@
-import 'dart:io';
-
-import 'errors.dart';
 import 'common.dart';
+import 'buildin.dart';
+import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
 import 'value.dart';
 import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
-import 'buildin.dart';
 import 'lexer.dart';
 import 'parser.dart';
 import 'resolver.dart';
 
-typedef StringLoadMethod = Future<String> Function(String filepath);
-
-Future<String> defaultLoadString(String filapath) async => await File(filapath).readAsString();
-
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
-  bool _initted = false;
-
-  final StringLoadMethod stringLoadMethod;
-  final String sdkDir;
-  String _workingDir;
-  HS_Lexicons _lexicon;
-  bool _debugMode;
-
-  bool staticType = true;
-  bool requireDeclaration = true;
-
   var _evaledFiles = <String>[];
 
   /// 全局命名空间
@@ -38,8 +21,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  //final _locals = <Expr, int>{};
-
   final _varDistances = <Expr, int>{};
 
   /// 常量表
@@ -50,32 +31,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   String _curFileName;
   String get curFileName => _curFileName;
 
-  Interpreter  ({
-    StringLoadMethod loadStringFunc = defaultLoadString,
-    String sdkDirectory = 'hetu_core/',
-    String workingDirectory = 'scripts/',
-    HS_Lexicons lexicon = const HS_Lexicons(),
-    bool debugMode = true,
-    Map<String, HS_External> externalFunctions,
-    bool extra = false,
-    bool staticType = true,
-    bool requireDeclaration = true,
-  }) {
-      stringLoadMethod = loadStringFunc;
-      sdkDir = sdkLocation;
-      _workingDir = workingDir;
-      _lexicon = lexicon;
-      _debugMode = debugMode;
+  Interpreter() {
+    globals = HS_Namespace(name: env.lexicon.globals);
+    externs = HS_Namespace(name: env.lexicon.externs);
 
-      globals = HS_Namespace(name: _lexicon.globals);
-      externs = HS_Namespace(name: _lexicon.externs);
-
-      this.staticType = staticType;
-      this.requireDeclaration = requireDeclaration;
-
-      // 必须在绑定函数前加载基础类Object和Function，因为函数本身也是对象
-      curContext = globals;
-
+    curContext = globals;
   }
 
   dynamic eval(String content, String fileName,
@@ -94,7 +54,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if ((style == ParseStyle.library) && (invokeFunc != null)) {
       result = await invoke(invokeFunc, args: args);
     } else if (style == ParseStyle.program) {
-      result = await invoke(_lexicon.defaultProgramMainFunc, args: args);
+      result = await invoke(env.lexicon.defaultProgramMainFunc, args: args);
     }
     return result;
   }
@@ -105,16 +65,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     _curFileName = filepath;
     dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
-      if (_debugMode) print('Hetu: Loading $filepath...');
+      if (env.debugMode) print('hetu: Loading $filepath...');
       _evaledFiles.add(curFileName);
 
       HS_Namespace library_namespace;
-      if ((libName != null) && (libName != _lexicon.globals)) {
+      if ((libName != null) && (libName != env.lexicon.globals)) {
         globals.define(libName, HS_Type.NAMESPACE, null, null, this);
         library_namespace = HS_Namespace(name: libName, closure: library_namespace);
       }
 
-      var content = await stringLoadMethod(_curFileName);
+      var content = await env.stringLoadMethod(_curFileName);
       result = await eval(content, curFileName,
           context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
@@ -162,7 +122,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 链接外部函数，链接时必须在河图中存在一个函数声明
   ///
   /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
-  void link(String name, HS_External function) {
+  void loadExtern(String name, HS_External function) {
     if (externs.contains(name)) {
       throw HSErr_Defined(name, null, null, curFileName);
     } else {
@@ -170,11 +130,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
   }
 
-  void linkAll(Map<String, HS_External> linkMap) {
-    if (linkMap != null) {
-      for (var key in linkMap.keys) {
-        link(key, linkMap[key]);
-      }
+  void loadExterns(Map<String, HS_External> linkMap) {
+    for (var key in linkMap.keys) {
+      loadExtern(key, linkMap[key]);
     }
   }
 
@@ -298,13 +256,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitUnaryExpr(UnaryExpr expr) {
     var value = evaluateExpr(expr.value);
 
-    if (expr.op.lexeme == _lexicon.subtract) {
+    if (expr.op.lexeme == env.lexicon.subtract) {
       if (value is num) {
         return -value;
       } else {
         throw HSErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
       }
-    } else if (expr.op.lexeme == _lexicon.not) {
+    } else if (expr.op.lexeme == env.lexicon.not) {
       if (value is bool) {
         return !value;
       } else {
@@ -319,7 +277,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitBinaryExpr(BinaryExpr expr) {
     var left = evaluateExpr(expr.left);
     var right;
-    if (expr.op == _lexicon.and) {
+    if (expr.op == env.lexicon.and) {
       if (left is bool) {
         // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
         if (!left) {
@@ -341,86 +299,77 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       right = evaluateExpr(expr.right);
 
       // TODO 操作符重载
-      if (expr.op.type == _lexicon.or) {
-            if (left is bool) {
-              if (right is bool) {
-                return left || right;
-              } else {
-                throw HSErr_UndefinedBinaryOperator(
-                    left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
-              }
-            } else {
-              throw HSErr_UndefinedBinaryOperator(
-                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
-            }
+      if (expr.op.type == env.lexicon.or) {
+        if (left is bool) {
+          if (right is bool) {
+            return left || right;
+          } else {
+            throw HSErr_UndefinedBinaryOperator(
+                left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
           }
-        else if (expr.op.type == _lexicon.equal)
-          return left == right;
-        else if (expr.op.type == _lexicon.notEqual)
-          return left != right;
-        else if (expr.op.type == _lexicon.add || expr.op.type == _lexicon.subtract)
-          {
-            if ((left is String) && (right is String)) {
-              return left + right;
-            } else if ((left is num) && (right is num)) {
-              if (expr.op.lexeme == HS_Common.add) {
-                return left + right;
-              } else if (expr.op.lexeme == HS_Common.subtract) {
-                return left - right;
-              }
-            } else {
-              throw HSErr_UndefinedBinaryOperator(
-                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
-            }
-          }
-          else if         (expr.op.type == _lexicon.IS) {
-            if (right is HS_Class))
-              return HS_TypeOf(left) == right.name;
-            } else {
-
-            }
-
-          }
-        else if (expr.op.type == _lexicon.multiply) ||
-        (expr.op.type == _lexicon.devide) ||
-        (expr.op.type == _lexicon.modulo) ||
-        (expr.op.type == _lexicon.greater) ||
-        (expr.op.type == _lexicon.greaterOrEqual) ||
-        (expr.op.type == _lexicon.lesser) ||
-        (expr.op.type == _lexicon.lesserOrEqual) ||
-          {
-            if ((expr.op == HS_Common.IS) && (right is HS_Class)) {
-            } else if (left is num) {
-              if (right is num) {
-                if (expr.op == HS_Common.multiply) {
-                  return left * right;
-                } else if (expr.op == HS_Common.devide) {
-                  return left / right;
-                } else if (expr.op == HS_Common.modulo) {
-                  return left % right;
-                } else if (expr.op == HS_Common.greater) {
-                  return left > right;
-                } else if (expr.op == HS_Common.greaterOrEqual) {
-                  return left >= right;
-                } else if (expr.op == HS_Common.lesser) {
-                  return left < right;
-                } else if (expr.op == HS_Common.lesserOrEqual) {
-                  return left <= right;
-                }
-              } else {
-                throw HSErr_UndefinedBinaryOperator(
-                    left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
-              }
-            } else {
-              throw HSErr_UndefinedBinaryOperator(
-                  left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
-            }
-          }
-          break;
-        default:
+        } else {
           throw HSErr_UndefinedBinaryOperator(
               left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
-          break;
+        }
+      } else if (expr.op.type == env.lexicon.equal)
+        return left == right;
+      else if (expr.op.type == env.lexicon.notEqual)
+        return left != right;
+      else if (expr.op.type == env.lexicon.add || expr.op.type == env.lexicon.subtract) {
+        if ((left is String) && (right is String)) {
+          return left + right;
+        } else if ((left is num) && (right is num)) {
+          if (expr.op.lexeme == env.lexicon.add) {
+            return left + right;
+          } else if (expr.op.lexeme == env.lexicon.subtract) {
+            return left - right;
+          }
+        } else {
+          throw HSErr_UndefinedBinaryOperator(
+              left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+        }
+      } else if (expr.op.type == env.lexicon.IS) {
+        if (right is HS_Class) {
+          return HS_TypeOf(left) == right.name;
+        } else {
+          throw HSErr_NotType(right.toString(), expr.op.line, expr.op.column, curFileName);
+        }
+      } else if ((expr.op.type == env.lexicon.multiply) ||
+          (expr.op.type == env.lexicon.devide) ||
+          (expr.op.type == env.lexicon.modulo) ||
+          (expr.op.type == env.lexicon.greater) ||
+          (expr.op.type == env.lexicon.greaterOrEqual) ||
+          (expr.op.type == env.lexicon.lesser) ||
+          (expr.op.type == env.lexicon.lesserOrEqual)) {
+        if ((expr.op == env.lexicon.IS) && (right is HS_Class)) {
+        } else if (left is num) {
+          if (right is num) {
+            if (expr.op == env.lexicon.multiply) {
+              return left * right;
+            } else if (expr.op == env.lexicon.devide) {
+              return left / right;
+            } else if (expr.op == env.lexicon.modulo) {
+              return left % right;
+            } else if (expr.op == env.lexicon.greater) {
+              return left > right;
+            } else if (expr.op == env.lexicon.greaterOrEqual) {
+              return left >= right;
+            } else if (expr.op == env.lexicon.lesser) {
+              return left < right;
+            } else if (expr.op == env.lexicon.lesserOrEqual) {
+              return left <= right;
+            }
+          } else {
+            throw HSErr_UndefinedBinaryOperator(
+                left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+          }
+        } else {
+          throw HSErr_UndefinedBinaryOperator(
+              left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+        }
+      } else {
+        throw HSErr_UndefinedBinaryOperator(
+            left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
       }
     }
   }
@@ -473,7 +422,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitThisExpr(ThisExpr expr) => _getVar(HS_Common.THIS, expr);
+  dynamic visitThisExpr(ThisExpr expr) => _getVar(env.lexicon.THIS, expr);
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
@@ -546,9 +495,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitImportStmt(ImportStmt stmt) async {
     String file_loc;
     if (stmt.location.startsWith('hetu:')) {
-      file_loc = sdkDir + stmt.location.substring(5) + '.ht';
+      file_loc = env.sdkDirectory + 'core' + stmt.location.substring(5) + '.ht';
     } else {
-      file_loc = _workingDir + stmt.location;
+      file_loc = env.workingDirectory + stmt.location;
     }
     await evalf(file_loc, libName: stmt.nameSpace);
   }
@@ -644,7 +593,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       HS_Function func;
       HS_External externFunc;
       if (stmt.isExtern) {
-        externFunc = externs.fetch(stmt.name, stmt.keyword.line, stmt.keyword.column, this, from: HS_Common.functions);
+        externFunc = externs.fetch(stmt.name, stmt.keyword.line, stmt.keyword.column, this, from: externs.fullName);
       }
       func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, declContext: curContext);
       curContext.define(stmt.name, func.typeid, stmt.keyword.line, stmt.keyword.column, this, value: func);
@@ -657,9 +606,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     //TODO: while superClass != null, inherit all...
 
-    if (stmt.name != HS_Common.object) {
+    if (stmt.name != env.lexicon.object) {
       if (stmt.superClass == null) {
-        superClass = globals.fetch(HS_Common.object, stmt.keyword.line, stmt.keyword.column, this);
+        superClass = globals.fetch(env.lexicon.object, stmt.keyword.line, stmt.keyword.column, this);
       } else {
         superClass = globals.fetch(stmt.superClass.name, stmt.keyword.line, stmt.keyword.column, this);
       }
@@ -681,9 +630,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         if (variable.initializer != null) {
           value = evaluateExpr(variable.initializer);
         } else if (variable.isExtern) {
-          value = externs.fetch('${stmt.name}${HS_Common.memberGet}${variable.name.lexeme}', variable.name.line,
+          value = externs.fetch('${stmt.name}${env.lexicon.memberGet}${variable.name.lexeme}', variable.name.line,
               variable.name.column, this,
-              from: HS_Common.functions);
+              from: externs.fullName);
         }
 
         var typeid = HS_Type();
@@ -712,9 +661,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       HS_Function func;
       HS_External externFunc;
       if (method.isExtern) {
-        externFunc = externs.fetch('${stmt.name}${HS_Common.memberGet}${method.internalName}', method.keyword.line,
+        externFunc = externs.fetch('${stmt.name}${env.lexicon.memberGet}${method.internalName}', method.keyword.line,
             method.keyword.column, this,
-            from: HS_Common.functions);
+            from: externs.fullName);
       }
       if (method.isStatic) {
         func = HS_Function(method, name: method.internalName, extern: externFunc, declContext: klass);

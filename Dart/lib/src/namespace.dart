@@ -5,7 +5,7 @@ import 'common.dart';
 import 'value.dart';
 
 class HS_Namespace extends HS_Value {
-  String toString() => '${HS_Common.NAMESPACE} $name';
+  String toString() => '${env.lexicon.NAMESPACE} $name';
 
   String _fullName;
   String get fullName => _fullName;
@@ -23,8 +23,8 @@ class HS_Namespace extends HS_Value {
   static String getFullName(String name, HS_Namespace space) {
     var fullName = name;
     var cur_space = space.closure;
-    while ((cur_space != null) && (cur_space.name != HS_Common.globals)) {
-      fullName = cur_space.name + HS_Common.memberGet + fullName;
+    while ((cur_space != null) && (cur_space.name != env.lexicon.globals)) {
+      fullName = cur_space.name + env.lexicon.memberGet + fullName;
       cur_space = cur_space.closure;
     }
     return fullName;
@@ -61,7 +61,7 @@ class HS_Namespace extends HS_Value {
   //     if (space == null) {
   //       return null;
   //     }
-  //     fullName = space.name + HS_Common.Dot + fullName;
+  //     fullName = space.name + env.lexicon.Dot + fullName;
   //   }
   //   return fullName;
   // }
@@ -100,9 +100,12 @@ class HS_Namespace extends HS_Value {
   }
 
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
+      {bool error = true, String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
     if (defs.containsKey(varName)) {
-      if (from.startsWith(this.fullName) || (name == HS_Common.globals) || !varName.startsWith(HS_Common.underscore)) {
+      if (from.startsWith(this.fullName) ||
+          (name == env.lexicon.globals) ||
+          !varName.startsWith(env.lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
@@ -117,18 +120,20 @@ class HS_Namespace extends HS_Value {
   }
 
   dynamic fetchAt(String varName, int distance, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
+      {bool error = true, String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
     var space = closureAt(distance);
     return space.fetch(varName, line, column, interpreter, error: error, from: space.fullName, recursive: false);
   }
 
   /// 向一个已经定义的变量赋值
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
+      {bool error = true, String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HS_TypeOf(value);
-      if (from.startsWith(this.fullName) || (!varName.startsWith(HS_Common.underscore))) {
+      if (from.startsWith(this.fullName) || (!varName.startsWith(env.lexicon.underscore))) {
         if (var_type.isA(decl_type)) {
           if (defs[varName].mutable) {
             defs[varName].value = value;
@@ -148,7 +153,8 @@ class HS_Namespace extends HS_Value {
   }
 
   void assignAt(String varName, dynamic value, int distance, int line, int column, Interpreter interpreter,
-      {String from = HS_Common.globals, bool recursive = true}) {
+      {String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
     var space = closureAt(distance);
     space.assign(varName, value, line, column, interpreter, from: space.fullName, recursive: false);
   }

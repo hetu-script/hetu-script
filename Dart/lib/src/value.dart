@@ -5,23 +5,24 @@ import 'common.dart';
 class HS_Type {
   // List<HS_Type> get inheritances;
   // List<HS_Type> get compositions;
-  final String name;
-  final List<HS_Type> arguments = [];
+  String name;
+  List<HS_Type> arguments = [];
 
-  HS_Type({this.name = HS_Common.ANY, List<HS_Type> arguments}) {
+  HS_Type({this.name, List<HS_Type> arguments}) {
+    name ??= env.lexicon.ANY;
     if (arguments != null) this.arguments.addAll(arguments);
   }
 
-  static final NULL = HS_Type(name: HS_Common.NULL);
-  static final VOID = HS_Type(name: HS_Common.VOID);
-  static final CLASS = HS_Type(name: HS_Common.CLASS);
-  static final NAMESPACE = HS_Type(name: HS_Common.NAMESPACE);
-  static final unknown = HS_Type(name: HS_Common.unknown);
-  static final number = HS_Type(name: HS_Common.number);
-  static final boolean = HS_Type(name: HS_Common.boolean);
-  static final string = HS_Type(name: HS_Common.string);
-  static final list = HS_Type(name: HS_Common.list);
-  static final map = HS_Type(name: HS_Common.map);
+  static final NULL = HS_Type(name: env.lexicon.NULL);
+  static final VOID = HS_Type(name: env.lexicon.VOID);
+  static final CLASS = HS_Type(name: env.lexicon.CLASS);
+  static final NAMESPACE = HS_Type(name: env.lexicon.NAMESPACE);
+  static final unknown = HS_Type(name: env.lexicon.unknown);
+  static final number = HS_Type(name: env.lexicon.number);
+  static final boolean = HS_Type(name: env.lexicon.boolean);
+  static final string = HS_Type(name: env.lexicon.string);
+  static final list = HS_Type(name: env.lexicon.list);
+  static final map = HS_Type(name: env.lexicon.map);
 
   @override
   String toString() {
@@ -40,7 +41,7 @@ class HS_Type {
 
   bool isA(HS_Type typeid) {
     bool result = false;
-    if ((typeid.name == HS_Common.ANY) || (this.name == HS_Common.NULL)) {
+    if ((typeid.name == env.lexicon.ANY) || (this.name == env.lexicon.NULL)) {
       result = true;
     } else {
       if (this.name == typeid.name) {
@@ -95,7 +96,7 @@ HS_Type HS_TypeOf(dynamic value) {
       }
     }
 
-    return HS_Type(name: HS_Common.list, arguments: [valType]);
+    return HS_Type(name: env.lexicon.list, arguments: [valType]);
   } else if (value is Map) {
     HS_Type keyType = HS_Type();
     HS_Type valType = HS_Type();
@@ -117,7 +118,7 @@ HS_Type HS_TypeOf(dynamic value) {
         }
       }
     }
-    return HS_Type(name: HS_Common.map, arguments: [keyType, valType]);
+    return HS_Type(name: env.lexicon.map, arguments: [keyType, valType]);
   } else {
     return HS_Type.unknown;
   }

@@ -1,13 +1,10 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:hetu_script/hetu.dart';
-
-import 'common.dart';
-import 'class.dart';
-import 'function.dart';
-import 'interpreter.dart';
-import 'value.dart';
+import 'package:hetu_script/src/common.dart';
+import 'package:hetu_script/src/class.dart';
+import 'package:hetu_script/src/interpreter.dart';
+import 'package:hetu_script/src/value.dart';
 
 abstract class HS_Buildin {
   static const coreLib = 'class Object {}\n'
@@ -95,7 +92,7 @@ abstract class HS_Buildin {
   static dynamic _system_evalc(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       try {
-        return hetu.evalc(args.first.toString());
+        return itp.evalc(args.first.toString());
       } catch (e) {
         print(e);
       }
@@ -107,7 +104,7 @@ abstract class HS_Buildin {
       var func_name = args[0];
       var className = args[1];
       var arguments = args[2];
-      hetu.invoke(func_name, classname: className, args: arguments);
+      itp.invoke(func_name, classname: className, args: arguments);
     }
   }
 
@@ -210,7 +207,7 @@ abstract class HSVal_Value extends HS_Instance {
 
 class HSVal_Number extends HSVal_Value {
   HSVal_Number(num value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.number, line, column, interpreter);
+      : super(value, env.lexicon.number, line, column, interpreter);
 
   static dynamic _parse(HS_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -237,12 +234,12 @@ class HSVal_Number extends HSVal_Value {
 
 class HSVal_Boolean extends HSVal_Value {
   HSVal_Boolean(bool value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.number, line, column, interpreter);
+      : super(value, env.lexicon.number, line, column, interpreter);
 }
 
 class HSVal_String extends HSVal_Value {
   HSVal_String(String value, int line, int column, Interpreter interpreter)
-      : super(value, HS_Common.string, line, column, interpreter);
+      : super(value, env.lexicon.string, line, column, interpreter);
 
   static dynamic _is_empty(HS_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
@@ -271,10 +268,12 @@ class HSVal_String extends HSVal_Value {
 }
 
 class HSVal_List extends HSVal_Value {
-  final String valueType;
+  String valueType;
 
-  HSVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType = HS_Common.ANY})
-      : super(value, HS_Common.list, line, column, interpreter);
+  HSVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType})
+      : super(value, env.lexicon.list, line, column, interpreter) {
+    valueType ??= env.lexicon.ANY;
+  }
 
   static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
@@ -328,14 +327,15 @@ class HSVal_List extends HSVal_Value {
   }
 }
 
-//TODO：点操作符对于Map也可以直接取成员，这样好吗？
 class HSVal_Map extends HSVal_Value {
-  final String keyType;
-  final String valueType;
+  String keyType;
+  String valueType;
 
-  HSVal_Map(Map value, int line, int column, Interpreter interpreter,
-      {this.keyType = HS_Common.ANY, this.valueType = HS_Common.ANY})
-      : super(value, HS_Common.map, line, column, interpreter);
+  HSVal_Map(Map value, int line, int column, Interpreter interpreter, {this.keyType, this.valueType})
+      : super(value, env.lexicon.map, line, column, interpreter) {
+    keyType ??= env.lexicon.ANY;
+    valueType ??= env.lexicon.ANY;
+  }
 
   static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);

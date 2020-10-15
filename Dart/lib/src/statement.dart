@@ -55,7 +55,7 @@ abstract class Stmt {
 
 class ImportStmt extends Stmt {
   @override
-  String get type => HS_Common.importStmt;
+  String get type => env.lexicon.importStmt;
 
   @override
   void accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
@@ -69,7 +69,7 @@ class ImportStmt extends Stmt {
 
 class VarStmt extends Stmt {
   @override
-  String get type => HS_Common.varStmt;
+  String get type => env.lexicon.varStmt;
 
   @override
   void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
@@ -89,7 +89,7 @@ class VarStmt extends Stmt {
 
 class ExprStmt extends Stmt {
   @override
-  String get type => HS_Common.exprStmt;
+  String get type => env.lexicon.exprStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitExprStmt(this);
@@ -102,7 +102,7 @@ class ExprStmt extends Stmt {
 
 class BlockStmt extends Stmt {
   @override
-  String get type => HS_Common.blockStmt;
+  String get type => env.lexicon.blockStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBlockStmt(this);
@@ -114,7 +114,7 @@ class BlockStmt extends Stmt {
 
 class ReturnStmt extends Stmt {
   @override
-  String get type => HS_Common.returnStmt;
+  String get type => env.lexicon.returnStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitReturnStmt(this);
@@ -128,7 +128,7 @@ class ReturnStmt extends Stmt {
 
 class IfStmt extends Stmt {
   @override
-  String get type => HS_Common.ifStmt;
+  String get type => env.lexicon.ifStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitIfStmt(this);
@@ -144,7 +144,7 @@ class IfStmt extends Stmt {
 
 class WhileStmt extends Stmt {
   @override
-  String get type => HS_Common.whileStmt;
+  String get type => env.lexicon.whileStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitWhileStmt(this);
@@ -158,7 +158,7 @@ class WhileStmt extends Stmt {
 
 class BreakStmt extends Stmt {
   @override
-  String get type => HS_Common.breakStmt;
+  String get type => env.lexicon.breakStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitBreakStmt(this);
@@ -166,7 +166,7 @@ class BreakStmt extends Stmt {
 
 class ContinueStmt extends Stmt {
   @override
-  String get type => HS_Common.continueStmt;
+  String get type => env.lexicon.continueStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitContinueStmt(this);
@@ -182,7 +182,7 @@ enum FuncStmtType {
 
 class FuncStmt extends Stmt {
   @override
-  String get type => HS_Common.funcStmt;
+  String get type => env.lexicon.funcStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitFuncStmt(this);
@@ -226,11 +226,11 @@ class FuncStmt extends Stmt {
     this.definition ??= <Stmt>[];
     if (funcType == FuncStmtType.constructor) {
       //_internalName = name.lexeme;
-      _internalName = HS_Common.constructFun + name;
+      _internalName = env.lexicon.constructor + name;
     } else if (funcType == FuncStmtType.getter) {
-      _internalName = HS_Common.getFun + name;
+      _internalName = env.lexicon.getter + name;
     } else if (funcType == FuncStmtType.setter) {
-      _internalName = HS_Common.setFun + name;
+      _internalName = env.lexicon.setter + name;
     } else {
       _internalName = name;
     }
@@ -241,7 +241,7 @@ class FuncStmt extends Stmt {
 
 class ClassStmt extends Stmt {
   @override
-  String get type => HS_Common.classStmt;
+  String get type => env.lexicon.classStmt;
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitClassStmt(this);

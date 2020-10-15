@@ -58,10 +58,10 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // Not found. Assume it is global.
   }
 
-  void resolve(List<Stmt> statements, String fileName, {String libName = HS_Common.globals}) {
-    if ((libName != null) && (libName != HS_Common.globals)) {
-      _beginBlock();
-    }
+  void resolve(List<Stmt> statements, String fileName, {String libName}) {
+    libName ??= env.lexicon.globals;
+    if (libName != env.lexicon.globals) _beginBlock();
+
     _curFileName = fileName;
 
     _beginBlock();
@@ -75,7 +75,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveFunction(func);
     }
     _endBlock();
-    if ((libName != null) && (libName != HS_Common.globals)) {
+    if ((libName != null) && (libName != env.lexicon.globals)) {
       _endBlock();
     }
   }
@@ -95,7 +95,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     _beginBlock();
     if (stmt.arity == -1) {
-      _declare(HS_Common.Arguments, stmt.keyword.line, stmt.keyword.column, define: true);
+      _declare(env.lexicon.Arguments, stmt.keyword.line, stmt.keyword.column, define: true);
     } else {
       for (var param in stmt.params) {
         _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
@@ -134,7 +134,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
     for (var method in stmt.methods) {
       if (method.isStatic) {
         _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-        if ((method.internalName.startsWith(HS_Common.getFun) || method.internalName.startsWith(HS_Common.setFun)) &&
+        if ((method.internalName.startsWith(env.lexicon.getter) ||
+                method.internalName.startsWith(env.lexicon.setter)) &&
             !_blocks.last.containsKey(method.name)) {
           _declare(method.name, method.keyword.line, method.keyword.column, define: true);
         }
@@ -151,7 +152,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _funcs = <FuncStmt>[];
     _beginBlock();
     // 注册实例中的成员变量
-    _blocks.last[HS_Common.THIS] = true;
+    _blocks.last[env.lexicon.THIS] = true;
     for (var variable in stmt.variables) {
       if (!variable.isStatic) {
         visitVarStmt(variable);
@@ -162,7 +163,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
       if (!method.isStatic) {
         if (method.funcType != FuncStmtType.constructor) {
           _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-          if ((method.internalName.startsWith(HS_Common.getFun) || method.internalName.startsWith(HS_Common.setFun)) &&
+          if ((method.internalName.startsWith(env.lexicon.getter) ||
+                  method.internalName.startsWith(env.lexicon.setter)) &&
               !_blocks.last.containsKey(method.name)) {
             _declare(method.name, method.keyword.line, method.keyword.column, define: true);
           }

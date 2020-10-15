@@ -9,9 +9,9 @@ class Token {
 
   dynamic get literal => type;
 
-  const Token(this.lexeme, this.type, this.line, this.column);
+  Token(this.lexeme, this.type, this.line, this.column);
 
-  static Token get EOF => Token(HS_Common.endOfFile, HS_Common.endOfFile, -1, -1);
+  static Token get EOF => Token(env.lexicon.endOfFile, env.lexicon.endOfFile, -1, -1);
 
   operator ==(dynamic tokenType) {
     return type == tokenType;
@@ -22,8 +22,8 @@ class TokenBoolLiteral extends Token {
   @override
   final bool literal;
 
-  const TokenBoolLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, HS_Common.boolean, line, column);
+  TokenBoolLiteral(String lexeme, this.literal, int line, int column)
+      : super(lexeme, env.lexicon.boolean, line, column);
 }
 
 class TokenNumLiteral extends Token {
@@ -32,8 +32,7 @@ class TokenNumLiteral extends Token {
 
   String get lexeme => literal.toString();
 
-  const TokenNumLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, HS_Common.number, line, column);
+  TokenNumLiteral(String lexeme, this.literal, int line, int column) : super(lexeme, env.lexicon.number, line, column);
 }
 
 class TokenStringLiteral extends Token {
@@ -42,6 +41,6 @@ class TokenStringLiteral extends Token {
 
   String get lexeme => literal;
 
-  const TokenStringLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, HS_Common.string, line, column);
+  TokenStringLiteral(String lexeme, this.literal, int line, int column)
+      : super(lexeme, env.lexicon.string, line, column);
 }

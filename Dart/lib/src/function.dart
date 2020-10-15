@@ -7,15 +7,12 @@ import 'interpreter.dart';
 import 'errors.dart';
 import 'value.dart';
 
-// TODO: instance参数应该是可选的
-typedef HS_External = dynamic Function(HS_Instance instance, List<dynamic> args);
-
 class HS_TypeFunction extends HS_Type {
   final HS_Type returnType;
   final List<HS_Type> paramsTypes = [];
 
   HS_TypeFunction(this.returnType, {List<HS_Type> arguments, List<HS_Type> paramsTypes})
-      : super(name: HS_Common.function, arguments: arguments) {
+      : super(name: env.lexicon.function, arguments: arguments) {
     if (paramsTypes != null) this.paramsTypes.addAll(paramsTypes);
   }
 
@@ -74,7 +71,7 @@ class HS_Function {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('${HS_Common.function} ${name ?? ''}');
+    result.write('${env.lexicon.function} ${name ?? ''}');
     if (typeid.arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < typeid.arguments.length; ++i) {
@@ -88,15 +85,15 @@ class HS_Function {
 
     if (funcStmt.arity >= 0) {
       for (var param in funcStmt.params) {
-        result.write(param.name.lexeme + ': ' + (param.declType?.toString() ?? HS_Common.ANY));
+        result.write(param.name.lexeme + ': ' + (param.declType?.toString() ?? env.lexicon.ANY));
         //if (param.initializer != null)
         if (funcStmt.params.length > 1) result.write(', ');
       }
     } else {
       result.write('(... ');
-      result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? HS_Common.ANY));
+      result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? env.lexicon.ANY));
     }
-    result.write('): ' + funcStmt.returnType?.toString() ?? HS_Common.VOID);
+    result.write('): ' + funcStmt.returnType?.toString() ?? env.lexicon.VOID);
     return result.toString();
   }
 
@@ -124,7 +121,7 @@ class HS_Function {
           //assert(closure != null);
           if (instance != null) {
             _closure = HS_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
-            _closure.define(HS_Common.THIS, instance.typeid, line, column, interpreter, mutable: false);
+            _closure.define(env.lexicon.THIS, instance.typeid, line, column, interpreter, mutable: false);
           } else {
             _closure = HS_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
           }

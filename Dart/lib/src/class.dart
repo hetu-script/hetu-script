@@ -1,12 +1,10 @@
-import 'package:hetu_script/hetu.dart';
-
-import 'interpreter.dart';
-import 'namespace.dart';
-import 'common.dart';
-import 'function.dart';
-import 'errors.dart';
-import 'statement.dart';
-import 'value.dart';
+import 'package:hetu_script/src/common.dart';
+import 'package:hetu_script/src/interpreter.dart';
+import 'package:hetu_script/src/namespace.dart';
+import 'package:hetu_script/src/function.dart';
+import 'package:hetu_script/src/errors.dart';
+import 'package:hetu_script/src/statement.dart';
+import 'package:hetu_script/src/value.dart';
 
 /// [HS_Class]的实例对应河图中的"class"声明
 ///
@@ -20,7 +18,7 @@ import 'value.dart';
 class HS_Class extends HS_Namespace {
   List<String> typeParams = [];
 
-  String toString() => '${HS_Common.CLASS} $name';
+  String toString() => '${env.lexicon.CLASS} $name';
 
   HS_Class superClass;
 
@@ -36,9 +34,9 @@ class HS_Class extends HS_Namespace {
   bool contains(String varName) =>
       variables.containsKey(varName) ||
       defs.containsKey(varName) ||
-      defs.containsKey('${HS_Common.getFun}$varName') ||
+      defs.containsKey('${env.lexicon.getter}$varName') ||
       (superClass == null ? false : superClass.contains(varName)) ||
-      (superClass == null ? false : superClass.contains('${HS_Common.getFun}$varName'));
+      (superClass == null ? false : superClass.contains('${env.lexicon.getter}$varName'));
 
   void addVariable(VarStmt stmt) {
     if (!variables.containsKey(stmt.name.lexeme)) {
@@ -50,15 +48,16 @@ class HS_Class extends HS_Namespace {
 
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
-    var getter = '${HS_Common.getFun}$varName';
+      {bool error = true, String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
+    var getter = '${env.lexicon.getter}$varName';
     if (defs.containsKey(varName)) {
-      if (from.startsWith(this.fullName) || !varName.startsWith(HS_Common.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(getter)) {
-      if (from.startsWith(this.fullName) || !varName.startsWith(HS_Common.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         HS_Function func = defs[getter].value;
         return func.call(interpreter, line, column, []);
       }
@@ -77,12 +76,13 @@ class HS_Class extends HS_Namespace {
 
   @override
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
-    var setter = '${HS_Common.setFun}$varName';
+      {bool error = true, String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
+    var setter = '${env.lexicon.setter}$varName';
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HS_TypeOf(value);
-      if (from.startsWith(this.fullName) || !varName.startsWith(HS_Common.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         if (var_type.isA(decl_type)) {
           defs[varName].value = value;
           return;
@@ -91,7 +91,7 @@ class HS_Class extends HS_Namespace {
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(setter)) {
-      if (from.startsWith(this.fullName) || !varName.startsWith(HS_Common.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         HS_Function setter_func = defs[setter].value;
         setter_func.call(interpreter, line, column, [value]);
         return;
@@ -133,7 +133,7 @@ class HS_Class extends HS_Namespace {
 
     interpreter.curContext = save;
 
-    initterName = HS_Common.constructFun + (initterName == null ? name : initterName);
+    initterName = env.lexicon.constructor + (initterName == null ? name : initterName);
 
     var constructor = fetch(initterName, line, column, interpreter, error: false, from: name);
 
@@ -156,29 +156,30 @@ class HS_Instance extends HS_Namespace {
   HS_Type get typeid => _typeid;
 
   HS_Instance(this.klass, {List<HS_Type> typeArgs})
-      : super(name: HS_Common.instance + (_instanceIndex++).toString(), closure: klass) {
+      : super(name: env.lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
     _typeid = HS_Type(name: klass.name, arguments: typeArgs);
 
-    define(HS_Common.THIS, typeid, null, null, null, value: this);
+    define(env.lexicon.THIS, typeid, null, null, null, value: this);
     //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);
   }
 
   @override
-  String toString() => '${HS_Common.instancePrefix}${typeid}';
+  String toString() => '${env.lexicon.instancePrefix}${typeid}';
 
   @override
-  bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${HS_Common.getFun}$varName');
+  bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${env.lexicon.getter}$varName');
 
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
+      {bool error = true, String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
     if (defs.containsKey(varName)) {
-      if (!varName.startsWith(HS_Common.underscore)) {
+      if (!varName.startsWith(env.lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else {
-      var getter = '${HS_Common.getFun}$varName';
+      var getter = '${env.lexicon.getter}$varName';
       if (klass.contains(getter)) {
         HS_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
@@ -197,11 +198,12 @@ class HS_Instance extends HS_Namespace {
 
   @override
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
-      {bool error = true, String from = HS_Common.globals, bool recursive = true}) {
+      {bool error = true, String from, bool recursive = true}) {
+    from ??= env.lexicon.globals;
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HS_TypeOf(value);
-      if (!varName.startsWith(HS_Common.underscore)) {
+      if (!varName.startsWith(env.lexicon.underscore)) {
         if (var_type.isA(decl_type)) {
           if (defs[varName].mutable) {
             defs[varName].value = value;
@@ -213,7 +215,7 @@ class HS_Instance extends HS_Namespace {
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else {
-      var setter = '${HS_Common.setFun}$varName';
+      var setter = '${env.lexicon.setter}$varName';
       if (klass.contains(setter)) {
         HS_Function method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {

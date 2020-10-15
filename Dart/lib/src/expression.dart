@@ -81,7 +81,7 @@ abstract class Expr {
 
 class NullExpr extends Expr {
   @override
-  String get type => HS_Common.nullExpr;
+  String get type => env.lexicon.nullExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitNullExpr(this);
@@ -93,7 +93,7 @@ class NullExpr extends Expr {
 
 class LiteralExpr extends Expr {
   @override
-  String get type => HS_Common.literalExpr;
+  String get type => env.lexicon.literalExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralExpr(this);
@@ -110,7 +110,7 @@ class LiteralExpr extends Expr {
 
 class GroupExpr extends Expr {
   @override
-  String get type => HS_Common.groupExpr;
+  String get type => env.lexicon.groupExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
@@ -124,7 +124,7 @@ class GroupExpr extends Expr {
 
 class VectorExpr extends Expr {
   @override
-  String get type => HS_Common.vectorExpr;
+  String get type => env.lexicon.vectorExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitVectorExpr(this);
@@ -146,7 +146,7 @@ class VectorExpr extends Expr {
 
 class BlockExpr extends Expr {
   @override
-  String get type => HS_Common.blockExpr;
+  String get type => env.lexicon.blockExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitBlockExpr(this);
@@ -174,7 +174,7 @@ class BlockExpr extends Expr {
 
 class UnaryExpr extends Expr {
   @override
-  String get type => HS_Common.unaryExpr;
+  String get type => env.lexicon.unaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitUnaryExpr(this);
@@ -192,7 +192,7 @@ class UnaryExpr extends Expr {
 
 class BinaryExpr extends Expr {
   @override
-  String get type => HS_Common.binaryExpr;
+  String get type => env.lexicon.binaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitBinaryExpr(this);
@@ -213,7 +213,7 @@ class BinaryExpr extends Expr {
 
 // class TypeExpr extends Expr {
 //   @override
-//   String get type => HS_Common.VarExpr;
+//   String get type => env.lexicon.VarExpr;
 
 //   @override
 //   dynamic accept(ExprVisitor visitor) => visitor.visitTypeExpr(this);
@@ -229,7 +229,7 @@ class BinaryExpr extends Expr {
 
 class VarExpr extends Expr {
   @override
-  String get type => HS_Common.varExpr;
+  String get type => env.lexicon.varExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitVarExpr(this);
@@ -243,7 +243,7 @@ class VarExpr extends Expr {
 
 class AssignExpr extends Expr {
   @override
-  String get type => HS_Common.assignExpr;
+  String get type => env.lexicon.assignExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitAssignExpr(this);
@@ -264,7 +264,7 @@ class AssignExpr extends Expr {
 
 class SubGetExpr extends Expr {
   @override
-  String get type => HS_Common.subGetExpr;
+  String get type => env.lexicon.subGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
@@ -282,7 +282,7 @@ class SubGetExpr extends Expr {
 
 class SubSetExpr extends Expr {
   @override
-  String get type => HS_Common.subSetExpr;
+  String get type => env.lexicon.subSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
@@ -304,7 +304,7 @@ class SubSetExpr extends Expr {
 
 class MemberGetExpr extends Expr {
   @override
-  String get type => HS_Common.memberGetExpr;
+  String get type => env.lexicon.memberGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberGetExpr(this);
@@ -322,7 +322,7 @@ class MemberGetExpr extends Expr {
 
 class MemberSetExpr extends Expr {
   @override
-  String get type => HS_Common.memberSetExpr;
+  String get type => env.lexicon.memberSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberSetExpr(this);
@@ -344,7 +344,7 @@ class MemberSetExpr extends Expr {
 
 class CallExpr extends Expr {
   @override
-  String get type => HS_Common.callExpr;
+  String get type => env.lexicon.callExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitCallExpr(this);
@@ -368,7 +368,7 @@ class CallExpr extends Expr {
 
 class ThisExpr extends Expr {
   @override
-  String get type => HS_Common.thisExpr;
+  String get type => env.lexicon.thisExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitThisExpr(this);

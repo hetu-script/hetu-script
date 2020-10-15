@@ -9,7 +9,7 @@ abstract class Hetu_Env {
 
 void main(List<String> args) async {
   try {
-    await hetu.init(debugMode: false);
+    var interpreter = await HetuEnv.init();
 
     if (args.isNotEmpty) {
       if ((args.first == '--help') || (args.first == '-h')) {
@@ -43,7 +43,7 @@ void main(List<String> args) async {
 
             dynamic result;
             try {
-              result = await hetu.eval(input, 'REPL', style: ParseStyle.function);
+              result = await interpreter.eval(input, 'REPL', style: ParseStyle.function);
               if (result != null) print(result);
             } catch (e) {
               print(e);
@@ -51,9 +51,9 @@ void main(List<String> args) async {
           }
         }
       } else if (args.first == '-s') {
-        await hetu.evalf(args.first, style: ParseStyle.function);
+        await interpreter.evalf(args.first, style: ParseStyle.function);
       } else {
-        await hetu.evalf(args.first, style: ParseStyle.library, invokeFunc: HS_Common.defaultProgramMainFunc);
+        await interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: env.lexicon.defaultProgramMainFunc);
       }
     } else {
       String doc = File(path.join('doc', 'cli_help.md')).readAsStringSync();

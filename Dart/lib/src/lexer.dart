@@ -21,36 +21,46 @@ class Lexer {
     var _tokens = <Token>[];
     var currentLine = 0;
     var column;
-    var pattern = commandLine ? HS_Common.regexCommandLine : HS_Common.regexp;
+    var pattern = commandLine
+        ? RegExp(
+            env.lexicon.commandLinePattern,
+            unicode: true,
+            multiLine: true,
+          )
+        : RegExp(
+            env.lexicon.scriptPattern,
+            unicode: true,
+            multiLine: true,
+          );
     for (var line in script.split('\n')) {
       ++currentLine;
       var matches = pattern.allMatches(line);
       for (var match in matches) {
         var matchString = match.group(0);
         column = match.start + 1;
-        if (match.group(HS_Common.tokenGroupComment) == null) {
+        if (match.group(env.lexicon.tokenGroupComment) == null) {
           // 标识符
-          if (match.group(HS_Common.tokenGroupIdentifier) != null) {
-            if (HS_Common.keywords.contains(matchString)) {
+          if (match.group(env.lexicon.tokenGroupIdentifier) != null) {
+            if (env.lexicon.keywords.contains(matchString)) {
               _tokens.add(Token(matchString, matchString, currentLine, column));
-            } else if (matchString == HS_Common.TRUE) {
+            } else if (matchString == env.lexicon.TRUE) {
               _tokens.add(TokenBoolLiteral(matchString, true, currentLine, column));
-            } else if (matchString == HS_Common.FALSE) {
+            } else if (matchString == env.lexicon.FALSE) {
               _tokens.add(TokenBoolLiteral(matchString, false, currentLine, column));
             } else {
-              _tokens.add(Token(matchString, HS_Common.identifier, currentLine, column));
+              _tokens.add(Token(matchString, env.lexicon.identifier, currentLine, column));
             }
           }
           // 标点符号和运算符号
-          else if (match.group(HS_Common.tokenGroupPunctuation) != null) {
+          else if (match.group(env.lexicon.tokenGroupPunctuation) != null) {
             _tokens.add(Token(matchString, matchString, currentLine, column));
           }
           // 数字字面量
-          else if (match.group(HS_Common.tokenGroupNumber) != null) {
+          else if (match.group(env.lexicon.tokenGroupNumber) != null) {
             _tokens.add(TokenNumLiteral(matchString, num.parse(matchString), currentLine, column));
           }
           // 字符串字面量
-          else if (match.group(HS_Common.tokenGroupString) != null) {
+          else if (match.group(env.lexicon.tokenGroupString) != null) {
             var literal = _convertStringLiteral(matchString);
             _tokens.add(TokenStringLiteral(matchString, literal, currentLine, column));
           }
