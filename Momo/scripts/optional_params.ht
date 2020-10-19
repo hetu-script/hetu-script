@@ -1,0 +1,8 @@
+fun hello(words: String, [times: Number = 112]) {
+  print(words, times)
+}
+
+// 程序入口
+fun main {
+  hello('hello')
+}
