@@ -2,7 +2,7 @@ import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
 import 'token.dart';
-import 'common.dart';
+import 'environment.dart';
 import 'interpreter.dart';
 import 'value.dart';
 
@@ -20,8 +20,6 @@ enum ParseStyle {
 
   /// 类定义中只能出现变量和函数的声明
   classDefinition,
-
-  commandLine,
 }
 
 /// 负责对Token列表进行语法分析并生成语句列表
@@ -140,9 +138,9 @@ class Parser {
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
   Expr _parseExpr() => _parseAssignmentExpr();
 
-  HS_Type _parseTypeId() {
+  HT_Type _parseTypeId() {
     String type_name = advance(1).lexeme;
-    var type_args = <HS_Type>[];
+    var type_args = <HT_Type>[];
     if (expect([env.lexicon.angleLeft], consume: true, error: false)) {
       while ((curTok != env.lexicon.angleRight) && (curTok != env.lexicon.endOfFile)) {
         type_args.add(_parseTypeId());
@@ -151,7 +149,7 @@ class Parser {
       expect([env.lexicon.angleRight], consume: true);
     }
 
-    return HS_Type(name: type_name, arguments: type_args);
+    return HT_Type(name: type_name, arguments: type_args);
   }
 
   /// 赋值 = ，优先级 1，右合并
@@ -429,17 +427,6 @@ class Parser {
           }
         }
         break;
-      case ParseStyle.commandLine:
-        {
-          var callee = _parseExpr();
-          var params = <Expr>[];
-          while (curTok.type != env.lexicon.endOfFile) {
-            params.add(LiteralExpr(interpreter.addLiteral(curTok.lexeme), curTok.line, curTok.column, _curFileName));
-            advance(1);
-          }
-          return ExprStmt(CallExpr(callee, params, _curFileName));
-        }
-        break;
     }
     return null;
   }
@@ -479,7 +466,7 @@ class Parser {
   VarStmt _parseVarStmt({bool is_extern = false, bool is_static = false}) {
     advance(1);
     var name = match(env.lexicon.identifier);
-    HS_Type typeid;
+    HT_Type typeid;
     if (expect([env.lexicon.colon], consume: true, error: false)) {
       typeid = _parseTypeId();
     }
@@ -506,12 +493,8 @@ class Parser {
     return ExprStmt(expr);
   }
 
-  ExprStmt _parseExprStmt({bool commandLine = false}) {
+  ExprStmt _parseExprStmt() {
     var stmt = ExprStmt(_parseExpr());
-    if (!commandLine) {
-      // 语句结尾
-      expect([env.lexicon.semicolon], consume: true, error: false);
-    }
     return stmt;
   }
 
@@ -570,11 +553,11 @@ class Parser {
     expect([env.lexicon.FOR, env.lexicon.roundLeft], consume: true);
     // 递增变量
     String i = '__i${internalVarIndex++}';
-    list_stmt.add(VarStmt(Token(i, env.lexicon.identifier, line, column + 4), HS_Type.number,
+    list_stmt.add(VarStmt(Token(i, env.lexicon.identifier, line, column + 4), HT_Type.number,
         initializer: LiteralExpr(interpreter.addLiteral(0), line, column, _curFileName)));
     // 指针
     var varname = match(env.lexicon.identifier);
-    HS_Type typeid;
+    HT_Type typeid;
     if (expect([env.lexicon.colon], consume: true, error: false)) {
       typeid = _parseTypeId();
     }
@@ -629,7 +612,7 @@ class Parser {
         optionalStarted = expect([env.lexicon.squareLeft], error: false, consume: true);
       }
       var name = match(env.lexicon.identifier);
-      HS_Type typeid;
+      HT_Type typeid;
       if (expect([env.lexicon.colon], consume: true, error: false)) {
         typeid = _parseTypeId();
       }
@@ -691,7 +674,7 @@ class Parser {
       }
     }
 
-    HS_Type return_type = HS_Type.VOID;
+    HT_Type return_type = HT_Type.VOID;
     if (functype != FuncStmtType.constructor) {
       if (expect([env.lexicon.colon], consume: true, error: false)) {
         return_type = _parseTypeId();
@@ -735,7 +718,7 @@ class Parser {
       expect([env.lexicon.angleRight], consume: true);
     }
 
-    HS_Type super_class;
+    HT_Type super_class;
     // 继承父类
     if (expect([env.lexicon.EXTENDS], consume: true, error: false)) {
       super_class = _parseTypeId();

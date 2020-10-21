@@ -61,14 +61,14 @@ class HetuEnv {
       if (externalFunctions != null) itp.loadExterns(externalFunctions);
 
       // 载入基础库
-      await itp.evalf(sdkDirectory + 'core/core.ht');
-      await itp.evalf(sdkDirectory + 'core/value.ht');
-      await itp.evalf(sdkDirectory + 'core/system.ht');
-      await itp.evalf(sdkDirectory + 'core/console.ht');
+      await itp.evalf(sdkDirectory + 'core.ht');
+      await itp.evalf(sdkDirectory + 'value.ht');
+      await itp.evalf(sdkDirectory + 'system.ht');
+      await itp.evalf(sdkDirectory + 'console.ht');
 
       if (additionalModules) {
-        await itp.evalf(sdkDirectory + 'core/math.ht');
-        await itp.evalf(sdkDirectory + 'core/help.ht');
+        await itp.evalf(sdkDirectory + 'math.ht');
+        await itp.evalf(sdkDirectory + 'help.ht');
       }
     } catch (e) {
       stdout.write('\x1B[32m');

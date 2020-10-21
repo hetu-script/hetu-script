@@ -1,26 +1,26 @@
 import 'package:hetu_script/hetu.dart';
 
 import 'errors.dart';
-import 'common.dart';
+import 'environment.dart';
 import 'value.dart';
 
-class HS_Namespace extends HS_Value {
+class HT_Namespace extends HT_Value {
   String toString() => '${env.lexicon.NAMESPACE} $name';
 
   String _fullName;
   String get fullName => _fullName;
 
   final Map<String, Declaration> defs = {};
-  HS_Namespace _closure;
-  HS_Namespace get closure => _closure;
-  void set closure(HS_Namespace closure) {
+  HT_Namespace _closure;
+  HT_Namespace get closure => _closure;
+  void set closure(HT_Namespace closure) {
     _closure = closure;
     _fullName = getFullName(this.name, _closure);
   }
 
   static int spaceIndex = 0;
 
-  static String getFullName(String name, HS_Namespace space) {
+  static String getFullName(String name, HT_Namespace space) {
     var fullName = name;
     var cur_space = space.closure;
     while ((cur_space != null) && (cur_space.name != env.lexicon.globals)) {
@@ -30,15 +30,15 @@ class HS_Namespace extends HS_Value {
     return fullName;
   }
 
-  HS_Namespace({
+  HT_Namespace({
     String name,
-    HS_Namespace closure,
+    HT_Namespace closure,
   }) : super(name: name ?? '__namespace${spaceIndex++}') {
     _fullName = getFullName(this.name, this);
     _closure = closure;
   }
 
-  HS_Namespace closureAt(int distance) {
+  HT_Namespace closureAt(int distance) {
     var namespace = this;
     for (var i = 0; i < distance; ++i) {
       namespace = namespace.closure;
@@ -76,15 +76,15 @@ class HS_Namespace extends HS_Value {
   // }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(String id, HS_Type declType, int line, int column, Interpreter interpreter,
+  void define(String id, HT_Type declType, int line, int column, Interpreter interpreter,
       {dynamic value, bool mutable = true}) {
-    var val_type = HS_TypeOf(value);
+    var val_type = HT_TypeOf(value);
     if (val_type.isA(declType)) {
       defs[id] = Declaration(value == null ? declType : val_type, value: value, mutable: mutable);
     }
     //  else if ((value != null) && (value is Map)) {
     //   var klass = interpreter.global.fetch(id, line, column, interpreter);
-    //   if (klass is HS_Class) {
+    //   if (klass is HT_Class) {
     //     var instance = klass.createInstance(interpreter, line, column, this);
     //     for (var key in value.keys) {
     //       instance.assign(key, value[key], line, column, interpreter);
@@ -132,7 +132,7 @@ class HS_Namespace extends HS_Value {
     from ??= env.lexicon.globals;
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
-      var var_type = HS_TypeOf(value);
+      var var_type = HT_TypeOf(value);
       if (from.startsWith(this.fullName) || (!varName.startsWith(env.lexicon.underscore))) {
         if (var_type.isA(decl_type)) {
           if (defs[varName].mutable) {

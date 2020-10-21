@@ -1,28 +1,28 @@
 import 'package:hetu_script/hetu.dart';
 
-import 'common.dart';
+import 'environment.dart';
 
-class HS_Type {
-  // List<HS_Type> get inheritances;
-  // List<HS_Type> get compositions;
+class HT_Type {
+  // List<HT_Type> get inheritances;
+  // List<HT_Type> get compositions;
   String name;
-  List<HS_Type> arguments = [];
+  List<HT_Type> arguments = [];
 
-  HS_Type({this.name, List<HS_Type> arguments}) {
+  HT_Type({this.name, List<HT_Type> arguments}) {
     name ??= env.lexicon.ANY;
     if (arguments != null) this.arguments.addAll(arguments);
   }
 
-  static final NULL = HS_Type(name: env.lexicon.NULL);
-  static final VOID = HS_Type(name: env.lexicon.VOID);
-  static final CLASS = HS_Type(name: env.lexicon.CLASS);
-  static final NAMESPACE = HS_Type(name: env.lexicon.NAMESPACE);
-  static final unknown = HS_Type(name: env.lexicon.unknown);
-  static final number = HS_Type(name: env.lexicon.number);
-  static final boolean = HS_Type(name: env.lexicon.boolean);
-  static final string = HS_Type(name: env.lexicon.string);
-  static final list = HS_Type(name: env.lexicon.list);
-  static final map = HS_Type(name: env.lexicon.map);
+  static final NULL = HT_Type(name: env.lexicon.NULL);
+  static final VOID = HT_Type(name: env.lexicon.VOID);
+  static final CLASS = HT_Type(name: env.lexicon.CLASS);
+  static final NAMESPACE = HT_Type(name: env.lexicon.NAMESPACE);
+  static final unknown = HT_Type(name: env.lexicon.unknown);
+  static final number = HT_Type(name: env.lexicon.number);
+  static final boolean = HT_Type(name: env.lexicon.boolean);
+  static final string = HT_Type(name: env.lexicon.string);
+  static final list = HT_Type(name: env.lexicon.list);
+  static final map = HT_Type(name: env.lexicon.map);
 
   @override
   String toString() {
@@ -39,7 +39,7 @@ class HS_Type {
     return typename.toString();
   }
 
-  bool isA(HS_Type typeid) {
+  bool isA(HT_Type typeid) {
     bool result = false;
     if ((typeid.name == env.lexicon.ANY) || (this.name == env.lexicon.NULL)) {
       result = true;
@@ -61,82 +61,82 @@ class HS_Type {
     return result;
   }
 
-  bool isNotA(HS_Type typeid) => !isA(typeid);
+  bool isNotA(HT_Type typeid) => !isA(typeid);
 }
 
-HS_Type HS_TypeOf(dynamic value) {
+HT_Type HT_TypeOf(dynamic value) {
   if ((value == null) || (value is NullThrownError)) {
-    return HS_Type.NULL;
-  } else if (value is HS_Class) {
-    return HS_Type.CLASS;
-  } else if (value is HS_Instance) {
+    return HT_Type.NULL;
+  } else if (value is HT_Class) {
+    return HT_Type.CLASS;
+  } else if (value is HT_Instance) {
     return value.typeid;
-  } else if (value is HS_Function) {
+  } else if (value is HT_Function) {
     return value.typeid;
   } else if (value is num) {
-    return HS_Type.number;
+    return HT_Type.number;
   } else if (value is bool) {
-    return HS_Type.boolean;
+    return HT_Type.boolean;
   } else if (value is String) {
-    return HS_Type.string;
+    return HT_Type.string;
   } else if (value is List) {
     // var list_darttype = value.runtimeType.toString();
     // var item_darttype = list_darttype.substring(list_darttype.indexOf('<') + 1, list_darttype.indexOf('>'));
     // if ((item_darttype != 'dynamic') && (value.isNotEmpty)) {
-    //   valType = HS_TypeOf(value.first);
+    //   valType = HT_TypeOf(value.first);
     // }
-    HS_Type valType = HS_Type();
+    HT_Type valType = HT_Type();
     if (value.isNotEmpty) {
-      valType = HS_TypeOf(value.first);
+      valType = HT_TypeOf(value.first);
       for (var item in value) {
-        if (HS_TypeOf(item) != valType) {
-          valType = HS_Type();
+        if (HT_TypeOf(item) != valType) {
+          valType = HT_Type();
           break;
         }
       }
     }
 
-    return HS_Type(name: env.lexicon.list, arguments: [valType]);
+    return HT_Type(name: env.lexicon.list, arguments: [valType]);
   } else if (value is Map) {
-    HS_Type keyType = HS_Type();
-    HS_Type valType = HS_Type();
+    HT_Type keyType = HT_Type();
+    HT_Type valType = HT_Type();
     if (value.keys.isNotEmpty) {
-      keyType = HS_TypeOf(value.keys.first);
+      keyType = HT_TypeOf(value.keys.first);
       for (var key in value.keys) {
-        if (HS_TypeOf(key) != keyType) {
-          keyType = HS_Type();
+        if (HT_TypeOf(key) != keyType) {
+          keyType = HT_Type();
           break;
         }
       }
     }
     if (value.values.isNotEmpty) {
-      valType = HS_TypeOf(value.values.first);
+      valType = HT_TypeOf(value.values.first);
       for (var value in value.values) {
-        if (HS_TypeOf(value) != valType) {
-          valType = HS_Type();
+        if (HT_TypeOf(value) != valType) {
+          valType = HT_Type();
           break;
         }
       }
     }
-    return HS_Type(name: env.lexicon.map, arguments: [keyType, valType]);
+    return HT_Type(name: env.lexicon.map, arguments: [keyType, valType]);
   } else {
-    return HS_Type.unknown;
+    return HT_Type.unknown;
   }
 }
 
 /// Value是命名空间、类和实例的基类
-abstract class HS_Value {
+abstract class HT_Value {
   final String name;
   bool used = false;
 
-  HS_Value({this.name});
+  HT_Value({this.name});
 }
 
 class Declaration {
-  // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HS_Value
+  // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HT_Value
   dynamic value;
 
-  final HS_Type typeid;
+  final HT_Type typeid;
   final bool nullable;
   final bool mutable;
 

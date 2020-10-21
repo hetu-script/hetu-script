@@ -29,14 +29,14 @@
 //  Cascade          ..                                   Left            2
 //  Assignment       =, *=, /=, +=, -=, &=, ˆ=, etc.      Right           1
 
-class HS_Lexicons {
-  const HS_Lexicons();
+class HT_Lexicons {
+  const HT_Lexicons();
 
   final defaultProgramMainFunc = 'main';
 
   final scriptPattern = r'(//.*)|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-      r'(\.\.\.|\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
+      r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
       r'("(\\"|[^"])*"))';

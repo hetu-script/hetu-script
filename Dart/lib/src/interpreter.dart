@@ -1,4 +1,4 @@
-import 'common.dart';
+import 'environment.dart';
 import 'buildin.dart';
 import 'errors.dart';
 import 'expression.dart';
@@ -16,8 +16,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   var _evaledFiles = <String>[];
 
   /// 全局命名空间
-  HS_Namespace globals;
-  HS_Namespace externs;
+  HT_Namespace globals;
+  HT_Namespace externs;
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -27,19 +27,19 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   final _constants = <dynamic>[];
 
   /// 当前语句所在的命名空间
-  HS_Namespace curContext;
+  HT_Namespace curContext;
   String _curFileName;
   String get curFileName => _curFileName;
 
   Interpreter() {
-    globals = HS_Namespace(name: env.lexicon.globals);
-    externs = HS_Namespace(name: env.lexicon.externs);
+    globals = HT_Namespace(name: env.lexicon.globals);
+    externs = HT_Namespace(name: env.lexicon.externs);
 
     curContext = globals;
   }
 
   dynamic eval(String content, String fileName,
-      {HS_Namespace context,
+      {HT_Namespace context,
       ParseStyle style = ParseStyle.library,
       String invokeFunc = null,
       List<dynamic> args}) async {
@@ -68,10 +68,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (env.debugMode) print('hetu: Loading $filepath...');
       _evaledFiles.add(curFileName);
 
-      HS_Namespace library_namespace;
+      HT_Namespace library_namespace;
       if ((libName != null) && (libName != env.lexicon.globals)) {
-        globals.define(libName, HS_Type.NAMESPACE, null, null, this);
-        library_namespace = HS_Namespace(name: libName, closure: library_namespace);
+        globals.define(libName, HT_Type.NAMESPACE, null, null, this);
+        library_namespace = HT_Namespace(name: libName, closure: library_namespace);
       }
 
       var content = await env.stringLoadMethod(_curFileName);
@@ -83,20 +83,20 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   /// 解析命令行
-  dynamic evalc(String input) {
-    HS_Error.clear();
-    try {
-      final _lexer = Lexer();
-      final _parser = Parser(this);
-      var tokens = _lexer.lex(input, commandLine: true);
-      var statements = _parser.parse(tokens, null, style: ParseStyle.commandLine);
-      executeBlock(statements, curContext);
-    } catch (e) {
-      print(e);
-    } finally {
-      HS_Error.output();
-    }
-  }
+  // dynamic evalc(String input) {
+  //   HT_Error.clear();
+  //   try {
+  //     final _lexer = Lexer();
+  //     final _parser = Parser(this);
+  //     var tokens = _lexer.lex(input, commandLine: true);
+  //     var statements = _parser.parse(tokens, null, style: ParseStyle.commandLine);
+  //     executeBlock(statements, curContext);
+  //   } catch (e) {
+  //     print(e);
+  //   } finally {
+  //     HT_Error.output();
+  //   }
+  // }
 
   // void addLocal(Expr expr, int distance) {
   //   _locals[expr] = distance;
@@ -122,15 +122,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 链接外部函数，链接时必须在河图中存在一个函数声明
   ///
   /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
-  void loadExtern(String name, HS_External function) {
+  void loadExtern(String name, HT_External function) {
     if (externs.contains(name)) {
       throw HSErr_Defined(name, null, null, curFileName);
     } else {
-      externs.define(name, HS_Type(), null, null, this, value: function);
+      externs.define(name, HT_Type(), null, null, this, value: function);
     }
   }
 
-  void loadExterns(Map<String, HS_External> linkMap) {
+  void loadExterns(Map<String, HT_External> linkMap) {
     for (var key in linkMap.keys) {
       loadExtern(key, linkMap[key]);
     }
@@ -146,7 +146,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   dynamic unwrap(dynamic value, int line, int column, String fileName) {
-    if (value is HS_Value) {
+    if (value is HT_Value) {
       return value;
     } else if (value is num) {
       return HSVal_Number(value, line, column, this);
@@ -170,21 +170,21 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   // }
 
   dynamic invoke(String name, {String classname, List<dynamic> args}) async {
-    HS_Error.clear();
+    HT_Error.clear();
     try {
       if (classname == null) {
         var func = globals.fetch(name, null, null, this, recursive: false);
-        if (func is HS_Function) {
+        if (func is HT_Function) {
           return func.call(this, null, null, args ?? []);
         } else {
           throw HSErr_Undefined(name, null, null, curFileName);
         }
       } else {
         var klass = globals.fetch(classname, null, null, this, recursive: false);
-        if (klass is HS_Class) {
+        if (klass is HT_Class) {
           // 只能调用公共函数
           var func = klass.fetch(name, null, null, this, recursive: false);
-          if (func is HS_Function) {
+          if (func is HT_Function) {
             return func.call(this, null, null, args ?? []);
           } else {
             throw HSErr_Callable(name, null, null, curFileName);
@@ -196,11 +196,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     } catch (e) {
       print(e);
     } finally {
-      HS_Error.output();
+      HT_Error.output();
     }
   }
 
-  void executeBlock(List<Stmt> statements, HS_Namespace environment) {
+  void executeBlock(List<Stmt> statements, HT_Namespace environment) {
     var saved_context = curContext;
 
     try {
@@ -329,8 +329,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
               left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
         }
       } else if (expr.op.type == env.lexicon.IS) {
-        if (right is HS_Class) {
-          return HS_TypeOf(left) == right.name;
+        if (right is HT_Class) {
+          return HT_TypeOf(left) == right.name;
         } else {
           throw HSErr_NotType(right.toString(), expr.op.line, expr.op.column, curFileName);
         }
@@ -341,7 +341,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           (expr.op.type == env.lexicon.greaterOrEqual) ||
           (expr.op.type == env.lexicon.lesser) ||
           (expr.op.type == env.lexicon.lesserOrEqual)) {
-        if ((expr.op == env.lexicon.IS) && (right is HS_Class)) {
+        if ((expr.op == env.lexicon.IS) && (right is HT_Class)) {
         } else if (left is num) {
           if (right is num) {
             if (expr.op == env.lexicon.multiply) {
@@ -383,13 +383,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       args.add(value);
     }
 
-    if (callee is HS_Function) {
+    if (callee is HT_Function) {
       if (callee.funcStmt.funcType != FuncStmtType.constructor) {
         return callee.call(this, expr.line, expr.column, args ?? []);
       } else {
         //TODO命名构造函数
       }
-    } else if (callee is HS_Class) {
+    } else if (callee is HT_Class) {
       // for (var i = 0; i < callee.varStmts.length; ++i) {
       //   var param_type_token = callee.varStmts[i].typename;
       //   var arg = args[i];
@@ -471,7 +471,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       object = HSVal_Map(object, expr.line, expr.column, this);
     }
 
-    if ((object is HS_Instance) || (object is HS_Class)) {
+    if ((object is HT_Instance) || (object is HT_Class)) {
       return object.fetch(expr.key.lexeme, expr.line, expr.column, this, from: curContext.fullName);
     }
 
@@ -482,7 +482,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
     dynamic object = evaluateExpr(expr.collection);
     var value = evaluateExpr(expr.value);
-    if ((object is HS_Instance) || (object is HS_Class)) {
+    if ((object is HT_Instance) || (object is HT_Class)) {
       object.assign(expr.key.lexeme, value, expr.line, expr.column, this, from: curContext.fullName);
       return value;
     }
@@ -495,7 +495,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitImportStmt(ImportStmt stmt) async {
     String file_loc;
     if (stmt.location.startsWith('hetu:')) {
-      file_loc = env.sdkDirectory + 'core' + stmt.location.substring(5) + '.ht';
+      file_loc = env.sdkDirectory + stmt.location.substring(5) + '.ht';
     } else {
       file_loc = env.workingDirectory + stmt.location;
     }
@@ -509,14 +509,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       value = evaluateExpr(stmt.initializer);
     }
 
-    var decl_type = HS_Type();
+    var decl_type = HT_Type();
     if (stmt.declType != null) {
       // TODO: 解析类型名，判断是否是class
       decl_type = stmt.declType;
     } else {
       // 从初始化表达式推断变量类型
       if (value != null) {
-        decl_type = HS_TypeOf(value);
+        decl_type = HT_TypeOf(value);
       }
     }
 
@@ -528,7 +528,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitBlockStmt(BlockStmt stmt) {
-    executeBlock(stmt.block, HS_Namespace(closure: curContext));
+    executeBlock(stmt.block, HT_Namespace(closure: curContext));
   }
 
   @override
@@ -562,9 +562,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           evaluateStmt(stmt.loop);
           value = evaluateExpr(stmt.condition);
         } catch (error) {
-          if (error is HS_Break) {
+          if (error is HT_Break) {
             return;
-          } else if (error is HS_Continue) {
+          } else if (error is HT_Continue) {
             continue;
           } else {
             throw error;
@@ -578,31 +578,31 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   void visitBreakStmt(BreakStmt stmt) {
-    throw HS_Break();
+    throw HT_Break();
   }
 
   @override
   void visitContinueStmt(ContinueStmt stmt) {
-    throw HS_Continue();
+    throw HT_Continue();
   }
 
   @override
   void visitFuncStmt(FuncStmt stmt) {
     // 构造函数本身不注册为变量
     if (stmt.funcType != FuncStmtType.constructor) {
-      HS_Function func;
-      HS_External externFunc;
+      HT_Function func;
+      HT_External externFunc;
       if (stmt.isExtern) {
         externFunc = externs.fetch(stmt.name, stmt.keyword.line, stmt.keyword.column, this, from: externs.fullName);
       }
-      func = HS_Function(stmt, name: stmt.internalName, extern: externFunc, declContext: curContext);
+      func = HT_Function(stmt, name: stmt.internalName, extern: externFunc, declContext: curContext);
       curContext.define(stmt.name, func.typeid, stmt.keyword.line, stmt.keyword.column, this, value: func);
     }
   }
 
   @override
   void visitClassStmt(ClassStmt stmt) {
-    HS_Class superClass;
+    HT_Class superClass;
 
     //TODO: while superClass != null, inherit all...
 
@@ -612,15 +612,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       } else {
         superClass = globals.fetch(stmt.superClass.name, stmt.keyword.line, stmt.keyword.column, this);
       }
-      if (superClass is! HS_Class) {
+      if (superClass is! HT_Class) {
         throw HSErr_Extends(superClass.name, stmt.keyword.line, stmt.keyword.column, curFileName);
       }
     }
 
-    var klass = HS_Class(stmt.name, superClass: superClass, closure: curContext);
+    var klass = HT_Class(stmt.name, superClass: superClass, closure: curContext);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curContext.define(stmt.name, HS_Type.CLASS, stmt.keyword.line, stmt.keyword.column, this, value: klass);
+    curContext.define(stmt.name, HT_Type.CLASS, stmt.keyword.line, stmt.keyword.column, this, value: klass);
 
     var save = curContext;
     curContext = klass;
@@ -635,14 +635,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
               from: externs.fullName);
         }
 
-        var typeid = HS_Type();
+        var typeid = HT_Type();
         if (variable.declType != null) {
           // TODO: 解析类型名，判断是否是class
           typeid = variable.declType;
         } else {
           // 从初始化表达式推断变量类型
           if (value != null) {
-            typeid = HS_TypeOf(value);
+            typeid = HT_TypeOf(value);
           }
         }
 
@@ -658,17 +658,17 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         throw HSErr_Defined(method.name, method.keyword.line, method.keyword.column, curFileName);
       }
 
-      HS_Function func;
-      HS_External externFunc;
+      HT_Function func;
+      HT_External externFunc;
       if (method.isExtern) {
         externFunc = externs.fetch('${stmt.name}${env.lexicon.memberGet}${method.internalName}', method.keyword.line,
             method.keyword.column, this,
             from: externs.fullName);
       }
       if (method.isStatic) {
-        func = HS_Function(method, name: method.internalName, extern: externFunc, declContext: klass);
+        func = HT_Function(method, name: method.internalName, extern: externFunc, declContext: klass);
       } else {
-        func = HS_Function(method, name: method.internalName, extern: externFunc);
+        func = HT_Function(method, name: method.internalName, extern: externFunc);
       }
       klass.define(method.internalName, func.typeid, method.keyword.line, method.keyword.column, this, value: func);
     }

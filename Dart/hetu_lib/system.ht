@@ -1,6 +1,6 @@
 class System {
   // interpret a command line string
-  external static fun evalc(command: String): any
+  // external static fun evalc(command: String): any
 
   // invoke a global or static member function
   //

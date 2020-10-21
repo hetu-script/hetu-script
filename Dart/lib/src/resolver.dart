@@ -1,7 +1,7 @@
 import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
-import 'common.dart';
+import 'environment.dart';
 import 'interpreter.dart';
 
 enum _ClassType {

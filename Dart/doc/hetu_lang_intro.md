@@ -1,6 +1,6 @@
 # 河图脚本语言特性概览
 
-河图的语言大体上和 typescript 比较接近，类型用冒号声明，语句结尾可以省略分号。主要区别是河图的变量会从声明推断其类型，并且不会做自动转换。另外函数声明使用 fun 关键字。
+河图的语言大体上和 typescript 比较接近，类型用冒号声明，语句结尾可以省略分号。河图的变量会从声明推断其类型，并且不会做自动转换。另外函数声明使用 fun 关键字。
 
 ## Hello World
 
@@ -23,7 +23,7 @@ fun printNumber(aNumber: num) {
 
 // This is where the app starts executing.
 fun main {
-  var number = 42 // Declare and initialize a variable.
+  var number = 6 * 7 // Declare and initialize a variable.
   printNumber(number) // Call a function.
 }
 ```
@@ -67,10 +67,10 @@ while (year < 2040) {
 ```typescript
 int fib(int n) {
   if (n == 0 || n == 1) return n;
-  return fib(n - 1) + fibonacci(n - 2);
+  return fib(n - 1) + fib(n - 2);
 }
 
-var result = fibonacci(10);
+var result = fib(10);
 ```
 
 ## 保留字

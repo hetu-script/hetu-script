@@ -1,17 +1,17 @@
 import '../hetu.dart';
 import 'class.dart';
-import 'common.dart';
+import 'environment.dart';
 import 'namespace.dart';
 import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
 import 'value.dart';
 
-class HS_TypeFunction extends HS_Type {
-  final HS_Type returnType;
-  final List<HS_Type> paramsTypes = [];
+class HT_TypeFunction extends HT_Type {
+  final HT_Type returnType;
+  final List<HT_Type> paramsTypes = [];
 
-  HS_TypeFunction(this.returnType, {List<HS_Type> arguments, List<HS_Type> paramsTypes})
+  HT_TypeFunction(this.returnType, {List<HT_Type> arguments, List<HT_Type> paramsTypes})
       : super(name: env.lexicon.function, arguments: arguments) {
     if (paramsTypes != null) this.paramsTypes.addAll(paramsTypes);
   }
@@ -41,31 +41,31 @@ class HS_TypeFunction extends HS_Type {
   }
 }
 
-class HS_Function {
+class HT_Function {
   static int functionIndex = 0;
 
-  final HS_Namespace declContext;
-  HS_Namespace _closure;
-  //HS_Namespace _save;
+  final HT_Namespace declContext;
+  HT_Namespace _closure;
+  //HT_Namespace _save;
   final String internalName;
   String get name => internalName ?? funcStmt.name;
 
   final FuncStmt funcStmt;
 
-  HS_TypeFunction _typeid;
-  HS_TypeFunction get typeid => _typeid;
+  HT_TypeFunction _typeid;
+  HT_TypeFunction get typeid => _typeid;
 
-  final HS_External extern;
+  final HT_External extern;
 
-  HS_Function(this.funcStmt, {this.internalName, List<HS_Type> typeArgs, String name, this.extern, this.declContext}) {
+  HT_Function(this.funcStmt, {this.internalName, List<HT_Type> typeArgs, String name, this.extern, this.declContext}) {
     //_save = _closure = closure;
 
-    var paramsTypes = <HS_Type>[];
+    var paramsTypes = <HT_Type>[];
     for (var param in funcStmt.params) {
       paramsTypes.add(param.declType);
     }
 
-    _typeid = HS_TypeFunction(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
+    _typeid = HT_TypeFunction(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
   }
 
   @override
@@ -97,7 +97,7 @@ class HS_Function {
     return result.toString();
   }
 
-  dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args, {HS_Instance instance}) {
+  dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args, {HT_Instance instance}) {
     assert(args != null);
     try {
       if (extern != null) {
@@ -120,10 +120,10 @@ class HS_Function {
           //_save = _closure;
           //assert(closure != null);
           if (instance != null) {
-            _closure = HS_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
+            _closure = HT_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
             _closure.define(env.lexicon.THIS, instance.typeid, line, column, interpreter, mutable: false);
           } else {
-            _closure = HS_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
+            _closure = HT_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
           }
 
           if (funcStmt.arity >= 0) {
@@ -135,13 +135,13 @@ class HS_Function {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
                 var var_stmt = funcStmt.params[i];
-                HS_Type arg_type_decl = HS_Type();
+                HT_Type arg_type_decl = HT_Type();
                 if (var_stmt.declType != null) {
                   arg_type_decl = var_stmt.declType;
                 }
 
                 if (i < args.length) {
-                  var arg_type = HS_TypeOf(args[i]);
+                  var arg_type = HT_TypeOf(args[i]);
                   if (arg_type.isNotA(arg_type_decl)) {
                     throw HSErr_ArgType(args[i].toString(), arg_type.toString(), arg_type_decl.toString(), line, column,
                         interpreter.curFileName);
@@ -158,7 +158,7 @@ class HS_Function {
             }
           } else {
             // “...”形式的参数列表通过List访问参数
-            _closure.define(funcStmt.params.first.name.lexeme, HS_Type.list, line, column, interpreter, value: args);
+            _closure.define(funcStmt.params.first.name.lexeme, HT_Type.list, line, column, interpreter, value: args);
           }
 
           interpreter.executeBlock(funcStmt.definition, _closure);
@@ -168,13 +168,13 @@ class HS_Function {
         }
       }
     } catch (returnValue) {
-      if (returnValue is HS_Error) {
+      if (returnValue is HT_Error) {
         throw returnValue;
       } else if ((returnValue is Exception) || (returnValue is NoSuchMethodError)) {
-        throw HS_Error(returnValue.toString(), line, column, interpreter.curFileName);
+        throw HT_Error(returnValue.toString(), line, column, interpreter.curFileName);
       }
 
-      var returned_type = HS_TypeOf(returnValue);
+      var returned_type = HT_TypeOf(returnValue);
 
       if ((funcStmt != null) && (returned_type.isNotA(funcStmt.returnType))) {
         throw HSErr_ReturnType(

@@ -1,5 +1,5 @@
 import 'token.dart';
-import 'common.dart';
+import 'environment.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 ///

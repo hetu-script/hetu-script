@@ -1,21 +1,20 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:hetu_script/src/common.dart';
+import 'package:hetu_script/src/environment.dart';
 import 'package:hetu_script/src/class.dart';
 import 'package:hetu_script/src/interpreter.dart';
 import 'package:hetu_script/src/value.dart';
 
-abstract class HS_Buildin {
+abstract class HT_Buildin {
   static const coreLib = 'class Object {}\n'
       'class Function {}\n';
 
-  static Map<String, HS_External> functions = {
+  static Map<String, HT_External> functions = {
     'typeof': _typeof,
     'help': _help,
     'print': _print,
     'string': _string,
-    'System.evalc': _system_evalc,
     'System.invoke': _system_invoke,
     'System.now': _system_now,
     'Console.write': _console_write,
@@ -56,24 +55,24 @@ abstract class HS_Buildin {
     'cos': _math_cos,
   };
 
-  static dynamic _typeof(HS_Instance instance, List<dynamic> args) {
+  static dynamic _typeof(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
-      return HS_TypeOf(args.first).toString();
+      return HT_TypeOf(args.first).toString();
     }
   }
 
-  static dynamic _help(HS_Instance instance, List<dynamic> args) {
+  static dynamic _help(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var value = args.first;
-      if (value is HS_Instance) {
+      if (value is HT_Instance) {
         return value.typeid;
       } else {
-        return HS_TypeOf(value);
+        return HT_TypeOf(value);
       }
     }
   }
 
-  static dynamic _print(HS_Instance instance, List<dynamic> args) {
+  static dynamic _print(HT_Instance instance, List<dynamic> args) {
     var sb = StringBuffer();
     for (var arg in args) {
       sb.write('$arg ');
@@ -81,7 +80,7 @@ abstract class HS_Buildin {
     print(sb.toString());
   }
 
-  static dynamic _string(HS_Instance instance, List<dynamic> args) {
+  static dynamic _string(HT_Instance instance, List<dynamic> args) {
     var result = StringBuffer();
     for (var arg in args) {
       result.write(arg);
@@ -89,17 +88,7 @@ abstract class HS_Buildin {
     return result.toString();
   }
 
-  static dynamic _system_evalc(HS_Instance instance, List<dynamic> args) {
-    if (args.isNotEmpty) {
-      try {
-        return itp.evalc(args.first.toString());
-      } catch (e) {
-        print(e);
-      }
-    }
-  }
-
-  static dynamic _system_invoke(HS_Instance instance, List<dynamic> args) {
+  static dynamic _system_invoke(HT_Instance instance, List<dynamic> args) {
     if (args.length >= 2) {
       var func_name = args[0];
       var className = args[1];
@@ -108,15 +97,15 @@ abstract class HS_Buildin {
     }
   }
 
-  static dynamic _console_write(HS_Instance instance, List<dynamic> args) {
+  static dynamic _console_write(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) stdout.write(args.first);
   }
 
-  static dynamic _console_writeln(HS_Instance instance, List<dynamic> args) {
+  static dynamic _console_writeln(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) stdout.writeln(args.first);
   }
 
-  static dynamic _console_getln(HS_Instance instance, List<dynamic> args) {
+  static dynamic _console_getln(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       stdout.write('${args.first.toString()}');
     } else {
@@ -126,66 +115,66 @@ abstract class HS_Buildin {
     return input;
   }
 
-  static dynamic _console_erase_line(HS_Instance instance, List<dynamic> args) {
+  static dynamic _console_erase_line(HT_Instance instance, List<dynamic> args) {
     stdout.write('\x1B[1F\x1B[1G\x1B[1K');
   }
 
-  static dynamic _console_set_title(HS_Instance instance, List<dynamic> args) {
+  static dynamic _console_set_title(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var title = args.first.toString();
       stdout.write('\x1b]0;${title}\x07');
     }
   }
 
-  static dynamic _console_cls(HS_Instance instance, List<dynamic> args) {
+  static dynamic _console_cls(HT_Instance instance, List<dynamic> args) {
     stdout.write("\x1B[2J\x1B[0;0H");
   }
 
-  static dynamic _math_random(HS_Instance instance, List<dynamic> args) {
+  static dynamic _math_random(HT_Instance instance, List<dynamic> args) {
     return Random().nextDouble();
   }
 
-  static dynamic _math_random_int(HS_Instance instance, List<dynamic> args) {
+  static dynamic _math_random_int(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       int value = (args.first as num).truncate();
       return Random().nextInt(value);
     }
   }
 
-  static dynamic _math_sqrt(HS_Instance instance, List<dynamic> args) {
+  static dynamic _math_sqrt(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       num value = args.first;
       return sqrt(value);
     }
   }
 
-  static dynamic _math_log(HS_Instance instance, List<dynamic> args) {
+  static dynamic _math_log(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       num value = args.first;
       return log(value);
     }
   }
 
-  static dynamic _math_sin(HS_Instance instance, List<dynamic> args) {
+  static dynamic _math_sin(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       num value = args.first;
       return sin(value);
     }
   }
 
-  static dynamic _math_cos(HS_Instance instance, List<dynamic> args) {
+  static dynamic _math_cos(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       num value = args.first;
       return cos(value);
     }
   }
 
-  static dynamic _system_now(HS_Instance instance, List<dynamic> args) {
+  static dynamic _system_now(HT_Instance instance, List<dynamic> args) {
     return DateTime.now().millisecondsSinceEpoch;
   }
 }
 
-abstract class HSVal_Value extends HS_Instance {
+abstract class HSVal_Value extends HT_Instance {
   final dynamic value;
 
   HSVal_Value(this.value, String className, int line, int column, Interpreter interpreter)
@@ -197,7 +186,7 @@ abstract class HSVal_Value extends HS_Instance {
 
   //dynamic get value => fetch('_val', null, null, globalInterpreter.curFileName, error: false, from: type);
 
-  static dynamic _to_string(HS_Instance instance, List<dynamic> args) {
+  static dynamic _to_string(HT_Instance instance, List<dynamic> args) {
     if (instance != null) {
       //var value = instance.fetch('_val', null, null, globalInterpreter.curFileName, from: instance.type);
       return (instance as HSVal_Value).value.toString();
@@ -209,13 +198,13 @@ class HSVal_Number extends HSVal_Value {
   HSVal_Number(num value, int line, int column, Interpreter interpreter)
       : super(value, env.lexicon.number, line, column, interpreter);
 
-  static dynamic _parse(HS_Instance instance, List<dynamic> args) {
+  static dynamic _parse(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       return num.tryParse(args.first);
     }
   }
 
-  static dynamic _to_string_as_fixed(HS_Instance instance, List<dynamic> args) {
+  static dynamic _to_string_as_fixed(HT_Instance instance, List<dynamic> args) {
     int fractionDigits = 0;
     if (args.isNotEmpty) {
       fractionDigits = args.first;
@@ -225,7 +214,7 @@ class HSVal_Number extends HSVal_Value {
     return number.toStringAsFixed(fractionDigits);
   }
 
-  static dynamic _truncate(HS_Instance instance, List<dynamic> args) {
+  static dynamic _truncate(HT_Instance instance, List<dynamic> args) {
     var numObj = (instance as HSVal_Number);
     num number = numObj?.value;
     return number.truncate();
@@ -241,13 +230,13 @@ class HSVal_String extends HSVal_Value {
   HSVal_String(String value, int line, int column, Interpreter interpreter)
       : super(value, env.lexicon.string, line, column, interpreter);
 
-  static dynamic _is_empty(HS_Instance instance, List<dynamic> args) {
+  static dynamic _is_empty(HT_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
     String str = strObj?.value;
     return str?.isEmpty;
   }
 
-  static dynamic _substring(HS_Instance instance, List<dynamic> args) {
+  static dynamic _substring(HT_Instance instance, List<dynamic> args) {
     var strObj = (instance as HSVal_String);
     String str = strObj?.value;
     if (args.isNotEmpty) {
@@ -260,7 +249,7 @@ class HSVal_String extends HSVal_Value {
     }
   }
 
-  static dynamic _parse(HS_Instance instance, List<dynamic> args) {
+  static dynamic _parse(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       return args.first.toString();
     }
@@ -275,25 +264,25 @@ class HSVal_List extends HSVal_Value {
     valueType ??= env.lexicon.ANY;
   }
 
-  static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
+  static dynamic _get_length(HT_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     List list = listObj?.value;
     var result = list?.length;
     return result == null ? -1 : result;
   }
 
-  static dynamic _add(HS_Instance instance, List<dynamic> args) {
+  static dynamic _add(HT_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     listObj?.value?.addAll(args);
   }
 
-  static dynamic _clear(HS_Instance instance, List<dynamic> args) {
+  static dynamic _clear(HT_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     List list = listObj?.value;
     list?.clear();
   }
 
-  static dynamic _remove_at(HS_Instance instance, List<dynamic> args) {
+  static dynamic _remove_at(HT_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     List list = listObj?.value;
     if (args.isNotEmpty) {
@@ -301,7 +290,7 @@ class HSVal_List extends HSVal_Value {
     }
   }
 
-  static dynamic _index_of(HS_Instance instance, List<dynamic> args) {
+  static dynamic _index_of(HT_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     List list = listObj?.value;
     if (args.isNotEmpty) {
@@ -310,7 +299,7 @@ class HSVal_List extends HSVal_Value {
     return -1;
   }
 
-  static dynamic _element_at(HS_Instance instance, List<dynamic> args) {
+  static dynamic _element_at(HT_Instance instance, List<dynamic> args) {
     var listObj = (instance as HSVal_List);
     List list = listObj?.value;
     try {
@@ -337,28 +326,28 @@ class HSVal_Map extends HSVal_Value {
     valueType ??= env.lexicon.ANY;
   }
 
-  static dynamic _get_length(HS_Instance instance, List<dynamic> args) {
+  static dynamic _get_length(HT_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);
     Map map = mapObj?.value;
     var result = map?.length;
     return result == null ? -1 : result;
   }
 
-  static dynamic _get_keys(HS_Instance instance, List<dynamic> args) {
+  static dynamic _get_keys(HT_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);
     Map map = mapObj?.value;
     var result = map?.keys?.toList();
     return result == null ? [] : result;
   }
 
-  static dynamic _get_values(HS_Instance instance, List<dynamic> args) {
+  static dynamic _get_values(HT_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);
     Map map = mapObj?.value;
     var result = map?.values?.toList();
     return result == null ? [] : result;
   }
 
-  static dynamic _contains_key(HS_Instance instance, List<dynamic> args) {
+  static dynamic _contains_key(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var mapObj = (instance as HSVal_Map);
       Map map = mapObj?.value;
@@ -367,7 +356,7 @@ class HSVal_Map extends HSVal_Value {
     return false;
   }
 
-  static dynamic _contains_value(HS_Instance instance, List<dynamic> args) {
+  static dynamic _contains_value(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var mapObj = (instance as HSVal_Map);
       Map map = mapObj?.value;
@@ -376,7 +365,7 @@ class HSVal_Map extends HSVal_Value {
     return false;
   }
 
-  static dynamic _set_val(HS_Instance instance, List<dynamic> args) {
+  static dynamic _set_val(HT_Instance instance, List<dynamic> args) {
     if ((args.isNotEmpty) && args.length >= 2) {
       var mapObj = (instance as HSVal_Map);
       Map map = mapObj?.value;
@@ -388,7 +377,7 @@ class HSVal_Map extends HSVal_Value {
     }
   }
 
-  static dynamic _add_all(HS_Instance instance, List<dynamic> args) {
+  static dynamic _add_all(HT_Instance instance, List<dynamic> args) {
     if ((args.isNotEmpty) && (args.first is Map)) {
       var mapObj = (instance as HSVal_Map);
       Map map = mapObj?.value;
@@ -396,13 +385,13 @@ class HSVal_Map extends HSVal_Value {
     }
   }
 
-  static dynamic _clear(HS_Instance instance, List<dynamic> args) {
+  static dynamic _clear(HT_Instance instance, List<dynamic> args) {
     var mapObj = (instance as HSVal_Map);
     Map map = mapObj?.value;
     map?.clear();
   }
 
-  static dynamic _remove(HS_Instance instance, List<dynamic> args) {
+  static dynamic _remove(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var mapObj = (instance as HSVal_Map);
       Map map = mapObj?.value;
@@ -410,7 +399,7 @@ class HSVal_Map extends HSVal_Value {
     }
   }
 
-  static dynamic _get_val(HS_Instance instance, List<dynamic> args) {
+  static dynamic _get_val(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var mapObj = (instance as HSVal_Map);
       Map map = mapObj?.value;
@@ -419,7 +408,7 @@ class HSVal_Map extends HSVal_Value {
     }
   }
 
-  static dynamic _put_if_absent(HS_Instance instance, List<dynamic> args) {
+  static dynamic _put_if_absent(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
       var mapObj = (instance as HSVal_Map);
       Map map = mapObj?.value;

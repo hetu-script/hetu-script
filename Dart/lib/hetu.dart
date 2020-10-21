@@ -3,7 +3,7 @@
 ///
 library hetu_script;
 
-export 'src/common.dart';
+export 'src/environment.dart';
 export 'src/parser.dart' show ParseStyle;
 export 'src/lexer.dart';
 export 'src/parser.dart';

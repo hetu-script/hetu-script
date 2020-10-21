@@ -82,6 +82,22 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     return result;
   }
 
+  /// 解析命令行
+  // dynamic evalc(String input) {
+  //   HT_Error.clear();
+  //   try {
+  //     final _lexer = Lexer();
+  //     final _parser = Parser(this);
+  //     var tokens = _lexer.lex(input, commandLine: true);
+  //     var statements = _parser.parse(tokens, null, style: ParseStyle.commandLine);
+  //     executeBlock(statements, curContext);
+  //   } catch (e) {
+  //     print(e);
+  //   } finally {
+  //     HT_Error.output();
+  //   }
+  // }
+
   // void addLocal(Expr expr, int distance) {
   //   _locals[expr] = distance;
   // }
@@ -142,6 +158,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       return value;
     }
   }
+
+  // void interpreter(List<Stmt> statements, {bool commandLine = false, String invokeFunc = null, List<dynamic> args}) {
+  //   for (var stmt in statements) {
+  //     evaluateStmt(stmt);
+  //   }
+
+  //   if ((!commandLine) && (invokeFunc != null)) {
+  //     invoke(invokeFunc, args: args);
+  //   }
+  // }
 
   dynamic invoke(String name, {String classname, List<dynamic> args}) async {
     HT_Error.clear();
@@ -469,7 +495,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitImportStmt(ImportStmt stmt) async {
     String file_loc;
     if (stmt.location.startsWith('hetu:')) {
-      file_loc = env.sdkDirectory + 'core' + stmt.location.substring(5) + '.ht';
+      file_loc = env.sdkDirectory + stmt.location.substring(5) + '.ht';
     } else {
       file_loc = env.workingDirectory + stmt.location;
     }

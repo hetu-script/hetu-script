@@ -1,4 +1,4 @@
-import 'package:hetu_script/src/common.dart';
+import 'package:hetu_script/src/environment.dart';
 import 'package:hetu_script/src/interpreter.dart';
 import 'package:hetu_script/src/namespace.dart';
 import 'package:hetu_script/src/function.dart';
@@ -6,26 +6,26 @@ import 'package:hetu_script/src/errors.dart';
 import 'package:hetu_script/src/statement.dart';
 import 'package:hetu_script/src/value.dart';
 
-/// [HS_Class]的实例对应河图中的"class"声明
+/// [HT_Class]的实例对应河图中的"class"声明
 ///
-/// [HS_Class]继承自命名空间[HS_Namespace]，[HS_Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
+/// [HT_Class]继承自命名空间[HT_Namespace]，[HT_Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
 ///
 /// 类的方法单独定义在一个表中，通过[fetchMethod]获取
 ///
-/// 类的静态成员定义在所继承的[HS_Namespace]的表中，通过[define]和[fetch]定义和获取
+/// 类的静态成员定义在所继承的[HT_Namespace]的表中，通过[define]和[fetch]定义和获取
 ///
 /// TODO：对象初始化时从父类逐个调用构造函数
-class HS_Class extends HS_Namespace {
+class HT_Class extends HT_Namespace {
   List<String> typeParams = [];
 
   String toString() => '${env.lexicon.CLASS} $name';
 
-  HS_Class superClass;
+  HT_Class superClass;
 
   Map<String, VarStmt> variables = {};
-  //Map<String, HS_Function> methods = {};
+  //Map<String, HT_Function> methods = {};
 
-  HS_Class(String name, {List<String> typeParams, HS_Namespace closure, this.superClass})
+  HT_Class(String name, {List<String> typeParams, HT_Namespace closure, this.superClass})
       : super(name: name, closure: closure) {
     if (typeParams != null) this.typeParams.addAll(typeParams);
   }
@@ -58,7 +58,7 @@ class HS_Class extends HS_Namespace {
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(getter)) {
       if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
-        HS_Function func = defs[getter].value;
+        HT_Function func = defs[getter].value;
         return func.call(interpreter, line, column, []);
       }
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
@@ -81,7 +81,7 @@ class HS_Class extends HS_Namespace {
     var setter = '${env.lexicon.setter}$varName';
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
-      var var_type = HS_TypeOf(value);
+      var var_type = HT_TypeOf(value);
       if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         if (var_type.isA(decl_type)) {
           defs[varName].value = value;
@@ -92,7 +92,7 @@ class HS_Class extends HS_Namespace {
       throw HSErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(setter)) {
       if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
-        HS_Function setter_func = defs[setter].value;
+        HT_Function setter_func = defs[setter].value;
         setter_func.call(interpreter, line, column, [value]);
         return;
       }
@@ -107,9 +107,9 @@ class HS_Class extends HS_Namespace {
     if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
   }
 
-  HS_Instance createInstance(Interpreter interpreter, int line, int column, HS_Namespace closure,
-      {List<HS_Type> typeArgs, String initterName, List<dynamic> args}) {
-    var instance = HS_Instance(this, typeArgs: typeArgs);
+  HT_Instance createInstance(Interpreter interpreter, int line, int column, HT_Namespace closure,
+      {List<HT_Type> typeArgs, String initterName, List<dynamic> args}) {
+    var instance = HT_Instance(this, typeArgs: typeArgs);
 
     var save = interpreter.curContext;
     interpreter.curContext = instance;
@@ -124,9 +124,9 @@ class HS_Class extends HS_Namespace {
       } else {
         // 从初始化表达式推断变量类型
         if (value != null) {
-          instance.define(decl.name.lexeme, HS_TypeOf(value), line, column, interpreter, value: value);
+          instance.define(decl.name.lexeme, HT_TypeOf(value), line, column, interpreter, value: value);
         } else {
-          instance.define(decl.name.lexeme, HS_Type(), line, column, interpreter);
+          instance.define(decl.name.lexeme, HT_Type(), line, column, interpreter);
         }
       }
     }
@@ -137,7 +137,7 @@ class HS_Class extends HS_Namespace {
 
     var constructor = fetch(initterName, line, column, interpreter, error: false, from: name);
 
-    if (constructor is HS_Function) {
+    if (constructor is HT_Function) {
       constructor.call(interpreter, line, column, args ?? [], instance: instance);
     }
 
@@ -145,19 +145,19 @@ class HS_Class extends HS_Namespace {
   }
 }
 
-class HS_Instance extends HS_Namespace {
-  final List<HS_Type> typeArgs = [];
+class HT_Instance extends HT_Namespace {
+  final List<HT_Type> typeArgs = [];
 
   static int _instanceIndex = 0;
 
-  final HS_Class klass;
+  final HT_Class klass;
 
-  HS_Type _typeid;
-  HS_Type get typeid => _typeid;
+  HT_Type _typeid;
+  HT_Type get typeid => _typeid;
 
-  HS_Instance(this.klass, {List<HS_Type> typeArgs})
+  HT_Instance(this.klass, {List<HT_Type> typeArgs})
       : super(name: env.lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
-    _typeid = HS_Type(name: klass.name, arguments: typeArgs);
+    _typeid = HT_Type(name: klass.name, arguments: typeArgs);
 
     define(env.lexicon.THIS, typeid, null, null, null, value: this);
     //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);
@@ -181,12 +181,12 @@ class HS_Instance extends HS_Namespace {
     } else {
       var getter = '${env.lexicon.getter}$varName';
       if (klass.contains(getter)) {
-        HS_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
+        HT_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
           return method.call(interpreter, line, column, [], instance: this);
         }
       } else if (klass.contains(varName)) {
-        HS_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
+        HT_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
           return method;
         }
@@ -202,7 +202,7 @@ class HS_Instance extends HS_Namespace {
     from ??= env.lexicon.globals;
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
-      var var_type = HS_TypeOf(value);
+      var var_type = HT_TypeOf(value);
       if (!varName.startsWith(env.lexicon.underscore)) {
         if (var_type.isA(decl_type)) {
           if (defs[varName].mutable) {
@@ -217,7 +217,7 @@ class HS_Instance extends HS_Namespace {
     } else {
       var setter = '${env.lexicon.setter}$varName';
       if (klass.contains(setter)) {
-        HS_Function method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
+        HT_Function method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
           method.call(interpreter, line, column, [value], instance: this);
           return;
@@ -230,7 +230,7 @@ class HS_Instance extends HS_Namespace {
 
   dynamic invoke(String methodName, int line, int column, Interpreter interpreter,
       {bool error = true, List<dynamic> args}) {
-    HS_Function method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
+    HT_Function method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
       return method.call(interpreter, null, null, args ?? [], instance: this);
     }

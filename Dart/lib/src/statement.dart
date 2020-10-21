@@ -1,5 +1,5 @@
 import 'token.dart';
-import 'common.dart';
+import 'environment.dart';
 import 'expression.dart';
 import 'value.dart';
 
@@ -76,7 +76,7 @@ class VarStmt extends Stmt {
 
   final Token name;
 
-  final HS_Type declType;
+  final HT_Type declType;
 
   final Expr initializer;
 
@@ -193,7 +193,7 @@ class FuncStmt extends Stmt {
 
   final List<String> typeParams = [];
 
-  final HS_Type returnType;
+  final HT_Type returnType;
 
   String _internalName;
   String get internalName => _internalName;
@@ -252,7 +252,7 @@ class ClassStmt extends Stmt {
 
   final List<String> typeParams = [];
 
-  final HS_Type superClass;
+  final HT_Type superClass;
 
   final List<VarStmt> variables;
 
