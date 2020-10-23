@@ -1,8 +1,0 @@
-// return the runtime type of a value
-external fun typeof(value): String
-
-// print values of any type into lines
-external fun print(... args)
-
-// concact values of any type into string
-external fun string(... args): String
