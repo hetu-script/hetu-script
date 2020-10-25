@@ -139,7 +139,7 @@ class Parser {
   Expr _parseExpr() => _parseAssignmentExpr();
 
   HT_Type _parseTypeId() {
-    String type_name = advance(1).lexeme;
+    final type_name = advance(1).lexeme;
     var type_args = <HT_Type>[];
     if (expect([env.lexicon.angleLeft], consume: true, error: false)) {
       while ((curTok != env.lexicon.angleRight) && (curTok != env.lexicon.endOfFile)) {
@@ -159,12 +159,11 @@ class Parser {
     Expr expr = _parseLogicalOrExpr();
 
     if (env.lexicon.assignments.contains(curTok.type)) {
-      Token op = advance(1);
-      Expr value = _parseAssignmentExpr();
+      final op = advance(1);
+      final value = _parseAssignmentExpr();
 
       if (expr is VarExpr) {
-        Token name = expr.name;
-        return AssignExpr(name, op, value, _curFileName);
+        return AssignExpr(expr.name, op, value, _curFileName);
       } else if (expr is MemberGetExpr) {
         return MemberSetExpr(expr.collection, expr.key, value, _curFileName);
       } else if (expr is SubGetExpr) {
@@ -181,8 +180,8 @@ class Parser {
   Expr _parseLogicalOrExpr() {
     var expr = _parseLogicalAndExpr();
     while (curTok == env.lexicon.or) {
-      var op = advance(1);
-      var right = _parseLogicalAndExpr();
+      final op = advance(1);
+      final right = _parseLogicalAndExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
@@ -192,8 +191,8 @@ class Parser {
   Expr _parseLogicalAndExpr() {
     var expr = _parseEqualityExpr();
     while (curTok == env.lexicon.and) {
-      var op = advance(1);
-      var right = _parseEqualityExpr();
+      final op = advance(1);
+      final right = _parseEqualityExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
@@ -203,9 +202,8 @@ class Parser {
   Expr _parseEqualityExpr() {
     var expr = _parseRelationalExpr();
     while (env.lexicon.equalitys.contains(curTok.type)) {
-      var op = advance(1);
-
-      var right = _parseRelationalExpr();
+      final op = advance(1);
+      final right = _parseRelationalExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
@@ -215,8 +213,8 @@ class Parser {
   Expr _parseRelationalExpr() {
     var expr = _parseAdditiveExpr();
     while (env.lexicon.relationals.contains(curTok.type)) {
-      var op = advance(1);
-      var right = _parseAdditiveExpr();
+      final op = advance(1);
+      final right = _parseAdditiveExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
@@ -226,9 +224,8 @@ class Parser {
   Expr _parseAdditiveExpr() {
     var expr = _parseMultiplicativeExpr();
     while (env.lexicon.additives.contains(curTok.type)) {
-      var op = advance(1);
-
-      var right = _parseMultiplicativeExpr();
+      final op = advance(1);
+      final right = _parseMultiplicativeExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
@@ -238,9 +235,8 @@ class Parser {
   Expr _parseMultiplicativeExpr() {
     var expr = _parseUnaryPrefixExpr();
     while (env.lexicon.multiplicatives.contains(curTok.type)) {
-      var op = advance(1);
-
-      var right = _parseUnaryPrefixExpr();
+      final op = advance(1);
+      final right = _parseUnaryPrefixExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
     }
     return expr;
@@ -350,7 +346,7 @@ class Parser {
             return _parseImportStmt();
           }
           // 变量声明
-          else if (expect([env.lexicon.VAR])) {
+          else if (expect([env.lexicon.VAR]) || expect([env.lexicon.LET])) {
             return _parseVarStmt(is_extern: is_extern);
           } // 类声明
           else if (expect([env.lexicon.CLASS])) {
@@ -367,7 +363,7 @@ class Parser {
         {
           // 函数块中不能出现extern或者static关键字的声明
           // 变量声明
-          if (expect([env.lexicon.VAR])) {
+          if (expect([env.lexicon.VAR]) || expect([env.lexicon.LET])) {
             return _parseVarStmt();
           } // 赋值语句
           else if (expect([env.lexicon.identifier, env.lexicon.assign])) {
@@ -407,7 +403,7 @@ class Parser {
           bool is_extern = expect([env.lexicon.EXTERNAL], consume: true, error: false);
           bool is_static = expect([env.lexicon.STATIC], consume: true, error: false);
           // 如果是变量声明
-          if (expect([env.lexicon.VAR])) {
+          if (expect([env.lexicon.VAR]) || expect([env.lexicon.LET])) {
             return _parseVarStmt(is_extern: is_extern, is_static: is_static);
           } // 构造函数
           // TODO：命名的构造函数
@@ -464,7 +460,7 @@ class Parser {
 
   /// 变量声明语句
   VarStmt _parseVarStmt({bool is_extern = false, bool is_static = false}) {
-    advance(1);
+    var keyword = advance(1);
     var name = match(env.lexicon.identifier);
     HT_Type typeid;
     if (expect([env.lexicon.colon], consume: true, error: false)) {
@@ -477,7 +473,7 @@ class Parser {
     }
     // 语句结尾
     expect([env.lexicon.semicolon], consume: true, error: false);
-    return VarStmt(name, typeid, initializer: initializer, isExtern: is_extern, isStatic: is_static);
+    return VarStmt(name, typeid, keyword: keyword, initializer: initializer, isExtern: is_extern, isStatic: is_static);
   }
 
   /// 为了避免涉及复杂的左值右值问题，赋值语句在河图中不作为表达式处理
@@ -548,44 +544,43 @@ class Parser {
   /// For语句其实会在解析时转换为While语句
   BlockStmt _parseForStmt() {
     var list_stmt = <Stmt>[];
-    var line = curTok.line;
-    var column = curTok.column;
     expect([env.lexicon.FOR, env.lexicon.roundLeft], consume: true);
     // 递增变量
     String i = '__i${internalVarIndex++}';
-    list_stmt.add(VarStmt(Token(i, env.lexicon.identifier, line, column + 4), HT_Type.number,
-        initializer: LiteralExpr(interpreter.addLiteral(0), line, column, _curFileName)));
+    list_stmt.add(VarStmt(TokenIdentifier(i, curTok.line, curTok.column), HT_Type.number,
+        keyword: Token(env.lexicon.VAR, curTok.line, curTok.column),
+        initializer: LiteralExpr(interpreter.addLiteral(0), curTok.line, curTok.column, _curFileName)));
     // 指针
     var varname = match(env.lexicon.identifier);
     HT_Type typeid;
     if (expect([env.lexicon.colon], consume: true, error: false)) {
       typeid = _parseTypeId();
     }
-    list_stmt.add(VarStmt(varname, typeid));
+    list_stmt.add(VarStmt(varname, typeid, keyword: Token(env.lexicon.VAR, curTok.line, curTok.column)));
     expect([env.lexicon.IN], consume: true);
     var list_obj = _parseExpr();
     // 条件语句
     var get_length =
-        MemberGetExpr(list_obj, Token(env.lexicon.length, env.lexicon.identifier, line, column + 30), _curFileName);
-    var condition = BinaryExpr(VarExpr(Token(i, env.lexicon.identifier, line, column + 24), _curFileName),
-        Token(env.lexicon.lesser, env.lexicon.lesser, line, column + 26), get_length, _curFileName);
+        MemberGetExpr(list_obj, TokenIdentifier(env.lexicon.length, curTok.line, curTok.column), _curFileName);
+    var condition = BinaryExpr(VarExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
+        Token(env.lexicon.lesser, curTok.line, curTok.column), get_length, _curFileName);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <Stmt>[];
     // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
     var sub_get_value = SubGetExpr(
-        list_obj.clone(), VarExpr(Token(i, env.lexicon.identifier, line + 1, column + 14), _curFileName), _curFileName);
-    var assign_stmt = ExprStmt(AssignExpr(Token(varname.lexeme, env.lexicon.identifier, line + 1, column),
-        Token(env.lexicon.assign, env.lexicon.assign, line + 1, column + 10), sub_get_value, _curFileName));
+        list_obj.clone(), VarExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName), _curFileName);
+    var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname.lexeme, curTok.line, curTok.column),
+        Token(env.lexicon.assign, curTok.line, curTok.column), sub_get_value, _curFileName));
     loop_body.add(assign_stmt);
     // 递增下标变量
     var increment_expr = BinaryExpr(
-        VarExpr(Token(i, env.lexicon.identifier, line + 1, column + 18), _curFileName),
-        Token(env.lexicon.add, env.lexicon.add, line + 1, column + 22),
-        LiteralExpr(interpreter.addLiteral(1), line + 1, column + 24, _curFileName),
+        VarExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
+        Token(env.lexicon.add, curTok.line, curTok.column),
+        LiteralExpr(interpreter.addLiteral(1), curTok.line, curTok.column, _curFileName),
         _curFileName);
-    var increment_stmt = ExprStmt(AssignExpr(Token(i, env.lexicon.identifier, line + 1, column),
-        Token(env.lexicon.assign, env.lexicon.assign, line + 1, column + 20), increment_expr, _curFileName));
+    var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, curTok.line, curTok.column),
+        Token(env.lexicon.assign, curTok.line, curTok.column), increment_expr, _curFileName));
     loop_body.add(increment_stmt);
     // 循环体
     expect([env.lexicon.roundRight], consume: true);
@@ -633,7 +628,7 @@ class Parser {
   }
 
   FuncStmt _parseFunctionStmt(FuncStmtType functype, {bool is_extern = false, bool is_static = false}) {
-    var keyword = advance(1);
+    final keyword = advance(1);
     String func_name;
     var typeParams = <String>[];
     if (curTok.type == env.lexicon.identifier) {
@@ -674,7 +669,7 @@ class Parser {
       }
     }
 
-    HT_Type return_type = HT_Type.VOID;
+    var return_type = HT_Type.ANY;
     if (functype != FuncStmtType.constructor) {
       if (expect([env.lexicon.colon], consume: true, error: false)) {
         return_type = _parseTypeId();
@@ -702,7 +697,7 @@ class Parser {
   ClassStmt _parseClassStmt() {
     ClassStmt stmt;
     // 已经判断过了所以直接跳过Class关键字
-    var keyword = advance(1);
+    final keyword = advance(1);
 
     String class_name = advance(1).lexeme;
     _curClassName = class_name;

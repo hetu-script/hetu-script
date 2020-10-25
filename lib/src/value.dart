@@ -13,6 +13,7 @@ class HT_Type {
     if (arguments != null) this.arguments.addAll(arguments);
   }
 
+  static final ANY = HT_Type();
   static final NULL = HT_Type(name: env.lexicon.NULL);
   static final VOID = HT_Type(name: env.lexicon.VOID);
   static final CLASS = HT_Type(name: env.lexicon.CLASS);

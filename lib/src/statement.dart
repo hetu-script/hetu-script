@@ -74,6 +74,8 @@ class VarStmt extends Stmt {
   @override
   void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
 
+  final Token keyword;
+
   final Token name;
 
   final HT_Type declType;
@@ -84,7 +86,7 @@ class VarStmt extends Stmt {
 
   final bool isStatic;
 
-  VarStmt(this.name, this.declType, {this.initializer, this.isExtern = false, this.isStatic = false});
+  VarStmt(this.name, this.declType, {this.keyword, this.initializer, this.isExtern = false, this.isStatic = false});
 }
 
 class ExprStmt extends Stmt {

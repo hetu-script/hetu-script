@@ -15,7 +15,7 @@ abstract class HT_Buildin {
     'help': _help,
     'print': _print,
     'string': _string,
-    'System.invoke': _system_invoke,
+    //'System.invoke': _system_invoke,
     'System.now': _system_now,
     'Console.write': _console_write,
     'Console.writeln': _console_writeln,
@@ -88,14 +88,14 @@ abstract class HT_Buildin {
     return result.toString();
   }
 
-  static dynamic _system_invoke(HT_Instance instance, List<dynamic> args) {
-    if (args.length >= 2) {
-      var func_name = args[0];
-      var className = args[1];
-      var arguments = args[2];
-      itp.invoke(func_name, classname: className, args: arguments);
-    }
-  }
+  // static dynamic _system_invoke(HT_Instance instance, List<dynamic> args) {
+  //   if (args.length >= 2) {
+  //     var func_name = args[0];
+  //     var className = args[1];
+  //     var arguments = args[2];
+  //     itp.invoke(func_name, classname: className, args: arguments);
+  //   }
+  // }
 
   static dynamic _console_write(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) stdout.write(args.first);

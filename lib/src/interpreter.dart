@@ -39,10 +39,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   dynamic eval(String content, String fileName,
-      {HT_Namespace context,
-      ParseStyle style = ParseStyle.library,
-      String invokeFunc = null,
-      List<dynamic> args}) async {
+      {HT_Namespace context, ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) {
     curContext = context ?? globals;
     var tokens = Lexer().lex(content);
     var statements = Parser(this).parse(tokens, fileName, style: style);
@@ -52,15 +49,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       evaluateStmt(stmt);
     }
     if ((style == ParseStyle.library) && (invokeFunc != null)) {
-      result = await invoke(invokeFunc, args: args);
+      result = invoke(invokeFunc, args: args);
     } else if (style == ParseStyle.program) {
-      result = await invoke(env.lexicon.defaultProgramMainFunc, args: args);
+      result = invoke(env.lexicon.defaultProgramMainFunc, args: args);
     }
     return result;
   }
 
   /// 解析文件
-  dynamic evalf(String filepath,
+  Future<dynamic> evalf(String filepath,
       {String libName, ParseStyle style = ParseStyle.library, String invokeFunc = null, List<dynamic> args}) async {
     _curFileName = filepath;
     dynamic result;
@@ -169,7 +166,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   //   }
   // }
 
-  dynamic invoke(String name, {String classname, List<dynamic> args}) async {
+  dynamic invoke(String name, {String classname, List<dynamic> args}) {
     HT_Error.clear();
     try {
       if (classname == null) {

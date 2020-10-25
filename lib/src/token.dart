@@ -2,45 +2,55 @@ import 'environment.dart';
 
 class Token {
   final String lexeme;
-  final String type;
 
   final int line;
   final int column;
 
-  dynamic get literal => type;
+  dynamic get type => lexeme;
+  dynamic get literal => lexeme;
 
-  Token(this.lexeme, this.type, this.line, this.column);
+  Token(this.lexeme, [this.line, this.column]) {}
 
-  static Token get EOF => Token(env.lexicon.endOfFile, env.lexicon.endOfFile, -1, -1);
+  static Token get EOF => Token(env.lexicon.endOfFile);
 
   operator ==(dynamic tokenType) {
     return type == tokenType;
   }
 }
 
+class TokenIdentifier extends Token {
+  @override
+  dynamic get type => env.lexicon.identifier;
+
+  TokenIdentifier(String lexeme, [int line, int column]) : super(lexeme, line, column);
+}
+
 class TokenBoolLiteral extends Token {
   @override
   final bool literal;
 
-  TokenBoolLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, env.lexicon.boolean, line, column);
+  @override
+  dynamic get type => env.lexicon.boolean;
+
+  TokenBoolLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
 }
 
 class TokenNumLiteral extends Token {
   @override
   final num literal;
 
-  String get lexeme => literal.toString();
+  @override
+  dynamic get type => env.lexicon.number;
 
-  TokenNumLiteral(String lexeme, this.literal, int line, int column) : super(lexeme, env.lexicon.number, line, column);
+  TokenNumLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
 }
 
 class TokenStringLiteral extends Token {
   @override
   final String literal;
 
-  String get lexeme => literal;
+  @override
+  dynamic get type => env.lexicon.string;
 
-  TokenStringLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, env.lexicon.string, line, column);
+  TokenStringLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
 }

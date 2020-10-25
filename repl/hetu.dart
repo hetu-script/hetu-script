@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:path/path.dart' as path;
+
 import 'package:hetu_script/hetu.dart';
 
 abstract class Hetu_Env {
@@ -7,14 +7,25 @@ abstract class Hetu_Env {
   static const version = '版本：0.0.1';
 }
 
+const cli_help = '''
+        以脚本模式解释一个文本文件
+
+        调用方法：hetu [选项] [文件名] [函数名]
+        -h, --help                            显示此帮助文本
+        -v, --version                         显示版本号
+        -r, --repl                            进入repl模式
+        -l                                    以库模式解释
+          [-c], [--class xxx]				
+          [-f], [--function xxx]
+        ''';
+
 void main(List<String> args) async {
   try {
     var interpreter = await HetuEnv.init();
 
     if (args.isNotEmpty) {
       if ((args.first == '--help') || (args.first == '-h')) {
-        String doc = File(path.join('doc', 'cli_help.md')).readAsStringSync();
-        print(doc);
+        print(cli_help);
       } else if ((args.first == '--version') || (args.first == '-v')) {
         print('${Hetu_Env.title} ${Hetu_Env.version}');
       } else if ((args.first == '--repl') || (args.first == '-r')) {
@@ -56,8 +67,7 @@ void main(List<String> args) async {
         await interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: env.lexicon.defaultProgramMainFunc);
       }
     } else {
-      String doc = File(path.join('doc', 'cli_help.md')).readAsStringSync();
-      print(doc);
+      print(cli_help);
     }
   } catch (e) {
     print(e);

@@ -36,18 +36,18 @@ class Lexer {
           // 标识符
           if (match.group(env.lexicon.tokenGroupIdentifier) != null) {
             if (env.lexicon.keywords.contains(matchString)) {
-              _tokens.add(Token(matchString, matchString, currentLine, column));
+              _tokens.add(Token(matchString, currentLine, column));
             } else if (matchString == env.lexicon.TRUE) {
               _tokens.add(TokenBoolLiteral(matchString, true, currentLine, column));
             } else if (matchString == env.lexicon.FALSE) {
               _tokens.add(TokenBoolLiteral(matchString, false, currentLine, column));
             } else {
-              _tokens.add(Token(matchString, env.lexicon.identifier, currentLine, column));
+              _tokens.add(TokenIdentifier(matchString, currentLine, column));
             }
           }
           // 标点符号和运算符号
           else if (match.group(env.lexicon.tokenGroupPunctuation) != null) {
-            _tokens.add(Token(matchString, matchString, currentLine, column));
+            _tokens.add(Token(matchString, currentLine, column));
           }
           // 数字字面量
           else if (match.group(env.lexicon.tokenGroupNumber) != null) {

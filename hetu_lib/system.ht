@@ -5,7 +5,7 @@ class System {
   // invoke a global or static member function
   //
   // for member function, func_name should be: "className.FuncName"
-  external static fun invoke(func_name: String, className: String, args: List): any
+  // external static fun invoke(func_name: String, className: String, args: List): any
 
   external static fun now(): num
 }

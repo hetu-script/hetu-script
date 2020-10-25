@@ -40,15 +40,44 @@ null, static, var, let, any, namespace, as, abstract, class, fun, construct, get
 
 ## 变量
 
-河图中的变量声明一概以 var 开头，类型声明是可选项，如果有初始化，则会从初始化值的类型推断变量类型。否则会声明为 any 类型。
+河图中的变量声明以 var 或者 let 开头。类型和初始化都是可选项。类型默认为 any 。
 
 ```typescript
+var person
 var name = 'naruto'
 var year = 2020
 var fineStructureConstant: num  = 1 / 137
 var isTimeTravelSuccessful: bool = true
 var gasGiants = ['Jupiter', 'Saturn', ]
-var skill<String> = {
+var skill: Map<String> = {
+  'tags': ['attack'],
+  'script': '//path/to/skill_script.ht',
+}
+```
+
+在声明时，如果没有指定类型，以 var 声明的变量类型默认为any，因此 var 声明的没有指定类型的变量可以使用其他类型的数据赋值。
+
+```typescript
+var name = 'naruto'
+name = 2020
+```
+
+而对于 let 开头的类型声明，以初始化值的类型为准。因此 let 声明的没有指定类型的变量，不能使用其它类型的数据赋值。
+
+```typescript
+let name = 'naruto'
+// error!
+// name = 2020
+```
+
+```typescript
+var person
+var name = 'naruto'
+var year = 2020
+var fineStructureConstant: num  = 1 / 137
+var isTimeTravelSuccessful: bool = true
+var gasGiants = ['Jupiter', 'Saturn', ]
+var skill: Map<String> = {
   'tags': ['attack'],
   'script': '//path/to/skill_script.ht',
 }
@@ -74,16 +103,27 @@ while (year < 2040) {
 
 ## 函数
 
+函数声明可以使用fun, proc, get, set, construct关键字。他们分别有不同的含义。
+fun关键字声明的函数，在没有指定返回值时，会默认指定返回值为ANY，如果函数语句使用了return但没有附带表达式，则会返回null，如果函数语句没有显式使用return，则会返回最后执行的语句的表达式值。
+proc关键字声明的是过程，本身不能指定返回值类型，也不能使用return语句，否则会报错。并且过程本身不能求表达式值，试图使用过程的返回值也会报错。
+get和set是特殊的成员函数，此类声明会使对象在使用时好像具有了一个和函数声明名字相同的成员变量。
+construct是构造函数，构造函数不指定函数名字时，会默认给对象本身注册一个call方法，使得对象名字本身可以像函数那样调用，
+
 ```typescript
-int fib(int n) {
-  if (n == 0 || n == 1) return n;
-  return fib(n - 1) + fib(n - 2);
+fun fib(n: int): num {
+  if (n == 0 || n == 1) return n
+  return fib(n - 1) + fib(n - 2)
 }
 
-var result = fib(10);
+var result = fib(10)
 ```
 
 ## 类
+
+类声明可以使用class, struct, interface关键字。
+class声明的是普通的类，和其他面向对象语言类似。
+struct声明的是一个数据类，不能包含初始化语句。struct类的对象可以被struct字面量赋值。并且class类声明时可以使用mixin直接将struct包含在自己内部。
+interface声明的是一个接口类，接口类中的函数不一定要提供函数定义。可以只包含声明，但如果这样做，任何继承了接口的类都必须对函数进行定义。
 
 ```typescript
 

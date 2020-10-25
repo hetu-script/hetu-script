@@ -1,5 +1,5 @@
 
-class HelloWord {
+class HelloWorld {
   var hello: num
   var world: num
   var _privateNum = 99
@@ -8,14 +8,22 @@ class HelloWord {
     return "hello" + hello.toString() + "world" + world.toString()
   }
 
-  fun getPrivate: num {
+  get private: num {
     return _privateNum
   }
 }
 
 // 程序入口
 fun main {
-  var m: HelloWord = {"hello": 42, "world": 103}
+  // 如果一个类没有定义构造函数，则可以使用struct 字面量进行赋值。
+  // var m: HelloWord = {"hello": 42, "world": 103}
 
-  Console.print(m.getPrivate())
+  //var m: Person = 12
+  //Console.print(m)
+
+  //m = "hello"
+
+  var m = HelloWorld()
+
+  Console.print(m)
 }

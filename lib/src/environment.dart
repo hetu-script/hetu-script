@@ -26,7 +26,7 @@ class HetuEnv {
     this.debugMode = true,
     this.staticType = true,
     this.requireDeclaration = true,
-    this.lexicon = const HT_Lexicons(),
+    this.lexicon = defaultLexicon,
   });
 
   static Future<Interpreter> init({
@@ -50,7 +50,7 @@ class HetuEnv {
       lexicon: lexicon,
     );
 
-    itp = Interpreter();
+    final itp = Interpreter();
 
     try {
       if (debugMode) print('Hetu: Loading core library.');
@@ -82,4 +82,3 @@ class HetuEnv {
 }
 
 HetuEnv env;
-Interpreter itp;

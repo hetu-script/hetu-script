@@ -95,7 +95,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     _beginBlock();
     if (stmt.arity == -1) {
-      _declare(env.lexicon.Arguments, stmt.keyword.line, stmt.keyword.column, define: true);
+      //_declare(env.lexicon.Arguments, stmt.keyword.line, stmt.keyword.column, define: true);
     } else {
       for (var param in stmt.params) {
         _declare(param.name.lexeme, param.name.line, param.name.column, define: true);

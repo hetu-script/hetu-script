@@ -1,8 +1,8 @@
 import 'package:test/test.dart';
 import 'package:hetu_script/hetu.dart';
-import 'package:hetu_script/src/lexer.dart';
 
 void main() {
+  HetuEnv.init();
   var lexer = Lexer();
   group('hetu test', () {
     test('consoleLog', () {

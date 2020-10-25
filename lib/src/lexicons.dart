@@ -83,7 +83,7 @@ class HT_Lexicons {
   final map = 'Map';
   final length = 'length';
   final function = 'function';
-  final method = 'method';
+  final procedure = 'procedure';
   final identifier = 'identifier';
 
   final TRUE = 'true';
@@ -107,19 +107,18 @@ class HT_Lexicons {
   final ABSTRACT = 'abstract';
   final CLASS = 'class';
   final STRUCT = 'struct';
-  final UNION = 'union';
+  final INTERFACE = 'interface';
   final FUN = 'fun';
-  final Arguments = 'arguments';
+  final PROC = 'proc';
   final THIS = 'this';
   final SUPER = 'super';
   final EXTENDS = 'extends';
   final IMPLEMENTS = 'implements';
   final MIXIN = 'mixin';
   final EXTERNAL = 'external';
-  final LIBRARY = 'library';
   final IMPORT = 'import';
 
-  final Assert = 'assert';
+  final ASSERT = 'assert';
   final BREAK = 'break';
   final CONTINUE = 'continue';
   final FOR = 'for';
@@ -127,13 +126,9 @@ class HT_Lexicons {
   final IF = 'if';
   final ELSE = 'else';
   final RETURN = 'return';
-  final THROW = 'throw';
   final WHILE = 'while';
   final DO = 'do';
   final WHEN = 'when';
-  final TRY = 'try';
-  final CATCH = 'catch';
-  final FINALLY = 'finally';
 
   final IS = 'is';
 
@@ -147,9 +142,11 @@ class HT_Lexicons {
         TYPEDEF,
         NAMESPACE,
         AS,
-        ABSTRACT,
         CLASS,
+        STRUCT,
+        INTERFACE,
         FUN,
+        PROC,
         CONSTRUCT,
         GET,
         SET,
@@ -159,7 +156,6 @@ class HT_Lexicons {
         IMPLEMENTS,
         MIXIN,
         EXTERNAL,
-        LIBRARY,
         IMPORT,
         BREAK,
         CONTINUE,
@@ -168,7 +164,6 @@ class HT_Lexicons {
         IF,
         ELSE,
         RETURN,
-        THROW,
         WHILE,
         DO,
         WHEN,
@@ -361,3 +356,5 @@ class HT_Lexicons {
   final errorArity1 = 'Number of arguments';
   final errorArity2 = 'doesn\'t match parameter requirement of function';
 }
+
+const defaultLexicon = HT_Lexicons();

@@ -77,10 +77,16 @@ class HT_Namespace extends HT_Value {
 
   /// 在当前命名空间定义一个变量的类型
   void define(String id, HT_Type declType, int line, int column, Interpreter interpreter,
-      {dynamic value, bool mutable = true}) {
+      {dynamic value, bool mutable = true, bool typeInference = true}) {
     var val_type = HT_TypeOf(value);
     if (val_type.isA(declType)) {
-      defs[id] = Declaration(value == null ? declType : val_type, value: value, mutable: mutable);
+      if (typeInference) {
+        // 变量的声明类型和初始化值类型保持一致
+        defs[id] = Declaration(value == null ? declType : val_type, value: value, mutable: mutable);
+      } else {
+        // 变量的声明类型和声明语句本身保持一致
+        defs[id] = Declaration(value == null ? declType : declType, value: value, mutable: mutable);
+      }
     }
     //  else if ((value != null) && (value is Map)) {
     //   var klass = interpreter.global.fetch(id, line, column, interpreter);
