@@ -14,7 +14,7 @@ class Token {
 
   Token(this.lexeme, [this.line, this.column]) {}
 
-  static Token get EOF => Token(env.lexicon.endOfFile);
+  static Token get EOF => Token(hetuEnv.lexicon.endOfFile);
 
   operator ==(dynamic tokenType) {
     return type == tokenType;
@@ -23,7 +23,7 @@ class Token {
 
 class TokenIdentifier extends Token {
   @override
-  dynamic get type => env.lexicon.identifier;
+  dynamic get type => hetuEnv.lexicon.identifier;
 
   TokenIdentifier(String lexeme, [int line, int column]) : super(lexeme, line, column);
 }
@@ -33,7 +33,7 @@ class TokenBoolLiteral extends Token {
   final bool literal;
 
   @override
-  dynamic get type => env.lexicon.boolean;
+  dynamic get type => hetuEnv.lexicon.boolean;
 
   TokenBoolLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
 }
@@ -43,7 +43,7 @@ class TokenNumLiteral extends Token {
   final num literal;
 
   @override
-  dynamic get type => env.lexicon.number;
+  dynamic get type => hetuEnv.lexicon.number;
 
   TokenNumLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
 }
@@ -53,7 +53,7 @@ class TokenStringLiteral extends Token {
   final String literal;
 
   @override
-  dynamic get type => env.lexicon.string;
+  dynamic get type => hetuEnv.lexicon.string;
 
   TokenStringLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
 }

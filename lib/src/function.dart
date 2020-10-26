@@ -12,7 +12,7 @@ class HT_FunctionType extends HT_Type {
   final List<HT_Type> paramsTypes;
 
   HT_FunctionType(this.returnType, {List<HT_Type> arguments = const [], this.paramsTypes = const []})
-      : super(env.lexicon.function, arguments: arguments);
+      : super(hetuEnv.lexicon.function, arguments: arguments);
 
   @override
   String toString() {
@@ -70,7 +70,7 @@ class HT_Function {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('${env.lexicon.function} ${name ?? ''}');
+    result.write('${hetuEnv.lexicon.function} ${name ?? ''}');
     if (typeid.arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < typeid.arguments.length; ++i) {
@@ -84,15 +84,15 @@ class HT_Function {
 
     if (funcStmt.arity >= 0) {
       for (var param in funcStmt.params) {
-        result.write(param.name.lexeme + ': ' + (param.declType?.toString() ?? env.lexicon.ANY));
+        result.write(param.name.lexeme + ': ' + (param.declType?.toString() ?? hetuEnv.lexicon.ANY));
         //if (param.initializer != null)
         if (funcStmt.params.length > 1) result.write(', ');
       }
     } else {
       result.write('... ');
-      result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? env.lexicon.ANY));
+      result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? hetuEnv.lexicon.ANY));
     }
-    result.write('): ' + funcStmt.returnType?.toString() ?? env.lexicon.VOID);
+    result.write('): ' + funcStmt.returnType?.toString() ?? hetuEnv.lexicon.VOID);
     return result.toString();
   }
 
@@ -120,7 +120,7 @@ class HT_Function {
           //assert(closure != null);
           if (instance != null) {
             _closure = HT_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
-            _closure.define(env.lexicon.THIS, interpreter,
+            _closure.define(hetuEnv.lexicon.THIS, interpreter,
                 declType: instance.typeid, line: line, column: column, isMutable: false);
           } else {
             _closure = HT_Namespace(name: '__${name}${functionIndex++}', closure: declContext);

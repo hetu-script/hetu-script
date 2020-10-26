@@ -36,8 +36,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic _curStmtValue;
 
   Interpreter() {
-    globals = HT_Namespace(name: env.lexicon.globals);
-    externs = HT_Namespace(name: env.lexicon.externs);
+    globals = HT_Namespace(name: hetuEnv.lexicon.globals);
+    externs = HT_Namespace(name: hetuEnv.lexicon.externs);
 
     curContext = globals;
   }
@@ -61,7 +61,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (style == ParseStyle.library) {
         return invoke(invokeFunc, args: args);
       } else if (style == ParseStyle.library) {
-        return invoke(env.lexicon.defaultProgramMainFunc, args: args);
+        return invoke(hetuEnv.lexicon.defaultProgramMainFunc, args: args);
       }
     } else {
       return _curStmtValue;
@@ -74,11 +74,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     _curFileName = filepath;
     dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
-      if (env.debugMode) print('hetu: Loading $filepath...');
+      if (hetuEnv.debugMode) print('hetu: Loading $filepath...');
       _evaledFiles.add(curFileName);
 
       HT_Namespace library_namespace;
-      if ((libName != null) && (libName != env.lexicon.globals)) {
+      if ((libName != null) && (libName != hetuEnv.lexicon.globals)) {
         globals.define(libName, this, declType: HT_Type.NAMESPACE);
         library_namespace = HT_Namespace(name: libName, closure: library_namespace);
       }
@@ -253,13 +253,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitUnaryExpr(UnaryExpr expr) {
     var value = evaluateExpr(expr.value);
 
-    if (expr.op.lexeme == env.lexicon.subtract) {
+    if (expr.op.lexeme == hetuEnv.lexicon.subtract) {
       if (value is num) {
         return -value;
       } else {
         throw HTErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
       }
-    } else if (expr.op.lexeme == env.lexicon.not) {
+    } else if (expr.op.lexeme == hetuEnv.lexicon.not) {
       if (value is bool) {
         return !value;
       } else {
@@ -274,7 +274,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitBinaryExpr(BinaryExpr expr) {
     var left = evaluateExpr(expr.left);
     var right;
-    if (expr.op == env.lexicon.and) {
+    if (expr.op == hetuEnv.lexicon.and) {
       if (left is bool) {
         // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
         if (!left) {
@@ -296,7 +296,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       right = evaluateExpr(expr.right);
 
       // TODO 操作符重载
-      if (expr.op.type == env.lexicon.or) {
+      if (expr.op.type == hetuEnv.lexicon.or) {
         if (left is bool) {
           if (right is bool) {
             return left || right;
@@ -308,52 +308,52 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           throw HTErr_UndefinedBinaryOperator(
               left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
         }
-      } else if (expr.op.type == env.lexicon.equal)
+      } else if (expr.op.type == hetuEnv.lexicon.equal)
         return left == right;
-      else if (expr.op.type == env.lexicon.notEqual)
+      else if (expr.op.type == hetuEnv.lexicon.notEqual)
         return left != right;
-      else if (expr.op.type == env.lexicon.add || expr.op.type == env.lexicon.subtract) {
+      else if (expr.op.type == hetuEnv.lexicon.add || expr.op.type == hetuEnv.lexicon.subtract) {
         if ((left is String) && (right is String)) {
           return left + right;
         } else if ((left is num) && (right is num)) {
-          if (expr.op.lexeme == env.lexicon.add) {
+          if (expr.op.lexeme == hetuEnv.lexicon.add) {
             return left + right;
-          } else if (expr.op.lexeme == env.lexicon.subtract) {
+          } else if (expr.op.lexeme == hetuEnv.lexicon.subtract) {
             return left - right;
           }
         } else {
           throw HTErr_UndefinedBinaryOperator(
               left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
         }
-      } else if (expr.op.type == env.lexicon.IS) {
+      } else if (expr.op.type == hetuEnv.lexicon.IS) {
         if (right is HT_Class) {
           return HT_TypeOf(left) == right.name;
         } else {
           throw HTErr_NotType(right.toString(), expr.op.line, expr.op.column, curFileName);
         }
-      } else if ((expr.op.type == env.lexicon.multiply) ||
-          (expr.op.type == env.lexicon.devide) ||
-          (expr.op.type == env.lexicon.modulo) ||
-          (expr.op.type == env.lexicon.greater) ||
-          (expr.op.type == env.lexicon.greaterOrEqual) ||
-          (expr.op.type == env.lexicon.lesser) ||
-          (expr.op.type == env.lexicon.lesserOrEqual)) {
-        if ((expr.op == env.lexicon.IS) && (right is HT_Class)) {
+      } else if ((expr.op.type == hetuEnv.lexicon.multiply) ||
+          (expr.op.type == hetuEnv.lexicon.devide) ||
+          (expr.op.type == hetuEnv.lexicon.modulo) ||
+          (expr.op.type == hetuEnv.lexicon.greater) ||
+          (expr.op.type == hetuEnv.lexicon.greaterOrEqual) ||
+          (expr.op.type == hetuEnv.lexicon.lesser) ||
+          (expr.op.type == hetuEnv.lexicon.lesserOrEqual)) {
+        if ((expr.op == hetuEnv.lexicon.IS) && (right is HT_Class)) {
         } else if (left is num) {
           if (right is num) {
-            if (expr.op == env.lexicon.multiply) {
+            if (expr.op == hetuEnv.lexicon.multiply) {
               return left * right;
-            } else if (expr.op == env.lexicon.devide) {
+            } else if (expr.op == hetuEnv.lexicon.devide) {
               return left / right;
-            } else if (expr.op == env.lexicon.modulo) {
+            } else if (expr.op == hetuEnv.lexicon.modulo) {
               return left % right;
-            } else if (expr.op == env.lexicon.greater) {
+            } else if (expr.op == hetuEnv.lexicon.greater) {
               return left > right;
-            } else if (expr.op == env.lexicon.greaterOrEqual) {
+            } else if (expr.op == hetuEnv.lexicon.greaterOrEqual) {
               return left >= right;
-            } else if (expr.op == env.lexicon.lesser) {
+            } else if (expr.op == hetuEnv.lexicon.lesser) {
               return left < right;
-            } else if (expr.op == env.lexicon.lesserOrEqual) {
+            } else if (expr.op == hetuEnv.lexicon.lesserOrEqual) {
               return left <= right;
             }
           } else {
@@ -419,7 +419,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitThisExpr(ThisExpr expr) => _getValue(env.lexicon.THIS, expr);
+  dynamic visitThisExpr(ThisExpr expr) => _getValue(hetuEnv.lexicon.THIS, expr);
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
@@ -487,15 +487,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     throw HTErr_Get(object.toString(), expr.key.line, expr.key.column, expr.fileName);
   }
 
-  // TODO: import as 命名空间
   @override
   dynamic visitImportStmt(ImportStmt stmt) {
-    String file_loc;
-    if (stmt.location.startsWith('hetu:')) {
-      file_loc = env.sdkDirectory + stmt.location.substring(5) + '.ht';
-    } else {
-      file_loc = env.workingDirectory + stmt.location;
-    }
+    String file_loc = hetuEnv.workingDirectory + stmt.location;
+    // if (stmt.location.startsWith('hetu:')) {
+    //   file_loc = hetuEnv.sdkDirectory + stmt.location.substring(5) + '.ht';
+    // } else {
+    //   file_loc = hetuEnv.workingDirectory + stmt.location;
+    // }
     return evalf(file_loc, libName: stmt.nameSpace);
   }
 
@@ -599,9 +598,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
     //TODO: while superClass != null, inherit all...
     HT_Class superClass;
-    if (stmt.name != env.lexicon.object) {
+    if (stmt.name != hetuEnv.lexicon.object) {
       if (stmt.superClass == null) {
-        superClass = globals.fetch(env.lexicon.object, stmt.keyword.line, stmt.keyword.column, this);
+        superClass = globals.fetch(hetuEnv.lexicon.object, stmt.keyword.line, stmt.keyword.column, this);
       } else {
         superClass = globals.fetch(stmt.superClass.name, stmt.keyword.line, stmt.keyword.column, this);
       }
@@ -624,7 +623,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         if (variable.initializer != null) {
           value = evaluateExpr(variable.initializer);
         } else if (variable.isExtern) {
-          value = externs.fetch('${stmt.name}${env.lexicon.memberGet}${variable.name.lexeme}', variable.name.line,
+          value = externs.fetch('${stmt.name}${hetuEnv.lexicon.memberGet}${variable.name.lexeme}', variable.name.line,
               variable.name.column, this,
               from: externs.fullName);
         }
@@ -645,8 +644,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       HT_Function func;
       HT_External externFunc;
       if (method.isExtern) {
-        externFunc = externs.fetch('${stmt.name}${env.lexicon.memberGet}${method.internalName}', method.keyword.line,
-            method.keyword.column, this,
+        externFunc = externs.fetch('${stmt.name}${hetuEnv.lexicon.memberGet}${method.internalName}',
+            method.keyword.line, method.keyword.column, this,
             from: externs.fullName);
       }
       if (method.isStatic) {

@@ -4,7 +4,7 @@ import 'value.dart';
 import 'interpreter.dart';
 
 class HT_Namespace extends HT_Value {
-  String toString() => '${env.lexicon.NAMESPACE} $name';
+  String toString() => '${hetuEnv.lexicon.NAMESPACE} $name';
 
   String _fullName;
   String get fullName => _fullName;
@@ -22,8 +22,8 @@ class HT_Namespace extends HT_Value {
   static String getFullName(String name, HT_Namespace space) {
     var fullName = name;
     var cur_space = space.closure;
-    while ((cur_space != null) && (cur_space.name != env.lexicon.globals)) {
-      fullName = cur_space.name + env.lexicon.memberGet + fullName;
+    while ((cur_space != null) && (cur_space.name != hetuEnv.lexicon.globals)) {
+      fullName = cur_space.name + hetuEnv.lexicon.memberGet + fullName;
       cur_space = cur_space.closure;
     }
     return fullName;
@@ -94,11 +94,11 @@ class HT_Namespace extends HT_Value {
 
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
+    from ??= hetuEnv.lexicon.globals;
     if (defs.containsKey(varName)) {
       if (from.startsWith(this.fullName) ||
-          (name == env.lexicon.globals) ||
-          !varName.startsWith(env.lexicon.underscore)) {
+          (name == hetuEnv.lexicon.globals) ||
+          !varName.startsWith(hetuEnv.lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HTErr_Private(varName, line, column, interpreter.curFileName);
@@ -114,7 +114,7 @@ class HT_Namespace extends HT_Value {
 
   dynamic fetchAt(String varName, int distance, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
+    from ??= hetuEnv.lexicon.globals;
     var space = closureAt(distance);
     return space.fetch(varName, line, column, interpreter, error: error, from: space.fullName, recursive: false);
   }
@@ -122,11 +122,11 @@ class HT_Namespace extends HT_Value {
   /// 向一个已经定义的变量赋值
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
+    from ??= hetuEnv.lexicon.globals;
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HT_TypeOf(value);
-      if (from.startsWith(this.fullName) || (!varName.startsWith(env.lexicon.underscore))) {
+      if (from.startsWith(this.fullName) || (!varName.startsWith(hetuEnv.lexicon.underscore))) {
         if (var_type.isA(decl_type)) {
           if (defs[varName].isMutable) {
             defs[varName].value = value;
@@ -147,7 +147,7 @@ class HT_Namespace extends HT_Value {
 
   void assignAt(String varName, dynamic value, int distance, int line, int column, Interpreter interpreter,
       {String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
+    from ??= hetuEnv.lexicon.globals;
     var space = closureAt(distance);
     space.assign(varName, value, line, column, interpreter, from: space.fullName, recursive: false);
   }

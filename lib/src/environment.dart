@@ -15,17 +15,13 @@ class HetuEnv {
   final String sdkDirectory;
   final String workingDirectory;
   final bool debugMode;
-  final bool staticType;
-  final bool requireDeclaration;
   final HT_Lexicon lexicon;
 
   const HetuEnv._({
     //this.stringLoadMethod = defaultReadFileMethod,
     this.sdkDirectory = 'hetu_lib/',
-    this.workingDirectory = 'scripts/',
+    this.workingDirectory = 'script/',
     this.debugMode = true,
-    this.staticType = true,
-    this.requireDeclaration = true,
     this.lexicon = defaultLexicon,
   });
 
@@ -34,19 +30,15 @@ class HetuEnv {
     String sdkDirectory = 'hetu_lib/',
     String workingDirectory = 'scripts/',
     bool debugMode = false,
-    bool staticType = true,
-    bool requireDeclaration = true,
     HT_Lexicon lexicon = const HT_Lexicon(),
     Map<String, HT_External> externalFunctions,
     bool additionalModules = false,
   }) async {
-    env = HetuEnv._(
+    hetuEnv = HetuEnv._(
       //stringLoadMethod: stringLoadMethod,
       sdkDirectory: sdkDirectory,
       workingDirectory: workingDirectory,
       debugMode: debugMode,
-      staticType: staticType,
-      requireDeclaration: requireDeclaration,
       lexicon: lexicon,
     );
 
@@ -81,4 +73,4 @@ class HetuEnv {
   }
 }
 
-HetuEnv env;
+HetuEnv hetuEnv;

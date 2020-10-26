@@ -197,7 +197,7 @@ abstract class HTVal_Value extends HT_Instance {
 
 class HTVal_Number extends HTVal_Value {
   HTVal_Number(num value, int line, int column, Interpreter interpreter)
-      : super(value, env.lexicon.number, line, column, interpreter);
+      : super(value, hetuEnv.lexicon.number, line, column, interpreter);
 
   static dynamic _parse(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -224,12 +224,12 @@ class HTVal_Number extends HTVal_Value {
 
 class HTVal_Boolean extends HTVal_Value {
   HTVal_Boolean(bool value, int line, int column, Interpreter interpreter)
-      : super(value, env.lexicon.number, line, column, interpreter);
+      : super(value, hetuEnv.lexicon.number, line, column, interpreter);
 }
 
 class HTVal_String extends HTVal_Value {
   HTVal_String(String value, int line, int column, Interpreter interpreter)
-      : super(value, env.lexicon.string, line, column, interpreter);
+      : super(value, hetuEnv.lexicon.string, line, column, interpreter);
 
   static dynamic _is_empty(HT_Instance instance, List<dynamic> args) {
     var strObj = (instance as HTVal_String);
@@ -261,8 +261,8 @@ class HTVal_List extends HTVal_Value {
   String valueType;
 
   HTVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType})
-      : super(value, env.lexicon.list, line, column, interpreter) {
-    valueType ??= env.lexicon.ANY;
+      : super(value, hetuEnv.lexicon.list, line, column, interpreter) {
+    valueType ??= hetuEnv.lexicon.ANY;
   }
 
   static dynamic _get_length(HT_Instance instance, List<dynamic> args) {
@@ -322,9 +322,9 @@ class HTVal_Map extends HTVal_Value {
   String valueType;
 
   HTVal_Map(Map value, int line, int column, Interpreter interpreter, {this.keyType, this.valueType})
-      : super(value, env.lexicon.map, line, column, interpreter) {
-    keyType ??= env.lexicon.ANY;
-    valueType ??= env.lexicon.ANY;
+      : super(value, hetuEnv.lexicon.map, line, column, interpreter) {
+    keyType ??= hetuEnv.lexicon.ANY;
+    valueType ??= hetuEnv.lexicon.ANY;
   }
 
   static dynamic _get_length(HT_Instance instance, List<dynamic> args) {

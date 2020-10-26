@@ -10,17 +10,17 @@ class HT_Type {
 
   const HT_Type(this.name, {this.arguments = const []});
 
-  static final ANY = HT_Type(env.lexicon.ANY);
-  static final NULL = HT_Type(env.lexicon.NULL);
-  static final VOID = HT_Type(env.lexicon.VOID);
-  static final CLASS = HT_Type(env.lexicon.CLASS);
-  static final NAMESPACE = HT_Type(env.lexicon.NAMESPACE);
-  static final unknown = HT_Type(env.lexicon.unknown);
-  static final number = HT_Type(env.lexicon.number);
-  static final boolean = HT_Type(env.lexicon.boolean);
-  static final string = HT_Type(env.lexicon.string);
-  static final list = HT_Type(env.lexicon.list);
-  static final map = HT_Type(env.lexicon.map);
+  static final ANY = HT_Type(hetuEnv.lexicon.ANY);
+  static final NULL = HT_Type(hetuEnv.lexicon.NULL);
+  static final VOID = HT_Type(hetuEnv.lexicon.VOID);
+  static final CLASS = HT_Type(hetuEnv.lexicon.CLASS);
+  static final NAMESPACE = HT_Type(hetuEnv.lexicon.NAMESPACE);
+  static final unknown = HT_Type(hetuEnv.lexicon.unknown);
+  static final number = HT_Type(hetuEnv.lexicon.number);
+  static final boolean = HT_Type(hetuEnv.lexicon.boolean);
+  static final string = HT_Type(hetuEnv.lexicon.string);
+  static final list = HT_Type(hetuEnv.lexicon.list);
+  static final map = HT_Type(hetuEnv.lexicon.map);
 
   @override
   String toString() {
@@ -39,7 +39,7 @@ class HT_Type {
 
   bool isA(HT_Type typeid) {
     bool result = false;
-    if ((typeid.name == env.lexicon.ANY) || (this.name == env.lexicon.NULL)) {
+    if ((typeid.name == hetuEnv.lexicon.ANY) || (this.name == hetuEnv.lexicon.NULL)) {
       result = true;
     } else {
       if (this.name == typeid.name) {
@@ -94,7 +94,7 @@ HT_Type HT_TypeOf(dynamic value) {
       }
     }
 
-    return HT_Type(env.lexicon.list, arguments: [valType]);
+    return HT_Type(hetuEnv.lexicon.list, arguments: [valType]);
   } else if (value is Map) {
     HT_Type keyType = HT_Type.ANY;
     HT_Type valType = HT_Type.ANY;
@@ -116,7 +116,7 @@ HT_Type HT_TypeOf(dynamic value) {
         }
       }
     }
-    return HT_Type(env.lexicon.map, arguments: [keyType, valType]);
+    return HT_Type(hetuEnv.lexicon.map, arguments: [keyType, valType]);
   } else {
     return HT_Type.unknown;
   }

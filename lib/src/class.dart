@@ -18,7 +18,7 @@ import 'package:hetu_script/src/value.dart';
 class HT_Class extends HT_Namespace {
   List<String> typeParams = [];
 
-  String toString() => '${env.lexicon.CLASS} $name';
+  String toString() => '${hetuEnv.lexicon.CLASS} $name';
 
   HT_Class superClass;
 
@@ -34,9 +34,9 @@ class HT_Class extends HT_Namespace {
   bool contains(String varName) =>
       variables.containsKey(varName) ||
       defs.containsKey(varName) ||
-      defs.containsKey('${env.lexicon.getter}$varName') ||
+      defs.containsKey('${hetuEnv.lexicon.getter}$varName') ||
       (superClass == null ? false : superClass.contains(varName)) ||
-      (superClass == null ? false : superClass.contains('${env.lexicon.getter}$varName'));
+      (superClass == null ? false : superClass.contains('${hetuEnv.lexicon.getter}$varName'));
 
   void addVariable(VarDeclStmt stmt) {
     if (!variables.containsKey(stmt.name.lexeme)) {
@@ -49,15 +49,15 @@ class HT_Class extends HT_Namespace {
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
-    var getter = '${env.lexicon.getter}$varName';
+    from ??= hetuEnv.lexicon.globals;
+    var getter = '${hetuEnv.lexicon.getter}$varName';
     if (defs.containsKey(varName)) {
-      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(hetuEnv.lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(getter)) {
-      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(hetuEnv.lexicon.underscore)) {
         HT_Function func = defs[getter].value;
         return func.call(interpreter, line, column, []);
       }
@@ -77,12 +77,12 @@ class HT_Class extends HT_Namespace {
   @override
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
-    var setter = '${env.lexicon.setter}$varName';
+    from ??= hetuEnv.lexicon.globals;
+    var setter = '${hetuEnv.lexicon.setter}$varName';
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HT_TypeOf(value);
-      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(hetuEnv.lexicon.underscore)) {
         if (var_type.isA(decl_type)) {
           defs[varName].value = value;
           return;
@@ -91,7 +91,7 @@ class HT_Class extends HT_Namespace {
       }
       throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(setter)) {
-      if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
+      if (from.startsWith(this.fullName) || !varName.startsWith(hetuEnv.lexicon.underscore)) {
         HT_Function setter_func = defs[setter].value;
         setter_func.call(interpreter, line, column, [value]);
         return;
@@ -123,7 +123,7 @@ class HT_Class extends HT_Namespace {
 
     interpreter.curContext = save;
 
-    initterName = env.lexicon.constructor + (initterName == null ? name : initterName);
+    initterName = hetuEnv.lexicon.constructor + (initterName == null ? name : initterName);
 
     var constructor = fetch(initterName, line, column, interpreter, error: false, from: name);
 
@@ -146,30 +146,30 @@ class HT_Instance extends HT_Namespace {
   HT_Type get typeid => _typeid;
 
   HT_Instance(Interpreter interpreter, this.klass, {List<HT_Type> typeArgs})
-      : super(name: env.lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
+      : super(name: hetuEnv.lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
     _typeid = HT_Type(klass.name, arguments: typeArgs);
 
-    define(env.lexicon.THIS, interpreter, declType: typeid, value: this);
+    define(hetuEnv.lexicon.THIS, interpreter, declType: typeid, value: this);
     //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);
   }
 
   @override
-  String toString() => '${env.lexicon.instancePrefix}${typeid}';
+  String toString() => '${hetuEnv.lexicon.instancePrefix}${typeid}';
 
   @override
-  bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${env.lexicon.getter}$varName');
+  bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${hetuEnv.lexicon.getter}$varName');
 
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
+    from ??= hetuEnv.lexicon.globals;
     if (defs.containsKey(varName)) {
-      if (!varName.startsWith(env.lexicon.underscore)) {
+      if (!varName.startsWith(hetuEnv.lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else {
-      var getter = '${env.lexicon.getter}$varName';
+      var getter = '${hetuEnv.lexicon.getter}$varName';
       if (klass.contains(getter)) {
         HT_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
@@ -189,11 +189,11 @@ class HT_Instance extends HT_Namespace {
   @override
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
-    from ??= env.lexicon.globals;
+    from ??= hetuEnv.lexicon.globals;
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HT_TypeOf(value);
-      if (!varName.startsWith(env.lexicon.underscore)) {
+      if (!varName.startsWith(hetuEnv.lexicon.underscore)) {
         if (var_type.isA(decl_type)) {
           if (defs[varName].isMutable) {
             defs[varName].value = value;
@@ -205,7 +205,7 @@ class HT_Instance extends HT_Namespace {
       }
       throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else {
-      var setter = '${env.lexicon.setter}$varName';
+      var setter = '${hetuEnv.lexicon.setter}$varName';
       if (klass.contains(setter)) {
         HT_Function method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {

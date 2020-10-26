@@ -56,8 +56,8 @@ void main(List<String> args) async {
       } else if (args.first == '-s') {
         result = interpreter.evalf(args.first, style: ParseStyle.function);
       } else {
-        result =
-            interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: env.lexicon.defaultProgramMainFunc);
+        result = interpreter.evalf(args.first,
+            style: ParseStyle.library, invokeFunc: hetuEnv.lexicon.defaultProgramMainFunc);
       }
       print(result);
     } else {

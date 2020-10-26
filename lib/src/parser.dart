@@ -119,7 +119,7 @@ class Parser {
 
     var statements = <Stmt>[];
     try {
-      while (curTok != env.lexicon.endOfFile) {
+      while (curTok != hetuEnv.lexicon.endOfFile) {
         var stmt = _parseStmt(style: style);
         if (stmt != null) statements.add(stmt);
       }
@@ -136,12 +136,12 @@ class Parser {
   HT_Type _parseTypeId() {
     final type_name = advance(1).lexeme;
     var type_args = <HT_Type>[];
-    if (expect([env.lexicon.angleLeft], consume: true, error: false)) {
-      while ((curTok != env.lexicon.angleRight) && (curTok != env.lexicon.endOfFile)) {
+    if (expect([hetuEnv.lexicon.angleLeft], consume: true, error: false)) {
+      while ((curTok != hetuEnv.lexicon.angleRight) && (curTok != hetuEnv.lexicon.endOfFile)) {
         type_args.add(_parseTypeId());
-        expect([env.lexicon.comma], consume: true, error: false);
+        expect([hetuEnv.lexicon.comma], consume: true, error: false);
       }
-      expect([env.lexicon.angleRight], consume: true);
+      expect([hetuEnv.lexicon.angleRight], consume: true);
     }
 
     return HT_Type(type_name, arguments: type_args);
@@ -153,7 +153,7 @@ class Parser {
   Expr _parseAssignmentExpr() {
     Expr expr = _parseLogicalOrExpr();
 
-    if (env.lexicon.assignments.contains(curTok.type)) {
+    if (hetuEnv.lexicon.assignments.contains(curTok.type)) {
       final op = advance(1);
       final value = _parseAssignmentExpr();
 
@@ -174,7 +174,7 @@ class Parser {
   /// 逻辑或 or ，优先级 5，左合并
   Expr _parseLogicalOrExpr() {
     var expr = _parseLogicalAndExpr();
-    while (curTok == env.lexicon.or) {
+    while (curTok == hetuEnv.lexicon.or) {
       final op = advance(1);
       final right = _parseLogicalAndExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
@@ -185,7 +185,7 @@ class Parser {
   /// 逻辑和 and ，优先级 6，左合并
   Expr _parseLogicalAndExpr() {
     var expr = _parseEqualityExpr();
-    while (curTok == env.lexicon.and) {
+    while (curTok == hetuEnv.lexicon.and) {
       final op = advance(1);
       final right = _parseEqualityExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
@@ -196,7 +196,7 @@ class Parser {
   /// 逻辑相等 ==, !=，优先级 7，无合并
   Expr _parseEqualityExpr() {
     var expr = _parseRelationalExpr();
-    while (env.lexicon.equalitys.contains(curTok.type)) {
+    while (hetuEnv.lexicon.equalitys.contains(curTok.type)) {
       final op = advance(1);
       final right = _parseRelationalExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
@@ -207,7 +207,7 @@ class Parser {
   /// 逻辑比较 <, >, <=, >=，优先级 8，无合并
   Expr _parseRelationalExpr() {
     var expr = _parseAdditiveExpr();
-    while (env.lexicon.relationals.contains(curTok.type)) {
+    while (hetuEnv.lexicon.relationals.contains(curTok.type)) {
       final op = advance(1);
       final right = _parseAdditiveExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
@@ -218,7 +218,7 @@ class Parser {
   /// 加法 +, -，优先级 13，左合并
   Expr _parseAdditiveExpr() {
     var expr = _parseMultiplicativeExpr();
-    while (env.lexicon.additives.contains(curTok.type)) {
+    while (hetuEnv.lexicon.additives.contains(curTok.type)) {
       final op = advance(1);
       final right = _parseMultiplicativeExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
@@ -229,7 +229,7 @@ class Parser {
   /// 乘法 *, /, %，优先级 14，左合并
   Expr _parseMultiplicativeExpr() {
     var expr = _parseUnaryPrefixExpr();
-    while (env.lexicon.multiplicatives.contains(curTok.type)) {
+    while (hetuEnv.lexicon.multiplicatives.contains(curTok.type)) {
       final op = advance(1);
       final right = _parseUnaryPrefixExpr();
       expr = BinaryExpr(expr, op, right, _curFileName);
@@ -241,7 +241,7 @@ class Parser {
   Expr _parseUnaryPrefixExpr() {
     // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
     Expr expr;
-    if (env.lexicon.unaryPrefixs.contains(curTok.type)) {
+    if (hetuEnv.lexicon.unaryPrefixs.contains(curTok.type)) {
       var op = advance(1);
 
       expr = UnaryExpr(op, _parseUnaryPostfixExpr(), _curFileName);
@@ -256,22 +256,22 @@ class Parser {
     var expr = _parsePrimaryExpr();
     //多层函数调用可以合并
     while (true) {
-      if (expect([env.lexicon.call], consume: true, error: false)) {
+      if (expect([hetuEnv.lexicon.call], consume: true, error: false)) {
         var params = <Expr>[];
-        while ((curTok != env.lexicon.roundRight) && (curTok != env.lexicon.endOfFile)) {
+        while ((curTok != hetuEnv.lexicon.roundRight) && (curTok != hetuEnv.lexicon.endOfFile)) {
           params.add(_parseExpr());
-          if (curTok != env.lexicon.roundRight) {
-            expect([env.lexicon.comma], consume: true);
+          if (curTok != hetuEnv.lexicon.roundRight) {
+            expect([hetuEnv.lexicon.comma], consume: true);
           }
         }
-        expect([env.lexicon.roundRight], consume: true);
+        expect([hetuEnv.lexicon.roundRight], consume: true);
         expr = CallExpr(expr, params, _curFileName);
-      } else if (expect([env.lexicon.memberGet], consume: true, error: false)) {
-        Token name = match(env.lexicon.identifier);
+      } else if (expect([hetuEnv.lexicon.memberGet], consume: true, error: false)) {
+        Token name = match(hetuEnv.lexicon.identifier);
         expr = MemberGetExpr(expr, name, _curFileName);
-      } else if (expect([env.lexicon.subGet], consume: true, error: false)) {
+      } else if (expect([hetuEnv.lexicon.subGet], consume: true, error: false)) {
         var index_expr = _parseExpr();
-        expect([env.lexicon.squareRight], consume: true);
+        expect([hetuEnv.lexicon.squareRight], consume: true);
         expr = SubGetExpr(expr, index_expr, _curFileName);
       } else {
         break;
@@ -282,48 +282,48 @@ class Parser {
 
   /// 只有一个Token的简单表达式
   Expr _parsePrimaryExpr() {
-    if (curTok == env.lexicon.NULL) {
+    if (curTok == hetuEnv.lexicon.NULL) {
       advance(1);
       return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
-    } else if (env.lexicon.literals.contains(curTok.type)) {
+    } else if (hetuEnv.lexicon.literals.contains(curTok.type)) {
       var index = interpreter.addLiteral(curTok.literal);
       advance(1);
       return ConstExpr(index, peek(-1).line, peek(-1).column, _curFileName);
-    } else if (curTok == env.lexicon.THIS) {
+    } else if (curTok == hetuEnv.lexicon.THIS) {
       advance(1);
       return ThisExpr(peek(-1), _curFileName);
-    } else if (curTok == env.lexicon.identifier) {
+    } else if (curTok == hetuEnv.lexicon.identifier) {
       advance(1);
       return SymbolExpr(peek(-1), _curFileName);
-    } else if (curTok == env.lexicon.roundLeft) {
+    } else if (curTok == hetuEnv.lexicon.roundLeft) {
       advance(1);
       var innerExpr = _parseExpr();
-      expect([env.lexicon.roundRight], consume: true);
+      expect([hetuEnv.lexicon.roundRight], consume: true);
       return GroupExpr(innerExpr, _curFileName);
-    } else if (curTok == env.lexicon.squareLeft) {
+    } else if (curTok == hetuEnv.lexicon.squareLeft) {
       int line = curTok.line;
       int col = advance(1).column;
       var list_expr = <Expr>[];
-      while (curTok != env.lexicon.squareRight) {
+      while (curTok != hetuEnv.lexicon.squareRight) {
         list_expr.add(_parseExpr());
-        if (curTok != env.lexicon.squareRight) {
-          expect([env.lexicon.comma], consume: true);
+        if (curTok != hetuEnv.lexicon.squareRight) {
+          expect([hetuEnv.lexicon.comma], consume: true);
         }
       }
-      expect([env.lexicon.squareRight], consume: true);
+      expect([hetuEnv.lexicon.squareRight], consume: true);
       return LiteralVectorExpr(list_expr, line, col, _curFileName);
-    } else if (curTok == env.lexicon.curlyLeft) {
+    } else if (curTok == hetuEnv.lexicon.curlyLeft) {
       int line = curTok.line;
       int col = advance(1).column;
       var map_expr = <Expr, Expr>{};
-      while (curTok != env.lexicon.curlyRight) {
+      while (curTok != hetuEnv.lexicon.curlyRight) {
         var key_expr = _parseExpr();
-        expect([env.lexicon.colon], consume: true);
+        expect([hetuEnv.lexicon.colon], consume: true);
         var value_expr = _parseExpr();
-        expect([env.lexicon.comma], consume: true, error: false);
+        expect([hetuEnv.lexicon.comma], consume: true, error: false);
         map_expr[key_expr] = value_expr;
       }
-      expect([env.lexicon.curlyRight], consume: true);
+      expect([hetuEnv.lexicon.curlyRight], consume: true);
       return LiteralDictExpr(map_expr, line, col, _curFileName);
     } else {
       throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
@@ -331,28 +331,28 @@ class Parser {
   }
 
   Stmt _parseStmt({ParseStyle style = ParseStyle.library}) {
-    if (curTok == env.lexicon.newLine) advance(1);
+    if (curTok == hetuEnv.lexicon.newLine) advance(1);
     switch (style) {
       case ParseStyle.library:
       case ParseStyle.library:
         {
-          bool is_extern = expect([env.lexicon.EXTERNAL], consume: true, error: false);
-          if (expect([env.lexicon.IMPORT])) {
+          bool is_extern = expect([hetuEnv.lexicon.EXTERNAL], consume: true, error: false);
+          if (expect([hetuEnv.lexicon.IMPORT])) {
             return _parseImportStmt();
           } // var变量声明
-          else if (expect([env.lexicon.VAR])) {
+          else if (expect([hetuEnv.lexicon.VAR])) {
             return _parseVarStmt(is_extern: is_extern);
           } // let变量声明
-          else if (expect([env.lexicon.LET])) {
+          else if (expect([hetuEnv.lexicon.LET])) {
             return _parseVarStmt(is_extern: is_extern, type_inferrence: true);
           } // 类声明
-          else if (expect([env.lexicon.CLASS])) {
+          else if (expect([hetuEnv.lexicon.CLASS])) {
             return _parseClassStmt();
           } // 函数声明
-          else if (expect([env.lexicon.FUN])) {
+          else if (expect([hetuEnv.lexicon.FUN])) {
             return _parseFunctionStmt(FuncStmtType.normal, is_extern: is_extern);
           } // 过程声明
-          else if (expect([env.lexicon.PROC])) {
+          else if (expect([hetuEnv.lexicon.PROC])) {
             return _parseFunctionStmt(FuncStmtType.procedure, is_extern: is_extern);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
@@ -363,33 +363,33 @@ class Parser {
         {
           // 函数块中不能出现extern或者static关键字的声明
           // var变量声明
-          if (expect([env.lexicon.VAR])) {
+          if (expect([hetuEnv.lexicon.VAR])) {
             return _parseVarStmt();
           } // let变量声明
-          else if (expect([env.lexicon.LET])) {
+          else if (expect([hetuEnv.lexicon.LET])) {
             return _parseVarStmt(type_inferrence: true);
           } // 赋值语句
-          else if (expect([env.lexicon.identifier, env.lexicon.assign])) {
+          else if (expect([hetuEnv.lexicon.identifier, hetuEnv.lexicon.assign])) {
             return _parseAssignStmt();
           } //If语句
-          else if (expect([env.lexicon.IF])) {
+          else if (expect([hetuEnv.lexicon.IF])) {
             return _parseIfStmt();
           } // While语句
-          else if (expect([env.lexicon.WHILE])) {
+          else if (expect([hetuEnv.lexicon.WHILE])) {
             return _parseWhileStmt();
           } // For语句
-          else if (expect([env.lexicon.FOR])) {
+          else if (expect([hetuEnv.lexicon.FOR])) {
             return _parseForStmt();
           } // 跳出语句
-          else if (expect([env.lexicon.BREAK])) {
+          else if (expect([hetuEnv.lexicon.BREAK])) {
             advance(1);
             return BreakStmt();
           } // 继续语句
-          else if (expect([env.lexicon.CONTINUE])) {
+          else if (expect([hetuEnv.lexicon.CONTINUE])) {
             advance(1);
             return ContinueStmt();
           } // 返回语句
-          else if (curTok == env.lexicon.RETURN) {
+          else if (curTok == hetuEnv.lexicon.RETURN) {
             return _parseReturnStmt();
           }
           // 表达式
@@ -400,29 +400,29 @@ class Parser {
         break;
       case ParseStyle.classDefinition:
         {
-          bool is_extern = expect([env.lexicon.EXTERNAL], consume: true, error: false);
-          bool is_static = expect([env.lexicon.STATIC], consume: true, error: false);
+          bool is_extern = expect([hetuEnv.lexicon.EXTERNAL], consume: true, error: false);
+          bool is_static = expect([hetuEnv.lexicon.STATIC], consume: true, error: false);
           // var变量声明
-          if (expect([env.lexicon.VAR]) || expect([env.lexicon.LET])) {
+          if (expect([hetuEnv.lexicon.VAR]) || expect([hetuEnv.lexicon.LET])) {
             return _parseVarStmt(is_extern: is_extern, is_static: is_static);
           } // let变量声明
-          else if (expect([env.lexicon.LET])) {
+          else if (expect([hetuEnv.lexicon.LET])) {
             return _parseVarStmt(is_extern: is_extern, is_static: is_static, type_inferrence: true);
           } // 构造函数
           // TODO：命名的构造函数
-          else if (expect([env.lexicon.CONSTRUCT])) {
+          else if (expect([hetuEnv.lexicon.CONSTRUCT])) {
             return _parseFunctionStmt(FuncStmtType.constructor, is_extern: is_extern, is_static: is_static);
           } // setter函数声明
-          else if (expect([env.lexicon.GET])) {
+          else if (expect([hetuEnv.lexicon.GET])) {
             return _parseFunctionStmt(FuncStmtType.getter, is_extern: is_extern, is_static: is_static);
           } // getter函数声明
-          else if (expect([env.lexicon.SET])) {
+          else if (expect([hetuEnv.lexicon.SET])) {
             return _parseFunctionStmt(FuncStmtType.setter, is_extern: is_extern, is_static: is_static);
           } // 成员函数声明
-          else if (expect([env.lexicon.FUN])) {
+          else if (expect([hetuEnv.lexicon.FUN])) {
             return _parseFunctionStmt(FuncStmtType.method, is_extern: is_extern, is_static: is_static);
           } // 过程声明
-          else if (expect([env.lexicon.PROC])) {
+          else if (expect([hetuEnv.lexicon.PROC])) {
             return _parseFunctionStmt(FuncStmtType.procedure, is_extern: is_extern, is_static: is_static);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
@@ -435,50 +435,50 @@ class Parser {
 
   List<Stmt> _parseBlock({ParseStyle style = ParseStyle.library}) {
     var stmts = <Stmt>[];
-    while ((curTok.type != env.lexicon.curlyRight) && (curTok.type != env.lexicon.endOfFile)) {
+    while ((curTok.type != hetuEnv.lexicon.curlyRight) && (curTok.type != hetuEnv.lexicon.endOfFile)) {
       stmts.add(_parseStmt(style: style));
     }
-    expect([env.lexicon.curlyRight], consume: true);
+    expect([hetuEnv.lexicon.curlyRight], consume: true);
     return stmts;
   }
 
   BlockStmt _parseBlockStmt({ParseStyle style = ParseStyle.library}) {
     var stmts = <Stmt>[];
-    while ((curTok.type != env.lexicon.curlyRight) && (curTok.type != env.lexicon.endOfFile)) {
+    while ((curTok.type != hetuEnv.lexicon.curlyRight) && (curTok.type != hetuEnv.lexicon.endOfFile)) {
       stmts.add(_parseStmt(style: style));
     }
-    expect([env.lexicon.curlyRight], consume: true);
+    expect([hetuEnv.lexicon.curlyRight], consume: true);
     return BlockStmt(stmts);
   }
 
   ImportStmt _parseImportStmt() {
     // 之前校验过了所以这里直接跳过
     advance(1);
-    String filename = match(env.lexicon.string).literal;
+    String filename = match(hetuEnv.lexicon.string).literal;
     String spacename;
-    if (expect([env.lexicon.AS], consume: true, error: false)) {
-      spacename = match(env.lexicon.identifier).lexeme;
+    if (expect([hetuEnv.lexicon.AS], consume: true, error: false)) {
+      spacename = match(hetuEnv.lexicon.identifier).lexeme;
     }
     var stmt = ImportStmt(filename, nameSpace: spacename);
-    expect([env.lexicon.semicolon], consume: true, error: false);
+    expect([hetuEnv.lexicon.semicolon], consume: true, error: false);
     return stmt;
   }
 
   /// 变量声明语句
   VarDeclStmt _parseVarStmt({bool is_extern = false, bool is_static = false, bool type_inferrence = false}) {
     advance(1);
-    final name = match(env.lexicon.identifier);
+    final name = match(hetuEnv.lexicon.identifier);
     HT_Type decl_type;
-    if (expect([env.lexicon.colon], consume: true, error: false)) {
+    if (expect([hetuEnv.lexicon.colon], consume: true, error: false)) {
       decl_type = _parseTypeId();
     }
 
     Expr initializer;
-    if (expect([env.lexicon.assign], consume: true, error: false)) {
+    if (expect([hetuEnv.lexicon.assign], consume: true, error: false)) {
       initializer = _parseExpr();
     }
     // 语句结尾
-    expect([env.lexicon.semicolon], consume: true, error: false);
+    expect([hetuEnv.lexicon.semicolon], consume: true, error: false);
     return VarDeclStmt(
       name,
       declType: decl_type,
@@ -497,7 +497,7 @@ class Parser {
     var assignTok = advance(1);
     var value = _parseExpr();
     // 语句结尾
-    expect([env.lexicon.semicolon], consume: true, error: false);
+    expect([hetuEnv.lexicon.semicolon], consume: true, error: false);
     var expr = AssignExpr(name, assignTok, value, _curFileName);
     return ExprStmt(expr);
   }
@@ -510,27 +510,27 @@ class Parser {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance(1);
     Expr expr;
-    if (!expect([env.lexicon.semicolon], consume: true, error: false)) {
+    if (!expect([hetuEnv.lexicon.semicolon], consume: true, error: false)) {
       expr = _parseExpr();
     }
-    expect([env.lexicon.semicolon], consume: true, error: false);
+    expect([hetuEnv.lexicon.semicolon], consume: true, error: false);
     return ReturnStmt(keyword, expr);
   }
 
   IfStmt _parseIfStmt() {
     advance(1);
-    expect([env.lexicon.roundLeft], consume: true);
+    expect([hetuEnv.lexicon.roundLeft], consume: true);
     var condition = _parseExpr();
-    expect([env.lexicon.roundRight], consume: true);
+    expect([hetuEnv.lexicon.roundRight], consume: true);
     Stmt thenBranch;
-    if (expect([env.lexicon.curlyLeft], consume: true, error: false)) {
+    if (expect([hetuEnv.lexicon.curlyLeft], consume: true, error: false)) {
       thenBranch = _parseBlockStmt(style: ParseStyle.function);
     } else {
       thenBranch = _parseStmt(style: ParseStyle.function);
     }
     Stmt elseBranch;
-    if (expect([env.lexicon.ELSE], consume: true, error: false)) {
-      if (expect([env.lexicon.curlyLeft], consume: true, error: false)) {
+    if (expect([hetuEnv.lexicon.ELSE], consume: true, error: false)) {
+      if (expect([hetuEnv.lexicon.curlyLeft], consume: true, error: false)) {
         elseBranch = _parseBlockStmt(style: ParseStyle.function);
       } else {
         elseBranch = _parseStmt(style: ParseStyle.function);
@@ -542,11 +542,11 @@ class Parser {
   WhileStmt _parseWhileStmt() {
     // 之前已经校验过括号了所以这里直接跳过
     advance(1);
-    expect([env.lexicon.roundLeft], consume: true);
+    expect([hetuEnv.lexicon.roundLeft], consume: true);
     var condition = _parseExpr();
-    expect([env.lexicon.roundRight], consume: true);
+    expect([hetuEnv.lexicon.roundRight], consume: true);
     Stmt loop;
-    if (expect([env.lexicon.curlyLeft], consume: true, error: false)) {
+    if (expect([hetuEnv.lexicon.curlyLeft], consume: true, error: false)) {
       loop = _parseBlockStmt(style: ParseStyle.function);
     } else {
       loop = _parseStmt(style: ParseStyle.function);
@@ -557,26 +557,26 @@ class Parser {
   /// For语句其实会在解析时转换为While语句
   BlockStmt _parseForStmt() {
     var list_stmt = <Stmt>[];
-    expect([env.lexicon.FOR, env.lexicon.roundLeft], consume: true);
+    expect([hetuEnv.lexicon.FOR, hetuEnv.lexicon.roundLeft], consume: true);
     // 递增变量
     String i = '__i${internalVarIndex++}';
     list_stmt.add(VarDeclStmt(TokenIdentifier(i, curTok.line, curTok.column),
         declType: HT_Type.number,
         initializer: ConstExpr(interpreter.addLiteral(0), curTok.line, curTok.column, _curFileName)));
     // 指针
-    var varname = match(env.lexicon.identifier);
+    var varname = match(hetuEnv.lexicon.identifier);
     HT_Type typeid;
-    if (expect([env.lexicon.colon], consume: true, error: false)) {
+    if (expect([hetuEnv.lexicon.colon], consume: true, error: false)) {
       typeid = _parseTypeId();
     }
     list_stmt.add(VarDeclStmt(varname, declType: typeid));
-    expect([env.lexicon.IN], consume: true);
+    expect([hetuEnv.lexicon.IN], consume: true);
     var list_obj = _parseExpr();
     // 条件语句
     var get_length =
-        MemberGetExpr(list_obj, TokenIdentifier(env.lexicon.length, curTok.line, curTok.column), _curFileName);
+        MemberGetExpr(list_obj, TokenIdentifier(hetuEnv.lexicon.length, curTok.line, curTok.column), _curFileName);
     var condition = BinaryExpr(SymbolExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
-        Token(env.lexicon.lesser, curTok.line, curTok.column), get_length, _curFileName);
+        Token(hetuEnv.lexicon.lesser, curTok.line, curTok.column), get_length, _curFileName);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <Stmt>[];
@@ -584,20 +584,20 @@ class Parser {
     var sub_get_value = SubGetExpr(
         list_obj.clone(), SymbolExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName), _curFileName);
     var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname.lexeme, curTok.line, curTok.column),
-        Token(env.lexicon.assign, curTok.line, curTok.column), sub_get_value, _curFileName));
+        Token(hetuEnv.lexicon.assign, curTok.line, curTok.column), sub_get_value, _curFileName));
     loop_body.add(assign_stmt);
     // 递增下标变量
     var increment_expr = BinaryExpr(
         SymbolExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
-        Token(env.lexicon.add, curTok.line, curTok.column),
+        Token(hetuEnv.lexicon.add, curTok.line, curTok.column),
         ConstExpr(interpreter.addLiteral(1), curTok.line, curTok.column, _curFileName),
         _curFileName);
     var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, curTok.line, curTok.column),
-        Token(env.lexicon.assign, curTok.line, curTok.column), increment_expr, _curFileName));
+        Token(hetuEnv.lexicon.assign, curTok.line, curTok.column), increment_expr, _curFileName));
     loop_body.add(increment_stmt);
     // 循环体
-    expect([env.lexicon.roundRight], consume: true);
-    if (expect([env.lexicon.curlyLeft], consume: true, error: false)) {
+    expect([hetuEnv.lexicon.roundRight], consume: true);
+    if (expect([hetuEnv.lexicon.curlyLeft], consume: true, error: false)) {
       loop_body.addAll(_parseBlock(style: ParseStyle.function));
     } else {
       loop_body.add(_parseStmt(style: ParseStyle.function));
@@ -609,34 +609,34 @@ class Parser {
   List<VarDeclStmt> _parseParameters() {
     var params = <VarDeclStmt>[];
     bool optionalStarted = false;
-    while ((curTok != env.lexicon.roundRight) &&
-        (curTok != env.lexicon.squareRight) &&
-        (curTok != env.lexicon.endOfFile)) {
+    while ((curTok != hetuEnv.lexicon.roundRight) &&
+        (curTok != hetuEnv.lexicon.squareRight) &&
+        (curTok != hetuEnv.lexicon.endOfFile)) {
       if (params.isNotEmpty) {
-        expect([env.lexicon.comma], consume: true, error: false);
+        expect([hetuEnv.lexicon.comma], consume: true, error: false);
       }
       // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
       if (!optionalStarted) {
-        optionalStarted = expect([env.lexicon.squareLeft], error: false, consume: true);
+        optionalStarted = expect([hetuEnv.lexicon.squareLeft], error: false, consume: true);
       }
-      var name = match(env.lexicon.identifier);
+      var name = match(hetuEnv.lexicon.identifier);
       HT_Type typeid;
-      if (expect([env.lexicon.colon], consume: true, error: false)) {
+      if (expect([hetuEnv.lexicon.colon], consume: true, error: false)) {
         typeid = _parseTypeId();
       }
 
       Expr initializer;
       if (optionalStarted) {
         //参数默认值
-        if (expect([env.lexicon.assign], error: false, consume: true)) {
+        if (expect([hetuEnv.lexicon.assign], error: false, consume: true)) {
           initializer = _parseExpr();
         }
       }
       params.add(VarDeclStmt(name, declType: typeid, initializer: initializer));
     }
 
-    if (optionalStarted) expect([env.lexicon.squareRight], consume: true);
-    expect([env.lexicon.roundRight], consume: true);
+    if (optionalStarted) expect([hetuEnv.lexicon.squareRight], consume: true);
+    expect([hetuEnv.lexicon.roundRight], consume: true);
     return params;
   }
 
@@ -644,17 +644,17 @@ class Parser {
     final keyword = advance(1);
     String func_name;
     var typeParams = <String>[];
-    if (curTok.type == env.lexicon.identifier) {
+    if (curTok.type == hetuEnv.lexicon.identifier) {
       func_name = advance(1).lexeme;
 
-      if (expect([env.lexicon.angleLeft], consume: true, error: false)) {
-        while ((curTok != env.lexicon.angleRight) && (curTok != env.lexicon.endOfFile)) {
+      if (expect([hetuEnv.lexicon.angleLeft], consume: true, error: false)) {
+        while ((curTok != hetuEnv.lexicon.angleRight) && (curTok != hetuEnv.lexicon.endOfFile)) {
           if (typeParams.isNotEmpty) {
-            expect([env.lexicon.comma], consume: true);
+            expect([hetuEnv.lexicon.comma], consume: true);
           }
           typeParams.add(advance(1).lexeme);
         }
-        expect([env.lexicon.angleRight], consume: true);
+        expect([hetuEnv.lexicon.angleRight], consume: true);
       }
     } else {
       if (functype == FuncStmtType.constructor) {
@@ -667,8 +667,8 @@ class Parser {
 
     if (functype != FuncStmtType.getter) {
       // 之前还没有校验过左括号
-      if (expect([env.lexicon.roundLeft], consume: true, error: false)) {
-        if (expect([env.lexicon.variadicArguments])) {
+      if (expect([hetuEnv.lexicon.roundLeft], consume: true, error: false)) {
+        if (expect([hetuEnv.lexicon.variadicArguments])) {
           arity = -1;
           advance(1);
         }
@@ -685,17 +685,18 @@ class Parser {
     var return_type = HT_Type.ANY;
     if (functype == FuncStmtType.procedure) {
       return_type = HT_Type.VOID;
-    } else if ((functype != FuncStmtType.constructor) && (expect([env.lexicon.colon], consume: true, error: false))) {
+    } else if ((functype != FuncStmtType.constructor) &&
+        (expect([hetuEnv.lexicon.colon], consume: true, error: false))) {
       return_type = _parseTypeId();
     }
 
     var body = <Stmt>[];
     if (!is_extern) {
       // 处理函数定义部分的语句块
-      expect([env.lexicon.curlyLeft], consume: true);
+      expect([hetuEnv.lexicon.curlyLeft], consume: true);
       body = _parseBlock(style: ParseStyle.function);
     } else {
-      expect([env.lexicon.semicolon], consume: true, error: false);
+      expect([hetuEnv.lexicon.semicolon], consume: true, error: false);
     }
     return FuncDeclStmt(keyword, func_name, return_type, params,
         typeParams: typeParams,
@@ -716,27 +717,27 @@ class Parser {
     _curClassName = class_name;
 
     var typeParams = <String>[];
-    if (expect([env.lexicon.angleLeft], consume: true, error: false)) {
-      while ((curTok != env.lexicon.angleRight) && (curTok != env.lexicon.endOfFile)) {
+    if (expect([hetuEnv.lexicon.angleLeft], consume: true, error: false)) {
+      while ((curTok != hetuEnv.lexicon.angleRight) && (curTok != hetuEnv.lexicon.endOfFile)) {
         if (typeParams.isNotEmpty) {
-          expect([env.lexicon.comma], consume: true);
+          expect([hetuEnv.lexicon.comma], consume: true);
         }
         typeParams.add(advance(1).lexeme);
       }
-      expect([env.lexicon.angleRight], consume: true);
+      expect([hetuEnv.lexicon.angleRight], consume: true);
     }
 
     HT_Type super_class;
     // 继承父类
-    if (expect([env.lexicon.EXTENDS], consume: true, error: false)) {
+    if (expect([hetuEnv.lexicon.EXTENDS], consume: true, error: false)) {
       super_class = _parseTypeId();
     }
     // 类的定义体
-    expect([env.lexicon.curlyLeft], consume: true);
+    expect([hetuEnv.lexicon.curlyLeft], consume: true);
     var variables = <VarDeclStmt>[];
     var methods = <FuncDeclStmt>[];
-    if (curTok != env.lexicon.curlyRight) {
-      while ((curTok.type != env.lexicon.curlyRight) && (curTok.type != env.lexicon.endOfFile)) {
+    if (curTok != hetuEnv.lexicon.curlyRight) {
+      while ((curTok.type != hetuEnv.lexicon.curlyRight) && (curTok.type != hetuEnv.lexicon.endOfFile)) {
         var stmt = _parseStmt(style: ParseStyle.classDefinition);
         if (stmt is VarDeclStmt) {
           variables.add(stmt);
@@ -744,7 +745,7 @@ class Parser {
           methods.add(stmt);
         }
       }
-      expect([env.lexicon.curlyRight], consume: true);
+      expect([hetuEnv.lexicon.curlyRight], consume: true);
     } else {
       advance(1);
     }

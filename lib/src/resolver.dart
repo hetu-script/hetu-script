@@ -59,8 +59,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   void resolve(List<Stmt> statements, {String fileName, String libName}) {
-    libName ??= env.lexicon.globals;
-    if (libName != env.lexicon.globals) _beginBlock();
+    libName ??= hetuEnv.lexicon.globals;
+    if (libName != hetuEnv.lexicon.globals) _beginBlock();
 
     _curFileName = fileName;
 
@@ -75,7 +75,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveFunction(func);
     }
     _endBlock();
-    if ((libName != null) && (libName != env.lexicon.globals)) {
+    if ((libName != null) && (libName != hetuEnv.lexicon.globals)) {
       _endBlock();
     }
   }
@@ -134,8 +134,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
     for (var method in stmt.methods) {
       if (method.isStatic) {
         _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-        if ((method.internalName.startsWith(env.lexicon.getter) ||
-                method.internalName.startsWith(env.lexicon.setter)) &&
+        if ((method.internalName.startsWith(hetuEnv.lexicon.getter) ||
+                method.internalName.startsWith(hetuEnv.lexicon.setter)) &&
             !_blocks.last.containsKey(method.name)) {
           _declare(method.name, method.keyword.line, method.keyword.column, define: true);
         }
@@ -152,7 +152,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _funcs = <FuncDeclStmt>[];
     _beginBlock();
     // 注册实例中的成员变量
-    _blocks.last[env.lexicon.THIS] = true;
+    _blocks.last[hetuEnv.lexicon.THIS] = true;
     for (var variable in stmt.variables) {
       if (!variable.isStatic) {
         visitVarDeclStmt(variable);
@@ -163,8 +163,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
       if (!method.isStatic) {
         if (method.funcType != FuncStmtType.constructor) {
           _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-          if ((method.internalName.startsWith(env.lexicon.getter) ||
-                  method.internalName.startsWith(env.lexicon.setter)) &&
+          if ((method.internalName.startsWith(hetuEnv.lexicon.getter) ||
+                  method.internalName.startsWith(hetuEnv.lexicon.setter)) &&
               !_blocks.last.containsKey(method.name)) {
             _declare(method.name, method.keyword.line, method.keyword.column, define: true);
           }
