@@ -60,7 +60,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (invokeFunc != null) {
       if (style == ParseStyle.library) {
         return invoke(invokeFunc, args: args);
-      } else if (style == ParseStyle.program) {
+      } else if (style == ParseStyle.library) {
         return invoke(env.lexicon.defaultProgramMainFunc, args: args);
       }
     } else {

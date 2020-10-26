@@ -1,19 +1,20 @@
 import 'dart:io';
 
-import 'package:hetu_script/hetu.dart';
+import 'package:hetu_script/hetu_script.dart';
 
 const cli_help = '''
-				Hetu Script Command-line Tool
-				Version: 0.0.1
-        Usage:
-				
-				hetu [option] [file_name] [invoke_name]
-				
-				If invoke_name is provided, will switch to program style interpretation.
-				Otherwise interpret file as a function.
-				
-				options:
-        -r, --repl                            enter REPL mode
+
+  Hetu Script Command-line Tool
+  Version: 0.0.1
+  Usage:
+
+  hetu [option] [file_name] [invoke_name]
+
+  If invoke_name is provided, will switch to program style interpretation.
+  Otherwise interpret file as a function.
+
+  options:
+  -r, --repl                            enter REPL mode
         ''';
 
 void main(List<String> args) async {
@@ -29,21 +30,15 @@ void main(List<String> args) async {
             'Hetu Script Read-Evaluate-Print-Loop Tool'
             'Version: 0.0.1'
             '\x07'
-            '输入指令并按回车即可执行，输入\'quit\'退出REPL环境。以\'\\\'结尾的指令可以换行继续输入。\n');
+            'Enter your code to evaluate.\n'
+            'Enter \'\\\' for multiline, enter \'quit\' to quit.\n');
         var quit = false;
 
         while (!quit) {
           stdout.write('>>>');
           String input = stdin.readLineSync();
 
-          if ((input == 'exit') ||
-              (input == 'quit') ||
-              (input == 'close') ||
-              (input == 'end') ||
-              (input == '退出') ||
-              (input == '离开') ||
-              (input == '关闭') ||
-              (input == '结束')) {
+          if ((input == 'exit') || (input == 'quit') || (input == 'close') || (input == 'end')) {
             quit = true;
           } else {
             if (input.endsWith('\\')) {

@@ -1,4 +1,4 @@
-import 'package:hetu_script/hetu.dart';
+import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   // var hetu = await HetuEnv.init();
@@ -14,7 +14,7 @@ void main() async {
   });
   hetu.eval(
       'external fun dartHello\n'
-      'fun main {\n'
+      'proc main {\n'
       'dartHello("from hetu")\n'
       '\n}',
       invokeFunc: 'main');

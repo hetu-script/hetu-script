@@ -147,6 +147,7 @@ class HT_Lexicon {
         INTERFACE,
         FUN,
         PROC,
+        VOID,
         CONSTRUCT,
         GET,
         SET,

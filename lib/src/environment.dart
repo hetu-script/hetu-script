@@ -33,7 +33,7 @@ class HetuEnv {
     //ReadFileMethod stringLoadMethod = defaultReadFileMethod,
     String sdkDirectory = 'hetu_lib/',
     String workingDirectory = 'scripts/',
-    bool debugMode = true,
+    bool debugMode = false,
     bool staticType = true,
     bool requireDeclaration = true,
     HT_Lexicon lexicon = const HT_Lexicon(),

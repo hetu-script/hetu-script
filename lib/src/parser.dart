@@ -9,9 +9,6 @@ import 'value.dart';
 enum ParseStyle {
   /// 程序脚本使用完整的标点符号规则，包括各种括号、逗号和分号
   ///
-  /// 程序脚本中必有一个叫做main的完整函数作为入口
-  program,
-
   /// 库脚本中只能出现变量、类和函数的声明
   library,
 
@@ -337,21 +334,26 @@ class Parser {
     if (curTok == env.lexicon.newLine) advance(1);
     switch (style) {
       case ParseStyle.library:
-      case ParseStyle.program:
+      case ParseStyle.library:
         {
           bool is_extern = expect([env.lexicon.EXTERNAL], consume: true, error: false);
           if (expect([env.lexicon.IMPORT])) {
             return _parseImportStmt();
-          }
-          // 变量声明
-          else if (expect([env.lexicon.VAR]) || expect([env.lexicon.LET])) {
+          } // var变量声明
+          else if (expect([env.lexicon.VAR])) {
             return _parseVarStmt(is_extern: is_extern);
+          } // let变量声明
+          else if (expect([env.lexicon.LET])) {
+            return _parseVarStmt(is_extern: is_extern, type_inferrence: true);
           } // 类声明
           else if (expect([env.lexicon.CLASS])) {
             return _parseClassStmt();
           } // 函数声明
           else if (expect([env.lexicon.FUN])) {
             return _parseFunctionStmt(FuncStmtType.normal, is_extern: is_extern);
+          } // 过程声明
+          else if (expect([env.lexicon.PROC])) {
+            return _parseFunctionStmt(FuncStmtType.procedure, is_extern: is_extern);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
@@ -360,9 +362,12 @@ class Parser {
       case ParseStyle.function:
         {
           // 函数块中不能出现extern或者static关键字的声明
-          // 变量声明
-          if (expect([env.lexicon.VAR]) || expect([env.lexicon.LET])) {
+          // var变量声明
+          if (expect([env.lexicon.VAR])) {
             return _parseVarStmt();
+          } // let变量声明
+          else if (expect([env.lexicon.LET])) {
+            return _parseVarStmt(type_inferrence: true);
           } // 赋值语句
           else if (expect([env.lexicon.identifier, env.lexicon.assign])) {
             return _parseAssignStmt();
@@ -383,9 +388,6 @@ class Parser {
           else if (expect([env.lexicon.CONTINUE])) {
             advance(1);
             return ContinueStmt();
-          } // 函数声明
-          else if (expect([env.lexicon.FUN])) {
-            return _parseFunctionStmt(FuncStmtType.normal);
           } // 返回语句
           else if (curTok == env.lexicon.RETURN) {
             return _parseReturnStmt();
@@ -400,9 +402,12 @@ class Parser {
         {
           bool is_extern = expect([env.lexicon.EXTERNAL], consume: true, error: false);
           bool is_static = expect([env.lexicon.STATIC], consume: true, error: false);
-          // 如果是变量声明
+          // var变量声明
           if (expect([env.lexicon.VAR]) || expect([env.lexicon.LET])) {
             return _parseVarStmt(is_extern: is_extern, is_static: is_static);
+          } // let变量声明
+          else if (expect([env.lexicon.LET])) {
+            return _parseVarStmt(is_extern: is_extern, is_static: is_static, type_inferrence: true);
           } // 构造函数
           // TODO：命名的构造函数
           else if (expect([env.lexicon.CONSTRUCT])) {
@@ -416,6 +421,9 @@ class Parser {
           } // 成员函数声明
           else if (expect([env.lexicon.FUN])) {
             return _parseFunctionStmt(FuncStmtType.method, is_extern: is_extern, is_static: is_static);
+          } // 过程声明
+          else if (expect([env.lexicon.PROC])) {
+            return _parseFunctionStmt(FuncStmtType.procedure, is_extern: is_extern, is_static: is_static);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
@@ -457,8 +465,8 @@ class Parser {
   }
 
   /// 变量声明语句
-  VarDeclStmt _parseVarStmt({bool is_extern = false, bool is_static = false}) {
-    final keyword = advance(1);
+  VarDeclStmt _parseVarStmt({bool is_extern = false, bool is_static = false, bool type_inferrence = false}) {
+    advance(1);
     final name = match(env.lexicon.identifier);
     HT_Type decl_type;
     if (expect([env.lexicon.colon], consume: true, error: false)) {
@@ -477,7 +485,7 @@ class Parser {
       initializer: initializer,
       isExtern: is_extern,
       isStatic: is_static,
-      typeInferrence: keyword == env.lexicon.LET,
+      typeInferrence: type_inferrence,
     );
   }
 
@@ -675,10 +683,10 @@ class Parser {
     }
 
     var return_type = HT_Type.ANY;
-    if (functype != FuncStmtType.constructor) {
-      if (expect([env.lexicon.colon], consume: true, error: false)) {
-        return_type = _parseTypeId();
-      }
+    if (functype == FuncStmtType.procedure) {
+      return_type = HT_Type.VOID;
+    } else if ((functype != FuncStmtType.constructor) && (expect([env.lexicon.colon], consume: true, error: false))) {
+      return_type = _parseTypeId();
     }
 
     var body = <Stmt>[];

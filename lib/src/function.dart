@@ -1,4 +1,4 @@
-import '../hetu.dart';
+import '../hetu_script.dart';
 import 'class.dart';
 import 'environment.dart';
 import 'namespace.dart';

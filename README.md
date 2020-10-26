@@ -1,6 +1,8 @@
 # Hetu Script
 
-Hetu is a lightweight script interpreter, intended to be embedded in Dart programs. It is kind of like lua but free of ffi c bindings and make it easy to debug.
+Hetu is a lightweight script interpreter written in Dart, intended to be embedded in Dart programs.
+
+It is kind of like lua but free of ffi c bindings and make it easy to debug.
 
 In your Dart code, you can interpret an script file by this:
 
@@ -58,7 +60,7 @@ void main() {
   });
   hetu.eval(
       'external fun dartHello\n'
-      'fun main {\n'
+      'proc main {\n'
       'dartHello("from hetu")\n'
       '\n}',
       invokeFunc: 'main');

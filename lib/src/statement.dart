@@ -186,6 +186,7 @@ class ContinueStmt extends Stmt {
 
 enum FuncStmtType {
   normal,
+  procedure,
   method,
   getter,
   setter,
