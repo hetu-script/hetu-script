@@ -14,17 +14,17 @@ abstract class ExprVisitor {
   /// Null
   dynamic visitNullExpr(NullExpr expr);
 
-  /// 字面量
-  dynamic visitLiteralExpr(LiteralExpr expr);
+  /// 常量
+  dynamic visitConstExpr(ConstExpr expr);
 
-  /// 圆括号表达式 - 元组
+  /// 数组字面量
+  dynamic visitLiteralVectorExpr(LiteralVectorExpr expr);
+
+  /// 字典字面量
+  dynamic visitLiteralDictExpr(LiteralDictExpr expr);
+
+  /// 圆括号表达式
   dynamic visitGroupExpr(GroupExpr expr);
-
-  /// 方括号表达式 - 数组
-  dynamic visitVectorExpr(VectorExpr expr);
-
-  /// 花括号表达式 - 字典
-  dynamic visitBlockExpr(BlockExpr expr);
 
   /// 单目表达式
   dynamic visitUnaryExpr(UnaryExpr expr);
@@ -36,7 +36,7 @@ abstract class ExprVisitor {
   // dynamic visitTypeExpr(TypeExpr expr);
 
   /// 变量名
-  dynamic visitVarExpr(VarExpr expr);
+  dynamic visitSymbolExpr(SymbolExpr expr);
 
   /// 类型
   // dynamic visitTypeExpr(TypeExpr expr);
@@ -91,21 +91,62 @@ class NullExpr extends Expr {
   Expr clone() => this;
 }
 
-class LiteralExpr extends Expr {
+class ConstExpr extends Expr {
   @override
   String get type => env.lexicon.literalExpr;
 
   @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitLiteralExpr(this);
+  dynamic accept(ExprVisitor visitor) => visitor.visitConstExpr(this);
 
-  int _constIndex;
-  int get constantIndex => _constIndex;
+  final int constIndex;
 
-  LiteralExpr(int constantIndex, int line, int column, String fileName) : super(line, column, fileName) {
-    _constIndex = constantIndex;
+  ConstExpr(this.constIndex, int line, int column, String fileName) : super(line, column, fileName);
+
+  Expr clone() => ConstExpr(constIndex, line, column, fileName);
+}
+
+class LiteralVectorExpr extends Expr {
+  @override
+  String get type => env.lexicon.vectorExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitLiteralVectorExpr(this);
+
+  List<Expr> vector;
+
+  LiteralVectorExpr(this.vector, int line, int column, String fileName) : super(line, column, fileName) {
+    vector ??= [];
   }
 
-  Expr clone() => LiteralExpr(_constIndex, line, column, fileName);
+  Expr clone() {
+    var new_list = <Expr>[];
+    for (var expr in vector) {
+      new_list.add(expr.clone());
+    }
+    return LiteralVectorExpr(new_list, line, column, fileName);
+  }
+}
+
+class LiteralDictExpr extends Expr {
+  @override
+  String get type => env.lexicon.blockExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitLiteralDictExpr(this);
+
+  Map<Expr, Expr> map;
+
+  LiteralDictExpr(this.map, int line, int column, String fileName) : super(line, column, fileName) {
+    map ??= {};
+  }
+
+  Expr clone() {
+    var new_map = <Expr, Expr>{};
+    for (var expr in map.keys) {
+      new_map[expr.clone()] = map[expr];
+    }
+    return LiteralDictExpr(new_map, line, column, fileName);
+  }
 }
 
 class GroupExpr extends Expr {
@@ -120,56 +161,6 @@ class GroupExpr extends Expr {
   GroupExpr(this.inner, String fileName) : super(inner.line, inner.column, fileName);
 
   Expr clone() => GroupExpr(inner.clone(), fileName);
-}
-
-class VectorExpr extends Expr {
-  @override
-  String get type => env.lexicon.vectorExpr;
-
-  @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitVectorExpr(this);
-
-  List<Expr> vector;
-
-  VectorExpr(this.vector, int line, int column, String fileName) : super(line, column, fileName) {
-    vector ??= [];
-  }
-
-  Expr clone() {
-    var new_list = <Expr>[];
-    for (var expr in vector) {
-      new_list.add(expr.clone());
-    }
-    return VectorExpr(new_list, line, column, fileName);
-  }
-}
-
-class BlockExpr extends Expr {
-  @override
-  String get type => env.lexicon.blockExpr;
-
-  @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitBlockExpr(this);
-
-  Map<Expr, Expr> map;
-
-  BlockExpr(this.map, int line, int column, String fileName) : super(line, column, fileName) {
-    map ??= {};
-  }
-
-  // List<Expr> list;
-
-  // BlockExpr(this.list, int line, int column, String fileName) : super(line, column, fileName) {
-  //   list ??= [];
-  // }
-
-  Expr clone() {
-    var new_map = <Expr, Expr>{};
-    for (var expr in map.keys) {
-      new_map[expr.clone()] = map[expr];
-    }
-    return BlockExpr(new_map, line, column, fileName);
-  }
 }
 
 class UnaryExpr extends Expr {
@@ -227,18 +218,18 @@ class BinaryExpr extends Expr {
 //   Expr clone() => TypeExpr(name, typeParams, fileName);
 // }
 
-class VarExpr extends Expr {
+class SymbolExpr extends Expr {
   @override
   String get type => env.lexicon.varExpr;
 
   @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitVarExpr(this);
+  dynamic accept(ExprVisitor visitor) => visitor.visitSymbolExpr(this);
 
   final Token name;
 
-  VarExpr(this.name, String fileName) : super(name.line, name.column, fileName);
+  SymbolExpr(this.name, String fileName) : super(name.line, name.column, fileName);
 
-  Expr clone() => VarExpr(name, fileName);
+  Expr clone() => SymbolExpr(name, fileName);
 }
 
 class AssignExpr extends Expr {

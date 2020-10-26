@@ -1,3 +1,5 @@
+class Object {}
+
 // return the runtime type of a value
 external fun typeof(value): String
 

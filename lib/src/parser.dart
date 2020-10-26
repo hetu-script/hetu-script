@@ -44,8 +44,6 @@ class Parser {
   var _tokPos = 0;
   String _curClassName;
   String _curFileName;
-  // TODO：死代码判断：return之后的代码
-  // bool _returned = false;
 
   static int internalVarIndex = 0;
 
@@ -62,7 +60,7 @@ class Parser {
       if (consume) {
         if (curTok != tokTypes[i]) {
           if (error) {
-            throw HSErr_Expected(tokTypes[i], curTok.lexeme, curTok.line, curTok.column, _curFileName);
+            throw HTErr_Expected(tokTypes[i], curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
           return false;
         }
@@ -82,7 +80,7 @@ class Parser {
       return advance(1);
     }
 
-    if (error) throw HSErr_Expected(tokenType, curTok.lexeme, curTok.line, curTok.column, _curFileName);
+    if (error) throw HTErr_Expected(tokenType, curTok.lexeme, curTok.line, curTok.column, _curFileName);
     return Token.EOF;
   }
 
@@ -113,8 +111,8 @@ class Parser {
   // }
 
   List<Stmt> parse(
-    List<Token> tokens,
-    String fileName, {
+    List<Token> tokens, {
+    String fileName,
     ParseStyle style = ParseStyle.library,
   }) {
     _tokens.clear();
@@ -149,7 +147,7 @@ class Parser {
       expect([env.lexicon.angleRight], consume: true);
     }
 
-    return HT_Type(name: type_name, arguments: type_args);
+    return HT_Type(type_name, arguments: type_args);
   }
 
   /// 赋值 = ，优先级 1，右合并
@@ -162,7 +160,7 @@ class Parser {
       final op = advance(1);
       final value = _parseAssignmentExpr();
 
-      if (expr is VarExpr) {
+      if (expr is SymbolExpr) {
         return AssignExpr(expr.name, op, value, _curFileName);
       } else if (expr is MemberGetExpr) {
         return MemberSetExpr(expr.collection, expr.key, value, _curFileName);
@@ -170,7 +168,7 @@ class Parser {
         return SubSetExpr(expr.collection, expr.key, value, _curFileName);
       }
 
-      throw HSErr_InvalidLeftValue(op.lexeme, op.line, op.column, _curFileName);
+      throw HTErr_InvalidLeftValue(op.lexeme, op.line, op.column, _curFileName);
     }
 
     return expr;
@@ -293,13 +291,13 @@ class Parser {
     } else if (env.lexicon.literals.contains(curTok.type)) {
       var index = interpreter.addLiteral(curTok.literal);
       advance(1);
-      return LiteralExpr(index, peek(-1).line, peek(-1).column, _curFileName);
+      return ConstExpr(index, peek(-1).line, peek(-1).column, _curFileName);
     } else if (curTok == env.lexicon.THIS) {
       advance(1);
       return ThisExpr(peek(-1), _curFileName);
     } else if (curTok == env.lexicon.identifier) {
       advance(1);
-      return VarExpr(peek(-1), _curFileName);
+      return SymbolExpr(peek(-1), _curFileName);
     } else if (curTok == env.lexicon.roundLeft) {
       advance(1);
       var innerExpr = _parseExpr();
@@ -316,7 +314,7 @@ class Parser {
         }
       }
       expect([env.lexicon.squareRight], consume: true);
-      return VectorExpr(list_expr, line, col, _curFileName);
+      return LiteralVectorExpr(list_expr, line, col, _curFileName);
     } else if (curTok == env.lexicon.curlyLeft) {
       int line = curTok.line;
       int col = advance(1).column;
@@ -329,9 +327,9 @@ class Parser {
         map_expr[key_expr] = value_expr;
       }
       expect([env.lexicon.curlyRight], consume: true);
-      return BlockExpr(map_expr, line, col, _curFileName);
+      return LiteralDictExpr(map_expr, line, col, _curFileName);
     } else {
-      throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
+      throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
     }
   }
 
@@ -355,7 +353,7 @@ class Parser {
           else if (expect([env.lexicon.FUN])) {
             return _parseFunctionStmt(FuncStmtType.normal, is_extern: is_extern);
           } else {
-            throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
+            throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
         }
         break;
@@ -419,7 +417,7 @@ class Parser {
           else if (expect([env.lexicon.FUN])) {
             return _parseFunctionStmt(FuncStmtType.method, is_extern: is_extern, is_static: is_static);
           } else {
-            throw HSErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
+            throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
         }
         break;
@@ -459,21 +457,28 @@ class Parser {
   }
 
   /// 变量声明语句
-  VarStmt _parseVarStmt({bool is_extern = false, bool is_static = false}) {
-    var keyword = advance(1);
-    var name = match(env.lexicon.identifier);
-    HT_Type typeid;
+  VarDeclStmt _parseVarStmt({bool is_extern = false, bool is_static = false}) {
+    final keyword = advance(1);
+    final name = match(env.lexicon.identifier);
+    HT_Type decl_type;
     if (expect([env.lexicon.colon], consume: true, error: false)) {
-      typeid = _parseTypeId();
+      decl_type = _parseTypeId();
     }
 
-    var initializer;
+    Expr initializer;
     if (expect([env.lexicon.assign], consume: true, error: false)) {
       initializer = _parseExpr();
     }
     // 语句结尾
     expect([env.lexicon.semicolon], consume: true, error: false);
-    return VarStmt(name, typeid, keyword: keyword, initializer: initializer, isExtern: is_extern, isStatic: is_static);
+    return VarDeclStmt(
+      name,
+      declType: decl_type,
+      initializer: initializer,
+      isExtern: is_extern,
+      isStatic: is_static,
+      typeInferrence: keyword == env.lexicon.LET,
+    );
   }
 
   /// 为了避免涉及复杂的左值右值问题，赋值语句在河图中不作为表达式处理
@@ -547,37 +552,37 @@ class Parser {
     expect([env.lexicon.FOR, env.lexicon.roundLeft], consume: true);
     // 递增变量
     String i = '__i${internalVarIndex++}';
-    list_stmt.add(VarStmt(TokenIdentifier(i, curTok.line, curTok.column), HT_Type.number,
-        keyword: Token(env.lexicon.VAR, curTok.line, curTok.column),
-        initializer: LiteralExpr(interpreter.addLiteral(0), curTok.line, curTok.column, _curFileName)));
+    list_stmt.add(VarDeclStmt(TokenIdentifier(i, curTok.line, curTok.column),
+        declType: HT_Type.number,
+        initializer: ConstExpr(interpreter.addLiteral(0), curTok.line, curTok.column, _curFileName)));
     // 指针
     var varname = match(env.lexicon.identifier);
     HT_Type typeid;
     if (expect([env.lexicon.colon], consume: true, error: false)) {
       typeid = _parseTypeId();
     }
-    list_stmt.add(VarStmt(varname, typeid, keyword: Token(env.lexicon.VAR, curTok.line, curTok.column)));
+    list_stmt.add(VarDeclStmt(varname, declType: typeid));
     expect([env.lexicon.IN], consume: true);
     var list_obj = _parseExpr();
     // 条件语句
     var get_length =
         MemberGetExpr(list_obj, TokenIdentifier(env.lexicon.length, curTok.line, curTok.column), _curFileName);
-    var condition = BinaryExpr(VarExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
+    var condition = BinaryExpr(SymbolExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
         Token(env.lexicon.lesser, curTok.line, curTok.column), get_length, _curFileName);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <Stmt>[];
     // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
     var sub_get_value = SubGetExpr(
-        list_obj.clone(), VarExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName), _curFileName);
+        list_obj.clone(), SymbolExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName), _curFileName);
     var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname.lexeme, curTok.line, curTok.column),
         Token(env.lexicon.assign, curTok.line, curTok.column), sub_get_value, _curFileName));
     loop_body.add(assign_stmt);
     // 递增下标变量
     var increment_expr = BinaryExpr(
-        VarExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
+        SymbolExpr(TokenIdentifier(i, curTok.line, curTok.column), _curFileName),
         Token(env.lexicon.add, curTok.line, curTok.column),
-        LiteralExpr(interpreter.addLiteral(1), curTok.line, curTok.column, _curFileName),
+        ConstExpr(interpreter.addLiteral(1), curTok.line, curTok.column, _curFileName),
         _curFileName);
     var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, curTok.line, curTok.column),
         Token(env.lexicon.assign, curTok.line, curTok.column), increment_expr, _curFileName));
@@ -593,8 +598,8 @@ class Parser {
     return BlockStmt(list_stmt);
   }
 
-  List<VarStmt> _parseParameters() {
-    var params = <VarStmt>[];
+  List<VarDeclStmt> _parseParameters() {
+    var params = <VarDeclStmt>[];
     bool optionalStarted = false;
     while ((curTok != env.lexicon.roundRight) &&
         (curTok != env.lexicon.squareRight) &&
@@ -619,7 +624,7 @@ class Parser {
           initializer = _parseExpr();
         }
       }
-      params.add(VarStmt(name, typeid, initializer: initializer));
+      params.add(VarDeclStmt(name, declType: typeid, initializer: initializer));
     }
 
     if (optionalStarted) expect([env.lexicon.squareRight], consume: true);
@@ -627,7 +632,7 @@ class Parser {
     return params;
   }
 
-  FuncStmt _parseFunctionStmt(FuncStmtType functype, {bool is_extern = false, bool is_static = false}) {
+  FuncDeclStmt _parseFunctionStmt(FuncStmtType functype, {bool is_extern = false, bool is_static = false}) {
     final keyword = advance(1);
     String func_name;
     var typeParams = <String>[];
@@ -650,7 +655,7 @@ class Parser {
     }
 
     int arity = 0;
-    var params = <VarStmt>[];
+    var params = <VarDeclStmt>[];
 
     if (functype != FuncStmtType.getter) {
       // 之前还没有校验过左括号
@@ -665,7 +670,7 @@ class Parser {
 
         // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
         if ((functype == FuncStmtType.setter) && (arity != 1))
-          throw HSErr_Setter(curTok.line, curTok.column, _curFileName);
+          throw HTErr_Setter(curTok.line, curTok.column, _curFileName);
       }
     }
 
@@ -684,7 +689,7 @@ class Parser {
     } else {
       expect([env.lexicon.semicolon], consume: true, error: false);
     }
-    return FuncStmt(keyword, func_name, return_type, params,
+    return FuncDeclStmt(keyword, func_name, return_type, params,
         typeParams: typeParams,
         arity: arity,
         definition: body,
@@ -694,8 +699,8 @@ class Parser {
         funcType: functype);
   }
 
-  ClassStmt _parseClassStmt() {
-    ClassStmt stmt;
+  ClassDeclStmt _parseClassStmt() {
+    ClassDeclStmt stmt;
     // 已经判断过了所以直接跳过Class关键字
     final keyword = advance(1);
 
@@ -720,14 +725,14 @@ class Parser {
     }
     // 类的定义体
     expect([env.lexicon.curlyLeft], consume: true);
-    var variables = <VarStmt>[];
-    var methods = <FuncStmt>[];
+    var variables = <VarDeclStmt>[];
+    var methods = <FuncDeclStmt>[];
     if (curTok != env.lexicon.curlyRight) {
       while ((curTok.type != env.lexicon.curlyRight) && (curTok.type != env.lexicon.endOfFile)) {
         var stmt = _parseStmt(style: ParseStyle.classDefinition);
-        if (stmt is VarStmt) {
+        if (stmt is VarDeclStmt) {
           variables.add(stmt);
-        } else if (stmt is FuncStmt) {
+        } else if (stmt is FuncDeclStmt) {
           methods.add(stmt);
         }
       }
@@ -736,7 +741,7 @@ class Parser {
       advance(1);
     }
 
-    stmt = ClassStmt(keyword, class_name, super_class, variables, methods, typeParams: typeParams);
+    stmt = ClassDeclStmt(keyword, class_name, super_class, variables, methods, typeParams: typeParams);
     _curClassName = null;
     return stmt;
   }

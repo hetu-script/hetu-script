@@ -7,14 +7,12 @@ import 'interpreter.dart';
 import 'errors.dart';
 import 'value.dart';
 
-class HT_TypeFunction extends HT_Type {
+class HT_FunctionType extends HT_Type {
   final HT_Type returnType;
-  final List<HT_Type> paramsTypes = [];
+  final List<HT_Type> paramsTypes;
 
-  HT_TypeFunction(this.returnType, {List<HT_Type> arguments, List<HT_Type> paramsTypes})
-      : super(name: env.lexicon.function, arguments: arguments) {
-    if (paramsTypes != null) this.paramsTypes.addAll(paramsTypes);
-  }
+  HT_FunctionType(this.returnType, {List<HT_Type> arguments = const [], this.paramsTypes = const []})
+      : super(env.lexicon.function, arguments: arguments);
 
   @override
   String toString() {
@@ -50,22 +48,23 @@ class HT_Function {
   final String internalName;
   String get name => internalName ?? funcStmt.name;
 
-  final FuncStmt funcStmt;
+  final FuncDeclStmt funcStmt;
 
-  HT_TypeFunction _typeid;
-  HT_TypeFunction get typeid => _typeid;
+  HT_FunctionType _typeid;
+  HT_FunctionType get typeid => _typeid;
 
   final HT_External extern;
 
-  HT_Function(this.funcStmt, {this.internalName, List<HT_Type> typeArgs, String name, this.extern, this.declContext}) {
+  HT_Function(this.funcStmt,
+      {this.internalName, List<HT_Type> typeArgs = const [], String name, this.extern, this.declContext}) {
     //_save = _closure = closure;
 
     var paramsTypes = <HT_Type>[];
     for (var param in funcStmt.params) {
-      paramsTypes.add(param.declType);
+      paramsTypes.add(param.declType ?? HT_Type.ANY);
     }
 
-    _typeid = HT_TypeFunction(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
+    _typeid = HT_FunctionType(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
   }
 
   @override
@@ -90,7 +89,7 @@ class HT_Function {
         if (funcStmt.params.length > 1) result.write(', ');
       }
     } else {
-      result.write('(... ');
+      result.write('... ');
       result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? env.lexicon.ANY));
     }
     result.write('): ' + funcStmt.returnType?.toString() ?? env.lexicon.VOID);
@@ -121,50 +120,50 @@ class HT_Function {
           //assert(closure != null);
           if (instance != null) {
             _closure = HT_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
-            _closure.define(env.lexicon.THIS, instance.typeid, line, column, interpreter, mutable: false);
+            _closure.define(env.lexicon.THIS, interpreter,
+                declType: instance.typeid, line: line, column: column, isMutable: false);
           } else {
             _closure = HT_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
           }
 
           if (funcStmt.arity >= 0) {
             if (args.length < funcStmt.arity) {
-              throw HSErr_Arity(name, args.length, funcStmt.arity, line, column, interpreter.curFileName);
+              throw HTErr_Arity(name, args.length, funcStmt.arity, line, column, interpreter.curFileName);
             } else if (args.length > funcStmt.params.length) {
-              throw HSErr_Arity(name, args.length, funcStmt.params.length, line, column, interpreter.curFileName);
+              throw HTErr_Arity(name, args.length, funcStmt.params.length, line, column, interpreter.curFileName);
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
                 var var_stmt = funcStmt.params[i];
-                HT_Type arg_type_decl = HT_Type();
-                if (var_stmt.declType != null) {
-                  arg_type_decl = var_stmt.declType;
-                }
+                HT_Type arg_type_decl = var_stmt.declType;
 
+                dynamic arg_value;
                 if (i < args.length) {
                   var arg_type = HT_TypeOf(args[i]);
                   if (arg_type.isNotA(arg_type_decl)) {
-                    throw HSErr_ArgType(args[i].toString(), arg_type.toString(), arg_type_decl.toString(), line, column,
+                    throw HTErr_ArgType(args[i].toString(), arg_type.toString(), arg_type_decl.toString(), line, column,
                         interpreter.curFileName);
                   }
 
-                  _closure.define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter, value: args[i]);
+                  arg_value = args[i];
                 } else {
-                  var initializer = var_stmt.initializer;
-                  dynamic init_value;
-                  if (initializer != null) init_value = interpreter.evaluateExpr(var_stmt.initializer);
-                  _closure.define(var_stmt.name.lexeme, arg_type_decl, line, column, interpreter, value: init_value);
+                  if (var_stmt.initializer != null) arg_value = interpreter.evaluateExpr(var_stmt.initializer);
                 }
+
+                _closure.define(var_stmt.name.lexeme, interpreter,
+                    declType: arg_type_decl, line: line, column: column, value: arg_value);
               }
             }
           } else {
             // “...”形式的参数列表通过List访问参数
-            _closure.define(funcStmt.params.first.name.lexeme, HT_Type.list, line, column, interpreter, value: args);
+            _closure.define(funcStmt.params.first.name.lexeme, interpreter,
+                declType: HT_Type.list, line: line, column: column, value: args);
           }
 
           interpreter.executeBlock(funcStmt.definition, _closure);
           //_closure = _save;
         } else {
-          throw HSErr_MissingFuncDef(name, line, column, interpreter.curFileName);
+          throw HTErr_MissingFuncDef(name, line, column, interpreter.curFileName);
         }
       }
     } catch (returnValue) {
@@ -177,7 +176,7 @@ class HT_Function {
       var returned_type = HT_TypeOf(returnValue);
 
       if ((funcStmt != null) && (returned_type.isNotA(funcStmt.returnType))) {
-        throw HSErr_ReturnType(
+        throw HTErr_ReturnType(
             returned_type.toString(), name, funcStmt.returnType.toString(), line, column, interpreter.curFileName);
       }
 

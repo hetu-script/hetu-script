@@ -14,43 +14,43 @@ import 'value.dart';
 /// 4，语句包含表达式，而表达式不包含语句
 abstract class StmtVisitor {
   /// 导入语句
-  void visitImportStmt(ImportStmt stmt);
+  dynamic visitImportStmt(ImportStmt stmt);
 
   /// 变量声明语句
-  void visitVarStmt(VarStmt stmt);
+  dynamic visitVarDeclStmt(VarDeclStmt stmt);
 
   /// 表达式语句
-  void visitExprStmt(ExprStmt stmt);
+  dynamic visitExprStmt(ExprStmt stmt);
 
   /// 语句块：用于既允许单条语句，又允许语句块的场合，比如IfStatment
-  void visitBlockStmt(BlockStmt stmt);
+  dynamic visitBlockStmt(BlockStmt stmt);
 
   /// 返回语句
-  void visitReturnStmt(ReturnStmt stmt);
+  dynamic visitReturnStmt(ReturnStmt stmt);
 
   /// If语句
-  void visitIfStmt(IfStmt stmt);
+  dynamic visitIfStmt(IfStmt stmt);
 
   /// While语句
-  void visitWhileStmt(WhileStmt stmt);
+  dynamic visitWhileStmt(WhileStmt stmt);
 
   /// Break语句
-  void visitBreakStmt(BreakStmt stmt);
+  dynamic visitBreakStmt(BreakStmt stmt);
 
   /// Continue语句
-  void visitContinueStmt(ContinueStmt stmt);
+  dynamic visitContinueStmt(ContinueStmt stmt);
 
   /// 函数声明和定义
-  void visitFuncStmt(FuncStmt stmt);
+  dynamic visitFuncDeclStmt(FuncDeclStmt stmt);
 
   /// 类
-  void visitClassStmt(ClassStmt stmt);
+  dynamic visitClassDeclStmt(ClassDeclStmt stmt);
 }
 
 abstract class Stmt {
   String get type;
 
-  void accept(StmtVisitor visitor);
+  dynamic accept(StmtVisitor visitor);
 }
 
 class ImportStmt extends Stmt {
@@ -58,7 +58,7 @@ class ImportStmt extends Stmt {
   String get type => env.lexicon.importStmt;
 
   @override
-  void accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
+  dynamic accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
 
   final String location;
 
@@ -67,14 +67,12 @@ class ImportStmt extends Stmt {
   ImportStmt(this.location, {this.nameSpace});
 }
 
-class VarStmt extends Stmt {
+class VarDeclStmt extends Stmt {
   @override
   String get type => env.lexicon.varStmt;
 
   @override
-  void accept(StmtVisitor visitor) => visitor.visitVarStmt(this);
-
-  final Token keyword;
+  dynamic accept(StmtVisitor visitor) => visitor.visitVarDeclStmt(this);
 
   final Token name;
 
@@ -82,11 +80,23 @@ class VarStmt extends Stmt {
 
   final Expr initializer;
 
+  final bool typeInferrence;
+
+  final bool isMutable;
+
   final bool isExtern;
 
   final bool isStatic;
 
-  VarStmt(this.name, this.declType, {this.keyword, this.initializer, this.isExtern = false, this.isStatic = false});
+  VarDeclStmt(
+    this.name, {
+    this.declType,
+    this.initializer,
+    this.typeInferrence = true,
+    this.isMutable = true,
+    this.isExtern = false,
+    this.isStatic = false,
+  });
 }
 
 class ExprStmt extends Stmt {
@@ -182,12 +192,12 @@ enum FuncStmtType {
   constructor,
 }
 
-class FuncStmt extends Stmt {
+class FuncDeclStmt extends Stmt {
   @override
   String get type => env.lexicon.funcStmt;
 
   @override
-  dynamic accept(StmtVisitor visitor) => visitor.visitFuncStmt(this);
+  dynamic accept(StmtVisitor visitor) => visitor.visitFuncDeclStmt(this);
 
   final Token keyword;
 
@@ -202,7 +212,7 @@ class FuncStmt extends Stmt {
 
   final String className;
 
-  final List<VarStmt> params;
+  final List<VarDeclStmt> params;
 
   final int arity;
 
@@ -216,7 +226,7 @@ class FuncStmt extends Stmt {
 
   final FuncStmtType funcType;
 
-  FuncStmt(this.keyword, this.name, this.returnType, this.params,
+  FuncDeclStmt(this.keyword, this.name, this.returnType, this.params,
       {List<String> typeParams,
       this.arity = 0,
       this.definition,
@@ -227,7 +237,6 @@ class FuncStmt extends Stmt {
       this.funcType = FuncStmtType.normal}) {
     this.definition ??= <Stmt>[];
     if (funcType == FuncStmtType.constructor) {
-      //_internalName = name.lexeme;
       _internalName = env.lexicon.constructor + name;
     } else if (funcType == FuncStmtType.getter) {
       _internalName = env.lexicon.getter + name;
@@ -241,12 +250,12 @@ class FuncStmt extends Stmt {
   }
 }
 
-class ClassStmt extends Stmt {
+class ClassDeclStmt extends Stmt {
   @override
   String get type => env.lexicon.classStmt;
 
   @override
-  dynamic accept(StmtVisitor visitor) => visitor.visitClassStmt(this);
+  dynamic accept(StmtVisitor visitor) => visitor.visitClassDeclStmt(this);
 
   final Token keyword;
 
@@ -256,11 +265,11 @@ class ClassStmt extends Stmt {
 
   final HT_Type superClass;
 
-  final List<VarStmt> variables;
+  final List<VarDeclStmt> variables;
 
-  final List<FuncStmt> methods;
+  final List<FuncDeclStmt> methods;
 
-  ClassStmt(this.keyword, this.name, this.superClass, this.variables, this.methods, {List<String> typeParams}) {
+  ClassDeclStmt(this.keyword, this.name, this.superClass, this.variables, this.methods, {List<String> typeParams}) {
     if (typeParams != null) this.typeParams.addAll(typeParams);
   }
 }

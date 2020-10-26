@@ -9,6 +9,9 @@ class Token {
   dynamic get type => lexeme;
   dynamic get literal => lexeme;
 
+  @override
+  String toString() => lexeme;
+
   Token(this.lexeme, [this.line, this.column]) {}
 
   static Token get EOF => Token(env.lexicon.endOfFile);

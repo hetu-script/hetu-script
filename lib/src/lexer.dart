@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/lexicon.dart';
+
 import 'token.dart';
 import 'environment.dart';
 
@@ -17,12 +19,12 @@ class Lexer {
     return result;
   }
 
-  List<Token> lex(String script) {
+  List<Token> lex(String script, {HT_Lexicon lexicon = const HT_Lexicon()}) {
     var _tokens = <Token>[];
     var currentLine = 0;
     var column;
     var pattern = RegExp(
-      env.lexicon.scriptPattern,
+      lexicon.scriptPattern,
       caseSensitive: false,
       unicode: true,
     );
@@ -32,29 +34,29 @@ class Lexer {
       for (var match in matches) {
         var matchString = match.group(0);
         column = match.start + 1;
-        if (match.group(env.lexicon.tokenGroupComment) == null) {
+        if (match.group(lexicon.tokenGroupComment) == null) {
           // 标识符
-          if (match.group(env.lexicon.tokenGroupIdentifier) != null) {
-            if (env.lexicon.keywords.contains(matchString)) {
+          if (match.group(lexicon.tokenGroupIdentifier) != null) {
+            if (lexicon.keywords.contains(matchString)) {
               _tokens.add(Token(matchString, currentLine, column));
-            } else if (matchString == env.lexicon.TRUE) {
+            } else if (matchString == lexicon.TRUE) {
               _tokens.add(TokenBoolLiteral(matchString, true, currentLine, column));
-            } else if (matchString == env.lexicon.FALSE) {
+            } else if (matchString == lexicon.FALSE) {
               _tokens.add(TokenBoolLiteral(matchString, false, currentLine, column));
             } else {
               _tokens.add(TokenIdentifier(matchString, currentLine, column));
             }
           }
           // 标点符号和运算符号
-          else if (match.group(env.lexicon.tokenGroupPunctuation) != null) {
+          else if (match.group(lexicon.tokenGroupPunctuation) != null) {
             _tokens.add(Token(matchString, currentLine, column));
           }
           // 数字字面量
-          else if (match.group(env.lexicon.tokenGroupNumber) != null) {
+          else if (match.group(lexicon.tokenGroupNumber) != null) {
             _tokens.add(TokenNumLiteral(matchString, num.parse(matchString), currentLine, column));
           }
           // 字符串字面量
-          else if (match.group(env.lexicon.tokenGroupString) != null) {
+          else if (match.group(lexicon.tokenGroupString) != null) {
             var literal = _convertStringLiteral(matchString);
             _tokens.add(TokenStringLiteral(matchString, literal, currentLine, column));
           }

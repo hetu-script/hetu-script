@@ -22,7 +22,7 @@ class HT_Class extends HT_Namespace {
 
   HT_Class superClass;
 
-  Map<String, VarStmt> variables = {};
+  Map<String, VarDeclStmt> variables = {};
   //Map<String, HT_Function> methods = {};
 
   HT_Class(String name, {List<String> typeParams, HT_Namespace closure, this.superClass})
@@ -38,11 +38,11 @@ class HT_Class extends HT_Namespace {
       (superClass == null ? false : superClass.contains(varName)) ||
       (superClass == null ? false : superClass.contains('${env.lexicon.getter}$varName'));
 
-  void addVariable(VarStmt stmt) {
+  void addVariable(VarDeclStmt stmt) {
     if (!variables.containsKey(stmt.name.lexeme)) {
       variables[stmt.name.lexeme] = stmt;
     } else {
-      throw HSErr_Defined(name, stmt.name.line, stmt.name.column, null);
+      throw HTErr_Defined(name, stmt.name.line, stmt.name.column, null);
     }
   }
 
@@ -55,13 +55,13 @@ class HT_Class extends HT_Namespace {
       if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         return defs[varName].value;
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(getter)) {
       if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         HT_Function func = defs[getter].value;
         return func.call(interpreter, line, column, []);
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else if ((superClass != null) && (superClass.contains(varName))) {
       return superClass.fetch(varName, line, column, interpreter, error: error, from: closure.fullName);
     }
@@ -70,7 +70,7 @@ class HT_Class extends HT_Namespace {
       return closure.fetch(varName, line, column, interpreter, error: error, from: closure.fullName);
     }
 
-    if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
+    if (error) throw HTErr_Undefined(varName, line, column, interpreter.curFileName);
     return null;
   }
 
@@ -87,16 +87,16 @@ class HT_Class extends HT_Namespace {
           defs[varName].value = value;
           return;
         }
-        throw HSErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
+        throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(setter)) {
       if (from.startsWith(this.fullName) || !varName.startsWith(env.lexicon.underscore)) {
         HT_Function setter_func = defs[setter].value;
         setter_func.call(interpreter, line, column, [value]);
         return;
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     }
 
     if (closure != null) {
@@ -104,12 +104,12 @@ class HT_Class extends HT_Namespace {
       return;
     }
 
-    if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
+    if (error) throw HTErr_Undefined(varName, line, column, interpreter.curFileName);
   }
 
   HT_Instance createInstance(Interpreter interpreter, int line, int column, HT_Namespace closure,
       {List<HT_Type> typeArgs, String initterName, List<dynamic> args}) {
-    var instance = HT_Instance(this, typeArgs: typeArgs);
+    var instance = HT_Instance(interpreter, this, typeArgs: typeArgs?.sublist(0, typeParams.length));
 
     var save = interpreter.curContext;
     interpreter.curContext = instance;
@@ -118,17 +118,7 @@ class HT_Class extends HT_Namespace {
       if (decl.initializer != null) {
         value = interpreter.evaluateExpr(decl.initializer);
       }
-
-      if (decl.declType != null) {
-        instance.define(decl.name.lexeme, decl.declType, line, column, interpreter, value: value);
-      } else {
-        // 从初始化表达式推断变量类型
-        if (value != null) {
-          instance.define(decl.name.lexeme, HT_TypeOf(value), line, column, interpreter, value: value);
-        } else {
-          instance.define(decl.name.lexeme, HT_Type(), line, column, interpreter);
-        }
-      }
+      instance.define(decl.name.lexeme, interpreter, declType: decl.declType, line: line, column: column, value: value);
     }
 
     interpreter.curContext = save;
@@ -155,11 +145,11 @@ class HT_Instance extends HT_Namespace {
   HT_Type _typeid;
   HT_Type get typeid => _typeid;
 
-  HT_Instance(this.klass, {List<HT_Type> typeArgs})
+  HT_Instance(Interpreter interpreter, this.klass, {List<HT_Type> typeArgs})
       : super(name: env.lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
-    _typeid = HT_Type(name: klass.name, arguments: typeArgs);
+    _typeid = HT_Type(klass.name, arguments: typeArgs);
 
-    define(env.lexicon.THIS, typeid, null, null, null, value: this);
+    define(env.lexicon.THIS, interpreter, declType: typeid, value: this);
     //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);
   }
 
@@ -177,7 +167,7 @@ class HT_Instance extends HT_Namespace {
       if (!varName.startsWith(env.lexicon.underscore)) {
         return defs[varName].value;
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else {
       var getter = '${env.lexicon.getter}$varName';
       if (klass.contains(getter)) {
@@ -193,7 +183,7 @@ class HT_Instance extends HT_Namespace {
       }
     }
 
-    if (error) throw HSErr_UndefinedMember(varName, this.typeid.toString(), line, column, interpreter.curFileName);
+    if (error) throw HTErr_UndefinedMember(varName, this.typeid.toString(), line, column, interpreter.curFileName);
   }
 
   @override
@@ -205,15 +195,15 @@ class HT_Instance extends HT_Namespace {
       var var_type = HT_TypeOf(value);
       if (!varName.startsWith(env.lexicon.underscore)) {
         if (var_type.isA(decl_type)) {
-          if (defs[varName].mutable) {
+          if (defs[varName].isMutable) {
             defs[varName].value = value;
             return;
           }
-          throw HSErr_Mutable(varName, line, column, interpreter.curFileName);
+          throw HTErr_Mutable(varName, line, column, interpreter.curFileName);
         }
-        throw HSErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
+        throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else {
       var setter = '${env.lexicon.setter}$varName';
       if (klass.contains(setter)) {
@@ -225,7 +215,7 @@ class HT_Instance extends HT_Namespace {
       }
     }
 
-    if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
+    if (error) throw HTErr_Undefined(varName, line, column, interpreter.curFileName);
   }
 
   dynamic invoke(String methodName, int line, int column, Interpreter interpreter,
@@ -235,6 +225,6 @@ class HT_Instance extends HT_Namespace {
       return method.call(interpreter, null, null, args ?? [], instance: this);
     }
 
-    if (error) throw HSErr_Undefined(methodName, line, column, interpreter.curFileName);
+    if (error) throw HTErr_Undefined(methodName, line, column, interpreter.curFileName);
   }
 }

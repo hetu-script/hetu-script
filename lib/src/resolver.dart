@@ -17,8 +17,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   var _blocks = <Map<String, bool>>[];
 
-  var _classes = <ClassStmt>[];
-  var _funcs = <FuncStmt>[];
+  var _classes = <ClassDeclStmt>[];
+  var _funcs = <FuncDeclStmt>[];
 
   String _curFileName;
   FuncStmtType _curFuncType;
@@ -34,7 +34,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       var block = _blocks.last;
 
       if (block.containsKey(name) && error) {
-        throw HSErr_Defined(name, line, column, _curFileName);
+        throw HTErr_Defined(name, line, column, _curFileName);
       }
       block[name] = define;
     }
@@ -58,7 +58,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     // Not found. Assume it is global.
   }
 
-  void resolve(List<Stmt> statements, String fileName, {String libName}) {
+  void resolve(List<Stmt> statements, {String fileName, String libName}) {
     libName ??= env.lexicon.globals;
     if (libName != env.lexicon.globals) _beginBlock();
 
@@ -89,7 +89,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void _resolveExpr(Expr expr) => expr.accept(this);
   void _resolveStmt(Stmt stmt) => stmt.accept(this);
 
-  void _resolveFunction(FuncStmt stmt) {
+  void _resolveFunction(FuncDeclStmt stmt) {
     var save = _curFuncType;
     _curFuncType = stmt.funcType;
 
@@ -106,12 +106,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _curFuncType = save;
   }
 
-  void _resolveClass(ClassStmt stmt) {
+  void _resolveClass(ClassDeclStmt stmt) {
     _ClassType savedClassType = _curClassType;
 
     if (stmt.superClass != null) {
       if (stmt.name == stmt.superClass.name) {
-        throw HSErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
+        throw HTErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
       }
 
       //_resolveExpr(stmt.superClass);
@@ -124,12 +124,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _beginBlock();
     for (var variable in stmt.variables) {
       if (variable.isStatic) {
-        visitVarStmt(variable);
+        visitVarDeclStmt(variable);
       }
     }
 
     var savedFuncList = _funcs;
-    _funcs = <FuncStmt>[];
+    _funcs = <FuncDeclStmt>[];
     // 类静态函数，先注册函数名
     for (var method in stmt.methods) {
       if (method.isStatic) {
@@ -149,13 +149,13 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveFunction(stmt);
     }
 
-    _funcs = <FuncStmt>[];
+    _funcs = <FuncDeclStmt>[];
     _beginBlock();
     // 注册实例中的成员变量
     _blocks.last[env.lexicon.THIS] = true;
     for (var variable in stmt.variables) {
       if (!variable.isStatic) {
-        visitVarStmt(variable);
+        visitVarDeclStmt(variable);
       }
     }
     // 成员函数，先注册函数名
@@ -190,20 +190,20 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   /// 字面量并没有任何变量需要解析，因此这里留空
   @override
-  dynamic visitLiteralExpr(LiteralExpr expr) {}
+  dynamic visitConstExpr(ConstExpr expr) {}
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) => _resolveExpr(expr.inner);
 
   @override
-  dynamic visitVectorExpr(VectorExpr expr) {
+  dynamic visitLiteralVectorExpr(LiteralVectorExpr expr) {
     for (var item in expr.vector) {
       _resolveExpr(item);
     }
   }
 
   @override
-  dynamic visitBlockExpr(BlockExpr expr) {
+  dynamic visitLiteralDictExpr(LiteralDictExpr expr) {
     for (var key in expr.map.keys) {
       _resolveExpr(key);
       _resolveExpr(expr.map[key]);
@@ -214,9 +214,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
   // dynamic visitTypeExpr(TypeExpr expr) {}
 
   @override
-  dynamic visitVarExpr(VarExpr expr) {
+  dynamic visitSymbolExpr(SymbolExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HSErr_Initialized(expr.name.lexeme, expr.line, expr.column, _curFileName);
+      throw HTErr_Initialized(expr.name.lexeme, expr.line, expr.column, _curFileName);
     }
 
     _lookUpVar(expr, expr.name.lexeme);
@@ -276,7 +276,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   dynamic visitImportStmt(ImportStmt stmt) {}
 
   @override
-  void visitVarStmt(VarStmt stmt) {
+  void visitVarDeclStmt(VarDeclStmt stmt) {
     if (stmt.initializer != null) {
       _resolveExpr(stmt.initializer);
       _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
@@ -298,7 +298,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitReturnStmt(ReturnStmt stmt) {
     if ((_curFuncType == null) || (_curFuncType == FuncStmtType.constructor)) {
-      throw HSErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, _curFileName);
+      throw HTErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, _curFileName);
     }
 
     if (stmt.expr != null) {
@@ -330,20 +330,20 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitThisExpr(ThisExpr expr) {
     if (_curClassType == _ClassType.none) {
-      throw HSErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column, _curFileName);
+      throw HTErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column, _curFileName);
     }
 
     _lookUpVar(expr, expr.keyword.lexeme);
   }
 
   @override
-  void visitFuncStmt(FuncStmt stmt) {
+  void visitFuncDeclStmt(FuncDeclStmt stmt) {
     _declare(stmt.name, stmt.keyword.line, stmt.keyword.column, define: true);
     _funcs.add(stmt);
   }
 
   @override
-  void visitClassStmt(ClassStmt stmt) {
+  void visitClassDeclStmt(ClassDeclStmt stmt) {
     _declare(stmt.name, stmt.keyword.line, stmt.keyword.column, define: true);
     _classes.add(stmt);
   }

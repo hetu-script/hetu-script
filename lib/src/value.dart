@@ -1,29 +1,26 @@
-import 'package:hetu_script/hetu.dart';
-
 import 'environment.dart';
+import 'class.dart';
+import 'function.dart';
 
 class HT_Type {
   // List<HT_Type> get inheritances;
   // List<HT_Type> get compositions;
-  String name;
-  List<HT_Type> arguments = [];
+  final String name;
+  final List<HT_Type> arguments;
 
-  HT_Type({this.name, List<HT_Type> arguments}) {
-    name ??= env.lexicon.ANY;
-    if (arguments != null) this.arguments.addAll(arguments);
-  }
+  const HT_Type(this.name, {this.arguments = const []});
 
-  static final ANY = HT_Type();
-  static final NULL = HT_Type(name: env.lexicon.NULL);
-  static final VOID = HT_Type(name: env.lexicon.VOID);
-  static final CLASS = HT_Type(name: env.lexicon.CLASS);
-  static final NAMESPACE = HT_Type(name: env.lexicon.NAMESPACE);
-  static final unknown = HT_Type(name: env.lexicon.unknown);
-  static final number = HT_Type(name: env.lexicon.number);
-  static final boolean = HT_Type(name: env.lexicon.boolean);
-  static final string = HT_Type(name: env.lexicon.string);
-  static final list = HT_Type(name: env.lexicon.list);
-  static final map = HT_Type(name: env.lexicon.map);
+  static final ANY = HT_Type(env.lexicon.ANY);
+  static final NULL = HT_Type(env.lexicon.NULL);
+  static final VOID = HT_Type(env.lexicon.VOID);
+  static final CLASS = HT_Type(env.lexicon.CLASS);
+  static final NAMESPACE = HT_Type(env.lexicon.NAMESPACE);
+  static final unknown = HT_Type(env.lexicon.unknown);
+  static final number = HT_Type(env.lexicon.number);
+  static final boolean = HT_Type(env.lexicon.boolean);
+  static final string = HT_Type(env.lexicon.string);
+  static final list = HT_Type(env.lexicon.list);
+  static final map = HT_Type(env.lexicon.map);
 
   @override
   String toString() {
@@ -86,26 +83,26 @@ HT_Type HT_TypeOf(dynamic value) {
     // if ((item_darttype != 'dynamic') && (value.isNotEmpty)) {
     //   valType = HT_TypeOf(value.first);
     // }
-    HT_Type valType = HT_Type();
+    HT_Type valType = HT_Type.ANY;
     if (value.isNotEmpty) {
       valType = HT_TypeOf(value.first);
       for (var item in value) {
         if (HT_TypeOf(item) != valType) {
-          valType = HT_Type();
+          valType = HT_Type.ANY;
           break;
         }
       }
     }
 
-    return HT_Type(name: env.lexicon.list, arguments: [valType]);
+    return HT_Type(env.lexicon.list, arguments: [valType]);
   } else if (value is Map) {
-    HT_Type keyType = HT_Type();
-    HT_Type valType = HT_Type();
+    HT_Type keyType = HT_Type.ANY;
+    HT_Type valType = HT_Type.ANY;
     if (value.keys.isNotEmpty) {
       keyType = HT_TypeOf(value.keys.first);
       for (var key in value.keys) {
         if (HT_TypeOf(key) != keyType) {
-          keyType = HT_Type();
+          keyType = HT_Type.ANY;
           break;
         }
       }
@@ -114,12 +111,12 @@ HT_Type HT_TypeOf(dynamic value) {
       valType = HT_TypeOf(value.values.first);
       for (var value in value.values) {
         if (HT_TypeOf(value) != valType) {
-          valType = HT_Type();
+          valType = HT_Type.ANY;
           break;
         }
       }
     }
-    return HT_Type(name: env.lexicon.map, arguments: [keyType, valType]);
+    return HT_Type(env.lexicon.map, arguments: [keyType, valType]);
   } else {
     return HT_Type.unknown;
   }
@@ -138,8 +135,8 @@ class Declaration {
   dynamic value;
 
   final HT_Type typeid;
-  final bool nullable;
-  final bool mutable;
+  final bool isNullable;
+  final bool isMutable;
 
-  Declaration(this.typeid, {this.value, this.nullable = false, this.mutable = true});
+  Declaration(this.typeid, {this.value, this.isNullable = false, this.isMutable = true});
 }

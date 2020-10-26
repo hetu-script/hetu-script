@@ -1,8 +1,7 @@
-import 'package:hetu_script/hetu.dart';
-
 import 'errors.dart';
 import 'environment.dart';
 import 'value.dart';
+import 'interpreter.dart';
 
 class HT_Namespace extends HT_Value {
   String toString() => '${env.lexicon.NAMESPACE} $name';
@@ -71,37 +70,25 @@ class HT_Namespace extends HT_Value {
   //   if (!defs.containsKey(varName)) {
   //     defs[varName] = null;
   //   } else {
-  //     throw HSErr_Defined(varName, line, column, fileName);
+  //     throw HTErr_Defined(varName, line, column, fileName);
   //   }
   // }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(String id, HT_Type declType, int line, int column, Interpreter interpreter,
-      {dynamic value, bool mutable = true, bool typeInference = true}) {
+  void define(String id, Interpreter interpreter,
+      {int line, int column, HT_Type declType, dynamic value, bool isMutable = true, bool typeInference = true}) {
     var val_type = HT_TypeOf(value);
-    if (val_type.isA(declType)) {
-      if (typeInference) {
-        // 变量的声明类型和初始化值类型保持一致
-        defs[id] = Declaration(value == null ? declType : val_type, value: value, mutable: mutable);
+    if (declType == null) {
+      if ((typeInference) && (value != null)) {
+        declType = val_type;
       } else {
-        // 变量的声明类型和声明语句本身保持一致
-        defs[id] = Declaration(value == null ? declType : declType, value: value, mutable: mutable);
+        declType = HT_Type.ANY;
       }
     }
-    //  else if ((value != null) && (value is Map)) {
-    //   var klass = interpreter.global.fetch(id, line, column, interpreter);
-    //   if (klass is HT_Class) {
-    //     var instance = klass.createInstance(interpreter, line, column, this);
-    //     for (var key in value.keys) {
-    //       instance.assign(key, value[key], line, column, interpreter);
-    //     }
-    //     defs[id] = Declaration(typeid, value: instance);
-    //   } else {
-    //     throw HSErr_Type(id, val_typeid.toString(), typeid.toString(), line, column, interpreter.curFileName);
-    //   }
-    // }
-    else {
-      throw HSErr_Type(id, val_type.toString(), declType.toString(), line, column, interpreter.curFileName);
+    if (val_type.isA(declType)) {
+      defs[id] = Declaration(declType, value: value, isMutable: isMutable);
+    } else {
+      throw HTErr_Type(id, val_type.toString(), declType.toString(), line, column, interpreter.curFileName);
     }
   }
 
@@ -114,13 +101,13 @@ class HT_Namespace extends HT_Value {
           !varName.startsWith(env.lexicon.underscore)) {
         return defs[varName].value;
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     }
 
     if (recursive && (closure != null))
       return closure.fetch(varName, line, column, interpreter, error: error, from: from);
 
-    if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
+    if (error) throw HTErr_Undefined(varName, line, column, interpreter.curFileName);
 
     return null;
   }
@@ -141,21 +128,21 @@ class HT_Namespace extends HT_Value {
       var var_type = HT_TypeOf(value);
       if (from.startsWith(this.fullName) || (!varName.startsWith(env.lexicon.underscore))) {
         if (var_type.isA(decl_type)) {
-          if (defs[varName].mutable) {
+          if (defs[varName].isMutable) {
             defs[varName].value = value;
             return;
           }
-          throw HSErr_Mutable(varName, line, column, interpreter.curFileName);
+          throw HTErr_Mutable(varName, line, column, interpreter.curFileName);
         }
-        throw HSErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
+        throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
-      throw HSErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else if (recursive && (closure != null)) {
       closure.assign(varName, value, line, column, interpreter, from: from);
       return;
     }
 
-    if (error) throw HSErr_Undefined(varName, line, column, interpreter.curFileName);
+    if (error) throw HTErr_Undefined(varName, line, column, interpreter.curFileName);
   }
 
   void assignAt(String varName, dynamic value, int distance, int line, int column, Interpreter interpreter,
