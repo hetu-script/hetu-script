@@ -1,5 +1,7 @@
 # Hetu Script
 
+## Introduction
+
 Hetu is a lightweight script interpreter written in Dart, intended to be embedded in Dart programs.
 
 It is kind of like lua but free of ffi c bindings and make it easy to debug.
@@ -22,7 +24,7 @@ While 'hello.ht' is the script file written in Hetu, here is an example:
 // Define a class.
 class Person {
     // Define a member function.
-    fun greeting(name: String) {
+    proc greeting(name: String) {
       // Print to console.
       print('hello ', name)
     }
@@ -39,10 +41,10 @@ proc main {
 
 Hetu's grammar is almost same to typescript, except a few things:
 
-- Function is declared with 'fun'.
+- Function is declared with 'fun' or 'proc', the latter means procedure and doesn't return value.
 - Variable declared with keyword 'let' without a type will be given a type if it has an initialization.
 
-# Binding
+## Binding
 
 To call Dart functions in Hetu, just init Hetu with 'externalFunctions'.
 
@@ -77,7 +79,7 @@ Usage:
 hetu [-r] [file_name] [invoke_name]
 ```
 
-If '-r' option is provided, enter REPL mode.
+If [-r] option is provided, enter REPL mode.
 
 If [invoke_name] is provided, will switch to program style and call function with given name.
 

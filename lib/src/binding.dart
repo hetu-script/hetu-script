@@ -126,7 +126,7 @@ abstract class HT_BaseBinding {
   }
 
   static dynamic _console_cls(HT_Instance instance, List<dynamic> args) {
-    stdout.write("\x1B[2J\x1B[0;0H");
+    stdout.write('\x1B[2J\x1B[0;0H');
   }
 
   static dynamic _math_random(HT_Instance instance, List<dynamic> args) {
