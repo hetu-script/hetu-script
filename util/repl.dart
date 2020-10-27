@@ -19,7 +19,7 @@ const cli_help = '''
 
 void main(List<String> args) async {
   try {
-    var interpreter = await HetuEnv.init(additionalModules: true);
+    var interpreter = await HetuEnv.init();
 
     dynamic result;
     if (args.isNotEmpty) {

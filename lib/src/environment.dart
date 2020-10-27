@@ -4,6 +4,7 @@ import 'lexicon.dart';
 import 'binding.dart';
 import 'interpreter.dart';
 import 'class.dart' show HT_Instance;
+import 'core.dart';
 
 //typedef ReadFileMethod = Future<String> Function(String filepath);
 typedef HT_External = dynamic Function(HT_Instance instance, List<dynamic> args);
@@ -32,7 +33,6 @@ class HetuEnv {
     bool debugMode = false,
     HT_Lexicon lexicon = const HT_Lexicon(),
     Map<String, HT_External> externalFunctions,
-    bool additionalModules = false,
   }) async {
     hetuEnv = HetuEnv._(
       //stringLoadMethod: stringLoadMethod,
@@ -52,15 +52,8 @@ class HetuEnv {
       itp.loadExterns(HT_BaseBinding.dartFunctions);
       if (externalFunctions != null) itp.loadExterns(externalFunctions);
 
-      // 载入基础库
-      itp.evalf(sdkDirectory + 'core.ht');
-      itp.evalf(sdkDirectory + 'value.ht');
-      itp.evalf(sdkDirectory + 'system.ht');
-      itp.evalf(sdkDirectory + 'console.ht');
-
-      if (additionalModules) {
-        itp.evalf(sdkDirectory + 'math.ht');
-        itp.evalf(sdkDirectory + 'help.ht');
+      for (var file in coreLibs.keys) {
+        itp.eval(coreLibs[file], fileName: file);
       }
     } catch (e) {
       stdout.write('\x1B[32m');
