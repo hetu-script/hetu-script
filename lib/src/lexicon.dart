@@ -29,111 +29,109 @@
 //  Cascade          ..                                   Left            2
 //  Assignment       =, *=, /=, +=, -=, &=, ˆ=, etc.      Right           1
 
-class HT_Lexicon {
-  const HT_Lexicon();
+abstract class HT_Lexicon {
+  static final defaultProgramMainFunc = 'main';
 
-  final defaultProgramMainFunc = 'main';
-
-  final scriptPattern = r'(//.*)|' // 注释 group(1)
+  static final scriptPattern = r'(//.*)|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
       r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
       r'("(\\"|[^"])*"))';
 
-  final commandLinePattern = r'(//.*)|' // 注释 group(1)
+  static final commandLinePattern = r'(//.*)|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
       r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!:\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
       r'("(\\"|[^"])*"))';
 
-  final tokenGroupComment = 1;
-  final tokenGroupIdentifier = 2;
-  final tokenGroupPunctuation = 3;
-  final tokenGroupNumber = 4;
-  final tokenGroupString = 6;
+  static final tokenGroupComment = 1;
+  static final tokenGroupIdentifier = 2;
+  static final tokenGroupPunctuation = 3;
+  static final tokenGroupNumber = 4;
+  static final tokenGroupString = 6;
 
-  final number = 'num';
-  final boolean = 'bool';
-  final string = 'str';
+  static final number = 'num';
+  static final boolean = 'bool';
+  static final string = 'str';
 
-  Set<String> get literals => {
+  static Set<String> get literals => {
         number,
         boolean,
         string,
       };
 
-  final endOfFile = 'end_of_file'; // 文件末尾
-  final newLine = '\n';
-  final multiline = '\\';
-  final variadicArguments = '...';
-  final underscore = '_';
-  final globals = '__globals__';
-  final externs = '__externs__';
-  final instance = '__instance_of_';
-  final instancePrefix = 'instance of ';
-  final constructor = '__construct__';
-  final getter = '__get__';
-  final setter = '__set__';
+  static final endOfFile = 'end_of_file'; // 文件末尾
+  static final newLine = '\n';
+  static final multiline = '\\';
+  static final variadicArguments = '...';
+  static final underscore = '_';
+  static final globals = '__globals__';
+  static final externs = '__externs__';
+  static final instance = '__instance_of_';
+  static final instancePrefix = 'instance of ';
+  static final constructor = '__construct__';
+  static final getter = '__get__';
+  static final setter = '__set__';
 
-  final object = 'Object';
-  final unknown = '__unknown__';
-  final list = 'List';
-  final map = 'Map';
-  final length = 'length';
-  final function = 'function';
-  final procedure = 'procedure';
-  final identifier = 'identifier';
+  static final object = 'Object';
+  static final unknown = '__unknown__';
+  static final list = 'List';
+  static final map = 'Map';
+  static final length = 'length';
+  static final function = 'function';
+  static final procedure = 'procedure';
+  static final identifier = 'identifier';
 
-  final TRUE = 'true';
-  final FALSE = 'false';
-  final NULL = 'null';
+  static final TRUE = 'true';
+  static final FALSE = 'false';
+  static final NULL = 'null';
 
-  final VOID = 'void';
-  final VAR = 'var';
-  final LET = 'let';
+  static final VOID = 'void';
+  static final VAR = 'var';
+  static final LET = 'let';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
-  final ANY = 'any';
-  final TYPEDEF = 'typedef';
+  static final ANY = 'any';
+  static final TYPEDEF = 'typedef';
 
-  final STATIC = 'static';
-  final FINAL = 'final';
-  final CONSTRUCT = 'construct';
-  final GET = 'get';
-  final SET = 'set';
-  final NAMESPACE = 'namespace';
-  final AS = 'as';
-  final ABSTRACT = 'abstract';
-  final CLASS = 'class';
-  final STRUCT = 'struct';
-  final INTERFACE = 'interface';
-  final FUN = 'fun';
-  final PROC = 'proc';
-  final THIS = 'this';
-  final SUPER = 'super';
-  final EXTENDS = 'extends';
-  final IMPLEMENTS = 'implements';
-  final MIXIN = 'mixin';
-  final EXTERNAL = 'external';
-  final IMPORT = 'import';
+  static final STATIC = 'static';
+  static final FINAL = 'final';
+  static final CONSTRUCT = 'construct';
+  static final GET = 'get';
+  static final SET = 'set';
+  static final NAMESPACE = 'namespace';
+  static final AS = 'as';
+  static final ABSTRACT = 'abstract';
+  static final CLASS = 'class';
+  static final STRUCT = 'struct';
+  static final INTERFACE = 'interface';
+  static final FUN = 'fun';
+  static final PROC = 'proc';
+  static final THIS = 'this';
+  static final SUPER = 'super';
+  static final EXTENDS = 'extends';
+  static final IMPLEMENTS = 'implements';
+  static final MIXIN = 'mixin';
+  static final EXTERNAL = 'external';
+  static final IMPORT = 'import';
 
-  final ASSERT = 'assert';
-  final BREAK = 'break';
-  final CONTINUE = 'continue';
-  final FOR = 'for';
-  final IN = 'in';
-  final IF = 'if';
-  final ELSE = 'else';
-  final RETURN = 'return';
-  final WHILE = 'while';
-  final DO = 'do';
-  final WHEN = 'when';
+  static final ASSERT = 'assert';
+  static final BREAK = 'break';
+  static final CONTINUE = 'continue';
+  static final FOR = 'for';
+  static final IN = 'in';
+  static final IF = 'if';
+  static final ELSE = 'else';
+  static final RETURN = 'return';
+  static final WHILE = 'while';
+  static final DO = 'do';
+  static final WHEN = 'when';
 
-  final IS = 'is';
+  static final IS = 'is';
 
   /// 保留字，不能用于变量名字
-  Set<String> get keywords => {
+  static Set<String> get keywords => {
         NULL,
         STATIC,
         VAR,
@@ -172,85 +170,85 @@ class HT_Lexicon {
       };
 
   /// 函数调用表达式
-  final nullExpr = 'null_expression';
-  final literalExpr = 'literal_expression';
-  final groupExpr = 'group_expression';
-  final vectorExpr = 'vector_expression';
-  final blockExpr = 'block_expression';
-  final varExpr = 'variable_expression';
-  final typeExpr = 'type_expression';
-  final unaryExpr = 'unary_expression';
-  final binaryExpr = 'binary_expression';
-  final callExpr = 'call_expression';
-  final thisExpr = 'this_expression';
-  final assignExpr = 'assign_expression';
-  final subGetExpr = 'subscript_get_expression';
-  final subSetExpr = 'subscript_set_expression';
-  final memberGetExpr = 'member_get_expression';
-  final memberSetExpr = 'member_set_expression';
+  static final nullExpr = 'null_expression';
+  static final literalExpr = 'literal_expression';
+  static final groupExpr = 'group_expression';
+  static final vectorExpr = 'vector_expression';
+  static final blockExpr = 'block_expression';
+  static final varExpr = 'variable_expression';
+  static final typeExpr = 'type_expression';
+  static final unaryExpr = 'unary_expression';
+  static final binaryExpr = 'binary_expression';
+  static final callExpr = 'call_expression';
+  static final thisExpr = 'this_expression';
+  static final assignExpr = 'assign_expression';
+  static final subGetExpr = 'subscript_get_expression';
+  static final subSetExpr = 'subscript_set_expression';
+  static final memberGetExpr = 'member_get_expression';
+  static final memberSetExpr = 'member_set_expression';
 
-  final importStmt = 'import_statement';
-  final varStmt = 'variable_statement';
-  final exprStmt = 'expression_statement';
-  final blockStmt = 'block_statement';
-  final returnStmt = 'return_statement';
-  final breakStmt = 'break_statement';
-  final continueStmt = 'continue_statement';
-  final ifStmt = 'if_statement';
-  final whileStmt = 'while_statement';
-  final forInStmt = 'for_in_statement';
-  final classStmt = 'class_statement';
-  final funcStmt = 'function_statement';
-  final externFuncStmt = 'external_function_statement';
-  final constructorStmt = 'constructor_function_statement';
+  static final importStmt = 'import_statement';
+  static final varStmt = 'variable_statement';
+  static final exprStmt = 'expression_statement';
+  static final blockStmt = 'block_statement';
+  static final returnStmt = 'return_statement';
+  static final breakStmt = 'break_statement';
+  static final continueStmt = 'continue_statement';
+  static final ifStmt = 'if_statement';
+  static final whileStmt = 'while_statement';
+  static final forInStmt = 'for_in_statement';
+  static final classStmt = 'class_statement';
+  static final funcStmt = 'function_statement';
+  static final externFuncStmt = 'external_function_statement';
+  static final constructorStmt = 'constructor_function_statement';
 
-  final memberGet = '.';
-  final subGet = '[';
-  final call = '(';
+  static final memberGet = '.';
+  static final subGet = '[';
+  static final call = '(';
 
   /// 后缀操作符，包含多个符号
-  Set<String> get unaryPostfixs => {
+  static Set<String> get unaryPostfixs => {
         memberGet,
         subGet,
         call,
       };
 
-  final not = '!';
-  final negative = '-';
+  static final not = '!';
+  static final negative = '-';
 
   /// 前缀操作符，包含多个符号
-  Set<String> get unaryPrefixs => {
+  static Set<String> get unaryPrefixs => {
         not,
         negative,
       };
 
-  final multiply = '*';
-  final devide = '/';
-  final modulo = '%';
+  static final multiply = '*';
+  static final devide = '/';
+  static final modulo = '%';
 
   /// 乘除操作符，包含多个符号
-  Set<String> get multiplicatives => {
+  static Set<String> get multiplicatives => {
         multiply,
         devide,
         modulo,
       };
 
-  final add = '+';
-  final subtract = '-';
+  static final add = '+';
+  static final subtract = '-';
 
   /// 加减操作符，包含多个符号
-  Set<String> get additives => {
+  static Set<String> get additives => {
         add,
         subtract,
       };
 
-  final greater = '>';
-  final greaterOrEqual = '>=';
-  final lesser = '<';
-  final lesserOrEqual = '<=';
+  static final greater = '>';
+  static final greaterOrEqual = '>=';
+  static final lesser = '<';
+  static final lesserOrEqual = '<=';
 
   /// 大小判断操作符，包含多个符号
-  Set<String> get relationals => {
+  static Set<String> get relationals => {
         greater,
         greaterOrEqual,
         lesser,
@@ -258,38 +256,38 @@ class HT_Lexicon {
         IS,
       };
 
-  final equal = '==';
-  final notEqual = '!=';
+  static final equal = '==';
+  static final notEqual = '!=';
 
   /// 相等判断操作符，包含多个符号
-  Set<String> get equalitys => {
+  static Set<String> get equalitys => {
         equal,
         notEqual,
       };
 
-  final and = '&&';
-  final or = '||';
+  static final and = '&&';
+  static final or = '||';
 
-  final assign = '=';
+  static final assign = '=';
 
   /// 赋值类型操作符，包含多个符号
-  Set<String> get assignments => {
+  static Set<String> get assignments => {
         assign,
       };
 
-  final comma = ',';
-  final colon = ':';
-  final semicolon = ';';
-  final roundLeft = '(';
-  final roundRight = ')';
-  final curlyLeft = '{';
-  final curlyRight = '}';
-  final squareLeft = '[';
-  final squareRight = ']';
-  final angleLeft = '<';
-  final angleRight = '>';
+  static final comma = ',';
+  static final colon = ':';
+  static final semicolon = ';';
+  static final roundLeft = '(';
+  static final roundRight = ')';
+  static final curlyLeft = '{';
+  static final curlyRight = '}';
+  static final squareLeft = '[';
+  static final squareRight = ']';
+  static final angleLeft = '<';
+  static final angleRight = '>';
 
-  Set<String> get Punctuations => {
+  static Set<String> get Punctuations => {
         not,
         multiply,
         devide,
@@ -319,43 +317,41 @@ class HT_Lexicon {
         angleRight,
       };
 
-  final errorUnsupport = 'Unsupport value type';
-  final errorExpected = 'expected, ';
-  final errorUnexpected = 'Unexpected identifier';
-  final errorPrivate = 'Could not acess private member';
-  final errorInitialized = 'has not initialized';
-  final errorUndefined = 'Undefined identifier';
-  final errorUndefinedOperator = 'Undefined operator';
-  final errorDeclared = 'is already declared';
-  final errorDefined = 'is already defined';
-  final errorRange = 'Index out of range, should be less than';
-  final errorInvalidLeftValue = 'Invalid left-value';
-  final errorCallable = 'is not callable';
-  final errorUndefinedMember = 'isn\'t defined for the class';
-  final errorCondition = 'Condition expression must evaluate to type "bool"';
-  final errorMissingFuncDef = 'Missing function definition body of';
-  final errorGet = 'is not a collection or object';
-  final errorSubGet = 'is not a List or Map';
-  final errorExtends = 'is not a class';
-  final errorSetter = 'Setter function\'s arity must be 1';
-  final errorNullObject = 'is null';
-  final errorMutable = 'is immutable';
-  final errorNotType = 'is not a type.';
+  static final errorUnsupport = 'Unsupport value type';
+  static final errorExpected = 'expected, ';
+  static final errorUnexpected = 'Unexpected identifier';
+  static final errorPrivate = 'Could not acess private member';
+  static final errorInitialized = 'has not initialized';
+  static final errorUndefined = 'Undefined identifier';
+  static final errorUndefinedOperator = 'Undefined operator';
+  static final errorDeclared = 'is already declared';
+  static final errorDefined = 'is already defined';
+  static final errorRange = 'Index out of range, should be less than';
+  static final errorInvalidLeftValue = 'Invalid left-value';
+  static final errorCallable = 'is not callable';
+  static final errorUndefinedMember = 'isn\'t defined for the class';
+  static final errorCondition = 'Condition expression must evaluate to type "bool"';
+  static final errorMissingFuncDef = 'Missing function definition body of';
+  static final errorGet = 'is not a collection or object';
+  static final errorSubGet = 'is not a List or Map';
+  static final errorExtends = 'is not a class';
+  static final errorSetter = 'Setter function\'s arity must be 1';
+  static final errorNullObject = 'is null';
+  static final errorMutable = 'is immutable';
+  static final errorNotType = 'is not a type.';
 
-  final errorOfType = 'of type';
+  static final errorOfType = 'of type';
 
-  final errorType1 = 'Variable';
-  final errorType2 = 'can\'t be assigned with type';
+  static final errorType1 = 'Variable';
+  static final errorType2 = 'can\'t be assigned with type';
 
-  final errorArgType1 = 'Argument';
-  final errorArgType2 = 'doesn\'t match parameter type';
+  static final errorArgType1 = 'Argument';
+  static final errorArgType2 = 'doesn\'t match parameter type';
 
-  final errorReturnType1 = 'Value of type';
-  final errorReturnType2 = 'can\'t be returned from function';
-  final errorReturnType3 = 'because it has a return type of';
+  static final errorReturnType1 = 'Value of type';
+  static final errorReturnType2 = 'can\'t be returned from function';
+  static final errorReturnType3 = 'because it has a return type of';
 
-  final errorArity1 = 'Number of arguments';
-  final errorArity2 = 'doesn\'t match parameter requirement of function';
+  static final errorArity1 = 'Number of arguments';
+  static final errorArity2 = 'doesn\'t match parameter requirement of function';
 }
-
-const defaultLexicon = HT_Lexicon();

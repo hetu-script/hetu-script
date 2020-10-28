@@ -19,7 +19,7 @@ const cli_help = '''
 
 void main(List<String> args) async {
   try {
-    var interpreter = await HetuEnv.init();
+    var interpreter = await Hetu.init();
 
     dynamic result;
     if (args.isNotEmpty) {
@@ -36,7 +36,7 @@ void main(List<String> args) async {
 
         while (!quit) {
           stdout.write('>>>');
-          String input = stdin.readLineSync();
+          var input = stdin.readLineSync();
 
           if ((input == 'exit') || (input == 'quit') || (input == 'close') || (input == 'end')) {
             quit = true;
@@ -56,8 +56,7 @@ void main(List<String> args) async {
       } else if (args.first == '-s') {
         result = interpreter.evalf(args.first, style: ParseStyle.function);
       } else {
-        result = interpreter.evalf(args.first,
-            style: ParseStyle.library, invokeFunc: hetuEnv.lexicon.defaultProgramMainFunc);
+        result = interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: 'main');
       }
       print(result);
     } else {

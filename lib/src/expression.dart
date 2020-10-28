@@ -1,5 +1,5 @@
 import 'token.dart';
-import 'environment.dart';
+import 'lexicon.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 ///
@@ -81,19 +81,20 @@ abstract class Expr {
 
 class NullExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.nullExpr;
+  String get type => HT_Lexicon.nullExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitNullExpr(this);
 
   NullExpr(int line, int column, String fileName) : super(line, column, fileName);
 
+  @override
   Expr clone() => this;
 }
 
 class ConstExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.literalExpr;
+  String get type => HT_Lexicon.literalExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitConstExpr(this);
@@ -102,12 +103,13 @@ class ConstExpr extends Expr {
 
   ConstExpr(this.constIndex, int line, int column, String fileName) : super(line, column, fileName);
 
+  @override
   Expr clone() => ConstExpr(constIndex, line, column, fileName);
 }
 
 class LiteralVectorExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.vectorExpr;
+  String get type => HT_Lexicon.vectorExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralVectorExpr(this);
@@ -118,9 +120,10 @@ class LiteralVectorExpr extends Expr {
     vector ??= [];
   }
 
+  @override
   Expr clone() {
     var new_list = <Expr>[];
-    for (var expr in vector) {
+    for (final expr in vector) {
       new_list.add(expr.clone());
     }
     return LiteralVectorExpr(new_list, line, column, fileName);
@@ -129,7 +132,7 @@ class LiteralVectorExpr extends Expr {
 
 class LiteralDictExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.blockExpr;
+  String get type => HT_Lexicon.blockExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralDictExpr(this);
@@ -140,9 +143,10 @@ class LiteralDictExpr extends Expr {
     map ??= {};
   }
 
+  @override
   Expr clone() {
     var new_map = <Expr, Expr>{};
-    for (var expr in map.keys) {
+    for (final expr in map.keys) {
       new_map[expr.clone()] = map[expr];
     }
     return LiteralDictExpr(new_map, line, column, fileName);
@@ -151,7 +155,7 @@ class LiteralDictExpr extends Expr {
 
 class GroupExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.groupExpr;
+  String get type => HT_Lexicon.groupExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitGroupExpr(this);
@@ -160,12 +164,13 @@ class GroupExpr extends Expr {
 
   GroupExpr(this.inner, String fileName) : super(inner.line, inner.column, fileName);
 
+  @override
   Expr clone() => GroupExpr(inner.clone(), fileName);
 }
 
 class UnaryExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.unaryExpr;
+  String get type => HT_Lexicon.unaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitUnaryExpr(this);
@@ -178,12 +183,13 @@ class UnaryExpr extends Expr {
 
   UnaryExpr(this.op, this.value, fileName) : super(op.line, op.column, fileName);
 
+  @override
   Expr clone() => UnaryExpr(op, value.clone(), fileName);
 }
 
 class BinaryExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.binaryExpr;
+  String get type => HT_Lexicon.binaryExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitBinaryExpr(this);
@@ -199,6 +205,7 @@ class BinaryExpr extends Expr {
 
   BinaryExpr(this.left, this.op, this.right, String fileName) : super(op.line, op.column, fileName);
 
+  @override
   Expr clone() => BinaryExpr(left.clone(), op, right.clone(), fileName);
 }
 
@@ -220,7 +227,7 @@ class BinaryExpr extends Expr {
 
 class SymbolExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.varExpr;
+  String get type => HT_Lexicon.varExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSymbolExpr(this);
@@ -229,12 +236,13 @@ class SymbolExpr extends Expr {
 
   SymbolExpr(this.name, String fileName) : super(name.line, name.column, fileName);
 
+  @override
   Expr clone() => SymbolExpr(name, fileName);
 }
 
 class AssignExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.assignExpr;
+  String get type => HT_Lexicon.assignExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitAssignExpr(this);
@@ -250,12 +258,13 @@ class AssignExpr extends Expr {
 
   AssignExpr(this.variable, this.op, this.value, String fileName) : super(op.line, op.column, fileName);
 
+  @override
   Expr clone() => AssignExpr(variable, op, value.clone(), fileName);
 }
 
 class SubGetExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.subGetExpr;
+  String get type => HT_Lexicon.subGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubGetExpr(this);
@@ -268,12 +277,13 @@ class SubGetExpr extends Expr {
 
   SubGetExpr(this.collection, this.key, String fileName) : super(collection.line, collection.column, fileName);
 
+  @override
   Expr clone() => SubGetExpr(collection.clone(), key.clone(), fileName);
 }
 
 class SubSetExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.subSetExpr;
+  String get type => HT_Lexicon.subSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSubSetExpr(this);
@@ -290,12 +300,13 @@ class SubSetExpr extends Expr {
   SubSetExpr(this.collection, this.key, this.value, String fileName)
       : super(collection.line, collection.column, fileName);
 
+  @override
   Expr clone() => SubSetExpr(collection.clone(), key.clone(), value.clone(), fileName);
 }
 
 class MemberGetExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.memberGetExpr;
+  String get type => HT_Lexicon.memberGetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberGetExpr(this);
@@ -308,12 +319,13 @@ class MemberGetExpr extends Expr {
 
   MemberGetExpr(this.collection, this.key, String fileName) : super(collection.line, collection.column, fileName);
 
+  @override
   Expr clone() => MemberGetExpr(collection.clone(), key, fileName);
 }
 
 class MemberSetExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.memberSetExpr;
+  String get type => HT_Lexicon.memberSetExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitMemberSetExpr(this);
@@ -330,12 +342,13 @@ class MemberSetExpr extends Expr {
   MemberSetExpr(this.collection, this.key, this.value, String fileName)
       : super(collection.line, collection.column, fileName);
 
+  @override
   Expr clone() => MemberSetExpr(collection.clone(), key, value.clone(), fileName);
 }
 
 class CallExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.callExpr;
+  String get type => HT_Lexicon.callExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitCallExpr(this);
@@ -348,9 +361,10 @@ class CallExpr extends Expr {
 
   CallExpr(this.callee, this.args, String fileName) : super(callee.line, callee.column, fileName);
 
+  @override
   Expr clone() {
     var new_args = <Expr>[];
-    for (var expr in args) {
+    for (final expr in args) {
       new_args.add(expr.clone());
     }
     return CallExpr(callee.clone(), new_args, fileName);
@@ -359,7 +373,7 @@ class CallExpr extends Expr {
 
 class ThisExpr extends Expr {
   @override
-  String get type => hetuEnv.lexicon.thisExpr;
+  String get type => HT_Lexicon.thisExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitThisExpr(this);
@@ -368,5 +382,6 @@ class ThisExpr extends Expr {
 
   ThisExpr(this.keyword, String fileName) : super(keyword.line, keyword.column, fileName);
 
+  @override
   Expr clone() => ThisExpr(keyword, fileName);
 }

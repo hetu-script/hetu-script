@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:hetu_script/src/environment.dart';
-import 'package:hetu_script/src/class.dart';
-import 'package:hetu_script/src/interpreter.dart';
-import 'package:hetu_script/src/value.dart';
+import 'class.dart';
+import 'interpreter.dart';
+import 'value.dart';
+import 'lexicon.dart';
+import 'class.dart' show HT_Instance;
+
+typedef HT_External = dynamic Function(HT_Instance instance, List<dynamic> args);
 
 abstract class HT_BaseBinding {
   static Interpreter itp;
@@ -73,7 +76,7 @@ abstract class HT_BaseBinding {
 
   static dynamic _print(HT_Instance instance, List<dynamic> args) {
     var sb = StringBuffer();
-    for (var arg in args) {
+    for (final arg in args) {
       sb.write('$arg ');
     }
     print(sb.toString());
@@ -81,7 +84,7 @@ abstract class HT_BaseBinding {
 
   static dynamic _string(HT_Instance instance, List<dynamic> args) {
     var result = StringBuffer();
-    for (var arg in args) {
+    for (final arg in args) {
       result.write(arg);
     }
     return result.toString();
@@ -135,7 +138,7 @@ abstract class HT_BaseBinding {
 
   static dynamic _math_random_int(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
-      int value = (args.first as num).truncate();
+      final value = (args.first as num).truncate();
       return Random().nextInt(value);
     }
   }
@@ -179,11 +182,8 @@ abstract class HTVal_Value extends HT_Instance {
   HTVal_Value(this.value, String className, int line, int column, Interpreter interpreter)
       : super(
           interpreter,
-          interpreter.globals.fetch(
-            className, line, column, interpreter,
-            //from: globalInterpreter.curContext.spaceName
-          ), //, line, column, fileName
-        ) {}
+          interpreter.fetchGlobal(className),
+        );
 
   //dynamic get value => fetch('_val', null, null, globalInterpreter.curFileName, error: false, from: type);
 
@@ -197,7 +197,7 @@ abstract class HTVal_Value extends HT_Instance {
 
 class HTVal_Number extends HTVal_Value {
   HTVal_Number(num value, int line, int column, Interpreter interpreter)
-      : super(value, hetuEnv.lexicon.number, line, column, interpreter);
+      : super(value, HT_Lexicon.number, line, column, interpreter);
 
   static dynamic _parse(HT_Instance instance, List<dynamic> args) {
     if (args.isNotEmpty) {
@@ -206,7 +206,7 @@ class HTVal_Number extends HTVal_Value {
   }
 
   static dynamic _to_string_as_fixed(HT_Instance instance, List<dynamic> args) {
-    int fractionDigits = 0;
+    var fractionDigits = 0;
     if (args.isNotEmpty) {
       fractionDigits = args.first;
     }
@@ -224,12 +224,12 @@ class HTVal_Number extends HTVal_Value {
 
 class HTVal_Boolean extends HTVal_Value {
   HTVal_Boolean(bool value, int line, int column, Interpreter interpreter)
-      : super(value, hetuEnv.lexicon.number, line, column, interpreter);
+      : super(value, HT_Lexicon.number, line, column, interpreter);
 }
 
 class HTVal_String extends HTVal_Value {
   HTVal_String(String value, int line, int column, Interpreter interpreter)
-      : super(value, hetuEnv.lexicon.string, line, column, interpreter);
+      : super(value, HT_Lexicon.string, line, column, interpreter);
 
   static dynamic _is_empty(HT_Instance instance, List<dynamic> args) {
     var strObj = (instance as HTVal_String);
@@ -243,7 +243,7 @@ class HTVal_String extends HTVal_Value {
     if (args.isNotEmpty) {
       int startIndex = args[0];
       int endIndex;
-      if (args.length >= 1) {
+      if (args.length >= 2) {
         endIndex = args[1];
       }
       return str?.substring(startIndex, endIndex);
@@ -261,15 +261,13 @@ class HTVal_List extends HTVal_Value {
   String valueType;
 
   HTVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType})
-      : super(value, hetuEnv.lexicon.list, line, column, interpreter) {
-    valueType ??= hetuEnv.lexicon.ANY;
+      : super(value, HT_Lexicon.list, line, column, interpreter) {
+    valueType ??= HT_Lexicon.ANY;
   }
 
   static dynamic _get_length(HT_Instance instance, List<dynamic> args) {
     var listObj = (instance as HTVal_List);
-    List list = listObj?.value;
-    var result = list?.length;
-    return result == null ? -1 : result;
+    return listObj?.value?.length ?? -1;
   }
 
   static dynamic _add(HT_Instance instance, List<dynamic> args) {
@@ -322,30 +320,21 @@ class HTVal_Map extends HTVal_Value {
   String valueType;
 
   HTVal_Map(Map value, int line, int column, Interpreter interpreter, {this.keyType, this.valueType})
-      : super(value, hetuEnv.lexicon.map, line, column, interpreter) {
-    keyType ??= hetuEnv.lexicon.ANY;
-    valueType ??= hetuEnv.lexicon.ANY;
+      : super(value, HT_Lexicon.map, line, column, interpreter) {
+    keyType ??= HT_Lexicon.ANY;
+    valueType ??= HT_Lexicon.ANY;
   }
 
   static dynamic _get_length(HT_Instance instance, List<dynamic> args) {
-    var mapObj = (instance as HTVal_Map);
-    Map map = mapObj?.value;
-    var result = map?.length;
-    return result == null ? -1 : result;
+    return (instance as HTVal_Map)?.value?.length ?? -1;
   }
 
   static dynamic _get_keys(HT_Instance instance, List<dynamic> args) {
-    var mapObj = (instance as HTVal_Map);
-    Map map = mapObj?.value;
-    var result = map?.keys?.toList();
-    return result == null ? [] : result;
+    return (instance as HTVal_Map)?.value?.keys?.toList() ?? [];
   }
 
   static dynamic _get_values(HT_Instance instance, List<dynamic> args) {
-    var mapObj = (instance as HTVal_Map);
-    Map map = mapObj?.value;
-    var result = map?.values?.toList();
-    return result == null ? [] : result;
+    return (instance as HTVal_Map)?.value?.values?.toList() ?? [];
   }
 
   static dynamic _contains_key(HT_Instance instance, List<dynamic> args) {

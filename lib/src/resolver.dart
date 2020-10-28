@@ -1,7 +1,7 @@
 import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
-import 'environment.dart';
+import 'lexicon.dart';
 import 'interpreter.dart';
 
 enum _ClassType {
@@ -15,9 +15,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
   final Interpreter interpreter;
 
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
-  var _blocks = <Map<String, bool>>[];
+  final _blocks = <Map<String, bool>>[];
 
-  var _classes = <ClassDeclStmt>[];
+  final _classes = <ClassDeclStmt>[];
   var _funcs = <FuncDeclStmt>[];
 
   String _curFileName;
@@ -59,29 +59,29 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   void resolve(List<Stmt> statements, {String fileName, String libName}) {
-    libName ??= hetuEnv.lexicon.globals;
-    if (libName != hetuEnv.lexicon.globals) _beginBlock();
+    libName ??= HT_Lexicon.globals;
+    if (libName != HT_Lexicon.globals) _beginBlock();
 
     _curFileName = fileName;
 
     _beginBlock();
-    for (var stmt in statements) {
+    for (final stmt in statements) {
       _resolveStmt(stmt);
     }
-    for (var klass in _classes) {
+    for (final klass in _classes) {
       _resolveClass(klass);
     }
-    for (var func in _funcs) {
+    for (final func in _funcs) {
       _resolveFunction(func);
     }
     _endBlock();
-    if ((libName != null) && (libName != hetuEnv.lexicon.globals)) {
+    if ((libName != null) && (libName != HT_Lexicon.globals)) {
       _endBlock();
     }
   }
 
   void _resolveBlock(List<Stmt> statements) {
-    for (var stmt in statements) {
+    for (final stmt in statements) {
       _resolveStmt(stmt);
     }
   }
@@ -97,7 +97,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
     if (stmt.arity == -1) {
       //_declare(env.lexicon.Arguments, stmt.keyword.line, stmt.keyword.column, define: true);
     } else {
-      for (var param in stmt.params) {
+      for (final param in stmt.params) {
         _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
       }
     }
@@ -107,7 +107,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   }
 
   void _resolveClass(ClassDeclStmt stmt) {
-    _ClassType savedClassType = _curClassType;
+    final savedClassType = _curClassType;
 
     if (stmt.superClass != null) {
       if (stmt.name == stmt.superClass.name) {
@@ -122,20 +122,19 @@ class Resolver implements ExprVisitor, StmtVisitor {
     }
 
     _beginBlock();
-    for (var variable in stmt.variables) {
+    for (final variable in stmt.variables) {
       if (variable.isStatic) {
         visitVarDeclStmt(variable);
       }
     }
 
-    var savedFuncList = _funcs;
+    final savedFuncList = _funcs;
     _funcs = <FuncDeclStmt>[];
     // 类静态函数，先注册函数名
-    for (var method in stmt.methods) {
+    for (final method in stmt.methods) {
       if (method.isStatic) {
         _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-        if ((method.internalName.startsWith(hetuEnv.lexicon.getter) ||
-                method.internalName.startsWith(hetuEnv.lexicon.setter)) &&
+        if ((method.internalName.startsWith(HT_Lexicon.getter) || method.internalName.startsWith(HT_Lexicon.setter)) &&
             !_blocks.last.containsKey(method.name)) {
           _declare(method.name, method.keyword.line, method.keyword.column, define: true);
         }
@@ -145,26 +144,26 @@ class Resolver implements ExprVisitor, StmtVisitor {
       }
     }
     // 然后再解析函数定义
-    for (var stmt in _funcs) {
+    for (final stmt in _funcs) {
       _resolveFunction(stmt);
     }
 
     _funcs = <FuncDeclStmt>[];
     _beginBlock();
     // 注册实例中的成员变量
-    _blocks.last[hetuEnv.lexicon.THIS] = true;
-    for (var variable in stmt.variables) {
+    _blocks.last[HT_Lexicon.THIS] = true;
+    for (final variable in stmt.variables) {
       if (!variable.isStatic) {
         visitVarDeclStmt(variable);
       }
     }
     // 成员函数，先注册函数名
-    for (var method in stmt.methods) {
+    for (final method in stmt.methods) {
       if (!method.isStatic) {
         if (method.funcType != FuncStmtType.constructor) {
           _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-          if ((method.internalName.startsWith(hetuEnv.lexicon.getter) ||
-                  method.internalName.startsWith(hetuEnv.lexicon.setter)) &&
+          if ((method.internalName.startsWith(HT_Lexicon.getter) ||
+                  method.internalName.startsWith(HT_Lexicon.setter)) &&
               !_blocks.last.containsKey(method.name)) {
             _declare(method.name, method.keyword.line, method.keyword.column, define: true);
           }
@@ -173,7 +172,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       }
     }
     // 然后再解析函数定义
-    for (var stmt in _funcs) {
+    for (final stmt in _funcs) {
       _resolveFunction(stmt);
     }
     _funcs = savedFuncList;
@@ -197,14 +196,14 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitLiteralVectorExpr(LiteralVectorExpr expr) {
-    for (var item in expr.vector) {
+    for (final item in expr.vector) {
       _resolveExpr(item);
     }
   }
 
   @override
   dynamic visitLiteralDictExpr(LiteralDictExpr expr) {
-    for (var key in expr.map.keys) {
+    for (final key in expr.map.keys) {
       _resolveExpr(key);
       _resolveExpr(expr.map[key]);
     }
@@ -237,7 +236,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   dynamic visitCallExpr(CallExpr expr) {
     _resolveExpr(expr.callee);
 
-    for (var arg in expr.args) {
+    for (final arg in expr.args) {
       _resolveExpr(arg);
     }
   }

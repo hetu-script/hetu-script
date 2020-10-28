@@ -1,18 +1,18 @@
-import '../hetu_script.dart';
 import 'class.dart';
-import 'environment.dart';
+import 'binding.dart' show HT_External;
 import 'namespace.dart';
 import 'statement.dart';
 import 'interpreter.dart';
 import 'errors.dart';
 import 'value.dart';
+import 'lexicon.dart';
 
 class HT_FunctionType extends HT_Type {
   final HT_Type returnType;
   final List<HT_Type> paramsTypes;
 
   HT_FunctionType(this.returnType, {List<HT_Type> arguments = const [], this.paramsTypes = const []})
-      : super(hetuEnv.lexicon.function, arguments: arguments);
+      : super(HT_Lexicon.function, arguments: arguments);
 
   @override
   String toString() {
@@ -29,7 +29,7 @@ class HT_FunctionType extends HT_Type {
 
     result.write('(');
 
-    for (var param in paramsTypes) {
+    for (final param in paramsTypes) {
       result.write(param.name);
       //if (param.initializer != null)
       if (paramsTypes.length > 1) result.write(', ');
@@ -60,7 +60,7 @@ class HT_Function {
     //_save = _closure = closure;
 
     var paramsTypes = <HT_Type>[];
-    for (var param in funcStmt.params) {
+    for (final param in funcStmt.params) {
       paramsTypes.add(param.declType ?? HT_Type.ANY);
     }
 
@@ -70,7 +70,7 @@ class HT_Function {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('${hetuEnv.lexicon.function} ${name ?? ''}');
+    result.write('${HT_Lexicon.function} ${name ?? ''}');
     if (typeid.arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < typeid.arguments.length; ++i) {
@@ -83,16 +83,16 @@ class HT_Function {
     result.write('(');
 
     if (funcStmt.arity >= 0) {
-      for (var param in funcStmt.params) {
-        result.write(param.name.lexeme + ': ' + (param.declType?.toString() ?? hetuEnv.lexicon.ANY));
+      for (final param in funcStmt.params) {
+        result.write(param.name.lexeme + ': ' + (param.declType?.toString() ?? HT_Lexicon.ANY));
         //if (param.initializer != null)
         if (funcStmt.params.length > 1) result.write(', ');
       }
     } else {
       result.write('... ');
-      result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? hetuEnv.lexicon.ANY));
+      result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? HT_Lexicon.ANY));
     }
-    result.write('): ' + funcStmt.returnType?.toString() ?? hetuEnv.lexicon.VOID);
+    result.write('): ' + funcStmt.returnType?.toString() ?? HT_Lexicon.VOID);
     return result.toString();
   }
 
@@ -120,7 +120,7 @@ class HT_Function {
           //assert(closure != null);
           if (instance != null) {
             _closure = HT_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
-            _closure.define(hetuEnv.lexicon.THIS, interpreter,
+            _closure.define(HT_Lexicon.THIS, interpreter,
                 declType: instance.typeid, line: line, column: column, isMutable: false);
           } else {
             _closure = HT_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
@@ -134,8 +134,8 @@ class HT_Function {
             } else {
               for (var i = 0; i < funcStmt.params.length; ++i) {
                 // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
-                var var_stmt = funcStmt.params[i];
-                HT_Type arg_type_decl = var_stmt.declType;
+                final var_stmt = funcStmt.params[i];
+                final arg_type_decl = var_stmt.declType;
 
                 dynamic arg_value;
                 if (i < args.length) {
@@ -168,7 +168,7 @@ class HT_Function {
       }
     } catch (returnValue) {
       if (returnValue is HT_Error) {
-        throw returnValue;
+        rethrow;
       } else if ((returnValue is Exception) || (returnValue is NoSuchMethodError)) {
         throw HT_Error(returnValue.toString(), line, column, interpreter.curFileName);
       }

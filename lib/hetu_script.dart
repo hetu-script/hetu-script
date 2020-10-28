@@ -4,7 +4,7 @@
 
 library hetu_script;
 
-export 'src/environment.dart';
+export 'src/hetu.dart';
 export 'src/parser.dart' show ParseStyle;
 export 'src/class.dart' show HT_Instance;
 export 'src/errors.dart';

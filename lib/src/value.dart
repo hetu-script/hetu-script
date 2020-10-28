@@ -1,4 +1,4 @@
-import 'environment.dart';
+import 'lexicon.dart';
 import 'class.dart';
 import 'function.dart';
 
@@ -10,17 +10,17 @@ class HT_Type {
 
   const HT_Type(this.name, {this.arguments = const []});
 
-  static final ANY = HT_Type(hetuEnv.lexicon.ANY);
-  static final NULL = HT_Type(hetuEnv.lexicon.NULL);
-  static final VOID = HT_Type(hetuEnv.lexicon.VOID);
-  static final CLASS = HT_Type(hetuEnv.lexicon.CLASS);
-  static final NAMESPACE = HT_Type(hetuEnv.lexicon.NAMESPACE);
-  static final unknown = HT_Type(hetuEnv.lexicon.unknown);
-  static final number = HT_Type(hetuEnv.lexicon.number);
-  static final boolean = HT_Type(hetuEnv.lexicon.boolean);
-  static final string = HT_Type(hetuEnv.lexicon.string);
-  static final list = HT_Type(hetuEnv.lexicon.list);
-  static final map = HT_Type(hetuEnv.lexicon.map);
+  static final ANY = HT_Type(HT_Lexicon.ANY);
+  static final NULL = HT_Type(HT_Lexicon.NULL);
+  static final VOID = HT_Type(HT_Lexicon.VOID);
+  static final CLASS = HT_Type(HT_Lexicon.CLASS);
+  static final NAMESPACE = HT_Type(HT_Lexicon.NAMESPACE);
+  static final unknown = HT_Type(HT_Lexicon.unknown);
+  static final number = HT_Type(HT_Lexicon.number);
+  static final boolean = HT_Type(HT_Lexicon.boolean);
+  static final string = HT_Type(HT_Lexicon.string);
+  static final list = HT_Type(HT_Lexicon.list);
+  static final map = HT_Type(HT_Lexicon.map);
 
   @override
   String toString() {
@@ -38,15 +38,15 @@ class HT_Type {
   }
 
   bool isA(HT_Type typeid) {
-    bool result = false;
-    if ((typeid.name == hetuEnv.lexicon.ANY) || (this.name == hetuEnv.lexicon.NULL)) {
+    var result = false;
+    if ((typeid.name == HT_Lexicon.ANY) || (name == HT_Lexicon.NULL)) {
       result = true;
     } else {
-      if (this.name == typeid.name) {
-        if (this.arguments.length >= typeid.arguments.length) {
+      if (name == typeid.name) {
+        if (arguments.length >= typeid.arguments.length) {
           result = true;
           for (var i = 0; i < typeid.arguments.length; ++i) {
-            if (this.arguments[i].isNotA(typeid.arguments[i])) {
+            if (arguments[i].isNotA(typeid.arguments[i])) {
               result = false;
               break;
             }
@@ -83,10 +83,10 @@ HT_Type HT_TypeOf(dynamic value) {
     // if ((item_darttype != 'dynamic') && (value.isNotEmpty)) {
     //   valType = HT_TypeOf(value.first);
     // }
-    HT_Type valType = HT_Type.ANY;
+    var valType = HT_Type.ANY;
     if (value.isNotEmpty) {
       valType = HT_TypeOf(value.first);
-      for (var item in value) {
+      for (final item in value) {
         if (HT_TypeOf(item) != valType) {
           valType = HT_Type.ANY;
           break;
@@ -94,13 +94,13 @@ HT_Type HT_TypeOf(dynamic value) {
       }
     }
 
-    return HT_Type(hetuEnv.lexicon.list, arguments: [valType]);
+    return HT_Type(HT_Lexicon.list, arguments: [valType]);
   } else if (value is Map) {
-    HT_Type keyType = HT_Type.ANY;
-    HT_Type valType = HT_Type.ANY;
+    var keyType = HT_Type.ANY;
+    var valType = HT_Type.ANY;
     if (value.keys.isNotEmpty) {
       keyType = HT_TypeOf(value.keys.first);
-      for (var key in value.keys) {
+      for (final key in value.keys) {
         if (HT_TypeOf(key) != keyType) {
           keyType = HT_Type.ANY;
           break;
@@ -109,14 +109,14 @@ HT_Type HT_TypeOf(dynamic value) {
     }
     if (value.values.isNotEmpty) {
       valType = HT_TypeOf(value.values.first);
-      for (var value in value.values) {
+      for (final value in value.values) {
         if (HT_TypeOf(value) != valType) {
           valType = HT_Type.ANY;
           break;
         }
       }
     }
-    return HT_Type(hetuEnv.lexicon.map, arguments: [keyType, valType]);
+    return HT_Type(HT_Lexicon.map, arguments: [keyType, valType]);
   } else {
     return HT_Type.unknown;
   }
