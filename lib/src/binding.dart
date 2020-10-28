@@ -7,11 +7,16 @@ import 'value.dart';
 import 'lexicon.dart';
 import 'class.dart' show HT_Instance;
 
+/// Type of external functions in Dart.
 typedef HT_External = dynamic Function(HT_Instance instance, List<dynamic> args);
 
+/// Namespace class of low level external dart functions for Hetu to use.
 abstract class HT_BaseBinding {
+  /// A ref of interpreter, initted by [Hetu.init()] function.
+  /// For eval script in script it self.
   static Interpreter itp;
 
+  /// Some low level external dart functions for Hetu to use.
   static Map<String, HT_External> dartFunctions = {
     'typeof': _typeof,
     'help': _help,
@@ -67,9 +72,9 @@ abstract class HT_BaseBinding {
     if (args.isNotEmpty) {
       var value = args.first;
       if (value is HT_Instance) {
-        return value.typeid;
+        return value.typeid.toString();
       } else {
-        return HT_TypeOf(value);
+        return HT_TypeOf(value).toString();
       }
     }
   }
@@ -176,6 +181,7 @@ abstract class HT_BaseBinding {
   }
 }
 
+/// Abstract base class of all class wrapper for literal values.
 abstract class HTVal_Value extends HT_Instance {
   final dynamic value;
 
@@ -195,6 +201,7 @@ abstract class HTVal_Value extends HT_Instance {
   }
 }
 
+/// Class wrapper for literal number.
 class HTVal_Number extends HTVal_Value {
   HTVal_Number(num value, int line, int column, Interpreter interpreter)
       : super(value, HT_Lexicon.number, line, column, interpreter);
@@ -222,11 +229,13 @@ class HTVal_Number extends HTVal_Value {
   }
 }
 
+/// Class wrapper for literal boolean.
 class HTVal_Boolean extends HTVal_Value {
   HTVal_Boolean(bool value, int line, int column, Interpreter interpreter)
       : super(value, HT_Lexicon.number, line, column, interpreter);
 }
 
+/// Class wrapper for literal string.
 class HTVal_String extends HTVal_Value {
   HTVal_String(String value, int line, int column, Interpreter interpreter)
       : super(value, HT_Lexicon.string, line, column, interpreter);
@@ -257,6 +266,7 @@ class HTVal_String extends HTVal_Value {
   }
 }
 
+/// Class wrapper for literal list.
 class HTVal_List extends HTVal_Value {
   String valueType;
 
@@ -315,6 +325,7 @@ class HTVal_List extends HTVal_Value {
   }
 }
 
+/// Class wrapper for literal map.
 class HTVal_Map extends HTVal_Value {
   String keyType;
   String valueType;

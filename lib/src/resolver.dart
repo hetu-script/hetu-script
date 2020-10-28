@@ -7,7 +7,6 @@ import 'interpreter.dart';
 enum _ClassType {
   none,
   normal,
-  subClass,
 }
 
 /// 负责对语句列表进行分析，并生成变量作用域
@@ -109,17 +108,13 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void _resolveClass(ClassDeclStmt stmt) {
     final savedClassType = _curClassType;
 
-    if (stmt.superClass != null) {
-      if (stmt.name == stmt.superClass.name) {
-        throw HTErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
-      }
-
-      //_resolveExpr(stmt.superClass);
-
-      _curClassType = _ClassType.subClass;
-    } else {
-      _curClassType = _ClassType.normal;
+    if (stmt.name == stmt.superClass.name.lexeme) {
+      throw HTErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
     }
+    _resolveExpr(stmt.superClass);
+    _blocks.last[HT_Lexicon.SUPER] = true;
+
+    _curClassType = _ClassType.normal;
 
     _beginBlock();
     for (final variable in stmt.variables) {

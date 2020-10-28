@@ -264,7 +264,7 @@ class ClassDeclStmt extends Stmt {
 
   final List<String> typeParams = [];
 
-  final HT_Type superClass;
+  final SymbolExpr superClass;
 
   final List<VarDeclStmt> variables;
 

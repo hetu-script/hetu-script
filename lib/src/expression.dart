@@ -38,9 +38,6 @@ abstract class ExprVisitor {
   /// 变量名
   dynamic visitSymbolExpr(SymbolExpr expr);
 
-  /// 类型
-  // dynamic visitTypeExpr(TypeExpr expr);
-
   /// 赋值表达式，返回右值，执行顺序优先右边
   ///
   /// 因此，a = b = c 解析为 a = (b = c)

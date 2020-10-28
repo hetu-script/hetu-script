@@ -148,7 +148,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   void loadExternalFunctions(Map<String, HT_External> linkMap) {
     for (final key in linkMap.keys) {
       _globals.define(
-        HT_Lexicon.externs + HT_Lexicon.function + key,
+        HT_Lexicon.externs + key,
         this,
         value: linkMap[key],
         isMutable: false,
@@ -522,6 +522,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       column: stmt.name.column,
       value: value,
       declType: stmt.declType,
+      isMutable: stmt.isMutable,
       typeInference: stmt.typeInferrence,
     );
 
@@ -595,10 +596,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (stmt.funcType != FuncStmtType.constructor) {
       HT_External externFunc;
       if (stmt.isExtern) {
-        final func_name = HT_Lexicon.externs + HT_Lexicon.function + stmt.name;
-        externFunc = _globals.fetch(func_name, stmt.keyword.line, stmt.keyword.column, this, from: _globals.fullName);
+        final external_key = HT_Lexicon.externs + stmt.name;
+        externFunc =
+            _globals.fetch(external_key, stmt.keyword.line, stmt.keyword.column, this, from: _globals.fullName);
       }
-      func = HT_Function(stmt, name: stmt.internalName, extern: externFunc, declContext: curContext);
+      func = HT_Function(stmt, name: stmt.name, extern: externFunc, declContext: curContext);
       curContext.define(stmt.name, this,
           declType: func.typeid, line: stmt.keyword.line, column: stmt.keyword.column, value: func);
     }
@@ -607,20 +609,21 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
-    //TODO: while superClass != null, inherit all...
+    //TODO: inherit all superClass members...
     HT_Class superClass;
     if (stmt.name != HT_Lexicon.object) {
       if (stmt.superClass == null) {
         superClass = _globals.fetch(HT_Lexicon.object, stmt.keyword.line, stmt.keyword.column, this);
       } else {
-        superClass = _globals.fetch(stmt.superClass.name, stmt.keyword.line, stmt.keyword.column, this);
-      }
-      if (superClass is! HT_Class) {
-        throw HTErr_Extends(superClass.name, stmt.keyword.line, stmt.keyword.column, curFileName);
+        dynamic super_class = _getValue(stmt.superClass.name.lexeme, stmt.superClass);
+        if (super_class is! HT_Class) {
+          throw HTErr_Extends(superClass.name, stmt.keyword.line, stmt.keyword.column, curFileName);
+        }
+        superClass = super_class;
       }
     }
 
-    final klass = HT_Class(stmt.name, superClass: superClass, closure: curContext);
+    final klass = HT_Class(stmt.name, superClass, closure: curContext);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     curContext.define(stmt.name, this,
@@ -656,11 +659,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       HT_Function func;
       HT_External externFunc;
       if (method.isExtern) {
-        externFunc = _globals.fetch(
-            '${HT_Lexicon.externs}${HT_Lexicon.function}${stmt.name}${HT_Lexicon.memberGet}${method.internalName}',
-            method.keyword.line,
-            method.keyword.column,
-            this,
+        externFunc = _globals.fetch('${HT_Lexicon.externs}${stmt.name}${HT_Lexicon.memberGet}${method.internalName}',
+            method.keyword.line, method.keyword.column, this,
             from: _globals.fullName);
       }
       if (method.isStatic) {

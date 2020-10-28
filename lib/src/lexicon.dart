@@ -68,7 +68,8 @@ abstract class HT_Lexicon {
   static final variadicArguments = '...';
   static final underscore = '_';
   static final globals = '__globals__';
-  static final externs = '__externs__';
+  static final externs = '__external__';
+  static final function = '__function__';
   static final instance = '__instance_of_';
   static final instancePrefix = 'instance of ';
   static final constructor = '__construct__';
@@ -80,7 +81,6 @@ abstract class HT_Lexicon {
   static final list = 'List';
   static final map = 'Map';
   static final length = 'length';
-  static final function = 'function';
   static final procedure = 'procedure';
   static final identifier = 'identifier';
 
@@ -90,6 +90,7 @@ abstract class HT_Lexicon {
 
   static final VOID = 'void';
   static final VAR = 'var';
+  static final DEF = 'def';
   static final LET = 'let';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static final ANY = 'any';
@@ -135,6 +136,7 @@ abstract class HT_Lexicon {
         NULL,
         STATIC,
         VAR,
+        DEF,
         LET,
         ANY,
         TYPEDEF,

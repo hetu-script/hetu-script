@@ -364,9 +364,15 @@ class Parser {
           // var变量声明
           if (expect([HT_Lexicon.VAR])) {
             return _parseVarStmt();
+          } // var变量声明
+          else if (expect([HT_Lexicon.VAR])) {
+            return _parseVarStmt();
+          } // def
+          else if (expect([HT_Lexicon.DEF])) {
+            return _parseVarStmt(type_inferrence: true);
           } // let变量声明
           else if (expect([HT_Lexicon.LET])) {
-            return _parseVarStmt(type_inferrence: true);
+            return _parseVarStmt(type_inferrence: true, is_mutable: false);
           } // 赋值语句
           else if (expect([HT_Lexicon.identifier, HT_Lexicon.assign])) {
             return _parseAssignStmt();
@@ -404,9 +410,12 @@ class Parser {
           // var变量声明
           if (expect([HT_Lexicon.VAR]) || expect([HT_Lexicon.LET])) {
             return _parseVarStmt(is_static: is_static);
+          } // def
+          else if (expect([HT_Lexicon.DEF])) {
+            return _parseVarStmt(type_inferrence: true);
           } // let变量声明
           else if (expect([HT_Lexicon.LET])) {
-            return _parseVarStmt(is_static: is_static, type_inferrence: true);
+            return _parseVarStmt(type_inferrence: true, is_mutable: false);
           } // 构造函数
           // TODO：命名的构造函数
           else if (expect([HT_Lexicon.CONSTRUCT])) {
@@ -464,7 +473,7 @@ class Parser {
   }
 
   /// 变量声明语句
-  VarDeclStmt _parseVarStmt({bool is_static = false, bool type_inferrence = false}) {
+  VarDeclStmt _parseVarStmt({bool is_static = false, bool type_inferrence = false, bool is_mutable = false}) {
     advance(1);
     final name = match(HT_Lexicon.identifier);
     HT_Type decl_type;
@@ -485,6 +494,7 @@ class Parser {
       //isExtern: is_extern,
       isStatic: is_static,
       typeInferrence: type_inferrence,
+      isMutable: is_mutable,
     );
   }
 

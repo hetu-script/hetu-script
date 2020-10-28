@@ -21,6 +21,8 @@ abstract class Hetu {
       readFileMethod: readFileMethod,
     );
 
+    HT_BaseBinding.itp = itp;
+
     try {
       // load external functions.
       itp.loadExternalFunctions(HT_BaseBinding.dartFunctions);

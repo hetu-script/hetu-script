@@ -1,9 +1,11 @@
 import 'package:test/test.dart';
+import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/src/lexer.dart';
 
-void main() {
+void main() async {
+  var itp = await Hetu.init();
   final lexer = Lexer();
-  group('hetu test', () {
+  group('lexer test -', () {
     test('lexer', () {
       expect(
         lexer
@@ -15,6 +17,20 @@ void main() {
                 '}')
             .toString(),
         '[var, _Words, :, String, =, "hello world", let, n_42, =, 42, void, main, (, ), {, print, (, _Words, ), ;, }]',
+      );
+    });
+  });
+
+  group('interpreter error handling test -', () {
+    test('const definition', () {
+      expect(
+        () {
+          itp.eval(
+              'let i = 42\n'
+              'i = 137',
+              style: ParseStyle.function);
+        },
+        throwsA(isA<HTErr_Mutable>()),
       );
     });
   });

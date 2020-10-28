@@ -6,39 +6,65 @@ import 'errors.dart';
 import 'statement.dart';
 import 'value.dart';
 
-/// [HT_Class]的实例对应河图中的"class"声明
+/// [HT_Class] is the Dart implementation of the class declaration in Hetu.
 ///
-/// [HT_Class]继承自命名空间[HT_Namespace]，[HT_Class]中的变量，对应在河图中对应"class"以[static]关键字声明的成员
+/// [HT_Class] extends [HT_Namespace].
 ///
-/// 类的方法单独定义在一个表中，通过[fetchMethod]获取
+/// The values defined in this namespace are methods and [static] members in Hetu class.
 ///
-/// 类的静态成员定义在所继承的[HT_Namespace]的表中，通过[define]和[fetch]定义和获取
+/// The [variables] are instance members.
 ///
-/// TODO：对象初始化时从父类逐个调用构造函数
+/// Class can have type parameters.
+///
+/// Type parameters are optional and defined after class name. Example:
+///
+/// ```typescript
+/// class Map<KeyType, ValueType> {
+///   List<KeyType> keys
+///   List<ValueType> values
+///   ...
+/// }
+/// ```
 class HT_Class extends HT_Namespace {
+  /// The type parameters of the class.
   List<String> typeParams = [];
 
   @override
   String toString() => '${HT_Lexicon.CLASS} $name';
 
+  /// Super class of this class
+  ///
+  /// If a class is not extends from any super class, then it is the child of class `Object`
   HT_Class superClass;
 
+  /// The instance members defined in class definition.
   Map<String, VarDeclStmt> variables = {};
-  //Map<String, HT_Function> methods = {};
 
-  HT_Class(String name, {List<String> typeParams, HT_Namespace closure, this.superClass})
+  /// Create a class object.
+  ///
+  /// [name] : the class name
+  ///
+  /// [typeParams] : the type parameters defined after class name.
+  ///
+  /// [closure] : the outer namespace of the class declaration,
+  ///
+  /// normally the global namespace of the interpreter.
+  ///
+  /// [superClass] : super class of this class.
+  HT_Class(String name, this.superClass, {List<String> typeParams, HT_Namespace closure})
       : super(name: name, closure: closure) {
     if (typeParams != null) this.typeParams.addAll(typeParams);
   }
 
+  /// Wether the class contains a static member, will also check super class.
   @override
   bool contains(String varName) =>
-      variables.containsKey(varName) ||
       defs.containsKey(varName) ||
       defs.containsKey('${HT_Lexicon.getter}$varName') ||
-      (superClass == null ? false : superClass.contains(varName)) ||
-      (superClass == null ? false : superClass.contains('${HT_Lexicon.getter}$varName'));
+      (superClass.contains(varName)) ||
+      (superClass.contains('${HT_Lexicon.getter}$varName'));
 
+  /// Add a instance variable declaration to this class.
   void addVariable(VarDeclStmt stmt) {
     if (!variables.containsKey(stmt.name.lexeme)) {
       variables[stmt.name.lexeme] = stmt;
@@ -47,6 +73,7 @@ class HT_Class extends HT_Namespace {
     }
   }
 
+  /// Fetch the value of a static member from this class.
   @override
   dynamic fetch(String varName, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
@@ -63,7 +90,7 @@ class HT_Class extends HT_Namespace {
         return func.call(interpreter, line, column, []);
       }
       throw HTErr_Private(varName, line, column, interpreter.curFileName);
-    } else if ((superClass != null) && (superClass.contains(varName))) {
+    } else if (superClass.contains(varName)) {
       return superClass.fetch(varName, line, column, interpreter, error: error, from: closure.fullName);
     }
 
@@ -75,6 +102,7 @@ class HT_Class extends HT_Namespace {
     return null;
   }
 
+  /// Assign a value to a static member of this class.
   @override
   void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
       {bool error = true, String from, bool recursive = true}) {
@@ -108,6 +136,8 @@ class HT_Class extends HT_Namespace {
     if (error) throw HTErr_Undefined(varName, line, column, interpreter.curFileName);
   }
 
+  /// Create a instance from this class.
+  /// TODO：对象初始化时从父类逐个调用构造函数
   HT_Instance createInstance(Interpreter interpreter, int line, int column, HT_Namespace closure,
       {List<HT_Type> typeArgs, String initterName, List<dynamic> args}) {
     var instance = HT_Instance(interpreter, this, typeArgs: typeArgs?.sublist(0, typeParams.length));
@@ -136,6 +166,7 @@ class HT_Class extends HT_Namespace {
   }
 }
 
+/// [HT_Instance] is the Dart implementation of the object instance in Hetu.
 class HT_Instance extends HT_Namespace {
   final List<HT_Type> typeArgs = [];
 
@@ -176,10 +207,13 @@ class HT_Instance extends HT_Namespace {
         if ((method != null) && (!method.funcStmt.isStatic)) {
           return method.call(interpreter, line, column, [], instance: this);
         }
-      } else if (klass.contains(varName)) {
-        HT_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
-        if ((method != null) && (!method.funcStmt.isStatic)) {
-          return method;
+      } else {
+        var function = '${HT_Lexicon.function}$varName';
+        if (klass.contains(function)) {
+          HT_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
+          if ((method != null) && (!method.funcStmt.isStatic)) {
+            return method;
+          }
         }
       }
     }

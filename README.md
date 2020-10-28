@@ -54,7 +54,7 @@ Then you can call those functions in Hetu.
 
 ```typescript
 void main() {
-  var hetu = await HetuEnv.init(externalFunctions: {
+  var hetu = await Hetu.init(externalFunctions: {
     'dartHello': (HT_Instance instance, List<dynamic> args) {
       print('hello from dart');
       if (args.isNotEmpty) for (final arg in args) print(arg);

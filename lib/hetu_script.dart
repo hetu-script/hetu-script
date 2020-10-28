@@ -1,6 +1,6 @@
 /// HETU SCRIPT 0.0.1
 ///
-/// A lightweight script interpreter written in Dart.
+/// A lightweight script language written in Dart, for embedded in Dart app.
 
 library hetu_script;
 
