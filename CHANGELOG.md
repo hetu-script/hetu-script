@@ -1,8 +1,8 @@
-## 0.0.2
+## 0.0.2+1
 
 - Added some comments in the dart source file.
-- Changed 'HetuEnv' into 'Hetu' and removed some useless init parameter.
 - Added some test for error handling.
+- Changed 'HetuEnv' into 'Hetu'.
 
 ## 0.0.2
 
