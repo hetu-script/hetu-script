@@ -145,7 +145,7 @@ class Calculator {
   static var _name = 'the calculator'
 
   // static get function
-  static get name: str {
+  static get name: String {
     // 类中的静态函数只能访问类中的静态对象
     return _name
   }

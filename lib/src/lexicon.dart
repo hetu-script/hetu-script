@@ -54,7 +54,7 @@ abstract class HT_Lexicon {
 
   static final number = 'num';
   static final boolean = 'bool';
-  static final string = 'str';
+  static final string = 'String';
 
   static Set<String> get literals => {
         number,

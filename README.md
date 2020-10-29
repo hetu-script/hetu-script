@@ -11,7 +11,7 @@ It is kind of like lua but free of ffi c bindings and make it easy to debug.
 In your Dart code, you can interpret an script file by this:
 
 ```typescript
-import 'package:hetu_script/hetu.dart';
+import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   // init the Hetu Environment
@@ -44,7 +44,7 @@ proc main {
 Hetu's grammar is almost same to typescript, except a few things:
 
 - Function is declared with 'fun' or 'proc', the latter means procedure and doesn't return value.
-- Variable declared with keyword 'let' without a type will be given a type if it has an initialization.
+- Variable declared with keyword 'def' or 'let' and without a type will be given a type if it has an initialization.
 
 ## Binding
 
@@ -54,21 +54,36 @@ Then define those dart funtion in Hetu with 'external' keyword.
 
 Then you can call those functions in Hetu.
 
+You can pass object from Dart to Hetu by the return value of external functions.
+
+You can pass object from Hetu to Dart by the return value of Interpreter's [invoke] function;
+
 ```typescript
-void main() {
+import 'package:hetu_script/hetu_script.dart';
+
+void main() async {
   var hetu = await Hetu.init(externalFunctions: {
     'dartHello': (HT_Instance instance, List<dynamic> args) {
-      print('hello from dart');
-      if (args.isNotEmpty) for (final arg in args) print(arg);
+      return {'dartValue': 'hello'};
     },
   });
   hetu.eval(
       'external fun dartHello\n'
       'proc main {\n'
-      'dartHello("from hetu")\n'
+      '  var dartValue = dartHello()\n'
+      '  print(typeof(dartValue))\n'
+      '  dartValue[\'foo\'] = \'bar\'\n'
+      '  print(dartValue)'
       '\n}',
       invokeFunc: 'main');
 }
+```
+
+And the output should be:
+
+```
+Map<String, String>
+{dartValue: hello, foo: bar}
 ```
 
 ## Command line tool

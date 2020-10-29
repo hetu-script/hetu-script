@@ -1,6 +1,6 @@
 class System {
   // invoke a global or static member function
-  external static fun invoke(func_name: String, className: String, args: List): any
+  external static fun invoke(func_name: String, className: String, args: List)
 
   external static fun now(): num
 }
