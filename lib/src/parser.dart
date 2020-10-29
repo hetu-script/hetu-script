@@ -479,7 +479,7 @@ class Parser {
   }
 
   /// 变量声明语句
-  VarDeclStmt _parseVarStmt({bool is_static = false, bool type_inferrence = false, bool is_mutable = false}) {
+  VarDeclStmt _parseVarStmt({bool is_static = false, bool type_inferrence = false, bool is_mutable = true}) {
     advance(1);
     final name = match(HT_Lexicon.identifier);
     HT_Type decl_type;

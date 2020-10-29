@@ -8,13 +8,12 @@ const cli_help = '''
   Version: 0.0.1
   Usage:
 
-  hetu [option] [file_name] [invoke_name]
-
-  If invoke_name is provided, will switch to program style interpretation.
+  hetu [option] [file_name] [invoke_func]
+  
+  If [file_name] is provided, evaluate the file in function mode.
+  
+  If [invoke_func] is provided, will switch to program style interpretation.
   Otherwise interpret file as a function.
-
-  options:
-  -r, --repl                            enter REPL mode
         ''';
 
 void main(List<String> args) async {
@@ -30,12 +29,10 @@ void main(List<String> args) async {
       } else {
         result = interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: args[1]);
       }
-      print(result);
+      if (result != null) print(result);
     } else {
-      stdout.write('\x1B]0;'
-          'Hetu Script Read-Evaluate-Print-Loop Tool'
-          'Version: 0.0.1'
-          '\x07'
+      stdout.writeln('\nHetu Script Read-Evaluate-Print-Loop Tool\n'
+          'Version: 0.0.1\n\n'
           'Enter your code to evaluate.\n'
           'Enter \'\\\' for multiline, enter \'quit\' to quit.\n');
       var quit = false;

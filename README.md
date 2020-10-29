@@ -90,7 +90,7 @@ In REPL mode, everything you entered will be evaluated and print out immediately
 42
 ```
 
-If you want to write multiple line in REPL mode, use '\' to end a line.
+If you want to write multiple line in REPL mode, use '\\' to end a line.
 
 ```typescript
 >>>fun hello {\
