@@ -101,9 +101,9 @@ while (year < 2040) {
 }
 ```
 
-## Function declaration statement
+## Function
 
-In Hetu, functions are declared with 'fun', 'proc', 'get', 'set', 'construct'. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
+Function is declared with 'fun', 'proc', 'get', 'set', 'construct'. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
 
 ```typescript
 fun doubleIt(n: num): num {
@@ -124,35 +124,52 @@ Member functions can also be declared with 'get', 'set', 'construct', they liter
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
 
-## 类
+## Class
 
-类声明可以使用 class, struct, interface 关键字。
-class 声明的是普通的类，和其他面向对象语言类似。
-struct 声明的是一个数据类，不能包含初始化语句。struct 类的对象可以被 struct 字面量赋值。并且 class 类声明时可以使用 mixin 直接将 struct 包含在自己内部。
-interface 声明的是一个接口类，接口类中的函数不一定要提供函数定义。可以只包含声明，但如果这样做，任何继承了接口的类都必须对函数进行定义。
+Class is declared with 'class', 'data', 'interface'.
+
+Data class cannot have construct, and can be use as mixins.
+
+Variable of data class type can be assigned with anonymous data object literal.
+
+Interface can have abstract functions(means those functions have no definition body). If do so, any class extends from this interface must have a definition of those abstract functions.
 
 ```kotlin
+// class definition
 class Calculator {
+  // instance member
+  var x: num
+  var y: num
+
+  // static private member
   static var _name = 'the calculator'
 
-  static get name: String {
+  // static get function
+  static get name: str {
+    // 类中的静态函数只能访问类中的静态对象
     return _name
   }
 
+  // static set function
   static set name(new_name: String) {
     _name = new_name
   }
 
+  // static function
   static fun greeting {
     print('hello! I\'m ' + name)
   }
 
+  // constructor with parameters
   construct (x: num, y: num) {
+    // use this to access instance members
     this.x = x
     this.y = y
   }
 
+  // method with return type
   fun meaning: num {
+    // when no shadowing, `this` keyword is omittable
     return x * y
   }
 }
