@@ -108,10 +108,12 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void _resolveClass(ClassDeclStmt stmt) {
     final savedClassType = _curClassType;
 
-    if (stmt.name == stmt.superClass.name.lexeme) {
-      throw HTErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
+    if (stmt.superClass != null) {
+      if (stmt.name == stmt.superClass?.name?.lexeme) {
+        throw HTErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
+      }
+      _resolveExpr(stmt.superClass);
     }
-    _resolveExpr(stmt.superClass);
     _blocks.last[HT_Lexicon.SUPER] = true;
 
     _curClassType = _ClassType.normal;

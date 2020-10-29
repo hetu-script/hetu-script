@@ -6,6 +6,7 @@ library hetu_script;
 
 export 'src/hetu.dart';
 export 'src/parser.dart' show ParseStyle;
+export 'src/interpreter.dart';
 export 'src/class.dart' show HT_Instance;
 export 'src/errors.dart';
 export 'src/binding.dart';

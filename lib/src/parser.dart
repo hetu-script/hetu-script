@@ -373,6 +373,12 @@ class Parser {
           } // let变量声明
           else if (expect([HT_Lexicon.LET])) {
             return _parseVarStmt(type_inferrence: true, is_mutable: false);
+          } // 函数声明
+          else if (expect([HT_Lexicon.FUN])) {
+            return _parseFunctionStmt(FuncStmtType.normal);
+          } // 过程声明
+          else if (expect([HT_Lexicon.PROC])) {
+            return _parseFunctionStmt(FuncStmtType.procedure);
           } // 赋值语句
           else if (expect([HT_Lexicon.identifier, HT_Lexicon.assign])) {
             return _parseAssignStmt();
@@ -736,10 +742,12 @@ class Parser {
       expect([HT_Lexicon.angleRight], consume: true);
     }
 
-    HT_Type super_class;
+    SymbolExpr super_class;
+    HT_Type super_class_type;
     // 继承父类
     if (expect([HT_Lexicon.EXTENDS], consume: true, error: false)) {
-      super_class = _parseTypeId();
+      super_class = SymbolExpr(curTok, _curFileName);
+      super_class_type = _parseTypeId();
     }
     // 类的定义体
     expect([HT_Lexicon.curlyLeft], consume: true);
@@ -759,7 +767,8 @@ class Parser {
       advance(1);
     }
 
-    stmt = ClassDeclStmt(keyword, class_name, super_class, variables, methods, typeParams: typeParams);
+    stmt =
+        ClassDeclStmt(keyword, class_name, super_class, super_class_type, variables, methods, typeParams: typeParams);
     _curClassName = null;
     return stmt;
   }

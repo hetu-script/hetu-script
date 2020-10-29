@@ -69,8 +69,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (invokeFunc != null) {
       if (style == ParseStyle.library) {
         return invoke(invokeFunc, args: args);
-      } else if (style == ParseStyle.library) {
-        return invoke(HT_Lexicon.defaultProgramMainFunc, args: args);
       }
     } else {
       return _curStmtValue;
@@ -98,7 +96,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
 
       var content = await readFileMethod(_curFileName);
-      result = eval(content,
+      result = await eval(content,
           fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
     _curFileName = null;
@@ -221,11 +219,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     try {
       curContext = environment;
       for (final stmt in statements) {
-        evaluateStmt(stmt);
+        _curStmtValue = evaluateStmt(stmt);
       }
     } finally {
       curContext = saved_context;
     }
+
+    return _curStmtValue;
   }
 
   dynamic evaluateStmt(Stmt stmt) => stmt.accept(this);
@@ -548,10 +548,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var value = evaluateExpr(stmt.condition);
     if (value is bool) {
       if (value) {
-        return evaluateStmt(stmt.thenBranch);
+        _curStmtValue = evaluateStmt(stmt.thenBranch);
       } else if (stmt.elseBranch != null) {
-        return evaluateStmt(stmt.elseBranch);
+        _curStmtValue = evaluateStmt(stmt.elseBranch);
       }
+      return _curStmtValue;
     } else {
       throw HTErr_Condition(stmt.condition.line, stmt.condition.column, stmt.condition.fileName);
     }
@@ -600,7 +601,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         externFunc =
             _globals.fetch(external_key, stmt.keyword.line, stmt.keyword.column, this, from: _globals.fullName);
       }
-      func = HT_Function(stmt, name: stmt.name, extern: externFunc, declContext: curContext);
+      func = HT_Function(stmt, extern: externFunc, declContext: curContext);
       curContext.define(stmt.name, this,
           declType: func.typeid, line: stmt.keyword.line, column: stmt.keyword.column, value: func);
     }
@@ -659,14 +660,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       HT_Function func;
       HT_External externFunc;
       if (method.isExtern) {
-        externFunc = _globals.fetch('${HT_Lexicon.externs}${stmt.name}${HT_Lexicon.memberGet}${method.internalName}',
+        externFunc = _globals.fetch('${HT_Lexicon.externs}${stmt.name}${HT_Lexicon.memberGet}${method.name}',
             method.keyword.line, method.keyword.column, this,
             from: _globals.fullName);
       }
       if (method.isStatic) {
-        func = HT_Function(method, name: method.internalName, extern: externFunc, declContext: klass);
+        func = HT_Function(method, internalName: method.internalName, extern: externFunc, declContext: klass);
       } else {
-        func = HT_Function(method, name: method.internalName, extern: externFunc);
+        func = HT_Function(method, internalName: method.internalName, extern: externFunc);
       }
       klass.define(method.internalName, this,
           declType: func.typeid, line: method.keyword.line, column: method.keyword.column, value: func);

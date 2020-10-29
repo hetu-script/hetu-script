@@ -187,10 +187,10 @@ class ContinueStmt extends Stmt {
 enum FuncStmtType {
   normal,
   procedure,
-  method,
+  constructor,
   getter,
   setter,
-  constructor,
+  method,
 }
 
 class FuncDeclStmt extends Stmt {
@@ -243,6 +243,8 @@ class FuncDeclStmt extends Stmt {
       _internalName = HT_Lexicon.getter + name;
     } else if (funcType == FuncStmtType.setter) {
       _internalName = HT_Lexicon.setter + name;
+    } else if (funcType == FuncStmtType.method) {
+      _internalName = HT_Lexicon.method + name;
     } else {
       _internalName = name;
     }
@@ -266,11 +268,14 @@ class ClassDeclStmt extends Stmt {
 
   final SymbolExpr superClass;
 
+  final HT_Type superClassType;
+
   final List<VarDeclStmt> variables;
 
   final List<FuncDeclStmt> methods;
 
-  ClassDeclStmt(this.keyword, this.name, this.superClass, this.variables, this.methods, {List<String> typeParams}) {
+  ClassDeclStmt(this.keyword, this.name, this.superClass, this.superClassType, this.variables, this.methods,
+      {List<String> typeParams}) {
     if (typeParams != null) this.typeParams.addAll(typeParams);
   }
 }

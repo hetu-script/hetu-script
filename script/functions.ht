@@ -1,0 +1,7 @@
+fun doubleIt(n: num): num {
+	return n * 2
+}
+
+fun main {
+  def x = doubleIt(7); // expect 14
+}

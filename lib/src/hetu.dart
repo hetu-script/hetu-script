@@ -2,12 +2,16 @@ import 'binding.dart';
 import 'interpreter.dart';
 import 'core.dart';
 
+/// Helper class for init the environment of Hetu.
+///
+/// Provide a global Interpreter ref [itp] for use in other classes (e.g. binding functions).
+///
+/// Only have static members.
 abstract class Hetu {
   /// current global interpreter
   static Interpreter itp;
 
-  /// init the Hetu environment
-  /// call this to get the instance of interpreter
+  /// Get a initted instance of interpreter
   static Future<Interpreter> init({
     String sdkDirectory = 'hetu_lib/',
     String workingDirectory = 'script/',

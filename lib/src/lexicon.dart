@@ -32,11 +32,11 @@
 abstract class HT_Lexicon {
   static final defaultProgramMainFunc = 'main';
 
-  static final scriptPattern = r'(//.*)|' // 注释 group(1)
-      r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-      r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
-      r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
-      r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
+  static final scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
+      r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
+      r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
+      r'(\d+(\.\d+)?)|' // 数字字面量 group(6)
+      r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
   static final commandLinePattern = r'(//.*)|' // 注释 group(1)
@@ -47,10 +47,10 @@ abstract class HT_Lexicon {
       r'("(\\"|[^"])*"))';
 
   static final tokenGroupComment = 1;
-  static final tokenGroupIdentifier = 2;
-  static final tokenGroupPunctuation = 3;
-  static final tokenGroupNumber = 4;
-  static final tokenGroupString = 6;
+  static final tokenGroupIdentifier = 4;
+  static final tokenGroupPunctuation = 5;
+  static final tokenGroupNumber = 6;
+  static final tokenGroupString = 8;
 
   static final number = 'num';
   static final boolean = 'bool';
@@ -69,7 +69,7 @@ abstract class HT_Lexicon {
   static final underscore = '_';
   static final globals = '__globals__';
   static final externs = '__external__';
-  static final function = '__function__';
+  static final method = '__method__';
   static final instance = '__instance_of_';
   static final instancePrefix = 'instance of ';
   static final constructor = '__construct__';
@@ -78,6 +78,7 @@ abstract class HT_Lexicon {
 
   static final object = 'Object';
   static final unknown = '__unknown__';
+  static final function = 'function';
   static final list = 'List';
   static final map = 'Map';
   static final length = 'length';

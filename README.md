@@ -6,6 +6,8 @@ Hetu is a lightweight script interpreter written in Dart, intended to be embedde
 
 It is kind of like lua but free of ffi c bindings and make it easy to debug.
 
+[Full Hetu syntax description.] (language_tour.md)
+
 In your Dart code, you can interpret an script file by this:
 
 ```typescript
@@ -76,11 +78,29 @@ On Windows, there is a hetu.exe under project directory to use in Command line.
 Usage:
 
 ```
-hetu [-r] [file_name] [invoke_name]
+hetu [file_name] [invoke_func]
 ```
 
-If [-r] option is provided, enter REPL mode.
+If no option is provided, enter REPL mode.
 
-If [invoke_name] is provided, will switch to program style and call function with given name.
+In REPL mode, everything you entered will be evaluated and print out immediately.
 
-Otherwise interpret the file as a script.
+```typescript
+>>>var a = 42
+42
+```
+
+If you want to write multiple line in REPL mode, use '\' to end a line.
+
+```typescript
+>>>fun hello {\
+return 6 * 7} // press enter
+function hello(): any // repl print
+>>>hello()
+42 // repl print
+>>>
+```
+
+If [file_name] is provided, evaluate the file in function mode.
+
+If [invoke_name] is provided, evaluate the file in library mode and call a certain function with given name.

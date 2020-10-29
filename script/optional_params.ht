@@ -1,4 +1,4 @@
-fun hello(words: String, [times: Number = 112]) {
+fun hello(words: String, [times: num = 112]) {
   print(words, times)
 }
 

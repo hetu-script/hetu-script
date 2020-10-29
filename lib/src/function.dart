@@ -42,7 +42,7 @@ class HT_FunctionType extends HT_Type {
 class HT_Function {
   static int functionIndex = 0;
 
-  final HT_Namespace declContext;
+  HT_Namespace declContext;
   HT_Namespace _closure;
   //HT_Namespace _save;
   final String internalName;
@@ -55,8 +55,7 @@ class HT_Function {
 
   final HT_External extern;
 
-  HT_Function(this.funcStmt,
-      {this.internalName, List<HT_Type> typeArgs = const [], String name, this.extern, this.declContext}) {
+  HT_Function(this.funcStmt, {this.internalName, List<HT_Type> typeArgs = const [], this.extern, this.declContext}) {
     //_save = _closure = closure;
 
     var paramsTypes = <HT_Type>[];
@@ -98,6 +97,7 @@ class HT_Function {
 
   dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args, {HT_Instance instance}) {
     assert(args != null);
+    dynamic result;
     try {
       if (extern != null) {
         if (funcStmt.arity != -1) {
@@ -160,7 +160,7 @@ class HT_Function {
                 declType: HT_Type.list, line: line, column: column, value: args);
           }
 
-          interpreter.executeBlock(funcStmt.definition, _closure);
+          result = interpreter.executeBlock(funcStmt.definition, _closure);
           //_closure = _save;
         } else {
           throw HTErr_MissingFuncDef(name, line, column, interpreter.curFileName);
@@ -186,6 +186,6 @@ class HT_Function {
       return returnValue;
     }
 
-    return null;
+    return result;
   }
 }

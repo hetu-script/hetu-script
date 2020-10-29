@@ -61,8 +61,8 @@ class HT_Class extends HT_Namespace {
   bool contains(String varName) =>
       defs.containsKey(varName) ||
       defs.containsKey('${HT_Lexicon.getter}$varName') ||
-      (superClass.contains(varName)) ||
-      (superClass.contains('${HT_Lexicon.getter}$varName'));
+      ((superClass?.contains(varName)) ?? false) ||
+      ((superClass?.contains('${HT_Lexicon.getter}$varName')) ?? false);
 
   /// Add a instance variable declaration to this class.
   void addVariable(VarDeclStmt stmt) {
@@ -79,6 +79,7 @@ class HT_Class extends HT_Namespace {
       {bool error = true, String from, bool recursive = true}) {
     from ??= HT_Lexicon.globals;
     var getter = '${HT_Lexicon.getter}$varName';
+    var method = '${HT_Lexicon.method}$varName';
     if (defs.containsKey(varName)) {
       if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
         return defs[varName].value;
@@ -88,6 +89,11 @@ class HT_Class extends HT_Namespace {
       if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
         HT_Function func = defs[getter].value;
         return func.call(interpreter, line, column, []);
+      }
+      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+    } else if (defs.containsKey(method)) {
+      if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
+        return defs[method].value;
       }
       throw HTErr_Private(varName, line, column, interpreter.curFileName);
     } else if (superClass.contains(varName)) {
@@ -177,9 +183,9 @@ class HT_Instance extends HT_Namespace {
   HT_Type _typeid;
   HT_Type get typeid => _typeid;
 
-  HT_Instance(Interpreter interpreter, this.klass, {List<HT_Type> typeArgs})
+  HT_Instance(Interpreter interpreter, this.klass, {List<HT_Type> typeArgs = const []})
       : super(name: HT_Lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
-    _typeid = HT_Type(klass.name, arguments: typeArgs);
+    _typeid = HT_Type(klass.name, arguments: typeArgs = const []);
 
     define(HT_Lexicon.THIS, interpreter, declType: typeid, value: this);
     //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);
@@ -208,10 +214,11 @@ class HT_Instance extends HT_Namespace {
           return method.call(interpreter, line, column, [], instance: this);
         }
       } else {
-        var function = '${HT_Lexicon.function}$varName';
-        if (klass.contains(function)) {
-          HT_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
+        var method_name = '${HT_Lexicon.method}$varName';
+        if (klass.contains(method_name)) {
+          HT_Function method = klass.fetch(method_name, line, column, interpreter, error: false, from: klass.fullName);
           if ((method != null) && (!method.funcStmt.isStatic)) {
+            method.declContext = this;
             return method;
           }
         }
