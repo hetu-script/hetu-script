@@ -62,6 +62,16 @@ class List extends Value {
 		return length != 0
 	}
 	
+	external fun add(... args)
+	
+	external fun clear()
+	
+	external fun removeAt(index: num)
+	
+	external fun indexOf(value): num
+	
+	external fun elementAt(index: num): any
+	
 	get first: any {
     if (length > 0){
       return elementAt(0)
@@ -77,16 +87,6 @@ class List extends Value {
 	fun contains(value): bool {
 		return indexOf(value) != -1
 	}
-	
-	external fun add(... args)
-	
-	external fun clear()
-	
-	external fun removeAt(index: num)
-	
-	external fun indexOf(value): num
-	
-	external fun elementAt(index: num): any
 }
 
 class Map extends Value {

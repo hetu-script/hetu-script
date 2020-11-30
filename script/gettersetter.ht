@@ -1,6 +1,10 @@
 class Types {
   var _name = 'the machine'
 
+  construct (name: String) {
+    _name = name;
+  }
+
   get name: String {
     return _name
   }
@@ -12,8 +16,10 @@ class Types {
 
 // 程序入口
 fun main {
-  var t = Types()
-  t.name = 'finch'
+  var t = Types('finch')
 
-  Console.print(t.name)
+  print(3.toString())
+
+  print(t.name)
+  
 }

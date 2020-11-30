@@ -10,17 +10,17 @@ class HT_Type {
 
   const HT_Type(this.name, {this.arguments = const []});
 
-  static final ANY = HT_Type(HT_Lexicon.ANY);
-  static final NULL = HT_Type(HT_Lexicon.NULL);
-  static final VOID = HT_Type(HT_Lexicon.VOID);
-  static final CLASS = HT_Type(HT_Lexicon.CLASS);
-  static final NAMESPACE = HT_Type(HT_Lexicon.NAMESPACE);
-  static final unknown = HT_Type(HT_Lexicon.unknown);
-  static final number = HT_Type(HT_Lexicon.number);
-  static final boolean = HT_Type(HT_Lexicon.boolean);
-  static final string = HT_Type(HT_Lexicon.string);
-  static final list = HT_Type(HT_Lexicon.list);
-  static final map = HT_Type(HT_Lexicon.map);
+  static const ANY = HT_Type(HT_Lexicon.ANY);
+  static const NULL = HT_Type(HT_Lexicon.NULL);
+  static const VOID = HT_Type(HT_Lexicon.VOID);
+  static const CLASS = HT_Type(HT_Lexicon.CLASS);
+  static const NAMESPACE = HT_Type(HT_Lexicon.NAMESPACE);
+  static const unknown = HT_Type(HT_Lexicon.unknown);
+  static const number = HT_Type(HT_Lexicon.number);
+  static const boolean = HT_Type(HT_Lexicon.boolean);
+  static const string = HT_Type(HT_Lexicon.string);
+  static const list = HT_Type(HT_Lexicon.list);
+  static const map = HT_Type(HT_Lexicon.map);
 
   @override
   String toString() {

@@ -13,8 +13,9 @@ import 'parser.dart';
 import 'resolver.dart';
 import 'lexicon.dart';
 
-typedef ReadFileMethod = Future<String> Function(String filepath);
+typedef ReadFileMethod = dynamic Function(String filepath);
 Future<String> defaultReadFileMethod(String filapath) async => await File(filapath).readAsString();
+String syncReadFileMethod(String filapath) => File(filapath).readAsStringSync();
 
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
@@ -76,13 +77,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   /// 解析文件
-  dynamic evalf(
+  Future<dynamic> evalf(
     String filepath, {
     String libName,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
     List<dynamic> args,
   }) async {
+    final savedFileName = _curFileName;
     _curFileName = filepath;
     dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
@@ -96,10 +98,38 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
 
       var content = await readFileMethod(_curFileName);
-      result = await eval(content,
+      result = eval(content.toString(),
           fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
-    _curFileName = null;
+    _curFileName = savedFileName;
+    return result;
+  }
+
+  Future<dynamic> evalfSync(
+    String filepath, {
+    String libName,
+    ParseStyle style = ParseStyle.library,
+    String invokeFunc,
+    List<dynamic> args,
+  }) async {
+    final savedFileName = _curFileName;
+    _curFileName = filepath;
+    dynamic result;
+    if (!_evaledFiles.contains(curFileName)) {
+      if (debugMode) print('hetu: Loading $filepath...');
+      _evaledFiles.add(curFileName);
+
+      HT_Namespace library_namespace;
+      if ((libName != null) && (libName != HT_Lexicon.globals)) {
+        _globals.define(libName, this, declType: HT_Type.NAMESPACE);
+        library_namespace = HT_Namespace(name: libName, closure: library_namespace);
+      }
+
+      var content = syncReadFileMethod(_curFileName);
+      result = eval(content.toString(),
+          fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
+    }
+    _curFileName = savedFileName;
     return result;
   }
 
@@ -178,8 +208,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   //   }
   // }
 
-  dynamic fetchGlobal(String varName) {
-    return _globals.fetch(varName, null, null, this, from: _globals.fullName);
+  void defineGlobal(String key, {HT_Type declType, dynamic value, bool isMutable = true, bool typeInference = true}) {
+    _globals.define(key, this, declType: declType, value: value, isMutable: isMutable, typeInference: typeInference);
+  }
+
+  dynamic fetchGlobal(String key) {
+    return _globals.fetch(key, null, null, this, from: _globals.fullName);
   }
 
   dynamic invoke(String name, {String classname, List<dynamic> args}) {
@@ -397,7 +431,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
     if (callee is HT_Function) {
       if (callee.funcStmt.funcType != FuncStmtType.constructor) {
-        return callee.call(this, expr.line, expr.column, args ?? []);
+        if (callee.declContext is HT_Instance) {
+          return callee.call(this, expr.line, expr.column, args ?? [], instance: callee.declContext);
+        } else {
+          return callee.call(this, expr.line, expr.column, args ?? []);
+        }
       } else {
         //TODO命名构造函数
       }
@@ -505,7 +543,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitImportStmt(ImportStmt stmt) {
     final file_loc = workingDirectory + stmt.location;
-    return evalf(file_loc, libName: stmt.nameSpace);
+    return evalfSync(file_loc, libName: stmt.nameSpace);
   }
 
   @override

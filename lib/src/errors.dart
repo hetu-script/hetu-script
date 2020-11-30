@@ -55,9 +55,14 @@ class HTErr_Unexpected extends HT_Error {
       : super('${HT_Lexicon.errorUnexpected} "${symbol != '\n' ? symbol : '\\n'}"', line, column, fileName);
 }
 
-class HTErr_Private extends HT_Error {
-  HTErr_Private(String symbol, int line, int column, String fileName)
-      : super('${HT_Lexicon.errorPrivate} "${symbol}"', line, column, fileName);
+class HTErr_PrivateMember extends HT_Error {
+  HTErr_PrivateMember(String symbol, int line, int column, String fileName)
+      : super('${HT_Lexicon.errorPrivateMember} "${symbol}"', line, column, fileName);
+}
+
+class HTErr_PrivateDecl extends HT_Error {
+  HTErr_PrivateDecl(String symbol, int line, int column, String fileName)
+      : super('${HT_Lexicon.errorPrivateDecl} "${symbol}"', line, column, fileName);
 }
 
 class HTErr_Initialized extends HT_Error {

@@ -1,0 +1,4 @@
+fun main() {  
+    var hello: num  = 3;
+    print( hello.toString() );
+}

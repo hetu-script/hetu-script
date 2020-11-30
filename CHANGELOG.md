@@ -1,3 +1,11 @@
+## 0.0.2+4
+
+- Fixed bug in method calling of instances.
+- Fixed bug of optional function parameters.
+- Fixed bug of import statement.
+- Fixed bug of member get from super classes.
+- Fixed bug of method expression resolving.
+
 ## 0.0.2+1
 
 - Added some comments in the dart source file.

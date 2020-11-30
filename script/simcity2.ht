@@ -1,4 +1,3 @@
-import 'hetu:math'
 
 var child = '0-15'
 var young = '16-30'
@@ -28,7 +27,7 @@ class Char {
     return age / (12 * 30).truncate()
   }
 
-  init (List professions, [num age]) {
+  construct (professions: List, [age: num]) {
     this.professions = professions
     if (age != null)
       this.age = age
@@ -60,13 +59,13 @@ class Organization {
   }
 
   fun debug(info: List) {
-    Console.print('----------------')
-    Console.print('population: ' + population.length.toString())
+    print('----------------')
+    print('population: ' + population.length.toString())
     if (info.contains('class')) {
-      Console.print('----------------')
-      Console.print('  classes:')
-      for (var prof in profStats.keys) {
-        Console.print('  ' +
+      print('----------------')
+      print('  classes:')
+      for (prof in profStats.keys) {
+        print('  ' +
             prof +
             ': ' +
             profStats[prof].toStringAsFixed() +
@@ -76,10 +75,10 @@ class Organization {
       }
     }
     if (info.contains('age')) {
-      Console.print('----------------')
-      Console.print('  age:')
-      for (var period in ageStats.keys) {
-        Console.print('  ' +
+      print('----------------')
+      print('  age:')
+      for (period in ageStats.keys) {
+        print('  ' +
             period +
             ': ' +
             ageStats[period].toStringAsFixed() +
@@ -89,10 +88,10 @@ class Organization {
       }
     }
     if (info.contains('resource')) {
-      Console.print('----------------')
-      Console.print('  resource:')
-      for (var resource in resources.keys) {
-        Console.print('  ' + resource + ': ' + resources[resource].toStringAsFixed())
+      print('----------------')
+      print('  resource:')
+      for (resource in resources.keys) {
+        print('  ' + resource + ': ' + resources[resource].toStringAsFixed())
       }
     }
   }
@@ -100,7 +99,7 @@ class Organization {
   fun addChar(p: Char) {
     population.add(p)
 
-    for (var prof in p.professions) {
+    for (prof in p.professions) {
       if (profStats[prof] == null) profStats[prof] = 0
       profStats[prof] = profStats[prof] + 1
     }

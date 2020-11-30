@@ -79,25 +79,32 @@ class HT_Class extends HT_Namespace {
       {bool error = true, String from, bool recursive = true}) {
     from ??= HT_Lexicon.globals;
     var getter = '${HT_Lexicon.getter}$varName';
-    var method = '${HT_Lexicon.method}$varName';
     if (defs.containsKey(varName)) {
-      if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
-        return defs[varName].value;
+      if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+        throw HTErr_PrivateDecl(fullName, line, column, interpreter.curFileName);
+      } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+        throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+      return defs[varName].value;
     } else if (defs.containsKey(getter)) {
-      if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
-        HT_Function func = defs[getter].value;
-        return func.call(interpreter, line, column, []);
+      if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+        throw HTErr_PrivateDecl(fullName, line, column, interpreter.curFileName);
+      } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+        throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
-    } else if (defs.containsKey(method)) {
-      if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
-        return defs[method].value;
-      }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
-    } else if (superClass.contains(varName)) {
-      return superClass.fetch(varName, line, column, interpreter, error: error, from: closure.fullName);
+      HT_Function func = defs[getter].value;
+      return func.call(interpreter, line, column, []);
+    }
+    //  else if (defs.containsKey(method)) {
+    //   if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+    //     throw HTErr_PrivateDecl(fullName, line, column, interpreter.curFileName);
+    //   } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+    //     throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
+    //   }
+    //   return defs[method].value;
+    // }
+    else if (superClass.contains(varName)) {
+      return superClass.fetch(varName, line, column, interpreter, error: error, from: superClass.fullName);
     }
 
     if (closure != null) {
@@ -117,21 +124,23 @@ class HT_Class extends HT_Namespace {
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HT_TypeOf(value);
-      if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
+      if (from.startsWith(fullName) ||
+          (!fullName.startsWith(HT_Lexicon.underscore) && !varName.startsWith(HT_Lexicon.underscore))) {
         if (var_type.isA(decl_type)) {
           defs[varName].value = value;
           return;
         }
         throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
     } else if (defs.containsKey(setter)) {
-      if (from.startsWith(fullName) || !varName.startsWith(HT_Lexicon.underscore)) {
+      if (from.startsWith(fullName) ||
+          (!fullName.startsWith(HT_Lexicon.underscore) && !varName.startsWith(HT_Lexicon.underscore))) {
         HT_Function setter_func = defs[setter].value;
         setter_func.call(interpreter, line, column, [value]);
         return;
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
     }
 
     if (closure != null) {
@@ -202,10 +211,10 @@ class HT_Instance extends HT_Namespace {
       {bool error = true, String from, bool recursive = true}) {
     from ??= HT_Lexicon.globals;
     if (defs.containsKey(varName)) {
-      if (!varName.startsWith(HT_Lexicon.underscore)) {
+      if (!varName.startsWith(HT_Lexicon.underscore) || from.startsWith(fullName)) {
         return defs[varName].value;
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
     } else {
       var getter = '${HT_Lexicon.getter}$varName';
       if (klass.contains(getter)) {
@@ -214,14 +223,14 @@ class HT_Instance extends HT_Namespace {
           return method.call(interpreter, line, column, [], instance: this);
         }
       } else {
-        var method_name = '${HT_Lexicon.method}$varName';
-        if (klass.contains(method_name)) {
-          HT_Function method = klass.fetch(method_name, line, column, interpreter, error: false, from: klass.fullName);
-          if ((method != null) && (!method.funcStmt.isStatic)) {
-            method.declContext = this;
-            return method;
-          }
+        // var method_name = '${HT_Lexicon.method}$varName';
+        // if (klass.contains(method_name)) {
+        final method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
+        if ((method is HT_Function) && (!method.funcStmt.isStatic)) {
+          method.declContext = this;
+          return method;
         }
+        // }
       }
     }
 
@@ -235,7 +244,7 @@ class HT_Instance extends HT_Namespace {
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].typeid;
       var var_type = HT_TypeOf(value);
-      if (!varName.startsWith(HT_Lexicon.underscore)) {
+      if (!varName.startsWith(HT_Lexicon.underscore) || from.startsWith(fullName)) {
         if (var_type.isA(decl_type)) {
           if (defs[varName].isMutable) {
             defs[varName].value = value;
@@ -245,7 +254,7 @@ class HT_Instance extends HT_Namespace {
         }
         throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
     } else {
       var setter = '${HT_Lexicon.setter}$varName';
       if (klass.contains(setter)) {

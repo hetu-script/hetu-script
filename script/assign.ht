@@ -4,6 +4,11 @@ class HelloWorld {
   var world: num
   var _privateNum = 99
 
+  construct (hello: num, world: num) {
+    this.hello = hello;
+    this.world = world;
+  }
+
   fun toString: String {
     return "hello" + hello.toString() + "world" + world.toString()
   }
@@ -23,7 +28,7 @@ fun main {
 
   //m = "hello"
 
-  var m = HelloWorld()
+  var m = HelloWorld(6, 7)
 
-  Console.print(m)
+  Console.print(m.toString())
 }

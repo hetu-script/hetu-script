@@ -25,9 +25,9 @@ void main(List<String> args) async {
       if ((args.first == '--help') || (args.first == '-h')) {
         print(cli_help);
       } else if (args.length == 1) {
-        result = interpreter.evalf(args.first, style: ParseStyle.function);
+        result = await interpreter.evalf(args.first, style: ParseStyle.function);
       } else {
-        result = interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: args[1]);
+        result = await interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: args[1]);
       }
       if (result != null) print(result);
     } else {

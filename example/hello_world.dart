@@ -12,7 +12,7 @@ void main() async {
       '  var dartValue = dartHello()\n'
       '  print(typeof(dartValue))\n'
       '  dartValue[\'foo\'] = \'bar\'\n'
-      '  print(dartValue)'
+      '  print(dartValue)\n'
       '\n}',
       invokeFunc: 'main');
 }

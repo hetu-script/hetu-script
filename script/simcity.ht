@@ -54,3 +54,4 @@ fun getNewNum {
   farmerConsume(farmer_num)
   lumberConsume(lumber_num)
 }
+

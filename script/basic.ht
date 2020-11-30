@@ -1,5 +1,6 @@
 class Person {
 
+  
   var name: String
 }
 
@@ -7,6 +8,8 @@ class Person {
 fun main {
   var p = Person()
   var list = [p]
+  list.add('what?')
 
   print(typeof(list))
+  print(list)
 }

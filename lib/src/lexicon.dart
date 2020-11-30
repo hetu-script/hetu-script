@@ -30,31 +30,31 @@
 //  Assignment       =, *=, /=, +=, -=, &=, ˆ=, etc.      Right           1
 
 abstract class HT_Lexicon {
-  static final defaultProgramMainFunc = 'main';
+  static const defaultProgramMainFunc = 'main';
 
-  static final scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
+  static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
       r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(6)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
-  static final commandLinePattern = r'(//.*)|' // 注释 group(1)
+  static const commandLinePattern = r'(//.*)|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
       r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!:\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
       r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
       r'("(\\"|[^"])*"))';
 
-  static final tokenGroupComment = 1;
-  static final tokenGroupIdentifier = 4;
-  static final tokenGroupPunctuation = 5;
-  static final tokenGroupNumber = 6;
-  static final tokenGroupString = 8;
+  static const tokenGroupComment = 1;
+  static const tokenGroupIdentifier = 4;
+  static const tokenGroupPunctuation = 5;
+  static const tokenGroupNumber = 6;
+  static const tokenGroupString = 8;
 
-  static final number = 'num';
-  static final boolean = 'bool';
-  static final string = 'String';
+  static const number = 'num';
+  static const boolean = 'bool';
+  static const string = 'String';
 
   static Set<String> get literals => {
         number,
@@ -62,75 +62,75 @@ abstract class HT_Lexicon {
         string,
       };
 
-  static final endOfFile = 'end_of_file'; // 文件末尾
-  static final newLine = '\n';
-  static final multiline = '\\';
-  static final variadicArguments = '...';
-  static final underscore = '_';
-  static final globals = '__globals__';
-  static final externs = '__external__';
-  static final method = '__method__';
-  static final instance = '__instance_of_';
-  static final instancePrefix = 'instance of ';
-  static final constructor = '__construct__';
-  static final getter = '__get__';
-  static final setter = '__set__';
+  static const endOfFile = 'end_of_file'; // 文件末尾
+  static const newLine = '\n';
+  static const multiline = '\\';
+  static const variadicArguments = '...';
+  static const underscore = '_';
+  static const globals = '__globals__';
+  static const externs = '__external__';
+  static const method = '__method__';
+  static const instance = '__instance_of_';
+  static const instancePrefix = 'instance of ';
+  static const constructor = '__construct__';
+  static const getter = '__get__';
+  static const setter = '__set__';
 
-  static final object = 'Object';
-  static final unknown = '__unknown__';
-  static final function = 'function';
-  static final list = 'List';
-  static final map = 'Map';
-  static final length = 'length';
-  static final procedure = 'procedure';
-  static final identifier = 'identifier';
+  static const object = 'Object';
+  static const unknown = '__unknown__';
+  static const function = 'function';
+  static const list = 'List';
+  static const map = 'Map';
+  static const length = 'length';
+  static const procedure = 'procedure';
+  static const identifier = 'identifier';
 
-  static final TRUE = 'true';
-  static final FALSE = 'false';
-  static final NULL = 'null';
+  static const TRUE = 'true';
+  static const FALSE = 'false';
+  static const NULL = 'null';
 
-  static final VOID = 'void';
-  static final VAR = 'var';
-  static final DEF = 'def';
-  static final LET = 'let';
+  static const VOID = 'void';
+  static const VAR = 'var';
+  static const DEF = 'def';
+  static const LET = 'let';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
-  static final ANY = 'any';
-  static final TYPEDEF = 'typedef';
+  static const ANY = 'any';
+  static const TYPEDEF = 'typedef';
 
-  static final STATIC = 'static';
-  static final FINAL = 'final';
-  static final CONSTRUCT = 'construct';
-  static final GET = 'get';
-  static final SET = 'set';
-  static final NAMESPACE = 'namespace';
-  static final AS = 'as';
-  static final ABSTRACT = 'abstract';
-  static final CLASS = 'class';
-  static final STRUCT = 'struct';
-  static final INTERFACE = 'interface';
-  static final FUN = 'fun';
-  static final PROC = 'proc';
-  static final THIS = 'this';
-  static final SUPER = 'super';
-  static final EXTENDS = 'extends';
-  static final IMPLEMENTS = 'implements';
-  static final MIXIN = 'mixin';
-  static final EXTERNAL = 'external';
-  static final IMPORT = 'import';
+  static const STATIC = 'static';
+  static const CONST = 'const';
+  static const CONSTRUCT = 'construct';
+  static const GET = 'get';
+  static const SET = 'set';
+  static const NAMESPACE = 'namespace';
+  static const AS = 'as';
+  static const ABSTRACT = 'abstract';
+  static const CLASS = 'class';
+  static const STRUCT = 'struct';
+  static const INTERFACE = 'interface';
+  static const FUN = 'fun';
+  static const PROC = 'proc';
+  static const THIS = 'this';
+  static const SUPER = 'super';
+  static const EXTENDS = 'extends';
+  static const IMPLEMENTS = 'implements';
+  static const MIXIN = 'mixin';
+  static const EXTERNAL = 'external';
+  static const IMPORT = 'import';
 
-  static final ASSERT = 'assert';
-  static final BREAK = 'break';
-  static final CONTINUE = 'continue';
-  static final FOR = 'for';
-  static final IN = 'in';
-  static final IF = 'if';
-  static final ELSE = 'else';
-  static final RETURN = 'return';
-  static final WHILE = 'while';
-  static final DO = 'do';
-  static final WHEN = 'when';
+  static const ASSERT = 'assert';
+  static const BREAK = 'break';
+  static const CONTINUE = 'continue';
+  static const FOR = 'for';
+  static const IN = 'in';
+  static const IF = 'if';
+  static const ELSE = 'else';
+  static const RETURN = 'return';
+  static const WHILE = 'while';
+  static const DO = 'do';
+  static const WHEN = 'when';
 
-  static final IS = 'is';
+  static const IS = 'is';
 
   /// 保留字，不能用于变量名字
   static Set<String> get keywords => {
@@ -173,41 +173,41 @@ abstract class HT_Lexicon {
       };
 
   /// 函数调用表达式
-  static final nullExpr = 'null_expression';
-  static final literalExpr = 'literal_expression';
-  static final groupExpr = 'group_expression';
-  static final vectorExpr = 'vector_expression';
-  static final blockExpr = 'block_expression';
-  static final varExpr = 'variable_expression';
-  static final typeExpr = 'type_expression';
-  static final unaryExpr = 'unary_expression';
-  static final binaryExpr = 'binary_expression';
-  static final callExpr = 'call_expression';
-  static final thisExpr = 'this_expression';
-  static final assignExpr = 'assign_expression';
-  static final subGetExpr = 'subscript_get_expression';
-  static final subSetExpr = 'subscript_set_expression';
-  static final memberGetExpr = 'member_get_expression';
-  static final memberSetExpr = 'member_set_expression';
+  static const nullExpr = 'null_expression';
+  static const literalExpr = 'literal_expression';
+  static const groupExpr = 'group_expression';
+  static const vectorExpr = 'vector_expression';
+  static const blockExpr = 'block_expression';
+  static const varExpr = 'variable_expression';
+  static const typeExpr = 'type_expression';
+  static const unaryExpr = 'unary_expression';
+  static const binaryExpr = 'binary_expression';
+  static const callExpr = 'call_expression';
+  static const thisExpr = 'this_expression';
+  static const assignExpr = 'assign_expression';
+  static const subGetExpr = 'subscript_get_expression';
+  static const subSetExpr = 'subscript_set_expression';
+  static const memberGetExpr = 'member_get_expression';
+  static const memberSetExpr = 'member_set_expression';
 
-  static final importStmt = 'import_statement';
-  static final varStmt = 'variable_statement';
-  static final exprStmt = 'expression_statement';
-  static final blockStmt = 'block_statement';
-  static final returnStmt = 'return_statement';
-  static final breakStmt = 'break_statement';
-  static final continueStmt = 'continue_statement';
-  static final ifStmt = 'if_statement';
-  static final whileStmt = 'while_statement';
-  static final forInStmt = 'for_in_statement';
-  static final classStmt = 'class_statement';
-  static final funcStmt = 'function_statement';
-  static final externFuncStmt = 'external_function_statement';
-  static final constructorStmt = 'constructor_function_statement';
+  static const importStmt = 'import_statement';
+  static const varStmt = 'variable_statement';
+  static const exprStmt = 'expression_statement';
+  static const blockStmt = 'block_statement';
+  static const returnStmt = 'return_statement';
+  static const breakStmt = 'break_statement';
+  static const continueStmt = 'continue_statement';
+  static const ifStmt = 'if_statement';
+  static const whileStmt = 'while_statement';
+  static const forInStmt = 'for_in_statement';
+  static const classStmt = 'class_statement';
+  static const funcStmt = 'function_statement';
+  static const externFuncStmt = 'external_function_statement';
+  static const constructorStmt = 'constructor_function_statement';
 
-  static final memberGet = '.';
-  static final subGet = '[';
-  static final call = '(';
+  static const memberGet = '.';
+  static const subGet = '[';
+  static const call = '(';
 
   /// 后缀操作符，包含多个符号
   static Set<String> get unaryPostfixs => {
@@ -216,8 +216,8 @@ abstract class HT_Lexicon {
         call,
       };
 
-  static final not = '!';
-  static final negative = '-';
+  static const not = '!';
+  static const negative = '-';
 
   /// 前缀操作符，包含多个符号
   static Set<String> get unaryPrefixs => {
@@ -225,9 +225,9 @@ abstract class HT_Lexicon {
         negative,
       };
 
-  static final multiply = '*';
-  static final devide = '/';
-  static final modulo = '%';
+  static const multiply = '*';
+  static const devide = '/';
+  static const modulo = '%';
 
   /// 乘除操作符，包含多个符号
   static Set<String> get multiplicatives => {
@@ -236,8 +236,8 @@ abstract class HT_Lexicon {
         modulo,
       };
 
-  static final add = '+';
-  static final subtract = '-';
+  static const add = '+';
+  static const subtract = '-';
 
   /// 加减操作符，包含多个符号
   static Set<String> get additives => {
@@ -245,10 +245,10 @@ abstract class HT_Lexicon {
         subtract,
       };
 
-  static final greater = '>';
-  static final greaterOrEqual = '>=';
-  static final lesser = '<';
-  static final lesserOrEqual = '<=';
+  static const greater = '>';
+  static const greaterOrEqual = '>=';
+  static const lesser = '<';
+  static const lesserOrEqual = '<=';
 
   /// 大小判断操作符，包含多个符号
   static Set<String> get relationals => {
@@ -259,8 +259,8 @@ abstract class HT_Lexicon {
         IS,
       };
 
-  static final equal = '==';
-  static final notEqual = '!=';
+  static const equal = '==';
+  static const notEqual = '!=';
 
   /// 相等判断操作符，包含多个符号
   static Set<String> get equalitys => {
@@ -268,27 +268,27 @@ abstract class HT_Lexicon {
         notEqual,
       };
 
-  static final and = '&&';
-  static final or = '||';
+  static const and = '&&';
+  static const or = '||';
 
-  static final assign = '=';
+  static const assign = '=';
 
   /// 赋值类型操作符，包含多个符号
   static Set<String> get assignments => {
         assign,
       };
 
-  static final comma = ',';
-  static final colon = ':';
-  static final semicolon = ';';
-  static final roundLeft = '(';
-  static final roundRight = ')';
-  static final curlyLeft = '{';
-  static final curlyRight = '}';
-  static final squareLeft = '[';
-  static final squareRight = ']';
-  static final angleLeft = '<';
-  static final angleRight = '>';
+  static const comma = ',';
+  static const colon = ':';
+  static const semicolon = ';';
+  static const roundLeft = '(';
+  static const roundRight = ')';
+  static const curlyLeft = '{';
+  static const curlyRight = '}';
+  static const squareLeft = '[';
+  static const squareRight = ']';
+  static const angleLeft = '<';
+  static const angleRight = '>';
 
   static Set<String> get Punctuations => {
         not,
@@ -320,41 +320,42 @@ abstract class HT_Lexicon {
         angleRight,
       };
 
-  static final errorUnsupport = 'Unsupport value type';
-  static final errorExpected = 'expected, ';
-  static final errorUnexpected = 'Unexpected identifier';
-  static final errorPrivate = 'Could not acess private member';
-  static final errorInitialized = 'has not initialized';
-  static final errorUndefined = 'Undefined identifier';
-  static final errorUndefinedOperator = 'Undefined operator';
-  static final errorDeclared = 'is already declared';
-  static final errorDefined = 'is already defined';
-  static final errorRange = 'Index out of range, should be less than';
-  static final errorInvalidLeftValue = 'Invalid left-value';
-  static final errorCallable = 'is not callable';
-  static final errorUndefinedMember = 'isn\'t defined for the class';
-  static final errorCondition = 'Condition expression must evaluate to type "bool"';
-  static final errorMissingFuncDef = 'Missing function definition body of';
-  static final errorGet = 'is not a collection or object';
-  static final errorSubGet = 'is not a List or Map';
-  static final errorExtends = 'is not a class';
-  static final errorSetter = 'Setter function\'s arity must be 1';
-  static final errorNullObject = 'is null';
-  static final errorMutable = 'is immutable';
-  static final errorNotType = 'is not a type.';
+  static const errorUnsupport = 'Unsupport value type';
+  static const errorExpected = 'expected, ';
+  static const errorUnexpected = 'Unexpected identifier';
+  static const errorPrivateMember = 'Could not acess private member';
+  static const errorPrivateDecl = 'Could not acess private declaration';
+  static const errorInitialized = 'has not initialized';
+  static const errorUndefined = 'Undefined identifier';
+  static const errorUndefinedOperator = 'Undefined operator';
+  static const errorDeclared = 'is already declared';
+  static const errorDefined = 'is already defined';
+  static const errorRange = 'Index out of range, should be less than';
+  static const errorInvalidLeftValue = 'Invalid left-value';
+  static const errorCallable = 'is not callable';
+  static const errorUndefinedMember = 'isn\'t defined for the class';
+  static const errorCondition = 'Condition expression must evaluate to type "bool"';
+  static const errorMissingFuncDef = 'Missing function definition body of';
+  static const errorGet = 'is not a collection or object';
+  static const errorSubGet = 'is not a List or Map';
+  static const errorExtends = 'is not a class';
+  static const errorSetter = 'Setter function\'s arity must be 1';
+  static const errorNullObject = 'is null';
+  static const errorMutable = 'is immutable';
+  static const errorNotType = 'is not a type.';
 
-  static final errorOfType = 'of type';
+  static const errorOfType = 'of type';
 
-  static final errorType1 = 'Variable';
-  static final errorType2 = 'can\'t be assigned with type';
+  static const errorType1 = 'Variable';
+  static const errorType2 = 'can\'t be assigned with type';
 
-  static final errorArgType1 = 'Argument';
-  static final errorArgType2 = 'doesn\'t match parameter type';
+  static const errorArgType1 = 'Argument';
+  static const errorArgType2 = 'doesn\'t match parameter type';
 
-  static final errorReturnType1 = 'Value of type';
-  static final errorReturnType2 = 'can\'t be returned from function';
-  static final errorReturnType3 = 'because it has a return type of';
+  static const errorReturnType1 = 'Value of type';
+  static const errorReturnType2 = 'can\'t be returned from function';
+  static const errorReturnType3 = 'because it has a return type of';
 
-  static final errorArity1 = 'Number of arguments';
-  static final errorArity2 = 'doesn\'t match parameter requirement of function';
+  static const errorArity1 = 'Number of arguments';
+  static const errorArity2 = 'doesn\'t match parameter requirement of function';
 }
