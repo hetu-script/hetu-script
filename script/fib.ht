@@ -7,9 +7,9 @@ fun fib(x: num): num {
   
 fun main {
 
-  var before = now()
+  var before = System.now()
 	System.print(fib(15))
-  var after = now()
+  var after = System.now()
   System.print(after - before)
   
   

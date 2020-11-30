@@ -1,3 +1,0 @@
-fun doubleIt(x: num): num {
-	return x * 2
-}

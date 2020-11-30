@@ -88,14 +88,17 @@ class VarDeclStmt extends Stmt {
 
   final bool isStatic;
 
+  final bool isOptional;
+
   VarDeclStmt(
     this.name, {
-    this.declType,
+    this.declType = HT_Type.ANY,
     this.initializer,
     this.typeInferrence = true,
     this.isMutable = true,
     //this.isExtern = false,
     this.isStatic = false,
+    this.isOptional = false,
   });
 }
 
@@ -243,9 +246,11 @@ class FuncDeclStmt extends Stmt {
       _internalName = HT_Lexicon.getter + name;
     } else if (funcType == FuncStmtType.setter) {
       _internalName = HT_Lexicon.setter + name;
-    } else if (funcType == FuncStmtType.method) {
-      _internalName = HT_Lexicon.method + name;
-    } else {
+    }
+    // else if (funcType == FuncStmtType.method) {
+    //   _internalName = HT_Lexicon.method + name;
+    // }
+    else {
       _internalName = name;
     }
 

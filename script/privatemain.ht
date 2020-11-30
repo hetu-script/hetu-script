@@ -15,6 +15,6 @@ fun main() {
   //_privateFuncInSameFile()
   //publicFunc()
 
-  _CC.greetings()
+  // _CC.greetings()
   _privateClass.greetings()
 }

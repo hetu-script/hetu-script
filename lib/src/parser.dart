@@ -346,13 +346,13 @@ class Parser {
             return _parseVarStmt(type_inferrence: true);
           } // 类声明
           else if (expect([HT_Lexicon.CLASS])) {
-            return _parseClassStmt();
+            return _parseClassDeclStmt();
           } // 函数声明
           else if (expect([HT_Lexicon.FUN])) {
-            return _parseFunctionStmt(FuncStmtType.normal, is_extern: is_extern);
+            return _parseFuncDeclStmt(FuncStmtType.normal, is_extern: is_extern);
           } // 过程声明
           else if (expect([HT_Lexicon.PROC])) {
-            return _parseFunctionStmt(FuncStmtType.procedure, is_extern: is_extern);
+            return _parseFuncDeclStmt(FuncStmtType.procedure, is_extern: is_extern);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
@@ -375,10 +375,10 @@ class Parser {
             return _parseVarStmt(type_inferrence: true, is_mutable: false);
           } // 函数声明
           else if (expect([HT_Lexicon.FUN])) {
-            return _parseFunctionStmt(FuncStmtType.normal);
+            return _parseFuncDeclStmt(FuncStmtType.normal);
           } // 过程声明
           else if (expect([HT_Lexicon.PROC])) {
-            return _parseFunctionStmt(FuncStmtType.procedure);
+            return _parseFuncDeclStmt(FuncStmtType.procedure);
           } // 赋值语句
           else if (expect([HT_Lexicon.identifier, HT_Lexicon.assign])) {
             return _parseAssignStmt();
@@ -425,19 +425,19 @@ class Parser {
           } // 构造函数
           // TODO：命名的构造函数
           else if (expect([HT_Lexicon.CONSTRUCT])) {
-            return _parseFunctionStmt(FuncStmtType.constructor, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.constructor, is_extern: is_extern, is_static: is_static);
           } // setter函数声明
           else if (expect([HT_Lexicon.GET])) {
-            return _parseFunctionStmt(FuncStmtType.getter, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.getter, is_extern: is_extern, is_static: is_static);
           } // getter函数声明
           else if (expect([HT_Lexicon.SET])) {
-            return _parseFunctionStmt(FuncStmtType.setter, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.setter, is_extern: is_extern, is_static: is_static);
           } // 成员函数声明
           else if (expect([HT_Lexicon.FUN])) {
-            return _parseFunctionStmt(FuncStmtType.method, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.method, is_extern: is_extern, is_static: is_static);
           } // 过程声明
           else if (expect([HT_Lexicon.PROC])) {
-            return _parseFunctionStmt(FuncStmtType.procedure, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.procedure, is_extern: is_extern, is_static: is_static);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
           }
@@ -519,6 +519,8 @@ class Parser {
 
   ExprStmt _parseExprStmt() {
     var stmt = ExprStmt(_parseExpr());
+    // 语句结尾
+    expect([HT_Lexicon.semicolon], consume: true, error: false);
     return stmt;
   }
 
@@ -580,7 +582,7 @@ class Parser {
         initializer: ConstExpr(interpreter.addLiteral(0), curTok.line, curTok.column, _curFileName)));
     // 指针
     var varname = match(HT_Lexicon.identifier);
-    HT_Type typeid;
+    var typeid = HT_Type.ANY;
     if (expect([HT_Lexicon.colon], consume: true, error: false)) {
       typeid = _parseTypeId();
     }
@@ -635,7 +637,7 @@ class Parser {
         optionalStarted = expect([HT_Lexicon.squareLeft], error: false, consume: true);
       }
       var name = match(HT_Lexicon.identifier);
-      HT_Type typeid;
+      var typeid = HT_Type.ANY;
       if (expect([HT_Lexicon.colon], consume: true, error: false)) {
         typeid = _parseTypeId();
       }
@@ -647,7 +649,7 @@ class Parser {
           initializer = _parseExpr();
         }
       }
-      params.add(VarDeclStmt(name, declType: typeid, initializer: initializer));
+      params.add(VarDeclStmt(name, declType: typeid, initializer: initializer, isOptional: optionalStarted));
     }
 
     if (optionalStarted) expect([HT_Lexicon.squareRight], consume: true);
@@ -655,7 +657,7 @@ class Parser {
     return params;
   }
 
-  FuncDeclStmt _parseFunctionStmt(FuncStmtType functype, {bool is_extern = false, bool is_static = false}) {
+  FuncDeclStmt _parseFuncDeclStmt(FuncStmtType functype, {bool is_extern = false, bool is_static = false}) {
     final keyword = advance(1);
     String func_name;
     var typeParams = <String>[];
@@ -689,7 +691,12 @@ class Parser {
         }
         params = _parseParameters();
 
-        if (arity != -1) arity = params.length;
+        if (arity != -1) {
+          for (var i = 0; i < params.length; ++i) {
+            if (params[i].isOptional) break;
+            ++arity;
+          }
+        }
 
         // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
         if ((functype == FuncStmtType.setter) && (arity != 1)) {
@@ -723,7 +730,7 @@ class Parser {
         funcType: functype);
   }
 
-  ClassDeclStmt _parseClassStmt() {
+  ClassDeclStmt _parseClassDeclStmt() {
     ClassDeclStmt stmt;
     // 已经判断过了所以直接跳过Class关键字
     final keyword = advance(1);

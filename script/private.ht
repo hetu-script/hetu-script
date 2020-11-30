@@ -7,7 +7,7 @@ fun publicFunc {
 }
 
 class _privateClass {
-  static fun greeting {
+  static fun greetings {
     print('this is a private class of this library.')
   }
 }

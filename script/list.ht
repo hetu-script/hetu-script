@@ -1,10 +1,20 @@
-fun main {
-  // 列表的创建和添加元素
-  var list = [Calculator.name + ' says:']
-  list.add('the meaning of life, universe and everything')
-  list.add('is ' + w.cal.meaning().toString())
+import 'calculator.ht'
 
-  for (var i in list) {
-    print(i)
-  }
+class Wrapper {
+
+  let cal = Calculator(6,7)
+}
+
+fun main {
+  // let w = Wrapper();
+
+  // 列表的创建和添加元素
+  // var list = [3, Calculator.name + ' says:']
+  // list.add('the meaning of life, universe and everything')
+  // list.add('is ' + w.cal.meaning().toString())
+
+  // for (i in list) {
+  //   print(i)
+  // }
+  print([3, 4].contains(3))
 }

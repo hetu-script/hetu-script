@@ -100,7 +100,7 @@ class HT_Namespace extends HT_Value {
       if (from.startsWith(fullName) || (name == HT_Lexicon.globals) || !varName.startsWith(HT_Lexicon.underscore)) {
         return defs[varName].value;
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
     }
 
     if (recursive && (closure != null)) {
@@ -136,7 +136,7 @@ class HT_Namespace extends HT_Value {
         }
         throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), line, column, interpreter.curFileName);
       }
-      throw HTErr_Private(varName, line, column, interpreter.curFileName);
+      throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
     } else if (recursive && (closure != null)) {
       closure.assign(varName, value, line, column, interpreter, from: from);
       return;

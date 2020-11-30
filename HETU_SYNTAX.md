@@ -42,37 +42,37 @@ null, static, var, def, let, any, namespace, as, class, data, interface, mixin, 
 Variable is declared with 'var', 'def' or 'let'. The type and initialize expression is optional.
 
 ```typescript
-var person;
-var name = "naruto";
-var year = 2020;
-var fineStructureConstant: num = 1 / 137;
-var isTimeTravelSuccessful: bool = true;
-var gasGiants = ["Jupiter", "Saturn"];
+var person
+var name = "naruto"
+var year = 2020
+var fineStructureConstant: num = 1 / 137
+var isTimeTravelSuccessful: bool = true
+var gasGiants = ["Jupiter", "Saturn"]
 var skill: Map<String> = {
   tags: ["attack"],
   script: "//path/to/skill_script.ht",
-};
+}
 ```
 
 If declared with 'var', variables will have a type of 'any', hence you can re-assign it with any type.
 
 ```typescript
-var name = "naruto";
-name = 2020; // not an error
+var name = "naruto"
+name = 2020 // not an error
 ```
 
 If declared with 'def', variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
 
 ```groovy
-def name = "naruto";
-// name = 2020; // error!
+def name = "naruto"
+// name = 2020 // error!
 ```
 
 If declared with 'let', variables has to have an initialize expression, and it will be given a type according to the expression, and it will become immutable(in other words this is a constant).
 
 ```typescript
-let name = "naruto";
-// name = "sasuke"; // error!
+let name = "naruto"
+// name = "sasuke" // error!
 ```
 
 ## Type declaration
@@ -80,24 +80,26 @@ let name = "naruto";
 Typename is not evaluated when declared, hence you can declare a variable with an non-exist type. However if you do this, you cannot assign it with any value.
 
 ```groovy
-def i: NotAType; // not an error
+def i: NotAType // not an error
 ```
 
 ## Control statement
 
 ```typescript
 if (year >= 2001) {
-  print("21st century");
+  print("21st century")
 } else if (year >= 1901) {
-  print("20th century");
+  print("20th century")
+} else {
+  print("unkown date")
 }
 
 for (var planet in gasGiants) {
-  print(planet);
+  print(planet)
 }
 
 while (year < 2040) {
-  year = year + 1;
+  year = year + 1
 }
 ```
 
@@ -111,7 +113,7 @@ fun doubleIt(n: num): num {
 }
 
 proc main {
-  def x = doubleIt(7); // expect 14
+  def x = doubleIt(7) // expect 14
   print(x)
 }
 ```
