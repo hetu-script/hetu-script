@@ -296,6 +296,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
+  dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr) {
+    return HT_Function(expr.funcStmt, declContext: curContext);
+  }
+
+  @override
   dynamic visitSymbolExpr(SymbolExpr expr) => _getValue(expr.name.lexeme, expr);
 
   @override

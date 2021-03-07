@@ -1,0 +1,9 @@
+fun greeting(){
+  print('hey')
+}
+
+var foobar = greeting
+
+proc main {
+  foobar()
+}

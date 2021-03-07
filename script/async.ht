@@ -1,0 +1,11 @@
+external fun dartHello: Future
+
+proc main {
+  var unwaited = dartHello()
+  print("unwaited type: ", typeof(unwaited))
+  print("unwaited value: ", unwaited)
+  
+  var waited = dartHello()
+  print("waited type: ", typeof(waited))
+  print("waited value: ", waited)
+}

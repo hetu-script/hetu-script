@@ -110,6 +110,7 @@ abstract class HT_Lexicon {
   static const INTERFACE = 'interface';
   static const FUN = 'fun';
   static const PROC = 'proc';
+  static const ASYNC = 'async';
   static const THIS = 'this';
   static const SUPER = 'super';
   static const EXTENDS = 'extends';
@@ -118,6 +119,7 @@ abstract class HT_Lexicon {
   static const EXTERNAL = 'external';
   static const IMPORT = 'import';
 
+  static const AWAIT = 'await';
   static const ASSERT = 'assert';
   static const BREAK = 'break';
   static const CONTINUE = 'continue';
@@ -148,6 +150,8 @@ abstract class HT_Lexicon {
         INTERFACE,
         FUN,
         PROC,
+        ASYNC,
+        AWAIT,
         VOID,
         CONSTRUCT,
         GET,
@@ -297,10 +301,10 @@ abstract class HT_Lexicon {
         modulo,
         add,
         subtract,
-        greater,
-        greaterOrEqual,
-        lesser,
+        lesser, // angleLeft,
         lesserOrEqual,
+        greater, // angleRight,
+        greaterOrEqual,
         equal,
         notEqual,
         and,
@@ -316,8 +320,6 @@ abstract class HT_Lexicon {
         curlyRight,
         squareLeft,
         squareRight,
-        angleLeft,
-        angleRight,
       };
 
   static const errorUnsupport = 'Unsupport value type';

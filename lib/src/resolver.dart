@@ -206,6 +206,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
     }
   }
 
+  @override
+  dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr) {
+    _resolveFunction(expr.funcStmt);
+  }
+
   // @override
   // dynamic visitTypeExpr(TypeExpr expr) {}
 

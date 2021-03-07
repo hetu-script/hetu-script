@@ -282,51 +282,60 @@ class Parser {
 
   /// 只有一个Token的简单表达式
   Expr _parsePrimaryExpr() {
-    if (curTok.type == HT_Lexicon.NULL) {
-      advance(1);
-      return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
-    } else if (HT_Lexicon.literals.contains(curTok.type)) {
-      var index = interpreter.addLiteral(curTok.literal);
-      advance(1);
-      return ConstExpr(index, peek(-1).line, peek(-1).column, _curFileName);
-    } else if (curTok.type == HT_Lexicon.THIS) {
-      advance(1);
-      return ThisExpr(peek(-1), _curFileName);
-    } else if (curTok.type == HT_Lexicon.identifier) {
-      advance(1);
-      return SymbolExpr(peek(-1), _curFileName);
-    } else if (curTok.type == HT_Lexicon.roundLeft) {
-      advance(1);
-      var innerExpr = _parseExpr();
-      expect([HT_Lexicon.roundRight], consume: true);
-      return GroupExpr(innerExpr, _curFileName);
-    } else if (curTok.type == HT_Lexicon.squareLeft) {
-      final line = curTok.line;
-      final col = advance(1).column;
-      var list_expr = <Expr>[];
-      while (curTok.type != HT_Lexicon.squareRight) {
-        list_expr.add(_parseExpr());
-        if (curTok.type != HT_Lexicon.squareRight) {
-          expect([HT_Lexicon.comma], consume: true);
+    switch (curTok.type) {
+      case HT_Lexicon.NULL:
+        advance(1);
+        return NullExpr(peek(-1).line, peek(-1).column, _curFileName);
+      case HT_Lexicon.number:
+      case HT_Lexicon.boolean:
+      case HT_Lexicon.string:
+        var index = interpreter.addLiteral(curTok.literal);
+        advance(1);
+        return ConstExpr(index, peek(-1).line, peek(-1).column, _curFileName);
+      case HT_Lexicon.THIS:
+        advance(1);
+        return ThisExpr(peek(-1), _curFileName);
+      case HT_Lexicon.identifier:
+        advance(1);
+        return SymbolExpr(peek(-1), _curFileName);
+      case HT_Lexicon.roundLeft:
+        advance(1);
+        var innerExpr = _parseExpr();
+        expect([HT_Lexicon.roundRight], consume: true);
+        return GroupExpr(innerExpr, _curFileName);
+      case HT_Lexicon.squareLeft:
+        final line = curTok.line;
+        final col = advance(1).column;
+        var list_expr = <Expr>[];
+        while (curTok.type != HT_Lexicon.squareRight) {
+          list_expr.add(_parseExpr());
+          if (curTok.type != HT_Lexicon.squareRight) {
+            expect([HT_Lexicon.comma], consume: true);
+          }
         }
-      }
-      expect([HT_Lexicon.squareRight], consume: true);
-      return LiteralVectorExpr(list_expr, line, col, _curFileName);
-    } else if (curTok.type == HT_Lexicon.curlyLeft) {
-      final line = curTok.line;
-      final col = advance(1).column;
-      var map_expr = <Expr, Expr>{};
-      while (curTok.type != HT_Lexicon.curlyRight) {
-        var key_expr = _parseExpr();
-        expect([HT_Lexicon.colon], consume: true);
-        var value_expr = _parseExpr();
-        expect([HT_Lexicon.comma], consume: true, error: false);
-        map_expr[key_expr] = value_expr;
-      }
-      expect([HT_Lexicon.curlyRight], consume: true);
-      return LiteralDictExpr(map_expr, line, col, _curFileName);
-    } else {
-      throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
+        expect([HT_Lexicon.squareRight], consume: true);
+        return LiteralVectorExpr(list_expr, line, col, _curFileName);
+      case HT_Lexicon.curlyLeft:
+        final line = curTok.line;
+        final col = advance(1).column;
+        var map_expr = <Expr, Expr>{};
+        while (curTok.type != HT_Lexicon.curlyRight) {
+          var key_expr = _parseExpr();
+          expect([HT_Lexicon.colon], consume: true);
+          var value_expr = _parseExpr();
+          expect([HT_Lexicon.comma], consume: true, error: false);
+          map_expr[key_expr] = value_expr;
+        }
+        expect([HT_Lexicon.curlyRight], consume: true);
+        return LiteralDictExpr(map_expr, line, col, _curFileName);
+
+      case HT_Lexicon.FUN:
+        final funcStmt = _parseFuncDeclStmt(FuncStmtType.literal);
+
+        return LiteralFunctionExpr(funcStmt, curTok.line, curTok.column, _curFileName);
+
+      default:
+        throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
     }
   }
 

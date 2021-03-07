@@ -194,6 +194,7 @@ enum FuncStmtType {
   getter,
   setter,
   method,
+  literal,
 }
 
 class FuncDeclStmt extends Stmt {

@@ -1,0 +1,14 @@
+
+
+proc main {
+
+  var func = fun   {
+    return 42
+  }
+
+  print(func())
+  print(typeof(func))
+
+  print(func)
+
+}

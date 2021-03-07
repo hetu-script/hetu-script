@@ -69,7 +69,8 @@ class HT_Function {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('${HT_Lexicon.function} ${name ?? ''}');
+    result.write('${HT_Lexicon.function}');
+    if (name != null) result.write(' ${name ?? ''}');
     if (typeid.arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < typeid.arguments.length; ++i) {

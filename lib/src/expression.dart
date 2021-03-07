@@ -1,5 +1,6 @@
 import 'token.dart';
 import 'lexicon.dart';
+import 'statement.dart' show FuncDeclStmt;
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 ///
@@ -22,6 +23,9 @@ abstract class ExprVisitor {
 
   /// 字典字面量
   dynamic visitLiteralDictExpr(LiteralDictExpr expr);
+
+  /// 匿名函数字面量
+  dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr);
 
   /// 圆括号表达式
   dynamic visitGroupExpr(GroupExpr expr);
@@ -148,6 +152,21 @@ class LiteralDictExpr extends Expr {
     }
     return LiteralDictExpr(new_map, line, column, fileName);
   }
+}
+
+class LiteralFunctionExpr extends Expr {
+  @override
+  String get type => HT_Lexicon.literalExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitLiteralFunctionExpr(this);
+
+  final FuncDeclStmt funcStmt;
+
+  LiteralFunctionExpr(this.funcStmt, int line, int column, String fileName) : super(line, column, fileName);
+
+  @override
+  Expr clone() => LiteralFunctionExpr(funcStmt, line, column, fileName);
 }
 
 class GroupExpr extends Expr {
