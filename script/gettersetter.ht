@@ -1,5 +1,9 @@
 class Root {
   var name = 'the machine'
+
+  proc intro() {
+    print('name is', name);
+  }
 }
 
 class Types extends Root {
@@ -19,7 +23,8 @@ class Types extends Root {
   }
 
   proc greeting {
-    print("Hi! I'm", name, 'my age is', age)
+    intro()
+    print('my age is', age)
   }
 }
 
@@ -31,6 +36,6 @@ fun main {
 
   print(t.name)
 
-  t.greeting();
+  t.greeting()
   
 }
