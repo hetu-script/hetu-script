@@ -8,7 +8,7 @@ fun foo(){
   return bar
 }
 
-proc main {
+fun main {
   var func = foo()
 
   print(func())

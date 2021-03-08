@@ -14,13 +14,12 @@ abstract class Hetu {
   /// Get a initted instance of interpreter
   static Future<Interpreter> init({
     String sdkDirectory = 'hetu_lib/',
-    String workingDirectory = 'script/',
+    String currentDirectory = 'script/',
     bool debugMode = false,
     ReadFileMethod readFileMethod = defaultReadFileMethod,
     Map<String, HT_External> externalFunctions,
   }) async {
     itp = Interpreter(
-      workingDirectory: workingDirectory,
       debugMode: debugMode,
       readFileMethod: readFileMethod,
     );

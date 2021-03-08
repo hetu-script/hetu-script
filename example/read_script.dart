@@ -7,5 +7,5 @@ void main() async {
     },
   });
 
-  await hetu.evalf('script/gettersetter.ht', invokeFunc: 'main');
+  await hetu.evalf('script/import_2.ht', invokeFunc: 'main');
 }

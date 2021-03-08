@@ -68,7 +68,7 @@ class HT_Class extends HT_Namespace {
     if (!variables.containsKey(stmt.name.lexeme)) {
       variables[stmt.name.lexeme] = stmt;
     } else {
-      throw HTErr_Defined(name, stmt.name.line, stmt.name.column, null);
+      throw HTErr_Defined(stmt.name.lexeme, stmt.name.line, stmt.name.column, null);
     }
   }
 

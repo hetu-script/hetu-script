@@ -26,14 +26,14 @@ While 'hello.ht' is the script file written in Hetu, here is an example:
 // Define a class.
 class Person {
     // Define a member function.
-    proc greeting(name: String) {
+    fun greeting(name: String) {
       // Print to console.
       print('hello ', name)
     }
 }
 
 // This is where the script starts executing.
-proc main {
+fun main {
   // Declare and initialize variables.
   let number = (6 * 7).toString()
   let jimmy = Person()
@@ -43,7 +43,7 @@ proc main {
 
 Hetu's grammar is almost same to typescript, except a few things:
 
-- Function is declared with 'fun' or 'proc', the latter means procedure and doesn't return value.
+- Function is declared with 'fun'.
 - Variable declared with keyword 'def' or 'let' and without a type will be given a type if it has an initialization.
 
 ## Binding
@@ -69,7 +69,7 @@ void main() async {
   });
   hetu.eval(
       'external fun dartHello\n'
-      'proc main {\n'
+      'fun main {\n'
       '  var dartValue = dartHello()\n'
       '  print(typeof(dartValue))\n'
       '  dartValue[\'foo\'] = \'bar\'\n'

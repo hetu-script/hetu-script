@@ -1,7 +1,7 @@
 class Root {
   var name = 'the machine'
 
-  proc intro() {
+  fun intro() {
     print('name is', name);
   }
 }
@@ -22,7 +22,7 @@ class Types extends Root {
     _age = value
   }
 
-  proc greeting {
+  fun greeting {
     intro()
     print('my age is', age)
   }

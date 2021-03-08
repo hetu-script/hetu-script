@@ -1,6 +1,6 @@
 
 
-proc main {
+fun main {
 
   var func = fun   {
     return 42

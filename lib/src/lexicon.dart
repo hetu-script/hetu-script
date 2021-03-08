@@ -110,7 +110,6 @@ abstract class HT_Lexicon {
   static const STRUCT = 'struct';
   static const INTERFACE = 'interface';
   static const FUN = 'fun';
-  static const PROC = 'proc';
   static const ASYNC = 'async';
   static const THIS = 'this';
   static const SUPER = 'super';
@@ -150,7 +149,6 @@ abstract class HT_Lexicon {
         STRUCT,
         INTERFACE,
         FUN,
-        PROC,
         ASYNC,
         AWAIT,
         VOID,

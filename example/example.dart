@@ -6,7 +6,7 @@ void main() async {
   hetu.eval('''
       class Person {
         var name: String = 'some person'
-        proc greeting {
+        fun greeting {
           print("Hi! I'm", name)
         }
       }
@@ -16,12 +16,12 @@ void main() async {
           name = the_name
         }
 
-        proc greeting {
+        fun greeting {
           print("Hi! I'm", name)
         }
       }
       
-      proc main {
+      fun main {
 
         var p = Person()
         p.greeting()

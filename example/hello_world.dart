@@ -8,7 +8,7 @@ void main() async {
   });
   hetu.eval('''
       external fun dartHello
-      proc main {
+      fun main {
         var dartValue = dartHello()
         print(typeof(dartValue))
         dartValue[\'foo\'] = \'bar\'

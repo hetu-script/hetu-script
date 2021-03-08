@@ -10,7 +10,6 @@ import 'class.dart';
 import 'function.dart';
 import 'lexer.dart';
 import 'parser.dart';
-import 'resolver.dart';
 import 'lexicon.dart';
 
 typedef ReadFileMethod = dynamic Function(String filepath);
@@ -19,7 +18,6 @@ String syncReadFileMethod(String filapath) => File(filapath).readAsStringSync();
 
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
-  final String workingDirectory;
   final bool debugMode;
   final ReadFileMethod readFileMethod;
 
@@ -39,39 +37,34 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   HT_Namespace curContext;
   String _curFileName;
   String get curFileName => _curFileName;
+  String _curDirectory;
+  String get curDirectory => _curDirectory;
 
   dynamic _curStmtValue;
 
-  Lexer _lexer;
-  Parser _parser;
-  Resolver _resolver;
-
   Interpreter({
-    this.workingDirectory = 'script/',
     this.debugMode = false,
     this.readFileMethod = defaultReadFileMethod,
   }) {
     _globals = HT_Namespace(name: HT_Lexicon.globals);
 
     curContext = _globals;
-
-    _lexer = Lexer();
-    _parser = Parser(this);
-    _resolver = Resolver(this);
   }
 
   dynamic eval(
     String content, {
     String fileName,
+    String libName = HT_Lexicon.globals,
     HT_Namespace context,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
     Map<String, dynamic> args,
   }) {
+    _curFileName = fileName;
+    _curFileName ??= '__anonymousScript' + (Lexer.fileIndex++).toString();
+
     curContext = context ?? _globals;
-    final tokens = _lexer.lex(content);
-    final statements = _parser.parse(tokens, fileName: fileName, style: style);
-    _resolver.resolve(statements, fileName: fileName);
+    final statements = Lexer(this, content, fileName: _curFileName).lex().parse(style: style).resolve(libName: libName);
     for (final stmt in statements) {
       _curStmtValue = evaluateStmt(stmt);
     }
@@ -87,13 +80,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 解析文件
   Future<dynamic> evalf(
     String filepath, {
+    String directory,
     String libName,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
     Map<String, dynamic> args,
   }) async {
     final savedFileName = _curFileName;
+    final savedFileDirectory = _curDirectory;
     _curFileName = filepath;
+    _curDirectory = directory ?? File(_curFileName).parent.path;
     dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
       if (debugMode) print('hetu: Loading $filepath...');
@@ -101,27 +97,32 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
       HT_Namespace library_namespace;
       if ((libName != null) && (libName != HT_Lexicon.globals)) {
-        _globals.define(libName, this, declType: HT_Type.NAMESPACE);
-        library_namespace = HT_Namespace(name: libName, closure: library_namespace);
+        library_namespace = HT_Namespace(name: libName, closure: _globals);
+        _globals.define(libName, this, declType: HT_Type.NAMESPACE, value: library_namespace);
       }
 
       var content = await readFileMethod(_curFileName);
-      result = eval(content.toString(),
+
+      result = eval(content,
           fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
     _curFileName = savedFileName;
+    _curDirectory = savedFileDirectory;
     return result;
   }
 
   Future<dynamic> evalfSync(
     String filepath, {
+    String directory,
     String libName,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
     Map<String, dynamic> args,
   }) async {
     final savedFileName = _curFileName;
+    final savedFileDirectory = _curDirectory;
     _curFileName = filepath;
+    _curDirectory = directory ?? File(_curFileName).path;
     dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
       if (debugMode) print('hetu: Loading $filepath...');
@@ -134,10 +135,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       }
 
       var content = syncReadFileMethod(_curFileName);
-      result = eval(content.toString(),
+      result = eval(content,
           fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
     _curFileName = savedFileName;
+    _curDirectory = savedFileDirectory;
     return result;
   }
 
@@ -560,10 +562,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitImportStmt(ImportStmt stmt) {
-    final file_loc = workingDirectory + stmt.location;
-    return evalfSync(file_loc, libName: stmt.nameSpace);
-  }
+  dynamic visitImportStmt(ImportStmt stmt) {}
 
   @override
   dynamic visitVarDeclStmt(VarDeclStmt stmt) {

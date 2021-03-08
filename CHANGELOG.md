@@ -3,7 +3,7 @@
 - Feature: Literal function expression (anonymous function). Usage:
 
 ```typescript
-proc main {
+fun main {
   var func = fun (name: String) {
     return name + '_postfix'
   }
@@ -15,6 +15,7 @@ proc main {
 - Feature: Named function parameters.
 - Feature: Support literal hexadecimal numbers.
 - Fixed class extends, member override and inheritance.
+- Fixed import statement.
 
 ## 0.0.2+4
 

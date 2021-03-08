@@ -12,6 +12,9 @@ enum _ClassType {
 /// 负责对语句列表进行分析，并生成变量作用域
 class Resolver implements ExprVisitor, StmtVisitor {
   final Interpreter interpreter;
+  final List<Stmt> statements;
+  final String fileName;
+  String _libName = HT_Lexicon.globals;
 
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   final _blocks = <Map<String, bool>>[];
@@ -19,11 +22,32 @@ class Resolver implements ExprVisitor, StmtVisitor {
   final _classes = <ClassDeclStmt>[];
   final _funcs = <FuncDeclStmt>[];
 
-  String _curFileName;
   FuncStmtType _curFuncType;
   _ClassType _curClassType = _ClassType.none;
 
-  Resolver(this.interpreter);
+  Resolver(this.interpreter, this.statements, this.fileName);
+
+  List<Stmt> resolve({String libName = HT_Lexicon.globals}) {
+    _libName = libName;
+    if (_libName != HT_Lexicon.globals) _beginBlock();
+
+    _beginBlock();
+    for (final stmt in statements) {
+      _resolveStmt(stmt);
+    }
+    for (final klass in _classes) {
+      _resolveClass(klass);
+    }
+    for (final func in _funcs) {
+      _resolveFunction(func);
+    }
+    _endBlock();
+    if ((libName != null) && (libName != HT_Lexicon.globals)) {
+      _endBlock();
+    }
+
+    return statements;
+  }
 
   void _beginBlock() => _blocks.add(<String, bool>{});
   void _endBlock() => _blocks.removeLast();
@@ -55,28 +79,6 @@ class Resolver implements ExprVisitor, StmtVisitor {
     }
 
     // Not found. Assume it is global.
-  }
-
-  void resolve(List<Stmt> statements, {String fileName, String libName}) {
-    libName ??= HT_Lexicon.globals;
-    if (libName != HT_Lexicon.globals) _beginBlock();
-
-    _curFileName = fileName;
-
-    _beginBlock();
-    for (final stmt in statements) {
-      _resolveStmt(stmt);
-    }
-    for (final klass in _classes) {
-      _resolveClass(klass);
-    }
-    for (final func in _funcs) {
-      _resolveFunction(func);
-    }
-    _endBlock();
-    if ((libName != null) && (libName != HT_Lexicon.globals)) {
-      _endBlock();
-    }
   }
 
   void _resolveBlock(List<Stmt> statements) {
@@ -233,7 +235,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitSymbolExpr(SymbolExpr expr) {
     if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HTErr_Initialized(expr.name.lexeme, expr.line, expr.column, _curFileName);
+      throw HTErr_Initialized(expr.name.lexeme, expr.line, expr.column, fileName);
     }
 
     _lookUpVar(expr, expr.name.lexeme);
@@ -315,7 +317,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitReturnStmt(ReturnStmt stmt) {
     if ((_curFuncType == null) || (_curFuncType == FuncStmtType.constructor)) {
-      throw HTErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, _curFileName);
+      throw HTErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, fileName);
     }
 
     if (stmt.expr != null) {
@@ -347,7 +349,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitThisExpr(ThisExpr expr) {
     if (_curClassType == _ClassType.none) {
-      throw HTErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column, _curFileName);
+      throw HTErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column, fileName);
     }
 
     _lookUpVar(expr, expr.keyword.lexeme);
