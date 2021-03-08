@@ -167,6 +167,11 @@ class HTErr_NotType extends HT_Error {
       : super('"${symbol}" ${HT_Lexicon.errorNotType}', line, column, fileName);
 }
 
+class HTErr_NotClass extends HT_Error {
+  HTErr_NotClass(String symbol, int line, int column, String fileName)
+      : super('"${symbol}" ${HT_Lexicon.errorNotClass}', line, column, fileName);
+}
+
 class HTErr_ArgType extends HT_Error {
   HTErr_ArgType(String symbol, String assign_value, String decl_value, int line, int column, String fileName)
       : super(

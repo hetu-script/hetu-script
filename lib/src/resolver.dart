@@ -17,7 +17,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   final _blocks = <Map<String, bool>>[];
 
   final _classes = <ClassDeclStmt>[];
-  var _funcs = <FuncDeclStmt>[];
+  final _funcs = <FuncDeclStmt>[];
 
   String _curFileName;
   FuncStmtType _curFuncType;
@@ -33,7 +33,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       var block = _blocks.last;
 
       if (block.containsKey(name) && error) {
-        throw HTErr_Defined(name, line, column, _curFileName);
+        // throw HTErr_Defined(name, line, column, _curFileName);
       }
       block[name] = define;
     }
@@ -94,7 +94,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     _beginBlock();
     if (stmt.arity == -1) {
-      //_declare(env.lexicon.Arguments, stmt.keyword.line, stmt.keyword.column, define: true);
+      _declare(stmt.params.first.name.lexeme, stmt.keyword.line, stmt.keyword.column, define: true);
     } else {
       for (final param in stmt.params) {
         _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
@@ -107,72 +107,88 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   void _resolveClass(ClassDeclStmt stmt) {
     final savedClassType = _curClassType;
-
-    if (stmt.superClass != null) {
-      if (stmt.name == stmt.superClass?.name?.lexeme) {
-        throw HTErr_Unexpected(stmt.superClass.toString(), stmt.keyword.line, stmt.keyword.column, _curFileName);
-      }
-      _resolveExpr(stmt.superClass);
-    }
+    // TODO: super表达式
     _blocks.last[HT_Lexicon.SUPER] = true;
 
     _curClassType = _ClassType.normal;
 
     _beginBlock();
-    for (final variable in stmt.variables) {
-      if (variable.isStatic) {
-        visitVarDeclStmt(variable);
-      }
-    }
 
-    final savedFuncList = _funcs;
-    _funcs = <FuncDeclStmt>[];
-    // 类静态函数，先注册函数名
-    for (final method in stmt.methods) {
-      if (method.isStatic) {
-        _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-        if ((method.internalName.startsWith(HT_Lexicon.getter) || method.internalName.startsWith(HT_Lexicon.setter)) &&
-            !_blocks.last.containsKey(method.name)) {
-          _declare(method.name, method.keyword.line, method.keyword.column, define: true);
-        }
-        if (method.funcType != FuncStmtType.constructor) {
-          _funcs.add(method);
+    // 递归获取所有父类的静态变量和静态函数
+    var static_var_stmt = <VarDeclStmt>[];
+    var static_func_stmt = <FuncDeclStmt>[];
+    var cur_stmt = stmt;
+    while (cur_stmt != null) {
+      for (final varStmt in cur_stmt.variables) {
+        if (varStmt.isStatic) {
+          static_var_stmt.add(varStmt);
         }
       }
-    }
-    // 然后再解析函数定义
-    for (final stmt in _funcs) {
-      _resolveFunction(stmt);
-    }
 
-    _funcs = <FuncDeclStmt>[];
-    _beginBlock();
-    // 注册实例中的成员变量
-    _blocks.last[HT_Lexicon.THIS] = true;
-    for (final variable in stmt.variables) {
-      if (!variable.isStatic) {
-        visitVarDeclStmt(variable);
-      }
-    }
-    // 成员函数，先注册函数名
-    for (final method in stmt.methods) {
-      if (!method.isStatic) {
-        if (method.funcType != FuncStmtType.constructor) {
-          _declare(method.internalName, method.keyword.line, method.keyword.column, define: true);
-          if ((method.internalName.startsWith(HT_Lexicon.getter) ||
-                  method.internalName.startsWith(HT_Lexicon.setter)) &&
-              !_blocks.last.containsKey(method.name)) {
-            _declare(method.name, method.keyword.line, method.keyword.column, define: true);
+      for (final funcStmt in cur_stmt.methods) {
+        if (funcStmt.isStatic) {
+          if ((funcStmt.internalName.startsWith(HT_Lexicon.getter) ||
+                  funcStmt.internalName.startsWith(HT_Lexicon.setter)) &&
+              !_blocks.last.containsKey(funcStmt.name)) {
+            _declare(funcStmt.name, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
+          } else {
+            _declare(funcStmt.internalName, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
+          }
+          if (funcStmt.funcType != FuncStmtType.constructor) {
+            static_func_stmt.add(funcStmt);
           }
         }
-        _funcs.add(method);
+      }
+
+      cur_stmt = cur_stmt.superClassDeclStmt;
+    }
+    // 注册变量名
+    for (final varStmt in static_var_stmt) {
+      visitVarDeclStmt(varStmt);
+    }
+    // 解析函数定义
+    for (final funcStmt in static_func_stmt) {
+      _resolveFunction(funcStmt);
+    }
+
+    _beginBlock();
+    _blocks.last[HT_Lexicon.THIS] = true;
+    // 递归获取所有父类的成员变量和成员函数
+    var instance_var_stmt = <VarDeclStmt>[];
+    var instance_func_stmt = <FuncDeclStmt>[];
+    cur_stmt = stmt;
+    while (cur_stmt != null) {
+      for (final varStmt in cur_stmt.variables) {
+        if (!varStmt.isStatic) {
+          instance_var_stmt.add(varStmt);
+        }
+      }
+
+      for (final funcStmt in cur_stmt.methods) {
+        if (!funcStmt.isStatic) {
+          _declare(funcStmt.internalName, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
+          if ((funcStmt.internalName.startsWith(HT_Lexicon.getter) ||
+                  funcStmt.internalName.startsWith(HT_Lexicon.setter)) &&
+              !_blocks.last.containsKey(funcStmt.name)) {
+            _declare(funcStmt.name, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
+          }
+          instance_func_stmt.add(funcStmt);
+        }
+      }
+
+      cur_stmt = cur_stmt.superClassDeclStmt;
+    }
+    // 注册变量名
+    for (final varStmt in instance_var_stmt) {
+      if (!varStmt.isStatic) {
+        visitVarDeclStmt(varStmt);
       }
     }
-    // 然后再解析函数定义
-    for (final stmt in _funcs) {
-      _resolveFunction(stmt);
+    // 解析函数定义
+    for (final funcStmt in instance_func_stmt) {
+      _resolveFunction(funcStmt);
     }
-    _funcs = savedFuncList;
+
     _endBlock();
 
     _endBlock();
@@ -238,7 +254,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   dynamic visitCallExpr(CallExpr expr) {
     _resolveExpr(expr.callee);
 
-    for (final arg in expr.args) {
+    for (final arg in expr.positionedArgs) {
       _resolveExpr(arg);
     }
   }

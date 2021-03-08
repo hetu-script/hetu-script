@@ -96,81 +96,77 @@ class HT_Function {
     return result.toString();
   }
 
-  dynamic call(Interpreter interpreter, int line, int column, List<dynamic> args, {HT_Instance instance}) {
-    assert(args != null);
+  dynamic call(Interpreter interpreter, int line, int column,
+      {HT_Instance instance, List<dynamic> positionedArgs, Map<String, dynamic> namedArgs}) {
+    positionedArgs ??= [];
+
+    if (funcStmt.arity >= 0 && positionedArgs.length != funcStmt.arity) {
+      throw HTErr_Arity(name, positionedArgs.length, funcStmt.arity, line, column, interpreter.curFileName);
+    }
+
+    namedArgs ??= {};
+    if (funcStmt.arity >= 0) {
+      for (var i = 0; i < positionedArgs.length; ++i) {
+        namedArgs[funcStmt.params[i].name.lexeme] = positionedArgs[i];
+      }
+    } else {
+      namedArgs[funcStmt.params.first.name.lexeme] = positionedArgs;
+    }
+
+    for (var i = 0; i < funcStmt.params.length; ++i) {
+      if (namedArgs[funcStmt.params[i].name.lexeme] != null) continue;
+      var initializer = funcStmt.params[i].initializer;
+      if (initializer != null) {
+        var init_value = interpreter.evaluateExpr(initializer);
+        namedArgs[funcStmt.params[i].name.lexeme] = init_value;
+      }
+    }
+
     dynamic result;
     try {
       if (extern != null) {
-        if (funcStmt.arity != -1) {
-          for (var i = 0; i < funcStmt.params.length; ++i) {
-            // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
-            if (i >= args.length) {
-              var initializer = funcStmt.params[i].initializer;
-              if (initializer != null) {
-                var init_value = interpreter.evaluateExpr(funcStmt.params[i].initializer);
-                args.add(init_value);
-              }
-            }
-          }
-        }
-
-        return extern(instance, args ?? []);
+        return extern(instance, namedArgs);
       } else {
-        if (funcStmt != null) {
-          //_save = _closure;
-          //assert(closure != null);
-          if (instance != null) {
-            _closure = HT_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
-            _closure.define(HT_Lexicon.THIS, interpreter,
-                declType: instance.typeid, line: line, column: column, isMutable: false);
-          } else {
-            _closure = HT_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
-          }
-
-          if (funcStmt.arity >= 0) {
-            if (args.length < funcStmt.arity) {
-              throw HTErr_Arity(name, args.length, funcStmt.arity, line, column, interpreter.curFileName);
-            } else if (args.length > funcStmt.params.length) {
-              throw HTErr_Arity(name, args.length, funcStmt.params.length, line, column, interpreter.curFileName);
-            } else {
-              for (var i = 0; i < funcStmt.params.length; ++i) {
-                // 考虑可选参数问题（"[]"内的参数不一定在调用时存在）
-                final var_stmt = funcStmt.params[i];
-                final arg_type_decl = var_stmt.declType;
-
-                dynamic arg_value;
-                if (i < args.length) {
-                  var arg_type = HT_TypeOf(args[i]);
-                  if (arg_type.isNotA(arg_type_decl)) {
-                    throw HTErr_ArgType(args[i].toString(), arg_type.toString(), arg_type_decl.toString(), line, column,
-                        interpreter.curFileName);
-                  }
-
-                  arg_value = args[i];
-                } else {
-                  if (var_stmt.initializer != null) arg_value = interpreter.evaluateExpr(var_stmt.initializer);
-                }
-
-                _closure.define(var_stmt.name.lexeme, interpreter,
-                    declType: arg_type_decl, line: line, column: column, value: arg_value);
-              }
-            }
-          } else {
-            // “...”形式的参数列表通过List访问参数
-            _closure.define(funcStmt.params.first.name.lexeme, interpreter,
-                declType: HT_Type.list, line: line, column: column, value: args);
-          }
-
-          result = interpreter.executeBlock(funcStmt.definition, _closure);
-          //_closure = _save;
+        if (funcStmt == null) throw HTErr_MissingFuncDef(name, line, column, interpreter.curFileName);
+        //_save = _closure;
+        //assert(closure != null);
+        // 函数每次在调用时，才生成对应的作用域
+        if (instance != null) {
+          _closure = HT_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
+          _closure.define(HT_Lexicon.THIS, interpreter,
+              declType: instance.typeid, line: line, column: column, isMutable: false);
         } else {
-          throw HTErr_MissingFuncDef(name, line, column, interpreter.curFileName);
+          _closure = HT_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
         }
+
+        if (funcStmt.arity >= 0) {
+          for (var var_stmt in funcStmt.params) {
+            final arg = namedArgs[var_stmt.name.lexeme];
+            final arg_type_decl = var_stmt.declType;
+
+            var arg_type = HT_TypeOf(arg);
+            if (arg_type.isNotA(arg_type_decl)) {
+              throw HTErr_ArgType(
+                  arg.toString(), arg_type.toString(), arg_type_decl.toString(), line, column, interpreter.curFileName);
+            }
+
+            _closure.define(var_stmt.name.lexeme, interpreter,
+                declType: arg_type_decl, line: line, column: column, value: arg);
+          }
+        } else {
+          // “...”形式的variadic parameters本质是一个List
+          // TODO: variadic parameters也需要类型检查
+          _closure.define(funcStmt.params.first.name.lexeme, interpreter,
+              declType: HT_Type.list, line: line, column: column, value: positionedArgs);
+        }
+
+        result = interpreter.executeBlock(funcStmt.definition, _closure);
+        //_closure = _save;
       }
     } catch (returnValue) {
       if (returnValue is HT_Error) {
         rethrow;
-      } else if ((returnValue is Exception) || (returnValue is NoSuchMethodError)) {
+      } else if ((returnValue is Exception) || (returnValue is Error) || (returnValue is NoSuchMethodError)) {
         throw HT_Error(returnValue.toString(), line, column, interpreter.curFileName);
       }
 
@@ -187,6 +183,7 @@ class HT_Function {
       return returnValue;
     }
 
+    // 如果函数体中没有直接return，则会返回最后一个语句的值
     return result;
   }
 }

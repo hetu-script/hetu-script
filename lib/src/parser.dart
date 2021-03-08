@@ -44,6 +44,8 @@ class Parser {
 
   static int internalVarIndex = 0;
 
+  final Map<String, ClassDeclStmt> _classes = {};
+
   Parser(this.interpreter);
 
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
@@ -115,19 +117,15 @@ class Parser {
     _tokens.clear();
     _tokens.addAll(tokens);
     _tokPos = 0;
+    _curClassName = null;
     _curFileName = fileName;
 
     final statements = <Stmt>[];
-    try {
-      while (curTok.type != HT_Lexicon.endOfFile) {
-        var stmt = _parseStmt(style: style);
-        if (stmt != null) statements.add(stmt);
-      }
-    } catch (e) {
-      print(e);
-    } finally {
-      return statements;
+    while (curTok.type != HT_Lexicon.endOfFile) {
+      var stmt = _parseStmt(style: style);
+      if (stmt != null) statements.add(stmt);
     }
+    return statements;
   }
 
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
@@ -257,15 +255,29 @@ class Parser {
     //多层函数调用可以合并
     while (true) {
       if (expect([HT_Lexicon.call], consume: true, error: false)) {
-        var params = <Expr>[];
+        var positionedArgs = <Expr>[];
+        var namedArgs = <String, Expr>{};
+
         while ((curTok.type != HT_Lexicon.roundRight) && (curTok.type != HT_Lexicon.endOfFile)) {
-          params.add(_parseExpr());
+          final arg = _parseExpr();
+          if (expect([HT_Lexicon.colon], consume: false)) {
+            if (arg is SymbolExpr) {
+              advance(1);
+              var value = _parseExpr();
+              namedArgs[arg.name.lexeme] = value;
+            } else {
+              throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, _curFileName);
+            }
+          } else {
+            positionedArgs.add(arg);
+          }
+
           if (curTok.type != HT_Lexicon.roundRight) {
             expect([HT_Lexicon.comma], consume: true);
           }
         }
         expect([HT_Lexicon.roundRight], consume: true);
-        expr = CallExpr(expr, params, _curFileName);
+        expr = CallExpr(expr, positionedArgs, namedArgs, _curFileName);
       } else if (expect([HT_Lexicon.memberGet], consume: true, error: false)) {
         final name = match(HT_Lexicon.identifier);
         expr = MemberGetExpr(expr, name, _curFileName);
@@ -635,8 +647,10 @@ class Parser {
   List<VarDeclStmt> _parseParameters() {
     var params = <VarDeclStmt>[];
     var optionalStarted = false;
+    var namedStarted = false;
     while ((curTok.type != HT_Lexicon.roundRight) &&
         (curTok.type != HT_Lexicon.squareRight) &&
+        (curTok.type != HT_Lexicon.curlyRight) &&
         (curTok.type != HT_Lexicon.endOfFile)) {
       if (params.isNotEmpty) {
         expect([HT_Lexicon.comma], consume: true, error: false);
@@ -644,7 +658,12 @@ class Parser {
       // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
       if (!optionalStarted) {
         optionalStarted = expect([HT_Lexicon.squareLeft], error: false, consume: true);
+        if (!optionalStarted) {
+          //检查命名参数，根据是否有花括号判断
+          namedStarted = expect([HT_Lexicon.curlyLeft], error: false, consume: true);
+        }
       }
+
       var name = match(HT_Lexicon.identifier);
       var typeid = HT_Type.ANY;
       if (expect([HT_Lexicon.colon], consume: true, error: false)) {
@@ -652,16 +671,23 @@ class Parser {
       }
 
       Expr initializer;
-      if (optionalStarted) {
+      if (optionalStarted || namedStarted) {
         //参数默认值
         if (expect([HT_Lexicon.assign], error: false, consume: true)) {
           initializer = _parseExpr();
         }
       }
-      params.add(VarDeclStmt(name, declType: typeid, initializer: initializer, isOptional: optionalStarted));
+
+      params.add(VarDeclStmt(name,
+          declType: typeid, initializer: initializer, isOptional: optionalStarted, isNamed: namedStarted));
     }
 
-    if (optionalStarted) expect([HT_Lexicon.squareRight], consume: true);
+    if (optionalStarted) {
+      expect([HT_Lexicon.squareRight], consume: true);
+    } else if (namedStarted) {
+      expect([HT_Lexicon.curlyRight], consume: true);
+    }
+
     expect([HT_Lexicon.roundRight], consume: true);
     return params;
   }
@@ -702,7 +728,7 @@ class Parser {
 
         if (arity != -1) {
           for (var i = 0; i < params.length; ++i) {
-            if (params[i].isOptional) break;
+            if (params[i].isOptional || params[i].isNamed) break;
             ++arity;
           }
         }
@@ -745,6 +771,9 @@ class Parser {
     final keyword = advance(1);
 
     final class_name = advance(1).lexeme;
+
+    if (_classes.containsKey(class_name)) throw HTErr_Defined(class_name, curTok.line, curTok.column, _curFileName);
+
     _curClassName = class_name;
 
     var typeParams = <String>[];
@@ -759,11 +788,19 @@ class Parser {
     }
 
     SymbolExpr super_class;
-    HT_Type super_class_type;
+    ClassDeclStmt super_class_decl;
+    HT_Type super_class_type_args;
     // 继承父类
     if (expect([HT_Lexicon.EXTENDS], consume: true, error: false)) {
+      if (curTok.lexeme == class_name) {
+        throw HTErr_Unexpected(class_name, stmt.keyword.line, stmt.keyword.column, _curFileName);
+      } else if (_classes[curTok.lexeme] == null) {
+        throw HTErr_NotClass(curTok.lexeme, stmt.keyword.line, stmt.keyword.column, _curFileName);
+      }
+
       super_class = SymbolExpr(curTok, _curFileName);
-      super_class_type = _parseTypeId();
+      super_class_decl = _classes[super_class.name.lexeme];
+      super_class_type_args = _parseTypeId();
     }
     // 类的定义体
     expect([HT_Lexicon.curlyLeft], consume: true);
@@ -783,8 +820,11 @@ class Parser {
       advance(1);
     }
 
-    stmt =
-        ClassDeclStmt(keyword, class_name, super_class, super_class_type, variables, methods, typeParams: typeParams);
+    stmt = ClassDeclStmt(keyword, class_name, super_class, super_class_decl, super_class_type_args, variables, methods,
+        typeParams: typeParams);
+
+    _classes[stmt.name] = stmt;
+
     _curClassName = null;
     return stmt;
   }

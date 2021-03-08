@@ -2,17 +2,17 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   var hetu = await Hetu.init(externalFunctions: {
-    'dartHello': (HT_Instance instance, List<dynamic> args) {
+    'dartHello': (HT_Instance instance, Map<String, dynamic> args) {
       return {'dartValue': 'hello'};
     },
   });
-  hetu.eval(
-      'external fun dartHello\n'
-      'proc main {\n'
-      '  var dartValue = dartHello()\n'
-      '  print(typeof(dartValue))\n'
-      '  dartValue[\'foo\'] = \'bar\'\n'
-      '  print(dartValue)\n'
-      '\n}',
-      invokeFunc: 'main');
+  hetu.eval('''
+      external fun dartHello
+      proc main {
+        var dartValue = dartHello()
+        print(typeof(dartValue))
+        dartValue[\'foo\'] = \'bar\'
+        print(dartValue)
+      }
+      ''', invokeFunc: 'main');
 }

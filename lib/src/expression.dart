@@ -4,13 +4,7 @@ import 'statement.dart' show FuncDeclStmt;
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 ///
-///语句和表达式的区别在于：1，语句以";"结尾，而表达式没有";""
-///
-/// 2，访问语句返回void，访问表达式返回dynamic
-///
-/// 3，访问语句称作execute，访问表达式称作evaluate
-///
-/// 4，语句包含表达式，而表达式不包含语句
+/// 访问语句称作execute，访问表达式称作evaluate
 abstract class ExprVisitor {
   /// Null
   dynamic visitNullExpr(NullExpr expr);
@@ -373,17 +367,26 @@ class CallExpr extends Expr {
   final Expr callee;
 
   /// 函数声明的参数是parameter，调用时传入的变量叫argument
-  final List<Expr> args;
+  final List<Expr> positionedArgs;
 
-  CallExpr(this.callee, this.args, String fileName) : super(callee.line, callee.column, fileName);
+  final Map<String, Expr> namedArgs;
+
+  CallExpr(this.callee, this.positionedArgs, this.namedArgs, String fileName)
+      : super(callee.line, callee.column, fileName);
 
   @override
   Expr clone() {
     var new_args = <Expr>[];
-    for (final expr in args) {
+    for (final expr in positionedArgs) {
       new_args.add(expr.clone());
     }
-    return CallExpr(callee.clone(), new_args, fileName);
+
+    var new_named_args = <String, Expr>{};
+    for (final name in namedArgs.keys) {
+      new_named_args[name] = namedArgs[name].clone();
+    }
+
+    return CallExpr(callee.clone(), new_args, new_named_args, fileName);
   }
 }
 

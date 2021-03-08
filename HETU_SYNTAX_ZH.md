@@ -5,7 +5,7 @@
 ## Hello World
 
 ```typescript
-print("hello world!");
+print('hello world!');
 ```
 
 河图脚本文件可以使用三种不同的代码组织形式：脚本、库和程序
@@ -34,10 +34,13 @@ null, static, var, let, any, namespace, as, abstract, class, fun, construct, get
 
 ## 注释
 
-河图中的注释指以 '//' 开始的行。
+河图中的注释指以 '//' 开始的单行文本。或者以 '/\*' 包裹的多行文本。
 
 ```typescript
 // This is a comment.
+/* These are multi-line comments:
+another line,
+end here.*/
 ```
 
 ## 变量
@@ -46,28 +49,28 @@ null, static, var, let, any, namespace, as, abstract, class, fun, construct, get
 
 ```typescript
 var person;
-var name = "naruto";
+var name = 'naruto';
 var year = 2020;
 var fineStructureConstant: num = 1 / 137;
 var isTimeTravelSuccessful: bool = true;
-var gasGiants = ["Jupiter", "Saturn"];
+var gasGiants = ['Jupiter', 'Saturn'];
 var skill: Map<String> = {
-  tags: ["attack"],
-  script: "//path/to/skill_script.ht",
+  tags: ['attack'],
+  script: '//path/to/skill_script.ht',
 };
 ```
 
 在声明时，如果没有指定类型，以 var 声明的变量类型默认为 any，因此 var 声明的没有指定类型的变量可以使用其他类型的数据赋值。
 
 ```typescript
-var name = "naruto";
+var name = 'naruto';
 name = 2020;
 ```
 
 而对于 let 开头的类型声明，以初始化值的类型为准。因此 let 声明的没有指定类型的变量，不能使用其它类型的数据赋值。
 
 ```typescript
-let name = "naruto";
+let name = 'naruto';
 // error!
 // name = 2020
 ```
@@ -82,9 +85,9 @@ let name = "naruto";
 
 ```typescript
 if (year >= 2001) {
-  print("21st century");
+  print('21st century');
 } else if (year >= 1901) {
-  print("20th century");
+  print('20th century');
 }
 
 for (var planet in gasGiants) {

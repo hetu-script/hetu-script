@@ -1,0 +1,15 @@
+fun foo(){
+  var i = 42
+
+  var bar = fun () {
+    return i
+  }
+
+  return bar
+}
+
+proc main {
+  var func = foo()
+
+  print(func())
+}

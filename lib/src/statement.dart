@@ -90,6 +90,8 @@ class VarDeclStmt extends Stmt {
 
   final bool isOptional;
 
+  final bool isNamed;
+
   VarDeclStmt(
     this.name, {
     this.declType = HT_Type.ANY,
@@ -99,6 +101,7 @@ class VarDeclStmt extends Stmt {
     //this.isExtern = false,
     this.isStatic = false,
     this.isOptional = false,
+    this.isNamed = false,
   });
 }
 
@@ -274,13 +277,16 @@ class ClassDeclStmt extends Stmt {
 
   final SymbolExpr superClass;
 
-  final HT_Type superClassType;
+  final ClassDeclStmt superClassDeclStmt;
+
+  final HT_Type superClassTypeArgs;
 
   final List<VarDeclStmt> variables;
 
   final List<FuncDeclStmt> methods;
 
-  ClassDeclStmt(this.keyword, this.name, this.superClass, this.superClassType, this.variables, this.methods,
+  ClassDeclStmt(this.keyword, this.name, this.superClass, this.superClassDeclStmt, this.superClassTypeArgs,
+      this.variables, this.methods,
       {List<String> typeParams}) {
     if (typeParams != null) this.typeParams.addAll(typeParams);
   }

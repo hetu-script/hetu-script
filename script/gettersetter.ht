@@ -1,16 +1,25 @@
-class Types {
-  var _name = 'the machine'
+class Root {
+  var name = 'the machine'
+}
 
-  construct (name: String) {
-    _name = name;
+class Types extends Root {
+
+  var _age = 42
+
+  construct (the_name: String) {
+    name = the_name;
   }
 
-  get name: String {
-    return _name
+  get age: num {
+    return _age
   }
 
-  set name(value: String) {
-    _name = value
+  set age(value: num) {
+    _age = value
+  }
+
+  proc greeting {
+    print("Hi! I'm", name, 'my age is', age)
   }
 }
 
@@ -21,5 +30,7 @@ fun main {
   print(3.toString())
 
   print(t.name)
+
+  t.greeting();
   
 }
