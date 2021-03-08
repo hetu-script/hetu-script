@@ -2,11 +2,14 @@
 
 ## Introduction
 
+[河图脚本语言中文介绍](README_ZH.md)
+
 Hetu is a lightweight script interpreter written in Dart, intended to be embedded in Dart programs.
 
 It is kind of like lua but free of ffi c bindings and make it easy to debug.
 
 [Full Hetu syntax description.](HETU_SYNTAX.md)
+[河图脚本语言完整语法.](HETU_SYNTAX_ZH.md)
 
 In your Dart code, you can interpret an script file by this:
 

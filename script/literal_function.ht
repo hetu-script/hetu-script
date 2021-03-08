@@ -7,8 +7,5 @@ fun main {
   }
 
   print(func())
-  print(typeof(func))
-
-  print(func)
-
+  
 }

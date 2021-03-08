@@ -124,17 +124,36 @@ Member functions can also be declared with 'get', 'set', 'construct', they liter
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
 
+Functions can be passed as arguments and be return value from another function.
+
+Function can have no name, it will then become a literal function expression(anonymous function).
+
+```typescript
+fun foo(){
+  var i = 42
+  var bar = fun () {
+    return i
+  }
+  return bar
+}
+
+fun main {
+  var func = foo()
+  print(func()) // Will print 42.
+}
+```
+
 ## Class
 
-Class is declared with 'class', 'data', 'interface'.
+Class can have static variables and methods. Which can be accessed through the class name (rather than a instance).
 
-Data class cannot have construct, and can be use as mixins.
+Class's member functions (methods) can use keyword: construct, get, set to define a constructor, getter, setter function.
 
-Variable of data class type can be assigned with anonymous data object literal.
+Constructors have no function names and cannot return values. They will return a instance.
 
-Interface can have abstract functions(means those functions have no definition body). If do so, any class extends from this interface must have a definition of those abstract functions.
+Getter & setter functions can be used as a member variable. They can be accessed without brackets.
 
-```kotlin
+```typescript
 // class definition
 class Calculator {
   // instance member
@@ -172,5 +191,17 @@ class Calculator {
     // when no shadowing, `this` keyword is omittable
     return x * y
   }
+}
+```
+
+# Import
+
+Use import statement to import content from another script file.
+
+```dart
+import 'hello.ht'
+
+fun main {
+  hello()
 }
 ```
