@@ -21,7 +21,7 @@ end here.*/
 
 ## Keywords
 
-null, static, var, def, let, any, namespace, as, class, data, interface, mixin, fun, proc, construct, get, set, this, super, extends, implements, mixin, external, import, break, continue, for, in, if, else, return, while, when, is
+null, static, var, def, let, any, namespace, as, class, data, interface, mixin, fun, construct, get, set, this, super, extends, implements, mixin, external, import, break, continue, for, in, if, else, return, while, when, is
 
 ## Operators
 
@@ -42,23 +42,23 @@ null, static, var, def, let, any, namespace, as, class, data, interface, mixin, 
 Variable is declared with 'var', 'def' or 'let'. The type and initialize expression is optional.
 
 ```typescript
-var person
-var name = "naruto"
-var year = 2020
-var fineStructureConstant: num = 1 / 137
-var isTimeTravelSuccessful: bool = true
-var gasGiants = ["Jupiter", "Saturn"]
+var person;
+var name = 'naruto';
+var year = 2020;
+var fineStructureConstant: num = 1 / 137;
+var isTimeTravelSuccessful: bool = true;
+var gasGiants = ['Jupiter', 'Saturn'];
 var skill: Map<String> = {
-  tags: ["attack"],
-  script: "//path/to/skill_script.ht",
-}
+  tags: ['attack'],
+  script: '//path/to/skill_script.ht',
+};
 ```
 
 If declared with 'var', variables will have a type of 'any', hence you can re-assign it with any type.
 
 ```typescript
-var name = "naruto"
-name = 2020 // not an error
+var name = 'naruto';
+name = 2020; // not an error
 ```
 
 If declared with 'def', variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
@@ -71,7 +71,7 @@ def name = "naruto"
 If declared with 'let', variables has to have an initialize expression, and it will be given a type according to the expression, and it will become immutable(in other words this is a constant).
 
 ```typescript
-let name = "naruto"
+let name = 'naruto';
 // name = "sasuke" // error!
 ```
 
@@ -87,32 +87,32 @@ def i: NotAType // not an error
 
 ```typescript
 if (year >= 2001) {
-  print("21st century")
+  print('21st century');
 } else if (year >= 1901) {
-  print("20th century")
+  print('20th century');
 } else {
-  print("unkown date")
+  print('unkown date');
 }
 
 for (var planet in gasGiants) {
-  print(planet)
+  print(planet);
 }
 
 while (year < 2040) {
-  year = year + 1
+  year = year + 1;
 }
 ```
 
 ## Function
 
-Function is declared with 'fun', 'proc', 'get', 'set', 'construct'. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
+Function is declared with 'fun', 'get', 'set', 'construct'. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
 
 ```typescript
 fun doubleIt(n: num): num {
 	return n * 2
 }
 
-proc main {
+fun main {
   def x = doubleIt(7) // expect 14
   print(x)
 }
@@ -120,23 +120,40 @@ proc main {
 
 For functions declared with 'fun', when no return type is provided in declaration, it will have a return type of 'any'. And it will return null if you didn't write return statement within the definition body.
 
-For functions declared with 'proc', which means procedure, you cannot provided any return type. and you cannot use un-empty return statement to return a value. And you cannot use a proc's value within any expression.
-
 Member functions can also be declared with 'get', 'set', 'construct', they literally means getter, setter and contructor function.
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
 
+Functions can be passed as arguments and be return value from another function.
+
+Function can have no name, it will then become a literal function expression(anonymous function).
+
+```typescript
+fun foo(){
+  var i = 42
+  var bar = fun () {
+    return i
+  }
+  return bar
+}
+
+fun main {
+  var func = foo()
+  print(func()) // Will print 42.
+}
+```
+
 ## Class
 
-Class is declared with 'class', 'data', 'interface'.
+Class can have static variables and methods. Which can be accessed through the class name (rather than a instance).
 
-Data class cannot have construct, and can be use as mixins.
+Class's member functions (methods) can use keyword: construct, get, set to define a constructor, getter, setter function.
 
-Variable of data class type can be assigned with anonymous data object literal.
+Constructors have no function names and cannot return values. They will return a instance.
 
-Interface can have abstract functions(means those functions have no definition body). If do so, any class extends from this interface must have a definition of those abstract functions.
+Getter & setter functions can be used as a member variable. They can be accessed without brackets.
 
-```kotlin
+```typescript
 // class definition
 class Calculator {
   // instance member
@@ -174,5 +191,17 @@ class Calculator {
     // when no shadowing, `this` keyword is omittable
     return x * y
   }
+}
+```
+
+# Import
+
+Use import statement to import content from another script file.
+
+```dart
+import 'hello.ht'
+
+fun main {
+  hello()
 }
 ```

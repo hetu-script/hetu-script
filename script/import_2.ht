@@ -1,0 +1,19 @@
+import 'import_1.ht'
+
+class Jimmy extends Person {
+
+  construct {
+    name = 'Jimmy'
+  }
+
+  fun greeting {
+    print("Hi! I'm", name)
+  }
+}
+
+fun main {
+
+  var j = Jimmy()
+
+  j.greeting();
+}

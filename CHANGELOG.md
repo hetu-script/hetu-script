@@ -1,3 +1,22 @@
+## 0.0.3
+
+- Feature: Literal function expression (anonymous function). Usage:
+
+```typescript
+fun main {
+  var func = fun (name: String) {
+    return name + '_postfix'
+  }
+
+  print(func())
+}
+```
+
+- Feature: Named function parameters.
+- Feature: Support literal hexadecimal numbers.
+- Fixed class extends, member override and inheritance.
+- Fixed import statement.
+
 ## 0.0.2+4
 
 - Fixed bug in method calling of instances.

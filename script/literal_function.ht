@@ -1,0 +1,11 @@
+
+
+fun main {
+
+  var func = fun   {
+    return 42
+  }
+
+  print(func())
+  
+}

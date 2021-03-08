@@ -1,5 +1,5 @@
-/// Hetu运算符优先级
-/// Description     Operator           Associativity   Precedence
+// Hetu运算符优先级
+// Description     Operator           Associativity   Precedence
 //  Unary postfix   e., e()            None            16
 //  Unary prefix    -e, !e             None            15
 //  Multiplicative  *, /, %            Left            14
@@ -10,8 +10,8 @@
 //  Logical Or      ||                 Left            5
 //  Assignment      =                  Right           1
 
-/// Dart运算符优先级（参考用）
-/// Description      Operator                             Associativity   Precedence
+// Dart运算符优先级（参考用）
+// Description      Operator                             Associativity   Precedence
 //  Unary postfix    e., e?., e++, e--, e1[e2], e()       None            16
 //  Unary prefix     -e, !e, ˜e, ++e, --e, await e        None            15
 //  Multiplicative   *, /, ˜/, %                          Left            14
@@ -29,20 +29,21 @@
 //  Cascade          ..                                   Left            2
 //  Assignment       =, *=, /=, +=, -=, &=, ˆ=, etc.      Right           1
 
+/// All lexicons used by hetu
 abstract class HT_Lexicon {
   static const defaultProgramMainFunc = 'main';
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
       r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
-      r'(\d+(\.\d+)?)|' // 数字字面量 group(6)
+      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
   static const commandLinePattern = r'(//.*)|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
       r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!:\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
-      r'(\d+(\.\d+)?)|' // 数字字面量 group(4)
+      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(4)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
       r'("(\\"|[^"])*"))';
 
@@ -109,7 +110,7 @@ abstract class HT_Lexicon {
   static const STRUCT = 'struct';
   static const INTERFACE = 'interface';
   static const FUN = 'fun';
-  static const PROC = 'proc';
+  static const ASYNC = 'async';
   static const THIS = 'this';
   static const SUPER = 'super';
   static const EXTENDS = 'extends';
@@ -118,6 +119,7 @@ abstract class HT_Lexicon {
   static const EXTERNAL = 'external';
   static const IMPORT = 'import';
 
+  static const AWAIT = 'await';
   static const ASSERT = 'assert';
   static const BREAK = 'break';
   static const CONTINUE = 'continue';
@@ -147,7 +149,8 @@ abstract class HT_Lexicon {
         STRUCT,
         INTERFACE,
         FUN,
-        PROC,
+        ASYNC,
+        AWAIT,
         VOID,
         CONSTRUCT,
         GET,
@@ -297,10 +300,10 @@ abstract class HT_Lexicon {
         modulo,
         add,
         subtract,
-        greater,
-        greaterOrEqual,
-        lesser,
+        lesser, // angleLeft,
         lesserOrEqual,
+        greater, // angleRight,
+        greaterOrEqual,
         equal,
         notEqual,
         and,
@@ -316,8 +319,6 @@ abstract class HT_Lexicon {
         curlyRight,
         squareLeft,
         squareRight,
-        angleLeft,
-        angleRight,
       };
 
   static const errorUnsupport = 'Unsupport value type';
@@ -343,6 +344,7 @@ abstract class HT_Lexicon {
   static const errorNullObject = 'is null';
   static const errorMutable = 'is immutable';
   static const errorNotType = 'is not a type.';
+  static const errorNotClass = 'is not a class.';
 
   static const errorOfType = 'of type';
 

@@ -1,0 +1,3 @@
+class Person {
+  var name: String = 'just a guy';
+}

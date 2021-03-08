@@ -60,11 +60,11 @@ class ImportStmt extends Stmt {
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitImportStmt(this);
 
-  final String location;
+  final String path;
 
   final String nameSpace;
 
-  ImportStmt(this.location, {this.nameSpace});
+  ImportStmt(this.path, {this.nameSpace});
 }
 
 class VarDeclStmt extends Stmt {
@@ -73,6 +73,8 @@ class VarDeclStmt extends Stmt {
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitVarDeclStmt(this);
+
+  final String fileName;
 
   final Token name;
 
@@ -90,7 +92,10 @@ class VarDeclStmt extends Stmt {
 
   final bool isOptional;
 
+  final bool isNamed;
+
   VarDeclStmt(
+    this.fileName,
     this.name, {
     this.declType = HT_Type.ANY,
     this.initializer,
@@ -99,6 +104,7 @@ class VarDeclStmt extends Stmt {
     //this.isExtern = false,
     this.isStatic = false,
     this.isOptional = false,
+    this.isNamed = false,
   });
 }
 
@@ -189,11 +195,11 @@ class ContinueStmt extends Stmt {
 
 enum FuncStmtType {
   normal,
-  procedure,
   constructor,
   getter,
   setter,
   method,
+  literal,
 }
 
 class FuncDeclStmt extends Stmt {
@@ -202,6 +208,8 @@ class FuncDeclStmt extends Stmt {
 
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitFuncDeclStmt(this);
+
+  final String fileName;
 
   final Token keyword;
 
@@ -230,7 +238,7 @@ class FuncDeclStmt extends Stmt {
 
   final FuncStmtType funcType;
 
-  FuncDeclStmt(this.keyword, this.name, this.returnType, this.params,
+  FuncDeclStmt(this.fileName, this.keyword, this.name, this.returnType, this.params,
       {List<String> typeParams,
       this.arity = 0,
       this.definition,
@@ -265,6 +273,8 @@ class ClassDeclStmt extends Stmt {
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitClassDeclStmt(this);
 
+  final String fileName;
+
   final Token keyword;
 
   final String name;
@@ -273,13 +283,16 @@ class ClassDeclStmt extends Stmt {
 
   final SymbolExpr superClass;
 
-  final HT_Type superClassType;
+  final ClassDeclStmt superClassDeclStmt;
+
+  final HT_Type superClassTypeArgs;
 
   final List<VarDeclStmt> variables;
 
   final List<FuncDeclStmt> methods;
 
-  ClassDeclStmt(this.keyword, this.name, this.superClass, this.superClassType, this.variables, this.methods,
+  ClassDeclStmt(this.fileName, this.keyword, this.name, this.superClass, this.superClassDeclStmt,
+      this.superClassTypeArgs, this.variables, this.methods,
       {List<String> typeParams}) {
     if (typeParams != null) this.typeParams.addAll(typeParams);
   }

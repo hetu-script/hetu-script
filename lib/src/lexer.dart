@@ -1,8 +1,13 @@
+import 'package:hetu_script/hetu_script.dart';
+
 import 'lexicon.dart';
 import 'token.dart';
+import 'parser.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
 class Lexer {
+  static var fileIndex = 0;
+
   static const _stringReplaces = <String, String>{
     '\\\\': '\\',
     '\\n': '\n',
@@ -17,9 +22,16 @@ class Lexer {
     return result;
   }
 
-  List<Token> lex(String script) //, {HT_Lexicon HT_Lexicon = const HT_Lexicon()})
+  final Interpreter interpreter;
+  final String content;
+  final String fileName;
+
+  final tokens = <Token>[];
+
+  Lexer(this.interpreter, this.content, {this.fileName});
+
+  Parser lex() //, {HT_Lexicon HT_Lexicon = const HT_Lexicon()})
   {
-    var _tokens = <Token>[];
     var currentLine = 0;
     var column;
     var pattern = RegExp(
@@ -27,7 +39,7 @@ class Lexer {
       caseSensitive: false,
       unicode: true,
     );
-    for (final line in script.split('\n')) {
+    for (final line in content.split('\n')) {
       ++currentLine;
       var matches = pattern.allMatches(line);
       for (final match in matches) {
@@ -37,31 +49,31 @@ class Lexer {
           // 标识符
           if (match.group(HT_Lexicon.tokenGroupIdentifier) != null) {
             if (HT_Lexicon.keywords.contains(matchString)) {
-              _tokens.add(Token(matchString, currentLine, column));
+              tokens.add(Token(matchString, currentLine, column));
             } else if (matchString == HT_Lexicon.TRUE) {
-              _tokens.add(TokenBoolLiteral(matchString, true, currentLine, column));
+              tokens.add(TokenBoolLiteral(matchString, true, currentLine, column));
             } else if (matchString == HT_Lexicon.FALSE) {
-              _tokens.add(TokenBoolLiteral(matchString, false, currentLine, column));
+              tokens.add(TokenBoolLiteral(matchString, false, currentLine, column));
             } else {
-              _tokens.add(TokenIdentifier(matchString, currentLine, column));
+              tokens.add(TokenIdentifier(matchString, currentLine, column));
             }
           }
           // 标点符号和运算符号
           else if (match.group(HT_Lexicon.tokenGroupPunctuation) != null) {
-            _tokens.add(Token(matchString, currentLine, column));
+            tokens.add(Token(matchString, currentLine, column));
           }
           // 数字字面量
           else if (match.group(HT_Lexicon.tokenGroupNumber) != null) {
-            _tokens.add(TokenNumLiteral(matchString, num.parse(matchString), currentLine, column));
+            tokens.add(TokenNumLiteral(matchString, num.parse(matchString), currentLine, column));
           }
           // 字符串字面量
           else if (match.group(HT_Lexicon.tokenGroupString) != null) {
             var literal = _convertStringLiteral(matchString);
-            _tokens.add(TokenStringLiteral(matchString, literal, currentLine, column));
+            tokens.add(TokenStringLiteral(matchString, literal, currentLine, column));
           }
         }
       }
     }
-    return _tokens;
+    return Parser(interpreter, tokens, fileName);
   }
 }

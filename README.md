@@ -2,11 +2,14 @@
 
 ## Introduction
 
+[河图脚本语言中文介绍](README_ZH.md)
+
 Hetu is a lightweight script interpreter written in Dart, intended to be embedded in Dart programs.
 
 It is kind of like lua but free of ffi c bindings and make it easy to debug.
 
 [Full Hetu syntax description.](HETU_SYNTAX.md)
+[河图脚本语言完整语法.](HETU_SYNTAX_ZH.md)
 
 In your Dart code, you can interpret an script file by this:
 
@@ -26,14 +29,14 @@ While 'hello.ht' is the script file written in Hetu, here is an example:
 // Define a class.
 class Person {
     // Define a member function.
-    proc greeting(name: String) {
+    fun greeting(name: String) {
       // Print to console.
       print('hello ', name)
     }
 }
 
 // This is where the script starts executing.
-proc main {
+fun main {
   // Declare and initialize variables.
   let number = (6 * 7).toString()
   let jimmy = Person()
@@ -43,7 +46,7 @@ proc main {
 
 Hetu's grammar is almost same to typescript, except a few things:
 
-- Function is declared with 'fun' or 'proc', the latter means procedure and doesn't return value.
+- Function is declared with 'fun'.
 - Variable declared with keyword 'def' or 'let' and without a type will be given a type if it has an initialization.
 
 ## Binding
@@ -63,13 +66,13 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   var hetu = await Hetu.init(externalFunctions: {
-    'dartHello': (HT_Instance instance, List<dynamic> args) {
+    'dartHello': (HT_Instance instance, Map<String, dynamic> args) {
       return {'dartValue': 'hello'};
     },
   });
   hetu.eval(
       'external fun dartHello\n'
-      'proc main {\n'
+      'fun main {\n'
       '  var dartValue = dartHello()\n'
       '  print(typeof(dartValue))\n'
       '  dartValue[\'foo\'] = \'bar\'\n'
