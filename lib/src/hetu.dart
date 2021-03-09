@@ -1,6 +1,7 @@
 import 'binding.dart';
 import 'interpreter.dart';
 import 'core.dart';
+import 'lexicon.dart';
 
 /// Helper class for init the environment of Hetu.
 ///
@@ -15,9 +16,10 @@ abstract class Hetu {
   static Future<Interpreter> init({
     String sdkDirectory = 'hetu_lib/',
     String currentDirectory = 'script/',
+    HT_Lexicon lexicon = const HT_LexiconDefault(),
     bool debugMode = false,
     ReadFileMethod readFileMethod = defaultReadFileMethod,
-    Map<String, HT_External> externalFunctions,
+    Map<String, HT_External> externalFunctions = const {},
   }) async {
     itp = Interpreter(
       debugMode: debugMode,
@@ -26,22 +28,13 @@ abstract class Hetu {
 
     HT_BaseBinding.itp = itp;
 
-    try {
-      // load external functions.
-      itp.loadExternalFunctions(HT_BaseBinding.dartFunctions);
-      if (externalFunctions != null) {
-        itp.loadExternalFunctions(externalFunctions);
-      }
+    // load external functions.
+    itp.loadExternalFunctions(HT_BaseBinding.dartFunctions);
+    itp.loadExternalFunctions(externalFunctions);
 
-      // load classes and functions in core library.
-      for (final file in coreLibs.keys) {
-        itp.eval(coreLibs[file], fileName: file);
-      }
-    } catch (e) {
-      //stdout.write('\x1B[32m');
-      print('Hetu init failed!');
-      print(e);
-      //stdout.write('\x1B[m');
+    // load classes and functions in core library.
+    for (final file in coreLibs.keys) {
+      itp.eval(coreLibs[file], fileName: file);
     }
 
     return itp;

@@ -14,7 +14,7 @@ import 'lexicon.dart';
 
 typedef ReadFileMethod = dynamic Function(String filepath);
 Future<String> defaultReadFileMethod(String filapath) async => await File(filapath).readAsString();
-String syncReadFileMethod(String filapath) => File(filapath).readAsStringSync();
+String readFileSync(String filapath) => File(filapath).readAsStringSync();
 
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
@@ -134,7 +134,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         library_namespace = HT_Namespace(name: libName, closure: library_namespace);
       }
 
-      var content = syncReadFileMethod(_curFileName);
+      var content = readFileSync(_curFileName);
       result = eval(content,
           fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
     }
@@ -438,9 +438,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitCallExpr(CallExpr expr) {
     var callee = evaluateExpr(expr.callee);
-    var positionedArgs = [];
-    for (var i = 0; i < expr.positionedArgs.length; ++i) {
-      positionedArgs.add(evaluateExpr(expr.positionedArgs[i]));
+    var positionalArgs = [];
+    for (var i = 0; i < expr.positionalArgs.length; ++i) {
+      positionalArgs.add(evaluateExpr(expr.positionalArgs[i]));
     }
 
     var namedArgs = <String, dynamic>{};
@@ -452,9 +452,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (callee.funcStmt.funcType != FuncStmtType.constructor) {
         if (callee.declContext is HT_Instance) {
           return callee.call(this, expr.line, expr.column,
-              positionedArgs: positionedArgs, namedArgs: namedArgs, instance: callee.declContext);
+              positionalArgs: positionalArgs, namedArgs: namedArgs, instance: callee.declContext);
         } else {
-          return callee.call(this, expr.line, expr.column, positionedArgs: positionedArgs, namedArgs: namedArgs);
+          return callee.call(this, expr.line, expr.column, positionalArgs: positionalArgs, namedArgs: namedArgs);
         }
       } else {
         //TODO命名构造函数
@@ -471,7 +471,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       // }
 
       return callee.createInstance(this, expr.line, expr.column, curContext,
-          positionedArgs: positionedArgs, namedArgs: namedArgs);
+          positionalArgs: positionalArgs, namedArgs: namedArgs);
     } else {
       throw HTErr_Callable(callee.toString(), expr.callee.line, expr.callee.column, curFileName);
     }

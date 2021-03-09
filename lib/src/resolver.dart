@@ -256,7 +256,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   dynamic visitCallExpr(CallExpr expr) {
     _resolveExpr(expr.callee);
 
-    for (final arg in expr.positionedArgs) {
+    for (final arg in expr.positionalArgs) {
       _resolveExpr(arg);
     }
   }

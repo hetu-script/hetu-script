@@ -198,8 +198,8 @@ enum FuncStmtType {
   constructor,
   getter,
   setter,
-  method,
-  literal,
+  method, // normal function within a class
+  literal, // function expression with no function name
 }
 
 class FuncDeclStmt extends Stmt {

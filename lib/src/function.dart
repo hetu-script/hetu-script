@@ -97,20 +97,20 @@ class HT_Function {
   }
 
   dynamic call(Interpreter interpreter, int line, int column,
-      {HT_Instance instance, List<dynamic> positionedArgs, Map<String, dynamic> namedArgs}) {
-    positionedArgs ??= [];
+      {HT_Instance instance, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
+    positionalArgs ??= [];
 
-    if (funcStmt.arity >= 0 && positionedArgs.length != funcStmt.arity) {
-      throw HTErr_Arity(name, positionedArgs.length, funcStmt.arity, line, column, interpreter.curFileName);
+    if (funcStmt.arity >= 0 && positionalArgs.length != funcStmt.arity) {
+      throw HTErr_Arity(name, positionalArgs.length, funcStmt.arity, line, column, interpreter.curFileName);
     }
 
     namedArgs ??= {};
     if (funcStmt.arity >= 0) {
-      for (var i = 0; i < positionedArgs.length; ++i) {
-        namedArgs[funcStmt.params[i].name.lexeme] = positionedArgs[i];
+      for (var i = 0; i < positionalArgs.length; ++i) {
+        namedArgs[funcStmt.params[i].name.lexeme] = positionalArgs[i];
       }
     } else {
-      namedArgs[funcStmt.params.first.name.lexeme] = positionedArgs;
+      namedArgs[funcStmt.params.first.name.lexeme] = positionalArgs;
     }
 
     for (var i = 0; i < funcStmt.params.length; ++i) {
@@ -157,7 +157,7 @@ class HT_Function {
           // “...”形式的variadic parameters本质是一个List
           // TODO: variadic parameters也需要类型检查
           _closure.define(funcStmt.params.first.name.lexeme, interpreter,
-              declType: HT_Type.list, line: line, column: column, value: positionedArgs);
+              declType: HT_Type.list, line: line, column: column, value: positionalArgs);
         }
 
         result = interpreter.executeBlock(funcStmt.definition, _closure);

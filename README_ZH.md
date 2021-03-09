@@ -1,10 +1,12 @@
 # 河图脚本语言
 
+A lightweight script language & its interpreter written purely in Dart, intended to be embedded in Flutter & Dart programs for purposes like hotfixes and game scripting.
+
 河图的语言大体上和 typescript 比较接近，类型用冒号声明，语句结尾可以省略分号。河图的变量会从声明推断其类型，并且不会做自动转换。另外函数声明使用 fun 关键字。
 
 ## Hello world
 
-在Dart程序中引入河图的库，然后初始化河图环境，读取并解释一个外部脚本文件：
+在 Dart 程序中引入河图的库，然后初始化河图环境，读取并解释一个外部脚本文件：
 
 ```typescript
 import 'package:hetu_script/hetu.dart';
@@ -40,7 +42,7 @@ fun main {
 
 ## 保留字
 
-null, static, var, let, any, namespace, as, abstract, class, fun, construct, get, set, this, super, extends, implements, mixin, external, library, import, break, continue, for, in, if, else, return, while, when, is
+null, static, var, let, any, namespace, as, abstract, class, fun, init, get, set, this, super, extends, implements, mixin, external, library, import, break, continue, for, in, if, else, return, while, when, is
 
 ## 变量
 
@@ -62,9 +64,9 @@ var skill<String> = {
 
 ```typescript
 if (year >= 2001) {
-  print("21st century");
+  print('21st century');
 } else if (year >= 1901) {
-  print("20th century");
+  print('20th century');
 }
 
 for (var planet in gasGiants) {

@@ -252,7 +252,7 @@ class Parser {
     //多层函数调用可以合并
     while (true) {
       if (expect([HT_Lexicon.call], consume: true, error: false)) {
-        var positionedArgs = <Expr>[];
+        var positionalArgs = <Expr>[];
         var namedArgs = <String, Expr>{};
 
         while ((curTok.type != HT_Lexicon.roundRight) && (curTok.type != HT_Lexicon.endOfFile)) {
@@ -266,7 +266,7 @@ class Parser {
               throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, fileName);
             }
           } else {
-            positionedArgs.add(arg);
+            positionalArgs.add(arg);
           }
 
           if (curTok.type != HT_Lexicon.roundRight) {
@@ -274,7 +274,7 @@ class Parser {
           }
         }
         expect([HT_Lexicon.roundRight], consume: true);
-        expr = CallExpr(expr, positionedArgs, namedArgs, fileName);
+        expr = CallExpr(expr, positionalArgs, namedArgs, fileName);
       } else if (expect([HT_Lexicon.memberGet], consume: true, error: false)) {
         final name = match(HT_Lexicon.identifier);
         expr = MemberGetExpr(expr, name, fileName);
@@ -436,7 +436,7 @@ class Parser {
             return _parseVarStmt(type_inferrence: true, is_mutable: false);
           } // 构造函数
           // TODO：命名的构造函数
-          else if (expect([HT_Lexicon.CONSTRUCT])) {
+          else if (expect([HT_Lexicon.INIT])) {
             return _parseFuncDeclStmt(FuncStmtType.constructor, is_extern: is_extern, is_static: is_static);
           } // setter函数声明
           else if (expect([HT_Lexicon.GET])) {

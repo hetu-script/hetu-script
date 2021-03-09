@@ -1,26 +1,11 @@
-import 'package:hetu_script/hetu_script.dart';
-
 import 'lexicon.dart';
 import 'token.dart';
 import 'parser.dart';
+import 'interpreter.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
 class Lexer {
   static var fileIndex = 0;
-
-  static const _stringReplaces = <String, String>{
-    '\\\\': '\\',
-    '\\n': '\n',
-    '\\\'': '\'',
-  };
-
-  static String _convertStringLiteral(String literal) {
-    var result = literal.substring(1).substring(0, literal.length - 2);
-    for (final key in _stringReplaces.keys) {
-      result = result.replaceAll(key, _stringReplaces[key]);
-    }
-    return result;
-  }
 
   final Interpreter interpreter;
   final String content;
@@ -35,7 +20,7 @@ class Lexer {
     var currentLine = 0;
     var column;
     var pattern = RegExp(
-      HT_Lexicon.scriptPattern,
+      lexicon.scriptPattern,
       caseSensitive: false,
       unicode: true,
     );

@@ -5,14 +5,14 @@ void main() async {
 
   hetu.eval('''
       class Person {
-        var name: String = 'some person'
+        var name: any = 'some person'
         fun greeting {
           print("Hi! I'm", name)
         }
       }
 
       class Jimmy extends Person {
-        construct (the_name: String) {
+        init (the_name: any) {
           name = the_name
         }
 
@@ -25,6 +25,8 @@ void main() async {
 
         var p = Person()
         p.greeting()
+
+        print(typeof(p.name))
         
         var j = Jimmy('Jimmy')
         j.greeting()

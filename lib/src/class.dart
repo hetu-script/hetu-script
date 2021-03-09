@@ -136,7 +136,7 @@ class HT_Class extends HT_Namespace {
       if (from.startsWith(fullName) ||
           (!fullName.startsWith(HT_Lexicon.underscore) && !varName.startsWith(HT_Lexicon.underscore))) {
         HT_Function setter_func = defs[setter].value;
-        setter_func.call(interpreter, line, column, positionedArgs: [value]);
+        setter_func.call(interpreter, line, column, positionalArgs: [value]);
         return;
       }
       throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);
@@ -153,7 +153,7 @@ class HT_Class extends HT_Namespace {
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
   HT_Instance createInstance(Interpreter interpreter, int line, int column, HT_Namespace closure,
-      {List<HT_Type> typeArgs, String initterName, List<dynamic> positionedArgs, Map<String, dynamic> namedArgs}) {
+      {List<HT_Type> typeArgs, String constructorName, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
     var instance = HT_Instance(interpreter, this, typeArgs: typeArgs?.sublist(0, typeParams.length));
 
     var save = interpreter.curContext;
@@ -168,13 +168,13 @@ class HT_Class extends HT_Namespace {
 
     interpreter.curContext = save;
 
-    initterName = HT_Lexicon.constructor + (initterName ?? name);
+    constructorName = HT_Lexicon.constructor + (constructorName ?? name);
 
-    var constructor = fetch(initterName, line, column, interpreter, error: false, from: name);
+    var constructor = fetch(constructorName, line, column, interpreter, error: false, from: name);
 
     if (constructor is HT_Function) {
       constructor.call(interpreter, line, column,
-          positionedArgs: positionedArgs, namedArgs: namedArgs, instance: instance);
+          positionalArgs: positionalArgs, namedArgs: namedArgs, instance: instance);
     }
 
     return instance;
@@ -260,7 +260,7 @@ class HT_Instance extends HT_Namespace {
       if (klass.contains(setter)) {
         HT_Function method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
-          method.call(interpreter, line, column, positionedArgs: [value], instance: this);
+          method.call(interpreter, line, column, positionalArgs: [value], instance: this);
           return;
         }
       }
@@ -270,10 +270,10 @@ class HT_Instance extends HT_Namespace {
   }
 
   dynamic invoke(String methodName, int line, int column, Interpreter interpreter,
-      {bool error = true, List<dynamic> positionedArgs, Map<String, dynamic> namedArgs}) {
+      {bool error = true, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
     HT_Function method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
-      return method.call(interpreter, null, null, positionedArgs: positionedArgs, namedArgs: namedArgs, instance: this);
+      return method.call(interpreter, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
     }
 
     if (error) throw HTErr_Undefined(methodName, line, column, interpreter.curFileName);
