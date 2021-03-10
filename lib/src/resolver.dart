@@ -96,10 +96,10 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
     _beginBlock();
     if (stmt.arity == -1) {
-      _declare(stmt.params.first.name.lexeme, stmt.keyword.line, stmt.keyword.column, define: true);
+      _declare(stmt.params.first.id.lexeme, stmt.keyword.line, stmt.keyword.column, define: true);
     } else {
       for (final param in stmt.params) {
-        _declare(param.name.lexeme, param.name.line, param.name.column, define: true);
+        _declare(param.id.lexeme, param.id.line, param.id.column, define: true);
       }
     }
     _resolveBlock(stmt.definition);
@@ -131,8 +131,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
         if (funcStmt.isStatic || (funcStmt.funcType == FuncStmtType.constructor)) {
           if ((funcStmt.internalName.startsWith(HT_Lexicon.getter) ||
                   funcStmt.internalName.startsWith(HT_Lexicon.setter)) &&
-              !_blocks.last.containsKey(funcStmt.name)) {
-            _declare(funcStmt.name, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
+              !_blocks.last.containsKey(funcStmt.id)) {
+            _declare(funcStmt.id, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
           } else {
             _declare(funcStmt.internalName, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
           }
@@ -171,8 +171,8 @@ class Resolver implements ExprVisitor, StmtVisitor {
           _declare(funcStmt.internalName, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
           if ((funcStmt.internalName.startsWith(HT_Lexicon.getter) ||
                   funcStmt.internalName.startsWith(HT_Lexicon.setter)) &&
-              !_blocks.last.containsKey(funcStmt.name)) {
-            _declare(funcStmt.name, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
+              !_blocks.last.containsKey(funcStmt.id)) {
+            _declare(funcStmt.id, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
           }
           instance_func_stmt.add(funcStmt);
         }
@@ -239,11 +239,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitSymbolExpr(SymbolExpr expr) {
-    if (_blocks.isNotEmpty && _blocks.last[expr.name] == false) {
-      throw HTErr_Initialized(expr.name.lexeme, expr.line, expr.column, fileName);
+    if (_blocks.isNotEmpty && _blocks.last[expr.id] == false) {
+      throw HTErr_Initialized(expr.id.lexeme, fileName, expr.line, expr.column);
     }
 
-    _lookUpVar(expr, expr.name.lexeme);
+    _lookUpVar(expr, expr.id.lexeme);
   }
 
   @override
@@ -303,9 +303,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
   void visitVarDeclStmt(VarDeclStmt stmt) {
     if (stmt.initializer != null) {
       _resolveExpr(stmt.initializer);
-      _declare(stmt.name.lexeme, stmt.name.line, stmt.name.column, define: true);
+      _declare(stmt.id.lexeme, stmt.id.line, stmt.id.column, define: true);
     } else {
-      _define(stmt.name.lexeme);
+      _define(stmt.id.lexeme);
     }
   }
 
@@ -322,7 +322,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitReturnStmt(ReturnStmt stmt) {
     if ((_curFuncType == null) || (_curFuncType == FuncStmtType.constructor)) {
-      throw HTErr_Unexpected(stmt.keyword.lexeme, stmt.keyword.line, stmt.keyword.column, fileName);
+      throw HTErr_Unexpected(stmt.keyword.lexeme, fileName, stmt.keyword.line, stmt.keyword.column);
     }
 
     if (stmt.expr != null) {
@@ -354,7 +354,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   @override
   void visitThisExpr(ThisExpr expr) {
     if (_curClassType == _ClassType.none) {
-      throw HTErr_Unexpected(expr.keyword.lexeme, expr.line, expr.column, fileName);
+      throw HTErr_Unexpected(expr.keyword.lexeme, fileName, expr.line, expr.column);
     }
 
     _lookUpVar(expr, expr.keyword.lexeme);
@@ -362,13 +362,13 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   @override
   void visitFuncDeclStmt(FuncDeclStmt stmt) {
-    _declare(stmt.name, stmt.keyword.line, stmt.keyword.column, define: true);
+    _declare(stmt.id, stmt.keyword.line, stmt.keyword.column, define: true);
     _funcs.add(stmt);
   }
 
   @override
   void visitClassDeclStmt(ClassDeclStmt stmt) {
-    _declare(stmt.name, stmt.keyword.line, stmt.keyword.column, define: true);
+    _declare(stmt.id, stmt.keyword.line, stmt.keyword.column, define: true);
     _classes.add(stmt);
   }
 }

@@ -29,7 +29,7 @@ void main() async {
               i = 137
               ''', style: ParseStyle.function);
         },
-        throwsA(isA<HTErr_Mutable>()),
+        throwsA(isA<HTErr_Immutable>()),
       );
     });
   });

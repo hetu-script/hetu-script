@@ -140,7 +140,7 @@ abstract class HT_BaseBinding {
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (positionalArgs.isNotEmpty) {
       var title = positionalArgs.first.toString();
-      stdout.write('\x1b]0;${title}\x07');
+      stdout.write('\x1b]0;$title\x07');
     }
   }
 
@@ -290,9 +290,8 @@ class HT_Instance_String extends HT_Instance_Value {
 class HT_Instance_List extends HT_Instance_Value {
   String valueType;
 
-  HT_Instance_List(List value, Interpreter interpreter, {this.valueType}) : super(value, HT_Lexicon.list, interpreter) {
-    valueType ??= HT_Lexicon.ANY;
-  }
+  HT_Instance_List(List value, Interpreter interpreter, {this.valueType = HT_Lexicon.ANY})
+      : super(value, HT_Lexicon.list, interpreter);
 
   static dynamic _get_length(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
@@ -355,11 +354,8 @@ class HT_Instance_Map extends HT_Instance_Value {
   String keyType;
   String valueType;
 
-  HT_Instance_Map(Map value, Interpreter interpreter, {this.keyType, this.valueType})
-      : super(value, HT_Lexicon.map, interpreter) {
-    keyType ??= HT_Lexicon.ANY;
-    valueType ??= HT_Lexicon.ANY;
-  }
+  HT_Instance_Map(Map value, Interpreter interpreter, {this.keyType = HT_Lexicon.ANY, this.valueType = HT_Lexicon.ANY})
+      : super(value, HT_Lexicon.map, interpreter);
 
   static dynamic _get_length(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {

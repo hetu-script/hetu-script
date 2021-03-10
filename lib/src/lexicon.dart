@@ -76,7 +76,7 @@ abstract class HT_Lexicon {
   static const variadicArguments = '...';
   static const underscore = '_';
   static const globals = '__globals__';
-  static const externs = '__external__';
+  static const externals = '__external__';
   static const method = '__method__';
   static const instance = '__instance_of_';
   static const instancePrefix = 'instance of ';
@@ -324,6 +324,7 @@ abstract class HT_Lexicon {
 
   static const errorUnsupport = 'Unsupport value type';
   static const errorExpected = 'expected, ';
+  static const errorConstMustBeStatic = 'Class member constant must be static.';
   static const errorUnexpected = 'Unexpected identifier';
   static const errorPrivateMember = 'Could not acess private member';
   static const errorPrivateDecl = 'Could not acess private declaration';
@@ -343,7 +344,7 @@ abstract class HT_Lexicon {
   static const errorExtends = 'is not a class';
   static const errorSetter = 'Setter function\'s arity must be 1';
   static const errorNullObject = 'is null';
-  static const errorMutable = 'is immutable';
+  static const errorImmutable = 'is immutable';
   static const errorNotType = 'is not a type.';
   static const errorNotClass = 'is not a class.';
 

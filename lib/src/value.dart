@@ -5,10 +5,10 @@ import 'function.dart';
 class HT_Type {
   // List<HT_Type> get inheritances;
   // List<HT_Type> get compositions;
-  final String name;
+  final String id;
   final List<HT_Type> arguments;
 
-  const HT_Type(this.name, {this.arguments = const []});
+  const HT_Type(this.id, {this.arguments = const []});
 
   static const ANY = HT_Type(HT_Lexicon.ANY);
   static const NULL = HT_Type(HT_Lexicon.NULL);
@@ -25,7 +25,7 @@ class HT_Type {
   @override
   String toString() {
     var typename = StringBuffer();
-    typename.write(name);
+    typename.write(id);
     if (arguments.isNotEmpty) {
       typename.write('<');
       for (var i = 0; i < arguments.length; ++i) {
@@ -39,10 +39,10 @@ class HT_Type {
 
   bool isA(HT_Type typeid) {
     var result = false;
-    if ((typeid.name == HT_Lexicon.ANY) || (name == HT_Lexicon.NULL)) {
+    if ((typeid.id == HT_Lexicon.ANY) || (id == HT_Lexicon.NULL)) {
       result = true;
     } else {
-      if (name == typeid.name) {
+      if (id == typeid.id) {
         if (arguments.length >= typeid.arguments.length) {
           result = true;
           for (var i = 0; i < typeid.arguments.length; ++i) {
@@ -124,10 +124,10 @@ HT_Type HT_TypeOf(dynamic value) {
 
 /// Value是命名空间、类和实例的基类
 abstract class HT_Value {
-  final String identifier;
+  final String id;
   //bool used = false;
 
-  HT_Value({this.identifier});
+  HT_Value({this.id});
 }
 
 class Declaration {
@@ -136,7 +136,7 @@ class Declaration {
 
   final HT_Type typeid;
   final bool isNullable;
-  final bool isMutable;
+  final bool isImmutable;
 
-  Declaration(this.typeid, {this.value, this.isNullable = false, this.isMutable = true});
+  Declaration(this.typeid, {this.value, this.isNullable = false, this.isImmutable = false});
 }

@@ -27,8 +27,8 @@ abstract class Hetu {
     HT_BaseBinding.itp = itp;
 
     // load external functions.
-    itp.loadExternalFunctions(HT_BaseBinding.dartFunctions);
-    itp.loadExternalFunctions(externalFunctions);
+    itp.bindExternalFunctions(HT_BaseBinding.dartFunctions);
+    itp.bindExternalFunctions(externalFunctions);
 
     // load classes and functions in core library.
     for (final file in coreLibs.keys) {

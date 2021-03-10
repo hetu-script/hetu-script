@@ -17,7 +17,7 @@ class HT_FunctionType extends HT_Type {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('${name}');
+    result.write('$id');
     if (arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < arguments.length; ++i) {
@@ -30,7 +30,7 @@ class HT_FunctionType extends HT_Type {
     result.write('(');
 
     for (final param in paramsTypes) {
-      result.write(param.name);
+      result.write(param.id);
       //if (param.initializer != null)
       if (paramsTypes.length > 1) result.write(', ');
     }
@@ -46,7 +46,7 @@ class HT_Function {
   HT_Namespace _closure;
   //HT_Namespace _save;
   final String internalName;
-  String get name => internalName ?? funcStmt.name;
+  String get id => internalName ?? funcStmt.id;
 
   final FuncDeclStmt funcStmt;
 
@@ -70,7 +70,7 @@ class HT_Function {
   String toString() {
     var result = StringBuffer();
     result.write('${HT_Lexicon.function}');
-    if (name != null) result.write(' ${name ?? ''}');
+    if (id != null) result.write(' ${id ?? ''}');
     if (typeid.arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < typeid.arguments.length; ++i) {
@@ -84,13 +84,13 @@ class HT_Function {
 
     if (funcStmt.arity >= 0) {
       for (final param in funcStmt.params) {
-        result.write(param.name.lexeme + ': ' + (param.declType?.toString() ?? HT_Lexicon.ANY));
+        result.write(param.id.lexeme + ': ' + (param.declType?.toString() ?? HT_Lexicon.ANY));
         //if (param.initializer != null)
         if (funcStmt.params.length > 1) result.write(', ');
       }
     } else {
       result.write('... ');
-      result.write(funcStmt.params.first.name.lexeme + ': ' + (funcStmt.params.first.declType ?? HT_Lexicon.ANY));
+      result.write(funcStmt.params.first.id.lexeme + ': ' + (funcStmt.params.first.declType ?? HT_Lexicon.ANY));
     }
     result.write('): ' + funcStmt.returnType?.toString() ?? HT_Lexicon.VOID);
     return result.toString();
@@ -99,20 +99,20 @@ class HT_Function {
   dynamic call(Interpreter interpreter, int line, int column,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (funcStmt.arity >= 0 && positionalArgs.length != funcStmt.arity) {
-      throw HTErr_Arity(name, positionalArgs.length, funcStmt.arity, line, column, interpreter.curFileName);
+      throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
     }
 
     if (funcStmt.arity < 0) {
-      namedArgs[funcStmt.params.first.name.lexeme] = positionalArgs;
+      namedArgs[funcStmt.params.first.id.lexeme] = positionalArgs;
     }
 
     for (var i = 0; i < funcStmt.params.length; ++i) {
       if (funcStmt.params[i].isOptional && (positionalArgs[i] == null) && (funcStmt.params[i].initializer != null)) {
         positionalArgs[i] = interpreter.evaluateExpr(funcStmt.params[i].initializer);
       } else if (funcStmt.params[i].isNamed &&
-          (namedArgs[funcStmt.params[i].name.lexeme] == null) &&
+          (namedArgs[funcStmt.params[i].id.lexeme] == null) &&
           (funcStmt.params[i].initializer != null)) {
-        namedArgs[funcStmt.params[i].name.lexeme] = interpreter.evaluateExpr(funcStmt.params[i].initializer);
+        namedArgs[funcStmt.params[i].id.lexeme] = interpreter.evaluateExpr(funcStmt.params[i].initializer);
       }
     }
 
@@ -121,16 +121,16 @@ class HT_Function {
       if (extern != null) {
         return extern(instance: instance, positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else {
-        if (funcStmt == null) throw HTErr_MissingFuncDef(name, line, column, interpreter.curFileName);
+        if (funcStmt == null) throw HTErr_MissingFuncDef(id, interpreter.curFileName, line, column);
         //_save = _closure;
         //assert(closure != null);
         // 函数每次在调用时，才生成对应的作用域
         if (instance != null) {
-          _closure = HT_Namespace(name: '__${instance.identifier}.${name}${functionIndex++}', closure: instance);
+          _closure = HT_Namespace(id: '__${instance.id}.$id${functionIndex++}', closure: instance);
           _closure.define(HT_Lexicon.THIS, interpreter,
-              declType: instance.typeid, line: line, column: column, isMutable: false);
+              declType: instance.typeid, line: line, column: column, isImmutable: true);
         } else {
-          _closure = HT_Namespace(name: '__${name}${functionIndex++}', closure: declContext);
+          _closure = HT_Namespace(id: '__$id${functionIndex++}', closure: declContext);
         }
 
         if (funcStmt.arity >= 0) {
@@ -140,23 +140,23 @@ class HT_Function {
             if (!var_stmt.isNamed) {
               arg = positionalArgs[i];
             } else {
-              arg = namedArgs[var_stmt.name];
+              arg = namedArgs[var_stmt.id];
             }
             final arg_type_decl = var_stmt.declType;
 
             var arg_type = HT_TypeOf(arg);
             if (arg_type.isNotA(arg_type_decl)) {
               throw HTErr_ArgType(
-                  arg.toString(), arg_type.toString(), arg_type_decl.toString(), line, column, interpreter.curFileName);
+                  arg.toString(), arg_type.toString(), arg_type_decl.toString(), interpreter.curFileName, line, column);
             }
 
-            _closure.define(var_stmt.name.lexeme, interpreter,
+            _closure.define(var_stmt.id.lexeme, interpreter,
                 declType: arg_type_decl, line: line, column: column, value: arg);
           }
         } else {
           // “...”形式的variadic parameters本质是一个List
           // TODO: variadic parameters也需要类型检查
-          _closure.define(funcStmt.params.first.name.lexeme, interpreter,
+          _closure.define(funcStmt.params.first.id.lexeme, interpreter,
               declType: HT_Type.list, line: line, column: column, value: positionalArgs);
         }
 
@@ -167,14 +167,14 @@ class HT_Function {
       if (returnValue is HT_Error) {
         rethrow;
       } else if ((returnValue is Exception) || (returnValue is Error) || (returnValue is NoSuchMethodError)) {
-        throw HT_Error(returnValue.toString(), line, column, interpreter.curFileName);
+        throw HT_Error(returnValue.toString(), interpreter.curFileName, line, column);
       }
 
       var returned_type = HT_TypeOf(returnValue);
 
       if ((funcStmt != null) && (returned_type.isNotA(funcStmt.returnType))) {
         throw HTErr_ReturnType(
-            returned_type.toString(), name, funcStmt.returnType.toString(), line, column, interpreter.curFileName);
+            returned_type.toString(), id, funcStmt.returnType.toString(), interpreter.curFileName, line, column);
       }
 
       if (returnValue is NullThrownError) return null;

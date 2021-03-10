@@ -96,10 +96,10 @@ class ConstExpr extends Expr {
 
   final int constIndex;
 
-  ConstExpr(this.constIndex, int line, int column, String fileName) : super(line, column, fileName);
+  ConstExpr(this.constIndex, String fileName, int line, int column) : super(line, column, fileName);
 
   @override
-  Expr clone() => ConstExpr(constIndex, line, column, fileName);
+  Expr clone() => ConstExpr(constIndex, fileName, line, column);
 }
 
 class LiteralVectorExpr extends Expr {
@@ -109,11 +109,9 @@ class LiteralVectorExpr extends Expr {
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralVectorExpr(this);
 
-  List<Expr> vector;
+  final List<Expr> vector;
 
-  LiteralVectorExpr(this.vector, int line, int column, String fileName) : super(line, column, fileName) {
-    vector ??= [];
-  }
+  LiteralVectorExpr([this.vector = const [], String fileName, int line, int column]) : super(line, column, fileName);
 
   @override
   Expr clone() {
@@ -121,7 +119,7 @@ class LiteralVectorExpr extends Expr {
     for (final expr in vector) {
       new_list.add(expr.clone());
     }
-    return LiteralVectorExpr(new_list, line, column, fileName);
+    return LiteralVectorExpr(new_list, fileName, line, column);
   }
 }
 
@@ -132,11 +130,9 @@ class LiteralDictExpr extends Expr {
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralDictExpr(this);
 
-  Map<Expr, Expr> map;
+  final Map<Expr, Expr> map;
 
-  LiteralDictExpr(this.map, int line, int column, String fileName) : super(line, column, fileName) {
-    map ??= {};
-  }
+  LiteralDictExpr([this.map = const {}, String fileName, int line, int column]) : super(line, column, fileName);
 
   @override
   Expr clone() {
@@ -144,7 +140,7 @@ class LiteralDictExpr extends Expr {
     for (final expr in map.keys) {
       new_map[expr.clone()] = map[expr];
     }
-    return LiteralDictExpr(new_map, line, column, fileName);
+    return LiteralDictExpr(new_map, fileName, line, column);
   }
 }
 
@@ -157,10 +153,10 @@ class LiteralFunctionExpr extends Expr {
 
   final FuncDeclStmt funcStmt;
 
-  LiteralFunctionExpr(this.funcStmt, int line, int column, String fileName) : super(line, column, fileName);
+  LiteralFunctionExpr(this.funcStmt, String fileName, int line, int column) : super(line, column, fileName);
 
   @override
-  Expr clone() => LiteralFunctionExpr(funcStmt, line, column, fileName);
+  Expr clone() => LiteralFunctionExpr(funcStmt, fileName, line, column);
 }
 
 class GroupExpr extends Expr {
@@ -242,12 +238,12 @@ class SymbolExpr extends Expr {
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitSymbolExpr(this);
 
-  final Token name;
+  final Token id;
 
-  SymbolExpr(this.name, String fileName) : super(name.line, name.column, fileName);
+  SymbolExpr(this.id, String fileName) : super(id.line, id.column, fileName);
 
   @override
-  Expr clone() => SymbolExpr(name, fileName);
+  Expr clone() => SymbolExpr(id, fileName);
 }
 
 class AssignExpr extends Expr {

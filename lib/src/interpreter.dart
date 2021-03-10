@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../hetu_script.dart';
 import 'binding.dart';
 import 'errors.dart';
 import 'expression.dart';
@@ -46,7 +47,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     this.debugMode = false,
     this.readFileMethod = defaultReadFileMethod,
   }) {
-    _globals = HT_Namespace(name: HT_Lexicon.globals);
+    _globals = HT_Namespace(id: HT_Lexicon.globals);
 
     curContext = _globals;
   }
@@ -98,7 +99,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
       HT_Namespace library_namespace;
       if ((libName != null) && (libName != HT_Lexicon.globals)) {
-        library_namespace = HT_Namespace(name: libName, closure: _globals);
+        library_namespace = HT_Namespace(id: libName, closure: _globals);
         _globals.define(libName, this, declType: HT_Type.NAMESPACE, value: library_namespace);
       }
 
@@ -138,7 +139,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       HT_Namespace library_namespace;
       if ((libName != null) && (libName != HT_Lexicon.globals)) {
         _globals.define(libName, this, declType: HT_Type.NAMESPACE);
-        library_namespace = HT_Namespace(name: libName, closure: library_namespace);
+        library_namespace = HT_Namespace(id: libName, closure: library_namespace);
       }
 
       var content = readFileSync(_curFileName);
@@ -154,26 +155,6 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     _curDirectory = savedFileDirectory;
     return result;
   }
-
-  /// 解析命令行
-  // dynamic evalc(String input) {
-  //   HT_Error.clear();
-  //   try {
-  //     final _lexer = Lexer();
-  //     final _parser = Parser(this);
-  //     var tokens = _lexer.lex(input, commandLine: true);
-  //     var statements = _parser.parse(tokens, null, style: ParseStyle.commandLine);
-  //     executeBlock(statements, curContext);
-  //   } catch (e) {
-  //     print(e);
-  //   } finally {
-  //     HT_Error.output();
-  //   }
-  // }
-
-  // void addLocal(Expr expr, int distance) {
-  //   _locals[expr] = distance;
-  // }
 
   void addVarPos(Expr expr, int distance) {
     _distances[expr] = distance;
@@ -195,14 +176,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   /// 链接外部函数，链接时必须在河图中存在一个函数声明
   ///
   /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
-  void loadExternalFunctions(Map<String, HT_External> linkMap) {
-    for (final key in linkMap.keys) {
+  void bindExternalFunctions(Map<String, HT_External> bindMap) {
+    for (final key in bindMap.keys) {
       _globals.define(
-        HT_Lexicon.externs + key,
+        HT_Lexicon.externals + key,
         this,
-        value: linkMap[key],
-        isMutable: false,
-        typeInference: false,
+        value: bindMap[key],
+        isImmutable: true,
+        isDynamic: true,
       );
     }
   }
@@ -230,8 +211,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   //   }
   // }
 
-  void defineGlobal(String key, {HT_Type declType, dynamic value, bool isMutable = true, bool typeInference = true}) {
-    _globals.define(key, this, declType: declType, value: value, isMutable: isMutable, typeInference: typeInference);
+  void defineGlobal(String key, {HT_Type declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
+    _globals.define(key, this, declType: declType, value: value, isImmutable: isImmutable, isDynamic: isDynamic);
   }
 
   dynamic fetchGlobal(String key) {
@@ -246,7 +227,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (func is HT_Function) {
       return func.call(this, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs);
     } else {
-      throw HTErr_Undefined(functionName, null, null, curFileName);
+      throw HTErr_Undefined(functionName, curFileName, null, null);
     }
     // } else {
     //   var klass = _globals.fetch(classname, null, null, this, recursive: false);
@@ -256,10 +237,10 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     //     if (func is HT_Function) {
     //       return func.call(this, null, null, namedArgs: args);
     //     } else {
-    //       throw HTErr_Callable(name, null, null, curFileName);
+    //       throw HTErr_Callable(name, curFileName, null, null);
     //     }
     //   } else {
-    //     throw HTErr_Undefined(classname, null, null, curFileName);
+    //     throw HTErr_Undefined(classname, curFileName, null, null);
     //   }
     // }
   }
@@ -318,7 +299,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }
 
   @override
-  dynamic visitSymbolExpr(SymbolExpr expr) => _getValue(expr.name.lexeme, expr);
+  dynamic visitSymbolExpr(SymbolExpr expr) => _getValue(expr.id.lexeme, expr);
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
@@ -328,16 +309,16 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (value is num) {
         return -value;
       } else {
-        throw HTErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+        throw HTErr_UndefinedOperator(value.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
       }
     } else if (expr.op.lexeme == HT_Lexicon.not) {
       if (value is bool) {
         return !value;
       } else {
-        throw HTErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+        throw HTErr_UndefinedOperator(value.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
       }
     } else {
-      throw HTErr_UndefinedOperator(value.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+      throw HTErr_UndefinedOperator(value.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
     }
   }
 
@@ -356,12 +337,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             return left && right;
           } else {
             throw HTErr_UndefinedBinaryOperator(
-                left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+                left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
           }
         }
       } else {
         throw HTErr_UndefinedBinaryOperator(
-            left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+            left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
       }
     } else {
       right = evaluateExpr(expr.right);
@@ -373,11 +354,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             return left || right;
           } else {
             throw HTErr_UndefinedBinaryOperator(
-                left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+                left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
           }
         } else {
           throw HTErr_UndefinedBinaryOperator(
-              left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+              left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
         }
       } else if (expr.op.type == HT_Lexicon.equal) {
         return left == right;
@@ -394,13 +375,13 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           }
         } else {
           throw HTErr_UndefinedBinaryOperator(
-              left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+              left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
         }
       } else if (expr.op.type == HT_Lexicon.IS) {
         if (right is HT_Class) {
-          return HT_TypeOf(left).name == right.identifier;
+          return HT_TypeOf(left).id == right.id;
         } else {
-          throw HTErr_NotType(right.toString(), expr.op.line, expr.op.column, curFileName);
+          throw HTErr_NotType(right.toString(), curFileName, expr.op.line, expr.op.column);
         }
       } else if ((expr.op.type == HT_Lexicon.multiply) ||
           (expr.op.type == HT_Lexicon.devide) ||
@@ -429,15 +410,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             }
           } else {
             throw HTErr_UndefinedBinaryOperator(
-                left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+                left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
           }
         } else {
           throw HTErr_UndefinedBinaryOperator(
-              left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+              left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
         }
       } else {
         throw HTErr_UndefinedBinaryOperator(
-            left.toString(), right.toString(), expr.op.lexeme, expr.op.line, expr.op.column, curFileName);
+            left.toString(), right.toString(), expr.op.lexeme, curFileName, expr.op.line, expr.op.column);
       }
     }
   }
@@ -456,6 +437,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     if (callee is HT_Function) {
+      // 普通函数
       if (callee.funcStmt.funcType != FuncStmtType.constructor) {
         if (callee.declContext is HT_Instance) {
           return callee.call(this, expr.line, expr.column,
@@ -464,33 +446,28 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           return callee.call(this, expr.line, expr.column, positionalArgs: positionalArgs, namedArgs: namedArgs);
         }
       } else {
-        //TODO命名构造函数
+        // 命名构造函数
         final className = callee.funcStmt.className;
-
         final klass = _globals.fetch(className, expr.line, expr.column, this);
-
         if (klass is HT_Class) {
-          return klass.createInstance(this, expr.line, expr.column, curContext,
-              constructorName: callee.name, positionalArgs: positionalArgs, namedArgs: namedArgs);
+          return klass.createInstance(this, expr.line, expr.column,
+              constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
         } else {
-          throw HTErr_Callable(callee.toString(), expr.callee.line, expr.callee.column, curFileName);
+          throw HTErr_Callable(callee.toString(), curFileName, expr.callee.line, expr.callee.column);
         }
       }
     } else if (callee is HT_Class) {
-      // for (final i = 0; i < callee.varStmts.length; ++i) {
-      //   var param_type_token = callee.varStmts[i].typename;
-      //   var arg = args[i];
-      //   if (arg.type != param_type_token.lexeme) {
-      //     throw HetuError(
-      //         '(Interpreter) The argument type "${arg.type}" can\'t be assigned to the parameter type "${param_type_token.lexeme}".'
-      //         ' [${param_type_token.line}, ${param_type_token.column}].');
-      //   }
-      // }
-
-      return callee.createInstance(this, expr.line, expr.column, curContext,
-          positionalArgs: positionalArgs, namedArgs: namedArgs);
+      if (!callee.isExtern) {
+        // 默认构造函数
+        return callee.createInstance(this, expr.line, expr.column,
+            positionalArgs: positionalArgs, namedArgs: namedArgs);
+      } else {
+        // 外部构造函数
+        final HT_External extern = _globals.fetch('${HT_Lexicon.externals}${callee.id}', expr.line, expr.column, this);
+        return extern(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      }
     } else {
-      throw HTErr_Callable(callee.toString(), expr.callee.line, expr.callee.column, curFileName);
+      throw HTErr_Callable(callee.toString(), curFileName, expr.callee.line, expr.callee.column);
     }
   }
 
@@ -526,7 +503,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       return collection[key];
     }
 
-    throw HTErr_SubGet(collection.toString(), expr.line, expr.column, expr.fileName);
+    throw HTErr_SubGet(collection.toString(), expr.fileName, expr.line, expr.column);
   }
 
   @override
@@ -540,7 +517,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       collection.value[key] = value;
     }
 
-    throw HTErr_SubGet(collection.toString(), expr.line, expr.column, expr.fileName);
+    throw HTErr_SubGet(collection.toString(), expr.fileName, expr.line, expr.column);
   }
 
   @override
@@ -560,10 +537,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     if ((object is HT_Instance) || (object is HT_Class)) {
-      return object.fetch(expr.key.lexeme, expr.line, expr.column, this, from: curContext.fullName);
+      if (!object.isExtern) {
+        return object.fetch(expr.key.lexeme, expr.line, expr.column, this, from: curContext.fullName);
+      } else {
+        return object.getProperty(expr.key.lexeme);
+      }
     }
 
-    throw HTErr_Get(object.toString(), expr.line, expr.column, expr.fileName);
+    throw HTErr_Get(object.toString(), expr.fileName, expr.line, expr.column);
   }
 
   @override
@@ -575,7 +556,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       return value;
     }
 
-    throw HTErr_Get(object.toString(), expr.key.line, expr.key.column, expr.fileName);
+    throw HTErr_Get(object.toString(), expr.fileName, expr.key.line, expr.key.column);
   }
 
   @override
@@ -589,14 +570,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     curContext.define(
-      stmt.name.lexeme,
+      stmt.id.lexeme,
       this,
-      line: stmt.name.line,
-      column: stmt.name.column,
+      line: stmt.id.line,
+      column: stmt.id.column,
       value: value,
       declType: stmt.declType,
-      isMutable: stmt.isMutable,
-      typeInference: stmt.typeInferrence,
+      isImmutable: stmt.isImmutable,
+      isDynamic: stmt.isDynamic,
     );
 
     return value;
@@ -670,12 +651,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     if (stmt.funcType != FuncStmtType.constructor) {
       HT_External externFunc;
       if (stmt.isExtern) {
-        final external_key = HT_Lexicon.externs + stmt.name;
-        externFunc =
-            _globals.fetch(external_key, stmt.keyword.line, stmt.keyword.column, this, from: _globals.fullName);
+        externFunc = _globals.fetch('${HT_Lexicon.externals}${stmt.id}', stmt.keyword.line, stmt.keyword.column, this,
+            from: _globals.fullName);
       }
       func = HT_Function(stmt, extern: externFunc, declContext: curContext);
-      curContext.define(stmt.name, this,
+      curContext.define(stmt.id, this,
           declType: func.typeid, line: stmt.keyword.line, column: stmt.keyword.column, value: func);
     }
     return func;
@@ -683,24 +663,23 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
-    //TODO: inherit all superClass members...
     HT_Class superClass;
-    if (stmt.name != HT_Lexicon.object) {
+    if (stmt.id != HT_Lexicon.object) {
       if (stmt.superClass == null) {
         superClass = _globals.fetch(HT_Lexicon.object, stmt.keyword.line, stmt.keyword.column, this);
       } else {
-        dynamic super_class = _getValue(stmt.superClass.name.lexeme, stmt.superClass);
+        dynamic super_class = _getValue(stmt.superClass.id.lexeme, stmt.superClass);
         if (super_class is! HT_Class) {
-          throw HTErr_Extends(superClass.identifier, stmt.keyword.line, stmt.keyword.column, curFileName);
+          throw HTErr_Extends(superClass.id, curFileName, stmt.keyword.line, stmt.keyword.column);
         }
         superClass = super_class;
       }
     }
 
-    final klass = HT_Class(stmt.name, superClass, closure: curContext);
+    final klass = HT_Class(stmt.id, superClass, isExtern: stmt.isExtern, closure: curContext);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curContext.define(stmt.name, this,
+    curContext.define(stmt.id, this,
         declType: HT_Type.CLASS, line: stmt.keyword.line, column: stmt.keyword.column, value: klass);
 
     //继承所有父类的成员变量和方法
@@ -717,8 +696,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           //       from: externs.fullName);
           // }
 
-          klass.define(variable.name.lexeme, this,
-              declType: variable.declType, line: variable.name.line, column: variable.name.column, value: value);
+          klass.define(variable.id.lexeme, this,
+              declType: variable.declType, line: variable.id.line, column: variable.id.column, value: value);
         } else {
           klass.addVariable(variable);
         }
@@ -739,8 +718,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         //       from: externs.fullName);
         // }
 
-        klass.define(variable.name.lexeme, this,
-            declType: variable.declType, line: variable.name.line, column: variable.name.column, value: value);
+        klass.define(variable.id.lexeme, this,
+            declType: variable.declType, line: variable.id.line, column: variable.id.column, value: value);
       } else {
         klass.addVariable(variable);
       }
@@ -755,7 +734,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       HT_Function func;
       HT_External externFunc;
       if (method.isExtern) {
-        externFunc = _globals.fetch('${HT_Lexicon.externs}${stmt.name}${HT_Lexicon.memberGet}${method.name}',
+        externFunc = _globals.fetch('${HT_Lexicon.externals}${stmt.id}${HT_Lexicon.memberGet}${method.id}',
             method.keyword.line, method.keyword.column, this,
             from: _globals.fullName);
       }

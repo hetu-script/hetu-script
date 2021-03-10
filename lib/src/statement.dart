@@ -16,9 +16,6 @@ abstract class StmtVisitor {
   /// 导入语句
   dynamic visitImportStmt(ImportStmt stmt);
 
-  /// 变量声明语句
-  dynamic visitVarDeclStmt(VarDeclStmt stmt);
-
   /// 表达式语句
   dynamic visitExprStmt(ExprStmt stmt);
 
@@ -39,6 +36,9 @@ abstract class StmtVisitor {
 
   /// Continue语句
   dynamic visitContinueStmt(ContinueStmt stmt);
+
+  /// 变量声明语句
+  dynamic visitVarDeclStmt(VarDeclStmt stmt);
 
   /// 函数声明和定义
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt);
@@ -65,47 +65,6 @@ class ImportStmt extends Stmt {
   final String nameSpace;
 
   ImportStmt(this.path, {this.nameSpace});
-}
-
-class VarDeclStmt extends Stmt {
-  @override
-  String get type => HT_Lexicon.varStmt;
-
-  @override
-  dynamic accept(StmtVisitor visitor) => visitor.visitVarDeclStmt(this);
-
-  final String fileName;
-
-  final Token name;
-
-  final HT_Type declType;
-
-  final Expr initializer;
-
-  final bool typeInferrence;
-
-  final bool isMutable;
-
-  //final bool isExtern;
-
-  final bool isStatic;
-
-  final bool isOptional;
-
-  final bool isNamed;
-
-  VarDeclStmt(
-    this.fileName,
-    this.name, {
-    this.declType = HT_Type.ANY,
-    this.initializer,
-    this.typeInferrence = true,
-    this.isMutable = true,
-    //this.isExtern = false,
-    this.isStatic = false,
-    this.isOptional = false,
-    this.isNamed = false,
-  });
 }
 
 class ExprStmt extends Stmt {
@@ -193,6 +152,47 @@ class ContinueStmt extends Stmt {
   dynamic accept(StmtVisitor visitor) => visitor.visitContinueStmt(this);
 }
 
+class VarDeclStmt extends Stmt {
+  @override
+  String get type => HT_Lexicon.varStmt;
+
+  @override
+  dynamic accept(StmtVisitor visitor) => visitor.visitVarDeclStmt(this);
+
+  final String fileName;
+
+  final Token id;
+
+  final HT_Type declType;
+
+  final Expr initializer;
+
+  final bool isDynamic;
+
+  final bool isImmutable;
+
+  final bool isExtern;
+
+  final bool isStatic;
+
+  final bool isOptional;
+
+  final bool isNamed;
+
+  VarDeclStmt(
+    this.fileName,
+    this.id, {
+    this.declType = HT_Type.ANY,
+    this.initializer,
+    this.isDynamic = false,
+    this.isImmutable = false,
+    this.isExtern = false,
+    this.isStatic = false,
+    this.isOptional = false,
+    this.isNamed = false,
+  });
+}
+
 enum FuncStmtType {
   normal,
   constructor,
@@ -213,9 +213,9 @@ class FuncDeclStmt extends Stmt {
 
   final Token keyword;
 
-  final String name;
+  final String id;
 
-  final List<String> typeParams = [];
+  final List<String> typeParams;
 
   final HT_Type returnType;
 
@@ -228,7 +228,7 @@ class FuncDeclStmt extends Stmt {
 
   final int arity;
 
-  List<Stmt> definition;
+  final List<Stmt> definition;
 
   final bool isExtern;
 
@@ -238,29 +238,22 @@ class FuncDeclStmt extends Stmt {
 
   final FuncStmtType funcType;
 
-  FuncDeclStmt(this.fileName, this.keyword, this.name, this.returnType, this.params,
-      {List<String> typeParams,
+  FuncDeclStmt(this.fileName, this.keyword, this.id, this.returnType, this.params,
+      {this.className,
+      this.typeParams = const [],
       this.arity = 0,
-      this.definition,
-      this.className,
+      this.definition = const [],
       this.isExtern = false,
       this.isStatic = false,
       this.isConst = false,
       this.funcType = FuncStmtType.normal}) {
-    definition ??= <Stmt>[];
     if (funcType == FuncStmtType.getter) {
-      _internalName = HT_Lexicon.getter + name;
+      _internalName = HT_Lexicon.getter + id;
     } else if (funcType == FuncStmtType.setter) {
-      _internalName = HT_Lexicon.setter + name;
+      _internalName = HT_Lexicon.setter + id;
+    } else {
+      _internalName = id;
     }
-    // else if (funcType == FuncStmtType.method) {
-    //   _internalName = HT_Lexicon.method + name;
-    // }
-    else {
-      _internalName = name;
-    }
-
-    if (typeParams != null) this.typeParams.addAll(typeParams);
   }
 }
 
@@ -275,9 +268,9 @@ class ClassDeclStmt extends Stmt {
 
   final Token keyword;
 
-  final String name;
+  final String id;
 
-  final List<String> typeParams = [];
+  final List<String> typeParams;
 
   final SymbolExpr superClass;
 
@@ -289,9 +282,9 @@ class ClassDeclStmt extends Stmt {
 
   final List<FuncDeclStmt> methods;
 
-  ClassDeclStmt(this.fileName, this.keyword, this.name, this.superClass, this.superClassDeclStmt,
-      this.superClassTypeArgs, this.variables, this.methods,
-      {List<String> typeParams}) {
-    if (typeParams != null) this.typeParams.addAll(typeParams);
-  }
+  final bool isExtern;
+
+  ClassDeclStmt(this.fileName, this.keyword, this.id, this.superClass, this.superClassDeclStmt, this.superClassTypeArgs,
+      this.variables, this.methods,
+      {this.typeParams = const [], this.isExtern = false});
 }
