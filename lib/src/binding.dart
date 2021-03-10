@@ -31,30 +31,30 @@ abstract class HT_BaseBinding {
     'Console.eraseLine': _console_erase_line,
     'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
-    'Value.toString': HTVal_Value._to_string,
-    'num.parse': HTVal_Number._parse,
-    'num.toStringAsFixed': HTVal_Number._to_string_as_fixed,
-    'num.truncate': HTVal_Number._truncate,
-    'String.isEmpty': HTVal_String._is_empty,
-    'String.parse': HTVal_String._parse,
-    'String.substring': HTVal_String._substring,
-    'List.length': HTVal_List._get_length,
-    'List.add': HTVal_List._add,
-    'List.clear': HTVal_List._clear,
-    'List.removeAt': HTVal_List._remove_at,
-    'List.indexOf': HTVal_List._index_of,
-    'List.elementAt': HTVal_List._element_at,
-    'Map.length': HTVal_Map._get_length,
-    'Map.keys': HTVal_Map._get_keys,
-    'Map.values': HTVal_Map._get_values,
-    'Map.containsKey': HTVal_Map._contains_key,
-    'Map.containsValue': HTVal_Map._contains_value,
-    'Map.setVal': HTVal_Map._set_val,
-    'Map.addAll': HTVal_Map._add_all,
-    'Map.clear': HTVal_Map._clear,
-    'Map.remove': HTVal_Map._remove,
-    'Map.getVal': HTVal_Map._get_val,
-    'Map.putIfAbsent': HTVal_Map._put_if_absent,
+    'Value.toString': HT_Instance_Value._to_string,
+    'num.parse': HT_Instance_Number._parse,
+    'num.toStringAsFixed': HT_Instance_Number._to_string_as_fixed,
+    'num.truncate': HT_Instance_Number._truncate,
+    'String.isEmpty': HT_Instance_String._is_empty,
+    'String.parse': HT_Instance_String._parse,
+    'String.substring': HT_Instance_String._substring,
+    'List.length': HT_Instance_List._get_length,
+    'List.add': HT_Instance_List._add,
+    'List.clear': HT_Instance_List._clear,
+    'List.removeAt': HT_Instance_List._remove_at,
+    'List.indexOf': HT_Instance_List._index_of,
+    'List.elementAt': HT_Instance_List._element_at,
+    'Map.length': HT_Instance_Map._get_length,
+    'Map.keys': HT_Instance_Map._get_keys,
+    'Map.values': HT_Instance_Map._get_values,
+    'Map.containsKey': HT_Instance_Map._contains_key,
+    'Map.containsValue': HT_Instance_Map._contains_value,
+    'Map.setVal': HT_Instance_Map._set_val,
+    'Map.addAll': HT_Instance_Map._add_all,
+    'Map.clear': HT_Instance_Map._clear,
+    'Map.remove': HT_Instance_Map._remove,
+    'Map.getVal': HT_Instance_Map._get_val,
+    'Map.putIfAbsent': HT_Instance_Map._put_if_absent,
     'random': _math_random,
     'randomInt': _math_random_int,
     'sqrt': _math_sqrt,
@@ -201,30 +201,26 @@ abstract class HT_BaseBinding {
 }
 
 /// Abstract base class of all class wrapper for literal values.
-abstract class HTVal_Value extends HT_Instance {
+abstract class HT_Instance_Value extends HT_Instance {
   final dynamic value;
 
-  HTVal_Value(this.value, String className, int line, int column, Interpreter interpreter)
+  HT_Instance_Value(this.value, String className, Interpreter interpreter)
       : super(
           interpreter,
           interpreter.fetchGlobal(className),
         );
 
-  //dynamic get value => fetch('_val', null, null, globalInterpreter.curFileName, error: false, from: type);
-
   static dynamic _to_string(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (instance != null) {
-      //var value = instance.fetch('_val', null, null, globalInterpreter.curFileName, from: instance.type);
-      return (instance as HTVal_Value).value.toString();
+      return (instance as HT_Instance_Value).value.toString();
     }
   }
 }
 
 /// Class wrapper for literal number.
-class HTVal_Number extends HTVal_Value {
-  HTVal_Number(num value, int line, int column, Interpreter interpreter)
-      : super(value, HT_Lexicon.number, line, column, interpreter);
+class HT_Instance_Number extends HT_Instance_Value {
+  HT_Instance_Number(num value, Interpreter interpreter) : super(value, HT_Lexicon.number, interpreter);
 
   static dynamic _parse(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
@@ -239,40 +235,38 @@ class HTVal_Number extends HTVal_Value {
     if (positionalArgs.isNotEmpty) {
       fractionDigits = positionalArgs.first;
     }
-    var numObj = (instance as HTVal_Number);
+    var numObj = (instance as HT_Instance_Number);
     num number = numObj?.value;
     return number.toStringAsFixed(fractionDigits);
   }
 
   static dynamic _truncate(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var numObj = (instance as HTVal_Number);
+    var numObj = (instance as HT_Instance_Number);
     num number = numObj?.value;
     return number.truncate();
   }
 }
 
 /// Class wrapper for literal boolean.
-class HTVal_Boolean extends HTVal_Value {
-  HTVal_Boolean(bool value, int line, int column, Interpreter interpreter)
-      : super(value, HT_Lexicon.number, line, column, interpreter);
+class HT_Instance_Boolean extends HT_Instance_Value {
+  HT_Instance_Boolean(bool value, Interpreter interpreter) : super(value, HT_Lexicon.number, interpreter);
 }
 
 /// Class wrapper for literal string.
-class HTVal_String extends HTVal_Value {
-  HTVal_String(String value, int line, int column, Interpreter interpreter)
-      : super(value, HT_Lexicon.string, line, column, interpreter);
+class HT_Instance_String extends HT_Instance_Value {
+  HT_Instance_String(String value, Interpreter interpreter) : super(value, HT_Lexicon.string, interpreter);
 
   static dynamic _is_empty(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var strObj = (instance as HTVal_String);
+    var strObj = (instance as HT_Instance_String);
     String str = strObj?.value;
     return str?.isEmpty;
   }
 
   static dynamic _substring(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var strObj = (instance as HTVal_String);
+    var strObj = (instance as HT_Instance_String);
     String str = strObj?.value;
     if (positionalArgs.isNotEmpty) {
       int startIndex = positionalArgs[0];
@@ -293,36 +287,35 @@ class HTVal_String extends HTVal_Value {
 }
 
 /// Class wrapper for literal list.
-class HTVal_List extends HTVal_Value {
+class HT_Instance_List extends HT_Instance_Value {
   String valueType;
 
-  HTVal_List(List value, int line, int column, Interpreter interpreter, {this.valueType})
-      : super(value, HT_Lexicon.list, line, column, interpreter) {
+  HT_Instance_List(List value, Interpreter interpreter, {this.valueType}) : super(value, HT_Lexicon.list, interpreter) {
     valueType ??= HT_Lexicon.ANY;
   }
 
   static dynamic _get_length(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var listObj = (instance as HTVal_List);
+    var listObj = (instance as HT_Instance_List);
     return listObj?.value?.length ?? -1;
   }
 
   static dynamic _add(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var listObj = (instance as HTVal_List);
+    var listObj = (instance as HT_Instance_List);
     listObj?.value?.addAll(positionalArgs);
   }
 
   static dynamic _clear(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var listObj = (instance as HTVal_List);
+    var listObj = (instance as HT_Instance_List);
     List list = listObj?.value;
     list?.clear();
   }
 
   static dynamic _remove_at(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var listObj = (instance as HTVal_List);
+    var listObj = (instance as HT_Instance_List);
     List list = listObj?.value;
     if (positionalArgs.isNotEmpty) {
       list?.removeAt(positionalArgs.first);
@@ -331,7 +324,7 @@ class HTVal_List extends HTVal_Value {
 
   static dynamic _index_of(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var listObj = (instance as HTVal_List);
+    var listObj = (instance as HT_Instance_List);
     List list = listObj?.value;
     if (positionalArgs.isNotEmpty) {
       return list?.indexOf(positionalArgs.first);
@@ -341,7 +334,7 @@ class HTVal_List extends HTVal_Value {
 
   static dynamic _element_at(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var listObj = (instance as HTVal_List);
+    var listObj = (instance as HT_Instance_List);
     List list = listObj?.value;
     try {
       if ((positionalArgs.isNotEmpty) && (positionalArgs.first is int)) {
@@ -358,35 +351,35 @@ class HTVal_List extends HTVal_Value {
 }
 
 /// Class wrapper for literal map.
-class HTVal_Map extends HTVal_Value {
+class HT_Instance_Map extends HT_Instance_Value {
   String keyType;
   String valueType;
 
-  HTVal_Map(Map value, int line, int column, Interpreter interpreter, {this.keyType, this.valueType})
-      : super(value, HT_Lexicon.map, line, column, interpreter) {
+  HT_Instance_Map(Map value, Interpreter interpreter, {this.keyType, this.valueType})
+      : super(value, HT_Lexicon.map, interpreter) {
     keyType ??= HT_Lexicon.ANY;
     valueType ??= HT_Lexicon.ANY;
   }
 
   static dynamic _get_length(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    return (instance as HTVal_Map)?.value?.length ?? -1;
+    return (instance as HT_Instance_Map)?.value?.length ?? -1;
   }
 
   static dynamic _get_keys(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    return (instance as HTVal_Map)?.value?.keys?.toList() ?? [];
+    return (instance as HT_Instance_Map)?.value?.keys?.toList() ?? [];
   }
 
   static dynamic _get_values(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    return (instance as HTVal_Map)?.value?.values?.toList() ?? [];
+    return (instance as HT_Instance_Map)?.value?.values?.toList() ?? [];
   }
 
   static dynamic _contains_key(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (positionalArgs.isNotEmpty) {
-      var mapObj = (instance as HTVal_Map);
+      var mapObj = (instance as HT_Instance_Map);
       Map map = mapObj?.value;
       if (map != null) return map.containsKey(positionalArgs.first);
     }
@@ -396,7 +389,7 @@ class HTVal_Map extends HTVal_Value {
   static dynamic _contains_value(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (positionalArgs.isNotEmpty) {
-      var mapObj = (instance as HTVal_Map);
+      var mapObj = (instance as HT_Instance_Map);
       Map map = mapObj?.value;
       if (map != null) return map.containsValue(positionalArgs.first);
     }
@@ -406,7 +399,7 @@ class HTVal_Map extends HTVal_Value {
   static dynamic _set_val(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if ((positionalArgs.isNotEmpty) && positionalArgs.length >= 2) {
-      var mapObj = (instance as HTVal_Map);
+      var mapObj = (instance as HT_Instance_Map);
       Map map = mapObj?.value;
       var key = positionalArgs[0];
       var value = positionalArgs[1];
@@ -419,7 +412,7 @@ class HTVal_Map extends HTVal_Value {
   static dynamic _add_all(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if ((positionalArgs.isNotEmpty) && (positionalArgs.first is Map)) {
-      var mapObj = (instance as HTVal_Map);
+      var mapObj = (instance as HT_Instance_Map);
       Map map = mapObj?.value;
       map?.addAll(positionalArgs.first);
     }
@@ -427,7 +420,7 @@ class HTVal_Map extends HTVal_Value {
 
   static dynamic _clear(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
-    var mapObj = (instance as HTVal_Map);
+    var mapObj = (instance as HT_Instance_Map);
     Map map = mapObj?.value;
     map?.clear();
   }
@@ -435,7 +428,7 @@ class HTVal_Map extends HTVal_Value {
   static dynamic _remove(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (positionalArgs.isNotEmpty) {
-      var mapObj = (instance as HTVal_Map);
+      var mapObj = (instance as HT_Instance_Map);
       Map map = mapObj?.value;
       map.remove(positionalArgs.first);
     }
@@ -444,7 +437,7 @@ class HTVal_Map extends HTVal_Value {
   static dynamic _get_val(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (positionalArgs.isNotEmpty) {
-      var mapObj = (instance as HTVal_Map);
+      var mapObj = (instance as HT_Instance_Map);
       Map map = mapObj?.value;
       var key = positionalArgs[0];
       return map[key];
@@ -454,7 +447,7 @@ class HTVal_Map extends HTVal_Value {
   static dynamic _put_if_absent(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
     if (positionalArgs.isNotEmpty) {
-      var mapObj = (instance as HTVal_Map);
+      var mapObj = (instance as HT_Instance_Map);
       Map map = mapObj?.value;
       var key = positionalArgs[0];
       var value = positionalArgs[1];

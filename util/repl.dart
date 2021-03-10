@@ -18,7 +18,7 @@ const cli_help = '''
 
 void main(List<String> args) async {
   try {
-    var interpreter = await Hetu.init();
+    var interpreter = await Hetu.create();
 
     dynamic result;
     if (args.isNotEmpty) {

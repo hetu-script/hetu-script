@@ -126,7 +126,7 @@ class HT_Function {
         //assert(closure != null);
         // 函数每次在调用时，才生成对应的作用域
         if (instance != null) {
-          _closure = HT_Namespace(name: '__${instance.name}.${name}${functionIndex++}', closure: instance);
+          _closure = HT_Namespace(name: '__${instance.identifier}.${name}${functionIndex++}', closure: instance);
           _closure.define(HT_Lexicon.THIS, interpreter,
               declType: instance.typeid, line: line, column: column, isMutable: false);
         } else {

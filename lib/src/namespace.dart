@@ -5,7 +5,7 @@ import 'interpreter.dart';
 
 class HT_Namespace extends HT_Value {
   @override
-  String toString() => '${HT_Lexicon.NAMESPACE} $name';
+  String toString() => '${HT_Lexicon.NAMESPACE} $identifier';
 
   String _fullName;
   String get fullName => _fullName;
@@ -15,7 +15,7 @@ class HT_Namespace extends HT_Value {
   HT_Namespace get closure => _closure;
   set closure(HT_Namespace closure) {
     _closure = closure;
-    _fullName = getFullName(name, _closure);
+    _fullName = getFullName(identifier, _closure);
   }
 
   static int spaceIndex = 0;
@@ -23,8 +23,8 @@ class HT_Namespace extends HT_Value {
   static String getFullName(String name, HT_Namespace space) {
     var fullName = name;
     var cur_space = space.closure;
-    while ((cur_space != null) && (cur_space.name != HT_Lexicon.globals)) {
-      fullName = cur_space.name + HT_Lexicon.memberGet + fullName;
+    while ((cur_space != null) && (cur_space.identifier != HT_Lexicon.globals)) {
+      fullName = cur_space.identifier + HT_Lexicon.memberGet + fullName;
       cur_space = cur_space.closure;
     }
     return fullName;
@@ -33,8 +33,8 @@ class HT_Namespace extends HT_Value {
   HT_Namespace({
     String name,
     HT_Namespace closure,
-  }) : super(name: name ?? '__namespace${spaceIndex++}') {
-    _fullName = getFullName(this.name, this);
+  }) : super(identifier: name ?? '__namespace${spaceIndex++}') {
+    _fullName = getFullName(identifier, this);
     _closure = closure;
   }
 
@@ -97,7 +97,9 @@ class HT_Namespace extends HT_Value {
       {bool error = true, String from, bool recursive = true}) {
     from ??= HT_Lexicon.globals;
     if (defs.containsKey(varName)) {
-      if (from.startsWith(fullName) || (name == HT_Lexicon.globals) || !varName.startsWith(HT_Lexicon.underscore)) {
+      if (from.startsWith(fullName) ||
+          (identifier == HT_Lexicon.globals) ||
+          !varName.startsWith(HT_Lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HTErr_PrivateMember(varName, line, column, interpreter.curFileName);

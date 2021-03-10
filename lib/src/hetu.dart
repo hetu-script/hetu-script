@@ -12,7 +12,7 @@ abstract class Hetu {
   static Interpreter itp;
 
   /// Get a initted instance of interpreter
-  static Future<Interpreter> init({
+  static Future<Interpreter> create({
     String sdkDirectory = 'hetu_lib/',
     String currentDirectory = 'script/',
     bool debugMode = false,

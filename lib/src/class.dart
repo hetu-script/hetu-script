@@ -30,7 +30,7 @@ class HT_Class extends HT_Namespace {
   List<String> typeParams = [];
 
   @override
-  String toString() => '${HT_Lexicon.CLASS} $name';
+  String toString() => '${HT_Lexicon.CLASS} $identifier';
 
   /// Super class of this class
   ///
@@ -168,9 +168,9 @@ class HT_Class extends HT_Namespace {
 
     interpreter.curContext = save;
 
-    constructorName ??= name;
+    constructorName ??= identifier;
 
-    var constructor = fetch(constructorName, line, column, interpreter, error: false, from: name);
+    var constructor = fetch(constructorName, line, column, interpreter, error: false, from: identifier);
 
     if (constructor is HT_Function) {
       constructor.call(interpreter, line, column,
@@ -194,7 +194,7 @@ class HT_Instance extends HT_Namespace {
 
   HT_Instance(Interpreter interpreter, this.klass, {List<HT_Type> typeArgs = const []})
       : super(name: HT_Lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
-    _typeid = HT_Type(klass.name, arguments: typeArgs = const []);
+    _typeid = HT_Type(klass.identifier, arguments: typeArgs = const []);
 
     define(HT_Lexicon.THIS, interpreter, declType: typeid, value: this);
     //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);

@@ -10,6 +10,7 @@ final Map<String, String> paths = const {
 };
 
 void main() {
+  stdout.write('Converting files in \'hetu_lib\' folder into Dart strings...');
   var content = '/// The core librarys in Hetu.\n'
       '///\n'
       '/// Automatically generated based on files in \'hetu_lib\' folder.\n'
@@ -23,4 +24,5 @@ void main() {
   content += '};\n';
 
   output.writeAsStringSync(content);
+  print('done.');
 }

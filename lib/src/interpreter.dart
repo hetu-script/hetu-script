@@ -61,8 +61,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {
-    _curFileName = fileName;
-    _curFileName ??= '__anonymousScript' + (Lexer.fileIndex++).toString();
+    _curFileName = fileName ?? '__anonymousScript' + (Lexer.fileIndex++).toString();
 
     curContext = context ?? _globals;
     final statements = Lexer(this, content, fileName: _curFileName).lex().parse(style: style).resolve(libName: libName);
@@ -80,7 +79,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   /// 解析文件
   Future<dynamic> evalf(
-    String filepath, {
+    String fileName, {
     String directory,
     String libName,
     ParseStyle style = ParseStyle.library,
@@ -90,11 +89,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   }) async {
     final savedFileName = _curFileName;
     final savedFileDirectory = _curDirectory;
-    _curFileName = filepath;
+    _curFileName = fileName;
     _curDirectory = directory ?? File(_curFileName).parent.path;
     dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
-      if (debugMode) print('hetu: Loading $filepath...');
+      if (debugMode) print('hetu: Loading $fileName...');
       _evaledFiles.add(curFileName);
 
       HT_Namespace library_namespace;
@@ -118,22 +117,22 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     return result;
   }
 
-  Future<dynamic> evalfSync(
-    String filepath, {
+  dynamic evalfSync(
+    String fileName, {
     String directory,
     String libName,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-  }) async {
+  }) {
     final savedFileName = _curFileName;
     final savedFileDirectory = _curDirectory;
-    _curFileName = filepath;
+    _curFileName = fileName;
     _curDirectory = directory ?? File(_curFileName).path;
     dynamic result;
     if (!_evaledFiles.contains(curFileName)) {
-      if (debugMode) print('hetu: Loading $filepath...');
+      if (debugMode) print('hetu: Loading $fileName...');
       _evaledFiles.add(curFileName);
 
       HT_Namespace library_namespace;
@@ -221,11 +220,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   //   if (value is HT_Value) {
   //     return value;
   //   } else if (value is num) {
-  //     return HTVal_Number(value, line, column, this);
+  //     return HT_Instance_Number(value, line, column, this);
   //   } else if (value is bool) {
-  //     return HTVal_Boolean(value, line, column, this);
+  //     return HT_Instance_Boolean(value, line, column, this);
   //   } else if (value is String) {
-  //     return HTVal_String(value, line, column, this);
+  //     return HT_Instance_String(value, line, column, this);
   //   } else {
   //     return value;
   //   }
@@ -399,7 +398,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         }
       } else if (expr.op.type == HT_Lexicon.IS) {
         if (right is HT_Class) {
-          return HT_TypeOf(left).name == right.name;
+          return HT_TypeOf(left).name == right.identifier;
         } else {
           throw HTErr_NotType(right.toString(), expr.op.line, expr.op.column, curFileName);
         }
@@ -517,11 +516,11 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitSubGetExpr(SubGetExpr expr) {
     var collection = evaluateExpr(expr.collection);
     var key = evaluateExpr(expr.key);
-    if (collection is HTVal_List) {
+    if (collection is HT_Instance_List) {
       return collection.value.elementAt(key);
     } else if (collection is List) {
       return collection[key];
-    } else if (collection is HTVal_Map) {
+    } else if (collection is HT_Instance_Map) {
       return collection.value[key];
     } else if (collection is Map) {
       return collection[key];
@@ -537,7 +536,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var value = evaluateExpr(expr.value);
     if ((collection is List) || (collection is Map)) {
       return collection[key] = value;
-    } else if ((collection is HTVal_List) || (collection is HTVal_Map)) {
+    } else if ((collection is HT_Instance_List) || (collection is HT_Instance_Map)) {
       collection.value[key] = value;
     }
 
@@ -549,15 +548,15 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     var object = evaluateExpr(expr.collection);
 
     if (object is num) {
-      object = HTVal_Number(object, expr.line, expr.column, this);
+      object = HT_Instance_Number(object, this);
     } else if (object is bool) {
-      object = HTVal_Boolean(object, expr.line, expr.column, this);
+      object = HT_Instance_Boolean(object, this);
     } else if (object is String) {
-      object = HTVal_String(object, expr.line, expr.column, this);
+      object = HT_Instance_String(object, this);
     } else if (object is List) {
-      object = HTVal_List(object, expr.line, expr.column, this);
+      object = HT_Instance_List(object, this);
     } else if (object is Map) {
-      object = HTVal_Map(object, expr.line, expr.column, this);
+      object = HT_Instance_Map(object, this);
     }
 
     if ((object is HT_Instance) || (object is HT_Class)) {
@@ -692,7 +691,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       } else {
         dynamic super_class = _getValue(stmt.superClass.name.lexeme, stmt.superClass);
         if (super_class is! HT_Class) {
-          throw HTErr_Extends(superClass.name, stmt.keyword.line, stmt.keyword.column, curFileName);
+          throw HTErr_Extends(superClass.identifier, stmt.keyword.line, stmt.keyword.column, curFileName);
         }
         superClass = super_class;
       }

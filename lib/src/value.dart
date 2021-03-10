@@ -124,10 +124,10 @@ HT_Type HT_TypeOf(dynamic value) {
 
 /// Value是命名空间、类和实例的基类
 abstract class HT_Value {
-  final String name;
-  bool used = false;
+  final String identifier;
+  //bool used = false;
 
-  HT_Value({this.name});
+  HT_Value({this.identifier});
 }
 
 class Declaration {

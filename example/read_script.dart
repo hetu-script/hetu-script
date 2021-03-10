@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = await Hetu.init(externalFunctions: {
+  var hetu = await Hetu.create(externalFunctions: {
     'dartHello': (
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},

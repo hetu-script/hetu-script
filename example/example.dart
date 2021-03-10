@@ -1,23 +1,27 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = await Hetu.init();
+  var hetu = await Hetu.create();
 
-  hetu.eval('''
+  hetu.eval(r'''
       class Person {
-        var name: any = 'some person'
+        var name: String = 'some person'
         fun greeting {
-          print("Hi!")
+          print('Hi!')
         }
       }
 
       class Jimmy extends Person {
-        init withName(the_name: any) {
+        init {
+          name = 'noname'
+        }
+
+        init withName(the_name: String) {
           name = the_name
         }
 
         fun greeting {
-          print("Hi! I'm", name)
+          print('Hi! I\'m', name)
         }
       }
       
@@ -25,6 +29,9 @@ void main() async {
         
         var j = Jimmy.withName('Jimmy')
         j.greeting()
+
+        var j2 = Jimmy()
+        j2.greeting()
 
       }
       ''', invokeFunc: 'main');

@@ -7,6 +7,9 @@ final Map<String, String> coreLibs = const {
 // return the runtime type of a value
 external fun typeof(value): String
 
+// return the declaration type of a symbol
+// external fun decltypeof(value): String
+
 // print values of any type into lines
 external fun print(... args)
 
@@ -76,6 +79,16 @@ class List extends Value {
 		return length != 0
 	}
 	
+	external fun add(... args)
+	
+	external fun clear()
+	
+	external fun removeAt(index: num)
+	
+	external fun indexOf(value): num
+	
+	external fun elementAt(index: num): any
+	
 	get first: any {
     if (length > 0){
       return elementAt(0)
@@ -91,16 +104,6 @@ class List extends Value {
 	fun contains(value): bool {
 		return indexOf(value) != -1
 	}
-	
-	external fun add(... args)
-	
-	external fun clear()
-	
-	external fun removeAt(index: num)
-	
-	external fun indexOf(value): num
-	
-	external fun elementAt(index: num): any
 }
 
 class Map extends Value {
@@ -137,7 +140,7 @@ class Map extends Value {
 }''',
 'system.ht': r'''class System {
   // invoke a global or static member function
-  external static fun invoke(func_name: String, className: String, args: List): any
+  external static fun invoke(func_name: String, className: String, args: List)
 
   external static fun now(): num
 }''',

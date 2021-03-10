@@ -11,3 +11,4 @@ export 'src/function.dart' show HT_Function;
 export 'src/errors.dart';
 export 'src/binding.dart';
 export 'src/lexicon.dart';
+export 'src/interpreter.dart';

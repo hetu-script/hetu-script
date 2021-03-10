@@ -352,7 +352,7 @@ class Parser {
     switch (style) {
       case ParseStyle.library:
         {
-          final is_extern = expect([HT_Lexicon.EXTERNAL], consume: true, error: false);
+          final isExtern = expect([HT_Lexicon.EXTERNAL], consume: true, error: false);
           // import语句
           if (expect([HT_Lexicon.IMPORT])) {
             return _parseImportStmt();
@@ -361,16 +361,16 @@ class Parser {
             return _parseVarStmt();
           } // let变量声明
           else if (expect([HT_Lexicon.LET])) {
-            return _parseVarStmt(type_inferrence: true);
+            return _parseVarStmt(typeInfer: true);
           } // const
           else if (expect([HT_Lexicon.CONST])) {
-            return _parseVarStmt(type_inferrence: true, is_mutable: false);
+            return _parseVarStmt(typeInfer: true, isMutable: false);
           } // 类声明
           else if (expect([HT_Lexicon.CLASS])) {
-            return _parseClassDeclStmt();
+            return _parseClassDeclStmt(isExtern: isExtern);
           } // 函数声明
           else if (expect([HT_Lexicon.FUN])) {
-            return _parseFuncDeclStmt(FuncStmtType.normal, is_extern: is_extern);
+            return _parseFuncDeclStmt(FuncStmtType.normal, isExtern: isExtern);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, fileName);
           }
@@ -387,10 +387,10 @@ class Parser {
             return _parseVarStmt();
           } // let
           else if (expect([HT_Lexicon.LET])) {
-            return _parseVarStmt(type_inferrence: true);
+            return _parseVarStmt(typeInfer: true);
           } // const
           else if (expect([HT_Lexicon.CONST])) {
-            return _parseVarStmt(type_inferrence: true, is_mutable: false);
+            return _parseVarStmt(typeInfer: true, isMutable: false);
           } // 函数声明
           else if (expect([HT_Lexicon.FUN])) {
             return _parseFuncDeclStmt(FuncStmtType.normal);
@@ -426,30 +426,30 @@ class Parser {
         break;
       case ParseStyle.classDefinition:
         {
-          final is_extern = expect([HT_Lexicon.EXTERNAL], consume: true, error: false);
+          final isExtern = expect([HT_Lexicon.EXTERNAL], consume: true, error: false);
           final is_static = expect([HT_Lexicon.STATIC], consume: true, error: false);
           // var变量声明
           if (expect([HT_Lexicon.VAR])) {
-            return _parseVarStmt(is_static: is_static);
+            return _parseVarStmt(isStatic: is_static);
           } // let
           else if (expect([HT_Lexicon.LET])) {
-            return _parseVarStmt(type_inferrence: true);
+            return _parseVarStmt(typeInfer: true);
           } // const
           else if (expect([HT_Lexicon.CONST])) {
-            return _parseVarStmt(type_inferrence: true, is_mutable: false);
+            return _parseVarStmt(typeInfer: true, isMutable: false);
           } // 构造函数
           // TODO：命名的构造函数
           else if (curTok.lexeme == HT_Lexicon.INIT) {
-            return _parseFuncDeclStmt(FuncStmtType.constructor, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.constructor, isExtern: isExtern, isStatic: is_static);
           } // setter函数声明
           else if (curTok.lexeme == HT_Lexicon.GET) {
-            return _parseFuncDeclStmt(FuncStmtType.getter, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.getter, isExtern: isExtern, isStatic: is_static);
           } // getter函数声明
           else if (curTok.lexeme == HT_Lexicon.SET) {
-            return _parseFuncDeclStmt(FuncStmtType.setter, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.setter, isExtern: isExtern, isStatic: is_static);
           } // 成员函数声明
           else if (expect([HT_Lexicon.FUN])) {
-            return _parseFuncDeclStmt(FuncStmtType.method, is_extern: is_extern, is_static: is_static);
+            return _parseFuncDeclStmt(FuncStmtType.method, isExtern: isExtern, isStatic: is_static);
           } else {
             throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, fileName);
           }
@@ -491,7 +491,7 @@ class Parser {
   }
 
   /// 变量声明语句
-  VarDeclStmt _parseVarStmt({bool is_static = false, bool type_inferrence = false, bool is_mutable = true}) {
+  VarDeclStmt _parseVarStmt({bool isStatic = false, bool typeInfer = false, bool isMutable = true}) {
     advance(1);
     final var_name = match(HT_Lexicon.identifier);
 
@@ -513,10 +513,10 @@ class Parser {
       var_name,
       declType: decl_type,
       initializer: initializer,
-      //isExtern: is_extern,
-      isStatic: is_static,
-      typeInferrence: type_inferrence,
-      isMutable: is_mutable,
+      //isExtern: isExtern,
+      isStatic: isStatic,
+      typeInferrence: typeInfer,
+      isMutable: isMutable,
     );
 
     _declarations[var_name.lexeme] = stmt;
@@ -690,7 +690,7 @@ class Parser {
     return params;
   }
 
-  FuncDeclStmt _parseFuncDeclStmt(FuncStmtType functype, {bool is_extern = false, bool is_static = false}) {
+  FuncDeclStmt _parseFuncDeclStmt(FuncStmtType functype, {bool isExtern = false, bool isStatic = false}) {
     final keyword = advance(1);
     String func_name;
     var typeParams = <String>[];
@@ -748,7 +748,7 @@ class Parser {
     }
 
     var body = <Stmt>[];
-    if (!is_extern) {
+    if (!isExtern) {
       // 处理函数定义部分的语句块
       expect([HT_Lexicon.curlyLeft], consume: true);
       body = _parseBlock(style: ParseStyle.function);
@@ -760,8 +760,8 @@ class Parser {
         arity: arity,
         definition: body,
         className: _curClassName,
-        isExtern: is_extern,
-        isStatic: is_static,
+        isExtern: isExtern,
+        isStatic: isStatic,
         funcType: functype);
 
     _declarations[stmt.name] = stmt;
@@ -769,7 +769,7 @@ class Parser {
     return stmt;
   }
 
-  ClassDeclStmt _parseClassDeclStmt() {
+  ClassDeclStmt _parseClassDeclStmt({bool isExtern = false}) {
     // 已经判断过了所以直接跳过Class关键字
     final keyword = advance(1);
 
