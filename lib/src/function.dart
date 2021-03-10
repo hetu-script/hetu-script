@@ -141,7 +141,7 @@ class HT_Function {
 
         if (funcStmt.arity >= 0) {
           for (var var_stmt in funcStmt.params) {
-            final arg = namedArgs[var_stmt.name];
+            final arg = namedArgs[var_stmt.name.lexeme];
             final arg_type_decl = var_stmt.declType;
 
             var arg_type = HT_TypeOf(arg);
