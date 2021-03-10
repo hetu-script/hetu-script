@@ -1,7 +1,6 @@
 import 'binding.dart';
 import 'interpreter.dart';
 import 'core.dart';
-import 'lexicon.dart';
 
 /// Helper class for init the environment of Hetu.
 ///
@@ -16,7 +15,6 @@ abstract class Hetu {
   static Future<Interpreter> init({
     String sdkDirectory = 'hetu_lib/',
     String currentDirectory = 'script/',
-    HT_Lexicon lexicon = const HT_LexiconDefault(),
     bool debugMode = false,
     ReadFileMethod readFileMethod = defaultReadFileMethod,
     Map<String, HT_External> externalFunctions = const {},

@@ -128,7 +128,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       }
 
       for (final funcStmt in cur_stmt.methods) {
-        if (funcStmt.isStatic) {
+        if (funcStmt.isStatic || (funcStmt.funcType == FuncStmtType.constructor)) {
           if ((funcStmt.internalName.startsWith(HT_Lexicon.getter) ||
                   funcStmt.internalName.startsWith(HT_Lexicon.setter)) &&
               !_blocks.last.containsKey(funcStmt.name)) {
@@ -136,9 +136,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
           } else {
             _declare(funcStmt.internalName, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
           }
-          if (funcStmt.funcType != FuncStmtType.constructor) {
-            static_func_stmt.add(funcStmt);
-          }
+          static_func_stmt.add(funcStmt);
         }
       }
 
@@ -150,7 +148,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
     }
     // 解析函数定义
     for (final funcStmt in static_func_stmt) {
-      _resolveFunction(funcStmt);
+      if (funcStmt.funcType != FuncStmtType.constructor) {
+        _resolveFunction(funcStmt);
+      }
     }
 
     _beginBlock();
@@ -167,7 +167,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       }
 
       for (final funcStmt in cur_stmt.methods) {
-        if (!funcStmt.isStatic) {
+        if (!funcStmt.isStatic && (funcStmt.funcType != FuncStmtType.constructor)) {
           _declare(funcStmt.internalName, funcStmt.keyword.line, funcStmt.keyword.column, define: true);
           if ((funcStmt.internalName.startsWith(HT_Lexicon.getter) ||
                   funcStmt.internalName.startsWith(HT_Lexicon.setter)) &&
@@ -184,6 +184,11 @@ class Resolver implements ExprVisitor, StmtVisitor {
     for (final varStmt in instance_var_stmt) {
       if (!varStmt.isStatic) {
         visitVarDeclStmt(varStmt);
+      }
+    }
+    for (final funcStmt in static_func_stmt) {
+      if (funcStmt.funcType == FuncStmtType.constructor) {
+        _resolveFunction(funcStmt);
       }
     }
     // 解析函数定义

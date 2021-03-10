@@ -248,9 +248,7 @@ class FuncDeclStmt extends Stmt {
       this.isConst = false,
       this.funcType = FuncStmtType.normal}) {
     definition ??= <Stmt>[];
-    if (funcType == FuncStmtType.constructor) {
-      _internalName = HT_Lexicon.constructor + name;
-    } else if (funcType == FuncStmtType.getter) {
+    if (funcType == FuncStmtType.getter) {
       _internalName = HT_Lexicon.getter + name;
     } else if (funcType == FuncStmtType.setter) {
       _internalName = HT_Lexicon.setter + name;

@@ -7,12 +7,12 @@ void main() async {
       class Person {
         var name: any = 'some person'
         fun greeting {
-          print("Hi! I'm", name)
+          print("Hi!")
         }
       }
 
       class Jimmy extends Person {
-        init (the_name: any) {
+        init withName(the_name: any) {
           name = the_name
         }
 
@@ -22,13 +22,8 @@ void main() async {
       }
       
       fun main {
-
-        var p = Person()
-        p.greeting()
-
-        print(typeof(p.name))
         
-        var j = Jimmy('Jimmy')
+        var j = Jimmy.withName('Jimmy')
         j.greeting()
 
       }

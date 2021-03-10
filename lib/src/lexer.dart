@@ -20,7 +20,7 @@ class Lexer {
     var currentLine = 0;
     var column;
     var pattern = RegExp(
-      lexicon.scriptPattern,
+      HT_Lexicon.scriptPattern,
       caseSensitive: false,
       unicode: true,
     );
@@ -53,7 +53,7 @@ class Lexer {
           }
           // 字符串字面量
           else if (match.group(HT_Lexicon.tokenGroupString) != null) {
-            var literal = _convertStringLiteral(matchString);
+            var literal = HT_Lexicon.convertStringLiteral(matchString);
             tokens.add(TokenStringLiteral(matchString, literal, currentLine, column));
           }
         }

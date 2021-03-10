@@ -168,7 +168,7 @@ class HT_Class extends HT_Namespace {
 
     interpreter.curContext = save;
 
-    constructorName = HT_Lexicon.constructor + (constructorName ?? name);
+    constructorName ??= name;
 
     var constructor = fetch(constructorName, line, column, interpreter, error: false, from: name);
 
