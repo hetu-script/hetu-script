@@ -14,7 +14,7 @@ import 'lexicon.dart';
 
 typedef ReadFileMethod = dynamic Function(String filepath);
 Future<String> defaultReadFileMethod(String filapath) async => await File(filapath).readAsString();
-String syncReadFileMethod(String filapath) => File(filapath).readAsStringSync();
+String readFileSync(String filapath) => File(filapath).readAsStringSync();
 
 /// 负责对语句列表进行最终解释执行
 class Interpreter implements ExprVisitor, StmtVisitor {
@@ -58,7 +58,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     HT_Namespace context,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
-    Map<String, dynamic> args,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
   }) {
     _curFileName = fileName;
     _curFileName ??= '__anonymousScript' + (Lexer.fileIndex++).toString();
@@ -70,7 +71,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
     if (invokeFunc != null) {
       if (style == ParseStyle.library) {
-        return invoke(invokeFunc, args: args);
+        return invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs);
       }
     } else {
       return _curStmtValue;
@@ -84,7 +85,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     String libName,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
-    Map<String, dynamic> args,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
   }) async {
     final savedFileName = _curFileName;
     final savedFileDirectory = _curDirectory;
@@ -104,7 +106,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       var content = await readFileMethod(_curFileName);
 
       result = eval(content,
-          fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
+          fileName: curFileName,
+          context: library_namespace,
+          style: style,
+          invokeFunc: invokeFunc,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs);
     }
     _curFileName = savedFileName;
     _curDirectory = savedFileDirectory;
@@ -117,7 +124,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     String libName,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
-    Map<String, dynamic> args,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
   }) async {
     final savedFileName = _curFileName;
     final savedFileDirectory = _curDirectory;
@@ -134,9 +142,14 @@ class Interpreter implements ExprVisitor, StmtVisitor {
         library_namespace = HT_Namespace(name: libName, closure: library_namespace);
       }
 
-      var content = syncReadFileMethod(_curFileName);
+      var content = readFileSync(_curFileName);
       result = eval(content,
-          fileName: curFileName, context: library_namespace, style: style, invokeFunc: invokeFunc, args: args);
+          fileName: curFileName,
+          context: library_namespace,
+          style: style,
+          invokeFunc: invokeFunc,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs);
     }
     _curFileName = savedFileName;
     _curDirectory = savedFileDirectory;
@@ -226,35 +239,30 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     return _globals.fetch(key, null, null, this, from: _globals.fullName);
   }
 
-  dynamic invoke(String name, {String classname, Map<String, dynamic> args}) {
-    HT_Error.clear();
-    try {
-      if (classname == null) {
-        var func = _globals.fetch(name, null, null, this, recursive: false);
-        if (func is HT_Function) {
-          return func.call(this, null, null, namedArgs: args);
-        } else {
-          throw HTErr_Undefined(name, null, null, curFileName);
-        }
-      } else {
-        var klass = _globals.fetch(classname, null, null, this, recursive: false);
-        if (klass is HT_Class) {
-          // 只能调用公共函数
-          var func = klass.fetch(name, null, null, this, recursive: false);
-          if (func is HT_Function) {
-            return func.call(this, null, null, namedArgs: args);
-          } else {
-            throw HTErr_Callable(name, null, null, curFileName);
-          }
-        } else {
-          throw HTErr_Undefined(classname, null, null, curFileName);
-        }
-      }
-    } catch (e) {
-      print(e);
-    } finally {
-      HT_Error.output();
+  dynamic invoke(String functionName,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+    // TODO: name应该可以解析出类名，这样就可以调用类的静态函数
+    // if (classname == null) {
+    var func = _globals.fetch(functionName, null, null, this, recursive: false);
+    if (func is HT_Function) {
+      return func.call(this, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs);
+    } else {
+      throw HTErr_Undefined(functionName, null, null, curFileName);
     }
+    // } else {
+    //   var klass = _globals.fetch(classname, null, null, this, recursive: false);
+    //   if (klass is HT_Class) {
+    //     // 只能调用公共函数
+    //     var func = klass.fetch(name, null, null, this, recursive: false);
+    //     if (func is HT_Function) {
+    //       return func.call(this, null, null, namedArgs: args);
+    //     } else {
+    //       throw HTErr_Callable(name, null, null, curFileName);
+    //     }
+    //   } else {
+    //     throw HTErr_Undefined(classname, null, null, curFileName);
+    //   }
+    // }
   }
 
   dynamic executeBlock(List<Stmt> statements, HT_Namespace environment) {
@@ -438,9 +446,9 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitCallExpr(CallExpr expr) {
     var callee = evaluateExpr(expr.callee);
-    var positionedArgs = [];
-    for (var i = 0; i < expr.positionedArgs.length; ++i) {
-      positionedArgs.add(evaluateExpr(expr.positionedArgs[i]));
+    var positionalArgs = [];
+    for (var i = 0; i < expr.positionalArgs.length; ++i) {
+      positionalArgs.add(evaluateExpr(expr.positionalArgs[i]));
     }
 
     var namedArgs = <String, dynamic>{};
@@ -452,12 +460,22 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       if (callee.funcStmt.funcType != FuncStmtType.constructor) {
         if (callee.declContext is HT_Instance) {
           return callee.call(this, expr.line, expr.column,
-              positionedArgs: positionedArgs, namedArgs: namedArgs, instance: callee.declContext);
+              positionalArgs: positionalArgs, namedArgs: namedArgs, instance: callee.declContext);
         } else {
-          return callee.call(this, expr.line, expr.column, positionedArgs: positionedArgs, namedArgs: namedArgs);
+          return callee.call(this, expr.line, expr.column, positionalArgs: positionalArgs, namedArgs: namedArgs);
         }
       } else {
         //TODO命名构造函数
+        final className = callee.funcStmt.className;
+
+        final klass = _globals.fetch(className, expr.line, expr.column, this);
+
+        if (klass is HT_Class) {
+          return klass.createInstance(this, expr.line, expr.column, curContext,
+              constructorName: callee.name, positionalArgs: positionalArgs, namedArgs: namedArgs);
+        } else {
+          throw HTErr_Callable(callee.toString(), expr.callee.line, expr.callee.column, curFileName);
+        }
       }
     } else if (callee is HT_Class) {
       // for (final i = 0; i < callee.varStmts.length; ++i) {
@@ -471,7 +489,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
       // }
 
       return callee.createInstance(this, expr.line, expr.column, curContext,
-          positionedArgs: positionedArgs, namedArgs: namedArgs);
+          positionalArgs: positionalArgs, namedArgs: namedArgs);
     } else {
       throw HTErr_Callable(callee.toString(), expr.callee.line, expr.callee.column, curFileName);
     }
@@ -742,7 +760,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             method.keyword.line, method.keyword.column, this,
             from: _globals.fullName);
       }
-      if (method.isStatic) {
+      if (method.isStatic || (method.funcType != FuncStmtType.constructor)) {
         func = HT_Function(method, internalName: method.internalName, extern: externFunc, declContext: klass);
       } else {
         func = HT_Function(method, internalName: method.internalName, extern: externFunc);

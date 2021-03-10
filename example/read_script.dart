@@ -2,7 +2,10 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   var hetu = await Hetu.init(externalFunctions: {
-    'dartHello': (HT_Instance instance, Map<String, dynamic> args) async {
+    'dartHello': (
+        {List<dynamic> positionalArgs = const [],
+        Map<String, dynamic> namedArgs = const {},
+        HT_Instance instance}) async {
       return {'dartValue': 'hello'};
     },
   });

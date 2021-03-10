@@ -21,7 +21,7 @@ end here.*/
 
 ## Keywords
 
-null, static, var, def, let, any, namespace, as, class, data, interface, mixin, fun, construct, get, set, this, super, extends, implements, mixin, external, import, break, continue, for, in, if, else, return, while, when, is
+null, static, var, def, let, any, namespace, as, class, data, interface, mixin, fun, init, get, set, this, super, extends, implements, mixin, external, import, break, continue, for, in, if, else, return, while, when, is
 
 ## Operators
 
@@ -105,7 +105,7 @@ while (year < 2040) {
 
 ## Function
 
-Function is declared with 'fun', 'get', 'set', 'construct'. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
+Function is declared with 'fun', 'get', 'set', 'init'. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
 
 ```typescript
 fun doubleIt(n: num): num {
@@ -120,7 +120,7 @@ fun main {
 
 For functions declared with 'fun', when no return type is provided in declaration, it will have a return type of 'any'. And it will return null if you didn't write return statement within the definition body.
 
-Member functions can also be declared with 'get', 'set', 'construct', they literally means getter, setter and contructor function.
+Member functions can also be declared with 'get', 'set', 'init', they literally means getter, setter and contructor function.
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
 
@@ -147,7 +147,7 @@ fun main {
 
 Class can have static variables and methods. Which can be accessed through the class name (rather than a instance).
 
-Class's member functions (methods) can use keyword: construct, get, set to define a constructor, getter, setter function.
+Class's member functions (methods) can use keyword: init, get, set to define a constructor, getter, setter function.
 
 Constructors have no function names and cannot return values. They will return a instance.
 
@@ -180,8 +180,8 @@ class Calculator {
   }
 
   // constructor with parameters
-  construct (x: num, y: num) {
-    // use this to access instance members
+  init (x: num, y: num) {
+    // use this to access instance members with same names
     this.x = x
     this.y = y
   }

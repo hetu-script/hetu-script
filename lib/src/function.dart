@@ -97,35 +97,29 @@ class HT_Function {
   }
 
   dynamic call(Interpreter interpreter, int line, int column,
-      {HT_Instance instance, List<dynamic> positionedArgs, Map<String, dynamic> namedArgs}) {
-    positionedArgs ??= [];
-
-    if (funcStmt.arity >= 0 && positionedArgs.length != funcStmt.arity) {
-      throw HTErr_Arity(name, positionedArgs.length, funcStmt.arity, line, column, interpreter.curFileName);
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
+    if (funcStmt.arity >= 0 && positionalArgs.length != funcStmt.arity) {
+      throw HTErr_Arity(name, positionalArgs.length, funcStmt.arity, line, column, interpreter.curFileName);
     }
 
-    namedArgs ??= {};
-    if (funcStmt.arity >= 0) {
-      for (var i = 0; i < positionedArgs.length; ++i) {
-        namedArgs[funcStmt.params[i].name.lexeme] = positionedArgs[i];
-      }
-    } else {
-      namedArgs[funcStmt.params.first.name.lexeme] = positionedArgs;
+    if (funcStmt.arity < 0) {
+      namedArgs[funcStmt.params.first.name.lexeme] = positionalArgs;
     }
 
     for (var i = 0; i < funcStmt.params.length; ++i) {
-      if (namedArgs[funcStmt.params[i].name.lexeme] != null) continue;
-      var initializer = funcStmt.params[i].initializer;
-      if (initializer != null) {
-        var init_value = interpreter.evaluateExpr(initializer);
-        namedArgs[funcStmt.params[i].name.lexeme] = init_value;
+      if (funcStmt.params[i].isOptional && (positionalArgs[i] == null) && (funcStmt.params[i].initializer != null)) {
+        positionalArgs[i] = interpreter.evaluateExpr(funcStmt.params[i].initializer);
+      } else if (funcStmt.params[i].isNamed &&
+          (namedArgs[funcStmt.params[i].name.lexeme] == null) &&
+          (funcStmt.params[i].initializer != null)) {
+        namedArgs[funcStmt.params[i].name.lexeme] = interpreter.evaluateExpr(funcStmt.params[i].initializer);
       }
     }
 
     dynamic result;
     try {
       if (extern != null) {
-        return extern(instance, namedArgs);
+        return extern(instance: instance, positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else {
         if (funcStmt == null) throw HTErr_MissingFuncDef(name, line, column, interpreter.curFileName);
         //_save = _closure;
@@ -140,8 +134,14 @@ class HT_Function {
         }
 
         if (funcStmt.arity >= 0) {
-          for (var var_stmt in funcStmt.params) {
-            final arg = namedArgs[var_stmt.name.lexeme];
+          for (var i = 0; i < funcStmt.params.length; ++i) {
+            var var_stmt = funcStmt.params[i];
+            var arg;
+            if (!var_stmt.isNamed) {
+              arg = positionalArgs[i];
+            } else {
+              arg = namedArgs[var_stmt.name];
+            }
             final arg_type_decl = var_stmt.declType;
 
             var arg_type = HT_TypeOf(arg);
@@ -157,7 +157,7 @@ class HT_Function {
           // “...”形式的variadic parameters本质是一个List
           // TODO: variadic parameters也需要类型检查
           _closure.define(funcStmt.params.first.name.lexeme, interpreter,
-              declType: HT_Type.list, line: line, column: column, value: positionedArgs);
+              declType: HT_Type.list, line: line, column: column, value: positionalArgs);
         }
 
         result = interpreter.executeBlock(funcStmt.definition, _closure);

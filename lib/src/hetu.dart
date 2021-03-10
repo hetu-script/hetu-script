@@ -17,7 +17,7 @@ abstract class Hetu {
     String currentDirectory = 'script/',
     bool debugMode = false,
     ReadFileMethod readFileMethod = defaultReadFileMethod,
-    Map<String, HT_External> externalFunctions,
+    Map<String, HT_External> externalFunctions = const {},
   }) async {
     itp = Interpreter(
       debugMode: debugMode,
@@ -26,22 +26,13 @@ abstract class Hetu {
 
     HT_BaseBinding.itp = itp;
 
-    try {
-      // load external functions.
-      itp.loadExternalFunctions(HT_BaseBinding.dartFunctions);
-      if (externalFunctions != null) {
-        itp.loadExternalFunctions(externalFunctions);
-      }
+    // load external functions.
+    itp.loadExternalFunctions(HT_BaseBinding.dartFunctions);
+    itp.loadExternalFunctions(externalFunctions);
 
-      // load classes and functions in core library.
-      for (final file in coreLibs.keys) {
-        itp.eval(coreLibs[file], fileName: file);
-      }
-    } catch (e) {
-      //stdout.write('\x1B[32m');
-      print('Hetu init failed!');
-      print(e);
-      //stdout.write('\x1B[m');
+    // load classes and functions in core library.
+    for (final file in coreLibs.keys) {
+      itp.eval(coreLibs[file], fileName: file);
     }
 
     return itp;

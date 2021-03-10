@@ -40,12 +40,19 @@ abstract class HT_Lexicon {
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
-  static const commandLinePattern = r'(//.*)|' // 注释 group(1)
-      r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(2)
-      r'(\|\||&&|==|!=|<=|>=|[><=/%\+\*\-\?!:\[\]\)\(\.])|' // 标点符号和运算符号 group(3)
-      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(4)
-      r"(('(\\'|[^'])*')|" // 字符串字面量 group(6)
-      r'("(\\"|[^"])*"))';
+  static const stringReplaces = <String, String>{
+    '\\\\': '\\',
+    '\\n': '\n',
+    '\\\'': '\'',
+  };
+
+  static String convertStringLiteral(String literal) {
+    var result = literal.substring(1).substring(0, literal.length - 2);
+    for (final key in stringReplaces.keys) {
+      result = result.replaceAll(key, stringReplaces[key]);
+    }
+    return result;
+  }
 
   static const tokenGroupComment = 1;
   static const tokenGroupIdentifier = 4;
@@ -73,7 +80,7 @@ abstract class HT_Lexicon {
   static const method = '__method__';
   static const instance = '__instance_of_';
   static const instancePrefix = 'instance of ';
-  static const constructor = '__construct__';
+  static const constructor = '__init__';
   static const getter = '__get__';
   static const setter = '__set__';
 
@@ -92,15 +99,14 @@ abstract class HT_Lexicon {
 
   static const VOID = 'void';
   static const VAR = 'var';
-  static const DEF = 'def';
   static const LET = 'let';
+  static const CONST = 'const';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const ANY = 'any';
   static const TYPEDEF = 'typedef';
 
   static const STATIC = 'static';
-  static const CONST = 'const';
-  static const CONSTRUCT = 'construct';
+  static const INIT = 'init';
   static const GET = 'get';
   static const SET = 'set';
   static const NAMESPACE = 'namespace';
@@ -139,11 +145,9 @@ abstract class HT_Lexicon {
         NULL,
         STATIC,
         VAR,
-        DEF,
         LET,
-        ANY,
+        CONST,
         TYPEDEF,
-        NAMESPACE,
         AS,
         CLASS,
         STRUCT,
@@ -152,9 +156,6 @@ abstract class HT_Lexicon {
         ASYNC,
         AWAIT,
         VOID,
-        CONSTRUCT,
-        GET,
-        SET,
         THIS,
         SUPER,
         EXTENDS,

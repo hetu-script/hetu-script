@@ -5,7 +5,6 @@ import 'token.dart';
 import 'lexicon.dart';
 import 'interpreter.dart';
 import 'value.dart';
-import 'lexer.dart';
 import 'resolver.dart';
 
 enum ParseStyle {
@@ -252,7 +251,7 @@ class Parser {
     //多层函数调用可以合并
     while (true) {
       if (expect([HT_Lexicon.call], consume: true, error: false)) {
-        var positionedArgs = <Expr>[];
+        var positionalArgs = <Expr>[];
         var namedArgs = <String, Expr>{};
 
         while ((curTok.type != HT_Lexicon.roundRight) && (curTok.type != HT_Lexicon.endOfFile)) {
@@ -266,7 +265,7 @@ class Parser {
               throw HTErr_Unexpected(curTok.lexeme, curTok.line, curTok.column, fileName);
             }
           } else {
-            positionedArgs.add(arg);
+            positionalArgs.add(arg);
           }
 
           if (curTok.type != HT_Lexicon.roundRight) {
@@ -274,7 +273,7 @@ class Parser {
           }
         }
         expect([HT_Lexicon.roundRight], consume: true);
-        expr = CallExpr(expr, positionedArgs, namedArgs, fileName);
+        expr = CallExpr(expr, positionalArgs, namedArgs, fileName);
       } else if (expect([HT_Lexicon.memberGet], consume: true, error: false)) {
         final name = match(HT_Lexicon.identifier);
         expr = MemberGetExpr(expr, name, fileName);
@@ -354,6 +353,7 @@ class Parser {
       case ParseStyle.library:
         {
           final is_extern = expect([HT_Lexicon.EXTERNAL], consume: true, error: false);
+          // import语句
           if (expect([HT_Lexicon.IMPORT])) {
             return _parseImportStmt();
           } // var变量声明
@@ -362,6 +362,9 @@ class Parser {
           } // let变量声明
           else if (expect([HT_Lexicon.LET])) {
             return _parseVarStmt(type_inferrence: true);
+          } // const
+          else if (expect([HT_Lexicon.CONST])) {
+            return _parseVarStmt(type_inferrence: true, is_mutable: false);
           } // 类声明
           else if (expect([HT_Lexicon.CLASS])) {
             return _parseClassDeclStmt();
@@ -382,11 +385,11 @@ class Parser {
           } // var变量声明
           else if (expect([HT_Lexicon.VAR])) {
             return _parseVarStmt();
-          } // def
-          else if (expect([HT_Lexicon.DEF])) {
-            return _parseVarStmt(type_inferrence: true);
-          } // let变量声明
+          } // let
           else if (expect([HT_Lexicon.LET])) {
+            return _parseVarStmt(type_inferrence: true);
+          } // const
+          else if (expect([HT_Lexicon.CONST])) {
             return _parseVarStmt(type_inferrence: true, is_mutable: false);
           } // 函数声明
           else if (expect([HT_Lexicon.FUN])) {
@@ -426,23 +429,23 @@ class Parser {
           final is_extern = expect([HT_Lexicon.EXTERNAL], consume: true, error: false);
           final is_static = expect([HT_Lexicon.STATIC], consume: true, error: false);
           // var变量声明
-          if (expect([HT_Lexicon.VAR]) || expect([HT_Lexicon.LET])) {
+          if (expect([HT_Lexicon.VAR])) {
             return _parseVarStmt(is_static: is_static);
-          } // def
-          else if (expect([HT_Lexicon.DEF])) {
-            return _parseVarStmt(type_inferrence: true);
-          } // let变量声明
+          } // let
           else if (expect([HT_Lexicon.LET])) {
+            return _parseVarStmt(type_inferrence: true);
+          } // const
+          else if (expect([HT_Lexicon.CONST])) {
             return _parseVarStmt(type_inferrence: true, is_mutable: false);
           } // 构造函数
           // TODO：命名的构造函数
-          else if (expect([HT_Lexicon.CONSTRUCT])) {
+          else if (curTok.lexeme == HT_Lexicon.INIT) {
             return _parseFuncDeclStmt(FuncStmtType.constructor, is_extern: is_extern, is_static: is_static);
           } // setter函数声明
-          else if (expect([HT_Lexicon.GET])) {
+          else if (curTok.lexeme == HT_Lexicon.GET) {
             return _parseFuncDeclStmt(FuncStmtType.getter, is_extern: is_extern, is_static: is_static);
           } // getter函数声明
-          else if (expect([HT_Lexicon.SET])) {
+          else if (curTok.lexeme == HT_Lexicon.SET) {
             return _parseFuncDeclStmt(FuncStmtType.setter, is_extern: is_extern, is_static: is_static);
           } // 成员函数声明
           else if (expect([HT_Lexicon.FUN])) {

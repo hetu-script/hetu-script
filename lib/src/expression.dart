@@ -367,17 +367,17 @@ class CallExpr extends Expr {
   final Expr callee;
 
   /// 函数声明的参数是parameter，调用时传入的变量叫argument
-  final List<Expr> positionedArgs;
+  final List<Expr> positionalArgs;
 
   final Map<String, Expr> namedArgs;
 
-  CallExpr(this.callee, this.positionedArgs, this.namedArgs, String fileName)
+  CallExpr(this.callee, this.positionalArgs, this.namedArgs, String fileName)
       : super(callee.line, callee.column, fileName);
 
   @override
   Expr clone() {
     var new_args = <Expr>[];
-    for (final expr in positionedArgs) {
+    for (final expr in positionalArgs) {
       new_args.add(expr.clone());
     }
 

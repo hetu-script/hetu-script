@@ -198,8 +198,8 @@ enum FuncStmtType {
   constructor,
   getter,
   setter,
-  method,
-  literal,
+  method, // normal function within a class
+  literal, // function expression with no function name
 }
 
 class FuncDeclStmt extends Stmt {
@@ -248,9 +248,7 @@ class FuncDeclStmt extends Stmt {
       this.isConst = false,
       this.funcType = FuncStmtType.normal}) {
     definition ??= <Stmt>[];
-    if (funcType == FuncStmtType.constructor) {
-      _internalName = HT_Lexicon.constructor + name;
-    } else if (funcType == FuncStmtType.getter) {
+    if (funcType == FuncStmtType.getter) {
       _internalName = HT_Lexicon.getter + name;
     } else if (funcType == FuncStmtType.setter) {
       _internalName = HT_Lexicon.setter + name;

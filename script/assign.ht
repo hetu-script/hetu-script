@@ -4,7 +4,7 @@ class HelloWorld {
   var world: num
   var _privateNum = 99
 
-  construct (hello: num, world: num) {
+  init (hello: num, world: num) {
     this.hello = hello;
     this.world = world;
   }
