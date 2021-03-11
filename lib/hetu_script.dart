@@ -4,9 +4,8 @@
 
 library hetu_script;
 
-export 'src/hetu.dart';
 export 'src/parser.dart' show ParseStyle;
-export 'src/class.dart' show HT_Instance, HT_Class;
+export 'src/class.dart';
 export 'src/function.dart' show HT_Function;
 export 'src/errors.dart';
 export 'src/binding.dart';

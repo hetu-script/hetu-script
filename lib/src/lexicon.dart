@@ -84,7 +84,7 @@ abstract class HT_Lexicon {
   static const getter = '__get__';
   static const setter = '__set__';
 
-  static const object = 'Object';
+  static const rootClass = 'Object';
   static const unknown = '__unknown__';
   static const function = 'function';
   static const list = 'List';
@@ -105,10 +105,11 @@ abstract class HT_Lexicon {
   static const ANY = 'any';
   static const TYPEDEF = 'typedef';
 
-  static const STATIC = 'static';
   static const INIT = 'init';
   static const GET = 'get';
   static const SET = 'set';
+
+  static const STATIC = 'static';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
   static const ABSTRACT = 'abstract';
@@ -359,6 +360,8 @@ abstract class HT_Lexicon {
   static const errorReturnType1 = 'Value of type';
   static const errorReturnType2 = 'can\'t be returned from function';
   static const errorReturnType3 = 'because it has a return type of';
+
+  static const errorFuncWithoutBody = '(function) has no definition.';
 
   static const errorArity1 = 'Number of arguments';
   static const errorArity2 = 'doesn\'t match parameter requirement of function';

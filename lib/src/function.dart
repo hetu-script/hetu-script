@@ -1,5 +1,5 @@
 import 'class.dart';
-import 'binding.dart' show HT_External;
+import 'binding.dart' show HT_ExternalFunction;
 import 'namespace.dart';
 import 'statement.dart';
 import 'interpreter.dart';
@@ -53,11 +53,10 @@ class HT_Function {
   HT_FunctionType _typeid;
   HT_FunctionType get typeid => _typeid;
 
-  final HT_External extern;
+  final HT_ExternalFunction extern;
 
   HT_Function(this.funcStmt, {this.internalName, List<HT_Type> typeArgs = const [], this.extern, this.declContext}) {
     //_save = _closure = closure;
-
     var paramsTypes = <HT_Type>[];
     for (final param in funcStmt.params) {
       paramsTypes.add(param.declType ?? HT_Type.ANY);
@@ -97,7 +96,7 @@ class HT_Function {
   }
 
   dynamic call(Interpreter interpreter, int line, int column,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance instance}) {
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
     if (funcStmt.arity >= 0 && positionalArgs.length != funcStmt.arity) {
       throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
     }
@@ -119,16 +118,16 @@ class HT_Function {
     dynamic result;
     try {
       if (extern != null) {
-        return extern(instance: instance, positionalArgs: positionalArgs, namedArgs: namedArgs);
-      } else {
+        return extern(interpreter, object: object, positionalArgs: positionalArgs, namedArgs: namedArgs);
+      } else if (funcStmt.definition != null) {
         if (funcStmt == null) throw HTErr_MissingFuncDef(id, interpreter.curFileName, line, column);
         //_save = _closure;
         //assert(closure != null);
         // 函数每次在调用时，才生成对应的作用域
-        if (instance != null) {
-          _closure = HT_Namespace(id: '__${instance.id}.$id${functionIndex++}', closure: instance);
+        if (object != null) {
+          _closure = HT_Namespace(id: '__${object.id}.$id${functionIndex++}', closure: object);
           _closure.define(HT_Lexicon.THIS, interpreter,
-              declType: instance.typeid, line: line, column: column, isImmutable: true);
+              declType: object.typeid, line: line, column: column, isImmutable: true);
         } else {
           _closure = HT_Namespace(id: '__$id${functionIndex++}', closure: declContext);
         }
@@ -162,6 +161,8 @@ class HT_Function {
 
         result = interpreter.executeBlock(funcStmt.definition, _closure);
         //_closure = _save;
+      } else {
+        throw HTErr_FuncWithoutBody(id, interpreter.curFileName, line, column);
       }
     } catch (returnValue) {
       if (returnValue is HT_Error) {

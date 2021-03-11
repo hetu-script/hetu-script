@@ -66,7 +66,7 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   var hetu = await Hetu.init(externalFunctions: {
-    'dartHello': (HT_Instance instance, Map<String, dynamic> args) {
+    'dartHello': (HT_Object instance, Map<String, dynamic> args) {
       return {'dartValue': 'hello'};
     },
   });

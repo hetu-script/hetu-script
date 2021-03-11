@@ -772,13 +772,13 @@ class Parser {
     }
 
     var body = <Stmt>[];
-    if (!isExtern) {
+    if (expect([HT_Lexicon.curlyLeft], consume: true, error: false)) {
       // 处理函数定义部分的语句块
-      expect([HT_Lexicon.curlyLeft], consume: true);
       body = _parseBlock(style: ParseStyle.function);
     } else {
       expect([HT_Lexicon.semicolon], consume: true, error: false);
     }
+
     var stmt = FuncDeclStmt(fileName, keyword, func_name, return_type, params,
         typeParams: typeParams,
         arity: arity,
@@ -834,16 +834,19 @@ class Parser {
     // 类的定义体
     var variables = <VarDeclStmt>[];
     var methods = <FuncDeclStmt>[];
-    expect([HT_Lexicon.curlyLeft], consume: true);
-    while ((curTok.type != HT_Lexicon.curlyRight) && (curTok.type != HT_Lexicon.endOfFile)) {
-      var member = _parseStmt(style: isExtern ? ParseStyle.externalClass : ParseStyle.hetuClass);
-      if (member is VarDeclStmt) {
-        variables.add(member);
-      } else if (member is FuncDeclStmt) {
-        methods.add(member);
+    if (expect([HT_Lexicon.curlyLeft], consume: true, error: false)) {
+      while ((curTok.type != HT_Lexicon.curlyRight) && (curTok.type != HT_Lexicon.endOfFile)) {
+        var member = _parseStmt(style: isExtern ? ParseStyle.externalClass : ParseStyle.hetuClass);
+        if (member is VarDeclStmt) {
+          variables.add(member);
+        } else if (member is FuncDeclStmt) {
+          methods.add(member);
+        }
       }
+      expect([HT_Lexicon.curlyRight], consume: true);
+    } else {
+      expect([HT_Lexicon.semicolon], consume: true, error: false);
     }
-    expect([HT_Lexicon.curlyRight], consume: true);
 
     final stmt = ClassDeclStmt(
         fileName, keyword, class_name, super_class, super_class_decl, super_class_type_args, variables, methods,

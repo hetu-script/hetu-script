@@ -1,11 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = await Hetu.create(externalFunctions: {
-    'dartHello': (
-        {List<dynamic> positionalArgs = const [],
-        Map<String, dynamic> namedArgs = const {},
-        HT_Instance instance}) async {
+  var hetu = await HT_Isolate(externalFunctions: {
+    'dartHello': (Interpreter interpreter,
+        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) async {
       return {'dartValue': 'hello'};
     },
   });

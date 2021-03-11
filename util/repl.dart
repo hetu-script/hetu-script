@@ -18,16 +18,16 @@ const cli_help = '''
 
 void main(List<String> args) async {
   try {
-    var interpreter = await Hetu.create();
+    var hetu = await HT_Isolate();
 
     dynamic result;
     if (args.isNotEmpty) {
       if ((args.first == '--help') || (args.first == '-h')) {
         print(cli_help);
       } else if (args.length == 1) {
-        result = await interpreter.evalf(args.first, style: ParseStyle.function);
+        result = await hetu.evalf(args.first, style: ParseStyle.function);
       } else {
-        result = await interpreter.evalf(args.first, style: ParseStyle.library, invokeFunc: args[1]);
+        result = await hetu.evalf(args.first, style: ParseStyle.library, invokeFunc: args[1]);
       }
       if (result != null) print(result);
     } else {
@@ -49,7 +49,7 @@ void main(List<String> args) async {
           }
 
           try {
-            result = interpreter.eval(input, style: ParseStyle.function);
+            result = hetu.eval(input, style: ParseStyle.function);
             if (result != null) print(result);
           } catch (e) {
             print(e);

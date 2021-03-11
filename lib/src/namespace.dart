@@ -77,7 +77,14 @@ class HT_Namespace extends HT_Value {
 
   /// 在当前命名空间定义一个变量的类型
   void define(String id, Interpreter interpreter,
-      {int line, int column, HT_Type declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
+      {int line,
+      int column,
+      HT_Type declType,
+      dynamic value,
+      bool isExtern = false,
+      bool isImmutable = false,
+      bool isNullable = false,
+      bool isDynamic = false}) {
     var val_type = HT_TypeOf(value);
     if (declType == null) {
       if ((!isDynamic) && (value != null)) {
@@ -87,7 +94,8 @@ class HT_Namespace extends HT_Value {
       }
     }
     if (val_type.isA(declType)) {
-      defs[id] = Declaration(declType, value: value, isImmutable: isImmutable);
+      defs[id] =
+          Declaration(declType, value: value, isExtern: isExtern, isNullable: isNullable, isImmutable: isImmutable);
     } else {
       throw HTErr_Type(id, val_type.toString(), declType.toString(), interpreter.curFileName, line, column);
     }

@@ -67,7 +67,7 @@ HT_Type HT_TypeOf(dynamic value) {
     return HT_Type.NULL;
   } else if (value is HT_Class) {
     return HT_Type.CLASS;
-  } else if (value is HT_Instance) {
+  } else if (value is HT_Object) {
     return value.typeid;
   } else if (value is HT_Function) {
     return value.typeid;
@@ -135,8 +135,9 @@ class Declaration {
   dynamic value;
 
   final HT_Type typeid;
+  final bool isExtern;
   final bool isNullable;
   final bool isImmutable;
 
-  Declaration(this.typeid, {this.value, this.isNullable = false, this.isImmutable = false});
+  Declaration(this.typeid, {this.value, this.isExtern = false, this.isNullable = false, this.isImmutable = false});
 }

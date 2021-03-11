@@ -13,7 +13,7 @@ import 'value.dart';
 ///
 /// The values defined in this namespace are methods and [static] members in Hetu class.
 ///
-/// The [variables] are instance members.
+/// The [variables] are object members.
 ///
 /// Class can have type parameters.
 ///
@@ -26,7 +26,7 @@ import 'value.dart';
 ///   ...
 /// }
 /// ```
-class HT_Class extends HT_Namespace {
+class HT_Class extends HT_Namespace with HT_Reflect {
   /// The type parameters of the class.
   final List<String> typeParams;
 
@@ -40,7 +40,7 @@ class HT_Class extends HT_Namespace {
   /// If a class is not extends from any super class, then it is the child of class `Object`
   final HT_Class superClass;
 
-  /// The instance members defined in class definition.
+  /// The object members defined in class definition.
   Map<String, VarDeclStmt> variables = {};
 
   /// Create a class object.
@@ -53,8 +53,11 @@ class HT_Class extends HT_Namespace {
   /// normally the global namespace of the interpreter.
   ///
   /// [superClass] : super class of this class.
-  HT_Class(String id, this.superClass, {this.isExtern = false, this.typeParams = const [], HT_Namespace closure})
-      : super(id: id, closure: closure);
+  HT_Class(String id, this.superClass, Interpreter interpreter,
+      {this.isExtern = false, this.typeParams = const [], HT_Namespace closure})
+      : super(id: id, closure: closure) {
+    register(id, interpreter);
+  }
 
   /// Wether the class contains a static member, will also check super class.
   @override
@@ -64,14 +67,14 @@ class HT_Class extends HT_Namespace {
       ((superClass?.contains(varName)) ?? false) ||
       ((superClass?.contains('${HT_Lexicon.getter}$varName')) ?? false);
 
-  /// Add a instance variable declaration to this class.
+  /// Add a object variable declaration to this class.
   void addVariable(VarDeclStmt stmt) {
     if (!variables.containsKey(stmt.id.lexeme)) {
       variables[stmt.id.lexeme] = stmt;
     } else {
       throw HTErr_Defined(
         stmt.id.lexeme,
-        Hetu.itp.curFileName,
+        interpreter.curFileName,
         stmt.id.line,
         stmt.id.column,
       );
@@ -89,7 +92,11 @@ class HT_Class extends HT_Namespace {
       } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
         throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
       }
-      return defs[varName].value;
+      if (!defs[varName].isExtern) {
+        return defs[varName].value;
+      } else {
+        return interpreter.fetchGlobal('$id${HT_Lexicon.memberGet}$varName');
+      }
     } else if (defs.containsKey(getter)) {
       if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
         throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
@@ -117,6 +124,16 @@ class HT_Class extends HT_Namespace {
 
     if (error) throw HTErr_Undefined(varName, interpreter.curFileName, line, column);
     return null;
+  }
+
+  @override // TODO: 区分getOwnProperty和继承的property？
+  dynamic getProperty(String id) {
+    return fetch(
+      id,
+      null,
+      null,
+      interpreter,
+    );
   }
 
   /// Assign a value to a static member of this class.
@@ -154,20 +171,20 @@ class HT_Class extends HT_Namespace {
     if (error) throw HTErr_Undefined(varName, interpreter.curFileName, line, column);
   }
 
-  /// Create a instance from this class.
+  /// Create a object from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HT_Instance createInstance(Interpreter interpreter, int line, int column,
+  HT_Object createInstance(Interpreter interpreter, int line, int column,
       {List<HT_Type> typeArgs, String constructorName, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
-    var instance = HT_Instance(interpreter, this, typeArgs: typeArgs?.sublist(0, typeParams.length));
+    var object = HT_Object(interpreter, id, typeArgs: typeArgs?.sublist(0, typeParams.length));
 
     var save = interpreter.curContext;
-    interpreter.curContext = instance;
+    interpreter.curContext = object;
     for (final decl in variables.values) {
       dynamic value;
       if (decl.initializer != null) {
         value = interpreter.evaluateExpr(decl.initializer);
       }
-      instance.define(decl.id.lexeme, interpreter, declType: decl.declType, line: line, column: column, value: value);
+      object.define(decl.id.lexeme, interpreter, declType: decl.declType, line: line, column: column, value: value);
     }
     interpreter.curContext = save;
 
@@ -175,41 +192,44 @@ class HT_Class extends HT_Namespace {
     var constructor = fetch(constructorName, line, column, interpreter, error: false, from: id);
 
     if (constructor is HT_Function) {
-      constructor.call(interpreter, line, column,
-          positionalArgs: positionalArgs, namedArgs: namedArgs, instance: instance);
+      constructor.call(interpreter, line, column, positionalArgs: positionalArgs, namedArgs: namedArgs, object: object);
     }
 
-    return instance;
+    return object;
   }
 
-  // void initInstance(HT_Instance instance, String constructorName, Interpreter interpreter,
+  // void initInstance(HT_Object object, String constructorName, Interpreter interpreter,
   //     {List<HT_Type> typeArgs, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
   //   constructorName ??= id;
   //   var constructor = fetch(constructorName, null, null, interpreter, error: false, from: id);
 
   //   if (constructor is HT_Function) {
   //     constructor.call(interpreter, null, null,
-  //         positionalArgs: positionalArgs, namedArgs: namedArgs, instance: instance);
+  //         positionalArgs: positionalArgs, namedArgs: namedArgs, object: object);
   //   }
   // }
 }
 
-/// [HT_Instance] is the Dart implementation of the object instance in Hetu.
-class HT_Instance extends HT_Namespace {
+/// [HT_Object] is the Dart implementation of the object object in Hetu.
+class HT_Object extends HT_Namespace with HT_Reflect {
   static int _instanceIndex = 0;
 
   final bool isExtern;
-  final HT_Class klass;
+
+  HT_Class _klass;
+  HT_Class get klass => _klass;
 
   HT_Type _typeid;
   HT_Type get typeid => _typeid;
 
-  HT_Instance(Interpreter interpreter, this.klass, {List<HT_Type> typeArgs = const [], this.isExtern = false})
-      : super(id: HT_Lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
+  HT_Object(Interpreter interpreter, String className, {List<HT_Type> typeArgs = const [], this.isExtern = false})
+      : super(id: HT_Lexicon.instance + (_instanceIndex++).toString(), closure: interpreter.fetchGlobal(className)) {
     _typeid = HT_Type(klass.id, arguments: typeArgs = const []);
 
     define(HT_Lexicon.THIS, interpreter, declType: typeid, value: this);
-    //klass = globalInterpreter.fetchGlobal(class_name, line, column, fileName);
+
+    register(className, interpreter);
+    _klass = interpreter.fetchGlobal(className);
   }
 
   @override
@@ -231,7 +251,7 @@ class HT_Instance extends HT_Namespace {
       if (klass.contains(getter)) {
         HT_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
-          return method.call(interpreter, line, column, instance: this);
+          return method.call(interpreter, line, column, object: this);
         }
       } else {
         // var method_name = '${HT_Lexicon.method}$varName';
@@ -270,7 +290,7 @@ class HT_Instance extends HT_Namespace {
       if (klass.contains(setter)) {
         HT_Function method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
-          method.call(interpreter, line, column, positionalArgs: [value], instance: this);
+          method.call(interpreter, line, column, positionalArgs: [value], object: this);
           return;
         }
       }
@@ -283,9 +303,35 @@ class HT_Instance extends HT_Namespace {
       {bool error = true, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
     HT_Function method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
-      return method.call(interpreter, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
+      return method.call(interpreter, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs, object: this);
     }
 
     if (error) throw HTErr_Undefined(methodName, interpreter.curFileName, line, column);
   }
+
+  @override // TODO: 区分getOwnProperty和继承的property？
+  dynamic getProperty(String id) {
+    return fetch(
+      id,
+      null,
+      null,
+      interpreter,
+    );
+  }
+}
+
+mixin HT_Reflect {
+  String _className;
+  String get className => _className;
+
+  Interpreter _interpreter;
+  Interpreter get interpreter => _interpreter;
+
+  void register(String className, Interpreter interpreter) {
+    _className = className;
+    _interpreter = interpreter;
+  }
+
+  // 获取类静态成员变量
+  dynamic getProperty(String id);
 }

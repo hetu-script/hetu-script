@@ -198,6 +198,11 @@ class HTErr_ReturnType extends HT_Error {
             column);
 }
 
+class HTErr_FuncWithoutBody extends HT_Error {
+  HTErr_FuncWithoutBody(String func_name, [String fileName, int line, int column])
+      : super('$func_name ${HT_Lexicon.errorFuncWithoutBody}', fileName, line, column);
+}
+
 class HTErr_Arity extends HT_Error {
   HTErr_Arity(String symbol, int args_count, int params_count, [String fileName, int line, int column])
       : super('${HT_Lexicon.errorArity1} [$args_count] ${HT_Lexicon.errorArity2} [$symbol] [$params_count]', fileName,
