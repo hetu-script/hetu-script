@@ -1,0 +1,3 @@
+class HetuVM {
+  HetuVM();
+}

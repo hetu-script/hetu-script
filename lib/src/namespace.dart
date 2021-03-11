@@ -2,15 +2,16 @@ import 'errors.dart';
 import 'lexicon.dart';
 import 'value.dart';
 import 'interpreter.dart';
+import 'common.dart';
 
-class HT_Namespace extends HT_Value {
+class HT_Namespace extends HT_Value with HT_Context {
   @override
   String toString() => '${HT_Lexicon.NAMESPACE} $id';
 
   String _fullName;
   String get fullName => _fullName;
 
-  final Map<String, Declaration> defs = {};
+  final Map<String, HT_Declaration> defs = {};
   HT_Namespace _closure;
   HT_Namespace get closure => _closure;
   set closure(HT_Namespace closure) {
@@ -76,7 +77,7 @@ class HT_Namespace extends HT_Value {
   // }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(String id, Interpreter interpreter,
+  void define(String id, HT_Interpreter interpreter,
       {int line,
       int column,
       HT_Type declType,
@@ -94,14 +95,14 @@ class HT_Namespace extends HT_Value {
       }
     }
     if (val_type.isA(declType)) {
-      defs[id] =
-          Declaration(declType, value: value, isExtern: isExtern, isNullable: isNullable, isImmutable: isImmutable);
+      defs[id] = HT_Declaration(id,
+          declType: declType, value: value, isExtern: isExtern, isNullable: isNullable, isImmutable: isImmutable);
     } else {
       throw HTErr_Type(id, val_type.toString(), declType.toString(), interpreter.curFileName, line, column);
     }
   }
 
-  dynamic fetch(String varName, int line, int column, Interpreter interpreter,
+  dynamic fetch(String varName, int line, int column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       if (from.startsWith(fullName) || (id == HT_Lexicon.globals) || !varName.startsWith(HT_Lexicon.underscore)) {
@@ -119,17 +120,17 @@ class HT_Namespace extends HT_Value {
     return null;
   }
 
-  dynamic fetchAt(String varName, int distance, int line, int column, Interpreter interpreter,
+  dynamic fetchAt(String varName, int distance, int line, int column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
     var space = closureAt(distance);
     return space.fetch(varName, line, column, interpreter, error: error, from: space.fullName, recursive: false);
   }
 
   /// 向一个已经定义的变量赋值
-  void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
+  void assign(String varName, dynamic value, int line, int column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      var decl_type = defs[varName].typeid;
+      var decl_type = defs[varName].declType;
       var var_type = HT_TypeOf(value);
       if (from.startsWith(fullName) || (!varName.startsWith(HT_Lexicon.underscore))) {
         if (var_type.isA(decl_type)) {
@@ -150,7 +151,7 @@ class HT_Namespace extends HT_Value {
     if (error) throw HTErr_Undefined(varName, interpreter.curFileName, line, column);
   }
 
-  void assignAt(String varName, dynamic value, int distance, int line, int column, Interpreter interpreter,
+  void assignAt(String varName, dynamic value, int distance, int line, int column, HT_Interpreter interpreter,
       {String from = HT_Lexicon.globals, bool recursive = true}) {
     var space = closureAt(distance);
     space.assign(varName, value, line, column, interpreter, from: space.fullName, recursive: false);

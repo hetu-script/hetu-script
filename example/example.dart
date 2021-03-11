@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = await HT_Isolate();
+  var hetu = HT_Interpreter();
 
   hetu.eval(r'''
       class Person {

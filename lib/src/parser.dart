@@ -39,7 +39,7 @@ enum ParseStyle {
 ///
 /// <运算符>    ::=   <运算符>
 class Parser {
-  final Interpreter interpreter;
+  final HT_Interpreter interpreter;
   final List<Token> tokens;
   final String fileName;
 

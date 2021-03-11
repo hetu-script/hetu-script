@@ -30,26 +30,27 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
 }
 
 void main() async {
-  var hetu = await HT_Isolate(externalFunctions: {
-    'Person': (Interpreter interpreter,
+  var hetu = HT_Interpreter(externalFunctions: {
+    'Person': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
       return DartPersonWrapper();
     },
-    'Person.withName': (Interpreter interpreter,
+    'Person.withName': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
       return DartPersonWrapper.withName(positionalArgs.isNotEmpty ? positionalArgs[0] : null);
     },
-    'Person.race': (Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPerson.race;
-    },
-    'Person.meaning': (Interpreter interpreter,
+    'Person.meaning': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
       final dartNamedArg = <Symbol, dynamic>{};
       for (var key in namedArgs.keys) {
         dartNamedArg[Symbol(key)] = namedArgs[key];
       }
       return Function.apply(DartPerson.meaning, positionalArgs, dartNamedArg);
+    },
+    // 类的 external static 变量，只能通过 getter 函数的方式获取
+    'Person.__get__race': (HT_Interpreter interpreter,
+        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      return DartPerson.race;
     },
   });
   hetu.eval('''
@@ -62,12 +63,12 @@ void main() async {
         fun greeting
       }
       fun main {
-        // var p = Person.withName('Jimmy')
-        // print(p.name)
-        // p.greeting();
+        var p = Person.withName('Jimmy')
+        print(p.name)
+        p.greeting();
 
-        // print(Person.meaning(42))
-        print(Person.race)
+        print(Person.meaning(42))
+        print('Jimmy is a', Person.race)
         
       }
       ''', invokeFunc: 'main');

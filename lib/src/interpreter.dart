@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'core.dart';
+import 'common.dart';
 import 'binding.dart';
 import 'errors.dart';
 import 'expression.dart';
@@ -11,14 +13,9 @@ import 'function.dart';
 import 'lexer.dart';
 import 'parser.dart';
 import 'lexicon.dart';
-import 'core.dart';
-
-typedef ReadFileMethod = dynamic Function(String filepath);
-Future<String> defaultReadFileMethod(String filapath) async => await File(filapath).readAsString();
-String readFileSync(String filapath) => File(filapath).readAsStringSync();
 
 /// 负责对语句列表进行最终解释执行
-class Interpreter implements ExprVisitor, StmtVisitor {
+class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
   final bool debugMode;
   final ReadFileMethod readFileMethod;
 
@@ -43,20 +40,31 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   dynamic _curStmtValue;
 
-  Interpreter({
+  HT_Interpreter({
+    String sdkDirectory = 'hetu_lib/',
+    String currentDirectory = 'script/',
     this.debugMode = false,
     this.readFileMethod = defaultReadFileMethod,
+    Map<String, HT_ExternFunc> externalFunctions = const {},
   }) {
-    _globals = HT_Namespace(id: HT_Lexicon.globals);
+    curContext = _globals = HT_Namespace(id: HT_Lexicon.globals);
 
-    curContext = _globals;
+    // load external functions.
+    loadExternalFunctions(HT_BaseBinding.externFuncs);
+    loadExternalFunctions(externalFunctions);
+
+    // load classes and functions in core library.
+    for (final file in coreLibs.keys) {
+      eval(coreLibs[file], fileName: file);
+    }
   }
 
+  @override
   dynamic eval(
     String content, {
     String fileName,
     String libName = HT_Lexicon.globals,
-    HT_Namespace context,
+    HT_Context context,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,
     List<dynamic> positionalArgs = const [],
@@ -177,7 +185,8 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   ///
   /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
   /// TODO: 这里的做法是错误的，不应该另外保存一遍
-  void loadExternalFunctions(Map<String, HT_ExternalFunction> lib) {
+  @override
+  void loadExternalFunctions(Map<String, HT_ExternFunc> lib) {
     for (final key in lib.keys) {
       _globals.define(
         HT_Lexicon.externals + key,
@@ -310,7 +319,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr) {
-    return HT_Function(expr.funcStmt, declContext: curContext);
+    return HT_Function(funcStmt: expr.funcStmt, declContext: curContext);
   }
 
   @override
@@ -470,7 +479,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
                 constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
           } else {
             // 外部命名构造函数
-            final HT_ExternalFunction extern = _globals.fetch(
+            final HT_ExternFunc extern = _globals.fetch(
                 '${HT_Lexicon.externals}${klass.id}${HT_Lexicon.memberGet}${callee.id}', expr.line, expr.column, this);
             return extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
           }
@@ -485,7 +494,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
             positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else {
         // 外部默认构造函数
-        final HT_ExternalFunction extern =
+        final HT_ExternFunc extern =
             _globals.fetch('${HT_Lexicon.externals}${callee.id}', expr.line, expr.column, this);
         return extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
       }
@@ -680,12 +689,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
     HT_Function func;
     if (stmt.funcType != FuncStmtType.constructor) {
-      HT_ExternalFunction externFunc;
+      HT_ExternFunc externFunc;
       if (stmt.isExtern) {
         externFunc = _globals.fetch('${HT_Lexicon.externals}${stmt.id}', stmt.keyword.line, stmt.keyword.column, this,
             from: _globals.fullName);
       }
-      func = HT_Function(stmt, extern: externFunc, declContext: curContext);
+      func = HT_Function(funcStmt: stmt, extern: externFunc, declContext: curContext);
       curContext.define(stmt.id, this,
           declType: func.typeid, line: stmt.keyword.line, column: stmt.keyword.column, value: func);
     }
@@ -776,7 +785,7 @@ class Interpreter implements ExprVisitor, StmtVisitor {
 
       HT_Function func;
       if (method.isStatic || method.funcType == FuncStmtType.constructor) {
-        HT_ExternalFunction externFunc;
+        HT_ExternFunc externFunc;
         if (method.isExtern) {
           final externName = method.funcType == FuncStmtType.constructor
               ? '${HT_Lexicon.externals}${stmt.id}'
@@ -784,12 +793,12 @@ class Interpreter implements ExprVisitor, StmtVisitor {
           externFunc =
               _globals.fetch(externName, method.keyword.line, method.keyword.column, this, from: _globals.fullName);
         }
-        func = HT_Function(method, internalName: method.internalName, extern: externFunc, declContext: klass);
+        func = HT_Function(funcStmt: method, internalName: method.internalName, extern: externFunc, declContext: klass);
         klass.define(method.internalName, this,
             declType: func.typeid, line: method.keyword.line, column: method.keyword.column, value: func);
       } else {
         if (!method.isExtern) {
-          func = HT_Function(method, internalName: method.internalName);
+          func = HT_Function(funcStmt: method, internalName: method.internalName);
           klass.define(method.internalName, this,
               declType: func.typeid, line: method.keyword.line, column: method.keyword.column, value: func);
         }
@@ -798,26 +807,5 @@ class Interpreter implements ExprVisitor, StmtVisitor {
     }
 
     return klass;
-  }
-}
-
-/// The isolated environment for interpreter, will load core functions for user.
-class HT_Isolate extends Interpreter {
-  HT_Isolate({
-    String sdkDirectory = 'hetu_lib/',
-    String currentDirectory = 'script/',
-    bool debugMode = false,
-    ReadFileMethod readFileMethod = defaultReadFileMethod,
-    Map<String, HT_ExternalFunction> externalFunctions = const {},
-    Map<String, dynamic> externalVariables = const {},
-  }) : super(debugMode: debugMode, readFileMethod: readFileMethod) {
-    // load external functions.
-    loadExternalFunctions(HT_BaseBinding.dartFunctions);
-    loadExternalFunctions(externalFunctions);
-
-    // load classes and functions in core library.
-    for (final file in coreLibs.keys) {
-      eval(coreLibs[file], fileName: file);
-    }
   }
 }

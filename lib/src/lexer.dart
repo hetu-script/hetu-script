@@ -7,7 +7,7 @@ import 'interpreter.dart';
 class Lexer {
   static var fileIndex = 0;
 
-  final Interpreter interpreter;
+  final HT_Interpreter interpreter;
   final String content;
   final String fileName;
 

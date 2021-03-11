@@ -53,7 +53,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
   /// normally the global namespace of the interpreter.
   ///
   /// [superClass] : super class of this class.
-  HT_Class(String id, this.superClass, Interpreter interpreter,
+  HT_Class(String id, this.superClass, HT_Interpreter interpreter,
       {this.isExtern = false, this.typeParams = const [], HT_Namespace closure})
       : super(id: id, closure: closure) {
     register(id, interpreter);
@@ -83,7 +83,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
 
   /// Fetch the value of a static member from this class.
   @override
-  dynamic fetch(String varName, int line, int column, Interpreter interpreter,
+  dynamic fetch(String varName, int line, int column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
     var getter = '${HT_Lexicon.getter}$varName';
     if (defs.containsKey(varName)) {
@@ -95,7 +95,9 @@ class HT_Class extends HT_Namespace with HT_Reflect {
       if (!defs[varName].isExtern) {
         return defs[varName].value;
       } else {
-        return interpreter.fetchGlobal('$id${HT_Lexicon.memberGet}$varName');
+        final getterFunc =
+            interpreter.fetchGlobal('${HT_Lexicon.externals}$id${HT_Lexicon.memberGet}${HT_Lexicon.getter}$varName');
+        return getterFunc(interpreter);
       }
     } else if (defs.containsKey(getter)) {
       if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
@@ -138,11 +140,11 @@ class HT_Class extends HT_Namespace with HT_Reflect {
 
   /// Assign a value to a static member of this class.
   @override
-  void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
+  void assign(String varName, dynamic value, int line, int column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
     var setter = '${HT_Lexicon.setter}$varName';
     if (defs.containsKey(varName)) {
-      var decl_type = defs[varName].typeid;
+      var decl_type = defs[varName].declType;
       var var_type = HT_TypeOf(value);
       if (from.startsWith(fullName) ||
           (!fullName.startsWith(HT_Lexicon.underscore) && !varName.startsWith(HT_Lexicon.underscore))) {
@@ -173,7 +175,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
 
   /// Create a object from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HT_Object createInstance(Interpreter interpreter, int line, int column,
+  HT_Object createInstance(HT_Interpreter interpreter, int line, int column,
       {List<HT_Type> typeArgs, String constructorName, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
     var object = HT_Object(interpreter, id, typeArgs: typeArgs?.sublist(0, typeParams.length));
 
@@ -222,7 +224,7 @@ class HT_Object extends HT_Namespace with HT_Reflect {
   HT_Type _typeid;
   HT_Type get typeid => _typeid;
 
-  HT_Object(Interpreter interpreter, String className, {List<HT_Type> typeArgs = const [], this.isExtern = false})
+  HT_Object(HT_Interpreter interpreter, String className, {List<HT_Type> typeArgs = const [], this.isExtern = false})
       : super(id: HT_Lexicon.instance + (_instanceIndex++).toString(), closure: interpreter.fetchGlobal(className)) {
     _typeid = HT_Type(klass.id, arguments: typeArgs = const []);
 
@@ -239,7 +241,7 @@ class HT_Object extends HT_Namespace with HT_Reflect {
   bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${HT_Lexicon.getter}$varName');
 
   @override
-  dynamic fetch(String varName, int line, int column, Interpreter interpreter,
+  dynamic fetch(String varName, int line, int column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       if (!varName.startsWith(HT_Lexicon.underscore) || from.startsWith(fullName)) {
@@ -269,10 +271,10 @@ class HT_Object extends HT_Namespace with HT_Reflect {
   }
 
   @override
-  void assign(String varName, dynamic value, int line, int column, Interpreter interpreter,
+  void assign(String varName, dynamic value, int line, int column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      var decl_type = defs[varName].typeid;
+      var decl_type = defs[varName].declType;
       var var_type = HT_TypeOf(value);
       if (!varName.startsWith(HT_Lexicon.underscore) || from.startsWith(fullName)) {
         if (var_type.isA(decl_type)) {
@@ -299,7 +301,7 @@ class HT_Object extends HT_Namespace with HT_Reflect {
     if (error) throw HTErr_Undefined(varName, interpreter.curFileName, line, column);
   }
 
-  dynamic invoke(String methodName, int line, int column, Interpreter interpreter,
+  dynamic invoke(String methodName, int line, int column, HT_Interpreter interpreter,
       {bool error = true, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
     HT_Function method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
@@ -324,10 +326,10 @@ mixin HT_Reflect {
   String _className;
   String get className => _className;
 
-  Interpreter _interpreter;
-  Interpreter get interpreter => _interpreter;
+  HT_Interpreter _interpreter;
+  HT_Interpreter get interpreter => _interpreter;
 
-  void register(String className, Interpreter interpreter) {
+  void register(String className, HT_Interpreter interpreter) {
     _className = className;
     _interpreter = interpreter;
   }

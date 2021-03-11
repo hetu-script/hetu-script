@@ -1,5 +1,5 @@
 import 'class.dart';
-import 'binding.dart' show HT_ExternalFunction;
+import 'binding.dart' show HT_ExternFunc;
 import 'namespace.dart';
 import 'statement.dart';
 import 'interpreter.dart';
@@ -53,9 +53,9 @@ class HT_Function {
   HT_FunctionType _typeid;
   HT_FunctionType get typeid => _typeid;
 
-  final HT_ExternalFunction extern;
+  final HT_ExternFunc extern;
 
-  HT_Function(this.funcStmt, {this.internalName, List<HT_Type> typeArgs = const [], this.extern, this.declContext}) {
+  HT_Function({this.funcStmt, this.internalName, List<HT_Type> typeArgs = const [], this.extern, this.declContext}) {
     //_save = _closure = closure;
     var paramsTypes = <HT_Type>[];
     for (final param in funcStmt.params) {
@@ -95,7 +95,7 @@ class HT_Function {
     return result.toString();
   }
 
-  dynamic call(Interpreter interpreter, int line, int column,
+  dynamic call(HT_Interpreter interpreter, int line, int column,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
     if (funcStmt.arity >= 0 && positionalArgs.length != funcStmt.arity) {
       throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);

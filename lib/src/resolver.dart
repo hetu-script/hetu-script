@@ -11,7 +11,7 @@ enum _ClassType {
 
 /// 负责对语句列表进行分析，并生成变量作用域
 class Resolver implements ExprVisitor, StmtVisitor {
-  final Interpreter interpreter;
+  final HT_Interpreter interpreter;
   final List<Stmt> statements;
   final String fileName;
   String _libName = HT_Lexicon.globals;

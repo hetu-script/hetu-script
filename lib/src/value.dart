@@ -130,14 +130,25 @@ abstract class HT_Value {
   HT_Value({this.id});
 }
 
-class Declaration {
-  // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HT_Value
-  dynamic value;
+class HT_Declaration {
+  final String id;
 
-  final HT_Type typeid;
+  final HT_Type declType;
   final bool isExtern;
   final bool isNullable;
   final bool isImmutable;
 
-  Declaration(this.typeid, {this.value, this.isExtern = false, this.isNullable = false, this.isImmutable = false});
+  // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HT_Value
+  dynamic value;
+  HT_Function getter;
+  HT_Function setter;
+
+  HT_Declaration(this.id,
+      {this.declType = HT_Type.ANY,
+      this.isExtern = false,
+      this.isNullable = false,
+      this.isImmutable = false,
+      this.value,
+      this.getter,
+      this.setter});
 }

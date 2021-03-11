@@ -3,7 +3,7 @@ import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/src/lexer.dart';
 
 void main() async {
-  var hetu = HT_Isolate();
+  var hetu = HT_Interpreter();
   group('lexer test -', () {
     test('lexer', () async {
       final lexer = Lexer(hetu, '''
