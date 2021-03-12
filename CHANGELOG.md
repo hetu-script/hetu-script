@@ -1,3 +1,8 @@
+## 0.0.4
+
+- Feature: External class.
+- Refractor: Build-in dart types.
+
 ## 0.0.3
 
 - Feature: Literal function expression (anonymous function). Usage:
