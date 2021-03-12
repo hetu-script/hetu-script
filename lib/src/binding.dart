@@ -20,6 +20,15 @@ abstract class HT_BaseBinding {
     'help': _help,
     'print': _print,
     'string': _string,
+    'random': _math_random,
+    'randomInt': _math_random_int,
+    'sqrt': _math_sqrt,
+    'log': _math_log,
+    'sin': _math_sin,
+    'cos': _math_cos,
+    'num.parse': _num_parse, // static 函数
+    'bool.parse': _bool_parse, // static 函数
+    'String.parse': _string_parse, // static 函数
     'System.invoke': _system_invoke,
     'System.now': _system_now,
     'Console.write': _console_write,
@@ -28,15 +37,6 @@ abstract class HT_BaseBinding {
     'Console.eraseLine': _console_erase_line,
     'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
-    'num.parse': _num_parse, // static 函数
-    'bool.parse': _bool_parse, // static 函数
-    'String.parse': _string_parse, // static 函数
-    'random': _math_random,
-    'randomInt': _math_random_int,
-    'sqrt': _math_sqrt,
-    'log': _math_log,
-    'sin': _math_sin,
-    'cos': _math_cos,
   };
 
   static dynamic _typeof(HT_Interpreter interpreter,
@@ -74,55 +74,6 @@ abstract class HT_BaseBinding {
       result.write(arg);
     }
     return result.toString();
-  }
-
-  static dynamic _system_invoke(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.length >= 2) {
-      var func_name = positionalArgs[0];
-      var pos_args = positionalArgs[1];
-      var named_args = positionalArgs[2];
-      return interpreter.invoke(func_name, positionalArgs: pos_args, namedArgs: named_args);
-    }
-  }
-
-  static dynamic _console_write(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) stdout.write(positionalArgs.first);
-  }
-
-  static dynamic _console_writeln(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) stdout.writeln(positionalArgs.first);
-  }
-
-  static dynamic _console_getln(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
-      stdout.write('${positionalArgs.first.toString()}');
-    } else {
-      stdout.write('>');
-    }
-    var input = stdin.readLineSync();
-    return input;
-  }
-
-  static dynamic _console_erase_line(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    stdout.write('\x1B[1F\x1B[1G\x1B[1K');
-  }
-
-  static dynamic _console_set_title(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
-      var title = positionalArgs.first.toString();
-      stdout.write('\x1b]0;$title\x07');
-    }
-  }
-
-  static dynamic _console_cls(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    stdout.write('\x1B[2J\x1B[0;0H');
   }
 
   static dynamic _math_random(HT_Interpreter interpreter,
@@ -170,11 +121,6 @@ abstract class HT_BaseBinding {
     }
   }
 
-  static dynamic _system_now(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    return DateTime.now().millisecondsSinceEpoch;
-  }
-
   static dynamic _num_parse(HT_Interpreter interpreter,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
     if (positionalArgs.isNotEmpty) {
@@ -212,6 +158,60 @@ abstract class HT_BaseBinding {
       return positionalArgs.first.toString();
     }
   }
+
+  static dynamic _system_invoke(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    if (positionalArgs.length >= 2) {
+      var func_name = positionalArgs[0];
+      var pos_args = positionalArgs[1];
+      var named_args = positionalArgs[2];
+      return interpreter.invoke(func_name, positionalArgs: pos_args, namedArgs: named_args);
+    }
+  }
+
+  static dynamic _system_now(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    return DateTime.now().millisecondsSinceEpoch;
+  }
+
+  static dynamic _console_write(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    if (positionalArgs.isNotEmpty) stdout.write(positionalArgs.first);
+  }
+
+  static dynamic _console_writeln(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    if (positionalArgs.isNotEmpty) stdout.writeln(positionalArgs.first);
+  }
+
+  static dynamic _console_getln(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    if (positionalArgs.isNotEmpty) {
+      stdout.write('${positionalArgs.first.toString()}');
+    } else {
+      stdout.write('>');
+    }
+    var input = stdin.readLineSync();
+    return input;
+  }
+
+  static dynamic _console_erase_line(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    stdout.write('\x1B[1F\x1B[1G\x1B[1K');
+  }
+
+  static dynamic _console_set_title(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    if (positionalArgs.isNotEmpty) {
+      var title = positionalArgs.first.toString();
+      stdout.write('\x1b]0;$title\x07');
+    }
+  }
+
+  static dynamic _console_cls(HT_Interpreter interpreter,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+    stdout.write('\x1B[2J\x1B[0;0H');
+  }
 }
 
 /// Abstract base class of all class wrapper for literal values.
@@ -238,10 +238,12 @@ class HT_DartObject_Number extends HT_DartObject {
   }
 
   @override
-  void setProperty(String id, dynamic value) {}
+  void setProperty(String id, dynamic value) {
+    throw HTErr_Assign(id);
+  }
 }
 
-/// Class wrapper for literal boolean.
+/// Class wrapper for dart boolean.
 class HT_DartObject_Boolean extends HT_DartObject {
   HT_DartObject_Boolean(bool value) : super(value);
 
@@ -256,10 +258,12 @@ class HT_DartObject_Boolean extends HT_DartObject {
   }
 
   @override
-  void setProperty(String id, dynamic value) {}
+  void setProperty(String id, dynamic value) {
+    throw HTErr_Assign(id);
+  }
 }
 
-/// Class wrapper for literal string.
+/// Class wrapper for dart string.
 class HT_DartObject_String extends HT_DartObject {
   HT_DartObject_String(String value) : super(value);
 
@@ -276,10 +280,12 @@ class HT_DartObject_String extends HT_DartObject {
   }
 
   @override
-  void setProperty(String id, dynamic value) {}
+  void setProperty(String id, dynamic value) {
+    throw HTErr_Assign(id);
+  }
 }
 
-/// Class wrapper for literal list.
+/// Class wrapper for dart list.
 class HT_DartObject_List extends HT_DartObject {
   String valueType;
 
@@ -312,10 +318,12 @@ class HT_DartObject_List extends HT_DartObject {
   }
 
   @override
-  void setProperty(String id, dynamic value) {}
+  void setProperty(String id, dynamic value) {
+    throw HTErr_Assign(id);
+  }
 }
 
-/// Class wrapper for literal map.
+/// Class wrapper for dart map.
 class HT_DartObject_Map extends HT_DartObject {
   String keyType;
   String valueType;
@@ -327,6 +335,10 @@ class HT_DartObject_Map extends HT_DartObject {
     switch (id) {
       case 'length':
         return value.length;
+      case 'isEmpty':
+        return value.isEmpty;
+      case 'isNotEmpty':
+        return value.isNotEmpty;
       case 'keys':
         return value.keys;
       case 'values':
@@ -335,7 +347,7 @@ class HT_DartObject_Map extends HT_DartObject {
         return value.containsKey;
       case 'containsValue':
         return value.containsValue;
-      // TODO: subGet和subSet本质应该也是一个函数（__sub__get__, __sub__set__）
+      // TODO: subGet/Set、memberGet/Set和call本质都应该是函数（__sub__get__, __sub__set__）
       case '__sub__get__':
         return;
       case '__sub__set__':
@@ -354,5 +366,7 @@ class HT_DartObject_Map extends HT_DartObject {
   }
 
   @override
-  void setProperty(String id, dynamic value) {}
+  void setProperty(String id, dynamic value) {
+    throw HTErr_Assign(id);
+  }
 }

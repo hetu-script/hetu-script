@@ -15,151 +15,105 @@ external fun print(... args)
 
 // concact values of any type into string
 external fun string(... args): String''',
-'value.ht': r'''class Value {
+'value.ht': r'''external class num {
 
-  // external关键字表示函数体在host语言中定义
-	external fun toString(): String
+	static fun parse(value): num
 
+  fun toStringAsFixed([fractionDigits: num = 0]): num
+
+  fun truncate(): num
 }
 
-class num extends Value {
+external class bool {
 
-	external static fun parse(value): num
-
-  external fun toStringAsFixed([fractionDigits: num = 0]): num
-
-  external fun truncate(): num
+	static fun parse(value): bool
 }
 
-class bool extends Value {
+external class String {
 
-	static fun parse(value): bool {
-    if (value is bool) {
-      return value
-    } else if (value is num) {
-      if (value != 0) {
-        return true
-      } else {
-        return false
-      }
-    } else if (value is String) {
-      return value.isNotEmpty
-    } else {
-      if (value != null) {
-        return true
-      } else {
-        return false
-      }
-    }
-  }
+	static fun parse(value): String
+
+	get isEmpty: bool
+
+	get isNotEmpty: bool
+
+	fun substring(startIndex: num, [endIndex: num]): String
 }
 
-class String extends Value {
-	
-	external get isEmpty: bool
-	
-	get isNotEmpty: bool {
-		return !isEmpty
-	}
+external class List {
 
-	external fun substring(startIndex: num, [endIndex: num]): String
+	get length: num
 
-	external static fun parse(value): String
+	get isEmpty: bool
+
+	get isNotEmpty: bool
+
+	fun add(value: dynamic)
+
+	fun clear()
+
+	fun removeAt(index: num)
+
+	fun indexOf(value): num
+
+	fun elementAt(index: num): any
+
+	get first
+
+	get last
+
+	fun contains(value): bool
 }
 
-class List extends Value {
-	
-	external get length: num
-	
-	get isEmpty: bool {
-		return length == 0
-	}
-	
-	get isNotEmpty: bool {
-		return length != 0
-	}
-	
-	external fun add(... args)
-	
-	external fun clear()
-	
-	external fun removeAt(index: num)
-	
-	external fun indexOf(value): num
-	
-	external fun elementAt(index: num): any
-	
-	get first: any {
-    if (length > 0){
-      return elementAt(0)
-    }
-	}
-	
-	get last: any {
-    if (length > 0){
-      return elementAt(length - 1)
-    }
-  }
-	
-	fun contains(value): bool {
-		return indexOf(value) != -1
-	}
-}
+external class Map {
 
-class Map extends Value {
-	
-	external get length: num
-	
-	get isEmpty: bool {
-		return length == 0
-	}
-	
-	get isNotEmpty: bool {
-		return length != 0
-	}
+	get length: num
 
-  external get keys: List
+	get isEmpty: bool
 
-  external get values: List
-	
-	external fun containsKey(value): bool
+	get isNotEmpty: bool
 
-	external fun containsValue(value): bool
-	
-	external fun setVal(key, value)
-	
-	external fun addAll(other: Map)
-	
-	external fun clear()
-	
-	external fun remove(key)
-	
-	external fun getVal(key): any
+  get keys: List
 
-  external fun putIfAbsent(key, value): any
+  get values: List
+
+	fun containsKey(value): bool
+
+	fun containsValue(value): bool
+
+	fun addAll(other: Map)
+
+	fun clear()
+
+	fun remove(key)
+
+  fun putIfAbsent(key, value): any
 }''',
-'system.ht': r'''class System {
+'system.ht': r'''external class System {
   // invoke a global or static member function
-  external static fun invoke(func_name: String, className: String, args: List)
+  static fun invoke(functionName: String, {positionalArgs: List = [], namedArgs: Map<String> = {}})
 
-  external static fun now(): num
+  static get now: num
+
+  // static fun tik()
+
+  // static fun tok()
 }''',
-'console.ht': r'''class Console {
+'console.ht': r'''external class Console {
 
 	// write a line without return
-	external static fun write(line: String)
+	static fun write(line: String)
 	
 	// write a line ends with return
-	external static fun writeln(line: String)
+	static fun writeln(line: String)
 	
-	external static fun getln(info: String): String
+	static fun getln(info: String): String
 	
-	external static fun eraseLine()
+	static fun eraseLine()
 	
-	external static fun setTitle(title: String)
+	static fun setTitle(title: String)
 	
-	external static fun cls()
-
+	static fun cls()
 }''',
 'math.ht': r'''fun max(a: num, b: num): num {
   if (a > b) return a

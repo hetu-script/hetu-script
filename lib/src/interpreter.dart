@@ -575,6 +575,19 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
   @override
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
     dynamic object = evaluateExpr(expr.collection);
+
+    if (object is num) {
+      object = HT_DartObject_Number(object)..init(HT_Lexicon.number, this);
+    } else if (object is bool) {
+      object = HT_DartObject_Boolean(object)..init(HT_Lexicon.boolean, this);
+    } else if (object is String) {
+      object = HT_DartObject_String(object)..init(HT_Lexicon.string, this);
+    } else if (object is List) {
+      object = HT_DartObject_List(object)..init(HT_Lexicon.list, this);
+    } else if (object is Map) {
+      object = HT_DartObject_Map(object)..init(HT_Lexicon.map, this);
+    }
+
     var value = evaluateExpr(expr.value);
     if ((object is HT_Object) || (object is HT_Class)) {
       object.assign(expr.key.lexeme, value, expr.line, expr.column, this, from: curContext.fullName);

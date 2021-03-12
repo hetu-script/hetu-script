@@ -323,6 +323,7 @@ abstract class HT_Lexicon {
         squareRight,
       };
 
+  static const errorAssign = 'Could not assgin to';
   static const errorUnsupport = 'Unsupport value type';
   static const errorExpected = 'expected, ';
   static const errorConstMustBeStatic = 'Class member constant must be static.';

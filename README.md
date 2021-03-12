@@ -2,14 +2,15 @@
 
 ## Introduction
 
-[河图脚本语言中文介绍](README_ZH.md)
+[中文介绍](README_ZH.md)
 
 A lightweight script language & its interpreter written purely in Dart, intended to be embedded in Flutter & Dart programs for purposes like hotfixes and game scripting.
 
 It is kind of like lua but it is very easy to bind anything in Dart and make it easy to debug.
 
-[Full Hetu syntax description.](HETU_SYNTAX.md)
-[河图脚本语言完整语法.](HETU_SYNTAX_ZH.md)
+[Syntax referrence](HETU_SYNTAX.md)
+
+[语法参考](HETU_SYNTAX_ZH.md)
 
 In your Dart code, you can interpret an script file by this:
 

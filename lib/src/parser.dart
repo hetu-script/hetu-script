@@ -680,7 +680,7 @@ class Parser {
       // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
       if (!optionalStarted) {
         optionalStarted = expect([HT_Lexicon.squareLeft], error: false, consume: true);
-        if (!optionalStarted) {
+        if (!optionalStarted && !namedStarted) {
           //检查命名参数，根据是否有花括号判断
           namedStarted = expect([HT_Lexicon.curlyLeft], error: false, consume: true);
         }
@@ -695,7 +695,7 @@ class Parser {
       Expr initializer;
       if (optionalStarted || namedStarted) {
         //参数默认值
-        if (expect([HT_Lexicon.assign], error: false, consume: true)) {
+        if (expect([HT_Lexicon.assign], consume: true, error: false)) {
           initializer = _parseExpr();
         }
       }

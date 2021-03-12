@@ -39,6 +39,11 @@ class HT_Error {
   static void clear() => _warnings.clear();
 }
 
+class HTErr_Assign extends HT_Error {
+  HTErr_Assign(String symbol, [String fileName, int line, int column])
+      : super('${HT_Lexicon.errorAssign} "$symbol"', fileName, line, column);
+}
+
 class HTErr_Unsupport extends HT_Error {
   HTErr_Unsupport(String symbol, [String fileName, int line, int column])
       : super('${HT_Lexicon.errorUnsupport} "$symbol"', fileName, line, column);

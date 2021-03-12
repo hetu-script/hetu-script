@@ -1,6 +1,10 @@
-class System {
+external class System {
   // invoke a global or static member function
-  external static fun invoke(func_name: String, className: String, args: List)
+  static fun invoke(functionName: String, {positionalArgs: List = [], namedArgs: Map<String> = {}})
 
-  external static fun now(): num
+  static get now: num
+
+  // static fun tik()
+
+  // static fun tok()
 }

@@ -1,47 +1,74 @@
 external class num {
+
 	static fun parse(value): num
 
   fun toStringAsFixed([fractionDigits: num = 0]): num
+
   fun truncate(): num
 }
 
 external class bool {
+
 	static fun parse(value): bool
 }
 
 external class String {
+
 	static fun parse(value): String
+
 	get isEmpty: bool
+
 	get isNotEmpty: bool
+
 	fun substring(startIndex: num, [endIndex: num]): String
 }
 
 external class List {
+
 	get length: num
-	get isEmpty: bool 
+
+	get isEmpty: bool
+
 	get isNotEmpty: bool
+
 	fun add(value: dynamic)
+
 	fun clear()
+
 	fun removeAt(index: num)
+
 	fun indexOf(value): num
+
 	fun elementAt(index: num): any
+
 	get first
+
 	get last
+
 	fun contains(value): bool
 }
 
 external class Map {
+
 	get length: num
+
 	get isEmpty: bool
+
 	get isNotEmpty: bool
+
   get keys: List
+
   get values: List
+
 	fun containsKey(value): bool
+
 	fun containsValue(value): bool
-	fun setVal(key, value)
+
 	fun addAll(other: Map)
+
 	fun clear()
+
 	fun remove(key)
-	fun getVal(key): any
+
   fun putIfAbsent(key, value): any
 }

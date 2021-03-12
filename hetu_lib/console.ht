@@ -1,17 +1,16 @@
-class Console {
+external class Console {
 
 	// write a line without return
-	external static fun write(line: String)
+	static fun write(line: String)
 	
 	// write a line ends with return
-	external static fun writeln(line: String)
+	static fun writeln(line: String)
 	
-	external static fun getln(info: String): String
+	static fun getln(info: String): String
 	
-	external static fun eraseLine()
+	static fun eraseLine()
 	
-	external static fun setTitle(title: String)
+	static fun setTitle(title: String)
 	
-	external static fun cls()
-
+	static fun cls()
 }

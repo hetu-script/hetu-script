@@ -15,11 +15,11 @@ void main() async {
           print('Hi! I\'m', name, ', my age is', age)
         }
         fun meaning {
-          print('The meaning of life is', (6 * 7).toString()))
+          print('The meaning of life is', (6 * 7).toString())
         }
       }
 
-      fun main {        
+      fun main {
         var jimmy = Person('Jimmy')
         jimmy.greeting()
       }

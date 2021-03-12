@@ -97,17 +97,17 @@ class HT_Function {
 
   dynamic call(HT_Interpreter interpreter, int line, int column,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (funcStmt.arity >= 0 && positionalArgs.length != funcStmt.arity) {
-      throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
-    }
-
-    if (funcStmt.arity < 0) {
+    if (funcStmt.arity >= 0) {
+      if (positionalArgs.length < funcStmt.arity || positionalArgs.length > funcStmt.params.length) {
+        throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
+      }
+    } else {
       namedArgs[funcStmt.params.first.id.lexeme] = positionalArgs;
     }
 
     for (var i = 0; i < funcStmt.params.length; ++i) {
-      if (funcStmt.params[i].isOptional && (positionalArgs[i] == null) && (funcStmt.params[i].initializer != null)) {
-        positionalArgs[i] = interpreter.evaluateExpr(funcStmt.params[i].initializer);
+      if (funcStmt.params[i].isOptional && (i >= positionalArgs.length) && (funcStmt.params[i].initializer != null)) {
+        positionalArgs.add(interpreter.evaluateExpr(funcStmt.params[i].initializer));
       } else if (funcStmt.params[i].isNamed &&
           (namedArgs[funcStmt.params[i].id.lexeme] == null) &&
           (funcStmt.params[i].initializer != null)) {
