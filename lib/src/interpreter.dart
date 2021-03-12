@@ -198,20 +198,6 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     }
   }
 
-  /// 载入外部变量 必须在脚本中存在一个对应声明
-  ///
-  /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
-  void loadExternalVariables(Map<String, dynamic> lib) {
-    for (final key in lib.keys) {
-      _globals.define(
-        HT_Lexicon.externals + key,
-        this,
-        value: lib[key],
-        isDynamic: true,
-      );
-    }
-  }
-
   dynamic _getValue(String name, Expr expr) {
     var distance = _distances[expr];
     if (distance != null) {
@@ -225,11 +211,11 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
   //   if (value is HT_Value) {
   //     return value;
   //   } else if (value is num) {
-  //     return HT_Object_Number(value, line, column, this);
+  //     return HT_DartObject_Number(value, line, column, this);
   //   } else if (value is bool) {
-  //     return HT_Object_Boolean(value, line, column, this);
+  //     return HT_DartObject_Boolean(value, line, column, this);
   //   } else if (value is String) {
-  //     return HT_Object_String(value, line, column, this);
+  //     return HT_DartObject_String(value, line, column, this);
   //   } else {
   //     return value;
   //   }
@@ -481,7 +467,9 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
             // 外部命名构造函数
             final HT_ExternFunc extern = _globals.fetch(
                 '${HT_Lexicon.externals}${klass.id}${HT_Lexicon.memberGet}${callee.id}', expr.line, expr.column, this);
-            return extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
+            HT_Reflect object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
+            object.init(callee.id, this);
+            return object;
           }
         } else {
           throw HTErr_Callable(callee.toString(), curFileName, expr.callee.line, expr.callee.column);
@@ -496,15 +484,13 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
         // 外部默认构造函数
         final HT_ExternFunc extern =
             _globals.fetch('${HT_Lexicon.externals}${callee.id}', expr.line, expr.column, this);
-        return extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
+        HT_Reflect object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
+        object.init(callee.id, this);
+        return object;
       }
     } // 外部函数
     else if (callee is Function) {
-      final dartNamedArg = <Symbol, dynamic>{};
-      for (var key in namedArgs.keys) {
-        dartNamedArg[Symbol(key)] = namedArgs[key];
-      }
-      return Function.apply(callee, positionalArgs, dartNamedArg);
+      return Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
     } else {
       throw HTErr_Callable(callee.toString(), curFileName, expr.callee.line, expr.callee.column);
     }
@@ -532,11 +518,11 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
   dynamic visitSubGetExpr(SubGetExpr expr) {
     var collection = evaluateExpr(expr.collection);
     var key = evaluateExpr(expr.key);
-    if (collection is HT_Object_List) {
+    if (collection is HT_DartObject_List) {
       return collection.value.elementAt(key);
     } else if (collection is List) {
       return collection[key];
-    } else if (collection is HT_Object_Map) {
+    } else if (collection is HT_DartObject_Map) {
       return collection.value[key];
     } else if (collection is Map) {
       return collection[key];
@@ -552,7 +538,7 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     var value = evaluateExpr(expr.value);
     if ((collection is List) || (collection is Map)) {
       return collection[key] = value;
-    } else if ((collection is HT_Object_List) || (collection is HT_Object_Map)) {
+    } else if ((collection is HT_DartObject_List) || (collection is HT_DartObject_Map)) {
       collection.value[key] = value;
     }
 
@@ -564,15 +550,15 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     var object = evaluateExpr(expr.collection);
 
     if (object is num) {
-      object = HT_Object_Number(object, this);
+      object = HT_DartObject_Number(object)..init(HT_Lexicon.number, this);
     } else if (object is bool) {
-      object = HT_Object_Boolean(object, this);
+      object = HT_DartObject_Boolean(object)..init(HT_Lexicon.boolean, this);
     } else if (object is String) {
-      object = HT_Object_String(object, this);
+      object = HT_DartObject_String(object)..init(HT_Lexicon.string, this);
     } else if (object is List) {
-      object = HT_Object_List(object, this);
+      object = HT_DartObject_List(object)..init(HT_Lexicon.list, this);
     } else if (object is Map) {
-      object = HT_Object_Map(object, this);
+      object = HT_DartObject_Map(object)..init(HT_Lexicon.map, this);
     }
 
     if ((object is HT_Object) || (object is HT_Class)) {

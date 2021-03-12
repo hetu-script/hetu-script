@@ -1,115 +1,47 @@
 external class num {
-
 	static fun parse(value): num
 
   fun toStringAsFixed([fractionDigits: num = 0]): num
-
   fun truncate(): num
 }
 
 external class bool {
-	static fun parse(value): bool {
-    if (value is bool) {
-      return value
-    } else if (value is num) {
-      if (value != 0) {
-        return true
-      } else {
-        return false
-      }
-    } else if (value is String) {
-      return value.isNotEmpty
-    } else {
-      if (value != null) {
-        return true
-      } else {
-        return false
-      }
-    }
-  }
+	static fun parse(value): bool
 }
 
 external class String {
-
 	static fun parse(value): String
-	
 	get isEmpty: bool
-	
-	get isNotEmpty: bool {
-		return !isEmpty
-	}
-
+	get isNotEmpty: bool
 	fun substring(startIndex: num, [endIndex: num]): String
 }
 
 external class List {
-	
 	get length: num
-	
-	get isEmpty: bool {
-		return length == 0
-	}
-	
-	get isNotEmpty: bool {
-		return length != 0
-	}
-	
-	fun add(... args)
-
+	get isEmpty: bool 
+	get isNotEmpty: bool
+	fun add(value: dynamic)
 	fun clear()
-
 	fun removeAt(index: num)
-
 	fun indexOf(value): num
-
 	fun elementAt(index: num): any
-	
-	get first: any {
-    if (length > 0){
-      return elementAt(0)
-    }
-	}
-	
-	get last: any {
-    if (length > 0){
-      return elementAt(length - 1)
-    }
-  }
-	
-	fun contains(value): bool {
-		return indexOf(value) != -1
-	}
+	get first
+	get last
+	fun contains(value): bool
 }
 
 external class Map {
-	
 	get length: num
-	
-	get isEmpty: bool {
-		return length == 0
-	}
-	
-	get isNotEmpty: bool {
-		return length != 0
-	}
-
+	get isEmpty: bool
+	get isNotEmpty: bool
   get keys: List
-
   get values: List
-
 	fun containsKey(value): bool
-
 	fun containsValue(value): bool
-
 	fun setVal(key, value)
-
 	fun addAll(other: Map)
-
 	fun clear()
-
 	fun remove(key)
-
 	fun getVal(key): any
-
   fun putIfAbsent(key, value): any
 }

@@ -17,8 +17,7 @@ In your Dart code, you can interpret an script file by this:
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  // init the Hetu Environment
-  var hetu = await HetuEnv.init();
+  var hetu = HT_Interpreter();
   hetu.evalf('hello.ht', invokeFunc: 'main');
 }
 ```
@@ -28,19 +27,19 @@ While 'hello.ht' is the script file written in Hetu, here is an example:
 ```typescript
 // Define a class.
 class Person {
-    // Define a member function.
-    fun greeting(name: String) {
-      // Print to console.
-      print('hello ', name)
-    }
+  var name: String
+  init (name: String) {
+    this.name = name
+  }
+  fun greeting {
+    print('Hi! I\'m', name)
+  }
 }
 
 // This is where the script starts executing.
 fun main {
-  // Declare and initialize variables.
-  let number = (6 * 7).toString()
-  let jimmy = Person()
-  jimmy.greeting(number);
+  var ht = Person('Hetu')
+  ht.greeting()
 }
 ```
 
@@ -65,20 +64,20 @@ You can pass object from Hetu to Dart by the return value of Interpreter's [invo
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = await Hetu.init(externalFunctions: {
-    'dartHello': (HT_Object instance, Map<String, dynamic> args) {
-      return {'dartValue': 'hello'};
+  var hetu = HT_Interpreter(externalFunctions: {
+    'hello': (HT_Interpreter interpreter,
+        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      return {'greeting': 'hello'};
     },
   });
-  hetu.eval(
-      'external fun dartHello\n'
-      'fun main {\n'
-      '  var dartValue = dartHello()\n'
-      '  print(typeof(dartValue))\n'
-      '  dartValue[\'foo\'] = \'bar\'\n'
-      '  print(dartValue)'
-      '\n}',
-      invokeFunc: 'main');
+  hetu.eval(r'''
+      external fun hello
+      fun main {
+        var dartValue = hello()
+        print(typeof(dartValue))
+        dartValue['foo'] = 'bar'
+        print(dartValue)
+      }''', invokeFunc: 'main');
 }
 ```
 
@@ -86,7 +85,7 @@ And the output should be:
 
 ```
 Map<String, String>
-{dartValue: hello, foo: bar}
+{greeting: hello, foo: bar}
 ```
 
 ## Command line tool

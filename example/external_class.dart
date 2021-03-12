@@ -44,20 +44,16 @@ void main() async {
   var hetu = HT_Interpreter(externalFunctions: {
     'Person': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPersonWrapper()..init('Person', interpreter);
+      return DartPersonWrapper();
     },
     'Person.withName': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPersonWrapper.withName(positionalArgs.isNotEmpty ? positionalArgs[0] : null)
-        ..init('Person', interpreter);
+      return DartPersonWrapper.withName(positionalArgs.isNotEmpty ? positionalArgs[0] : null);
     },
     'Person.meaning': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      final dartNamedArg = <Symbol, dynamic>{};
-      for (var key in namedArgs.keys) {
-        dartNamedArg[Symbol(key)] = namedArgs[key];
-      }
-      return Function.apply(DartPerson.meaning, positionalArgs, dartNamedArg);
+      return Function.apply(
+          DartPerson.meaning, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
     },
     // 类的 external static 变量，只能通过 getter, setter 函数的方式访问
     'Person.__get__race': (HT_Interpreter interpreter,
@@ -69,6 +65,7 @@ void main() async {
       DartPerson.race = positionalArgs.isNotEmpty ? positionalArgs.first : null;
     },
   });
+
   hetu.eval('''
       external class Person {
         static var race

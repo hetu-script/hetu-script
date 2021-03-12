@@ -14,8 +14,6 @@ typedef HT_ExternFunc = dynamic Function(HT_Interpreter interpreter,
 
 /// Namespace class of low level external dart functions for Hetu to use.
 abstract class HT_BaseBinding {
-  static Map<String, HT_Declaration> externVars = {};
-
   /// Some low level external dart functions for Hetu to use.
   static Map<String, HT_ExternFunc> externFuncs = {
     'typeof': _typeof,
@@ -30,30 +28,9 @@ abstract class HT_BaseBinding {
     'Console.eraseLine': _console_erase_line,
     'Console.setTitle': _console_set_title,
     'Console.cls': _console_cls,
-    //'Value.toString': HT_Object_Value._to_string,
-    'num.parse': HT_Object_Number._parse,
-    'num.toStringAsFixed': HT_Object_Number._to_string_as_fixed,
-    'num.truncate': HT_Object_Number._truncate,
-    'String.isEmpty': HT_Object_String._is_empty,
-    'String.parse': HT_Object_String._parse,
-    'String.substring': HT_Object_String._substring,
-    'List.length': HT_Object_List._get_length,
-    'List.add': HT_Object_List._add,
-    'List.clear': HT_Object_List._clear,
-    'List.removeAt': HT_Object_List._remove_at,
-    'List.indexOf': HT_Object_List._index_of,
-    'List.elementAt': HT_Object_List._element_at,
-    'Map.length': HT_Object_Map._get_length,
-    'Map.keys': HT_Object_Map._get_keys,
-    'Map.values': HT_Object_Map._get_values,
-    'Map.containsKey': HT_Object_Map._contains_key,
-    'Map.containsValue': HT_Object_Map._contains_value,
-    'Map.setVal': HT_Object_Map._set_val,
-    'Map.addAll': HT_Object_Map._add_all,
-    'Map.clear': HT_Object_Map._clear,
-    'Map.remove': HT_Object_Map._remove,
-    'Map.getVal': HT_Object_Map._get_val,
-    'Map.putIfAbsent': HT_Object_Map._put_if_absent,
+    'num.parse': _num_parse, // static 函数
+    'bool.parse': _bool_parse, // static 函数
+    'String.parse': _string_parse, // static 函数
     'random': _math_random,
     'randomInt': _math_random_int,
     'sqrt': _math_sqrt,
@@ -197,90 +174,39 @@ abstract class HT_BaseBinding {
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
     return DateTime.now().millisecondsSinceEpoch;
   }
-}
 
-/// Abstract base class of all class wrapper for literal values.
-abstract class HT_Object_Value extends HT_Object {
-  final dynamic value;
-
-  HT_Object_Value(this.value, String className, HT_Interpreter interpreter)
-      : super(
-          interpreter,
-          interpreter.fetchGlobal(className),
-        );
-
-  @override
-  dynamic getProperty(String id) {
-    switch (id) {
-      case 'toString':
-        return value.toString;
-      default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
-    }
-  }
-}
-
-/// Class wrapper for literal number.
-class HT_Object_Number extends HT_Object_Value {
-  HT_Object_Number(num value, HT_Interpreter interpreter) : super(value, HT_Lexicon.number, interpreter);
-
-  static dynamic _parse(HT_Interpreter interpreter,
+  static dynamic _num_parse(HT_Interpreter interpreter,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
     if (positionalArgs.isNotEmpty) {
       return num.tryParse(positionalArgs.first);
     }
   }
 
-  static dynamic _to_string_as_fixed(HT_Interpreter interpreter,
+  static dynamic _bool_parse(HT_Interpreter interpreter,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var fractionDigits = 0;
     if (positionalArgs.isNotEmpty) {
-      fractionDigits = positionalArgs.first;
-    }
-    var numObj = (object as HT_Object_Number);
-    num number = numObj?.value;
-    return number.toStringAsFixed(fractionDigits);
-  }
-
-  static dynamic _truncate(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var numObj = (object as HT_Object_Number);
-    num number = numObj?.value;
-    return number.truncate();
-  }
-}
-
-/// Class wrapper for literal boolean.
-class HT_Object_Boolean extends HT_Object_Value {
-  HT_Object_Boolean(bool value, HT_Interpreter interpreter) : super(value, HT_Lexicon.number, interpreter);
-}
-
-/// Class wrapper for literal string.
-class HT_Object_String extends HT_Object_Value {
-  HT_Object_String(String value, HT_Interpreter interpreter) : super(value, HT_Lexicon.string, interpreter);
-
-  static dynamic _is_empty(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var strObj = (object as HT_Object_String);
-    String str = strObj?.value;
-    return str?.isEmpty;
-  }
-
-  static dynamic _substring(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var strObj = (object as HT_Object_String);
-    String str = strObj?.value;
-    if (positionalArgs.isNotEmpty) {
-      int startIndex = positionalArgs[0];
-      int endIndex;
-      if (positionalArgs.length >= 2) {
-        endIndex = positionalArgs[1];
+      final value = positionalArgs.first;
+      if (value is bool) {
+        return value;
+      } else if (value is num) {
+        if (value != 0) {
+          return true;
+        } else {
+          return false;
+        }
+      } else if (value is String) {
+        return value.isNotEmpty;
+      } else {
+        if (value != null) {
+          return true;
+        } else {
+          return false;
+        }
       }
-      return str?.substring(startIndex, endIndex);
     }
   }
 
-  static dynamic _parse(HT_Interpreter interpreter,
+  static dynamic _string_parse(HT_Interpreter interpreter,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
     if (positionalArgs.isNotEmpty) {
       return positionalArgs.first.toString();
@@ -288,168 +214,145 @@ class HT_Object_String extends HT_Object_Value {
   }
 }
 
+/// Abstract base class of all class wrapper for literal values.
+abstract class HT_DartObject with HT_Reflect {
+  final dynamic value;
+
+  HT_DartObject(this.value);
+}
+
+/// Class wrapper for dart number.
+class HT_DartObject_Number extends HT_DartObject {
+  HT_DartObject_Number(num value) : super(value);
+
+  @override
+  dynamic getProperty(String id) {
+    switch (id) {
+      case 'toStringAsFixed':
+        return value.toStringAsFixed;
+      case 'truncate':
+        return value.truncate;
+      default:
+        throw HTErr_Undefined(id, interpreter.curFileName);
+    }
+  }
+
+  @override
+  void setProperty(String id, dynamic value) {}
+}
+
+/// Class wrapper for literal boolean.
+class HT_DartObject_Boolean extends HT_DartObject {
+  HT_DartObject_Boolean(bool value) : super(value);
+
+  @override
+  dynamic getProperty(String id) {
+    switch (id) {
+      case 'parse':
+        return value.toString;
+      default:
+        throw HTErr_Undefined(id, interpreter.curFileName);
+    }
+  }
+
+  @override
+  void setProperty(String id, dynamic value) {}
+}
+
+/// Class wrapper for literal string.
+class HT_DartObject_String extends HT_DartObject {
+  HT_DartObject_String(String value) : super(value);
+
+  @override
+  dynamic getProperty(String id) {
+    switch (id) {
+      case 'isEmpty':
+        return value.isEmpty;
+      case 'subString':
+        return value.substring;
+      default:
+        throw HTErr_Undefined(id, interpreter.curFileName);
+    }
+  }
+
+  @override
+  void setProperty(String id, dynamic value) {}
+}
+
 /// Class wrapper for literal list.
-class HT_Object_List extends HT_Object_Value {
+class HT_DartObject_List extends HT_DartObject {
   String valueType;
 
-  HT_Object_List(List value, HT_Interpreter interpreter, {this.valueType = HT_Lexicon.ANY})
-      : super(value, HT_Lexicon.list, interpreter);
+  HT_DartObject_List(List value, {this.valueType = HT_Lexicon.ANY}) : super(value);
 
-  static dynamic _get_length(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var listObj = (object as HT_Object_List);
-    return listObj?.value?.length ?? -1;
-  }
-
-  static dynamic _add(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var listObj = (object as HT_Object_List);
-    listObj?.value?.addAll(positionalArgs);
-  }
-
-  static dynamic _clear(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var listObj = (object as HT_Object_List);
-    List list = listObj?.value;
-    list?.clear();
-  }
-
-  static dynamic _remove_at(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var listObj = (object as HT_Object_List);
-    List list = listObj?.value;
-    if (positionalArgs.isNotEmpty) {
-      list?.removeAt(positionalArgs.first);
+  @override
+  dynamic getProperty(String id) {
+    switch (id) {
+      case 'length':
+        return value.length;
+      case 'isEmpty':
+        return value.isEmpty;
+      case 'isNotEmpty':
+        return value.isNotEmpty;
+      case 'add':
+        return value.add;
+      case 'addAll':
+        return value.addAll;
+      case 'clear':
+        return value.clear;
+      case 'removeAt':
+        return value.removeAt;
+      case 'indexOf':
+        return value.indexOf;
+      case 'elementAt':
+        return value.elementAt;
+      default:
+        throw HTErr_Undefined(id, interpreter.curFileName);
     }
   }
 
-  static dynamic _index_of(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var listObj = (object as HT_Object_List);
-    List list = listObj?.value;
-    if (positionalArgs.isNotEmpty) {
-      return list?.indexOf(positionalArgs.first);
-    }
-    return -1;
-  }
-
-  static dynamic _element_at(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var listObj = (object as HT_Object_List);
-    List list = listObj?.value;
-    try {
-      if ((positionalArgs.isNotEmpty) && (positionalArgs.first is int)) {
-        return list?.elementAt(positionalArgs.first);
-      }
-    } catch (e) {
-      if (e is RangeError) {
-        // TODO: 打印错误信息到Errors
-        return null;
-      }
-    }
-    return null;
-  }
+  @override
+  void setProperty(String id, dynamic value) {}
 }
 
 /// Class wrapper for literal map.
-class HT_Object_Map extends HT_Object_Value {
+class HT_DartObject_Map extends HT_DartObject {
   String keyType;
   String valueType;
 
-  HT_Object_Map(Map value, HT_Interpreter interpreter, {this.keyType = HT_Lexicon.ANY, this.valueType = HT_Lexicon.ANY})
-      : super(value, HT_Lexicon.map, interpreter);
+  HT_DartObject_Map(Map value, {this.keyType = HT_Lexicon.ANY, this.valueType = HT_Lexicon.ANY}) : super(value);
 
-  static dynamic _get_length(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    return (object as HT_Object_Map)?.value?.length ?? -1;
-  }
-
-  static dynamic _get_keys(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    return (object as HT_Object_Map)?.value?.keys?.toList() ?? [];
-  }
-
-  static dynamic _get_values(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    return (object as HT_Object_Map)?.value?.values?.toList() ?? [];
-  }
-
-  static dynamic _contains_key(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
-      var mapObj = (object as HT_Object_Map);
-      Map map = mapObj?.value;
-      if (map != null) return map.containsKey(positionalArgs.first);
-    }
-    return false;
-  }
-
-  static dynamic _contains_value(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
-      var mapObj = (object as HT_Object_Map);
-      Map map = mapObj?.value;
-      if (map != null) return map.containsValue(positionalArgs.first);
-    }
-    return false;
-  }
-
-  static dynamic _set_val(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if ((positionalArgs.isNotEmpty) && positionalArgs.length >= 2) {
-      var mapObj = (object as HT_Object_Map);
-      Map map = mapObj?.value;
-      var key = positionalArgs[0];
-      var value = positionalArgs[1];
-      if (map != null) {
-        map[key] = value;
-      }
+  @override
+  dynamic getProperty(String id) {
+    switch (id) {
+      case 'length':
+        return value.length;
+      case 'keys':
+        return value.keys;
+      case 'values':
+        return value.values;
+      case 'containsKey':
+        return value.containsKey;
+      case 'containsValue':
+        return value.containsValue;
+      // TODO: subGet和subSet本质应该也是一个函数（__sub__get__, __sub__set__）
+      case '__sub__get__':
+        return;
+      case '__sub__set__':
+        return;
+      case 'addAll':
+        return value.addAll;
+      case 'clear':
+        return value.clear;
+      case 'remove':
+        return value.remove;
+      case 'putIfAbsent':
+        return value.putIfAbsent;
+      default:
+        throw HTErr_Undefined(id, interpreter.curFileName);
     }
   }
 
-  static dynamic _add_all(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if ((positionalArgs.isNotEmpty) && (positionalArgs.first is Map)) {
-      var mapObj = (object as HT_Object_Map);
-      Map map = mapObj?.value;
-      map?.addAll(positionalArgs.first);
-    }
-  }
-
-  static dynamic _clear(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    var mapObj = (object as HT_Object_Map);
-    Map map = mapObj?.value;
-    map?.clear();
-  }
-
-  static dynamic _remove(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
-      var mapObj = (object as HT_Object_Map);
-      Map map = mapObj?.value;
-      map.remove(positionalArgs.first);
-    }
-  }
-
-  static dynamic _get_val(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
-      var mapObj = (object as HT_Object_Map);
-      Map map = mapObj?.value;
-      var key = positionalArgs[0];
-      return map[key];
-    }
-  }
-
-  static dynamic _put_if_absent(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
-      var mapObj = (object as HT_Object_Map);
-      Map map = mapObj?.value;
-      var key = positionalArgs[0];
-      var value = positionalArgs[1];
-      map.putIfAbsent(key, () => value);
-    }
-  }
+  @override
+  void setProperty(String id, dynamic value) {}
 }

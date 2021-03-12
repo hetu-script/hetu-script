@@ -261,12 +261,10 @@ class HT_Object extends HT_Namespace with HT_Reflect {
 
   HT_Object(HT_Interpreter interpreter, String className, {List<HT_Type> typeArgs = const [], this.isExtern = false})
       : super(id: HT_Lexicon.instance + (_instanceIndex++).toString(), closure: interpreter.fetchGlobal(className)) {
-    _typeid = HT_Type(klass.id, arguments: typeArgs = const []);
-
-    define(HT_Lexicon.THIS, interpreter, declType: typeid, value: this);
-
     init(className, interpreter);
     _klass = interpreter.fetchGlobal(className);
+    _typeid = HT_Type(klass.id, arguments: typeArgs = const []);
+    define(HT_Lexicon.THIS, interpreter, declType: typeid, value: this);
   }
 
   @override
