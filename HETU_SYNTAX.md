@@ -61,17 +61,17 @@ var name = 'naruto';
 name = 2020; // not an error
 ```
 
-If declared with 'def', variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
-
-```groovy
-def name = "naruto"
-// name = 2020 // error!
-```
-
-If declared with 'let', variables has to have an initialize expression, and it will be given a type according to the expression, and it will become immutable(in other words this is a constant).
+If declared with 'let', variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
 
 ```typescript
 let name = 'naruto';
+// name = 2020 // error!
+```
+
+If declared with 'const', variables has to have an initialize expression, and it will be given a type according to the expression, and it will become immutable(in other words this is a constant).
+
+```typescript
+const name = 'naruto';
 // name = "sasuke" // error!
 ```
 
@@ -79,8 +79,8 @@ let name = 'naruto';
 
 Typename is not evaluated when declared, hence you can declare a variable with an non-exist type. However if you do this, you cannot assign it with any value.
 
-```groovy
-def i: NotAType // not an error
+```typescript
+var i: NotAType; // not an error
 ```
 
 ## Control statement

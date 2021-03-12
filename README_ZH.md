@@ -12,8 +12,8 @@ A lightweight script language & its interpreter written purely in Dart, intended
 import 'package:hetu_script/hetu.dart';
 
 void main() async {
-  var hetu = await HetuEnv.init();
-  await hetu.evalf('hello.ht', invokeFunc: 'main');
+  var hetu = HT_Interpreter();
+  hetu.evalf('hello.ht', invokeFunc: 'main');
 }
 ```
 
