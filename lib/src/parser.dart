@@ -804,6 +804,7 @@ class Parser {
     // TODO: 嵌套类?
     _curClassName = class_name;
 
+    // generic type参数
     var typeParams = <String>[];
     if (expect([HT_Lexicon.angleLeft], consume: true, error: false)) {
       while ((curTok.type != HT_Lexicon.angleRight) && (curTok.type != HT_Lexicon.endOfFile)) {
@@ -828,7 +829,12 @@ class Parser {
 
       super_class = SymbolExpr(curTok, fileName);
       super_class_decl = _declarations[super_class.id.lexeme];
-      super_class_type_args = _parseTypeId();
+      advance(1);
+      if (expect([HT_Lexicon.angleLeft], consume: true, error: false)) {
+        // 类型传入参数
+        super_class_type_args = _parseTypeId();
+        expect([HT_Lexicon.angleRight], consume: true);
+      }
     }
 
     // 类的定义体

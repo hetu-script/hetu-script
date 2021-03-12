@@ -2,14 +2,14 @@ import 'package:hetu_script/hetu_script.dart';
 
 class DartPerson {
   static var race = 'Caucasian';
-  static String meaning(int n) => 'the meaning of life is $n';
+  static String meaning(int n) => 'The meaning of life is $n';
+  DartPerson();
+  DartPerson.withName([this.name = 'some guy']);
+
   String name;
   void greeting() {
     print('Hi! I\'m $name');
   }
-
-  DartPerson();
-  DartPerson.withName([this.name = 'some guy']);
 }
 
 class DartPersonWrapper extends DartPerson with HT_Reflect {
@@ -27,17 +27,29 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
         throw HTErr_Undefined(id, interpreter.curFileName);
     }
   }
+
+  @override
+  void setProperty(String id, dynamic value) {
+    switch (id) {
+      case 'name':
+        name = value;
+        break;
+      default:
+        throw HTErr_Undefined(id, interpreter.curFileName);
+    }
+  }
 }
 
 void main() async {
   var hetu = HT_Interpreter(externalFunctions: {
     'Person': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPersonWrapper();
+      return DartPersonWrapper()..init('Person', interpreter);
     },
     'Person.withName': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPersonWrapper.withName(positionalArgs.isNotEmpty ? positionalArgs[0] : null);
+      return DartPersonWrapper.withName(positionalArgs.isNotEmpty ? positionalArgs[0] : null)
+        ..init('Person', interpreter);
     },
     'Person.meaning': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
@@ -47,10 +59,14 @@ void main() async {
       }
       return Function.apply(DartPerson.meaning, positionalArgs, dartNamedArg);
     },
-    // 类的 external static 变量，只能通过 getter 函数的方式获取
+    // 类的 external static 变量，只能通过 getter, setter 函数的方式访问
     'Person.__get__race': (HT_Interpreter interpreter,
         {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
       return DartPerson.race;
+    },
+    'Person.__set__race': (HT_Interpreter interpreter,
+        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      DartPerson.race = positionalArgs.isNotEmpty ? positionalArgs.first : null;
     },
   });
   hetu.eval('''
@@ -65,11 +81,14 @@ void main() async {
       fun main {
         var p = Person.withName('Jimmy')
         print(p.name)
+        p.name = 'John'
         p.greeting();
 
+        print('My race is', Person.race)
+        Person.race = 'Reptile'
+        print('Oh no! My race turned into', Person.race)
+
         print(Person.meaning(42))
-        print('Jimmy is a', Person.race)
-        
       }
       ''', invokeFunc: 'main');
 }

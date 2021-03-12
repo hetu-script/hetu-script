@@ -1,21 +1,13 @@
-class Value {
+external class num {
 
-  // external关键字表示函数体在host语言中定义
-	external fun toString(): String
+	static fun parse(value): num
 
+  fun toStringAsFixed([fractionDigits: num = 0]): num
+
+  fun truncate(): num
 }
 
-class num extends Value {
-
-	external static fun parse(value): num
-
-  external fun toStringAsFixed([fractionDigits: num = 0]): num
-
-  external fun truncate(): num
-}
-
-class bool extends Value {
-
+external class bool {
 	static fun parse(value): bool {
     if (value is bool) {
       return value
@@ -37,22 +29,22 @@ class bool extends Value {
   }
 }
 
-class String extends Value {
+external class String {
+
+	static fun parse(value): String
 	
-	external get isEmpty: bool
+	get isEmpty: bool
 	
 	get isNotEmpty: bool {
 		return !isEmpty
 	}
 
-	external fun substring(startIndex: num, [endIndex: num]): String
-
-	external static fun parse(value): String
+	fun substring(startIndex: num, [endIndex: num]): String
 }
 
-class List extends Value {
+external class List {
 	
-	external get length: num
+	get length: num
 	
 	get isEmpty: bool {
 		return length == 0
@@ -62,15 +54,15 @@ class List extends Value {
 		return length != 0
 	}
 	
-	external fun add(... args)
-	
-	external fun clear()
-	
-	external fun removeAt(index: num)
-	
-	external fun indexOf(value): num
-	
-	external fun elementAt(index: num): any
+	fun add(... args)
+
+	fun clear()
+
+	fun removeAt(index: num)
+
+	fun indexOf(value): num
+
+	fun elementAt(index: num): any
 	
 	get first: any {
     if (length > 0){
@@ -89,9 +81,9 @@ class List extends Value {
 	}
 }
 
-class Map extends Value {
+external class Map {
 	
-	external get length: num
+	get length: num
 	
 	get isEmpty: bool {
 		return length == 0
@@ -101,23 +93,23 @@ class Map extends Value {
 		return length != 0
 	}
 
-  external get keys: List
+  get keys: List
 
-  external get values: List
-	
-	external fun containsKey(value): bool
+  get values: List
 
-	external fun containsValue(value): bool
-	
-	external fun setVal(key, value)
-	
-	external fun addAll(other: Map)
-	
-	external fun clear()
-	
-	external fun remove(key)
-	
-	external fun getVal(key): any
+	fun containsKey(value): bool
 
-  external fun putIfAbsent(key, value): any
+	fun containsValue(value): bool
+
+	fun setVal(key, value)
+
+	fun addAll(other: Map)
+
+	fun clear()
+
+	fun remove(key)
+
+	fun getVal(key): any
+
+  fun putIfAbsent(key, value): any
 }

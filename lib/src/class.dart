@@ -7,6 +7,23 @@ import 'errors.dart';
 import 'statement.dart';
 import 'value.dart';
 
+mixin HT_Reflect {
+  String _className;
+  String get className => _className;
+
+  HT_Interpreter _interpreter;
+  HT_Interpreter get interpreter => _interpreter;
+
+  void init(String className, HT_Interpreter interpreter) {
+    _className = className;
+    _interpreter = interpreter;
+  }
+
+  dynamic getProperty(String id);
+
+  void setProperty(String id, dynamic value);
+}
+
 /// [HT_Class] is the Dart implementation of the class declaration in Hetu.
 ///
 /// [HT_Class] extends [HT_Namespace].
@@ -56,7 +73,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
   HT_Class(String id, this.superClass, HT_Interpreter interpreter,
       {this.isExtern = false, this.typeParams = const [], HT_Namespace closure})
       : super(id: id, closure: closure) {
-    register(id, interpreter);
+    init(id, interpreter);
   }
 
   /// Wether the class contains a static member, will also check super class.
@@ -128,16 +145,6 @@ class HT_Class extends HT_Namespace with HT_Reflect {
     return null;
   }
 
-  @override // TODO: 区分getOwnProperty和继承的property？
-  dynamic getProperty(String id) {
-    return fetch(
-      id,
-      null,
-      null,
-      interpreter,
-    );
-  }
-
   /// Assign a value to a static member of this class.
   @override
   void assign(String varName, dynamic value, int line, int column, HT_Interpreter interpreter,
@@ -149,7 +156,14 @@ class HT_Class extends HT_Namespace with HT_Reflect {
       if (from.startsWith(fullName) ||
           (!fullName.startsWith(HT_Lexicon.underscore) && !varName.startsWith(HT_Lexicon.underscore))) {
         if (var_type.isA(decl_type)) {
-          defs[varName].value = value;
+          if (!defs[varName].isExtern) {
+            defs[varName].value = value;
+          } else {
+            final setterFunc = interpreter
+                .fetchGlobal('${HT_Lexicon.externals}$id${HT_Lexicon.memberGet}${HT_Lexicon.setter}$varName');
+            setterFunc(interpreter, positionalArgs: [value]);
+          }
+
           return;
         }
         throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), interpreter.curFileName, line, column);
@@ -210,6 +224,27 @@ class HT_Class extends HT_Namespace with HT_Reflect {
   //         positionalArgs: positionalArgs, namedArgs: namedArgs, object: object);
   //   }
   // }
+
+  @override // TODO: 区分getOwnProperty和继承的property？
+  dynamic getProperty(String id) {
+    return fetch(
+      id,
+      null,
+      null,
+      interpreter,
+    );
+  }
+
+  @override
+  void setProperty(String id, dynamic value) {
+    return assign(
+      id,
+      value,
+      null,
+      null,
+      interpreter,
+    );
+  }
 }
 
 /// [HT_Object] is the Dart implementation of the object object in Hetu.
@@ -230,7 +265,7 @@ class HT_Object extends HT_Namespace with HT_Reflect {
 
     define(HT_Lexicon.THIS, interpreter, declType: typeid, value: this);
 
-    register(className, interpreter);
+    init(className, interpreter);
     _klass = interpreter.fetchGlobal(className);
   }
 
@@ -320,20 +355,15 @@ class HT_Object extends HT_Namespace with HT_Reflect {
       interpreter,
     );
   }
-}
 
-mixin HT_Reflect {
-  String _className;
-  String get className => _className;
-
-  HT_Interpreter _interpreter;
-  HT_Interpreter get interpreter => _interpreter;
-
-  void register(String className, HT_Interpreter interpreter) {
-    _className = className;
-    _interpreter = interpreter;
+  @override
+  void setProperty(String id, dynamic value) {
+    return assign(
+      id,
+      value,
+      null,
+      null,
+      interpreter,
+    );
   }
-
-  // 获取类静态成员变量
-  dynamic getProperty(String id);
 }

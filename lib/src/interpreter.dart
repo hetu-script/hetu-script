@@ -225,11 +225,11 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
   //   if (value is HT_Value) {
   //     return value;
   //   } else if (value is num) {
-  //     return HT_Instance_Number(value, line, column, this);
+  //     return HT_Object_Number(value, line, column, this);
   //   } else if (value is bool) {
-  //     return HT_Instance_Boolean(value, line, column, this);
+  //     return HT_Object_Boolean(value, line, column, this);
   //   } else if (value is String) {
-  //     return HT_Instance_String(value, line, column, this);
+  //     return HT_Object_String(value, line, column, this);
   //   } else {
   //     return value;
   //   }
@@ -532,11 +532,11 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
   dynamic visitSubGetExpr(SubGetExpr expr) {
     var collection = evaluateExpr(expr.collection);
     var key = evaluateExpr(expr.key);
-    if (collection is HT_Instance_List) {
+    if (collection is HT_Object_List) {
       return collection.value.elementAt(key);
     } else if (collection is List) {
       return collection[key];
-    } else if (collection is HT_Instance_Map) {
+    } else if (collection is HT_Object_Map) {
       return collection.value[key];
     } else if (collection is Map) {
       return collection[key];
@@ -552,7 +552,7 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     var value = evaluateExpr(expr.value);
     if ((collection is List) || (collection is Map)) {
       return collection[key] = value;
-    } else if ((collection is HT_Instance_List) || (collection is HT_Instance_Map)) {
+    } else if ((collection is HT_Object_List) || (collection is HT_Object_Map)) {
       collection.value[key] = value;
     }
 
@@ -564,15 +564,15 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     var object = evaluateExpr(expr.collection);
 
     if (object is num) {
-      object = HT_Instance_Number(object, this);
+      object = HT_Object_Number(object, this);
     } else if (object is bool) {
-      object = HT_Instance_Boolean(object, this);
+      object = HT_Object_Boolean(object, this);
     } else if (object is String) {
-      object = HT_Instance_String(object, this);
+      object = HT_Object_String(object, this);
     } else if (object is List) {
-      object = HT_Instance_List(object, this);
+      object = HT_Object_List(object, this);
     } else if (object is Map) {
-      object = HT_Instance_Map(object, this);
+      object = HT_Object_Map(object, this);
     }
 
     if ((object is HT_Object) || (object is HT_Class)) {
@@ -593,6 +593,10 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     if ((object is HT_Object) || (object is HT_Class)) {
       object.assign(expr.key.lexeme, value, expr.line, expr.column, this, from: curContext.fullName);
       return value;
+    }
+    //如果是Dart对象，通过反射获取成员
+    else if (object is HT_Reflect) {
+      return object.setProperty(expr.key.lexeme, value);
     }
 
     throw HTErr_Get(object.toString(), expr.fileName, expr.key.line, expr.key.column);
