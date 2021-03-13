@@ -1,18 +1,18 @@
 import 'package:hetu_script/hetu_script.dart';
 
 class DartPerson {
-  static var race = 'Caucasian';
+  static String race = 'Caucasian';
   static String meaning(int n) => 'The meaning of life is $n';
   DartPerson();
   DartPerson.withName([this.name = 'some guy']);
 
-  String name;
+  String? name;
   void greeting() {
     print('Hi! I\'m $name');
   }
 }
 
-class DartPersonWrapper extends DartPerson with HT_Reflect {
+class DartPersonWrapper extends DartPerson with HT_Reflect, HT_Typed {
   DartPersonWrapper() : super();
   DartPersonWrapper.withName([String name = 'some guy']) : super.withName(name);
 
@@ -43,29 +43,29 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
   }
 }
 
-void main() async {
+void main() {
   var hetu = HT_Interpreter(externalFunctions: {
     'Person': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+        {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
       return DartPersonWrapper();
     },
     'Person.withName': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPersonWrapper.withName(positionalArgs.isNotEmpty ? positionalArgs[0] : null);
+        {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+      return DartPersonWrapper.withName(positionalArgs!.isNotEmpty ? positionalArgs[0] : null);
     },
     'Person.meaning': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+        {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
       return Function.apply(
-          DartPerson.meaning, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          DartPerson.meaning, positionalArgs, namedArgs!.map((key, value) => MapEntry(Symbol(key), value)));
     },
     // 类的 external static 变量，只能通过 getter, setter 函数的方式访问
     'Person.__get__race': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+        {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
       return DartPerson.race;
     },
     'Person.__set__race': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      DartPerson.race = positionalArgs.isNotEmpty ? positionalArgs.first : null;
+        {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+      DartPerson.race = positionalArgs!.isNotEmpty ? positionalArgs.first : null;
     },
   });
 

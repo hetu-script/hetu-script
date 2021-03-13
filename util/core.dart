@@ -17,7 +17,7 @@ void main() {
       'final Map<String, String> coreLibs = const {\n';
   final output = File('lib/src/core.dart');
   for (final file in paths.keys) {
-    final data = File(paths[file]).readAsStringSync();
+    final data = File(paths[file]!).readAsStringSync();
     // TODO: 脚本中的引号需要以反义字符替换
     content += "'$file': r'''" + data + "''',\n";
   }

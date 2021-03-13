@@ -18,13 +18,13 @@ class HT_VM implements CodeRunner {
   final bool debugMode;
   final ReadFileMethod readFileMethod;
 
-  String _curFileName;
-  List<int> _curFileVersion;
-  String _curDirectory;
+  late String _curFileName;
+  // late List<int> _curFileVersion;
+  late String _curDirectory;
   @override
-  String get curFileName => _curFileName;
+  String? get curFileName => _curFileName;
   @override
-  String get curDirectory => _curDirectory;
+  String? get curDirectory => _curDirectory;
 
   // final _evaledFiles = <String>[];
 
@@ -33,8 +33,8 @@ class HT_VM implements CodeRunner {
   final _float64Table = <double>[];
   final _stringTable = <String>[];
 
-  Uint8List _bytes;
-  int _ip; // instruction pointer
+  late Uint8List _bytes;
+  int _ip = 0; // instruction pointer
 
   HT_VM({
     String sdkDirectory = 'hetu_lib/',
@@ -50,11 +50,11 @@ class HT_VM implements CodeRunner {
   @override
   dynamic eval(
     String content, {
-    String fileName,
+    String? fileName,
     String libName = HT_Lexicon.globals,
-    HT_Context context,
+    HT_Context? context,
     ParseStyle style = ParseStyle.library,
-    String invokeFunc,
+    String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {

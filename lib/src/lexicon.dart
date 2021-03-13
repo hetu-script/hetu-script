@@ -49,7 +49,7 @@ abstract class HT_Lexicon {
   static String convertStringLiteral(String literal) {
     var result = literal.substring(1).substring(0, literal.length - 2);
     for (final key in stringReplaces.keys) {
-      result = result.replaceAll(key, stringReplaces[key]);
+      result = result.replaceAll(key, stringReplaces[key]!);
     }
     return result;
   }
@@ -74,6 +74,8 @@ abstract class HT_Lexicon {
   static const newLine = '\n';
   static const multiline = '\\';
   static const variadicArguments = '...';
+  static const anonymousFile = '__anonymousFile__';
+  static const anonymousFunction = '__anonymousFunction__';
   static const underscore = '_';
   static const unknown = '__unknown__';
   static const globals = '__globals__';

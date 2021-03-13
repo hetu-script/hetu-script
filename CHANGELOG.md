@@ -1,7 +1,11 @@
+## 0.0.5
+
+- Refactor: Migrate to null safety.
+
 ## 0.0.4
 
 - Feature: External class.
-- Refractor: Build-in dart types.
+- Refactor: Build-in dart types.
 
 ## 0.0.3
 

@@ -39,23 +39,24 @@ class HT_FunctionType extends HT_Type {
   }
 }
 
-class HT_Function {
+class HT_Function with HT_Typed {
   static int functionIndex = 0;
 
   HT_Namespace declContext;
-  HT_Namespace _closure;
+  late HT_Namespace _closure;
   //HT_Namespace _save;
-  final String internalName;
-  String get id => internalName ?? funcStmt.id;
+  String get id => funcStmt.id;
+  String get internalName => funcStmt.internalName;
 
   final FuncDeclStmt funcStmt;
 
-  HT_FunctionType _typeid;
-  HT_FunctionType get typeid => _typeid;
+  late final HT_FunctionType _typeid;
+  @override
+  HT_Type get typeid => _typeid;
 
-  final HT_ExternFunc extern;
+  final HT_ExternFunc? extern;
 
-  HT_Function({this.funcStmt, this.internalName, List<HT_Type> typeArgs = const [], this.extern, this.declContext}) {
+  HT_Function(this.funcStmt, this.declContext, {List<HT_Type> typeArgs = const [], this.extern}) {
     //_save = _closure = closure;
     var paramsTypes = <HT_Type>[];
     for (final param in funcStmt.params) {
@@ -69,7 +70,7 @@ class HT_Function {
   String toString() {
     var result = StringBuffer();
     result.write('${HT_Lexicon.function}');
-    if (id != null) result.write(' ${id ?? ''}');
+    result.write(' $id');
     if (typeid.arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < typeid.arguments.length; ++i) {
@@ -89,38 +90,38 @@ class HT_Function {
       }
     } else {
       result.write('... ');
-      result.write(funcStmt.params.first.id.lexeme + ': ' + (funcStmt.params.first.declType ?? HT_Lexicon.ANY));
+      result.write(
+          funcStmt.params.first.id.lexeme + ': ' + (funcStmt.params.first.declType as String? ?? HT_Lexicon.ANY));
     }
-    result.write('): ' + funcStmt.returnType?.toString() ?? HT_Lexicon.VOID);
+    result.write('): ' + funcStmt.returnType.toString());
     return result.toString();
   }
 
-  dynamic call(HT_Interpreter interpreter, int line, int column,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+  dynamic call(HT_Interpreter interpreter, int? line, int? column,
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
     if (funcStmt.arity >= 0) {
-      if (positionalArgs.length < funcStmt.arity || positionalArgs.length > funcStmt.params.length) {
+      if (positionalArgs!.length < funcStmt.arity || positionalArgs.length > funcStmt.params.length) {
         throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
       }
     } else {
-      namedArgs[funcStmt.params.first.id.lexeme] = positionalArgs;
+      namedArgs![funcStmt.params.first.id.lexeme] = positionalArgs;
     }
 
     for (var i = 0; i < funcStmt.params.length; ++i) {
-      if (funcStmt.params[i].isOptional && (i >= positionalArgs.length) && (funcStmt.params[i].initializer != null)) {
-        positionalArgs.add(interpreter.evaluateExpr(funcStmt.params[i].initializer));
+      if (funcStmt.params[i].isOptional && (i >= positionalArgs!.length) && (funcStmt.params[i].initializer != null)) {
+        positionalArgs.add(interpreter.evaluateExpr(funcStmt.params[i].initializer!));
       } else if (funcStmt.params[i].isNamed &&
-          (namedArgs[funcStmt.params[i].id.lexeme] == null) &&
+          (namedArgs![funcStmt.params[i].id.lexeme] == null) &&
           (funcStmt.params[i].initializer != null)) {
-        namedArgs[funcStmt.params[i].id.lexeme] = interpreter.evaluateExpr(funcStmt.params[i].initializer);
+        namedArgs[funcStmt.params[i].id.lexeme] = interpreter.evaluateExpr(funcStmt.params[i].initializer!);
       }
     }
 
     dynamic result;
     try {
       if (extern != null) {
-        return extern(interpreter, object: object, positionalArgs: positionalArgs, namedArgs: namedArgs);
+        return extern!(interpreter, object: object, positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (funcStmt.definition != null) {
-        if (funcStmt == null) throw HTErr_MissingFuncDef(id, interpreter.curFileName, line, column);
         //_save = _closure;
         //assert(closure != null);
         // 函数每次在调用时，才生成对应的作用域
@@ -137,11 +138,11 @@ class HT_Function {
             var var_stmt = funcStmt.params[i];
             var arg;
             if (!var_stmt.isNamed) {
-              arg = positionalArgs[i];
+              arg = positionalArgs![i];
             } else {
-              arg = namedArgs[var_stmt.id];
+              arg = namedArgs![var_stmt.id as String];
             }
-            final arg_type_decl = var_stmt.declType;
+            final arg_type_decl = var_stmt.declType!;
 
             var arg_type = HT_TypeOf(arg);
             if (arg_type.isNotA(arg_type_decl)) {
@@ -159,7 +160,7 @@ class HT_Function {
               declType: HT_Type.list, line: line, column: column, value: positionalArgs);
         }
 
-        result = interpreter.executeBlock(funcStmt.definition, _closure);
+        result = interpreter.executeBlock(funcStmt.definition!, _closure);
         //_closure = _save;
       } else {
         throw HTErr_FuncWithoutBody(id, interpreter.curFileName, line, column);
@@ -173,7 +174,7 @@ class HT_Function {
 
       var returned_type = HT_TypeOf(returnValue);
 
-      if ((funcStmt != null) && (returned_type.isNotA(funcStmt.returnType))) {
+      if (returned_type.isNotA(funcStmt.returnType)) {
         throw HTErr_ReturnType(
             returned_type.toString(), id, funcStmt.returnType.toString(), interpreter.curFileName, line, column);
       }
