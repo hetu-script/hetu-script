@@ -226,6 +226,9 @@ class HT_DartObject_Number extends HT_DartObject {
   HT_DartObject_Number(num value) : super(value);
 
   @override
+  final typeid = HT_Type.number;
+
+  @override
   dynamic getProperty(String id) {
     switch (id) {
       case 'toStringAsFixed':
@@ -233,7 +236,7 @@ class HT_DartObject_Number extends HT_DartObject {
       case 'truncate':
         return value.truncate;
       default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
+        throw HTErr_Undefined(id);
     }
   }
 
@@ -248,12 +251,15 @@ class HT_DartObject_Boolean extends HT_DartObject {
   HT_DartObject_Boolean(bool value) : super(value);
 
   @override
+  final typeid = HT_Type.boolean;
+
+  @override
   dynamic getProperty(String id) {
     switch (id) {
       case 'parse':
         return value.toString;
       default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
+        throw HTErr_Undefined(id);
     }
   }
 
@@ -268,6 +274,9 @@ class HT_DartObject_String extends HT_DartObject {
   HT_DartObject_String(String value) : super(value);
 
   @override
+  final typeid = HT_Type.string;
+
+  @override
   dynamic getProperty(String id) {
     switch (id) {
       case 'isEmpty':
@@ -275,7 +284,7 @@ class HT_DartObject_String extends HT_DartObject {
       case 'subString':
         return value.substring;
       default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
+        throw HTErr_Undefined(id);
     }
   }
 
@@ -290,6 +299,9 @@ class HT_DartObject_List extends HT_DartObject {
   String valueType;
 
   HT_DartObject_List(List value, {this.valueType = HT_Lexicon.ANY}) : super(value);
+
+  @override
+  final typeid = HT_Type.list;
 
   @override
   dynamic getProperty(String id) {
@@ -313,7 +325,7 @@ class HT_DartObject_List extends HT_DartObject {
       case 'elementAt':
         return value.elementAt;
       default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
+        throw HTErr_Undefined(id);
     }
   }
 
@@ -329,6 +341,9 @@ class HT_DartObject_Map extends HT_DartObject {
   String valueType;
 
   HT_DartObject_Map(Map value, {this.keyType = HT_Lexicon.ANY, this.valueType = HT_Lexicon.ANY}) : super(value);
+
+  @override
+  final typeid = HT_Type.map;
 
   @override
   dynamic getProperty(String id) {
@@ -361,7 +376,7 @@ class HT_DartObject_Map extends HT_DartObject {
       case 'putIfAbsent':
         return value.putIfAbsent;
       default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
+        throw HTErr_Undefined(id);
     }
   }
 

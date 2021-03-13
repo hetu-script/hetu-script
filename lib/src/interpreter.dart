@@ -15,7 +15,7 @@ import 'parser.dart';
 import 'lexicon.dart';
 
 /// 负责对语句列表进行最终解释执行
-class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
+class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   final bool debugMode;
   final ReadFileMethod readFileMethod;
 
@@ -33,9 +33,12 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
 
   /// 当前语句所在的命名空间
   HT_Namespace curContext;
+
   String _curFileName;
-  String get curFileName => _curFileName;
   String _curDirectory;
+  @override
+  String get curFileName => _curFileName;
+  @override
   String get curDirectory => _curDirectory;
 
   dynamic _curStmtValue;
@@ -108,7 +111,7 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
       HT_Namespace library_namespace;
       if ((libName != null) && (libName != HT_Lexicon.globals)) {
         library_namespace = HT_Namespace(id: libName, closure: _globals);
-        _globals.define(libName, this, declType: HT_Type.NAMESPACE, value: library_namespace);
+        _globals.define(libName, this, declType: HT_Type.namespace, value: library_namespace);
       }
 
       var content = await readFileMethod(_curFileName);
@@ -146,7 +149,7 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
 
       HT_Namespace library_namespace;
       if ((libName != null) && (libName != HT_Lexicon.globals)) {
-        _globals.define(libName, this, declType: HT_Type.NAMESPACE);
+        _globals.define(libName, this, declType: HT_Type.namespace);
         library_namespace = HT_Namespace(id: libName, closure: library_namespace);
       }
 
@@ -184,7 +187,6 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
   /// 载入外部函数 必须在脚本中存在一个对应声明
   ///
   /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
-  /// TODO: 这里的做法是错误的，不应该另外保存一遍
   @override
   void loadExternalFunctions(Map<String, HT_ExternFunc> lib) {
     for (final key in lib.keys) {
@@ -468,7 +470,6 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
             final HT_ExternFunc extern = _globals.fetch(
                 '${HT_Lexicon.externals}${klass.id}${HT_Lexicon.memberGet}${callee.id}', expr.line, expr.column, this);
             HT_Reflect object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
-            object.init(callee.id, this);
             return object;
           }
         } else {
@@ -485,7 +486,6 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
         final HT_ExternFunc extern =
             _globals.fetch('${HT_Lexicon.externals}${callee.id}', expr.line, expr.column, this);
         HT_Reflect object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
-        object.init(callee.id, this);
         return object;
       }
     } // 外部函数
@@ -550,15 +550,15 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     var object = evaluateExpr(expr.collection);
 
     if (object is num) {
-      object = HT_DartObject_Number(object)..init(HT_Lexicon.number, this);
+      object = HT_DartObject_Number(object);
     } else if (object is bool) {
-      object = HT_DartObject_Boolean(object)..init(HT_Lexicon.boolean, this);
+      object = HT_DartObject_Boolean(object);
     } else if (object is String) {
-      object = HT_DartObject_String(object)..init(HT_Lexicon.string, this);
+      object = HT_DartObject_String(object);
     } else if (object is List) {
-      object = HT_DartObject_List(object)..init(HT_Lexicon.list, this);
+      object = HT_DartObject_List(object);
     } else if (object is Map) {
-      object = HT_DartObject_Map(object)..init(HT_Lexicon.map, this);
+      object = HT_DartObject_Map(object);
     }
 
     if ((object is HT_Object) || (object is HT_Class)) {
@@ -577,15 +577,15 @@ class HT_Interpreter extends CodeRunner implements ExprVisitor, StmtVisitor {
     dynamic object = evaluateExpr(expr.collection);
 
     if (object is num) {
-      object = HT_DartObject_Number(object)..init(HT_Lexicon.number, this);
+      object = HT_DartObject_Number(object);
     } else if (object is bool) {
-      object = HT_DartObject_Boolean(object)..init(HT_Lexicon.boolean, this);
+      object = HT_DartObject_Boolean(object);
     } else if (object is String) {
-      object = HT_DartObject_String(object)..init(HT_Lexicon.string, this);
+      object = HT_DartObject_String(object);
     } else if (object is List) {
-      object = HT_DartObject_List(object)..init(HT_Lexicon.list, this);
+      object = HT_DartObject_List(object);
     } else if (object is Map) {
-      object = HT_DartObject_Map(object)..init(HT_Lexicon.map, this);
+      object = HT_DartObject_Map(object);
     }
 
     var value = evaluateExpr(expr.value);

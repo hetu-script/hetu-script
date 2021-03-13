@@ -11,6 +11,9 @@ String readFileSync(String filapath) => File(filapath).readAsStringSync();
 abstract class HT_Context {}
 
 abstract class CodeRunner {
+  String get curFileName;
+  String get curDirectory;
+
   void loadExternalFunctions(Map<String, HT_ExternFunc> lib);
 
   dynamic eval(

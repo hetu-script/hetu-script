@@ -1,6 +1,14 @@
+import 'dart:typed_data';
+
 // import 'expression.dart';
 // import 'statement.dart';
 
-// var globalCompiler = Compiler();
+class Compiler {
+  //implements ExprVisitor, StmtVisitor {}
+  Uint8List compile(String content) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add([0]);
 
-// class Compiler implements ExprVisitor, StmtVisitor {}
+    return bytesBuilder.toBytes();
+  }
+}

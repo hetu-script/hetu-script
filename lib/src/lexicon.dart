@@ -75,22 +75,22 @@ abstract class HT_Lexicon {
   static const multiline = '\\';
   static const variadicArguments = '...';
   static const underscore = '_';
+  static const unknown = '__unknown__';
   static const globals = '__globals__';
   static const externals = '__external__';
   static const method = '__method__';
-  static const instance = '__instance_of_';
-  static const instancePrefix = 'instance of ';
+  static const instance = '__instance__';
   static const constructor = '__init__';
   static const getter = '__get__';
   static const setter = '__set__';
 
+  static const instanceOf = 'instance of ';
   static const rootClass = 'Object';
-  static const unknown = '__unknown__';
   static const function = 'function';
   static const list = 'List';
   static const map = 'Map';
   static const length = 'length';
-  static const procedure = 'procedure';
+  // static const procedure = 'procedure';
   static const identifier = 'identifier';
 
   static const TRUE = 'true';

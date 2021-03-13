@@ -14,7 +14,8 @@ class HT_Type {
   static const NULL = HT_Type(HT_Lexicon.NULL);
   static const VOID = HT_Type(HT_Lexicon.VOID);
   static const CLASS = HT_Type(HT_Lexicon.CLASS);
-  static const NAMESPACE = HT_Type(HT_Lexicon.NAMESPACE);
+  static const namespace = HT_Type(HT_Lexicon.NAMESPACE);
+  static const function = HT_Type(HT_Lexicon.function);
   static const unknown = HT_Type(HT_Lexicon.unknown);
   static const number = HT_Type(HT_Lexicon.number);
   static const boolean = HT_Type(HT_Lexicon.boolean);
@@ -65,9 +66,8 @@ class HT_Type {
 HT_Type HT_TypeOf(dynamic value) {
   if ((value == null) || (value is NullThrownError)) {
     return HT_Type.NULL;
-  } else if (value is HT_Class) {
-    return HT_Type.CLASS;
-  } else if (value is HT_Object) {
+  } // Class, Object, external class
+  else if (value is HT_Reflect) {
     return value.typeid;
   } else if (value is HT_Function) {
     return value.typeid;

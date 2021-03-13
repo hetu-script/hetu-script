@@ -17,6 +17,9 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
   DartPersonWrapper.withName([String name = 'some guy']) : super.withName(name);
 
   @override
+  final typeid = HT_Type('Person');
+
+  @override
   dynamic getProperty(String id) {
     switch (id) {
       case 'name':
@@ -24,7 +27,7 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
       case 'greeting':
         return greeting;
       default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
+        throw HTErr_Undefined(id);
     }
   }
 
@@ -35,7 +38,7 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
         name = value;
         break;
       default:
-        throw HTErr_Undefined(id, interpreter.curFileName);
+        throw HTErr_Undefined(id);
     }
   }
 }
