@@ -213,3 +213,19 @@ class HTErr_Arity extends HT_Error {
       : super('${HT_Lexicon.errorArity1} [$args_count] ${HT_Lexicon.errorArity2} [$symbol] [$params_count]', fileName,
             line, column);
 }
+
+class HTErr_Signature extends HT_Error {
+  HTErr_Signature([String fileName]) : super('${HT_Lexicon.errorSignature}', fileName);
+}
+
+class HTErr_Int64Table extends HT_Error {
+  HTErr_Int64Table([String fileName]) : super('${HT_Lexicon.errorInt64Table}', fileName);
+}
+
+class HTErr_Float64Table extends HT_Error {
+  HTErr_Float64Table([String fileName]) : super('${HT_Lexicon.errorFloat64Table}', fileName);
+}
+
+class HTErr_StringTable extends HT_Error {
+  HTErr_StringTable([String fileName]) : super('${HT_Lexicon.errorStringTable}', fileName);
+}

@@ -26,4 +26,7 @@ abstract class CodeRunner {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   });
+
+  dynamic invoke(String functionName,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}});
 }

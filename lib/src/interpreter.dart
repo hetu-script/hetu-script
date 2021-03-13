@@ -21,15 +21,15 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
   final _evaledFiles = <String>[];
 
+  /// 常量表
+  final _constants = <dynamic>[];
+
   /// 全局命名空间
   HT_Namespace _globals;
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _distances = <Expr, int>{};
-
-  /// 常量表
-  final _constants = <dynamic>[];
 
   /// 当前语句所在的命名空间
   HT_Namespace curContext;
@@ -62,6 +62,22 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     }
   }
 
+  /// 载入外部函数 必须在脚本中存在一个对应声明
+  ///
+  /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
+  @override
+  void loadExternalFunctions(Map<String, HT_ExternFunc> lib) {
+    for (final key in lib.keys) {
+      _globals.define(
+        HT_Lexicon.externals + key,
+        this,
+        value: lib[key],
+        isImmutable: true,
+        isDynamic: true,
+      );
+    }
+  }
+
   @override
   dynamic eval(
     String content, {
@@ -87,6 +103,33 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     } else {
       return _curStmtValue;
     }
+  }
+
+  @override
+  dynamic invoke(String functionName,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+    // TODO: name应该可以解析出类名，这样就可以调用类的静态函数
+    // if (classname == null) {
+    var func = _globals.fetch(functionName, null, null, this, recursive: false);
+    if (func is HT_Function) {
+      return func.call(this, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs);
+    } else {
+      throw HTErr_Undefined(functionName, curFileName, null, null);
+    }
+    // } else {
+    //   var klass = _globals.fetch(classname, null, null, this, recursive: false);
+    //   if (klass is HT_Class) {
+    //     // 只能调用公共函数
+    //     var func = klass.fetch(name, null, null, this, recursive: false);
+    //     if (func is HT_Function) {
+    //       return func.call(this, null, null, namedArgs: args);
+    //     } else {
+    //       throw HTErr_Callable(name, curFileName, null, null);
+    //     }
+    //   } else {
+    //     throw HTErr_Undefined(classname, curFileName, null, null);
+    //   }
+    // }
   }
 
   /// 解析文件
@@ -184,22 +227,6 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     }
   }
 
-  /// 载入外部函数 必须在脚本中存在一个对应声明
-  ///
-  /// 此种形式的外部函数通常用于需要进行参数类型判断的情况
-  @override
-  void loadExternalFunctions(Map<String, HT_ExternFunc> lib) {
-    for (final key in lib.keys) {
-      _globals.define(
-        HT_Lexicon.externals + key,
-        this,
-        value: lib[key],
-        isImmutable: true,
-        isDynamic: true,
-      );
-    }
-  }
-
   dynamic _getValue(String name, Expr expr) {
     var distance = _distances[expr];
     if (distance != null) {
@@ -229,32 +256,6 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
   dynamic fetchGlobal(String key) {
     return _globals.fetch(key, null, null, this, from: _globals.fullName);
-  }
-
-  dynamic invoke(String functionName,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    // TODO: name应该可以解析出类名，这样就可以调用类的静态函数
-    // if (classname == null) {
-    var func = _globals.fetch(functionName, null, null, this, recursive: false);
-    if (func is HT_Function) {
-      return func.call(this, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs);
-    } else {
-      throw HTErr_Undefined(functionName, curFileName, null, null);
-    }
-    // } else {
-    //   var klass = _globals.fetch(classname, null, null, this, recursive: false);
-    //   if (klass is HT_Class) {
-    //     // 只能调用公共函数
-    //     var func = klass.fetch(name, null, null, this, recursive: false);
-    //     if (func is HT_Function) {
-    //       return func.call(this, null, null, namedArgs: args);
-    //     } else {
-    //       throw HTErr_Callable(name, curFileName, null, null);
-    //     }
-    //   } else {
-    //     throw HTErr_Undefined(classname, curFileName, null, null);
-    //   }
-    // }
   }
 
   dynamic executeBlock(List<Stmt> statements, HT_Namespace environment) {

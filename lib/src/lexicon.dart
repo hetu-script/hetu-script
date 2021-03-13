@@ -366,4 +366,9 @@ abstract class HT_Lexicon {
 
   static const errorArity1 = 'Number of arguments';
   static const errorArity2 = 'doesn\'t match parameter requirement of function';
+
+  static const errorSignature = 'Unknown bytecode signature.';
+  static const errorInt64Table = 'Missing int64 table in bytecode.';
+  static const errorFloat64Table = 'Missing float64 table in bytecode.';
+  static const errorStringTable = 'Missing string table in bytecode.';
 }
