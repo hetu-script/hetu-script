@@ -62,7 +62,7 @@ class ImportStmt extends Stmt {
 
   final String path;
 
-  final String nameSpace;
+  final String? nameSpace;
 
   ImportStmt(this.path, {this.nameSpace});
 }
@@ -101,7 +101,7 @@ class ReturnStmt extends Stmt {
 
   final Token keyword;
 
-  final Expr expr;
+  final Expr? expr;
 
   ReturnStmt(this.keyword, this.expr);
 }
@@ -115,9 +115,9 @@ class IfStmt extends Stmt {
 
   final Expr condition;
 
-  final Stmt thenBranch;
+  final Stmt? thenBranch;
 
-  final Stmt elseBranch;
+  final Stmt? elseBranch;
 
   IfStmt(this.condition, this.thenBranch, this.elseBranch);
 }
@@ -131,7 +131,7 @@ class WhileStmt extends Stmt {
 
   final Expr condition;
 
-  final Stmt loop;
+  final Stmt? loop;
 
   WhileStmt(this.condition, this.loop);
 }
@@ -159,13 +159,13 @@ class VarDeclStmt extends Stmt {
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitVarDeclStmt(this);
 
-  final String fileName;
+  final String? fileName;
 
   final Token id;
 
-  final HT_Type declType;
+  final HT_Type? declType;
 
-  final Expr initializer;
+  final Expr? initializer;
 
   final bool isDynamic;
 
@@ -203,6 +203,8 @@ enum FuncStmtType {
 }
 
 class FuncDeclStmt extends Stmt {
+  static int functionIndex = 0;
+
   @override
   String get type => HT_Lexicon.funcStmt;
 
@@ -213,22 +215,22 @@ class FuncDeclStmt extends Stmt {
 
   final Token keyword;
 
-  final String id;
+  late final String id;
 
   final List<String> typeParams;
 
   final HT_Type returnType;
 
-  String _internalName;
+  late final String _internalName;
   String get internalName => _internalName;
 
-  final String className;
+  final String? className;
 
   final List<VarDeclStmt> params;
 
   final int arity;
 
-  final List<Stmt> definition;
+  final List<Stmt>? definition;
 
   final bool isExtern;
 
@@ -238,21 +240,24 @@ class FuncDeclStmt extends Stmt {
 
   final FuncStmtType funcType;
 
-  FuncDeclStmt(this.fileName, this.keyword, this.id, this.returnType, this.params,
-      {this.className,
+  FuncDeclStmt(this.fileName, this.keyword, this.returnType, this.params,
+      {String? id,
+      this.className,
       this.typeParams = const [],
       this.arity = 0,
-      this.definition = const [],
+      this.definition,
       this.isExtern = false,
       this.isStatic = false,
       this.isConst = false,
       this.funcType = FuncStmtType.normal}) {
+    this.id = id ?? HT_Lexicon.anonymousFunction + (functionIndex++).toString();
+
     if (funcType == FuncStmtType.getter) {
-      _internalName = HT_Lexicon.getter + id;
+      _internalName = HT_Lexicon.getter + this.id;
     } else if (funcType == FuncStmtType.setter) {
-      _internalName = HT_Lexicon.setter + id;
+      _internalName = HT_Lexicon.setter + this.id;
     } else {
-      _internalName = id;
+      _internalName = this.id;
     }
   }
 }
@@ -272,11 +277,11 @@ class ClassDeclStmt extends Stmt {
 
   final List<String> typeParams;
 
-  final SymbolExpr superClass;
+  final SymbolExpr? superClass;
 
-  final ClassDeclStmt superClassDeclStmt;
+  final ClassDeclStmt? superClassDeclStmt;
 
-  final HT_Type superClassTypeArgs;
+  final HT_Type? superClassTypeArgs;
 
   final List<VarDeclStmt> variables;
 

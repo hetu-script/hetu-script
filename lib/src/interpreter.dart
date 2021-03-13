@@ -22,7 +22,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   final _evaledFiles = <String>[];
 
   /// 全局命名空间
-  HT_Namespace _globals;
+  late HT_Namespace _globals;
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -32,14 +32,14 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   final _constants = <dynamic>[];
 
   /// 当前语句所在的命名空间
-  HT_Namespace curContext;
+  HT_Namespace? curContext;
 
-  String _curFileName;
-  String _curDirectory;
+  late String _curFileName;
+  String? _curDirectory;
   @override
   String get curFileName => _curFileName;
   @override
-  String get curDirectory => _curDirectory;
+  String? get curDirectory => _curDirectory;
 
   dynamic _curStmtValue;
 
@@ -58,24 +58,24 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
     // load classes and functions in core library.
     for (final file in coreLibs.keys) {
-      eval(coreLibs[file], fileName: file);
+      eval(coreLibs[file]!, fileName: file);
     }
   }
 
   @override
   dynamic eval(
     String content, {
-    String fileName,
+    String? fileName,
     String libName = HT_Lexicon.globals,
-    HT_Context context,
+    HT_Context? context,
     ParseStyle style = ParseStyle.library,
-    String invokeFunc,
+    String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {
-    _curFileName = fileName ?? '__anonymousScript' + (Lexer.fileIndex++).toString();
+    _curFileName = fileName ?? HT_Lexicon.anonymousFile + (Lexer.fileIndex++).toString();
 
-    curContext = context ?? _globals;
+    curContext = context as HT_Namespace? ?? _globals;
     final statements = Lexer(this, content, fileName: _curFileName).lex().parse(style: style).resolve(libName: libName);
     for (final stmt in statements) {
       _curStmtValue = evaluateStmt(stmt);
@@ -92,10 +92,10 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   /// 解析文件
   Future<dynamic> evalf(
     String fileName, {
-    String directory,
-    String libName,
+    String? directory,
+    String? libName,
     ParseStyle style = ParseStyle.library,
-    String invokeFunc,
+    String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
@@ -108,7 +108,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
       if (debugMode) print('hetu: Loading $fileName...');
       _evaledFiles.add(curFileName);
 
-      HT_Namespace library_namespace;
+      HT_Namespace? library_namespace;
       if ((libName != null) && (libName != HT_Lexicon.globals)) {
         library_namespace = HT_Namespace(id: libName, closure: _globals);
         _globals.define(libName, this, declType: HT_Type.namespace, value: library_namespace);
@@ -131,10 +131,10 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
   dynamic evalfSync(
     String fileName, {
-    String directory,
-    String libName,
+    String? directory,
+    String? libName,
     ParseStyle style = ParseStyle.library,
-    String invokeFunc,
+    String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {
@@ -147,7 +147,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
       if (debugMode) print('hetu: Loading $fileName...');
       _evaledFiles.add(curFileName);
 
-      HT_Namespace library_namespace;
+      HT_Namespace? library_namespace;
       if ((libName != null) && (libName != HT_Lexicon.globals)) {
         _globals.define(libName, this, declType: HT_Type.namespace);
         library_namespace = HT_Namespace(id: libName, closure: library_namespace);
@@ -200,10 +200,10 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     }
   }
 
-  dynamic _getValue(String name, Expr expr) {
-    var distance = _distances[expr];
+  dynamic _getValue(String name, Expr? expr) {
+    var distance = _distances[expr!];
     if (distance != null) {
-      return curContext.fetchAt(name, distance, expr.line, expr.column, this);
+      return curContext!.fetchAt(name, distance, expr.line, expr.column, this);
     }
 
     return _globals.fetch(name, expr.line, expr.column, this);
@@ -223,7 +223,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   //   }
   // }
 
-  void defineGlobal(String key, {HT_Type declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
+  void defineGlobal(String key, {HT_Type? declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
     _globals.define(key, this, declType: declType, value: value, isImmutable: isImmutable, isDynamic: isDynamic);
   }
 
@@ -232,7 +232,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   }
 
   dynamic invoke(String functionName,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}}) {
     // TODO: name应该可以解析出类名，这样就可以调用类的静态函数
     // if (classname == null) {
     var func = _globals.fetch(functionName, null, null, this, recursive: false);
@@ -257,7 +257,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     // }
   }
 
-  dynamic executeBlock(List<Stmt> statements, HT_Namespace environment) {
+  dynamic executeBlock(List<Stmt> statements, HT_Namespace? environment) {
     var saved_context = curContext;
 
     try {
@@ -299,7 +299,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     var map = {};
     for (final key_expr in expr.map.keys) {
       var key = evaluateExpr(key_expr);
-      var value = evaluateExpr(expr.map[key_expr]);
+      var value = evaluateExpr(expr.map[key_expr]!);
       map[key] = value;
     }
     return map;
@@ -307,7 +307,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr) {
-    return HT_Function(funcStmt: expr.funcStmt, declContext: curContext);
+    return HT_Function(expr.funcStmt, declContext: curContext);
   }
 
   @override
@@ -445,7 +445,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
     var namedArgs = <String, dynamic>{};
     for (var name in expr.namedArgs.keys) {
-      namedArgs[name] = evaluateExpr(expr.namedArgs[name]);
+      namedArgs[name] = evaluateExpr(expr.namedArgs[name]!);
     }
 
     if (callee is HT_Function) {
@@ -453,13 +453,13 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
       if (callee.funcStmt.funcType != FuncStmtType.constructor) {
         if (callee.declContext is HT_Object) {
           return callee.call(this, expr.line, expr.column,
-              positionalArgs: positionalArgs, namedArgs: namedArgs, object: callee.declContext);
+              positionalArgs: positionalArgs, namedArgs: namedArgs, object: callee.declContext as HT_Object?);
         } else {
           return callee.call(this, expr.line, expr.column, positionalArgs: positionalArgs, namedArgs: namedArgs);
         }
       } else {
         final className = callee.funcStmt.className;
-        final klass = _globals.fetch(className, expr.line, expr.column, this);
+        final klass = _globals.fetch(className!, expr.line, expr.column, this);
         if (klass is HT_Class) {
           if (!klass.isExtern) {
             // 命名构造函数
@@ -469,7 +469,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
             // 外部命名构造函数
             final HT_ExternFunc extern = _globals.fetch(
                 '${HT_Lexicon.externals}${klass.id}${HT_Lexicon.memberGet}${callee.id}', expr.line, expr.column, this);
-            HT_Reflect object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
+            HT_Reflect? object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
             return object;
           }
         } else {
@@ -485,7 +485,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
         // 外部默认构造函数
         final HT_ExternFunc extern =
             _globals.fetch('${HT_Lexicon.externals}${callee.id}', expr.line, expr.column, this);
-        HT_Reflect object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
+        HT_Reflect? object = extern(this, positionalArgs: positionalArgs, namedArgs: namedArgs);
         return object;
       }
     } // 外部函数
@@ -502,7 +502,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     var distance = _distances[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      curContext.assignAt(expr.variable.lexeme, value, distance, expr.line, expr.column, this);
+      curContext!.assignAt(expr.variable.lexeme, value, distance, expr.line, expr.column, this);
     } else {
       _globals.assign(expr.variable.lexeme, value, expr.line, expr.column, this);
     }
@@ -562,7 +562,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     }
 
     if ((object is HT_Object) || (object is HT_Class)) {
-      return object.fetch(expr.key.lexeme, expr.line, expr.column, this, from: curContext.fullName);
+      return object.fetch(expr.key.lexeme, expr.line, expr.column, this, from: curContext!.fullName);
     }
     //如果是Dart对象，通过反射获取成员
     else if (object is HT_Reflect) {
@@ -590,7 +590,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
     var value = evaluateExpr(expr.value);
     if ((object is HT_Object) || (object is HT_Class)) {
-      object.assign(expr.key.lexeme, value, expr.line, expr.column, this, from: curContext.fullName);
+      object.assign(expr.key.lexeme, value, expr.line, expr.column, this, from: curContext!.fullName);
       return value;
     }
     //如果是Dart对象，通过反射获取成员
@@ -613,9 +613,9 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
     if (stmt.expr != null) {
-      throw evaluateExpr(stmt.expr);
+      throw evaluateExpr(stmt.expr!);
     }
-    throw null;
+    throw HT_Value.NULL;
   }
 
   @override
@@ -623,9 +623,9 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     var value = evaluateExpr(stmt.condition);
     if (value is bool) {
       if (value) {
-        _curStmtValue = evaluateStmt(stmt.thenBranch);
+        _curStmtValue = evaluateStmt(stmt.thenBranch!);
       } else if (stmt.elseBranch != null) {
-        _curStmtValue = evaluateStmt(stmt.elseBranch);
+        _curStmtValue = evaluateStmt(stmt.elseBranch!);
       }
       return _curStmtValue;
     } else {
@@ -639,7 +639,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     if (value is bool) {
       while ((value is bool) && (value)) {
         try {
-          _curStmtValue = evaluateStmt(stmt.loop);
+          _curStmtValue = evaluateStmt(stmt.loop!);
           value = evaluateExpr(stmt.condition);
         } catch (error) {
           if (error is HT_Break) {
@@ -670,10 +670,10 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
   dynamic visitVarDeclStmt(VarDeclStmt stmt) {
     dynamic value;
     if (stmt.initializer != null) {
-      value = evaluateExpr(stmt.initializer);
+      value = evaluateExpr(stmt.initializer!);
     }
 
-    curContext.define(
+    curContext!.define(
       stmt.id.lexeme,
       this,
       line: stmt.id.line,
@@ -690,15 +690,15 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
-    HT_Function func;
+    HT_Function? func;
     if (stmt.funcType != FuncStmtType.constructor) {
-      HT_ExternFunc externFunc;
+      HT_ExternFunc? externFunc;
       if (stmt.isExtern) {
         externFunc = _globals.fetch('${HT_Lexicon.externals}${stmt.id}', stmt.keyword.line, stmt.keyword.column, this,
             from: _globals.fullName);
       }
-      func = HT_Function(funcStmt: stmt, extern: externFunc, declContext: curContext);
-      curContext.define(stmt.id, this,
+      func = HT_Function(stmt, extern: externFunc, declContext: curContext);
+      curContext!.define(stmt.id, this,
           declType: func.typeid, line: stmt.keyword.line, column: stmt.keyword.column, value: func);
     }
     return func;
@@ -706,14 +706,14 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
-    HT_Class superClass;
+    HT_Class? superClass;
     if (stmt.id != HT_Lexicon.rootClass) {
       if (stmt.superClass == null) {
         superClass = _globals.fetch(HT_Lexicon.rootClass, stmt.keyword.line, stmt.keyword.column, this);
       } else {
-        dynamic super_class = _getValue(stmt.superClass.id.lexeme, stmt.superClass);
+        dynamic super_class = _getValue(stmt.superClass!.id.lexeme, stmt.superClass);
         if (super_class is! HT_Class) {
-          throw HTErr_Extends(superClass.id, curFileName, stmt.keyword.line, stmt.keyword.column);
+          throw HTErr_Extends(superClass!.id, curFileName, stmt.keyword.line, stmt.keyword.column);
         }
         superClass = super_class;
       }
@@ -722,7 +722,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
     final klass = HT_Class(stmt.id, superClass, this, isExtern: stmt.isExtern, closure: curContext);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curContext.define(stmt.id, this,
+    curContext!.define(stmt.id, this,
         declType: HT_Type.CLASS, line: stmt.keyword.line, column: stmt.keyword.column, value: klass);
 
     //继承所有父类的成员变量和方法
@@ -731,7 +731,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
         if (variable.isStatic) {
           dynamic value;
           if (variable.initializer != null) {
-            value = evaluateExpr(variable.initializer);
+            value = evaluateExpr(variable.initializer!);
           }
           // else if (variable.isExtern) {
           //   value = externs.fetch('${stmt.name}${HT_Lexicon.memberGet}${variable.name.lexeme}', variable.name.line,
@@ -759,7 +759,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
       if (variable.isStatic) {
         dynamic value;
         if (variable.initializer != null) {
-          value = evaluateExpr(variable.initializer);
+          value = evaluateExpr(variable.initializer!);
         }
         // else if (variable.isExtern) {
         //   value = externs.fetch('${stmt.name}${HT_Lexicon.memberGet}${variable.name.lexeme}', variable.name.line,
@@ -788,7 +788,7 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
 
       HT_Function func;
       if (method.isStatic || method.funcType == FuncStmtType.constructor) {
-        HT_ExternFunc externFunc;
+        HT_ExternFunc? externFunc;
         if (method.isExtern) {
           final externName = method.funcType == FuncStmtType.constructor
               ? '${HT_Lexicon.externals}${stmt.id}'
@@ -796,12 +796,12 @@ class HT_Interpreter implements CodeRunner, ExprVisitor, StmtVisitor {
           externFunc =
               _globals.fetch(externName, method.keyword.line, method.keyword.column, this, from: _globals.fullName);
         }
-        func = HT_Function(funcStmt: method, internalName: method.internalName, extern: externFunc, declContext: klass);
+        func = HT_Function(method, extern: externFunc, declContext: klass);
         klass.define(method.internalName, this,
             declType: func.typeid, line: method.keyword.line, column: method.keyword.column, value: func);
       } else {
         if (!method.isExtern) {
-          func = HT_Function(funcStmt: method, internalName: method.internalName);
+          func = HT_Function(method);
           klass.define(method.internalName, this,
               declType: func.typeid, line: method.keyword.line, column: method.keyword.column, value: func);
         }

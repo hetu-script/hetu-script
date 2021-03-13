@@ -11,18 +11,18 @@ String readFileSync(String filapath) => File(filapath).readAsStringSync();
 abstract class HT_Context {}
 
 abstract class CodeRunner {
-  String get curFileName;
-  String get curDirectory;
+  String? get curFileName;
+  String? get curDirectory;
 
   void loadExternalFunctions(Map<String, HT_ExternFunc> lib);
 
   dynamic eval(
     String content, {
-    String fileName,
+    String? fileName,
     String libName = HT_Lexicon.globals,
-    HT_Context context,
+    HT_Context? context,
     ParseStyle style = ParseStyle.library,
-    String invokeFunc,
+    String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   });

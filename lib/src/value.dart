@@ -67,9 +67,7 @@ HT_Type HT_TypeOf(dynamic value) {
   if ((value == null) || (value is NullThrownError)) {
     return HT_Type.NULL;
   } // Class, Object, external class
-  else if (value is HT_Reflect) {
-    return value.typeid;
-  } else if (value is HT_Function) {
+  else if (value is HT_Typed) {
     return value.typeid;
   } else if (value is num) {
     return HT_Type.number;
@@ -122,12 +120,21 @@ HT_Type HT_TypeOf(dynamic value) {
   }
 }
 
+class _HT_Null with HT_Typed {
+  const _HT_Null();
+
+  @override
+  HT_Type get typeid => HT_Type.NULL;
+}
+
 /// Value是命名空间、类和实例的基类
 abstract class HT_Value {
+  static const NULL = _HT_Null();
+
   final String id;
   //bool used = false;
 
-  HT_Value({this.id});
+  HT_Value(this.id);
 }
 
 class HT_Declaration {
@@ -135,8 +142,8 @@ class HT_Declaration {
 
   // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HT_Value
   dynamic value;
-  HT_Function getter;
-  HT_Function setter;
+  HT_Function? getter;
+  HT_Function? setter;
 
   final HT_Type declType;
   final bool isExtern;

@@ -12,17 +12,17 @@ enum Instruction {
 }
 
 class HT_VM implements CodeRunner {
-  String _curFileName;
-  String _curDirectory;
+  String? _curFileName;
+  String? _curDirectory;
   @override
-  String get curFileName => _curFileName;
+  String? get curFileName => _curFileName;
   @override
-  String get curDirectory => _curDirectory;
+  String? get curDirectory => _curDirectory;
 
   HT_VM();
 
-  Uint8List _byteList;
-  int _ip;
+  late Uint8List _byteList;
+  late int _ip;
 
   @override
   void loadExternalFunctions(Map<String, HT_ExternFunc> lib) {}
@@ -30,11 +30,11 @@ class HT_VM implements CodeRunner {
   @override
   dynamic eval(
     String content, {
-    String fileName,
+    String? fileName,
     String libName = HT_Lexicon.globals,
-    HT_Context context,
+    HT_Context? context,
     ParseStyle style = ParseStyle.library,
-    String invokeFunc,
+    String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {

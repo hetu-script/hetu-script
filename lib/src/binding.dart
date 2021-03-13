@@ -10,7 +10,7 @@ import 'errors.dart';
 
 /// Type of external functions in Dart.
 typedef HT_ExternFunc = dynamic Function(HT_Interpreter interpreter,
-    {List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, HT_Object object});
+    {List<dynamic>? positionalArgs, Map<String, dynamic>? namedArgs, HT_Object? object});
 
 /// Namespace class of low level external dart functions for Hetu to use.
 abstract class HT_BaseBinding {
@@ -40,15 +40,15 @@ abstract class HT_BaseBinding {
   };
 
   static dynamic _typeof(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       return HT_TypeOf(positionalArgs.first).toString();
     }
   }
 
   static dynamic _help(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       var value = positionalArgs.first;
       if (value is HT_Object) {
         return value.typeid.toString();
@@ -59,78 +59,78 @@ abstract class HT_BaseBinding {
   }
 
   static dynamic _print(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
     var sb = StringBuffer();
-    for (final string in positionalArgs) {
+    for (final string in positionalArgs!) {
       sb.write('$string ');
     }
     print(sb.toString());
   }
 
   static dynamic _string(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
     var result = StringBuffer();
-    for (final arg in positionalArgs) {
+    for (final arg in positionalArgs!) {
       result.write(arg);
     }
     return result.toString();
   }
 
   static dynamic _math_random(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
     return Random().nextDouble();
   }
 
   static dynamic _math_random_int(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       final value = (positionalArgs.first as num).truncate();
       return Random().nextInt(value);
     }
   }
 
   static dynamic _math_sqrt(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       num value = positionalArgs.first;
       return sqrt(value);
     }
   }
 
   static dynamic _math_log(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       num value = positionalArgs.first;
       return log(value);
     }
   }
 
   static dynamic _math_sin(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       num value = positionalArgs.first;
       return sin(value);
     }
   }
 
   static dynamic _math_cos(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       num value = positionalArgs.first;
       return cos(value);
     }
   }
 
   static dynamic _num_parse(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       return num.tryParse(positionalArgs.first);
     }
   }
 
   static dynamic _bool_parse(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       final value = positionalArgs.first;
       if (value is bool) {
         return value;
@@ -153,15 +153,15 @@ abstract class HT_BaseBinding {
   }
 
   static dynamic _string_parse(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       return positionalArgs.first.toString();
     }
   }
 
   static dynamic _system_invoke(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.length >= 2) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.length >= 2) {
       var func_name = positionalArgs[0];
       var pos_args = positionalArgs[1];
       var named_args = positionalArgs[2];
@@ -170,23 +170,23 @@ abstract class HT_BaseBinding {
   }
 
   static dynamic _system_now(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
     return DateTime.now().millisecondsSinceEpoch;
   }
 
   static dynamic _console_write(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) stdout.write(positionalArgs.first);
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) stdout.write(positionalArgs.first);
   }
 
   static dynamic _console_writeln(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) stdout.writeln(positionalArgs.first);
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) stdout.writeln(positionalArgs.first);
   }
 
   static dynamic _console_getln(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       stdout.write('${positionalArgs.first.toString()}');
     } else {
       stdout.write('>');
@@ -196,26 +196,26 @@ abstract class HT_BaseBinding {
   }
 
   static dynamic _console_erase_line(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
     stdout.write('\x1B[1F\x1B[1G\x1B[1K');
   }
 
   static dynamic _console_set_title(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-    if (positionalArgs.isNotEmpty) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs!.isNotEmpty) {
       var title = positionalArgs.first.toString();
       stdout.write('\x1b]0;$title\x07');
     }
   }
 
   static dynamic _console_cls(HT_Interpreter interpreter,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
+      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
     stdout.write('\x1B[2J\x1B[0;0H');
   }
 }
 
 /// Abstract base class of all class wrapper for literal values.
-abstract class HT_DartObject with HT_Reflect {
+abstract class HT_DartObject with HT_Reflect, HT_Typed {
   final dynamic value;
 
   HT_DartObject(this.value);
