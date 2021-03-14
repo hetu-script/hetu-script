@@ -36,7 +36,8 @@ abstract class HT_Lexicon {
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
       r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
-      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
+      r'(\d+\.\d+)|' // 浮点数字面量 group(6)
+      r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
@@ -57,11 +58,14 @@ abstract class HT_Lexicon {
   static const tokenGroupComment = 1;
   static const tokenGroupIdentifier = 4;
   static const tokenGroupPunctuation = 5;
-  static const tokenGroupNumber = 6;
+  static const tokenGroupFloat = 6;
+  static const tokenGroupInt = 7;
   static const tokenGroupString = 8;
 
-  static const number = 'num';
   static const boolean = 'bool';
+  static const number = 'num';
+  static const integer = 'int';
+  static const float = 'float';
   static const string = 'String';
 
   static Set<String> get literals => {
@@ -181,7 +185,10 @@ abstract class HT_Lexicon {
 
   /// 函数调用表达式
   static const nullExpr = 'null_expression';
-  static const literalExpr = 'literal_expression';
+  static const literalBooleanExpr = 'literal_boolean_expression';
+  static const literalNumberExpr = 'literal_number_expression';
+  static const literalStringExpr = 'literal_string_expression';
+  static const literalFunctionExpr = 'literal_function_expression';
   static const groupExpr = 'group_expression';
   static const vectorExpr = 'vector_expression';
   static const blockExpr = 'block_expression';

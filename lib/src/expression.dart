@@ -9,8 +9,17 @@ abstract class ExprVisitor {
   /// Null
   dynamic visitNullExpr(NullExpr expr);
 
-  /// 常量
-  dynamic visitConstExpr(ConstExpr expr);
+  // 布尔
+  dynamic visitBooleanExpr(BooleanExpr expr);
+
+  /// 数字常量
+  dynamic visitConstIntExpr(ConstIntExpr expr);
+
+  /// 数字常量
+  dynamic visitConstFloatExpr(ConstFloatExpr expr);
+
+  /// 字符串常量
+  dynamic visitConstStringExpr(ConstStringExpr expr);
 
   /// 数组字面量
   dynamic visitLiteralVectorExpr(LiteralVectorExpr expr);
@@ -87,19 +96,64 @@ class NullExpr extends Expr {
   Expr clone() => this;
 }
 
-class ConstExpr extends Expr {
+class BooleanExpr extends Expr {
   @override
-  String get type => HT_Lexicon.literalExpr;
+  String get type => HT_Lexicon.literalBooleanExpr;
 
   @override
-  dynamic accept(ExprVisitor visitor) => visitor.visitConstExpr(this);
+  dynamic accept(ExprVisitor visitor) => visitor.visitBooleanExpr(this);
+
+  final bool value;
+
+  BooleanExpr(this.value, [String? fileName, int? line, int? column]) : super(fileName, line, column);
+
+  @override
+  Expr clone() => BooleanExpr(value, fileName, line, column);
+}
+
+class ConstIntExpr extends Expr {
+  @override
+  String get type => HT_Lexicon.literalNumberExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitConstIntExpr(this);
 
   final int constIndex;
 
-  ConstExpr(this.constIndex, [String? fileName, int? line, int? column]) : super(fileName, line, column);
+  ConstIntExpr(this.constIndex, [String? fileName, int? line, int? column]) : super(fileName, line, column);
 
   @override
-  Expr clone() => ConstExpr(constIndex, fileName, line, column);
+  Expr clone() => ConstIntExpr(constIndex, fileName, line, column);
+}
+
+class ConstFloatExpr extends Expr {
+  @override
+  String get type => HT_Lexicon.literalNumberExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitConstFloatExpr(this);
+
+  final int constIndex;
+
+  ConstFloatExpr(this.constIndex, [String? fileName, int? line, int? column]) : super(fileName, line, column);
+
+  @override
+  Expr clone() => ConstIntExpr(constIndex, fileName, line, column);
+}
+
+class ConstStringExpr extends Expr {
+  @override
+  String get type => HT_Lexicon.literalNumberExpr;
+
+  @override
+  dynamic accept(ExprVisitor visitor) => visitor.visitConstStringExpr(this);
+
+  final int constIndex;
+
+  ConstStringExpr(this.constIndex, [String? fileName, int? line, int? column]) : super(fileName, line, column);
+
+  @override
+  Expr clone() => ConstStringExpr(constIndex, fileName, line, column);
 }
 
 class LiteralVectorExpr extends Expr {
@@ -146,7 +200,7 @@ class LiteralDictExpr extends Expr {
 
 class LiteralFunctionExpr extends Expr {
   @override
-  String get type => HT_Lexicon.literalExpr;
+  String get type => HT_Lexicon.literalFunctionExpr;
 
   @override
   dynamic accept(ExprVisitor visitor) => visitor.visitLiteralFunctionExpr(this);

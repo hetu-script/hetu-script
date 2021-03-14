@@ -1,24 +1,12 @@
 import 'lexicon.dart';
 import 'token.dart';
-import 'parser.dart';
-import 'interpreter.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
 class Lexer {
-  static var fileIndex = 0;
+  Lexer();
 
-  final HT_Interpreter interpreter;
-  final String content;
-  late final String fileName;
-
-  final tokens = <Token>[];
-
-  Lexer(this.interpreter, this.content, {String? fileName}) {
-    this.fileName = fileName ?? HT_Lexicon.anonymousFile + (fileIndex++).toString();
-  }
-
-  Parser lex() //, {HT_Lexicon HT_Lexicon = const HT_Lexicon()})
-  {
+  List<Token> lex(String content) {
+    final tokens = <Token>[];
     var currentLine = 0;
     var column;
     var pattern = RegExp(
@@ -50,8 +38,10 @@ class Lexer {
             tokens.add(Token(matchString, currentLine, column));
           }
           // 数字字面量
-          else if (match.group(HT_Lexicon.tokenGroupNumber) != null) {
-            tokens.add(TokenNumLiteral(matchString, num.parse(matchString), currentLine, column));
+          else if (match.group(HT_Lexicon.tokenGroupInt) != null) {
+            tokens.add(TokenIntLiteral(matchString, int.parse(matchString), currentLine, column));
+          } else if (match.group(HT_Lexicon.tokenGroupFloat) != null) {
+            tokens.add(TokenFloatLiteral(matchString, double.parse(matchString), currentLine, column));
           }
           // 字符串字面量
           else if (match.group(HT_Lexicon.tokenGroupString) != null) {
@@ -61,6 +51,6 @@ class Lexer {
         }
       }
     }
-    return Parser(interpreter, tokens, fileName);
+    return tokens;
   }
 }

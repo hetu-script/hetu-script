@@ -192,8 +192,8 @@ class HT_Class extends HT_Namespace with HT_Reflect, HT_Typed {
       Map<String, dynamic>? namedArgs}) {
     var object = HT_Object(this, interpreter, typeArgs: typeArgs?.sublist(0, typeParams.length));
 
-    var save = interpreter.curContext;
-    interpreter.curContext = object;
+    var save = interpreter.curNamespace;
+    interpreter.curNamespace = object;
     for (final decl in variables.values) {
       dynamic value;
       if (decl.initializer != null) {
@@ -201,7 +201,7 @@ class HT_Class extends HT_Namespace with HT_Reflect, HT_Typed {
       }
       object.define(decl.id.lexeme, interpreter, declType: decl.declType, line: line, column: column, value: value);
     }
-    interpreter.curContext = save;
+    interpreter.curNamespace = save;
 
     constructorName ??= id;
     var constructor = fetch(constructorName, line, column, interpreter, error: false, from: id);
