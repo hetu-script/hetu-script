@@ -21,7 +21,7 @@ class DartPersonClassBinding extends HT_ExternNamespace {
       case 'withName':
         return ([name = 'some guy']) => DartPersonObjectBinding(DartPerson.withName(name));
       case 'meaning':
-        return (int n) => DartPerson.meaning;
+        return (int n) => DartPerson.meaning(n);
       case 'race':
         return DartPerson.race;
       default:

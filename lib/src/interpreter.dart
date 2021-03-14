@@ -474,8 +474,9 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
         }
       } else {
         final externFunction = fetchExternalFunction(callee.id);
-        return Function.apply(
-            externFunction, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        var result =
+            Function.apply(externFunction, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        return result;
       }
     } else if (callee is HT_Class) {
       if (!callee.isExtern) {
@@ -490,7 +491,8 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
       }
     } // 外部函数
     else if (callee is Function) {
-      return Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+      var result = Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+      return result;
     } else {
       throw HTErr_Callable(callee.toString(), curFileName, expr.callee.line, expr.callee.column);
     }

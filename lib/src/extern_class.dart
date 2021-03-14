@@ -35,18 +35,20 @@ abstract class HT_Extern_Global {
         return HT_TypeOf(value).toString();
       }
     },
-    'print': (dynamic value) => print(value),
-    // var sb = StringBuffer();
-    // for (final arg in positionalArgs) {
-    //   sb.write('${arg.toString()} ');
-    // }
-    // print(sb.toString());
-    'string': (dynamic value) => value.toString(),
-    // var result = StringBuffer();
-    // for (final arg in positionalArgs) {
-    //   result.write(arg.toString());
-    // }
-    // return result.toString();
+    '_print': (List items) {
+      var sb = StringBuffer();
+      for (final item in items) {
+        sb.write('${item.toString()} ');
+      }
+      print(sb.toString());
+    },
+    'string': (List items) {
+      var result = StringBuffer();
+      for (final item in items) {
+        result.write(item.toString());
+      }
+      return result.toString();
+    }
   };
 }
 

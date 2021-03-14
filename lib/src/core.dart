@@ -10,11 +10,19 @@ external fun typeof(value): String
 // return the declaration type of a symbol
 // external fun decltypeof(value): String
 
+external fun _print(items: List<any>)
+
 // print values of any type into lines
-external fun print(... args)
+fun print(... items: String) {
+  _print(items)
+}
+
+external fun _string(items: List<any>): String
 
 // concact values of any type into string
-external fun string(... args): String''',
+external fun string(... items): String{
+  return _string(items)
+}''',
 'value.ht': r'''external class num {
 
 	static fun parse(value): num
