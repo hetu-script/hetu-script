@@ -1,55 +1,55 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-// import 'expression.dart';
-// import 'statement.dart';
+import 'expression.dart';
+import 'statement.dart';
+import 'parser.dart' show ParseStyle;
 
-import 'operator.dart';
+import 'opcode.dart';
+import 'token.dart';
+import 'common.dart';
+import 'lexicon.dart';
+import 'errors.dart';
 
-class Trunk {
-  /// 常量表
-  final List<int> constInt64Table;
-  final List<double> constFloat64Table;
-  final List<String> constStringTable;
-
-  final Uint8List bytes;
-
-  Trunk(this.bytes,
-      [this.constInt64Table = const [], this.constFloat64Table = const [], this.constStringTable = const []]);
-}
-
-class Compiler {
+class Compiler implements ExprVisitor, StmtVisitor {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
   static const hetuVersionData = [0, 1, 0, 0, 0, 0];
 
-  //implements ExprVisitor, StmtVisitor {}
-  Uint8List compile(String content) {
-    final bytesBuilder = BytesBuilder();
+  // Uint8List compileTokens(List<Token> tokens, [ParseStyle style = ParseStyle.library]) {}
+  late HT_Context _context;
+
+  late String _curFileName;
+
+  late BytesBuilder _bytesBuilder;
+
+  Uint8List compileAST(List<Stmt> statements, HT_Context context, String fileName,
+      [ParseStyle style = ParseStyle.library]) {
+    _context = context;
+    _curFileName = fileName;
+
+    _bytesBuilder = BytesBuilder();
+
     // 河图字节码标记
-    bytesBuilder.add(hetuSignatureData);
+    _bytesBuilder.add(hetuSignatureData);
     // 版本号
-    bytesBuilder.add(hetuVersionData);
+    _bytesBuilder.add(hetuVersionData);
 
-    bytesBuilder.addByte(HT_Operator.constInt64Table);
-    bytesBuilder.add(_int64(3));
-    bytesBuilder.add(_int64(42));
-    bytesBuilder.add(_int64(1979));
-    bytesBuilder.add(_int64(3456921));
+    for (final stmt in statements) {
+      _bytesBuilder.add(_compileStmt(stmt));
+    }
 
-    bytesBuilder.addByte(HT_Operator.constFloat64Table);
-    bytesBuilder.add(_int64(2));
-    bytesBuilder.add(_float64(0.2));
-    bytesBuilder.add(_float64(3.1415926535897932384626));
+    return _bytesBuilder.toBytes();
+  }
 
-    bytesBuilder.addByte(HT_Operator.constUtf8StringTable);
-    bytesBuilder.add(_int64(2));
-    bytesBuilder.add(_string('hello'));
-    bytesBuilder.add(_string('world!'));
+  Uint8List compileTokens(List<Token> tokens, [ParseStyle style = ParseStyle.library]) {
+    _bytesBuilder = BytesBuilder();
+    // 河图字节码标记
+    _bytesBuilder.add(hetuSignatureData);
+    // 版本号
+    _bytesBuilder.add(hetuVersionData);
 
-    bytesBuilder.addByte(0);
-
-    return bytesBuilder.toBytes();
+    return _bytesBuilder.toBytes();
   }
 
   Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
@@ -63,4 +63,143 @@ class Compiler {
     bytesBuilder.add(stringData);
     return bytesBuilder.toBytes();
   }
+
+  Uint8List _compileExpr(Expr expr) => expr.accept(this);
+
+  Uint8List _compileStmt(Stmt stmt) => stmt.accept(this);
+
+  @override
+  dynamic visitNullExpr(NullExpr expr) {}
+
+  @override
+  dynamic visitBooleanExpr(BooleanExpr expr) {}
+
+  @override
+  dynamic visitConstIntExpr(ConstIntExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HT_OpCode.local);
+    bytesBuilder.addByte(HT_OpRandType.constInt64);
+    bytesBuilder.add(_int64(expr.constIndex));
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  dynamic visitConstFloatExpr(ConstFloatExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HT_OpCode.local);
+    bytesBuilder.addByte(HT_OpRandType.constFloat64);
+    bytesBuilder.add(_int64(expr.constIndex));
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  dynamic visitConstStringExpr(ConstStringExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HT_OpCode.local);
+    bytesBuilder.addByte(HT_OpRandType.constUtf8String);
+    bytesBuilder.add(_int64(expr.constIndex));
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  dynamic visitGroupExpr(GroupExpr expr) {}
+
+  @override
+  dynamic visitLiteralVectorExpr(LiteralVectorExpr expr) {}
+
+  @override
+  dynamic visitLiteralDictExpr(LiteralDictExpr expr) {}
+
+  @override
+  dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr) {}
+
+  // @override
+  // dynamic visitTypeExpr(TypeExpr expr) {}
+
+  @override
+  dynamic visitSymbolExpr(SymbolExpr expr) {}
+
+  @override
+  dynamic visitUnaryExpr(UnaryExpr expr) {}
+
+  @override
+  dynamic visitBinaryExpr(BinaryExpr expr) {
+    final bytesBuilder = BytesBuilder();
+
+    final left = _compileExpr(expr.left);
+    bytesBuilder.add(left);
+    bytesBuilder.addByte(HT_OpCode.reg1);
+    final right = _compileExpr(expr.right);
+    bytesBuilder.add(right);
+    bytesBuilder.addByte(HT_OpCode.reg2);
+
+    switch (expr.op.type) {
+      case HT_Lexicon.add:
+        bytesBuilder.addByte(HT_OpCode.add);
+        break;
+      default:
+        bytesBuilder.addByte(HT_OpCode.error);
+        bytesBuilder.addByte(HT_ErrorCode.binOp);
+        break;
+    }
+
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  dynamic visitCallExpr(CallExpr expr) {}
+
+  @override
+  dynamic visitAssignExpr(AssignExpr expr) {}
+
+  @override
+  dynamic visitSubGetExpr(SubGetExpr expr) {}
+
+  @override
+  dynamic visitSubSetExpr(SubSetExpr expr) {}
+
+  @override
+  dynamic visitMemberGetExpr(MemberGetExpr expr) {}
+
+  @override
+  dynamic visitMemberSetExpr(MemberSetExpr expr) {}
+
+  @override
+  dynamic visitImportStmt(ImportStmt stmt) {}
+
+  @override
+  dynamic visitExprStmt(ExprStmt stmt) => _compileExpr(stmt.expr);
+
+  @override
+  dynamic visitBlockStmt(BlockStmt stmt) {}
+
+  @override
+  dynamic visitReturnStmt(ReturnStmt stmt) {}
+
+  @override
+  dynamic visitIfStmt(IfStmt stmt) {}
+
+  @override
+  dynamic visitWhileStmt(WhileStmt stmt) {}
+
+  @override
+  dynamic visitBreakStmt(BreakStmt stmt) {}
+
+  @override
+  dynamic visitContinueStmt(ContinueStmt stmt) {}
+
+  @override
+  dynamic visitThisExpr(ThisExpr expr) {}
+
+  @override
+  dynamic visitVarDeclStmt(VarDeclStmt stmt) {}
+
+  @override
+  dynamic visitParamDeclStmt(ParamDeclStmt stmt) {}
+
+  @override
+  dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {}
+
+  @override
+  dynamic visitClassDeclStmt(ClassDeclStmt stmt) {}
 }

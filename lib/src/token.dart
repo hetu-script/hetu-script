@@ -29,19 +29,29 @@ class TokenBoolLiteral extends Token {
   final bool literal;
 
   @override
-  dynamic get type => HT_Lexicon.boolean;
+  dynamic get type => lexeme;
 
   TokenBoolLiteral(String lexeme, this.literal, [int? line, int? column]) : super(lexeme, line, column);
 }
 
-class TokenNumLiteral extends Token {
+class TokenIntLiteral extends Token {
   @override
-  final num literal;
+  final int literal;
 
   @override
-  dynamic get type => HT_Lexicon.number;
+  dynamic get type => HT_Lexicon.integer;
 
-  TokenNumLiteral(String lexeme, this.literal, [int? line, int? column]) : super(lexeme, line, column);
+  TokenIntLiteral(String lexeme, this.literal, [int? line, int? column]) : super(lexeme, line, column);
+}
+
+class TokenFloatLiteral extends Token {
+  @override
+  final double literal;
+
+  @override
+  dynamic get type => HT_Lexicon.float;
+
+  TokenFloatLiteral(String lexeme, this.literal, [int? line, int? column]) : super(lexeme, line, column);
 }
 
 class TokenStringLiteral extends Token {

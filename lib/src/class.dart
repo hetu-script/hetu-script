@@ -185,8 +185,8 @@ class HT_Class extends HT_Namespace with HT_Type {
   HT_Object createInstance(HT_Interpreter interpreter, int? line, int? column,
       {List<HT_TypeId> typeArgs = const [],
       String? constructorName,
-      List<dynamic>? positionalArgs,
-      Map<String, dynamic>? namedArgs}) {
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {}}) {
     var object = HT_Object(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
 
     var save = interpreter.curNamespace;
@@ -310,7 +310,7 @@ class HT_Object extends HT_Namespace with HT_Type {
   }
 
   dynamic invoke(String methodName, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, List<dynamic>? positionalArgs, Map<String, dynamic>? namedArgs}) {
+      {bool error = true, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
     HT_Function? method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
       return method.call(interpreter, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs, object: this);

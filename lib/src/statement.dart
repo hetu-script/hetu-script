@@ -197,6 +197,8 @@ class ParamDeclStmt extends VarDeclStmt {
   @override
   dynamic accept(StmtVisitor visitor) => visitor.visitParamDeclStmt(this);
 
+  final bool isVariadic;
+
   final bool isOptional;
 
   final bool isNamed;
@@ -210,6 +212,7 @@ class ParamDeclStmt extends VarDeclStmt {
     bool isImmutable = false,
     bool isExtern = false,
     bool isStatic = false,
+    this.isVariadic = false,
     this.isOptional = false,
     this.isNamed = false,
   }) : super(
@@ -261,6 +264,8 @@ class FuncDeclStmt extends Stmt {
 
   final List<Stmt>? definition;
 
+  final bool isVariadic;
+
   final bool isExtern;
 
   final bool isStatic;
@@ -275,6 +280,7 @@ class FuncDeclStmt extends Stmt {
       this.typeParams = const [],
       this.arity = 0,
       this.definition,
+      this.isVariadic = false,
       this.isExtern = false,
       this.isStatic = false,
       this.isConst = false,

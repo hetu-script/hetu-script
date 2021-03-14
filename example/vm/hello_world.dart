@@ -1,7 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = HT_VM();
+  var hetu = HT_VM(debugMode: true);
 
-  hetu.eval('');
+  hetu.eval(r'''
+  1 + 2
+  ''', style: ParseStyle.function);
 }

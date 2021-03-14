@@ -81,39 +81,23 @@ class HT_Function with HT_Type {
 
     result.write('(');
 
-    if (funcStmt.arity >= 0) {
-      for (final param in funcStmt.params) {
-        result.write(param.id.lexeme + ': ' + (param.declType.toString()));
-        //if (param.initializer != null)
-        if (funcStmt.params.length > 1) result.write(', ');
+    for (final param in funcStmt.params) {
+      if (param.isVariadic) {
+        result.write(HT_Lexicon.varargs + ' ');
       }
-    } else {
-      result.write('... ');
-      result.write(
-          funcStmt.params.first.id.lexeme + ': ' + (funcStmt.params.first.declType as String? ?? HT_Lexicon.ANY));
+      result.write(param.id.lexeme + ': ' + (param.declType.toString()));
+      //if (param.initializer != null)
+      if (funcStmt.params.length > 1) result.write(', ');
     }
     result.write('): ' + funcStmt.returnType.toString());
     return result.toString();
   }
 
   dynamic call(HT_Interpreter interpreter, int? line, int? column,
-      {List<dynamic>? positionalArgs = const [], Map<String, dynamic>? namedArgs = const {}, HT_Object? object}) {
-    if (funcStmt.arity >= 0) {
-      if (positionalArgs!.length < funcStmt.arity || positionalArgs.length > funcStmt.params.length) {
-        throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
-      }
-    } else {
-      namedArgs![funcStmt.params.first.id.lexeme] = positionalArgs;
-    }
-
-    for (var i = 0; i < funcStmt.params.length; ++i) {
-      if (funcStmt.params[i].isOptional && (i >= positionalArgs!.length) && (funcStmt.params[i].initializer != null)) {
-        positionalArgs.add(interpreter.evaluateExpr(funcStmt.params[i].initializer!));
-      } else if (funcStmt.params[i].isNamed &&
-          (namedArgs![funcStmt.params[i].id.lexeme] == null) &&
-          (funcStmt.params[i].initializer != null)) {
-        namedArgs[funcStmt.params[i].id.lexeme] = interpreter.evaluateExpr(funcStmt.params[i].initializer!);
-      }
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object? object}) {
+    if (positionalArgs.length < funcStmt.arity ||
+        (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
+      throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
     }
 
     dynamic result;
@@ -130,31 +114,50 @@ class HT_Function with HT_Type {
           _closure = HT_Namespace(id: '__$id${functionIndex++}', closure: declContext);
         }
 
-        if (funcStmt.arity >= 0) {
-          for (var i = 0; i < funcStmt.params.length; ++i) {
-            var var_stmt = funcStmt.params[i];
-            var arg;
-            if (!var_stmt.isNamed) {
-              arg = positionalArgs![i];
-            } else {
-              arg = namedArgs![var_stmt.id as String];
-            }
-            final arg_type_decl = var_stmt.declType;
+        for (var i = 0; i < funcStmt.params.length; ++i) {
+          var param = funcStmt.params[i];
 
+          if (funcStmt.params[i].isOptional &&
+              (i >= positionalArgs.length) &&
+              (funcStmt.params[i].initializer != null)) {
+            positionalArgs.add(interpreter.evaluateExpr(funcStmt.params[i].initializer!));
+          } else if (funcStmt.params[i].isNamed &&
+              (namedArgs[funcStmt.params[i].id.lexeme] == null) &&
+              (funcStmt.params[i].initializer != null)) {
+            namedArgs[funcStmt.params[i].id.lexeme] = interpreter.evaluateExpr(funcStmt.params[i].initializer!);
+          }
+
+          var arg;
+          if (!param.isNamed) {
+            arg = positionalArgs[i];
+          } else {
+            arg = namedArgs[param.id as String];
+          }
+          final arg_type_decl = param.declType;
+
+          if (!param.isVariadic) {
             var arg_type = HT_TypeOf(arg);
             if (arg_type.isNotA(arg_type_decl)) {
               throw HTErr_ArgType(
                   arg.toString(), arg_type.toString(), arg_type_decl.toString(), interpreter.curFileName, line, column);
             }
-
-            _closure.define(var_stmt.id.lexeme, interpreter,
+            _closure.define(param.id.lexeme, interpreter,
                 declType: arg_type_decl, line: line, column: column, value: arg);
+          } else {
+            var varargs = [];
+            for (var j = i; j < positionalArgs.length; ++j) {
+              arg = positionalArgs[j];
+              var arg_type = HT_TypeOf(arg);
+              if (arg_type.isNotA(arg_type_decl)) {
+                throw HTErr_ArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString(),
+                    interpreter.curFileName, line, column);
+              }
+              varargs.add(arg);
+            }
+            _closure.define(param.id.lexeme, interpreter,
+                declType: HT_TypeId.list, line: line, column: column, value: varargs);
+            break;
           }
-        } else {
-          // “...”形式的variadic parameters本质是一个List
-          // TODO: variadic parameters也需要类型检查
-          _closure.define(funcStmt.params.first.id.lexeme, interpreter,
-              declType: HT_TypeId.list, line: line, column: column, value: positionalArgs);
         }
 
         result = interpreter.executeBlock(funcStmt.definition!, _closure);

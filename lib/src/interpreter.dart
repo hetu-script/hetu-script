@@ -14,22 +14,24 @@ import 'lexer.dart';
 import 'parser.dart';
 import 'lexicon.dart';
 import 'extern_object.dart';
+import 'resolver.dart';
 
 /// 负责对语句列表进行最终解释执行
 class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor, StmtVisitor {
+  static var _fileIndex = 0;
+
   final bool debugMode;
   final ReadFileMethod readFileMethod;
 
   final _evaledFiles = <String>[];
 
-  final _constants = <dynamic>[];
+  /// 本地变量表，不同语句块和环境的变量可能会有重名。
+  /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
+  // TODO: 不同文件有自己的变量表
+  final _distances = <Expr, int>{};
 
   /// 全局命名空间
   late HT_Namespace _globals;
-
-  /// 本地变量表，不同语句块和环境的变量可能会有重名。
-  /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  final _distances = <Expr, int>{};
 
   /// 当前语句所在的命名空间
   late HT_Namespace curNamespace;
@@ -83,10 +85,13 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {
-    _curFileName = fileName ?? HT_Lexicon.anonymousFile + (Lexer.fileIndex++).toString();
+    _curFileName = fileName ?? HT_Lexicon.anonymousFile + (_fileIndex++).toString();
 
     curNamespace = context is HT_Namespace ? context : _globals;
-    final statements = Lexer(this, content, fileName: _curFileName).lex().parse(style: style).resolve(libName: libName);
+    var tokens = Lexer().lex(content);
+    final statements = Parser(this).parse(tokens, curNamespace, _curFileName, style);
+    _distances.addAll(Resolver(this).resolve(statements, _curFileName, libName: libName));
+
     for (final stmt in statements) {
       _curStmtValue = evaluateStmt(stmt);
     }
@@ -127,6 +132,7 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
   }
 
   /// 解析文件
+  @override
   Future<dynamic> evalf(
     String fileName, {
     String? directory,
@@ -166,6 +172,7 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
     return result;
   }
 
+  @override
   dynamic evalfSync(
     String fileName, {
     String? directory,
@@ -202,23 +209,6 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
     _curFileName = savedFileName;
     _curDirectory = savedFileDirectory;
     return result;
-  }
-
-  void addVarPos(Expr expr, int distance) {
-    _distances[expr] = distance;
-  }
-
-  /// 定义一个常量，然后返回数组下标
-  /// 相同值的常量不会重复定义
-  int addLiteral(dynamic literal) {
-    var index = _constants.indexOf(literal);
-    if (index == -1) {
-      index = _constants.length;
-      _constants.add(literal);
-      return index;
-    } else {
-      return index;
-    }
   }
 
   dynamic _getValue(String name, Expr expr) {
@@ -276,7 +266,16 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
   dynamic visitNullExpr(NullExpr expr) => null;
 
   @override
-  dynamic visitConstExpr(ConstExpr expr) => _constants[expr.constIndex];
+  dynamic visitBooleanExpr(BooleanExpr expr) => expr.value;
+
+  @override
+  dynamic visitConstIntExpr(ConstIntExpr expr) => _globals.getConstInt(expr.constIndex);
+
+  @override
+  dynamic visitConstFloatExpr(ConstFloatExpr expr) => _globals.getConstFloat(expr.constIndex);
+
+  @override
+  dynamic visitConstStringExpr(ConstStringExpr expr) => _globals.getConstString(expr.constIndex);
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) => evaluateExpr(expr.inner);
@@ -691,7 +690,7 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
   }
 
   @override
-  dynamic visitParamDeclStmt(VarDeclStmt stmt) {}
+  dynamic visitParamDeclStmt(ParamDeclStmt stmt) {}
 
   @override
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
