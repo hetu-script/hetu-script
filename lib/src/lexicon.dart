@@ -76,8 +76,8 @@ abstract class HT_Lexicon {
   static const variadicArguments = '...';
   static const underscore = '_';
   static const unknown = '__unknown__';
-  static const globals = '__globals__';
-  static const externals = '__external__';
+  static const global = '__global__';
+  static const extern = '__external__';
   static const method = '__method__';
   static const instance = '__instance__';
   static const constructor = '__init__';
@@ -207,8 +207,6 @@ abstract class HT_Lexicon {
   static const forInStmt = 'for_in_statement';
   static const classStmt = 'class_statement';
   static const funcStmt = 'function_statement';
-  static const externFuncStmt = 'external_function_statement';
-  static const constructorStmt = 'constructor_function_statement';
 
   static const memberGet = '.';
   static const subGet = '[';

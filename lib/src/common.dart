@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'binding.dart';
+import 'extern_class.dart';
 import 'parser.dart';
 import 'lexicon.dart';
 
@@ -14,12 +14,14 @@ abstract class CodeRunner {
   String get curFileName;
   String get curDirectory;
 
-  void loadExternalFunctions(Map<String, HT_ExternFunc> lib);
+  /// 注册外部命名空间，以访问外部类的构造函数和static成员
+  /// 在脚本中需要存在对应的extern class声明
+  void bindExternalClass(String id, HT_ExternClass namespace);
 
   dynamic eval(
     String content, {
     String fileName,
-    String libName = HT_Lexicon.globals,
+    String libName = HT_Lexicon.global,
     HT_Context context,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,

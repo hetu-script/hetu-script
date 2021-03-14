@@ -130,9 +130,9 @@ class Parser {
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
   Expr _parseExpr() => _parseAssignmentExpr();
 
-  HT_Type _parseTypeId() {
+  HT_TypeId _parseTypeId() {
     final type_name = advance(1).lexeme;
-    var type_args = <HT_Type>[];
+    var type_args = <HT_TypeId>[];
     if (expect([HT_Lexicon.angleLeft], consume: true, error: false)) {
       while ((curTok.type != HT_Lexicon.angleRight) && (curTok.type != HT_Lexicon.endOfFile)) {
         type_args.add(_parseTypeId());
@@ -141,7 +141,7 @@ class Parser {
       expect([HT_Lexicon.angleRight], consume: true);
     }
 
-    return HT_Type(type_name, arguments: type_args);
+    return HT_TypeId(type_name, arguments: type_args);
   }
 
   /// 赋值 = ，优先级 1，右合并
@@ -521,7 +521,7 @@ class Parser {
 
     if (_declarations.containsKey(var_name)) throw HTErr_Defined(var_name.lexeme, fileName, curTok.line, curTok.column);
 
-    HT_Type decl_type;
+    HT_TypeId decl_type;
     if (expect([HT_Lexicon.colon], consume: true, error: false)) {
       decl_type = _parseTypeId();
     }
@@ -622,11 +622,11 @@ class Parser {
     // 递增变量
     final i = '__i${internalVarIndex++}';
     list_stmt.add(VarDeclStmt(fileName, TokenIdentifier(i),
-        declType: HT_Type.number,
+        declType: HT_TypeId.number,
         initializer: ConstExpr(interpreter.addLiteral(0), fileName, curTok.line, curTok.column)));
     // 指针
     var varname = match(HT_Lexicon.identifier).lexeme;
-    var typeid = HT_Type.ANY;
+    var typeid = HT_TypeId.ANY;
     if (expect([HT_Lexicon.colon], consume: true, error: false)) {
       typeid = _parseTypeId();
     }
@@ -687,7 +687,7 @@ class Parser {
       }
 
       var name = match(HT_Lexicon.identifier);
-      var typeid = HT_Type.ANY;
+      var typeid = HT_TypeId.ANY;
       if (expect([HT_Lexicon.colon], consume: true, error: false)) {
         typeid = _parseTypeId();
       }
@@ -766,7 +766,7 @@ class Parser {
       }
     }
 
-    var return_type = HT_Type.ANY;
+    var return_type = HT_TypeId.ANY;
     if ((functype != FuncStmtType.constructor) && (expect([HT_Lexicon.colon], consume: true, error: false))) {
       return_type = _parseTypeId();
     }
@@ -819,7 +819,7 @@ class Parser {
     // 继承父类
     SymbolExpr super_class;
     ClassDeclStmt super_class_decl;
-    HT_Type super_class_type_args;
+    HT_TypeId super_class_type_args;
     if (expect([HT_Lexicon.EXTENDS], consume: true, error: false)) {
       if (curTok.lexeme == class_name) {
         throw HTErr_Unexpected(class_name, fileName, curTok.line, curTok.column);

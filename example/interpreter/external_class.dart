@@ -1,4 +1,5 @@
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/src/value.dart';
 
 class DartPerson {
   static var race = 'Caucasian';
@@ -12,20 +13,19 @@ class DartPerson {
   }
 }
 
-class DartPersonWrapper extends DartPerson with HT_Reflect {
-  DartPersonWrapper() : super();
-  DartPersonWrapper.withName([String name = 'some guy']) : super.withName(name);
+class DartPersonWrapper extends HT_ExternObject<DartPerson> {
+  DartPersonWrapper(DartPerson value) : super(value);
 
   @override
-  final typeid = HT_Type('Person');
+  final typeid = HT_TypeId('Person');
 
   @override
   dynamic getProperty(String id) {
     switch (id) {
       case 'name':
-        return name;
+        return externObject.name;
       case 'greeting':
-        return greeting;
+        return externObject.greeting;
       default:
         throw HTErr_Undefined(id);
     }
@@ -35,7 +35,7 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
   void setProperty(String id, dynamic value) {
     switch (id) {
       case 'name':
-        name = value;
+        externObject.name = value;
         break;
       default:
         throw HTErr_Undefined(id);
@@ -44,30 +44,9 @@ class DartPersonWrapper extends DartPerson with HT_Reflect {
 }
 
 void main() async {
-  var hetu = HT_Interpreter(externalFunctions: {
-    'Person': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPersonWrapper();
-    },
-    'Person.withName': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPersonWrapper.withName(positionalArgs.isNotEmpty ? positionalArgs[0] : null);
-    },
-    'Person.meaning': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return Function.apply(
-          DartPerson.meaning, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-    },
-    // 类的 external static 变量，只能通过 getter, setter 函数的方式访问
-    'Person.__get__race': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return DartPerson.race;
-    },
-    'Person.__set__race': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      DartPerson.race = positionalArgs.isNotEmpty ? positionalArgs.first : null;
-    },
-  });
+  var hetu = HT_Interpreter();
+
+  hetu.bindExternalClass(id, namespace)
 
   hetu.eval('''
       external class Person {

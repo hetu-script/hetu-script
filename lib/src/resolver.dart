@@ -14,7 +14,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
   final HT_Interpreter interpreter;
   final List<Stmt> statements;
   final String fileName;
-  String _libName = HT_Lexicon.globals;
+  String _libName = HT_Lexicon.global;
 
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   final _blocks = <Map<String, bool>>[];
@@ -27,9 +27,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
 
   Resolver(this.interpreter, this.statements, this.fileName);
 
-  List<Stmt> resolve({String libName = HT_Lexicon.globals}) {
+  List<Stmt> resolve({String libName = HT_Lexicon.global}) {
     _libName = libName;
-    if (_libName != HT_Lexicon.globals) _beginBlock();
+    if (_libName != HT_Lexicon.global) _beginBlock();
 
     _beginBlock();
     for (final stmt in statements) {
@@ -42,7 +42,7 @@ class Resolver implements ExprVisitor, StmtVisitor {
       _resolveFunction(func);
     }
     _endBlock();
-    if ((libName != null) && (libName != HT_Lexicon.globals)) {
+    if ((libName != null) && (libName != HT_Lexicon.global)) {
       _endBlock();
     }
 

@@ -1,27 +1,30 @@
 import 'lexicon.dart';
-import 'class.dart';
 import 'function.dart';
 
-class HT_Type {
+mixin HT_Type {
+  HT_TypeId get typeid;
+}
+
+class HT_TypeId {
   // List<HT_Type> get inheritances;
   // List<HT_Type> get compositions;
   final String id;
-  final List<HT_Type> arguments;
+  final List<HT_TypeId> arguments;
 
-  const HT_Type(this.id, {this.arguments = const []});
+  const HT_TypeId(this.id, {this.arguments = const []});
 
-  static const ANY = HT_Type(HT_Lexicon.ANY);
-  static const NULL = HT_Type(HT_Lexicon.NULL);
-  static const VOID = HT_Type(HT_Lexicon.VOID);
-  static const CLASS = HT_Type(HT_Lexicon.CLASS);
-  static const namespace = HT_Type(HT_Lexicon.NAMESPACE);
-  static const function = HT_Type(HT_Lexicon.function);
-  static const unknown = HT_Type(HT_Lexicon.unknown);
-  static const number = HT_Type(HT_Lexicon.number);
-  static const boolean = HT_Type(HT_Lexicon.boolean);
-  static const string = HT_Type(HT_Lexicon.string);
-  static const list = HT_Type(HT_Lexicon.list);
-  static const map = HT_Type(HT_Lexicon.map);
+  static const ANY = HT_TypeId(HT_Lexicon.ANY);
+  static const NULL = HT_TypeId(HT_Lexicon.NULL);
+  static const VOID = HT_TypeId(HT_Lexicon.VOID);
+  static const CLASS = HT_TypeId(HT_Lexicon.CLASS);
+  static const namespace = HT_TypeId(HT_Lexicon.NAMESPACE);
+  static const function = HT_TypeId(HT_Lexicon.function);
+  static const unknown = HT_TypeId(HT_Lexicon.unknown);
+  static const number = HT_TypeId(HT_Lexicon.number);
+  static const boolean = HT_TypeId(HT_Lexicon.boolean);
+  static const string = HT_TypeId(HT_Lexicon.string);
+  static const list = HT_TypeId(HT_Lexicon.list);
+  static const map = HT_TypeId(HT_Lexicon.map);
 
   @override
   String toString() {
@@ -38,7 +41,7 @@ class HT_Type {
     return typename.toString();
   }
 
-  bool isA(HT_Type typeid) {
+  bool isA(HT_TypeId typeid) {
     var result = false;
     if ((typeid.id == HT_Lexicon.ANY) || (id == HT_Lexicon.NULL)) {
       result = true;
@@ -60,49 +63,47 @@ class HT_Type {
     return result;
   }
 
-  bool isNotA(HT_Type typeid) => !isA(typeid);
+  bool isNotA(HT_TypeId typeid) => !isA(typeid);
 }
 
-HT_Type HT_TypeOf(dynamic value) {
+HT_TypeId HT_TypeOf(dynamic value) {
   if ((value == null) || (value is NullThrownError)) {
-    return HT_Type.NULL;
+    return HT_TypeId.NULL;
   } // Class, Object, external class
-  else if (value is HT_Reflect) {
-    return value.typeid;
-  } else if (value is HT_Function) {
+  else if (value is HT_Type) {
     return value.typeid;
   } else if (value is num) {
-    return HT_Type.number;
+    return HT_TypeId.number;
   } else if (value is bool) {
-    return HT_Type.boolean;
+    return HT_TypeId.boolean;
   } else if (value is String) {
-    return HT_Type.string;
+    return HT_TypeId.string;
   } else if (value is List) {
     // var list_darttype = value.runtimeType.toString();
     // var item_darttype = list_darttype.substring(list_darttype.indexOf('<') + 1, list_darttype.indexOf('>'));
     // if ((item_darttype != 'dynamic') && (value.isNotEmpty)) {
     //   valType = HT_TypeOf(value.first);
     // }
-    var valType = HT_Type.ANY;
+    var valType = HT_TypeId.ANY;
     if (value.isNotEmpty) {
       valType = HT_TypeOf(value.first);
       for (final item in value) {
         if (HT_TypeOf(item) != valType) {
-          valType = HT_Type.ANY;
+          valType = HT_TypeId.ANY;
           break;
         }
       }
     }
 
-    return HT_Type(HT_Lexicon.list, arguments: [valType]);
+    return HT_TypeId(HT_Lexicon.list, arguments: [valType]);
   } else if (value is Map) {
-    var keyType = HT_Type.ANY;
-    var valType = HT_Type.ANY;
+    var keyType = HT_TypeId.ANY;
+    var valType = HT_TypeId.ANY;
     if (value.keys.isNotEmpty) {
       keyType = HT_TypeOf(value.keys.first);
       for (final key in value.keys) {
         if (HT_TypeOf(key) != keyType) {
-          keyType = HT_Type.ANY;
+          keyType = HT_TypeId.ANY;
           break;
         }
       }
@@ -111,14 +112,14 @@ HT_Type HT_TypeOf(dynamic value) {
       valType = HT_TypeOf(value.values.first);
       for (final value in value.values) {
         if (HT_TypeOf(value) != valType) {
-          valType = HT_Type.ANY;
+          valType = HT_TypeId.ANY;
           break;
         }
       }
     }
-    return HT_Type(HT_Lexicon.map, arguments: [keyType, valType]);
+    return HT_TypeId(HT_Lexicon.map, arguments: [keyType, valType]);
   } else {
-    return HT_Type.unknown;
+    return HT_TypeId.unknown;
   }
 }
 
@@ -138,7 +139,7 @@ class HT_Declaration {
   HT_Function getter;
   HT_Function setter;
 
-  final HT_Type declType;
+  final HT_TypeId declType;
   final bool isExtern;
   final bool isNullable;
   final bool isImmutable;
@@ -147,7 +148,7 @@ class HT_Declaration {
       {this.value,
       this.getter,
       this.setter,
-      this.declType = HT_Type.ANY,
+      this.declType = HT_TypeId.ANY,
       this.isExtern = false,
       this.isNullable = false,
       this.isImmutable = false});

@@ -163,7 +163,7 @@ class VarDeclStmt extends Stmt {
 
   final Token id;
 
-  final HT_Type declType;
+  final HT_TypeId declType;
 
   final Expr initializer;
 
@@ -182,7 +182,7 @@ class VarDeclStmt extends Stmt {
   VarDeclStmt(
     this.fileName,
     this.id, {
-    this.declType = HT_Type.ANY,
+    this.declType = HT_TypeId.ANY,
     this.initializer,
     this.isDynamic = false,
     this.isImmutable = false,
@@ -217,7 +217,7 @@ class FuncDeclStmt extends Stmt {
 
   final List<String> typeParams;
 
-  final HT_Type returnType;
+  final HT_TypeId returnType;
 
   String _internalName;
   String get internalName => _internalName;
@@ -276,7 +276,7 @@ class ClassDeclStmt extends Stmt {
 
   final ClassDeclStmt superClassDeclStmt;
 
-  final HT_Type superClassTypeArgs;
+  final HT_TypeId superClassTypeArgs;
 
   final List<VarDeclStmt> variables;
 

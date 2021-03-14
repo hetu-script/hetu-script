@@ -32,7 +32,7 @@ class HT_Namespace extends HT_Value with HT_Context {
   static String getFullId(String id, HT_Namespace space) {
     var fullName = id;
     var cur_space = space.closure;
-    while ((cur_space != null) && (cur_space.id != HT_Lexicon.globals)) {
+    while ((cur_space != null) && (cur_space.id != HT_Lexicon.global)) {
       fullName = cur_space.id + HT_Lexicon.memberGet + fullName;
       cur_space = cur_space.closure;
     }
@@ -80,7 +80,7 @@ class HT_Namespace extends HT_Value with HT_Context {
   void define(String id, HT_Interpreter interpreter,
       {int line,
       int column,
-      HT_Type declType,
+      HT_TypeId declType,
       dynamic value,
       bool isExtern = false,
       bool isImmutable = false,
@@ -91,7 +91,7 @@ class HT_Namespace extends HT_Value with HT_Context {
       if ((!isDynamic) && (value != null)) {
         declType = val_type;
       } else {
-        declType = HT_Type.ANY;
+        declType = HT_TypeId.ANY;
       }
     }
     if (val_type.isA(declType)) {
@@ -103,9 +103,9 @@ class HT_Namespace extends HT_Value with HT_Context {
   }
 
   dynamic fetch(String varName, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
+      {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
-      if (from.startsWith(fullName) || (id == HT_Lexicon.globals) || !varName.startsWith(HT_Lexicon.underscore)) {
+      if (from.startsWith(fullName) || (id == HT_Lexicon.global) || !varName.startsWith(HT_Lexicon.underscore)) {
         return defs[varName].value;
       }
       throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
@@ -121,14 +121,14 @@ class HT_Namespace extends HT_Value with HT_Context {
   }
 
   dynamic fetchAt(String varName, int distance, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
+      {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     var space = closureAt(distance);
     return space.fetch(varName, line, column, interpreter, error: error, from: space.fullName, recursive: false);
   }
 
   /// 向一个已经定义的变量赋值
   void assign(String varName, dynamic value, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
+      {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].declType;
       var var_type = HT_TypeOf(value);
@@ -152,7 +152,7 @@ class HT_Namespace extends HT_Value with HT_Context {
   }
 
   void assignAt(String varName, dynamic value, int distance, int line, int column, HT_Interpreter interpreter,
-      {String from = HT_Lexicon.globals, bool recursive = true}) {
+      {String from = HT_Lexicon.global, bool recursive = true}) {
     var space = closureAt(distance);
     space.assign(varName, value, line, column, interpreter, from: space.fullName, recursive: false);
   }

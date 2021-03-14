@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'common.dart';
-import 'binding.dart';
+import 'extern_class.dart';
 import 'parser.dart';
 import 'lexicon.dart';
 import 'compiler.dart';
@@ -31,7 +31,7 @@ class HT_VM implements CodeRunner {
   dynamic eval(
     String content, {
     String fileName,
-    String libName = HT_Lexicon.globals,
+    String libName = HT_Lexicon.global,
     HT_Context context,
     ParseStyle style = ParseStyle.library,
     String invokeFunc,

@@ -1,5 +1,5 @@
 import 'class.dart';
-import 'binding.dart' show HT_ExternFunc;
+import 'extern_class.dart' show HT_ExternFunc;
 import 'namespace.dart';
 import 'statement.dart';
 import 'interpreter.dart';
@@ -7,11 +7,11 @@ import 'errors.dart';
 import 'value.dart';
 import 'lexicon.dart';
 
-class HT_FunctionType extends HT_Type {
-  final HT_Type returnType;
-  final List<HT_Type> paramsTypes;
+class HT_FunctionType extends HT_TypeId {
+  final HT_TypeId returnType;
+  final List<HT_TypeId> paramsTypes;
 
-  HT_FunctionType(this.returnType, {List<HT_Type> arguments = const [], this.paramsTypes = const []})
+  HT_FunctionType(this.returnType, {List<HT_TypeId> arguments = const [], this.paramsTypes = const []})
       : super(HT_Lexicon.function, arguments: arguments);
 
   @override
@@ -39,7 +39,7 @@ class HT_FunctionType extends HT_Type {
   }
 }
 
-class HT_Function {
+class HT_Function with HT_Type {
   static int functionIndex = 0;
 
   HT_Namespace declContext;
@@ -51,15 +51,16 @@ class HT_Function {
   final FuncDeclStmt funcStmt;
 
   HT_FunctionType _typeid;
-  HT_FunctionType get typeid => _typeid;
+  @override
+  HT_TypeId get typeid => _typeid;
 
   final HT_ExternFunc extern;
 
-  HT_Function({this.funcStmt, this.internalName, List<HT_Type> typeArgs = const [], this.extern, this.declContext}) {
+  HT_Function({this.funcStmt, this.internalName, List<HT_TypeId> typeArgs = const [], this.extern, this.declContext}) {
     //_save = _closure = closure;
-    var paramsTypes = <HT_Type>[];
+    var paramsTypes = <HT_TypeId>[];
     for (final param in funcStmt.params) {
-      paramsTypes.add(param.declType ?? HT_Type.ANY);
+      paramsTypes.add(param.declType ?? HT_TypeId.ANY);
     }
 
     _typeid = HT_FunctionType(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
@@ -118,7 +119,7 @@ class HT_Function {
     dynamic result;
     try {
       if (extern != null) {
-        return extern(interpreter, object: object, positionalArgs: positionalArgs, namedArgs: namedArgs);
+        return extern(interpreter, externObject: object, positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (funcStmt.definition != null) {
         if (funcStmt == null) throw HTErr_MissingFuncDef(id, interpreter.curFileName, line, column);
         //_save = _closure;
@@ -156,7 +157,7 @@ class HT_Function {
           // “...”形式的variadic parameters本质是一个List
           // TODO: variadic parameters也需要类型检查
           _closure.define(funcStmt.params.first.id.lexeme, interpreter,
-              declType: HT_Type.list, line: line, column: column, value: positionalArgs);
+              declType: HT_TypeId.list, line: line, column: column, value: positionalArgs);
         }
 
         result = interpreter.executeBlock(funcStmt.definition, _closure);

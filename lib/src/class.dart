@@ -7,14 +7,6 @@ import 'errors.dart';
 import 'statement.dart';
 import 'value.dart';
 
-mixin HT_Reflect {
-  HT_Type get typeid;
-
-  dynamic getProperty(String id);
-
-  void setProperty(String id, dynamic value);
-}
-
 /// [HT_Class] is the Dart implementation of the class declaration in Hetu.
 ///
 /// [HT_Class] extends [HT_Namespace].
@@ -34,11 +26,11 @@ mixin HT_Reflect {
 ///   ...
 /// }
 /// ```
-class HT_Class extends HT_Namespace with HT_Reflect {
+class HT_Class extends HT_Namespace with HT_Type {
   final HT_Interpreter interpreter;
 
   @override
-  final HT_Type typeid = HT_Type.CLASS;
+  final HT_TypeId typeid = HT_TypeId.CLASS;
 
   /// The type parameters of the class.
   final List<String> typeParams;
@@ -95,7 +87,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
   /// Fetch the value of a static member from this class.
   @override
   dynamic fetch(String varName, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
+      {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     var getter = '${HT_Lexicon.getter}$varName';
     if (defs.containsKey(varName)) {
       if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
@@ -107,7 +99,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
         return defs[varName].value;
       } else {
         final getterFunc =
-            interpreter.fetchGlobal('${HT_Lexicon.externals}$id${HT_Lexicon.memberGet}${HT_Lexicon.getter}$varName');
+            interpreter.fetchGlobal('${HT_Lexicon.extern}$id${HT_Lexicon.memberGet}${HT_Lexicon.getter}$varName');
         return getterFunc(interpreter);
       }
     } else if (defs.containsKey(getter)) {
@@ -142,7 +134,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
   /// Assign a value to a static member of this class.
   @override
   void assign(String varName, dynamic value, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
+      {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     var setter = '${HT_Lexicon.setter}$varName';
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].declType;
@@ -153,8 +145,8 @@ class HT_Class extends HT_Namespace with HT_Reflect {
           if (!defs[varName].isExtern) {
             defs[varName].value = value;
           } else {
-            final setterFunc = interpreter
-                .fetchGlobal('${HT_Lexicon.externals}$id${HT_Lexicon.memberGet}${HT_Lexicon.setter}$varName');
+            final setterFunc =
+                interpreter.fetchGlobal('${HT_Lexicon.extern}$id${HT_Lexicon.memberGet}${HT_Lexicon.setter}$varName');
             setterFunc(interpreter, positionalArgs: [value]);
           }
 
@@ -184,11 +176,14 @@ class HT_Class extends HT_Namespace with HT_Reflect {
   /// Create a object from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
   HT_Object createInstance(HT_Interpreter interpreter, int line, int column,
-      {List<HT_Type> typeArgs, String constructorName, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
+      {List<HT_TypeId> typeArgs,
+      String constructorName,
+      List<dynamic> positionalArgs,
+      Map<String, dynamic> namedArgs}) {
     var object = HT_Object(this, interpreter, typeArgs: typeArgs?.sublist(0, typeParams.length));
 
-    var save = interpreter.curContext;
-    interpreter.curContext = object;
+    var save = interpreter.curNamespace;
+    interpreter.curNamespace = object;
     for (final decl in variables.values) {
       dynamic value;
       if (decl.initializer != null) {
@@ -196,7 +191,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
       }
       object.define(decl.id.lexeme, interpreter, declType: decl.declType, line: line, column: column, value: value);
     }
-    interpreter.curContext = save;
+    interpreter.curNamespace = save;
 
     constructorName ??= id;
     var constructor = fetch(constructorName, line, column, interpreter, error: false, from: id);
@@ -242,7 +237,7 @@ class HT_Class extends HT_Namespace with HT_Reflect {
 }
 
 /// [HT_Object] is the Dart implementation of the object object in Hetu.
-class HT_Object extends HT_Namespace with HT_Reflect {
+class HT_Object extends HT_Namespace with HT_Type {
   final HT_Interpreter interpreter;
 
   static int _instanceIndex = 0;
@@ -251,13 +246,13 @@ class HT_Object extends HT_Namespace with HT_Reflect {
 
   final HT_Class klass;
 
-  HT_Type _typeid;
+  HT_TypeId _typeid;
   @override
-  HT_Type get typeid => _typeid;
+  HT_TypeId get typeid => _typeid;
 
-  HT_Object(this.klass, this.interpreter, {List<HT_Type> typeArgs = const [], this.isExtern = false})
+  HT_Object(this.klass, this.interpreter, {List<HT_TypeId> typeArgs = const [], this.isExtern = false})
       : super(id: HT_Lexicon.instance + (_instanceIndex++).toString(), closure: klass) {
-    _typeid = HT_Type(klass.id, arguments: typeArgs = const []);
+    _typeid = HT_TypeId(klass.id, arguments: typeArgs = const []);
     define(HT_Lexicon.THIS, interpreter, declType: typeid, value: this);
   }
 
@@ -269,7 +264,7 @@ class HT_Object extends HT_Namespace with HT_Reflect {
 
   @override
   dynamic fetch(String varName, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
+      {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       if (!varName.startsWith(HT_Lexicon.underscore) || from.startsWith(fullName)) {
         return defs[varName].value;
@@ -299,7 +294,7 @@ class HT_Object extends HT_Namespace with HT_Reflect {
 
   @override
   void assign(String varName, dynamic value, int line, int column, HT_Interpreter interpreter,
-      {bool error = true, String from = HT_Lexicon.globals, bool recursive = true}) {
+      {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName].declType;
       var var_type = HT_TypeOf(value);
