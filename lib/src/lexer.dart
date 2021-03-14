@@ -9,11 +9,13 @@ class Lexer {
 
   final HT_Interpreter interpreter;
   final String content;
-  final String fileName;
+  late final String fileName;
 
   final tokens = <Token>[];
 
-  Lexer(this.interpreter, this.content, {this.fileName});
+  Lexer(this.interpreter, this.content, {String? fileName}) {
+    this.fileName = fileName ?? HT_Lexicon.anonymousFile + (fileIndex++).toString();
+  }
 
   Parser lex() //, {HT_Lexicon HT_Lexicon = const HT_Lexicon()})
   {
@@ -28,7 +30,7 @@ class Lexer {
       ++currentLine;
       var matches = pattern.allMatches(line);
       for (final match in matches) {
-        var matchString = match.group(0);
+        var matchString = match.group(0)!;
         column = match.start + 1;
         if (match.group(HT_Lexicon.tokenGroupComment) == null) {
           // 标识符

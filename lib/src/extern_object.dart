@@ -1,14 +1,11 @@
 import 'value.dart';
 import 'errors.dart';
 import 'lexicon.dart';
+import 'extern_class.dart' show HT_ExternNamespace;
 
-abstract class HT_ExternObject<T> with HT_Type {
+abstract class HT_ExternObject<T> extends HT_ExternNamespace with HT_Type {
   T externObject;
   HT_ExternObject(this.externObject);
-
-  dynamic getProperty(String id);
-
-  void setProperty(String id, dynamic value);
 }
 
 /// Mirror object for dart number.
@@ -19,7 +16,7 @@ class HT_Dart_Number extends HT_ExternObject<num> {
   final typeid = HT_TypeId.number;
 
   @override
-  dynamic getProperty(String id) {
+  dynamic fetch(String id) {
     switch (id) {
       case 'toStringAsFixed':
         return externObject.toStringAsFixed;
@@ -31,7 +28,7 @@ class HT_Dart_Number extends HT_ExternObject<num> {
   }
 
   @override
-  void setProperty(String id, dynamic value) {
+  void assign(String id, dynamic value) {
     throw HTErr_Assign(id);
   }
 }
@@ -44,7 +41,7 @@ class HT_DartObject_Boolean extends HT_ExternObject<bool> {
   final typeid = HT_TypeId.boolean;
 
   @override
-  dynamic getProperty(String id) {
+  dynamic fetch(String id) {
     switch (id) {
       case 'parse':
         return externObject.toString;
@@ -54,7 +51,7 @@ class HT_DartObject_Boolean extends HT_ExternObject<bool> {
   }
 
   @override
-  void setProperty(String id, dynamic value) {
+  void assign(String id, dynamic value) {
     throw HTErr_Assign(id);
   }
 }
@@ -67,7 +64,7 @@ class HT_DartObject_String extends HT_ExternObject<String> {
   final typeid = HT_TypeId.string;
 
   @override
-  dynamic getProperty(String id) {
+  dynamic fetch(String id) {
     switch (id) {
       case 'isEmpty':
         return externObject.isEmpty;
@@ -79,7 +76,7 @@ class HT_DartObject_String extends HT_ExternObject<String> {
   }
 
   @override
-  void setProperty(String id, dynamic value) {
+  void assign(String id, dynamic value) {
     throw HTErr_Assign(id);
   }
 }
@@ -94,7 +91,7 @@ class HT_DartObject_List<T> extends HT_ExternObject<List<T>> {
   final typeid = HT_TypeId.list;
 
   @override
-  dynamic getProperty(String id) {
+  dynamic fetch(String id) {
     switch (id) {
       case 'length':
         return externObject.length;
@@ -120,7 +117,7 @@ class HT_DartObject_List<T> extends HT_ExternObject<List<T>> {
   }
 
   @override
-  void setProperty(String id, dynamic value) {
+  void assign(String id, dynamic value) {
     throw HTErr_Assign(id);
   }
 }
@@ -130,13 +127,13 @@ class HT_DartObject_Map<K, V> extends HT_ExternObject<Map<K, V>> {
   final String keyType;
   final String valueType;
 
-  HT_DartObject_Map(Map value, {this.keyType = HT_Lexicon.ANY, this.valueType = HT_Lexicon.ANY}) : super(value);
+  HT_DartObject_Map(Map<K, V> value, {this.keyType = HT_Lexicon.ANY, this.valueType = HT_Lexicon.ANY}) : super(value);
 
   @override
   final typeid = HT_TypeId.map;
 
   @override
-  dynamic getProperty(String id) {
+  dynamic fetch(String id) {
     switch (id) {
       case 'length':
         return externObject.length;
@@ -171,7 +168,7 @@ class HT_DartObject_Map<K, V> extends HT_ExternObject<Map<K, V>> {
   }
 
   @override
-  void setProperty(String id, dynamic value) {
+  void assign(String id, dynamic value) {
     throw HTErr_Assign(id);
   }
 }

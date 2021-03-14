@@ -1,13 +1,13 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   var hetu = HT_Interpreter();
 
   hetu.eval(r'''
       class Person {
         var name: String
         var age: num
-        init ([name: String = 'Jimmy', age: num = 42]) {
+        construct ([name: String = 'Jimmy', age: num = 42]) {
           this.name = name
           this.age = age
         }

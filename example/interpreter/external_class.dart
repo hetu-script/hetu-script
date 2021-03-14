@@ -1,26 +1,53 @@
 import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script/src/value.dart';
 
 class DartPerson {
-  static var race = 'Caucasian';
+  static String race = 'Caucasian';
   static String meaning(int n) => 'The meaning of life is $n';
   DartPerson();
   DartPerson.withName([this.name = 'some guy']);
 
-  String name;
+  String? name;
   void greeting() {
     print('Hi! I\'m $name');
   }
 }
 
-class DartPersonWrapper extends HT_ExternObject<DartPerson> {
-  DartPersonWrapper(DartPerson value) : super(value);
+class DartPersonClassBinding extends HT_ExternNamespace {
+  @override
+  dynamic fetch(String id) {
+    switch (id) {
+      case 'Person':
+        return () => DartPersonObjectBinding(DartPerson());
+      case 'withName':
+        return ([name = 'some guy']) => DartPersonObjectBinding(DartPerson.withName(name));
+      case 'meaning':
+        return (int n) => DartPerson.meaning;
+      case 'race':
+        return DartPerson.race;
+      default:
+        throw HTErr_Undefined(id);
+    }
+  }
+
+  @override
+  void assign(String id, dynamic value) {
+    switch (id) {
+      case 'race':
+        return DartPerson.race = value;
+      default:
+        throw HTErr_Undefined(id);
+    }
+  }
+}
+
+class DartPersonObjectBinding extends HT_ExternObject<DartPerson> {
+  DartPersonObjectBinding(DartPerson value) : super(value);
 
   @override
   final typeid = HT_TypeId('Person');
 
   @override
-  dynamic getProperty(String id) {
+  dynamic fetch(String id) {
     switch (id) {
       case 'name':
         return externObject.name;
@@ -32,7 +59,7 @@ class DartPersonWrapper extends HT_ExternObject<DartPerson> {
   }
 
   @override
-  void setProperty(String id, dynamic value) {
+  void assign(String id, dynamic value) {
     switch (id) {
       case 'name':
         externObject.name = value;
@@ -43,17 +70,17 @@ class DartPersonWrapper extends HT_ExternObject<DartPerson> {
   }
 }
 
-void main() async {
+void main() {
   var hetu = HT_Interpreter();
 
-  hetu.bindExternalClass(id, namespace)
+  hetu.bindExternalNamespace('Person', DartPersonClassBinding());
 
   hetu.eval('''
       external class Person {
         static var race
-        static fun meaning (n: num) {}
-        init {} // 必须有空括号
-        init withName {}
+        static fun meaning (n: num)
+        construct
+        construct withName
         var name
         fun greeting
       }

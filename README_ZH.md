@@ -42,7 +42,7 @@ fun main {
 
 ## 保留字
 
-null, static, var, let, any, namespace, as, abstract, class, fun, init, get, set, this, super, extends, implements, mixin, external, library, import, break, continue, for, in, if, else, return, while, when, is
+null, static, var, let, any, namespace, as, abstract, class, fun, construct, get, set, this, super, extends, implements, mixin, external, library, import, break, continue, for, in, if, else, return, while, when, is
 
 ## 变量
 

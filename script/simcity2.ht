@@ -27,7 +27,7 @@ class Char {
     return age / (12 * 30).truncate()
   }
 
-  init (professions: List, [age: num]) {
+  construct (professions: List, [age: num]) {
     this.professions = professions
     if (age != null)
       this.age = age

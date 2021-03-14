@@ -49,7 +49,7 @@ abstract class HT_Lexicon {
   static String convertStringLiteral(String literal) {
     var result = literal.substring(1).substring(0, literal.length - 2);
     for (final key in stringReplaces.keys) {
-      result = result.replaceAll(key, stringReplaces[key]);
+      result = result.replaceAll(key, stringReplaces[key]!);
     }
     return result;
   }
@@ -74,15 +74,17 @@ abstract class HT_Lexicon {
   static const newLine = '\n';
   static const multiline = '\\';
   static const variadicArguments = '...';
+  static const anonymousFile = '__anonymousFile__';
+  static const anonymousFunction = '__anonymousFunction__';
   static const underscore = '_';
   static const unknown = '__unknown__';
   static const global = '__global__';
   static const extern = '__external__';
   static const method = '__method__';
   static const instance = '__instance__';
-  static const constructor = '__init__';
-  static const getter = '__get__';
-  static const setter = '__set__';
+  static const constructor = '__constructor__';
+  static const getter = '__getter__';
+  static const setter = '__setter__';
 
   static const instanceOf = 'instance of ';
   static const rootClass = 'Object';
@@ -105,7 +107,7 @@ abstract class HT_Lexicon {
   static const ANY = 'any';
   static const TYPEDEF = 'typedef';
 
-  static const INIT = 'init';
+  static const CONSTRUCT = 'construct';
   static const GET = 'get';
   static const SET = 'set';
 
@@ -153,6 +155,7 @@ abstract class HT_Lexicon {
         CLASS,
         STRUCT,
         INTERFACE,
+        CONSTRUCT,
         FUN,
         ASYNC,
         AWAIT,
@@ -197,6 +200,7 @@ abstract class HT_Lexicon {
 
   static const importStmt = 'import_statement';
   static const varStmt = 'variable_statement';
+  static const paramStmt = 'parameter_statement';
   static const exprStmt = 'expression_statement';
   static const blockStmt = 'block_statement';
   static const returnStmt = 'return_statement';
@@ -364,4 +368,9 @@ abstract class HT_Lexicon {
 
   static const errorArity1 = 'Number of arguments';
   static const errorArity2 = 'doesn\'t match parameter requirement of function';
+
+  static const errorSignature = 'Unknown bytecode signature.';
+  static const errorInt64Table = 'Missing int64 table in bytecode.';
+  static const errorFloat64Table = 'Missing float64 table in bytecode.';
+  static const errorStringTable = 'Missing string table in bytecode.';
 }

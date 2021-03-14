@@ -123,12 +123,21 @@ HT_TypeId HT_TypeOf(dynamic value) {
   }
 }
 
+class _HT_Null with HT_Type {
+  const _HT_Null();
+
+  @override
+  HT_TypeId get typeid => HT_TypeId.NULL;
+}
+
 /// Value是命名空间、类和实例的基类
 abstract class HT_Value {
+  static const NULL = _HT_Null();
+
   final String id;
   //bool used = false;
 
-  HT_Value({this.id});
+  HT_Value(this.id);
 }
 
 class HT_Declaration {
@@ -136,8 +145,8 @@ class HT_Declaration {
 
   // 可能保存的是宿主程序的变量，因此这里是dynamic，而不是HT_Value
   dynamic value;
-  HT_Function getter;
-  HT_Function setter;
+  HT_Function? getter;
+  HT_Function? setter;
 
   final HT_TypeId declType;
   final bool isExtern;

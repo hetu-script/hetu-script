@@ -29,7 +29,7 @@ While 'hello.ht' is the script file written in Hetu, here is an example:
 // Define a class.
 class Person {
   var name: String
-  init (name: String) {
+  construct (name: String) {
     this.name = name
   }
   fun greeting {

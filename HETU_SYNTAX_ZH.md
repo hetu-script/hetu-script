@@ -30,7 +30,7 @@ fun main {
 
 ## 保留字
 
-null, static, var, let, any, namespace, as, abstract, class, fun, init, get, set, this, super, extends, implements, mixin, external, library, import, break, continue, for, in, if, else, return, while, when, is
+null, static, var, let, any, namespace, as, abstract, class, fun, construct, get, set, this, super, extends, implements, mixin, external, library, import, break, continue, for, in, if, else, return, while, when, is
 
 ## 注释
 
@@ -101,10 +101,10 @@ while (year < 2040) {
 
 ## 函数
 
-函数声明可以使用 fun, get, set, init 关键字。他们分别有不同的含义。
+函数声明可以使用 fun, get, set, construct 关键字。他们分别有不同的含义。
 fun 关键字声明的函数，在没有指定返回值时，会默认指定返回值为 ANY，如果函数语句使用了 return 但没有附带表达式，则会返回 null，如果函数语句没有显式使用 return，则会返回最后执行的语句的表达式值。
 get 和 set 是特殊的成员函数，此类声明会使对象在使用时好像具有了一个和函数声明名字相同的成员变量。
-init 是构造函数，构造函数不指定函数名字时，会默认给对象本身注册一个 call 方法，使得对象名字本身可以像函数那样调用，
+construct 是构造函数，构造函数不指定函数名字时，会默认给对象本身注册一个 call 方法，使得对象名字本身可以像函数那样调用，
 
 ```typescript
 fun fib(n: int): num {

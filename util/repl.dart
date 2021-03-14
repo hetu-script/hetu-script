@@ -44,8 +44,8 @@ void main(List<String> args) async {
         if ((input == 'exit') || (input == 'quit') || (input == 'close') || (input == 'end')) {
           quit = true;
         } else {
-          if (input.endsWith('\\')) {
-            input += '\n' + stdin.readLineSync();
+          if (input!.endsWith('\\')) {
+            input += '\n' + stdin.readLineSync()!;
           }
 
           try {

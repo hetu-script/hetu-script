@@ -3,8 +3,8 @@ import 'lexicon.dart';
 class Token {
   final String lexeme;
 
-  final int line;
-  final int column;
+  final int? line;
+  final int? column;
 
   dynamic get type => lexeme;
   dynamic get literal => lexeme;
@@ -21,7 +21,7 @@ class TokenIdentifier extends Token {
   @override
   dynamic get type => HT_Lexicon.identifier;
 
-  TokenIdentifier(String lexeme, [int line, int column]) : super(lexeme, line, column);
+  TokenIdentifier(String lexeme, [int? line, int? column]) : super(lexeme, line, column);
 }
 
 class TokenBoolLiteral extends Token {
@@ -31,7 +31,7 @@ class TokenBoolLiteral extends Token {
   @override
   dynamic get type => HT_Lexicon.boolean;
 
-  TokenBoolLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
+  TokenBoolLiteral(String lexeme, this.literal, [int? line, int? column]) : super(lexeme, line, column);
 }
 
 class TokenNumLiteral extends Token {
@@ -41,7 +41,7 @@ class TokenNumLiteral extends Token {
   @override
   dynamic get type => HT_Lexicon.number;
 
-  TokenNumLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
+  TokenNumLiteral(String lexeme, this.literal, [int? line, int? column]) : super(lexeme, line, column);
 }
 
 class TokenStringLiteral extends Token {
@@ -51,5 +51,5 @@ class TokenStringLiteral extends Token {
   @override
   dynamic get type => HT_Lexicon.string;
 
-  TokenStringLiteral(String lexeme, this.literal, [int line, int column]) : super(lexeme, line, column);
+  TokenStringLiteral(String lexeme, this.literal, [int? line, int? column]) : super(lexeme, line, column);
 }

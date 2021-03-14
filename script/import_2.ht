@@ -1,7 +1,7 @@
 import 'import_1.ht'
 
 class Jimmy extends Person {
-  init {
+  construct {
     name = 'Jimmy'
   }
   fun greeting {
