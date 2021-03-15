@@ -42,6 +42,8 @@ class HT_FunctionType extends HT_TypeId {
 class HT_Function with HT_Type {
   static int functionIndex = 0;
 
+  HT_Interpreter interpreter;
+
   HT_Namespace declContext;
   late HT_Namespace _closure;
   //HT_Namespace _save;
@@ -56,7 +58,8 @@ class HT_Function with HT_Type {
 
   final bool isExtern;
 
-  HT_Function(this.funcStmt, this.declContext, {List<HT_TypeId> typeArgs = const [], this.isExtern = false}) {
+  HT_Function(this.funcStmt, this.declContext, this.interpreter,
+      {List<HT_TypeId> typeArgs = const [], this.isExtern = false}) {
     //_save = _closure = closure;
 
     var paramsTypes = <HT_TypeId>[];
@@ -94,8 +97,12 @@ class HT_Function with HT_Type {
     return result.toString();
   }
 
-  dynamic call(HT_Interpreter interpreter, int? line, int? column,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object? object}) {
+  dynamic call(
+      {int? line,
+      int? column,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      HT_Object? object}) {
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
       throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);

@@ -115,7 +115,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
     // if (classname == null) {
     var func = _globals.fetch(functionName, null, null, this, recursive: false);
     if (func is HT_Function) {
-      return func.call(this, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs);
+      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
     } else {
       throw HTErr_Undefined(functionName, curFileName, null, null);
     }
@@ -306,7 +306,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
 
   @override
   dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr) {
-    return HT_Function(expr.funcStmt, curNamespace);
+    return HT_Function(expr.funcStmt, curNamespace, this);
   }
 
   @override
@@ -452,10 +452,15 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
         // 普通函数
         if (callee.funcStmt.funcType != FuncStmtType.constructor) {
           if (callee.declContext is HT_Object) {
-            return callee.call(this, expr.line, expr.column,
-                positionalArgs: positionalArgs, namedArgs: namedArgs, object: callee.declContext as HT_Object?);
+            return callee.call(
+                line: expr.line,
+                column: expr.column,
+                positionalArgs: positionalArgs,
+                namedArgs: namedArgs,
+                object: callee.declContext as HT_Object?);
           } else {
-            return callee.call(this, expr.line, expr.column, positionalArgs: positionalArgs, namedArgs: namedArgs);
+            return callee.call(
+                line: expr.line, column: expr.column, positionalArgs: positionalArgs, namedArgs: namedArgs);
           }
         } else {
           final className = callee.funcStmt.className;
@@ -700,7 +705,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
     HT_Function? func;
     if (stmt.funcType != FuncStmtType.constructor) {
-      func = HT_Function(stmt, curNamespace, isExtern: stmt.isExtern);
+      func = HT_Function(stmt, curNamespace, this, isExtern: stmt.isExtern);
       curNamespace.define(stmt.id, this,
           declType: func.typeid, line: stmt.keyword.line, column: stmt.keyword.column, value: func);
     }
@@ -791,7 +796,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
 
       HT_Function func;
       if (method.isStatic || method.funcType == FuncStmtType.constructor) {
-        func = HT_Function(method, klass, isExtern: method.isExtern);
+        func = HT_Function(method, klass, this, isExtern: method.isExtern);
         klass.define(method.internalName, this,
             declType: func.typeid,
             line: method.keyword.line,
@@ -800,7 +805,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
             isExtern: method.isExtern);
       } else {
         if (!method.isExtern) {
-          func = HT_Function(method, curNamespace);
+          func = HT_Function(method, curNamespace, this);
           klass.define(method.internalName, this,
               declType: func.typeid,
               line: method.keyword.line,
