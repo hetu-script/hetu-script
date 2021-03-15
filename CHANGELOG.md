@@ -1,6 +1,7 @@
 ## 0.0.5
 
 - Refactor: Migrate to null safety.
+- Refactor: Redesigned the binding (external classes, functions and variables).
 
 ## 0.0.4
 

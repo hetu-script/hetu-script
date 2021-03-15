@@ -140,7 +140,7 @@ class HT_ExternClass_System extends HT_ExternNamespace {
                 {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) =>
             interpreter.invoke(functionName, positionalArgs: positionalArgs, namedArgs: namedArgs);
       case 'now':
-        return DateTime.now().millisecondsSinceEpoch;
+        return () => DateTime.now().millisecondsSinceEpoch;
       default:
         throw HTErr_Undefined(id);
     }

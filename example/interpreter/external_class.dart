@@ -18,7 +18,7 @@ class DartPersonClassBinding extends HT_ExternNamespace {
     switch (id) {
       case 'Person':
         return () => DartPersonObjectBinding(DartPerson());
-      case 'withName':
+      case 'Person.withName':
         return ([name = 'some guy']) => DartPersonObjectBinding(DartPerson.withName(name));
       case 'meaning':
         return (int n) => DartPerson.meaning(n);

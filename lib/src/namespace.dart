@@ -34,47 +34,29 @@ class HT_Namespace extends HT_Value with HT_Context {
   HT_Namespace({
     String? id,
     HT_Namespace? closure,
-  }) : super(id ?? '${HT_Lexicon.NAMESPACE}${spaceIndex++}') {
+  }) : super(id ?? '${HT_Lexicon.anonymousNamespace}${spaceIndex++}') {
     _fullName = getFullId(this.id, this);
     _closure = closure;
   }
 
-  HT_Namespace? closureAt(int distance) {
-    HT_Namespace? namespace = this;
+  HT_Namespace closureAt(int distance) {
+    var namespace = this;
     for (var i = 0; i < distance; ++i) {
-      namespace = namespace!.closure;
+      namespace = namespace.closure!;
     }
 
     return namespace;
   }
 
   bool contains(String varName) {
-    if (defs.containsKey(varName)) return true;
-    if (closure != null) return closure!.contains(varName);
+    if (defs.containsKey(varName)) {
+      return true;
+    }
+    if (closure != null) {
+      return closure!.contains(varName);
+    }
     return false;
   }
-
-  // String lookUp(String varName) {
-  //   String fullName = varName;
-  //   var space = this;
-  //   while (!space.contains(varName)) {
-  //     space = space.closure;
-  //     if (space == null) {
-  //       return null;
-  //     }
-  //     fullName = space.name + env.lexicon.Dot + fullName;
-  //   }
-  //   return fullName;
-  // }
-
-  /// 在当前命名空间声明一个变量名称
-  // void declare(String varName, int line, int column, String fileName) {
-  //   if (!defs.containsKey(varName)) {
-  //     defs[varName] = null;
-  //   } else {
-  //     throw HTErr_Defined(varName, line, column, fileName);
-  //   }
-  // }
 
   /// 在当前命名空间定义一个变量的类型
   void define(String id, HT_Interpreter interpreter,
@@ -104,11 +86,14 @@ class HT_Namespace extends HT_Value with HT_Context {
 
   dynamic fetch(String varName, int? line, int? column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
-    if (defs.containsKey(varName)) {
-      if (from.startsWith(fullName) || (id == HT_Lexicon.global) || !varName.startsWith(HT_Lexicon.underscore)) {
-        return defs[varName]!.value;
-      }
+    if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
+    } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
+    }
+
+    if (defs.containsKey(varName)) {
+      return defs[varName]!.value;
     }
 
     if (recursive && (closure != null)) {
@@ -122,27 +107,36 @@ class HT_Namespace extends HT_Value with HT_Context {
 
   dynamic fetchAt(String varName, int distance, int? line, int? column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
-    var space = closureAt(distance)!;
+    var space = closureAt(distance);
     return space.fetch(varName, line, column, interpreter, error: error, from: space.fullName, recursive: false);
   }
 
   /// 向一个已经定义的变量赋值
   void assign(String varName, dynamic value, int? line, int? column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
+    if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
+    } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
+    }
+
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName]!.declType;
       var var_type = HT_TypeOf(value);
-      if (from.startsWith(fullName) || (!varName.startsWith(HT_Lexicon.underscore))) {
-        if (var_type.isA(decl_type)) {
-          if (!defs[varName]!.isImmutable) {
-            defs[varName]!.value = value;
+      if (var_type.isA(decl_type)) {
+        var decl = defs[varName]!;
+        if (!decl.isImmutable) {
+          if (!decl.isExtern) {
+            decl.value = value;
+            return;
+          } else {
+            interpreter.setExternalVariable('$id.$varName', value);
             return;
           }
-          throw HTErr_Immutable(varName, interpreter.curFileName, line, column);
         }
-        throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), interpreter.curFileName, line, column);
+        throw HTErr_Immutable(varName, interpreter.curFileName, line, column);
       }
-      throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
+      throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), interpreter.curFileName, line, column);
     } else if (recursive && (closure != null)) {
       closure!.assign(varName, value, line, column, interpreter, from: from);
       return;
@@ -153,7 +147,7 @@ class HT_Namespace extends HT_Value with HT_Context {
 
   void assignAt(String varName, dynamic value, int distance, int? line, int? column, HT_Interpreter interpreter,
       {String from = HT_Lexicon.global, bool recursive = true}) {
-    var space = closureAt(distance)!;
+    var space = closureAt(distance);
     space.assign(varName, value, line, column, interpreter, from: space.fullName, recursive: false);
   }
 }

@@ -71,7 +71,7 @@ class HT_Class extends HT_Namespace with HT_Type {
       ((superClass?.contains('${HT_Lexicon.getter}$varName')) ?? false);
 
   /// Add a object variable declaration to this class.
-  void addVariable(VarDeclStmt stmt) {
+  void declareVar(VarDeclStmt stmt) {
     if (!variables.containsKey(stmt.id.lexeme)) {
       variables[stmt.id.lexeme] = stmt;
     } else {
@@ -88,15 +88,17 @@ class HT_Class extends HT_Namespace with HT_Type {
   @override
   dynamic fetch(String varName, int? line, int? column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
+    if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
+    } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
+    }
     var getter = '${HT_Lexicon.getter}$varName';
+    var constructor = '$id.$varName';
     if (defs.containsKey(varName)) {
-      if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
-        throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
-      } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
-        throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
-      }
-      if (!defs[varName]!.isExtern) {
-        return defs[varName]!.value;
+      var decl = defs[varName]!;
+      if (!decl.isExtern) {
+        return decl.value;
       } else {
         if (isExtern) {
           final externClass = interpreter.fetchExternalClass(id);
@@ -106,23 +108,24 @@ class HT_Class extends HT_Namespace with HT_Type {
         }
       }
     } else if (defs.containsKey(getter)) {
-      if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
-        throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
-      } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
-        throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
+      var decl = defs[varName]!;
+      if (!decl.isExtern) {
+        HT_Function func = defs[getter]!.value;
+        return func.call(interpreter, line, column);
+      } else {
+        final externClass = interpreter.fetchExternalClass(id);
+        final Function getterFunc = externClass.fetch(varName);
+        return getterFunc();
       }
-      HT_Function func = defs[getter]!.value;
-      return func.call(interpreter, line, column);
-    }
-    //  else if (defs.containsKey(method)) {
-    //   if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
-    //     throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
-    //   } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
-    //     throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
-    //   }
-    //   return defs[method].value;
-    // }
-    else if (superClass!.contains(varName)) {
+    } else if (defs.containsKey(constructor)) {
+      var decl = defs[constructor]!;
+      if (!decl.isExtern) {
+        return defs[constructor]!.value;
+      } else {
+        final externClass = interpreter.fetchExternalClass(id);
+        return externClass.fetch(constructor);
+      }
+    } else if (superClass != null && superClass!.contains(varName)) {
       return superClass!.fetch(varName, line, column, interpreter, error: error, from: superClass!.fullName);
     }
 
@@ -138,15 +141,21 @@ class HT_Class extends HT_Namespace with HT_Type {
   @override
   void assign(String varName, dynamic value, int? line, int? column, HT_Interpreter interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
+    if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
+    } else if (varName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
+    }
+
     var setter = '${HT_Lexicon.setter}$varName';
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName]!.declType;
       var var_type = HT_TypeOf(value);
-      if (from.startsWith(fullName) ||
-          (!fullName.startsWith(HT_Lexicon.underscore) && !varName.startsWith(HT_Lexicon.underscore))) {
-        if (var_type.isA(decl_type)) {
-          if (!defs[varName]!.isExtern) {
-            defs[varName]!.value = value;
+      if (var_type.isA(decl_type)) {
+        var decl = defs[varName]!;
+        if (!decl.isImmutable) {
+          if (!decl.isExtern) {
+            decl.value = value;
             return;
           } else {
             if (isExtern) {
@@ -159,17 +168,26 @@ class HT_Class extends HT_Namespace with HT_Type {
             }
           }
         }
-        throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), interpreter.curFileName, line, column);
+        throw HTErr_Immutable(varName, interpreter.curFileName, line, column);
       }
-      throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
+      throw HTErr_Type(varName, var_type.toString(), decl_type.toString(), interpreter.curFileName, line, column);
     } else if (defs.containsKey(setter)) {
-      if (from.startsWith(fullName) ||
-          (!fullName.startsWith(HT_Lexicon.underscore) && !varName.startsWith(HT_Lexicon.underscore))) {
-        HT_Function setter_func = defs[setter]!.value;
-        setter_func.call(interpreter, line, column, positionalArgs: [value]);
+      HT_Function setterFunc = defs[setter]!.value;
+      if (!setterFunc.isExtern) {
+        setterFunc.call(interpreter, line, column, positionalArgs: [value]);
         return;
+      } else {
+        if (isExtern) {
+          final externClass = interpreter.fetchExternalClass(id);
+          final Function externSetterFunc = externClass.fetch(setter);
+          externSetterFunc(value);
+          return;
+        } else {
+          final externSetterFunc = interpreter.fetchExternalFunction('$id.$setter');
+          externSetterFunc(value);
+          return;
+        }
       }
-      throw HTErr_PrivateMember(varName, interpreter.curFileName, line, column);
     }
 
     if (closure != null) {
@@ -209,17 +227,6 @@ class HT_Class extends HT_Namespace with HT_Type {
 
     return object;
   }
-
-  // void initInstance(HT_Object object, String constructorName, Interpreter interpreter,
-  //     {List<HT_Type> typeArgs, List<dynamic> positionalArgs, Map<String, dynamic> namedArgs}) {
-  //   constructorName ??= id;
-  //   var constructor = fetch(constructorName, null, null, interpreter, error: false, from: id);
-
-  //   if (constructor is HT_Function) {
-  //     constructor.call(interpreter, null, null,
-  //         positionalArgs: positionalArgs, namedArgs: namedArgs, object: object);
-  //   }
-  // }
 }
 
 /// [HT_Object] is the Dart implementation of the object object in Hetu.
@@ -259,19 +266,16 @@ class HT_Object extends HT_Namespace with HT_Type {
     } else {
       var getter = '${HT_Lexicon.getter}$varName';
       if (klass.contains(getter)) {
-        HT_Function? method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
-        if ((method != null) && (!method.funcStmt.isStatic)) {
+        HT_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
+        if (!method.funcStmt.isStatic) {
           return method.call(interpreter, line, column, object: this);
         }
       } else {
-        // var method_name = '${HT_Lexicon.method}$varName';
-        // if (klass.contains(method_name)) {
-        final method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
-        if ((method is HT_Function) && (!method.funcStmt.isStatic)) {
+        final HT_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
+        if (!method.funcStmt.isStatic) {
           method.declContext = this;
           return method;
         }
-        // }
       }
     }
 

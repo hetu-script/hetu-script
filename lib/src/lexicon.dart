@@ -80,6 +80,7 @@ abstract class HT_Lexicon {
   static const varargs = '...'; // variadic arguments
   static const anonymousFile = '__anonymousFile__';
   static const anonymousFunction = '__anonymousFunction__';
+  static const anonymousNamespace = '__anonymousNamespace__';
   static const underscore = '_';
   static const unknown = '__unknown__';
   static const global = '__global__';

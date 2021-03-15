@@ -13,7 +13,7 @@ external fun typeof(value): String
 external fun _print(items: List<any>)
 
 // print values of any type into lines
-fun print(... items: String) {
+fun print(... items) {
   _print(items)
 }
 

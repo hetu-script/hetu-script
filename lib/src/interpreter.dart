@@ -17,7 +17,7 @@ import 'extern_object.dart';
 import 'resolver.dart';
 
 /// 负责对语句列表进行最终解释执行
-class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor, StmtVisitor {
+class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisitor {
   static var _fileIndex = 0;
 
   final bool debugMode;
@@ -27,7 +27,6 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  // TODO: 不同文件有自己的变量表
   final _distances = <Expr, int>{};
 
   /// 全局命名空间
@@ -72,6 +71,10 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
     bindExternalNamespace(HT_Extern_Global.math, HT_ExternClass_Math());
     bindExternalNamespace(HT_Extern_Global.system, HT_ExternClass_System(this));
     bindExternalNamespace(HT_Extern_Global.console, HT_ExternClass_Console());
+
+    for (var key in externalFunctions.keys) {
+      bindExternalFunction(key, externalFunctions[key]!);
+    }
   }
 
   @override
@@ -747,7 +750,7 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
               isImmutable: variable.isImmutable,
               isDynamic: variable.isDynamic);
         } else {
-          klass.addVariable(variable);
+          klass.declareVar(variable);
         }
       }
     }
@@ -775,7 +778,7 @@ class HT_Interpreter with HT_ExternalBinding implements CodeRunner, ExprVisitor,
             isImmutable: variable.isImmutable,
             isDynamic: variable.isDynamic);
       } else {
-        klass.addVariable(variable);
+        klass.declareVar(variable);
       }
     }
     curNamespace = save;

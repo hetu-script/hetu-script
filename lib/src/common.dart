@@ -104,7 +104,7 @@ abstract class CodeRunner {
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}});
 }
 
-mixin HT_ExternalBinding {
+mixin Binding {
   final _externSpaces = <String, HT_ExternNamespace>{};
   final _externFunctions = <String, Function>{};
 

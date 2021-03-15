@@ -742,7 +742,12 @@ class Parser {
     String func_name;
     var typeParams = <String>[];
     if (curTok.type == HT_Lexicon.identifier) {
-      func_name = advance(1).lexeme;
+      final func_id = advance(1).lexeme;
+      if (functype == FuncStmtType.constructor) {
+        func_name = '${_curClassName!}.$func_id';
+      } else {
+        func_name = func_id;
+      }
 
       if (expect([HT_Lexicon.angleLeft], consume: true, error: false)) {
         while ((curTok.type != HT_Lexicon.angleRight) && (curTok.type != HT_Lexicon.endOfFile)) {
