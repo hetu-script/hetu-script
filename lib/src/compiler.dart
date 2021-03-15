@@ -202,4 +202,7 @@ class Compiler implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {}
+
+  @override
+  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {}
 }

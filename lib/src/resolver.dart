@@ -393,4 +393,9 @@ class Resolver implements ExprVisitor, StmtVisitor {
     _declare(stmt.id, stmt.keyword.line, stmt.keyword.column, define: true);
     _classes.add(stmt);
   }
+
+  @override
+  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
+    _declare(stmt.id, stmt.keyword.line, stmt.keyword.column, define: true);
+  }
 }

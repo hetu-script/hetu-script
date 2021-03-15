@@ -222,6 +222,7 @@ abstract class HT_Lexicon {
   static const whileStmt = 'while_statement';
   static const forInStmt = 'for_in_statement';
   static const classStmt = 'class_statement';
+  static const enumStmt = 'enum_statement';
   static const funcStmt = 'function_statement';
 
   static const memberGet = '.';

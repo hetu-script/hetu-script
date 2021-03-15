@@ -571,7 +571,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
       object = HT_DartObject_Map(object);
     }
 
-    if ((object is HT_Namespace)) {
+    if ((object is HT_Value)) {
       return object.fetch(expr.key.lexeme, expr.line, expr.column, this, from: curNamespace.fullName);
     }
     //如果是Dart对象
@@ -599,7 +599,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
     }
 
     var value = evaluateExpr(expr.value);
-    if (object is HT_Namespace) {
+    if (object is HT_Value) {
       object.assign(expr.key.lexeme, value, expr.line, expr.column, this, from: curNamespace.fullName);
       return value;
     }
@@ -820,4 +820,7 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
 
     return klass;
   }
+
+  @override
+  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {}
 }

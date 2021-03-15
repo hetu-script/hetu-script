@@ -48,6 +48,9 @@ abstract class StmtVisitor {
 
   /// 类
   dynamic visitClassDeclStmt(ClassDeclStmt stmt);
+
+  /// 枚举类
+  dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
 }
 
 abstract class Stmt {
@@ -327,4 +330,24 @@ class ClassDeclStmt extends Stmt {
   ClassDeclStmt(this.fileName, this.keyword, this.id, this.superClass, this.superClassDeclStmt, this.superClassTypeArgs,
       this.variables, this.methods,
       {this.typeParams = const [], this.isExtern = false});
+}
+
+class EnumDeclStmt extends Stmt {
+  @override
+  String get type => HT_Lexicon.enumStmt;
+
+  @override
+  dynamic accept(StmtVisitor visitor) => visitor.visitEnumDeclStmt(this);
+
+  final String fileName;
+
+  final Token keyword;
+
+  final String id;
+
+  final List<String> enumerations;
+
+  final bool isExtern;
+
+  EnumDeclStmt(this.fileName, this.keyword, this.id, this.enumerations, {this.isExtern = false});
 }
