@@ -108,7 +108,7 @@ class HT_Class extends HT_Namespace with HT_Type {
         }
       }
     } else if (defs.containsKey(getter)) {
-      var decl = defs[varName]!;
+      var decl = defs[getter]!;
       if (!decl.isExtern) {
         HT_Function func = defs[getter]!.value;
         return func.call(interpreter, line, column);
@@ -179,8 +179,7 @@ class HT_Class extends HT_Namespace with HT_Type {
       } else {
         if (isExtern) {
           final externClass = interpreter.fetchExternalClass(id);
-          final Function externSetterFunc = externClass.fetch(setter);
-          externSetterFunc(value);
+          externClass.assign(varName, value);
           return;
         } else {
           final externSetterFunc = interpreter.fetchExternalFunction('$id.$setter');
