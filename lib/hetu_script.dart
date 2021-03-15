@@ -14,3 +14,4 @@ export 'src/extern_object.dart';
 export 'src/lexicon.dart';
 export 'src/interpreter.dart';
 export 'src/vm.dart';
+export 'src/binding.dart';
