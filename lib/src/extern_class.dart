@@ -10,12 +10,9 @@ typedef HT_ExternFunc = dynamic Function(List<dynamic> positionalArgs, Map<Strin
 
 /// Namespace class of low level external dart functions for Hetu to use.
 abstract class HT_ExternNamespace {
-  dynamic fetch(String id);
+  dynamic fetch(String id) => throw HTErr_Undefined(id);
 
-  void assign(String id, dynamic value);
-
-  // dynamic call(String id, HT_Interpreter interpreter,
-  //     {List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, HT_Object object});
+  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
 }
 
 abstract class HT_Extern_Global {
