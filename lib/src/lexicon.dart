@@ -161,6 +161,8 @@ abstract class HT_Lexicon {
         STRUCT,
         INTERFACE,
         CONSTRUCT,
+        GET,
+        SET,
         FUN,
         ASYNC,
         AWAIT,
