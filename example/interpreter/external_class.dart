@@ -88,18 +88,18 @@ void main() {
         fun greeting
       }
       fun main {
-        var p = Person()
-        print(p.name)
-        // var p = Person.withName('Jimmy')
-        // print(p.name)
-        // p.name = 'John'
-        // p.greeting();
+        var p1 = Person()
+        print(p1.name)
+        var p2 = Person.withName('Jimmy')
+        print(p2.name)
+        p2.name = 'John'
+        p2.greeting();
 
-        // print('My race is', Person.race)
-        // Person.race = 'Reptile'
-        // print('Oh no! My race turned into', Person.race)
+        print('My race is', Person.race)
+        Person.race = 'Reptile'
+        print('Oh no! My race turned into', Person.race)
 
-        // print(Person.meaning(42))
+        print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }
