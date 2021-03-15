@@ -3,10 +3,12 @@ import 'package:hetu_script/hetu_script.dart';
 class DartPerson {
   static String race = 'Caucasian';
   static String meaning(int n) => 'The meaning of life is $n';
+
+  String get child => 'Tom';
   DartPerson();
   DartPerson.withName([this.name = 'some guy']);
 
-  String? name;
+  String? name = 'default name';
   void greeting() {
     print('Hi! I\'m $name');
   }
@@ -80,21 +82,24 @@ void main() {
         static var race
         static fun meaning (n: num)
         construct
+        get child
         construct withName
         var name
         fun greeting
       }
       fun main {
-        var p = Person.withName('Jimmy')
+        var p = Person()
         print(p.name)
-        p.name = 'John'
-        p.greeting();
+        // var p = Person.withName('Jimmy')
+        // print(p.name)
+        // p.name = 'John'
+        // p.greeting();
 
-        print('My race is', Person.race)
-        Person.race = 'Reptile'
-        print('Oh no! My race turned into', Person.race)
+        // print('My race is', Person.race)
+        // Person.race = 'Reptile'
+        // print('Oh no! My race turned into', Person.race)
 
-        print(Person.meaning(42))
+        // print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }

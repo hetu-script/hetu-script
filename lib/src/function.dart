@@ -1,9 +1,10 @@
+import 'package:hetu_script/hetu_script.dart';
+
 import 'class.dart';
 import 'namespace.dart';
 import 'statement.dart';
-import 'interpreter.dart';
 import 'errors.dart';
-import 'value.dart';
+import 'type.dart';
 import 'lexicon.dart';
 
 class HT_FunctionType extends HT_TypeId {

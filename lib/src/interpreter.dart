@@ -7,6 +7,7 @@ import 'errors.dart';
 import 'expression.dart';
 import 'statement.dart';
 import 'value.dart';
+import 'type.dart';
 import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
@@ -488,8 +489,8 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
       } else {
         // 外部默认构造函数
         final externClass = fetchExternalClass(callee.id);
-        final HT_ExternFunc constructor = externClass.fetch(callee.id);
-        return constructor(positionalArgs, namedArgs);
+        final Function constructor = externClass.fetch(callee.id);
+        return constructor();
       }
     } // 外部函数
     else if (callee is Function) {
@@ -713,11 +714,11 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
       if (stmt.superClass == null) {
         superClass = _globals.fetch(HT_Lexicon.rootClass, stmt.keyword.line, stmt.keyword.column, this);
       } else {
-        dynamic super_class = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
-        if (super_class is! HT_Class) {
+        dynamic existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
+        if (existSuperClass is! HT_Class) {
           throw HTErr_Extends(superClass!.id, curFileName, stmt.keyword.line, stmt.keyword.column);
         }
-        superClass = super_class;
+        superClass = existSuperClass;
       }
     }
 

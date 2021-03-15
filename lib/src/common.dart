@@ -117,7 +117,12 @@ mixin Binding {
     _externSpaces[id] = namespace;
   }
 
-  HT_ExternNamespace fetchExternalClass(String id) => _externSpaces[id]!;
+  HT_ExternNamespace fetchExternalClass(String id) {
+    if (!_externSpaces.containsKey(id)) {
+      throw HTErr_Undefined(id);
+    }
+    return _externSpaces[id]!;
+  }
 
   void bindExternalFunction(String id, Function function) {
     if (_externFunctions.containsKey(id)) {
@@ -126,7 +131,12 @@ mixin Binding {
     _externFunctions[id] = function;
   }
 
-  Function fetchExternalFunction(String id) => _externFunctions[id]!;
+  Function fetchExternalFunction(String id) {
+    if (!_externFunctions.containsKey(id)) {
+      throw HTErr_Undefined(id);
+    }
+    return _externFunctions[id]!;
+  }
 
   void bindExternalVariable(String id, Function getter, Function setter) {
     if (_externFunctions.containsKey(HT_Lexicon.getter + id) || _externFunctions.containsKey(HT_Lexicon.setter + id)) {
@@ -138,17 +148,17 @@ mixin Binding {
 
   dynamic getExternalVariable(String id) {
     if (!_externFunctions.containsKey(HT_Lexicon.getter + id)) {
-      throw HTErr_Defined(HT_Lexicon.getter + id);
+      throw HTErr_Undefined(HT_Lexicon.getter + id);
     }
-    final getter = _externFunctions[HT_Lexicon.getter + id];
-    return getter!();
+    final getter = _externFunctions[HT_Lexicon.getter + id]!;
+    return getter();
   }
 
   void setExternalVariable(String id, value) {
     if (!_externFunctions.containsKey(HT_Lexicon.setter + id)) {
-      throw HTErr_Defined(HT_Lexicon.setter + id);
+      throw HTErr_Undefined(HT_Lexicon.setter + id);
     }
-    final setter = _externFunctions[HT_Lexicon.setter + id];
-    return setter!();
+    final setter = _externFunctions[HT_Lexicon.setter + id]!;
+    return setter();
   }
 }

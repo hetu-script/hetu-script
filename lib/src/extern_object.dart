@@ -1,4 +1,4 @@
-import 'value.dart';
+import 'type.dart';
 import 'errors.dart';
 import 'lexicon.dart';
 import 'extern_class.dart' show HT_ExternNamespace;

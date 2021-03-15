@@ -8,8 +8,12 @@ void main() {
       external fun hello
       fun main {
         var dartValue = hello()
-        print(typeof(dartValue))
+        print('dart value:', dartValue)
         dartValue['foo'] = 'bar'
-        print(dartValue)
-      }''', invokeFunc: 'main');
+        return dartValue
+      }''');
+
+  var hetuValue = hetu.invoke('main');
+
+  print('hetu value: $hetuValue');
 }

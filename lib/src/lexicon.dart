@@ -121,6 +121,7 @@ abstract class HT_Lexicon {
   static const AS = 'as';
   static const ABSTRACT = 'abstract';
   static const CLASS = 'class';
+  static const ENUM = 'enum';
   static const STRUCT = 'struct';
   static const INTERFACE = 'interface';
   static const FUN = 'fun';
@@ -158,6 +159,7 @@ abstract class HT_Lexicon {
         TYPEDEF,
         AS,
         CLASS,
+        ENUM,
         STRUCT,
         INTERFACE,
         CONSTRUCT,

@@ -3,7 +3,7 @@ import 'expression.dart';
 import 'statement.dart';
 import 'token.dart';
 import 'lexicon.dart';
-import 'value.dart';
+import 'type.dart';
 import 'common.dart';
 
 enum ParseStyle {

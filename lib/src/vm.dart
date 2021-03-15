@@ -108,6 +108,8 @@ class HT_VM implements CodeRunner {
     while (_ip < _bytes.length) {
       final instruction = readByte();
       switch (instruction) {
+        case HT_OpCode.end:
+          return;
         case HT_OpCode.constTable:
           _context = HT_Context();
           var table_length = readInt64();
@@ -227,10 +229,11 @@ class HT_VM implements CodeRunner {
 
   void handleError() {
     final err_type = readByte();
+    // TODO: line 和 column
     switch (err_type) {
       case HT_ErrorCode.binOp:
         throw HTErr_UndefinedBinaryOperator(
-            _register[0].toString(), _register[1].toString(), HT_Lexicon.add, curFileName); // TODO: line 和 column
+            _register[0].toString(), _register[1].toString(), HT_Lexicon.add, curFileName);
     }
   }
 }

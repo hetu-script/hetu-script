@@ -11,10 +11,12 @@ final Map<String, String> paths = const {
 
 void main() {
   stdout.write('Converting files in \'hetu_lib\' folder into Dart strings...');
-  var content = '/// The core librarys in Hetu.\n'
-      '///\n'
-      '/// Automatically generated based on files in \'hetu_lib\' folder.\n'
-      'final Map<String, String> coreLibs = const {\n';
+  var content = '''
+      /// The core librarys in Hetu.
+      ///
+      /// Automatically generated based on files in \'hetu_lib\' folder.
+      final Map<String, String> coreLibs = const {
+      ''';
   final output = File('lib/src/core.dart');
   for (final file in paths.keys) {
     final data = File(paths[file]!).readAsStringSync();

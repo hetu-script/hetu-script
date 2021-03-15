@@ -1,4 +1,5 @@
 abstract class HT_OpCode {
+  static const end = 0;
   static const constTable = 1;
 
   static const local = 2;

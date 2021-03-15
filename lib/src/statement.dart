@@ -1,7 +1,7 @@
 import 'token.dart';
 import 'lexicon.dart';
 import 'expression.dart';
-import 'value.dart';
+import 'type.dart';
 
 /// 抽象的访问者模式，包含访问语句的抽象语法树的接口
 ///

@@ -4,13 +4,15 @@
 
 [中文介绍](README_ZH.md)
 
-A lightweight script language & its interpreter written purely in Dart, intended to be embedded in Flutter & Dart programs for purposes like hotfixes and game scripting.
+Hetu is a lightweight script language written purely in Dart. It is intended to be embedded in Flutter/Dart apps & games to enable hotfixes and scripting.
 
-It is kind of like lua but it is very easy to bind anything in Dart and make it easy to debug.
+Hetu's grammar is close to typescript/kotlin/swift and other modern languages, hence need very little time to get familar with.
 
-[Syntax referrence](HETU_SYNTAX.md)
+It meant to be used as a scripting language like lua, however, it is made to communicate with classes & functions in Dart very easily.
 
-[语法参考](HETU_SYNTAX_ZH.md)
+[Syntax referrence](doc/SYNTAX.md)
+
+[语法参考](doc/SYNTAX_ZH.md)
 
 In your Dart code, you can interpret an script file by this:
 
@@ -64,29 +66,30 @@ You can pass object from Hetu to Dart by the return value of Interpreter's [invo
 ```typescript
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   var hetu = HT_Interpreter(externalFunctions: {
-    'hello': (HT_Interpreter interpreter,
-        {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Object object}) {
-      return {'greeting': 'hello'};
-    },
+    'hello': () => {'greeting': 'hello'},
   });
   hetu.eval(r'''
       external fun hello
       fun main {
         var dartValue = hello()
-        print(typeof(dartValue))
+        print('dart value:', dartValue)
         dartValue['foo'] = 'bar'
-        print(dartValue)
-      }''', invokeFunc: 'main');
+        return dartValue
+      }''');
+
+  var hetuValue = hetu.invoke('main');
+
+  print('hetu value: $hetuValue');
 }
 ```
 
 And the output should be:
 
 ```
-Map<String, String>
-{greeting: hello, foo: bar}
+dart value: {greeting: hello}
+hetu value: {greeting: hello, foo: bar}
 ```
 
 ## Command line tool

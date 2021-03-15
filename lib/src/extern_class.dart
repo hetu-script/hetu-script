@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'common.dart';
 import 'class.dart';
-import 'value.dart';
+import 'type.dart';
 import 'errors.dart';
 
 typedef HT_ExternFunc = dynamic Function(List<dynamic> positionalArgs, Map<String, dynamic> namedArgs);
@@ -59,9 +59,6 @@ class HT_ExternClass_Number extends HT_ExternNamespace {
         throw HTErr_Undefined(id);
     }
   }
-
-  @override
-  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
 }
 
 class HT_ExternClass_Bool extends HT_ExternNamespace {
@@ -76,9 +73,6 @@ class HT_ExternClass_Bool extends HT_ExternNamespace {
         throw HTErr_Undefined(id);
     }
   }
-
-  @override
-  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
 }
 
 class HT_ExternClass_String extends HT_ExternNamespace {
@@ -94,9 +88,6 @@ class HT_ExternClass_String extends HT_ExternNamespace {
         throw HTErr_Undefined(id);
     }
   }
-
-  @override
-  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
 }
 
 class HT_ExternClass_Math extends HT_ExternNamespace {
@@ -119,9 +110,6 @@ class HT_ExternClass_Math extends HT_ExternNamespace {
         throw HTErr_Undefined(id);
     }
   }
-
-  @override
-  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
 }
 
 class HT_ExternClass_System extends HT_ExternNamespace {
@@ -142,9 +130,6 @@ class HT_ExternClass_System extends HT_ExternNamespace {
         throw HTErr_Undefined(id);
     }
   }
-
-  @override
-  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
 }
 
 class HT_ExternClass_Console extends HT_ExternNamespace {
@@ -174,7 +159,4 @@ class HT_ExternClass_Console extends HT_ExternNamespace {
         throw HTErr_Undefined(id);
     }
   }
-
-  @override
-  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
 }

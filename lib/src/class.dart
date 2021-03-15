@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/common.dart';
+
 import '../hetu_script.dart';
 import 'lexicon.dart';
 import 'interpreter.dart';
@@ -5,7 +7,7 @@ import 'namespace.dart';
 import 'function.dart';
 import 'errors.dart';
 import 'statement.dart';
-import 'value.dart';
+import 'type.dart';
 
 /// [HT_Class] is the Dart implementation of the class declaration in Hetu.
 ///
@@ -86,7 +88,7 @@ class HT_Class extends HT_Namespace with HT_Type {
 
   /// Fetch the value of a static member from this class.
   @override
-  dynamic fetch(String varName, int? line, int? column, HT_Interpreter interpreter,
+  dynamic fetch(String varName, int? line, int? column, CodeRunner interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
@@ -111,7 +113,7 @@ class HT_Class extends HT_Namespace with HT_Type {
       var decl = defs[getter]!;
       if (!decl.isExtern) {
         HT_Function func = defs[getter]!.value;
-        return func.call(interpreter, line, column);
+        return func.call(interpreter as HT_Interpreter, line, column);
       } else {
         final externClass = interpreter.fetchExternalClass(id);
         final Function getterFunc = externClass.fetch(varName);
@@ -139,7 +141,7 @@ class HT_Class extends HT_Namespace with HT_Type {
 
   /// Assign a value to a static member of this class.
   @override
-  void assign(String varName, dynamic value, int? line, int? column, HT_Interpreter interpreter,
+  void assign(String varName, dynamic value, int? line, int? column, CodeRunner interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (fullName.startsWith(HT_Lexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErr_PrivateDecl(fullName, interpreter.curFileName, line, column);
@@ -174,7 +176,7 @@ class HT_Class extends HT_Namespace with HT_Type {
     } else if (defs.containsKey(setter)) {
       HT_Function setterFunc = defs[setter]!.value;
       if (!setterFunc.isExtern) {
-        setterFunc.call(interpreter, line, column, positionalArgs: [value]);
+        setterFunc.call(interpreter as HT_Interpreter, line, column, positionalArgs: [value]);
         return;
       } else {
         if (isExtern) {
@@ -255,7 +257,7 @@ class HT_Object extends HT_Namespace with HT_Type {
   bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${HT_Lexicon.getter}$varName');
 
   @override
-  dynamic fetch(String varName, int? line, int? column, HT_Interpreter interpreter,
+  dynamic fetch(String varName, int? line, int? column, CodeRunner interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       if (!varName.startsWith(HT_Lexicon.underscore) || from.startsWith(fullName)) {
@@ -267,7 +269,7 @@ class HT_Object extends HT_Namespace with HT_Type {
       if (klass.contains(getter)) {
         HT_Function method = klass.fetch(getter, line, column, interpreter, error: false, from: klass.fullName);
         if (!method.funcStmt.isStatic) {
-          return method.call(interpreter, line, column, object: this);
+          return method.call(interpreter as HT_Interpreter, line, column, object: this);
         }
       } else {
         final HT_Function method = klass.fetch(varName, line, column, interpreter, error: false, from: klass.fullName);
@@ -282,7 +284,7 @@ class HT_Object extends HT_Namespace with HT_Type {
   }
 
   @override
-  void assign(String varName, dynamic value, int? line, int? column, HT_Interpreter interpreter,
+  void assign(String varName, dynamic value, int? line, int? column, CodeRunner interpreter,
       {bool error = true, String from = HT_Lexicon.global, bool recursive = true}) {
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName]!.declType;
@@ -303,7 +305,7 @@ class HT_Object extends HT_Namespace with HT_Type {
       if (klass.contains(setter)) {
         HT_Function? method = klass.fetch(setter, line, column, interpreter, error: false, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
-          method.call(interpreter, line, column, positionalArgs: [value], object: this);
+          method.call(interpreter as HT_Interpreter, line, column, positionalArgs: [value], object: this);
           return;
         }
       }
@@ -312,11 +314,12 @@ class HT_Object extends HT_Namespace with HT_Type {
     if (error) throw HTErr_Undefined(varName, interpreter.curFileName, line, column);
   }
 
-  dynamic invoke(String methodName, int line, int column, HT_Interpreter interpreter,
+  dynamic invoke(String methodName, int line, int column, CodeRunner interpreter,
       {bool error = true, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
     HT_Function? method = klass.fetch(methodName, null, null, interpreter, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
-      return method.call(interpreter, null, null, positionalArgs: positionalArgs, namedArgs: namedArgs, object: this);
+      return method.call(interpreter as HT_Interpreter, null, null,
+          positionalArgs: positionalArgs, namedArgs: namedArgs, object: this);
     }
 
     if (error) throw HTErr_Undefined(methodName, interpreter.curFileName, line, column);
