@@ -1,6 +1,12 @@
 # Hetu Script
 
-Hetu's grammar is close to typescript/kotlin/swift and other modern languages, hence need very little time to get familar with.
+Hetu's grammar close to most modern languages, hence need very little time to get familar with.
+
+Key point:
+
+- Semicolon is optional.
+- Type check and annotation is optional.
+- Type is annotated with a colon after the identifier (like typescript/kotlin/swift).
 
 ## Script file structure
 
@@ -142,6 +148,22 @@ fun main {
   print(func()) // Will print 42.
 }
 ```
+
+In Hetu, functions are first class, you can use function as parameter, return value and store them in variables. Example:
+
+```typescript
+fun closure(func) {
+  var i = 42
+  return fun () { print(func(i)) }
+}
+
+fun main {
+  var func = closure( fun (n) { return n * n } )
+  func() // Output: 1764
+}
+```
+
+As shown above, the grammar of literal function (anonymous function) are just like normal functions but without a name.
 
 ## Class
 

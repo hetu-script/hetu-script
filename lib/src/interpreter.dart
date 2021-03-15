@@ -623,7 +623,8 @@ class HT_Interpreter with Binding implements CodeRunner, ExprVisitor, StmtVisito
   @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
     if (stmt.expr != null) {
-      throw evaluateExpr(stmt.expr!);
+      var returnValue = evaluateExpr(stmt.expr!);
+      (returnValue != null) ? throw returnValue : throw HT_Value.NULL;
     }
     throw HT_Value.NULL;
   }
