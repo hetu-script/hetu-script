@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'core.dart';
 import 'read_file.dart';
 import 'extern_class.dart';
@@ -12,20 +10,32 @@ import 'function.dart';
 import 'lexer.dart';
 import 'parser.dart';
 import 'lexicon.dart';
-import 'extern_object.dart';
 import 'resolver.dart';
 import 'object.dart';
 import 'interpreter.dart';
-import 'binding.dart';
 import 'context.dart';
+import 'extern_object.dart';
 
 mixin ASTInterpreterRef {
-  late final HT_ASTInterpreter interpreter;
+  late final HTInterpreter interpreter;
 }
 
 /// 负责对语句列表进行最终解释执行
-class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
+class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   static var _fileIndex = 0;
+
+  int _curLine = 0;
+  @override
+  int get curLine => _curLine;
+  int _curColumn = 0;
+  @override
+  int get curColumn => _curColumn;
+  String _curFileName = '';
+  @override
+  String get curFileName => _curFileName;
+
+  @override
+  final String workingDirectory;
 
   final bool debugMode;
   final ReadFileMethod readFileMethod;
@@ -37,26 +47,23 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
   final _distances = <ASTNode, int>{};
 
   /// 全局命名空间
-  late HT_Namespace _globals;
+  late HTNamespace _globals;
 
   /// 当前语句所在的命名空间
-  late HT_Namespace curNamespace;
-
-  @override
-  final String workingDirectory;
+  late HTNamespace curNamespace;
 
   dynamic _curStmtValue;
 
-  HT_ASTInterpreter(
+  HTInterpreter(
       {String sdkDirectory = 'hetu_lib/',
       this.workingDirectory = 'script/',
       this.debugMode = false,
       this.readFileMethod = defaultReadFileMethod,
       Map<String, Function> externalFunctions = const {}}) {
-    curNamespace = _globals = HT_Namespace(this, id: HT_Lexicon.global);
+    curNamespace = _globals = HTNamespace(this, id: HTLexicon.global);
 
     // load external functions.
-    // loadExternalFunctions(HT_ExternalNamespace.externFuncs);
+    // loadExternalFunctions(HTExternalNamespace.externFuncs);
     // loadExternalFunctions(externalFunctions);
 
     // load classes and functions in core library.
@@ -64,16 +71,16 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
       eval(coreLibs[file]!, fileName: file);
     }
 
-    for (var key in HT_Extern_Global.functions.keys) {
-      bindExternalFunction(key, HT_Extern_Global.functions[key]!);
+    for (var key in HTExternGlobal.functions.keys) {
+      bindExternalFunction(key, HTExternGlobal.functions[key]!);
     }
 
-    bindExternalNamespace(HT_Extern_Global.number, HT_ExternClass_Number());
-    bindExternalNamespace(HT_Extern_Global.boolean, HT_ExternClass_Bool());
-    bindExternalNamespace(HT_Extern_Global.string, HT_ExternClass_String());
-    bindExternalNamespace(HT_Extern_Global.math, HT_ExternClass_Math());
-    bindExternalNamespace(HT_Extern_Global.system, HT_ExternClass_System(this));
-    bindExternalNamespace(HT_Extern_Global.console, HT_ExternClass_Console());
+    bindExternalClass(HTExternGlobal.number, HTExternClassNumber());
+    bindExternalClass(HTExternGlobal.boolean, HTExternClassBool());
+    bindExternalClass(HTExternGlobal.string, HTExternClassString());
+    bindExternalClass(HTExternGlobal.math, HTExternClassMath());
+    bindExternalClass(HTExternGlobal.system, HTExternClassSystem(this));
+    bindExternalClass(HTExternGlobal.console, HTExternClassConsole());
 
     for (var key in externalFunctions.keys) {
       bindExternalFunction(key, externalFunctions[key]!);
@@ -84,24 +91,29 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
   dynamic eval(
     String content, {
     String? fileName,
-    String libName = HT_Lexicon.global,
-    HT_Context? context,
+    String libName = HTLexicon.global,
+    HTContext? context,
     ParseStyle style = ParseStyle.library,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {
-    curFileName = fileName ?? HT_Lexicon.anonymousFile + (_fileIndex++).toString();
+    _curFileName = fileName ?? HTLexicon.anonymousScript + (_fileIndex++).toString();
 
-    curNamespace = context is HT_Namespace ? context : _globals;
+    curNamespace = context is HTNamespace ? context : _globals;
+    var lexer = Lexer();
+    var parser = Parser();
+    var resolver = Resolver();
     try {
-      var tokens = Lexer().lex(content, curFileName);
-      final statements = Parser(this).parse(tokens, curNamespace, curFileName, style);
-      _distances.addAll(Resolver().resolve(statements, curFileName, libName: libName));
+      var tokens = lexer.lex(content, _curFileName);
+
+      final statements = parser.parse(tokens, this, curNamespace, _curFileName, style);
+      _distances.addAll(resolver.resolve(statements, _curFileName, libName: libName));
 
       for (final stmt in statements) {
-        _curStmtValue = evaluateStmt(stmt);
+        _curStmtValue = visitASTNode(stmt);
       }
+
       if (invokeFunc != null) {
         if (style == ParseStyle.library) {
           return invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs);
@@ -110,36 +122,40 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
         return _curStmtValue;
       }
     } catch (e) {
-      if (e is HT_Error) {
-        throw HT_InterpreterError(e.message, e.type, curFileName, _curLine, _curColumn);
+      if (e is HTParserError) {
+        throw HTInterpreterError(e.message, e.type, parser.curFileName, parser.curLine, parser.curColumn);
+      } else if (e is HTResolverError) {
+        throw HTInterpreterError(e.message, e.type, resolver.curFileName, resolver.curLine, resolver.curColumn);
       } else {
-        throw HT_InterpreterError(e.toString(), HT_ErrorType.unknown, curFileName, _curLine, _curColumn);
+        throw HTInterpreterError(e.toString(), HTErrorType.other, _curFileName, _curLine, _curColumn);
       }
     }
   }
 
+  /// 调用一个全局函数或者类、对象上的函数
+  // TODO: 调用构造函数
   @override
   dynamic invoke(String functionName,
       {String? objectName, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
     if (objectName == null) {
       var func = _globals.fetch(functionName);
-      if (func is HT_Function) {
+      if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (func is Function) {
         return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
       } else {
-        throw HT_Error_Callable(functionName);
+        throw HTErrorCallable(functionName);
       }
     } else {
       // 命名空间内的静态函数
-      HT_Object object = _globals.fetch(objectName);
+      HTObject object = _globals.fetch(objectName);
       var func = object.fetch(functionName);
-      if (func is HT_Function) {
+      if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (func is Function) {
         return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
       } else {
-        throw HT_Error_Callable(functionName);
+        throw HTErrorCallable(functionName);
       }
     }
   }
@@ -155,33 +171,27 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    final savedFileName = curFileName;
-    final savedFileDirectory = _curDirectory;
-    curFileName = fileName;
-    _curDirectory = directory ?? File(curFileName).parent.path;
+    final savedFileName = _curFileName;
     dynamic result;
-    if (!_evaledFiles.contains(curFileName)) {
-      if (debugMode) print('hetu: Loading $fileName...');
-      _evaledFiles.add(curFileName);
+    if (!_evaledFiles.contains(fileName)) {
+      _evaledFiles.add(fileName);
 
-      HT_Namespace? library_namespace;
-      if ((libName != null) && (libName != HT_Lexicon.global)) {
-        library_namespace = HT_Namespace(this, id: libName, closure: _globals);
-        _globals.define(libName, declType: HT_TypeId.namespace, value: library_namespace);
+      HTNamespace? library_namespace;
+      if ((libName != null) && (libName != HTLexicon.global)) {
+        library_namespace = HTNamespace(this, id: libName, closure: _globals);
+        _globals.define(libName, declType: HTTypeId.namespace, value: library_namespace);
       }
 
-      var content = await readFileMethod(curFileName);
-
+      var content = await readFileMethod(fileName);
       result = eval(content,
-          fileName: curFileName,
+          fileName: fileName,
           context: library_namespace,
           style: style,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs);
     }
-    curFileName = savedFileName;
-    _curDirectory = savedFileDirectory;
+    _curFileName = savedFileName;
     return result;
   }
 
@@ -195,33 +205,102 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) {
-    final savedFileName = curFileName;
-    final savedFileDirectory = _curDirectory;
-    curFileName = fileName;
-    _curDirectory = directory ?? File(curFileName).path;
+    final savedFileName = _curFileName;
     dynamic result;
-    if (!_evaledFiles.contains(curFileName)) {
-      if (debugMode) print('hetu: Loading $fileName...');
-      _evaledFiles.add(curFileName);
+    if (!_evaledFiles.contains(fileName)) {
+      _evaledFiles.add(fileName);
 
-      HT_Namespace? library_namespace;
-      if ((libName != null) && (libName != HT_Lexicon.global)) {
-        _globals.define(libName, declType: HT_TypeId.namespace);
-        library_namespace = HT_Namespace(this, id: libName, closure: library_namespace);
+      HTNamespace? library_namespace;
+      if ((libName != null) && (libName != HTLexicon.global)) {
+        _globals.define(libName, declType: HTTypeId.namespace);
+        library_namespace = HTNamespace(this, id: libName, closure: library_namespace);
       }
 
-      var content = readFileSync(curFileName);
+      var content = readFileSync(fileName);
       result = eval(content,
-          fileName: curFileName,
+          fileName: fileName,
           context: library_namespace,
           style: style,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs);
     }
-    curFileName = savedFileName;
-    _curDirectory = savedFileDirectory;
+    _curFileName = savedFileName;
     return result;
+  }
+
+  @override
+  HTTypeId typeof(dynamic object) {
+    if ((object == null) || (object is NullThrownError)) {
+      return HTTypeId.NULL;
+    } // Class, Object, external class
+    else if (object is HTType) {
+      return object.typeid;
+    } else if (object is num) {
+      return HTTypeId.number;
+    } else if (object is bool) {
+      return HTTypeId.boolean;
+    } else if (object is String) {
+      return HTTypeId.string;
+    } else if (object is List) {
+      // var list_darttype = value.runtimeType.toString();
+      // var item_darttype = list_darttype.substring(list_darttype.indexOf('<') + 1, list_darttype.indexOf('>'));
+      // if ((item_darttype != 'dynamic') && (value.isNotEmpty)) {
+      //   valType = HTTypeOf(value.first);
+      // }
+      var valType = HTTypeId.ANY;
+      if (object.isNotEmpty) {
+        valType = typeof(object.first);
+        for (final item in object) {
+          if (typeof(item) != valType) {
+            valType = HTTypeId.ANY;
+            break;
+          }
+        }
+      }
+
+      return HTTypeId(HTLexicon.list, arguments: [valType]);
+    } else if (object is Map) {
+      var keyType = HTTypeId.ANY;
+      var valType = HTTypeId.ANY;
+      if (object.keys.isNotEmpty) {
+        keyType = typeof(object.keys.first);
+        for (final key in object.keys) {
+          if (typeof(key) != keyType) {
+            keyType = HTTypeId.ANY;
+            break;
+          }
+        }
+      }
+      if (object.values.isNotEmpty) {
+        valType = typeof(object.values.first);
+        for (final value in object.values) {
+          if (typeof(value) != valType) {
+            valType = HTTypeId.ANY;
+            break;
+          }
+        }
+      }
+      return HTTypeId(HTLexicon.map, arguments: [keyType, valType]);
+    } else {
+      var typeid = object.runtimeType.toString();
+      if (typeid.contains('<')) {
+        typeid = typeid.substring(0, typeid.indexOf('<'));
+      }
+      if (containsExternalClass(typeid)) {
+        final externClass = fetchExternalClass(typeid);
+        return HTTypeId(externClass.id);
+      }
+      return HTTypeId.unknown;
+    }
+  }
+
+  void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
+    _globals.define(key, declType: declType, value: value, isImmutable: isImmutable, isDynamic: isDynamic);
+  }
+
+  dynamic fetchGlobal(String key) {
+    return _globals.fetch(key);
   }
 
   dynamic _getValue(String name, ASTNode expr) {
@@ -233,36 +312,13 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
     return _globals.fetch(name);
   }
 
-  // dynamic unwrap(dynamic value, int line, int column, String fileName) {
-  //   if (value is HT_Value) {
-  //     return value;
-  //   } else if (value is num) {
-  //     return HT_DartObject_Number(value, line, column, this);
-  //   } else if (value is bool) {
-  //     return HT_DartObject_Boolean(value, line, column, this);
-  //   } else if (value is String) {
-  //     return HT_DartObject_String(value, line, column, this);
-  //   } else {
-  //     return value;
-  //   }
-  // }
-
-  void defineGlobal(String key,
-      {HT_TypeId? declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
-    _globals.define(key, declType: declType, value: value, isImmutable: isImmutable, isDynamic: isDynamic);
-  }
-
-  dynamic fetchGlobal(String key) {
-    return _globals.fetch(key);
-  }
-
-  dynamic executeBlock(List<ASTNode> statements, HT_Namespace environment) {
+  dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
     var saved_context = curNamespace;
 
     try {
       curNamespace = environment;
       for (final stmt in statements) {
-        _curStmtValue = evaluateStmt(stmt);
+        _curStmtValue = visitASTNode(stmt);
       }
     } finally {
       curNamespace = saved_context;
@@ -271,196 +327,228 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
     return _curStmtValue;
   }
 
-  dynamic evaluateStmt(ASTNode stmt) => stmt.accept(this);
-
-  dynamic evaluateExpr(ASTNode expr) => expr.accept(this);
+  dynamic visitASTNode(ASTNode ast) => ast.accept(this);
 
   @override
   dynamic visitNullExpr(NullExpr expr) {
     _curLine = expr.line;
-
+    _curColumn = expr.column;
     return null;
   }
 
   @override
-  dynamic visitBooleanExpr(BooleanExpr expr) => expr.value;
+  dynamic visitBooleanExpr(BooleanExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    return expr.value;
+  }
 
   @override
-  dynamic visitConstIntExpr(ConstIntExpr expr) => _globals.getConstInt(expr.constIndex);
+  dynamic visitConstIntExpr(ConstIntExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    return _globals.getConstInt(expr.constIndex);
+  }
 
   @override
-  dynamic visitConstFloatExpr(ConstFloatExpr expr) => _globals.getConstFloat(expr.constIndex);
+  dynamic visitConstFloatExpr(ConstFloatExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    return _globals.getConstFloat(expr.constIndex);
+  }
 
   @override
-  dynamic visitConstStringExpr(ConstStringExpr expr) => _globals.getConstString(expr.constIndex);
+  dynamic visitConstStringExpr(ConstStringExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    return _globals.getConstString(expr.constIndex);
+  }
 
   @override
-  dynamic visitGroupExpr(GroupExpr expr) => evaluateExpr(expr.inner);
+  dynamic visitGroupExpr(GroupExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    return visitASTNode(expr.inner);
+  }
 
   @override
   dynamic visitLiteralVectorExpr(LiteralVectorExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var list = [];
     for (final item in expr.vector) {
-      list.add(evaluateExpr(item));
+      list.add(visitASTNode(item));
     }
     return list;
   }
 
   @override
   dynamic visitLiteralDictExpr(LiteralDictExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var map = {};
     for (final key_expr in expr.map.keys) {
-      var key = evaluateExpr(key_expr);
-      var value = evaluateExpr(expr.map[key_expr]!);
+      var key = visitASTNode(key_expr);
+      var value = visitASTNode(expr.map[key_expr]!);
       map[key] = value;
     }
     return map;
   }
 
   @override
-  dynamic visitSymbolExpr(SymbolExpr expr) => _getValue(expr.id.lexeme, expr);
+  dynamic visitSymbolExpr(SymbolExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    return _getValue(expr.id.lexeme, expr);
+  }
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
-    var value = evaluateExpr(expr.value);
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    var value = visitASTNode(expr.value);
 
-    if (expr.op.lexeme == HT_Lexicon.subtract) {
+    if (expr.op.lexeme == HTLexicon.subtract) {
       if (value is num) {
         return -value;
       } else {
-        throw HT_Error_UndefinedOperator(value.toString(), expr.op.lexeme);
+        throw HTErrorUndefinedOperator(value.toString(), expr.op.lexeme);
       }
-    } else if (expr.op.lexeme == HT_Lexicon.not) {
+    } else if (expr.op.lexeme == HTLexicon.not) {
       if (value is bool) {
         return !value;
       } else {
-        throw HT_Error_UndefinedOperator(value.toString(), expr.op.lexeme);
+        throw HTErrorUndefinedOperator(value.toString(), expr.op.lexeme);
       }
     } else {
-      throw HT_Error_UndefinedOperator(value.toString(), expr.op.lexeme);
+      throw HTErrorUndefinedOperator(value.toString(), expr.op.lexeme);
     }
   }
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    var left = evaluateExpr(expr.left);
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    var left = visitASTNode(expr.left);
     var right;
-    if (expr.op.type == HT_Lexicon.and) {
+    if (expr.op.type == HTLexicon.and) {
       if (left is bool) {
         // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
         if (!left) {
           return false;
         } else {
-          right = evaluateExpr(expr.right);
+          right = visitASTNode(expr.right);
           if (right is bool) {
             return left && right;
           } else {
-            throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+            throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
           }
         }
       } else {
-        throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+        throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
       }
     } else {
-      right = evaluateExpr(expr.right);
+      right = visitASTNode(expr.right);
 
       // 操作符重载??
-      if (expr.op.type == HT_Lexicon.or) {
+      if (expr.op.type == HTLexicon.or) {
         if (left is bool) {
           if (right is bool) {
             return left || right;
           } else {
-            throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+            throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
           }
         } else {
-          throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+          throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
         }
-      } else if (expr.op.type == HT_Lexicon.equal) {
+      } else if (expr.op.type == HTLexicon.equal) {
         return left == right;
-      } else if (expr.op.type == HT_Lexicon.notEqual) {
+      } else if (expr.op.type == HTLexicon.notEqual) {
         return left != right;
-      } else if (expr.op.type == HT_Lexicon.add || expr.op.type == HT_Lexicon.subtract) {
+      } else if (expr.op.type == HTLexicon.add || expr.op.type == HTLexicon.subtract) {
         if ((left is String) && (right is String)) {
           return left + right;
         } else if ((left is num) && (right is num)) {
-          if (expr.op.lexeme == HT_Lexicon.add) {
+          if (expr.op.lexeme == HTLexicon.add) {
             return left + right;
-          } else if (expr.op.lexeme == HT_Lexicon.subtract) {
+          } else if (expr.op.lexeme == HTLexicon.subtract) {
             return left - right;
           }
         } else {
-          throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+          throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
         }
-      } else if (expr.op.type == HT_Lexicon.IS) {
-        if (right is HT_Class) {
-          return HT_TypeOf(left).id == right.id;
+      } else if (expr.op.type == HTLexicon.IS) {
+        if (right is HTClass) {
+          return typeof(left).id == right.id;
         } else {
-          throw HT_Error_NotType(right.toString());
+          throw HTErrorNotType(right.toString());
         }
-      } else if ((expr.op.type == HT_Lexicon.multiply) ||
-          (expr.op.type == HT_Lexicon.devide) ||
-          (expr.op.type == HT_Lexicon.modulo) ||
-          (expr.op.type == HT_Lexicon.greater) ||
-          (expr.op.type == HT_Lexicon.greaterOrEqual) ||
-          (expr.op.type == HT_Lexicon.lesser) ||
-          (expr.op.type == HT_Lexicon.lesserOrEqual)) {
-        if ((expr.op.type == HT_Lexicon.IS) && (right is HT_Class)) {
+      } else if ((expr.op.type == HTLexicon.multiply) ||
+          (expr.op.type == HTLexicon.devide) ||
+          (expr.op.type == HTLexicon.modulo) ||
+          (expr.op.type == HTLexicon.greater) ||
+          (expr.op.type == HTLexicon.greaterOrEqual) ||
+          (expr.op.type == HTLexicon.lesser) ||
+          (expr.op.type == HTLexicon.lesserOrEqual)) {
+        if ((expr.op.type == HTLexicon.IS) && (right is HTClass)) {
         } else if (left is num) {
           if (right is num) {
-            if (expr.op.type == HT_Lexicon.multiply) {
+            if (expr.op.type == HTLexicon.multiply) {
               return left * right;
-            } else if (expr.op.type == HT_Lexicon.devide) {
+            } else if (expr.op.type == HTLexicon.devide) {
               return left / right;
-            } else if (expr.op.type == HT_Lexicon.modulo) {
+            } else if (expr.op.type == HTLexicon.modulo) {
               return left % right;
-            } else if (expr.op.type == HT_Lexicon.greater) {
+            } else if (expr.op.type == HTLexicon.greater) {
               return left > right;
-            } else if (expr.op.type == HT_Lexicon.greaterOrEqual) {
+            } else if (expr.op.type == HTLexicon.greaterOrEqual) {
               return left >= right;
-            } else if (expr.op.type == HT_Lexicon.lesser) {
+            } else if (expr.op.type == HTLexicon.lesser) {
               return left < right;
-            } else if (expr.op.type == HT_Lexicon.lesserOrEqual) {
+            } else if (expr.op.type == HTLexicon.lesserOrEqual) {
               return left <= right;
             }
           } else {
-            throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+            throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
           }
         } else {
-          throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+          throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
         }
       } else {
-        throw HT_Error_UndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
+        throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
       }
     }
   }
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
-    var callee = evaluateExpr(expr.callee);
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    var callee = visitASTNode(expr.callee);
     var positionalArgs = [];
     for (var i = 0; i < expr.positionalArgs.length; ++i) {
-      positionalArgs.add(evaluateExpr(expr.positionalArgs[i]));
+      positionalArgs.add(visitASTNode(expr.positionalArgs[i]));
     }
 
     var namedArgs = <String, dynamic>{};
     for (var name in expr.namedArgs.keys) {
-      namedArgs[name] = evaluateExpr(expr.namedArgs[name]!);
+      namedArgs[name] = visitASTNode(expr.namedArgs[name]!);
     }
 
-    if (callee is HT_Function) {
+    if (callee is HTFunction) {
       if (!callee.isExtern) {
         // 普通函数
         if (callee.funcStmt.funcType != FunctionType.constructor) {
-          if (callee.declContext is HT_Instance) {
+          if (callee.declContext is HTInstance) {
             return callee.call(
-                positionalArgs: positionalArgs, namedArgs: namedArgs, instance: callee.declContext as HT_Instance?);
+                positionalArgs: positionalArgs, namedArgs: namedArgs, instance: callee.declContext as HTInstance?);
           } else {
             return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
           }
         } else {
           final className = callee.funcStmt.className;
           final klass = _globals.fetch(className!);
-          if (klass is HT_Class) {
+          if (klass is HTClass) {
             if (!klass.isExtern) {
               // 命名构造函数
               return klass.createInstance(this, expr.line, expr.column,
@@ -468,11 +556,11 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
-              final HT_ExternFunc constructor = externClass.fetch(callee.id);
-              return constructor(positionalArgs, namedArgs);
+              final Function constructor = externClass.fetch(callee.id);
+              Function.apply(constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
             }
           } else {
-            throw HT_Error_Callable(callee.toString());
+            throw HTErrorCallable(callee.toString());
           }
         }
       } else {
@@ -481,7 +569,7 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
             Function.apply(externFunction, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
         return result;
       }
-    } else if (callee is HT_Class) {
+    } else if (callee is HTClass) {
       if (!callee.isExtern) {
         // 默认构造函数
         return callee.createInstance(this, expr.line, expr.column,
@@ -497,13 +585,15 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
       var result = Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
       return result;
     } else {
-      throw HT_Error_Callable(callee.toString());
+      throw HTErrorCallable(callee.toString());
     }
   }
 
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
-    var value = evaluateExpr(expr.value);
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    var value = visitASTNode(expr.value);
     var distance = _distances[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
@@ -517,140 +607,169 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
   }
 
   @override
-  dynamic visitThisExpr(ThisExpr expr) => _getValue(HT_Lexicon.THIS, expr);
+  dynamic visitThisExpr(ThisExpr expr) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    return _getValue(HTLexicon.THIS, expr);
+  }
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
-    var collection = evaluateExpr(expr.collection);
-    var key = evaluateExpr(expr.key);
-    if (collection is HT_DartObject_List) {
-      return collection.externObject.elementAt(key);
-    } else if (collection is List) {
-      return collection[key];
-    } else if (collection is HT_DartObject_Map) {
-      return collection.externObject[key];
-    } else if (collection is Map) {
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    var collection = visitASTNode(expr.collection);
+    var key = visitASTNode(expr.key);
+    if (collection is List || collection is Map) {
       return collection[key];
     }
 
-    throw HT_Error_SubGet(collection.toString());
+    throw HTErrorSubGet(collection.toString());
   }
 
   @override
   dynamic visitSubSetExpr(SubSetExpr expr) {
-    var collection = evaluateExpr(expr.collection);
-    var key = evaluateExpr(expr.key);
-    var value = evaluateExpr(expr.value);
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    var collection = visitASTNode(expr.collection);
+    var key = visitASTNode(expr.key);
+    var value = visitASTNode(expr.value);
     if ((collection is List) || (collection is Map)) {
-      return collection[key] = value;
-    } else if ((collection is HT_DartObject_List) || (collection is HT_DartObject_Map)) {
-      collection.value[key] = value;
+      collection[key] = value;
+      return value;
     }
 
-    throw HT_Error_SubGet(collection.toString());
+    throw HTErrorSubGet(collection.toString());
   }
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    var object = evaluateExpr(expr.collection);
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    var object = visitASTNode(expr.collection);
 
     if (object is num) {
-      object = HT_Dart_Number(object);
+      object = HTNumber(object);
     } else if (object is bool) {
-      object = HT_DartObject_Boolean(object);
+      object = HTBoolean(object);
     } else if (object is String) {
-      object = HT_DartObject_String(object);
+      object = HTString(object);
     } else if (object is List) {
-      object = HT_DartObject_List(object);
+      object = HTList(object);
     } else if (object is Map) {
-      object = HT_DartObject_Map(object);
+      object = HTMap(object);
     }
 
-    if ((object is HT_Object)) {
+    if ((object is HTObject)) {
       return object.fetch(expr.key.lexeme, from: curNamespace.fullName);
     }
     //如果是Dart对象
-    else if (object is HT_ExternObject) {
-      return object.fetch(expr.key.lexeme);
+    else {
+      var typeid = object.runtimeType.toString();
+      if (typeid.contains('<')) {
+        typeid = typeid.substring(0, typeid.indexOf('<'));
+      }
+      var externClass = fetchExternalClass(typeid);
+      return externClass.instanceFetch(object, expr.key.lexeme);
     }
-
-    throw HT_Error_Get(object.toString());
   }
 
   @override
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
-    dynamic object = evaluateExpr(expr.collection);
+    _curLine = expr.line;
+    _curColumn = expr.column;
+    dynamic object = visitASTNode(expr.collection);
 
     if (object is num) {
-      object = HT_Dart_Number(object);
+      object = HTNumber(object);
     } else if (object is bool) {
-      object = HT_DartObject_Boolean(object);
+      object = HTBoolean(object);
     } else if (object is String) {
-      object = HT_DartObject_String(object);
+      object = HTString(object);
     } else if (object is List) {
-      object = HT_DartObject_List(object);
+      object = HTList(object);
     } else if (object is Map) {
-      object = HT_DartObject_Map(object);
+      object = HTMap(object);
     }
 
-    var value = evaluateExpr(expr.value);
-    if (object is HT_Object) {
+    var value = visitASTNode(expr.value);
+    if (object is HTObject) {
       object.assign(expr.key.lexeme, value, from: curNamespace.fullName);
       return value;
     }
     //如果是Dart对象
-    else if (object is HT_ExternObject) {
-      return object.assign(expr.key.lexeme, value);
+    else {
+      var typeid = object.runtimeType.toString();
+      if (typeid.contains('<')) {
+        typeid = typeid.substring(0, typeid.indexOf('<'));
+      }
+      var externClass = fetchExternalClass(typeid);
+      externClass.instanceAssign(object, expr.key.lexeme, value);
+      return value;
     }
-
-    throw HT_Error_Get(object.toString());
   }
 
   @override
-  dynamic visitImportStmt(ImportStmt stmt) {}
+  dynamic visitImportStmt(ImportStmt stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+  }
 
   @override
-  dynamic visitExprStmt(ExprStmt stmt) => evaluateExpr(stmt.expr);
+  dynamic visitExprStmt(ExprStmt stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    return visitASTNode(stmt.expr);
+  }
 
   @override
-  dynamic visitBlockStmt(BlockStmt stmt) => executeBlock(stmt.block, HT_Namespace(this, closure: curNamespace));
+  dynamic visitBlockStmt(BlockStmt stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    return executeBlock(stmt.block, HTNamespace(this, closure: curNamespace));
+  }
 
   @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     if (stmt.value != null) {
-      var returnValue = evaluateExpr(stmt.value!);
-      (returnValue != null) ? throw returnValue : throw HT_Object.NULL;
+      var returnValue = visitASTNode(stmt.value!);
+      (returnValue != null) ? throw returnValue : throw HTObject.NULL;
     }
-    throw HT_Object.NULL;
+    throw HTObject.NULL;
   }
 
   @override
   dynamic visitIfStmt(IfStmt stmt) {
-    var value = evaluateExpr(stmt.condition);
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    var value = visitASTNode(stmt.condition);
     if (value is bool) {
       if (value) {
-        _curStmtValue = evaluateStmt(stmt.thenBranch!);
+        _curStmtValue = visitASTNode(stmt.thenBranch!);
       } else if (stmt.elseBranch != null) {
-        _curStmtValue = evaluateStmt(stmt.elseBranch!);
+        _curStmtValue = visitASTNode(stmt.elseBranch!);
       }
       return _curStmtValue;
     } else {
-      throw HT_Error_Condition();
+      throw HTErrorCondition();
     }
   }
 
   @override
   dynamic visitWhileStmt(WhileStmt stmt) {
-    var value = evaluateExpr(stmt.condition);
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    var value = visitASTNode(stmt.condition);
     if (value is bool) {
       while ((value is bool) && (value)) {
         try {
-          _curStmtValue = evaluateStmt(stmt.loop!);
-          value = evaluateExpr(stmt.condition);
+          _curStmtValue = visitASTNode(stmt.loop!);
+          value = visitASTNode(stmt.condition);
         } catch (error) {
-          if (error is HT_Break) {
+          if (error is HTBreak) {
             return _curStmtValue;
-          } else if (error is HT_Continue) {
+          } else if (error is HTContinue) {
             continue;
           } else {
             rethrow;
@@ -658,25 +777,31 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
         }
       }
     } else {
-      throw HT_Error_Condition();
+      throw HTErrorCondition();
     }
   }
 
   @override
   dynamic visitBreakStmt(BreakStmt stmt) {
-    throw HT_Break();
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    throw HTBreak();
   }
 
   @override
   dynamic visitContinueStmt(ContinueStmt stmt) {
-    throw HT_Continue();
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    throw HTContinue();
   }
 
   @override
   dynamic visitVarDeclStmt(VarDeclStmt stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     dynamic value;
     if (stmt.initializer != null) {
-      value = evaluateExpr(stmt.initializer!);
+      value = visitASTNode(stmt.initializer!);
     }
 
     curNamespace.define(
@@ -692,13 +817,18 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
   }
 
   @override
-  dynamic visitParamDeclStmt(ParamDeclStmt stmt) {}
+  dynamic visitParamDeclStmt(ParamDeclStmt stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+  }
 
   @override
   dynamic visitFuncDeclStmt(FuncDeclaration stmt) {
-    HT_Function? func;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    HTFunction? func;
     if (stmt.funcType != FunctionType.constructor) {
-      func = HT_Function(stmt, curNamespace, this, isExtern: stmt.isExtern);
+      func = HTFunction(stmt, curNamespace, this, isExtern: stmt.isExtern);
       if (stmt.id != null) {
         curNamespace.define(stmt.id!.lexeme, declType: func.typeid, value: func);
       }
@@ -708,23 +838,25 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
-    HT_Class? superClass;
-    if (stmt.id.lexeme != HT_Lexicon.rootClass) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    HTClass? superClass;
+    if (stmt.id.lexeme != HTLexicon.rootClass) {
       if (stmt.superClass == null) {
-        superClass = _globals.fetch(HT_Lexicon.rootClass);
+        superClass = _globals.fetch(HTLexicon.rootClass);
       } else {
         dynamic existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
-        if (existSuperClass is! HT_Class) {
-          throw HT_Error_Extends(superClass!.id);
+        if (existSuperClass is! HTClass) {
+          throw HTErrorExtends(superClass!.id);
         }
         superClass = existSuperClass;
       }
     }
 
-    final klass = HT_Class(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: curNamespace);
+    final klass = HTClass(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: curNamespace);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curNamespace.define(stmt.id.lexeme, declType: HT_TypeId.CLASS, value: klass);
+    curNamespace.define(stmt.id.lexeme, declType: HTTypeId.CLASS, value: klass);
 
     //继承所有父类的成员变量和方法
     if (superClass != null) {
@@ -732,10 +864,10 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
         if (variable.isStatic) {
           dynamic value;
           if (variable.initializer != null) {
-            value = evaluateExpr(variable.initializer!);
+            value = visitASTNode(variable.initializer!);
           }
           // else if (variable.isExtern) {
-          //   value = externs.fetch('${stmt.name}${HT_Lexicon.memberGet}${variable.name.lexeme}', variable.name.line,
+          //   value = externs.fetch('${stmt.name}${HTLexicon.memberGet}${variable.name.lexeme}', variable.name.line,
           //       variable.name.column, this,
           //       from: externs.fullName);
           // }
@@ -758,10 +890,10 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
       if (variable.isStatic) {
         dynamic value;
         if (variable.initializer != null) {
-          value = evaluateExpr(variable.initializer!);
+          value = visitASTNode(variable.initializer!);
         }
         // else if (variable.isExtern) {
-        //   value = externs.fetch('${stmt.name}${HT_Lexicon.memberGet}${variable.name.lexeme}', variable.name.line,
+        //   value = externs.fetch('${stmt.name}${HTLexicon.memberGet}${variable.name.lexeme}', variable.name.line,
         //       variable.name.column, this,
         //       from: externs.fullName);
         // }
@@ -780,16 +912,16 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
 
     for (final method in stmt.methods) {
       // if (klass.contains(method.internalName)) {
-      //   throw HT_Error_Defined(method.name, method.keyword.line, method.keyword.column, curFileName);
+      //   throw HTErrorDefined(method.name, method.keyword.line, method.keyword.column, curFileName);
       // }
 
-      HT_Function func;
+      HTFunction func;
       if (method.isStatic || method.funcType == FunctionType.constructor) {
-        func = HT_Function(method, klass, this, isExtern: method.isExtern);
+        func = HTFunction(method, klass, this, isExtern: method.isExtern);
         klass.define(method.internalName, declType: func.typeid, value: func, isExtern: method.isExtern);
       } else {
         if (!method.isExtern) {
-          func = HT_Function(method, curNamespace, this);
+          func = HTFunction(method, curNamespace, this);
           klass.define(method.internalName, declType: func.typeid, value: func, isExtern: method.isExtern);
         }
         // 外部实例成员不在这里注册
@@ -800,5 +932,8 @@ class HT_ASTInterpreter with Binding implements Interpreter, ASTNodeVisitor {
   }
 
   @override
-  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {}
+  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+  }
 }

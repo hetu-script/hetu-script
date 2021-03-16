@@ -3,55 +3,59 @@ import 'object.dart';
 import 'lexicon.dart';
 import 'errors.dart';
 
-class HT_Enum extends HT_NamedObject {
+class HTEnum extends HTObject {
   @override
-  final HT_TypeId typeid = HT_TypeId.ENUM;
+  final HTTypeId typeid = HTTypeId.ENUM;
 
-  final Map<String, HT_EnumItem> defs;
+  final String id;
 
-  HT_Enum(String id, this.defs) : super(id);
+  final Map<String, HTEnumItem> defs;
+
+  HTEnum(this.id, this.defs);
 
   @override
   bool contains(String varName) => defs.containsKey(varName);
 
   @override
   void define(String varName,
-      {HT_TypeId? declType,
+      {HTTypeId? declType,
       dynamic value,
       bool isExtern = false,
       bool isImmutable = false,
       bool isNullable = false,
       bool isDynamic = false}) {
-    assert(value is HT_EnumItem);
+    assert(value is HTEnumItem);
 
     if (!defs.containsKey(varName)) {
       return defs[varName] = value;
     }
-    throw HT_Error_Defined_Runtime(id);
+    throw HTErrorDefined_Runtime(id);
   }
 
   @override
-  dynamic fetch(String varName, {String? from}) {
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
     if (defs.containsKey(varName)) {
       return defs[varName]!;
-    } else if (varName == HT_Lexicon.values) {
+    } else if (varName == HTLexicon.values) {
       return defs.values;
     }
-    throw HT_Error_Undefined(varName);
+    throw HTErrorUndefined(varName);
   }
 
   @override
-  void assign(String varName, dynamic value, {String? from}) {
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
     if (defs.containsKey(varName)) {
-      throw HT_Error_Immutable(varName);
+      throw HTErrorImmutable(varName);
     }
-    throw HT_Error_Undefined(varName);
+    throw HTErrorUndefined(varName);
   }
 }
 
-class HT_EnumItem extends HT_NamedObject {
+class HTEnumItem extends HTObject {
   @override
-  final HT_TypeId typeid;
+  final HTTypeId typeid;
 
-  HT_EnumItem(String id, this.typeid) : super(id);
+  final String id;
+
+  HTEnumItem(this.id, this.typeid);
 }

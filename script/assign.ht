@@ -1,16 +1,16 @@
 
 class HelloWorld {
-  var hello: num
-  var world: num
+  var _hello: num
+  var _world: num
   var _privateNum = 99
 
   construct (hello: num, world: num) {
-    this.hello = hello;
-    this.world = world;
+    _hello = hello;
+    _world = world;
   }
 
   fun toString: String {
-    return "hello" + hello.toString() + "world" + world.toString()
+    return "hello" + _hello.toString() + "world" + _world.toString()
   }
 
   get private: num {

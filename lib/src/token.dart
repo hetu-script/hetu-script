@@ -18,7 +18,7 @@ class Token {
 
 class TokenIdentifier extends Token {
   @override
-  dynamic get type => HT_Lexicon.identifier;
+  dynamic get type => HTLexicon.identifier;
 
   TokenIdentifier(String lexeme, String fileName, int line, int column) : super(lexeme, fileName, line, column);
 }
@@ -34,12 +34,23 @@ class TokenBoolLiteral extends Token {
       : super(lexeme, fileName, line, column);
 }
 
+class TokenNumberLiteral extends Token {
+  @override
+  final num literal;
+
+  @override
+  dynamic get type => HTLexicon.number;
+
+  TokenNumberLiteral(String lexeme, this.literal, String fileName, int line, int column)
+      : super(lexeme, fileName, line, column);
+}
+
 class TokenIntLiteral extends Token {
   @override
   final int literal;
 
   @override
-  dynamic get type => HT_Lexicon.integer;
+  dynamic get type => HTLexicon.integer;
 
   TokenIntLiteral(String lexeme, this.literal, String fileName, int line, int column)
       : super(lexeme, fileName, line, column);
@@ -50,7 +61,7 @@ class TokenFloatLiteral extends Token {
   final double literal;
 
   @override
-  dynamic get type => HT_Lexicon.float;
+  dynamic get type => HTLexicon.float;
 
   TokenFloatLiteral(String lexeme, this.literal, String fileName, int line, int column)
       : super(lexeme, fileName, line, column);
@@ -61,7 +72,7 @@ class TokenStringLiteral extends Token {
   final String literal;
 
   @override
-  dynamic get type => HT_Lexicon.string;
+  dynamic get type => HTLexicon.string;
 
   TokenStringLiteral(String lexeme, this.literal, String fileName, int line, int column)
       : super(lexeme, fileName, line, column);

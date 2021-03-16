@@ -1,62 +1,64 @@
-import 'package:hetu_script/hetu_script.dart';
-
+import 'errors.dart';
 import 'extern_class.dart';
+import 'lexicon.dart';
 
 mixin Binding {
-  final _externSpaces = <String, HT_ExternClass>{};
+  final _externClasses = <String, HTExternClass>{};
   final _externFunctions = <String, Function>{};
 
-  /// 注册外部命名空间，以访问外部类的构造函数和static成员
+  bool containsExternalClass(String id) => _externClasses.containsKey(id);
+
+  /// 注册外部类，以访问外部类的构造函数和static成员
   /// 在脚本中需要存在对应的extern class声明
-  void bindExternalNamespace(String id, HT_ExternClass namespace) {
-    if (_externSpaces.containsKey(id)) {
-      throw HT_Error_Defined_Runtime(id);
+  void bindExternalClass(String id, HTExternClass namespace) {
+    if (_externClasses.containsKey(id)) {
+      throw HTErrorDefined_Runtime(id);
     }
-    _externSpaces[id] = namespace;
+    _externClasses[id] = namespace;
   }
 
-  HT_ExternClass fetchExternalClass(String id) {
-    if (!_externSpaces.containsKey(id)) {
-      throw HT_Error_Undefined(id);
+  HTExternClass fetchExternalClass(String id) {
+    if (!_externClasses.containsKey(id)) {
+      throw HTErrorUndefined(id);
     }
-    return _externSpaces[id]!;
+    return _externClasses[id]!;
   }
 
   void bindExternalFunction(String id, Function function) {
     if (_externFunctions.containsKey(id)) {
-      throw HT_Error_Defined_Runtime(id);
+      throw HTErrorDefined_Runtime(id);
     }
     _externFunctions[id] = function;
   }
 
   Function fetchExternalFunction(String id) {
     if (!_externFunctions.containsKey(id)) {
-      throw HT_Error_Undefined(id);
+      throw HTErrorUndefined(id);
     }
     return _externFunctions[id]!;
   }
 
   void bindExternalVariable(String id, Function getter, Function setter) {
-    if (_externFunctions.containsKey(HT_Lexicon.getter + id) || _externFunctions.containsKey(HT_Lexicon.setter + id)) {
-      throw HT_Error_Defined_Runtime(id);
+    if (_externFunctions.containsKey(HTLexicon.getter + id) || _externFunctions.containsKey(HTLexicon.setter + id)) {
+      throw HTErrorDefined_Runtime(id);
     }
-    _externFunctions[HT_Lexicon.getter + id] = getter;
-    _externFunctions[HT_Lexicon.setter + id] = setter;
+    _externFunctions[HTLexicon.getter + id] = getter;
+    _externFunctions[HTLexicon.setter + id] = setter;
   }
 
   dynamic getExternalVariable(String id) {
-    if (!_externFunctions.containsKey(HT_Lexicon.getter + id)) {
-      throw HT_Error_Undefined(HT_Lexicon.getter + id);
+    if (!_externFunctions.containsKey(HTLexicon.getter + id)) {
+      throw HTErrorUndefined(HTLexicon.getter + id);
     }
-    final getter = _externFunctions[HT_Lexicon.getter + id]!;
+    final getter = _externFunctions[HTLexicon.getter + id]!;
     return getter();
   }
 
   void setExternalVariable(String id, value) {
-    if (!_externFunctions.containsKey(HT_Lexicon.setter + id)) {
-      throw HT_Error_Undefined(HT_Lexicon.setter + id);
+    if (!_externFunctions.containsKey(HTLexicon.setter + id)) {
+      throw HTErrorUndefined(HTLexicon.setter + id);
     }
-    final setter = _externFunctions[HT_Lexicon.setter + id]!;
+    final setter = _externFunctions[HTLexicon.setter + id]!;
     return setter();
   }
 }

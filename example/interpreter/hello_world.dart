@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = HT_ASTInterpreter();
+  var hetu = HTInterpreter();
 
   hetu.eval(r'''
       class Person {
@@ -21,6 +21,7 @@ void main() {
 
       fun main {
         var jimmy = Person('Jimmy')
+        print(jimmy.typeid)
         jimmy.greeting()
       }
       ''', invokeFunc: 'main');

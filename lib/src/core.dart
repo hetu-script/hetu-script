@@ -4,9 +4,6 @@
       final Map<String, String> coreLibs = const {
       'core.ht': r'''class Object {}
 
-// return the runtime type of a value
-external fun typeof(value): String
-
 // return the declaration type of a symbol
 // external fun decltypeof(value): String
 

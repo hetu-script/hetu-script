@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'interpreter.dart';
-import 'extern_class.dart';
+import 'type.dart';
 import 'parser.dart';
 import 'lexicon.dart';
 import 'compiler.dart';
@@ -14,25 +14,18 @@ import 'errors.dart';
 import 'read_file.dart';
 import 'context.dart';
 
-class HT_VM implements Interpreter {
+class HTVM extends Interpreter {
   static var _fileIndex = 0;
+
+  int curLine = 0;
+  int curColumn = 0;
+  String curFileName = '';
+
+  @override
+  final String workingDirectory;
 
   final bool debugMode;
   final ReadFileMethod readFileMethod;
-
-  late int _curLine;
-  @override
-  int get curLine => _curLine;
-  late int _curColumn;
-  @override
-  int get curColumn => _curColumn;
-  // late List<int> _curFileVersion;
-  late String _curFileName;
-  late String _curDirectory;
-  @override
-  String? get curFileName => _curFileName;
-  @override
-  String? get curDirectory => _curDirectory;
 
   // final _evaledFiles = <String>[];
   late final Map<ASTNode, int> _distances;
@@ -40,41 +33,25 @@ class HT_VM implements Interpreter {
   late Uint8List _bytes;
   int _ip = 0; // instruction pointer
 
-  var _context = HT_Context();
+  var _context = HTContext();
 
   var _local;
   final _register = List<dynamic>.filled(16, null, growable: true);
 
-  HT_VM({
+  HTVM({
     String sdkDirectory = 'hetu_lib/',
-    String currentDirectory = 'script/',
+    this.workingDirectory = 'script/',
     this.debugMode = false,
     this.readFileMethod = defaultReadFileMethod,
     Map<String, Function> externalFunctions = const {},
   });
 
   @override
-  void bindExternalNamespace(String id, HT_ExternClass namespace) {}
-  @override
-  HT_ExternClass fetchExternalClass(String id) => throw 'error';
-  @override
-  void bindExternalFunction(String id, Function function) {}
-  @override
-  Function fetchExternalFunction(String id) => throw 'error';
-
-  @override
-  void bindExternalVariable(String id, Function getter, Function setter) {}
-  @override
-  dynamic getExternalVariable(String id) {}
-  @override
-  void setExternalVariable(String id, value) {}
-
-  @override
   dynamic eval(
     String content, {
     String? fileName,
-    String libName = HT_Lexicon.global,
-    HT_Context? context,
+    String libName = HTLexicon.global,
+    HTContext? context,
     ParseStyle style = ParseStyle.library,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
@@ -83,76 +60,19 @@ class HT_VM implements Interpreter {
     if (context != null) {
       _context = context;
     }
-    _curFileName = fileName ?? '__anonymousScript' + (_fileIndex++).toString();
+    curFileName = fileName ?? '__anonymousScript' + (_fileIndex++).toString();
 
     if (debugMode) {
-      final tokens = Lexer().lex(content, _curFileName);
-      final statements = Parser(this).parse(tokens, _context, _curFileName, style);
-      _distances = Resolver().resolve(statements, _curFileName, libName: libName);
-      _bytes = Compiler().compileAST(statements, _context, _curFileName);
+      final tokens = Lexer().lex(content, curFileName);
+      final statements = Parser().parse(tokens, this, _context, curFileName, style);
+      _distances = Resolver().resolve(statements, curFileName, libName: libName);
+      _bytes = Compiler().compileAST(statements, _context, curFileName);
     } else {
-      final tokens = Lexer().lex(content, _curFileName);
+      final tokens = Lexer().lex(content, curFileName);
       _bytes = Compiler().compileTokens(tokens);
     }
 
     run(10);
-  }
-
-  dynamic run(int ip) {
-    _ip = ip;
-    // final signature = _bytes.sublist(0, 4);
-    // if (signature.buffer.asByteData().getUint32(0) != Compiler.hetuSignature) {
-    //   throw HT_Error_Signature(_curFileName);
-    // }
-
-    // final mainVersion = _bytes[4];
-    // final minorVersion = _bytes[5];
-    // final pathVersion = _bytes.buffer.asByteData().getUint32(6);
-    // _curFileVersion = [mainVersion, minorVersion, pathVersion];
-    // print('Executable bytecode file version: $_curFileVersion');
-
-    // 直接从第10个字节开始，跳过程序标记和版本号
-
-    while (_ip < _bytes.length) {
-      final instruction = readByte();
-      switch (instruction) {
-        case HT_OpCode.end:
-          return;
-        case HT_OpCode.constTable:
-          _context = HT_Context();
-          var table_length = readInt64();
-          for (var i = 0; i < table_length; ++i) {
-            _context.addConstInt(readInt64());
-          }
-          table_length = readInt64();
-          for (var i = 0; i < table_length; ++i) {
-            _context.addConstFloat(readFloat64());
-          }
-          table_length = readInt64();
-          for (var i = 0; i < table_length; ++i) {
-            _context.addConstString(readUtf8String());
-          }
-          break;
-        case HT_OpCode.local:
-          setLocal();
-          break;
-        case HT_OpCode.add:
-          _local = _register[1] + _register[2];
-          break;
-        case HT_OpCode.reg0:
-          _register[0] = _local;
-          break;
-        case HT_OpCode.reg1:
-          _register[1] = _local;
-          break;
-        case HT_OpCode.error:
-          handleError();
-          break;
-        default:
-          print('Unknown operator. $instruction');
-          break;
-      }
-    }
   }
 
   @override
@@ -180,6 +100,11 @@ class HT_VM implements Interpreter {
   @override
   dynamic invoke(String functionName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {}
+
+  @override
+  HTTypeId typeof(dynamic object) {
+    return HTTypeId.ANY;
+  }
 
   int peekByte(int distance) {
     return _bytes[_ip + distance];
@@ -223,13 +148,13 @@ class HT_VM implements Interpreter {
   void setLocal() {
     final oprand_type = readByte();
     switch (oprand_type) {
-      case HT_OpRandType.constInt64:
+      case HTOpRandType.constInt64:
         _local = _context.getConstInt(readInt64());
         break;
-      case HT_OpRandType.constFloat64:
+      case HTOpRandType.constFloat64:
         _local = _context.getConstInt(readInt64());
         break;
-      case HT_OpRandType.constUtf8String:
+      case HTOpRandType.constUtf8String:
         _local = _context.getConstInt(readInt64());
         break;
     }
@@ -239,8 +164,65 @@ class HT_VM implements Interpreter {
     final err_type = readByte();
     // TODO: line 和 column
     switch (err_type) {
-      case HT_ErrorCode.binOp:
-        throw HT_Error_UndefinedBinaryOperator(_register[0].toString(), _register[1].toString(), HT_Lexicon.add);
+      case HTErrorCode.binOp:
+        throw HTErrorUndefinedBinaryOperator(_register[0].toString(), _register[1].toString(), HTLexicon.add);
+    }
+  }
+
+  dynamic run(int ip) {
+    _ip = ip;
+    // final signature = _bytes.sublist(0, 4);
+    // if (signature.buffer.asByteData().getUint32(0) != Compiler.hetuSignature) {
+    //   throw HTErrorSignature(curFileName);
+    // }
+
+    // final mainVersion = _bytes[4];
+    // final minorVersion = _bytes[5];
+    // final pathVersion = _bytes.buffer.asByteData().getUint32(6);
+    // _curFileVersion = [mainVersion, minorVersion, pathVersion];
+    // print('Executable bytecode file version: $_curFileVersion');
+
+    // 直接从第10个字节开始，跳过程序标记和版本号
+
+    while (_ip < _bytes.length) {
+      final instruction = readByte();
+      switch (instruction) {
+        case HTOpCode.end:
+          return;
+        case HTOpCode.constTable:
+          _context = HTContext();
+          var table_length = readInt64();
+          for (var i = 0; i < table_length; ++i) {
+            _context.addConstInt(readInt64());
+          }
+          table_length = readInt64();
+          for (var i = 0; i < table_length; ++i) {
+            _context.addConstFloat(readFloat64());
+          }
+          table_length = readInt64();
+          for (var i = 0; i < table_length; ++i) {
+            _context.addConstString(readUtf8String());
+          }
+          break;
+        case HTOpCode.local:
+          setLocal();
+          break;
+        case HTOpCode.add:
+          _local = _register[1] + _register[2];
+          break;
+        case HTOpCode.reg0:
+          _register[0] = _local;
+          break;
+        case HTOpCode.reg1:
+          _register[1] = _local;
+          break;
+        case HTOpCode.error:
+          handleError();
+          break;
+        default:
+          print('Unknown operator. $instruction');
+          break;
+      }
     }
   }
 }

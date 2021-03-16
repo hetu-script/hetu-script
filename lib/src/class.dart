@@ -6,9 +6,9 @@ import 'errors.dart';
 import 'expression.dart';
 import 'type.dart';
 
-/// [HT_Class] is the Dart implementation of the class declaration in Hetu.
+/// [HTClass] is the Dart implementation of the class declaration in Hetu.
 ///
-/// [HT_Class] extends [HT_Namespace].
+/// [HTClass] extends [HTNamespace].
 ///
 /// The values defined in this namespace are methods and [static] members in Hetu class.
 ///
@@ -25,22 +25,22 @@ import 'type.dart';
 ///   ...
 /// }
 /// ```
-class HT_Class extends HT_Namespace {
+class HTClass extends HTNamespace {
   @override
-  final HT_TypeId typeid = HT_TypeId.CLASS;
+  final HTTypeId typeid = HTTypeId.CLASS;
 
   /// The type parameters of the class.
   final List<String> typeParams;
 
   @override
-  String toString() => '${HT_Lexicon.CLASS} $id';
+  String toString() => '${HTLexicon.CLASS} $id';
 
   final bool isExtern;
 
   /// Super class of this class
   ///
   /// If a class is not extends from any super class, then it is the child of class `instance`
-  final HT_Class? superClass;
+  final HTClass? superClass;
 
   /// The instance members defined in class definition.
   Map<String, VarDeclStmt> variables = {};
@@ -55,36 +55,36 @@ class HT_Class extends HT_Namespace {
   /// normally the global namespace of the interpreter.
   ///
   /// [superClass] : super class of this class.
-  HT_Class(String id, this.superClass, HT_ASTInterpreter interpreter,
-      {this.isExtern = false, this.typeParams = const [], HT_Namespace? closure})
+  HTClass(String id, this.superClass, HTInterpreter interpreter,
+      {this.isExtern = false, this.typeParams = const [], HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
   /// Wether the class contains a static member, will also check super class.
   @override
   bool contains(String varName) =>
       defs.containsKey(varName) ||
-      defs.containsKey('${HT_Lexicon.getter}$varName') ||
+      defs.containsKey('${HTLexicon.getter}$varName') ||
       ((superClass?.contains(varName)) ?? false) ||
-      ((superClass?.contains('${HT_Lexicon.getter}$varName')) ?? false);
+      ((superClass?.contains('${HTLexicon.getter}$varName')) ?? false);
 
   /// Add a instance variable declaration to this class.
   void declareVar(VarDeclStmt stmt) {
     if (!variables.containsKey(stmt.id.lexeme)) {
       variables[stmt.id.lexeme] = stmt;
     } else {
-      throw HT_Error_Defined_Runtime(stmt.id.lexeme);
+      throw HTErrorDefined_Runtime(stmt.id.lexeme);
     }
   }
 
   /// Fetch the value of a static member from this class.
   @override
-  dynamic fetch(String varName, {String? from}) {
-    if (fullName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateDecl(fullName);
-    } else if (varName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateMember(varName);
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateMember(varName);
     }
-    var getter = '${HT_Lexicon.getter}$varName';
+    var getter = '${HTLexicon.getter}$varName';
     var constructor = '$id.$varName';
     if (defs.containsKey(varName)) {
       var decl = defs[varName]!;
@@ -101,7 +101,7 @@ class HT_Class extends HT_Namespace {
     } else if (defs.containsKey(getter)) {
       var decl = defs[getter]!;
       if (!decl.isExtern) {
-        HT_Function func = defs[getter]!.value;
+        HTFunction func = defs[getter]!.value;
         return func.call();
       } else {
         final externClass = interpreter.fetchExternalClass(id);
@@ -124,22 +124,22 @@ class HT_Class extends HT_Namespace {
       return closure!.fetch(varName, from: closure!.fullName);
     }
 
-    throw HT_Error_Undefined(varName);
+    throw HTErrorUndefined(varName);
   }
 
   /// Assign a value to a static member of this class.
   @override
-  void assign(String varName, dynamic value, {String? from}) {
-    if (fullName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateDecl(fullName);
-    } else if (varName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateMember(varName);
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateMember(varName);
     }
 
-    var setter = '${HT_Lexicon.setter}$varName';
+    var setter = '${HTLexicon.setter}$varName';
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName]!.declType;
-      var var_type = HT_TypeOf(value);
+      var var_type = interpreter.typeof(value);
       if (var_type.isA(decl_type)) {
         var decl = defs[varName]!;
         if (!decl.isImmutable) {
@@ -157,11 +157,11 @@ class HT_Class extends HT_Namespace {
             }
           }
         }
-        throw HT_Error_Immutable(varName);
+        throw HTErrorImmutable(varName);
       }
-      throw HT_Error_Type(varName, var_type.toString(), decl_type.toString());
+      throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
     } else if (defs.containsKey(setter)) {
-      HT_Function setterFunc = defs[setter]!.value;
+      HTFunction setterFunc = defs[setter]!.value;
       if (!setterFunc.isExtern) {
         setterFunc.call(positionalArgs: [value]);
         return;
@@ -183,24 +183,24 @@ class HT_Class extends HT_Namespace {
       return;
     }
 
-    throw HT_Error_Undefined(varName);
+    throw HTErrorUndefined(varName);
   }
 
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HT_Instance createInstance(HT_ASTInterpreter interpreter, int? line, int? column,
-      {List<HT_TypeId> typeArgs = const [],
+  HTInstance createInstance(HTInterpreter interpreter, int? line, int? column,
+      {List<HTTypeId> typeArgs = const [],
       String? constructorName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {}}) {
-    var instance = HT_Instance(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
+    var instance = HTInstance(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
 
     var save = interpreter.curNamespace;
     interpreter.curNamespace = instance;
     for (final decl in variables.values) {
       dynamic value;
       if (decl.initializer != null) {
-        value = interpreter.evaluateExpr(decl.initializer!);
+        value = interpreter.visitASTNode(decl.initializer!);
       }
       instance.define(decl.id.lexeme, declType: decl.declType, value: value);
     }
@@ -209,7 +209,7 @@ class HT_Class extends HT_Namespace {
     constructorName ??= id;
     var constructor = fetch(constructorName, from: fullName);
 
-    if (constructor is HT_Function) {
+    if (constructor is HTFunction) {
       constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: instance);
     }
 
@@ -217,82 +217,86 @@ class HT_Class extends HT_Namespace {
   }
 }
 
-/// [HT_Instance] is the Dart implementation of the instance instance in Hetu.
-class HT_Instance extends HT_Namespace {
+/// [HTInstance] is the Dart implementation of the instance instance in Hetu.
+class HTInstance extends HTNamespace {
   static var instanceIndex = 0;
 
   final bool isExtern;
 
-  final HT_Class klass;
+  final HTClass klass;
 
-  late final HT_TypeId _typeid;
   @override
-  HT_TypeId get typeid => _typeid;
+  late final HTTypeId typeid;
 
-  HT_Instance(this.klass, HT_ASTInterpreter interpreter, {List<HT_TypeId> typeArgs = const [], this.isExtern = false})
-      : super(interpreter, id: '${HT_Lexicon.instance}${instanceIndex++}', closure: klass) {
-    _typeid = HT_TypeId(klass.id, arguments: typeArgs = const []);
-    define(HT_Lexicon.THIS, declType: typeid, value: this);
+  HTInstance(this.klass, HTInterpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
+      : super(interpreter, id: '${HTLexicon.instance}${instanceIndex++}', closure: klass) {
+    typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
+    define(HTLexicon.THIS, declType: typeid, value: this);
   }
 
   @override
-  String toString() => '${HT_Lexicon.instanceOf}$typeid';
+  String toString() => '${HTLexicon.instanceOf}$typeid';
 
   @override
-  bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${HT_Lexicon.getter}$varName');
+  bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${HTLexicon.getter}$varName');
 
   @override
-  dynamic fetch(String varName, {String? from}) {
-    if (fullName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateDecl(fullName);
-    } else if (varName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateMember(varName);
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateMember(varName);
     }
 
+    var getter = '${HTLexicon.getter}$varName';
     if (defs.containsKey(varName)) {
       return defs[varName]!.value;
-    } else {
-      var getter = '${HT_Lexicon.getter}$varName';
-      if (klass.contains(getter)) {
-        HT_Function method = klass.fetch(getter, from: klass.fullName);
-        if (!method.funcStmt.isStatic) {
-          return method.call(instance: this);
-        }
-      } else {
-        final HT_Function method = klass.fetch(varName, from: klass.fullName);
-        if (!method.funcStmt.isStatic) {
-          method.declContext = this;
-          return method;
-        }
+    } else if (klass.contains(getter)) {
+      HTFunction method = klass.fetch(getter, from: klass.fullName);
+      if (!method.funcStmt.isStatic) {
+        return method.call(instance: this);
+      }
+    } else if (klass.contains(varName)) {
+      final method = klass.fetch(varName, from: klass.fullName);
+      if (method is HTFunction && !method.funcStmt.isStatic) {
+        method.declContext = this;
+        return method;
       }
     }
 
-    throw HT_Error_UndefinedMember(varName, typeid.toString());
+    switch (varName) {
+      case 'typeid':
+        return typeid;
+      case 'toString':
+        return toString;
+      default:
+        throw HTErrorUndefinedMember(varName, typeid.toString());
+    }
   }
 
   @override
-  void assign(String varName, dynamic value, {String? from}) {
-    if (fullName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateDecl(fullName);
-    } else if (varName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateMember(varName);
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateMember(varName);
     }
 
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName]!.declType;
-      var var_type = HT_TypeOf(value);
+      var var_type = interpreter.typeof(value);
       if (var_type.isA(decl_type)) {
         if (!defs[varName]!.isImmutable) {
           defs[varName]!.value = value;
           return;
         }
-        throw HT_Error_Immutable(varName);
+        throw HTErrorImmutable(varName);
       }
-      throw HT_Error_Type(varName, var_type.toString(), decl_type.toString());
+      throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
     } else {
-      var setter = '${HT_Lexicon.setter}$varName';
+      var setter = '${HTLexicon.setter}$varName';
       if (klass.contains(setter)) {
-        HT_Function? method = klass.fetch(setter, from: klass.fullName);
+        HTFunction? method = klass.fetch(setter, from: klass.fullName);
         if ((method != null) && (!method.funcStmt.isStatic)) {
           method.call(positionalArgs: [value], instance: this);
           return;
@@ -300,16 +304,16 @@ class HT_Instance extends HT_Namespace {
       }
     }
 
-    throw HT_Error_Undefined(varName);
+    throw HTErrorUndefined(varName);
   }
 
   dynamic invoke(String methodName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    HT_Function? method = klass.fetch(methodName, from: klass.fullName);
+    HTFunction? method = klass.fetch(methodName, from: klass.fullName);
     if ((method != null) && (!method.funcStmt.isStatic)) {
       return method.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
     }
 
-    throw HT_Error_Undefined(methodName);
+    throw HTErrorUndefined(methodName);
   }
 }

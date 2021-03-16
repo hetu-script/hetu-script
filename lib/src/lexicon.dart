@@ -30,14 +30,15 @@
 //  Assignment       =, *=, /=, +=, -=, &=, ˆ=, etc.      Right           1
 
 /// All lexicons used by hetu
-abstract class HT_Lexicon {
+abstract class HTLexicon {
   static const defaultProgramMainFunc = 'main';
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
       r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
-      r'(\d+\.\d+)|' // 浮点数字面量 group(6)
-      r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
+      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
+      // r'(\d+\.\d+)|' // 浮点数字面量 group(6)
+      // r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
@@ -58,6 +59,7 @@ abstract class HT_Lexicon {
   static const tokenGroupComment = 1;
   static const tokenGroupIdentifier = 4;
   static const tokenGroupPunctuation = 5;
+  static const tokenGroupNumber = 6;
   static const tokenGroupFloat = 6;
   static const tokenGroupInt = 7;
   static const tokenGroupString = 8;
@@ -80,15 +82,15 @@ abstract class HT_Lexicon {
   static const newLine = '\n';
   static const multiline = '\\';
   static const varargs = '...'; // variadic arguments
-  static const anonymousFile = '__anonymousFile__';
+  static const anonymousScript = '__anonymousScript__';
   static const anonymousFunction = '__anonymousFunction__';
   static const anonymousNamespace = '__anonymousNamespace__';
   static const underscore = '_';
-  static const unknown = '__unknown__';
-  static const global = '__global__';
-  static const extern = '__external__';
-  static const method = '__method__';
-  static const instance = '__instance__';
+  static const global = 'global';
+  static const unknown = 'unknown';
+  // static const extern = 'external__';
+  // static const method = '__method__';
+  static const instance = '#instance';
   static const constructor = '__constructor__';
   static const getter = '__getter__';
   static const setter = '__setter__';
@@ -371,8 +373,8 @@ abstract class HT_Lexicon {
 
   static const errorOfType = 'of type';
 
-  static const errorType1 = 'Variable';
-  static const errorType2 = 'can\'t be assigned with type';
+  static const errorTypeCheck1 = 'Variable';
+  static const errorTypeCheck2 = 'can\'t be assigned with type';
 
   static const errorArgType1 = 'Argument';
   static const errorArgType2 = 'doesn\'t match parameter type';
@@ -383,6 +385,8 @@ abstract class HT_Lexicon {
 
   static const errorArity1 = 'Number of arguments';
   static const errorArity2 = 'doesn\'t match parameter requirement of function';
+
+  static const errorBinding = 'Missing binding extension on dart object';
 
   static const errorSignature = 'Unknown bytecode signature.';
   static const errorInt64Table = 'Missing int64 table in bytecode.';

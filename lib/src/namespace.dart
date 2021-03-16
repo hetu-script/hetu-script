@@ -6,50 +6,50 @@ import 'object.dart';
 import 'context.dart';
 import 'ast_interpreter.dart';
 
-class HT_Namespace extends HT_Object with HT_Context, ASTInterpreterRef {
+class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
   static int spaceIndex = 0;
 
-  static String getFullId(String id, HT_Namespace space) {
+  static String getFullName(String id, HTNamespace space) {
     var fullName = id;
-    var cur_space = space.closure;
-    while ((cur_space != null) && (cur_space.id != HT_Lexicon.global)) {
-      fullName = cur_space.id + HT_Lexicon.memberGet + fullName;
-      cur_space = cur_space.closure;
+    var curSpace = space.closure;
+    while (curSpace != null) {
+      fullName = curSpace.id + HTLexicon.memberGet + fullName;
+      curSpace = curSpace.closure;
     }
     return fullName;
   }
 
   @override
-  final typeid = HT_TypeId.namespace;
+  final typeid = HTTypeId.namespace;
 
   late final String id;
 
   @override
-  String toString() => '${HT_Lexicon.NAMESPACE} $id';
+  String toString() => '${HTLexicon.NAMESPACE} $id';
 
   late String _fullName;
   String get fullName => _fullName;
 
-  final Map<String, HT_Declaration> defs = {};
-  HT_Namespace? _closure;
-  HT_Namespace? get closure => _closure;
-  set closure(HT_Namespace? closure) {
+  final Map<String, HTDeclaration> defs = {};
+  HTNamespace? _closure;
+  HTNamespace? get closure => _closure;
+  set closure(HTNamespace? closure) {
     _closure = closure;
-    _fullName = getFullId(id, _closure!);
+    _fullName = getFullName(id, _closure!);
   }
 
-  HT_Namespace(
-    HT_ASTInterpreter interpreter, {
+  HTNamespace(
+    HTInterpreter interpreter, {
     String? id,
-    HT_Namespace? closure,
+    HTNamespace? closure,
   }) : super() {
-    this.id = id ?? '${HT_Lexicon.anonymousNamespace}${spaceIndex++}';
+    this.id = id ?? '${HTLexicon.anonymousNamespace}${spaceIndex++}';
     this.interpreter = interpreter;
-    _fullName = getFullId(this.id, this);
+    _fullName = getFullName(this.id, this);
     _closure = closure;
   }
 
-  HT_Namespace closureAt(int distance) {
+  HTNamespace closureAt(int distance) {
     var namespace = this;
     for (var i = 0; i < distance; ++i) {
       namespace = namespace.closure!;
@@ -72,34 +72,34 @@ class HT_Namespace extends HT_Object with HT_Context, ASTInterpreterRef {
   /// 在当前命名空间定义一个变量的类型
   @override
   void define(String varName,
-      {HT_TypeId? declType,
+      {HTTypeId? declType,
       dynamic value,
       bool isExtern = false,
       bool isImmutable = false,
       bool isNullable = false,
       bool isDynamic = false}) {
-    var val_type = HT_TypeOf(value);
+    var val_type = interpreter.typeof(value);
     if (declType == null) {
       if ((!isDynamic) && (value != null)) {
         declType = val_type;
       } else {
-        declType = HT_TypeId.ANY;
+        declType = HTTypeId.ANY;
       }
     }
     if (val_type.isA(declType)) {
-      defs[varName] = HT_Declaration(varName,
+      defs[varName] = HTDeclaration(varName,
           declType: declType, value: value, isExtern: isExtern, isNullable: isNullable, isImmutable: isImmutable);
     } else {
-      throw HT_Error_Type(varName, val_type.toString(), declType.toString());
+      throw HTErrorTypeCheck(varName, val_type.toString(), declType.toString());
     }
   }
 
   @override
-  dynamic fetch(String varName, {String? from}) {
-    if (fullName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateDecl(fullName);
-    } else if (varName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateMember(varName);
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateMember(varName);
     }
 
     if (defs.containsKey(varName)) {
@@ -110,26 +110,26 @@ class HT_Namespace extends HT_Object with HT_Context, ASTInterpreterRef {
       return closure!.fetch(varName, from: from);
     }
 
-    throw HT_Error_Undefined(varName);
+    throw HTErrorUndefined(varName);
   }
 
-  dynamic fetchAt(String varName, int distance, {String? from}) {
+  dynamic fetchAt(String varName, int distance, {String from = HTLexicon.global}) {
     var space = closureAt(distance);
     return space.fetch(varName, from: space.fullName);
   }
 
   /// 向一个已经定义的变量赋值
   @override
-  void assign(String varName, dynamic value, {String? from}) {
-    if (fullName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateDecl(fullName);
-    } else if (varName.startsWith(HT_Lexicon.underscore) && !from!.startsWith(fullName)) {
-      throw HT_Error_PrivateMember(varName);
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+      throw HTErrorPrivateMember(varName);
     }
 
     if (defs.containsKey(varName)) {
       var decl_type = defs[varName]!.declType;
-      var var_type = HT_TypeOf(value);
+      var var_type = interpreter.typeof(value);
       if (var_type.isA(decl_type)) {
         var decl = defs[varName]!;
         if (!decl.isImmutable) {
@@ -141,18 +141,18 @@ class HT_Namespace extends HT_Object with HT_Context, ASTInterpreterRef {
             return;
           }
         }
-        throw HT_Error_Immutable(varName);
+        throw HTErrorImmutable(varName);
       }
-      throw HT_Error_Type(varName, var_type.toString(), decl_type.toString());
+      throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
     } else if (closure != null) {
       closure!.assign(varName, value, from: from);
       return;
     }
 
-    throw HT_Error_Undefined(varName);
+    throw HTErrorUndefined(varName);
   }
 
-  void assignAt(String varName, dynamic value, int distance, {String? from}) {
+  void assignAt(String varName, dynamic value, int distance, {String from = HTLexicon.global}) {
     var space = closureAt(distance);
     space.assign(
       varName,

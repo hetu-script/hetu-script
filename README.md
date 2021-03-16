@@ -20,7 +20,7 @@ In your Dart code, you can interpret an script file by this:
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = HT_Interpreter();
+  var hetu = HTInterpreter();
   hetu.evalf('hello.ht', invokeFunc: 'main');
 }
 ```
@@ -67,7 +67,7 @@ You can pass object from Hetu to Dart by the return value of Interpreter's [invo
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = HT_Interpreter(externalFunctions: {
+  var hetu = HTInterpreter(externalFunctions: {
     'hello': () => {'greeting': 'hello'},
   });
   hetu.eval(r'''

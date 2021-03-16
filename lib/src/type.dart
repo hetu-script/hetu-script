@@ -1,30 +1,30 @@
 import 'lexicon.dart';
 
-mixin HT_Type {
-  HT_TypeId get typeid;
+mixin HTType {
+  HTTypeId get typeid;
 }
 
-class HT_TypeId {
-  // List<HT_Type> get inheritances;
-  // List<HT_Type> get compositions;
+class HTTypeId {
+  // List<HTType> get inheritances;
+  // List<HTType> get compositions;
   final String id;
-  final List<HT_TypeId> arguments;
+  final List<HTTypeId> arguments;
 
-  const HT_TypeId(this.id, {this.arguments = const []});
+  const HTTypeId(this.id, {this.arguments = const []});
 
-  static const ANY = HT_TypeId(HT_Lexicon.ANY);
-  static const NULL = HT_TypeId(HT_Lexicon.NULL);
-  static const VOID = HT_TypeId(HT_Lexicon.VOID);
-  static const CLASS = HT_TypeId(HT_Lexicon.CLASS);
-  static const ENUM = HT_TypeId(HT_Lexicon.ENUM);
-  static const namespace = HT_TypeId(HT_Lexicon.NAMESPACE);
-  static const function = HT_TypeId(HT_Lexicon.function);
-  static const unknown = HT_TypeId(HT_Lexicon.unknown);
-  static const number = HT_TypeId(HT_Lexicon.number);
-  static const boolean = HT_TypeId(HT_Lexicon.boolean);
-  static const string = HT_TypeId(HT_Lexicon.string);
-  static const list = HT_TypeId(HT_Lexicon.list);
-  static const map = HT_TypeId(HT_Lexicon.map);
+  static const ANY = HTTypeId(HTLexicon.ANY);
+  static const NULL = HTTypeId(HTLexicon.NULL);
+  static const VOID = HTTypeId(HTLexicon.VOID);
+  static const CLASS = HTTypeId(HTLexicon.CLASS);
+  static const ENUM = HTTypeId(HTLexicon.ENUM);
+  static const namespace = HTTypeId(HTLexicon.NAMESPACE);
+  static const function = HTTypeId(HTLexicon.function);
+  static const unknown = HTTypeId(HTLexicon.unknown);
+  static const number = HTTypeId(HTLexicon.number);
+  static const boolean = HTTypeId(HTLexicon.boolean);
+  static const string = HTTypeId(HTLexicon.string);
+  static const list = HTTypeId(HTLexicon.list);
+  static const map = HTTypeId(HTLexicon.map);
 
   @override
   String toString() {
@@ -41,9 +41,9 @@ class HT_TypeId {
     return typename.toString();
   }
 
-  bool isA(HT_TypeId typeid) {
+  bool isA(HTTypeId typeid) {
     var result = false;
-    if ((typeid.id == HT_Lexicon.ANY) || (id == HT_Lexicon.NULL)) {
+    if ((typeid.id == HTLexicon.ANY) || (id == HTLexicon.NULL)) {
       result = true;
     } else {
       if (id == typeid.id) {
@@ -63,62 +63,5 @@ class HT_TypeId {
     return result;
   }
 
-  bool isNotA(HT_TypeId typeid) => !isA(typeid);
-}
-
-HT_TypeId HT_TypeOf(dynamic value) {
-  if ((value == null) || (value is NullThrownError)) {
-    return HT_TypeId.NULL;
-  } // Class, Object, external class
-  else if (value is HT_Type) {
-    return value.typeid;
-  } else if (value is num) {
-    return HT_TypeId.number;
-  } else if (value is bool) {
-    return HT_TypeId.boolean;
-  } else if (value is String) {
-    return HT_TypeId.string;
-  } else if (value is List) {
-    // var list_darttype = value.runtimeType.toString();
-    // var item_darttype = list_darttype.substring(list_darttype.indexOf('<') + 1, list_darttype.indexOf('>'));
-    // if ((item_darttype != 'dynamic') && (value.isNotEmpty)) {
-    //   valType = HT_TypeOf(value.first);
-    // }
-    var valType = HT_TypeId.ANY;
-    if (value.isNotEmpty) {
-      valType = HT_TypeOf(value.first);
-      for (final item in value) {
-        if (HT_TypeOf(item) != valType) {
-          valType = HT_TypeId.ANY;
-          break;
-        }
-      }
-    }
-
-    return HT_TypeId(HT_Lexicon.list, arguments: [valType]);
-  } else if (value is Map) {
-    var keyType = HT_TypeId.ANY;
-    var valType = HT_TypeId.ANY;
-    if (value.keys.isNotEmpty) {
-      keyType = HT_TypeOf(value.keys.first);
-      for (final key in value.keys) {
-        if (HT_TypeOf(key) != keyType) {
-          keyType = HT_TypeId.ANY;
-          break;
-        }
-      }
-    }
-    if (value.values.isNotEmpty) {
-      valType = HT_TypeOf(value.values.first);
-      for (final value in value.values) {
-        if (HT_TypeOf(value) != valType) {
-          valType = HT_TypeId.ANY;
-          break;
-        }
-      }
-    }
-    return HT_TypeId(HT_Lexicon.map, arguments: [keyType, valType]);
-  } else {
-    return HT_TypeId.unknown;
-  }
+  bool isNotA(HTTypeId typeid) => !isA(typeid);
 }

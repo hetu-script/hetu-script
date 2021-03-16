@@ -1,4 +1,4 @@
-class HT_Context {
+class HTContext {
   void clear() {
     _constInt.clear();
     _constFloat.clear();

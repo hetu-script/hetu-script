@@ -1,222 +1,228 @@
 import 'lexicon.dart';
 
-class HT_Break {}
+class HTBreak {}
 
-class HT_Continue {}
+class HTContinue {}
 
-enum HT_ErrorType {
+enum HTErrorType {
   parser,
   resolver,
   compiler,
   interpreter,
-  unknown,
+  other,
 }
 
-abstract class HT_Error {
+abstract class HTError {
   static void warn(String message) => print('hetu warn:\n' + message);
 
   final String message;
-  final HT_ErrorType type;
+  final HTErrorType type;
 
-  HT_Error(this.message, this.type);
+  @override
+  String toString() => message;
+
+  HTError(this.message, this.type);
 }
 
-class HT_ParserError extends HT_Error {
-  HT_ParserError(String message) : super(message, HT_ErrorType.parser);
+class HTParserError extends HTError {
+  HTParserError(String message) : super(message, HTErrorType.parser);
 }
 
-class HT_ResolverError extends HT_Error {
-  HT_ResolverError(String message) : super(message, HT_ErrorType.resolver);
+class HTResolverError extends HTError {
+  HTResolverError(String message) : super(message, HTErrorType.resolver);
 }
 
-class HT_CompilerError extends HT_Error {
-  HT_CompilerError(String message) : super(message, HT_ErrorType.compiler);
+class HTCompilerError extends HTError {
+  HTCompilerError(String message) : super(message, HTErrorType.compiler);
 }
 
-class HT_InterpreterError extends HT_Error {
+class HTInterpreterError extends HTError {
   int line;
   int column;
   String fileName;
 
   // interpreter会也会处理其他module抛出的异常，因此这里不指定类型
-  HT_InterpreterError(String message, HT_ErrorType type, this.fileName, this.line, this.column) : super(message, type);
+  HTInterpreterError(String message, HTErrorType type, this.fileName, this.line, this.column) : super(message, type);
 
   @override
   String toString() {
     return '''
-    hetu error:
-    [source: $type]
-    [file: $fileName]
-    [line: $line, column: $column]
+    Hetu error:
+    [$type}]
+    [File: $fileName]
+    [Line: $line, Column: $column]
     $message
     ''';
   }
 }
 
-// class HT_Error_Assign extends HT_Error {
-//   HT_Error_Assign(String id) : super('${HT_Lexicon.errorAssign} "$id"');
+// class HTErrorAssign extends HTError {
+//   HTErrorAssign(String id) : super('${HTLexicon.errorAssign} "$id"');
 // }
 
-// class HT_Error_Unsupport extends HT_Error {
-//   HT_Error_Unsupport(String id) : super('${HT_Lexicon.errorUnsupport} "$id"');
+// class HTErrorUnsupport extends HTError {
+//   HTErrorUnsupport(String id) : super('${HTLexicon.errorUnsupport} "$id"');
 // }
 
-class HT_Error_Expected extends HT_ParserError {
-  HT_Error_Expected(String expected, String met)
-      : super('"${expected != '\n' ? expected : '\\n'}" ${HT_Lexicon.errorExpected} "${met != '\n' ? met : '\\n'}"');
+class HTErrorExpected extends HTParserError {
+  HTErrorExpected(String expected, String met)
+      : super('"${expected != '\n' ? expected : '\\n'}" ${HTLexicon.errorExpected} "${met != '\n' ? met : '\\n'}"');
 }
 
-class HT_Error_ConstMustBeStatic extends HT_ParserError {
-  HT_Error_ConstMustBeStatic(String id) : super(HT_Lexicon.errorConstMustBeStatic);
+class HTErrorConstMustBeStatic extends HTParserError {
+  HTErrorConstMustBeStatic(String id) : super(HTLexicon.errorConstMustBeStatic);
 }
 
-class HT_Error_Unexpected extends HT_ParserError {
-  HT_Error_Unexpected(String id) : super('${HT_Lexicon.errorUnexpected} "${id != '\n' ? id : '\\n'}"');
+class HTErrorUnexpected extends HTParserError {
+  HTErrorUnexpected(String id) : super('${HTLexicon.errorUnexpected} "${id != '\n' ? id : '\\n'}"');
 }
 
-class HT_Error_Return extends HT_ResolverError {
-  HT_Error_Return(String id) : super(HT_Lexicon.errorReturn);
+class HTErrorReturn extends HTResolverError {
+  HTErrorReturn(String id) : super(HTLexicon.errorReturn);
 }
 
-class HT_Error_PrivateMember extends HT_Error {
-  HT_Error_PrivateMember(String id) : super('${HT_Lexicon.errorPrivateMember} "$id"', HT_ErrorType.interpreter);
+class HTErrorPrivateMember extends HTError {
+  HTErrorPrivateMember(String id) : super('${HTLexicon.errorPrivateMember} "$id"', HTErrorType.interpreter);
 }
 
-class HT_Error_PrivateDecl extends HT_Error {
-  HT_Error_PrivateDecl(String id) : super('${HT_Lexicon.errorPrivateDecl} "$id"', HT_ErrorType.interpreter);
+class HTErrorPrivateDecl extends HTError {
+  HTErrorPrivateDecl(String id) : super('${HTLexicon.errorPrivateDecl} "$id"', HTErrorType.interpreter);
 }
 
-class HT_Error_Initialized extends HT_Error {
-  HT_Error_Initialized(String id) : super('"$id" ${HT_Lexicon.errorInitialized}', HT_ErrorType.resolver);
+class HTErrorInitialized extends HTError {
+  HTErrorInitialized(String id) : super('"$id" ${HTLexicon.errorInitialized}', HTErrorType.resolver);
 }
 
-class HT_Error_Undefined extends HT_Error {
-  HT_Error_Undefined(String id) : super('${HT_Lexicon.errorUndefined} "$id"', HT_ErrorType.interpreter);
+class HTErrorUndefined extends HTError {
+  HTErrorUndefined(String id) : super('${HTLexicon.errorUndefined} "$id"', HTErrorType.interpreter);
 }
 
-class HT_Error_UndefinedOperator extends HT_Error {
-  HT_Error_UndefinedOperator(String id1, String op)
-      : super('${HT_Lexicon.errorUndefinedOperator} "$id1" "$op"', HT_ErrorType.interpreter);
+class HTErrorUndefinedOperator extends HTError {
+  HTErrorUndefinedOperator(String id1, String op)
+      : super('${HTLexicon.errorUndefinedOperator} "$id1" "$op"', HTErrorType.interpreter);
 }
 
-class HT_Error_UndefinedBinaryOperator extends HT_Error {
-  HT_Error_UndefinedBinaryOperator(String id1, String id2, String op)
-      : super('${HT_Lexicon.errorUndefinedOperator} "$id1" "$op" "$id2"', HT_ErrorType.interpreter);
+class HTErrorUndefinedBinaryOperator extends HTError {
+  HTErrorUndefinedBinaryOperator(String id1, String id2, String op)
+      : super('${HTLexicon.errorUndefinedOperator} "$id1" "$op" "$id2"', HTErrorType.interpreter);
 }
 
-// class HT_Error_Declared extends HT_Error {
-//   HT_Error_Declared(String id) : super('"$id" ${HT_Lexicon.errorDeclared}');
+// class HTErrorDeclared extends HTError {
+//   HTErrorDeclared(String id) : super('"$id" ${HTLexicon.errorDeclared}');
 // }
 
-class HT_Error_Defined_Parser extends HT_ParserError {
-  HT_Error_Defined_Parser(String id) : super('"$id" ${HT_Lexicon.errorDefined}');
+class HTErrorDefined_Parser extends HTParserError {
+  HTErrorDefined_Parser(String id) : super('"$id" ${HTLexicon.errorDefined}');
 }
 
-class HT_Error_Defined_Runtime extends HT_Error {
-  HT_Error_Defined_Runtime(String id) : super('"$id" ${HT_Lexicon.errorDefined}', HT_ErrorType.interpreter);
+class HTErrorDefined_Runtime extends HTError {
+  HTErrorDefined_Runtime(String id) : super('"$id" ${HTLexicon.errorDefined}', HTErrorType.interpreter);
 }
 
-// class HT_Error_Range extends HT_Error {
-//   HT_Error_Range(int length) : super('${HT_Lexicon.errorRange} "$length"');
+// class HTErrorRange extends HTError {
+//   HTErrorRange(int length) : super('${HTLexicon.errorRange} "$length"');
 // }
 
-class HT_Error_InvalidLeftValue extends HT_ParserError {
-  HT_Error_InvalidLeftValue(String id) : super('${HT_Lexicon.errorInvalidLeftValue} "$id"');
+class HTErrorInvalidLeftValue extends HTParserError {
+  HTErrorInvalidLeftValue(String id) : super('${HTLexicon.errorInvalidLeftValue} "$id"');
 }
 
-class HT_Error_Setter extends HT_ParserError {
-  HT_Error_Setter() : super(HT_Lexicon.errorSetter);
+class HTErrorSetter extends HTParserError {
+  HTErrorSetter() : super(HTLexicon.errorSetter);
 }
 
-class HT_Error_NotClass extends HT_ParserError {
-  HT_Error_NotClass(String id) : super('"$id" ${HT_Lexicon.errorNotClass}');
+class HTErrorNotClass extends HTParserError {
+  HTErrorNotClass(String id) : super('"$id" ${HTLexicon.errorNotClass}');
 }
 
-class HT_Error_Callable extends HT_Error {
-  HT_Error_Callable(String id) : super('"$id" ${HT_Lexicon.errorCallable}', HT_ErrorType.interpreter);
+class HTErrorCallable extends HTError {
+  HTErrorCallable(String id) : super('"$id" ${HTLexicon.errorCallable}', HTErrorType.interpreter);
 }
 
-class HT_Error_UndefinedMember extends HT_Error {
-  HT_Error_UndefinedMember(String id, String type)
-      : super('"$id" ${HT_Lexicon.errorUndefinedMember} "$type"', HT_ErrorType.interpreter);
+class HTErrorUndefinedMember extends HTError {
+  HTErrorUndefinedMember(String id, String type)
+      : super('"$id" ${HTLexicon.errorUndefinedMember} "$type"', HTErrorType.interpreter);
 }
 
-class HT_Error_Condition extends HT_Error {
-  HT_Error_Condition() : super(HT_Lexicon.errorCondition, HT_ErrorType.interpreter);
+class HTErrorCondition extends HTError {
+  HTErrorCondition() : super(HTLexicon.errorCondition, HTErrorType.interpreter);
 }
 
-class HT_Error_Get extends HT_Error {
-  HT_Error_Get(String id) : super('"$id" ${HT_Lexicon.errorGet}', HT_ErrorType.interpreter);
-}
-
-class HT_Error_SubGet extends HT_Error {
-  HT_Error_SubGet(String id) : super('"$id" ${HT_Lexicon.errorSubGet}', HT_ErrorType.interpreter);
-}
-
-class HT_Error_Extends extends HT_Error {
-  HT_Error_Extends(String id) : super('"$id" ${HT_Lexicon.errorExtends}', HT_ErrorType.interpreter);
-}
-
-// class HT_Error_NullObject extends HT_Error {
-//   HT_Error_NullObject(String id) : super('"$id" ${HT_Lexicon.errorNullObject}');
+// class HTErrorGet extends HTError {
+//   HTErrorGet(String id) : super('"$id" ${HTLexicon.errorGet}', HTErrorType.interpreter);
 // }
 
-class HT_Error_Type extends HT_Error {
-  HT_Error_Type(String id, String valueType, String declValue)
+class HTErrorSubGet extends HTError {
+  HTErrorSubGet(String id) : super('"$id" ${HTLexicon.errorSubGet}', HTErrorType.interpreter);
+}
+
+class HTErrorExtends extends HTError {
+  HTErrorExtends(String id) : super('"$id" ${HTLexicon.errorExtends}', HTErrorType.interpreter);
+}
+
+// class HTErrorNullObject extends HTError {
+//   HTErrorNullObject(String id) : super('"$id" ${HTLexicon.errorNullObject}');
+// }
+
+class HTErrorTypeCheck extends HTError {
+  HTErrorTypeCheck(String id, String valueType, String declValue)
       : super(
-            '${HT_Lexicon.errorType1} "$id" ${HT_Lexicon.errorOfType} "$declValue" ${HT_Lexicon.errorType2} "$valueType"',
-            HT_ErrorType.interpreter);
+            '${HTLexicon.errorTypeCheck1} "$id" ${HTLexicon.errorOfType} "$declValue" ${HTLexicon.errorTypeCheck2} "$valueType"',
+            HTErrorType.interpreter);
 }
 
-class HT_Error_Immutable extends HT_Error {
-  HT_Error_Immutable(String id) : super('"$id" ${HT_Lexicon.errorImmutable}', HT_ErrorType.interpreter);
+class HTErrorImmutable extends HTError {
+  HTErrorImmutable(String id) : super('"$id" ${HTLexicon.errorImmutable}', HTErrorType.interpreter);
 }
 
-class HT_Error_NotType extends HT_Error {
-  HT_Error_NotType(String id) : super('"$id" ${HT_Lexicon.errorNotType}', HT_ErrorType.interpreter);
+class HTErrorNotType extends HTError {
+  HTErrorNotType(String id) : super('"$id" ${HTLexicon.errorNotType}', HTErrorType.interpreter);
 }
 
-class HT_Error_ArgType extends HT_Error {
-  HT_Error_ArgType(String id, String assignValue, String declValue)
+class HTErrorArgType extends HTError {
+  HTErrorArgType(String id, String assignValue, String declValue)
       : super(
-            '${HT_Lexicon.errorArgType1} "$assignValue" ${HT_Lexicon.errorOfType} "$assignValue" ${HT_Lexicon.errorArgType2} "$declValue"',
-            HT_ErrorType.interpreter);
+            '${HTLexicon.errorArgType1} "$assignValue" ${HTLexicon.errorOfType} "$assignValue" ${HTLexicon.errorArgType2} "$declValue"',
+            HTErrorType.interpreter);
 }
 
-class HT_Error_ReturnType extends HT_Error {
-  HT_Error_ReturnType(
+class HTErrorReturnType extends HTError {
+  HTErrorReturnType(
     String returnedType,
     String funcName,
     String declReturnType,
   ) : super(
-            '"$returnedType" ${HT_Lexicon.errorReturnType2}'
-            ' "$funcName" ${HT_Lexicon.errorReturnType3} "$declReturnType"',
-            HT_ErrorType.interpreter);
+            '"$returnedType" ${HTLexicon.errorReturnType2}'
+            ' "$funcName" ${HTLexicon.errorReturnType3} "$declReturnType"',
+            HTErrorType.interpreter);
 }
 
-class HT_Error_MissingFuncDef extends HT_Error {
-  HT_Error_MissingFuncDef(String funcName)
-      : super('${HT_Lexicon.errorMissingFuncDef} $funcName', HT_ErrorType.interpreter);
+class HTErrorMissingFuncDef extends HTError {
+  HTErrorMissingFuncDef(String funcName) : super('${HTLexicon.errorMissingFuncDef} $funcName', HTErrorType.interpreter);
 }
 
-class HT_Error_Arity extends HT_Error {
-  HT_Error_Arity(String id, int argsCount, int paramsCount)
-      : super('${HT_Lexicon.errorArity1} [$argsCount] ${HT_Lexicon.errorArity2} [$id] [$paramsCount]',
-            HT_ErrorType.interpreter);
+class HTErrorArity extends HTError {
+  HTErrorArity(String id, int argsCount, int paramsCount)
+      : super('${HTLexicon.errorArity1} [$argsCount] ${HTLexicon.errorArity2} [$id] [$paramsCount]',
+            HTErrorType.interpreter);
 }
 
-class HT_Error_Signature extends HT_Error {
-  HT_Error_Signature() : super(HT_Lexicon.errorSignature, HT_ErrorType.interpreter);
+class HTErrorBinding extends HTError {
+  HTErrorBinding(String id) : super('${HTLexicon.errorBinding} [$id]', HTErrorType.interpreter);
 }
 
-class HT_Error_Int64Table extends HT_Error {
-  HT_Error_Int64Table() : super(HT_Lexicon.errorInt64Table, HT_ErrorType.interpreter);
+class HTErrorSignature extends HTError {
+  HTErrorSignature() : super(HTLexicon.errorSignature, HTErrorType.interpreter);
 }
 
-class HT_Error_Float64Table extends HT_Error {
-  HT_Error_Float64Table() : super(HT_Lexicon.errorFloat64Table, HT_ErrorType.interpreter);
+class HTErrorInt64Table extends HTError {
+  HTErrorInt64Table() : super(HTLexicon.errorInt64Table, HTErrorType.interpreter);
 }
 
-class HT_Error_StringTable extends HT_Error {
-  HT_Error_StringTable() : super(HT_Lexicon.errorStringTable, HT_ErrorType.interpreter);
+class HTErrorFloat64Table extends HTError {
+  HTErrorFloat64Table() : super(HTLexicon.errorFloat64Table, HTErrorType.interpreter);
+}
+
+class HTErrorStringTable extends HTError {
+  HTErrorStringTable() : super(HTLexicon.errorStringTable, HTErrorType.interpreter);
 }

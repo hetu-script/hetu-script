@@ -1,12 +1,12 @@
 import 'package:hetu_script/hetu_script.dart';
 
-class DartPerson {
+class Person {
   static String race = 'Caucasian';
   static String meaning(int n) => 'The meaning of life is $n';
 
   String get child => 'Tom';
-  DartPerson();
-  DartPerson.withName([this.name = 'some guy']);
+  Person();
+  Person.withName([this.name = 'some guy']);
 
   String? name = 'default name';
   void greeting() {
@@ -14,68 +14,79 @@ class DartPerson {
   }
 }
 
-class DartPersonClassBinding extends HT_ExternClass {
-  @override
-  dynamic fetch(String varName, {String? from}) {
+extension PersonBinding on Person {
+  dynamic ht_fetch(String varName) {
     switch (varName) {
-      case 'Person':
-        return () => DartPersonObjectBinding(DartPerson());
-      case 'Person.withName':
-        return ([name = 'some guy']) => DartPersonObjectBinding(DartPerson.withName(name));
-      case 'meaning':
-        return (int n) => DartPerson.meaning(n);
-      case 'race':
-        return DartPerson.race;
+      case 'typeid':
+        return HTTypeId('Person');
+      case 'toString':
+        return toString;
+      case 'name':
+        return name;
+      case 'greeting':
+        return greeting;
       default:
-        throw HT_Error_Undefined(varName);
+        throw HTErrorUndefined(varName);
     }
   }
 
-  @override
-  void assign(String varName, dynamic value, {String? from}) {
+  void ht_assign(String varName, dynamic value) {
     switch (varName) {
-      case 'race':
-        return DartPerson.race = value;
+      case 'name':
+        name = value;
+        break;
       default:
-        throw HT_Error_Undefined(varName);
+        throw HTErrorUndefined(varName);
     }
   }
 }
 
-class DartPersonObjectBinding extends HT_ExternObject<DartPerson> {
-  DartPersonObjectBinding(DartPerson value) : super(value);
+class PersonHTBinding extends HTExternClass {
+  PersonHTBinding() : super('Person');
 
   @override
-  final typeid = HT_TypeId('Person');
-
-  @override
-  dynamic fetch(String varName, {String? from}) {
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'name':
-        return externObject.name;
-      case 'greeting':
-        return externObject.greeting;
+      case 'Person':
+        return () => Person();
+      case 'Person.withName':
+        return ([name = 'some guy']) => Person.withName(name);
+      case 'meaning':
+        return (int n) => Person.meaning(n);
+      case 'race':
+        return Person.race;
       default:
-        throw HT_Error_Undefined(varName);
+        throw HTErrorUndefined(varName);
     }
   }
 
   @override
-  void assign(String varName, dynamic value, {String? from}) {
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'name':
-        externObject.name = value;
-        break;
+      case 'race':
+        return Person.race = value;
       default:
-        throw HT_Error_Undefined(varName);
+        throw HTErrorUndefined(varName);
     }
+  }
+
+  @override
+  dynamic instanceFetch(dynamic instance, String id) {
+    var i = instance as Person;
+    return i.ht_fetch(id);
+  }
+
+  @override
+  void instanceAssign(dynamic instance, String id, dynamic value) {
+    var i = instance as Person;
+    i.ht_assign(id, value);
   }
 }
 
 void main() {
-  var hetu = HT_ASTInterpreter();
+  var hetu = HTInterpreter();
 
-  hetu.bindExternalNamespace('Person', DartPersonClassBinding());
+  hetu.bindExternalClass('Person', PersonHTBinding());
 
   hetu.eval('''
       external class Person {
@@ -88,7 +99,8 @@ void main() {
         fun greeting
       }
       fun main {
-        var p1 = Person()
+        let p1: Person = Person()
+        print(p1.typeid)
         print(p1.name)
         var p2 = Person.withName('Jimmy')
         print(p2.name)

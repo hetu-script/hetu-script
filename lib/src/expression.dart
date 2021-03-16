@@ -6,6 +6,10 @@ import 'type.dart';
 ///
 /// 访问语句称作execute，访问表达式称作evaluate
 abstract class ASTNodeVisitor {
+  int get curLine;
+  int get curColumn;
+  String get curFileName;
+
   /// Null
   dynamic visitNullExpr(NullExpr expr);
 
@@ -124,7 +128,7 @@ class NullExpr extends ASTNode {
   @override
   dynamic accept(ASTNodeVisitor visitor) => visitor.visitNullExpr(this);
 
-  NullExpr(String fileName, int line, int column) : super(HT_Lexicon.nullExpr, fileName, line, column);
+  NullExpr(String fileName, int line, int column) : super(HTLexicon.nullExpr, fileName, line, column);
 
   @override
   ASTNode clone() => NullExpr(fileName, line, column);
@@ -137,7 +141,7 @@ class BooleanExpr extends ASTNode {
   final bool value;
 
   BooleanExpr(this.value, String fileName, int line, int column)
-      : super(HT_Lexicon.literalBooleanExpr, fileName, line, column);
+      : super(HTLexicon.literalBooleanExpr, fileName, line, column);
 
   @override
   ASTNode clone() => BooleanExpr(value, fileName, line, column);
@@ -150,7 +154,7 @@ class ConstIntExpr extends ASTNode {
   final int constIndex;
 
   ConstIntExpr(this.constIndex, String fileName, int line, int column)
-      : super(HT_Lexicon.literalIntExpr, fileName, line, column);
+      : super(HTLexicon.literalIntExpr, fileName, line, column);
 
   @override
   ASTNode clone() => ConstIntExpr(constIndex, fileName, line, column);
@@ -163,7 +167,7 @@ class ConstFloatExpr extends ASTNode {
   final int constIndex;
 
   ConstFloatExpr(this.constIndex, String fileName, int line, int column)
-      : super(HT_Lexicon.literalFloatExpr, fileName, line, column);
+      : super(HTLexicon.literalFloatExpr, fileName, line, column);
 
   @override
   ASTNode clone() => ConstFloatExpr(constIndex, fileName, line, column);
@@ -176,7 +180,7 @@ class ConstStringExpr extends ASTNode {
   final int constIndex;
 
   ConstStringExpr(this.constIndex, String fileName, int line, int column)
-      : super(HT_Lexicon.literalStringExpr, fileName, line, column);
+      : super(HTLexicon.literalStringExpr, fileName, line, column);
 
   @override
   ASTNode clone() => ConstStringExpr(constIndex, fileName, line, column);
@@ -189,7 +193,7 @@ class LiteralVectorExpr extends ASTNode {
   final List<ASTNode> vector;
 
   LiteralVectorExpr(String fileName, int line, int column, [this.vector = const []])
-      : super(HT_Lexicon.literalVectorExpr, fileName, line, column);
+      : super(HTLexicon.literalVectorExpr, fileName, line, column);
 
   @override
   ASTNode clone() {
@@ -208,7 +212,7 @@ class LiteralDictExpr extends ASTNode {
   final Map<ASTNode, ASTNode> map;
 
   LiteralDictExpr(String fileName, int line, int column, [this.map = const {}])
-      : super(HT_Lexicon.blockExpr, fileName, line, column);
+      : super(HTLexicon.blockExpr, fileName, line, column);
 
   @override
   ASTNode clone() {
@@ -226,7 +230,7 @@ class GroupExpr extends ASTNode {
 
   final ASTNode inner;
 
-  GroupExpr(this.inner) : super(HT_Lexicon.groupExpr, inner.fileName, inner.line, inner.column);
+  GroupExpr(this.inner) : super(HTLexicon.groupExpr, inner.fileName, inner.line, inner.column);
 
   @override
   ASTNode clone() => GroupExpr(inner.clone());
@@ -242,7 +246,7 @@ class UnaryExpr extends ASTNode {
   /// 变量名、表达式、函数调用
   final ASTNode value;
 
-  UnaryExpr(this.op, this.value) : super(HT_Lexicon.unaryExpr, op.fileName, op.line, op.column);
+  UnaryExpr(this.op, this.value) : super(HTLexicon.unaryExpr, op.fileName, op.line, op.column);
 
   @override
   ASTNode clone() => UnaryExpr(op, value.clone());
@@ -261,7 +265,7 @@ class BinaryExpr extends ASTNode {
   /// 变量名、表达式、函数调用
   final ASTNode right;
 
-  BinaryExpr(this.left, this.op, this.right) : super(HT_Lexicon.binaryExpr, op.fileName, op.line, op.column);
+  BinaryExpr(this.left, this.op, this.right) : super(HTLexicon.binaryExpr, op.fileName, op.line, op.column);
 
   @override
   ASTNode clone() => BinaryExpr(left.clone(), op, right.clone());
@@ -289,7 +293,7 @@ class SymbolExpr extends ASTNode {
 
   final Token id;
 
-  SymbolExpr(this.id) : super(HT_Lexicon.symbolExpr, id.fileName, id.line, id.column);
+  SymbolExpr(this.id) : super(HTLexicon.symbolExpr, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => SymbolExpr(id);
@@ -308,7 +312,7 @@ class AssignExpr extends ASTNode {
   /// 变量名、表达式、函数调用
   final ASTNode value;
 
-  AssignExpr(this.variable, this.op, this.value) : super(HT_Lexicon.assignExpr, variable.fileName, op.line, op.column);
+  AssignExpr(this.variable, this.op, this.value) : super(HTLexicon.assignExpr, variable.fileName, op.line, op.column);
 
   @override
   ASTNode clone() => AssignExpr(variable, op, value);
@@ -325,7 +329,7 @@ class SubGetExpr extends ASTNode {
   final ASTNode key;
 
   SubGetExpr(this.collection, this.key)
-      : super(HT_Lexicon.subGetExpr, collection.fileName, collection.line, collection.column);
+      : super(HTLexicon.subGetExpr, collection.fileName, collection.line, collection.column);
 
   @override
   ASTNode clone() => SubGetExpr(collection, key);
@@ -345,7 +349,7 @@ class SubSetExpr extends ASTNode {
   final ASTNode value;
 
   SubSetExpr(this.collection, this.key, this.value)
-      : super(HT_Lexicon.subSetExpr, collection.fileName, collection.line, collection.column);
+      : super(HTLexicon.subSetExpr, collection.fileName, collection.line, collection.column);
 
   @override
   ASTNode clone() => SubSetExpr(collection, key, value);
@@ -362,7 +366,7 @@ class MemberGetExpr extends ASTNode {
   final Token key;
 
   MemberGetExpr(this.collection, this.key)
-      : super(HT_Lexicon.memberGetExpr, collection.fileName, collection.line, collection.column);
+      : super(HTLexicon.memberGetExpr, collection.fileName, collection.line, collection.column);
 
   @override
   ASTNode clone() => MemberGetExpr(collection, key);
@@ -382,7 +386,7 @@ class MemberSetExpr extends ASTNode {
   final ASTNode value;
 
   MemberSetExpr(this.collection, this.key, this.value)
-      : super(HT_Lexicon.memberSetExpr, collection.fileName, collection.line, collection.column);
+      : super(HTLexicon.memberSetExpr, collection.fileName, collection.line, collection.column);
 
   @override
   ASTNode clone() => MemberSetExpr(collection, key, value);
@@ -401,7 +405,7 @@ class CallExpr extends ASTNode {
   final Map<String, ASTNode> namedArgs;
 
   CallExpr(this.callee, this.positionalArgs, this.namedArgs)
-      : super(HT_Lexicon.callExpr, callee.fileName, callee.line, callee.column);
+      : super(HTLexicon.callExpr, callee.fileName, callee.line, callee.column);
 
   @override
   ASTNode clone() {
@@ -425,7 +429,7 @@ class ThisExpr extends ASTNode {
 
   final Token keyword;
 
-  ThisExpr(this.keyword) : super(HT_Lexicon.thisExpr, keyword.fileName, keyword.line, keyword.column);
+  ThisExpr(this.keyword) : super(HTLexicon.thisExpr, keyword.fileName, keyword.line, keyword.column);
 
   @override
   ASTNode clone() => ThisExpr(keyword);
@@ -442,7 +446,7 @@ class ImportStmt extends ASTNode {
   final String? nameSpace;
 
   ImportStmt(this.keyword, this.path, [this.nameSpace])
-      : super(HT_Lexicon.importStmt, keyword.fileName, keyword.line, keyword.column);
+      : super(HTLexicon.importStmt, keyword.fileName, keyword.line, keyword.column);
 
   @override
   ASTNode clone() => ImportStmt(keyword, path, nameSpace);
@@ -455,7 +459,7 @@ class ExprStmt extends ASTNode {
   /// 可能是单独的变量名，也可能是一个表达式作为函数使用
   final ASTNode expr;
 
-  ExprStmt(this.expr) : super(HT_Lexicon.exprStmt, expr.fileName, expr.line, expr.column);
+  ExprStmt(this.expr) : super(HTLexicon.exprStmt, expr.fileName, expr.line, expr.column);
 
   @override
   ASTNode clone() => ExprStmt(expr.clone());
@@ -467,7 +471,7 @@ class BlockStmt extends ASTNode {
 
   final List<ASTNode> block;
 
-  BlockStmt(this.block, String fileName, int line, int column) : super(HT_Lexicon.blockStmt, fileName, line, column);
+  BlockStmt(this.block, String fileName, int line, int column) : super(HTLexicon.blockStmt, fileName, line, column);
 
   @override
   ASTNode clone() {
@@ -487,7 +491,7 @@ class ReturnStmt extends ASTNode {
 
   final ASTNode? value;
 
-  ReturnStmt(this.keyword, this.value) : super(HT_Lexicon.returnStmt, keyword.fileName, keyword.line, keyword.column);
+  ReturnStmt(this.keyword, this.value) : super(HTLexicon.returnStmt, keyword.fileName, keyword.line, keyword.column);
 
   @override
   ASTNode clone() => ReturnStmt(keyword, value?.clone());
@@ -504,7 +508,7 @@ class IfStmt extends ASTNode {
   final ASTNode? elseBranch;
 
   IfStmt(this.condition, this.thenBranch, this.elseBranch)
-      : super(HT_Lexicon.ifStmt, condition.fileName, condition.line, condition.column);
+      : super(HTLexicon.ifStmt, condition.fileName, condition.line, condition.column);
 
   @override
   ASTNode clone() => IfStmt(condition.clone(), thenBranch?.clone(), elseBranch?.clone());
@@ -519,7 +523,7 @@ class WhileStmt extends ASTNode {
   final ASTNode? loop;
 
   WhileStmt(this.condition, this.loop)
-      : super(HT_Lexicon.whileStmt, condition.fileName, condition.line, condition.column);
+      : super(HTLexicon.whileStmt, condition.fileName, condition.line, condition.column);
 
   @override
   ASTNode clone() => WhileStmt(condition.clone(), loop?.clone());
@@ -531,7 +535,7 @@ class BreakStmt extends ASTNode {
 
   final Token keyword;
 
-  BreakStmt(this.keyword) : super(HT_Lexicon.breakStmt, keyword.fileName, keyword.line, keyword.column);
+  BreakStmt(this.keyword) : super(HTLexicon.breakStmt, keyword.fileName, keyword.line, keyword.column);
 
   @override
   ASTNode clone() => BreakStmt(keyword);
@@ -543,7 +547,7 @@ class ContinueStmt extends ASTNode {
 
   final Token keyword;
 
-  ContinueStmt(this.keyword) : super(HT_Lexicon.continueStmt, keyword.fileName, keyword.line, keyword.column);
+  ContinueStmt(this.keyword) : super(HTLexicon.continueStmt, keyword.fileName, keyword.line, keyword.column);
 
   @override
   ASTNode clone() => ContinueStmt(keyword);
@@ -555,7 +559,7 @@ class VarDeclStmt extends ASTNode {
 
   final Token id;
 
-  final HT_TypeId declType;
+  final HTTypeId declType;
 
   final ASTNode? initializer;
 
@@ -569,13 +573,13 @@ class VarDeclStmt extends ASTNode {
 
   VarDeclStmt(
     this.id, {
-    this.declType = HT_TypeId.ANY,
+    this.declType = HTTypeId.ANY,
     this.initializer,
     this.isDynamic = false,
     this.isImmutable = false,
     this.isExtern = false,
     this.isStatic = false,
-  }) : super(HT_Lexicon.varDeclStmt, id.fileName, id.line, id.column);
+  }) : super(HTLexicon.varDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => VarDeclStmt(id,
@@ -589,7 +593,7 @@ class VarDeclStmt extends ASTNode {
 
 class ParamDeclStmt extends VarDeclStmt {
   @override
-  final type = HT_Lexicon.paramStmt;
+  final type = HTLexicon.paramStmt;
 
   @override
   dynamic accept(ASTNodeVisitor visitor) => visitor.visitParamDeclStmt(this);
@@ -601,7 +605,7 @@ class ParamDeclStmt extends VarDeclStmt {
   final bool isNamed;
 
   ParamDeclStmt(Token id,
-      {HT_TypeId declType = HT_TypeId.ANY,
+      {HTTypeId declType = HTTypeId.ANY,
       ASTNode? initializer,
       bool isDynamic = false,
       bool isImmutable = false,
@@ -644,7 +648,7 @@ class FuncDeclaration extends ASTNode {
 
   final List<String> typeParams;
 
-  final HT_TypeId returnType;
+  final HTTypeId returnType;
 
   late final String _internalName;
   String get internalName => _internalName;
@@ -678,15 +682,15 @@ class FuncDeclaration extends ASTNode {
       this.isConst = false,
       this.isVariadic = false,
       this.funcType = FunctionType.normal})
-      : super(HT_Lexicon.funcDeclStmt, fileName, line, column) {
-    var func_name = id?.lexeme ?? HT_Lexicon.anonymousFunction + (functionIndex++).toString();
+      : super(HTLexicon.funcDeclStmt, fileName, line, column) {
+    var func_name = id?.lexeme ?? HTLexicon.anonymousFunction + (functionIndex++).toString();
 
     if (funcType == FunctionType.constructor) {
       (id != null) ? _internalName = '$className.$func_name' : _internalName = '$className';
     } else if (funcType == FunctionType.getter) {
-      _internalName = HT_Lexicon.getter + func_name;
+      _internalName = HTLexicon.getter + func_name;
     } else if (funcType == FunctionType.setter) {
-      _internalName = HT_Lexicon.setter + func_name;
+      _internalName = HTLexicon.setter + func_name;
     } else {
       _internalName = func_name;
     }
@@ -736,7 +740,7 @@ class ClassDeclStmt extends ASTNode {
 
   final ClassDeclStmt? superClassDeclStmt;
 
-  final HT_TypeId? superClassTypeArgs;
+  final HTTypeId? superClassTypeArgs;
 
   final bool isExtern;
 
@@ -746,7 +750,7 @@ class ClassDeclStmt extends ASTNode {
       this.superClassDeclStmt,
       this.superClassTypeArgs,
       this.isExtern = false})
-      : super(HT_Lexicon.classDeclStmt, id.fileName, id.line, id.column);
+      : super(HTLexicon.classDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() {
@@ -779,7 +783,7 @@ class EnumDeclStmt extends ASTNode {
   final bool isExtern;
 
   EnumDeclStmt(this.id, this.enumerations, {this.isExtern = false})
-      : super(HT_Lexicon.enumDeclStmt, id.fileName, id.line, id.column);
+      : super(HTLexicon.enumDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => EnumDeclStmt(id, enumerations, isExtern: isExtern);

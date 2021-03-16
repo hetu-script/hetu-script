@@ -5,9 +5,9 @@
 library hetu_script;
 
 export 'src/parser.dart' show ParseStyle;
-export 'src/type.dart' show HT_TypeId;
+export 'src/type.dart' show HTTypeId;
 export 'src/class.dart';
-export 'src/function.dart' show HT_Function;
+export 'src/function.dart' show HTFunction;
 export 'src/errors.dart';
 export 'src/extern_class.dart';
 export 'src/extern_object.dart';

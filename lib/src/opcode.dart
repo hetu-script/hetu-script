@@ -1,4 +1,4 @@
-abstract class HT_OpCode {
+abstract class HTOpCode {
   static const end = 0;
   static const constTable = 1;
 
@@ -18,12 +18,12 @@ abstract class HT_OpCode {
   static const error = 205;
 }
 
-abstract class HT_OpRandType {
+abstract class HTOpRandType {
   static const constInt64 = 1;
   static const constFloat64 = 2;
   static const constUtf8String = 3;
 }
 
-abstract class HT_ErrorCode {
+abstract class HTErrorCode {
   static const binOp = 26;
 }

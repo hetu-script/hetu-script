@@ -13,15 +13,22 @@ class Compiler implements ASTNodeVisitor {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
   static const hetuVersionData = [0, 1, 0, 0, 0, 0];
+  int _curLine = 0;
+  @override
+  int get curLine => _curLine;
+  int _curColumn = 0;
+  @override
+  int get curColumn => _curColumn;
+  String _curFileName = '';
+  @override
+  String get curFileName => _curFileName;
 
   // Uint8List compileTokens(List<Token> tokens, [ParseStyle style = ParseStyle.library]) {}
-  late HT_Context _context;
-
-  late String _curFileName;
+  late HTContext _context;
 
   late BytesBuilder _bytesBuilder;
 
-  Uint8List compileAST(List<ASTNode> statements, HT_Context context, String fileName,
+  Uint8List compileAST(List<ASTNode> statements, HTContext context, String fileName,
       [ParseStyle style = ParseStyle.library]) {
     _context = context;
     _curFileName = fileName;
@@ -75,8 +82,8 @@ class Compiler implements ASTNodeVisitor {
   @override
   dynamic visitConstIntExpr(ConstIntExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HT_OpCode.local);
-    bytesBuilder.addByte(HT_OpRandType.constInt64);
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTOpRandType.constInt64);
     bytesBuilder.add(_int64(expr.constIndex));
     return bytesBuilder.toBytes();
   }
@@ -84,8 +91,8 @@ class Compiler implements ASTNodeVisitor {
   @override
   dynamic visitConstFloatExpr(ConstFloatExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HT_OpCode.local);
-    bytesBuilder.addByte(HT_OpRandType.constFloat64);
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTOpRandType.constFloat64);
     bytesBuilder.add(_int64(expr.constIndex));
     return bytesBuilder.toBytes();
   }
@@ -93,8 +100,8 @@ class Compiler implements ASTNodeVisitor {
   @override
   dynamic visitConstStringExpr(ConstStringExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HT_OpCode.local);
-    bytesBuilder.addByte(HT_OpRandType.constUtf8String);
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTOpRandType.constUtf8String);
     bytesBuilder.add(_int64(expr.constIndex));
     return bytesBuilder.toBytes();
   }
@@ -123,18 +130,18 @@ class Compiler implements ASTNodeVisitor {
 
     final left = _compileExpr(expr.left);
     bytesBuilder.add(left);
-    bytesBuilder.addByte(HT_OpCode.reg1);
+    bytesBuilder.addByte(HTOpCode.reg1);
     final right = _compileExpr(expr.right);
     bytesBuilder.add(right);
-    bytesBuilder.addByte(HT_OpCode.reg2);
+    bytesBuilder.addByte(HTOpCode.reg2);
 
     switch (expr.op.type) {
-      case HT_Lexicon.add:
-        bytesBuilder.addByte(HT_OpCode.add);
+      case HTLexicon.add:
+        bytesBuilder.addByte(HTOpCode.add);
         break;
       default:
-        bytesBuilder.addByte(HT_OpCode.error);
-        bytesBuilder.addByte(HT_ErrorCode.binOp);
+        bytesBuilder.addByte(HTOpCode.error);
+        bytesBuilder.addByte(HTErrorCode.binOp);
         break;
     }
 

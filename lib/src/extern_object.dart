@@ -1,84 +1,97 @@
-import 'package:hetu_script/src/object.dart';
-
-import 'type.dart';
 import 'errors.dart';
+import 'object.dart';
+import 'type.dart';
 import 'lexicon.dart';
 
-abstract class HT_ExternObject<T> extends HT_Object {
+abstract class HTExternObject<T> extends HTObject {
   T externObject;
-  HT_ExternObject(this.externObject);
+  HTExternObject(this.externObject);
 }
 
 /// Mirror object for dart number.
-class HT_Dart_Number extends HT_ExternObject<num> {
-  HT_Dart_Number(num value) : super(value);
+class HTNumber extends HTExternObject<num> {
+  HTNumber(num value) : super(value);
 
   @override
-  final typeid = HT_TypeId.number;
+  final typeid = HTTypeId.number;
 
   @override
-  dynamic fetch(String id, {String? from}) {
+  dynamic fetch(String id, {String from = HTLexicon.global}) {
     switch (id) {
+      case 'typeid':
+        return typeid;
+      case 'toString':
+        return externObject.toString;
       case 'toStringAsFixed':
         return externObject.toStringAsFixed;
       case 'truncate':
         return externObject.truncate;
       default:
-        throw HT_Error_Undefined(id);
+        throw HTErrorUndefined(id);
     }
   }
 }
 
 /// Mirror object for dart boolean.
-class HT_DartObject_Boolean extends HT_ExternObject<bool> {
-  HT_DartObject_Boolean(bool value) : super(value);
+class HTBoolean extends HTExternObject<bool> {
+  HTBoolean(bool value) : super(value);
 
   @override
-  final typeid = HT_TypeId.boolean;
+  final typeid = HTTypeId.boolean;
 
   @override
-  dynamic fetch(String id, {String? from}) {
+  dynamic fetch(String id, {String from = HTLexicon.global}) {
     switch (id) {
+      case 'typeid':
+        return typeid;
+      case 'toString':
+        return externObject.toString;
       case 'parse':
         return externObject.toString;
       default:
-        throw HT_Error_Undefined(id);
+        throw HTErrorUndefined(id);
     }
   }
 }
 
 /// Mirror object for dart string.
-class HT_DartObject_String extends HT_ExternObject<String> {
-  HT_DartObject_String(String value) : super(value);
+class HTString extends HTExternObject<String> {
+  HTString(String value) : super(value);
 
   @override
-  final typeid = HT_TypeId.string;
+  final typeid = HTTypeId.string;
 
   @override
-  dynamic fetch(String varName, {String? from}) {
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
+      case 'typeid':
+        return typeid;
       case 'isEmpty':
         return externObject.isEmpty;
       case 'subString':
         return externObject.substring;
       default:
-        throw HT_Error_Undefined(varName);
+        throw HTErrorUndefined(varName);
     }
   }
 }
 
 /// Mirror object for dart list.
-class HT_DartObject_List<T> extends HT_ExternObject<List<T>> {
-  final String valueType;
+class HTList<T> extends HTExternObject<List<T>> {
+  final HTTypeId valueType;
 
-  HT_DartObject_List(List<T> value, {this.valueType = HT_Lexicon.ANY}) : super(value);
-
-  @override
-  final typeid = HT_TypeId.list;
+  HTList(List<T> value, {this.valueType = HTTypeId.ANY}) : super(value);
 
   @override
-  dynamic fetch(String varName, {String? from}) {
+  final typeid = HTTypeId.list;
+
+  @override
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
+      case 'typeid':
+        return typeid;
+      case 'toString':
+        return externObject.toString;
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -98,24 +111,28 @@ class HT_DartObject_List<T> extends HT_ExternObject<List<T>> {
       case 'elementAt':
         return externObject.elementAt;
       default:
-        throw HT_Error_Undefined(varName);
+        throw HTErrorUndefined(varName);
     }
   }
 }
 
 /// Mirror object for dart map.
-class HT_DartObject_Map<K, V> extends HT_ExternObject<Map<K, V>> {
-  final String keyType;
-  final String valueType;
+class HTMap<K, V> extends HTExternObject<Map<K, V>> {
+  final HTTypeId keyType;
+  final HTTypeId valueType;
 
-  HT_DartObject_Map(Map<K, V> value, {this.keyType = HT_Lexicon.ANY, this.valueType = HT_Lexicon.ANY}) : super(value);
-
-  @override
-  final typeid = HT_TypeId.map;
+  HTMap(Map<K, V> value, {this.keyType = HTTypeId.ANY, this.valueType = HTTypeId.ANY}) : super(value);
 
   @override
-  dynamic fetch(String varName, {String? from}) {
+  final typeid = HTTypeId.map;
+
+  @override
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
+      case 'typeid':
+        return typeid;
+      case 'toString':
+        return externObject.toString;
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -144,7 +161,7 @@ class HT_DartObject_Map<K, V> extends HT_ExternObject<Map<K, V>> {
       case 'putIfAbsent':
         return externObject.putIfAbsent;
       default:
-        throw HT_Error_Undefined(varName);
+        throw HTErrorUndefined(varName);
     }
   }
 }
