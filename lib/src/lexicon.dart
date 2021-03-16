@@ -67,6 +67,8 @@ abstract class HT_Lexicon {
   static const integer = 'int';
   static const float = 'float';
   static const string = 'String';
+  static const keys = 'keys';
+  static const values = 'values';
 
   static Set<String> get literals => {
         number,
@@ -192,13 +194,14 @@ abstract class HT_Lexicon {
   /// 函数调用表达式
   static const nullExpr = 'null_expression';
   static const literalBooleanExpr = 'literal_boolean_expression';
-  static const literalNumberExpr = 'literal_number_expression';
+  static const literalIntExpr = 'literal_integer_expression';
+  static const literalFloatExpr = 'literal_float_expression';
   static const literalStringExpr = 'literal_string_expression';
   static const literalFunctionExpr = 'literal_function_expression';
   static const groupExpr = 'group_expression';
-  static const vectorExpr = 'vector_expression';
+  static const literalVectorExpr = 'vector_expression';
   static const blockExpr = 'block_expression';
-  static const varExpr = 'variable_expression';
+  static const symbolExpr = 'symbol_expression';
   static const typeExpr = 'type_expression';
   static const unaryExpr = 'unary_expression';
   static const binaryExpr = 'binary_expression';
@@ -211,8 +214,8 @@ abstract class HT_Lexicon {
   static const memberSetExpr = 'member_set_expression';
 
   static const importStmt = 'import_statement';
-  static const varStmt = 'variable_statement';
-  static const paramStmt = 'parameter_statement';
+  static const varDeclStmt = 'variable_declaration_statement';
+  static const paramStmt = 'parameter_declaration_statement';
   static const exprStmt = 'expression_statement';
   static const blockStmt = 'block_statement';
   static const returnStmt = 'return_statement';
@@ -221,9 +224,9 @@ abstract class HT_Lexicon {
   static const ifStmt = 'if_statement';
   static const whileStmt = 'while_statement';
   static const forInStmt = 'for_in_statement';
-  static const classStmt = 'class_statement';
-  static const enumStmt = 'enum_statement';
-  static const funcStmt = 'function_statement';
+  static const classDeclStmt = 'class_declaration_statement';
+  static const enumDeclStmt = 'enum_declaration_statement';
+  static const funcDeclStmt = 'function_declaration_statement';
 
   static const memberGet = '.';
   static const subGet = '[';
@@ -338,19 +341,20 @@ abstract class HT_Lexicon {
         squareRight,
       };
 
-  static const errorAssign = 'Could not assgin to';
-  static const errorUnsupport = 'Unsupport value type';
+  // static const errorAssign = 'Could not assgin to';
+  // static const errorUnsupport = 'Unsupport value type';
   static const errorExpected = 'expected, ';
   static const errorConstMustBeStatic = 'Class member constant must be static.';
   static const errorUnexpected = 'Unexpected identifier';
+  static const errorReturn = 'Return statement is not allowed outside of a function.';
   static const errorPrivateMember = 'Could not acess private member';
   static const errorPrivateDecl = 'Could not acess private declaration';
   static const errorInitialized = 'has not initialized';
   static const errorUndefined = 'Undefined identifier';
   static const errorUndefinedOperator = 'Undefined operator';
-  static const errorDeclared = 'is already declared';
+  // static const errorDeclared = 'is already declared';
   static const errorDefined = 'is already defined';
-  static const errorRange = 'Index out of range, should be less than';
+  // static const errorRange = 'Index out of range, should be less than';
   static const errorInvalidLeftValue = 'Invalid left-value';
   static const errorCallable = 'is not callable';
   static const errorUndefinedMember = 'isn\'t defined for the class';
@@ -360,7 +364,7 @@ abstract class HT_Lexicon {
   static const errorSubGet = 'is not a List or Map';
   static const errorExtends = 'is not a class';
   static const errorSetter = 'Setter function\'s arity must be 1';
-  static const errorNullObject = 'is null';
+  // static const errorNullObject = 'is null';
   static const errorImmutable = 'is immutable';
   static const errorNotType = 'is not a type.';
   static const errorNotClass = 'is not a class.';
@@ -376,8 +380,6 @@ abstract class HT_Lexicon {
   static const errorReturnType1 = 'Value of type';
   static const errorReturnType2 = 'can\'t be returned from function';
   static const errorReturnType3 = 'because it has a return type of';
-
-  static const errorFuncWithoutBody = '(function) has no definition.';
 
   static const errorArity1 = 'Number of arguments';
   static const errorArity2 = 'doesn\'t match parameter requirement of function';

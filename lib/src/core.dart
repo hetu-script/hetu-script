@@ -1,8 +1,8 @@
-/// The core librarys in Hetu.
-///
-/// Automatically generated based on files in 'hetu_lib' folder.
-final Map<String, String> coreLibs = const {
-'core.ht': r'''class Object {}
+      /// The core librarys in Hetu.
+      ///
+      /// Automatically generated based on files in 'hetu_lib' folder.
+      final Map<String, String> coreLibs = const {
+      'core.ht': r'''class Object {}
 
 // return the runtime type of a value
 external fun typeof(value): String
@@ -20,7 +20,7 @@ fun print(... items) {
 external fun _string(items: List<any>): String
 
 // concact values of any type into string
-external fun string(... items): String{
+fun string(... items): String{
   return _string(items)
 }''',
 'value.ht': r'''external class num {

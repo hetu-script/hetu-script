@@ -1,19 +1,15 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'common.dart';
+import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/src/interpreter.dart';
+
 import 'class.dart';
 import 'type.dart';
 import 'errors.dart';
+import 'object.dart';
 
 typedef HT_ExternFunc = dynamic Function(List<dynamic> positionalArgs, Map<String, dynamic> namedArgs);
-
-/// Namespace class of low level external dart functions for Hetu to use.
-abstract class HT_ExternNamespace {
-  dynamic fetch(String id) => throw HTErr_Undefined(id);
-
-  void assign(String id, dynamic value) => throw HTErr_Undefined(id);
-}
 
 abstract class HT_Extern_Global {
   static const number = 'num';
@@ -26,7 +22,7 @@ abstract class HT_Extern_Global {
   static Map<String, Function> functions = {
     'typeof': (dynamic value) => HT_TypeOf(value).toString(),
     'help': (dynamic value) {
-      if (value is HT_Object) {
+      if (value is HT_Instance) {
         return value.typeid.toString();
       } else {
         return HT_TypeOf(value).toString();
@@ -49,51 +45,57 @@ abstract class HT_Extern_Global {
   };
 }
 
-class HT_ExternClass_Number extends HT_ExternNamespace {
+/// Namespace class of low level external dart functions for Hetu to use.
+abstract class HT_ExternClass extends HT_Object {
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  final HT_TypeId typeid = HT_TypeId.CLASS;
+}
+
+class HT_ExternClass_Number extends HT_ExternClass {
+  @override
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'parse':
         return (String value) => num.tryParse(value);
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
   }
 }
 
-class HT_ExternClass_Bool extends HT_ExternNamespace {
+class HT_ExternClass_Bool extends HT_ExternClass {
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'parse':
         return (String value) {
           return (value.toLowerCase() == 'true') ? true : false;
         };
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
   }
 }
 
-class HT_ExternClass_String extends HT_ExternNamespace {
+class HT_ExternClass_String extends HT_ExternClass {
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'parse':
         return (dynamic value) {
           // TODO: 如果是脚本对象，需要调用脚本自己的toString
           return value.toString();
         };
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
   }
 }
 
-class HT_ExternClass_Math extends HT_ExternNamespace {
+class HT_ExternClass_Math extends HT_ExternClass {
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'random':
         return () => math.Random().nextDouble();
       case 'randomInt':
@@ -107,19 +109,19 @@ class HT_ExternClass_Math extends HT_ExternNamespace {
       case 'cos':
         return (num x) => math.cos(x);
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
   }
 }
 
-class HT_ExternClass_System extends HT_ExternNamespace {
-  final CodeRunner interpreter;
-
-  HT_ExternClass_System(this.interpreter);
+class HT_ExternClass_System extends HT_ExternClass with InterpreterRef {
+  HT_ExternClass_System(Interpreter interpreter) {
+    this.interpreter = interpreter;
+  }
 
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'invoke':
         return (String functionName,
                 {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) =>
@@ -127,15 +129,15 @@ class HT_ExternClass_System extends HT_ExternNamespace {
       case 'now':
         return () => DateTime.now().millisecondsSinceEpoch;
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
   }
 }
 
-class HT_ExternClass_Console extends HT_ExternNamespace {
+class HT_ExternClass_Console extends HT_ExternClass {
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'write':
         return (dynamic value) => stdout.write(value);
       case 'writeln':
@@ -156,7 +158,7 @@ class HT_ExternClass_Console extends HT_ExternNamespace {
       case 'clear':
         return () => stdout.write('\x1B[2J\x1B[0;0H');
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
   }
 }

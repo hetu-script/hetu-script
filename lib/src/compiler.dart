@@ -2,16 +2,14 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'expression.dart';
-import 'statement.dart';
 import 'parser.dart' show ParseStyle;
 
 import 'opcode.dart';
 import 'token.dart';
-import 'common.dart';
 import 'lexicon.dart';
-import 'errors.dart';
+import 'context.dart';
 
-class Compiler implements ExprVisitor, StmtVisitor {
+class Compiler implements ASTNodeVisitor {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
   static const hetuVersionData = [0, 1, 0, 0, 0, 0];
@@ -23,7 +21,7 @@ class Compiler implements ExprVisitor, StmtVisitor {
 
   late BytesBuilder _bytesBuilder;
 
-  Uint8List compileAST(List<Stmt> statements, HT_Context context, String fileName,
+  Uint8List compileAST(List<ASTNode> statements, HT_Context context, String fileName,
       [ParseStyle style = ParseStyle.library]) {
     _context = context;
     _curFileName = fileName;
@@ -64,9 +62,9 @@ class Compiler implements ExprVisitor, StmtVisitor {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _compileExpr(Expr expr) => expr.accept(this);
+  Uint8List _compileExpr(ASTNode expr) => expr.accept(this);
 
-  Uint8List _compileStmt(Stmt stmt) => stmt.accept(this);
+  Uint8List _compileStmt(ASTNode stmt) => stmt.accept(this);
 
   @override
   dynamic visitNullExpr(NullExpr expr) {}
@@ -109,9 +107,6 @@ class Compiler implements ExprVisitor, StmtVisitor {
 
   @override
   dynamic visitLiteralDictExpr(LiteralDictExpr expr) {}
-
-  @override
-  dynamic visitLiteralFunctionExpr(LiteralFunctionExpr expr) {}
 
   // @override
   // dynamic visitTypeExpr(TypeExpr expr) {}
@@ -198,7 +193,7 @@ class Compiler implements ExprVisitor, StmtVisitor {
   dynamic visitParamDeclStmt(ParamDeclStmt stmt) {}
 
   @override
-  dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {}
+  dynamic visitFuncDeclStmt(FuncDeclaration stmt) {}
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {}

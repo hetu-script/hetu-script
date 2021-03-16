@@ -1,11 +1,10 @@
-import 'package:hetu_script/hetu_script.dart';
-
 import 'class.dart';
 import 'namespace.dart';
-import 'statement.dart';
 import 'errors.dart';
 import 'type.dart';
 import 'lexicon.dart';
+import 'expression.dart';
+import 'ast_interpreter.dart';
 
 class HT_FunctionType extends HT_TypeId {
   final HT_TypeId returnType;
@@ -39,18 +38,16 @@ class HT_FunctionType extends HT_TypeId {
   }
 }
 
-class HT_Function with HT_Type {
+class HT_Function with HT_Type, ASTInterpreterRef {
   static int functionIndex = 0;
-
-  HT_Interpreter interpreter;
 
   HT_Namespace declContext;
   late HT_Namespace _closure;
   //HT_Namespace _save;
-  String get id => funcStmt.id;
+  String get id => funcStmt.id?.lexeme ?? '';
   String get internalName => funcStmt.internalName;
 
-  final FuncDeclStmt funcStmt;
+  final FuncDeclaration funcStmt;
 
   late final HT_FunctionType _typeid;
   @override
@@ -58,9 +55,10 @@ class HT_Function with HT_Type {
 
   final bool isExtern;
 
-  HT_Function(this.funcStmt, this.declContext, this.interpreter,
+  HT_Function(this.funcStmt, this.declContext, HT_ASTInterpreter interpreter,
       {List<HT_TypeId> typeArgs = const [], this.isExtern = false}) {
     //_save = _closure = closure;
+    this.interpreter = interpreter;
 
     var paramsTypes = <HT_TypeId>[];
     for (final param in funcStmt.params) {
@@ -98,14 +96,10 @@ class HT_Function with HT_Type {
   }
 
   dynamic call(
-      {int? line,
-      int? column,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      HT_Object? object}) {
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HT_Instance? instance}) {
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
-      throw HTErr_Arity(id, positionalArgs.length, funcStmt.arity, interpreter.curFileName, line, column);
+      throw HT_Error_Arity(id, positionalArgs.length, funcStmt.arity);
     }
 
     dynamic result;
@@ -114,12 +108,11 @@ class HT_Function with HT_Type {
         //_save = _closure;
         //assert(closure != null);
         // 函数每次在调用时，才生成对应的作用域
-        if (object != null) {
-          _closure = HT_Namespace(id: '__${object.id}.$id${functionIndex++}', closure: object);
-          _closure.define(HT_Lexicon.THIS, interpreter,
-              declType: object.typeid, line: line, column: column, isImmutable: true);
+        if (instance != null) {
+          _closure = HT_Namespace(interpreter, id: '__${instance.id}.$id${functionIndex++}', closure: instance);
+          _closure.define(HT_Lexicon.THIS, declType: instance.typeid, isImmutable: true);
         } else {
-          _closure = HT_Namespace(id: '__$id${functionIndex++}', closure: declContext);
+          _closure = HT_Namespace(interpreter, id: '__$id${functionIndex++}', closure: declContext);
         }
 
         for (var i = 0; i < funcStmt.params.length; ++i) {
@@ -146,24 +139,20 @@ class HT_Function with HT_Type {
           if (!param.isVariadic) {
             var arg_type = HT_TypeOf(arg);
             if (arg_type.isNotA(arg_type_decl)) {
-              throw HTErr_ArgType(
-                  arg.toString(), arg_type.toString(), arg_type_decl.toString(), interpreter.curFileName, line, column);
+              throw HT_Error_ArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
             }
-            _closure.define(param.id.lexeme, interpreter,
-                declType: arg_type_decl, line: line, column: column, value: arg);
+            _closure.define(param.id.lexeme, declType: arg_type_decl, value: arg);
           } else {
             var varargs = [];
             for (var j = i; j < positionalArgs.length; ++j) {
               arg = positionalArgs[j];
               var arg_type = HT_TypeOf(arg);
               if (arg_type.isNotA(arg_type_decl)) {
-                throw HTErr_ArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString(),
-                    interpreter.curFileName, line, column);
+                throw HT_Error_ArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
               }
               varargs.add(arg);
             }
-            _closure.define(param.id.lexeme, interpreter,
-                declType: HT_TypeId.list, line: line, column: column, value: varargs);
+            _closure.define(param.id.lexeme, declType: HT_TypeId.list, value: varargs);
             break;
           }
         }
@@ -171,20 +160,17 @@ class HT_Function with HT_Type {
         result = interpreter.executeBlock(funcStmt.definition!, _closure);
         //_closure = _save;
       } else {
-        throw HTErr_FuncWithoutBody(id, interpreter.curFileName, line, column);
+        throw HT_Error_MissingFuncDef(id);
       }
     } catch (returnValue) {
-      if (returnValue is HT_Error) {
+      if ((returnValue is HT_Error) || (returnValue is Exception) || (returnValue is Error)) {
         rethrow;
-      } else if ((returnValue is Exception) || (returnValue is Error) || (returnValue is NoSuchMethodError)) {
-        throw HT_Error(returnValue.toString(), interpreter.curFileName, line, column);
       }
 
       var returned_type = HT_TypeOf(returnValue);
 
       if (returned_type.isNotA(funcStmt.returnType)) {
-        throw HTErr_ReturnType(
-            returned_type.toString(), id, funcStmt.returnType.toString(), interpreter.curFileName, line, column);
+        throw HT_Error_ReturnType(returned_type.toString(), id, funcStmt.returnType.toString());
       }
 
       if (returnValue is NullThrownError) return null;

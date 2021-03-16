@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = HT_Interpreter(externalFunctions: {
+  var hetu = HT_ASTInterpreter(externalFunctions: {
     'hello': () => {'greeting': 'hello'},
   });
   hetu.eval(r'''

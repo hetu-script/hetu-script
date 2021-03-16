@@ -5,48 +5,48 @@ import 'token.dart';
 class Lexer {
   Lexer();
 
-  List<Token> lex(String content) {
+  List<Token> lex(String content, String fileName) {
     final tokens = <Token>[];
-    var currentLine = 0;
-    var column;
+    var curLine = 0;
+    var curColumn;
     var pattern = RegExp(
       HT_Lexicon.scriptPattern,
       caseSensitive: false,
       unicode: true,
     );
     for (final line in content.split('\n')) {
-      ++currentLine;
+      ++curLine;
       var matches = pattern.allMatches(line);
       for (final match in matches) {
         var matchString = match.group(0)!;
-        column = match.start + 1;
+        curColumn = match.start + 1;
         if (match.group(HT_Lexicon.tokenGroupComment) == null) {
           // 标识符
           if (match.group(HT_Lexicon.tokenGroupIdentifier) != null) {
             if (HT_Lexicon.keywords.contains(matchString)) {
-              tokens.add(Token(matchString, currentLine, column));
+              tokens.add(Token(matchString, fileName, curLine, curColumn));
             } else if (matchString == HT_Lexicon.TRUE) {
-              tokens.add(TokenBoolLiteral(matchString, true, currentLine, column));
+              tokens.add(TokenBoolLiteral(matchString, true, fileName, curLine, curColumn));
             } else if (matchString == HT_Lexicon.FALSE) {
-              tokens.add(TokenBoolLiteral(matchString, false, currentLine, column));
+              tokens.add(TokenBoolLiteral(matchString, false, fileName, curLine, curColumn));
             } else {
-              tokens.add(TokenIdentifier(matchString, currentLine, column));
+              tokens.add(TokenIdentifier(matchString, fileName, curLine, curColumn));
             }
           }
           // 标点符号和运算符号
           else if (match.group(HT_Lexicon.tokenGroupPunctuation) != null) {
-            tokens.add(Token(matchString, currentLine, column));
+            tokens.add(Token(matchString, fileName, curLine, curColumn));
           }
           // 数字字面量
           else if (match.group(HT_Lexicon.tokenGroupInt) != null) {
-            tokens.add(TokenIntLiteral(matchString, int.parse(matchString), currentLine, column));
+            tokens.add(TokenIntLiteral(matchString, int.parse(matchString), fileName, curLine, curColumn));
           } else if (match.group(HT_Lexicon.tokenGroupFloat) != null) {
-            tokens.add(TokenFloatLiteral(matchString, double.parse(matchString), currentLine, column));
+            tokens.add(TokenFloatLiteral(matchString, double.parse(matchString), fileName, curLine, curColumn));
           }
           // 字符串字面量
           else if (match.group(HT_Lexicon.tokenGroupString) != null) {
             var literal = HT_Lexicon.convertStringLiteral(matchString);
-            tokens.add(TokenStringLiteral(matchString, literal, currentLine, column));
+            tokens.add(TokenStringLiteral(matchString, fileName, literal, curLine, curColumn));
           }
         }
       }

@@ -16,6 +16,6 @@ fun print(... items) {
 external fun _string(items: List<any>): String
 
 // concact values of any type into string
-external fun string(... items): String{
+fun string(... items): String{
   return _string(items)
 }

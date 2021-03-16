@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = HT_Interpreter();
+  var hetu = HT_ASTInterpreter();
 
   group('interpreter error handling test -', () {
     test('const definition', () async {
@@ -13,7 +13,7 @@ void main() async {
               i = 137
               ''', style: ParseStyle.function);
         },
-        throwsA(isA<HTErr_Immutable>()),
+        throwsA(isA<HT_Error_Immutable>()),
       );
     });
   });

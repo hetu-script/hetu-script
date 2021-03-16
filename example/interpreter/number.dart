@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = HT_Interpreter();
+  var hetu = HT_ASTInterpreter();
 
   hetu.eval(r'''
       fun main {

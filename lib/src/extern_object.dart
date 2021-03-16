@@ -1,9 +1,10 @@
+import 'package:hetu_script/src/object.dart';
+
 import 'type.dart';
 import 'errors.dart';
 import 'lexicon.dart';
-import 'extern_class.dart' show HT_ExternNamespace;
 
-abstract class HT_ExternObject<T> extends HT_ExternNamespace with HT_Type {
+abstract class HT_ExternObject<T> extends HT_Object {
   T externObject;
   HT_ExternObject(this.externObject);
 }
@@ -16,20 +17,15 @@ class HT_Dart_Number extends HT_ExternObject<num> {
   final typeid = HT_TypeId.number;
 
   @override
-  dynamic fetch(String id) {
+  dynamic fetch(String id, {String? from}) {
     switch (id) {
       case 'toStringAsFixed':
         return externObject.toStringAsFixed;
       case 'truncate':
         return externObject.truncate;
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(id);
     }
-  }
-
-  @override
-  void assign(String id, dynamic value) {
-    throw HTErr_Assign(id);
   }
 }
 
@@ -41,18 +37,13 @@ class HT_DartObject_Boolean extends HT_ExternObject<bool> {
   final typeid = HT_TypeId.boolean;
 
   @override
-  dynamic fetch(String id) {
+  dynamic fetch(String id, {String? from}) {
     switch (id) {
       case 'parse':
         return externObject.toString;
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(id);
     }
-  }
-
-  @override
-  void assign(String id, dynamic value) {
-    throw HTErr_Assign(id);
   }
 }
 
@@ -64,20 +55,15 @@ class HT_DartObject_String extends HT_ExternObject<String> {
   final typeid = HT_TypeId.string;
 
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'isEmpty':
         return externObject.isEmpty;
       case 'subString':
         return externObject.substring;
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
-  }
-
-  @override
-  void assign(String id, dynamic value) {
-    throw HTErr_Assign(id);
   }
 }
 
@@ -91,8 +77,8 @@ class HT_DartObject_List<T> extends HT_ExternObject<List<T>> {
   final typeid = HT_TypeId.list;
 
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -112,13 +98,8 @@ class HT_DartObject_List<T> extends HT_ExternObject<List<T>> {
       case 'elementAt':
         return externObject.elementAt;
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
-  }
-
-  @override
-  void assign(String id, dynamic value) {
-    throw HTErr_Assign(id);
   }
 }
 
@@ -133,8 +114,8 @@ class HT_DartObject_Map<K, V> extends HT_ExternObject<Map<K, V>> {
   final typeid = HT_TypeId.map;
 
   @override
-  dynamic fetch(String id) {
-    switch (id) {
+  dynamic fetch(String varName, {String? from}) {
+    switch (varName) {
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -163,12 +144,7 @@ class HT_DartObject_Map<K, V> extends HT_ExternObject<Map<K, V>> {
       case 'putIfAbsent':
         return externObject.putIfAbsent;
       default:
-        throw HTErr_Undefined(id);
+        throw HT_Error_Undefined(varName);
     }
-  }
-
-  @override
-  void assign(String id, dynamic value) {
-    throw HTErr_Assign(id);
   }
 }

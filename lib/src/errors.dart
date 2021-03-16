@@ -4,229 +4,219 @@ class HT_Break {}
 
 class HT_Continue {}
 
-class HT_Error {
-  String message;
-  int? line;
-  int? column;
-  String? fileName;
+enum HT_ErrorType {
+  parser,
+  resolver,
+  compiler,
+  interpreter,
+  unknown,
+}
 
-  HT_Error(this.message, [this.fileName, this.line, this.column]);
+abstract class HT_Error {
+  static void warn(String message) => print('hetu warn:\n' + message);
+
+  final String message;
+  final HT_ErrorType type;
+
+  HT_Error(this.message, this.type);
+}
+
+class HT_ParserError extends HT_Error {
+  HT_ParserError(String message) : super(message, HT_ErrorType.parser);
+}
+
+class HT_ResolverError extends HT_Error {
+  HT_ResolverError(String message) : super(message, HT_ErrorType.resolver);
+}
+
+class HT_CompilerError extends HT_Error {
+  HT_CompilerError(String message) : super(message, HT_ErrorType.compiler);
+}
+
+class HT_InterpreterError extends HT_Error {
+  int line;
+  int column;
+  String fileName;
+
+  // interpreter会也会处理其他module抛出的异常，因此这里不指定类型
+  HT_InterpreterError(String message, HT_ErrorType type, this.fileName, this.line, this.column) : super(message, type);
 
   @override
   String toString() {
-    var result = StringBuffer();
-    result.write('hetu error:');
-    if (fileName != null) {
-      result.write(' [file: $fileName]');
-    }
-    if ((line != null) && (column != null)) {
-      result.write(' [line: $line, column: $column]');
-    }
-    result.writeln('\n$message');
-    return result.toString();
+    return '''
+    hetu error:
+    [source: $type]
+    [file: $fileName]
+    [line: $line, column: $column]
+    $message
+    ''';
   }
-
-  static final _warnings = <String>[];
-
-  static void add(String message) => _warnings.add(message);
-
-  static void output() {
-    for (final msg in _warnings) {
-      print('Warning: $msg');
-    }
-  }
-
-  static void clear() => _warnings.clear();
 }
 
-class HTErr_Assign extends HT_Error {
-  HTErr_Assign(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorAssign} "$id"', fileName, line, column);
+// class HT_Error_Assign extends HT_Error {
+//   HT_Error_Assign(String id) : super('${HT_Lexicon.errorAssign} "$id"');
+// }
+
+// class HT_Error_Unsupport extends HT_Error {
+//   HT_Error_Unsupport(String id) : super('${HT_Lexicon.errorUnsupport} "$id"');
+// }
+
+class HT_Error_Expected extends HT_ParserError {
+  HT_Error_Expected(String expected, String met)
+      : super('"${expected != '\n' ? expected : '\\n'}" ${HT_Lexicon.errorExpected} "${met != '\n' ? met : '\\n'}"');
 }
 
-class HTErr_Unsupport extends HT_Error {
-  HTErr_Unsupport(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorUnsupport} "$id"', fileName, line, column);
+class HT_Error_ConstMustBeStatic extends HT_ParserError {
+  HT_Error_ConstMustBeStatic(String id) : super(HT_Lexicon.errorConstMustBeStatic);
 }
 
-class HTErr_Expected extends HT_Error {
-  HTErr_Expected(String expected, String met, [String? fileName, int? line, int? column])
-      : super('"${expected != '\n' ? expected : '\\n'}" ${HT_Lexicon.errorExpected} "${met != '\n' ? met : '\\n'}"',
-            fileName, line, column);
+class HT_Error_Unexpected extends HT_ParserError {
+  HT_Error_Unexpected(String id) : super('${HT_Lexicon.errorUnexpected} "${id != '\n' ? id : '\\n'}"');
 }
 
-class HTErr_ConstMustBeStatic extends HT_Error {
-  HTErr_ConstMustBeStatic(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorConstMustBeStatic}', fileName, line, column);
+class HT_Error_Return extends HT_ResolverError {
+  HT_Error_Return(String id) : super(HT_Lexicon.errorReturn);
 }
 
-class HTErr_Unexpected extends HT_Error {
-  HTErr_Unexpected(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorUnexpected} "${id != '\n' ? id : '\\n'}"', fileName, line, column);
+class HT_Error_PrivateMember extends HT_Error {
+  HT_Error_PrivateMember(String id) : super('${HT_Lexicon.errorPrivateMember} "$id"', HT_ErrorType.interpreter);
 }
 
-class HTErr_PrivateMember extends HT_Error {
-  HTErr_PrivateMember(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorPrivateMember} "$id"', fileName, line, column);
+class HT_Error_PrivateDecl extends HT_Error {
+  HT_Error_PrivateDecl(String id) : super('${HT_Lexicon.errorPrivateDecl} "$id"', HT_ErrorType.interpreter);
 }
 
-class HTErr_PrivateDecl extends HT_Error {
-  HTErr_PrivateDecl(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorPrivateDecl} "$id"', fileName, line, column);
+class HT_Error_Initialized extends HT_Error {
+  HT_Error_Initialized(String id) : super('"$id" ${HT_Lexicon.errorInitialized}', HT_ErrorType.resolver);
 }
 
-class HTErr_Initialized extends HT_Error {
-  HTErr_Initialized(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorInitialized}', fileName, line, column);
+class HT_Error_Undefined extends HT_Error {
+  HT_Error_Undefined(String id) : super('${HT_Lexicon.errorUndefined} "$id"', HT_ErrorType.interpreter);
 }
 
-class HTErr_Undefined extends HT_Error {
-  HTErr_Undefined(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorUndefined} "$id"', fileName, line, column);
+class HT_Error_UndefinedOperator extends HT_Error {
+  HT_Error_UndefinedOperator(String id1, String op)
+      : super('${HT_Lexicon.errorUndefinedOperator} "$id1" "$op"', HT_ErrorType.interpreter);
 }
 
-class HTErr_UndefinedOperator extends HT_Error {
-  HTErr_UndefinedOperator(String id1, String op, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorUndefinedOperator} "$id1" "$op"', fileName, line, column);
+class HT_Error_UndefinedBinaryOperator extends HT_Error {
+  HT_Error_UndefinedBinaryOperator(String id1, String id2, String op)
+      : super('${HT_Lexicon.errorUndefinedOperator} "$id1" "$op" "$id2"', HT_ErrorType.interpreter);
 }
 
-class HTErr_UndefinedBinaryOperator extends HT_Error {
-  HTErr_UndefinedBinaryOperator(String id1, String id2, String op, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorUndefinedOperator} "$id1" "$op" "$id2"', fileName, line, column);
+// class HT_Error_Declared extends HT_Error {
+//   HT_Error_Declared(String id) : super('"$id" ${HT_Lexicon.errorDeclared}');
+// }
+
+class HT_Error_Defined_Parser extends HT_ParserError {
+  HT_Error_Defined_Parser(String id) : super('"$id" ${HT_Lexicon.errorDefined}');
 }
 
-class HTErr_Declared extends HT_Error {
-  HTErr_Declared(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorDeclared}', fileName, line, column);
+class HT_Error_Defined_Runtime extends HT_Error {
+  HT_Error_Defined_Runtime(String id) : super('"$id" ${HT_Lexicon.errorDefined}', HT_ErrorType.interpreter);
 }
 
-class HTErr_Defined extends HT_Error {
-  HTErr_Defined(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorDefined}', fileName, line, column);
+// class HT_Error_Range extends HT_Error {
+//   HT_Error_Range(int length) : super('${HT_Lexicon.errorRange} "$length"');
+// }
+
+class HT_Error_InvalidLeftValue extends HT_ParserError {
+  HT_Error_InvalidLeftValue(String id) : super('${HT_Lexicon.errorInvalidLeftValue} "$id"');
 }
 
-class HTErr_Range extends HT_Error {
-  HTErr_Range(int length, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorRange} "$length"', fileName, line, column);
+class HT_Error_Setter extends HT_ParserError {
+  HT_Error_Setter() : super(HT_Lexicon.errorSetter);
 }
 
-class HTErr_InvalidLeftValue extends HT_Error {
-  HTErr_InvalidLeftValue(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorInvalidLeftValue} "$id"', fileName, line, column);
+class HT_Error_NotClass extends HT_ParserError {
+  HT_Error_NotClass(String id) : super('"$id" ${HT_Lexicon.errorNotClass}');
 }
 
-class HTErr_Callable extends HT_Error {
-  HTErr_Callable(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorCallable}', fileName, line, column);
+class HT_Error_Callable extends HT_Error {
+  HT_Error_Callable(String id) : super('"$id" ${HT_Lexicon.errorCallable}', HT_ErrorType.interpreter);
 }
 
-class HTErr_UndefinedMember extends HT_Error {
-  HTErr_UndefinedMember(String id, String type, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorUndefinedMember} "$type"', fileName, line, column);
+class HT_Error_UndefinedMember extends HT_Error {
+  HT_Error_UndefinedMember(String id, String type)
+      : super('"$id" ${HT_Lexicon.errorUndefinedMember} "$type"', HT_ErrorType.interpreter);
 }
 
-class HTErr_Condition extends HT_Error {
-  HTErr_Condition([int? line, int? column, String? fileName])
-      : super(HT_Lexicon.errorCondition, fileName, line, column);
+class HT_Error_Condition extends HT_Error {
+  HT_Error_Condition() : super(HT_Lexicon.errorCondition, HT_ErrorType.interpreter);
 }
 
-class HTErr_MissingFuncDef extends HT_Error {
-  HTErr_MissingFuncDef(String id, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorMissingFuncDef} "$id"', fileName, line, column);
+class HT_Error_Get extends HT_Error {
+  HT_Error_Get(String id) : super('"$id" ${HT_Lexicon.errorGet}', HT_ErrorType.interpreter);
 }
 
-class HTErr_Get extends HT_Error {
-  HTErr_Get(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorGet}', fileName, line, column);
+class HT_Error_SubGet extends HT_Error {
+  HT_Error_SubGet(String id) : super('"$id" ${HT_Lexicon.errorSubGet}', HT_ErrorType.interpreter);
 }
 
-class HTErr_SubGet extends HT_Error {
-  HTErr_SubGet(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorSubGet}', fileName, line, column);
+class HT_Error_Extends extends HT_Error {
+  HT_Error_Extends(String id) : super('"$id" ${HT_Lexicon.errorExtends}', HT_ErrorType.interpreter);
 }
 
-class HTErr_Extends extends HT_Error {
-  HTErr_Extends(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorExtends}', fileName, line, column);
-}
+// class HT_Error_NullObject extends HT_Error {
+//   HT_Error_NullObject(String id) : super('"$id" ${HT_Lexicon.errorNullObject}');
+// }
 
-class HTErr_Setter extends HT_Error {
-  HTErr_Setter([int? line, int? column, String? fileName]) : super('${HT_Lexicon.errorSetter}', fileName, line, column);
-}
-
-class HTErr_NullObject extends HT_Error {
-  HTErr_NullObject(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorNullObject}', fileName, line, column);
-}
-
-class HTErr_Type extends HT_Error {
-  HTErr_Type(String id, String valueType, String declValue, [String? fileName, int? line, int? column])
+class HT_Error_Type extends HT_Error {
+  HT_Error_Type(String id, String valueType, String declValue)
       : super(
             '${HT_Lexicon.errorType1} "$id" ${HT_Lexicon.errorOfType} "$declValue" ${HT_Lexicon.errorType2} "$valueType"',
-            fileName,
-            line,
-            column);
+            HT_ErrorType.interpreter);
 }
 
-class HTErr_Immutable extends HT_Error {
-  HTErr_Immutable(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorImmutable}', fileName, line, column);
+class HT_Error_Immutable extends HT_Error {
+  HT_Error_Immutable(String id) : super('"$id" ${HT_Lexicon.errorImmutable}', HT_ErrorType.interpreter);
 }
 
-class HTErr_NotType extends HT_Error {
-  HTErr_NotType(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorNotType}', fileName, line, column);
+class HT_Error_NotType extends HT_Error {
+  HT_Error_NotType(String id) : super('"$id" ${HT_Lexicon.errorNotType}', HT_ErrorType.interpreter);
 }
 
-class HTErr_NotClass extends HT_Error {
-  HTErr_NotClass(String id, [String? fileName, int? line, int? column])
-      : super('"$id" ${HT_Lexicon.errorNotClass}', fileName, line, column);
-}
-
-class HTErr_ArgType extends HT_Error {
-  HTErr_ArgType(String id, String assignValue, String declValue, [String? fileName, int? line, int? column])
+class HT_Error_ArgType extends HT_Error {
+  HT_Error_ArgType(String id, String assignValue, String declValue)
       : super(
-          '${HT_Lexicon.errorArgType1} "$assignValue" ${HT_Lexicon.errorOfType} "$assignValue" ${HT_Lexicon.errorArgType2} "$declValue"',
-          fileName,
-          line,
-          column,
-        );
+            '${HT_Lexicon.errorArgType1} "$assignValue" ${HT_Lexicon.errorOfType} "$assignValue" ${HT_Lexicon.errorArgType2} "$declValue"',
+            HT_ErrorType.interpreter);
 }
 
-class HTErr_ReturnType extends HT_Error {
-  HTErr_ReturnType(String returnedType, String funcName, String declReturnType,
-      [String? fileName, int? line, int? column])
-      : super(
+class HT_Error_ReturnType extends HT_Error {
+  HT_Error_ReturnType(
+    String returnedType,
+    String funcName,
+    String declReturnType,
+  ) : super(
             '"$returnedType" ${HT_Lexicon.errorReturnType2}'
             ' "$funcName" ${HT_Lexicon.errorReturnType3} "$declReturnType"',
-            fileName,
-            line,
-            column);
+            HT_ErrorType.interpreter);
 }
 
-class HTErr_FuncWithoutBody extends HT_Error {
-  HTErr_FuncWithoutBody(String funcName, [String? fileName, int? line, int? column])
-      : super('$funcName ${HT_Lexicon.errorFuncWithoutBody}', fileName, line, column);
+class HT_Error_MissingFuncDef extends HT_Error {
+  HT_Error_MissingFuncDef(String funcName)
+      : super('${HT_Lexicon.errorMissingFuncDef} $funcName', HT_ErrorType.interpreter);
 }
 
-class HTErr_Arity extends HT_Error {
-  HTErr_Arity(String id, int argsCount, int paramsCount, [String? fileName, int? line, int? column])
-      : super('${HT_Lexicon.errorArity1} [$argsCount] ${HT_Lexicon.errorArity2} [$id] [$paramsCount]', fileName, line,
-            column);
+class HT_Error_Arity extends HT_Error {
+  HT_Error_Arity(String id, int argsCount, int paramsCount)
+      : super('${HT_Lexicon.errorArity1} [$argsCount] ${HT_Lexicon.errorArity2} [$id] [$paramsCount]',
+            HT_ErrorType.interpreter);
 }
 
-class HTErr_Signature extends HT_Error {
-  HTErr_Signature([String? fileName]) : super('${HT_Lexicon.errorSignature}', fileName);
+class HT_Error_Signature extends HT_Error {
+  HT_Error_Signature() : super(HT_Lexicon.errorSignature, HT_ErrorType.interpreter);
 }
 
-class HTErr_Int64Table extends HT_Error {
-  HTErr_Int64Table([String? fileName]) : super('${HT_Lexicon.errorInt64Table}', fileName);
+class HT_Error_Int64Table extends HT_Error {
+  HT_Error_Int64Table() : super(HT_Lexicon.errorInt64Table, HT_ErrorType.interpreter);
 }
 
-class HTErr_Float64Table extends HT_Error {
-  HTErr_Float64Table([String? fileName]) : super('${HT_Lexicon.errorFloat64Table}', fileName);
+class HT_Error_Float64Table extends HT_Error {
+  HT_Error_Float64Table() : super(HT_Lexicon.errorFloat64Table, HT_ErrorType.interpreter);
 }
 
-class HTErr_StringTable extends HT_Error {
-  HTErr_StringTable([String? fileName]) : super('${HT_Lexicon.errorStringTable}', fileName);
+class HT_Error_StringTable extends HT_Error {
+  HT_Error_StringTable() : super(HT_Lexicon.errorStringTable, HT_ErrorType.interpreter);
 }
