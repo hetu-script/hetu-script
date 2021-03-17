@@ -2,6 +2,11 @@ import 'errors.dart';
 import 'extern_class.dart';
 import 'lexicon.dart';
 
+///用于生成自动绑定代码的Annotation标记
+class HTBinding {
+  const HTBinding();
+}
+
 mixin Binding {
   final _externClasses = <String, HTExternClass>{};
   final _externFunctions = <String, Function>{};
