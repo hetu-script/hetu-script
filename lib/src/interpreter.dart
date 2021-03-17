@@ -9,7 +9,7 @@ mixin InterpreterRef {
   late final Interpreter interpreter;
 }
 
-abstract class Interpreter with Binding {
+abstract class Interpreter with BindingHandler {
   String get workingDirectory;
 
   Future<dynamic> eval(

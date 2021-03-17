@@ -7,7 +7,7 @@ class HTBinding {
   const HTBinding();
 }
 
-mixin Binding {
+mixin BindingHandler {
   final _externClasses = <String, HTExternalClass>{};
   final _externFunctions = <String, HTExternalFunction>{};
 
