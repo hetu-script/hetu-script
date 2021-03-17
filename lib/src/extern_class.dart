@@ -33,7 +33,7 @@ abstract class HTExternGlobal {
 
   static Map<String, Function> functions = {
     // TODO: 读取注释
-    'help': (String funcName) {},
+    'help': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {},
     'print': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
       var sb = StringBuffer();
       for (final arg in positionalArgs) {
@@ -51,7 +51,7 @@ class HTExternClassNumber extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
-        return (String input) => num.tryParse(input);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => num.tryParse(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
     }
@@ -65,8 +65,8 @@ class HTExternClassBool extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
-        return (String input) {
-          return (input.toLowerCase() == 'true') ? true : false;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
+          return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
         throw HTErrorUndefined(varName);
@@ -81,9 +81,9 @@ class HTExternClassString extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
-        return (dynamic value) {
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
           // TODO: 如果是脚本对象，需要调用脚本自己的toString
-          return value.toString();
+          return positionalArgs.first.toString();
         };
       default:
         throw HTErrorUndefined(varName);
@@ -98,17 +98,18 @@ class HTExternClassMath extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'random':
-        return () => math.Random().nextDouble();
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => math.Random().nextDouble();
       case 'randomInt':
-        return (int max) => math.Random().nextInt(max);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            math.Random().nextInt(positionalArgs.first);
       case 'sqrt':
-        return (num x) => math.sqrt(x);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => math.sqrt(positionalArgs.first);
       case 'log':
-        return (num x) => math.log(x);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => math.log(positionalArgs.first);
       case 'sin':
-        return (num x) => math.sin(x);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => math.sin(positionalArgs.first);
       case 'cos':
-        return (num x) => math.cos(x);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => math.cos(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
     }
@@ -124,9 +125,8 @@ class HTExternClassSystem extends HTExternalClass with InterpreterRef {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'invoke':
-        return (String functionName,
-                {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) =>
-            interpreter.invoke(functionName, positionalArgs: positionalArgs, namedArgs: namedArgs);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => interpreter.invoke(positionalArgs[0],
+            positionalArgs: namedArgs['positionalArgs'], namedArgs: namedArgs['namedArgs']);
       case 'now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
@@ -142,24 +142,25 @@ class HTExternClassConsole extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'write':
-        return (dynamic value) => stdout.write(value);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => stdout.write(positionalArgs.first);
       case 'writeln':
-        return ([dynamic value = '']) => stdout.writeln(value);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => stdout.writeln(positionalArgs.first);
       case 'getln':
-        return ([String value = '']) {
-          if (value.isNotEmpty) {
-            stdout.write('$value');
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
+          if (positionalArgs.isNotEmpty) {
+            stdout.write('${positionalArgs.first}');
           } else {
             stdout.write('>');
           }
           return stdin.readLineSync();
         };
       case 'eraseLine':
-        return () => stdout.write('\x1B[1F\x1B[1G\x1B[1K');
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => stdout.write('\x1B[1F\x1B[1G\x1B[1K');
       case 'setTitle':
-        return (String title) => stdout.write('\x1b]0;$title\x07');
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            stdout.write('\x1b]0;${positionalArgs.first}\x07');
       case 'clear':
-        return () => stdout.write('\x1B[2J\x1B[0;0H');
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => stdout.write('\x1B[2J\x1B[0;0H');
       default:
         throw HTErrorUndefined(varName);
     }

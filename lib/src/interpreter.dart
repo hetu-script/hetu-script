@@ -10,6 +10,9 @@ mixin InterpreterRef {
 }
 
 abstract class Interpreter with BindingHandler {
+  int get curLine;
+  int get curColumn;
+  String curFileName = '';
   String get workingDirectory;
 
   Future<dynamic> eval(

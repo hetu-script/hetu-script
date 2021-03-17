@@ -21,11 +21,12 @@ class HTNumber extends HTExternObject<num> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return externObject.toString;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
       case 'toStringAsFixed':
-        return externObject.toStringAsFixed;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.toStringAsFixed(positionalArgs.first);
       case 'truncate':
-        return externObject.truncate;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.truncate();
       default:
         throw HTErrorUndefined(id);
     }
@@ -45,7 +46,7 @@ class HTBoolean extends HTExternObject<bool> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return externObject.toString;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
       case 'parse':
         return externObject.toString;
       default:
@@ -91,7 +92,7 @@ class HTList<T> extends HTExternObject<List<T>> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return externObject.toString;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -99,19 +100,24 @@ class HTList<T> extends HTExternObject<List<T>> {
       case 'isNotEmpty':
         return externObject.isNotEmpty;
       case 'contains':
-        return externObject.contains;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.contains(positionalArgs.first);
       case 'add':
-        return externObject.add;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.add(positionalArgs.first);
       case 'addAll':
-        return externObject.addAll;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.addAll(positionalArgs.first);
       case 'clear':
-        return externObject.clear;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.clear();
       case 'removeAt':
-        return externObject.removeAt;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.removeAt(positionalArgs.first);
       case 'indexOf':
-        return externObject.indexOf;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.indexOf(positionalArgs.first);
       case 'elementAt':
-        return externObject.elementAt;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.elementAt(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
     }
@@ -134,7 +140,7 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return externObject.toString;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -146,17 +152,19 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
       case 'values':
         return externObject.values.toList();
       case 'containsKey':
-        return externObject.containsKey;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.containsKey(positionalArgs.first);
       case 'containsValue':
-        return externObject.containsValue;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.containsValue(positionalArgs.first);
       case 'addAll':
-        return externObject.addAll;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.addAll(positionalArgs.first);
       case 'clear':
-        return externObject.clear;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.clear();
       case 'remove':
-        return externObject.remove;
-      case 'putIfAbsent':
-        return externObject.putIfAbsent;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.remove(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
     }

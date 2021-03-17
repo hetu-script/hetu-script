@@ -106,7 +106,7 @@ class HTClass extends HTNamespace {
         return func.call();
       } else {
         final externClass = interpreter.fetchExternalClass(id);
-        final Function getterFunc = externClass.fetch(varName);
+        final getterFunc = externClass.fetch(varName);
         return getterFunc();
       }
     } else if (defs.containsKey(constructor)) {

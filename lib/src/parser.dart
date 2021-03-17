@@ -66,8 +66,11 @@ class Parser {
     while (curTok.type != HTLexicon.endOfFile) {
       var stmt = _parseStmt(style: style);
       if (stmt is ImportStmt) {
+        final savedFileName = curFileName;
         final path = interpreter.workingDirectory + stmt.key;
         await interpreter.import(path, libName: stmt.namespace);
+        curFileName = savedFileName;
+        interpreter.curFileName = savedFileName;
       }
       statements.add(stmt);
     }

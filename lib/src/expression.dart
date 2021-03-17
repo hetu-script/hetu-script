@@ -4,10 +4,6 @@ import 'type.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 abstract class ASTNodeVisitor {
-  int get curLine;
-  int get curColumn;
-  String get curFileName;
-
   /// Null
   dynamic visitNullExpr(NullExpr expr);
 

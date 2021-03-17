@@ -19,7 +19,7 @@ fun main {
 
   // print(p.greeting.typeid)
 
-  var t = Person
+  var t = Person()
 
   // t = Person() // 类型错误
 

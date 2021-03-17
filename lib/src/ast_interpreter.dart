@@ -32,9 +32,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   int _curColumn = 0;
   @override
   int get curColumn => _curColumn;
-  String _curFileName = '';
   @override
-  String get curFileName => _curFileName;
+  String curFileName = '';
 
   @override
   final String workingDirectory;
@@ -103,17 +102,17 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    _curFileName = fileName ?? HTLexicon.anonymousScript + (_fileIndex++).toString();
+    curFileName = fileName ?? HTLexicon.anonymousScript + (_fileIndex++).toString();
 
     curNamespace = context is HTNamespace ? context : _globals;
     var lexer = Lexer();
     var parser = Parser();
     var resolver = Resolver();
     try {
-      var tokens = lexer.lex(content, _curFileName);
+      var tokens = lexer.lex(content, curFileName);
 
-      final statements = await parser.parse(tokens, this, curNamespace, _curFileName, style);
-      _distances.addAll(resolver.resolve(statements, _curFileName, libName: libName));
+      final statements = await parser.parse(tokens, this, curNamespace, curFileName, style);
+      _distances.addAll(resolver.resolve(statements, curFileName, libName: libName));
 
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
@@ -140,7 +139,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
         throw HTInterpreterError('${e.message}\nCall stack:\n$callStack', e.type, resolver.curFileName,
             resolver.curLine, resolver.curColumn);
       } else {
-        throw HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, _curFileName, _curLine, _curColumn);
+        throw HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curFileName, _curLine, _curColumn);
       }
     }
   }
@@ -202,7 +201,6 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    final savedFileName = _curFileName;
     dynamic result;
     if (!_evaledFiles.contains(fileName)) {
       _evaledFiles.add(fileName);
@@ -222,7 +220,6 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
           positionalArgs: positionalArgs,
           namedArgs: namedArgs);
     }
-    _curFileName = savedFileName;
     return result;
   }
 
@@ -236,7 +233,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   //   List<dynamic> positionalArgs = const [],
   //   Map<String, dynamic> namedArgs = const {},
   // }) {
-  //   final savedFileName = _curFileName;
+  //   final savedFileName = curFileName;
   //   dynamic result;
   //   if (!_evaledFiles.contains(fileName)) {
   //     _evaledFiles.add(fileName);
@@ -256,7 +253,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   //         positionalArgs: positionalArgs,
   //         namedArgs: namedArgs);
   //   }
-  //   _curFileName = savedFileName;
+  //   curFileName = savedFileName;
   //   return result;
   // }
 
