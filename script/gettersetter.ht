@@ -30,9 +30,14 @@ class Types extends Root {
 
 // 程序入口
 fun main {
+  print(3.toString())
+  
+  print(true.toString())
+
+  print({ "hi": 42 }.toString())
+
   var t = Types('finch')
 
-  print(3.toString())
 
   print(t.name)
 

@@ -9,7 +9,7 @@ class HTBinding {
 
 mixin BindingHandler {
   final _externClasses = <String, HTExternalClass>{};
-  final _externFunctions = <String, HTExternalFunction>{};
+  final _externFunctions = <String, Function>{};
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
@@ -29,21 +29,21 @@ mixin BindingHandler {
     return _externClasses[id]!;
   }
 
-  void bindExternalFunction(String id, HTExternalFunction function) {
+  void bindExternalFunction(String id, Function function) {
     if (_externFunctions.containsKey(id)) {
       throw HTErrorDefined_Runtime(id);
     }
     _externFunctions[id] = function;
   }
 
-  HTExternalFunction fetchExternalFunction(String id) {
+  Function fetchExternalFunction(String id) {
     if (!_externFunctions.containsKey(id)) {
       throw HTErrorUndefined(id);
     }
     return _externFunctions[id]!;
   }
 
-  void bindExternalVariable(String id, HTExternalFunction getter, HTExternalFunction setter) {
+  void bindExternalVariable(String id, Function getter, Function setter) {
     if (_externFunctions.containsKey(HTLexicon.getter + id) || _externFunctions.containsKey(HTLexicon.setter + id)) {
       throw HTErrorDefined_Runtime(id);
     }

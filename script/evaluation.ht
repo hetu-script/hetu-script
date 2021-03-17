@@ -1,4 +1,5 @@
 fun main {
-  Console.print((3 + 33 * 34.2) / 8)
-  Console.print(true && (33 is num))
+  print(true)
+  print((3 + 33 * 34.2) / 8)
+  print(true && (33 is num))
 }

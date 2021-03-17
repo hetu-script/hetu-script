@@ -65,7 +65,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   }
 
   Future<void> init(
-      {Map<String, HTExternalFunction> externalFunctions = const {},
+      {Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalClass> externalClasses = const {}}) async {
     // load classes and functions in core library.
     for (final file in coreLibs.keys) {
@@ -157,12 +157,12 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       } else if (func is Function) {
         if (func is HTExternalFunction) {
           try {
-            func(positionalArgs, namedArgs);
+            return func(positionalArgs, namedArgs);
           } on RangeError {
             throw HTErrorExternParams();
           }
         } else {
-          Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
           // throw HTErrorExternFunc(func.toString());
         }
       } else {
@@ -177,12 +177,12 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       } else if (func is Function) {
         if (func is HTExternalFunction) {
           try {
-            func(positionalArgs, namedArgs);
+            return func(positionalArgs, namedArgs);
           } on RangeError {
             throw HTErrorExternParams();
           }
         } else {
-          Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
           // throw HTErrorExternFunc(func.toString());
         }
       } else {
@@ -595,7 +595,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
                   throw HTErrorExternParams();
                 }
               } else {
-                Function.apply(
+                return Function.apply(
                     constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
                 // throw HTErrorExternFunc(constructor.toString());
               }
@@ -606,7 +606,17 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
         }
       } else {
         final externFunc = fetchExternalFunction(callee.id);
-        return externFunc(positionalArgs, namedArgs);
+        if (externFunc is HTExternalFunction) {
+          try {
+            return externFunc(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          return Function.apply(
+              externFunc, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(constructor.toString());
+        }
       }
     } else if (callee is HTClass) {
       if (!callee.isExtern) {
@@ -624,7 +634,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
             throw HTErrorExternParams();
           }
         } else {
-          Function.apply(constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          return Function.apply(
+              constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
           // throw HTErrorExternFunc(constructor.toString());
         }
       }
@@ -637,7 +648,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
           throw HTErrorExternParams();
         }
       } else {
-        Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        return Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
         // throw HTErrorExternFunc(callee.toString());
       }
     } else {

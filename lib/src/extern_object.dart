@@ -98,6 +98,8 @@ class HTList<T> extends HTExternObject<List<T>> {
         return externObject.isEmpty;
       case 'isNotEmpty':
         return externObject.isNotEmpty;
+      case 'contains':
+        return externObject.contains;
       case 'add':
         return externObject.add;
       case 'addAll':
@@ -147,11 +149,6 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
         return externObject.containsKey;
       case 'containsValue':
         return externObject.containsValue;
-      // TODO: subGet/Set、memberGet/Set和call本质都应该是函数（__sub__get__, __sub__set__）
-      case '__sub__get__':
-        return;
-      case '__sub__set__':
-        return;
       case 'addAll':
         return externObject.addAll;
       case 'clear':

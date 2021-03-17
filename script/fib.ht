@@ -1,16 +1,31 @@
-fun fib(x: num): num {
-  
-  if (x < 2) return x
-  else return fib(x - 2) + fib(x - 1)
+fun fib(n: num): num {
+  if (n == 0) {
+    return 0
+  } else if (n == 1) {
+    return 1
+  } else {
+    return fib(n - 1) + fib(n - 2)
+  }
+}
 
+fun fibt(n0, n1, c){
+  if (c == 0) {
+    return n0
+  }
+  else if (c == 1) {
+    return n1
+  }
+  return fibt(n1, n0+n1, c-1)
 }
   
-fun main {
+fun fibn(n) {
+  fibt(0, 1, n)
+}
 
-  var before = System.now()
-	System.print(fib(15))
-  var after = System.now()
-  System.print(after - before)
-  
-  
+
+fun main {
+  var before = System.now
+	print('result:', fib(20))
+  var after = System.now
+  print('time: ', after - before)
 }

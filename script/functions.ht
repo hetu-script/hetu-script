@@ -3,7 +3,7 @@ fun doubleIt(n: num): num {
 }
 
 fun main {
-  def x = doubleIt(7); // expect 14
+  let x = doubleIt(7); // expect 14
 
   print(x);
 }

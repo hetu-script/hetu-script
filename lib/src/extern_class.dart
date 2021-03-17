@@ -31,9 +31,9 @@ abstract class HTExternGlobal {
   static const system = 'System';
   static const console = 'Console';
 
-  static Map<String, HTExternalFunction> functions = {
+  static Map<String, Function> functions = {
     // TODO: 读取注释
-    'help': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {},
+    'help': (String funcName) {},
     'print': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
       var sb = StringBuffer();
       for (final arg in positionalArgs) {
@@ -51,7 +51,7 @@ class HTExternClassNumber extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => num.tryParse(positionalArgs.first);
+        return (String input) => num.tryParse(input);
       default:
         throw HTErrorUndefined(varName);
     }
@@ -65,8 +65,8 @@ class HTExternClassBool extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
-          return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
+        return (String input) {
+          return (input.toLowerCase() == 'true') ? true : false;
         };
       default:
         throw HTErrorUndefined(varName);
@@ -128,7 +128,7 @@ class HTExternClassSystem extends HTExternalClass with InterpreterRef {
                 {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) =>
             interpreter.invoke(functionName, positionalArgs: positionalArgs, namedArgs: namedArgs);
       case 'now':
-        return () => DateTime.now().millisecondsSinceEpoch;
+        return DateTime.now().millisecondsSinceEpoch;
       default:
         throw HTErrorUndefined(varName);
     }

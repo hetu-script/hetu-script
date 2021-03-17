@@ -12,17 +12,17 @@ fun main {
   var p = Person()
 
   print(p)
-  print(typeof(p))
+  print(p.typeid)
 
   print(p.greeting())
   print(p.greeting)
 
-  print(typeof(p.greeting))
+  // print(p.greeting.typeid)
 
   var t = Person
 
   // t = Person() // 类型错误
 
   print(t)
-  print(typeof(t))
+  print(t.typeid)
 }

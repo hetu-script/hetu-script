@@ -5,6 +5,7 @@ import 'function.dart';
 import 'errors.dart';
 import 'expression.dart';
 import 'type.dart';
+import 'extern_class.dart' show HTExternalFunction;
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 ///
@@ -172,8 +173,16 @@ class HTClass extends HTNamespace {
           return;
         } else {
           final externSetterFunc = interpreter.fetchExternalFunction('$id.$setter');
-          externSetterFunc([value], const {});
-          return;
+          if (externSetterFunc is HTExternalFunction) {
+            try {
+              return externSetterFunc([value], const {});
+            } on RangeError {
+              throw HTErrorExternParams();
+            }
+          } else {
+            return Function.apply(externSetterFunc, [value]);
+            // throw HTErrorExternFunc(constructor.toString());
+          }
         }
       }
     }

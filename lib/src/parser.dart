@@ -66,7 +66,8 @@ class Parser {
     while (curTok.type != HTLexicon.endOfFile) {
       var stmt = _parseStmt(style: style);
       if (stmt is ImportStmt) {
-        await interpreter.import(stmt.key, libName: stmt.namespace);
+        final path = interpreter.workingDirectory + stmt.key;
+        await interpreter.import(path, libName: stmt.namespace);
       }
       statements.add(stmt);
     }
@@ -308,8 +309,10 @@ class Parser {
         advance(1);
         return NullExpr(curFileName, peek(-1).line, peek(-1).column);
       case HTLexicon.TRUE:
+        advance(1);
         return BooleanExpr(true, curFileName, peek(-1).line, peek(-1).column);
       case HTLexicon.FALSE:
+        advance(1);
         return BooleanExpr(false, curFileName, peek(-1).line, peek(-1).column);
       case HTLexicon.integer:
         var index = _context.addConstInt(curTok.literal);

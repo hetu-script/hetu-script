@@ -1,7 +1,7 @@
 var str1 = 'hello world'
 
 fun main {
-  print(typeof(str1))
+  print(str1.typeid)
   print(str1)
-  print(typeof('hi'))
+  print('hi'.typeid)
 }
