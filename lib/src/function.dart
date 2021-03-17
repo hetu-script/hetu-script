@@ -39,6 +39,8 @@ class HTFunctionType extends HTTypeId {
 }
 
 class HTFunction with HTType, ASTInterpreterRef {
+  static final callStack = <String>[];
+
   HTNamespace declContext;
   late HTNamespace _closure;
   //HTNamespace _save;
@@ -95,6 +97,8 @@ class HTFunction with HTType, ASTInterpreterRef {
 
   dynamic call(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HTInstance? instance}) {
+    callStack.add(internalName);
+
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
       throw HTErrorArity(id, positionalArgs.length, funcStmt.arity);
@@ -156,6 +160,7 @@ class HTFunction with HTType, ASTInterpreterRef {
         }
 
         result = interpreter.executeBlock(funcStmt.definition!, _closure);
+
         //_closure = _save;
       } else {
         throw HTErrorMissingFuncDef(id);
@@ -171,12 +176,15 @@ class HTFunction with HTType, ASTInterpreterRef {
         throw HTErrorReturnType(returned_type.toString(), id, funcStmt.returnType.toString());
       }
 
+      callStack.removeLast();
+
       if (returnValue is NullThrownError) return null;
 
       //_closure = _save;
       return returnValue;
     }
 
+    callStack.removeLast();
     // 如果函数体中没有直接return，则会返回最后一个语句的值
     return result;
   }

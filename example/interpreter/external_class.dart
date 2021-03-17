@@ -15,7 +15,7 @@ class Person {
 }
 
 extension PersonBinding on Person {
-  dynamic ht_fetch(String varName) {
+  dynamic htFetch(String varName) {
     switch (varName) {
       case 'typeid':
         return HTTypeId('Person');
@@ -30,7 +30,7 @@ extension PersonBinding on Person {
     }
   }
 
-  void ht_assign(String varName, dynamic value) {
+  void htAssign(String varName, dynamic value) {
     switch (varName) {
       case 'name':
         name = value;
@@ -41,8 +41,8 @@ extension PersonBinding on Person {
   }
 }
 
-class PersonHTBinding extends HTExternalClass {
-  PersonHTBinding() : super('Person');
+class PersonClassBinding extends HTExternalClass {
+  PersonClassBinding() : super('Person');
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
@@ -72,21 +72,22 @@ class PersonHTBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceFetch(dynamic instance, String id) {
+  dynamic instanceFetch(dynamic instance, String varName) {
     var i = instance as Person;
-    return i.ht_fetch(id);
+    return i.htFetch(id);
   }
 
   @override
-  void instanceAssign(dynamic instance, String id, dynamic value) {
+  void instanceAssign(dynamic instance, String varName, dynamic value) {
     var i = instance as Person;
-    i.ht_assign(id, value);
+    i.htAssign(id, value);
   }
 }
 
 void main() async {
   var hetu = HTInterpreter();
-  await hetu.init(externalClasses: {'Person': PersonHTBinding()});
+
+  await hetu.init(externalClasses: {'Person': PersonClassBinding()});
 
   await hetu.eval('''
       external class Person {

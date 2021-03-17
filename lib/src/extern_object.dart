@@ -140,9 +140,9 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
       case 'isNotEmpty':
         return externObject.isNotEmpty;
       case 'keys':
-        return externObject.keys;
+        return externObject.keys.toList();
       case 'values':
-        return externObject.values;
+        return externObject.values.toList();
       case 'containsKey':
         return externObject.containsKey;
       case 'containsValue':

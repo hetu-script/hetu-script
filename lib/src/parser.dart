@@ -388,6 +388,9 @@ class Parser {
         } // 类声明
         else if (expect([HTLexicon.CLASS])) {
           return _parseClassDeclStmt(isExtern: isExtern);
+        } // 枚举类声明
+        else if (expect([HTLexicon.ENUM])) {
+          return _parseEnumDeclStmt(isExtern: isExtern);
         } // 函数声明
         else if (expect([HTLexicon.FUN])) {
           return _parseFuncDeclaration(FunctionType.normal, isExtern: isExtern);
@@ -816,12 +819,14 @@ class Parser {
   }
 
   ClassDeclStmt _parseClassDeclStmt({bool isExtern = false}) {
-    // 已经判断过了所以直接跳过Class关键字
+    // 已经判断过了所以直接跳过关键字
     advance(1);
 
-    final class_name = advance(1);
+    final class_name = match(HTLexicon.identifier);
 
-    if (_classStmts.containsKey(class_name.lexeme)) throw HTErrorDefined_Parser(class_name.lexeme);
+    if (_classStmts.containsKey(class_name.lexeme)) {
+      throw HTErrorDefined_Parser(class_name.lexeme);
+    }
 
     // TODO: 嵌套类?
     _curClassName = class_name.lexeme;
@@ -883,9 +888,37 @@ class Parser {
         superClassTypeArgs: super_class_type_args,
         isExtern: isExtern);
 
-    _classStmts[stmt.id.lexeme] = stmt;
+    _classStmts[class_name.lexeme] = stmt;
 
     _curClassName = null;
+    return stmt;
+  }
+
+  EnumDeclStmt _parseEnumDeclStmt({bool isExtern = false}) {
+    // 已经判断过了所以直接跳过关键字
+    advance(1);
+
+    final class_name = match(HTLexicon.identifier);
+
+    if (_classStmts.containsKey(class_name.lexeme)) {
+      throw HTErrorDefined_Parser(class_name.lexeme);
+    }
+
+    var enumerations = <String>[];
+    if (expect([HTLexicon.curlyLeft], consume: true, error: false)) {
+      while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+        enumerations.add(match(HTLexicon.identifier).lexeme);
+        expect([HTLexicon.comma], consume: true, error: false);
+      }
+
+      expect([HTLexicon.curlyRight], consume: true);
+    } else {
+      expect([HTLexicon.semicolon], consume: true, error: false);
+    }
+
+    final stmt = EnumDeclStmt(class_name, enumerations, isExtern: isExtern);
+    _classStmts[class_name.lexeme] = stmt;
+
     return stmt;
   }
 }

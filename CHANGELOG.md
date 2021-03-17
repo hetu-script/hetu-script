@@ -2,6 +2,7 @@
 
 - Refactor: Migrate to null safety.
 - Refactor: Redesigned the binding (external classes, functions and variables).
+- Refactor: Redesigned the error handling.
 
 ## 0.0.4
 

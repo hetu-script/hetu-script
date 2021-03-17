@@ -2,8 +2,9 @@ import 'type.dart';
 import 'object.dart';
 import 'lexicon.dart';
 import 'errors.dart';
+import 'interpreter.dart';
 
-class HTEnum extends HTObject {
+class HTEnum extends HTObject with InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.ENUM;
 
@@ -11,34 +12,28 @@ class HTEnum extends HTObject {
 
   final Map<String, HTEnumItem> defs;
 
-  HTEnum(this.id, this.defs);
+  final bool isExtern;
+
+  HTEnum(this.id, this.defs, Interpreter interpreter, {this.isExtern = false}) {
+    this.interpreter = interpreter;
+  }
 
   @override
   bool contains(String varName) => defs.containsKey(varName);
 
   @override
-  void define(String varName,
-      {HTTypeId? declType,
-      dynamic value,
-      bool isExtern = false,
-      bool isImmutable = false,
-      bool isNullable = false,
-      bool isDynamic = false}) {
-    assert(value is HTEnumItem);
-
-    if (!defs.containsKey(varName)) {
-      return defs[varName] = value;
-    }
-    throw HTErrorDefined_Runtime(id);
-  }
-
-  @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
-    if (defs.containsKey(varName)) {
-      return defs[varName]!;
-    } else if (varName == HTLexicon.values) {
-      return defs.values;
+    if (!isExtern) {
+      if (defs.containsKey(varName)) {
+        return defs[varName]!;
+      } else if (varName == HTLexicon.values) {
+        return defs.values.toList();
+      }
+    } else {
+      final externEnumClass = interpreter.fetchExternalClass(id);
+      return externEnumClass.fetch(varName);
     }
+
     throw HTErrorUndefined(varName);
   }
 
@@ -55,7 +50,26 @@ class HTEnumItem extends HTObject {
   @override
   final HTTypeId typeid;
 
+  final int index;
+
   final String id;
 
-  HTEnumItem(this.id, this.typeid);
+  @override
+  String toString() => '${typeid.id}.$id';
+
+  HTEnumItem(this.index, this.id, this.typeid);
+
+  @override
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      case 'typeid':
+        return typeid;
+      case 'index':
+        return index;
+      case 'toString':
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => toString();
+      default:
+        throw HTErrorUndefinedMember(varName, typeid.toString());
+    }
+  }
 }

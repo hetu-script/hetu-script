@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/enum.dart';
+
 import 'core.dart';
 import 'read_file.dart';
 import 'extern_class.dart';
@@ -125,12 +127,20 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
         return _curStmtValue;
       }
     } catch (e) {
+      var sb = StringBuffer();
+      for (var funcName in HTFunction.callStack) {
+        sb.writeln('  $funcName');
+      }
+      var callStack = sb.toString();
+
       if (e is HTParserError) {
-        throw HTInterpreterError(e.message, e.type, parser.curFileName, parser.curLine, parser.curColumn);
+        throw HTInterpreterError(
+            '${e.message}\nCall stack:\n$callStack', e.type, parser.curFileName, parser.curLine, parser.curColumn);
       } else if (e is HTResolverError) {
-        throw HTInterpreterError(e.message, e.type, resolver.curFileName, resolver.curLine, resolver.curColumn);
+        throw HTInterpreterError('${e.message}\nCall stack:\n$callStack', e.type, resolver.curFileName,
+            resolver.curLine, resolver.curColumn);
       } else {
-        throw HTInterpreterError(e.toString(), HTErrorType.other, _curFileName, _curLine, _curColumn);
+        throw HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, _curFileName, _curLine, _curColumn);
       }
     }
   }
@@ -152,7 +162,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
             throw HTErrorExternParams();
           }
         } else {
-          throw HTErrorExternFunc(func.toString());
+          Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(func.toString());
         }
       } else {
         throw HTErrorCallable(functionName);
@@ -171,7 +182,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
             throw HTErrorExternParams();
           }
         } else {
-          throw HTErrorExternFunc(func.toString());
+          Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(func.toString());
         }
       } else {
         throw HTErrorCallable(functionName);
@@ -583,7 +595,9 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
                   throw HTErrorExternParams();
                 }
               } else {
-                throw HTErrorExternFunc(constructor.toString());
+                Function.apply(
+                    constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+                // throw HTErrorExternFunc(constructor.toString());
               }
             }
           } else {
@@ -610,7 +624,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
             throw HTErrorExternParams();
           }
         } else {
-          throw HTErrorExternFunc(constructor.toString());
+          Function.apply(constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(constructor.toString());
         }
       }
     } // 外部函数
@@ -622,7 +637,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
           throw HTErrorExternParams();
         }
       } else {
-        throw HTErrorExternFunc(callee.toString());
+        Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        // throw HTErrorExternFunc(callee.toString());
       }
     } else {
       throw HTErrorCallable(callee.toString());
@@ -975,5 +991,15 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
+
+    var defs = <String, HTEnumItem>{};
+    for (var i = 0; i < stmt.enumerations.length; i++) {
+      final id = stmt.enumerations[i];
+      defs[id] = HTEnumItem(i, id, HTTypeId(stmt.id.lexeme));
+    }
+
+    final enumClass = HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
+
+    curNamespace.define(stmt.id.lexeme, declType: HTTypeId.ENUM, value: enumClass);
   }
 }
