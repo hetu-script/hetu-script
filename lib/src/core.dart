@@ -7,19 +7,8 @@
 // return the declaration type of a symbol
 // external fun decltypeof(value): String
 
-external fun _print(items: List<any>)
-
 // print values of any type into lines
-fun print(... items) {
-  _print(items)
-}
-
-external fun _string(items: List<any>): String
-
-// concact values of any type into string
-fun string(... items): String{
-  return _string(items)
-}''',
+external fun print(... args)''',
 'value.ht': r'''external class num {
 
 	static fun parse(value): num

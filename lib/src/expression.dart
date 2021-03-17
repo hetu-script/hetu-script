@@ -3,8 +3,6 @@ import 'lexicon.dart';
 import 'type.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
-///
-/// 访问语句称作execute，访问表达式称作evaluate
 abstract class ASTNodeVisitor {
   int get curLine;
   int get curColumn;
@@ -441,15 +439,15 @@ class ImportStmt extends ASTNode {
 
   final Token keyword;
 
-  final String path;
+  final String key;
 
-  final String? nameSpace;
+  final String? namespace;
 
-  ImportStmt(this.keyword, this.path, [this.nameSpace])
+  ImportStmt(this.keyword, this.key, [this.namespace])
       : super(HTLexicon.importStmt, keyword.fileName, keyword.line, keyword.column);
 
   @override
-  ASTNode clone() => ImportStmt(keyword, path, nameSpace);
+  ASTNode clone() => ImportStmt(keyword, key, namespace);
 }
 
 class ExprStmt extends ASTNode {

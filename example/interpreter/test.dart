@@ -1,9 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() {
+void main() async {
   var hetu = HTInterpreter();
 
-  hetu.eval(r'''
+  await hetu.eval(r'''
       fun main {
         print(42.typeid)
       }

@@ -45,15 +45,7 @@ class HTInterpreterError extends HTError {
   HTInterpreterError(String message, HTErrorType type, this.fileName, this.line, this.column) : super(message, type);
 
   @override
-  String toString() {
-    return '''
-    Hetu error:
-    [$type}]
-    [File: $fileName]
-    [Line: $line, Column: $column]
-    $message
-    ''';
-  }
+  String toString() => 'Hetu error:\n[$type}]\n[File: $fileName]\n[Line: $line, Column: $column]\n$message';
 }
 
 // class HTErrorAssign extends HTError {
@@ -137,6 +129,14 @@ class HTErrorNotClass extends HTParserError {
 
 class HTErrorCallable extends HTError {
   HTErrorCallable(String id) : super('"$id" ${HTLexicon.errorCallable}', HTErrorType.interpreter);
+}
+
+class HTErrorExternFunc extends HTError {
+  HTErrorExternFunc(String func) : super('${HTLexicon.errorExternFunc}$func', HTErrorType.interpreter);
+}
+
+class HTErrorExternParams extends HTError {
+  HTErrorExternParams() : super('${HTLexicon.errorExternFuncParams}', HTErrorType.interpreter);
 }
 
 class HTErrorUndefinedMember extends HTError {

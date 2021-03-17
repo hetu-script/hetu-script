@@ -7,8 +7,8 @@ void main() async {
   group('interpreter error handling test -', () {
     test('const definition', () async {
       expect(
-        () {
-          hetu.eval('''
+        () async {
+          await hetu.eval('''
               let i = 42
               i = 137
               ''', style: ParseStyle.function);

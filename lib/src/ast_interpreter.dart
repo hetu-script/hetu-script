@@ -58,17 +58,16 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       {String sdkDirectory = 'hetu_lib/',
       this.workingDirectory = 'script/',
       this.debugMode = false,
-      this.readFileMethod = defaultReadFileMethod,
-      Map<String, Function> externalFunctions = const {}}) {
+      this.readFileMethod = defaultReadFileMethod}) {
     curNamespace = _globals = HTNamespace(this, id: HTLexicon.global);
+  }
 
-    // load external functions.
-    // loadExternalFunctions(HTExternalNamespace.externFuncs);
-    // loadExternalFunctions(externalFunctions);
-
+  Future<void> init(
+      {Map<String, HTExternalFunction> externalFunctions = const {},
+      Map<String, HTExternalClass> externalClasses = const {}}) async {
     // load classes and functions in core library.
     for (final file in coreLibs.keys) {
-      eval(coreLibs[file]!, fileName: file);
+      await eval(coreLibs[file]!, fileName: file);
     }
 
     for (var key in HTExternGlobal.functions.keys) {
@@ -85,10 +84,14 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     for (var key in externalFunctions.keys) {
       bindExternalFunction(key, externalFunctions[key]!);
     }
+
+    for (var key in externalClasses.keys) {
+      bindExternalClass(key, externalClasses[key]!);
+    }
   }
 
   @override
-  dynamic eval(
+  Future<dynamic> eval(
     String content, {
     String? fileName,
     String libName = HTLexicon.global,
@@ -97,7 +100,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-  }) {
+  }) async {
     _curFileName = fileName ?? HTLexicon.anonymousScript + (_fileIndex++).toString();
 
     curNamespace = context is HTNamespace ? context : _globals;
@@ -107,7 +110,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     try {
       var tokens = lexer.lex(content, _curFileName);
 
-      final statements = parser.parse(tokens, this, curNamespace, _curFileName, style);
+      final statements = await parser.parse(tokens, this, curNamespace, _curFileName, style);
       _distances.addAll(resolver.resolve(statements, _curFileName, libName: libName));
 
       for (final stmt in statements) {
@@ -142,7 +145,15 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (func is Function) {
-        return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        if (func is HTExternalFunction) {
+          try {
+            func(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          throw HTErrorExternFunc(func.toString());
+        }
       } else {
         throw HTErrorCallable(functionName);
       }
@@ -153,7 +164,15 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (func is Function) {
-        return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        if (func is HTExternalFunction) {
+          try {
+            func(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          throw HTErrorExternFunc(func.toString());
+        }
       } else {
         throw HTErrorCallable(functionName);
       }
@@ -162,7 +181,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   /// 解析文件
   @override
-  Future<dynamic> evalf(
+  Future<dynamic> import(
     String fileName, {
     String? directory,
     String? libName,
@@ -195,39 +214,39 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     return result;
   }
 
-  @override
-  dynamic evalfSync(
-    String fileName, {
-    String? directory,
-    String? libName,
-    ParseStyle style = ParseStyle.library,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  }) {
-    final savedFileName = _curFileName;
-    dynamic result;
-    if (!_evaledFiles.contains(fileName)) {
-      _evaledFiles.add(fileName);
+  // @override
+  // dynamic evalfSync(
+  //   String fileName, {
+  //   String? directory,
+  //   String? libName,
+  //   ParseStyle style = ParseStyle.library,
+  //   String? invokeFunc,
+  //   List<dynamic> positionalArgs = const [],
+  //   Map<String, dynamic> namedArgs = const {},
+  // }) {
+  //   final savedFileName = _curFileName;
+  //   dynamic result;
+  //   if (!_evaledFiles.contains(fileName)) {
+  //     _evaledFiles.add(fileName);
 
-      HTNamespace? library_namespace;
-      if ((libName != null) && (libName != HTLexicon.global)) {
-        _globals.define(libName, declType: HTTypeId.namespace);
-        library_namespace = HTNamespace(this, id: libName, closure: library_namespace);
-      }
+  //     HTNamespace? library_namespace;
+  //     if ((libName != null) && (libName != HTLexicon.global)) {
+  //       _globals.define(libName, declType: HTTypeId.namespace);
+  //       library_namespace = HTNamespace(this, id: libName, closure: library_namespace);
+  //     }
 
-      var content = readFileSync(fileName);
-      result = eval(content,
-          fileName: fileName,
-          context: library_namespace,
-          style: style,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs);
-    }
-    _curFileName = savedFileName;
-    return result;
-  }
+  //     var content = readFileSync(fileName);
+  //     result = eval(content,
+  //         fileName: fileName,
+  //         context: library_namespace,
+  //         style: style,
+  //         invokeFunc: invokeFunc,
+  //         positionalArgs: positionalArgs,
+  //         namedArgs: namedArgs);
+  //   }
+  //   _curFileName = savedFileName;
+  //   return result;
+  // }
 
   @override
   HTTypeId typeof(dynamic object) {
@@ -556,18 +575,24 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
-              final Function constructor = externClass.fetch(callee.id);
-              Function.apply(constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+              final constructor = externClass.fetch(callee.id);
+              if (constructor is HTExternalFunction) {
+                try {
+                  return constructor(positionalArgs, namedArgs);
+                } on RangeError {
+                  throw HTErrorExternParams();
+                }
+              } else {
+                throw HTErrorExternFunc(constructor.toString());
+              }
             }
           } else {
             throw HTErrorCallable(callee.toString());
           }
         }
       } else {
-        final externFunction = fetchExternalFunction(callee.id);
-        var result =
-            Function.apply(externFunction, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-        return result;
+        final externFunc = fetchExternalFunction(callee.id);
+        return externFunc(positionalArgs, namedArgs);
       }
     } else if (callee is HTClass) {
       if (!callee.isExtern) {
@@ -577,13 +602,28 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       } else {
         // 外部默认构造函数
         final externClass = fetchExternalClass(callee.id);
-        final Function constructor = externClass.fetch(callee.id);
-        return constructor();
+        final constructor = externClass.fetch(callee.id);
+        if (constructor is HTExternalFunction) {
+          try {
+            return constructor(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          throw HTErrorExternFunc(constructor.toString());
+        }
       }
     } // 外部函数
     else if (callee is Function) {
-      var result = Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-      return result;
+      if (callee is HTExternalFunction) {
+        try {
+          return callee(positionalArgs, namedArgs);
+        } on RangeError {
+          throw HTErrorExternParams();
+        }
+      } else {
+        throw HTErrorExternFunc(callee.toString());
+      }
     } else {
       throw HTErrorCallable(callee.toString());
     }

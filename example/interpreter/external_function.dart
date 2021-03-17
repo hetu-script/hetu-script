@@ -1,10 +1,11 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() {
-  var hetu = HTInterpreter(externalFunctions: {
-    'hello': () => {'greeting': 'hello'},
+void main() async {
+  var hetu = HTInterpreter();
+  await hetu.init(externalFunctions: {
+    'hello': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => {'greeting': 'hello'},
   });
-  hetu.eval(r'''
+  await hetu.eval(r'''
       external fun hello
       fun main {
         var dartValue = hello()

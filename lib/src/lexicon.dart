@@ -359,6 +359,9 @@ abstract class HTLexicon {
   // static const errorRange = 'Index out of range, should be less than';
   static const errorInvalidLeftValue = 'Invalid left-value';
   static const errorCallable = 'is not callable';
+  static const errorExternFunc =
+      'External function expected:\n  dynamic Function(List<dynamic> positionalArgs, Map<String, dynamic> namedArgs)\nGot:\n  ';
+  static const errorExternFuncParams = 'External function arguments mismatch.';
   static const errorUndefinedMember = 'isn\'t defined for the class';
   static const errorCondition = 'Condition expression must evaluate to type "bool"';
   static const errorMissingFuncDef = 'Missing function definition body of';

@@ -6,9 +6,9 @@ class Person {
 
   String get child => 'Tom';
   Person();
-  Person.withName([this.name = 'some guy']);
+  Person.withName({this.name = 'some guy'});
 
-  String? name = 'default name';
+  String name = 'default name';
   void greeting() {
     print('Hi! I\'m $name');
   }
@@ -24,7 +24,7 @@ extension PersonBinding on Person {
       case 'name':
         return name;
       case 'greeting':
-        return greeting;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => greeting();
       default:
         throw HTErrorUndefined(varName);
     }
@@ -41,18 +41,19 @@ extension PersonBinding on Person {
   }
 }
 
-class PersonHTBinding extends HTExternClass {
+class PersonHTBinding extends HTExternalClass {
   PersonHTBinding() : super('Person');
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'Person':
-        return () => Person();
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => Person();
       case 'Person.withName':
-        return ([name = 'some guy']) => Person.withName(name);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            Person.withName(name: namedArgs['name']);
       case 'meaning':
-        return (int n) => Person.meaning(n);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => Person.meaning(positionalArgs[0]);
       case 'race':
         return Person.race;
       default:
@@ -83,18 +84,17 @@ class PersonHTBinding extends HTExternClass {
   }
 }
 
-void main() {
+void main() async {
   var hetu = HTInterpreter();
+  await hetu.init(externalClasses: {'Person': PersonHTBinding()});
 
-  hetu.bindExternalClass('Person', PersonHTBinding());
-
-  hetu.eval('''
+  await hetu.eval('''
       external class Person {
         static var race
         static fun meaning (n: num)
         construct
         get child
-        construct withName
+        construct withName({name: String})
         var name
         fun greeting
       }
@@ -102,7 +102,7 @@ void main() {
         let p1: Person = Person()
         print(p1.typeid)
         print(p1.name)
-        var p2 = Person.withName('Jimmy')
+        var p2 = Person.withName(name: 'Jimmy')
         print(p2.name)
         p2.name = 'John'
         p2.greeting();

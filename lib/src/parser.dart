@@ -56,8 +56,8 @@ class Parser {
 
   Parser();
 
-  List<ASTNode> parse(List<Token> tokens, Interpreter interpreter, HTContext context, String fileName,
-      [ParseStyle style = ParseStyle.library]) {
+  Future<List<ASTNode>> parse(List<Token> tokens, Interpreter interpreter, HTContext context, String fileName,
+      [ParseStyle style = ParseStyle.library]) async {
     _tokens = tokens;
     _context = context;
     curFileName = fileName;
@@ -66,8 +66,7 @@ class Parser {
     while (curTok.type != HTLexicon.endOfFile) {
       var stmt = _parseStmt(style: style);
       if (stmt is ImportStmt) {
-        final file_path = interpreter.workingDirectory + '/' + stmt.path;
-        interpreter.evalfSync(file_path, libName: stmt.nameSpace);
+        await interpreter.import(stmt.key, libName: stmt.namespace);
       }
       statements.add(stmt);
     }

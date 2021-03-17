@@ -12,7 +12,7 @@ mixin InterpreterRef {
 abstract class Interpreter with Binding {
   String get workingDirectory;
 
-  dynamic eval(
+  Future<dynamic> eval(
     String content, {
     String libName = HTLexicon.global,
     HTContext? context,
@@ -22,7 +22,7 @@ abstract class Interpreter with Binding {
     Map<String, dynamic> namedArgs = const {},
   });
 
-  dynamic evalf(
+  Future<dynamic> import(
     String fileName, {
     String? directory,
     String? libName,
@@ -32,15 +32,15 @@ abstract class Interpreter with Binding {
     Map<String, dynamic> namedArgs = const {},
   });
 
-  dynamic evalfSync(
-    String fileName, {
-    String? directory,
-    String? libName,
-    ParseStyle style = ParseStyle.library,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  });
+  // dynamic evalfSync(
+  //   String fileName, {
+  //   String? directory,
+  //   String? libName,
+  //   ParseStyle style = ParseStyle.library,
+  //   String? invokeFunc,
+  //   List<dynamic> positionalArgs = const [],
+  //   Map<String, dynamic> namedArgs = const {},
+  // });
 
   dynamic invoke(String functionName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}});

@@ -47,7 +47,7 @@ class HTVM extends Interpreter {
   });
 
   @override
-  dynamic eval(
+  Future<dynamic> eval(
     String content, {
     String? fileName,
     String libName = HTLexicon.global,
@@ -56,7 +56,7 @@ class HTVM extends Interpreter {
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-  }) {
+  }) async {
     if (context != null) {
       _context = context;
     }
@@ -64,7 +64,7 @@ class HTVM extends Interpreter {
 
     if (debugMode) {
       final tokens = Lexer().lex(content, curFileName);
-      final statements = Parser().parse(tokens, this, _context, curFileName, style);
+      final statements = await Parser().parse(tokens, this, _context, curFileName, style);
       _distances = Resolver().resolve(statements, curFileName, libName: libName);
       _bytes = Compiler().compileAST(statements, _context, curFileName);
     } else {
@@ -76,7 +76,7 @@ class HTVM extends Interpreter {
   }
 
   @override
-  dynamic evalf(
+  Future<dynamic> import(
     String fileName, {
     String? directory,
     String? libName,
@@ -86,16 +86,16 @@ class HTVM extends Interpreter {
     Map<String, dynamic> namedArgs = const {},
   }) async {}
 
-  @override
-  dynamic evalfSync(
-    String fileName, {
-    String? directory,
-    String? libName,
-    ParseStyle style = ParseStyle.library,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  }) {}
+  // @override
+  // dynamic evalfSync(
+  //   String fileName, {
+  //   String? directory,
+  //   String? libName,
+  //   ParseStyle style = ParseStyle.library,
+  //   String? invokeFunc,
+  //   List<dynamic> positionalArgs = const [],
+  //   Map<String, dynamic> namedArgs = const {},
+  // }) {}
 
   @override
   dynamic invoke(String functionName,

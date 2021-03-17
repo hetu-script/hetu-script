@@ -7,14 +7,16 @@ import 'object.dart';
 import 'lexicon.dart';
 import 'interpreter.dart';
 
+typedef HTExternalFunction = dynamic Function(List<dynamic> positionalArgs, Map<String, dynamic> namedArgs);
+
 /// Namespace class of low level external dart functions for Hetu to use.
-abstract class HTExternClass extends HTObject {
+abstract class HTExternalClass extends HTObject {
   @override
   final HTTypeId typeid = HTTypeId.CLASS;
 
   final String id;
 
-  HTExternClass(this.id);
+  HTExternalClass(this.id);
 
   dynamic instanceFetch(dynamic instance, String varName) => throw HTErrorUndefined(varName);
 
@@ -29,50 +31,42 @@ abstract class HTExternGlobal {
   static const system = 'System';
   static const console = 'Console';
 
-  static Map<String, Function> functions = {
-    'help': (dynamic value) {
-      // TODO: 读取注释
-    },
-    '_print': (List items) {
+  static Map<String, HTExternalFunction> functions = {
+    // TODO: 读取注释
+    'help': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {},
+    'print': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
       var sb = StringBuffer();
-      for (final item in items) {
-        sb.write('${item.toString()} ');
+      for (final arg in positionalArgs) {
+        sb.write('${arg.toString()} ');
       }
       print(sb.toString());
     },
-    'string': (List items) {
-      var result = StringBuffer();
-      for (final item in items) {
-        result.write(item.toString());
-      }
-      return result.toString();
-    }
   };
 }
 
-class HTExternClassNumber extends HTExternClass {
+class HTExternClassNumber extends HTExternalClass {
   HTExternClassNumber() : super(HTLexicon.number);
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
-        return (String value) => num.tryParse(value);
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => num.tryParse(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
     }
   }
 }
 
-class HTExternClassBool extends HTExternClass {
+class HTExternClassBool extends HTExternalClass {
   HTExternClassBool() : super(HTLexicon.boolean);
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
-        return (String value) {
-          return (value.toLowerCase() == 'true') ? true : false;
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
+          return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
         throw HTErrorUndefined(varName);
@@ -80,7 +74,7 @@ class HTExternClassBool extends HTExternClass {
   }
 }
 
-class HTExternClassString extends HTExternClass {
+class HTExternClassString extends HTExternalClass {
   HTExternClassString() : super(HTLexicon.string);
 
   @override
@@ -97,7 +91,7 @@ class HTExternClassString extends HTExternClass {
   }
 }
 
-class HTExternClassMath extends HTExternClass {
+class HTExternClassMath extends HTExternalClass {
   HTExternClassMath() : super(HTExternGlobal.math);
 
   @override
@@ -121,7 +115,7 @@ class HTExternClassMath extends HTExternClass {
   }
 }
 
-class HTExternClassSystem extends HTExternClass with InterpreterRef {
+class HTExternClassSystem extends HTExternalClass with InterpreterRef {
   HTExternClassSystem(Interpreter interpreter) : super(HTExternGlobal.system) {
     this.interpreter = interpreter;
   }
@@ -141,7 +135,7 @@ class HTExternClassSystem extends HTExternClass with InterpreterRef {
   }
 }
 
-class HTExternClassConsole extends HTExternClass {
+class HTExternClassConsole extends HTExternalClass {
   HTExternClassConsole() : super(HTExternGlobal.console);
 
   @override

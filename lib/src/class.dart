@@ -172,7 +172,7 @@ class HTClass extends HTNamespace {
           return;
         } else {
           final externSetterFunc = interpreter.fetchExternalFunction('$id.$setter');
-          externSetterFunc(value);
+          externSetterFunc([value], const {});
           return;
         }
       }
