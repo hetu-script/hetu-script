@@ -43,9 +43,6 @@ class HTParser extends Parser {
     return statements;
   }
 
-  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
-  ASTNode _parseExpr() => _parseAssignmentExpr();
-
   HTTypeId _parseTypeId() {
     final type_name = advance(1).lexeme;
     var type_args = <HTTypeId>[];
@@ -59,6 +56,9 @@ class HTParser extends Parser {
 
     return HTTypeId(type_name, arguments: type_args);
   }
+
+  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
+  ASTNode _parseExpr() => _parseAssignmentExpr();
 
   /// 赋值 = ，优先级 1，右合并
   ///

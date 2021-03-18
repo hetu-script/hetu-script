@@ -35,7 +35,7 @@ class HTVM extends Interpreter {
   late Uint8List _bytes;
   int _ip = 0; // instruction pointer
 
-  var _context = HTContext();
+  late final HTContext _context;
 
   var _local;
   dynamic _curStmtValue;
@@ -55,19 +55,17 @@ class HTVM extends Interpreter {
     String content, {
     String? fileName,
     String libName = HTLexicon.global,
-    HTContext? context,
+    HTContext? context, // ingored
     ParseStyle style = ParseStyle.library,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    if (context != null) {
-      _context = context;
-    }
     curFileName = fileName ?? '__anonymousScript' + (_fileIndex++).toString();
 
     final tokens = Lexer().lex(content, curFileName);
-    _bytes = Compiler().compile(tokens);
+    _bytes = await Compiler().compile(tokens, this, curFileName, false);
+    print(_bytes);
 
     _run(10);
   }
@@ -106,6 +104,14 @@ class HTVM extends Interpreter {
     return boolean;
   }
 
+  // Fetch a uint16 from the byte list
+  int _readUint16() {
+    final start = _ip;
+    _ip += 2;
+    final uint16data = _bytes.sublist(start, _ip);
+    return uint16data.buffer.asByteData().getUint16(0);
+  }
+
   // Fetch a int64 from the byte list
   int _readInt64() {
     final start = _ip;
@@ -134,14 +140,20 @@ class HTVM extends Interpreter {
   void _setLocal() {
     final oprandType = _readByte();
     switch (oprandType) {
-      case HTOpRandType.constInt64:
-        _local = _readInt64();
+      case HTOpRandType.nil:
+        _local = null;
         break;
-      case HTOpRandType.constFloat64:
-        _local = _readFloat64();
+      case HTOpRandType.boolean:
+        (_readByte() == 0) ? _local = false : _local = true;
         break;
-      case HTOpRandType.constUtf8String:
-        _local = _readUtf8String();
+      case HTOpRandType.int64:
+        _local = _context.getConstInt(_readUint16());
+        break;
+      case HTOpRandType.float64:
+        _local = _context.getConstFloat(_readUint16());
+        break;
+      case HTOpRandType.utf8String:
+        _local = _context.getConstString(_readUint16());
         break;
     }
   }
@@ -165,21 +177,22 @@ class HTVM extends Interpreter {
       final instruction = _readByte();
       switch (instruction) {
         case HTOpCode.endOfFile:
+          print(_curStmtValue);
           return;
         case HTOpCode.endOfLine:
           _curStmtValue = _local;
-          return;
+          break;
         case HTOpCode.constTable:
           _context = HTContext();
-          var table_length = _readInt64();
+          var table_length = _readUint16();
           for (var i = 0; i < table_length; ++i) {
             _context.addConstInt(_readInt64());
           }
-          table_length = _readInt64();
+          table_length = _readUint16();
           for (var i = 0; i < table_length; ++i) {
             _context.addConstFloat(_readFloat64());
           }
-          table_length = _readInt64();
+          table_length = _readUint16();
           for (var i = 0; i < table_length; ++i) {
             _context.addConstString(_readUtf8String());
           }
@@ -194,7 +207,10 @@ class HTVM extends Interpreter {
           _register[1] = _local;
           break;
         case HTOpCode.add:
-          _local = _register[1] + _register[2];
+          _local = _register[0] + _register[1];
+          break;
+        case HTOpCode.subtract:
+          _local = _register[0] - _register[1];
           break;
         case HTOpCode.error:
           _handleError();

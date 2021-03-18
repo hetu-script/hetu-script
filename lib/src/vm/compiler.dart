@@ -22,8 +22,6 @@ class Compiler extends Parser {
   // Uint8List compileTokens(List<Token> tokens, [ParseStyle style = ParseStyle.library]) {}
   late final HTContext _context;
 
-  late BytesBuilder _bytesBuilder;
-
   late bool _debugMode;
 
   // @override
@@ -50,24 +48,15 @@ class Compiler extends Parser {
   //   return bytesBuilder.toBytes();
   // }
 
-  Future<Uint8List> compile(
-      List<Token> tokens, Interpreter interpreter, HTContext context, String fileName, bool debugMode,
+  Future<Uint8List> compile(List<Token> tokens, Interpreter interpreter, String fileName, bool debugMode,
       [ParseStyle style = ParseStyle.library]) async {
+    _context = HTContext();
     _debugMode = debugMode;
     this.tokens.clear();
     this.tokens.addAll(tokens);
-    _context = context;
     _curFileName = fileName;
 
-    final bytesBuilder = BytesBuilder();
-    // 河图字节码标记
-    _bytesBuilder.add(hetuSignatureData);
-    // 版本号
-    _bytesBuilder.add(hetuVersionData);
-    // 调试模式
-    _bytesBuilder.addByte(_debugMode ? 1 : 0);
-    // 预留
-    _bytesBuilder.addByte(0);
+    final bytesBuilderCode = BytesBuilder();
 
     while (curTok.type != HTLexicon.endOfFile) {
       // if (stmt is ImportStmt) {
@@ -77,12 +66,49 @@ class Compiler extends Parser {
       //   _curFileName = savedFileName;
       //   interpreter.curFileName = savedFileName;
       // }
-      bytesBuilder.add(_parseStmt(style: style));
+      bytesBuilderCode.add(_parseStmt(style: style));
     }
     _curFileName = '';
 
-    return bytesBuilder.toBytes();
+    final bytesBuilderMain = BytesBuilder();
+
+    // 河图字节码标记
+    bytesBuilderMain.add(hetuSignatureData);
+    // 版本号
+    bytesBuilderMain.add(hetuVersionData);
+    // 调试模式
+    bytesBuilderMain.addByte(_debugMode ? 1 : 0);
+    // 预留
+    bytesBuilderMain.addByte(0);
+
+    bytesBuilderMain.addByte(HTOpCode.constTable);
+
+    final constInt = _context.constInt;
+    bytesBuilderMain.add(_uint16(constInt.length));
+    for (var value in constInt) {
+      bytesBuilderMain.add(_int64(value));
+    }
+    final constFloat = _context.constFloat;
+    bytesBuilderMain.add(_uint16(constFloat.length));
+    for (var value in constFloat) {
+      bytesBuilderMain.add(_float64(value));
+    }
+    final constUtf8String = _context.constUtf8String;
+    bytesBuilderMain.add(_uint16(constUtf8String.length));
+    for (var value in constUtf8String) {
+      bytesBuilderMain.add(_utf8String(value));
+    }
+
+    // the code
+    bytesBuilderMain.add(bytesBuilderCode.toBytes());
+
+    // end of file marker
+    bytesBuilderMain.addByte(HTOpCode.endOfFile);
+
+    return bytesBuilderMain.toBytes();
   }
+
+  Uint8List _uint16(int value) => Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
 
   Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
 
@@ -240,157 +266,6 @@ class Compiler extends Parser {
   //   // return HTTypeId(type_name, arguments: type_args);
   // }
 
-  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
-  Uint8List _parseExpr() => _parseAssignmentExpr();
-
-  // /// 赋值 = ，优先级 1，右合并
-  // ///
-  // /// 需要判断嵌套赋值、取属性、取下标的叠加
-  // Uint8List _parseAssignmentExpr() {
-  //   final expr = _parseLogicalOrExpr();
-
-  //   if (HTLexicon.assignments.contains(curTok.type)) {
-  //     final op = advance(1);
-  //     final value = _parseAssignmentExpr();
-
-  //     if (expr is SymbolExpr) {
-  //       return AssignExpr(expr.id, op, value);
-  //     } else if (expr is MemberGetExpr) {
-  //       return MemberSetExpr(expr.collection, expr.key, value);
-  //     } else if (expr is SubGetExpr) {
-  //       return SubSetExpr(expr.collection, expr.key, value);
-  //     }
-
-  //     throw HTErrorInvalidLeftValue(op.lexeme);
-  //   }
-
-  //   return expr;
-  // }
-
-  // /// 逻辑或 or ，优先级 5，左合并
-  // Uint8List _parseLogicalOrExpr() {
-  //   var expr = _parseLogicalAndExpr();
-  //   while (curTok.type == HTLexicon.or) {
-  //     final op = advance(1);
-  //     final right = _parseLogicalAndExpr();
-  //     expr = BinaryExpr(expr, op, right);
-  //   }
-  //   return expr;
-  // }
-
-  // /// 逻辑和 and ，优先级 6，左合并
-  // Uint8List _parseLogicalAndExpr() {
-  //   var expr = _parseEqualityExpr();
-  //   while (curTok.type == HTLexicon.and) {
-  //     final op = advance(1);
-  //     final right = _parseEqualityExpr();
-  //     expr = BinaryExpr(expr, op, right);
-  //   }
-  //   return expr;
-  // }
-
-  // /// 逻辑相等 ==, !=，优先级 7，无合并
-  // Uint8List _parseEqualityExpr() {
-  //   var expr = _parseRelationalExpr();
-  //   while (HTLexicon.equalitys.contains(curTok.type)) {
-  //     final op = advance(1);
-  //     final right = _parseRelationalExpr();
-  //     expr = BinaryExpr(expr, op, right);
-  //   }
-  //   return expr;
-  // }
-
-  // /// 逻辑比较 <, >, <=, >=，优先级 8，无合并
-  // Uint8List _parseRelationalExpr() {
-  //   var expr = _parseAdditiveExpr();
-  //   while (HTLexicon.relationals.contains(curTok.type)) {
-  //     final op = advance(1);
-  //     final right = _parseAdditiveExpr();
-  //     expr = BinaryExpr(expr, op, right);
-  //   }
-  //   return expr;
-  // }
-
-  // /// 加法 +, -，优先级 13，左合并
-  // Uint8List _parseAdditiveExpr() {
-  //   var expr = _parseMultiplicativeExpr();
-  //   while (HTLexicon.additives.contains(curTok.type)) {
-  //     final op = advance(1);
-  //     final right = _parseMultiplicativeExpr();
-  //     expr = BinaryExpr(expr, op, right);
-  //   }
-  //   return expr;
-  // }
-
-  // /// 乘法 *, /, %，优先级 14，左合并
-  // Uint8List _parseMultiplicativeExpr() {
-  //   var expr = _parseUnaryPrefixExpr();
-  //   while (HTLexicon.multiplicatives.contains(curTok.type)) {
-  //     final op = advance(1);
-  //     final right = _parseUnaryPrefixExpr();
-  //     expr = BinaryExpr(expr, op, right);
-  //   }
-  //   return expr;
-  // }
-
-  // /// 前缀 -e, !e，优先级 15，不能合并
-  // Uint8List _parseUnaryPrefixExpr() {
-  //   // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
-  //   ASTNode expr;
-  //   if (HTLexicon.unaryPrefixs.contains(curTok.type)) {
-  //     var op = advance(1);
-
-  //     expr = UnaryExpr(op, _parseUnaryPostfixExpr());
-  //   } else {
-  //     expr = _parseUnaryPostfixExpr();
-  //   }
-  //   return expr;
-  // }
-
-  // /// 后缀 e., e[], e()，优先级 16，取属性不能合并，下标和函数调用可以右合并
-  // Uint8List _parseUnaryPostfixExpr() {
-  //   var expr = _parsePrimaryExpr();
-  //   //多层函数调用可以合并
-  //   while (true) {
-  //     if (expect([HTLexicon.call], consume: true, error: false)) {
-  //       var positionalArgs = <ASTNode>[];
-  //       var namedArgs = <String, ASTNode>{};
-
-  //       while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
-  //         final arg = _parseExpr();
-  //         if (expect([HTLexicon.colon], consume: false)) {
-  //           if (arg is SymbolExpr) {
-  //             advance(1);
-  //             var value = _parseExpr();
-  //             namedArgs[arg.id.lexeme] = value;
-  //           } else {
-  //             throw HTErrorUnexpected(
-  //               curTok.lexeme,
-  //             );
-  //           }
-  //         } else {
-  //           positionalArgs.add(arg);
-  //         }
-
-  //         if (curTok.type != HTLexicon.roundRight) {
-  //           expect([HTLexicon.comma], consume: true);
-  //         }
-  //       }
-  //       expect([HTLexicon.roundRight], consume: true);
-  //       expr = CallExpr(expr, positionalArgs, namedArgs);
-  //     } else if (expect([HTLexicon.memberGet], consume: true, error: false)) {
-  //       final name = match(HTLexicon.identifier);
-  //       expr = MemberGetExpr(expr, name);
-  //     } else if (expect([HTLexicon.subGet], consume: true, error: false)) {
-  //       var index_expr = _parseExpr();
-  //       expect([HTLexicon.squareRight], consume: true);
-  //       expr = SubGetExpr(expr, index_expr);
-  //     } else {
-  //       break;
-  //     }
-  //   }
-  //   return expr;
-  // }
   Uint8List _debugInfo() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.debugInfo);
@@ -415,13 +290,201 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _literal(int constIndex) {
+  Uint8List _literalbool(bool value) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.literal);
-    bytesBuilder.add(_int64(constIndex));
+    bytesBuilder.addByte(HTOpRandType.boolean);
+    bytesBuilder.addByte(value ? 1 : 0);
     if (_debugMode) {
       bytesBuilder.add(_debugInfo());
     }
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _literal(int constIndex, int type) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.literal);
+    bytesBuilder.addByte(type);
+    bytesBuilder.add(_uint16(constIndex));
+    if (_debugMode) {
+      bytesBuilder.add(_debugInfo());
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
+  Uint8List _parseExpr() => _parseAssignmentExpr();
+
+  // /// 赋值 = ，优先级 1，右合并
+  // ///
+  // /// 需要判断嵌套赋值、取属性、取下标的叠加
+  Uint8List _parseAssignmentExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parseLogicalOrExpr());
+
+    //   if (HTLexicon.assignments.contains(curTok.type)) {
+    //     final op = advance(1);
+    //     final value = _parseAssignmentExpr();
+
+    //     if (expr is SymbolExpr) {
+    //       return AssignExpr(expr.id, op, value);
+    //     } else if (expr is MemberGetExpr) {
+    //       return MemberSetExpr(expr.collection, expr.key, value);
+    //     } else if (expr is SubGetExpr) {
+    //       return SubSetExpr(expr.collection, expr.key, value);
+    //     }
+
+    //     throw HTErrorInvalidLeftValue(op.lexeme);
+    //   }
+
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 逻辑或 or ，优先级 5，左合并
+  Uint8List _parseLogicalOrExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parseLogicalAndExpr());
+    //   while (curTok.type == HTLexicon.or) {
+    //     final op = advance(1);
+    //     final right = _parseLogicalAndExpr();
+    //     expr = BinaryExpr(expr, op, right);
+    //   }
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 逻辑和 and ，优先级 6，左合并
+  Uint8List _parseLogicalAndExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parseEqualityExpr());
+    //   while (curTok.type == HTLexicon.and) {
+    //     final op = advance(1);
+    //     final right = _parseEqualityExpr();
+    //     expr = BinaryExpr(expr, op, right);
+    //   }
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 逻辑相等 ==, !=，优先级 7，无合并
+  Uint8List _parseEqualityExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parseRelationalExpr());
+    //   while (HTLexicon.equalitys.contains(curTok.type)) {
+    //     final op = advance(1);
+    //     final right = _parseRelationalExpr();
+    //     expr = BinaryExpr(expr, op, right);
+    //   }
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 逻辑比较 <, >, <=, >=，优先级 8，无合并
+  Uint8List _parseRelationalExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parseAdditiveExpr());
+    //   while (HTLexicon.relationals.contains(curTok.type)) {
+    //     final op = advance(1);
+    //     final right = _parseAdditiveExpr();
+    //     expr = BinaryExpr(expr, op, right);
+    //   }
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 加法 +, -，优先级 13，左合并
+  Uint8List _parseAdditiveExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parseMultiplicativeExpr());
+    bytesBuilder.addByte(HTOpCode.reg0);
+    while (HTLexicon.additives.contains(curTok.type)) {
+      // left value
+      final op = advance(1).type;
+      // right value
+      bytesBuilder.add(_parseMultiplicativeExpr());
+      bytesBuilder.addByte(HTOpCode.reg1);
+      switch (op) {
+        case HTLexicon.add:
+          bytesBuilder.addByte(HTOpCode.add);
+          break;
+        case HTLexicon.subtract:
+          bytesBuilder.addByte(HTOpCode.subtract);
+          break;
+        default:
+          bytesBuilder.addByte(HTOpCode.error);
+          bytesBuilder.addByte(HTErrorCode.binOp);
+      }
+    }
+
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 乘法 *, /, %，优先级 14，左合并
+  Uint8List _parseMultiplicativeExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parseUnaryPrefixExpr());
+    //   while (HTLexicon.multiplicatives.contains(curTok.type)) {
+    //     final op = advance(1);
+    //     final right = _parseUnaryPrefixExpr();
+    //     expr = BinaryExpr(expr, op, right);
+    //   }
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 前缀 -e, !e，优先级 15，不能合并
+  Uint8List _parseUnaryPrefixExpr() {
+    final bytesBuilder = BytesBuilder();
+    //   // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
+    //   ASTNode expr;
+    //   if (HTLexicon.unaryPrefixs.contains(curTok.type)) {
+    //     var op = advance(1);
+
+    //     expr = UnaryExpr(op, _parseUnaryPostfixExpr());
+    //   } else {
+    bytesBuilder.add(_parseUnaryPostfixExpr());
+    //   }
+    return bytesBuilder.toBytes();
+  }
+
+  // /// 后缀 e., e[], e()，优先级 16，取属性不能合并，下标和函数调用可以右合并
+  Uint8List _parseUnaryPostfixExpr() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_parsePrimaryExpr());
+    //多层函数调用可以合并
+    // while (true) {
+    //   if (expect([HTLexicon.call], consume: true, error: false)) {
+    //     var positionalArgs = <ASTNode>[];
+    //     var namedArgs = <String, ASTNode>{};
+
+    //     while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
+    //       final arg = _parseExpr();
+    //       if (expect([HTLexicon.colon], consume: false)) {
+    //         if (arg is SymbolExpr) {
+    //           advance(1);
+    //           var value = _parseExpr();
+    //           namedArgs[arg.id.lexeme] = value;
+    //         } else {
+    //           throw HTErrorUnexpected(
+    //             curTok.lexeme,
+    //           );
+    //         }
+    //       } else {
+    //         positionalArgs.add(arg);
+    //       }
+
+    //       if (curTok.type != HTLexicon.roundRight) {
+    //         expect([HTLexicon.comma], consume: true);
+    //       }
+    //     }
+    //     expect([HTLexicon.roundRight], consume: true);
+    //     expr = CallExpr(expr, positionalArgs, namedArgs);
+    //   } else if (expect([HTLexicon.memberGet], consume: true, error: false)) {
+    //     final name = match(HTLexicon.identifier);
+    //     expr = MemberGetExpr(expr, name);
+    //   } else if (expect([HTLexicon.subGet], consume: true, error: false)) {
+    //     var index_expr = _parseExpr();
+    //     expect([HTLexicon.squareRight], consume: true);
+    //     expr = SubGetExpr(expr, index_expr);
+    //   } else {
+    //     break;
+    //   }
+    // }
     return bytesBuilder.toBytes();
   }
 
@@ -433,19 +496,22 @@ class Compiler extends Parser {
         return _literalnull();
       case HTLexicon.TRUE:
         advance(1);
-        final list = Uint8List(1);
-        list[0] = 1;
-        return list;
+        return _literalbool(true);
       case HTLexicon.FALSE:
         advance(1);
-        final list = Uint8List(1);
-        return list;
+        return _literalbool(false);
       case HTLexicon.integer:
+        var index = _context.addConstInt(curTok.literal);
+        advance(1);
+        return _literal(index, HTOpRandType.int64);
       case HTLexicon.float:
+        var index = _context.addConstFloat(curTok.literal);
+        advance(1);
+        return _literal(index, HTOpRandType.float64);
       case HTLexicon.string:
         var index = _context.addConstString(curTok.literal);
         advance(1);
-        return _literal(index);
+        return _literal(index, HTOpRandType.utf8String);
       // case HTLexicon.THIS:
       //   advance(1);
       //   return ThisExpr(peek(-1));

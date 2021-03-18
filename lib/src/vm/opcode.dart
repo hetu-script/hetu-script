@@ -21,7 +21,8 @@ abstract class HTOpCode {
   static const reg8 = 28;
   static const reg9 = 29;
 
-  static const add = 40;
+  static const add = 40; // reg1 reg2 add
+  static const subtract = 41; // reg1 reg2 subtract
 
   static const error = 205;
 }
