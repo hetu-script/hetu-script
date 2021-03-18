@@ -103,7 +103,7 @@ class Compiler extends Parser {
     bytesBuilderMain.add(bytesBuilderCode.toBytes());
 
     // end of file marker
-    bytesBuilderMain.addByte(HTOpCode.endOfFile);
+    bytesBuilderMain.addByte(HTOpCode.subReturn);
 
     return bytesBuilderMain.toBytes();
   }
@@ -315,9 +315,9 @@ class Compiler extends Parser {
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
   Uint8List _parseExpr() => _parseAssignmentExpr();
 
-  // /// 赋值 = ，优先级 1，右合并
-  // ///
-  // /// 需要判断嵌套赋值、取属性、取下标的叠加
+  /// 赋值 = ，优先级 1，右合并
+  ///
+  /// 需要判断嵌套赋值、取属性、取下标的叠加
   Uint8List _parseAssignmentExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseLogicalOrExpr());
@@ -340,7 +340,7 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  // /// 逻辑或 or ，优先级 5，左合并
+  /// 逻辑或 or ，优先级 5，左合并
   Uint8List _parseLogicalOrExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseLogicalAndExpr());
@@ -352,7 +352,7 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  // /// 逻辑和 and ，优先级 6，左合并
+  /// 逻辑和 and ，优先级 6，左合并
   Uint8List _parseLogicalAndExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseEqualityExpr());
@@ -364,7 +364,7 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  // /// 逻辑相等 ==, !=，优先级 7，无合并
+  /// 逻辑相等 ==, !=，优先级 7，无合并
   Uint8List _parseEqualityExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseRelationalExpr());
@@ -376,7 +376,7 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  // /// 逻辑比较 <, >, <=, >=，优先级 8，无合并
+  /// 逻辑比较 <, >, <=, >=，优先级 8，无合并
   Uint8List _parseRelationalExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseAdditiveExpr());
@@ -388,46 +388,75 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  // /// 加法 +, -，优先级 13，左合并
+  /// 加法 +, -，优先级 13，左合并
   Uint8List _parseAdditiveExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseMultiplicativeExpr());
-    bytesBuilder.addByte(HTOpCode.reg0);
+    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(25);
     while (HTLexicon.additives.contains(curTok.type)) {
       // left value
       final op = advance(1).type;
       // right value
       bytesBuilder.add(_parseMultiplicativeExpr());
-      bytesBuilder.addByte(HTOpCode.reg1);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(26);
       switch (op) {
         case HTLexicon.add:
           bytesBuilder.addByte(HTOpCode.add);
+          bytesBuilder.add([25, 26, 25]); // 寄存器 0 = 寄存器 1 + 寄存器 2
           break;
         case HTLexicon.subtract:
           bytesBuilder.addByte(HTOpCode.subtract);
+          bytesBuilder.add([25, 26, 25]); // 寄存器 0 = 寄存器 1 - 寄存器 2
           break;
         default:
           bytesBuilder.addByte(HTOpCode.error);
           bytesBuilder.addByte(HTErrorCode.binOp);
+          bytesBuilder.add([0, 1]);
       }
     }
 
     return bytesBuilder.toBytes();
   }
 
-  // /// 乘法 *, /, %，优先级 14，左合并
+  /// 乘法 *, /, %，优先级 14，左合并
   Uint8List _parseMultiplicativeExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseUnaryPrefixExpr());
-    //   while (HTLexicon.multiplicatives.contains(curTok.type)) {
-    //     final op = advance(1);
-    //     final right = _parseUnaryPrefixExpr();
-    //     expr = BinaryExpr(expr, op, right);
-    //   }
+    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(27);
+    while (HTLexicon.multiplicatives.contains(curTok.type)) {
+      // left value
+      final op = advance(1).type;
+      // right value
+      bytesBuilder.add(_parseUnaryPrefixExpr());
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(28);
+      switch (op) {
+        case HTLexicon.multiply:
+          bytesBuilder.addByte(HTOpCode.multiply);
+          bytesBuilder.add([27, 28, 27]); // 寄存器 0 = 寄存器 1 + 寄存器 2
+          break;
+        case HTLexicon.devide:
+          bytesBuilder.addByte(HTOpCode.devide);
+          bytesBuilder.add([27, 28, 27]); // 寄存器 0 = 寄存器 1 - 寄存器 2
+          break;
+        case HTLexicon.modulo:
+          bytesBuilder.addByte(HTOpCode.modulo);
+          bytesBuilder.add([27, 28, 27]); // 寄存器 0 = 寄存器 1 - 寄存器 2
+          break;
+        default:
+          bytesBuilder.addByte(HTOpCode.error);
+          bytesBuilder.addByte(HTErrorCode.binOp);
+          bytesBuilder.add([0, 1]);
+      }
+    }
+
     return bytesBuilder.toBytes();
   }
 
-  // /// 前缀 -e, !e，优先级 15，不能合并
+  /// 前缀 -e, !e，优先级 15，不能合并
   Uint8List _parseUnaryPrefixExpr() {
     final bytesBuilder = BytesBuilder();
     //   // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
@@ -442,7 +471,7 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  // /// 后缀 e., e[], e()，优先级 16，取属性不能合并，下标和函数调用可以右合并
+  /// 后缀 e., e[], e()，优先级 16，取属性不能合并，下标和函数调用可以右合并
   Uint8List _parseUnaryPostfixExpr() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parsePrimaryExpr());
@@ -488,7 +517,7 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  // /// 只有一个Token的简单表达式
+  /// 只有一个Token的简单表达式
   Uint8List _parsePrimaryExpr() {
     switch (curTok.type) {
       case HTLexicon.NULL:
@@ -588,7 +617,7 @@ class Compiler extends Parser {
   Uint8List _parseExprStmt() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseExpr());
-    bytesBuilder.addByte(HTOpCode.endOfLine);
+    bytesBuilder.addByte(HTOpCode.endOfStatement);
     return bytesBuilder.toBytes();
   }
 

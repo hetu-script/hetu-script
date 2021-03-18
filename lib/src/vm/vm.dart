@@ -40,7 +40,8 @@ class HTVM extends Interpreter {
   var _local;
   dynamic _curStmtValue;
 
-  final _register = List<dynamic>.filled(16, null, growable: true);
+  // final List<dynamic> _stack = [];
+  final _register = List<dynamic>.filled(255, null, growable: false);
 
   HTVM({
     String sdkDirectory = 'hetu_lib/',
@@ -67,7 +68,9 @@ class HTVM extends Interpreter {
     _bytes = await Compiler().compile(tokens, this, curFileName, false);
     print(_bytes);
 
-    _run(10);
+    final result = _exec(10);
+
+    print(result);
   }
 
   @override
@@ -90,18 +93,21 @@ class HTVM extends Interpreter {
     return HTTypeId.ANY;
   }
 
-  int peekByte(int distance) {
-    return _bytes[_ip + distance];
+  int _peekByte(int distance) {
+    final des = _ip + distance;
+    if (des >= 0 && des < _bytes.length) {
+      return _bytes[des];
+    } else {
+      return -1;
+    }
   }
 
   int _readByte() {
     return _bytes[_ip++];
   }
 
-  bool readBool() {
-    var boolean = _bytes.last == 0 ? false : true;
-    ++_ip;
-    return boolean;
+  bool _readBool() {
+    return _bytes[_ip++] == 0 ? false : true;
   }
 
   // Fetch a uint16 from the byte list
@@ -110,6 +116,14 @@ class HTVM extends Interpreter {
     _ip += 2;
     final uint16data = _bytes.sublist(start, _ip);
     return uint16data.buffer.asByteData().getUint16(0);
+  }
+
+  // Fetch a uint32 from the byte list
+  int _readInt32() {
+    final start = _ip;
+    _ip += 4;
+    final uint32data = _bytes.sublist(start, _ip);
+    return uint32data.buffer.asByteData().getUint32(0);
   }
 
   // Fetch a int64 from the byte list
@@ -137,7 +151,7 @@ class HTVM extends Interpreter {
     return utf8.decoder.convert(codeUnits);
   }
 
-  void _setLocal() {
+  void _storeLocal() {
     final oprandType = _readByte();
     switch (oprandType) {
       case HTOpRandType.nil:
@@ -158,7 +172,48 @@ class HTVM extends Interpreter {
     }
   }
 
-  dynamic _run(int ip) {
+  void _storeRegister(int index, dynamic value) {
+    // if (index > _register.length) {
+    //   _register.length = index + 8;
+    // }
+
+    _register[index] = value;
+  }
+
+  void _handleError() {
+    final err_type = _readByte();
+    // TODO: line 和 column
+    switch (err_type) {
+    }
+  }
+
+  void _execBinaryOp(int op) {
+    final left = _readByte();
+    final right = _readByte();
+    final store = _readByte();
+
+    switch (op) {
+      case HTOpCode.add:
+        _local = _register[store] = _register[left] + _register[right];
+        break;
+      case HTOpCode.subtract:
+        _local = _register[store] = _register[left] - _register[right];
+        break;
+      case HTOpCode.multiply:
+        _local = _register[store] = _register[left] * _register[right];
+        break;
+      case HTOpCode.devide:
+        _local = _register[store] = _register[left] / _register[right];
+        break;
+      case HTOpCode.modulo:
+        _local = _register[store] = _register[left] % _register[right];
+        break;
+      default:
+        throw HTErrorUndefinedBinaryOperator(_register[left].toString(), _register[right].toString(), HTLexicon.add);
+    }
+  }
+
+  dynamic _exec(int ip) {
     _ip = ip;
     // final signature = _bytes.sublist(0, 4);
     // if (signature.buffer.asByteData().getUint32(0) != Compiler.hetuSignature) {
@@ -176,12 +231,14 @@ class HTVM extends Interpreter {
     while (_ip < _bytes.length) {
       final instruction = _readByte();
       switch (instruction) {
-        case HTOpCode.endOfFile:
-          print(_curStmtValue);
-          return;
-        case HTOpCode.endOfLine:
+        // 返回当前运算值
+        case HTOpCode.subReturn:
+          return _curStmtValue;
+        // 语句结束，将当前变量存储当前行返回结果
+        case HTOpCode.endOfStatement:
           _curStmtValue = _local;
           break;
+        // 从字节码读取常量表并保存在当前环境中
         case HTOpCode.constTable:
           _context = HTContext();
           var table_length = _readUint16();
@@ -197,37 +254,29 @@ class HTVM extends Interpreter {
             _context.addConstString(_readUtf8String());
           }
           break;
+        // 将字面量存储在本地变量中
         case HTOpCode.literal:
-          _setLocal();
+          _storeLocal();
           break;
-        case HTOpCode.reg0:
-          _register[0] = _local;
-          break;
-        case HTOpCode.reg1:
-          _register[1] = _local;
+        // 将本地变量存储如下一个字节代表的寄存器位置中
+        case HTOpCode.register:
+          _register[_readByte()] = _local;
           break;
         case HTOpCode.add:
-          _local = _register[0] + _register[1];
-          break;
         case HTOpCode.subtract:
-          _local = _register[0] - _register[1];
+        case HTOpCode.multiply:
+        case HTOpCode.devide:
+        case HTOpCode.modulo:
+          _execBinaryOp(instruction);
           break;
+        // 错误处理
         case HTOpCode.error:
           _handleError();
           break;
         default:
-          print('Unknown operator. $instruction');
+          print('Unknown opcode: $instruction');
           break;
       }
-    }
-  }
-
-  void _handleError() {
-    final err_type = _readByte();
-    // TODO: line 和 column
-    switch (err_type) {
-      case HTErrorCode.binOp:
-        throw HTErrorUndefinedBinaryOperator(_register[0].toString(), _register[1].toString(), HTLexicon.add);
     }
   }
 }
