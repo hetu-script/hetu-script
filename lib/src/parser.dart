@@ -42,7 +42,7 @@ abstract class Parser {
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
-  String get curFileName;
+  late String curFileName;
 
   var _tokPos = 0;
 

@@ -46,7 +46,8 @@ class Resolver implements ASTNodeVisitor {
     for (final klass in _classes) {
       _resolveClass(klass);
     }
-    for (final func in _funcs) {
+    var funcs = List.from(_funcs);
+    for (final func in funcs) {
       _resolveFunction(func);
     }
     _endBlock();
