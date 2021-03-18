@@ -134,7 +134,7 @@ class HTFunction with HTType, ASTInterpreterRef {
           if (!param.isNamed) {
             arg = positionalArgs[i];
           } else {
-            arg = namedArgs[param.id as String];
+            arg = namedArgs[param.id.lexeme as String];
           }
           final arg_type_decl = param.declType;
 
