@@ -125,11 +125,12 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       } else {
         return _curStmtValue;
       }
-    } catch (e) {
+    } catch (e, stack) {
       var sb = StringBuffer();
       for (var funcName in HTFunction.callStack) {
         sb.writeln('  $funcName');
       }
+      sb.writeln('\n$stack');
       var callStack = sb.toString();
 
       if (e is HTParserError) {

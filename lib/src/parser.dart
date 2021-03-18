@@ -45,7 +45,7 @@ class Parser {
   int get curLine => _curLine;
   int _curColumn = 0;
   int get curColumn => _curColumn;
-  late final String curFileName;
+  late String curFileName;
 
   var _tokPos = 0;
   String? _curClassName;
