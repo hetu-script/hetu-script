@@ -1,11 +1,11 @@
-import 'lexicon.dart';
+import '../lexicon.dart';
 import 'ast_interpreter.dart';
 import 'namespace.dart';
 import 'function.dart';
-import 'errors.dart';
+import '../errors.dart';
 import 'expression.dart';
 import 'type.dart';
-import 'extern_class.dart' show HTExternalFunction;
+import '../extern_class.dart' show HTExternalFunction;
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 ///

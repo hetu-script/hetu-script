@@ -10,9 +10,9 @@ Hetu's grammar is close to typescript/kotlin/swift and other modern languages, h
 
 It meant to be used as a scripting language like lua, however, it is made to communicate with classes & functions in Dart very easily.
 
-[Syntax referrence](doc/SYNTAX.md)
+[Syntax referrence](doc/en_US/SYNTAX.md)
 
-[语法参考](doc/SYNTAX_ZH.md)
+[语法参考](doc/zh_Hans/SYNTAX.md)
 
 In your Dart code, you can interpret an script file by this:
 
@@ -49,7 +49,7 @@ fun main {
 Hetu's grammar is almost same to typescript, except a few things:
 
 - Function is declared with 'fun'.
-- Variable declared with keyword 'def' or 'let' and without a type will be given a type if it has an initialization.
+- Variable declared with keyword 'let' or 'const' and without a type will be given a type if it has an initialization.
 
 ## Binding
 

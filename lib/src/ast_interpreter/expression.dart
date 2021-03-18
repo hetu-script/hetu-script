@@ -1,6 +1,7 @@
-import 'token.dart';
-import 'lexicon.dart';
+import '../token.dart';
+import '../lexicon.dart';
 import 'type.dart';
+import '../common.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 abstract class ASTNodeVisitor {
@@ -621,15 +622,6 @@ class ParamDeclStmt extends VarDeclStmt {
       isVariadic: isVariadic,
       isOptional: isOptional,
       isNamed: isNamed);
-}
-
-enum FunctionType {
-  normal,
-  constructor,
-  getter,
-  setter,
-  method, // normal function within a class
-  literal, // function expression with no function name
 }
 
 class FuncDeclaration extends ASTNode {

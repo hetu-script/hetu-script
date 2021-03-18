@@ -1,7 +1,6 @@
 import 'package:hetu_script/hetu_script.dart';
 
 import 'binding.dart';
-import 'parser.dart';
 import 'lexicon.dart';
 import 'context.dart';
 
@@ -34,16 +33,6 @@ abstract class Interpreter with BindingHandler {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   });
-
-  // dynamic evalfSync(
-  //   String fileName, {
-  //   String? directory,
-  //   String? libName,
-  //   ParseStyle style = ParseStyle.library,
-  //   String? invokeFunc,
-  //   List<dynamic> positionalArgs = const [],
-  //   Map<String, dynamic> namedArgs = const {},
-  // });
 
   dynamic invoke(String functionName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}});

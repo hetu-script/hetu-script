@@ -1,9 +1,9 @@
-import 'errors.dart';
-import 'lexicon.dart';
+import '../errors.dart';
+import '../lexicon.dart';
 import 'type.dart';
 import 'declaration.dart';
 import 'object.dart';
-import 'context.dart';
+import '../context.dart';
 import 'ast_interpreter.dart';
 
 class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {

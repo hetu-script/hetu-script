@@ -1,7 +1,7 @@
 name: hetu_script
-description: Hetu is a lightweight script language written in Dart，intended to be embedded in Dart programs.
+description: Hetu is a lightweight script language written purely in Dart. It is intended to be embedded in Flutter/Dart apps & games to enable hotfixes and scripting.
 version: 0.0.5
-homepage: https://github.com/hythl0day/hetu_script
+homepage: https://github.com/hetu-script/hetu-script
 publish_to: https://pub.dartlang.org
 
 environment:

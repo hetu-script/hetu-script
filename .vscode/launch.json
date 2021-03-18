@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/interpreter/enum.dart",
+      "program": "example/interpreter/external_class.dart",
       "request": "launch",
       "type": "dart"
     }

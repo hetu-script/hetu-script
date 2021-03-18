@@ -1,4 +1,4 @@
-import 'lexicon.dart';
+import '../lexicon.dart';
 
 mixin HTType {
   HTTypeId get typeid;

@@ -1,22 +1,23 @@
-import 'package:hetu_script/src/enum.dart';
-
-import 'core.dart';
-import 'read_file.dart';
-import 'extern_class.dart';
-import 'errors.dart';
+import '../core.dart';
+import '../read_file.dart';
+import '../extern_class.dart';
+import '../errors.dart';
 import 'expression.dart';
 import 'type.dart';
 import 'namespace.dart';
 import 'class.dart';
 import 'function.dart';
-import 'lexer.dart';
-import 'parser.dart';
-import 'lexicon.dart';
+import '../lexer.dart';
+import '../parser.dart';
+import '../ast_interpreter/ast_parser.dart';
+import '../lexicon.dart';
 import 'resolver.dart';
 import 'object.dart';
-import 'interpreter.dart';
-import 'context.dart';
-import 'extern_object.dart';
+import '../interpreter.dart';
+import '../context.dart';
+import '../extern_object.dart';
+import 'enum.dart';
+import '../common.dart';
 
 mixin ASTInterpreterRef {
   late final HTInterpreter interpreter;
@@ -106,7 +107,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
     curNamespace = context is HTNamespace ? context : _globals;
     var lexer = Lexer();
-    var parser = Parser();
+    var parser = HTParser();
     var resolver = Resolver();
     try {
       var tokens = lexer.lex(content, curFileName);
@@ -211,7 +212,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
         _globals.define(libName, declType: HTTypeId.namespace, value: library_namespace);
       }
 
-      var content = await readFileMethod(fileName);
+      String content = await readFileMethod(fileName);
       result = eval(content,
           fileName: fileName,
           context: library_namespace,
@@ -222,40 +223,6 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     }
     return result;
   }
-
-  // @override
-  // dynamic evalfSync(
-  //   String fileName, {
-  //   String? directory,
-  //   String? libName,
-  //   ParseStyle style = ParseStyle.library,
-  //   String? invokeFunc,
-  //   List<dynamic> positionalArgs = const [],
-  //   Map<String, dynamic> namedArgs = const {},
-  // }) {
-  //   final savedFileName = curFileName;
-  //   dynamic result;
-  //   if (!_evaledFiles.contains(fileName)) {
-  //     _evaledFiles.add(fileName);
-
-  //     HTNamespace? library_namespace;
-  //     if ((libName != null) && (libName != HTLexicon.global)) {
-  //       _globals.define(libName, declType: HTTypeId.namespace);
-  //       library_namespace = HTNamespace(this, id: libName, closure: library_namespace);
-  //     }
-
-  //     var content = readFileSync(fileName);
-  //     result = eval(content,
-  //         fileName: fileName,
-  //         context: library_namespace,
-  //         style: style,
-  //         invokeFunc: invokeFunc,
-  //         positionalArgs: positionalArgs,
-  //         namedArgs: namedArgs);
-  //   }
-  //   curFileName = savedFileName;
-  //   return result;
-  // }
 
   @override
   HTTypeId typeof(dynamic object) {

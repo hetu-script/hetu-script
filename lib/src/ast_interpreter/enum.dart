@@ -1,8 +1,8 @@
 import 'type.dart';
 import 'object.dart';
-import 'lexicon.dart';
-import 'errors.dart';
-import 'interpreter.dart';
+import '../lexicon.dart';
+import '../errors.dart';
+import '../interpreter.dart';
 
 class HTEnum extends HTObject with InterpreterRef {
   @override

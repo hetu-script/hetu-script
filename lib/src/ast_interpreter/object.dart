@@ -1,6 +1,6 @@
 import 'type.dart';
-import 'errors.dart';
-import 'lexicon.dart';
+import '../errors.dart';
+import '../lexicon.dart';
 
 class _HTNull with HTType {
   const _HTNull();

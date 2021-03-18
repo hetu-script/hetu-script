@@ -7,7 +7,8 @@ void main() async {
 
   await hetu.eval(r'''
       fun main {
-        print(42.typeid)
+        var s = 'abc'
+        pr1nt(s)
       }
       ''', invokeFunc: 'main');
 }

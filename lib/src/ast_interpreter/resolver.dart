@@ -1,6 +1,7 @@
-import 'errors.dart';
+import '../errors.dart';
 import 'expression.dart';
-import 'lexicon.dart';
+import '../lexicon.dart';
+import '../common.dart';
 
 enum _ClassType {
   none,
@@ -10,12 +11,9 @@ enum _ClassType {
 /// 负责对语句列表进行分析，并生成变量作用域
 class Resolver implements ASTNodeVisitor {
   int _curLine = 0;
-  @override
   int get curLine => _curLine;
   int _curColumn = 0;
-  @override
   int get curColumn => _curColumn;
-  @override
   late final String curFileName;
 
   String _libName = HTLexicon.global;

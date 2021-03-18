@@ -1,8 +1,8 @@
 import 'class.dart';
 import 'namespace.dart';
-import 'errors.dart';
+import '../errors.dart';
 import 'type.dart';
-import 'lexicon.dart';
+import '../lexicon.dart';
 import 'expression.dart';
 import 'ast_interpreter.dart';
 
