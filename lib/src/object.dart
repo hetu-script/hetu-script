@@ -1,6 +1,6 @@
 import 'type.dart';
-import '../errors.dart';
-import '../lexicon.dart';
+import 'errors.dart';
+import 'lexicon.dart';
 
 class _HTNull with HTType {
   const _HTNull();
@@ -22,7 +22,7 @@ abstract class HTObject with HTType {
           bool isExtern = false,
           bool isImmutable = false,
           bool isNullable = false,
-          bool isDynamic = false}) =>
+          bool typeInference = false}) =>
       throw HTErrorUndefined(varName);
 
   dynamic fetch(String varName, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);

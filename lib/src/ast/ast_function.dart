@@ -1,70 +1,36 @@
-import 'class.dart';
-import 'namespace.dart';
+import '../class.dart';
+import '../namespace.dart';
 import '../errors.dart';
-import 'type.dart';
+import '../type.dart';
 import '../lexicon.dart';
-import 'expression.dart';
-import 'ast_interpreter.dart';
+import 'ast.dart';
+import 'interpreter.dart';
 
-class HTFunctionType extends HTTypeId {
-  final HTTypeId returnType;
-  final List<HTTypeId> paramsTypes;
+import '../function.dart';
 
-  HTFunctionType(this.returnType, {List<HTTypeId> arguments = const [], this.paramsTypes = const []})
-      : super(HTLexicon.function, arguments: arguments);
-
+class HTAstFunction extends HTFunction with AstInterpreterRef {
   @override
-  String toString() {
-    var result = StringBuffer();
-    result.write('$id');
-    if (arguments.isNotEmpty) {
-      result.write('<');
-      for (var i = 0; i < arguments.length; ++i) {
-        result.write(arguments[i]);
-        if ((arguments.length > 1) && (i != arguments.length - 1)) result.write(', ');
-      }
-      result.write('>');
-    }
-
-    result.write('(');
-
-    for (final param in paramsTypes) {
-      result.write(param.id);
-      //if (param.initializer != null)
-      if (paramsTypes.length > 1) result.write(', ');
-    }
-    result.write('): ' + returnType.toString());
-    return result.toString();
-  }
-}
-
-class HTFunction with HTType, ASTInterpreterRef {
-  static final callStack = <String>[];
-
-  HTNamespace declContext;
-  late HTNamespace _closure;
-  //HTNamespace _save;
   String get id => funcStmt.id?.lexeme ?? '';
+  @override
   String get internalName => funcStmt.internalName;
 
-  final FuncDeclaration funcStmt;
+  final FuncDeclStmt funcStmt;
 
-  late final HTFunctionType _typeid;
-  @override
-  HTTypeId get typeid => _typeid;
-
-  final bool isExtern;
-
-  HTFunction(this.funcStmt, this.declContext, HTInterpreter interpreter,
-      {List<HTTypeId> typeArgs = const [], this.isExtern = false}) {
-    //_save = _closure = closure;
+  HTAstFunction(this.funcStmt, HTInterpreter interpreter, {HTNamespace? context, List<HTTypeId> typeArgs = const []}) {
     this.interpreter = interpreter;
+    this.context = context;
+    funcType = funcStmt.funcType;
+    className = funcStmt.className;
+    isExtern = funcStmt.isExtern;
+    isStatic = funcStmt.isStatic;
+    isConst = funcStmt.isConst;
+    isVariadic = funcStmt.isVariadic;
 
-    var paramsTypes = <HTTypeId>[];
+    var paramsTypes = <HTTypeId?>[];
     for (final param in funcStmt.params) {
       paramsTypes.add(param.declType);
     }
-    _typeid = HTFunctionType(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
+    typeid = HTFunctionTypeId(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
   }
 
   @override
@@ -95,9 +61,10 @@ class HTFunction with HTType, ASTInterpreterRef {
     return result.toString();
   }
 
+  @override
   dynamic call(
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HTInstance? instance}) {
-    callStack.add(internalName);
+    HTFunction.callStack.add(internalName);
 
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
@@ -107,14 +74,16 @@ class HTFunction with HTType, ASTInterpreterRef {
     dynamic result;
     try {
       if (funcStmt.definition != null) {
+        HTNamespace closure;
         //_save = _closure;
         //assert(closure != null);
-        // 函数每次在调用时，才生成对应的作用域
-        if (instance != null) {
-          _closure = HTNamespace(interpreter, id: '${instance.id}.$id', closure: instance);
-          _closure.define(HTLexicon.THIS, declType: instance.typeid, isImmutable: true);
+        // 函数每次在调用时，生成对应的作用域
+        final callContext = instance ?? context!;
+        if (callContext is HTInstance) {
+          closure = HTNamespace(interpreter, id: '${callContext.id}.$id', closure: callContext);
+          closure.define(HTLexicon.THIS, declType: callContext.typeid, isImmutable: true);
         } else {
-          _closure = HTNamespace(interpreter, id: '$id', closure: declContext);
+          closure = HTNamespace(interpreter, id: '$id', closure: callContext);
         }
 
         for (var i = 0; i < funcStmt.params.length; ++i) {
@@ -134,16 +103,16 @@ class HTFunction with HTType, ASTInterpreterRef {
           if (!param.isNamed) {
             arg = positionalArgs[i];
           } else {
-            arg = namedArgs[param.id as String];
+            arg = namedArgs[param.id.lexeme];
           }
-          final arg_type_decl = param.declType;
+          final arg_type_decl = param.declType ?? HTTypeId.ANY;
 
           if (!param.isVariadic) {
             var arg_type = interpreter.typeof(arg);
             if (arg_type.isNotA(arg_type_decl)) {
               throw HTErrorArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
             }
-            _closure.define(param.id.lexeme, declType: arg_type_decl, value: arg);
+            closure.define(param.id.lexeme, declType: arg_type_decl, value: arg);
           } else {
             var varargs = [];
             for (var j = i; j < positionalArgs.length; ++j) {
@@ -154,12 +123,12 @@ class HTFunction with HTType, ASTInterpreterRef {
               }
               varargs.add(arg);
             }
-            _closure.define(param.id.lexeme, declType: HTTypeId.list, value: varargs);
+            closure.define(param.id.lexeme, declType: HTTypeId.list, value: varargs);
             break;
           }
         }
 
-        result = interpreter.executeBlock(funcStmt.definition!, _closure);
+        result = interpreter.executeBlock(funcStmt.definition!, closure);
 
         //_closure = _save;
       } else {
@@ -176,7 +145,7 @@ class HTFunction with HTType, ASTInterpreterRef {
         throw HTErrorReturnType(returned_type.toString(), id, funcStmt.returnType.toString());
       }
 
-      callStack.removeLast();
+      HTFunction.callStack.removeLast();
 
       if (returnValue is NullThrownError) return null;
 
@@ -184,7 +153,7 @@ class HTFunction with HTType, ASTInterpreterRef {
       return returnValue;
     }
 
-    callStack.removeLast();
+    HTFunction.callStack.removeLast();
     // 如果函数体中没有直接return，则会返回最后一个语句的值
     return result;
   }

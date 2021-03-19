@@ -1,5 +1,5 @@
 import '../errors.dart';
-import 'expression.dart';
+import 'ast.dart';
 import '../lexicon.dart';
 import '../common.dart';
 
@@ -9,7 +9,7 @@ enum _ClassType {
 }
 
 /// 负责对语句列表进行分析，并生成变量作用域
-class Resolver implements ASTNodeVisitor {
+class HTResolver implements ASTNodeVisitor {
   int _curLine = 0;
   int get curLine => _curLine;
   int _curColumn = 0;
@@ -22,7 +22,7 @@ class Resolver implements ASTNodeVisitor {
   final _blocks = <Map<String, bool>>[];
 
   final _classes = <ClassDeclStmt>[];
-  final _funcs = <FuncDeclaration>[];
+  final _funcs = <FuncDeclStmt>[];
 
   FunctionType? _curFuncType;
   _ClassType _curClassType = _ClassType.none;
@@ -31,7 +31,7 @@ class Resolver implements ASTNodeVisitor {
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _distances = <ASTNode, int>{};
 
-  Resolver();
+  HTResolver();
 
   // 返回每个表达式对应的求值深度
   Map<ASTNode, int> resolve(List<ASTNode> statements, String fileName, {String libName = HTLexicon.global}) {
@@ -95,7 +95,7 @@ class Resolver implements ASTNodeVisitor {
     }
   }
 
-  void _resolveFunction(FuncDeclaration stmt) {
+  void _resolveFunction(FuncDeclStmt stmt) {
     var save = _curFuncType;
     _curFuncType = stmt.funcType;
 
@@ -119,7 +119,7 @@ class Resolver implements ASTNodeVisitor {
 
     // 递归获取所有父类的静态变量和静态函数
     var static_var_stmt = <VarDeclStmt>[];
-    var static_func_stmt = <FuncDeclaration>[];
+    var static_func_stmt = <FuncDeclStmt>[];
     ClassDeclStmt? cur_stmt = stmt;
     while (cur_stmt != null) {
       for (final varStmt in cur_stmt.variables) {
@@ -154,7 +154,7 @@ class Resolver implements ASTNodeVisitor {
     _blocks.last[HTLexicon.THIS] = true;
     // 递归获取所有父类的成员变量和成员函数
     var instance_var_stmt = <VarDeclStmt>[];
-    var instance_func_stmt = <FuncDeclaration>[];
+    var instance_func_stmt = <FuncDeclStmt>[];
     cur_stmt = stmt;
     while (cur_stmt != null) {
       for (final varStmt in cur_stmt.variables) {
@@ -443,7 +443,7 @@ class Resolver implements ASTNodeVisitor {
   }
 
   @override
-  void visitFuncDeclStmt(FuncDeclaration stmt) {
+  void visitFuncDeclStmt(FuncDeclStmt stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
     if (stmt.id != null) {

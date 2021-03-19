@@ -1,25 +1,27 @@
+import 'package:hetu_script/src/declaration.dart';
+
 import '../core.dart';
 import '../read_file.dart';
 import '../extern_class.dart';
 import '../errors.dart';
-import 'expression.dart';
-import 'type.dart';
-import 'namespace.dart';
-import 'class.dart';
-import 'function.dart';
+import 'ast.dart';
+import '../type.dart';
+import '../namespace.dart';
+import '../class.dart';
+import '../function.dart';
+import 'ast_function.dart';
 import '../lexer.dart';
 import '../parser.dart';
-import '../ast_interpreter/ast_parser.dart';
+import 'parser.dart';
 import '../lexicon.dart';
 import 'resolver.dart';
-import 'object.dart';
+import '../object.dart';
 import '../interpreter.dart';
-import '../context.dart';
 import '../extern_object.dart';
-import 'enum.dart';
+import '../enum.dart';
 import '../common.dart';
 
-mixin ASTInterpreterRef {
+mixin AstInterpreterRef {
   late final HTInterpreter interpreter;
 }
 
@@ -27,41 +29,23 @@ mixin ASTInterpreterRef {
 class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   static var _fileIndex = 0;
 
-  int _curLine = 0;
-  @override
-  int get curLine => _curLine;
-  int _curColumn = 0;
-  @override
-  int get curColumn => _curColumn;
-  @override
-  String curFileName = '';
-
-  @override
-  final String workingDirectory;
-
-  final bool debugMode;
-  final ReadFileMethod readFileMethod;
-
   final _evaledFiles = <String>[];
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _distances = <ASTNode, int>{};
 
-  /// 全局命名空间
-  late HTNamespace _globals;
-
-  /// 当前语句所在的命名空间
-  late HTNamespace curNamespace;
-
   dynamic _curStmtValue;
 
   HTInterpreter(
       {String sdkDirectory = 'hetu_lib/',
-      this.workingDirectory = 'script/',
-      this.debugMode = false,
-      this.readFileMethod = defaultReadFileMethod}) {
-    curNamespace = _globals = HTNamespace(this, id: HTLexicon.global);
+      String workingDirectory = 'script/',
+      bool debugMode = false,
+      ReadFileMethod readFileMethod = defaultReadFileMethod}) {
+    context = globals = HTNamespace(this, id: HTLexicon.global);
+    this.workingDirectory = workingDirectory;
+    this.debugMode = debugMode;
+    this.readFileMethod = readFileMethod;
   }
 
   Future<void> init(
@@ -97,22 +81,22 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     String content, {
     String? fileName,
     String libName = HTLexicon.global,
-    HTContext? context,
+    HTNamespace? namespace,
     ParseStyle style = ParseStyle.library,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
     curFileName = fileName ?? HTLexicon.anonymousScript + (_fileIndex++).toString();
+    context = namespace is HTNamespace ? namespace : globals;
 
-    curNamespace = context is HTNamespace ? context : _globals;
     var lexer = Lexer();
     var parser = HTParser();
-    var resolver = Resolver();
+    var resolver = HTResolver();
     try {
       var tokens = lexer.lex(content, curFileName);
 
-      final statements = await parser.parse(tokens, this, curNamespace, curFileName, style);
+      final statements = await parser.parse(tokens, this, context, curFileName, style);
       _distances.addAll(resolver.resolve(statements, curFileName, libName: libName));
 
       for (final stmt in statements) {
@@ -141,7 +125,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
         throw HTInterpreterError('${e.message}\nCall stack:\n$callStack', e.type, resolver.curFileName,
             resolver.curLine, resolver.curColumn);
       } else {
-        throw HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curFileName, _curLine, _curColumn);
+        throw HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curFileName, curLine, curColumn);
       }
     }
   }
@@ -152,7 +136,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   dynamic invoke(String functionName,
       {String? objectName, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
     if (objectName == null) {
-      var func = _globals.fetch(functionName);
+      var func = globals.fetch(functionName);
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (func is Function) {
@@ -171,7 +155,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       }
     } else {
       // 命名空间内的静态函数
-      HTObject object = _globals.fetch(objectName);
+      HTObject object = globals.fetch(objectName);
       var func = object.fetch(functionName);
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
@@ -209,14 +193,14 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
       HTNamespace? library_namespace;
       if ((libName != null) && (libName != HTLexicon.global)) {
-        library_namespace = HTNamespace(this, id: libName, closure: _globals);
-        _globals.define(libName, declType: HTTypeId.namespace, value: library_namespace);
+        library_namespace = HTNamespace(this, id: libName, closure: globals);
+        globals.define(libName, declType: HTTypeId.namespace, value: library_namespace);
       }
 
       String content = await readFileMethod(fileName);
       result = eval(content,
           fileName: fileName,
-          context: library_namespace,
+          namespace: library_namespace,
           style: style,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
@@ -292,32 +276,32 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   }
 
   void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
-    _globals.define(key, declType: declType, value: value, isImmutable: isImmutable, isDynamic: isDynamic);
+    globals.define(key, declType: declType, value: value, isImmutable: isImmutable, typeInference: isDynamic);
   }
 
   dynamic fetchGlobal(String key) {
-    return _globals.fetch(key);
+    return globals.fetch(key);
   }
 
   dynamic _getValue(String name, ASTNode expr) {
     var distance = _distances[expr];
     if (distance != null) {
-      return curNamespace.fetchAt(name, distance);
+      return context.fetchAt(name, distance);
     }
 
-    return _globals.fetch(name);
+    return globals.fetch(name);
   }
 
   dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
-    var saved_context = curNamespace;
+    var saved_context = context;
 
     try {
-      curNamespace = environment;
+      context = environment;
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
       }
     } finally {
-      curNamespace = saved_context;
+      context = saved_context;
     }
 
     return _curStmtValue;
@@ -327,50 +311,50 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitNullExpr(NullExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     return null;
   }
 
   @override
   dynamic visitBooleanExpr(BooleanExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     return expr.value;
   }
 
   @override
   dynamic visitConstIntExpr(ConstIntExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    return _globals.getConstInt(expr.constIndex);
+    curLine = expr.line;
+    curColumn = expr.column;
+    return globals.getConstInt(expr.constIndex);
   }
 
   @override
   dynamic visitConstFloatExpr(ConstFloatExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    return _globals.getConstFloat(expr.constIndex);
+    curLine = expr.line;
+    curColumn = expr.column;
+    return globals.getConstFloat(expr.constIndex);
   }
 
   @override
   dynamic visitConstStringExpr(ConstStringExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    return _globals.getConstString(expr.constIndex);
+    curLine = expr.line;
+    curColumn = expr.column;
+    return globals.getConstString(expr.constIndex);
   }
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     return visitASTNode(expr.inner);
   }
 
   @override
   dynamic visitLiteralVectorExpr(LiteralVectorExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var list = [];
     for (final item in expr.vector) {
       list.add(visitASTNode(item));
@@ -380,8 +364,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitLiteralDictExpr(LiteralDictExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var map = {};
     for (final key_expr in expr.map.keys) {
       var key = visitASTNode(key_expr);
@@ -393,15 +377,15 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitSymbolExpr(SymbolExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     return _getValue(expr.id.lexeme, expr);
   }
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var value = visitASTNode(expr.value);
 
     if (expr.op.lexeme == HTLexicon.subtract) {
@@ -423,8 +407,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var left = visitASTNode(expr.left);
     var right;
     if (expr.op.type == HTLexicon.and) {
@@ -518,8 +502,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var callee = visitASTNode(expr.callee);
     var positionalArgs = [];
     for (var i = 0; i < expr.positionalArgs.length; ++i) {
@@ -534,16 +518,16 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     if (callee is HTFunction) {
       if (!callee.isExtern) {
         // 普通函数
-        if (callee.funcStmt.funcType != FunctionType.constructor) {
-          if (callee.declContext is HTInstance) {
+        if (callee.funcType != FunctionType.constructor) {
+          if (callee.context is HTInstance) {
             return callee.call(
-                positionalArgs: positionalArgs, namedArgs: namedArgs, instance: callee.declContext as HTInstance?);
+                positionalArgs: positionalArgs, namedArgs: namedArgs, instance: callee.context as HTInstance);
           } else {
             return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
           }
         } else {
-          final className = callee.funcStmt.className;
-          final klass = _globals.fetch(className!);
+          final className = callee.className;
+          final klass = globals.fetch(className!);
           if (klass is HTClass) {
             if (!klass.isExtern) {
               // 命名构造函数
@@ -623,15 +607,15 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var value = visitASTNode(expr.value);
     var distance = _distances[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      curNamespace.assignAt(expr.variable.lexeme, value, distance);
+      context.assignAt(expr.variable.lexeme, value, distance);
     } else {
-      _globals.assign(expr.variable.lexeme, value);
+      globals.assign(expr.variable.lexeme, value);
     }
 
     // 返回右值
@@ -640,15 +624,15 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitThisExpr(ThisExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     return _getValue(HTLexicon.THIS, expr);
   }
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var collection = visitASTNode(expr.collection);
     var key = visitASTNode(expr.key);
     if (collection is List || collection is Map) {
@@ -660,8 +644,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitSubSetExpr(SubSetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var collection = visitASTNode(expr.collection);
     var key = visitASTNode(expr.key);
     var value = visitASTNode(expr.value);
@@ -675,8 +659,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     var object = visitASTNode(expr.collection);
 
     if (object is num) {
@@ -692,7 +676,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     }
 
     if ((object is HTObject)) {
-      return object.fetch(expr.key.lexeme, from: curNamespace.fullName);
+      return object.fetch(expr.key.lexeme, from: context.fullName);
     }
     //如果是Dart对象
     else {
@@ -707,8 +691,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+    curLine = expr.line;
+    curColumn = expr.column;
     dynamic object = visitASTNode(expr.collection);
 
     if (object is num) {
@@ -725,7 +709,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
     var value = visitASTNode(expr.value);
     if (object is HTObject) {
-      object.assign(expr.key.lexeme, value, from: curNamespace.fullName);
+      object.assign(expr.key.lexeme, value, from: context.fullName);
       return value;
     }
     //如果是Dart对象
@@ -742,28 +726,28 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitImportStmt(ImportStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
   }
 
   @override
   dynamic visitExprStmt(ExprStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     return visitASTNode(stmt.expr);
   }
 
   @override
   dynamic visitBlockStmt(BlockStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-    return executeBlock(stmt.block, HTNamespace(this, closure: curNamespace));
+    curLine = stmt.line;
+    curColumn = stmt.column;
+    return executeBlock(stmt.block, HTNamespace(this, closure: context));
   }
 
   @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     if (stmt.value != null) {
       var returnValue = visitASTNode(stmt.value!);
       (returnValue != null) ? throw returnValue : throw HTObject.NULL;
@@ -773,8 +757,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitIfStmt(IfStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     var value = visitASTNode(stmt.condition);
     if (value is bool) {
       if (value) {
@@ -790,8 +774,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitWhileStmt(WhileStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     var value = visitASTNode(stmt.condition);
     if (value is bool) {
       while ((value is bool) && (value)) {
@@ -815,34 +799,34 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitBreakStmt(BreakStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     throw HTBreak();
   }
 
   @override
   dynamic visitContinueStmt(ContinueStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     throw HTContinue();
   }
 
   @override
   dynamic visitVarDeclStmt(VarDeclStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     dynamic value;
     if (stmt.initializer != null) {
       value = visitASTNode(stmt.initializer!);
     }
 
-    curNamespace.define(
+    context.define(
       stmt.id.lexeme,
       value: value,
       declType: stmt.declType,
       isExtern: stmt.isExtern,
       isImmutable: stmt.isImmutable,
-      isDynamic: stmt.isDynamic,
+      typeInference: stmt.declType == null,
     );
 
     return value;
@@ -850,97 +834,91 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitParamDeclStmt(ParamDeclStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
   }
 
   @override
-  dynamic visitFuncDeclStmt(FuncDeclaration stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-    HTFunction? func;
-    if (stmt.funcType != FunctionType.constructor) {
-      func = HTFunction(stmt, curNamespace, this, isExtern: stmt.isExtern);
-      if (stmt.id != null) {
-        curNamespace.define(stmt.id!.lexeme, declType: func.typeid, value: func);
-      }
+  dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
+    curLine = stmt.line;
+    curColumn = stmt.column;
+    final func = HTAstFunction(stmt, this, context: context);
+    if (stmt.id != null) {
+      context.define(stmt.id!.lexeme, declType: func.typeid, value: func);
     }
     return func;
   }
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
     HTClass? superClass;
     if (stmt.id.lexeme != HTLexicon.rootClass) {
       if (stmt.superClass == null) {
-        superClass = _globals.fetch(HTLexicon.rootClass);
+        superClass = globals.fetch(HTLexicon.rootClass);
       } else {
-        dynamic existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
-        if (existSuperClass is! HTClass) {
-          throw HTErrorExtends(superClass!.id);
-        }
+        HTClass existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
         superClass = existSuperClass;
       }
     }
 
-    final klass = HTClass(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: curNamespace);
+    final klass = HTClass(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: context);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curNamespace.define(stmt.id.lexeme, declType: HTTypeId.CLASS, value: klass);
+    context.define(stmt.id.lexeme, declType: HTTypeId.CLASS, value: klass);
 
     //继承所有父类的成员变量和方法
     if (superClass != null) {
-      for (final variable in superClass.variables.values) {
-        if (variable.isStatic) {
-          dynamic value;
-          if (variable.initializer != null) {
-            value = visitASTNode(variable.initializer!);
-          }
-          // else if (variable.isExtern) {
-          //   value = externs.fetch('${stmt.name}${HTLexicon.memberGet}${variable.name.lexeme}', variable.name.line,
-          //       variable.name.column, this,
-          //       from: externs.fullName);
-          // }
-
-          klass.define(variable.id.lexeme,
-              declType: variable.declType,
-              value: value,
-              isExtern: variable.isExtern,
-              isImmutable: variable.isImmutable,
-              isDynamic: variable.isDynamic);
-        } else {
-          klass.declareVar(variable);
-        }
-      }
-    }
-
-    var save = curNamespace;
-    curNamespace = klass;
-    for (final variable in stmt.variables) {
-      if (variable.isStatic) {
-        dynamic value;
-        if (variable.initializer != null) {
-          value = visitASTNode(variable.initializer!);
-        }
+      for (final decl in superClass.instanceDecls.values) {
+        // if (decl.isStatic) {
+        //   dynamic value;
+        //   if (decl.initializer != null) {
+        //     value = visitASTNode(decl.initializer!);
+        //   }
         // else if (variable.isExtern) {
         //   value = externs.fetch('${stmt.name}${HTLexicon.memberGet}${variable.name.lexeme}', variable.name.line,
         //       variable.name.column, this,
         //       from: externs.fullName);
         // }
 
+        // klass.define(decl.id.lexeme,
+        //     declType: decl.declType,
+        //     value: value,
+        //     isExtern: decl.isExtern,
+        //     isImmutable: decl.isImmutable,
+        //     typeInference: decl.isDynamic);
+        // } else {
+        klass.declareInstanceMember(decl);
+        // }
+      }
+    }
+
+    var save = context;
+    context = klass;
+    for (final variable in stmt.variables) {
+      dynamic value;
+      if (variable.initializer != null) {
+        value = visitASTNode(variable.initializer!);
+      }
+      if (variable.isStatic) {
         klass.define(variable.id.lexeme,
             declType: variable.declType,
             value: value,
             isExtern: variable.isExtern,
             isImmutable: variable.isImmutable,
-            isDynamic: variable.isDynamic);
+            typeInference: variable.declType == null);
       } else {
-        klass.declareVar(variable);
+        final decl = HTDeclaration(variable.id.lexeme,
+            value: value,
+            declType: variable.declType ?? HTTypeId.ANY,
+            isExtern: variable.isExtern,
+            isNullable: variable.isNullable,
+            isImmutable: variable.isImmutable);
+        klass.declareInstanceMember(decl);
       }
     }
-    curNamespace = save;
+    context = save;
 
     for (final method in stmt.methods) {
       // if (klass.contains(method.internalName)) {
@@ -949,14 +927,14 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
       HTFunction func;
       if (method.isStatic || method.funcType == FunctionType.constructor) {
-        func = HTFunction(method, klass, this, isExtern: method.isExtern);
-        klass.define(method.internalName, declType: func.typeid, value: func, isExtern: method.isExtern);
+        func = HTAstFunction(method, this, context: klass);
+        klass.define(method.internalName,
+            declType: func.typeid, value: func, isExtern: method.isExtern, isImmutable: true);
       } else {
-        if (!method.isExtern) {
-          func = HTFunction(method, curNamespace, this);
-          klass.define(method.internalName, declType: func.typeid, value: func, isExtern: method.isExtern);
-        }
-        // 外部实例成员不在这里注册
+        func = HTAstFunction(method, this);
+        final decl = HTDeclaration(method.internalName,
+            value: func, declType: HTTypeId.function, isExtern: method.isExtern, isImmutable: true);
+        klass.declareInstanceMember(decl);
       }
     }
 
@@ -965,8 +943,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
   @override
   dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    curLine = stmt.line;
+    curColumn = stmt.column;
 
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < stmt.enumerations.length; i++) {
@@ -976,6 +954,6 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
     final enumClass = HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
 
-    curNamespace.define(stmt.id.lexeme, declType: HTTypeId.ENUM, value: enumClass);
+    context.define(stmt.id.lexeme, declType: HTTypeId.ENUM, value: enumClass);
   }
 }

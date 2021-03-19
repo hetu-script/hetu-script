@@ -16,20 +16,56 @@ abstract class HTOpCode {
   /// copy from to => reg[to] = reg[from]
   static const copy = 21;
 
+  static const assign = 30;
+
+  static const logicalOr = 42;
+
+  static const logicalAnd = 43;
+
+  static const equal = 44;
+
+  static const notEqual = 45;
+
+  static const lesser = 46;
+
+  static const greater = 47;
+
+  static const lesserOrEqual = 48;
+
+  static const greaterOrEqual = 49;
+
   /// add left right store => reg[store] = reg[left] + reg[right]
-  static const add = 40;
+  static const add = 59;
 
   /// subtract left right store => reg[store] = reg[left] + reg[right]
-  static const subtract = 41;
+  static const subtract = 60;
 
   /// multiply left right store => reg[store] = reg[left] * reg[right]
-  static const multiply = 42;
+  static const multiply = 61;
 
   /// devide left right store => reg[store] = reg[left] / reg[right]
-  static const devide = 43;
+  static const devide = 62;
 
   /// modulo left right store => reg[store] = reg[left] % reg[right]
-  static const modulo = 44;
+  static const modulo = 64;
+
+  static const negative = 65;
+
+  static const logicalNot = 66;
+
+  static const preIncrement = 68;
+
+  static const preDecrement = 69;
+
+  static const memberGet = 71;
+
+  static const postIncrement = 73;
+
+  static const postDecrement = 74;
+
+  static const subGet = 75;
+
+  static const call = 76;
 
   static const error = 205;
 }

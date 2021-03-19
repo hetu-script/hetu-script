@@ -1,23 +1,33 @@
-import 'package:hetu_script/hetu_script.dart';
-
 import 'binding.dart';
 import 'lexicon.dart';
-import 'context.dart';
+import 'namespace.dart';
+import 'parser.dart' show ParseStyle;
+import 'type.dart';
+import 'read_file.dart';
 
 mixin InterpreterRef {
   late final Interpreter interpreter;
 }
 
 abstract class Interpreter with BindingHandler {
-  int get curLine;
-  int get curColumn;
-  String curFileName = '';
-  String get workingDirectory;
+  late int curLine;
+  late int curColumn;
+  late String curFileName;
+  late String workingDirectory;
+
+  late bool debugMode;
+  late ReadFileMethod readFileMethod;
+
+  /// 全局命名空间
+  late HTNamespace globals;
+
+  /// 当前语句所在的命名空间
+  late HTNamespace context;
 
   Future<dynamic> eval(
     String content, {
     String libName = HTLexicon.global,
-    HTContext? context,
+    HTNamespace? namespace,
     ParseStyle style = ParseStyle.library,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],

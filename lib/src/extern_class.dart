@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'ast_interpreter/type.dart';
+import 'type.dart';
 import 'errors.dart';
-import 'ast_interpreter/object.dart';
+import 'object.dart';
 import 'lexicon.dart';
 import 'interpreter.dart';
 

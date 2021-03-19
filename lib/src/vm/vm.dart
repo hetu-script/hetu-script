@@ -2,70 +2,62 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../interpreter.dart';
-import '../ast_interpreter/type.dart';
+import '../type.dart';
 import '../parser.dart' show ParseStyle;
 import '../lexicon.dart';
 import 'compiler.dart';
 import 'opcode.dart';
 import '../lexer.dart';
-import '../ast_interpreter/expression.dart';
 import '../errors.dart';
 import '../read_file.dart';
-import '../context.dart';
+import '../namespace.dart';
+
+mixin VMRef {
+  late final HTVM interpreter;
+}
 
 class HTVM extends Interpreter {
   static var _fileIndex = 0;
 
-  @override
-  int curLine = 0;
-  @override
-  int curColumn = 0;
-  @override
-  String curFileName = '';
-
-  @override
-  final String workingDirectory;
-
-  final bool debugMode;
-  final ReadFileMethod readFileMethod;
-
   // final _evaledFiles = <String>[];
-  late final Map<ASTNode, int> _distances;
 
   late Uint8List _bytes;
   int _ip = 0; // instruction pointer
 
-  late final HTContext _context;
+  late final HTNamespace _context;
 
-  var _local;
-  dynamic _curStmtValue;
+  dynamic _local;
 
   // final List<dynamic> _stack = [];
   final _register = List<dynamic>.filled(255, null, growable: false);
 
-  HTVM({
-    String sdkDirectory = 'hetu_lib/',
-    this.workingDirectory = 'script/',
-    this.debugMode = false,
-    this.readFileMethod = defaultReadFileMethod,
-    Map<String, Function> externalFunctions = const {},
-  });
+  HTVM(
+      {String sdkDirectory = 'hetu_lib/',
+      String workingDirectory = 'script/',
+      bool debugMode = false,
+      ReadFileMethod readFileMethod = defaultReadFileMethod}) {
+    context = globals = HTNamespace(this, id: HTLexicon.global);
+    this.workingDirectory = workingDirectory;
+    this.debugMode = debugMode;
+    this.readFileMethod = readFileMethod;
+  }
 
   @override
   Future<dynamic> eval(
     String content, {
     String? fileName,
     String libName = HTLexicon.global,
-    HTContext? context, // ingored
+    HTNamespace? namespace,
     ParseStyle style = ParseStyle.library,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
     curFileName = fileName ?? '__anonymousScript' + (_fileIndex++).toString();
+    context = namespace is HTNamespace ? namespace : globals;
 
     final tokens = Lexer().lex(content, curFileName);
-    _bytes = await Compiler().compile(tokens, this, curFileName, false);
+    _bytes = await Compiler().compile(tokens, this, context, curFileName, style, debugMode);
     print(_bytes);
 
     final result = _exec(10);
@@ -233,14 +225,12 @@ class HTVM extends Interpreter {
       switch (instruction) {
         // 返回当前运算值
         case HTOpCode.subReturn:
-          return _curStmtValue;
-        // 语句结束，将当前变量存储当前行返回结果
+          return _local;
+        // 语句结束
         case HTOpCode.endOfStatement:
-          _curStmtValue = _local;
           break;
         // 从字节码读取常量表并保存在当前环境中
         case HTOpCode.constTable:
-          _context = HTContext();
           var table_length = _readUint16();
           for (var i = 0; i < table_length; ++i) {
             _context.addConstInt(_readInt64());
@@ -260,7 +250,7 @@ class HTVM extends Interpreter {
           break;
         // 将本地变量存储如下一个字节代表的寄存器位置中
         case HTOpCode.register:
-          _register[_readByte()] = _local;
+          _storeRegister(_readByte(), _local);
           break;
         case HTOpCode.add:
         case HTOpCode.subtract:

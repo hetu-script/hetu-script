@@ -1,6 +1,6 @@
 // Hetu运算符优先级
 // Description     Operator           Associativity   Precedence
-//  Unary postfix   e., e()            None            16
+//  Unary postfix   e., e(), e[]       None            16
 //  Unary prefix    -e, !e             None            15
 //  Multiplicative  *, /, %            Left            14
 //  Additive        +, -               Left            13

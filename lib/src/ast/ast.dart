@@ -1,6 +1,6 @@
 import '../token.dart';
 import '../lexicon.dart';
-import 'type.dart';
+import '../type.dart';
 import '../common.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
@@ -95,7 +95,7 @@ abstract class ASTNodeVisitor {
   dynamic visitParamDeclStmt(ParamDeclStmt stmt);
 
   /// 函数声明和定义
-  dynamic visitFuncDeclStmt(FuncDeclaration stmt);
+  dynamic visitFuncDeclStmt(FuncDeclStmt stmt);
 
   /// 类
   dynamic visitClassDeclStmt(ClassDeclStmt stmt);
@@ -554,25 +554,25 @@ class VarDeclStmt extends ASTNode {
 
   final Token id;
 
-  final HTTypeId declType;
+  final HTTypeId? declType;
 
   final ASTNode? initializer;
 
-  final bool isDynamic;
+  final bool isExtern;
+
+  final bool isNullable;
 
   final bool isImmutable;
-
-  final bool isExtern;
 
   final bool isStatic;
 
   VarDeclStmt(
     this.id, {
-    this.declType = HTTypeId.ANY,
+    this.declType,
     this.initializer,
-    this.isDynamic = false,
-    this.isImmutable = false,
     this.isExtern = false,
+    this.isNullable = false,
+    this.isImmutable = false,
     this.isStatic = false,
   }) : super(HTLexicon.varDeclStmt, id.fileName, id.line, id.column);
 
@@ -580,9 +580,9 @@ class VarDeclStmt extends ASTNode {
   ASTNode clone() => VarDeclStmt(id,
       declType: declType,
       initializer: initializer,
-      isDynamic: isDynamic,
-      isImmutable: isImmutable,
       isExtern: isExtern,
+      isNullable: isNullable,
+      isImmutable: isImmutable,
       isStatic: isStatic);
 }
 
@@ -600,31 +600,27 @@ class ParamDeclStmt extends VarDeclStmt {
   final bool isNamed;
 
   ParamDeclStmt(Token id,
-      {HTTypeId declType = HTTypeId.ANY,
+      {HTTypeId? declType,
       ASTNode? initializer,
-      bool isDynamic = false,
+      bool isNullable = false,
       bool isImmutable = false,
-      bool isExtern = false,
-      bool isStatic = false,
       this.isVariadic = false,
       this.isOptional = false,
       this.isNamed = false})
-      : super(id, declType: declType, initializer: initializer, isDynamic: isDynamic, isImmutable: isImmutable);
+      : super(id, declType: declType, initializer: initializer, isNullable: isNullable, isImmutable: isImmutable);
 
   @override
   ASTNode clone() => ParamDeclStmt(id,
       declType: declType,
       initializer: initializer,
-      isDynamic: isDynamic,
+      isNullable: isNullable,
       isImmutable: isImmutable,
-      isExtern: isExtern,
-      isStatic: isStatic,
       isVariadic: isVariadic,
       isOptional: isOptional,
       isNamed: isNamed);
 }
 
-class FuncDeclaration extends ASTNode {
+class FuncDeclStmt extends ASTNode {
   static int functionIndex = 0;
 
   @override
@@ -657,7 +653,7 @@ class FuncDeclaration extends ASTNode {
 
   final FunctionType funcType;
 
-  FuncDeclaration(this.returnType, this.params, String fileName, int line, int column,
+  FuncDeclStmt(this.returnType, this.params, String fileName, int line, int column,
       {this.id,
       this.className,
       this.typeParams = const [],
@@ -697,7 +693,7 @@ class FuncDeclaration extends ASTNode {
       }
     }
 
-    return FuncDeclaration(returnType, new_params, fileName, line, column,
+    return FuncDeclStmt(returnType, new_params, fileName, line, column,
         id: id,
         className: className,
         typeParams: typeParams,
@@ -718,7 +714,7 @@ class ClassDeclStmt extends ASTNode {
 
   final List<VarDeclStmt> variables;
 
-  final List<FuncDeclaration> methods;
+  final List<FuncDeclStmt> methods;
 
   final List<String> typeParams;
 
@@ -745,9 +741,9 @@ class ClassDeclStmt extends ASTNode {
       new_vars.add(expr.clone() as VarDeclStmt);
     }
 
-    var new_methods = <FuncDeclaration>[];
+    var new_methods = <FuncDeclStmt>[];
     for (final expr in methods) {
-      new_methods.add(expr.clone() as FuncDeclaration);
+      new_methods.add(expr.clone() as FuncDeclStmt);
     }
 
     return ClassDeclStmt(id, new_vars, new_methods,

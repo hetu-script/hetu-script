@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../parser.dart';
 import 'opcode.dart';
 import '../token.dart';
-import '../context.dart';
+import '../namespace.dart';
 import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
@@ -20,7 +20,7 @@ class Compiler extends Parser {
   String get curFileName => _curFileName;
 
   // Uint8List compileTokens(List<Token> tokens, [ParseStyle style = ParseStyle.library]) {}
-  late final HTContext _context;
+  late final HTNamespace _context;
 
   late bool _debugMode;
 
@@ -48,9 +48,9 @@ class Compiler extends Parser {
   //   return bytesBuilder.toBytes();
   // }
 
-  Future<Uint8List> compile(List<Token> tokens, Interpreter interpreter, String fileName, bool debugMode,
-      [ParseStyle style = ParseStyle.library]) async {
-    _context = HTContext();
+  Future<Uint8List> compile(List<Token> tokens, Interpreter interpreter, HTNamespace context, String fileName,
+      [ParseStyle style = ParseStyle.library, debugMode = false]) async {
+    _context = context;
     _debugMode = debugMode;
     this.tokens.clear();
     this.tokens.addAll(tokens);

@@ -1,11 +1,12 @@
-import '../lexicon.dart';
-import 'ast_interpreter.dart';
+import 'package:hetu_script/src/declaration.dart';
+
+import 'lexicon.dart';
 import 'namespace.dart';
 import 'function.dart';
-import '../errors.dart';
-import 'expression.dart';
+import 'errors.dart';
 import 'type.dart';
-import '../extern_class.dart' show HTExternalFunction;
+import 'extern_class.dart' show HTExternalFunction;
+import 'interpreter.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 ///
@@ -44,7 +45,7 @@ class HTClass extends HTNamespace {
   final HTClass? superClass;
 
   /// The instance members defined in class definition.
-  Map<String, VarDeclStmt> variables = {};
+  final Map<String, HTDeclaration> instanceDecls = {};
 
   /// Create a class instance.
   ///
@@ -56,26 +57,17 @@ class HTClass extends HTNamespace {
   /// normally the global namespace of the interpreter.
   ///
   /// [superClass] : super class of this class.
-  HTClass(String id, this.superClass, HTInterpreter interpreter,
+  HTClass(String id, this.superClass, Interpreter interpreter,
       {this.isExtern = false, this.typeParams = const [], HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
   /// Wether the class contains a static member, will also check super class.
   @override
   bool contains(String varName) =>
-      defs.containsKey(varName) ||
-      defs.containsKey('${HTLexicon.getter}$varName') ||
+      declarations.containsKey(varName) ||
+      declarations.containsKey('${HTLexicon.getter}$varName') ||
       ((superClass?.contains(varName)) ?? false) ||
       ((superClass?.contains('${HTLexicon.getter}$varName')) ?? false);
-
-  /// Add a instance variable declaration to this class.
-  void declareVar(VarDeclStmt stmt) {
-    if (!variables.containsKey(stmt.id.lexeme)) {
-      variables[stmt.id.lexeme] = stmt;
-    } else {
-      throw HTErrorDefined_Runtime(stmt.id.lexeme);
-    }
-  }
 
   /// Fetch the value of a static member from this class.
   @override
@@ -85,10 +77,10 @@ class HTClass extends HTNamespace {
     } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
       throw HTErrorPrivateMember(varName);
     }
-    var getter = '${HTLexicon.getter}$varName';
-    var constructor = '$id.$varName';
-    if (defs.containsKey(varName)) {
-      var decl = defs[varName]!;
+    final getter = '${HTLexicon.getter}$varName';
+    final constructor = '$id.$varName';
+    if (declarations.containsKey(varName)) {
+      final decl = declarations[varName]!;
       if (!decl.isExtern) {
         return decl.value;
       } else {
@@ -99,20 +91,20 @@ class HTClass extends HTNamespace {
           return interpreter.getExternalVariable('$id.$varName');
         }
       }
-    } else if (defs.containsKey(getter)) {
-      var decl = defs[getter]!;
+    } else if (declarations.containsKey(getter)) {
+      final decl = declarations[getter]!;
       if (!decl.isExtern) {
-        HTFunction func = defs[getter]!.value;
+        HTFunction func = declarations[getter]!.value;
         return func.call();
       } else {
         final externClass = interpreter.fetchExternalClass(id);
         final getterFunc = externClass.fetch(varName);
         return getterFunc();
       }
-    } else if (defs.containsKey(constructor)) {
-      var decl = defs[constructor]!;
+    } else if (declarations.containsKey(constructor)) {
+      final decl = declarations[constructor]!;
       if (!decl.isExtern) {
-        return defs[constructor]!.value;
+        return declarations[constructor]!.value;
       } else {
         final externClass = interpreter.fetchExternalClass(id);
         return externClass.fetch(constructor);
@@ -137,12 +129,12 @@ class HTClass extends HTNamespace {
       throw HTErrorPrivateMember(varName);
     }
 
-    var setter = '${HTLexicon.setter}$varName';
-    if (defs.containsKey(varName)) {
-      var decl_type = defs[varName]!.declType;
-      var var_type = interpreter.typeof(value);
+    final setter = '${HTLexicon.setter}$varName';
+    if (declarations.containsKey(varName)) {
+      final decl_type = declarations[varName]!.declType;
+      final var_type = interpreter.typeof(value);
       if (var_type.isA(decl_type)) {
-        var decl = defs[varName]!;
+        final decl = declarations[varName]!;
         if (!decl.isImmutable) {
           if (!decl.isExtern) {
             decl.value = value;
@@ -161,8 +153,8 @@ class HTClass extends HTNamespace {
         throw HTErrorImmutable(varName);
       }
       throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
-    } else if (defs.containsKey(setter)) {
-      HTFunction setterFunc = defs[setter]!.value;
+    } else if (declarations.containsKey(setter)) {
+      HTFunction setterFunc = declarations[setter]!.value;
       if (!setterFunc.isExtern) {
         setterFunc.call(positionalArgs: [value]);
         return;
@@ -195,25 +187,36 @@ class HTClass extends HTNamespace {
     throw HTErrorUndefined(varName);
   }
 
+  /// Add a instance variable declaration to this class.
+  void declareInstanceMember(HTDeclaration decl) {
+    if (!instanceDecls.containsKey(decl.id)) {
+      instanceDecls[decl.id] = decl;
+    } else {
+      throw HTErrorDefined_Runtime(decl.id);
+    }
+  }
+
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HTInstance createInstance(HTInterpreter interpreter, int? line, int? column,
+  HTInstance createInstance(Interpreter interpreter, int? line, int? column,
       {List<HTTypeId> typeArgs = const [],
       String? constructorName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {}}) {
     var instance = HTInstance(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
 
-    var save = interpreter.curNamespace;
-    interpreter.curNamespace = instance;
-    for (final decl in variables.values) {
-      dynamic value;
-      if (decl.initializer != null) {
-        value = interpreter.visitASTNode(decl.initializer!);
-      }
-      instance.define(decl.id.lexeme, declType: decl.declType, value: value);
+    var save = interpreter.context;
+    interpreter.context = instance;
+    for (final decl in instanceDecls.values) {
+      instance.define(decl.id,
+          declType: decl.declType,
+          value: decl.value,
+          isExtern: decl.isExtern,
+          isImmutable: decl.isImmutable,
+          isNullable: decl.isNullable,
+          typeInference: false);
     }
-    interpreter.curNamespace = save;
+    interpreter.context = save;
 
     constructorName ??= id;
     var constructor = fetch(constructorName, from: fullName);
@@ -223,6 +226,16 @@ class HTClass extends HTNamespace {
     }
 
     return instance;
+  }
+
+  dynamic invoke(String funcName,
+      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+    HTFunction? func = fetch(funcName, from: fullName);
+    if ((func != null) && (!func.isStatic)) {
+      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+    }
+
+    throw HTErrorUndefined(funcName);
   }
 }
 
@@ -237,7 +250,7 @@ class HTInstance extends HTNamespace {
   @override
   late final HTTypeId typeid;
 
-  HTInstance(this.klass, HTInterpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
+  HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
       : super(interpreter, id: '${HTLexicon.instance}${instanceIndex++}', closure: klass) {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
     define(HTLexicon.THIS, declType: typeid, value: this);
@@ -247,7 +260,8 @@ class HTInstance extends HTNamespace {
   String toString() => '${HTLexicon.instanceOf}$typeid';
 
   @override
-  bool contains(String varName) => defs.containsKey(varName) || defs.containsKey('${HTLexicon.getter}$varName');
+  bool contains(String varName) =>
+      declarations.containsKey(varName) || declarations.containsKey('${HTLexicon.getter}$varName');
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
@@ -257,20 +271,16 @@ class HTInstance extends HTNamespace {
       throw HTErrorPrivateMember(varName);
     }
 
-    var getter = '${HTLexicon.getter}$varName';
-    if (defs.containsKey(varName)) {
-      return defs[varName]!.value;
-    } else if (klass.contains(getter)) {
-      HTFunction method = klass.fetch(getter, from: klass.fullName);
-      if (!method.funcStmt.isStatic) {
-        return method.call(instance: this);
+    final getter = '${HTLexicon.setter}$varName';
+    if (declarations.containsKey(varName)) {
+      final member = declarations[varName]!.value;
+      if (member is HTFunction) {
+        member.context = this;
       }
-    } else if (klass.contains(varName)) {
-      final method = klass.fetch(varName, from: klass.fullName);
-      if (method is HTFunction && !method.funcStmt.isStatic) {
-        method.declContext = this;
-        return method;
-      }
+      return member;
+    } else if (declarations.containsKey(getter)) {
+      HTFunction method = declarations[getter]!.value;
+      return method.call(instance: this);
     }
 
     switch (varName) {
@@ -291,38 +301,34 @@ class HTInstance extends HTNamespace {
       throw HTErrorPrivateMember(varName);
     }
 
-    if (defs.containsKey(varName)) {
-      var decl_type = defs[varName]!.declType;
+    final setter = '${HTLexicon.setter}$varName';
+    if (declarations.containsKey(varName)) {
+      var decl_type = declarations[varName]!.declType;
       var var_type = interpreter.typeof(value);
       if (var_type.isA(decl_type)) {
-        if (!defs[varName]!.isImmutable) {
-          defs[varName]!.value = value;
+        if (!declarations[varName]!.isImmutable) {
+          declarations[varName]!.value = value;
           return;
         }
         throw HTErrorImmutable(varName);
       }
       throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
-    } else {
-      var setter = '${HTLexicon.setter}$varName';
-      if (klass.contains(setter)) {
-        HTFunction? method = klass.fetch(setter, from: klass.fullName);
-        if ((method != null) && (!method.funcStmt.isStatic)) {
-          method.call(positionalArgs: [value], instance: this);
-          return;
-        }
-      }
+    } else if (declarations.containsKey(setter)) {
+      HTFunction method = declarations[setter]!.value;
+      method.call(positionalArgs: [value], instance: this);
+      return;
     }
 
     throw HTErrorUndefined(varName);
   }
 
-  dynamic invoke(String methodName,
+  dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    HTFunction? method = klass.fetch(methodName, from: klass.fullName);
-    if ((method != null) && (!method.funcStmt.isStatic)) {
-      return method.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
+    HTFunction? func = klass.fetch(funcName, from: klass.fullName);
+    if ((func != null) && (!func.isStatic)) {
+      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
     }
 
-    throw HTErrorUndefined(methodName);
+    throw HTErrorUndefined(funcName);
   }
 }

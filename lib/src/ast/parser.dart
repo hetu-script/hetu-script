@@ -1,15 +1,15 @@
 import '../errors.dart';
-import 'expression.dart';
+import 'ast.dart';
 import '../token.dart';
 import '../lexicon.dart';
-import 'type.dart';
-import '../context.dart';
+import '../type.dart';
+import '../namespace.dart';
 import '../interpreter.dart';
 import '../parser.dart';
 import '../common.dart';
 
 class HTParser extends Parser {
-  late final HTContext _context;
+  late final HTNamespace _context;
 
   String _curFileName = '';
   @override
@@ -19,8 +19,8 @@ class HTParser extends Parser {
 
   static final Map<String, ASTNode> _classStmts = {};
 
-  Future<List<ASTNode>> parse(List<Token> tokens, Interpreter interpreter, HTContext context, String fileName,
-      [ParseStyle style = ParseStyle.library]) async {
+  Future<List<ASTNode>> parse(List<Token> tokens, Interpreter interpreter, HTNamespace context, String fileName,
+      [ParseStyle style = ParseStyle.library, debugMode = false]) async {
     this.tokens.clear();
     this.tokens.addAll(tokens);
     _context = context;
@@ -439,40 +439,6 @@ class HTParser extends Parser {
     return stmt;
   }
 
-  /// 变量声明语句
-  VarDeclStmt _parseVarStmt(
-      {bool isExtern = false, bool isStatic = false, bool isDynamic = false, bool isImmutable = false}) {
-    advance(1);
-    final var_name = match(HTLexicon.identifier);
-
-    // if (_declarations.containsKey(var_name)) throw HTErrorDefined(var_name.lexeme, fileName, curTok.line, curTok.column);
-
-    var decl_type = HTTypeId.ANY;
-    if (expect([HTLexicon.colon], consume: true, error: false)) {
-      decl_type = _parseTypeId();
-    }
-
-    ASTNode? initializer;
-    if (expect([HTLexicon.assign], consume: true, error: false)) {
-      initializer = _parseExpr();
-    }
-    // 语句结尾
-    expect([HTLexicon.semicolon], consume: true, error: false);
-    var stmt = VarDeclStmt(
-      var_name,
-      declType: decl_type,
-      initializer: initializer,
-      isExtern: isExtern,
-      isStatic: isStatic,
-      isDynamic: isDynamic,
-      isImmutable: isImmutable,
-    );
-
-    // _declarations[var_name.lexeme] = stmt;
-
-    return stmt;
-  }
-
   /// 为了避免涉及复杂的左值右值问题，赋值语句在河图中不作为表达式处理
   /// 而是分成直接赋值，取值后复制和取属性后复制
   ExprStmt _parseAssignStmt() {
@@ -591,10 +557,44 @@ class HTParser extends Parser {
     return BlockStmt(list_stmt, curFileName, curTok.line, curTok.column);
   }
 
+  /// 变量声明语句
+  VarDeclStmt _parseVarStmt(
+      {bool isExtern = false, bool isStatic = false, bool isDynamic = false, bool isImmutable = false}) {
+    advance(1);
+    final var_name = match(HTLexicon.identifier);
+
+    // if (_declarations.containsKey(var_name)) throw HTErrorDefined(var_name.lexeme, fileName, curTok.line, curTok.column);
+
+    var decl_type;
+    if (expect([HTLexicon.colon], consume: true, error: false)) {
+      decl_type = _parseTypeId();
+    }
+
+    ASTNode? initializer;
+    if (expect([HTLexicon.assign], consume: true, error: false)) {
+      initializer = _parseExpr();
+    }
+    // 语句结尾
+    expect([HTLexicon.semicolon], consume: true, error: false);
+    var stmt = VarDeclStmt(
+      var_name,
+      declType: decl_type,
+      initializer: initializer,
+      isExtern: isExtern,
+      // isNullable: isNullable,
+      isImmutable: isImmutable,
+      isStatic: isStatic,
+    );
+
+    // _declarations[var_name.lexeme] = stmt;
+
+    return stmt;
+  }
+
   List<ParamDeclStmt> _parseParameters() {
     var params = <ParamDeclStmt>[];
-    var optionalStarted = false;
-    var namedStarted = false;
+    var isOptional = false;
+    var isNamed = false;
     while ((curTok.type != HTLexicon.roundRight) &&
         (curTok.type != HTLexicon.squareRight) &&
         (curTok.type != HTLexicon.curlyRight) &&
@@ -603,27 +603,27 @@ class HTParser extends Parser {
         expect([HTLexicon.comma], consume: true, error: false);
       }
       // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
-      if (!optionalStarted) {
-        optionalStarted = expect([HTLexicon.squareLeft], consume: true, error: false);
-        if (!optionalStarted && !namedStarted) {
+      if (!isOptional) {
+        isOptional = expect([HTLexicon.squareLeft], consume: true, error: false);
+        if (!isOptional && !isNamed) {
           //检查命名参数，根据是否有花括号判断
-          namedStarted = expect([HTLexicon.curlyLeft], consume: true, error: false);
+          isNamed = expect([HTLexicon.curlyLeft], consume: true, error: false);
         }
       }
 
       var isVariadic = false;
-      if (!namedStarted) {
+      if (!isNamed) {
         isVariadic = expect([HTLexicon.varargs], consume: true, error: false);
       }
 
       var name = match(HTLexicon.identifier);
-      var typeid = HTTypeId.ANY;
+      HTTypeId? declType;
       if (expect([HTLexicon.colon], consume: true, error: false)) {
-        typeid = _parseTypeId();
+        declType = _parseTypeId();
       }
 
       ASTNode? initializer;
-      if (optionalStarted || namedStarted) {
+      if (isOptional || isNamed) {
         //参数默认值
         if (expect([HTLexicon.assign], consume: true, error: false)) {
           initializer = _parseExpr();
@@ -631,20 +631,20 @@ class HTParser extends Parser {
       }
 
       params.add(ParamDeclStmt(name,
-          declType: typeid,
+          declType: declType,
           initializer: initializer,
           isVariadic: isVariadic,
-          isOptional: optionalStarted,
-          isNamed: namedStarted));
+          isOptional: isOptional,
+          isNamed: isNamed));
 
       if (isVariadic) {
         break;
       }
     }
 
-    if (optionalStarted) {
+    if (isOptional) {
       expect([HTLexicon.squareRight], consume: true);
-    } else if (namedStarted) {
+    } else if (isNamed) {
       expect([HTLexicon.curlyRight], consume: true);
     }
 
@@ -652,7 +652,7 @@ class HTParser extends Parser {
     return params;
   }
 
-  FuncDeclaration _parseFuncDeclaration(FunctionType functype, {bool isExtern = false, bool isStatic = false}) {
+  FuncDeclStmt _parseFuncDeclaration(FunctionType functype, {bool isExtern = false, bool isStatic = false}) {
     final keyword = advance(1);
     Token? func_name;
     var typeParams = <String>[];
@@ -712,7 +712,7 @@ class HTParser extends Parser {
     }
     expect([HTLexicon.semicolon], consume: true, error: false);
 
-    var stmt = FuncDeclaration(return_type, params, curFileName, keyword.line, keyword.column,
+    var stmt = FuncDeclStmt(return_type, params, curFileName, keyword.line, keyword.column,
         id: func_name,
         typeParams: typeParams,
         arity: arity,
@@ -776,13 +776,13 @@ class HTParser extends Parser {
 
     // 类的定义体
     var variables = <VarDeclStmt>[];
-    var methods = <FuncDeclaration>[];
+    var methods = <FuncDeclStmt>[];
     if (expect([HTLexicon.curlyLeft], consume: true, error: false)) {
       while ((curTok.type != HTLexicon.curlyRight) && (curTok.type != HTLexicon.endOfFile)) {
         var member = _parseStmt(style: isExtern ? ParseStyle.externalClass : ParseStyle.klass);
         if (member is VarDeclStmt) {
           variables.add(member);
-        } else if (member is FuncDeclaration) {
+        } else if (member is FuncDeclStmt) {
           methods.add(member);
         }
       }

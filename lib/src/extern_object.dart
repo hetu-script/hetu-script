@@ -1,6 +1,6 @@
 import 'errors.dart';
-import 'ast_interpreter/object.dart';
-import 'ast_interpreter/type.dart';
+import 'object.dart';
+import 'type.dart';
 import 'lexicon.dart';
 
 abstract class HTExternObject<T> extends HTObject {

@@ -1,17 +1,16 @@
-import '../errors.dart';
-import '../lexicon.dart';
+import 'errors.dart';
+import 'lexicon.dart';
 import 'type.dart';
+import 'interpreter.dart';
 import 'declaration.dart';
 import 'object.dart';
-import '../context.dart';
-import 'ast_interpreter.dart';
 
-class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
+class HTNamespace extends HTObject with InterpreterRef {
   static int spaceIndex = 0;
 
-  static String getFullName(String id, HTNamespace space) {
+  static String getFullName(String id, HTNamespace? space) {
     var fullName = id;
-    var curSpace = space.closure;
+    var curSpace = space?.closure;
     while (curSpace != null) {
       fullName = curSpace.id + HTLexicon.memberGet + fullName;
       curSpace = curSpace.closure;
@@ -20,17 +19,59 @@ class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
   }
 
   @override
+  String toString() => '${HTLexicon.NAMESPACE} $id';
+
+  @override
   final typeid = HTTypeId.namespace;
 
   late final String id;
 
-  @override
-  String toString() => '${HTLexicon.NAMESPACE} $id';
-
-  late String _fullName;
+  late final String _fullName;
   String get fullName => _fullName;
 
-  final Map<String, HTDeclaration> defs = {};
+  /// 常量表
+  final _constInt = <int>[];
+  List<int> get constInt => _constInt.toList(growable: false);
+  int addConstInt(int value) {
+    for (var i = 0; i < _constInt.length; ++i) {
+      if (_constInt[i] == value) return i;
+    }
+
+    _constInt.add(value);
+    return _constInt.length - 1;
+  }
+
+  int getConstInt(int index) => _constInt[index];
+
+  final _constFloat = <double>[];
+  List<double> get constFloat => _constFloat.toList(growable: false);
+  int addConstFloat(double value) {
+    for (var i = 0; i < _constFloat.length; ++i) {
+      if (_constFloat[i] == value) return i;
+    }
+
+    _constFloat.add(value);
+    return _constFloat.length - 1;
+  }
+
+  double getConstFloat(int index) => _constFloat[index];
+
+  final _constString = <String>[];
+  List<String> get constUtf8String => _constString.toList(growable: false);
+  int addConstString(String value) {
+    for (var i = 0; i < _constString.length; ++i) {
+      if (_constString[i] == value) return i;
+    }
+
+    _constString.add(value);
+    return _constString.length - 1;
+  }
+
+  String getConstString(int index) => _constString[index];
+
+  // 变量表
+  final Map<String, HTDeclaration> declarations = {};
+
   HTNamespace? _closure;
   HTNamespace? get closure => _closure;
   set closure(HTNamespace? closure) {
@@ -39,7 +80,7 @@ class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
   }
 
   HTNamespace(
-    HTInterpreter interpreter, {
+    Interpreter interpreter, {
     String? id,
     HTNamespace? closure,
   }) : super() {
@@ -60,7 +101,7 @@ class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
 
   @override
   bool contains(String varName) {
-    if (defs.containsKey(varName)) {
+    if (declarations.containsKey(varName)) {
       return true;
     }
     if (closure != null) {
@@ -77,17 +118,17 @@ class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
       bool isExtern = false,
       bool isImmutable = false,
       bool isNullable = false,
-      bool isDynamic = false}) {
+      bool typeInference = false}) {
     var val_type = interpreter.typeof(value);
     if (declType == null) {
-      if ((!isDynamic) && (value != null)) {
+      if ((typeInference) && (value != null)) {
         declType = val_type;
       } else {
         declType = HTTypeId.ANY;
       }
     }
     if (val_type.isA(declType)) {
-      defs[varName] = HTDeclaration(varName,
+      declarations[varName] = HTDeclaration(varName,
           declType: declType, value: value, isExtern: isExtern, isNullable: isNullable, isImmutable: isImmutable);
     } else {
       throw HTErrorTypeCheck(varName, val_type.toString(), declType.toString());
@@ -102,8 +143,8 @@ class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
       throw HTErrorPrivateMember(varName);
     }
 
-    if (defs.containsKey(varName)) {
-      return defs[varName]!.value;
+    if (declarations.containsKey(varName)) {
+      return declarations[varName]!.value;
     }
 
     if (closure != null) {
@@ -127,11 +168,11 @@ class HTNamespace extends HTObject with HTContext, ASTInterpreterRef {
       throw HTErrorPrivateMember(varName);
     }
 
-    if (defs.containsKey(varName)) {
-      var decl_type = defs[varName]!.declType;
+    if (declarations.containsKey(varName)) {
+      var decl_type = declarations[varName]!.declType;
       var var_type = interpreter.typeof(value);
       if (var_type.isA(decl_type)) {
-        var decl = defs[varName]!;
+        var decl = declarations[varName]!;
         if (!decl.isImmutable) {
           if (!decl.isExtern) {
             decl.value = value;
