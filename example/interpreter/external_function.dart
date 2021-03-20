@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = HTInterpreter();
+  var hetu = HTAstInterpreter();
 
   await hetu.init(externalFunctions: {
     'hello': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => {'greeting': 'hello'},

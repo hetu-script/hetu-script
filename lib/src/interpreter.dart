@@ -15,6 +15,8 @@ abstract class Interpreter with BindingHandler {
   late String curFileName;
   late String workingDirectory;
 
+  final imported = <String>[];
+
   late bool debugMode;
   late ReadFileMethod readFileMethod;
 
@@ -22,7 +24,7 @@ abstract class Interpreter with BindingHandler {
   late HTNamespace globals;
 
   /// 当前语句所在的命名空间
-  late HTNamespace context;
+  late HTNamespace curNamespace;
 
   Future<dynamic> eval(
     String content, {
@@ -48,4 +50,12 @@ abstract class Interpreter with BindingHandler {
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}});
 
   HTTypeId typeof(dynamic object);
+
+  void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false}) {
+    globals.define(key, declType: declType, value: value, isImmutable: isImmutable);
+  }
+
+  dynamic fetchGlobal(String key) {
+    return globals.fetch(key);
+  }
 }

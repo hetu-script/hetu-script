@@ -46,7 +46,7 @@ class CountryEnumBinding extends HTExternalClass {
 }
 
 void main() async {
-  var hetu = HTInterpreter();
+  var hetu = HTAstInterpreter();
 
   await hetu.init(externalClasses: {'Country': CountryEnumBinding()});
 

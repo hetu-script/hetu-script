@@ -12,6 +12,6 @@ export 'src/errors.dart';
 export 'src/extern_class.dart';
 export 'src/extern_object.dart';
 export 'src/lexicon.dart';
-export 'src/ast/interpreter.dart';
+export 'src/ast/ast_interpreter.dart';
 export 'src/vm/vm.dart';
 export 'src/binding.dart';

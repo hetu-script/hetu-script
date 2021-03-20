@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = HTInterpreter();
+  var hetu = HTAstInterpreter();
 
   group('interpreter error handling test -', () {
     test('const definition', () async {

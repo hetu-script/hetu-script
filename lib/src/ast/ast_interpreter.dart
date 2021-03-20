@@ -12,9 +12,9 @@ import '../function.dart';
 import 'ast_function.dart';
 import '../lexer.dart';
 import '../parser.dart';
-import 'parser.dart';
+import 'ast_parser.dart';
 import '../lexicon.dart';
-import 'resolver.dart';
+import 'ast_resolver.dart';
 import '../object.dart';
 import '../interpreter.dart';
 import '../extern_object.dart';
@@ -22,27 +22,23 @@ import '../enum.dart';
 import '../common.dart';
 
 mixin AstInterpreterRef {
-  late final HTInterpreter interpreter;
+  late final HTAstInterpreter interpreter;
 }
 
 /// 负责对语句列表进行最终解释执行
-class HTInterpreter extends Interpreter implements ASTNodeVisitor {
-  static var _fileIndex = 0;
-
-  final _evaledFiles = <String>[];
-
+class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _distances = <ASTNode, int>{};
 
   dynamic _curStmtValue;
 
-  HTInterpreter(
+  HTAstInterpreter(
       {String sdkDirectory = 'hetu_lib/',
       String workingDirectory = 'script/',
       bool debugMode = false,
       ReadFileMethod readFileMethod = defaultReadFileMethod}) {
-    context = globals = HTNamespace(this, id: HTLexicon.global);
+    curNamespace = globals = HTNamespace(this, id: HTLexicon.global);
     this.workingDirectory = workingDirectory;
     this.debugMode = debugMode;
     this.readFileMethod = readFileMethod;
@@ -87,16 +83,16 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    curFileName = fileName ?? HTLexicon.anonymousScript + (_fileIndex++).toString();
-    context = namespace is HTNamespace ? namespace : globals;
+    curFileName = fileName ?? HTLexicon.anonymousScript;
+    curNamespace = namespace ?? globals;
 
     var lexer = Lexer();
-    var parser = HTParser();
-    var resolver = HTResolver();
+    var parser = HTAstParser();
+    var resolver = HTAstResolver();
     try {
       var tokens = lexer.lex(content, curFileName);
 
-      final statements = await parser.parse(tokens, this, context, curFileName, style);
+      final statements = await parser.parse(tokens, this, curNamespace, curFileName, style);
       _distances.addAll(resolver.resolve(statements, curFileName, libName: libName));
 
       for (final stmt in statements) {
@@ -188,8 +184,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     Map<String, dynamic> namedArgs = const {},
   }) async {
     dynamic result;
-    if (!_evaledFiles.contains(fileName)) {
-      _evaledFiles.add(fileName);
+    if (!imported.contains(fileName)) {
+      imported.add(fileName);
 
       HTNamespace? library_namespace;
       if ((libName != null) && (libName != HTLexicon.global)) {
@@ -275,33 +271,25 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     }
   }
 
-  void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false, bool isDynamic = false}) {
-    globals.define(key, declType: declType, value: value, isImmutable: isImmutable, typeInference: isDynamic);
-  }
-
-  dynamic fetchGlobal(String key) {
-    return globals.fetch(key);
-  }
-
   dynamic _getValue(String name, ASTNode expr) {
     var distance = _distances[expr];
     if (distance != null) {
-      return context.fetchAt(name, distance);
+      return curNamespace.fetchAt(name, distance);
     }
 
     return globals.fetch(name);
   }
 
   dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
-    var saved_context = context;
+    var saved_context = curNamespace;
 
     try {
-      context = environment;
+      curNamespace = environment;
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
       }
     } finally {
-      context = saved_context;
+      curNamespace = saved_context;
     }
 
     return _curStmtValue;
@@ -394,7 +382,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       } else {
         throw HTErrorUndefinedOperator(value.toString(), expr.op.lexeme);
       }
-    } else if (expr.op.lexeme == HTLexicon.not) {
+    } else if (expr.op.lexeme == HTLexicon.logicalNot) {
       if (value is bool) {
         return !value;
       } else {
@@ -411,7 +399,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     curColumn = expr.column;
     var left = visitASTNode(expr.left);
     var right;
-    if (expr.op.type == HTLexicon.and) {
+    if (expr.op.type == HTLexicon.logicalAnd) {
       if (left is bool) {
         // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
         if (!left) {
@@ -431,7 +419,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       right = visitASTNode(expr.right);
 
       // 操作符重载??
-      if (expr.op.type == HTLexicon.or) {
+      if (expr.op.type == HTLexicon.logicalOr) {
         if (left is bool) {
           if (right is bool) {
             return left || right;
@@ -613,7 +601,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     var distance = _distances[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      context.assignAt(expr.variable.lexeme, value, distance);
+      curNamespace.assignAt(expr.variable.lexeme, value, distance);
     } else {
       globals.assign(expr.variable.lexeme, value);
     }
@@ -676,7 +664,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
     }
 
     if ((object is HTObject)) {
-      return object.fetch(expr.key.lexeme, from: context.fullName);
+      return object.fetch(expr.key.lexeme, from: curNamespace.fullName);
     }
     //如果是Dart对象
     else {
@@ -709,7 +697,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
     var value = visitASTNode(expr.value);
     if (object is HTObject) {
-      object.assign(expr.key.lexeme, value, from: context.fullName);
+      object.assign(expr.key.lexeme, value, from: curNamespace.fullName);
       return value;
     }
     //如果是Dart对象
@@ -741,7 +729,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   dynamic visitBlockStmt(BlockStmt stmt) {
     curLine = stmt.line;
     curColumn = stmt.column;
-    return executeBlock(stmt.block, HTNamespace(this, closure: context));
+    return executeBlock(stmt.block, HTNamespace(this, closure: curNamespace));
   }
 
   @override
@@ -820,7 +808,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       value = visitASTNode(stmt.initializer!);
     }
 
-    context.define(
+    curNamespace.define(
       stmt.id.lexeme,
       value: value,
       declType: stmt.declType,
@@ -842,9 +830,9 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
     curLine = stmt.line;
     curColumn = stmt.column;
-    final func = HTAstFunction(stmt, this, context: context);
+    final func = HTAstFunction(stmt, this, context: curNamespace);
     if (stmt.id != null) {
-      context.define(stmt.id!.lexeme, declType: func.typeid, value: func);
+      curNamespace.define(stmt.id!.lexeme, declType: func.typeid, value: func);
     }
     return func;
   }
@@ -863,10 +851,10 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       }
     }
 
-    final klass = HTClass(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: context);
+    final klass = HTClass(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: curNamespace);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    context.define(stmt.id.lexeme, declType: HTTypeId.CLASS, value: klass);
+    curNamespace.define(stmt.id.lexeme, declType: HTTypeId.CLASS, value: klass);
 
     //继承所有父类的成员变量和方法
     if (superClass != null) {
@@ -894,8 +882,8 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
       }
     }
 
-    var save = context;
-    context = klass;
+    var save = curNamespace;
+    curNamespace = klass;
     for (final variable in stmt.variables) {
       dynamic value;
       if (variable.initializer != null) {
@@ -918,7 +906,7 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
         klass.declareInstanceMember(decl);
       }
     }
-    context = save;
+    curNamespace = save;
 
     for (final method in stmt.methods) {
       // if (klass.contains(method.internalName)) {
@@ -954,6 +942,6 @@ class HTInterpreter extends Interpreter implements ASTNodeVisitor {
 
     final enumClass = HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
 
-    context.define(stmt.id.lexeme, declType: HTTypeId.ENUM, value: enumClass);
+    curNamespace.define(stmt.id.lexeme, declType: HTTypeId.ENUM, value: enumClass);
   }
 }

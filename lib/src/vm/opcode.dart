@@ -10,6 +10,8 @@ abstract class HTOpCode {
 
   static const literal = 15;
 
+  static const symbol = 16;
+
   /// reg index => reg[index] = local
   static const register = 20;
 
@@ -17,6 +19,14 @@ abstract class HTOpCode {
   static const copy = 21;
 
   static const assign = 30;
+
+  static const assignMultiply = 31;
+
+  static const assignDevide = 32;
+
+  static const assignAdd = 33;
+
+  static const assignSubtract = 34;
 
   static const logicalOr = 42;
 
@@ -49,8 +59,10 @@ abstract class HTOpCode {
   /// modulo left right store => reg[store] = reg[left] % reg[right]
   static const modulo = 64;
 
+  /// modulo value store => reg[store] = -reg[value]
   static const negative = 65;
 
+  /// modulo value store => reg[store] = !reg[value]
   static const logicalNot = 66;
 
   static const preIncrement = 68;
@@ -59,13 +71,13 @@ abstract class HTOpCode {
 
   static const memberGet = 71;
 
-  static const postIncrement = 73;
+  static const subGet = 72;
 
-  static const postDecrement = 74;
+  static const call = 73;
 
-  static const subGet = 75;
+  static const postIncrement = 74;
 
-  static const call = 76;
+  static const postDecrement = 75;
 
   static const error = 205;
 }
@@ -76,6 +88,7 @@ abstract class HTOpRandType {
   static const int64 = 2;
   static const float64 = 3;
   static const utf8String = 4;
+  static const symbol = 5;
 }
 
 abstract class HTErrorCode {

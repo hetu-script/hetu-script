@@ -8,7 +8,7 @@ import '../interpreter.dart';
 import '../parser.dart';
 import '../common.dart';
 
-class HTParser extends Parser {
+class HTAstParser extends Parser {
   late final HTNamespace _context;
 
   String _curFileName = '';
@@ -87,7 +87,7 @@ class HTParser extends Parser {
   /// 逻辑或 or ，优先级 5，左合并
   ASTNode _parseLogicalOrExpr() {
     var expr = _parseLogicalAndExpr();
-    while (curTok.type == HTLexicon.or) {
+    while (curTok.type == HTLexicon.logicalOr) {
       final op = advance(1);
       final right = _parseLogicalAndExpr();
       expr = BinaryExpr(expr, op, right);
@@ -98,7 +98,7 @@ class HTParser extends Parser {
   /// 逻辑和 and ，优先级 6，左合并
   ASTNode _parseLogicalAndExpr() {
     var expr = _parseEqualityExpr();
-    while (curTok.type == HTLexicon.and) {
+    while (curTok.type == HTLexicon.logicalAnd) {
       final op = advance(1);
       final right = _parseEqualityExpr();
       expr = BinaryExpr(expr, op, right);
@@ -106,10 +106,10 @@ class HTParser extends Parser {
     return expr;
   }
 
-  /// 逻辑相等 ==, !=，优先级 7，无合并
+  /// 逻辑相等 ==, !=，优先级 7，不合并
   ASTNode _parseEqualityExpr() {
     var expr = _parseRelationalExpr();
-    while (HTLexicon.equalitys.contains(curTok.type)) {
+    if (HTLexicon.equalitys.contains(curTok.type)) {
       final op = advance(1);
       final right = _parseRelationalExpr();
       expr = BinaryExpr(expr, op, right);
@@ -117,10 +117,10 @@ class HTParser extends Parser {
     return expr;
   }
 
-  /// 逻辑比较 <, >, <=, >=，优先级 8，无合并
+  /// 逻辑比较 <, >, <=, >=，优先级 8，不合并
   ASTNode _parseRelationalExpr() {
     var expr = _parseAdditiveExpr();
-    while (HTLexicon.relationals.contains(curTok.type)) {
+    if (HTLexicon.relationals.contains(curTok.type)) {
       final op = advance(1);
       final right = _parseAdditiveExpr();
       expr = BinaryExpr(expr, op, right);
@@ -150,7 +150,7 @@ class HTParser extends Parser {
     return expr;
   }
 
-  /// 前缀 -e, !e，优先级 15，不能合并
+  /// 前缀 -e, !e，优先级 15，不合并
   ASTNode _parseUnaryPrefixExpr() {
     // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
     ASTNode expr;
@@ -164,10 +164,9 @@ class HTParser extends Parser {
     return expr;
   }
 
-  /// 后缀 e., e[], e()，优先级 16，取属性不能合并，下标和函数调用可以右合并
+  /// 后缀 e., e[], e()，优先级 16，右合并
   ASTNode _parseUnaryPostfixExpr() {
     var expr = _parsePrimaryExpr();
-    //多层函数调用可以合并
     while (true) {
       if (expect([HTLexicon.call], consume: true, error: false)) {
         var positionalArgs = <ASTNode>[];

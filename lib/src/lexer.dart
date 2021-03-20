@@ -9,16 +9,16 @@ class Lexer {
     final tokens = <Token>[];
     var curLine = 0;
     var curColumn;
-    var pattern = RegExp(
+    final pattern = RegExp(
       HTLexicon.scriptPattern,
       caseSensitive: false,
       unicode: true,
     );
     for (final line in content.split('\n')) {
       ++curLine;
-      var matches = pattern.allMatches(line);
+      final matches = pattern.allMatches(line);
       for (final match in matches) {
-        var matchString = match.group(0)!;
+        final matchString = match.group(0)!;
         curColumn = match.start + 1;
         if (match.group(HTLexicon.tokenGroupComment) == null) {
           // 标识符

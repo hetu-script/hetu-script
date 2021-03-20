@@ -4,7 +4,7 @@ import '../errors.dart';
 import '../type.dart';
 import '../lexicon.dart';
 import 'ast.dart';
-import 'interpreter.dart';
+import 'ast_interpreter.dart';
 
 import '../function.dart';
 
@@ -16,7 +16,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
   final FuncDeclStmt funcStmt;
 
-  HTAstFunction(this.funcStmt, HTInterpreter interpreter, {HTNamespace? context, List<HTTypeId> typeArgs = const []}) {
+  HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
+      {HTNamespace? context, List<HTTypeId> typeArgs = const []}) {
     this.interpreter = interpreter;
     this.context = context;
     funcType = funcStmt.funcType;

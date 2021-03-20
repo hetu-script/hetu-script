@@ -4,7 +4,7 @@ abstract class HTLexicon {
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
-      r'(\.\.\.|\|\||&&|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
+      r'(\.\.\.|\|\||&&|\*=|/=|\+=|-=|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
       // r'(\d+\.\d+)|' // 浮点数字面量 group(6)
       // r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
@@ -51,15 +51,15 @@ abstract class HTLexicon {
   static const newLine = '\n';
   static const multiline = '\\';
   static const varargs = '...'; // variadic arguments
-  static const anonymousScript = '__anonymousScript__';
-  static const anonymousFunction = '__anonymousFunction__';
-  static const anonymousNamespace = '__anonymousNamespace__';
+  static const anonymousScript = '__anonymous_script__';
+  static const anonymousFunction = '__anonymous_function__';
+  static const anonymousNamespace = '__anonymous_namespace__';
   static const underscore = '_';
   static const global = 'global';
   static const unknown = 'unknown';
   // static const extern = 'external__';
   // static const method = '__method__';
-  static const instance = '#instance';
+  static const instance = 'instance#';
   static const constructor = '__constructor__';
   static const getter = '__getter__';
   static const setter = '__setter__';
@@ -202,21 +202,29 @@ abstract class HTLexicon {
   static const memberGet = '.';
   static const subGet = '[';
   static const call = '(';
+  static const postIncrement = '++';
+  static const postDecrement = '--';
 
   /// 后缀操作符，包含多个符号
   static Set<String> get unaryPostfixs => {
         memberGet,
         subGet,
         call,
+        postIncrement,
+        postDecrement,
       };
 
-  static const not = '!';
+  static const logicalNot = '!';
   static const negative = '-';
+  static const preIncrement = '++';
+  static const preDecrement = '--';
 
   /// 前缀操作符，包含多个符号
   static Set<String> get unaryPrefixs => {
-        not,
+        logicalNot,
         negative,
+        preIncrement,
+        preDecrement,
       };
 
   static const multiply = '*';
@@ -262,14 +270,22 @@ abstract class HTLexicon {
         notEqual,
       };
 
-  static const and = '&&';
-  static const or = '||';
+  static const logicalAnd = '&&';
+  static const logicalOr = '||';
 
   static const assign = '=';
+  static const assignMultiply = '*=';
+  static const assignDevide = '/=';
+  static const assignAdd = '+=';
+  static const assignSubtract = '-=';
 
   /// 赋值类型操作符，包含多个符号
   static Set<String> get assignments => {
         assign,
+        assignMultiply,
+        assignDevide,
+        assignAdd,
+        assignSubtract,
       };
 
   static const comma = ',';
@@ -285,7 +301,7 @@ abstract class HTLexicon {
   static const angleRight = '>';
 
   static Set<String> get Punctuations => {
-        not,
+        logicalNot,
         multiply,
         devide,
         modulo,
@@ -297,8 +313,8 @@ abstract class HTLexicon {
         greaterOrEqual,
         equal,
         notEqual,
-        and,
-        or,
+        logicalAnd,
+        logicalOr,
         assign,
         comma,
         colon,

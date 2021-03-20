@@ -205,8 +205,8 @@ class HTClass extends HTNamespace {
       Map<String, dynamic> namedArgs = const {}}) {
     var instance = HTInstance(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
 
-    var save = interpreter.context;
-    interpreter.context = instance;
+    var save = interpreter.curNamespace;
+    interpreter.curNamespace = instance;
     for (final decl in instanceDecls.values) {
       instance.define(decl.id,
           declType: decl.declType,
@@ -216,7 +216,7 @@ class HTClass extends HTNamespace {
           isNullable: decl.isNullable,
           typeInference: false);
     }
-    interpreter.context = save;
+    interpreter.curNamespace = save;
 
     constructorName ??= id;
     var constructor = fetch(constructorName, from: fullName);
@@ -251,7 +251,7 @@ class HTInstance extends HTNamespace {
   late final HTTypeId typeid;
 
   HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
-      : super(interpreter, id: '${HTLexicon.instance}${instanceIndex++}', closure: klass) {
+      : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}', closure: klass) {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
     define(HTLexicon.THIS, declType: typeid, value: this);
   }
