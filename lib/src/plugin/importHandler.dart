@@ -2,13 +2,13 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 class HTModuleInfo {
-  final String filePath;
+  final String fileName;
   final String content;
-  HTModuleInfo(this.filePath, this.content);
+  HTModuleInfo(this.fileName, this.content);
 }
 
 abstract class HTImportHandler {
-  Future<HTModuleInfo> import(String key);
+  Future<HTModuleInfo> import(String key, [String? curDir]);
 }
 
 class DefaultImportHandler implements HTImportHandler {
@@ -22,14 +22,22 @@ class DefaultImportHandler implements HTImportHandler {
   }
 
   @override
-  Future<HTModuleInfo> import(String key) async {
-    final filePath = path.join(workingDirectory, key);
-    var content = '';
-    if (!imported.contains(filePath)) {
-      imported.add(filePath);
-      content = await File(filePath).readAsString();
+  Future<HTModuleInfo> import(String key, [String? curFileName]) async {
+    late final String filePath;
+    if (curFileName != null) {
+      filePath = path.dirname(curFileName);
+    } else {
+      filePath = workingDirectory;
     }
 
-    return HTModuleInfo(filePath, content);
+    final fileName = path.join(filePath, key);
+
+    var content = '';
+    if (!imported.contains(fileName)) {
+      imported.add(fileName);
+      content = await File(fileName).readAsString();
+    }
+
+    return HTModuleInfo(fileName, content);
   }
 }

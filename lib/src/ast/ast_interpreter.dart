@@ -106,8 +106,8 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
   }) async {
     dynamic result;
 
-    final module = await importHandler.import(key);
-    curFileName = module.filePath;
+    final module = await importHandler.import(key, curFileName != HTLexicon.anonymousScript ? curFileName : null);
+    curFileName = module.fileName;
 
     HTNamespace? library_namespace;
     if ((libName != null) && (libName != HTLexicon.global)) {
@@ -116,7 +116,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     }
 
     result = eval(module.content,
-        fileName: key,
+        fileName: curFileName,
         namespace: library_namespace,
         style: style,
         invokeFunc: invokeFunc,
