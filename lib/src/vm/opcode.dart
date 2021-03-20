@@ -1,4 +1,6 @@
 abstract class HTOpCode {
+  static const endOfFile = -1;
+
   static const subReturn = 0;
   static const endOfStatement = 1;
   static const debugInfo = 2;

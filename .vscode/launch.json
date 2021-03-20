@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/interpreter/module_import.dart",
+      "program": "example/interpreter/inheritance.dart",
       "request": "launch",
       "type": "dart"
     }

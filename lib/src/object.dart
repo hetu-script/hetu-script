@@ -1,6 +1,7 @@
 import 'type.dart';
 import 'errors.dart';
 import 'lexicon.dart';
+import 'declaration.dart';
 
 class _HTNull with HTType {
   const _HTNull();
@@ -16,14 +17,7 @@ abstract class HTObject with HTType {
 
   bool contains(String varName) => throw HTErrorUndefined(varName);
 
-  void define(String varName,
-          {HTTypeId? declType,
-          dynamic value,
-          bool isExtern = false,
-          bool isImmutable = false,
-          bool isNullable = false,
-          bool typeInference = false}) =>
-      throw HTErrorUndefined(varName);
+  void define(HTDeclaration decl, {bool override = false}) => throw HTErrorUndefined(decl.id);
 
   dynamic fetch(String varName, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
 

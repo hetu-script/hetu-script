@@ -57,7 +57,7 @@ class HTClass extends HTNamespace {
   /// normally the global namespace of the interpreter.
   ///
   /// [superClass] : super class of this class.
-  HTClass(String id, this.superClass, Interpreter interpreter,
+  HTClass(String id, this.superClass, HTInterpreter interpreter,
       {this.isExtern = false, this.typeParams = const [], HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
@@ -188,17 +188,17 @@ class HTClass extends HTNamespace {
   }
 
   /// Add a instance variable declaration to this class.
-  void declareInstanceMember(HTDeclaration decl) {
+  void defineInInstance(HTDeclaration decl, {bool skipOverride = false}) {
     if (!instanceDecls.containsKey(decl.id)) {
       instanceDecls[decl.id] = decl;
     } else {
-      throw HTErrorDefined_Runtime(decl.id);
+      if (!skipOverride) throw HTErrorDefined_Runtime(decl.id);
     }
   }
 
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HTInstance createInstance(Interpreter interpreter, int? line, int? column,
+  HTInstance createInstance(HTInterpreter interpreter, int? line, int? column,
       {List<HTTypeId> typeArgs = const [],
       String? constructorName,
       List<dynamic> positionalArgs = const [],
@@ -208,13 +208,7 @@ class HTClass extends HTNamespace {
     var save = interpreter.curNamespace;
     interpreter.curNamespace = instance;
     for (final decl in instanceDecls.values) {
-      instance.define(decl.id,
-          declType: decl.declType,
-          value: decl.value,
-          isExtern: decl.isExtern,
-          isImmutable: decl.isImmutable,
-          isNullable: decl.isNullable,
-          typeInference: false);
+      instance.define(decl.clone());
     }
     interpreter.curNamespace = save;
 
@@ -250,10 +244,10 @@ class HTInstance extends HTNamespace {
   @override
   late final HTTypeId typeid;
 
-  HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
+  HTInstance(this.klass, HTInterpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
       : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}', closure: klass) {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
-    define(HTLexicon.THIS, declType: typeid, value: this);
+    define(HTDeclaration(HTLexicon.THIS, value: this, isImmutable: true));
   }
 
   @override
@@ -271,7 +265,7 @@ class HTInstance extends HTNamespace {
       throw HTErrorPrivateMember(varName);
     }
 
-    final getter = '${HTLexicon.setter}$varName';
+    final getter = '${HTLexicon.getter}$varName';
     if (declarations.containsKey(varName)) {
       final member = declarations[varName]!.value;
       if (member is HTFunction) {

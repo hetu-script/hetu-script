@@ -11,7 +11,7 @@ import '../common.dart';
 class HTAstParser extends Parser {
   late final HTNamespace _context;
 
-  String _curFileName = '';
+  late String _curFileName;
   @override
   String get curFileName => _curFileName;
 
@@ -19,7 +19,7 @@ class HTAstParser extends Parser {
 
   static final Map<String, ASTNode> _classStmts = {};
 
-  Future<List<ASTNode>> parse(List<Token> tokens, Interpreter interpreter, HTNamespace context, String fileName,
+  Future<List<ASTNode>> parse(List<Token> tokens, HTInterpreter interpreter, HTNamespace context, String fileName,
       [ParseStyle style = ParseStyle.library, debugMode = false]) async {
     this.tokens.clear();
     this.tokens.addAll(tokens);

@@ -41,14 +41,11 @@ class HTTypeId {
     return typename.toString();
   }
 
-  bool isA(HTTypeId typeid) {
-    var result = false;
-    if ((typeid.id == HTLexicon.ANY) || (id == HTLexicon.NULL)) {
-      result = true;
-    } else {
+  bool isA(HTTypeId? typeid) {
+    var result = true;
+    if (typeid != null && typeid.id != HTLexicon.ANY) {
       if (id == typeid.id) {
         if (arguments.length >= typeid.arguments.length) {
-          result = true;
           for (var i = 0; i < typeid.arguments.length; ++i) {
             if (arguments[i].isNotA(typeid.arguments[i])) {
               result = false;
@@ -58,12 +55,14 @@ class HTTypeId {
         } else {
           result = false;
         }
+      } else {
+        result = false;
       }
     }
     return result;
   }
 
-  bool isNotA(HTTypeId typeid) => !isA(typeid);
+  bool isNotA(HTTypeId? typeid) => !isA(typeid);
 }
 
 class HTFunctionTypeId extends HTTypeId {

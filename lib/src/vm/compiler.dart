@@ -48,7 +48,7 @@ class Compiler extends Parser {
   //   return bytesBuilder.toBytes();
   // }
 
-  Future<Uint8List> compile(List<Token> tokens, Interpreter interpreter, HTNamespace context, String fileName,
+  Future<Uint8List> compile(List<Token> tokens, HTInterpreter interpreter, HTNamespace context, String fileName,
       [ParseStyle style = ParseStyle.library, debugMode = false]) async {
     _context = context;
     _debugMode = debugMode;

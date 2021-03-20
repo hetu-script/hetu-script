@@ -8,7 +8,7 @@ class HTModuleInfo {
 }
 
 abstract class HTImportHandler {
-  Future<HTModuleInfo> import(String key, [String? curDir]);
+  Future<HTModuleInfo> import(String key, [String? curFileName]);
 }
 
 class DefaultImportHandler implements HTImportHandler {

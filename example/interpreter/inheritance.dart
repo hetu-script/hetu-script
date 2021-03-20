@@ -9,19 +9,22 @@ void main() async {
       class Person {
         var name: String
         var age: num
-        get number { return 42 }
         fun greeting {
           print('Hi! I\'m', name, ', my age is', age)
         }
         fun meaning {
-          print('The meaning of life is', number.toString())
+          print('The meaning of life is nil.')
         }
       }
 
       class Jimmy extends Person {
+        get number { return 42 }
         construct ({name: String = 'Jimmy', age: num = 17}) {
           this.name = name
           this.age = age
+        }
+        fun meaning {
+          print('The meaning of life is', number.toString())
         }
       }
 
@@ -33,6 +36,8 @@ void main() async {
         print(j2.name)
 
         print(jimmy.name)
+
+        jimmy.meaning();
       }
       ''', invokeFunc: 'main');
 }

@@ -5,7 +5,7 @@ import '../type.dart';
 import '../lexicon.dart';
 import 'ast.dart';
 import 'ast_interpreter.dart';
-
+import '../declaration.dart';
 import '../function.dart';
 
 class HTAstFunction extends HTFunction with AstInterpreterRef {
@@ -82,7 +82,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
         final callContext = instance ?? context!;
         if (callContext is HTInstance) {
           closure = HTNamespace(interpreter, id: '${callContext.id}.$id', closure: callContext);
-          closure.define(HTLexicon.THIS, declType: callContext.typeid, isImmutable: true);
+          closure.define(HTDeclaration(HTLexicon.THIS, value: callContext, isImmutable: true));
         } else {
           closure = HTNamespace(interpreter, id: '$id', closure: callContext);
         }
@@ -113,7 +113,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
             if (arg_type.isNotA(arg_type_decl)) {
               throw HTErrorArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
             }
-            closure.define(param.id.lexeme, declType: arg_type_decl, value: arg);
+            closure.define(HTDeclaration(param.id.lexeme, value: arg, declType: arg_type_decl));
           } else {
             var varargs = [];
             for (var j = i; j < positionalArgs.length; ++j) {
@@ -124,7 +124,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
               }
               varargs.add(arg);
             }
-            closure.define(param.id.lexeme, declType: HTTypeId.list, value: varargs);
+            closure.define(HTDeclaration(param.id.lexeme, value: varargs, declType: HTTypeId.list));
             break;
           }
         }

@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
 import '../interpreter.dart';
 import '../type.dart';
 import '../parser.dart' show ParseStyle;
@@ -13,16 +10,14 @@ import '../plugin/importHandler.dart';
 import '../namespace.dart';
 import 'bytes_resolver.dart';
 import '../plugin/errorHandler.dart';
+import 'bytes_reader.dart';
 
 mixin VMRef {
   late final HTVM interpreter;
 }
 
-class HTVM extends Interpreter {
-  // final _evaledFiles = <String>[];
-
-  late Uint8List _bytes;
-  int _ip = 0; // instruction pointer
+class HTVM extends HTInterpreter {
+  late BytesReader _bytesReader;
 
   /// 符号表，不同语句块和环境的符号可能会有重名。
   /// key代表ip指针，value代表符号代表的值所在的命名空间上层深度
@@ -52,10 +47,11 @@ class HTVM extends Interpreter {
     curNamespace = namespace ?? globals;
 
     final tokens = Lexer().lex(content, curFileName);
-    _bytes = await Compiler().compile(tokens, this, curNamespace, curFileName, style, debugMode);
-    print(_bytes);
+    final bytes = await Compiler().compile(tokens, this, curNamespace, curFileName, style, debugMode);
+    _bytesReader = BytesReader(bytes);
+    print(_bytesReader.bytes);
 
-    HTBytesResolver().resolve(_bytes, 10, curFileName);
+    HTBytesResolver().resolve(_bytesReader.bytes, 10, curFileName);
 
     final result = _execute(10);
 
@@ -82,100 +78,23 @@ class HTVM extends Interpreter {
     return HTTypeId.ANY;
   }
 
-  dynamic resolveSymbol(String id) {}
-
-  int _peekByte(int distance) {
-    final des = _ip + distance;
-    if (des >= 0 && des < _bytes.length) {
-      return _bytes[des];
-    } else {
-      return -1;
-    }
-  }
-
-  int _readByte() {
-    return _bytes[_ip++];
-  }
-
-  bool _readBool() {
-    return _bytes[_ip++] == 0 ? false : true;
-  }
-
-  // Fetch a uint8 from the byte list
-  int _readUint8() {
-    final start = _ip;
-    _ip += 1;
-    final uint16data = _bytes.sublist(start, _ip);
-    return uint16data.buffer.asByteData().getUint8(0);
-  }
-
-  // Fetch a uint16 from the byte list
-  int _readUint16() {
-    final start = _ip;
-    _ip += 2;
-    final uint16data = _bytes.sublist(start, _ip);
-    return uint16data.buffer.asByteData().getUint16(0);
-  }
-
-  // Fetch a uint32 from the byte list
-  int _readUint32() {
-    final start = _ip;
-    _ip += 4;
-    final uint32data = _bytes.sublist(start, _ip);
-    return uint32data.buffer.asByteData().getUint32(0);
-  }
-
-  // Fetch a int64 from the byte list
-  int _readInt64() {
-    final start = _ip;
-    _ip += 8;
-    final int64data = _bytes.sublist(start, _ip);
-    return int64data.buffer.asByteData().getInt64(0);
-  }
-
-  // Fetch a float64 from the byte list
-  double _readFloat64() {
-    final start = _ip;
-    _ip += 8;
-    final int64data = _bytes.sublist(start, _ip);
-    return int64data.buffer.asByteData().getFloat64(0);
-  }
-
-  // Fetch a utf8 string from the byte list
-  String _readShortUtf8String() {
-    final length = _readUint8();
-    final start = _ip;
-    _ip += length;
-    final codeUnits = _bytes.sublist(start, _ip);
-    return utf8.decoder.convert(codeUnits);
-  }
-
-  // Fetch a utf8 string from the byte list
-  String _readUtf8String() {
-    final length = _readUint16();
-    final start = _ip;
-    _ip += length;
-    final codeUnits = _bytes.sublist(start, _ip);
-    return utf8.decoder.convert(codeUnits);
-  }
-
   void _storeLocalLiteral() {
-    final oprandType = _readByte();
+    final oprandType = _bytesReader.read();
     switch (oprandType) {
       case HTOpRandType.nil:
         _curValue = null;
         break;
       case HTOpRandType.boolean:
-        (_readByte() == 0) ? _curValue = false : _curValue = true;
+        (_bytesReader.read() == 0) ? _curValue = false : _curValue = true;
         break;
       case HTOpRandType.int64:
-        _curValue = curNamespace.getConstInt(_readUint16());
+        _curValue = curNamespace.getConstInt(_bytesReader.readUint16());
         break;
       case HTOpRandType.float64:
-        _curValue = curNamespace.getConstFloat(_readUint16());
+        _curValue = curNamespace.getConstFloat(_bytesReader.readUint16());
         break;
       case HTOpRandType.utf8String:
-        _curValue = curNamespace.getConstString(_readUint16());
+        _curValue = curNamespace.getConstString(_bytesReader.readUint16());
         break;
       case HTOpRandType.symbol:
       // _curValue = curNamespace.fetch(varName)
@@ -183,7 +102,7 @@ class HTVM extends Interpreter {
   }
 
   void _storeLocalSymbol() {
-    _curSymbol = _readShortUtf8String();
+    _curSymbol = _bytesReader.readShortUtf8String();
   }
 
   void _storeRegister(int index, dynamic value) {
@@ -195,15 +114,15 @@ class HTVM extends Interpreter {
   }
 
   void _handleError() {
-    final err_type = _readByte();
+    final err_type = _bytesReader.read();
     // TODO: line 和 column
     switch (err_type) {
     }
   }
 
   void _handleBinaryOp(int opcode) {
-    final left = _readByte();
-    final right = _readByte();
+    final left = _bytesReader.read();
+    final right = _bytesReader.read();
 
     switch (opcode) {
       case HTOpCode.assign:
@@ -266,7 +185,7 @@ class HTVM extends Interpreter {
   }
 
   void _handleUnaryPrefixOp(int op) {
-    final value = _readByte();
+    final value = _bytesReader.read();
 
     switch (op) {
       case HTOpCode.negative:
@@ -287,7 +206,7 @@ class HTVM extends Interpreter {
   }
 
   void _handleUnaryPostfixOp(int op) {
-    final value = _readByte();
+    final value = _bytesReader.read();
 
     switch (op) {
       case HTOpCode.memberGet:
@@ -312,10 +231,10 @@ class HTVM extends Interpreter {
     }
   }
 
-  dynamic _execute(int ip) {
-    final savedIp = _ip;
+  dynamic _execute(int pos) {
+    final savedIp = _bytesReader.ip;
 
-    _ip = ip;
+    _bytesReader.ip = pos;
     // final signature = _bytes.sublist(0, 4);
     // if (signature.buffer.asByteData().getUint32(0) != Compiler.hetuSignature) {
     //   throw HTErrorSignature(curFileName);
@@ -329,29 +248,29 @@ class HTVM extends Interpreter {
 
     // 直接从第10个字节开始，跳过程序标记和版本号
 
-    while (_ip < _bytes.length) {
-      final instruction = _readByte();
+    var instruction = _bytesReader.read();
+    while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
         // 返回当前运算值
         case HTOpCode.subReturn:
-          _ip = savedIp;
+          _bytesReader.ip = savedIp;
           return _curValue;
         // 语句结束
         case HTOpCode.endOfStatement:
           break;
         // 从字节码读取常量表并保存在当前环境中
         case HTOpCode.constTable:
-          var table_length = _readUint16();
+          var table_length = _bytesReader.readUint16();
           for (var i = 0; i < table_length; ++i) {
-            curNamespace.addConstInt(_readInt64());
+            curNamespace.addConstInt(_bytesReader.readInt64());
           }
-          table_length = _readUint16();
+          table_length = _bytesReader.readUint16();
           for (var i = 0; i < table_length; ++i) {
-            curNamespace.addConstFloat(_readFloat64());
+            curNamespace.addConstFloat(_bytesReader.readFloat64());
           }
-          table_length = _readUint16();
+          table_length = _bytesReader.readUint16();
           for (var i = 0; i < table_length; ++i) {
-            curNamespace.addConstString(_readUtf8String());
+            curNamespace.addConstString(_bytesReader.readUtf8String());
           }
           break;
         // 将字面量存储在本地变量中
@@ -364,7 +283,7 @@ class HTVM extends Interpreter {
           break;
         // 将本地变量存储如下一个字节代表的寄存器位置中
         case HTOpCode.register:
-          _storeRegister(_readByte(), _curValue);
+          _storeRegister(_bytesReader.read(), _curValue);
           break;
         case HTOpCode.assign:
         case HTOpCode.assignMultiply:
@@ -400,9 +319,9 @@ class HTVM extends Interpreter {
           _handleUnaryPostfixOp(instruction);
           break;
         case HTOpCode.debugInfo:
-          curLine = _readUint32();
-          curLine = _readUint32();
-          curFileName = _readShortUtf8String();
+          curLine = _bytesReader.readUint32();
+          curColumn = _bytesReader.readUint32();
+          curFileName = _bytesReader.readShortUtf8String();
           break;
         // 错误处理
         case HTOpCode.error:
@@ -412,6 +331,8 @@ class HTVM extends Interpreter {
           print('Unknown opcode: $instruction');
           break;
       }
+
+      instruction = _bytesReader.read();
     }
   }
 }

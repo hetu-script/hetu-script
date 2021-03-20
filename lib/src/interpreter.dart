@@ -1,18 +1,18 @@
-import 'binding.dart';
 import 'lexicon.dart';
 import 'namespace.dart';
 import 'parser.dart' show ParseStyle;
 import 'type.dart';
 import 'plugin/importHandler.dart';
 import 'plugin/errorHandler.dart';
-import 'core.dart';
+import 'hetu_lib.dart';
 import 'extern_class.dart';
+import 'errors.dart';
 
 mixin InterpreterRef {
-  late final Interpreter interpreter;
+  late final HTInterpreter interpreter;
 }
 
-abstract class Interpreter with BindingHandler {
+abstract class HTInterpreter {
   late int curLine;
   late int curColumn;
   late String curFileName;
@@ -28,7 +28,7 @@ abstract class Interpreter with BindingHandler {
   /// 当前语句所在的命名空间
   late HTNamespace curNamespace;
 
-  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
+  HTInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
     curNamespace = globals = HTNamespace(this, id: HTLexicon.global);
     this.debugMode = debugMode;
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
@@ -40,8 +40,8 @@ abstract class Interpreter with BindingHandler {
       Map<String, HTExternalClass> externalClasses = const {}}) async {
     // load classes and functions in core library.
     // TODO: dynamic load needed core lib in script
-    for (final file in coreLibs.keys) {
-      await eval(coreLibs[file]!);
+    for (final file in coreModules.keys) {
+      await eval(coreModules[file]!);
     }
 
     for (var key in HTExternGlobal.functions.keys) {
@@ -89,11 +89,70 @@ abstract class Interpreter with BindingHandler {
 
   HTTypeId typeof(dynamic object);
 
-  void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false}) {
-    globals.define(key, declType: declType, value: value, isImmutable: isImmutable);
-  }
+  // void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false}) {
+  //   globals.define(key, declType: declType, value: value, isImmutable: isImmutable);
+  // }
 
   dynamic fetchGlobal(String key) {
     return globals.fetch(key);
+  }
+
+  final _externClasses = <String, HTExternalClass>{};
+  final _externFunctions = <String, Function>{};
+
+  bool containsExternalClass(String id) => _externClasses.containsKey(id);
+
+  /// 注册外部类，以访问外部类的构造函数和static成员
+  /// 在脚本中需要存在对应的extern class声明
+  void bindExternalClass(String id, HTExternalClass namespace) {
+    if (_externClasses.containsKey(id)) {
+      throw HTErrorDefined_Runtime(id);
+    }
+    _externClasses[id] = namespace;
+  }
+
+  HTExternalClass fetchExternalClass(String id) {
+    if (!_externClasses.containsKey(id)) {
+      throw HTErrorUndefined(id);
+    }
+    return _externClasses[id]!;
+  }
+
+  void bindExternalFunction(String id, Function function) {
+    if (_externFunctions.containsKey(id)) {
+      throw HTErrorDefined_Runtime(id);
+    }
+    _externFunctions[id] = function;
+  }
+
+  Function fetchExternalFunction(String id) {
+    if (!_externFunctions.containsKey(id)) {
+      throw HTErrorUndefined(id);
+    }
+    return _externFunctions[id]!;
+  }
+
+  void bindExternalVariable(String id, Function getter, Function setter) {
+    if (_externFunctions.containsKey(HTLexicon.getter + id) || _externFunctions.containsKey(HTLexicon.setter + id)) {
+      throw HTErrorDefined_Runtime(id);
+    }
+    _externFunctions[HTLexicon.getter + id] = getter;
+    _externFunctions[HTLexicon.setter + id] = setter;
+  }
+
+  dynamic getExternalVariable(String id) {
+    if (!_externFunctions.containsKey(HTLexicon.getter + id)) {
+      throw HTErrorUndefined(HTLexicon.getter + id);
+    }
+    final getter = _externFunctions[HTLexicon.getter + id]!;
+    return getter(const [], const {});
+  }
+
+  void setExternalVariable(String id, value) {
+    if (!_externFunctions.containsKey(HTLexicon.setter + id)) {
+      throw HTErrorUndefined(HTLexicon.setter + id);
+    }
+    final setter = _externFunctions[HTLexicon.setter + id]!;
+    return setter(const [], const {});
   }
 }

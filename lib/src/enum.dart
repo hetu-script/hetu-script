@@ -14,7 +14,7 @@ class HTEnum extends HTObject with InterpreterRef {
 
   final bool isExtern;
 
-  HTEnum(this.id, this.defs, Interpreter interpreter, {this.isExtern = false}) {
+  HTEnum(this.id, this.defs, HTInterpreter interpreter, {this.isExtern = false}) {
     this.interpreter = interpreter;
   }
 

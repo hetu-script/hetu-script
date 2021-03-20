@@ -1,15 +1,15 @@
-      /// The core librarys in Hetu.
-      ///
-      /// Automatically generated based on files in 'hetu_lib' folder.
-      final Map<String, String> coreLibs = const {
-      'core.ht': r'''class Object {}
+/// The core librarys in Hetu.
+///
+/// Automatically generated based on files in 'hetu_lib' folder.
+final Map<String, String> coreModules = const {
+  'core.ht': r'''class Object {}
 
 // return the declaration type of a symbol
 // external fun decltypeof(value): String
 
 // print values of any type into lines
 external fun print(... args)''',
-'value.ht': r'''external class num {
+  'value.ht': r'''external class num {
 
 	static fun parse(value): num
 
@@ -83,7 +83,7 @@ external class Map {
 
   fun putIfAbsent(key, value): any
 }''',
-'system.ht': r'''external class System {
+  'system.ht': r'''external class System {
   // invoke a global or static member function
   static fun invoke(functionName: String, {positionalArgs: List = [], namedArgs: Map<String> = {}})
 
@@ -93,7 +93,7 @@ external class Map {
 
   // static fun tok()
 }''',
-'console.ht': r'''external class Console {
+  'console.ht': r'''external class Console {
 
 	// write a line without return
 	static fun write(line: String)
@@ -109,7 +109,7 @@ external class Map {
 	
 	static fun cls()
 }''',
-'math.ht': r'''fun max(a: num, b: num): num {
+  'math.ht': r'''fun max(a: num, b: num): num {
   if (a > b) return a
   return b
 }
@@ -136,5 +136,5 @@ external fun sin(x: num): num
 
 external fun cos(x: num): num
 ''',
-'help.ht': r'''external fun help(value): String''',
+  'help.ht': r'''external fun help(value): String''',
 };

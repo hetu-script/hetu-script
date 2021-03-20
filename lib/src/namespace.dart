@@ -80,7 +80,7 @@ class HTNamespace extends HTObject with InterpreterRef {
   }
 
   HTNamespace(
-    Interpreter interpreter, {
+    HTInterpreter interpreter, {
     String? id,
     HTNamespace? closure,
   }) : super() {
@@ -112,26 +112,11 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   /// 在当前命名空间定义一个变量的类型
   @override
-  void define(String varName,
-      {HTTypeId? declType,
-      dynamic value,
-      bool isExtern = false,
-      bool isImmutable = false,
-      bool isNullable = false,
-      bool typeInference = false}) {
-    var val_type = interpreter.typeof(value);
-    if (declType == null) {
-      if ((typeInference) && (value != null)) {
-        declType = val_type;
-      } else {
-        declType = HTTypeId.ANY;
-      }
-    }
-    if (val_type.isA(declType)) {
-      declarations[varName] = HTDeclaration(varName,
-          declType: declType, value: value, isExtern: isExtern, isNullable: isNullable, isImmutable: isImmutable);
+  void define(HTDeclaration decl, {bool override = false}) {
+    if (!declarations.containsKey(decl.id) || override) {
+      declarations[decl.id] = decl;
     } else {
-      throw HTErrorTypeCheck(varName, val_type.toString(), declType.toString());
+      throw HTErrorDefined_Runtime(decl.id);
     }
   }
 

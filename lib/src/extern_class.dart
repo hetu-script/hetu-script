@@ -117,7 +117,7 @@ class HTExternClassMath extends HTExternalClass {
 }
 
 class HTExternClassSystem extends HTExternalClass with InterpreterRef {
-  HTExternClassSystem(Interpreter interpreter) : super(HTExternGlobal.system) {
+  HTExternClassSystem(HTInterpreter interpreter) : super(HTExternGlobal.system) {
     this.interpreter = interpreter;
   }
 

@@ -7,7 +7,7 @@ abstract class HTFunction with HTType {
   static final callStack = <String>[];
 
   HTNamespace? context;
-  //HTNamespace _save;
+
   String get id;
   String get internalName;
 
