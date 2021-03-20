@@ -10,9 +10,7 @@ abstract class HTOpCode {
 
   static const constTable = 10;
 
-  static const literal = 15;
-
-  static const symbol = 16;
+  static const local = 15;
 
   /// reg index => reg[index] = local
   static const register = 20;
@@ -85,11 +83,11 @@ abstract class HTOpCode {
 }
 
 abstract class HTOpRandType {
-  static const nil = 0;
-  static const boolean = 1;
-  static const int64 = 2;
-  static const float64 = 3;
-  static const utf8String = 4;
+  static const literalNull = 0;
+  static const literalBoolean = 1;
+  static const literalInt64 = 2;
+  static const literalFloat64 = 3;
+  static const literalUtf8String = 4;
   static const symbol = 5;
 }
 

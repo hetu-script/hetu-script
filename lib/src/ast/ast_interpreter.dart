@@ -153,7 +153,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
     } else {
       // 命名空间内的静态函数
       HTObject object = globals.fetch(objectName);
-      var func = object.fetch(functionName);
+      var func = object.fetch(functionName, from: object.fullName);
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (func is Function) {
@@ -781,7 +781,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       this,
       value: value,
       declType: stmt.declType,
-      typeInference: stmt.declType == null,
+      typeInference: stmt.typeInference,
       isExtern: stmt.isExtern,
       isImmutable: stmt.isImmutable,
     ));
@@ -828,6 +828,10 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
     var save = curNamespace;
     curNamespace = klass;
     for (final variable in stmt.variables) {
+      if (!stmt.isExtern && variable.isExtern) {
+        throw HTErrorExternalVar();
+      }
+
       dynamic value;
       if (variable.initializer != null) {
         // TODO: 应该改为第一次取值时再初始化?
@@ -853,10 +857,6 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
     curNamespace = save;
 
     for (final method in stmt.methods) {
-      // if (klass.contains(method.internalName)) {
-      //   throw HTErrorDefined(method.name, method.keyword.line, method.keyword.column, curFileName);
-      // }
-
       HTFunction func;
       if (method.isStatic || method.funcType == FunctionType.constructor) {
         func = HTAstFunction(method, this, context: klass);
@@ -871,7 +871,8 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       }
     }
 
-    //继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
+    // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
+    // TODO: 忽略私有成员
     var curSuper = superClass;
     while (curSuper != null) {
       for (final decl in curSuper.instanceDecls.values) {

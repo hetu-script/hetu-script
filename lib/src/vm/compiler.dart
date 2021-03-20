@@ -108,12 +108,16 @@ class Compiler extends Parser {
     return bytesBuilderMain.toBytes();
   }
 
+  /// 0 to 255
   Uint8List _uint8(int value) => Uint8List(1)..buffer.asByteData().setUint8(0, value);
 
+  /// 0 to 65,535
   Uint8List _uint16(int value) => Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
 
+  /// 0 to 4,294,967,295
   Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
 
+  /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
   Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
 
   Uint8List _float64(double value) => Uint8List(8)..buffer.asByteData().setFloat64(0, value, Endian.big);
@@ -292,8 +296,8 @@ class Compiler extends Parser {
 
   Uint8List _literalnull() {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.literal);
-    bytesBuilder.addByte(HTOpRandType.nil);
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTOpRandType.literalNull);
     if (_debugMode) {
       bytesBuilder.add(_debugInfo());
     }
@@ -302,8 +306,8 @@ class Compiler extends Parser {
 
   Uint8List _literalbool(bool value) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.literal);
-    bytesBuilder.addByte(HTOpRandType.boolean);
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTOpRandType.literalBoolean);
     bytesBuilder.addByte(value ? 1 : 0);
     if (_debugMode) {
       bytesBuilder.add(_debugInfo());
@@ -313,7 +317,7 @@ class Compiler extends Parser {
 
   Uint8List _literal(int constIndex, int type) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.literal);
+    bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(type);
     bytesBuilder.add(_uint16(constIndex));
     if (_debugMode) {
@@ -324,7 +328,8 @@ class Compiler extends Parser {
 
   Uint8List _symbol(String id) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.symbol);
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTOpRandType.symbol);
     bytesBuilder.add(_shortUtf8String(id));
     if (_debugMode) {
       bytesBuilder.add(_debugInfo());
@@ -642,15 +647,15 @@ class Compiler extends Parser {
       case HTLexicon.integer:
         final index = _context.addConstInt(curTok.literal);
         advance(1);
-        return _literal(index, HTOpRandType.int64);
+        return _literal(index, HTOpRandType.literalInt64);
       case HTLexicon.float:
         final index = _context.addConstFloat(curTok.literal);
         advance(1);
-        return _literal(index, HTOpRandType.float64);
+        return _literal(index, HTOpRandType.literalFloat64);
       case HTLexicon.string:
         final index = _context.addConstString(curTok.literal);
         advance(1);
-        return _literal(index, HTOpRandType.utf8String);
+        return _literal(index, HTOpRandType.literalUtf8String);
       case HTLexicon.identifier:
         advance(1);
         return _symbol(curTok.literal);

@@ -46,12 +46,37 @@ class HTBytesResolver {
           break;
         // 从字节码读取常量表并保存在当前环境中
         case HTOpCode.constTable:
+          var table_length = _bytesReader.readUint16();
+          for (var i = 0; i < table_length; ++i) {
+            _bytesReader.readInt64();
+          }
+          table_length = _bytesReader.readUint16();
+          for (var i = 0; i < table_length; ++i) {
+            _bytesReader.readFloat64();
+          }
+          table_length = _bytesReader.readUint16();
+          for (var i = 0; i < table_length; ++i) {
+            _bytesReader.readUtf8String();
+          }
           break;
         // 将字面量存储在本地变量中
-        case HTOpCode.literal:
-          break;
-        // 当前符号（变量名）
-        case HTOpCode.symbol:
+        case HTOpCode.local:
+          final oprandType = _bytesReader.read();
+          switch (oprandType) {
+            case HTOpRandType.literalNull:
+              break;
+            case HTOpRandType.literalBoolean:
+              _bytesReader.read();
+              break;
+            case HTOpRandType.literalInt64:
+            case HTOpRandType.literalFloat64:
+            case HTOpRandType.literalUtf8String:
+              _bytesReader.readUint16();
+              break;
+            // 当前符号（变量名）
+            case HTOpRandType.symbol:
+            // _curValue = curNamespace.fetch(varName)
+          }
           break;
         // 将本地变量存储如下一个字节代表的寄存器位置中
         case HTOpCode.register:

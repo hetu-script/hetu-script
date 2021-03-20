@@ -78,31 +78,28 @@ class HTVM extends HTInterpreter {
     return HTTypeId.ANY;
   }
 
-  void _storeLocalLiteral() {
+  void _storeLocal() {
     final oprandType = _bytesReader.read();
     switch (oprandType) {
-      case HTOpRandType.nil:
+      case HTOpRandType.literalNull:
         _curValue = null;
         break;
-      case HTOpRandType.boolean:
+      case HTOpRandType.literalBoolean:
         (_bytesReader.read() == 0) ? _curValue = false : _curValue = true;
         break;
-      case HTOpRandType.int64:
+      case HTOpRandType.literalInt64:
         _curValue = curNamespace.getConstInt(_bytesReader.readUint16());
         break;
-      case HTOpRandType.float64:
+      case HTOpRandType.literalFloat64:
         _curValue = curNamespace.getConstFloat(_bytesReader.readUint16());
         break;
-      case HTOpRandType.utf8String:
+      case HTOpRandType.literalUtf8String:
         _curValue = curNamespace.getConstString(_bytesReader.readUint16());
         break;
       case HTOpRandType.symbol:
+        _curSymbol = _bytesReader.readShortUtf8String();
       // _curValue = curNamespace.fetch(varName)
     }
-  }
-
-  void _storeLocalSymbol() {
-    _curSymbol = _bytesReader.readShortUtf8String();
   }
 
   void _storeRegister(int index, dynamic value) {
@@ -274,12 +271,8 @@ class HTVM extends HTInterpreter {
           }
           break;
         // 将字面量存储在本地变量中
-        case HTOpCode.literal:
-          _storeLocalLiteral();
-          break;
-        // 当前符号（变量名）
-        case HTOpCode.symbol:
-          _storeLocalSymbol();
+        case HTOpCode.local:
+          _storeLocal();
           break;
         // 将本地变量存储如下一个字节代表的寄存器位置中
         case HTOpCode.register:

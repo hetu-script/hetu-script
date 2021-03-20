@@ -558,6 +558,9 @@ class VarDeclStmt extends ASTNode {
 
   final ASTNode? initializer;
 
+  final bool typeInference;
+
+  // 仅用于整个class都为external的情况
   final bool isExtern;
 
   final bool isNullable;
@@ -566,15 +569,15 @@ class VarDeclStmt extends ASTNode {
 
   final bool isStatic;
 
-  VarDeclStmt(
-    this.id, {
-    this.declType,
-    this.initializer,
-    this.isExtern = false,
-    this.isNullable = false,
-    this.isImmutable = false,
-    this.isStatic = false,
-  }) : super(HTLexicon.varDeclStmt, id.fileName, id.line, id.column);
+  VarDeclStmt(this.id,
+      {this.declType,
+      this.initializer,
+      this.typeInference = false,
+      this.isExtern = false,
+      this.isNullable = false,
+      this.isImmutable = false,
+      this.isStatic = false})
+      : super(HTLexicon.varDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => VarDeclStmt(id,

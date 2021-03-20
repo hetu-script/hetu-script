@@ -131,28 +131,4 @@ abstract class HTInterpreter {
     }
     return _externFunctions[id]!;
   }
-
-  void bindExternalVariable(String id, Function getter, Function setter) {
-    if (_externFunctions.containsKey(HTLexicon.getter + id) || _externFunctions.containsKey(HTLexicon.setter + id)) {
-      throw HTErrorDefined_Runtime(id);
-    }
-    _externFunctions[HTLexicon.getter + id] = getter;
-    _externFunctions[HTLexicon.setter + id] = setter;
-  }
-
-  dynamic getExternalVariable(String id) {
-    if (!_externFunctions.containsKey(HTLexicon.getter + id)) {
-      throw HTErrorUndefined(HTLexicon.getter + id);
-    }
-    final getter = _externFunctions[HTLexicon.getter + id]!;
-    return getter(const [], const {});
-  }
-
-  void setExternalVariable(String id, value) {
-    if (!_externFunctions.containsKey(HTLexicon.setter + id)) {
-      throw HTErrorUndefined(HTLexicon.setter + id);
-    }
-    final setter = _externFunctions[HTLexicon.setter + id]!;
-    return setter(const [], const {});
-  }
 }

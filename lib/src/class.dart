@@ -78,36 +78,36 @@ class HTClass extends HTNamespace {
       throw HTErrorPrivateMember(varName);
     }
     final getter = '${HTLexicon.getter}$varName';
-    final constructor = '$id.$varName';
+    final staticName = '$id.$varName';
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (!decl.isExtern) {
         return decl.value;
-      } else {
-        if (isExtern) {
-          final externClass = interpreter.fetchExternalClass(id);
-          return externClass.fetch('$id.$varName');
-        } else {
-          return interpreter.getExternalVariable('$id.$varName');
-        }
+      } else if (isExtern) {
+        final externClass = interpreter.fetchExternalClass(id);
+        return externClass.fetch(staticName);
       }
     } else if (declarations.containsKey(getter)) {
       final decl = declarations[getter]!;
       if (!decl.isExtern) {
         HTFunction func = declarations[getter]!.value;
         return func.call();
-      } else {
+      } else if (isExtern) {
         final externClass = interpreter.fetchExternalClass(id);
-        final getterFunc = externClass.fetch('$id.$varName');
-        return getterFunc;
+        return externClass.fetch(staticName);
+      } else {
+        final externGetterFunc = interpreter.fetchExternalFunction('$id.${HTLexicon.getter}$varName');
+        return externGetterFunc();
       }
-    } else if (declarations.containsKey(constructor)) {
-      final decl = declarations[constructor]!;
+    } else if (declarations.containsKey(staticName)) {
+      final decl = declarations[staticName]!;
       if (!decl.isExtern) {
-        return declarations[constructor]!.value;
-      } else {
+        return declarations[staticName]!.value;
+      } else if (isExtern) {
         final externClass = interpreter.fetchExternalClass(id);
-        return externClass.fetch(constructor);
+        return externClass.fetch(staticName);
+      } else {
+        return interpreter.fetchExternalFunction(staticName);
       }
     } else if (superClass != null && superClass!.contains(varName)) {
       return superClass!.fetch(varName, from: superClass!.fullName);
@@ -130,6 +130,7 @@ class HTClass extends HTNamespace {
     }
 
     final setter = '${HTLexicon.setter}$varName';
+    final staticName = '$id.$varName';
     if (declarations.containsKey(varName)) {
       final decl_type = declarations[varName]!.declType;
       final var_type = interpreter.typeof(value);
@@ -139,15 +140,10 @@ class HTClass extends HTNamespace {
           if (!decl.isExtern) {
             decl.value = value;
             return;
-          } else {
-            if (isExtern) {
-              final externClass = interpreter.fetchExternalClass(id);
-              externClass.assign('$id.$varName', value);
-              return;
-            } else {
-              interpreter.setExternalVariable('$id.$varName', value);
-              return;
-            }
+          } else if (isExtern) {
+            final externClass = interpreter.fetchExternalClass(id);
+            externClass.assign(staticName, value);
+            return;
           }
         }
         throw HTErrorImmutable(varName);
@@ -158,23 +154,21 @@ class HTClass extends HTNamespace {
       if (!setterFunc.isExtern) {
         setterFunc.call(positionalArgs: [value]);
         return;
+      } else if (isExtern) {
+        final externClass = interpreter.fetchExternalClass(id);
+        externClass.assign(staticName, value);
+        return;
       } else {
-        if (isExtern) {
-          final externClass = interpreter.fetchExternalClass(id);
-          externClass.assign('$id.$varName', value);
-          return;
-        } else {
-          final externSetterFunc = interpreter.fetchExternalFunction('$id.$setter');
-          if (externSetterFunc is HTExternalFunction) {
-            try {
-              return externSetterFunc([value], const {});
-            } on RangeError {
-              throw HTErrorExternParams();
-            }
-          } else {
-            return Function.apply(externSetterFunc, [value]);
-            // throw HTErrorExternFunc(constructor.toString());
+        final externSetterFunc = interpreter.fetchExternalFunction('$id.${HTLexicon.setter}$varName');
+        if (externSetterFunc is HTExternalFunction) {
+          try {
+            return externSetterFunc([value], const {});
+          } on RangeError {
+            throw HTErrorExternParams();
           }
+        } else {
+          return Function.apply(externSetterFunc, [value]);
+          // throw HTErrorExternFunc(constructor.toString());
         }
       }
     }
@@ -318,7 +312,7 @@ class HTInstance extends HTNamespace {
 
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    HTFunction? func = klass.fetch(funcName, from: klass.fullName);
+    HTFunction? func = fetch(funcName, from: fullName);
     if ((func != null) && (!func.isStatic)) {
       return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
     }

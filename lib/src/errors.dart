@@ -1,5 +1,3 @@
-import 'lexicon.dart';
-
 class HTBreak {}
 
 class HTContinue {}
@@ -58,6 +56,8 @@ abstract class HTError {
   static const arity2 = 'doesn\'t match parameter requirement of function';
 
   static const binding = 'Missing binding extension on dart object';
+
+  static const externalVar = 'External variable is not allowed.';
 
   static const bytesSig = 'Unknown bytecode signature.';
 
@@ -254,6 +254,10 @@ class HTErrorArity extends HTError {
 
 class HTErrorBinding extends HTError {
   HTErrorBinding(String id) : super('${HTError.binding} [$id]', HTErrorType.interpreter);
+}
+
+class HTErrorExternalVar extends HTError {
+  HTErrorExternalVar() : super(HTError.externalVar, HTErrorType.parser);
 }
 
 class HTErrorSignature extends HTError {

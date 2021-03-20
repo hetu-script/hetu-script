@@ -15,6 +15,8 @@ abstract class HTObject with HTType {
   static const NULL = _HTNull();
   //bool used = false;
 
+  final String fullName = '';
+
   bool contains(String varName) => throw HTErrorUndefined(varName);
 
   void define(HTDeclaration decl, {bool override = false}) => throw HTErrorUndefined(decl.id);

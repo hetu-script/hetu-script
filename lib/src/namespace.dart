@@ -26,8 +26,8 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   late final String id;
 
-  late final String _fullName;
-  String get fullName => _fullName;
+  @override
+  late final String fullName;
 
   /// 常量表
   final _constInt = <int>[];
@@ -72,22 +72,16 @@ class HTNamespace extends HTObject with InterpreterRef {
   // 变量表
   final Map<String, HTDeclaration> declarations = {};
 
-  HTNamespace? _closure;
-  HTNamespace? get closure => _closure;
-  set closure(HTNamespace? closure) {
-    _closure = closure;
-    _fullName = getFullName(id, _closure!);
-  }
+  late final HTNamespace? closure;
 
   HTNamespace(
     HTInterpreter interpreter, {
     String? id,
-    HTNamespace? closure,
+    this.closure,
   }) : super() {
     this.id = id ?? '${HTLexicon.anonymousNamespace}${spaceIndex++}';
     this.interpreter = interpreter;
-    _fullName = getFullName(this.id, this);
-    _closure = closure;
+    fullName = getFullName(this.id, this);
   }
 
   HTNamespace closureAt(int distance) {
@@ -159,13 +153,8 @@ class HTNamespace extends HTObject with InterpreterRef {
       if (var_type.isA(decl_type)) {
         var decl = declarations[varName]!;
         if (!decl.isImmutable) {
-          if (!decl.isExtern) {
-            decl.value = value;
-            return;
-          } else {
-            interpreter.setExternalVariable('$id.$varName', value);
-            return;
-          }
+          decl.value = value;
+          return;
         }
         throw HTErrorImmutable(varName);
       }
