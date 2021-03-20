@@ -1,3 +1,7 @@
+## 0.0.6
+
+- Feature: Error handler and import handler are now plugins.
+
 ## 0.0.5
 
 - Refactor: Migrate to null safety.
