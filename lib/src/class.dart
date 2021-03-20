@@ -86,9 +86,9 @@ class HTClass extends HTNamespace {
       } else {
         if (isExtern) {
           final externClass = interpreter.fetchExternalClass(id);
-          return externClass.fetch(varName);
+          return externClass.fetch('$id.$varName');
         } else {
-          return interpreter.getExternalVariable(varName);
+          return interpreter.getExternalVariable('$id.$varName');
         }
       }
     } else if (declarations.containsKey(getter)) {
@@ -98,8 +98,8 @@ class HTClass extends HTNamespace {
         return func.call();
       } else {
         final externClass = interpreter.fetchExternalClass(id);
-        final getterFunc = externClass.fetch(getter);
-        return getterFunc();
+        final getterFunc = externClass.fetch('$id.$varName');
+        return getterFunc;
       }
     } else if (declarations.containsKey(constructor)) {
       final decl = declarations[constructor]!;
@@ -142,7 +142,7 @@ class HTClass extends HTNamespace {
           } else {
             if (isExtern) {
               final externClass = interpreter.fetchExternalClass(id);
-              externClass.assign(varName, value);
+              externClass.assign('$id.$varName', value);
               return;
             } else {
               interpreter.setExternalVariable('$id.$varName', value);
@@ -161,7 +161,7 @@ class HTClass extends HTNamespace {
       } else {
         if (isExtern) {
           final externClass = interpreter.fetchExternalClass(id);
-          externClass.assign(varName, value);
+          externClass.assign('$id.$varName', value);
           return;
         } else {
           final externSetterFunc = interpreter.fetchExternalFunction('$id.$setter');
