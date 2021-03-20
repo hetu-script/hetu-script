@@ -9,9 +9,10 @@ import 'compiler.dart';
 import 'opcode.dart';
 import '../lexer.dart';
 import '../errors.dart';
-import '../read_file.dart';
+import '../plugin/importHandler.dart';
 import '../namespace.dart';
 import 'bytes_resolver.dart';
+import '../plugin/errorHandler.dart';
 
 mixin VMRef {
   late final HTVM interpreter;
@@ -33,16 +34,8 @@ class HTVM extends Interpreter {
   // final List<dynamic> _stack = [];
   final _register = List<dynamic>.filled(255, null, growable: false);
 
-  HTVM(
-      {String sdkDirectory = 'hetu_lib/',
-      String workingDirectory = 'script/',
-      bool debugMode = false,
-      ReadFileMethod readFileMethod = defaultReadFileMethod}) {
-    curNamespace = globals = HTNamespace(this, id: HTLexicon.global);
-    this.workingDirectory = workingDirectory;
-    this.debugMode = debugMode;
-    this.readFileMethod = readFileMethod;
-  }
+  HTVM({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler})
+      : super(debugMode: debugMode, errorHandler: errorHandler, importHandler: importHandler);
 
   @override
   Future<dynamic> eval(

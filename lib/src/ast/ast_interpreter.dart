@@ -1,7 +1,7 @@
 import 'package:hetu_script/src/declaration.dart';
 
-import '../core.dart';
-import '../read_file.dart';
+import '../plugin/errorHandler.dart';
+import '../plugin/importHandler.dart';
 import '../extern_class.dart';
 import '../errors.dart';
 import 'ast.dart';
@@ -33,44 +33,8 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
 
   dynamic _curStmtValue;
 
-  HTAstInterpreter(
-      {String sdkDirectory = 'hetu_lib/',
-      String workingDirectory = 'script/',
-      bool debugMode = false,
-      ReadFileMethod readFileMethod = defaultReadFileMethod}) {
-    curNamespace = globals = HTNamespace(this, id: HTLexicon.global);
-    this.workingDirectory = workingDirectory;
-    this.debugMode = debugMode;
-    this.readFileMethod = readFileMethod;
-  }
-
-  Future<void> init(
-      {Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalClass> externalClasses = const {}}) async {
-    // load classes and functions in core library.
-    for (final file in coreLibs.keys) {
-      await eval(coreLibs[file]!, fileName: file);
-    }
-
-    for (var key in HTExternGlobal.functions.keys) {
-      bindExternalFunction(key, HTExternGlobal.functions[key]!);
-    }
-
-    bindExternalClass(HTExternGlobal.number, HTExternClassNumber());
-    bindExternalClass(HTExternGlobal.boolean, HTExternClassBool());
-    bindExternalClass(HTExternGlobal.string, HTExternClassString());
-    bindExternalClass(HTExternGlobal.math, HTExternClassMath());
-    bindExternalClass(HTExternGlobal.system, HTExternClassSystem(this));
-    bindExternalClass(HTExternGlobal.console, HTExternClassConsole());
-
-    for (var key in externalFunctions.keys) {
-      bindExternalFunction(key, externalFunctions[key]!);
-    }
-
-    for (var key in externalClasses.keys) {
-      bindExternalClass(key, externalClasses[key]!);
-    }
-  }
+  HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler})
+      : super(debugMode: debugMode, errorHandler: errorHandler, importHandler: importHandler);
 
   @override
   Future<dynamic> eval(
@@ -126,6 +90,41 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     }
   }
 
+  /// 解析文件
+  @override
+  Future<dynamic> import(
+    String key, {
+    String? directory,
+    String? libName,
+    ParseStyle style = ParseStyle.library,
+    String? invokeFunc,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+  }) async {
+    dynamic result;
+
+    final module = await importHandler.import(key);
+    curFileName = module.filePath;
+
+    HTNamespace? library_namespace;
+    if ((libName != null) && (libName != HTLexicon.global)) {
+      library_namespace = HTNamespace(this, id: libName, closure: globals);
+      globals.define(libName, declType: HTTypeId.namespace, value: library_namespace);
+    }
+
+    result = eval(module.content,
+        fileName: key,
+        namespace: library_namespace,
+        style: style,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs);
+
+    curFileName = '';
+
+    return result;
+  }
+
   /// 调用一个全局函数或者类、对象上的函数
   // TODO: 调用构造函数
   @override
@@ -170,39 +169,6 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
         throw HTErrorCallable(functionName);
       }
     }
-  }
-
-  /// 解析文件
-  @override
-  Future<dynamic> import(
-    String fileName, {
-    String? directory,
-    String? libName,
-    ParseStyle style = ParseStyle.library,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  }) async {
-    dynamic result;
-    if (!imported.contains(fileName)) {
-      imported.add(fileName);
-
-      HTNamespace? library_namespace;
-      if ((libName != null) && (libName != HTLexicon.global)) {
-        library_namespace = HTNamespace(this, id: libName, closure: globals);
-        globals.define(libName, declType: HTTypeId.namespace, value: library_namespace);
-      }
-
-      String content = await readFileMethod(fileName);
-      result = eval(content,
-          fileName: fileName,
-          namespace: library_namespace,
-          style: style,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs);
-    }
-    return result;
   }
 
   @override

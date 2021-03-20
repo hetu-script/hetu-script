@@ -5,5 +5,5 @@ void main() async {
 
   await hetu.init();
 
-  await hetu.import('script/types.ht', invokeFunc: 'main');
+  await hetu.import('types.ht', invokeFunc: 'main');
 }

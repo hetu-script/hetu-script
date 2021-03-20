@@ -15,3 +15,5 @@ export 'src/lexicon.dart';
 export 'src/ast/ast_interpreter.dart';
 export 'src/vm/vm.dart';
 export 'src/binding.dart';
+export 'src/plugin/errorHandler.dart';
+export 'src/plugin/importHandler.dart';

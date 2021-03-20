@@ -31,8 +31,7 @@ class HTAstParser extends Parser {
       var stmt = _parseStmt(style: style);
       if (stmt is ImportStmt) {
         final savedFileName = _curFileName;
-        final path = interpreter.workingDirectory + stmt.key;
-        await interpreter.import(path, libName: stmt.namespace);
+        await interpreter.import(stmt.key, libName: stmt.namespace);
         _curFileName = savedFileName;
         interpreter.curFileName = savedFileName;
       }

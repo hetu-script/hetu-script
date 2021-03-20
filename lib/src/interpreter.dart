@@ -3,7 +3,10 @@ import 'lexicon.dart';
 import 'namespace.dart';
 import 'parser.dart' show ParseStyle;
 import 'type.dart';
-import 'read_file.dart';
+import 'plugin/importHandler.dart';
+import 'plugin/errorHandler.dart';
+import 'core.dart';
+import 'extern_class.dart';
 
 mixin InterpreterRef {
   late final Interpreter interpreter;
@@ -13,12 +16,11 @@ abstract class Interpreter with BindingHandler {
   late int curLine;
   late int curColumn;
   late String curFileName;
-  late String workingDirectory;
-
-  final imported = <String>[];
 
   late bool debugMode;
-  late ReadFileMethod readFileMethod;
+
+  late HTErrorHandler errorHandler;
+  late HTImportHandler importHandler;
 
   /// 全局命名空间
   late HTNamespace globals;
@@ -26,8 +28,45 @@ abstract class Interpreter with BindingHandler {
   /// 当前语句所在的命名空间
   late HTNamespace curNamespace;
 
+  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
+    curNamespace = globals = HTNamespace(this, id: HTLexicon.global);
+    this.debugMode = debugMode;
+    this.errorHandler = errorHandler ?? DefaultErrorHandler();
+    this.importHandler = importHandler ?? DefaultImportHandler();
+  }
+
+  Future<void> init(
+      {Map<String, Function> externalFunctions = const {},
+      Map<String, HTExternalClass> externalClasses = const {}}) async {
+    // load classes and functions in core library.
+    // TODO: dynamic load needed core lib in script
+    for (final file in coreLibs.keys) {
+      await eval(coreLibs[file]!);
+    }
+
+    for (var key in HTExternGlobal.functions.keys) {
+      bindExternalFunction(key, HTExternGlobal.functions[key]!);
+    }
+
+    bindExternalClass(HTExternGlobal.number, HTExternClassNumber());
+    bindExternalClass(HTExternGlobal.boolean, HTExternClassBool());
+    bindExternalClass(HTExternGlobal.string, HTExternClassString());
+    bindExternalClass(HTExternGlobal.math, HTExternClassMath());
+    bindExternalClass(HTExternGlobal.system, HTExternClassSystem(this));
+    bindExternalClass(HTExternGlobal.console, HTExternClassConsole());
+
+    for (var key in externalFunctions.keys) {
+      bindExternalFunction(key, externalFunctions[key]!);
+    }
+
+    for (var key in externalClasses.keys) {
+      bindExternalClass(key, externalClasses[key]!);
+    }
+  }
+
   Future<dynamic> eval(
     String content, {
+    String? fileName,
     String libName = HTLexicon.global,
     HTNamespace? namespace,
     ParseStyle style = ParseStyle.library,
@@ -38,7 +77,6 @@ abstract class Interpreter with BindingHandler {
 
   Future<dynamic> import(
     String fileName, {
-    String? directory,
     String? libName,
     ParseStyle style = ParseStyle.library,
     String? invokeFunc,

@@ -88,7 +88,7 @@ class HTClass extends HTNamespace {
           final externClass = interpreter.fetchExternalClass(id);
           return externClass.fetch(varName);
         } else {
-          return interpreter.getExternalVariable('$id.$varName');
+          return interpreter.getExternalVariable(varName);
         }
       }
     } else if (declarations.containsKey(getter)) {
@@ -98,7 +98,7 @@ class HTClass extends HTNamespace {
         return func.call();
       } else {
         final externClass = interpreter.fetchExternalClass(id);
-        final getterFunc = externClass.fetch(varName);
+        final getterFunc = externClass.fetch(getter);
         return getterFunc();
       }
     } else if (declarations.containsKey(constructor)) {
