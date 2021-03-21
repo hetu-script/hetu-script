@@ -72,12 +72,11 @@ class HTTypeId {
 }
 
 class HTFunctionTypeId extends HTTypeId {
-  static const HTFunctionTypeId simple = HTFunctionTypeId(HTTypeId.ANY);
-
   final HTTypeId returnType;
   final List<HTTypeId?> paramsTypes; // function(T1 arg1, T2 arg2)
 
-  const HTFunctionTypeId(this.returnType, {List<HTTypeId> arguments = const [], this.paramsTypes = const []})
+  const HTFunctionTypeId(
+      {this.returnType = HTTypeId.ANY, List<HTTypeId> arguments = const [], this.paramsTypes = const []})
       : super(HTLexicon.function, arguments: arguments);
 
   @override
@@ -103,4 +102,6 @@ class HTFunctionTypeId extends HTTypeId {
     result.write('): ' + returnType.toString());
     return result.toString();
   }
+
+  // TODO: 通过重写isA，实现函数的逆变
 }

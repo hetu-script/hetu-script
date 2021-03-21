@@ -1,5 +1,3 @@
-import 'package:hetu_script/src/object.dart';
-
 import '../class.dart';
 import '../namespace.dart';
 import '../errors.dart';
@@ -35,7 +33,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     for (final param in funcStmt.params) {
       paramsTypes.add(param.declType);
     }
-    typeid = HTFunctionTypeId(funcStmt.returnType, paramsTypes: paramsTypes);
+    typeid = HTFunctionTypeId(returnType: funcStmt.returnType, paramsTypes: paramsTypes);
 
     if (context != null) {
       this.context = context;

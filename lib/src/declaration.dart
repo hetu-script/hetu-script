@@ -6,7 +6,7 @@ import 'type.dart';
 ///
 /// 在需要的时候根据具体的解释器类型来取值
 ///
-///
+/// 基础类只用于函数、类和枚举等无法修改的“变量”
 class HTDeclaration {
   final String id;
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
@@ -20,6 +20,11 @@ class HTDeclaration {
   final bool isExtern;
   final bool isImmutable;
   final bool isMember;
+
+  /// 默认认为初始化过了
+  ///
+  /// 继承类的实现可以override这个bool，来控制是否初始化
+  bool get isInitialized => true;
 
   /// 基础类没有初始化、类型推断和类型检查
   ///
@@ -40,6 +45,6 @@ class HTDeclaration {
   HTDeclaration clone() => HTDeclaration(id,
       value: value, declType: declType, getter: getter, setter: setter, isExtern: isExtern, isImmutable: isImmutable);
 
-  /// 调用这个接口来初始化这个变量声明
+  /// 调用这个接口来初始化这个变量声明，并将 _isInitialized 改为true
   void initialize() {}
 }

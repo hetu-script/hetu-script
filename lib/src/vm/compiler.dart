@@ -1,9 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script/src/vm/bytes_funciton.dart';
-
 import '../parser.dart';
 import 'opcode.dart';
 import '../token.dart';
@@ -11,7 +8,10 @@ import '../namespace.dart';
 import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
-import '../interpreter.dart';
+import 'bytes_funciton.dart';
+import 'vm.dart';
+import 'bytes_declaration.dart';
+import '../declaration.dart';
 
 class Compiler extends Parser with VMRef {
   static const hetuSignatureData = [8, 5, 20, 21];
@@ -30,6 +30,8 @@ class Compiler extends Parser with VMRef {
   late bool _debugMode;
 
   var _leftValueCheck = false;
+
+  String? _curClassName;
 
   Future<Uint8List> compile(List<Token> tokens, HTVM interpreter, HTNamespace context, String fileName,
       [ParseStyle style = ParseStyle.library, debugMode = false]) async {
@@ -777,7 +779,7 @@ class Compiler extends Parser with VMRef {
     advance(1);
     final id = match(HTLexicon.identifier).lexeme;
 
-    bytesBuilder.addByte(HTOpCode.declare);
+    bytesBuilder.addByte(HTOpCode.varDecl);
 
     // typeInference 和 const 等开关
 
@@ -792,7 +794,7 @@ class Compiler extends Parser with VMRef {
     if (expect([HTLexicon.assign], consume: true, error: false)) {
       initializerIp = _codeBytes.length;
       final initializer = _parseExpr();
-      bytesBuilder.addByte(HTOpCode.initializerStart);
+      bytesBuilder.addByte(HTOpCode.varInitStart);
       bytesBuilder.add(_uint16(initializer.length + 1));
       bytesBuilder.add(initializer);
       bytesBuilder.addByte(HTOpCode.returnValue);
@@ -807,27 +809,154 @@ class Compiler extends Parser with VMRef {
     return bytesBuilder.toBytes();
   }
 
-  // Uint8List _parseParameters() {
-  //   final bytesBuilder = BytesBuilder();
-  //   return bytesBuilder.toBytes();
-  // }
-
   Uint8List _parseFuncDeclaration(
       {FunctionType funcType = FunctionType.normal, bool isExtern = false, bool isStatic = false}) {
-    final bytesBuilder = BytesBuilder();
+    final funcBytesBuilder = BytesBuilder();
     advance(1);
     String? id;
     if (curTok.type == HTLexicon.identifier) {
       id = advance(1).lexeme;
     }
 
+    if (id != null) {
+      funcBytesBuilder.addByte(HTOpCode.funcDecl);
+    } else {
+      funcBytesBuilder.addByte(HTOpCode.local);
+      funcBytesBuilder.addByte(HTLocalValueType.function);
+    }
+
     var arity = 0;
+    var paramDecls = <BytesParamDecl>[];
+    var paramInitializers = <Uint8List>[];
     var isVariadic = false;
-    var params = <HTBytesParamDecl>[];
 
-    final func = HTBytesFunction(interpreter);
+    if (funcType != FunctionType.getter && (expect([HTLexicon.roundLeft], consume: true, error: false))) {
+      var isOptional = false;
+      var isNamed = false;
+      while ((curTok.type != HTLexicon.roundRight) &&
+          (curTok.type != HTLexicon.squareRight) &&
+          (curTok.type != HTLexicon.curlyRight) &&
+          (curTok.type != HTLexicon.endOfFile)) {
+        if (paramDecls.isNotEmpty) {
+          expect([HTLexicon.comma], consume: true, error: false);
+        }
+        // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
+        if (!isOptional) {
+          isOptional = expect([HTLexicon.squareLeft], consume: true, error: false);
+          if (!isOptional && !isNamed) {
+            //检查命名参数，根据是否有花括号判断
+            isNamed = expect([HTLexicon.curlyLeft], consume: true, error: false);
+          }
+        }
 
-    return bytesBuilder.toBytes();
+        var isVariadic = false;
+        if (!isNamed) {
+          isVariadic = expect([HTLexicon.varargs], consume: true, error: false);
+        }
+
+        final paramBytesBuilder = BytesBuilder();
+        var paramId = match(HTLexicon.identifier).lexeme;
+        paramBytesBuilder.add(_shortUtf8String(paramId));
+        // HTTypeId? declType;
+        // if (expect([HTLexicon.colon], consume: true, error: false)) {
+        //   declType = _parseTypeId();
+        // }
+
+        Uint8List? initializer;
+        //参数默认值
+        if ((isOptional || isNamed) && (expect([HTLexicon.assign], consume: true, error: false))) {
+          initializer = _parseExpr();
+          paramBytesBuilder.addByte(1); // bool，表示有初始化表达式
+          paramBytesBuilder.add(_uint16(initializer.length + 1));
+          paramBytesBuilder.add(initializer);
+          paramBytesBuilder.addByte(HTOpCode.returnValue);
+        } else {
+          paramBytesBuilder.addByte(0); // bool，表示没有初始化表达式
+        }
+        paramInitializers.add(paramBytesBuilder.toBytes());
+
+        paramDecls.add(BytesParamDecl(paramId, isVariadic: isVariadic, isOptional: isOptional, isNamed: isNamed));
+
+        if (isVariadic) {
+          break;
+        }
+      }
+
+      if (isOptional) {
+        expect([HTLexicon.squareRight], consume: true);
+      } else if (isNamed) {
+        expect([HTLexicon.curlyRight], consume: true);
+      }
+
+      expect([HTLexicon.roundRight], consume: true);
+
+      for (var i = 0; i < paramDecls.length; ++i) {
+        if (paramDecls[i].isVariadic) {
+          isVariadic = true;
+          break;
+        } else if (paramDecls[i].isOptional || paramDecls[i].isNamed) {
+          break;
+        }
+        ++arity;
+      }
+
+      // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
+      if ((funcType == FunctionType.setter) && (arity != 1)) {
+        throw HTErrorSetter();
+      }
+    }
+
+    // var return_type = HTTypeId.ANY;
+    // if ((funcType != FunctionType.constructor) && (expect([HTLexicon.colon], consume: true, error: false))) {
+    //   return_type = _parseTypeId();
+    // }
+
+    final bodyBytesBuilder = BytesBuilder();
+
+    // 处理函数定义部分的语句块
+    if (expect([HTLexicon.curlyLeft], consume: true, error: false)) {
+      while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+        bodyBytesBuilder.add(_parseStmt());
+      }
+      expect([HTLexicon.curlyRight], consume: true);
+    }
+
+    final func = HTBytesFunction(
+      interpreter,
+      id: id,
+      className: _curClassName,
+      funcType: funcType,
+      paramDecls: paramDecls,
+      isExtern: isExtern,
+      isStatic: isStatic,
+      // isConst: isConst,
+      isVariadic: isVariadic,
+      context: _context,
+    );
+    if (func.id != null) {
+      _context.define(HTDeclaration(id!, value: func, declType: func.typeid, isImmutable: true));
+    }
+
+    funcBytesBuilder.addByte(paramInitializers.length); // arity
+    if (paramInitializers.isNotEmpty) {
+      var paramsLength = 1;
+      for (var decl in paramInitializers) {
+        paramsLength += decl.length;
+      }
+      funcBytesBuilder.add(_uint16(paramsLength)); // params bytes length
+      for (var decl in paramInitializers) {
+        funcBytesBuilder.add(decl); // params
+      }
+    }
+
+    funcBytesBuilder.add(_uint16(bodyBytesBuilder.length)); // body bytes length
+    if (bodyBytesBuilder.isNotEmpty) {
+      funcBytesBuilder.add(bodyBytesBuilder.toBytes()); // body
+    }
+
+    expect([HTLexicon.semicolon], consume: true, error: false);
+
+    return funcBytesBuilder.toBytes();
   }
 
   // Uint8List _parseClassDeclStmt({bool isExtern = false}) {

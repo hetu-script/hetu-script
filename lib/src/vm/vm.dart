@@ -323,10 +323,10 @@ class HTVM extends HTInterpreter {
         case HTOpCode.register:
           _storeRegister(_bytesReader.read(), _curValue);
           break;
-        case HTOpCode.declare:
+        case HTOpCode.varDecl:
           _curSymbol = _bytesReader.readShortUtf8String();
           break;
-        case HTOpCode.initializerStart:
+        case HTOpCode.varInitStart:
           final initializerLength = _bytesReader.readUint16();
           if (_curClass == null) {
             _curValue = execute(ip: _bytesReader.ip);

@@ -12,9 +12,6 @@ abstract class HTOpCode {
 
   static const codeStart = 100;
 
-  /// uint16 length of function
-  static const funcStart = 101;
-
   /// uint32 line, uint32 column, uint8 symbolLength, symbol
   static const debugInfo = 200;
   static const error = 201; //
@@ -33,12 +30,23 @@ abstract class HTOpCode {
   /// copy from to => reg[to] = reg[from]
   static const copy = 12;
 
-  static const declare = 15;
+  static const leftValue = 14;
+
+  static const varDecl = 15;
 
   /// uint16 length of initializer
-  static const initializerStart = 16;
+  static const varInitStart = 16;
 
-  static const leftValue = 17;
+  static const funcDecl = 17;
+
+  // TODO: error when reach limit
+  /// uint16 length of function
+  static const funcDefStart = 18;
+
+  static const classDecl = 19;
+
+  /// uint16 length of class
+  static const classDefStart = 20;
 
   static const assign = 30; // 1 byte right value
 
@@ -112,6 +120,7 @@ abstract class HTLocalValueType {
   static const group = 6;
   static const list = 7;
   static const map = 8;
+  static const function = 9;
 }
 
 abstract class HTErrorCode {

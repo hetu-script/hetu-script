@@ -10,51 +10,43 @@ import '../function.dart';
 import '../declaration.dart';
 import '../common.dart';
 
-class HTBytesParamDecl extends HTDeclaration with VMRef {
+class BytesParamDecl extends HTDeclaration {
   final bool isVariadic;
 
   final bool isOptional;
 
   final bool isNamed;
 
-  HTBytesParamDecl(String id, HTVM interpreter,
-      {dynamic value,
-      HTTypeId declType = HTTypeId.ANY,
-      this.isVariadic = false,
-      this.isOptional = false,
-      this.isNamed = false})
-      : super(id, value: value, declType: declType) {
-    this.interpreter = interpreter;
-    var valType = interpreter.typeof(value);
-    if (valType.isA(declType) || value == null) {
-      this.declType = declType;
-    } else {
-      throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
-    }
-  }
+  BytesParamDecl(String id,
+      {HTTypeId declType = HTTypeId.ANY, this.isVariadic = false, this.isOptional = false, this.isNamed = false})
+      : super(id, declType: declType) {
+    // this.interpreter = interpreter;
+    // var valType = interpreter.typeof(value);
+    // if (valType.isA(declType) || value == null) {
+    //   this.declType = declType;
+    // } else {
+    //   throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
+    // }
 
-  @override
-  HTBytesParamDecl clone() => HTBytesParamDecl(id, interpreter,
-      value: value,
-      declType: declType ?? HTTypeId.ANY,
-      isVariadic: isVariadic,
-      isOptional: isOptional,
-      isNamed: isNamed);
+    // if (value != null) {
+    //   _isInitialized = true;
+    // }
+  }
 }
 
 class HTBytesFunction extends HTFunction with VMRef {
-  final List<HTBytesParamDecl> params;
+  final List<BytesParamDecl> paramDecls;
 
   final int? definitionIp;
 
   HTBytesFunction(HTVM interpreter,
       {String? id,
-      FunctionType funcType = FunctionType.normal,
       String? className,
-      this.params = const <HTBytesParamDecl>[],
+      FunctionType funcType = FunctionType.normal,
+      this.paramDecls = const <BytesParamDecl>[],
+      HTTypeId returnType = HTTypeId.ANY,
       this.definitionIp,
       List<HTTypeId> typeParams = const [],
-      HTFunctionTypeId typeid = HTFunctionTypeId.simple,
       bool isExtern = false,
       bool isStatic = false,
       bool isConst = false,
@@ -65,14 +57,17 @@ class HTBytesFunction extends HTFunction with VMRef {
             className: className,
             funcType: funcType,
             typeParams: typeParams,
-            // typeid: typeid,
             isExtern: isExtern,
             isStatic: isStatic,
             isConst: isConst,
             isVariadic: isVariadic) {
     this.interpreter = interpreter;
 
-    this.typeid = typeid;
+    // var paramsTypes = <HTTypeId?>[];
+    // for (final param in paramDecls) {
+    //   paramsTypes.add(param.declType);
+    // }
+    // typeid = HTFunctionTypeId(returnType: returnType, paramsTypes: paramsTypes);
 
     this.context = context ?? interpreter.global;
   }
