@@ -34,6 +34,8 @@ class HTEnum extends HTObject with InterpreterRef {
       return externEnumClass.fetch(varName);
     }
 
+    // TODO: elementAt() 方法
+
     throw HTErrorUndefined(varName);
   }
 

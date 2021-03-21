@@ -19,18 +19,22 @@ mixin VMRef {
 class HTVM extends HTInterpreter {
   late BytesReader _bytesReader;
 
+  late final _codeStartIp;
+
   /// 符号表，不同语句块和环境的符号可能会有重名。
   /// key代表ip指针，value代表符号代表的值所在的命名空间上层深度
   final _distances = <int, int>{};
 
   dynamic _curValue;
-  late String _curSymbol;
+  String? _curSymbol;
+  String? _curClass;
+  final _leftValueStack = <String>[];
 
   // final List<dynamic> _stack = [];
-  final _register = List<dynamic>.filled(255, null, growable: false);
+  final _register = List<dynamic>.filled(16, null, growable: false);
 
-  HTVM({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler})
-      : super(debugMode: debugMode, errorHandler: errorHandler, importHandler: importHandler);
+  HTVM({HTErrorHandler? errorHandler, HTImportHandler? importHandler})
+      : super(errorHandler: errorHandler, importHandler: importHandler);
 
   @override
   Future<dynamic> eval(
@@ -44,16 +48,17 @@ class HTVM extends HTInterpreter {
     Map<String, dynamic> namedArgs = const {},
   }) async {
     curFileName = fileName ?? HTLexicon.anonymousScript;
-    curNamespace = namespace ?? globals;
+    curNamespace = namespace ?? global;
 
     final tokens = Lexer().lex(content, curFileName);
     final bytes = await Compiler().compile(tokens, this, curNamespace, curFileName, style, debugMode);
     _bytesReader = BytesReader(bytes);
+    print('Bytes length: ${_bytesReader.bytes.length}');
     print(_bytesReader.bytes);
 
     HTBytesResolver().resolve(_bytesReader.bytes, 10, curFileName);
 
-    final result = _execute(10);
+    final result = execute();
 
     print(result);
   }
@@ -81,24 +86,45 @@ class HTVM extends HTInterpreter {
   void _storeLocal() {
     final oprandType = _bytesReader.read();
     switch (oprandType) {
-      case HTOpRandType.literalNull:
+      case HTLocalValueType.NULL:
         _curValue = null;
         break;
-      case HTOpRandType.literalBoolean:
+      case HTLocalValueType.boolean:
         (_bytesReader.read() == 0) ? _curValue = false : _curValue = true;
         break;
-      case HTOpRandType.literalInt64:
+      case HTLocalValueType.int64:
         _curValue = curNamespace.getConstInt(_bytesReader.readUint16());
         break;
-      case HTOpRandType.literalFloat64:
+      case HTLocalValueType.float64:
         _curValue = curNamespace.getConstFloat(_bytesReader.readUint16());
         break;
-      case HTOpRandType.literalUtf8String:
+      case HTLocalValueType.utf8String:
         _curValue = curNamespace.getConstString(_bytesReader.readUint16());
         break;
-      case HTOpRandType.symbol:
+      case HTLocalValueType.symbol:
         _curSymbol = _bytesReader.readShortUtf8String();
-      // _curValue = curNamespace.fetch(varName)
+        _curValue = curNamespace.fetch(_curSymbol!);
+        break;
+      case HTLocalValueType.group:
+        _curValue = execute(ip: _bytesReader.ip, keepIp: true);
+        break;
+      case HTLocalValueType.list:
+        final list = [];
+        final length = _bytesReader.readUint16();
+        for (var i = 0; i < length; ++i) {
+          list.add(execute(ip: _bytesReader.ip, keepIp: true));
+        }
+        _curValue = list;
+        break;
+      case HTLocalValueType.map:
+        final map = {};
+        final length = _bytesReader.readUint16();
+        for (var i = 0; i < length; ++i) {
+          final key = execute(ip: _bytesReader.ip, keepIp: true);
+          map[key] = execute(ip: _bytesReader.ip, keepIp: true);
+        }
+        _curValue = map;
+        break;
     }
   }
 
@@ -117,16 +143,20 @@ class HTVM extends HTInterpreter {
     }
   }
 
-  void _handleBinaryOp(int opcode) {
-    final left = _bytesReader.read();
+  void _handleAssignOp(int opcode) {
     final right = _bytesReader.read();
 
     switch (opcode) {
       case HTOpCode.assign:
-        // _local = _register[left] = _register[right];
+        _curValue = _register[right];
+        curNamespace.assign(_leftValueStack.last, _curValue);
+        _leftValueStack.removeLast();
         break;
       case HTOpCode.assignMultiply:
-        // _local = _register[left] *= _register[right];
+        final leftValue = curNamespace.fetch(_leftValueStack.last);
+        _curValue = leftValue * _register[right];
+        curNamespace.assign(_leftValueStack.last, _curValue);
+        _leftValueStack.removeLast();
         break;
       case HTOpCode.assignDevide:
         // _local = _register[left] /= _register[right];
@@ -137,6 +167,14 @@ class HTVM extends HTInterpreter {
       case HTOpCode.assignSubtract:
         // _local = _register[left] -= _register[right];
         break;
+    }
+  }
+
+  void _handleBinaryOp(int opcode) {
+    final left = _bytesReader.read();
+    final right = _bytesReader.read();
+
+    switch (opcode) {
       case HTOpCode.logicalOr:
         _curValue = _register[left] = _register[left] || _register[right];
         break;
@@ -228,32 +266,39 @@ class HTVM extends HTInterpreter {
     }
   }
 
-  dynamic _execute(int pos) {
+  dynamic execute({int ip = 0, bool keepIp = false}) {
     final savedIp = _bytesReader.ip;
-
-    _bytesReader.ip = pos;
-    // final signature = _bytes.sublist(0, 4);
-    // if (signature.buffer.asByteData().getUint32(0) != Compiler.hetuSignature) {
-    //   throw HTErrorSignature(curFileName);
-    // }
-
-    // final mainVersion = _bytes[4];
-    // final minorVersion = _bytes[5];
-    // final pathVersion = _bytes.buffer.asByteData().getUint32(6);
-    // _curFileVersion = [mainVersion, minorVersion, pathVersion];
-    // print('Executable bytecode file version: $_curFileVersion');
-
-    // 直接从第10个字节开始，跳过程序标记和版本号
+    _bytesReader.ip = ip;
 
     var instruction = _bytesReader.read();
     while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
+        case HTOpCode.signature:
+          _bytesReader.readUint32();
+          break;
+        case HTOpCode.version:
+          final major = _bytesReader.read();
+          final minor = _bytesReader.read();
+          final patch = _bytesReader.readUint16();
+          scriptVersion = HTVersion(major, minor, patch);
+          print('Version: $scriptVersion');
+          break;
+        case HTOpCode.debug:
+          debugMode = _bytesReader.read() == 0 ? false : true;
+          print('Debug: $debugMode');
+          break;
+        case HTOpCode.codeStart:
+          _codeStartIp = _bytesReader.ip;
+          break;
         // 返回当前运算值
-        case HTOpCode.subReturn:
-          _bytesReader.ip = savedIp;
+        case HTOpCode.returnValue:
+          if (!keepIp) {
+            _bytesReader.ip = savedIp;
+          }
           return _curValue;
         // 语句结束
         case HTOpCode.endOfStatement:
+          _curSymbol = null;
           break;
         // 从字节码读取常量表并保存在当前环境中
         case HTOpCode.constTable:
@@ -278,11 +323,27 @@ class HTVM extends HTInterpreter {
         case HTOpCode.register:
           _storeRegister(_bytesReader.read(), _curValue);
           break;
+        case HTOpCode.declare:
+          _curSymbol = _bytesReader.readShortUtf8String();
+          break;
+        case HTOpCode.initializerStart:
+          final initializerLength = _bytesReader.readUint16();
+          if (_curClass == null) {
+            _curValue = execute(ip: _bytesReader.ip);
+            curNamespace.assign(_curSymbol!, _curValue);
+          }
+          _bytesReader.skip(initializerLength);
+          break;
+        case HTOpCode.leftValue:
+          _leftValueStack.add(_curSymbol!);
+          break;
         case HTOpCode.assign:
         case HTOpCode.assignMultiply:
         case HTOpCode.assignDevide:
         case HTOpCode.assignAdd:
         case HTOpCode.assignSubtract:
+          _handleAssignOp(instruction);
+          break;
         case HTOpCode.logicalOr:
         case HTOpCode.logicalAnd:
         case HTOpCode.equal:

@@ -1,32 +1,80 @@
 import 'common.dart';
-import 'class.dart';
 import 'namespace.dart';
 import 'type.dart';
+import 'lexicon.dart';
 
 abstract class HTFunction with HTType {
+  static var anonymousIndex = 0;
   static final callStack = <String>[];
 
-  HTNamespace? context;
+  late final String? id;
+  late final String internalName;
+  final String? className;
 
-  String get id;
-  String get internalName;
+  final FunctionType funcType;
+
+  final List<HTTypeId> typeParams; // function<T1, T2>
 
   @override
   late final HTFunctionTypeId typeid;
 
-  late final bool isExtern;
+  final bool isExtern;
 
-  late final bool isStatic;
+  final bool isStatic;
 
-  late final bool isConst;
+  final bool isConst;
 
-  late final bool isVariadic;
+  final bool isVariadic;
 
   bool get isMethod => className != null;
 
-  late final FunctionType funcType;
-  late final String? className;
+  HTNamespace? context;
+
+  HTFunction(
+      {String? id,
+      this.className,
+      this.funcType = FunctionType.normal,
+      this.typeParams = const [],
+      // this.typeid = HTFunctionTypeId.simple,
+      this.isExtern = false,
+      this.isStatic = false,
+      this.isConst = false,
+      this.isVariadic = false}) {
+    switch (funcType) {
+      case FunctionType.constructor:
+        if (id != null) {
+          this.id = id;
+          internalName = '$className.$id';
+        } else {
+          internalName = '$className';
+        }
+        break;
+      case FunctionType.getter:
+        this.id = id;
+        internalName = HTLexicon.getter + id!;
+        break;
+      case FunctionType.setter:
+        this.id = id;
+        internalName = HTLexicon.setter + id!;
+        break;
+      case FunctionType.literal:
+        this.id = internalName = HTLexicon.anonymousFunction + (HTFunction.anonymousIndex++).toString();
+        break;
+      case FunctionType.nested:
+        if (id == null) {
+          this.id = internalName = HTLexicon.anonymousFunction + (HTFunction.anonymousIndex++).toString();
+        } else {
+          this.id = internalName = id;
+        }
+        break;
+      case FunctionType.normal:
+        this.id = internalName = id!;
+        break;
+    }
+  }
 
   dynamic call(
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HTInstance? instance}) {}
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const <HTTypeId>[]}) {}
 }

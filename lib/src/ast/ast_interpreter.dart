@@ -48,7 +48,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
     Map<String, dynamic> namedArgs = const {},
   }) async {
     curFileName = fileName ?? HTLexicon.anonymousScript;
-    curNamespace = namespace ?? globals;
+    curNamespace = namespace ?? global;
 
     var lexer = Lexer();
     var parser = HTAstParser();
@@ -110,8 +110,8 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
 
     HTNamespace? library_namespace;
     if ((libName != null) && (libName != HTLexicon.global)) {
-      library_namespace = HTNamespace(this, id: libName, closure: globals);
-      globals.define(HTDeclaration(libName, value: library_namespace, declType: HTTypeId.namespace, isImmutable: true));
+      library_namespace = HTNamespace(this, id: libName, closure: global);
+      global.define(HTDeclaration(libName, value: library_namespace, declType: HTTypeId.namespace, isImmutable: true));
     }
 
     result = eval(module.content,
@@ -133,7 +133,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
   dynamic invoke(String functionName,
       {String? objectName, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
     if (objectName == null) {
-      var func = globals.fetch(functionName);
+      var func = global.fetch(functionName);
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (func is Function) {
@@ -152,7 +152,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       }
     } else {
       // 命名空间内的静态函数
-      HTObject object = globals.fetch(objectName);
+      HTObject object = global.fetch(objectName);
       var func = object.fetch(functionName, from: object.fullName);
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
@@ -245,7 +245,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       return curNamespace.fetchAt(name, distance);
     }
 
-    return globals.fetch(name);
+    return global.fetch(name);
   }
 
   dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
@@ -283,21 +283,21 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
   dynamic visitConstIntExpr(ConstIntExpr expr) {
     curLine = expr.line;
     curColumn = expr.column;
-    return globals.getConstInt(expr.constIndex);
+    return global.getConstInt(expr.constIndex);
   }
 
   @override
   dynamic visitConstFloatExpr(ConstFloatExpr expr) {
     curLine = expr.line;
     curColumn = expr.column;
-    return globals.getConstFloat(expr.constIndex);
+    return global.getConstFloat(expr.constIndex);
   }
 
   @override
   dynamic visitConstStringExpr(ConstStringExpr expr) {
     curLine = expr.line;
     curColumn = expr.column;
-    return globals.getConstString(expr.constIndex);
+    return global.getConstString(expr.constIndex);
   }
 
   @override
@@ -475,15 +475,10 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       if (!callee.isExtern) {
         // 普通函数
         if (callee.funcType != FunctionType.constructor) {
-          if (callee.context is HTInstance) {
-            return callee.call(
-                positionalArgs: positionalArgs, namedArgs: namedArgs, instance: callee.context as HTInstance);
-          } else {
-            return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
-          }
+          return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
         } else {
           final className = callee.className;
-          final klass = globals.fetch(className!);
+          final klass = global.fetch(className!);
           if (klass is HTClass) {
             if (!klass.isExtern) {
               // 命名构造函数
@@ -492,7 +487,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
-              final constructor = externClass.fetch(callee.id);
+              final constructor = externClass.fetch(callee.id!);
               if (constructor is HTExternalFunction) {
                 try {
                   return constructor(positionalArgs, namedArgs);
@@ -510,7 +505,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
           }
         }
       } else {
-        final externFunc = fetchExternalFunction(callee.id);
+        final externFunc = fetchExternalFunction(callee.id!);
         if (externFunc is HTExternalFunction) {
           try {
             return externFunc(positionalArgs, namedArgs);
@@ -571,7 +566,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       // 尝试设置当前环境中的本地变量
       curNamespace.assignAt(expr.variable.lexeme, value, distance);
     } else {
-      globals.assign(expr.variable.lexeme, value);
+      global.assign(expr.variable.lexeme, value);
     }
 
     // 返回右值
@@ -776,7 +771,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       value = visitASTNode(stmt.initializer!);
     }
 
-    curNamespace.define(HTAstDeclaration(
+    curNamespace.define(HTAstDecl(
       stmt.id.lexeme,
       this,
       value: value,
@@ -813,7 +808,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
     HTClass? superClass;
     if (stmt.id.lexeme != HTLexicon.rootClass) {
       if (stmt.superClass == null) {
-        superClass = globals.fetch(HTLexicon.rootClass);
+        superClass = global.fetch(HTLexicon.rootClass);
       } else {
         HTClass existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
         superClass = existSuperClass;
@@ -838,18 +833,17 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
         value = visitASTNode(variable.initializer!);
       }
       if (variable.isStatic) {
-        klass.define(HTAstDeclaration(variable.id.lexeme, this,
+        klass.define(HTAstDecl(variable.id.lexeme, this,
             declType: variable.declType,
             value: value,
             isExtern: variable.isExtern,
             isImmutable: variable.isImmutable,
             typeInference: variable.declType == null));
       } else {
-        klass.defineInInstance(HTAstDeclaration(variable.id.lexeme, this,
+        klass.defineInInstance(HTAstDecl(variable.id.lexeme, this,
             value: value,
             declType: variable.declType ?? HTTypeId.ANY,
             isExtern: variable.isExtern,
-            isNullable: variable.isNullable,
             isImmutable: variable.isImmutable));
       }
     }
@@ -858,8 +852,14 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
 
     for (final method in stmt.methods) {
       HTFunction func;
-      if (method.isStatic || method.funcType == FunctionType.constructor) {
+      if (method.isStatic) {
         func = HTAstFunction(method, this, context: klass);
+        klass.define(
+            HTDeclaration(method.internalName,
+                value: func, declType: func.typeid, isExtern: method.isExtern, isImmutable: true),
+            override: true);
+      } else if (method.funcType == FunctionType.constructor) {
+        func = HTAstFunction(method, this);
         klass.define(
             HTDeclaration(method.internalName,
                 value: func, declType: func.typeid, isExtern: method.isExtern, isImmutable: true),
@@ -872,11 +872,13 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
     }
 
     // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
-    // TODO: 忽略私有成员
     var curSuper = superClass;
     while (curSuper != null) {
       for (final decl in curSuper.instanceDecls.values) {
-        klass.defineInInstance(decl, skipOverride: true);
+        if (decl.id.startsWith(HTLexicon.underscore)) {
+          continue;
+        }
+        klass.defineInInstance(decl.clone(), skipOverride: true);
       }
 
       curSuper = curSuper.superClass;

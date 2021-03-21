@@ -186,7 +186,7 @@ class HTClass extends HTNamespace {
     if (!instanceDecls.containsKey(decl.id)) {
       instanceDecls[decl.id] = decl;
     } else {
-      if (!skipOverride) throw HTErrorDefined_Runtime(decl.id);
+      if (!skipOverride) throw HTErrorDefinedRuntime(decl.id);
     }
   }
 
@@ -207,11 +207,9 @@ class HTClass extends HTNamespace {
     interpreter.curNamespace = save;
 
     constructorName ??= id;
-    var constructor = fetch(constructorName, from: fullName);
-
-    if (constructor is HTFunction) {
-      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: instance);
-    }
+    HTFunction constructor = fetch(constructorName, from: fullName);
+    constructor.context = instance;
+    constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
 
     return instance;
   }
@@ -268,7 +266,8 @@ class HTInstance extends HTNamespace {
       return member;
     } else if (declarations.containsKey(getter)) {
       HTFunction method = declarations[getter]!.value;
-      return method.call(instance: this);
+      method.context = this;
+      return method.call();
     }
 
     switch (varName) {
@@ -303,7 +302,8 @@ class HTInstance extends HTNamespace {
       throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
     } else if (declarations.containsKey(setter)) {
       HTFunction method = declarations[setter]!.value;
-      method.call(positionalArgs: [value], instance: this);
+      method.context = this;
+      method.call(positionalArgs: [value]);
       return;
     }
 
@@ -312,11 +312,8 @@ class HTInstance extends HTNamespace {
 
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    HTFunction? func = fetch(funcName, from: fullName);
-    if ((func != null) && (!func.isStatic)) {
-      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
-    }
-
-    throw HTErrorUndefined(funcName);
+    HTFunction func = fetch(funcName, from: fullName);
+    func.context = this;
+    return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
   }
 }

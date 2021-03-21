@@ -110,7 +110,7 @@ class HTNamespace extends HTObject with InterpreterRef {
     if (!declarations.containsKey(decl.id) || override) {
       declarations[decl.id] = decl;
     } else {
-      throw HTErrorDefined_Runtime(decl.id);
+      throw HTErrorDefinedRuntime(decl.id);
     }
   }
 

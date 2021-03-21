@@ -7,6 +7,7 @@ enum HTErrorType {
   resolver,
   compiler,
   interpreter,
+  import,
   other,
 }
 
@@ -25,7 +26,7 @@ abstract class HTError {
   // static const errorDeclared = 'is already declared';
   static const defined = 'is already defined';
   // static const errorRange = 'Index out of range, should be less than';
-  static const invalidLeftValue = 'Invalid left-value';
+  static const invalidLeftValue = 'Illegal left value.';
   static const notCallable = 'is not callable';
   static const externFuncType =
       'External function expected:\n  dynamic Function(List<dynamic> positionalArgs, Map<String, dynamic> namedArgs)\nGot:\n  ';
@@ -84,10 +85,19 @@ class HTCompilerError extends HTError {
   HTCompilerError(String message) : super(message, HTErrorType.compiler);
 }
 
+class HTImportError extends HTError {
+  final String fileName;
+
+  HTImportError(String message, this.fileName) : super(message, HTErrorType.import);
+
+  @override
+  String toString() => 'Hetu error:\n[$type}]\n[File: $fileName]\n$message';
+}
+
 class HTInterpreterError extends HTError {
-  int line;
-  int column;
-  String fileName;
+  final int line;
+  final int column;
+  final String fileName;
 
   // interpreter会也会处理其他module抛出的异常，因此这里不指定类型
   HTInterpreterError(String message, HTErrorType type, this.fileName, this.line, this.column) : super(message, type);
@@ -95,14 +105,6 @@ class HTInterpreterError extends HTError {
   @override
   String toString() => 'Hetu error:\n[$type}]\n[File: $fileName]\n[Line: $line, Column: $column]\n$message';
 }
-
-// class HTErrorAssign extends HTError {
-//   HTErrorAssign(String id) : super('${HTError.errorAssign} "$id"');
-// }
-
-// class HTErrorUnsupport extends HTError {
-//   HTErrorUnsupport(String id) : super('${HTError.errorUnsupport} "$id"');
-// }
 
 class HTErrorExpected extends HTParserError {
   HTErrorExpected(String expected, String met)
@@ -117,9 +119,29 @@ class HTErrorUnexpected extends HTParserError {
   HTErrorUnexpected(String id) : super('${HTError.unexpected} "${id != '\n' ? id : '\\n'}"');
 }
 
+class HTErrorDefinedParser extends HTParserError {
+  HTErrorDefinedParser(String id) : super('"$id" ${HTError.defined}');
+}
+
+class HTErrorInvalidLeftValueParser extends HTParserError {
+  HTErrorInvalidLeftValueParser(String id) : super('${HTError.invalidLeftValue} "$id"');
+}
+
 class HTErrorReturn extends HTResolverError {
   HTErrorReturn(String id) : super(HTError.outsideReturn);
 }
+
+class HTErrorInvalidLeftValueCompiler extends HTCompilerError {
+  HTErrorInvalidLeftValueCompiler() : super(HTError.invalidLeftValue);
+}
+
+// class HTErrorAssign extends HTError {
+//   HTErrorAssign(String id) : super('${HTError.errorAssign} "$id"');
+// }
+
+// class HTErrorUnsupport extends HTError {
+//   HTErrorUnsupport(String id) : super('${HTError.errorUnsupport} "$id"');
+// }
 
 class HTErrorPrivateMember extends HTError {
   HTErrorPrivateMember(String id) : super('${HTError.privateMember} "$id"', HTErrorType.interpreter);
@@ -151,22 +173,6 @@ class HTErrorUndefinedBinaryOperator extends HTError {
 //   HTErrorDeclared(String id) : super('"$id" ${HTError.errorDeclared}');
 // }
 
-class HTErrorDefined_Parser extends HTParserError {
-  HTErrorDefined_Parser(String id) : super('"$id" ${HTError.defined}');
-}
-
-class HTErrorDefined_Runtime extends HTError {
-  HTErrorDefined_Runtime(String id) : super('"$id" ${HTError.defined}', HTErrorType.interpreter);
-}
-
-// class HTErrorRange extends HTError {
-//   HTErrorRange(int length) : super('${HTError.errorRange} "$length"');
-// }
-
-class HTErrorInvalidLeftValue extends HTParserError {
-  HTErrorInvalidLeftValue(String id) : super('${HTError.invalidLeftValue} "$id"');
-}
-
 class HTErrorSetter extends HTParserError {
   HTErrorSetter() : super(HTError.setterArity);
 }
@@ -174,6 +180,14 @@ class HTErrorSetter extends HTParserError {
 class HTErrorNotClass extends HTParserError {
   HTErrorNotClass(String id) : super('"$id" ${HTError.notClass}');
 }
+
+class HTErrorDefinedRuntime extends HTError {
+  HTErrorDefinedRuntime(String id) : super('"$id" ${HTError.defined}', HTErrorType.interpreter);
+}
+
+// class HTErrorRange extends HTError {
+//   HTErrorRange(int length) : super('${HTError.errorRange} "$length"');
+// }
 
 class HTErrorCallable extends HTError {
   HTErrorCallable(String id) : super('"$id" ${HTError.notCallable}', HTErrorType.interpreter);

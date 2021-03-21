@@ -38,7 +38,7 @@ class HTBytesResolver {
     while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
         // 返回当前运算值
-        case HTOpCode.subReturn:
+        case HTOpCode.returnValue:
         // _ip = savedIp;
         // return _curValue;
         // 语句结束
@@ -63,18 +63,18 @@ class HTBytesResolver {
         case HTOpCode.local:
           final oprandType = _bytesReader.read();
           switch (oprandType) {
-            case HTOpRandType.literalNull:
+            case HTLocalValueType.NULL:
               break;
-            case HTOpRandType.literalBoolean:
+            case HTLocalValueType.boolean:
               _bytesReader.read();
               break;
-            case HTOpRandType.literalInt64:
-            case HTOpRandType.literalFloat64:
-            case HTOpRandType.literalUtf8String:
+            case HTLocalValueType.int64:
+            case HTLocalValueType.float64:
+            case HTLocalValueType.utf8String:
               _bytesReader.readUint16();
               break;
             // 当前符号（变量名）
-            case HTOpRandType.symbol:
+            case HTLocalValueType.symbol:
             // _curValue = curNamespace.fetch(varName)
           }
           break;

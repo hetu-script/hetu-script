@@ -4,13 +4,13 @@ import '../type.dart';
 import 'ast_interpreter.dart';
 import '../errors.dart';
 
-class HTAstDeclaration extends HTDeclaration with AstInterpreterRef {
+class HTAstDecl extends HTDeclaration with AstInterpreterRef {
   @override
   late final HTTypeId? declType;
 
   ASTNode? initializer;
 
-  HTAstDeclaration(String id, HTAstInterpreter interpreter,
+  HTAstDecl(String id, HTAstInterpreter interpreter,
       {dynamic value,
       HTTypeId? declType,
       this.initializer,
@@ -18,7 +18,6 @@ class HTAstDeclaration extends HTDeclaration with AstInterpreterRef {
       Function? setter,
       bool typeInference = false,
       bool isExtern = false,
-      bool isNullable = false,
       bool isImmutable = false})
       : super(
           id,
@@ -26,7 +25,6 @@ class HTAstDeclaration extends HTDeclaration with AstInterpreterRef {
           getter: getter,
           setter: setter,
           isExtern: isExtern,
-          isNullable: isNullable,
           isImmutable: isImmutable,
         ) {
     this.interpreter = interpreter;
@@ -47,16 +45,13 @@ class HTAstDeclaration extends HTDeclaration with AstInterpreterRef {
   }
 
   @override
-  HTAstDeclaration clone() {
-    return HTAstDeclaration(id, interpreter,
-        initializer: initializer,
-        getter: getter,
-        setter: setter,
-        declType: declType,
-        isExtern: isExtern,
-        isNullable: isNullable,
-        isImmutable: isImmutable);
-  }
+  HTAstDecl clone() => HTAstDecl(id, interpreter,
+      initializer: initializer,
+      getter: getter,
+      setter: setter,
+      declType: declType,
+      isExtern: isExtern,
+      isImmutable: isImmutable);
 
   @override
   void initialize() {

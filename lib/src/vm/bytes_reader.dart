@@ -9,11 +9,15 @@ class BytesReader {
 
   BytesReader(this.bytes);
 
+  void skip(int distance) {
+    ip += distance;
+  }
+
   int read([int distance = 1]) {
-    final des = ip + distance;
-    if (des >= 0 && des < bytes.length) {
-      return bytes[des];
+    if (ip >= 0 && ip < bytes.length) {
+      return bytes[ip++];
     } else {
+      ip = 0;
       return HTOpCode.endOfFile;
     }
   }

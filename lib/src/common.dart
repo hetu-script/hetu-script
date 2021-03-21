@@ -3,6 +3,6 @@ enum FunctionType {
   constructor,
   getter,
   setter,
-  method, // normal function within a class
   literal, // function expression with no function name
+  nested, // function within function, may with name
 }

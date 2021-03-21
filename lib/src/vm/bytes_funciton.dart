@@ -6,32 +6,75 @@ import '../errors.dart';
 import '../type.dart';
 import '../lexicon.dart';
 import 'vm.dart';
-
 import '../function.dart';
+import '../declaration.dart';
+import '../common.dart';
+
+class HTBytesParamDecl extends HTDeclaration with VMRef {
+  final bool isVariadic;
+
+  final bool isOptional;
+
+  final bool isNamed;
+
+  HTBytesParamDecl(String id, HTVM interpreter,
+      {dynamic value,
+      HTTypeId declType = HTTypeId.ANY,
+      this.isVariadic = false,
+      this.isOptional = false,
+      this.isNamed = false})
+      : super(id, value: value, declType: declType) {
+    this.interpreter = interpreter;
+    var valType = interpreter.typeof(value);
+    if (valType.isA(declType) || value == null) {
+      this.declType = declType;
+    } else {
+      throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
+    }
+  }
+
+  @override
+  HTBytesParamDecl clone() => HTBytesParamDecl(id, interpreter,
+      value: value,
+      declType: declType ?? HTTypeId.ANY,
+      isVariadic: isVariadic,
+      isOptional: isOptional,
+      isNamed: isNamed);
+}
 
 class HTBytesFunction extends HTFunction with VMRef {
-  @override
-  String get id => ''; //funcStmt.id?.lexeme ?? '';
-  @override
-  String get internalName => ''; //funcStmt.internalName;
+  final List<HTBytesParamDecl> params;
 
-  late final Uint8List funcBytes;
+  final int? definitionIp;
 
-  HTBytesFunction(this.funcBytes, HTVM interpreter, {HTNamespace? context, List<HTTypeId> typeArgs = const []}) {
+  HTBytesFunction(HTVM interpreter,
+      {String? id,
+      FunctionType funcType = FunctionType.normal,
+      String? className,
+      this.params = const <HTBytesParamDecl>[],
+      this.definitionIp,
+      List<HTTypeId> typeParams = const [],
+      HTFunctionTypeId typeid = HTFunctionTypeId.simple,
+      bool isExtern = false,
+      bool isStatic = false,
+      bool isConst = false,
+      bool isVariadic = false,
+      HTNamespace? context})
+      : super(
+            id: id,
+            className: className,
+            funcType: funcType,
+            typeParams: typeParams,
+            // typeid: typeid,
+            isExtern: isExtern,
+            isStatic: isStatic,
+            isConst: isConst,
+            isVariadic: isVariadic) {
     this.interpreter = interpreter;
-    this.context = context;
-    // funcType = funcStmt.funcType;
-    // className = funcStmt.className;
-    // isExtern = funcStmt.isExtern;
-    // isStatic = funcStmt.isStatic;
-    // isConst = funcStmt.isConst;
-    // isVariadic = funcStmt.isVariadic;
 
-    // var paramsTypes = <HTTypeId?>[];
-    // for (final param in funcStmt.params) {
-    //   paramsTypes.add(param.declType);
-    // }
-    // typeid = HTFunctionTypeId(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
+    this.typeid = typeid;
+
+    this.context = context ?? interpreter.global;
   }
 
   // @override
@@ -64,7 +107,9 @@ class HTBytesFunction extends HTFunction with VMRef {
 
   @override
   dynamic call(
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HTInstance? instance}) {
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) {
     HTFunction.callStack.add(internalName);
 
     // if (positionalArgs.length < funcStmt.arity ||
@@ -79,7 +124,7 @@ class HTBytesFunction extends HTFunction with VMRef {
     //     //_save = _closure;
     //     //assert(closure != null);
     //     // 函数每次在调用时，生成对应的作用域
-    //     final callContext = instance ?? context!;
+    //     final callContext = context ?? interpreter.global;
     //     if (callContext is HTInstance) {
     //       closure = HTNamespace(interpreter, id: '${callContext.id}.$id', closure: callContext);
     //       closure.define(HTLexicon.THIS, declType: callContext.typeid, isImmutable: true);

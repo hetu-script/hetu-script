@@ -1,25 +1,22 @@
-import 'dart:typed_data';
-
 import '../declaration.dart';
 import '../type.dart';
 import 'vm.dart';
 import '../errors.dart';
 
-class HTBytesDeclaration extends HTDeclaration with VMRef {
+class HTBytesDecl extends HTDeclaration with VMRef {
   @override
   late final HTTypeId? declType;
 
-  Uint8List? initializer;
+  int? initializerIp;
 
-  HTBytesDeclaration(String id, HTVM interpreter,
+  HTBytesDecl(String id, HTVM interpreter,
       {dynamic value,
       HTTypeId? declType,
-      this.initializer,
+      this.initializerIp,
       Function? getter,
       Function? setter,
       bool typeInference = false,
       bool isExtern = false,
-      bool isNullable = false,
       bool isImmutable = false})
       : super(
           id,
@@ -27,7 +24,6 @@ class HTBytesDeclaration extends HTDeclaration with VMRef {
           getter: getter,
           setter: setter,
           isExtern: isExtern,
-          isNullable: isNullable,
           isImmutable: isImmutable,
         ) {
     var valType = interpreter.typeof(value);
@@ -47,19 +43,20 @@ class HTBytesDeclaration extends HTDeclaration with VMRef {
   }
 
   @override
-  HTBytesDeclaration clone() {
-    return HTBytesDeclaration(id, interpreter,
-        initializer: initializer,
+  HTBytesDecl clone() {
+    return HTBytesDecl(id, interpreter,
+        initializerIp: initializerIp,
         getter: getter,
         setter: setter,
         declType: declType,
         isExtern: isExtern,
-        isNullable: isNullable,
         isImmutable: isImmutable);
   }
 
   @override
   void initialize() {
-    // value = interpreter.eval(initializer!);
+    if (initializerIp != null) {
+      value = interpreter.execute(ip: initializerIp!);
+    }
   }
 }

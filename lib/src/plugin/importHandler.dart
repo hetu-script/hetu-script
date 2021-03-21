@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
+import '../errors.dart';
+
 class HTModuleInfo {
   final String fileName;
   final String content;
@@ -23,21 +25,25 @@ class DefaultImportHandler implements HTImportHandler {
 
   @override
   Future<HTModuleInfo> import(String key, [String? curFileName]) async {
-    late final String filePath;
-    if (curFileName != null) {
-      filePath = path.dirname(curFileName);
-    } else {
-      filePath = workingDirectory;
+    var fileName = key;
+    try {
+      late final String filePath;
+      if (curFileName != null) {
+        filePath = path.dirname(curFileName);
+      } else {
+        filePath = workingDirectory;
+      }
+
+      fileName = path.join(filePath, key);
+
+      var content = '';
+      if (!imported.contains(fileName)) {
+        imported.add(fileName);
+        content = await File(fileName).readAsString();
+      }
+      return HTModuleInfo(fileName, content);
+    } catch (e) {
+      throw (HTImportError(e.toString(), fileName));
     }
-
-    final fileName = path.join(filePath, key);
-
-    var content = '';
-    if (!imported.contains(fileName)) {
-      imported.add(fileName);
-      content = await File(fileName).readAsString();
-    }
-
-    return HTModuleInfo(fileName, content);
   }
 }

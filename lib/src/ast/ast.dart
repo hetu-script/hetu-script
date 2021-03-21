@@ -563,8 +563,6 @@ class VarDeclStmt extends ASTNode {
   // 仅用于整个class都为external的情况
   final bool isExtern;
 
-  final bool isNullable;
-
   final bool isImmutable;
 
   final bool isStatic;
@@ -574,19 +572,13 @@ class VarDeclStmt extends ASTNode {
       this.initializer,
       this.typeInference = false,
       this.isExtern = false,
-      this.isNullable = false,
       this.isImmutable = false,
       this.isStatic = false})
       : super(HTLexicon.varDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => VarDeclStmt(id,
-      declType: declType,
-      initializer: initializer,
-      isExtern: isExtern,
-      isNullable: isNullable,
-      isImmutable: isImmutable,
-      isStatic: isStatic);
+      declType: declType, initializer: initializer, isExtern: isExtern, isImmutable: isImmutable, isStatic: isStatic);
 }
 
 class ParamDeclStmt extends VarDeclStmt {
@@ -605,18 +597,16 @@ class ParamDeclStmt extends VarDeclStmt {
   ParamDeclStmt(Token id,
       {HTTypeId? declType,
       ASTNode? initializer,
-      bool isNullable = false,
       bool isImmutable = false,
       this.isVariadic = false,
       this.isOptional = false,
       this.isNamed = false})
-      : super(id, declType: declType, initializer: initializer, isNullable: isNullable, isImmutable: isImmutable);
+      : super(id, declType: declType, initializer: initializer, isImmutable: isImmutable);
 
   @override
   ASTNode clone() => ParamDeclStmt(id,
       declType: declType,
       initializer: initializer,
-      isNullable: isNullable,
       isImmutable: isImmutable,
       isVariadic: isVariadic,
       isOptional: isOptional,

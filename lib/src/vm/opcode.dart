@@ -1,24 +1,46 @@
 abstract class HTOpCode {
   static const endOfFile = -1;
 
-  static const subReturn = 0;
+  /// 4 bytes
+  static const signature = 250;
+
+  /// uint8, uint8, uint16
+  static const version = 251;
+
+  /// 1 byte
+  static const debug = 252;
+
+  static const codeStart = 100;
+
+  /// uint16 length of function
+  static const funcStart = 101;
+
+  /// uint32 line, uint32 column, uint8 symbolLength, symbol
+  static const debugInfo = 200;
+  static const error = 201; //
+
+  static const returnValue = 0;
   static const endOfStatement = 1;
-  static const debugInfo = 2;
-  static const line = 3;
-  static const column = 4;
-  static const filename = 5;
 
-  static const constTable = 10;
+  static const constTable = 7;
 
-  static const local = 15;
+  /// 1 byte of OpRandType, value
+  static const local = 10;
 
   /// reg index => reg[index] = local
-  static const register = 20;
+  static const register = 11; // 1 byte of index
 
   /// copy from to => reg[to] = reg[from]
-  static const copy = 21;
+  static const copy = 12;
 
-  static const assign = 30;
+  static const declare = 15;
+
+  /// uint16 length of initializer
+  static const initializerStart = 16;
+
+  static const leftValue = 17;
+
+  static const assign = 30; // 1 byte right value
 
   static const assignMultiply = 31;
 
@@ -78,17 +100,18 @@ abstract class HTOpCode {
   static const postIncrement = 74;
 
   static const postDecrement = 75;
-
-  static const error = 205;
 }
 
-abstract class HTOpRandType {
-  static const literalNull = 0;
-  static const literalBoolean = 1;
-  static const literalInt64 = 2;
-  static const literalFloat64 = 3;
-  static const literalUtf8String = 4;
+abstract class HTLocalValueType {
+  static const NULL = 0;
+  static const boolean = 1;
+  static const int64 = 2;
+  static const float64 = 3;
+  static const utf8String = 4;
   static const symbol = 5;
+  static const group = 6;
+  static const list = 7;
+  static const map = 8;
 }
 
 abstract class HTErrorCode {

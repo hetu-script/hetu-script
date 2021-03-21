@@ -12,7 +12,19 @@ mixin InterpreterRef {
   late final HTInterpreter interpreter;
 }
 
+class HTVersion {
+  late final int major;
+  late final int minor;
+  late final int patch;
+  HTVersion(this.major, this.minor, this.patch);
+
+  @override
+  String toString() => '$major.$minor.$patch';
+}
+
 abstract class HTInterpreter {
+  late HTVersion scriptVersion;
+
   late int curLine;
   late int curColumn;
   late String curFileName;
@@ -23,13 +35,13 @@ abstract class HTInterpreter {
   late HTImportHandler importHandler;
 
   /// 全局命名空间
-  late HTNamespace globals;
+  late HTNamespace global;
 
   /// 当前语句所在的命名空间
   late HTNamespace curNamespace;
 
   HTInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
-    curNamespace = globals = HTNamespace(this, id: HTLexicon.global);
+    curNamespace = global = HTNamespace(this, id: HTLexicon.global);
     this.debugMode = debugMode;
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.importHandler = importHandler ?? DefaultImportHandler();
@@ -94,7 +106,7 @@ abstract class HTInterpreter {
   // }
 
   dynamic fetchGlobal(String key) {
-    return globals.fetch(key);
+    return global.fetch(key);
   }
 
   final _externClasses = <String, HTExternalClass>{};
@@ -106,7 +118,7 @@ abstract class HTInterpreter {
   /// 在脚本中需要存在对应的extern class声明
   void bindExternalClass(String id, HTExternalClass namespace) {
     if (_externClasses.containsKey(id)) {
-      throw HTErrorDefined_Runtime(id);
+      throw HTErrorDefinedRuntime(id);
     }
     _externClasses[id] = namespace;
   }
@@ -120,7 +132,7 @@ abstract class HTInterpreter {
 
   void bindExternalFunction(String id, Function function) {
     if (_externFunctions.containsKey(id)) {
-      throw HTErrorDefined_Runtime(id);
+      throw HTErrorDefinedRuntime(id);
     }
     _externFunctions[id] = function;
   }

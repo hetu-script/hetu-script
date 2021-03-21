@@ -24,6 +24,8 @@ class HTTypeId {
   final String id;
   final List<HTTypeId> arguments;
 
+  final bool isNullable = true;
+
   const HTTypeId(this.id, {this.arguments = const []});
 
   @override
@@ -56,7 +58,11 @@ class HTTypeId {
           result = false;
         }
       } else {
-        result = false;
+        if (id == HTLexicon.NULL && typeid.isNullable) {
+          result = true;
+        } else {
+          result = false;
+        }
       }
     }
     return result;
@@ -66,10 +72,12 @@ class HTTypeId {
 }
 
 class HTFunctionTypeId extends HTTypeId {
-  final HTTypeId returnType;
-  final List<HTTypeId?> paramsTypes;
+  static const HTFunctionTypeId simple = HTFunctionTypeId(HTTypeId.ANY);
 
-  HTFunctionTypeId(this.returnType, {List<HTTypeId> arguments = const [], this.paramsTypes = const []})
+  final HTTypeId returnType;
+  final List<HTTypeId?> paramsTypes; // function(T1 arg1, T2 arg2)
+
+  const HTFunctionTypeId(this.returnType, {List<HTTypeId> arguments = const [], this.paramsTypes = const []})
       : super(HTLexicon.function, arguments: arguments);
 
   @override

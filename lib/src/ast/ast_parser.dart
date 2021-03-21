@@ -77,7 +77,7 @@ class HTAstParser extends Parser {
         return SubSetExpr(expr.collection, expr.key, value);
       }
 
-      throw HTErrorInvalidLeftValue(op.lexeme);
+      throw HTErrorInvalidLeftValueParser(op.lexeme);
     }
 
     return expr;
@@ -269,7 +269,7 @@ class HTAstParser extends Parser {
         return LiteralDictExpr(_curFileName, line, column, map_expr);
 
       case HTLexicon.FUN:
-        return _parseFuncDeclaration(FunctionType.literal);
+        return _parseFuncDeclaration(funcType: FunctionType.literal);
 
       default:
         throw HTErrorUnexpected(curTok.lexeme);
@@ -310,7 +310,7 @@ class HTAstParser extends Parser {
           return _parseEnumDeclStmt(isExtern: isExtern);
         } // 函数声明
         else if (expect([HTLexicon.FUN])) {
-          return _parseFuncDeclaration(FunctionType.normal, isExtern: isExtern);
+          return _parseFuncDeclaration(isExtern: isExtern);
         } else {
           throw HTErrorUnexpected(curTok.lexeme);
         }
@@ -327,7 +327,7 @@ class HTAstParser extends Parser {
           return _parseVarStmt(isImmutable: true);
         } // 函数声明
         else if (expect([HTLexicon.FUN])) {
-          return _parseFuncDeclaration(FunctionType.normal);
+          return _parseFuncDeclaration();
         } // 赋值语句
         else if (expect([HTLexicon.identifier, HTLexicon.assign])) {
           return _parseAssignStmt();
@@ -359,26 +359,26 @@ class HTAstParser extends Parser {
         final isStatic = expect([HTLexicon.STATIC], consume: true, error: false);
         // var变量声明
         if (expect([HTLexicon.VAR])) {
-          return _parseVarStmt(isExtern: isExtern, isStatic: isStatic, typeInference: true);
+          return _parseVarStmt(isExtern: isExtern, isStatic: isStatic);
         } // let
         else if (expect([HTLexicon.LET])) {
-          return _parseVarStmt(isExtern: isExtern, isStatic: isStatic);
+          return _parseVarStmt(typeInference: true, isExtern: isExtern, isStatic: isStatic);
         } // const
         else if (expect([HTLexicon.CONST])) {
           if (!isStatic) throw HTErrorConstMustBeStatic(curTok.lexeme);
-          return _parseVarStmt(isExtern: isExtern, isStatic: true, isImmutable: true);
+          return _parseVarStmt(typeInference: true, isExtern: isExtern, isStatic: true, isImmutable: true);
         } // 构造函数
         else if (curTok.lexeme == HTLexicon.CONSTRUCT) {
-          return _parseFuncDeclaration(FunctionType.constructor, isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(funcType: FunctionType.constructor, isExtern: isExtern, isStatic: isStatic);
         } // setter函数声明
         else if (curTok.lexeme == HTLexicon.GET) {
-          return _parseFuncDeclaration(FunctionType.getter, isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(funcType: FunctionType.getter, isExtern: isExtern, isStatic: isStatic);
         } // getter函数声明
         else if (curTok.lexeme == HTLexicon.SET) {
-          return _parseFuncDeclaration(FunctionType.setter, isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(funcType: FunctionType.setter, isExtern: isExtern, isStatic: isStatic);
         } // 成员函数声明
         else if (expect([HTLexicon.FUN])) {
-          return _parseFuncDeclaration(FunctionType.method, isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(isExtern: isExtern, isStatic: isStatic);
         } else {
           throw HTErrorUnexpected(curTok.lexeme);
         }
@@ -397,16 +397,16 @@ class HTAstParser extends Parser {
           return _parseVarStmt(isExtern: true, isStatic: true, isImmutable: false);
         } // 构造函数
         else if (curTok.lexeme == HTLexicon.CONSTRUCT) {
-          return _parseFuncDeclaration(FunctionType.constructor, isExtern: true, isStatic: isStatic);
+          return _parseFuncDeclaration(funcType: FunctionType.constructor, isExtern: true, isStatic: isStatic);
         } // setter函数声明
         else if (curTok.lexeme == HTLexicon.GET) {
-          return _parseFuncDeclaration(FunctionType.getter, isExtern: true, isStatic: isStatic);
+          return _parseFuncDeclaration(funcType: FunctionType.getter, isExtern: true, isStatic: isStatic);
         } // getter函数声明
         else if (curTok.lexeme == HTLexicon.SET) {
-          return _parseFuncDeclaration(FunctionType.setter, isExtern: true, isStatic: isStatic);
+          return _parseFuncDeclaration(funcType: FunctionType.setter, isExtern: true, isStatic: isStatic);
         } // 成员函数声明
         else if (expect([HTLexicon.FUN])) {
-          return _parseFuncDeclaration(FunctionType.method, isExtern: true, isStatic: isStatic);
+          return _parseFuncDeclaration(isExtern: true, isStatic: isStatic);
         } else {
           throw HTErrorUnexpected(curTok.lexeme);
         }
@@ -588,7 +588,6 @@ class HTAstParser extends Parser {
         initializer: initializer,
         typeInference: typeInference,
         isExtern: isExtern,
-        // isNullable: isNullable,
         isImmutable: isImmutable,
         isStatic: isStatic);
 
@@ -658,7 +657,8 @@ class HTAstParser extends Parser {
     return params;
   }
 
-  FuncDeclStmt _parseFuncDeclaration(FunctionType functype, {bool isExtern = false, bool isStatic = false}) {
+  FuncDeclStmt _parseFuncDeclaration(
+      {FunctionType funcType = FunctionType.normal, bool isExtern = false, bool isStatic = false}) {
     final keyword = advance(1);
     Token? func_name;
     var typeParams = <String>[];
@@ -684,7 +684,7 @@ class HTAstParser extends Parser {
     var isVariadic = false;
     var params = <ParamDeclStmt>[];
 
-    if (functype != FunctionType.getter) {
+    if (funcType != FunctionType.getter) {
       // 之前还没有校验过左括号
       if (expect([HTLexicon.roundLeft], consume: true, error: false)) {
         params = _parseParameters();
@@ -700,14 +700,14 @@ class HTAstParser extends Parser {
         }
 
         // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
-        if ((functype == FunctionType.setter) && (arity != 1)) {
+        if ((funcType == FunctionType.setter) && (arity != 1)) {
           throw HTErrorSetter();
         }
       }
     }
 
     var return_type = HTTypeId.ANY;
-    if ((functype != FunctionType.constructor) && (expect([HTLexicon.colon], consume: true, error: false))) {
+    if ((funcType != FunctionType.constructor) && (expect([HTLexicon.colon], consume: true, error: false))) {
       return_type = _parseTypeId();
     }
 
@@ -727,7 +727,7 @@ class HTAstParser extends Parser {
         isExtern: isExtern,
         isStatic: isStatic,
         isVariadic: isVariadic,
-        funcType: functype);
+        funcType: funcType);
 
     // _declarations[stmt.id] = stmt;
 
@@ -741,7 +741,7 @@ class HTAstParser extends Parser {
     final class_name = match(HTLexicon.identifier);
 
     if (_classStmts.containsKey(class_name.lexeme)) {
-      throw HTErrorDefined_Parser(class_name.lexeme);
+      throw HTErrorDefinedParser(class_name.lexeme);
     }
 
     // TODO: 嵌套类?
@@ -817,7 +817,7 @@ class HTAstParser extends Parser {
     final class_name = match(HTLexicon.identifier);
 
     if (_classStmts.containsKey(class_name.lexeme)) {
-      throw HTErrorDefined_Parser(class_name.lexeme);
+      throw HTErrorDefinedParser(class_name.lexeme);
     }
 
     var enumerations = <String>[];
