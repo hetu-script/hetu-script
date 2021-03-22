@@ -336,4 +336,8 @@ abstract class HTLexicon {
         squareLeft,
         squareRight,
       };
+
+  static const math = 'Math';
+  static const system = 'System';
+  static const console = 'Console';
 }

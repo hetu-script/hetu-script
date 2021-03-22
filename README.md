@@ -1,10 +1,17 @@
 # Hetu Script
 
+Table of Content:
+
+- [Introduction](#introduction)
+- [Binding](#binding)
+- [Auto-Binding tools](#auto-binding-tools)
+- [Command line tool](#command-line-tool)
+
 ## Introduction
 
 [中文介绍](README_ZH.md)
 
-Hetu is a lightweight script language written purely in Dart. It is intended to be embedded in Flutter/Dart apps & games to enable hotfixes and scripting.
+Hetu is a lightweight script language written in Dart for embedding in Flutter apps.
 
 Hetu's grammar is close to typescript/kotlin/swift and other modern languages, hence need very little time to get familar with.
 
@@ -26,13 +33,13 @@ void main() async {
 }
 ```
 
-While 'hello.ht' is the script file written in Hetu, here is an example:
+While [hello.ht] is the script file written in Hetu, here is an example:
 
 ```typescript
 // Define a class.
 class Person {
-  var name: String
-  construct (name: String) {
+  var name: str
+  construct (name: str) {
     this.name = name
   }
   fun greeting {
@@ -49,14 +56,14 @@ fun main {
 
 Hetu's grammar is almost same to typescript, except a few things:
 
-- Function is declared with 'fun'.
-- Variable declared with keyword 'let' or 'const' and without a type will be given a type if it has an initialization.
+- Function is declared with [fun].
+- Variable declared with keyword [let] or [const] and without a type will be given a type if it has an initialization.
 
 ## Binding
 
-To call Dart functions in Hetu, just init Hetu with 'externalFunctions'.
+To call Dart functions in Hetu, just init Hetu with [externalFunctions].
 
-Then define those dart funtion in Hetu with 'external' keyword.
+Then define those dart funtion in Hetu with [external] keyword.
 
 Then you can call those functions in Hetu.
 
@@ -94,15 +101,25 @@ dart value: {greeting: hello}
 hetu value: {greeting: hello, foo: bar}
 ```
 
+## Auto-Binding tools
+
+Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
+
+Please check out this repository: [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)
+
 ## Command line tool
 
-On Windows, there is a hetu.exe under project directory to use in Command line.
+On Windows, there is a hetu.exe under [project_directory/bin] to use in Command line.
 
 Usage:
 
 ```
 hetu [file_name] [invoke_func]
 ```
+
+If [file_name] is provided, evaluate the file in [function] mode.
+
+If [invoke_func] is provided, evaluate the file in [module] mode and call a certain function with given name.
 
 If no option is provided, enter REPL mode.
 
@@ -118,12 +135,8 @@ If you want to write multiple line in REPL mode, use '\\' to end a line.
 ```typescript
 >>>fun hello {\
 return 6 * 7} // press enter
-function hello(): any // repl print
+function hello(): any // repl will print out the eval result (in this case the type of this function)
 >>>hello()
 42 // repl print
 >>>
 ```
-
-If [file_name] is provided, evaluate the file in function mode.
-
-If [invoke_name] is provided, evaluate the file in library mode and call a certain function with given name.

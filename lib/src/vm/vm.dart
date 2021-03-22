@@ -392,11 +392,7 @@ class HTVM extends Interpreter {
       }
 
       paramDecls.add(HTBytesParamDecl(id, this,
-          initializerIp: initializerIp,
-          typeInference: true,
-          isOptional: isOptional,
-          isNamed: isNamed,
-          isVariadic: isVariadic));
+          initializerIp: initializerIp, isOptional: isOptional, isNamed: isNamed, isVariadic: isVariadic));
     }
 
     return paramDecls;
@@ -445,7 +441,7 @@ class HTVM extends Interpreter {
   void _handleVarDecl() {
     final id = _bytesReader.readShortUtf8String();
 
-    final typeInference = _bytesReader.readBool();
+    final isDynamic = _bytesReader.readBool();
     final isExtern = _bytesReader.readBool();
     final isImmutable = _bytesReader.readBool();
     final isMember = _bytesReader.readBool();
@@ -461,7 +457,7 @@ class HTVM extends Interpreter {
 
     curNamespace.define(HTBytesDecl(id, this,
         initializerIp: initializerIp,
-        typeInference: typeInference,
+        isDynamic: isDynamic,
         isExtern: isExtern,
         isImmutable: isImmutable,
         isMember: isMember,

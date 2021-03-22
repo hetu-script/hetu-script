@@ -1,7 +1,7 @@
 class Person {
 
   
-  var name: String
+  var name: str
 }
 
 // This is where the app starts executing.

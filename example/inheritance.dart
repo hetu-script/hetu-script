@@ -7,7 +7,7 @@ void main() async {
 
   await hetu.eval(r'''
       class Person {
-        var name: String
+        var name: str
         var age: num
         fun greeting {
           print('Hi! I\'m', name, ', my age is', age)
@@ -19,7 +19,7 @@ void main() async {
 
       class Jimmy extends Person {
         get number { return 42 }
-        construct ({name: String = 'Jimmy', age: num = 17}) {
+        construct ({name: str = 'Jimmy', age: num = 17}) {
           this.name = name
           this.age = age
         }

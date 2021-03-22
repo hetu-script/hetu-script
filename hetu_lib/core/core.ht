@@ -1,7 +1,7 @@
 class Object {}
 
 // return the declaration type of a symbol
-// external fun decltypeof(value): String
+// external fun decltypeof(value): str
 
 // print values of any type into lines
 external fun print(... args)

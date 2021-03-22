@@ -21,29 +21,6 @@ abstract class HTExternalClass extends HTObject {
   void instanceAssign(dynamic instance, String varName, dynamic value) => throw HTErrorUndefined(varName);
 }
 
-abstract class HTExternGlobal {
-  static const number = 'num';
-  static const boolean = 'bool';
-  static const string = 'str';
-  static const map = 'map';
-  static const list = 'list';
-  static const math = 'Math';
-  static const system = 'System';
-  static const console = 'Console';
-
-  static Map<String, Function> functions = {
-    // TODO: 读取注释
-    'help': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {},
-    'print': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) {
-      var sb = StringBuffer();
-      for (final arg in positionalArgs) {
-        sb.write('${arg.toString()} ');
-      }
-      print(sb.toString());
-    },
-  };
-}
-
 class HTExternClassNumber extends HTExternalClass {
   HTExternClassNumber() : super(HTLexicon.number);
 
@@ -92,7 +69,7 @@ class HTExternClassString extends HTExternalClass {
 }
 
 class HTExternClassMath extends HTExternalClass {
-  HTExternClassMath() : super(HTExternGlobal.math);
+  HTExternClassMath() : super(HTLexicon.math);
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
@@ -117,7 +94,7 @@ class HTExternClassMath extends HTExternalClass {
 }
 
 class HTExternClassSystem extends HTExternalClass with InterpreterRef {
-  HTExternClassSystem(Interpreter interpreter) : super(HTExternGlobal.system) {
+  HTExternClassSystem(Interpreter interpreter) : super(HTLexicon.system) {
     this.interpreter = interpreter;
   }
 
@@ -136,7 +113,7 @@ class HTExternClassSystem extends HTExternalClass with InterpreterRef {
 }
 
 class HTExternClassConsole extends HTExternalClass {
-  HTExternClassConsole() : super(HTExternGlobal.console);
+  HTExternClassConsole() : super(HTLexicon.console);
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {

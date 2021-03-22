@@ -7,6 +7,7 @@ import 'plugin/errorHandler.dart';
 import 'hetu_lib.dart';
 import 'extern_class.dart';
 import 'errors.dart';
+import 'extern_function.dart';
 
 mixin InterpreterRef {
   late final Interpreter interpreter;
@@ -38,33 +39,32 @@ abstract class Interpreter {
   }
 
   Future<void> init(
-      {Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalClass> externalClasses = const {}}) async {
+      {Map<String, Function> externalFunctions = const {}, List<HTExternalClass> externalClasses = const []}) async {
     // load classes and functions in core library.
     // TODO: dynamic load needed core lib in script
     for (final file in coreModules.keys) {
       await eval(coreModules[file]!);
     }
 
-    for (var key in HTExternGlobal.functions.keys) {
-      bindExternalFunction(key, HTExternGlobal.functions[key]!);
+    for (var key in externalFunctions.keys) {
+      bindExternalFunction(key, externalFunctions[key]!);
     }
 
-    bindExternalClass(HTExternGlobal.number, HTExternClassNumber());
-    bindExternalClass(HTExternGlobal.boolean, HTExternClassBool());
-    bindExternalClass(HTExternGlobal.string, HTExternClassString());
-    bindExternalClass(HTExternGlobal.list, HTExternClassString());
-    bindExternalClass(HTExternGlobal.map, HTExternClassString());
-    bindExternalClass(HTExternGlobal.math, HTExternClassMath());
-    bindExternalClass(HTExternGlobal.system, HTExternClassSystem(this));
-    bindExternalClass(HTExternGlobal.console, HTExternClassConsole());
+    bindExternalClass(HTExternClassNumber());
+    bindExternalClass(HTExternClassBool());
+    bindExternalClass(HTExternClassString());
+    bindExternalClass(HTExternClassString());
+    bindExternalClass(HTExternClassString());
+    bindExternalClass(HTExternClassMath());
+    bindExternalClass(HTExternClassSystem(this));
+    bindExternalClass(HTExternClassConsole());
 
     for (var key in externalFunctions.keys) {
       bindExternalFunction(key, externalFunctions[key]!);
     }
 
-    for (var key in externalClasses.keys) {
-      bindExternalClass(key, externalClasses[key]!);
+    for (var value in externalClasses) {
+      bindExternalClass(value);
     }
   }
 
@@ -108,11 +108,11 @@ abstract class Interpreter {
 
   /// 注册外部类，以访问外部类的构造函数和static成员
   /// 在脚本中需要存在对应的extern class声明
-  void bindExternalClass(String id, HTExternalClass namespace) {
-    if (_externClasses.containsKey(id)) {
-      throw HTErrorDefinedRuntime(id);
+  void bindExternalClass(HTExternalClass externalClass) {
+    if (_externClasses.containsKey(externalClass.id)) {
+      throw HTErrorDefinedRuntime(externalClass.id);
     }
-    _externClasses[id] = namespace;
+    _externClasses[externalClass.id] = externalClass;
   }
 
   HTExternalClass fetchExternalClass(String id) {

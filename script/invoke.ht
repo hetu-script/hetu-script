@@ -1,4 +1,4 @@
-fun working(content: String) {
+fun working(content: str) {
   print('I\'m working on ' + content)
 }
 

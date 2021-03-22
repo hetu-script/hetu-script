@@ -1,8 +1,8 @@
 
-var next_char_name: String
+var next_char_name: str
 
 class char_info {
-  var name: String
+  var name: str
   var strength: num
   var vitality: num
   var initiative: num

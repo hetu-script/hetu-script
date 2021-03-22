@@ -96,7 +96,7 @@ class PersonClassBinding extends HTExternalClass {
 void main() async {
   var hetu = HTAstInterpreter();
 
-  await hetu.init(externalClasses: {'Person': PersonClassBinding()});
+  await hetu.init(externalClasses: [PersonClassBinding()]);
 
   await hetu.eval('''
       external class Person {
@@ -105,8 +105,8 @@ void main() async {
         construct
         get child
         static get level
-        static set level
-        construct withName({name: String})
+        static set level (value: str)
+        construct withName({name: str})
         var name
         fun greeting
       }

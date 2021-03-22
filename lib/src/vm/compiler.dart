@@ -199,15 +199,15 @@ class Compiler extends Parser with VMRef {
     switch (curTok.type) {
       // 变量声明
       case HTLexicon.VAR:
-        final decl = _parseVarStmt();
+        final decl = _parseVarStmt(isDynamic: true);
         _curNamespace.varDecls.add(decl);
         break;
       case HTLexicon.LET:
-        final decl = _parseVarStmt(typeInference: true);
+        final decl = _parseVarStmt();
         _curNamespace.varDecls.add(decl);
         break;
       case HTLexicon.CONST:
-        final decl = _parseVarStmt(typeInference: true, isImmutable: true);
+        final decl = _parseVarStmt(isImmutable: true);
         _curNamespace.varDecls.add(decl);
         break;
       // 函数声明
@@ -868,7 +868,7 @@ class Compiler extends Parser with VMRef {
 
   /// 变量声明语句
   Uint8List _parseVarStmt(
-      {bool typeInference = false,
+      {bool isDynamic = false,
       bool isExtern = false,
       bool isImmutable = false,
       bool isMember = false,
@@ -879,7 +879,7 @@ class Compiler extends Parser with VMRef {
     final bytesBuilder = BytesBuilder();
     // bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.add(_shortUtf8String(id));
-    bytesBuilder.addByte(typeInference ? 1 : 0);
+    bytesBuilder.addByte(isDynamic ? 1 : 0);
     bytesBuilder.addByte(isExtern ? 1 : 0);
     bytesBuilder.addByte(isImmutable ? 1 : 0);
     bytesBuilder.addByte(isMember ? 1 : 0);

@@ -135,32 +135,21 @@ class HTClass extends HTNamespace {
     final setter = '${HTLexicon.setter}$varName';
     final staticName = '$id.$varName';
     if (declarations.containsKey(varName)) {
-      final decl_type = declarations[varName]!.declType;
-      final var_type = interpreter.typeof(value);
-      if (var_type.isA(decl_type)) {
+      if (isExtern) {
+        final externClass = interpreter.fetchExternalClass(id);
+        externClass.assign(staticName, value);
+      } else {
         final decl = declarations[varName]!;
-        if (!decl.isImmutable) {
-          if (!decl.isExtern) {
-            decl.value = value;
-            return;
-          } else if (isExtern) {
-            final externClass = interpreter.fetchExternalClass(id);
-            externClass.assign(staticName, value);
-            return;
-          }
-        }
-        throw HTErrorImmutable(varName);
+        decl.assign(value);
       }
-      throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
+      return;
     } else if (declarations.containsKey(setter)) {
       HTFunction setterFunc = declarations[setter]!.value;
       if (!setterFunc.isExtern) {
         setterFunc.call(positionalArgs: [value]);
-        return;
       } else if (isExtern) {
         final externClass = interpreter.fetchExternalClass(id);
         externClass.assign(staticName, value);
-        return;
       } else {
         final externSetterFunc = interpreter.fetchExternalFunction('$id.${HTLexicon.setter}$varName');
         if (externSetterFunc is HTExternalFunction) {
@@ -174,6 +163,7 @@ class HTClass extends HTNamespace {
           // throw HTErrorExternFunc(constructor.toString());
         }
       }
+      return;
     }
 
     if (closure != null) {
@@ -297,16 +287,14 @@ class HTInstance extends HTNamespace {
 
     final setter = '${HTLexicon.setter}$varName';
     if (declarations.containsKey(varName)) {
-      var decl_type = declarations[varName]!.declType;
-      var var_type = interpreter.typeof(value);
-      if (var_type.isA(decl_type)) {
-        if (!declarations[varName]!.isImmutable) {
-          declarations[varName]!.value = value;
-          return;
-        }
-        throw HTErrorImmutable(varName);
+      if (isExtern) {
+        final externClass = interpreter.fetchExternalClass(id);
+        externClass.instanceAssign(this, varName, value);
+      } else {
+        final decl = declarations[varName]!;
+        decl.assign(value);
       }
-      throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
+      return;
     } else if (declarations.containsKey(setter)) {
       HTFunction method = declarations[setter]!.value;
       method.context = this;

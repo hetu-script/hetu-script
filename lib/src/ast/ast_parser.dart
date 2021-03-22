@@ -285,49 +285,54 @@ class HTAstParser extends Parser {
     if (curTok.type == HTLexicon.newLine) advance(1);
     switch (style) {
       case ParseStyle.module:
-        final isExtern = expect([HTLexicon.EXTERNAL], consume: true);
-        final isAbstract = expect([HTLexicon.ABSTRACT], consume: true);
-        final isInterface = expect([HTLexicon.INTERFACE], consume: true);
-        final isMixin = expect([HTLexicon.MIXIN], consume: true);
-
-        // import语句
-        if (expect([HTLexicon.IMPORT])) {
-          return _parseImportStmt();
-        } // var变量声明
-        if (expect([HTLexicon.VAR])) {
-          if (isExtern) {
-            throw HTErrorExternalVar();
-          }
-          return _parseVarStmt(isExtern: isExtern, typeInference: true);
-        } // let
-        else if (expect([HTLexicon.LET])) {
-          if (isExtern) {
-            throw HTErrorExternalVar();
-          }
-          return _parseVarStmt(isExtern: isExtern);
-        } // const
-        else if (expect([HTLexicon.CONST])) {
-          if (isExtern) {
-            throw HTErrorExternalVar();
-          }
-          return _parseVarStmt(isExtern: isExtern, isImmutable: true);
-        } // 类声明
-        else if (expect([HTLexicon.CLASS])) {
-          return _parseClassDeclStmt();
-        } // 枚举类声明
-        else if (expect([HTLexicon.ENUM])) {
-          return _parseEnumDeclStmt(isExtern: isExtern);
-        } // 函数声明
-        else if (expect([HTLexicon.FUN])) {
-          return _parseFuncDeclaration(isExtern: isExtern);
-        } else {
-          throw HTErrorUnexpected(curTok.lexeme);
+        switch (curTok.type) {
+          case HTLexicon.EXTERNAL:
+            advance(1);
+            switch (curTok.type) {
+              case HTLexicon.CLASS:
+                return _parseClassDeclStmt(classType: ClassType.extern);
+              case HTLexicon.ENUM:
+                return _parseEnumDeclStmt(isExtern: true);
+              case HTLexicon.VAR:
+                return _parseVarStmt(isExtern: true, isDynamic: true);
+              case HTLexicon.LET:
+                return _parseVarStmt(isExtern: true);
+              case HTLexicon.CONST:
+                return _parseVarStmt(isExtern: true, isImmutable: true);
+              case HTLexicon.FUN:
+                return _parseFuncDeclaration(isExtern: true);
+              default:
+                throw HTErrorUnexpected(curTok.type);
+            }
+          case HTLexicon.ABSTRACT:
+            match(HTLexicon.CLASS);
+            return _parseClassDeclStmt(classType: ClassType.abstracted);
+          case HTLexicon.INTERFACE:
+            match(HTLexicon.CLASS);
+            return _parseClassDeclStmt(classType: ClassType.interface);
+          case HTLexicon.MIXIN:
+            match(HTLexicon.CLASS);
+            return _parseClassDeclStmt(classType: ClassType.mix_in);
+          case HTLexicon.CLASS:
+            return _parseClassDeclStmt();
+          case HTLexicon.IMPORT:
+            return _parseImportStmt();
+          case HTLexicon.VAR:
+            return _parseVarStmt(isDynamic: true);
+          case HTLexicon.LET:
+            return _parseVarStmt();
+          case HTLexicon.CONST:
+            return _parseVarStmt(isImmutable: true);
+          case HTLexicon.FUN:
+            return _parseFuncDeclaration();
+          default:
+            throw HTErrorUnexpected(curTok.lexeme);
         }
       case ParseStyle.function:
         // 函数块中不能出现extern或者static关键字的声明
         // var变量声明
         if (expect([HTLexicon.VAR])) {
-          return _parseVarStmt(typeInference: true);
+          return _parseVarStmt(isDynamic: true);
         } // let
         else if (expect([HTLexicon.LET])) {
           return _parseVarStmt();
@@ -368,26 +373,40 @@ class HTAstParser extends Parser {
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         // var变量声明
         if (expect([HTLexicon.VAR])) {
-          return _parseVarStmt(isExtern: isExtern, isStatic: isStatic);
+          return _parseVarStmt(isExtern: isExtern || _curClassType == ClassType.extern, isStatic: isStatic);
         } // let
         else if (expect([HTLexicon.LET])) {
-          return _parseVarStmt(typeInference: true, isExtern: isExtern, isStatic: isStatic);
+          return _parseVarStmt(
+              isDynamic: true, isExtern: isExtern || _curClassType == ClassType.extern, isStatic: isStatic);
         } // const
         else if (expect([HTLexicon.CONST])) {
           if (!isStatic) throw HTErrorConstMustBeStatic(curTok.lexeme);
-          return _parseVarStmt(typeInference: true, isExtern: isExtern, isStatic: true, isImmutable: true);
+          return _parseVarStmt(
+              isDynamic: true,
+              isExtern: isExtern || _curClassType == ClassType.extern,
+              isStatic: true,
+              isImmutable: true);
         } // 构造函数
         else if (curTok.lexeme == HTLexicon.CONSTRUCT) {
-          return _parseFuncDeclaration(funcType: FunctionType.constructor, isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(
+              funcType: FunctionType.constructor,
+              isExtern: isExtern || _curClassType == ClassType.extern,
+              isStatic: isStatic);
         } // setter函数声明
         else if (curTok.lexeme == HTLexicon.GET) {
-          return _parseFuncDeclaration(funcType: FunctionType.getter, isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(
+              funcType: FunctionType.getter,
+              isExtern: isExtern || _curClassType == ClassType.extern,
+              isStatic: isStatic);
         } // getter函数声明
         else if (curTok.lexeme == HTLexicon.SET) {
-          return _parseFuncDeclaration(funcType: FunctionType.setter, isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(
+              funcType: FunctionType.setter,
+              isExtern: isExtern || _curClassType == ClassType.extern,
+              isStatic: isStatic);
         } // 成员函数声明
         else if (expect([HTLexicon.FUN])) {
-          return _parseFuncDeclaration(isExtern: isExtern, isStatic: isStatic);
+          return _parseFuncDeclaration(isExtern: isExtern || _curClassType == ClassType.extern, isStatic: isStatic);
         } else {
           throw HTErrorUnexpected(curTok.lexeme);
         }
@@ -547,7 +566,7 @@ class HTAstParser extends Parser {
 
   /// 变量声明语句
   VarDeclStmt _parseVarStmt(
-      {bool typeInference = false, bool isExtern = false, bool isStatic = false, bool isImmutable = false}) {
+      {bool isDynamic = false, bool isExtern = false, bool isStatic = false, bool isImmutable = false}) {
     advance(1);
     final var_name = match(HTLexicon.identifier);
 
@@ -567,7 +586,7 @@ class HTAstParser extends Parser {
     var stmt = VarDeclStmt(var_name,
         declType: decl_type,
         initializer: initializer,
-        typeInference: typeInference,
+        isDynamic: isDynamic,
         isExtern: isExtern,
         isImmutable: isImmutable,
         isStatic: isStatic);
@@ -728,8 +747,9 @@ class HTAstParser extends Parser {
       throw HTErrorDefinedParser(class_name.lexeme);
     }
 
-    // TODO: 嵌套类?
+    final savedClassName = _curClassName;
     _curClassName = class_name.lexeme;
+    final savedClassType = _curClassType;
     _curClassType = classType;
 
     // generic type参数
@@ -791,7 +811,8 @@ class HTAstParser extends Parser {
 
     _classStmts[class_name.lexeme] = stmt;
 
-    _curClassName = null;
+    _curClassName = savedClassName;
+    _curClassType = savedClassType;
     return stmt;
   }
 

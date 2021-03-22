@@ -21,7 +21,7 @@
 
 ```typescript
 fun main {
-  var func = fun (name: String) {
+  var func = fun (name: str) {
     return name + '_postfix'
   }
 

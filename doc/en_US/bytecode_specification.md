@@ -9,7 +9,7 @@
 | HTOpCode.varDecl      | 1      | byte       |          |
 | length of id          | 1      | byte       |          |
 | id utf8 string        | ...    | uint8 list |          |
-| typeInference         | 1      | bool       |          |
+| isDynamic             | 1      | bool       |          |
 | isExtern              | 1      | bool       |          |
 | isStatic              | 1      | bool       |          |
 | isImmutable           | 1      | bool       |          |

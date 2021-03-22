@@ -17,7 +17,7 @@ void main() {
 /// The pre-packaged modules of Hetu scripting language.
 ///
 /// Automatically generated based on files in \'hetu_lib\' folder.
-final Map<String, String> coreLibs = const {
+final Map<String, String> coreModules = const {
       ''';
   final output = File('lib/src/hetu_lib.dart');
   for (final file in coreModules.keys) {

@@ -486,7 +486,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
-              final constructor = externClass.fetch(callee.id!);
+              final constructor = externClass.fetch(callee.internalName);
               if (constructor is HTExternalFunction) {
                 try {
                   return constructor(positionalArgs, namedArgs);
@@ -504,7 +504,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
           }
         }
       } else {
-        final externFunc = fetchExternalFunction(callee.id!);
+        final externFunc = fetchExternalFunction(callee.internalName);
         if (externFunc is HTExternalFunction) {
           try {
             return externFunc(positionalArgs, namedArgs);
@@ -764,22 +764,22 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
   dynamic visitVarDeclStmt(VarDeclStmt stmt) {
     curLine = stmt.line;
     curColumn = stmt.column;
-    dynamic value;
-    if (stmt.initializer != null) {
-      value = visitASTNode(stmt.initializer!);
-    }
+    // dynamic value;
+    // if (stmt.initializer != null) {
+    //   value = visitASTNode(stmt.initializer!);
+    // }
 
     curNamespace.define(HTAstDecl(
       stmt.id.lexeme,
       this,
-      value: value,
       declType: stmt.declType,
-      typeInference: stmt.typeInference,
+      initializer: stmt.initializer,
+      isDynamic: stmt.isDynamic,
       isExtern: stmt.isExtern,
       isImmutable: stmt.isImmutable,
     ));
 
-    return value;
+    // return value;
   }
 
   @override
@@ -833,13 +833,11 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       if (variable.isStatic) {
         klass.define(HTAstDecl(variable.id.lexeme, this,
             declType: variable.declType,
-            value: value,
             isExtern: variable.isExtern,
             isImmutable: variable.isImmutable,
-            typeInference: variable.declType == null));
+            isDynamic: variable.declType == null));
       } else {
         klass.defineInInstance(HTAstDecl(variable.id.lexeme, this,
-            value: value,
             declType: variable.declType ?? HTTypeId.ANY,
             isExtern: variable.isExtern,
             isImmutable: variable.isImmutable));

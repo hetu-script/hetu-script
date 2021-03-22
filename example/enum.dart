@@ -48,7 +48,7 @@ class CountryEnumBinding extends HTExternalClass {
 void main() async {
   var hetu = HTAstInterpreter();
 
-  await hetu.init(externalClasses: {'Country': CountryEnumBinding()});
+  await hetu.init(externalClasses: [CountryEnumBinding()]);
 
   await hetu.eval(r'''
       enum Race {

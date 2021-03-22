@@ -1,6 +1,6 @@
 external class System {
   // invoke a global or static member function
-  static fun invoke(functionName: String, {positionalArgs: List = [], namedArgs: Map<String> = {}})
+  static fun invoke(functionName: str, {positionalArgs: List = [], namedArgs: Map<String> = {}})
 
   static get now: num
 

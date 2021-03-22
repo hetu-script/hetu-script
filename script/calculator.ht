@@ -7,12 +7,12 @@ class Calculator {
   // 静态私有成员
   static var _name = 'the calculator'
 
-  static get name: String {
+  static get name: str {
     // 类中的静态函数只能访问类中的静态对象
     return _name
   }
 
-  // static set name(new_name: String) {
+  // static set name(new_name: str) {
   //   _name = new_name
   // }
 

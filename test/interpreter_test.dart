@@ -3,13 +3,14 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   var hetu = HTAstInterpreter();
+  await hetu.init();
 
   group('interpreter error handling test -', () {
     test('const definition', () async {
       expect(
         () async {
           await hetu.eval('''
-              let i = 42
+              const i = 42
               i = 137
               ''', style: ParseStyle.function);
         },

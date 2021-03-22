@@ -2,6 +2,6 @@
 
 ## Auto-Binding tools
 
-Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate binding and external declaration for any Dart codes.
+Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
 
-Check this repository: [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)
+Please check out this repository: [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)

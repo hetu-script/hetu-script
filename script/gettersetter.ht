@@ -10,7 +10,7 @@ class Types extends Root {
 
   var _age = 42
 
-  construct (the_name: String) {
+  construct (the_name: str) {
     name = the_name;
   }
 

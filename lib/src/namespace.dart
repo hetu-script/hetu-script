@@ -152,17 +152,9 @@ class HTNamespace extends HTObject with InterpreterRef {
     }
 
     if (declarations.containsKey(varName)) {
-      var decl_type = declarations[varName]!.declType;
-      var var_type = interpreter.typeof(value);
-      if (var_type.isA(decl_type)) {
-        var decl = declarations[varName]!;
-        if (!decl.isImmutable) {
-          decl.value = value;
-          return;
-        }
-        throw HTErrorImmutable(varName);
-      }
-      throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
+      final decl = declarations[varName]!;
+      decl.assign(value);
+      return;
     } else if (closure != null) {
       closure!.assign(varName, value, from: from);
       return;

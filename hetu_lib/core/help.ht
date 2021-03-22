@@ -1,1 +1,1 @@
-external fun help(value): String
+external fun help(value): str

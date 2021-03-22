@@ -2,19 +2,19 @@
 
 Hetu's grammar close to most modern languages, hence need very little time to get familar with.
 
-Key point:
+Noticable characteristics:
 
-- Semicolon is optional.
-- Type check and annotation is optional.
-- Type is annotated with a colon after the identifier (like typescript/kotlin/swift).
+- Optional semicolon.
+- Optional type annotation and checking (Type is annotated with a colon after the identifier like typescript/kotlin/swift).
+- Use [when] instead of [switch]
 
 ## Script file structure
 
-Hetu script files has two main structure, controlled by the ParseStyle parameter in eval function of an Interpreter object.
+Hetu script files has two main structure, controlled by the ParseStyle parameter in eval function of the Interpreter.
 
 - [ParseStyle.library]: the file contains only import statement and declarations(variable, function and class). Interpreter will call the function name given by parameter [invokeFunc]. This is like most app structure in C++, Java and Dart.
 
-- [ParseStyle.function]: the file is a anonymous function body, contains all kinds of expression and control statement. Everything is immediately evaluated. This is like the usage of Python.
+- [ParseStyle.function]: the file is a anonymous function body, contains all kinds of expression and control statement. Everything is immediately evaluated. This is like the usage of most script languages like Javascript, Python and Lua.
 
 ## Comments
 
@@ -31,50 +31,48 @@ null, static, var, def, let, any, namespace, as, class, data, interface, mixin, 
 
 ## Operators
 
-| Description    | Operator         | Associativity | Precedence |
-| -------------- | ---------------- | ------------- | ---------- |
-| Unary postfix  | e., e()          | None          | 16         |
-| Unary prefix   | -e, !e           | None          | 16         |
-| Multiplicative | \*, /, %         | Left          | 14         |
-| Additive       | +, -             | Left          | 13         |
-| Relational     | <, >, <=, >=, is | None          | 8          |
-| Equality       | ==, !=           | None          | 7          |
-| Logical and    | &&               | Left          | 6          |
-| Logical or     | \|\|             | Left          | 5          |
-| Assignment     | =                | Right         | 1          |
+| Description    | Operator               | Associativity | Precedence |
+| :------------- | :--------------------- | :-----------: | :--------: |
+| Unary postfix  | e., e(), e[], e++, e-- |     None      |     16     |
+| Unary prefix   | -e, !e, ++e, --e       |     None      |     15     |
+| Multiplicative | \*, /, %               |     Left      |     14     |
+| Additive       | +, -                   |     Left      |     13     |
+| Relational     | <, >, <=, >=, is       |     None      |     8      |
+| Equality       | ==, !=                 |     None      |     7      |
+| Logical AND    | &&                     |     Left      |     6      |
+| Logical Or     | \|\|                   |     Left      |     5      |
+| Assignment     | =, \*=, /=, +=, -=     |     Right     |     1      |
 
 ## Variable
 
-Variable is declared with 'var', 'def' or 'let'. The type and initialize expression is optional.
+Variable is declared with [var], [let] or [const]. The type annotation and initialize expression is optional.
 
 ```typescript
 var person;
-var name = 'naruto';
-var year = 2020;
 var fineStructureConstant: num = 1 / 137;
 var isTimeTravelSuccessful: bool = true;
-var gasGiants = ['Jupiter', 'Saturn'];
 var skill: Map<String> = {
   tags: ['attack'],
   script: '//path/to/skill_script.ht',
 };
 ```
 
-If declared with 'var', variables will have a type of 'any', hence you can re-assign it with any type.
+If declared with [var], variables will have a type of [any] if the type annotation is omitted, hence you can re-assign it with any type.
 
 ```typescript
 var name = 'naruto';
 name = 2020; // not an error
 ```
 
-If declared with 'let', variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
+If declared with [let], variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
+However, if you declare a variable with [let] and with no initialize expression, the variable will still considered a dynamic [any] type.
 
 ```typescript
 let name = 'naruto';
 // name = 2020 // error!
 ```
 
-If declared with 'const', variables has to have an initialize expression, and it will be given a type according to the expression, and it will become immutable(in other words this is a constant).
+If declared with [const], variables has to have an initialize expression, and it will be given a type according to the expression, and it will become immutable(in other words this is a constant).
 
 ```typescript
 const name = 'naruto';
@@ -111,7 +109,7 @@ while (year < 2040) {
 
 ## Function
 
-Function is declared with 'fun', 'get', 'set', 'construct'. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
+Function is declared with [fun], [get], [set], [construct]. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
 
 ```typescript
 fun doubleIt(n: num): num {
@@ -124,9 +122,9 @@ fun main {
 }
 ```
 
-For functions declared with 'fun', when no return type is provided in declaration, it will have a return type of 'any'. And it will return null if you didn't write return statement within the definition body.
+For functions declared with [fun], when no return type is provided in declaration, it will have a return type of [any]. And it will return null if you didn't write return statement within the definition body.
 
-Member functions can also be declared with 'get', 'set', 'construct', they literally means getter, setter and contructor function.
+Member functions can also be declared with [get], [set], [construct], they literally means getter, setter and contructor function.
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
 
@@ -190,13 +188,13 @@ class Calculator {
   static var _name = 'the calculator'
 
   // static get function
-  static get name: String {
+  static get name: str {
     // 类中的静态函数只能访问类中的静态对象
     return _name
   }
 
   // static set function
-  static set name(new_name: String) {
+  static set name(new_name: str) {
     _name = new_name
   }
 

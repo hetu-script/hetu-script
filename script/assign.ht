@@ -9,7 +9,7 @@ class HelloWorld {
     _world = world;
   }
 
-  fun toString: String {
+  fun toString: str {
     return "hello" + _hello.toString() + "world" + _world.toString()
   }
 

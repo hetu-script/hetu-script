@@ -38,12 +38,14 @@ class HTDeclaration {
       this.isStatic = false}) {
     if (declType != null) {
       this.declType = declType;
+    } else {
+      this.declType = HTTypeId.ANY;
     }
   }
 
   /// 调用这个接口来初始化这个变量，继承类需要
   /// override 这个接口来实现自己的初始化过程
-  void initialize() => throw HTErrorInitialize();
+  void initialize() {}
 
   /// 调用这个接口来赋值这个变量，继承类需要
   /// override 这个接口来实现自己的赋值过程

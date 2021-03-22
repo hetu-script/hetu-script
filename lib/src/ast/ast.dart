@@ -558,7 +558,7 @@ class VarDeclStmt extends ASTNode {
 
   final ASTNode? initializer;
 
-  final bool typeInference;
+  final bool isDynamic;
 
   // 仅用于整个class都为external的情况
   final bool isExtern;
@@ -570,7 +570,7 @@ class VarDeclStmt extends ASTNode {
   VarDeclStmt(this.id,
       {this.declType,
       this.initializer,
-      this.typeInference = false,
+      this.isDynamic = false,
       this.isExtern = false,
       this.isImmutable = false,
       this.isStatic = false})

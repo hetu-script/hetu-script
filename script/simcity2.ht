@@ -20,7 +20,7 @@ var soldier = 'soldier'
 
 class Char {
   var age: num // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
-  var job: String
+  var job: str
   var professions: List
 
   get ageByYear: num {

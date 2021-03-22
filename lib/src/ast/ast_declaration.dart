@@ -5,6 +5,8 @@ import 'ast_interpreter.dart';
 import '../errors.dart';
 
 class HTAstDecl extends HTDeclaration with AstInterpreterRef {
+  final bool isDynamic;
+
   @override
   final bool isImmutable;
 
@@ -19,35 +21,22 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
 
   ASTNode? initializer;
 
-  HTAstDecl(
-    String id,
-    HTAstInterpreter interpreter, {
-    dynamic value,
-    HTTypeId? declType,
-    this.initializer,
-    Function? getter,
-    Function? setter,
-    bool typeInference = false,
-    bool isExtern = false,
-    this.isImmutable = false,
-    bool isMember = false,
-    bool isStatic = false,
-  }) : super(id,
+  HTAstDecl(String id, HTAstInterpreter interpreter,
+      {dynamic value,
+      HTTypeId? declType,
+      this.initializer,
+      Function? getter,
+      Function? setter,
+      this.isDynamic = false,
+      bool isExtern = false,
+      this.isImmutable = false,
+      bool isMember = false,
+      bool isStatic = false})
+      : super(id,
             value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember, isStatic: isStatic) {
     this.interpreter = interpreter;
-    var valType = interpreter.typeof(value);
-    if (declType == null) {
-      if ((typeInference) && (value != null)) {
-        this.declType = valType;
-      } else {
-        this.declType = HTTypeId.ANY;
-      }
-    } else {
-      if (valType.isA(declType) || value == null) {
-        this.declType = declType;
-      } else {
-        throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
-      }
+    if (initializer == null && declType == null) {
+      declType = HTTypeId.ANY;
     }
   }
 
@@ -58,18 +47,42 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
     if (initializer != null) {
       if (!_isInitializing) {
         _isInitializing = true;
-        value = interpreter.visitASTNode(initializer!);
-        _isInitialized = true;
+        final initVal = interpreter.visitASTNode(initializer!);
+        assign(initVal);
+        _isInitializing = false;
       } else {
         throw HTErrorCircleInit(id);
       }
+    } else {
+      assign(null); // null 也要 assign 一下，因为需要类型检查
+    }
+  }
+
+  @override
+  void assign(dynamic value) {
+    if (isImmutable) {
+      throw HTErrorImmutable(id);
     }
 
-    throw HTErrorInitialize();
+    var valType = interpreter.typeof(value);
+    if (declType == null) {
+      if (!isDynamic && value != null) {
+        declType = valType;
+      } else {
+        declType = HTTypeId.ANY;
+      }
+      if (!_isInitialized) {
+        _isInitialized = true;
+      }
+    } else if (valType.isNotA(declType)) {
+      throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
+    }
+    this.value = value;
   }
 
   @override
   HTAstDecl clone() => HTAstDecl(id, interpreter,
+      value: value,
       initializer: initializer,
       getter: getter,
       setter: setter,
