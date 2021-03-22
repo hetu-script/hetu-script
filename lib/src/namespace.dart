@@ -75,7 +75,7 @@ class HTNamespace extends HTObject with InterpreterRef {
   late final HTNamespace? closure;
 
   HTNamespace(
-    HTInterpreter interpreter, {
+    Interpreter interpreter, {
     String? id,
     this.closure,
   }) : super() {

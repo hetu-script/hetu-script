@@ -10,23 +10,27 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
 
   ASTNode? initializer;
 
-  HTAstDecl(String id, HTAstInterpreter interpreter,
-      {dynamic value,
-      HTTypeId? declType,
-      this.initializer,
-      Function? getter,
-      Function? setter,
-      bool typeInference = false,
-      bool isExtern = false,
-      bool isImmutable = false})
-      : super(
-          id,
-          value: value,
-          getter: getter,
-          setter: setter,
-          isExtern: isExtern,
-          isImmutable: isImmutable,
-        ) {
+  HTAstDecl(
+    String id,
+    HTAstInterpreter interpreter, {
+    dynamic value,
+    HTTypeId? declType,
+    this.initializer,
+    Function? getter,
+    Function? setter,
+    bool typeInference = false,
+    bool isExtern = false,
+    bool isImmutable = false,
+    bool isMember = false,
+    bool isStatic = false,
+  }) : super(id,
+            value: value,
+            getter: getter,
+            setter: setter,
+            isExtern: isExtern,
+            isImmutable: isImmutable,
+            isMember: isMember,
+            isStatic: isStatic) {
     this.interpreter = interpreter;
     var valType = interpreter.typeof(value);
     if (declType == null) {

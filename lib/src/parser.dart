@@ -2,22 +2,6 @@ import 'token.dart';
 import 'lexicon.dart';
 import 'errors.dart';
 
-enum ParseStyle {
-  /// 程序脚本使用完整的标点符号规则，包括各种括号、逗号和分号
-  ///
-  /// 库脚本中只能出现变量、类和函数的声明
-  library,
-
-  /// 函数语句块中只能出现变量声明、控制语句和函数调用
-  function,
-
-  /// 类定义中只能出现变量和函数的声明
-  klass,
-
-  /// 外部类
-  externalClass,
-}
-
 /// 负责对Token列表进行语法分析并生成语句列表
 ///
 /// 语法定义如下
@@ -48,25 +32,17 @@ abstract class Parser {
 
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
   ///
-  /// 如果consume为true，则在符合要求时向前移动Token指针
+  /// 根据是否符合预期，返回 boolean
   ///
-  /// 在不符合预期时，如果error为true，则抛出异常
-  bool expect(List<String> tokTypes, {bool consume = false, bool? error}) {
-    error ??= consume;
+  /// 如果consume为true，则在符合要求时向前移动Token指针
+  bool expect(List<String> tokTypes, {bool consume = false}) {
     for (var i = 0; i < tokTypes.length; ++i) {
-      if (consume) {
-        if (curTok.type != tokTypes[i]) {
-          if (error) {
-            throw HTErrorExpected(tokTypes[i], curTok.lexeme);
-          }
-          return false;
-        }
-        advance(1);
-      } else {
-        if (peek(i).type != tokTypes[i]) {
-          return false;
-        }
+      if (peek(i).type != tokTypes[i]) {
+        return false;
       }
+    }
+    if (consume) {
+      advance(tokTypes.length);
     }
     return true;
   }

@@ -27,7 +27,7 @@ void main(List<String> args) async {
       } else if (args.length == 1) {
         result = await hetu.import(args.first, style: ParseStyle.function);
       } else {
-        result = await hetu.import(args.first, style: ParseStyle.library, invokeFunc: args[1]);
+        result = await hetu.import(args.first, style: ParseStyle.module, invokeFunc: args[1]);
       }
       if (result != null) print(result);
     } else {

@@ -7,6 +7,7 @@ import 'ast.dart';
 import 'ast_interpreter.dart';
 import '../declaration.dart';
 import '../function.dart';
+import '../object.dart';
 
 class HTAstFunction extends HTFunction with AstInterpreterRef {
   @override
@@ -154,7 +155,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
       HTFunction.callStack.removeLast();
 
-      if (returnValue is NullThrownError) return null;
+      if (returnValue is NullThrownError || returnValue == HTObject.NULL) return null;
 
       //_closure = _save;
       return returnValue;

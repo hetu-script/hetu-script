@@ -1,6 +1,6 @@
 import 'lexicon.dart';
 import 'namespace.dart';
-import 'parser.dart' show ParseStyle;
+import 'common.dart';
 import 'type.dart';
 import 'plugin/importHandler.dart';
 import 'plugin/errorHandler.dart';
@@ -9,20 +9,10 @@ import 'extern_class.dart';
 import 'errors.dart';
 
 mixin InterpreterRef {
-  late final HTInterpreter interpreter;
+  late final Interpreter interpreter;
 }
 
-class HTVersion {
-  late final int major;
-  late final int minor;
-  late final int patch;
-  HTVersion(this.major, this.minor, this.patch);
-
-  @override
-  String toString() => '$major.$minor.$patch';
-}
-
-abstract class HTInterpreter {
+abstract class Interpreter {
   late HTVersion scriptVersion;
 
   late int curLine;
@@ -40,7 +30,7 @@ abstract class HTInterpreter {
   /// 当前语句所在的命名空间
   late HTNamespace curNamespace;
 
-  HTInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
+  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
     curNamespace = global = HTNamespace(this, id: HTLexicon.global);
     this.debugMode = debugMode;
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
@@ -81,7 +71,7 @@ abstract class HTInterpreter {
     String? fileName,
     String libName = HTLexicon.global,
     HTNamespace? namespace,
-    ParseStyle style = ParseStyle.library,
+    ParseStyle style = ParseStyle.module,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -90,7 +80,7 @@ abstract class HTInterpreter {
   Future<dynamic> import(
     String fileName, {
     String? libName,
-    ParseStyle style = ParseStyle.library,
+    ParseStyle style = ParseStyle.module,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},

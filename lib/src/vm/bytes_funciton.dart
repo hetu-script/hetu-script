@@ -9,33 +9,10 @@ import 'vm.dart';
 import '../function.dart';
 import '../declaration.dart';
 import '../common.dart';
-
-class BytesParamDecl extends HTDeclaration {
-  final bool isVariadic;
-
-  final bool isOptional;
-
-  final bool isNamed;
-
-  BytesParamDecl(String id,
-      {HTTypeId declType = HTTypeId.ANY, this.isVariadic = false, this.isOptional = false, this.isNamed = false})
-      : super(id, declType: declType) {
-    // this.interpreter = interpreter;
-    // var valType = interpreter.typeof(value);
-    // if (valType.isA(declType) || value == null) {
-    //   this.declType = declType;
-    // } else {
-    //   throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
-    // }
-
-    // if (value != null) {
-    //   _isInitialized = true;
-    // }
-  }
-}
+import 'bytes_declaration.dart';
 
 class HTBytesFunction extends HTFunction with VMRef {
-  final List<BytesParamDecl> paramDecls;
+  final List<HTBytesParamDecl> paramDecls;
 
   final int? definitionIp;
 
@@ -43,7 +20,7 @@ class HTBytesFunction extends HTFunction with VMRef {
       {String? id,
       String? className,
       FunctionType funcType = FunctionType.normal,
-      this.paramDecls = const <BytesParamDecl>[],
+      this.paramDecls = const <HTBytesParamDecl>[],
       HTTypeId returnType = HTTypeId.ANY,
       this.definitionIp,
       List<HTTypeId> typeParams = const [],

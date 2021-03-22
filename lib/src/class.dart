@@ -57,7 +57,7 @@ class HTClass extends HTNamespace {
   /// normally the global namespace of the interpreter.
   ///
   /// [superClass] : super class of this class.
-  HTClass(String id, this.superClass, HTInterpreter interpreter,
+  HTClass(String id, this.superClass, Interpreter interpreter,
       {this.isExtern = false, this.typeParams = const [], HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
@@ -192,7 +192,7 @@ class HTClass extends HTNamespace {
 
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HTInstance createInstance(HTInterpreter interpreter, int? line, int? column,
+  HTInstance createInstance(Interpreter interpreter, int? line, int? column,
       {List<HTTypeId> typeArgs = const [],
       String? constructorName,
       List<dynamic> positionalArgs = const [],
@@ -236,7 +236,7 @@ class HTInstance extends HTNamespace {
   @override
   late final HTTypeId typeid;
 
-  HTInstance(this.klass, HTInterpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
+  HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
       : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}', closure: klass) {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
     define(HTDeclaration(HTLexicon.THIS, value: this, isImmutable: true));

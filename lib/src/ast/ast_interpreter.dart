@@ -9,7 +9,7 @@ import '../class.dart';
 import '../function.dart';
 import 'ast_function.dart';
 import '../lexer.dart';
-import '../parser.dart';
+import '../common.dart';
 import 'ast_parser.dart';
 import '../lexicon.dart';
 import 'ast_resolver.dart';
@@ -17,7 +17,6 @@ import '../object.dart';
 import '../interpreter.dart';
 import '../extern_object.dart';
 import '../enum.dart';
-import '../common.dart';
 import 'ast_declaration.dart';
 import '../declaration.dart';
 
@@ -26,7 +25,7 @@ mixin AstInterpreterRef {
 }
 
 /// 负责对语句列表进行最终解释执行
-class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
+class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _distances = <ASTNode, int>{};
@@ -42,7 +41,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
     String? fileName,
     String libName = HTLexicon.global,
     HTNamespace? namespace,
-    ParseStyle style = ParseStyle.library,
+    ParseStyle style = ParseStyle.module,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -64,7 +63,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
       }
 
       if (invokeFunc != null) {
-        if (style == ParseStyle.library) {
+        if (style == ParseStyle.module) {
           return invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs);
         }
       } else {
@@ -98,7 +97,7 @@ class HTAstInterpreter extends HTInterpreter implements ASTNodeVisitor {
   Future<dynamic> import(
     String key, {
     String? libName,
-    ParseStyle style = ParseStyle.library,
+    ParseStyle style = ParseStyle.module,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},

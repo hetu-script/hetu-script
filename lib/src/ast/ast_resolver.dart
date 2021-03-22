@@ -3,11 +3,6 @@ import 'ast.dart';
 import '../lexicon.dart';
 import '../common.dart';
 
-enum _ClassType {
-  none,
-  normal,
-}
-
 /// 负责对语句列表进行分析，并生成变量作用域
 class HTAstResolver implements ASTNodeVisitor {
   int _curLine = 0;
@@ -25,7 +20,7 @@ class HTAstResolver implements ASTNodeVisitor {
   final _funcs = <FuncDeclStmt>[];
 
   FunctionType? _curFuncType;
-  _ClassType _curClassType = _ClassType.none;
+  ClassType? _curClassType;
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -109,7 +104,7 @@ class HTAstResolver implements ASTNodeVisitor {
   void _resolveClass(ClassDeclStmt stmt) {
     final savedClassType = _curClassType;
 
-    _curClassType = _ClassType.normal;
+    _curClassType = ClassType.normal;
 
     _beginBlock();
 
@@ -308,7 +303,7 @@ class HTAstResolver implements ASTNodeVisitor {
   dynamic visitThisExpr(ThisExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    if (_curClassType == _ClassType.none) {
+    if (_curClassType == null) {
       throw HTErrorUnexpected(expr.keyword.lexeme);
     }
 

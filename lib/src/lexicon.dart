@@ -92,20 +92,29 @@ abstract class HTLexicon {
   static const STATIC = 'static';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
-  static const ABSTRACT = 'abstract';
   static const CLASS = 'class';
   static const ENUM = 'enum';
   static const STRUCT = 'struct';
-  static const INTERFACE = 'interface';
   static const FUN = 'fun';
   static const ASYNC = 'async';
   static const THIS = 'this';
   static const SUPER = 'super';
   static const EXTENDS = 'extends';
   static const IMPLEMENTS = 'implements';
-  static const MIXIN = 'mixin';
   static const EXTERNAL = 'external';
   static const IMPORT = 'import';
+
+  static const ABSTRACT = 'abstract';
+  static const INTERFACE = 'interface';
+  static const MIXIN = 'mixin';
+
+  /// 类名修饰符
+  static Set<String> get classPrefixs => {
+        EXTERNAL,
+        ABSTRACT,
+        INTERFACE,
+        MIXIN,
+      };
 
   static const AWAIT = 'await';
   static const ASSERT = 'assert';
