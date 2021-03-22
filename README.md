@@ -22,7 +22,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   var hetu = HTAstInterpreter();
   await hetu.init();
-  hetu.evalf('hello.ht', invokeFunc: 'main');
+  await hetu.import('hello.ht', invokeFunc: 'main');
 }
 ```
 

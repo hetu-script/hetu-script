@@ -32,6 +32,40 @@ external class String {
 	get isNotEmpty: bool
 
 	fun substring(startIndex: num, [endIndex: num]): String
+	
+	fun startsWith(pattern: String, [index: num]): bool
+	
+	fun endsWith(other: String): bool
+	
+	fun indexOf(pattern: String, [start: num]): num
+	
+	fun lastIndexOf(pattern, [start: num]): num
+	
+	fun compareTo(other): num
+	
+	fun trim(): String
+	
+	fun trimLeft(): String
+	
+	fun trimRight(): String
+	
+	fun padLeft(width: num, [padding: String]): String
+	
+	fun padRight(width: num, [padding: String]): String
+	
+	fun contains(other: String, [startIndex: num]): bool
+	
+	fun replaceFirst(from: String, to: String, [startIndex: num]): String
+	
+	fun replaceAll(from: String, replace: String): String
+	
+	fun replaceRange(start: num, end: num, replacement: String): String
+	
+	fun split(pattern: String): List
+	
+	fun toLowerCase(): String
+	
+	fun toUpperCase(): String
 }
 
 external class List {
@@ -57,6 +91,8 @@ external class List {
 	get last
 
 	fun contains(value): bool
+
+	fun join(splitter: String): String
 }
 
 external class Map {

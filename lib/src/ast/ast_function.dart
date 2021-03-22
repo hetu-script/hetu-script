@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/object.dart';
+
 import '../class.dart';
 import '../namespace.dart';
 import '../errors.dart';
@@ -79,7 +81,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
-      throw HTErrorArity(id, positionalArgs.length, funcStmt.arity);
+      throw HTErrorArity(internalName, positionalArgs.length, funcStmt.arity);
     }
 
     dynamic result;

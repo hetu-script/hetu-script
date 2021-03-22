@@ -1,6 +1,8 @@
 ## 0.0.6
 
-- Feature: Error handler and import handler are now plugins.
+- Feature: Error & import are now handle by plugins.
+- Change: [evalf] function of interpreter now changed into [import]
+- Change: External static members' id unified into [className.varName] in binding.
 
 ## 0.0.5
 
