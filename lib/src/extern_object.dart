@@ -118,6 +118,9 @@ class HTList<T> extends HTExternObject<List<T>> {
       case 'elementAt':
         return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
             externObject.elementAt(positionalArgs.first);
+      case 'join':
+        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+            externObject.join(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
     }

@@ -46,6 +46,8 @@ external class List {
 	get last
 
 	fun contains(value): bool
+
+	fun join(splitter: String): String
 }
 
 external class Map {
