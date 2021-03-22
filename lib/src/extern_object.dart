@@ -71,6 +71,40 @@ class HTString extends HTExternObject<String> {
         return externObject.isEmpty;
       case 'subString':
         return externObject.substring;
+      case 'startsWith':
+        return externObject.startsWith;
+      case 'endsWith':
+        return externObject.endsWith;
+      case 'indexOf':
+        return externObject.indexOf;
+      case 'lastIndexOf':
+        return externObject.lastIndexOf;
+      case 'compareTo':
+        return externObject.compareTo;
+      case 'trim':
+        return externObject.trim;
+      case 'trimLeft':
+        return externObject.trimLeft;
+      case 'trimRight':
+        return externObject.trimRight;
+      case 'padLeft':
+        return externObject.padLeft;
+      case 'padRight':
+        return externObject.padRight;
+      case 'contains':
+        return externObject.contains;
+      case 'replaceFirst':
+        return externObject.replaceFirst;
+      case 'replaceAll':
+        return externObject.replaceAll;
+      case 'replaceRange':
+        return externObject.replaceRange;
+      case 'split':
+        return externObject.split;
+      case 'toLowerCase':
+        return externObject.toLowerCase;
+      case 'toUpperCase':
+        return externObject.toUpperCase;
       default:
         throw HTErrorUndefined(varName);
     }
