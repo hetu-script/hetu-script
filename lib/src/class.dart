@@ -5,7 +5,7 @@ import 'namespace.dart';
 import 'function.dart';
 import 'errors.dart';
 import 'type.dart';
-import 'extern_class.dart' show HTExternalFunction;
+import 'extern_function.dart';
 import 'interpreter.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
@@ -57,7 +57,7 @@ class HTClass extends HTNamespace {
   /// normally the global namespace of the interpreter.
   ///
   /// [superClass] : super class of this class.
-  HTClass(String id, this.superClass, HTInterpreter interpreter,
+  HTClass(String id, this.superClass, Interpreter interpreter,
       {this.isExtern = false, this.typeParams = const [], HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
@@ -82,6 +82,9 @@ class HTClass extends HTNamespace {
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (!decl.isExtern) {
+        if (!decl.isInitialized) {
+          decl.initialize();
+        }
         return decl.value;
       } else if (isExtern) {
         final externClass = interpreter.fetchExternalClass(id);
@@ -186,13 +189,13 @@ class HTClass extends HTNamespace {
     if (!instanceDecls.containsKey(decl.id)) {
       instanceDecls[decl.id] = decl;
     } else {
-      if (!skipOverride) throw HTErrorDefined_Runtime(decl.id);
+      if (!skipOverride) throw HTErrorDefinedRuntime(decl.id);
     }
   }
 
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HTInstance createInstance(HTInterpreter interpreter, int? line, int? column,
+  HTInstance createInstance(
       {List<HTTypeId> typeArgs = const [],
       String? constructorName,
       List<dynamic> positionalArgs = const [],
@@ -207,11 +210,9 @@ class HTClass extends HTNamespace {
     interpreter.curNamespace = save;
 
     constructorName ??= id;
-    var constructor = fetch(constructorName, from: fullName);
-
-    if (constructor is HTFunction) {
-      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: instance);
-    }
+    HTFunction constructor = fetch(constructorName, from: fullName);
+    constructor.context = instance;
+    constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
 
     return instance;
   }
@@ -238,10 +239,10 @@ class HTInstance extends HTNamespace {
   @override
   late final HTTypeId typeid;
 
-  HTInstance(this.klass, HTInterpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
+  HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
       : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}', closure: klass) {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
-    define(HTDeclaration(HTLexicon.THIS, value: this, isImmutable: true));
+    define(HTDeclaration(HTLexicon.THIS, value: this));
   }
 
   @override
@@ -261,14 +262,19 @@ class HTInstance extends HTNamespace {
 
     final getter = '${HTLexicon.getter}$varName';
     if (declarations.containsKey(varName)) {
-      final member = declarations[varName]!.value;
-      if (member is HTFunction) {
-        member.context = this;
+      final decl = declarations[varName]!;
+      if (!decl.isInitialized) {
+        decl.initialize();
       }
-      return member;
+      final value = decl.value;
+      if (value is HTFunction) {
+        value.context = this;
+      }
+      return value;
     } else if (declarations.containsKey(getter)) {
       HTFunction method = declarations[getter]!.value;
-      return method.call(instance: this);
+      method.context = this;
+      return method.call();
     }
 
     switch (varName) {
@@ -303,7 +309,8 @@ class HTInstance extends HTNamespace {
       throw HTErrorTypeCheck(varName, var_type.toString(), decl_type.toString());
     } else if (declarations.containsKey(setter)) {
       HTFunction method = declarations[setter]!.value;
-      method.call(positionalArgs: [value], instance: this);
+      method.context = this;
+      method.call(positionalArgs: [value]);
       return;
     }
 
@@ -312,11 +319,8 @@ class HTInstance extends HTNamespace {
 
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    HTFunction? func = fetch(funcName, from: fullName);
-    if ((func != null) && (!func.isStatic)) {
-      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, instance: this);
-    }
-
-    throw HTErrorUndefined(funcName);
+    HTFunction func = fetch(funcName, from: fullName);
+    func.context = this;
+    return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
   }
 }

@@ -3,11 +3,6 @@ import 'ast.dart';
 import '../lexicon.dart';
 import '../common.dart';
 
-enum _ClassType {
-  none,
-  normal,
-}
-
 /// 负责对语句列表进行分析，并生成变量作用域
 class HTAstResolver implements ASTNodeVisitor {
   int _curLine = 0;
@@ -25,7 +20,7 @@ class HTAstResolver implements ASTNodeVisitor {
   final _funcs = <FuncDeclStmt>[];
 
   FunctionType? _curFuncType;
-  _ClassType _curClassType = _ClassType.none;
+  ClassType? _curClassType;
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -109,40 +104,36 @@ class HTAstResolver implements ASTNodeVisitor {
   void _resolveClass(ClassDeclStmt stmt) {
     final savedClassType = _curClassType;
 
-    _curClassType = _ClassType.normal;
+    _curClassType = ClassType.normal;
 
     _beginBlock();
+
+    // 类自己的默认构造函数
+    _declare(stmt.id.lexeme, define: true);
+
     // TODO: super表达式
-    _blocks.last[HTLexicon.SUPER] = true;
+    // _blocks.last[HTLexicon.SUPER] = true;
 
-    // 递归获取所有父类的静态变量和静态函数
-    var static_var_stmt = <VarDeclStmt>[];
-    var static_func_stmt = <FuncDeclStmt>[];
-    ClassDeclStmt? cur_stmt = stmt;
-    while (cur_stmt != null) {
-      for (final varStmt in cur_stmt.variables) {
-        if (varStmt.isStatic) {
-          static_var_stmt.add(varStmt);
-        }
+    // 注册类静态变量
+    var staticFuncStmts = <FuncDeclStmt>[];
+    for (final varStmt in stmt.variables) {
+      if (varStmt.isStatic) {
+        visitVarDeclStmt(varStmt);
       }
+    }
 
-      for (final funcStmt in cur_stmt.methods) {
-        if (funcStmt.isStatic || (funcStmt.funcType == FunctionType.constructor)) {
-          if (funcStmt.id != null) {
-            _declare(funcStmt.id!.lexeme, define: true);
-          }
-          static_func_stmt.add(funcStmt);
-        }
+    // 注册静态函数名（不包含命名构造函数，因为后者不会在没有类名时单独使用）
+    for (final funcStmt in stmt.methods) {
+      if (funcStmt.isStatic) {
+        _declare(funcStmt.id!.lexeme, define: true);
+        staticFuncStmts.add(funcStmt);
+      } else if (funcStmt.funcType == FunctionType.constructor) {
+        staticFuncStmts.add(funcStmt);
       }
+    }
 
-      cur_stmt = cur_stmt.superClassDeclStmt;
-    }
-    // 注册变量名
-    for (final varStmt in static_var_stmt) {
-      visitVarDeclStmt(varStmt);
-    }
-    // 解析函数定义
-    for (final funcStmt in static_func_stmt) {
+    // 解析静态函数定义
+    for (final funcStmt in staticFuncStmts) {
       if (funcStmt.funcType != FunctionType.constructor) {
         _resolveFunction(funcStmt);
       }
@@ -151,41 +142,40 @@ class HTAstResolver implements ASTNodeVisitor {
     _beginBlock();
     _blocks.last[HTLexicon.THIS] = true;
     // 递归获取所有父类的成员变量和成员函数
-    var instance_var_stmt = <VarDeclStmt>[];
-    var instance_func_stmt = <FuncDeclStmt>[];
-    cur_stmt = stmt;
-    while (cur_stmt != null) {
-      for (final varStmt in cur_stmt.variables) {
+    var instanceFuncStmts = <FuncDeclStmt>[];
+    ClassDeclStmt? curStmt = stmt;
+    while (curStmt != null) {
+      // 注册变量名
+      for (final varStmt in curStmt.variables) {
         if (!varStmt.isStatic) {
-          instance_var_stmt.add(varStmt);
-        }
-      }
-
-      for (final funcStmt in cur_stmt.methods) {
-        if (!funcStmt.isStatic && (funcStmt.funcType != FunctionType.constructor)) {
-          _declare(funcStmt.internalName, define: true);
-          if (funcStmt.funcType == FunctionType.getter || funcStmt.funcType == FunctionType.setter) {
-            _declare(funcStmt.id!.lexeme, define: true);
+          if (curStmt != stmt && varStmt.id.lexeme.startsWith(HTLexicon.underscore)) {
+            continue;
           }
-          instance_func_stmt.add(funcStmt);
+          visitVarDeclStmt(varStmt);
         }
       }
 
-      cur_stmt = cur_stmt.superClassDeclStmt;
-    }
-    // 注册变量名
-    for (final varStmt in instance_var_stmt) {
-      if (!varStmt.isStatic) {
-        visitVarDeclStmt(varStmt);
+      // 注册函数名
+      for (final funcStmt in curStmt.methods) {
+        if (!funcStmt.isStatic && (funcStmt.funcType != FunctionType.constructor)) {
+          if (curStmt != stmt && funcStmt.id != null && funcStmt.id!.lexeme.startsWith(HTLexicon.underscore)) {
+            continue;
+          }
+          _declare(funcStmt.id!.lexeme, define: true);
+          instanceFuncStmts.add(funcStmt);
+        }
       }
+
+      curStmt = curStmt.superClassDeclStmt;
     }
-    for (final funcStmt in static_func_stmt) {
+    // 构造函数定义部分需要在实例中解析
+    for (final funcStmt in staticFuncStmts) {
       if (funcStmt.funcType == FunctionType.constructor) {
         _resolveFunction(funcStmt);
       }
     }
     // 解析函数定义
-    for (final funcStmt in instance_func_stmt) {
+    for (final funcStmt in instanceFuncStmts) {
       _resolveFunction(funcStmt);
     }
 
@@ -313,7 +303,7 @@ class HTAstResolver implements ASTNodeVisitor {
   dynamic visitThisExpr(ThisExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    if (_curClassType == _ClassType.none) {
+    if (_curClassType == null) {
       throw HTErrorUnexpected(expr.keyword.lexeme);
     }
 

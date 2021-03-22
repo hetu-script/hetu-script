@@ -1,24 +1,53 @@
 abstract class HTOpCode {
   static const endOfFile = -1;
 
-  static const subReturn = 0;
-  static const endOfStatement = 1;
-  static const debugInfo = 2;
-  static const line = 3;
-  static const column = 4;
-  static const filename = 5;
+  /// 4 bytes
+  static const signature = 200;
 
-  static const constTable = 10;
+  /// uint8, uint8, uint16
+  static const version = 201;
 
-  static const local = 15;
+  /// 1 byte
+  static const debug = 202;
+
+  /// uint32 line, uint32 column, uint8 symbolLength, symbol
+  static const debugInfo = 203;
+  static const error = 204; //
+
+  static const endOfStmt = 210;
+  static const endOfExec = 211;
+
+  static const constTable = 7;
+  static const declTable = 8;
+
+  /// 1 byte of OpRandType, value
+  static const local = 10;
 
   /// reg index => reg[index] = local
-  static const register = 20;
+  static const register = 11; // 1 byte of index
 
   /// copy from to => reg[to] = reg[from]
-  static const copy = 21;
+  static const copy = 12;
 
-  static const assign = 30;
+  static const leftValue = 14;
+
+  // static const varDecl = 15;
+
+  /// uint16 length of initializer
+  static const varInit = 16;
+
+  // static const funcDecl = 17;
+
+  // // TODO: error when reach limit
+  // /// uint16 length of function
+  static const funcDef = 18;
+
+  // static const classDecl = 19;
+
+  // /// uint16 length of class
+  // static const classDefStart = 20;
+
+  static const assign = 30; // 1 byte right value
 
   static const assignMultiply = 31;
 
@@ -78,17 +107,38 @@ abstract class HTOpCode {
   static const postIncrement = 74;
 
   static const postDecrement = 75;
-
-  static const error = 205;
 }
 
-abstract class HTOpRandType {
-  static const literalNull = 0;
-  static const literalBoolean = 1;
-  static const literalInt64 = 2;
-  static const literalFloat64 = 3;
-  static const literalUtf8String = 4;
+abstract class HTValueTypeCode {
+  static const NULL = 0;
+  static const boolean = 1;
+  static const int64 = 2;
+  static const float64 = 3;
+  static const utf8String = 4;
   static const symbol = 5;
+  static const group = 6;
+  static const list = 7;
+  static const map = 8;
+  static const function = 9;
+}
+
+/// Extern function is not a [FunctionType]
+abstract class HTFuncTypeCode {
+  static const normal = 0;
+  static const constructor = 1;
+  static const getter = 2;
+  static const setter = 3;
+  static const literal = 4; // function expression with no function name
+  static const nested = 5; // function within function, may with name
+}
+
+abstract class HTClassTypeCode {
+  static const normal = 0;
+  static const nested = 1;
+  static const abstracted = 2;
+  static const interface = 3;
+  static const mix_in = 4;
+  static const extern = 5;
 }
 
 abstract class HTErrorCode {

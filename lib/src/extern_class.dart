@@ -7,8 +7,6 @@ import 'object.dart';
 import 'lexicon.dart';
 import 'interpreter.dart';
 
-typedef HTExternalFunction = dynamic Function(List<dynamic> positionalArgs, Map<String, dynamic> namedArgs);
-
 /// Namespace class of low level external dart functions for Hetu to use.
 abstract class HTExternalClass extends HTObject {
   @override
@@ -26,7 +24,9 @@ abstract class HTExternalClass extends HTObject {
 abstract class HTExternGlobal {
   static const number = 'num';
   static const boolean = 'bool';
-  static const string = 'String';
+  static const string = 'str';
+  static const map = 'map';
+  static const list = 'list';
   static const math = 'Math';
   static const system = 'System';
   static const console = 'Console';
@@ -117,7 +117,7 @@ class HTExternClassMath extends HTExternalClass {
 }
 
 class HTExternClassSystem extends HTExternalClass with InterpreterRef {
-  HTExternClassSystem(HTInterpreter interpreter) : super(HTExternGlobal.system) {
+  HTExternClassSystem(Interpreter interpreter) : super(HTExternGlobal.system) {
     this.interpreter = interpreter;
   }
 

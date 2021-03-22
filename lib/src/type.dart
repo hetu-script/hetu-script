@@ -24,6 +24,8 @@ class HTTypeId {
   final String id;
   final List<HTTypeId> arguments;
 
+  final bool isNullable = true;
+
   const HTTypeId(this.id, {this.arguments = const []});
 
   @override
@@ -56,7 +58,11 @@ class HTTypeId {
           result = false;
         }
       } else {
-        result = false;
+        if (id == HTLexicon.NULL && typeid.isNullable) {
+          result = true;
+        } else {
+          result = false;
+        }
       }
     }
     return result;
@@ -67,9 +73,10 @@ class HTTypeId {
 
 class HTFunctionTypeId extends HTTypeId {
   final HTTypeId returnType;
-  final List<HTTypeId?> paramsTypes;
+  final List<HTTypeId?> paramsTypes; // function(T1 arg1, T2 arg2)
 
-  HTFunctionTypeId(this.returnType, {List<HTTypeId> arguments = const [], this.paramsTypes = const []})
+  const HTFunctionTypeId(
+      {this.returnType = HTTypeId.ANY, List<HTTypeId> arguments = const [], this.paramsTypes = const []})
       : super(HTLexicon.function, arguments: arguments);
 
   @override
@@ -95,4 +102,6 @@ class HTFunctionTypeId extends HTTypeId {
     result.write('): ' + returnType.toString());
     return result.toString();
   }
+
+  // TODO: 通过重写isA，实现函数的逆变
 }

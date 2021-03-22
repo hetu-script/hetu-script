@@ -38,11 +38,11 @@ class HTBytesResolver {
     while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
         // 返回当前运算值
-        case HTOpCode.subReturn:
+        case HTOpCode.endOfExec:
         // _ip = savedIp;
         // return _curValue;
         // 语句结束
-        case HTOpCode.endOfStatement:
+        case HTOpCode.endOfStmt:
           break;
         // 从字节码读取常量表并保存在当前环境中
         case HTOpCode.constTable:
@@ -63,18 +63,18 @@ class HTBytesResolver {
         case HTOpCode.local:
           final oprandType = _bytesReader.read();
           switch (oprandType) {
-            case HTOpRandType.literalNull:
+            case HTValueTypeCode.NULL:
               break;
-            case HTOpRandType.literalBoolean:
+            case HTValueTypeCode.boolean:
               _bytesReader.read();
               break;
-            case HTOpRandType.literalInt64:
-            case HTOpRandType.literalFloat64:
-            case HTOpRandType.literalUtf8String:
+            case HTValueTypeCode.int64:
+            case HTValueTypeCode.float64:
+            case HTValueTypeCode.utf8String:
               _bytesReader.readUint16();
               break;
             // 当前符号（变量名）
-            case HTOpRandType.symbol:
+            case HTValueTypeCode.symbol:
             // _curValue = curNamespace.fetch(varName)
           }
           break;

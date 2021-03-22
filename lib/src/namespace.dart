@@ -75,7 +75,7 @@ class HTNamespace extends HTObject with InterpreterRef {
   late final HTNamespace? closure;
 
   HTNamespace(
-    HTInterpreter interpreter, {
+    Interpreter interpreter, {
     String? id,
     this.closure,
   }) : super() {
@@ -110,7 +110,7 @@ class HTNamespace extends HTObject with InterpreterRef {
     if (!declarations.containsKey(decl.id) || override) {
       declarations[decl.id] = decl;
     } else {
-      throw HTErrorDefined_Runtime(decl.id);
+      throw HTErrorDefinedRuntime(decl.id);
     }
   }
 
@@ -123,6 +123,10 @@ class HTNamespace extends HTObject with InterpreterRef {
     }
 
     if (declarations.containsKey(varName)) {
+      final decl = declarations[varName]!;
+      if (!decl.isInitialized) {
+        decl.initialize();
+      }
       return declarations[varName]!.value;
     }
 

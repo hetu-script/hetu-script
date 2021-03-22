@@ -4,7 +4,7 @@ abstract class HTLexicon {
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
-      r'(\.\.\.|\|\||&&|\*=|/=|\+=|-=|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
+      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
       // r'(\d+\.\d+)|' // 浮点数字面量 group(6)
       // r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
@@ -37,7 +37,7 @@ abstract class HTLexicon {
   static const number = 'num';
   static const integer = 'int';
   static const float = 'float';
-  static const string = 'String';
+  static const string = 'str';
   static const keys = 'keys';
   static const values = 'values';
 
@@ -92,20 +92,29 @@ abstract class HTLexicon {
   static const STATIC = 'static';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
-  static const ABSTRACT = 'abstract';
   static const CLASS = 'class';
   static const ENUM = 'enum';
   static const STRUCT = 'struct';
-  static const INTERFACE = 'interface';
   static const FUN = 'fun';
   static const ASYNC = 'async';
   static const THIS = 'this';
   static const SUPER = 'super';
   static const EXTENDS = 'extends';
   static const IMPLEMENTS = 'implements';
-  static const MIXIN = 'mixin';
   static const EXTERNAL = 'external';
   static const IMPORT = 'import';
+
+  static const ABSTRACT = 'abstract';
+  static const INTERFACE = 'interface';
+  static const MIXIN = 'mixin';
+
+  /// 类名修饰符
+  static Set<String> get classPrefixs => {
+        EXTERNAL,
+        ABSTRACT,
+        INTERFACE,
+        MIXIN,
+      };
 
   static const AWAIT = 'await';
   static const ASSERT = 'assert';

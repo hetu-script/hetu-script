@@ -4,31 +4,36 @@ import '../type.dart';
 import 'ast_interpreter.dart';
 import '../errors.dart';
 
-class HTAstDeclaration extends HTDeclaration with AstInterpreterRef {
+class HTAstDecl extends HTDeclaration with AstInterpreterRef {
+  @override
+  final bool isImmutable;
+
+  var _isInitializing = false;
+  var _isInitialized = false;
+
+  @override
+  bool get isInitialized => _isInitialized;
+
   @override
   late final HTTypeId? declType;
 
   ASTNode? initializer;
 
-  HTAstDeclaration(String id, HTAstInterpreter interpreter,
-      {dynamic value,
-      HTTypeId? declType,
-      this.initializer,
-      Function? getter,
-      Function? setter,
-      bool typeInference = false,
-      bool isExtern = false,
-      bool isNullable = false,
-      bool isImmutable = false})
-      : super(
-          id,
-          value: value,
-          getter: getter,
-          setter: setter,
-          isExtern: isExtern,
-          isNullable: isNullable,
-          isImmutable: isImmutable,
-        ) {
+  HTAstDecl(
+    String id,
+    HTAstInterpreter interpreter, {
+    dynamic value,
+    HTTypeId? declType,
+    this.initializer,
+    Function? getter,
+    Function? setter,
+    bool typeInference = false,
+    bool isExtern = false,
+    this.isImmutable = false,
+    bool isMember = false,
+    bool isStatic = false,
+  }) : super(id,
+            value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember, isStatic: isStatic) {
     this.interpreter = interpreter;
     var valType = interpreter.typeof(value);
     if (declType == null) {
@@ -47,19 +52,28 @@ class HTAstDeclaration extends HTDeclaration with AstInterpreterRef {
   }
 
   @override
-  HTAstDeclaration clone() {
-    return HTAstDeclaration(id, interpreter,
-        initializer: initializer,
-        getter: getter,
-        setter: setter,
-        declType: declType,
-        isExtern: isExtern,
-        isNullable: isNullable,
-        isImmutable: isImmutable);
+  void initialize() {
+    if (_isInitialized) return;
+
+    if (initializer != null) {
+      if (!_isInitializing) {
+        _isInitializing = true;
+        value = interpreter.visitASTNode(initializer!);
+        _isInitialized = true;
+      } else {
+        throw HTErrorCircleInit(id);
+      }
+    }
+
+    throw HTErrorInitialize();
   }
 
   @override
-  void initialize() {
-    value = interpreter.visitASTNode(initializer!);
-  }
+  HTAstDecl clone() => HTAstDecl(id, interpreter,
+      initializer: initializer,
+      getter: getter,
+      setter: setter,
+      declType: declType,
+      isExtern: isExtern,
+      isImmutable: isImmutable);
 }

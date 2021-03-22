@@ -1,6 +1,6 @@
 import 'lexicon.dart';
 import 'namespace.dart';
-import 'parser.dart' show ParseStyle;
+import 'common.dart';
 import 'type.dart';
 import 'plugin/importHandler.dart';
 import 'plugin/errorHandler.dart';
@@ -9,10 +9,12 @@ import 'extern_class.dart';
 import 'errors.dart';
 
 mixin InterpreterRef {
-  late final HTInterpreter interpreter;
+  late final Interpreter interpreter;
 }
 
-abstract class HTInterpreter {
+abstract class Interpreter {
+  late HTVersion scriptVersion;
+
   late int curLine;
   late int curColumn;
   late String curFileName;
@@ -23,13 +25,13 @@ abstract class HTInterpreter {
   late HTImportHandler importHandler;
 
   /// 全局命名空间
-  late HTNamespace globals;
+  late HTNamespace global;
 
   /// 当前语句所在的命名空间
   late HTNamespace curNamespace;
 
-  HTInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
-    curNamespace = globals = HTNamespace(this, id: HTLexicon.global);
+  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
+    curNamespace = global = HTNamespace(this, id: HTLexicon.global);
     this.debugMode = debugMode;
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.importHandler = importHandler ?? DefaultImportHandler();
@@ -51,6 +53,8 @@ abstract class HTInterpreter {
     bindExternalClass(HTExternGlobal.number, HTExternClassNumber());
     bindExternalClass(HTExternGlobal.boolean, HTExternClassBool());
     bindExternalClass(HTExternGlobal.string, HTExternClassString());
+    bindExternalClass(HTExternGlobal.list, HTExternClassString());
+    bindExternalClass(HTExternGlobal.map, HTExternClassString());
     bindExternalClass(HTExternGlobal.math, HTExternClassMath());
     bindExternalClass(HTExternGlobal.system, HTExternClassSystem(this));
     bindExternalClass(HTExternGlobal.console, HTExternClassConsole());
@@ -69,7 +73,7 @@ abstract class HTInterpreter {
     String? fileName,
     String libName = HTLexicon.global,
     HTNamespace? namespace,
-    ParseStyle style = ParseStyle.library,
+    ParseStyle style = ParseStyle.module,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -78,7 +82,7 @@ abstract class HTInterpreter {
   Future<dynamic> import(
     String fileName, {
     String? libName,
-    ParseStyle style = ParseStyle.library,
+    ParseStyle style = ParseStyle.module,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -94,7 +98,7 @@ abstract class HTInterpreter {
   // }
 
   dynamic fetchGlobal(String key) {
-    return globals.fetch(key);
+    return global.fetch(key);
   }
 
   final _externClasses = <String, HTExternalClass>{};
@@ -106,7 +110,7 @@ abstract class HTInterpreter {
   /// 在脚本中需要存在对应的extern class声明
   void bindExternalClass(String id, HTExternalClass namespace) {
     if (_externClasses.containsKey(id)) {
-      throw HTErrorDefined_Runtime(id);
+      throw HTErrorDefinedRuntime(id);
     }
     _externClasses[id] = namespace;
   }
@@ -120,7 +124,7 @@ abstract class HTInterpreter {
 
   void bindExternalFunction(String id, Function function) {
     if (_externFunctions.containsKey(id)) {
-      throw HTErrorDefined_Runtime(id);
+      throw HTErrorDefinedRuntime(id);
     }
     _externFunctions[id] = function;
   }

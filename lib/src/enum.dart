@@ -14,7 +14,7 @@ class HTEnum extends HTObject with InterpreterRef {
 
   final bool isExtern;
 
-  HTEnum(this.id, this.defs, HTInterpreter interpreter, {this.isExtern = false}) {
+  HTEnum(this.id, this.defs, Interpreter interpreter, {this.isExtern = false}) {
     this.interpreter = interpreter;
   }
 
@@ -33,6 +33,8 @@ class HTEnum extends HTObject with InterpreterRef {
       final externEnumClass = interpreter.fetchExternalClass(id);
       return externEnumClass.fetch(varName);
     }
+
+    // TODO: elementAt() 方法
 
     throw HTErrorUndefined(varName);
   }

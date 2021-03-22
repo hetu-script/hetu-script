@@ -9,6 +9,7 @@ import 'ast.dart';
 import 'ast_interpreter.dart';
 import '../declaration.dart';
 import '../function.dart';
+import '../object.dart';
 
 class HTAstFunction extends HTFunction with AstInterpreterRef {
   @override
@@ -19,21 +20,28 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   final FuncDeclStmt funcStmt;
 
   HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
-      {HTNamespace? context, List<HTTypeId> typeArgs = const []}) {
+      {List<HTTypeId> typeParams = const [], HTNamespace? context})
+      : super(
+            id: funcStmt.id?.lexeme,
+            className: funcStmt.className,
+            funcType: funcStmt.funcType,
+            typeParams: typeParams,
+            // typeid:
+            isExtern: funcStmt.isExtern,
+            isConst: funcStmt.isConst,
+            isVariadic: funcStmt.isVariadic,
+            arity: funcStmt.arity) {
     this.interpreter = interpreter;
-    this.context = context;
-    funcType = funcStmt.funcType;
-    className = funcStmt.className;
-    isExtern = funcStmt.isExtern;
-    isStatic = funcStmt.isStatic;
-    isConst = funcStmt.isConst;
-    isVariadic = funcStmt.isVariadic;
 
     var paramsTypes = <HTTypeId?>[];
     for (final param in funcStmt.params) {
       paramsTypes.add(param.declType);
     }
-    typeid = HTFunctionTypeId(funcStmt.returnType, arguments: typeArgs, paramsTypes: paramsTypes);
+    typeid = HTFunctionTypeId(returnType: funcStmt.returnType, paramsTypes: paramsTypes);
+
+    if (context != null) {
+      this.context = context;
+    }
   }
 
   @override
@@ -66,7 +74,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
   @override
   dynamic call(
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}, HTInstance? instance}) {
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) {
     HTFunction.callStack.add(internalName);
 
     if (positionalArgs.length < funcStmt.arity ||
@@ -81,14 +91,12 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
         //_save = _closure;
         //assert(closure != null);
         // 函数每次在调用时，生成对应的作用域
-        final callContext = instance ?? context!;
-        if (callContext is HTInstance) {
-          closure = HTNamespace(interpreter, id: '${callContext.id}.$id', closure: callContext);
-          closure.define(HTDeclaration(HTLexicon.THIS, value: callContext, isImmutable: true));
-        } else {
-          closure = HTNamespace(interpreter, id: '$id', closure: callContext);
+        closure = HTNamespace(interpreter, closure: context);
+        if (context is HTInstance) {
+          closure.define(HTDeclaration(HTLexicon.THIS, value: context));
         }
 
+        // TODO: 参数也改成Declaration而不是DeclStmt？
         for (var i = 0; i < funcStmt.params.length; ++i) {
           var param = funcStmt.params[i];
 

@@ -8,9 +8,20 @@ import '../namespace.dart';
 import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
-import '../interpreter.dart';
+import 'bytes_funciton.dart';
+import 'vm.dart';
+import 'bytes_declaration.dart';
+import '../declaration.dart';
 
-class Compiler extends Parser {
+/// 声明空间，保存当前文件、类和函数体中包含的声明
+/// 在编译后会提到整个代码块最前
+class DeclarationBlock {
+  final funcDecls = <Uint8List>[];
+  final classDecls = <Uint8List>[];
+  final varDecls = <Uint8List>[];
+}
+
+class Compiler extends Parser with VMRef {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
   static const hetuVersionData = [0, 1, 0, 0];
@@ -19,44 +30,29 @@ class Compiler extends Parser {
   @override
   String get curFileName => _curFileName;
 
-  // Uint8List compileTokens(List<Token> tokens, [ParseStyle style = ParseStyle.library]) {}
-  late final HTNamespace _context;
+  final _constInt64 = <int>[];
+  final _constFloat64 = <double>[];
+  final _constUtf8String = <String>[];
+
+  late final DeclarationBlock _global;
+  late DeclarationBlock _curNamespace;
+
+  String? _curClassName;
 
   late bool _debugMode;
+  var _leftValueCheck = false;
 
-  // @override
-  // dynamic visitBinaryExpr(BinaryExpr expr) {
-  //   final bytesBuilder = BytesBuilder();
-
-  //   final left = _compileExpr(expr.left);
-  //   bytesBuilder.add(left);
-  //   bytesBuilder.addByte(HTOpCode.reg1);
-  //   final right = _compileExpr(expr.right);
-  //   bytesBuilder.add(right);
-  //   bytesBuilder.addByte(HTOpCode.reg2);
-
-  //   switch (expr.op.type) {
-  //     case HTLexicon.add:
-  //       bytesBuilder.addByte(HTOpCode.add);
-  //       break;
-  //     default:
-  //       bytesBuilder.addByte(HTOpCode.error);
-  //       bytesBuilder.addByte(HTErrorCode.binOp);
-  //       break;
-  //   }
-
-  //   return bytesBuilder.toBytes();
-  // }
-
-  Future<Uint8List> compile(List<Token> tokens, HTInterpreter interpreter, HTNamespace context, String fileName,
-      [ParseStyle style = ParseStyle.library, debugMode = false]) async {
-    _context = context;
+  Future<Uint8List> compile(List<Token> tokens, HTVM interpreter, String fileName,
+      [ParseStyle style = ParseStyle.module, debugMode = false]) async {
+    this.interpreter = interpreter;
     _debugMode = debugMode;
     this.tokens.clear();
     this.tokens.addAll(tokens);
     _curFileName = fileName;
 
-    final bytesBuilderCode = BytesBuilder();
+    _curNamespace = _global = DeclarationBlock();
+
+    final codeBytes = BytesBuilder();
 
     while (curTok.type != HTLexicon.endOfFile) {
       // if (stmt is ImportStmt) {
@@ -66,50 +62,63 @@ class Compiler extends Parser {
       //   _curFileName = savedFileName;
       //   interpreter.curFileName = savedFileName;
       // }
-      bytesBuilderCode.add(_parseStmt(style: style));
+      final exprStmts = _parseStmt(style: style);
+      if (style == ParseStyle.function) {
+        codeBytes.add(exprStmts);
+      }
     }
+
     _curFileName = '';
 
-    final bytesBuilderMain = BytesBuilder();
+    final mainBytes = BytesBuilder();
 
     // 河图字节码标记
-    bytesBuilderMain.add(hetuSignatureData);
+    mainBytes.addByte(HTOpCode.signature);
+    mainBytes.add(hetuSignatureData);
     // 版本号
-    bytesBuilderMain.add(hetuVersionData);
+    mainBytes.addByte(HTOpCode.version);
+    mainBytes.add(hetuVersionData);
     // 调试模式
-    bytesBuilderMain.addByte(_debugMode ? 1 : 0);
-    // 预留
-    bytesBuilderMain.addByte(0);
+    mainBytes.addByte(HTOpCode.debug);
+    mainBytes.addByte(_debugMode ? 1 : 0);
 
-    bytesBuilderMain.addByte(HTOpCode.constTable);
-
-    final constInt = _context.constInt;
-    bytesBuilderMain.add(_uint16(constInt.length));
-    for (var value in constInt) {
-      bytesBuilderMain.add(_int64(value));
+    // 添加常量表
+    mainBytes.addByte(HTOpCode.constTable);
+    mainBytes.add(_uint16(_constInt64.length));
+    for (var value in _constInt64) {
+      mainBytes.add(_int64(value));
     }
-    final constFloat = _context.constFloat;
-    bytesBuilderMain.add(_uint16(constFloat.length));
-    for (var value in constFloat) {
-      bytesBuilderMain.add(_float64(value));
+    mainBytes.add(_uint16(_constFloat64.length));
+    for (var value in _constFloat64) {
+      mainBytes.add(_float64(value));
     }
-    final constUtf8String = _context.constUtf8String;
-    bytesBuilderMain.add(_uint16(constUtf8String.length));
-    for (var value in constUtf8String) {
-      bytesBuilderMain.add(_utf8String(value));
+    mainBytes.add(_uint16(_constUtf8String.length));
+    for (var value in _constUtf8String) {
+      mainBytes.add(_utf8String(value));
     }
 
-    // the code
-    bytesBuilderMain.add(bytesBuilderCode.toBytes());
+    // 添加变量表，总是按照：函数、类、变量这个顺序
+    mainBytes.addByte(HTOpCode.declTable);
+    mainBytes.add(_uint16(_global.funcDecls.length));
+    for (var decl in _global.funcDecls) {
+      mainBytes.add(decl);
+    }
+    mainBytes.add(_uint16(_global.classDecls.length));
+    for (var decl in _global.classDecls) {
+      mainBytes.add(decl);
+    }
+    mainBytes.add(_uint16(_global.varDecls.length));
+    for (var decl in _global.varDecls) {
+      mainBytes.add(decl);
+    }
 
-    // end of file marker
-    bytesBuilderMain.addByte(HTOpCode.subReturn);
+    mainBytes.add(codeBytes.toBytes());
 
-    return bytesBuilderMain.toBytes();
+    // Return a module or a function result to interpreter.
+    mainBytes.addByte(HTOpCode.endOfExec);
+
+    return mainBytes.toBytes();
   }
-
-  /// 0 to 255
-  Uint8List _uint8(int value) => Uint8List(1)..buffer.asByteData().setUint8(0, value);
 
   /// 0 to 65,535
   Uint8List _uint16(int value) => Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
@@ -125,7 +134,7 @@ class Compiler extends Parser {
   Uint8List _shortUtf8String(String value) {
     final bytesBuilder = BytesBuilder();
     final stringData = utf8.encoder.convert(value);
-    bytesBuilder.add(_uint8(stringData.length));
+    bytesBuilder.addByte(stringData.length);
     bytesBuilder.add(stringData);
     return bytesBuilder.toBytes();
   }
@@ -138,11 +147,29 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _parseStmt({ParseStyle style = ParseStyle.library}) {
+  Uint8List _parseStmt({ParseStyle style = ParseStyle.module}) {
+    final bytesBuilder = BytesBuilder();
     // if (curTok.type == HTLexicon.newLine) advance(1);
     // switch (style) {
     //   case ParseStyle.library:
-    // final isExtern = expect([HTLexicon.EXTERNAL], consume: true, error: false);
+
+    // var isExtern = false;
+    // var isAbstract = false;
+    // var isInterface = false;
+    // var isMixin = false;
+
+    // if (HTLexicon.classPrefixs.contains(curTok.type)) {
+    //   if (curTok.type == HTLexicon.EXTERNAL) {
+    //     isExtern = true;
+    //   } else if (curTok.type == HTLexicon.ABSTRACT) {
+    //     isExtern = true;
+    //   } else if (curTok.type == HTLexicon.INTERFACE) {
+    //     isExtern = true;
+    //   } else if (curTok.type == HTLexicon.MIXIN) {
+    //     isExtern = true;
+    //   }
+    // }
+
     // // import语句
     // if (expect([HTLexicon.IMPORT])) {
     //   return _parseImportStmt();
@@ -169,22 +196,31 @@ class Compiler extends Parser {
     // }
     // case ParseStyle.function:
     // 函数块中不能出现extern或者static关键字的声明
-    // var变量声明
-    // if (expect([HTLexicon.VAR])) {
-    //   return _parseVarStmt(isDynamic: true);
-    // } // let
-    // else if (expect([HTLexicon.LET])) {
-    //   return _parseVarStmt();
-    // } // const
-    // else if (expect([HTLexicon.CONST])) {
-    //   return _parseVarStmt(isImmutable: true);
-    // } // 函数声明
-    // else if (expect([HTLexicon.FUN])) {
-    //   return _parseFuncDeclaration(FunctionType.normal);
-    // } // 赋值语句
-    // else if (expect([HTLexicon.identifier, HTLexicon.assign])) {
-    //   return _parseAssignStmt();
-    // } //If语句
+    switch (curTok.type) {
+      // 变量声明
+      case HTLexicon.VAR:
+        final decl = _parseVarStmt();
+        _curNamespace.varDecls.add(decl);
+        break;
+      case HTLexicon.LET:
+        final decl = _parseVarStmt(typeInference: true);
+        _curNamespace.varDecls.add(decl);
+        break;
+      case HTLexicon.CONST:
+        final decl = _parseVarStmt(typeInference: true, isImmutable: true);
+        _curNamespace.varDecls.add(decl);
+        break;
+      // 函数声明
+      case HTLexicon.FUN:
+        final decl = _parseFuncDeclaration();
+        _curNamespace.funcDecls.add(decl);
+        break;
+      case HTLexicon.RETURN:
+        return _parseReturnStmt();
+      // 表达式
+      default:
+        return _parseExprStmt();
+    } //If语句
     // else if (expect([HTLexicon.IF])) {
     //   return _parseIfStmt();
     // } // While语句
@@ -200,13 +236,6 @@ class Compiler extends Parser {
     // else if (expect([HTLexicon.CONTINUE])) {
     //   return ContinueStmt(advance(1));
     // } // 返回语句
-    // else if (curTok.type == HTLexicon.RETURN) {
-    //   return _parseReturnStmt();
-    // }
-    // 表达式
-    // else {
-    return _parseExprStmt();
-    // }
     // case ParseStyle.klass:
     // final isExtern = expect([HTLexicon.EXTERNAL], consume: true, error: false);
     // final isStatic = expect([HTLexicon.STATIC], consume: true, error: false);
@@ -264,6 +293,8 @@ class Compiler extends Parser {
     //   throw HTErrorUnexpected(curTok.lexeme);
     // }
     // }
+
+    return bytesBuilder.toBytes();
   }
 
   // Uint8List _parseTypeId() {
@@ -276,7 +307,7 @@ class Compiler extends Parser {
   //   //     type_args.add(_parseTypeId());
   //   //     expect([HTLexicon.comma], consume: true, error: false);
   //   //   }
-  //   //   expect([HTLexicon.angleRight], consume: true);
+  //   //   match(HTLexicon.angleRight);
   //   // }
 
   //   // return HTTypeId(type_name, arguments: type_args);
@@ -294,28 +325,22 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _literalnull() {
+  Uint8List _localNull() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTOpRandType.literalNull);
-    if (_debugMode) {
-      bytesBuilder.add(_debugInfo());
-    }
+    bytesBuilder.addByte(HTValueTypeCode.NULL);
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _literalbool(bool value) {
+  Uint8List _localBool(bool value) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTOpRandType.literalBoolean);
+    bytesBuilder.addByte(HTValueTypeCode.boolean);
     bytesBuilder.addByte(value ? 1 : 0);
-    if (_debugMode) {
-      bytesBuilder.add(_debugInfo());
-    }
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _literal(int constIndex, int type) {
+  Uint8List _localConst(int constIndex, int type) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(type);
@@ -326,10 +351,10 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _symbol(String id) {
+  Uint8List _localSymbol(String id) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTOpRandType.symbol);
+    bytesBuilder.addByte(HTValueTypeCode.symbol);
     bytesBuilder.add(_shortUtf8String(id));
     if (_debugMode) {
       bytesBuilder.add(_debugInfo());
@@ -337,25 +362,71 @@ class Compiler extends Parser {
     return bytesBuilder.toBytes();
   }
 
-  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
-  Uint8List _parseExpr() => _parseAssignmentExpr();
+  Uint8List _localGroup(Uint8List innerExpr) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTValueTypeCode.group);
+    // bytesBuilder.add(_uint16(innerExpr.length + 1));
+    bytesBuilder.add(innerExpr);
+    bytesBuilder.addByte(HTOpCode.endOfExec);
+    return bytesBuilder.toBytes();
+  }
 
+  Uint8List _localList(List<Uint8List> exprList) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTValueTypeCode.list);
+    bytesBuilder.add(_uint16(exprList.length));
+    for (final expr in exprList) {
+      bytesBuilder.add(expr);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
+    bytesBuilder.addByte(HTOpCode.endOfExec);
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _localMap(Map<Uint8List, Uint8List> exprMap) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTValueTypeCode.map);
+    bytesBuilder.add(_uint16(exprMap.length));
+    for (final key in exprMap.keys) {
+      bytesBuilder.add(key);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+      bytesBuilder.add(exprMap[key]!);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
+    bytesBuilder.addByte(HTOpCode.endOfExec);
+    return bytesBuilder.toBytes();
+  }
+
+  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
+  ///
   /// 赋值 = ，优先级 1，右合并
   ///
   /// 需要判断嵌套赋值、取属性、取下标的叠加
-  Uint8List _parseAssignmentExpr() {
+  ///
+  /// [endOfExec] 指是否在解析完表达式后中断执行，这样可以返回当前表达式的值
+  Uint8List _parseExpr({bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
+    _leftValueCheck = true;
     final left = _parseLogicalOrExpr();
     bytesBuilder.add(left);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(0);
-
-    while (HTLexicon.assignments.contains(curTok.type)) {
-      final op = advance(1).type;
-      final right = _parseAssignmentExpr();
-      bytesBuilder.add(right);
+    if (HTLexicon.assignments.contains(curTok.type)) {
+      if (_leftValueCheck) {
+        bytesBuilder.addByte(HTOpCode.leftValue);
+      } else {
+        throw HTErrorInvalidLeftValueCompiler();
+      }
+      final right = BytesBuilder();
+      late String op;
+      while (HTLexicon.assignments.contains(curTok.type)) {
+        op = advance(1).type;
+        right.add(_parseExpr()); // 这里需要右合并，因此没有降到下一级
+      }
+      bytesBuilder.add(right.toBytes());
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(1);
+      bytesBuilder.addByte(0);
       switch (op) {
         case HTLexicon.assign:
           bytesBuilder.addByte(HTOpCode.assign);
@@ -373,9 +444,10 @@ class Compiler extends Parser {
           bytesBuilder.addByte(HTOpCode.assignSubtract);
           break;
       }
-      bytesBuilder.add([0, 1]); // 寄存器 0 += 寄存器 1
-
-      throw HTErrorInvalidLeftValue(op.lexeme);
+      bytesBuilder.add([0]);
+    }
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
     }
 
     return bytesBuilder.toBytes();
@@ -386,16 +458,18 @@ class Compiler extends Parser {
     final bytesBuilder = BytesBuilder();
     final left = _parseLogicalAndExpr();
     bytesBuilder.add(left);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(2);
-    while (curTok.type == HTLexicon.logicalOr) {
-      advance(1); // or operator
-      final right = _parseLogicalAndExpr();
-      bytesBuilder.add(right);
+    if (curTok.type == HTLexicon.logicalOr) {
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(3);
-      bytesBuilder.addByte(HTOpCode.logicalOr);
-      bytesBuilder.add([2, 3]);
+      bytesBuilder.addByte(1);
+      while (curTok.type == HTLexicon.logicalOr) {
+        advance(1); // or operator
+        final right = _parseLogicalAndExpr();
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(2);
+        bytesBuilder.addByte(HTOpCode.logicalOr);
+        bytesBuilder.add([1, 2]);
+      }
     }
     return bytesBuilder.toBytes();
   }
@@ -405,16 +479,18 @@ class Compiler extends Parser {
     final bytesBuilder = BytesBuilder();
     final left = _parseEqualityExpr();
     bytesBuilder.add(left);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(4);
-    while (curTok.type == HTLexicon.logicalAnd) {
-      advance(1); // and operator
-      final right = _parseEqualityExpr();
-      bytesBuilder.add(right);
+    if (curTok.type == HTLexicon.logicalAnd) {
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(5);
-      bytesBuilder.addByte(HTOpCode.logicalAnd);
-      bytesBuilder.add([4, 5]);
+      bytesBuilder.addByte(3);
+      while (curTok.type == HTLexicon.logicalAnd) {
+        advance(1); // and operator
+        final right = _parseEqualityExpr();
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(4);
+        bytesBuilder.addByte(HTOpCode.logicalAnd);
+        bytesBuilder.add([3, 4]);
+      }
     }
     return bytesBuilder.toBytes();
   }
@@ -426,12 +502,12 @@ class Compiler extends Parser {
     bytesBuilder.add(left);
     if (HTLexicon.equalitys.contains(curTok.type)) {
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(6);
+      bytesBuilder.addByte(5);
       final op = advance(1).type;
       final right = _parseRelationalExpr();
       bytesBuilder.add(right);
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(7);
+      bytesBuilder.addByte(6);
       switch (op) {
         case HTLexicon.equal:
           bytesBuilder.addByte(HTOpCode.equal);
@@ -440,7 +516,7 @@ class Compiler extends Parser {
           bytesBuilder.addByte(HTOpCode.notEqual);
           break;
       }
-      bytesBuilder.add([6, 7]);
+      bytesBuilder.add([5, 6]);
     }
     return bytesBuilder.toBytes();
   }
@@ -452,12 +528,12 @@ class Compiler extends Parser {
     bytesBuilder.add(left);
     if (HTLexicon.relationals.contains(curTok.type)) {
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(8);
+      bytesBuilder.addByte(7);
       final op = advance(1).type;
       final right = _parseAdditiveExpr();
       bytesBuilder.add(right);
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(9);
+      bytesBuilder.addByte(8);
       switch (op) {
         case HTLexicon.lesser:
           bytesBuilder.addByte(HTOpCode.lesser);
@@ -472,7 +548,7 @@ class Compiler extends Parser {
           bytesBuilder.addByte(HTOpCode.greaterOrEqual);
           break;
       }
-      bytesBuilder.add([8, 9]);
+      bytesBuilder.add([7, 8]);
     }
     return bytesBuilder.toBytes();
   }
@@ -482,25 +558,26 @@ class Compiler extends Parser {
     final bytesBuilder = BytesBuilder();
     final left = _parseMultiplicativeExpr();
     bytesBuilder.add(left);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(10);
-    while (HTLexicon.additives.contains(curTok.type)) {
-      final op = advance(1).type;
-      final right = _parseMultiplicativeExpr();
-      bytesBuilder.add(right);
+    if (HTLexicon.additives.contains(curTok.type)) {
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(11);
-      switch (op) {
-        case HTLexicon.add:
-          bytesBuilder.addByte(HTOpCode.add);
-          break;
-        case HTLexicon.subtract:
-          bytesBuilder.addByte(HTOpCode.subtract);
-          break;
+      bytesBuilder.addByte(9);
+      while (HTLexicon.additives.contains(curTok.type)) {
+        final op = advance(1).type;
+        final right = _parseMultiplicativeExpr();
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(10);
+        switch (op) {
+          case HTLexicon.add:
+            bytesBuilder.addByte(HTOpCode.add);
+            break;
+          case HTLexicon.subtract:
+            bytesBuilder.addByte(HTOpCode.subtract);
+            break;
+        }
+        bytesBuilder.add([9, 10]); // 寄存器 0 = 寄存器 1 - 寄存器 2
       }
-      bytesBuilder.add([10, 11]); // 寄存器 0 = 寄存器 1 - 寄存器 2
     }
-
     return bytesBuilder.toBytes();
   }
 
@@ -509,28 +586,29 @@ class Compiler extends Parser {
     final bytesBuilder = BytesBuilder();
     final left = _parseUnaryPrefixExpr();
     bytesBuilder.add(left);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(12);
-    while (HTLexicon.multiplicatives.contains(curTok.type)) {
-      final op = advance(1).type;
-      final right = _parseUnaryPrefixExpr();
-      bytesBuilder.add(right);
+    if (HTLexicon.multiplicatives.contains(curTok.type)) {
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(13);
-      switch (op) {
-        case HTLexicon.multiply:
-          bytesBuilder.addByte(HTOpCode.multiply);
-          break;
-        case HTLexicon.devide:
-          bytesBuilder.addByte(HTOpCode.devide);
-          break;
-        case HTLexicon.modulo:
-          bytesBuilder.addByte(HTOpCode.modulo);
-          break;
+      bytesBuilder.addByte(11);
+      while (HTLexicon.multiplicatives.contains(curTok.type)) {
+        final op = advance(1).type;
+        final right = _parseUnaryPrefixExpr();
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(12);
+        switch (op) {
+          case HTLexicon.multiply:
+            bytesBuilder.addByte(HTOpCode.multiply);
+            break;
+          case HTLexicon.devide:
+            bytesBuilder.addByte(HTOpCode.devide);
+            break;
+          case HTLexicon.modulo:
+            bytesBuilder.addByte(HTOpCode.modulo);
+            break;
+        }
+        bytesBuilder.add([11, 12]); // 寄存器 0 = 寄存器 1 + 寄存器 2
       }
-      bytesBuilder.add([12, 13]); // 寄存器 0 = 寄存器 1 + 寄存器 2
     }
-
     return bytesBuilder.toBytes();
   }
 
@@ -543,7 +621,7 @@ class Compiler extends Parser {
       final value = _parseUnaryPostfixExpr();
       bytesBuilder.add(value);
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(14);
+      bytesBuilder.addByte(13);
       switch (op) {
         case HTLexicon.negative:
           bytesBuilder.addByte(HTOpCode.negative);
@@ -558,7 +636,7 @@ class Compiler extends Parser {
           bytesBuilder.addByte(HTOpCode.preDecrement);
           break;
       }
-      bytesBuilder.addByte(14);
+      bytesBuilder.addByte(13);
     } else {
       final value = _parseUnaryPostfixExpr();
       bytesBuilder.add(value);
@@ -569,130 +647,132 @@ class Compiler extends Parser {
   /// 后缀 e., e[], e(), e++, e-- 优先级 16，右合并
   Uint8List _parseUnaryPostfixExpr() {
     final bytesBuilder = BytesBuilder();
-    final value = _parsePrimaryExpr();
+    final value = _parseLocalExpr();
     bytesBuilder.add(value);
     bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(15);
-    while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
-      final op = advance(1).type;
-      switch (op) {
-        case HTLexicon.memberGet:
-          break;
-        case HTLexicon.subGet:
-          break;
-        case HTLexicon.call:
-          break;
-        case HTLexicon.postIncrement:
-          bytesBuilder.addByte(HTOpCode.postIncrement);
-          bytesBuilder.addByte(15);
-          break;
-        case HTLexicon.postDecrement:
-          bytesBuilder.addByte(HTOpCode.postDecrement);
-          bytesBuilder.addByte(15);
-          break;
+    bytesBuilder.addByte(14);
+    if (HTLexicon.unaryPostfixs.contains(curTok.type)) {
+      while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
+        final op = advance(1).type;
+        switch (op) {
+          case HTLexicon.memberGet:
+            break;
+          case HTLexicon.subGet:
+            break;
+          case HTLexicon.call:
+            final positionalArgs = <Uint8List>[];
+            final namedArgs = <String, Uint8List>{};
+            while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
+              if (expect([HTLexicon.identifier, HTLexicon.colon], consume: false)) {
+                final name = advance(2).lexeme;
+                namedArgs[name] = _parseExpr(endOfExec: true);
+              } else {
+                positionalArgs.add(_parseExpr(endOfExec: true));
+              }
+              if (curTok.type != HTLexicon.roundRight) {
+                match(HTLexicon.comma);
+              }
+            }
+            match(HTLexicon.roundRight);
+            bytesBuilder.addByte(HTOpCode.call);
+            bytesBuilder.addByte(14);
+            bytesBuilder.addByte(positionalArgs.length);
+            for (var i = 0; i < positionalArgs.length; ++i) {
+              bytesBuilder.add(positionalArgs[i]);
+            }
+            bytesBuilder.addByte(namedArgs.length);
+            for (final name in namedArgs.keys) {
+              bytesBuilder.add(_shortUtf8String(name));
+              bytesBuilder.add(namedArgs[name]!);
+            }
+            break;
+          case HTLexicon.postIncrement:
+            bytesBuilder.addByte(HTOpCode.postIncrement);
+            bytesBuilder.addByte(14);
+            break;
+          case HTLexicon.postDecrement:
+            bytesBuilder.addByte(HTOpCode.postDecrement);
+            bytesBuilder.addByte(14);
+            break;
+        }
+        //   } else if (expect([HTLexicon.memberGet], consume: true, error: false)) {
+        //     final name = match(HTLexicon.identifier);
+        //     expr = MemberGetExpr(expr, name);
+        //   } else if (expect([HTLexicon.subGet], consume: true, error: false)) {
+        //     var index_expr = _parseExpr();
+        //     match(HTLexicon.squareRight);
+        //     expr = SubGetExpr(expr, index_expr);
+        //   } else {
+        //     break;
+        //   }
       }
-
-      //   if (expect([HTLexicon.call], consume: true, error: false)) {
-      //     var positionalArgs = <ASTNode>[];
-      //     var namedArgs = <String, ASTNode>{};
-
-      //     while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
-      //       final arg = _parseExpr();
-      //       if (expect([HTLexicon.colon], consume: false)) {
-      //         if (arg is SymbolExpr) {
-      //           advance(1);
-      //           var value = _parseExpr();
-      //           namedArgs[arg.id.lexeme] = value;
-      //         } else {
-      //           throw HTErrorUnexpected(
-      //             curTok.lexeme,
-      //           );
-      //         }
-      //       } else {
-      //         positionalArgs.add(arg);
-      //       }
-
-      //       if (curTok.type != HTLexicon.roundRight) {
-      //         expect([HTLexicon.comma], consume: true);
-      //       }
-      //     }
-      //     expect([HTLexicon.roundRight], consume: true);
-      //     expr = CallExpr(expr, positionalArgs, namedArgs);
-      //   } else if (expect([HTLexicon.memberGet], consume: true, error: false)) {
-      //     final name = match(HTLexicon.identifier);
-      //     expr = MemberGetExpr(expr, name);
-      //   } else if (expect([HTLexicon.subGet], consume: true, error: false)) {
-      //     var index_expr = _parseExpr();
-      //     expect([HTLexicon.squareRight], consume: true);
-      //     expr = SubGetExpr(expr, index_expr);
-      //   } else {
-      //     break;
-      //   }
     }
     return bytesBuilder.toBytes();
   }
 
-  /// 只有一个Token的简单表达式
-  Uint8List _parsePrimaryExpr() {
+  /// 优先级最高的表达式
+  Uint8List _parseLocalExpr() {
     switch (curTok.type) {
       case HTLexicon.NULL:
         advance(1);
-        return _literalnull();
+        return _localNull();
       case HTLexicon.TRUE:
         advance(1);
-        return _literalbool(true);
+        return _localBool(true);
       case HTLexicon.FALSE:
         advance(1);
-        return _literalbool(false);
+        return _localBool(false);
       case HTLexicon.integer:
-        final index = _context.addConstInt(curTok.literal);
+        _constInt64.add(curTok.literal);
+        final index = _constInt64.length - 1;
         advance(1);
-        return _literal(index, HTOpRandType.literalInt64);
+        return _localConst(index, HTValueTypeCode.int64);
       case HTLexicon.float:
-        final index = _context.addConstFloat(curTok.literal);
+        _constFloat64.add(curTok.literal);
+        final index = _constInt64.length - 1;
         advance(1);
-        return _literal(index, HTOpRandType.literalFloat64);
+        return _localConst(index, HTValueTypeCode.float64);
       case HTLexicon.string:
-        final index = _context.addConstString(curTok.literal);
+        _constUtf8String.add(curTok.literal);
+        final index = _constInt64.length - 1;
         advance(1);
-        return _literal(index, HTOpRandType.literalUtf8String);
+        return _localConst(index, HTValueTypeCode.utf8String);
       case HTLexicon.identifier:
+        return _localSymbol(advance(1).lexeme);
+      case HTLexicon.roundLeft:
         advance(1);
-        return _symbol(curTok.literal);
+        var innerExpr = _parseExpr();
+        match(HTLexicon.roundRight);
+        return _localGroup(innerExpr);
+      case HTLexicon.squareLeft:
+        advance(1);
+        final exprList = <Uint8List>[];
+        while (curTok.type != HTLexicon.squareRight) {
+          exprList.add(_parseExpr());
+          if (curTok.type != HTLexicon.squareRight) {
+            match(HTLexicon.comma);
+          }
+        }
+        match(HTLexicon.squareRight);
+        return _localList(exprList);
+      case HTLexicon.curlyLeft:
+        advance(1);
+        var exprMap = <Uint8List, Uint8List>{};
+        while (curTok.type != HTLexicon.curlyRight) {
+          var key = _parseExpr();
+          match(HTLexicon.colon);
+          var value = _parseExpr();
+          exprMap[key] = value;
+          if (curTok.type != HTLexicon.curlyRight) {
+            match(HTLexicon.comma);
+          }
+        }
+        match(HTLexicon.curlyRight);
+        return _localMap(exprMap);
+
       // case HTLexicon.THIS:
       //   advance(1);
       //   return ThisExpr(peek(-1));
-      // case HTLexicon.roundLeft:
-      //   advance(1);
-      //   var innerExpr = _parseExpr();
-      //   expect([HTLexicon.roundRight], consume: true);
-      //   return GroupExpr(innerExpr);
-      // case HTLexicon.squareLeft:
-      //   final line = curTok.line;
-      //   final column = advance(1).column;
-      //   var list_expr = <ASTNode>[];
-      //   while (curTok.type != HTLexicon.squareRight) {
-      //     list_expr.add(_parseExpr());
-      //     if (curTok.type != HTLexicon.squareRight) {
-      //       expect([HTLexicon.comma], consume: true);
-      //     }
-      //   }
-      //   expect([HTLexicon.squareRight], consume: true);
-      //   return LiteralVectorExpr(_curFileName, line, column, list_expr);
-      // case HTLexicon.curlyLeft:
-      //   final line = curTok.line;
-      //   final column = advance(1).column;
-      //   var map_expr = <ASTNode, ASTNode>{};
-      //   while (curTok.type != HTLexicon.curlyRight) {
-      //     var key_expr = _parseExpr();
-      //     expect([HTLexicon.colon], consume: true);
-      //     var value_expr = _parseExpr();
-      //     expect([HTLexicon.comma], consume: true, error: false);
-      //     map_expr[key_expr] = value_expr;
-      //   }
-      //   expect([HTLexicon.curlyRight], consume: true);
-      //   return LiteralDictExpr(_curFileName, line, column, map_expr);
-
       // case HTLexicon.FUN:
       //   return _parseFuncDeclaration(FunctionType.literal);
 
@@ -706,18 +786,38 @@ class Compiler extends Parser {
   // //   return bytesBuilder.toBytes();
   // // }
 
-  // // Uint8List _parseBlockStmt({ParseStyle style = ParseStyle.library}) {
-  // //   final bytesBuilder = BytesBuilder();
-  // //   return bytesBuilder.toBytes();
-  // // }
+  Uint8List _parseBlockStmt({ParseStyle style = ParseStyle.function}) {
+    match(HTLexicon.curlyLeft);
+    final bytesBuilder = BytesBuilder();
+    final declsBytesBuilder = BytesBuilder();
+    final blockBytesBuilder = BytesBuilder();
+    final savedDeclBlock = _curNamespace;
+    _curNamespace = DeclarationBlock();
+    while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+      blockBytesBuilder.add(_parseStmt());
+    }
+    // 添加变量表，总是按照：函数、类、变量这个顺序
+    declsBytesBuilder.addByte(HTOpCode.declTable);
+    declsBytesBuilder.add(_uint16(_curNamespace.funcDecls.length));
+    for (var decl in _curNamespace.funcDecls) {
+      declsBytesBuilder.add(decl);
+    }
+    declsBytesBuilder.add(_uint16(_curNamespace.classDecls.length));
+    for (var decl in _curNamespace.classDecls) {
+      declsBytesBuilder.add(decl);
+    }
+    declsBytesBuilder.add(_uint16(_curNamespace.varDecls.length));
+    for (var decl in _curNamespace.varDecls) {
+      declsBytesBuilder.add(decl);
+    }
+    _curNamespace = savedDeclBlock;
+    match(HTLexicon.curlyRight);
+    bytesBuilder.add(declsBytesBuilder.toBytes());
+    bytesBuilder.add(blockBytesBuilder.toBytes());
+    return bytesBuilder.toBytes();
+  }
 
   // Uint8List _parseImportStmt() {
-  //   final bytesBuilder = BytesBuilder();
-  //   return bytesBuilder.toBytes();
-  // }
-
-  // /// 变量声明语句
-  // Uint8List _parseVarStmt() {
   //   final bytesBuilder = BytesBuilder();
   //   return bytesBuilder.toBytes();
   // }
@@ -732,14 +832,23 @@ class Compiler extends Parser {
   Uint8List _parseExprStmt() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseExpr());
-    bytesBuilder.addByte(HTOpCode.endOfStatement);
+    bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
 
-  // Uint8List _parseReturnStmt() {
-  //   final bytesBuilder = BytesBuilder();
-  //   return bytesBuilder.toBytes();
-  // }
+  Uint8List _parseReturnStmt() {
+    advance(1); // keyword
+
+    final bytesBuilder = BytesBuilder();
+    if (curTok.type != HTLexicon.curlyRight &&
+        curTok.type != HTLexicon.semicolon &&
+        curTok.type != HTLexicon.endOfFile) {
+      bytesBuilder.add(_parseExpr(endOfExec: true));
+    }
+    expect([HTLexicon.semicolon], consume: true);
+
+    return bytesBuilder.toBytes();
+  }
 
   // Uint8List _parseIfStmt() {
   //   final bytesBuilder = BytesBuilder();
@@ -757,15 +866,192 @@ class Compiler extends Parser {
   //   return bytesBuilder.toBytes();
   // }
 
-  // Uint8List _parseParameters() {
-  //   final bytesBuilder = BytesBuilder();
-  //   return bytesBuilder.toBytes();
-  // }
+  /// 变量声明语句
+  Uint8List _parseVarStmt(
+      {bool typeInference = false,
+      bool isExtern = false,
+      bool isImmutable = false,
+      bool isMember = false,
+      bool isStatic = false}) {
+    advance(1);
+    final id = match(HTLexicon.identifier).lexeme;
 
-  // Uint8List _parseFuncDeclaration(FunctionType functype, {bool isExtern = false, bool isStatic = false}) {
-  //   final bytesBuilder = BytesBuilder();
-  //   return bytesBuilder.toBytes();
-  // }
+    final bytesBuilder = BytesBuilder();
+    // bytesBuilder.addByte(HTOpCode.varDecl);
+    bytesBuilder.add(_shortUtf8String(id));
+    bytesBuilder.addByte(typeInference ? 1 : 0);
+    bytesBuilder.addByte(isExtern ? 1 : 0);
+    bytesBuilder.addByte(isImmutable ? 1 : 0);
+    bytesBuilder.addByte(isMember ? 1 : 0);
+    bytesBuilder.addByte(isStatic ? 1 : 0);
+
+    // var decl_type;
+    // if (expect([HTLexicon.colon], consume: true, error: false)) {
+    //   decl_type = _parseTypeId();
+    // }
+
+    if (expect([HTLexicon.assign], consume: true)) {
+      final initializer = _parseExpr(endOfExec: true);
+      bytesBuilder.addByte(1);
+      bytesBuilder.add(_uint16(initializer.length));
+      bytesBuilder.add(initializer);
+    } else {
+      bytesBuilder.addByte(0);
+    }
+    // 语句结尾
+    expect([HTLexicon.semicolon], consume: true);
+
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _parseFuncDeclaration(
+      {FunctionType funcType = FunctionType.normal,
+      bool isExtern = false,
+      bool isStatic = false,
+      bool isConst = false}) {
+    advance(1);
+    String? id;
+    if (curTok.type == HTLexicon.identifier) {
+      id = advance(1).lexeme;
+    }
+
+    final funcBytesBuilder = BytesBuilder();
+    if (id != null) {
+      // funcBytesBuilder.addByte(HTOpCode.funcDecl);
+      funcBytesBuilder.add(_shortUtf8String(id));
+      funcBytesBuilder.addByte(funcType.index);
+      funcBytesBuilder.addByte(isExtern ? 1 : 0);
+      funcBytesBuilder.addByte(isStatic ? 1 : 0);
+      funcBytesBuilder.addByte(isConst ? 1 : 0);
+    } else {
+      funcBytesBuilder.addByte(HTOpCode.local);
+      funcBytesBuilder.addByte(HTValueTypeCode.function);
+    }
+
+    var isFuncVariadic = false;
+    var arity = 0;
+    var paramDecls = <Uint8List>[];
+
+    if (funcType != FunctionType.getter && expect([HTLexicon.roundLeft], consume: true)) {
+      var isOptional = false;
+      var isNamed = false;
+      while ((curTok.type != HTLexicon.roundRight) &&
+          (curTok.type != HTLexicon.squareRight) &&
+          (curTok.type != HTLexicon.curlyRight) &&
+          (curTok.type != HTLexicon.endOfFile)) {
+        // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
+        if (!isOptional) {
+          isOptional = expect([HTLexicon.squareLeft], consume: true);
+          if (!isOptional && !isNamed) {
+            //检查命名参数，根据是否有花括号判断
+            isNamed = expect([HTLexicon.curlyLeft], consume: true);
+          }
+        }
+
+        var isVariadic = false;
+        if (!isNamed) {
+          isVariadic = expect([HTLexicon.varargs], consume: true);
+        }
+
+        if (!isOptional && !isNamed && !isVariadic) {
+          ++arity;
+        }
+
+        final paramBytesBuilder = BytesBuilder();
+        var paramId = match(HTLexicon.identifier).lexeme;
+        paramBytesBuilder.add(_shortUtf8String(paramId));
+        paramBytesBuilder.addByte(isOptional ? 1 : 0);
+        paramBytesBuilder.addByte(isNamed ? 1 : 0);
+        paramBytesBuilder.addByte(isVariadic ? 1 : 0);
+
+        // HTTypeId? declType;
+        // if (expect([HTLexicon.colon], consume: true, error: false)) {
+        //   declType = _parseTypeId();
+        // }
+
+        Uint8List? initializer;
+        //参数默认值
+        if ((isOptional || isNamed) && (expect([HTLexicon.assign], consume: true))) {
+          initializer = _parseExpr();
+          paramBytesBuilder.addByte(1); // bool，表示有初始化表达式
+          paramBytesBuilder.add(_uint16(initializer.length + 1));
+          paramBytesBuilder.add(initializer);
+        } else {
+          paramBytesBuilder.addByte(0);
+        }
+        paramDecls.add(paramBytesBuilder.toBytes());
+
+        // paramDecls.add(HTBytesParamDecl(paramId, isVariadic: isVariadic, isOptional: isOptional, isNamed: isNamed));
+
+        if (curTok.type != HTLexicon.squareRight &&
+            curTok.type != HTLexicon.curlyRight &&
+            curTok.type != HTLexicon.roundRight) {
+          match(HTLexicon.comma);
+        }
+
+        if (isVariadic) {
+          isFuncVariadic = true;
+          break;
+        }
+      }
+
+      if (isOptional) {
+        match(HTLexicon.squareRight);
+      } else if (isNamed) {
+        match(HTLexicon.curlyRight);
+      }
+
+      match(HTLexicon.roundRight);
+
+      // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
+      if ((funcType == FunctionType.setter) && (arity != 1)) {
+        throw HTErrorSetter();
+      }
+    }
+
+    funcBytesBuilder.addByte(isFuncVariadic ? 1 : 0);
+
+    // var return_type = HTTypeId.ANY;
+    // if ((funcType != FunctionType.constructor) && (expect([HTLexicon.colon], consume: true, error: false))) {
+    //   return_type = _parseTypeId();
+    // }
+
+    funcBytesBuilder.addByte(arity);
+    funcBytesBuilder.addByte(paramDecls.length); // max 255
+    for (var decl in paramDecls) {
+      funcBytesBuilder.add(decl);
+    }
+
+    // 处理函数定义部分的语句块
+    if (curTok.type == HTLexicon.curlyLeft) {
+      funcBytesBuilder.addByte(1); // bool: has definition
+      final body = _parseBlockStmt();
+      funcBytesBuilder.add(_uint16(body.length)); // definition bytes length
+      funcBytesBuilder.add(body);
+    } else {
+      funcBytesBuilder.addByte(0); // bool: has no definition
+    }
+
+    // final func = HTBytesFunction(
+    //   interpreter,
+    //   id: id,
+    //   className: _curClassName,
+    //   funcType: funcType,
+    //   paramDecls: paramDecls,
+    //   isExtern: isExtern,
+    //   isStatic: isStatic,
+    //   // isConst: isConst,
+    //   isVariadic: isVariadic,
+    //   context: _context,
+    // );
+    // if (func.id != null) {
+    //   _context.define(HTDeclaration(id!, value: func, declType: func.typeid, isImmutable: true));
+    // }
+
+    expect([HTLexicon.semicolon], consume: true);
+
+    return funcBytesBuilder.toBytes();
+  }
 
   // Uint8List _parseClassDeclStmt({bool isExtern = false}) {
   //   final bytesBuilder = BytesBuilder();
