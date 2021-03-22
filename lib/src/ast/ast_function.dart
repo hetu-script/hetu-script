@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/object.dart';
+
 import '../class.dart';
 import '../namespace.dart';
 import '../errors.dart';
@@ -69,7 +71,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
-      throw HTErrorArity(id, positionalArgs.length, funcStmt.arity);
+      throw HTErrorArity(internalName, positionalArgs.length, funcStmt.arity);
     }
 
     dynamic result;
@@ -148,7 +150,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
       HTFunction.callStack.removeLast();
 
-      if (returnValue is NullThrownError) return null;
+      if (returnValue is NullThrownError || returnValue == HTObject.NULL) return null;
 
       //_closure = _save;
       return returnValue;
