@@ -1,6 +1,6 @@
 import '../plugin/errorHandler.dart';
 import '../plugin/importHandler.dart';
-import '../extern_class.dart';
+import '../extern_function.dart';
 import '../errors.dart';
 import 'ast.dart';
 import '../type.dart';
@@ -110,7 +110,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     HTNamespace? library_namespace;
     if ((libName != null) && (libName != HTLexicon.global)) {
       library_namespace = HTNamespace(this, id: libName, closure: global);
-      global.define(HTDeclaration(libName, value: library_namespace, declType: HTTypeId.namespace, isImmutable: true));
+      global.define(HTDeclaration(libName, value: library_namespace, declType: HTTypeId.namespace));
     }
 
     result = eval(module.content,
@@ -481,7 +481,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
           if (klass is HTClass) {
             if (!klass.isExtern) {
               // 命名构造函数
-              return klass.createInstance(this, expr.line, expr.column,
+              return klass.createInstance(
                   constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
             } else {
               // 外部命名构造函数
@@ -520,8 +520,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     } else if (callee is HTClass) {
       if (!callee.isExtern) {
         // 默认构造函数
-        return callee.createInstance(this, expr.line, expr.column,
-            positionalArgs: positionalArgs, namedArgs: namedArgs);
+        return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else {
         // 外部默认构造函数
         final externClass = fetchExternalClass(callee.id);
@@ -795,7 +794,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     curColumn = stmt.column;
     final func = HTAstFunction(stmt, this, context: curNamespace);
     if (stmt.id != null) {
-      curNamespace.define(HTDeclaration(stmt.id!.lexeme, value: func, declType: func.typeid, isImmutable: true));
+      curNamespace.define(HTDeclaration(stmt.id!.lexeme, value: func, declType: func.typeid));
     }
     return func;
   }
@@ -817,7 +816,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     final klass = HTClass(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: curNamespace);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curNamespace.define(HTDeclaration(stmt.id.lexeme, value: klass, declType: HTTypeId.CLASS, isImmutable: true));
+    curNamespace.define(HTDeclaration(stmt.id.lexeme, value: klass, declType: HTTypeId.CLASS));
 
     var save = curNamespace;
     curNamespace = klass;
@@ -853,20 +852,16 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       HTFunction func;
       if (method.isStatic) {
         func = HTAstFunction(method, this, context: klass);
-        klass.define(
-            HTDeclaration(method.internalName,
-                value: func, declType: func.typeid, isExtern: method.isExtern, isImmutable: true),
+        klass.define(HTDeclaration(method.internalName, value: func, declType: func.typeid, isExtern: method.isExtern),
             override: true);
       } else if (method.funcType == FunctionType.constructor) {
         func = HTAstFunction(method, this);
-        klass.define(
-            HTDeclaration(method.internalName,
-                value: func, declType: func.typeid, isExtern: method.isExtern, isImmutable: true),
+        klass.define(HTDeclaration(method.internalName, value: func, declType: func.typeid, isExtern: method.isExtern),
             override: true);
       } else {
         func = HTAstFunction(method, this);
-        klass.defineInInstance(HTDeclaration(method.internalName,
-            value: func, declType: func.typeid, isExtern: method.isExtern, isImmutable: true));
+        klass.defineInInstance(
+            HTDeclaration(method.internalName, value: func, declType: func.typeid, isExtern: method.isExtern));
       }
     }
 
@@ -899,6 +894,6 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
 
     final enumClass = HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
 
-    curNamespace.define(HTDeclaration(stmt.id.lexeme, value: enumClass, declType: HTTypeId.ENUM, isImmutable: true));
+    curNamespace.define(HTDeclaration(stmt.id.lexeme, value: enumClass, declType: HTTypeId.ENUM));
   }
 }

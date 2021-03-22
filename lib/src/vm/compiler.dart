@@ -13,6 +13,14 @@ import 'vm.dart';
 import 'bytes_declaration.dart';
 import '../declaration.dart';
 
+/// 声明空间，保存当前文件、类和函数体中包含的声明
+/// 在编译后会提到整个代码块最前
+class DeclarationBlock {
+  final funcDecls = <Uint8List>[];
+  final classDecls = <Uint8List>[];
+  final varDecls = <Uint8List>[];
+}
+
 class Compiler extends Parser with VMRef {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
@@ -26,15 +34,13 @@ class Compiler extends Parser with VMRef {
   final _constFloat64 = <double>[];
   final _constUtf8String = <String>[];
 
-  final _funcDecls = <Uint8List>[];
-  final _classDecls = <Uint8List>[];
-  final _varDecls = <Uint8List>[];
-
-  late bool _debugMode;
-
-  var _leftValueCheck = false;
+  late final DeclarationBlock _global;
+  late DeclarationBlock _curNamespace;
 
   String? _curClassName;
+
+  late bool _debugMode;
+  var _leftValueCheck = false;
 
   Future<Uint8List> compile(List<Token> tokens, HTVM interpreter, String fileName,
       [ParseStyle style = ParseStyle.module, debugMode = false]) async {
@@ -43,6 +49,8 @@ class Compiler extends Parser with VMRef {
     this.tokens.clear();
     this.tokens.addAll(tokens);
     _curFileName = fileName;
+
+    _curNamespace = _global = DeclarationBlock();
 
     final codeBytes = BytesBuilder();
 
@@ -91,23 +99,23 @@ class Compiler extends Parser with VMRef {
 
     // 添加变量表，总是按照：函数、类、变量这个顺序
     mainBytes.addByte(HTOpCode.declTable);
-    mainBytes.add(_uint16(_funcDecls.length));
-    for (var decl in _funcDecls) {
+    mainBytes.add(_uint16(_global.funcDecls.length));
+    for (var decl in _global.funcDecls) {
       mainBytes.add(decl);
     }
-    mainBytes.add(_uint16(_classDecls.length));
-    for (var decl in _classDecls) {
+    mainBytes.add(_uint16(_global.classDecls.length));
+    for (var decl in _global.classDecls) {
       mainBytes.add(decl);
     }
-    mainBytes.add(_uint16(_varDecls.length));
-    for (var decl in _varDecls) {
+    mainBytes.add(_uint16(_global.varDecls.length));
+    for (var decl in _global.varDecls) {
       mainBytes.add(decl);
     }
 
     mainBytes.add(codeBytes.toBytes());
 
     // Return a module or a function result to interpreter.
-    mainBytes.addByte(HTOpCode.returnVal);
+    mainBytes.addByte(HTOpCode.endOfExec);
 
     return mainBytes.toBytes();
   }
@@ -192,22 +200,23 @@ class Compiler extends Parser with VMRef {
       // 变量声明
       case HTLexicon.VAR:
         final decl = _parseVarStmt();
-        _varDecls.add(decl);
+        _curNamespace.varDecls.add(decl);
         break;
       case HTLexicon.LET:
         final decl = _parseVarStmt(typeInference: true);
-        _varDecls.add(decl);
+        _curNamespace.varDecls.add(decl);
         break;
       case HTLexicon.CONST:
         final decl = _parseVarStmt(typeInference: true, isImmutable: true);
-        _varDecls.add(decl);
+        _curNamespace.varDecls.add(decl);
         break;
       // 函数声明
       case HTLexicon.FUN:
         final decl = _parseFuncDeclaration();
-        _funcDecls.add(decl);
+        _curNamespace.funcDecls.add(decl);
         break;
-      // }
+      case HTLexicon.RETURN:
+        return _parseReturnStmt();
       // 表达式
       default:
         return _parseExprStmt();
@@ -227,9 +236,6 @@ class Compiler extends Parser with VMRef {
     // else if (expect([HTLexicon.CONTINUE])) {
     //   return ContinueStmt(advance(1));
     // } // 返回语句
-    // else if (curTok.type == HTLexicon.RETURN) {
-    //   return _parseReturnStmt();
-    // }
     // case ParseStyle.klass:
     // final isExtern = expect([HTLexicon.EXTERNAL], consume: true, error: false);
     // final isStatic = expect([HTLexicon.STATIC], consume: true, error: false);
@@ -362,7 +368,7 @@ class Compiler extends Parser with VMRef {
     bytesBuilder.addByte(HTValueTypeCode.group);
     // bytesBuilder.add(_uint16(innerExpr.length + 1));
     bytesBuilder.add(innerExpr);
-    bytesBuilder.addByte(HTOpCode.returnVal);
+    bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
 
@@ -373,9 +379,9 @@ class Compiler extends Parser with VMRef {
     bytesBuilder.add(_uint16(exprList.length));
     for (final expr in exprList) {
       bytesBuilder.add(expr);
-      bytesBuilder.addByte(HTOpCode.returnVal);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
     }
-    bytesBuilder.addByte(HTOpCode.returnVal);
+    bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
 
@@ -386,11 +392,11 @@ class Compiler extends Parser with VMRef {
     bytesBuilder.add(_uint16(exprMap.length));
     for (final key in exprMap.keys) {
       bytesBuilder.add(key);
-      bytesBuilder.addByte(HTOpCode.returnVal);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
       bytesBuilder.add(exprMap[key]!);
-      bytesBuilder.addByte(HTOpCode.returnVal);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
     }
-    bytesBuilder.addByte(HTOpCode.returnVal);
+    bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
 
@@ -399,7 +405,9 @@ class Compiler extends Parser with VMRef {
   /// 赋值 = ，优先级 1，右合并
   ///
   /// 需要判断嵌套赋值、取属性、取下标的叠加
-  Uint8List _parseExpr() {
+  ///
+  /// [endOfExec] 指是否在解析完表达式后中断执行，这样可以返回当前表达式的值
+  Uint8List _parseExpr({bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
     _leftValueCheck = true;
     final left = _parseLogicalOrExpr();
@@ -438,6 +446,10 @@ class Compiler extends Parser with VMRef {
       }
       bytesBuilder.add([0]);
     }
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
+
     return bytesBuilder.toBytes();
   }
 
@@ -637,6 +649,8 @@ class Compiler extends Parser with VMRef {
     final bytesBuilder = BytesBuilder();
     final value = _parseLocalExpr();
     bytesBuilder.add(value);
+    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(14);
     if (HTLexicon.unaryPostfixs.contains(curTok.type)) {
       while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
         final op = advance(1).type;
@@ -651,11 +665,9 @@ class Compiler extends Parser with VMRef {
             while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
               if (expect([HTLexicon.identifier, HTLexicon.colon], consume: false)) {
                 final name = advance(2).lexeme;
-                var arg = _parseExpr();
-                namedArgs[name] = arg;
+                namedArgs[name] = _parseExpr(endOfExec: true);
               } else {
-                final arg = _parseExpr();
-                positionalArgs.add(arg);
+                positionalArgs.add(_parseExpr(endOfExec: true));
               }
               if (curTok.type != HTLexicon.roundRight) {
                 match(HTLexicon.comma);
@@ -663,6 +675,7 @@ class Compiler extends Parser with VMRef {
             }
             match(HTLexicon.roundRight);
             bytesBuilder.addByte(HTOpCode.call);
+            bytesBuilder.addByte(14);
             bytesBuilder.addByte(positionalArgs.length);
             for (var i = 0; i < positionalArgs.length; ++i) {
               bytesBuilder.add(positionalArgs[i]);
@@ -674,14 +687,10 @@ class Compiler extends Parser with VMRef {
             }
             break;
           case HTLexicon.postIncrement:
-            bytesBuilder.addByte(HTOpCode.register);
-            bytesBuilder.addByte(14);
             bytesBuilder.addByte(HTOpCode.postIncrement);
             bytesBuilder.addByte(14);
             break;
           case HTLexicon.postDecrement:
-            bytesBuilder.addByte(HTOpCode.register);
-            bytesBuilder.addByte(14);
             bytesBuilder.addByte(HTOpCode.postDecrement);
             bytesBuilder.addByte(14);
             break;
@@ -777,10 +786,36 @@ class Compiler extends Parser with VMRef {
   // //   return bytesBuilder.toBytes();
   // // }
 
-  // // Uint8List _parseBlockStmt({ParseStyle style = ParseStyle.library}) {
-  // //   final bytesBuilder = BytesBuilder();
-  // //   return bytesBuilder.toBytes();
-  // // }
+  Uint8List _parseBlockStmt({ParseStyle style = ParseStyle.function}) {
+    match(HTLexicon.curlyLeft);
+    final bytesBuilder = BytesBuilder();
+    final declsBytesBuilder = BytesBuilder();
+    final blockBytesBuilder = BytesBuilder();
+    final savedDeclBlock = _curNamespace;
+    _curNamespace = DeclarationBlock();
+    while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+      blockBytesBuilder.add(_parseStmt());
+    }
+    // 添加变量表，总是按照：函数、类、变量这个顺序
+    declsBytesBuilder.addByte(HTOpCode.declTable);
+    declsBytesBuilder.add(_uint16(_curNamespace.funcDecls.length));
+    for (var decl in _curNamespace.funcDecls) {
+      declsBytesBuilder.add(decl);
+    }
+    declsBytesBuilder.add(_uint16(_curNamespace.classDecls.length));
+    for (var decl in _curNamespace.classDecls) {
+      declsBytesBuilder.add(decl);
+    }
+    declsBytesBuilder.add(_uint16(_curNamespace.varDecls.length));
+    for (var decl in _curNamespace.varDecls) {
+      declsBytesBuilder.add(decl);
+    }
+    _curNamespace = savedDeclBlock;
+    match(HTLexicon.curlyRight);
+    bytesBuilder.add(declsBytesBuilder.toBytes());
+    bytesBuilder.add(blockBytesBuilder.toBytes());
+    return bytesBuilder.toBytes();
+  }
 
   // Uint8List _parseImportStmt() {
   //   final bytesBuilder = BytesBuilder();
@@ -801,10 +836,19 @@ class Compiler extends Parser with VMRef {
     return bytesBuilder.toBytes();
   }
 
-  // Uint8List _parseReturnStmt() {
-  //   final bytesBuilder = BytesBuilder();
-  //   return bytesBuilder.toBytes();
-  // }
+  Uint8List _parseReturnStmt() {
+    advance(1); // keyword
+
+    final bytesBuilder = BytesBuilder();
+    if (curTok.type != HTLexicon.curlyRight &&
+        curTok.type != HTLexicon.semicolon &&
+        curTok.type != HTLexicon.endOfFile) {
+      bytesBuilder.add(_parseExpr(endOfExec: true));
+    }
+    expect([HTLexicon.semicolon], consume: true);
+
+    return bytesBuilder.toBytes();
+  }
 
   // Uint8List _parseIfStmt() {
   //   final bytesBuilder = BytesBuilder();
@@ -847,11 +891,10 @@ class Compiler extends Parser with VMRef {
     // }
 
     if (expect([HTLexicon.assign], consume: true)) {
-      final initializer = _parseExpr();
+      final initializer = _parseExpr(endOfExec: true);
       bytesBuilder.addByte(1);
-      bytesBuilder.add(_uint16(initializer.length + 1));
+      bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
-      bytesBuilder.addByte(HTOpCode.returnVal);
     } else {
       bytesBuilder.addByte(0);
     }
@@ -887,8 +930,7 @@ class Compiler extends Parser with VMRef {
 
     var isFuncVariadic = false;
     var arity = 0;
-    // var paramDecls = <HTBytesParamDecl>[];
-    var paramInitializers = <Uint8List>[];
+    var paramDecls = <Uint8List>[];
 
     if (funcType != FunctionType.getter && expect([HTLexicon.roundLeft], consume: true)) {
       var isOptional = false;
@@ -934,11 +976,10 @@ class Compiler extends Parser with VMRef {
           paramBytesBuilder.addByte(1); // bool，表示有初始化表达式
           paramBytesBuilder.add(_uint16(initializer.length + 1));
           paramBytesBuilder.add(initializer);
-          paramBytesBuilder.addByte(HTOpCode.returnVal);
         } else {
           paramBytesBuilder.addByte(0);
         }
-        paramInitializers.add(paramBytesBuilder.toBytes());
+        paramDecls.add(paramBytesBuilder.toBytes());
 
         // paramDecls.add(HTBytesParamDecl(paramId, isVariadic: isVariadic, isOptional: isOptional, isNamed: isNamed));
 
@@ -976,25 +1017,19 @@ class Compiler extends Parser with VMRef {
     // }
 
     funcBytesBuilder.addByte(arity);
-    if (paramInitializers.isNotEmpty) {
-      var paramsLength = 1;
-      for (var decl in paramInitializers) {
-        paramsLength += decl.length;
-      }
-      funcBytesBuilder.add(_uint16(paramsLength)); // params bytes length
-      for (var decl in paramInitializers) {
-        funcBytesBuilder.add(decl); // params
-      }
+    funcBytesBuilder.addByte(paramDecls.length); // max 255
+    for (var decl in paramDecls) {
+      funcBytesBuilder.add(decl);
     }
 
-    final bodyBytesBuilder = BytesBuilder();
-
     // 处理函数定义部分的语句块
-    if (expect([HTLexicon.curlyLeft], consume: true)) {
-      while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
-        bodyBytesBuilder.add(_parseStmt());
-      }
-      match(HTLexicon.curlyRight);
+    if (curTok.type == HTLexicon.curlyLeft) {
+      funcBytesBuilder.addByte(1); // bool: has definition
+      final body = _parseBlockStmt();
+      funcBytesBuilder.add(_uint16(body.length)); // definition bytes length
+      funcBytesBuilder.add(body);
+    } else {
+      funcBytesBuilder.addByte(0); // bool: has no definition
     }
 
     // final func = HTBytesFunction(
@@ -1012,16 +1047,6 @@ class Compiler extends Parser with VMRef {
     // if (func.id != null) {
     //   _context.define(HTDeclaration(id!, value: func, declType: func.typeid, isImmutable: true));
     // }
-
-    funcBytesBuilder.add(_uint16(bodyBytesBuilder.length)); // body bytes length
-    if (bodyBytesBuilder.isNotEmpty) {
-      final body = bodyBytesBuilder.toBytes();
-      funcBytesBuilder.add(body); // body
-
-      if (body.last != HTOpCode.returnVal) {
-        funcBytesBuilder.addByte(HTOpCode.returnVal); // body
-      }
-    }
 
     expect([HTLexicon.semicolon], consume: true);
 

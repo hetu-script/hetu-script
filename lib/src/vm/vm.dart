@@ -12,6 +12,11 @@ import 'bytes_resolver.dart';
 import '../plugin/errorHandler.dart';
 import 'bytes_reader.dart';
 import 'bytes_declaration.dart';
+import 'bytes_funciton.dart';
+import '../declaration.dart';
+import '../function.dart';
+import '../class.dart';
+import '../extern_function.dart';
 
 mixin VMRef {
   late final HTVM interpreter;
@@ -31,7 +36,7 @@ class HTVM extends Interpreter {
 
   dynamic _curValue;
   String? _curSymbol;
-  String? _curClass;
+  String? _curClassName;
   final _leftValueStack = <String>[];
 
   // final List<dynamic> _stack = [];
@@ -88,8 +93,8 @@ class HTVM extends Interpreter {
   }
 
   void _storeLocal() {
-    final oprandType = _bytesReader.read();
-    switch (oprandType) {
+    final valueType = _bytesReader.read();
+    switch (valueType) {
       case HTValueTypeCode.NULL:
         _curValue = null;
         break;
@@ -244,6 +249,107 @@ class HTVM extends Interpreter {
     }
   }
 
+  void _handleCallExpr(int regPos) {
+    final callee = _register[regPos];
+    var positionalArgs = [];
+    final positionalArgsLength = _bytesReader.read();
+    for (var i = 0; i < positionalArgsLength; ++i) {
+      final arg = execute(ip: _bytesReader.ip, keepIp: true);
+      positionalArgs.add(arg);
+    }
+
+    var namedArgs = <String, dynamic>{};
+    final namedArgsLength = _bytesReader.read();
+    for (var i = 0; i < namedArgsLength; ++i) {
+      final name = _bytesReader.readShortUtf8String();
+      final arg = execute(ip: _bytesReader.ip, keepIp: true);
+      namedArgs[name] = arg;
+    }
+
+    if (callee is HTFunction) {
+      if (!callee.isExtern) {
+        // 普通函数
+        if (callee.funcType != FunctionType.constructor) {
+          _curValue = callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+        } else {
+          final className = callee.className;
+          final klass = global.fetch(className!);
+          if (klass is HTClass) {
+            if (!klass.isExtern) {
+              // 命名构造函数
+              _curValue = klass.createInstance(
+                  constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
+            } else {
+              // 外部命名构造函数
+              final externClass = fetchExternalClass(className);
+              final constructor = externClass.fetch(callee.id!);
+              if (constructor is HTExternalFunction) {
+                try {
+                  _curValue = constructor(positionalArgs, namedArgs);
+                } on RangeError {
+                  throw HTErrorExternParams();
+                }
+              } else {
+                _curValue = Function.apply(
+                    constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+                // throw HTErrorExternFunc(constructor.toString());
+              }
+            }
+          } else {
+            throw HTErrorCallable(callee.toString());
+          }
+        }
+      } else {
+        final externFunc = fetchExternalFunction(callee.id!);
+        if (externFunc is HTExternalFunction) {
+          try {
+            _curValue = externFunc(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          _curValue =
+              Function.apply(externFunc, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(constructor.toString());
+        }
+      }
+    } else if (callee is HTClass) {
+      if (!callee.isExtern) {
+        // 默认构造函数
+        _curValue = callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      } else {
+        // 外部默认构造函数
+        final externClass = fetchExternalClass(callee.id);
+        final constructor = externClass.fetch(callee.id);
+        if (constructor is HTExternalFunction) {
+          try {
+            _curValue = constructor(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          _curValue =
+              Function.apply(constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(constructor.toString());
+        }
+      }
+    } // 外部函数
+    else if (callee is Function) {
+      if (callee is HTExternalFunction) {
+        try {
+          _curValue = callee(positionalArgs, namedArgs);
+        } on RangeError {
+          throw HTErrorExternParams();
+        }
+      } else {
+        _curValue = Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        // throw HTErrorExternFunc(callee.toString());
+      }
+    } else {
+      throw HTErrorCallable(callee.toString());
+    }
+  }
+
   void _handleUnaryPostfixOp(int op) {
     final value = _bytesReader.read();
 
@@ -255,7 +361,7 @@ class HTVM extends Interpreter {
         // _local = _register[value] = !_register[value];
         break;
       case HTOpCode.call:
-        // _local = _register[value] = !_register[value];
+        _handleCallExpr(value);
         break;
       case HTOpCode.postIncrement:
         _curValue = _register[value];
@@ -265,12 +371,74 @@ class HTVM extends Interpreter {
         _curValue = _register[value];
         _register[value] -= 1;
         break;
-      default:
-      // throw HTErrorUndefinedOperator(_register[left].toString(), _register[right].toString(), HTLexicon.add);
     }
   }
 
-  void _handleFuncDecl() {}
+  List<HTBytesParamDecl> _handleParam(int paramDeclsLength) {
+    final paramDecls = <HTBytesParamDecl>[];
+
+    for (var i = 0; i < paramDeclsLength; ++i) {
+      final id = _bytesReader.readShortUtf8String();
+      final isOptional = _bytesReader.readBool();
+      final isNamed = _bytesReader.readBool();
+      final isVariadic = _bytesReader.readBool();
+
+      int? initializerIp;
+      final hasInitializer = _bytesReader.readBool();
+      if (hasInitializer) {
+        final length = _bytesReader.readUint16();
+        initializerIp = _bytesReader.ip;
+        _bytesReader.skip(length);
+      }
+
+      paramDecls.add(HTBytesParamDecl(id, this,
+          initializerIp: initializerIp,
+          typeInference: true,
+          isOptional: isOptional,
+          isNamed: isNamed,
+          isVariadic: isVariadic));
+    }
+
+    return paramDecls;
+  }
+
+  void _handleFuncDecl() {
+    final id = _bytesReader.readShortUtf8String();
+
+    final funcType = FunctionType.values[_bytesReader.read()];
+    final isExtern = _bytesReader.readBool();
+    final isStatic = _bytesReader.readBool();
+    final isConst = _bytesReader.readBool();
+    final isVariadic = _bytesReader.readBool();
+
+    final arity = _bytesReader.read();
+    final paramDecls = _handleParam(_bytesReader.read());
+
+    int? definitionIp;
+    final hasDefinition = _bytesReader.readBool();
+    if (hasDefinition) {
+      final length = _bytesReader.readUint16();
+      definitionIp = _bytesReader.ip;
+      _bytesReader.skip(length);
+    }
+
+    final func = HTBytesFunction(
+      this,
+      id: id,
+      className: _curClassName,
+      funcType: funcType,
+      paramDecls: paramDecls,
+      definitionIp: definitionIp,
+      isExtern: isExtern,
+      isStatic: isStatic,
+      isConst: isConst,
+      isVariadic: isVariadic,
+      arity: arity,
+      context: curNamespace,
+    );
+
+    curNamespace.define(HTDeclaration(id, value: func, declType: func.typeid));
+  }
 
   void _handleClassDecl() {}
 
@@ -285,9 +453,10 @@ class HTVM extends Interpreter {
 
     int? initializerIp;
     final hasInitializer = _bytesReader.readBool();
-
     if (hasInitializer) {
+      final length = _bytesReader.readUint16();
       initializerIp = _bytesReader.ip;
+      _bytesReader.skip(length);
     }
 
     curNamespace.define(HTBytesDecl(id, this,
@@ -320,20 +489,7 @@ class HTVM extends Interpreter {
           debugMode = _bytesReader.read() == 0 ? false : true;
           print('Debug: $debugMode');
           break;
-        // case HTOpCode.codeStart:
-        //   _codeStartIp = _bytesReader.ip;
-        //   break;
-        // 返回当前运算值
-        case HTOpCode.returnVal:
-          if (!keepIp) {
-            _bytesReader.ip = savedIp;
-          }
-          return _curValue;
-        // 语句结束
-        case HTOpCode.endOfStmt:
-          _curSymbol = null;
-          break;
-        // 从字节码读取常量表并添加到当前环境中
+        //常量表
         case HTOpCode.constTable:
           final int64Length = _bytesReader.readUint16();
           for (var i = 0; i < int64Length; ++i) {
@@ -367,18 +523,10 @@ class HTVM extends Interpreter {
         case HTOpCode.local:
           _storeLocal();
           break;
-        // 将本地变量存储如下一个字节代表的寄存器位置中
+        // 将本地变量存入下一个字节代表的寄存器位置中
         case HTOpCode.register:
           _storeRegister(_bytesReader.read(), _curValue);
           break;
-        // case HTOpCode.varInitStart:
-        //   final initializerLength = _bytesReader.readUint16();
-        //   if (_curClass == null) {
-        //     _curValue = execute(ip: _bytesReader.ip);
-        //     curNamespace.assign(_curSymbol!, _curValue);
-        //   }
-        //   _bytesReader.skip(initializerLength);
-        //   break;
         case HTOpCode.leftValue:
           _leftValueStack.add(_curSymbol!);
           break;
@@ -416,6 +564,15 @@ class HTVM extends Interpreter {
         case HTOpCode.postIncrement:
         case HTOpCode.postDecrement:
           _handleUnaryPostfixOp(instruction);
+          break;
+        case HTOpCode.endOfExec:
+          if (!keepIp) {
+            _bytesReader.ip = savedIp;
+          }
+          return _curValue;
+        // 语句结束
+        case HTOpCode.endOfStmt:
+          _curSymbol = null;
           break;
         case HTOpCode.debugInfo:
           curLine = _bytesReader.readUint32();

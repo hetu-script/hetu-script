@@ -1,4 +1,5 @@
 import 'type.dart';
+import 'errors.dart';
 
 /// 一个声明，包含了类型等额外信息。
 /// 在命名空间中，所有的对象都被其各自的声明所包裹在内。
@@ -18,16 +19,14 @@ class HTDeclaration {
   final Function? setter;
 
   final bool isExtern;
-  final bool isImmutable;
+  bool get isImmutable => true;
   final bool isMember;
   final bool isStatic;
 
-  var _isInitialized = false;
-
   /// 继承类会 override 这个接口来改变初始化过程
-  bool get isInitialized => _isInitialized;
+  bool get isInitialized => true;
 
-  /// 基础声明不包含初始化、类型推断和类型检查，
+  /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
   HTDeclaration(this.id,
       {this.value,
@@ -35,28 +34,21 @@ class HTDeclaration {
       this.getter,
       this.setter,
       this.isExtern = false,
-      this.isImmutable = false,
       this.isMember = false,
-      this.isStatic = false,
-      bool isInitialized = true}) {
+      this.isStatic = false}) {
     if (declType != null) {
       this.declType = declType;
     }
-
-    _isInitialized = isInitialized;
   }
-
-  HTDeclaration clone() => HTDeclaration(id,
-      value: value,
-      declType: declType,
-      getter: getter,
-      setter: setter,
-      isExtern: isExtern,
-      isImmutable: isImmutable,
-      isMember: isMember,
-      isInitialized: isInitialized);
 
   /// 调用这个接口来初始化这个变量，继承类需要
   /// override 这个接口来实现自己的初始化过程
-  void initialize() => _isInitialized = true;
+  void initialize() => throw HTErrorInitialize();
+
+  /// 调用这个接口来赋值这个变量，继承类需要
+  /// override 这个接口来实现自己的赋值过程
+  void assign(dynamic value) => throw HTErrorImmutable(id);
+
+  HTDeclaration clone() => HTDeclaration(id,
+      value: value, declType: declType, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember);
 }

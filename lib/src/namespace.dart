@@ -123,6 +123,10 @@ class HTNamespace extends HTObject with InterpreterRef {
     }
 
     if (declarations.containsKey(varName)) {
+      final decl = declarations[varName]!;
+      if (!decl.isInitialized) {
+        decl.initialize();
+      }
       return declarations[varName]!.value;
     }
 

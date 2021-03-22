@@ -5,6 +5,15 @@ import '../errors.dart';
 
 class HTBytesDecl extends HTDeclaration with VMRef {
   @override
+  final bool isImmutable;
+
+  var _isInitializing = false;
+  var _isInitialized = false;
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
   late final HTTypeId? declType;
 
   int? initializerIp;
@@ -17,17 +26,12 @@ class HTBytesDecl extends HTDeclaration with VMRef {
       Function? setter,
       bool typeInference = false,
       bool isExtern = false,
-      bool isImmutable = false,
+      this.isImmutable = false,
       bool isMember = false,
       bool isStatic = false})
       : super(id,
-            value: value,
-            getter: getter,
-            setter: setter,
-            isExtern: isExtern,
-            isImmutable: isImmutable,
-            isMember: isMember,
-            isStatic: isStatic) {
+            value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember, isStatic: isStatic) {
+    this.interpreter = interpreter;
     var valType = interpreter.typeof(value);
     if (declType == null) {
       if ((typeInference) && (value != null)) {
@@ -45,42 +49,53 @@ class HTBytesDecl extends HTDeclaration with VMRef {
   }
 
   @override
-  HTBytesDecl clone() {
-    return HTBytesDecl(id, interpreter,
-        initializerIp: initializerIp,
-        getter: getter,
-        setter: setter,
-        declType: declType,
-        isExtern: isExtern,
-        isImmutable: isImmutable);
+  void initialize() {
+    if (_isInitialized) return;
+
+    if (initializerIp != null) {
+      if (!_isInitializing) {
+        _isInitializing = true;
+        value = interpreter.execute(ip: initializerIp!);
+        _isInitialized = true;
+      } else {
+        throw HTErrorCircleInit(id);
+      }
+    }
+
+    throw HTErrorInitialize();
   }
 
   @override
-  void initialize() {
-    if (initializerIp != null) {
-      value = interpreter.execute(ip: initializerIp!);
-    }
-  }
+  HTBytesDecl clone() => HTBytesDecl(id, interpreter,
+      initializerIp: initializerIp,
+      getter: getter,
+      setter: setter,
+      declType: declType,
+      isExtern: isExtern,
+      isImmutable: isImmutable);
 }
 
-class HTBytesParamDecl extends HTDeclaration {
+class HTBytesParamDecl extends HTBytesDecl {
   final bool isOptional;
   final bool isNamed;
   final bool isVariadic;
 
-  HTBytesParamDecl(String id,
-      {HTTypeId declType = HTTypeId.ANY, this.isOptional = false, this.isNamed = false, this.isVariadic = false})
-      : super(id, declType: declType) {
-    // this.interpreter = interpreter;
-    // var valType = interpreter.typeof(value);
-    // if (valType.isA(declType) || value == null) {
-    //   this.declType = declType;
-    // } else {
-    //   throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
-    // }
+  HTBytesParamDecl(String id, HTVM interpreter,
+      {HTTypeId? declType,
+      int? initializerIp,
+      bool typeInference = false,
+      this.isOptional = false,
+      this.isNamed = false,
+      this.isVariadic = false})
+      : super(id, interpreter, declType: declType, initializerIp: initializerIp, typeInference: typeInference) {}
 
-    // if (value != null) {
-    //   _isInitialized = true;
-    // }
+  @override
+  HTBytesParamDecl clone() {
+    return HTBytesParamDecl(id, interpreter,
+        declType: declType,
+        initializerIp: initializerIp,
+        isOptional: isOptional,
+        isNamed: isNamed,
+        isVariadic: isVariadic);
   }
 }

@@ -285,22 +285,10 @@ class HTAstParser extends Parser {
     if (curTok.type == HTLexicon.newLine) advance(1);
     switch (style) {
       case ParseStyle.module:
-        var isExtern = false;
-        var isAbstract = false;
-        var isInterface = false;
-        var isMixin = false;
-
-        if (HTLexicon.classPrefixs.contains(curTok.type)) {
-          if (curTok.type == HTLexicon.EXTERNAL) {
-            isExtern = true;
-          } else if (curTok.type == HTLexicon.ABSTRACT) {
-            isExtern = true;
-          } else if (curTok.type == HTLexicon.INTERFACE) {
-            isExtern = true;
-          } else if (curTok.type == HTLexicon.MIXIN) {
-            isExtern = true;
-          }
-        }
+        final isExtern = expect([HTLexicon.EXTERNAL], consume: true);
+        final isAbstract = expect([HTLexicon.ABSTRACT], consume: true);
+        final isInterface = expect([HTLexicon.INTERFACE], consume: true);
+        final isMixin = expect([HTLexicon.MIXIN], consume: true);
 
         // import语句
         if (expect([HTLexicon.IMPORT])) {

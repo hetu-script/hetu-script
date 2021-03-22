@@ -53,6 +53,8 @@ abstract class Interpreter {
     bindExternalClass(HTExternGlobal.number, HTExternClassNumber());
     bindExternalClass(HTExternGlobal.boolean, HTExternClassBool());
     bindExternalClass(HTExternGlobal.string, HTExternClassString());
+    bindExternalClass(HTExternGlobal.list, HTExternClassString());
+    bindExternalClass(HTExternGlobal.map, HTExternClassString());
     bindExternalClass(HTExternGlobal.math, HTExternClassMath());
     bindExternalClass(HTExternGlobal.system, HTExternClassSystem(this));
     bindExternalClass(HTExternGlobal.console, HTExternClassConsole());

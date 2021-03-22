@@ -5,7 +5,7 @@ import 'namespace.dart';
 import 'function.dart';
 import 'errors.dart';
 import 'type.dart';
-import 'extern_class.dart' show HTExternalFunction;
+import 'extern_function.dart';
 import 'interpreter.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
@@ -82,6 +82,9 @@ class HTClass extends HTNamespace {
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (!decl.isExtern) {
+        if (!decl.isInitialized) {
+          decl.initialize();
+        }
         return decl.value;
       } else if (isExtern) {
         final externClass = interpreter.fetchExternalClass(id);
@@ -192,7 +195,7 @@ class HTClass extends HTNamespace {
 
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
-  HTInstance createInstance(Interpreter interpreter, int? line, int? column,
+  HTInstance createInstance(
       {List<HTTypeId> typeArgs = const [],
       String? constructorName,
       List<dynamic> positionalArgs = const [],
@@ -239,7 +242,7 @@ class HTInstance extends HTNamespace {
   HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
       : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}', closure: klass) {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
-    define(HTDeclaration(HTLexicon.THIS, value: this, isImmutable: true));
+    define(HTDeclaration(HTLexicon.THIS, value: this));
   }
 
   @override
@@ -259,11 +262,15 @@ class HTInstance extends HTNamespace {
 
     final getter = '${HTLexicon.getter}$varName';
     if (declarations.containsKey(varName)) {
-      final member = declarations[varName]!.value;
-      if (member is HTFunction) {
-        member.context = this;
+      final decl = declarations[varName]!;
+      if (!decl.isInitialized) {
+        decl.initialize();
       }
-      return member;
+      final value = decl.value;
+      if (value is HTFunction) {
+        value.context = this;
+      }
+      return value;
     } else if (declarations.containsKey(getter)) {
       HTFunction method = declarations[getter]!.value;
       method.context = this;

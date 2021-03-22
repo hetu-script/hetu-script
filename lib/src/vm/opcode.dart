@@ -2,20 +2,20 @@ abstract class HTOpCode {
   static const endOfFile = -1;
 
   /// 4 bytes
-  static const signature = 250;
+  static const signature = 200;
 
   /// uint8, uint8, uint16
-  static const version = 251;
+  static const version = 201;
 
   /// 1 byte
-  static const debug = 252;
+  static const debug = 202;
 
   /// uint32 line, uint32 column, uint8 symbolLength, symbol
-  static const debugInfo = 200;
-  static const error = 201; //
+  static const debugInfo = 203;
+  static const error = 204; //
 
-  static const returnVal = 0;
-  static const endOfStmt = 1;
+  static const endOfStmt = 210;
+  static const endOfExec = 211;
 
   static const constTable = 7;
   static const declTable = 8;
@@ -40,7 +40,7 @@ abstract class HTOpCode {
 
   // // TODO: error when reach limit
   // /// uint16 length of function
-  // static const funcDefStart = 18;
+  static const funcDef = 18;
 
   // static const classDecl = 19;
 

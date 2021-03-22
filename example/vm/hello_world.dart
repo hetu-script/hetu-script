@@ -6,8 +6,10 @@ void main() async {
   // await hetu.init();
 
   await hetu.eval(r'''
-  var i = (4 + 2) * (15 - 8)
-  var j = [3, 5, 'world!']
-  var map = { "hi": "jack"}
+  fun hello {
+    return 1 + 2
+  }
+
+  hello()
   ''', style: ParseStyle.function);
 }

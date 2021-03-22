@@ -4,7 +4,7 @@ abstract class HTLexicon {
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
-      r'(\.\.\.|\|\||&&|\*=|/=|\+=|-=|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
+      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
       // r'(\d+\.\d+)|' // 浮点数字面量 group(6)
       // r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
@@ -37,7 +37,7 @@ abstract class HTLexicon {
   static const number = 'num';
   static const integer = 'int';
   static const float = 'float';
-  static const string = 'String';
+  static const string = 'str';
   static const keys = 'keys';
   static const values = 'values';
 

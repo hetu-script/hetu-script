@@ -27,7 +27,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
             // typeid:
             isExtern: funcStmt.isExtern,
             isConst: funcStmt.isConst,
-            isVariadic: funcStmt.isVariadic) {
+            isVariadic: funcStmt.isVariadic,
+            arity: funcStmt.arity) {
     this.interpreter = interpreter;
 
     var paramsTypes = <HTTypeId?>[];
@@ -90,7 +91,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
         // 函数每次在调用时，生成对应的作用域
         closure = HTNamespace(interpreter, closure: context);
         if (context is HTInstance) {
-          closure.define(HTDeclaration(HTLexicon.THIS, value: context, isImmutable: true));
+          closure.define(HTDeclaration(HTLexicon.THIS, value: context));
         }
 
         // TODO: 参数也改成Declaration而不是DeclStmt？

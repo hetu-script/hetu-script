@@ -28,6 +28,7 @@ class HTBytesFunction extends HTFunction with VMRef {
       bool isStatic = false,
       bool isConst = false,
       bool isVariadic = false,
+      int arity = 0,
       HTNamespace? context})
       : super(
             id: id,
@@ -37,14 +38,15 @@ class HTBytesFunction extends HTFunction with VMRef {
             isExtern: isExtern,
             isStatic: isStatic,
             isConst: isConst,
-            isVariadic: isVariadic) {
+            isVariadic: isVariadic,
+            arity: arity) {
     this.interpreter = interpreter;
 
-    // var paramsTypes = <HTTypeId?>[];
-    // for (final param in paramDecls) {
-    //   paramsTypes.add(param.declType);
-    // }
-    // typeid = HTFunctionTypeId(returnType: returnType, paramsTypes: paramsTypes);
+    var paramsTypes = <HTTypeId?>[];
+    for (final param in paramDecls) {
+      paramsTypes.add(param.declType);
+    }
+    typeid = HTFunctionTypeId(returnType: returnType, paramsTypes: paramsTypes);
 
     this.context = context ?? interpreter.global;
   }

@@ -38,7 +38,7 @@ class HTBytesResolver {
     while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
         // 返回当前运算值
-        case HTOpCode.returnVal:
+        case HTOpCode.endOfExec:
         // _ip = savedIp;
         // return _curValue;
         // 语句结束

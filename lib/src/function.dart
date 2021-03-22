@@ -3,7 +3,7 @@ import 'namespace.dart';
 import 'type.dart';
 import 'lexicon.dart';
 
-/// 具体的FunctionTypeId由具体的实现者提供
+/// 函数抽象类，ast 和 字节码分别有各自的具体实现
 abstract class HTFunction with HTType {
   static var anonymousIndex = 0;
   static final callStack = <String>[];
@@ -31,6 +31,8 @@ abstract class HTFunction with HTType {
 
   bool get isMethod => className != null;
 
+  final int arity;
+
   HTNamespace? context;
 
   HTFunction(
@@ -41,7 +43,8 @@ abstract class HTFunction with HTType {
       this.isExtern = false,
       this.isStatic = false,
       this.isConst = false,
-      this.isVariadic = false}) {
+      this.isVariadic = false,
+      this.arity = 0}) {
     switch (funcType) {
       case FunctionType.constructor:
         if (id != null) {
