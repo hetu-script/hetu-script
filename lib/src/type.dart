@@ -73,7 +73,7 @@ class HTTypeId {
 
 class HTFunctionTypeId extends HTTypeId {
   final HTTypeId returnType;
-  final List<HTTypeId?> paramsTypes; // function(T1 arg1, T2 arg2)
+  final List<HTTypeId> paramsTypes; // function(T1 arg1, T2 arg2)
 
   const HTFunctionTypeId(
       {this.returnType = HTTypeId.ANY, List<HTTypeId> arguments = const [], this.paramsTypes = const []})
@@ -95,7 +95,7 @@ class HTFunctionTypeId extends HTTypeId {
     result.write('(');
 
     for (final paramType in paramsTypes) {
-      result.write(paramType != null ? paramType.id : HTLexicon.ANY);
+      result.write(paramType.toString());
       //if (param.initializer != null)
       if (paramsTypes.length > 1) result.write(', ');
     }

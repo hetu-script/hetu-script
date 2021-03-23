@@ -1,3 +1,4 @@
+import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/src/declaration.dart';
 
 import 'lexicon.dart';
@@ -29,15 +30,15 @@ import 'interpreter.dart';
 /// ```
 class HTClass extends HTNamespace {
   @override
+  String toString() => '${HTLexicon.CLASS} $id';
+
+  @override
   final HTTypeId typeid = HTTypeId.CLASS;
+
+  final ClassType classType;
 
   /// The type parameters of the class.
   final List<String> typeParams;
-
-  @override
-  String toString() => '${HTLexicon.CLASS} $id';
-
-  final bool isExtern;
 
   /// Super class of this class
   ///
@@ -58,7 +59,7 @@ class HTClass extends HTNamespace {
   ///
   /// [superClass] : super class of this class.
   HTClass(String id, this.superClass, Interpreter interpreter,
-      {this.isExtern = false, this.typeParams = const [], HTNamespace? closure})
+      {this.classType = ClassType.normal, this.typeParams = const [], HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
   /// Wether the class contains a static member, will also check super class.
@@ -86,7 +87,7 @@ class HTClass extends HTNamespace {
           decl.initialize();
         }
         return decl.value;
-      } else if (isExtern) {
+      } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
         return externClass.fetch(staticName);
       }
@@ -95,7 +96,7 @@ class HTClass extends HTNamespace {
       if (!decl.isExtern) {
         HTFunction func = declarations[getter]!.value;
         return func.call();
-      } else if (isExtern) {
+      } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
         return externClass.fetch(staticName);
       } else {
@@ -106,7 +107,7 @@ class HTClass extends HTNamespace {
       final decl = declarations[staticName]!;
       if (!decl.isExtern) {
         return declarations[staticName]!.value;
-      } else if (isExtern) {
+      } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
         return externClass.fetch(staticName);
       } else {
@@ -135,7 +136,7 @@ class HTClass extends HTNamespace {
     final setter = '${HTLexicon.setter}$varName';
     final staticName = '$id.$varName';
     if (declarations.containsKey(varName)) {
-      if (isExtern) {
+      if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
         externClass.assign(staticName, value);
       } else {
@@ -147,7 +148,7 @@ class HTClass extends HTNamespace {
       HTFunction setterFunc = declarations[setter]!.value;
       if (!setterFunc.isExtern) {
         setterFunc.call(positionalArgs: [value]);
-      } else if (isExtern) {
+      } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
         externClass.assign(staticName, value);
       } else {
@@ -230,9 +231,8 @@ class HTInstance extends HTNamespace {
   late final HTTypeId typeid;
 
   HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
-      : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}', closure: klass) {
+      : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}') {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
-    define(HTDeclaration(HTLexicon.THIS, value: this));
   }
 
   @override

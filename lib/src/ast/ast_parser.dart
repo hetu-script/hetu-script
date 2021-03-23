@@ -803,11 +803,11 @@ class HTAstParser extends Parser {
     }
 
     final stmt = ClassDeclStmt(class_name, variables, methods,
+        classType: classType,
         typeParams: typeParams,
         superClass: super_class,
         superClassDeclStmt: super_class_decl,
-        superClassTypeArgs: super_class_type_args,
-        isExtern: classType == ClassType.extern);
+        superClassTypeArgs: super_class_type_args);
 
     _classStmts[class_name.lexeme] = stmt;
 

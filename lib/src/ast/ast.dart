@@ -705,6 +705,8 @@ class ClassDeclStmt extends ASTNode {
 
   final Token id;
 
+  final ClassType classType;
+
   final List<VarDeclStmt> variables;
 
   final List<FuncDeclStmt> methods;
@@ -717,14 +719,12 @@ class ClassDeclStmt extends ASTNode {
 
   final HTTypeId? superClassTypeArgs;
 
-  final bool isExtern;
-
   ClassDeclStmt(this.id, this.variables, this.methods,
-      {this.typeParams = const [],
+      {this.classType = ClassType.normal,
+      this.typeParams = const [],
       this.superClass,
       this.superClassDeclStmt,
-      this.superClassTypeArgs,
-      this.isExtern = false})
+      this.superClassTypeArgs})
       : super(HTLexicon.classDeclStmt, id.fileName, id.line, id.column);
 
   @override
@@ -740,11 +740,11 @@ class ClassDeclStmt extends ASTNode {
     }
 
     return ClassDeclStmt(id, new_vars, new_methods,
+        classType: classType,
         typeParams: typeParams,
         superClass: superClass,
         superClassDeclStmt: superClassDeclStmt,
-        superClassTypeArgs: superClassTypeArgs,
-        isExtern: isExtern);
+        superClassTypeArgs: superClassTypeArgs);
   }
 }
 

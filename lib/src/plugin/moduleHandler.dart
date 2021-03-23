@@ -9,16 +9,16 @@ class HTModuleInfo {
   HTModuleInfo(this.fileName, this.content);
 }
 
-abstract class HTImportHandler {
+abstract class HTModuleHandler {
   Future<HTModuleInfo> import(String key, [String? curFileName]);
 }
 
-class DefaultImportHandler implements HTImportHandler {
+class DefaultModuleHandler implements HTModuleHandler {
   late final String workingDirectory;
 
   final imported = <String>[];
 
-  DefaultImportHandler({String workingDirectory = 'script/'}) {
+  DefaultModuleHandler({String workingDirectory = 'script/'}) {
     final dir = Directory(workingDirectory);
     this.workingDirectory = dir.absolute.path;
   }

@@ -12,36 +12,29 @@ import '../function.dart';
 import '../object.dart';
 
 class HTAstFunction extends HTFunction with AstInterpreterRef {
-  @override
-  String get id => funcStmt.id?.lexeme ?? '';
-  @override
-  String get internalName => funcStmt.internalName;
-
   final FuncDeclStmt funcStmt;
 
   HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
       {List<HTTypeId> typeParams = const [], HTNamespace? context})
       : super(
-            id: funcStmt.id?.lexeme,
-            className: funcStmt.className,
-            funcType: funcStmt.funcType,
-            typeParams: typeParams,
-            // typeid:
-            isExtern: funcStmt.isExtern,
-            isConst: funcStmt.isConst,
-            isVariadic: funcStmt.isVariadic,
-            arity: funcStmt.arity) {
+          id: funcStmt.id?.lexeme,
+          className: funcStmt.className,
+          funcType: funcStmt.funcType,
+          typeParams: typeParams,
+          // typeid:
+          isExtern: funcStmt.isExtern,
+          isConst: funcStmt.isConst,
+          isVariadic: funcStmt.isVariadic,
+          minArity: funcStmt.arity,
+        ) {
     this.interpreter = interpreter;
+    this.context = context;
 
-    var paramsTypes = <HTTypeId?>[];
+    var paramsTypes = <HTTypeId>[];
     for (final param in funcStmt.params) {
-      paramsTypes.add(param.declType);
+      paramsTypes.add(param.declType ?? HTTypeId.ANY);
     }
     typeid = HTFunctionTypeId(returnType: funcStmt.returnType, paramsTypes: paramsTypes);
-
-    if (context != null) {
-      this.context = context;
-    }
   }
 
   @override
@@ -77,11 +70,11 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    HTFunction.callStack.add(internalName);
+    HTFunction.callStack.add(id);
 
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
-      throw HTErrorArity(internalName, positionalArgs.length, funcStmt.arity);
+      throw HTErrorArity(id, positionalArgs.length, funcStmt.arity);
     }
 
     dynamic result;
@@ -90,7 +83,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
         HTNamespace closure;
         //_save = _closure;
         //assert(closure != null);
-        // 函数每次在调用时，生成对应的作用域
+        // 函数每次在调用时，临时生成一个新的作用域
         closure = HTNamespace(interpreter, closure: context);
         if (context is HTInstance) {
           closure.define(HTDeclaration(HTLexicon.THIS, value: context));
@@ -140,8 +133,6 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
         }
 
         result = interpreter.executeBlock(funcStmt.definition!, closure);
-
-        //_closure = _save;
       } else {
         throw HTErrorMissingFuncDef(id);
       }
@@ -151,21 +142,16 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       }
 
       var returned_type = interpreter.typeof(returnValue);
-
       if (returned_type.isNotA(funcStmt.returnType)) {
         throw HTErrorReturnType(returned_type.toString(), id, funcStmt.returnType.toString());
       }
 
+      if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {
+        result = returnValue;
+      }
+    } finally {
       HTFunction.callStack.removeLast();
-
-      if (returnValue is NullThrownError || returnValue == HTObject.NULL) return null;
-
-      //_closure = _save;
-      return returnValue;
+      return result;
     }
-
-    HTFunction.callStack.removeLast();
-    // 如果函数体中没有直接return，则会返回最后一个语句的值
-    return result;
   }
 }

@@ -4,21 +4,19 @@ import 'dart:convert';
 import '../parser.dart';
 import 'opcode.dart';
 import '../token.dart';
-import '../namespace.dart';
 import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
-import 'bytes_funciton.dart';
 import 'vm.dart';
-import 'bytes_declaration.dart';
-import '../declaration.dart';
 
 /// 声明空间，保存当前文件、类和函数体中包含的声明
 /// 在编译后会提到整个代码块最前
 class DeclarationBlock {
-  final funcDecls = <Uint8List>[];
-  final classDecls = <Uint8List>[];
-  final varDecls = <Uint8List>[];
+  final funcDecls = <String, Uint8List>{};
+  final classDecls = <String, Uint8List>{};
+  final varDecls = <String, Uint8List>{};
+
+  bool contains(String id) => funcDecls.containsKey(id) || classDecls.containsKey(id) || varDecls.containsKey(id);
 }
 
 class Compiler extends Parser with VMRef {
@@ -34,10 +32,11 @@ class Compiler extends Parser with VMRef {
   final _constFloat64 = <double>[];
   final _constUtf8String = <String>[];
 
-  late final DeclarationBlock _global;
-  late DeclarationBlock _curNamespace;
+  late final DeclarationBlock _globalBlock;
+  late DeclarationBlock _curBlock;
 
   String? _curClassName;
+  ClassType? _curClassType;
 
   late bool _debugMode;
   var _leftValueCheck = false;
@@ -50,7 +49,7 @@ class Compiler extends Parser with VMRef {
     this.tokens.addAll(tokens);
     _curFileName = fileName;
 
-    _curNamespace = _global = DeclarationBlock();
+    _curBlock = _globalBlock = DeclarationBlock();
 
     final codeBytes = BytesBuilder();
 
@@ -99,16 +98,16 @@ class Compiler extends Parser with VMRef {
 
     // 添加变量表，总是按照：函数、类、变量这个顺序
     mainBytes.addByte(HTOpCode.declTable);
-    mainBytes.add(_uint16(_global.funcDecls.length));
-    for (var decl in _global.funcDecls) {
+    mainBytes.add(_uint16(_globalBlock.funcDecls.length));
+    for (var decl in _globalBlock.funcDecls.values) {
       mainBytes.add(decl);
     }
-    mainBytes.add(_uint16(_global.classDecls.length));
-    for (var decl in _global.classDecls) {
+    mainBytes.add(_uint16(_globalBlock.classDecls.length));
+    for (var decl in _globalBlock.classDecls.values) {
       mainBytes.add(decl);
     }
-    mainBytes.add(_uint16(_global.varDecls.length));
-    for (var decl in _global.varDecls) {
+    mainBytes.add(_uint16(_globalBlock.varDecls.length));
+    for (var decl in _globalBlock.varDecls.values) {
       mainBytes.add(decl);
     }
 
@@ -124,7 +123,7 @@ class Compiler extends Parser with VMRef {
   Uint8List _uint16(int value) => Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
 
   /// 0 to 4,294,967,295
-  Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
+  // Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
 
   /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
   Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
@@ -147,152 +146,149 @@ class Compiler extends Parser with VMRef {
     return bytesBuilder.toBytes();
   }
 
+  // Fetch a utf8 string from the byte list
+  String _readId(Uint8List bytes) => utf8.decoder.convert(bytes.sublist(2));
+
   Uint8List _parseStmt({ParseStyle style = ParseStyle.module}) {
     final bytesBuilder = BytesBuilder();
     // if (curTok.type == HTLexicon.newLine) advance(1);
-    // switch (style) {
-    //   case ParseStyle.library:
-
-    // var isExtern = false;
-    // var isAbstract = false;
-    // var isInterface = false;
-    // var isMixin = false;
-
-    // if (HTLexicon.classPrefixs.contains(curTok.type)) {
-    //   if (curTok.type == HTLexicon.EXTERNAL) {
-    //     isExtern = true;
-    //   } else if (curTok.type == HTLexicon.ABSTRACT) {
-    //     isExtern = true;
-    //   } else if (curTok.type == HTLexicon.INTERFACE) {
-    //     isExtern = true;
-    //   } else if (curTok.type == HTLexicon.MIXIN) {
-    //     isExtern = true;
-    //   }
-    // }
-
-    // // import语句
-    // if (expect([HTLexicon.IMPORT])) {
-    //   return _parseImportStmt();
-    // } // var变量声明
-    // if (expect([HTLexicon.VAR])) {
-    //   return _parseVarStmt(isExtern: isExtern, isDynamic: true);
-    // } // let
-    // else if (expect([HTLexicon.LET])) {
-    //   return _parseVarStmt(isExtern: isExtern);
-    // } // const
-    // else if (expect([HTLexicon.CONST])) {
-    //   return _parseVarStmt(isExtern: isExtern, isImmutable: true);
-    // } // 类声明
-    // else if (expect([HTLexicon.CLASS])) {
-    //   return _parseClassDeclStmt(isExtern: isExtern);
-    // } // 枚举类声明
-    // else if (expect([HTLexicon.ENUM])) {
-    //   return _parseEnumDeclStmt(isExtern: isExtern);
-    // } // 函数声明
-    // else if (expect([HTLexicon.FUN])) {
-    //   return _parseFuncDeclaration(FunctionType.normal, isExtern: isExtern);
-    // } else {
-    //   throw HTErrorUnexpected(curTok.lexeme);
-    // }
-    // case ParseStyle.function:
-    // 函数块中不能出现extern或者static关键字的声明
-    switch (curTok.type) {
-      // 变量声明
-      case HTLexicon.VAR:
-        final decl = _parseVarStmt(isDynamic: true);
-        _curNamespace.varDecls.add(decl);
+    switch (style) {
+      case ParseStyle.module:
+        switch (curTok.type) {
+          // case HTLexicon.EXTERNAL:
+          //   advance(1);
+          //   switch (curTok.type) {
+          //     case HTLexicon.CLASS:
+          //       return _parseClassDeclStmt(classType: ClassType.extern);
+          //     case HTLexicon.ENUM:
+          //       return _parseEnumDeclStmt(isExtern: true);
+          //     case HTLexicon.VAR:
+          //       return _parseVarStmt(isExtern: true, isDynamic: true);
+          //     case HTLexicon.LET:
+          //       return _parseVarStmt(isExtern: true);
+          //     case HTLexicon.CONST:
+          //       return _parseVarStmt(isExtern: true, isImmutable: true);
+          //     case HTLexicon.FUN:
+          //       return _parseFuncDeclaration(isExtern: true);
+          //     default:
+          //       throw HTErrorUnexpected(curTok.type);
+          //   }
+          // case HTLexicon.ABSTRACT:
+          //   match(HTLexicon.CLASS);
+          //   return _parseClassDeclStmt(classType: ClassType.abstracted);
+          // case HTLexicon.INTERFACE:
+          //   match(HTLexicon.CLASS);
+          //   return _parseClassDeclStmt(classType: ClassType.interface);
+          // case HTLexicon.MIXIN:
+          //   match(HTLexicon.CLASS);
+          //   return _parseClassDeclStmt(classType: ClassType.mix_in);
+          case HTLexicon.CLASS:
+            final decl = _parseClassDeclStmt();
+            final id = _readId(decl);
+            _curBlock.classDecls[id] = decl;
+            break;
+          // case HTLexicon.IMPORT:
+          // return _parseImportStmt();
+          case HTLexicon.VAR:
+            final decl = _parseVarStmt(isDynamic: true);
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
+          case HTLexicon.LET:
+            final decl = _parseVarStmt();
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
+          case HTLexicon.CONST:
+            final decl = _parseVarStmt(isImmutable: true);
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
+          case HTLexicon.FUN:
+            final decl = _parseFuncDeclaration();
+            final id = _readId(decl);
+            _curBlock.funcDecls[id] = decl;
+            break;
+          default:
+            throw HTErrorUnexpected(curTok.lexeme);
+        }
         break;
-      case HTLexicon.LET:
-        final decl = _parseVarStmt();
-        _curNamespace.varDecls.add(decl);
-        break;
-      case HTLexicon.CONST:
-        final decl = _parseVarStmt(isImmutable: true);
-        _curNamespace.varDecls.add(decl);
-        break;
-      // 函数声明
-      case HTLexicon.FUN:
-        final decl = _parseFuncDeclaration();
-        _curNamespace.funcDecls.add(decl);
-        break;
-      case HTLexicon.RETURN:
-        return _parseReturnStmt();
-      // 表达式
-      default:
-        return _parseExprStmt();
-    } //If语句
-    // else if (expect([HTLexicon.IF])) {
-    //   return _parseIfStmt();
-    // } // While语句
-    // else if (expect([HTLexicon.WHILE])) {
-    //   return _parseWhileStmt();
-    // } // For语句
-    // else if (expect([HTLexicon.FOR])) {
-    //   return _parseForStmt();
-    // } // 跳出语句
-    // else if (expect([HTLexicon.BREAK])) {
-    //   return BreakStmt(advance(1));
-    // } // 继续语句
-    // else if (expect([HTLexicon.CONTINUE])) {
-    //   return ContinueStmt(advance(1));
-    // } // 返回语句
-    // case ParseStyle.klass:
-    // final isExtern = expect([HTLexicon.EXTERNAL], consume: true, error: false);
-    // final isStatic = expect([HTLexicon.STATIC], consume: true, error: false);
-    // // var变量声明
-    // if (expect([HTLexicon.VAR])) {
-    //   return _parseVarStmt(isExtern: isExtern, isStatic: isStatic, isDynamic: true);
-    // } // let
-    // else if (expect([HTLexicon.LET])) {
-    //   return _parseVarStmt(isExtern: isExtern, isStatic: isStatic);
-    // } // const
-    // else if (expect([HTLexicon.CONST])) {
-    //   if (!isStatic) throw HTErrorConstMustBeStatic(curTok.lexeme);
-    //   return _parseVarStmt(isExtern: isExtern, isStatic: true, isImmutable: true);
-    // } // 构造函数
-    // else if (curTok.lexeme == HTLexicon.CONSTRUCT) {
-    //   return _parseFuncDeclaration(FunctionType.constructor, isExtern: isExtern, isStatic: isStatic);
-    // } // setter函数声明
-    // else if (curTok.lexeme == HTLexicon.GET) {
-    //   return _parseFuncDeclaration(FunctionType.getter, isExtern: isExtern, isStatic: isStatic);
-    // } // getter函数声明
-    // else if (curTok.lexeme == HTLexicon.SET) {
-    //   return _parseFuncDeclaration(FunctionType.setter, isExtern: isExtern, isStatic: isStatic);
-    // } // 成员函数声明
-    // else if (expect([HTLexicon.FUN])) {
-    //   return _parseFuncDeclaration(FunctionType.method, isExtern: isExtern, isStatic: isStatic);
-    // } else {
-    //   throw HTErrorUnexpected(curTok.lexeme);
-    // }
-    // case ParseStyle.externalClass:
-    // expect([HTLexicon.EXTERNAL], consume: true, error: false);
-    // final isStatic = expect([HTLexicon.STATIC], consume: true, error: false);
-    // // var变量声明
-    // if (expect([HTLexicon.VAR])) {
-    //   return _parseVarStmt(isExtern: true, isStatic: isStatic, isDynamic: true);
-    // } // let
-    // else if (expect([HTLexicon.LET])) {
-    //   return _parseVarStmt(isExtern: true, isStatic: isStatic);
-    // } // const
-    // else if (expect([HTLexicon.CONST])) {
-    //   if (!isStatic) throw HTErrorConstMustBeStatic(curTok.lexeme);
-    //   return _parseVarStmt(isExtern: true, isStatic: true, isImmutable: false);
-    // } // 构造函数
-    // else if (curTok.lexeme == HTLexicon.CONSTRUCT) {
-    //   return _parseFuncDeclaration(FunctionType.constructor, isExtern: true, isStatic: isStatic);
-    // } // setter函数声明
-    // else if (curTok.lexeme == HTLexicon.GET) {
-    //   return _parseFuncDeclaration(FunctionType.getter, isExtern: true, isStatic: isStatic);
-    // } // getter函数声明
-    // else if (curTok.lexeme == HTLexicon.SET) {
-    //   return _parseFuncDeclaration(FunctionType.setter, isExtern: true, isStatic: isStatic);
-    // } // 成员函数声明
-    // else if (expect([HTLexicon.FUN])) {
-    //   return _parseFuncDeclaration(FunctionType.method, isExtern: true, isStatic: isStatic);
-    // } else {
-    //   throw HTErrorUnexpected(curTok.lexeme);
-    // }
-    // }
+      case ParseStyle.function:
+        // 函数块中不能出现extern或者static关键字的声明
+        switch (curTok.type) {
+          // 变量声明
+          case HTLexicon.VAR:
+            final decl = _parseVarStmt(isDynamic: true);
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
+          case HTLexicon.LET:
+            final decl = _parseVarStmt();
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
+          case HTLexicon.CONST:
+            final decl = _parseVarStmt(isImmutable: true);
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
+          // 函数声明
+          case HTLexicon.FUN:
+            final decl = _parseFuncDeclaration();
+            final id = _readId(decl);
+            _curBlock.funcDecls[id] = decl;
+            break;
+          case HTLexicon.RETURN:
+            return _parseReturnStmt();
+          // 表达式
+          default:
+            return _parseExprStmt();
+        }
+        break; //If语句
+      // else if (expect([HTLexicon.IF])) {
+      //   return _parseIfStmt();
+      // } // While语句
+      // else if (expect([HTLexicon.WHILE])) {
+      //   return _parseWhileStmt();
+      // } // For语句
+      // else if (expect([HTLexicon.FOR])) {
+      //   return _parseForStmt();
+      // } // 跳出语句
+      // else if (expect([HTLexicon.BREAK])) {
+      //   return BreakStmt(advance(1));
+      // } // 继续语句
+      // else if (expect([HTLexicon.CONTINUE])) {
+      //   return ContinueStmt(advance(1));
+      // } // 返回语句
+      case ParseStyle.klass:
+      // final isExtern = expect([HTLexicon.EXTERNAL], consume: true, error: false);
+      // final isStatic = expect([HTLexicon.STATIC], consume: true, error: false);
+      // // var变量声明
+      // if (expect([HTLexicon.VAR])) {
+      //   return _parseVarStmt(isExtern: isExtern, isStatic: isStatic, isDynamic: true);
+      // } // let
+      // else if (expect([HTLexicon.LET])) {
+      //   return _parseVarStmt(isExtern: isExtern, isStatic: isStatic);
+      // } // const
+      // else if (expect([HTLexicon.CONST])) {
+      //   if (!isStatic) throw HTErrorConstMustBeStatic(curTok.lexeme);
+      //   return _parseVarStmt(isExtern: isExtern, isStatic: true, isImmutable: true);
+      // } // 构造函数
+      // else if (curTok.lexeme == HTLexicon.CONSTRUCT) {
+      //   return _parseFuncDeclaration(FunctionType.constructor, isExtern: isExtern, isStatic: isStatic);
+      // } // setter函数声明
+      // else if (curTok.lexeme == HTLexicon.GET) {
+      //   return _parseFuncDeclaration(FunctionType.getter, isExtern: isExtern, isStatic: isStatic);
+      // } // getter函数声明
+      // else if (curTok.lexeme == HTLexicon.SET) {
+      //   return _parseFuncDeclaration(FunctionType.setter, isExtern: isExtern, isStatic: isStatic);
+      // } // 成员函数声明
+      // else if (expect([HTLexicon.FUN])) {
+      //   return _parseFuncDeclaration(FunctionType.method, isExtern: isExtern, isStatic: isStatic);
+      // } else {
+      //   throw HTErrorUnexpected(curTok.lexeme);
+      // }
+    }
 
     return bytesBuilder.toBytes();
   }
@@ -791,26 +787,26 @@ class Compiler extends Parser with VMRef {
     final bytesBuilder = BytesBuilder();
     final declsBytesBuilder = BytesBuilder();
     final blockBytesBuilder = BytesBuilder();
-    final savedDeclBlock = _curNamespace;
-    _curNamespace = DeclarationBlock();
+    final savedDeclBlock = _curBlock;
+    _curBlock = DeclarationBlock();
     while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
       blockBytesBuilder.add(_parseStmt());
     }
     // 添加变量表，总是按照：函数、类、变量这个顺序
     declsBytesBuilder.addByte(HTOpCode.declTable);
-    declsBytesBuilder.add(_uint16(_curNamespace.funcDecls.length));
-    for (var decl in _curNamespace.funcDecls) {
+    declsBytesBuilder.add(_uint16(_curBlock.funcDecls.length));
+    for (var decl in _curBlock.funcDecls.values) {
       declsBytesBuilder.add(decl);
     }
-    declsBytesBuilder.add(_uint16(_curNamespace.classDecls.length));
-    for (var decl in _curNamespace.classDecls) {
+    declsBytesBuilder.add(_uint16(_curBlock.classDecls.length));
+    for (var decl in _curBlock.classDecls.values) {
       declsBytesBuilder.add(decl);
     }
-    declsBytesBuilder.add(_uint16(_curNamespace.varDecls.length));
-    for (var decl in _curNamespace.varDecls) {
+    declsBytesBuilder.add(_uint16(_curBlock.varDecls.length));
+    for (var decl in _curBlock.varDecls.values) {
       declsBytesBuilder.add(decl);
     }
-    _curNamespace = savedDeclBlock;
+    _curBlock = savedDeclBlock;
     match(HTLexicon.curlyRight);
     bytesBuilder.add(declsBytesBuilder.toBytes());
     bytesBuilder.add(blockBytesBuilder.toBytes());
@@ -876,6 +872,10 @@ class Compiler extends Parser with VMRef {
     advance(1);
     final id = match(HTLexicon.identifier).lexeme;
 
+    if (_curBlock.contains(id)) {
+      throw HTErrorDefinedParser(id);
+    }
+
     final bytesBuilder = BytesBuilder();
     // bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.add(_shortUtf8String(id));
@@ -913,6 +913,10 @@ class Compiler extends Parser with VMRef {
     String? id;
     if (curTok.type == HTLexicon.identifier) {
       id = advance(1).lexeme;
+
+      if (_curBlock.contains(id)) {
+        throw HTErrorDefinedParser(id);
+      }
     }
 
     final funcBytesBuilder = BytesBuilder();
@@ -929,7 +933,8 @@ class Compiler extends Parser with VMRef {
     }
 
     var isFuncVariadic = false;
-    var arity = 0;
+    var minArity = 0;
+    var maxArity = 0;
     var paramDecls = <Uint8List>[];
 
     if (funcType != FunctionType.getter && expect([HTLexicon.roundLeft], consume: true)) {
@@ -953,8 +958,13 @@ class Compiler extends Parser with VMRef {
           isVariadic = expect([HTLexicon.varargs], consume: true);
         }
 
-        if (!isOptional && !isNamed && !isVariadic) {
-          ++arity;
+        if (!isNamed && !isVariadic) {
+          if (!isOptional) {
+            ++minArity;
+            ++maxArity;
+          } else {
+            ++maxArity;
+          }
         }
 
         final paramBytesBuilder = BytesBuilder();
@@ -1004,7 +1014,7 @@ class Compiler extends Parser with VMRef {
       match(HTLexicon.roundRight);
 
       // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
-      if ((funcType == FunctionType.setter) && (arity != 1)) {
+      if ((funcType == FunctionType.setter) && (minArity != 1)) {
         throw HTErrorSetter();
       }
     }
@@ -1016,7 +1026,8 @@ class Compiler extends Parser with VMRef {
     //   return_type = _parseTypeId();
     // }
 
-    funcBytesBuilder.addByte(arity);
+    funcBytesBuilder.addByte(minArity);
+    funcBytesBuilder.addByte(maxArity);
     funcBytesBuilder.addByte(paramDecls.length); // max 255
     for (var decl in paramDecls) {
       funcBytesBuilder.add(decl);
@@ -1053,10 +1064,27 @@ class Compiler extends Parser with VMRef {
     return funcBytesBuilder.toBytes();
   }
 
-  // Uint8List _parseClassDeclStmt({bool isExtern = false}) {
-  //   final bytesBuilder = BytesBuilder();
-  //   return bytesBuilder.toBytes();
-  // }
+  Uint8List _parseClassDeclStmt({ClassType classType = ClassType.normal}) {
+    advance(1); // keyword
+    final id = match(HTLexicon.identifier).lexeme;
+
+    if (_curBlock.contains(id)) {
+      throw HTErrorDefinedParser(id);
+    }
+
+    final savedClassName = _curClassName;
+    _curClassName = id;
+    final savedClassType = _curClassType;
+    _curClassType = classType;
+
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_shortUtf8String(id));
+    bytesBuilder.addByte(classType.index);
+
+    _curClassName = savedClassName;
+    _curClassType = savedClassType;
+    return bytesBuilder.toBytes();
+  }
 
   // Uint8List _parseEnumDeclStmt({bool isExtern = false}) {
   //   final bytesBuilder = BytesBuilder();

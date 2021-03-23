@@ -59,7 +59,7 @@ class HTBytesDecl extends HTDeclaration with VMRef {
 
   @override
   void assign(dynamic value) {
-    if (isImmutable) {
+    if (isImmutable && _isInitialized) {
       throw HTErrorImmutable(id);
     }
 
@@ -70,13 +70,13 @@ class HTBytesDecl extends HTDeclaration with VMRef {
       } else {
         declType = HTTypeId.ANY;
       }
-      if (!_isInitialized) {
-        _isInitialized = true;
-      }
     } else if (valType.isNotA(declType)) {
       throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
     }
     this.value = value;
+    if (!_isInitialized) {
+      _isInitialized = true;
+    }
   }
 
   @override

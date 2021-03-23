@@ -1,6 +1,6 @@
 # Hetu Script
 
-Table of Content:
+## Table of Content:
 
 - [Introduction](#introduction)
 - [Binding](#binding)
@@ -101,6 +101,26 @@ dart value: {greeting: hello}
 hetu value: {greeting: hello, foo: bar}
 ```
 
+## External function convention
+
+External functions (for both global and methods) can be binded as the following type:
+
+```dart
+await hetu.init(externalFunctions: {
+  'hello': (List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}) => {'greeting': 'hello'},
+});
+```
+
+or directy as a Dart Function:
+
+```dart
+await hetu.init(externalFunctions: {
+  'hello': () => {'greeting': 'hello'},
+});
+```
+
+It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's [Function.apply] feature to call it. This is normally slower and inefficient than direct call.
+
 ## Auto-Binding tools
 
 Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
@@ -114,7 +134,9 @@ On Windows, there is a hetu.exe under [project_directory/bin] to use in Command 
 Usage:
 
 ```
+
 hetu [file_name] [invoke_func]
+
 ```
 
 If [file_name] is provided, evaluate the file in [function] mode.

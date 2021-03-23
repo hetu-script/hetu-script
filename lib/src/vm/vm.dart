@@ -6,9 +6,8 @@ import 'compiler.dart';
 import 'opcode.dart';
 import '../lexer.dart';
 import '../errors.dart';
-import '../plugin/importHandler.dart';
+import '../plugin/moduleHandler.dart';
 import '../namespace.dart';
-import 'bytes_resolver.dart';
 import '../plugin/errorHandler.dart';
 import 'bytes_reader.dart';
 import 'bytes_declaration.dart';
@@ -25,14 +24,12 @@ mixin VMRef {
 class HTVM extends Interpreter {
   late BytesReader _bytesReader;
 
-  late final _codeStartIp;
-
   /// 符号表
   ///
   /// key代symbol的id
   ///
   /// value代表symbol所在的ip指针
-  final _curNamespaceSymbols = <String, int>{};
+  // final _curNamespaceSymbols = <String, int>{};
 
   dynamic _curValue;
   String? _curSymbol;
@@ -42,7 +39,7 @@ class HTVM extends Interpreter {
   // final List<dynamic> _stack = [];
   final _register = List<dynamic>.filled(16, null, growable: false);
 
-  HTVM({HTErrorHandler? errorHandler, HTImportHandler? importHandler})
+  HTVM({HTErrorHandler? errorHandler, HTModuleHandler? importHandler})
       : super(errorHandler: errorHandler, importHandler: importHandler);
 
   @override
@@ -64,8 +61,6 @@ class HTVM extends Interpreter {
     _bytesReader = BytesReader(bytes);
     print('Bytes length: ${_bytesReader.bytes.length}');
     print(_bytesReader.bytes);
-
-    HTBytesResolver().resolve(_bytesReader.bytes, 10, curFileName);
 
     final result = execute();
 
@@ -275,14 +270,14 @@ class HTVM extends Interpreter {
           final className = callee.className;
           final klass = global.fetch(className!);
           if (klass is HTClass) {
-            if (!klass.isExtern) {
+            if (klass.classType != ClassType.extern) {
               // 命名构造函数
               _curValue = klass.createInstance(
                   constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
-              final constructor = externClass.fetch(callee.id!);
+              final constructor = externClass.fetch(callee.id);
               if (constructor is HTExternalFunction) {
                 try {
                   _curValue = constructor(positionalArgs, namedArgs);
@@ -300,7 +295,7 @@ class HTVM extends Interpreter {
           }
         }
       } else {
-        final externFunc = fetchExternalFunction(callee.id!);
+        final externFunc = fetchExternalFunction(callee.id);
         if (externFunc is HTExternalFunction) {
           try {
             _curValue = externFunc(positionalArgs, namedArgs);
@@ -314,7 +309,7 @@ class HTVM extends Interpreter {
         }
       }
     } else if (callee is HTClass) {
-      if (!callee.isExtern) {
+      if (callee.classType != ClassType.extern) {
         // 默认构造函数
         _curValue = callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else {
@@ -374,8 +369,8 @@ class HTVM extends Interpreter {
     }
   }
 
-  List<HTBytesParamDecl> _handleParam(int paramDeclsLength) {
-    final paramDecls = <HTBytesParamDecl>[];
+  Map<String, HTBytesParamDecl> _handleParam(int paramDeclsLength) {
+    final paramDecls = <String, HTBytesParamDecl>{};
 
     for (var i = 0; i < paramDeclsLength; ++i) {
       final id = _bytesReader.readShortUtf8String();
@@ -391,8 +386,8 @@ class HTVM extends Interpreter {
         _bytesReader.skip(length);
       }
 
-      paramDecls.add(HTBytesParamDecl(id, this,
-          initializerIp: initializerIp, isOptional: isOptional, isNamed: isNamed, isVariadic: isVariadic));
+      paramDecls[id] = HTBytesParamDecl(id, this,
+          initializerIp: initializerIp, isOptional: isOptional, isNamed: isNamed, isVariadic: isVariadic);
     }
 
     return paramDecls;
@@ -407,7 +402,8 @@ class HTVM extends Interpreter {
     final isConst = _bytesReader.readBool();
     final isVariadic = _bytesReader.readBool();
 
-    final arity = _bytesReader.read();
+    final minArity = _bytesReader.read();
+    final maxArity = _bytesReader.read();
     final paramDecls = _handleParam(_bytesReader.read());
 
     int? definitionIp;
@@ -429,7 +425,8 @@ class HTVM extends Interpreter {
       isStatic: isStatic,
       isConst: isConst,
       isVariadic: isVariadic,
-      arity: arity,
+      minArity: minArity,
+      maxArity: maxArity,
       context: curNamespace,
     );
 
@@ -464,9 +461,14 @@ class HTVM extends Interpreter {
         isStatic: isStatic));
   }
 
-  dynamic execute({int ip = 0, bool keepIp = false}) {
+  dynamic execute({int ip = 0, bool keepIp = false, HTNamespace? closure}) {
     final savedIp = _bytesReader.ip;
     _bytesReader.ip = ip;
+
+    final savedClosure = curNamespace;
+    if (closure != null) {
+      curNamespace = closure;
+    }
 
     var instruction = _bytesReader.read();
     while (instruction != HTOpCode.endOfFile) {
@@ -565,6 +567,7 @@ class HTVM extends Interpreter {
           if (!keepIp) {
             _bytesReader.ip = savedIp;
           }
+          curNamespace = savedClosure;
           return _curValue;
         // 语句结束
         case HTOpCode.endOfStmt:

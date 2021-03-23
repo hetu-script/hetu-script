@@ -1,5 +1,5 @@
 import '../plugin/errorHandler.dart';
-import '../plugin/importHandler.dart';
+import '../plugin/moduleHandler.dart';
 import '../extern_function.dart';
 import '../errors.dart';
 import 'ast.dart';
@@ -32,7 +32,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
 
   dynamic _curStmtValue;
 
-  HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler})
+  HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? importHandler})
       : super(debugMode: debugMode, errorHandler: errorHandler, importHandler: importHandler);
 
   @override
@@ -479,14 +479,14 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
           final className = callee.className;
           final klass = global.fetch(className!);
           if (klass is HTClass) {
-            if (!klass.isExtern) {
+            if (klass.classType != ClassType.extern) {
               // 命名构造函数
               return klass.createInstance(
                   constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
-              final constructor = externClass.fetch(callee.internalName);
+              final constructor = externClass.fetch(callee.id);
               if (constructor is HTExternalFunction) {
                 try {
                   return constructor(positionalArgs, namedArgs);
@@ -504,7 +504,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
           }
         }
       } else {
-        final externFunc = fetchExternalFunction(callee.internalName);
+        final externFunc = fetchExternalFunction(callee.id);
         if (externFunc is HTExternalFunction) {
           try {
             return externFunc(positionalArgs, namedArgs);
@@ -518,7 +518,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
         }
       }
     } else if (callee is HTClass) {
-      if (!callee.isExtern) {
+      if (callee.classType != ClassType.extern) {
         // 默认构造函数
         return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else {
@@ -794,7 +794,8 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     curColumn = stmt.column;
     final func = HTAstFunction(stmt, this, context: curNamespace);
     if (stmt.id != null) {
-      curNamespace.define(HTDeclaration(stmt.id!.lexeme, value: func, declType: func.typeid));
+      curNamespace.define(HTDeclaration(stmt.id!.lexeme,
+          value: func, declType: func.typeid, isExtern: stmt.isExtern, isStatic: stmt.isStatic));
     }
     return func;
   }
@@ -813,7 +814,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       }
     }
 
-    final klass = HTClass(stmt.id.lexeme, superClass, this, isExtern: stmt.isExtern, closure: curNamespace);
+    final klass = HTClass(stmt.id.lexeme, superClass, this, classType: stmt.classType, closure: curNamespace);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     curNamespace.define(HTDeclaration(stmt.id.lexeme, value: klass, declType: HTTypeId.CLASS));
@@ -821,15 +822,14 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     var save = curNamespace;
     curNamespace = klass;
     for (final variable in stmt.variables) {
-      if (!stmt.isExtern && variable.isExtern) {
+      if (stmt.classType != ClassType.extern && variable.isExtern) {
         throw HTErrorExternalVar();
       }
 
-      dynamic value;
-      if (variable.initializer != null) {
-        // TODO: 应该改为第一次取值时再初始化?
-        value = visitASTNode(variable.initializer!);
-      }
+      // dynamic value;
+      // if (variable.initializer != null) {
+      //   value = visitASTNode(variable.initializer!);
+      // }
       if (variable.isStatic) {
         klass.define(HTAstDecl(variable.id.lexeme, this,
             declType: variable.declType,

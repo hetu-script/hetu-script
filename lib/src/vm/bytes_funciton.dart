@@ -1,18 +1,17 @@
-import 'dart:typed_data';
-
-import '../class.dart';
 import '../namespace.dart';
-import '../errors.dart';
 import '../type.dart';
-import '../lexicon.dart';
 import 'vm.dart';
 import '../function.dart';
-import '../declaration.dart';
 import '../common.dart';
 import 'bytes_declaration.dart';
+import '../errors.dart';
+import '../class.dart';
+import '../declaration.dart';
+import '../lexicon.dart';
+import '../object.dart';
 
 class HTBytesFunction extends HTFunction with VMRef {
-  final List<HTBytesParamDecl> paramDecls;
+  final Map<String, HTBytesParamDecl> paramDecls;
 
   final int? definitionIp;
 
@@ -20,7 +19,7 @@ class HTBytesFunction extends HTFunction with VMRef {
       {String? id,
       String? className,
       FunctionType funcType = FunctionType.normal,
-      this.paramDecls = const <HTBytesParamDecl>[],
+      this.paramDecls = const <String, HTBytesParamDecl>{},
       HTTypeId returnType = HTTypeId.ANY,
       this.definitionIp,
       List<HTTypeId> typeParams = const [],
@@ -28,7 +27,8 @@ class HTBytesFunction extends HTFunction with VMRef {
       bool isStatic = false,
       bool isConst = false,
       bool isVariadic = false,
-      int arity = 0,
+      int minArity = 0,
+      int maxArity = 0,
       HTNamespace? context})
       : super(
             id: id,
@@ -39,16 +39,16 @@ class HTBytesFunction extends HTFunction with VMRef {
             isStatic: isStatic,
             isConst: isConst,
             isVariadic: isVariadic,
-            arity: arity) {
+            minArity: minArity,
+            maxArity: maxArity) {
     this.interpreter = interpreter;
+    this.context = context;
 
-    var paramsTypes = <HTTypeId?>[];
-    for (final param in paramDecls) {
-      paramsTypes.add(param.declType);
+    var paramsTypes = <HTTypeId>[];
+    for (final param in paramDecls.values) {
+      paramsTypes.add(param.declType ?? HTTypeId.ANY);
     }
     typeid = HTFunctionTypeId(returnType: returnType, paramsTypes: paramsTypes);
-
-    this.context = context ?? interpreter.global;
   }
 
   // @override
@@ -84,97 +84,80 @@ class HTBytesFunction extends HTFunction with VMRef {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    HTFunction.callStack.add(internalName);
+    HTFunction.callStack.add(id);
 
-    // if (positionalArgs.length < funcStmt.arity ||
-    //     (positionalArgs.length > funcStmt.params.length && !funcStmt.isVariadic)) {
-    //   throw HTErrorArity(id, positionalArgs.length, funcStmt.arity);
-    // }
+    if (definitionIp == null) {
+      throw HTErrorMissingFuncDef(id);
+    }
 
-    // dynamic result;
-    // try {
-    //   if (funcStmt.definition != null) {
-    //     HTNamespace closure;
-    //     //_save = _closure;
-    //     //assert(closure != null);
-    //     // 函数每次在调用时，生成对应的作用域
-    //     final callContext = context ?? interpreter.global;
-    //     if (callContext is HTInstance) {
-    //       closure = HTNamespace(interpreter, id: '${callContext.id}.$id', closure: callContext);
-    //       closure.define(HTLexicon.THIS, declType: callContext.typeid, isImmutable: true);
-    //     } else {
-    //       closure = HTNamespace(interpreter, id: '$id', closure: callContext);
-    //     }
+    if (positionalArgs.length < minArity || (positionalArgs.length > maxArity && !isVariadic)) {
+      throw HTErrorArity(id, positionalArgs.length, minArity);
+    }
 
-    //     for (var i = 0; i < funcStmt.params.length; ++i) {
-    //       var param = funcStmt.params[i];
+    for (final name in namedArgs.keys) {
+      if (!paramDecls.containsKey(name)) {
+        throw HTErrorNamedArg(name);
+      }
+    }
 
-    //       if (funcStmt.params[i].isOptional &&
-    //           (i >= positionalArgs.length) &&
-    //           (funcStmt.params[i].initializer != null)) {
-    //         positionalArgs.add(interpreter.visitASTNode(funcStmt.params[i].initializer!));
-    //       } else if (funcStmt.params[i].isNamed &&
-    //           (namedArgs[funcStmt.params[i].id.lexeme] == null) &&
-    //           (funcStmt.params[i].initializer != null)) {
-    //         namedArgs[funcStmt.params[i].id.lexeme] = interpreter.visitASTNode(funcStmt.params[i].initializer!);
-    //       }
+    dynamic result;
+    try {
+      // 函数每次在调用时，临时生成一个新的作用域
+      final closure = HTNamespace(interpreter, closure: context);
+      if (context is HTInstance) {
+        closure.define(HTDeclaration(HTLexicon.THIS, value: context));
+      }
 
-    //       var arg;
-    //       if (!param.isNamed) {
-    //         arg = positionalArgs[i];
-    //       } else {
-    //         arg = namedArgs[param.id.lexeme];
-    //       }
-    //       final arg_type_decl = param.declType ?? HTTypeId.ANY;
+      var variadicStart = -1;
+      HTBytesDecl? variadicParam;
+      for (var i = 0; i < paramDecls.length; ++i) {
+        var decl = paramDecls.values.elementAt(i).clone();
+        closure.define(decl);
 
-    //       if (!param.isVariadic) {
-    //         var arg_type = interpreter.typeof(arg);
-    //         if (arg_type.isNotA(arg_type_decl)) {
-    //           throw HTErrorArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
-    //         }
-    //         closure.define(param.id.lexeme, declType: arg_type_decl, value: arg);
-    //       } else {
-    //         var varargs = [];
-    //         for (var j = i; j < positionalArgs.length; ++j) {
-    //           arg = positionalArgs[j];
-    //           var arg_type = interpreter.typeof(arg);
-    //           if (arg_type.isNotA(arg_type_decl)) {
-    //             throw HTErrorArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
-    //           }
-    //           varargs.add(arg);
-    //         }
-    //         closure.define(param.id.lexeme, declType: HTTypeId.list, value: varargs);
-    //         break;
-    //       }
-    //     }
+        if (i < positionalArgs.length) {
+          if (!decl.isVariadic) {
+            decl.assign(positionalArgs[i]);
+          } else {
+            variadicStart = i;
+            variadicParam = decl;
+            break;
+          }
+        } else if (i < maxArity) {
+          decl.initialize();
+        } else {
+          if (namedArgs.containsKey(decl.id)) {
+            decl.assign(namedArgs[decl.id]);
+          } else {
+            decl.initialize();
+          }
+        }
+      }
 
-    //     result = interpreter.executeBlock(funcStmt.definition!, closure);
+      if (variadicStart >= 0) {
+        final variadicArg = <dynamic>[];
+        for (var i = variadicStart; i < positionalArgs.length; ++i) {
+          variadicArg.add(positionalArgs[i]);
+        }
+        variadicParam!.assign(variadicArg);
+      }
 
-    //     //_closure = _save;
-    //   } else {
-    //     throw HTErrorMissingFuncDef(id);
-    //   }
-    // } catch (returnValue) {
-    //   if ((returnValue is HTError) || (returnValue is Exception) || (returnValue is Error)) {
-    //     rethrow;
-    //   }
+      result = interpreter.execute(ip: definitionIp!, closure: closure);
+    } catch (returnValue) {
+      if ((returnValue is HTError) || (returnValue is Exception) || (returnValue is Error)) {
+        rethrow;
+      }
 
-    //   var returned_type = interpreter.typeof(returnValue);
+      var returned_type = interpreter.typeof(returnValue);
+      if (returned_type.isNotA(returnType)) {
+        throw HTErrorReturnType(returned_type.toString(), id, returnType.toString());
+      }
 
-    //   if (returned_type.isNotA(funcStmt.returnType)) {
-    //     throw HTErrorReturnType(returned_type.toString(), id, funcStmt.returnType.toString());
-    //   }
-
-    //   HTFunction.callStack.removeLast();
-
-    //   if (returnValue is NullThrownError) return null;
-
-    //   //_closure = _save;
-    //   return returnValue;
-    // }
-
-    // HTFunction.callStack.removeLast();
-    // // 如果函数体中没有直接return，则会返回最后一个语句的值
-    // return result;
+      if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {
+        result = returnValue;
+      }
+    } finally {
+      HTFunction.callStack.removeLast();
+      return result;
+    }
   }
 }

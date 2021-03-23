@@ -2,7 +2,7 @@ import 'lexicon.dart';
 import 'namespace.dart';
 import 'common.dart';
 import 'type.dart';
-import 'plugin/importHandler.dart';
+import 'plugin/moduleHandler.dart';
 import 'plugin/errorHandler.dart';
 import 'hetu_lib.dart';
 import 'extern_class.dart';
@@ -23,7 +23,7 @@ abstract class Interpreter {
   late bool debugMode;
 
   late HTErrorHandler errorHandler;
-  late HTImportHandler importHandler;
+  late HTModuleHandler importHandler;
 
   /// 全局命名空间
   late HTNamespace global;
@@ -31,11 +31,11 @@ abstract class Interpreter {
   /// 当前语句所在的命名空间
   late HTNamespace curNamespace;
 
-  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTImportHandler? importHandler}) {
+  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? importHandler}) {
     curNamespace = global = HTNamespace(this, id: HTLexicon.global);
     this.debugMode = debugMode;
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
-    this.importHandler = importHandler ?? DefaultImportHandler();
+    this.importHandler = importHandler ?? DefaultModuleHandler();
   }
 
   Future<void> init(
@@ -46,14 +46,12 @@ abstract class Interpreter {
       await eval(coreModules[file]!);
     }
 
-    for (var key in externalFunctions.keys) {
-      bindExternalFunction(key, externalFunctions[key]!);
+    for (var key in HTExternalFunctions.functions.keys) {
+      bindExternalFunction(key, HTExternalFunctions.functions[key]!);
     }
 
     bindExternalClass(HTExternClassNumber());
     bindExternalClass(HTExternClassBool());
-    bindExternalClass(HTExternClassString());
-    bindExternalClass(HTExternClassString());
     bindExternalClass(HTExternClassString());
     bindExternalClass(HTExternClassMath());
     bindExternalClass(HTExternClassSystem(this));

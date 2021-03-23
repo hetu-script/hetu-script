@@ -18,4 +18,4 @@ export 'src/vm/vm.dart';
 export 'src/vm/bytes_declaration.dart';
 export 'src/binding.dart';
 export 'src/plugin/errorHandler.dart';
-export 'src/plugin/importHandler.dart';
+export 'src/plugin/moduleHandler.dart';

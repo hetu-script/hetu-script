@@ -5,11 +5,10 @@ import 'lexicon.dart';
 
 /// 函数抽象类，ast 和 字节码分别有各自的具体实现
 abstract class HTFunction with HTType {
-  static var anonymousIndex = 0;
+  static var _anonymousIndex = 0;
   static final callStack = <String>[];
 
-  late final String? id;
-  late final String internalName;
+  late final String id;
   final String? className;
 
   final FunctionType funcType;
@@ -31,7 +30,8 @@ abstract class HTFunction with HTType {
 
   bool get isMethod => className != null;
 
-  final int arity;
+  final int minArity;
+  final int maxArity;
 
   HTNamespace? context;
 
@@ -44,37 +44,20 @@ abstract class HTFunction with HTType {
       this.isStatic = false,
       this.isConst = false,
       this.isVariadic = false,
-      this.arity = 0}) {
+      this.minArity = 0,
+      this.maxArity = 0}) {
     switch (funcType) {
       case FunctionType.constructor:
-        if (id != null) {
-          this.id = id;
-          internalName = '$className.$id';
-        } else {
-          internalName = '$className';
-        }
+        this.id = (id == null) ? className! : '${className!}.$id';
         break;
       case FunctionType.getter:
-        this.id = id;
-        internalName = HTLexicon.getter + id!;
+        this.id = HTLexicon.getter + id!;
         break;
       case FunctionType.setter:
-        this.id = id;
-        internalName = HTLexicon.setter + id!;
+        this.id = HTLexicon.setter + id!;
         break;
-      case FunctionType.literal:
-        this.id = internalName = HTLexicon.anonymousFunction + (HTFunction.anonymousIndex++).toString();
-        break;
-      case FunctionType.nested:
-        if (id == null) {
-          this.id = internalName = HTLexicon.anonymousFunction + (HTFunction.anonymousIndex++).toString();
-        } else {
-          this.id = internalName = id;
-        }
-        break;
-      case FunctionType.normal:
-        this.id = internalName = id!;
-        break;
+      default:
+        this.id = id ?? HTLexicon.anonymousFunction + (_anonymousIndex++).toString();
     }
   }
 

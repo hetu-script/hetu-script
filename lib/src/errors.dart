@@ -62,9 +62,11 @@ abstract class HTError {
 
   static const bytesSig = 'Unknown bytecode signature.';
 
-  static const circleInit = 'Variable initializer depend on itself being initialized: ';
+  static const circleInit = 'Variable initializer depend on itself being initialized:';
 
   static const initialize = 'Missing variable initializer.';
+
+  static const namedArg = 'Undefined argument name:';
 
   static void warn(String message) => print('hetu warn:\n' + message);
 
@@ -288,4 +290,8 @@ class HTErrorCircleInit extends HTError {
 
 class HTErrorInitialize extends HTError {
   HTErrorInitialize() : super(HTError.initialize, HTErrorType.interpreter);
+}
+
+class HTErrorNamedArg extends HTError {
+  HTErrorNamedArg(String id) : super('${HTError.namedArg} [$id]', HTErrorType.interpreter);
 }

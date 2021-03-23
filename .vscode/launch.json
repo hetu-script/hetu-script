@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/external_class.dart",
+      "program": "example/vm/vm_test.dart",
       "request": "launch",
       "type": "dart"
     }
