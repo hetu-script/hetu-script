@@ -328,7 +328,8 @@ class HTAstParser extends Parser {
           default:
             throw HTErrorUnexpected(curTok.lexeme);
         }
-      case ParseStyle.function:
+      case ParseStyle.script:
+      case ParseStyle.block:
         // 函数块中不能出现extern或者static关键字的声明
         // var变量声明
         if (expect([HTLexicon.VAR])) {
@@ -483,16 +484,16 @@ class HTAstParser extends Parser {
     match(HTLexicon.roundRight);
     ASTNode? thenBranch;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      thenBranch = _parseBlockStmt(style: ParseStyle.function);
+      thenBranch = _parseBlockStmt(style: ParseStyle.block);
     } else {
-      thenBranch = _parseStmt(style: ParseStyle.function);
+      thenBranch = _parseStmt(style: ParseStyle.block);
     }
     ASTNode? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (expect([HTLexicon.curlyLeft], consume: true)) {
-        elseBranch = _parseBlockStmt(style: ParseStyle.function);
+        elseBranch = _parseBlockStmt(style: ParseStyle.block);
       } else {
-        elseBranch = _parseStmt(style: ParseStyle.function);
+        elseBranch = _parseStmt(style: ParseStyle.block);
       }
     }
     return IfStmt(condition, thenBranch, elseBranch);
@@ -506,9 +507,9 @@ class HTAstParser extends Parser {
     match(HTLexicon.roundRight);
     ASTNode? loop;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop = _parseBlockStmt(style: ParseStyle.function);
+      loop = _parseBlockStmt(style: ParseStyle.block);
     } else {
-      loop = _parseStmt(style: ParseStyle.function);
+      loop = _parseStmt(style: ParseStyle.block);
     }
     return WhileStmt(condition, loop);
   }
@@ -556,9 +557,9 @@ class HTAstParser extends Parser {
     // 循环体
     match(HTLexicon.roundRight);
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop_body.addAll(_parseBlock(style: ParseStyle.function));
+      loop_body.addAll(_parseBlock(style: ParseStyle.block));
     } else {
-      loop_body.add(_parseStmt(style: ParseStyle.function));
+      loop_body.add(_parseStmt(style: ParseStyle.block));
     }
     list_stmt.add(WhileStmt(condition, BlockStmt(loop_body, curFileName, curTok.line, curTok.column)));
     return BlockStmt(list_stmt, curFileName, curTok.line, curTok.column);
@@ -717,7 +718,7 @@ class HTAstParser extends Parser {
     var body = <ASTNode>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       // 处理函数定义部分的语句块
-      body = _parseBlock(style: ParseStyle.function);
+      body = _parseBlock(style: ParseStyle.block);
     }
     expect([HTLexicon.semicolon], consume: true);
 

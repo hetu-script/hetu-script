@@ -25,7 +25,7 @@ void main(List<String> args) async {
       if ((args.first == '--help') || (args.first == '-h')) {
         print(cli_help);
       } else if (args.length == 1) {
-        result = await hetu.import(args.first, style: ParseStyle.function);
+        result = await hetu.import(args.first, style: ParseStyle.block);
       } else {
         result = await hetu.import(args.first, style: ParseStyle.module, invokeFunc: args[1]);
       }
@@ -49,7 +49,7 @@ void main(List<String> args) async {
           }
 
           try {
-            result = await hetu.eval(input, style: ParseStyle.function);
+            result = await hetu.eval(input, style: ParseStyle.block);
             if (result != null) print(result);
           } catch (e) {
             print(e);

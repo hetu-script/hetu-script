@@ -5,11 +5,20 @@ void main() async {
 
   // await hetu.init();
 
-  await hetu.eval(r'''
-  fun hello (a, b) {
-    return a * b + a * b
+  final result = await hetu.eval(r'''
+  class Person {
+    fun greeting {
+      return 6 * 7
+    }
+    var name = 'Adam'
   }
 
-  hello(6, 7)
-  ''', style: ParseStyle.function);
+  fun main {
+    var j = Person()
+    j.name = 'Jimmy'
+    j.name
+  }
+  ''', style: ParseStyle.module, invokeFunc: 'main');
+
+  print(result);
 }

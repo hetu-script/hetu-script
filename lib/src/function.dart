@@ -1,11 +1,10 @@
 import 'common.dart';
 import 'namespace.dart';
 import 'type.dart';
-import 'lexicon.dart';
 
 /// 函数抽象类，ast 和 字节码分别有各自的具体实现
 abstract class HTFunction with HTType {
-  static var _anonymousIndex = 0;
+  static var anonymousIndex = 0;
   static final callStack = <String>[];
 
   late final String id;
@@ -35,9 +34,8 @@ abstract class HTFunction with HTType {
 
   HTNamespace? context;
 
-  HTFunction(
-      {String? id,
-      this.className,
+  HTFunction(this.id,
+      {this.className,
       this.funcType = FunctionType.normal,
       this.typeParams = const [],
       this.isExtern = false,
@@ -45,21 +43,7 @@ abstract class HTFunction with HTType {
       this.isConst = false,
       this.isVariadic = false,
       this.minArity = 0,
-      this.maxArity = 0}) {
-    switch (funcType) {
-      case FunctionType.constructor:
-        this.id = (id == null) ? className! : '${className!}.$id';
-        break;
-      case FunctionType.getter:
-        this.id = HTLexicon.getter + id!;
-        break;
-      case FunctionType.setter:
-        this.id = HTLexicon.setter + id!;
-        break;
-      default:
-        this.id = id ?? HTLexicon.anonymousFunction + (_anonymousIndex++).toString();
-    }
-  }
+      this.maxArity = 0});
 
   dynamic call(
       {List<dynamic> positionalArgs = const [],

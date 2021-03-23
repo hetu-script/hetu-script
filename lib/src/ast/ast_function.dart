@@ -17,7 +17,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
       {List<HTTypeId> typeParams = const [], HTNamespace? context})
       : super(
-          id: funcStmt.id?.lexeme,
+          funcStmt.internalName,
           className: funcStmt.className,
           funcType: funcStmt.funcType,
           typeParams: typeParams,
@@ -149,9 +149,13 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {
         result = returnValue;
       }
-    } finally {
+
       HTFunction.callStack.removeLast();
       return result;
     }
+
+    // 这里不能用finally，会导致异常无法继续抛出
+    HTFunction.callStack.removeLast();
+    return result;
   }
 }

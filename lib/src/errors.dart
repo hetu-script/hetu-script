@@ -137,8 +137,8 @@ class HTErrorReturn extends HTResolverError {
   HTErrorReturn(String id) : super(HTError.outsideReturn);
 }
 
-class HTErrorInvalidLeftValueCompiler extends HTCompilerError {
-  HTErrorInvalidLeftValueCompiler() : super(HTError.invalidLeftValue);
+class HTErrorIllegalLeftValueCompiler extends HTCompilerError {
+  HTErrorIllegalLeftValueCompiler() : super(HTError.invalidLeftValue);
 }
 
 // class HTErrorAssign extends HTError {

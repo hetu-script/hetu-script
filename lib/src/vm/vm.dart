@@ -16,6 +16,8 @@ import '../declaration.dart';
 import '../function.dart';
 import '../class.dart';
 import '../extern_function.dart';
+import '../extern_object.dart';
+import '../object.dart';
 
 mixin VMRef {
   late final HTVM interpreter;
@@ -62,9 +64,12 @@ class HTVM extends Interpreter {
     print('Bytes length: ${_bytesReader.bytes.length}');
     print(_bytesReader.bytes);
 
-    final result = execute();
+    var result = execute();
+    if (style == ParseStyle.module && invokeFunc != null) {
+      result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs);
+    }
 
-    print(result);
+    return result;
   }
 
   @override
@@ -77,10 +82,6 @@ class HTVM extends Interpreter {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {}
-
-  @override
-  dynamic invoke(String functionName,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {}
 
   @override
   HTTypeId typeof(dynamic object) {
@@ -97,13 +98,16 @@ class HTVM extends Interpreter {
         (_bytesReader.read() == 0) ? _curValue = false : _curValue = true;
         break;
       case HTValueTypeCode.int64:
-        _curValue = curNamespace.getConstInt(_bytesReader.readUint16());
+        final index = _bytesReader.readUint16();
+        _curValue = global.getConstInt(index);
         break;
       case HTValueTypeCode.float64:
-        _curValue = curNamespace.getConstFloat(_bytesReader.readUint16());
+        final index = _bytesReader.readUint16();
+        _curValue = global.getConstFloat(index);
         break;
       case HTValueTypeCode.utf8String:
-        _curValue = curNamespace.getConstString(_bytesReader.readUint16());
+        final index = _bytesReader.readUint16();
+        _curValue = global.getConstString(index);
         break;
       case HTValueTypeCode.symbol:
         _curSymbol = _bytesReader.readShortUtf8String();
@@ -163,13 +167,22 @@ class HTVM extends Interpreter {
         _leftValueStack.removeLast();
         break;
       case HTOpCode.assignDevide:
-        // _local = _register[left] /= _register[right];
+        final leftValue = curNamespace.fetch(_leftValueStack.last);
+        _curValue = leftValue / _register[right];
+        curNamespace.assign(_leftValueStack.last, _curValue);
+        _leftValueStack.removeLast();
         break;
       case HTOpCode.assignAdd:
-        // _local = _register[left] += _register[right];
+        final leftValue = curNamespace.fetch(_leftValueStack.last);
+        _curValue = leftValue + _register[right];
+        curNamespace.assign(_leftValueStack.last, _curValue);
+        _leftValueStack.removeLast();
         break;
       case HTOpCode.assignSubtract:
-        // _local = _register[left] -= _register[right];
+        final leftValue = curNamespace.fetch(_leftValueStack.last);
+        _curValue = leftValue - _register[right];
+        curNamespace.assign(_leftValueStack.last, _curValue);
+        _leftValueStack.removeLast();
         break;
     }
   }
@@ -224,20 +237,20 @@ class HTVM extends Interpreter {
   }
 
   void _handleUnaryPrefixOp(int op) {
-    final value = _bytesReader.read();
+    final index = _bytesReader.read();
 
     switch (op) {
       case HTOpCode.negative:
-        _curValue = _register[value] = -_register[value];
+        _curValue = _register[index] = -_register[index];
         break;
       case HTOpCode.logicalNot:
-        _curValue = _register[value] = !_register[value];
+        _curValue = _register[index] = !_register[index];
         break;
       case HTOpCode.preIncrement:
-        _curValue = _register[value] = ++_register[value];
+        _curValue = _register[index] = ++_register[index];
         break;
       case HTOpCode.preDecrement:
-        _curValue = _register[value] = --_register[value];
+        _curValue = _register[index] = --_register[index];
         break;
       default:
       // throw HTErrorUndefinedOperator(_register[left].toString(), _register[right].toString(), HTLexicon.add);
@@ -346,25 +359,55 @@ class HTVM extends Interpreter {
   }
 
   void _handleUnaryPostfixOp(int op) {
-    final value = _bytesReader.read();
+    final index = _bytesReader.read();
 
     switch (op) {
       case HTOpCode.memberGet:
-        // _local = _register[value] = -_register[value];
+        var object = _register[index];
+        final key = _curSymbol = _bytesReader.readShortUtf8String();
+
+        if (object is num) {
+          object = HTNumber(object);
+        } else if (object is bool) {
+          object = HTBoolean(object);
+        } else if (object is String) {
+          object = HTString(object);
+        } else if (object is List) {
+          object = HTList(object);
+        } else if (object is Map) {
+          object = HTMap(object);
+        }
+
+        if ((object is HTObject)) {
+          _curValue = _register[index] = object.fetch(key, from: curNamespace.fullName);
+        }
+        //如果是Dart对象
+        else {
+          var typeid = object.runtimeType.toString();
+          if (typeid.contains('<')) {
+            typeid = typeid.substring(0, typeid.indexOf('<'));
+          }
+          var externClass = fetchExternalClass(typeid);
+          _curValue = _register[index] = externClass.instanceFetch(object, key);
+        }
         break;
       case HTOpCode.subGet:
-        // _local = _register[value] = !_register[value];
-        break;
+        final object = _register[index];
+        final key = execute(ip: _bytesReader.ip, keepIp: true);
+        if (object is List || object is Map) {
+          _curValue = _register[index] = object[key];
+        }
+        throw HTErrorSubGet(object.toString());
       case HTOpCode.call:
-        _handleCallExpr(value);
+        _handleCallExpr(index);
         break;
       case HTOpCode.postIncrement:
-        _curValue = _register[value];
-        _register[value] += 1;
+        _curValue = _register[index];
+        _register[index] += 1;
         break;
       case HTOpCode.postDecrement:
-        _curValue = _register[value];
-        _register[value] -= 1;
+        _curValue = _register[index];
+        _register[index] -= 1;
         break;
     }
   }
@@ -415,8 +458,8 @@ class HTVM extends Interpreter {
     }
 
     final func = HTBytesFunction(
+      id,
       this,
-      id: id,
       className: _curClassName,
       funcType: funcType,
       paramDecls: paramDecls,
@@ -427,13 +470,61 @@ class HTVM extends Interpreter {
       isVariadic: isVariadic,
       minArity: minArity,
       maxArity: maxArity,
-      context: curNamespace,
     );
 
-    curNamespace.define(HTDeclaration(id, value: func, declType: func.typeid));
+    if (funcType == FunctionType.getter || funcType == FunctionType.setter || funcType == FunctionType.method) {
+      (curNamespace as HTClass).defineInstance(
+          HTDeclaration(id, value: func, declType: func.typeid, isExtern: func.isExtern, isMember: true));
+    } else {
+      if (funcType != FunctionType.constructor) {
+        func.context = curNamespace;
+      }
+      curNamespace
+          .define(HTDeclaration(id, value: func, declType: func.typeid, isExtern: func.isExtern, isMember: true));
+    }
   }
 
-  void _handleClassDecl() {}
+  void _handleClassDecl() {
+    final id = _bytesReader.readShortUtf8String();
+
+    final classType = ClassType.values[_bytesReader.read()];
+
+    String? superClassId;
+    final hasSuperClass = _bytesReader.readBool();
+    if (hasSuperClass) {
+      superClassId = _bytesReader.readShortUtf8String();
+    }
+
+    HTClass? superClass;
+    if (id != HTLexicon.rootClass) {
+      if (superClassId == null) {
+        // TODO: Object基类
+        // superClass = global.fetch(HTLexicon.rootClass);
+      } else {
+        superClass = curNamespace.fetch(superClassId, from: curNamespace.fullName);
+      }
+    }
+
+    final klass = HTClass(id, superClass, this, classType: classType, closure: curNamespace);
+
+    // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
+    curNamespace.define(HTDeclaration(id, value: klass, declType: HTTypeId.CLASS));
+
+    execute(ip: _bytesReader.ip, keepIp: true, closure: klass);
+
+    // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
+    var curSuper = superClass;
+    while (curSuper != null) {
+      for (final decl in curSuper.instanceDecls.values) {
+        if (decl.id.startsWith(HTLexicon.underscore)) {
+          continue;
+        }
+        klass.defineInstance(decl.clone(), skipOverride: true);
+      }
+
+      curSuper = curSuper.superClass;
+    }
+  }
 
   void _handleVarDecl() {
     final id = _bytesReader.readShortUtf8String();
@@ -452,13 +543,19 @@ class HTVM extends Interpreter {
       _bytesReader.skip(length);
     }
 
-    curNamespace.define(HTBytesDecl(id, this,
+    final decl = HTBytesDecl(id, this,
         initializerIp: initializerIp,
         isDynamic: isDynamic,
         isExtern: isExtern,
         isImmutable: isImmutable,
         isMember: isMember,
-        isStatic: isStatic));
+        isStatic: isStatic);
+
+    if (!isMember || isStatic) {
+      curNamespace.define(decl);
+    } else {
+      (curNamespace as HTClass).defineInstance(decl);
+    }
   }
 
   dynamic execute({int ip = 0, bool keepIp = false, HTNamespace? closure}) {
@@ -486,6 +583,16 @@ class HTVM extends Interpreter {
         case HTOpCode.debug:
           debugMode = _bytesReader.read() == 0 ? false : true;
           print('Debug: $debugMode');
+          break;
+        case HTOpCode.endOfExec:
+          if (!keepIp) {
+            _bytesReader.ip = savedIp;
+          }
+          curNamespace = savedClosure;
+          return _curValue;
+        // 语句结束
+        case HTOpCode.endOfStmt:
+          _curSymbol = null;
           break;
         //常量表
         case HTOpCode.constTable:
@@ -562,16 +669,6 @@ class HTVM extends Interpreter {
         case HTOpCode.postIncrement:
         case HTOpCode.postDecrement:
           _handleUnaryPostfixOp(instruction);
-          break;
-        case HTOpCode.endOfExec:
-          if (!keepIp) {
-            _bytesReader.ip = savedIp;
-          }
-          curNamespace = savedClosure;
-          return _curValue;
-        // 语句结束
-        case HTOpCode.endOfStmt:
-          _curSymbol = null;
           break;
         case HTOpCode.debugInfo:
           curLine = _bytesReader.readUint32();

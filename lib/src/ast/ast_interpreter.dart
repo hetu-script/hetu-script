@@ -126,52 +126,6 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     return result;
   }
 
-  /// 调用一个全局函数或者类、对象上的函数
-  // TODO: 调用构造函数
-  @override
-  dynamic invoke(String functionName,
-      {String? objectName, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    if (objectName == null) {
-      var func = global.fetch(functionName);
-      if (func is HTFunction) {
-        return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
-      } else if (func is Function) {
-        if (func is HTExternalFunction) {
-          try {
-            return func(positionalArgs, namedArgs);
-          } on RangeError {
-            throw HTErrorExternParams();
-          }
-        } else {
-          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(func.toString());
-        }
-      } else {
-        throw HTErrorCallable(functionName);
-      }
-    } else {
-      // 命名空间内的静态函数
-      HTObject object = global.fetch(objectName);
-      var func = object.fetch(functionName, from: object.fullName);
-      if (func is HTFunction) {
-        return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
-      } else if (func is Function) {
-        if (func is HTExternalFunction) {
-          try {
-            return func(positionalArgs, namedArgs);
-          } on RangeError {
-            throw HTErrorExternParams();
-          }
-        } else {
-          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(func.toString());
-        }
-      } else {
-        throw HTErrorCallable(functionName);
-      }
-    }
-  }
-
   @override
   HTTypeId typeof(dynamic object) {
     if ((object == null) || (object is NullThrownError)) {
@@ -821,26 +775,28 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
 
     var save = curNamespace;
     curNamespace = klass;
+
     for (final variable in stmt.variables) {
       if (stmt.classType != ClassType.extern && variable.isExtern) {
         throw HTErrorExternalVar();
       }
-
       // dynamic value;
       // if (variable.initializer != null) {
       //   value = visitASTNode(variable.initializer!);
       // }
+
+      final decl = HTAstDecl(variable.id.lexeme, this,
+          declType: variable.declType,
+          isDynamic: variable.isDynamic,
+          isExtern: variable.isExtern,
+          isImmutable: variable.isImmutable,
+          isMember: true,
+          isStatic: variable.isStatic);
+
       if (variable.isStatic) {
-        klass.define(HTAstDecl(variable.id.lexeme, this,
-            declType: variable.declType,
-            isExtern: variable.isExtern,
-            isImmutable: variable.isImmutable,
-            isDynamic: variable.declType == null));
+        klass.define(decl);
       } else {
-        klass.defineInInstance(HTAstDecl(variable.id.lexeme, this,
-            declType: variable.declType ?? HTTypeId.ANY,
-            isExtern: variable.isExtern,
-            isImmutable: variable.isImmutable));
+        klass.defineInstance(decl);
       }
     }
 
@@ -858,7 +814,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
             override: true);
       } else {
         func = HTAstFunction(method, this);
-        klass.defineInInstance(
+        klass.defineInstance(
             HTDeclaration(method.internalName, value: func, declType: func.typeid, isExtern: method.isExtern));
       }
     }
@@ -870,7 +826,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
         if (decl.id.startsWith(HTLexicon.underscore)) {
           continue;
         }
-        klass.defineInInstance(decl.clone(), skipOverride: true);
+        klass.defineInstance(decl.clone(), skipOverride: true);
       }
 
       curSuper = curSuper.superClass;

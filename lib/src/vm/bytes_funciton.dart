@@ -15,9 +15,8 @@ class HTBytesFunction extends HTFunction with VMRef {
 
   final int? definitionIp;
 
-  HTBytesFunction(HTVM interpreter,
-      {String? id,
-      String? className,
+  HTBytesFunction(String id, HTVM interpreter,
+      {String? className,
       FunctionType funcType = FunctionType.normal,
       this.paramDecls = const <String, HTBytesParamDecl>{},
       HTTypeId returnType = HTTypeId.ANY,
@@ -30,8 +29,7 @@ class HTBytesFunction extends HTFunction with VMRef {
       int minArity = 0,
       int maxArity = 0,
       HTNamespace? context})
-      : super(
-            id: id,
+      : super(id,
             className: className,
             funcType: funcType,
             typeParams: typeParams,
@@ -155,9 +153,13 @@ class HTBytesFunction extends HTFunction with VMRef {
       if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {
         result = returnValue;
       }
-    } finally {
+
       HTFunction.callStack.removeLast();
       return result;
     }
+
+    // 这里不能用finally，会导致异常无法继续抛出
+    HTFunction.callStack.removeLast();
+    return result;
   }
 }

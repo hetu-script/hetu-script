@@ -176,7 +176,7 @@ class HTClass extends HTNamespace {
   }
 
   /// Add a instance variable declaration to this class.
-  void defineInInstance(HTDeclaration decl, {bool skipOverride = false}) {
+  void defineInstance(HTDeclaration decl, {bool skipOverride = false}) {
     if (!instanceDecls.containsKey(decl.id)) {
       instanceDecls[decl.id] = decl;
     } else {
@@ -201,9 +201,11 @@ class HTClass extends HTNamespace {
     interpreter.curNamespace = save;
 
     constructorName ??= id;
-    HTFunction constructor = fetch(constructorName, from: fullName);
-    constructor.context = instance;
-    constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+    if (declarations.containsKey(constructorName)) {
+      HTFunction constructor = declarations[constructorName]!.value;
+      constructor.context = instance;
+      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+    }
 
     return instance;
   }

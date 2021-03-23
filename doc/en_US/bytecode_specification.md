@@ -72,16 +72,18 @@ create the typeid according to the param types and return value type.
 
 ## Class declaration
 
-| Name                 | Max length | type       | optional |
-| :------------------- | :--------- | :--------- | :------- |
-| length of id         | 1          | byte       |          |
-| id utf8 string       | 255        | uint8 list |          |
-| class type           | 1          | byte       |          |
-| typeParams           | ...        |            |          |
-| length of func decls | 2          | uint16     |          |
-| list of func decls   | 65,535     | uint8 list |          |
-| length of var decls  | 2          | uint16     |          |
-| list of var decls    | 65,535     | uint8 list |          |
+| Name                       | Max length | type       | optional |
+| :------------------------- | :--------- | :--------- | :------- |
+| length of id               | 1          | byte       |          |
+| id utf8 string             | 255        | uint8 list |          |
+| class type                 | 1          | byte       |          |
+| length of super class id   | 1          | byte       |          |
+| super class id utf8 string | 255        | uint8 list |          |
+| typeParams                 | ...        |            |          |
+| length of func decls       | 2          | uint16     |          |
+| list of func decls         | 65,535     | uint8 list |          |
+| length of var decls        | 2          | uint16     |          |
+| list of var decls          | 65,535     | uint8 list |          |
 
 ## Value
 

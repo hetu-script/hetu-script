@@ -8,6 +8,8 @@ import 'hetu_lib.dart';
 import 'extern_class.dart';
 import 'errors.dart';
 import 'extern_function.dart';
+import 'object.dart';
+import 'function.dart';
 
 mixin InterpreterRef {
   late final Interpreter interpreter;
@@ -86,8 +88,50 @@ abstract class Interpreter {
     Map<String, dynamic> namedArgs = const {},
   });
 
+  /// 调用一个全局函数或者类、对象上的函数
+  // TODO: 调用构造函数
   dynamic invoke(String functionName,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}});
+      {String? objectName, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+    if (objectName == null) {
+      var func = global.fetch(functionName);
+      if (func is HTFunction) {
+        return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      } else if (func is Function) {
+        if (func is HTExternalFunction) {
+          try {
+            return func(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(func.toString());
+        }
+      } else {
+        throw HTErrorCallable(functionName);
+      }
+    } else {
+      // 命名空间内的静态函数
+      HTObject object = global.fetch(objectName);
+      var func = object.fetch(functionName, from: object.fullName);
+      if (func is HTFunction) {
+        return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      } else if (func is Function) {
+        if (func is HTExternalFunction) {
+          try {
+            return func(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(func.toString());
+        }
+      } else {
+        throw HTErrorCallable(functionName);
+      }
+    }
+  }
 
   HTTypeId typeof(dynamic object);
 
