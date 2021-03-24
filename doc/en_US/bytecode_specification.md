@@ -2,6 +2,16 @@
 
 ## Declaration
 
+### TypeId
+
+| Name               | Byte length | type       | optional |
+| :----------------- | :---------- | :--------- | :------- |
+| length of id       | 1           | byte       |          |
+| id utf8 string     | 255         | uint8 list |          |
+| length of arg list | 1           | byte       |          |
+| arg1, arg2 ...     | ...         | uint8 list |          |
+| isNullable         | 1           | bool       |          |
+
 ### General declaration
 
 | Name                  | Byte length | type       | optional |
@@ -10,9 +20,11 @@
 | id utf8 string        | 255         | uint8 list |          |
 | isDynamic             | 1           | bool       |          |
 | isExtern              | 1           | bool       |          |
-| isStatic              | 1           | bool       |          |
 | isImmutable           | 1           | bool       |          |
-| HTTypeId              |             |            |          |
+| isMember              | 1           | bool       |          |
+| isStatic              | 1           | bool       |          |
+| hasType               | 1           | bool       |          |
+| TypeId                | ...         | TypeId     |          |
 | hasInitializer        | 1           | bool       |          |
 | length of initializer | 2           | uint16     | true     |
 | initializer           | 65,535      | uint8 list | true     |
@@ -29,7 +41,8 @@ Parameter declaration have no opcode marker at the start since it's always part 
 | isOptional            | 1           | bool       |          |
 | isNamed               | 1           | bool       |          |
 | isVariadic            | 1           | bool       |          |
-| HTTypeId              |             |            |          |
+| hasType               | 1           | bool       |          |
+| TypeId                | ...         | TypeId     |          |
 | hasInitializer        | 1           | bool       |          |
 | length of initializer | 2           | uint16     | true     |
 | initializer           | 65,535      | uint8 list | true     |
@@ -56,11 +69,12 @@ create the typeid according to the param types and return value type.
 | isStatic             | 1           | bool       |          |
 | isConst              | 1           | bool       |          |
 | isVariadic           | 1           | bool       |          |
-| return type          | ...         | HTTypeId   |          |
 | min arity            | 1           | byte       |          |
 | max arity\*          | 1           | byte       |          |
 | length of paramDecls | 1           | byte       |          |
 | list of param decls  | 255         | uint8 list | true     |
+| has return type      | 1           | bool       |          |
+| return type          | ...         | HTTypeId   |          |
 | hasBody              | 1           | bool       |          |
 | length of body       | 2           | uint16     | true     |
 | definition body      | 65,535      | uint8 list | true     |

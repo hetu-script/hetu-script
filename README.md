@@ -77,7 +77,10 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   var hetu = HTAstInterpreter();
   await hetu.init(externalFunctions: {
-    'hello': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => {'greeting': 'hello'},
+    'hello': (
+        [List<dynamic> positionalArgs = const [],
+        Map<String, dynamic> namedArgs = const {},
+        List<HTTypeId> typeArgs = const <HTTypeId>[]]) => {'greeting': 'hello'},
   });
   await hetu.eval(r'''
       external fun hello
@@ -129,9 +132,13 @@ Please check out this repository: [hetu-script-autobinding](https://github.com/h
 
 ## Command line tool
 
-On Windows, there is a hetu.exe under [project_directory/bin] to use in Command line.
+Hetu has a command line REPL tool for testing. You can activate by the following command:
 
-Usage:
+```
+dart pub global activate hetu_script
+```
+
+Then you can use the following command in any directory on your computer. (If you are facing any problems, please check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global))
 
 ```
 

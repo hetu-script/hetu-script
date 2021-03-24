@@ -13,7 +13,7 @@ enum ClassType {
   nested,
   abstracted,
   interface,
-  mix_in,
+  mixIn,
   extern,
 }
 
@@ -39,4 +39,10 @@ class HTVersion {
 
   @override
   String toString() => '$major.$minor.$patch';
+}
+
+enum LeftValueType {
+  none,
+  symbol,
+  member,
 }

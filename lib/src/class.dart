@@ -187,10 +187,10 @@ class HTClass extends HTNamespace {
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
   HTInstance createInstance(
-      {List<HTTypeId> typeArgs = const [],
-      String? constructorName,
+      {String? constructorName,
       List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {}}) {
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) {
     var instance = HTInstance(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
 
     var save = interpreter.curNamespace;
@@ -238,7 +238,10 @@ class HTInstance extends HTNamespace {
   }
 
   @override
-  String toString() => '${HTLexicon.instanceOf}$typeid';
+  String toString() {
+    dynamic func = fetch('toString');
+    return interpreter.call(func);
+  }
 
   @override
   bool contains(String varName) =>
@@ -273,7 +276,11 @@ class HTInstance extends HTNamespace {
       case 'typeid':
         return typeid;
       case 'toString':
-        return toString;
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            '${HTLexicon.instanceOf}$typeid';
       default:
         throw HTErrorUndefinedMember(varName, typeid.toString());
     }

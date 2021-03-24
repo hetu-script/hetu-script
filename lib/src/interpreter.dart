@@ -10,6 +10,7 @@ import 'errors.dart';
 import 'extern_function.dart';
 import 'object.dart';
 import 'function.dart';
+import 'class.dart';
 
 mixin InterpreterRef {
   late final Interpreter interpreter;
@@ -45,7 +46,7 @@ abstract class Interpreter {
     // load classes and functions in core library.
     // TODO: dynamic load needed core lib in script
     for (final file in coreModules.keys) {
-      await eval(coreModules[file]!);
+      await eval(coreModules[file]!, fileName: file);
     }
 
     for (var key in HTExternalFunctions.functions.keys) {
@@ -74,6 +75,7 @@ abstract class Interpreter {
     String libName = HTLexicon.global,
     HTNamespace? namespace,
     ParseStyle style = ParseStyle.module,
+    bool debugMode = false,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -88,49 +90,113 @@ abstract class Interpreter {
     Map<String, dynamic> namedArgs = const {},
   });
 
+  /// Call a Hetu function or a Dart function,
+  /// use several different implements according to the callee type.
+  dynamic call(dynamic callee,
+      [List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []]) {
+    if (callee is HTFunction) {
+      if (!callee.isExtern) {
+        // 普通函数
+        if (callee.funcType != FunctionType.constructor) {
+          return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+        } else {
+          final className = callee.className;
+          final klass = global.fetch(className!);
+          if (klass is HTClass) {
+            if (klass.classType != ClassType.extern) {
+              // 命名构造函数
+              return klass.createInstance(
+                  constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
+            } else {
+              // 外部命名构造函数
+              final externClass = fetchExternalClass(className);
+              final constructor = externClass.fetch(callee.id);
+              if (constructor is HTExternalFunction) {
+                try {
+                  return constructor(positionalArgs, namedArgs);
+                } on RangeError {
+                  throw HTErrorExternParams();
+                }
+              } else {
+                return Function.apply(
+                    constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+                // throw HTErrorExternFunc(constructor.toString());
+              }
+            }
+          } else {
+            throw HTErrorCallable(callee.toString());
+          }
+        }
+      } else {
+        final externFunc = fetchExternalFunction(callee.id);
+        if (externFunc is HTExternalFunction) {
+          try {
+            return externFunc(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          return Function.apply(
+              externFunc, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(constructor.toString());
+        }
+      }
+    } else if (callee is HTClass) {
+      if (callee.classType != ClassType.extern) {
+        // 默认构造函数
+        return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      } else {
+        // 外部默认构造函数
+        final externClass = fetchExternalClass(callee.id);
+        final constructor = externClass.fetch(callee.id);
+        if (constructor is HTExternalFunction) {
+          try {
+            return constructor(positionalArgs, namedArgs);
+          } on RangeError {
+            throw HTErrorExternParams();
+          }
+        } else {
+          return Function.apply(
+              constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(constructor.toString());
+        }
+      }
+    } // 外部函数
+    else if (callee is Function) {
+      if (callee is HTExternalFunction) {
+        try {
+          return callee(positionalArgs, namedArgs);
+        } on RangeError {
+          throw HTErrorExternParams();
+        }
+      } else {
+        return Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        // throw HTErrorExternFunc(callee.toString());
+      }
+    } else {
+      throw HTErrorCallable(callee.toString());
+    }
+  }
+
   /// 调用一个全局函数或者类、对象上的函数
   // TODO: 调用构造函数
   dynamic invoke(String functionName,
-      {String? objectName, List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+      {String? objectName,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) {
+    var func;
     if (objectName == null) {
-      var func = global.fetch(functionName);
-      if (func is HTFunction) {
-        return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
-      } else if (func is Function) {
-        if (func is HTExternalFunction) {
-          try {
-            return func(positionalArgs, namedArgs);
-          } on RangeError {
-            throw HTErrorExternParams();
-          }
-        } else {
-          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(func.toString());
-        }
-      } else {
-        throw HTErrorCallable(functionName);
-      }
+      func = global.fetch(functionName);
     } else {
       // 命名空间内的静态函数
       HTObject object = global.fetch(objectName);
-      var func = object.fetch(functionName, from: object.fullName);
-      if (func is HTFunction) {
-        return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
-      } else if (func is Function) {
-        if (func is HTExternalFunction) {
-          try {
-            return func(positionalArgs, namedArgs);
-          } on RangeError {
-            throw HTErrorExternParams();
-          }
-        } else {
-          return Function.apply(func, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(func.toString());
-        }
-      } else {
-        throw HTErrorCallable(functionName);
-      }
+      func = object.fetch(functionName, from: object.fullName);
     }
+
+    return call(func, positionalArgs, namedArgs, typeArgs);
   }
 
   HTTypeId typeof(dynamic object);

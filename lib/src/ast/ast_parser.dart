@@ -312,7 +312,7 @@ class HTAstParser extends Parser {
             return _parseClassDeclStmt(classType: ClassType.interface);
           case HTLexicon.MIXIN:
             match(HTLexicon.CLASS);
-            return _parseClassDeclStmt(classType: ClassType.mix_in);
+            return _parseClassDeclStmt(classType: ClassType.mixIn);
           case HTLexicon.CLASS:
             return _parseClassDeclStmt();
           case HTLexicon.IMPORT:

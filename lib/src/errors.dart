@@ -28,8 +28,12 @@ abstract class HTError {
   // static const errorRange = 'Index out of range, should be less than';
   static const invalidLeftValue = 'Illegal left value.';
   static const notCallable = 'is not callable';
-  static const externFuncType =
-      'External function expected:\n  dynamic Function(List<dynamic> positionalArgs, Map<String, dynamic> namedArgs)\nGot:\n  ';
+  static const externFuncType = '''
+  External function expected:
+  dynamic Function([List<dynamic> positionalArgs = const [],
+                    Map<String, dynamic> namedArgs = const {},
+                    List<HTTypeId> typeArgs = const <HTTypeId>[]])
+  Got:\n''';
   static const externFuncParam = 'External function arguments mismatch.';
   static const undefinedMember = 'isn\'t defined for the class';
   static const conditionMustBeBool = 'Condition expression must evaluate to type [bool]';
@@ -276,8 +280,8 @@ class HTErrorBinding extends HTError {
   HTErrorBinding(String id) : super('${HTError.binding} [$id]', HTErrorType.interpreter);
 }
 
-class HTErrorExternalVar extends HTError {
-  HTErrorExternalVar() : super(HTError.externalVar, HTErrorType.parser);
+class HTErrorExternVar extends HTError {
+  HTErrorExternVar() : super(HTError.externalVar, HTErrorType.parser);
 }
 
 class HTErrorSignature extends HTError {

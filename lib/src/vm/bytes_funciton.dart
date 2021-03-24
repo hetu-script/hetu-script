@@ -19,7 +19,7 @@ class HTBytesFunction extends HTFunction with VMRef {
       {String? className,
       FunctionType funcType = FunctionType.normal,
       this.paramDecls = const <String, HTBytesParamDecl>{},
-      HTTypeId returnType = HTTypeId.ANY,
+      HTTypeId? returnType,
       this.definitionIp,
       List<HTTypeId> typeParams = const [],
       bool isExtern = false,
@@ -42,11 +42,9 @@ class HTBytesFunction extends HTFunction with VMRef {
     this.interpreter = interpreter;
     this.context = context;
 
-    var paramsTypes = <HTTypeId>[];
-    for (final param in paramDecls.values) {
-      paramsTypes.add(param.declType ?? HTTypeId.ANY);
-    }
-    typeid = HTFunctionTypeId(returnType: returnType, paramsTypes: paramsTypes);
+    typeid = HTFunctionTypeId(
+        returnType: returnType ?? HTTypeId.ANY,
+        paramsTypes: paramDecls.values.map((paramDecl) => paramDecl.declType ?? HTTypeId.ANY).toList());
   }
 
   // @override

@@ -27,7 +27,11 @@ extension PersonBinding on Person {
       case 'name':
         return name;
       case 'greeting':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => greeting();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            greeting();
       case 'child':
         return child;
       default:
@@ -53,12 +57,23 @@ class PersonClassBinding extends HTExternalClass {
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'Person':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => Person();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            Person();
       case 'Person.withName':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             Person.withName(name: namedArgs['name']);
       case 'Person.meaning':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => Person.meaning(positionalArgs[0]);
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            Person.meaning(positionalArgs[0]);
       case 'Person.race':
         return Person.race;
       case 'Person.level':

@@ -22,11 +22,10 @@ class HTTypeId {
   // List<HTType> get inheritances;
   // List<HTType> get compositions;
   final String id;
+  final bool isNullable;
   final List<HTTypeId> arguments;
 
-  final bool isNullable = true;
-
-  const HTTypeId(this.id, {this.arguments = const []});
+  const HTTypeId(this.id, {this.isNullable = true, this.arguments = const []});
 
   @override
   String toString() {

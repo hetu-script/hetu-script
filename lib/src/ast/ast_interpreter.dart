@@ -42,6 +42,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     String libName = HTLexicon.global,
     HTNamespace? namespace,
     ParseStyle style = ParseStyle.module,
+    bool debugMode = false,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -778,7 +779,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
 
     for (final variable in stmt.variables) {
       if (stmt.classType != ClassType.extern && variable.isExtern) {
-        throw HTErrorExternalVar();
+        throw HTErrorExternVar();
       }
       // dynamic value;
       // if (variable.initializer != null) {

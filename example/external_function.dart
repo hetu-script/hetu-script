@@ -4,7 +4,11 @@ void main() async {
   var hetu = HTAstInterpreter();
 
   await hetu.init(externalFunctions: {
-    'hello': (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => {'greeting': 'hello'},
+    'hello': (
+            [List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+        {'greeting': 'hello'},
   });
 
   await hetu.eval(r'''

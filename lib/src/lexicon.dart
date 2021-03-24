@@ -80,6 +80,7 @@ abstract class HTLexicon {
   static const VOID = 'void';
   static const VAR = 'var';
   static const LET = 'let';
+  static const FINAL = 'final';
   static const CONST = 'const';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const ANY = 'any';
@@ -137,6 +138,7 @@ abstract class HTLexicon {
         STATIC,
         VAR,
         LET,
+        FINAL,
         CONST,
         TYPEDEF,
         AS,
@@ -211,6 +213,7 @@ abstract class HTLexicon {
   static const memberGet = '.';
   static const subGet = '[';
   static const call = '(';
+  static const nullable = '?';
   static const postIncrement = '++';
   static const postDecrement = '--';
 
@@ -310,6 +313,7 @@ abstract class HTLexicon {
   static const angleRight = '>';
 
   static Set<String> get Punctuations => {
+        nullable,
         logicalNot,
         multiply,
         devide,

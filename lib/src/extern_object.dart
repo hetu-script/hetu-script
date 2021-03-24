@@ -21,12 +21,23 @@ class HTNumber extends HTExternObject<num> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.toString();
       case 'toStringAsFixed':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.toStringAsFixed(positionalArgs.first);
       case 'truncate':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.truncate();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.truncate();
       default:
         throw HTErrorUndefined(id);
     }
@@ -46,7 +57,11 @@ class HTBoolean extends HTExternObject<bool> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.toString();
       case 'parse':
         return externObject.toString;
       default:
@@ -126,7 +141,11 @@ class HTList<T> extends HTExternObject<List<T>> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.toString();
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -134,26 +153,52 @@ class HTList<T> extends HTExternObject<List<T>> {
       case 'isNotEmpty':
         return externObject.isNotEmpty;
       case 'contains':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.contains(positionalArgs.first);
       case 'add':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.add(positionalArgs.first);
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.add(positionalArgs.first);
       case 'addAll':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.addAll(positionalArgs.first);
       case 'clear':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.clear();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.clear();
       case 'removeAt':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.removeAt(positionalArgs.first);
       case 'indexOf':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.indexOf(positionalArgs.first);
       case 'elementAt':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.elementAt(positionalArgs.first);
       case 'join':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.join(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
@@ -177,7 +222,11 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
       case 'typeid':
         return typeid;
       case 'toString':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.toString();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.toString();
       case 'length':
         return externObject.length;
       case 'isEmpty':
@@ -189,18 +238,34 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
       case 'values':
         return externObject.values.toList();
       case 'containsKey':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.containsKey(positionalArgs.first);
       case 'containsValue':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.containsValue(positionalArgs.first);
       case 'addAll':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.addAll(positionalArgs.first);
       case 'clear':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) => externObject.clear();
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.clear();
       case 'remove':
-        return (List<dynamic> positionalArgs, Map<String, dynamic> namedArgs) =>
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             externObject.remove(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
