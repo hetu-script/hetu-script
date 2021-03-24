@@ -46,3 +46,9 @@ enum LeftValueType {
   symbol,
   member,
 }
+
+enum ForStmtType {
+  normal,
+  key,
+  value,
+}

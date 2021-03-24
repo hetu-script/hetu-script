@@ -123,6 +123,7 @@ abstract class HTLexicon {
   static const CONTINUE = 'continue';
   static const FOR = 'for';
   static const IN = 'in';
+  static const OF = 'of';
   static const IF = 'if';
   static const ELSE = 'else';
   static const RETURN = 'return';
@@ -164,6 +165,7 @@ abstract class HTLexicon {
         CONTINUE,
         FOR,
         IN,
+        OF,
         IF,
         ELSE,
         RETURN,

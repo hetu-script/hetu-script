@@ -60,7 +60,6 @@ class HTVM extends Interpreter {
     final tokens = Lexer().lex(content, curFileName);
     final bytes = await Compiler().compile(tokens, this, curFileName, style, debugMode);
     _bytesReader = BytesReader(bytes);
-    print(bytes);
 
     var result = execute();
     if (style == ParseStyle.module && invokeFunc != null) {

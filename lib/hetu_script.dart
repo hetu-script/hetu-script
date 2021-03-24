@@ -6,6 +6,7 @@ library hetu_script;
 
 export 'src/common.dart';
 export 'src/type.dart' show HTTypeId;
+export 'src/lexer.dart';
 export 'src/class.dart';
 export 'src/function.dart' show HTFunction;
 export 'src/errors.dart';
@@ -14,6 +15,7 @@ export 'src/extern_object.dart';
 export 'src/lexicon.dart';
 export 'src/ast/ast_interpreter.dart';
 export 'src/ast/ast_declaration.dart';
+export 'src/vm/compiler.dart';
 export 'src/vm/vm.dart';
 export 'src/vm/bytes_declaration.dart';
 export 'src/binding.dart';

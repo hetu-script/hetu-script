@@ -37,6 +37,8 @@ class HTBytesDecl extends HTDeclaration with VMRef {
     if (initializerIp == null && declType == null) {
       declType = HTTypeId.ANY;
     }
+
+    if (value != null) _isInitialized = true;
   }
 
   @override

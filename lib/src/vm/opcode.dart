@@ -17,6 +17,8 @@ abstract class HTOpCode {
   static const endOfStmt = 210;
   static const endOfExec = 211;
 
+  static const blockStart = 6;
+  static const blockEnd = 6;
   static const constTable = 7;
   static const declTable = 8;
 
@@ -107,6 +109,16 @@ abstract class HTOpCode {
   static const postIncrement = 74;
 
   static const postDecrement = 75;
+
+  static const ifStmt = 76;
+
+  static const whileStmt = 77;
+
+  static const doStmt = 77;
+
+  static const forStmt = 77;
+
+  static const whenStmt = 77;
 }
 
 abstract class HTValueTypeCode {
