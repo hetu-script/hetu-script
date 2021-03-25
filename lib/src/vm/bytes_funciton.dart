@@ -137,7 +137,7 @@ class HTBytesFunction extends HTFunction with VMRef {
         variadicParam!.assign(variadicArg);
       }
 
-      result = interpreter.execute(ip: definitionIp!, closure: closure);
+      result = interpreter.execute(definitionIp!, closure);
     } catch (returnValue) {
       if ((returnValue is HTError) || (returnValue is Exception) || (returnValue is Error)) {
         rethrow;

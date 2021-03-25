@@ -42,7 +42,7 @@ class HTBytesDecl extends HTDeclaration with VMRef {
     if (initializerIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
-        final initVal = interpreter.execute(ip: initializerIp!);
+        final initVal = interpreter.evaluate(initializerIp!);
         assign(initVal);
         _isInitializing = false;
       } else {

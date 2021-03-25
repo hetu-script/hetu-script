@@ -48,7 +48,7 @@ enum LeftValueType {
 }
 
 enum ForStmtType {
-  normal,
-  key,
-  value,
+  classic,
+  keyIn,
+  valueOf,
 }

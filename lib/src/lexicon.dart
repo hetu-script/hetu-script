@@ -206,8 +206,12 @@ abstract class HTLexicon {
   static const breakStmt = 'break_statement';
   static const continueStmt = 'continue_statement';
   static const ifStmt = 'if_statement';
+  static const thenBranch = 'then_branch';
+  static const elseBranch = 'else_branch';
+  static const doStmt = 'do_statement';
   static const whileStmt = 'while_statement';
-  static const forInStmt = 'for_in_statement';
+  static const forStmt = 'for_statement';
+  static const whenStmt = 'when_statement';
   static const classDeclStmt = 'class_declaration_statement';
   static const enumDeclStmt = 'enum_declaration_statement';
   static const funcDeclStmt = 'function_declaration_statement';

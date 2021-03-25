@@ -824,7 +824,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
         if (decl.id.startsWith(HTLexicon.underscore)) {
           continue;
         }
-        klass.defineInstance(decl.clone(), skipOverride: true);
+        klass.defineInstance(decl.clone(), error: false);
       }
 
       curSuper = curSuper.superClass;

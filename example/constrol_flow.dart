@@ -7,6 +7,7 @@ void main() async {
 
   await hetu.eval(r'''
   external fun print(... arg)
+  
   fun main {
     var i = 0
     while (i < 10) {

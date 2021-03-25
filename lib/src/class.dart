@@ -176,11 +176,11 @@ class HTClass extends HTNamespace {
   }
 
   /// Add a instance variable declaration to this class.
-  void defineInstance(HTDeclaration decl, {bool skipOverride = false}) {
-    if (!instanceDecls.containsKey(decl.id)) {
+  void defineInstance(HTDeclaration decl, {bool override = false, bool error = true}) {
+    if (!instanceDecls.containsKey(decl.id) || override) {
       instanceDecls[decl.id] = decl;
     } else {
-      if (!skipOverride) throw HTErrorDefinedRuntime(decl.id);
+      if (error) throw HTErrorDefinedRuntime(decl.id);
     }
   }
 

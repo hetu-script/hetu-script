@@ -111,28 +111,24 @@ arity\*:
 
 ### If
 
-| Name                  | Bytes length | type       | optional |
-| :-------------------- | :----------- | :--------- | :------- |
-| HTOpCode.ifStmt       | 1            | byte       |          |
-| then branch length \* | 2            | uint16     |          |
-| else branch length \* | 2            | uint16     |          |
-| condition             | ...          | uint8 list |          |
-| then branch           | ...          | uint8 list |          |
-| else branch           | ...          | uint8 list | true     |
-
-else branch ip \*:
-
-If there's no else branch, then this ip is 0.
+| Name               | Bytes length | type       | optional |
+| :----------------- | :----------- | :--------- | :------- |
+| condition          | ...          | uint8 list |          |
+| HTOpCode.ifStmt    | 1            | byte       |          |
+| then branch length | 2            | uint16     |          |
+| else branch length | 2            | uint16     |          |
+| then branch        | ...          | uint8 list |          |
+| else branch        | ...          | uint8 list | true     |
 
 ### While
 
-| Name                | Bytes length | type          | optional |
-| :------------------ | :----------- | :------------ | :------- |
-| HTOpCode.whileStmt  | 1            | byte          |          |
-| length of condition | 2            | uint16 & bool |          |
-| length of loop      | 2            | uint16        |          |
-| condition           | ...          | uint8 list    | true     |
-| loop                | ...          | uint8 list    |          |
+| Name               | Bytes length | type       | optional |
+| :----------------- | :----------- | :--------- | :------- |
+| condition          | ...          | uint8 list | true     |
+| HTOpCode.whileStmt | 1            | byte       |          |
+| has condition      | 1            | bool       |          |
+| length of loop     | 2            | uint16     |          |
+| loop               | ...          | uint8 list |          |
 
 loop ip \*:
 

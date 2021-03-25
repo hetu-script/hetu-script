@@ -1,19 +1,6 @@
 abstract class HTOpCode {
   static const endOfFile = -1;
 
-  /// 4 bytes
-  static const signature = 200;
-
-  /// uint8, uint8, uint16
-  static const version = 201;
-
-  /// 1 byte
-  static const debug = 202;
-
-  /// uint32 line, uint32 column, uint8 symbolLength, symbol
-  static const debugInfo = 203;
-  static const error = 204; //
-
   /// 1 byte of OpRandType, value
   static const local = 1;
 
@@ -26,15 +13,17 @@ abstract class HTOpCode {
   static const leftValue = 4;
 
   static const loop = 5;
-  static const breakLoop = 6;
-  static const continueLoop = 7;
 
-  static const block = 8;
-  static const endOfBlock = 9;
+  static const block = 6;
+  static const endOfBlock = 7;
 
-  static const endOfStmt = 10;
+  static const endOfStmt = 8;
 
-  static const endOfExec = 11;
+  static const endOfExec = 9;
+
+  static const breakLoop = 10;
+
+  static const continueLoop = 11;
 
   static const constTable = 12;
   static const declTable = 13;
@@ -90,10 +79,10 @@ abstract class HTOpCode {
   /// modulo left right store => reg[store] = reg[left] % reg[right]
   static const modulo = 64;
 
-  /// modulo value store => reg[store] = -reg[value]
+  /// modulo value store => reg[store] = -reg[valueOf]
   static const negative = 65;
 
-  /// modulo value store => reg[store] = !reg[value]
+  /// modulo value store => reg[store] = !reg[valueOf]
   static const logicalNot = 66;
 
   static const preIncrement = 68;
@@ -109,6 +98,19 @@ abstract class HTOpCode {
   static const postIncrement = 74;
 
   static const postDecrement = 75;
+
+  /// 4 bytes
+  static const signature = 200;
+
+  /// uint8, uint8, uint16
+  static const version = 201;
+
+  /// 1 byte
+  static const debug = 202;
+
+  /// uint32 line, uint32 column, uint8 symbolLength, symbol
+  static const debugInfo = 203;
+  static const error = 204; //
 }
 
 abstract class HTValueTypeCode {
@@ -120,8 +122,12 @@ abstract class HTValueTypeCode {
   static const symbol = 5;
   static const group = 6;
   static const list = 7;
-  static const map = 8;
-  static const function = 9;
+  static const listItem = 8;
+  static const map = 9;
+  static const mapKey = 10;
+  static const mapValue = 11;
+  static const function = 12;
+  // static const function = 12;
 }
 
 /// Extern function is not a [FunctionType]

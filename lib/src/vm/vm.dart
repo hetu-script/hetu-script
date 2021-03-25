@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import '../interpreter.dart';
 import '../type.dart';
 import '../common.dart';
@@ -24,26 +26,18 @@ mixin VMRef {
 class HTVM extends Interpreter {
   late BytesReader _bytesReader;
 
-  /// 符号表
-  ///
-  /// key代symbol的id
-  ///
-  /// value代表symbol所在的ip指针
-  // final _curNamespaceSymbols = <String, int>{};
-
-  dynamic _curValue;
+  dynamic _curValue; // local value
   String? _curSymbol;
   String? _curClassName;
-  int? _curLoopStartIp;
-  HTNamespace? _savedNamespace;
-  final _blockStack = <HTNamespace>[];
 
   final _register = List<dynamic>.filled(24, null, growable: false);
 
   final _leftValueStack = <LeftValueType>[];
 
-  /// List of loop start ips
-  var _conditionStack = <int>[];
+  /// break 指令将会跳回最近的一个break point
+  /// [key]: 原本的指令指针位置
+  /// [value]: 原本的命名空间
+  final LinkedHashMap<int, HTNamespace> _breakPoint = LinkedHashMap<int, HTNamespace>();
 
   HTVM({HTErrorHandler? errorHandler, HTModuleHandler? importHandler})
       : super(errorHandler: errorHandler, importHandler: importHandler);
@@ -66,9 +60,8 @@ class HTVM extends Interpreter {
     final tokens = Lexer().lex(content, curFileName);
     final bytes = await Compiler().compile(tokens, this, curFileName, style, debugMode);
     _bytesReader = BytesReader(bytes);
-    print(bytes);
 
-    var result = execute();
+    var result = execute(0, curNamespace);
     if (style == ParseStyle.module && invokeFunc != null) {
       result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs);
     }
@@ -92,17 +85,33 @@ class HTVM extends Interpreter {
     return HTTypeId.ANY;
   }
 
-  dynamic execute({int? ip, bool keepIp = false, HTNamespace? closure}) {
+  dynamic execute(int ip, HTNamespace closure) {
     final savedIp = _bytesReader.ip;
+    final savedNamespace = curNamespace;
+    _bytesReader.ip = ip;
+    curNamespace = closure;
+
+    final result = _execute();
+
+    _bytesReader.ip = savedIp;
+    curNamespace = savedNamespace;
+
+    return result;
+  }
+
+  dynamic evaluate([int? ip]) {
+    int? savedIp;
     if (ip != null) {
-      _bytesReader.ip = ip;
+      savedIp = _bytesReader.ip;
     }
-
-    final savedClosure = curNamespace;
-    if (closure != null) {
-      curNamespace = closure;
+    final result = _execute();
+    if (savedIp != null) {
+      _bytesReader.ip = savedIp;
     }
+    return result;
+  }
 
+  dynamic _execute() {
     var instruction = _bytesReader.read();
     while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
@@ -130,60 +139,33 @@ class HTVM extends Interpreter {
           final leftValueType = LeftValueType.values.elementAt(_bytesReader.read());
           _leftValueStack.add(leftValueType);
           break;
-        case HTOpCode.ifStmt:
-          _handleIfStmt();
-          break;
-        case HTOpCode.whileStmt:
-          _handleWhileStmt();
-          break;
-        case HTOpCode.doStmt:
-          _handleDoStmt();
-          break;
-        case HTOpCode.forStmt:
-          _handleForStmt();
-          break;
-        case HTOpCode.whenStmt:
-          _handleWhenStmt();
-          break;
-        // 循环语句
+        // 循环开始，记录断点
         case HTOpCode.loop:
-          _bytesReader.ip = _curLoopStartIp!;
+          _breakPoint[_bytesReader.ip] = curNamespace;
           break;
-        case HTOpCode.breakLoop:
-          _conditionStack.removeLast();
+        // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
+        case HTOpCode.block:
+          final id = _bytesReader.readShortUtf8String();
+          curNamespace = HTNamespace(this, id: id, closure: curNamespace);
           break;
-        case HTOpCode.continueLoop:
-          _bytesReader.ip = _conditionStack.last;
+        case HTOpCode.endOfBlock:
+          curNamespace = curNamespace.closure!;
           break;
         // 语句结束
         case HTOpCode.endOfStmt:
           _curSymbol = null;
           break;
         case HTOpCode.endOfExec:
-          _conditionStack.clear();
-          curNamespace = savedClosure;
-          if (!keepIp) {
-            _bytesReader.ip = savedIp;
-          }
           return _curValue;
-        // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
-        case HTOpCode.block:
-          _blockStack.add(HTNamespace(this, closure: curNamespace));
-          curNamespace = _blockStack.last;
+        case HTOpCode.breakLoop:
+          _bytesReader.ip = _breakPoint.keys.last;
+          curNamespace = _breakPoint.values.last;
+          _breakPoint.remove(_bytesReader.ip);
           break;
-        case HTOpCode.endOfBlock:
-          if (_blockStack.isNotEmpty) {
-            _blockStack.removeLast();
-          }
-          if (_blockStack.isNotEmpty) {
-            curNamespace = _blockStack.last;
-          } else {
-            curNamespace = savedClosure;
-          }
-          if (!keepIp) {
-            _bytesReader.ip = savedIp;
-          }
-          return _curValue;
+        case HTOpCode.continueLoop:
+          _bytesReader.ip = _breakPoint.keys.last;
+          curNamespace = _breakPoint.values.last;
+          break;
         //常量表
         case HTOpCode.constTable:
           final int64Length = _bytesReader.readUint16();
@@ -213,6 +195,21 @@ class HTVM extends Interpreter {
           for (var i = 0; i < varDeclLength; ++i) {
             _handleVarDecl();
           }
+          break;
+        case HTOpCode.ifStmt:
+          _handleIfStmt();
+          break;
+        case HTOpCode.whileStmt:
+          _handleWhileStmt();
+          break;
+        case HTOpCode.doStmt:
+          _handleDoStmt();
+          break;
+        case HTOpCode.forStmt:
+          _handleForStmt();
+          break;
+        case HTOpCode.whenStmt:
+          _handleWhenStmt();
           break;
         case HTOpCode.assign:
         case HTOpCode.assignMultiply:
@@ -268,15 +265,16 @@ class HTVM extends Interpreter {
   }
 
   void _handleIfStmt() {
+    bool condition = _curValue;
     final thenBranchLength = _bytesReader.readUint16();
     final elseBranchLength = _bytesReader.readUint16();
-    final condition = execute(keepIp: true);
     if (condition) {
-      execute(keepIp: true);
-      _bytesReader.skip(elseBranchLength);
+      evaluate();
+      _bytesReader.skip(thenBranchLength + elseBranchLength);
     } else {
       _bytesReader.skip(thenBranchLength);
-      execute(keepIp: true);
+      evaluate();
+      _bytesReader.skip(elseBranchLength);
     }
   }
 
@@ -500,21 +498,19 @@ class HTVM extends Interpreter {
   }
 
   void _handleUnaryPrefixOp(int op) {
-    final index = _bytesReader.read();
-
     switch (op) {
       case HTOpCode.negative:
-        _curValue = _register[index] = -_register[index];
+        _curValue = -_curValue;
         break;
       case HTOpCode.logicalNot:
-        _curValue = _register[index] = !_register[index];
+        _curValue = !_curValue;
         break;
       case HTOpCode.preIncrement:
-        _curValue = _register[index] = ++_register[index];
+        _curValue = ++_curValue;
         curNamespace.assign(_curSymbol!, _curValue);
         break;
       case HTOpCode.preDecrement:
-        _curValue = _register[index] = --_register[index];
+        _curValue = --_curValue;
         curNamespace.assign(_curSymbol!, _curValue);
         break;
       default:
@@ -546,12 +542,13 @@ class HTVM extends Interpreter {
   }
 
   void _handleUnaryPostfixOp(int op) {
-    final index = _bytesReader.read();
+    final objIndex = _bytesReader.read();
+    final keyIndex = _bytesReader.read();
 
     switch (op) {
       case HTOpCode.memberGet:
-        var object = _register[index];
-        final key = _register[16];
+        var object = _register[objIndex];
+        final key = _register[keyIndex];
 
         if (object is num) {
           object = HTNumber(object);
@@ -575,14 +572,14 @@ class HTVM extends Interpreter {
             typeid = typeid.substring(0, typeid.indexOf('<'));
           }
           var externClass = fetchExternalClass(typeid);
-          _curValue = _register[index] = externClass.instanceFetch(object, key);
+          _curValue = externClass.instanceFetch(object, key);
         }
         break;
       case HTOpCode.subGet:
-        final object = _register[index];
-        final key = _register[15] = execute(keepIp: true);
+        final object = _register[objIndex];
+        final key = _register[keyIndex];
         if (object is List || object is Map) {
-          _curValue = _register[index] = object[key];
+          _curValue = object[key];
         }
         throw HTErrorSubGet(object.toString());
       case HTOpCode.call:
@@ -768,8 +765,6 @@ class HTVM extends Interpreter {
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     curNamespace.define(HTDeclaration(id, value: klass));
 
-    execute(keepIp: true, closure: klass);
-
     // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
     var curSuper = superClass;
     while (curSuper != null) {
@@ -777,7 +772,7 @@ class HTVM extends Interpreter {
         if (decl.id.startsWith(HTLexicon.underscore)) {
           continue;
         }
-        klass.defineInstance(decl.clone(), skipOverride: true);
+        klass.defineInstance(decl.clone(), error: false);
       }
 
       curSuper = curSuper.superClass;
