@@ -30,40 +30,35 @@ class BytesReader {
   int readUint8() {
     final start = ip;
     ip += 1;
-    final uint16data = bytes.sublist(start, ip);
-    return uint16data.buffer.asByteData().getUint8(0);
+    return bytes.buffer.asByteData().getUint8(start);
   }
 
   // Fetch a uint16 from the byte list
   int readUint16() {
     final start = ip;
     ip += 2;
-    final uint16data = bytes.sublist(start, ip);
-    return uint16data.buffer.asByteData().getUint16(0);
+    return bytes.buffer.asByteData().getUint16(start);
   }
 
   // Fetch a uint32 from the byte list
   int readUint32() {
     final start = ip;
     ip += 4;
-    final uint32data = bytes.sublist(start, ip);
-    return uint32data.buffer.asByteData().getUint32(0);
+    return bytes.buffer.asByteData().getUint32(start);
   }
 
   // Fetch a int64 from the byte list
   int readInt64() {
     final start = ip;
     ip += 8;
-    final int64data = bytes.sublist(start, ip);
-    return int64data.buffer.asByteData().getInt64(0);
+    return bytes.buffer.asByteData().getUint64(start);
   }
 
   // Fetch a float64 from the byte list
   double readFloat64() {
     final start = ip;
     ip += 8;
-    final int64data = bytes.sublist(start, ip);
-    return int64data.buffer.asByteData().getFloat64(0);
+    return bytes.buffer.asByteData().getFloat64(start);
   }
 
   // Fetch a utf8 string from the byte list

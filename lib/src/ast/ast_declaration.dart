@@ -11,13 +11,9 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
   final bool isImmutable;
 
   var _isInitializing = false;
-  var _isInitialized = false;
 
-  @override
-  bool get isInitialized => _isInitialized;
-
-  @override
-  late final HTTypeId? declType;
+  HTTypeId? _declType;
+  HTTypeId get declType => _declType!;
 
   ASTNode? initializer;
 
@@ -36,13 +32,13 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
             value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember, isStatic: isStatic) {
     this.interpreter = interpreter;
     if (initializer == null && declType == null) {
-      declType = HTTypeId.ANY;
+      _declType = HTTypeId.ANY;
     }
   }
 
   @override
   void initialize() {
-    if (_isInitialized) return;
+    if (isInitialized) return;
 
     if (initializer != null) {
       if (!_isInitializing) {
@@ -60,24 +56,18 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
 
   @override
   void assign(dynamic value) {
-    if (isImmutable) {
-      throw HTErrorImmutable(id);
-    }
-
     var valType = interpreter.typeof(value);
-    if (declType == null) {
+    if (_declType == null) {
       if (!isDynamic && value != null) {
-        declType = valType;
+        _declType = valType;
       } else {
-        declType = HTTypeId.ANY;
-      }
-      if (!_isInitialized) {
-        _isInitialized = true;
+        _declType = HTTypeId.ANY;
       }
     } else if (valType.isNotA(declType)) {
       throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
     }
-    this.value = value;
+
+    super.assign(value);
   }
 
   @override

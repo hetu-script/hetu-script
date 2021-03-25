@@ -74,6 +74,9 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   late final HTNamespace? closure;
 
+  /// List of loop start ips
+  var conditionStack = <int>[];
+
   HTNamespace(
     Interpreter interpreter, {
     String? id,

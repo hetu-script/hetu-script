@@ -14,40 +14,39 @@ abstract class HTOpCode {
   static const debugInfo = 203;
   static const error = 204; //
 
-  static const endOfStmt = 210;
-  static const endOfExec = 211;
-
-  static const blockStart = 6;
-  static const blockEnd = 6;
-  static const constTable = 7;
-  static const declTable = 8;
-
   /// 1 byte of OpRandType, value
-  static const local = 10;
+  static const local = 1;
 
   /// reg index => reg[index] = local
-  static const register = 11; // 1 byte of index
+  static const register = 2; // 1 byte of index
 
   /// copy from to => reg[to] = reg[from]
-  static const copy = 12;
+  static const copy = 3;
 
-  static const leftValue = 14;
+  static const leftValue = 4;
 
-  // static const varDecl = 15;
+  static const loop = 5;
+  static const breakLoop = 6;
+  static const continueLoop = 7;
 
-  /// uint16 length of initializer
-  static const varInit = 16;
+  static const endOfStmt = 8;
 
-  // static const funcDecl = 17;
+  static const endOfExec = 9;
 
-  // // TODO: error when reach limit
-  // /// uint16 length of function
-  static const funcDef = 18;
+  static const blockStart = 10;
+  static const blockEnd = 11;
+  static const constTable = 12;
+  static const declTable = 13;
 
-  // static const classDecl = 19;
+  static const ifStmt = 21;
 
-  // /// uint16 length of class
-  // static const classDefStart = 20;
+  static const whileStmt = 22;
+
+  static const doStmt = 23;
+
+  static const forStmt = 24;
+
+  static const whenStmt = 25;
 
   static const assign = 30; // 1 byte right value
 
@@ -109,16 +108,6 @@ abstract class HTOpCode {
   static const postIncrement = 74;
 
   static const postDecrement = 75;
-
-  static const ifStmt = 76;
-
-  static const whileStmt = 77;
-
-  static const doStmt = 77;
-
-  static const forStmt = 77;
-
-  static const whenStmt = 77;
 }
 
 abstract class HTValueTypeCode {

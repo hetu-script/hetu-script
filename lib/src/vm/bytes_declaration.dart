@@ -10,13 +10,9 @@ class HTBytesDecl extends HTDeclaration with VMRef {
   final bool isImmutable;
 
   var _isInitializing = false;
-  var _isInitialized = false;
 
-  @override
-  bool get isInitialized => _isInitialized;
-
-  @override
-  late final HTTypeId? declType;
+  HTTypeId? _declType;
+  HTTypeId? get declType => _declType;
 
   int? initializerIp;
 
@@ -37,13 +33,11 @@ class HTBytesDecl extends HTDeclaration with VMRef {
     if (initializerIp == null && declType == null) {
       declType = HTTypeId.ANY;
     }
-
-    if (value != null) _isInitialized = true;
   }
 
   @override
   void initialize() {
-    if (_isInitialized) return;
+    if (isInitialized) return;
 
     if (initializerIp != null) {
       if (!_isInitializing) {
@@ -61,24 +55,18 @@ class HTBytesDecl extends HTDeclaration with VMRef {
 
   @override
   void assign(dynamic value) {
-    if (isImmutable && _isInitialized) {
-      throw HTErrorImmutable(id);
-    }
-
     var valType = interpreter.typeof(value);
-    if (declType == null) {
+    if (_declType == null) {
       if (!isDynamic && value != null) {
-        declType = valType;
+        _declType = valType;
       } else {
-        declType = HTTypeId.ANY;
+        _declType = HTTypeId.ANY;
       }
-    } else if (valType.isNotA(declType)) {
+    } else if (valType.isNotA(_declType!)) {
       throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
     }
-    this.value = value;
-    if (!_isInitialized) {
-      _isInitialized = true;
-    }
+
+    super.assign(value);
   }
 
   @override

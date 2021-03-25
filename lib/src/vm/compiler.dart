@@ -44,6 +44,8 @@ class Compiler extends Parser with VMRef {
   late bool _debugMode;
   var _curLeftValueType = LeftValueType.none;
 
+  int? _curLoopStartIp;
+
   Future<Uint8List> compile(List<Token> tokens, HTVM interpreter, String fileName,
       [ParseStyle style = ParseStyle.module, debugMode = false]) async {
     this.interpreter = interpreter;
@@ -126,7 +128,7 @@ class Compiler extends Parser with VMRef {
   Uint8List _uint16(int value) => Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
 
   /// 0 to 4,294,967,295
-  // Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
+  Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
 
   /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
   Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
@@ -267,9 +269,9 @@ class Compiler extends Parser with VMRef {
           case HTLexicon.WHEN:
             return _parseWhenStmt();
           case HTLexicon.BREAK:
-            break;
+            return Uint8List.fromList([HTOpCode.endOfExec]);
           case HTLexicon.CONTINUE:
-            break;
+            return Uint8List.fromList([HTOpCode.loop]);
           case HTLexicon.RETURN:
             return _parseReturnStmt();
           // 其他情况都认为是表达式
@@ -445,15 +447,18 @@ class Compiler extends Parser with VMRef {
   ///
   /// 需要判断嵌套赋值、取属性、取下标的叠加
   ///
-  /// [endOfExec] 指是否在解析完表达式后中断执行，这样可以返回当前表达式的值
-  Uint8List _parseExpr({bool endOfExec = false}) {
+  /// [hasLength]: 是否在表达式开头包含表达式长度信息，这样可以让ip跳过该表达式
+  ///
+  /// [endOfExec]: 是否在解析完表达式后中断执行，这样可以返回当前表达式的值
+  Uint8List _parseExpr({bool hasLength = false, bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
+    final exprBytesBuilder = BytesBuilder();
     final left = _parseLogicalOrExpr();
-    bytesBuilder.add(left);
+    exprBytesBuilder.add(left);
     if (HTLexicon.assignments.contains(curTok.type)) {
       if (_curLeftValueType != LeftValueType.none) {
-        bytesBuilder.addByte(HTOpCode.leftValue);
-        bytesBuilder.addByte(_curLeftValueType.index);
+        exprBytesBuilder.addByte(HTOpCode.leftValue);
+        exprBytesBuilder.addByte(_curLeftValueType.index);
       } else {
         throw HTErrorIllegalLeftValueCompiler();
       }
@@ -463,31 +468,36 @@ class Compiler extends Parser with VMRef {
         op = advance(1).type;
         right.add(_parseExpr()); // 这里需要右合并，因此没有降到下一级
       }
-      bytesBuilder.add(right.toBytes());
-      bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(0);
+      exprBytesBuilder.add(right.toBytes());
+      exprBytesBuilder.addByte(HTOpCode.register);
+      exprBytesBuilder.addByte(0);
       switch (op) {
         case HTLexicon.assign:
-          bytesBuilder.addByte(HTOpCode.assign);
+          exprBytesBuilder.addByte(HTOpCode.assign);
           break;
         case HTLexicon.assignMultiply:
-          bytesBuilder.addByte(HTOpCode.assignMultiply);
+          exprBytesBuilder.addByte(HTOpCode.assignMultiply);
           break;
         case HTLexicon.assignDevide:
-          bytesBuilder.addByte(HTOpCode.assignDevide);
+          exprBytesBuilder.addByte(HTOpCode.assignDevide);
           break;
         case HTLexicon.assignAdd:
-          bytesBuilder.addByte(HTOpCode.assignAdd);
+          exprBytesBuilder.addByte(HTOpCode.assignAdd);
           break;
         case HTLexicon.assignSubtract:
-          bytesBuilder.addByte(HTOpCode.assignSubtract);
+          exprBytesBuilder.addByte(HTOpCode.assignSubtract);
           break;
       }
-      bytesBuilder.add([0]);
+      exprBytesBuilder.add([0]);
     }
-    if (endOfExec && bytesBuilder.toBytes().last != HTOpCode.endOfExec) {
-      bytesBuilder.addByte(HTOpCode.endOfExec);
+    if (endOfExec && exprBytesBuilder.toBytes().last != HTOpCode.endOfExec) {
+      exprBytesBuilder.addByte(HTOpCode.endOfExec);
     }
+    final bytes = exprBytesBuilder.toBytes();
+    if (hasLength) {
+      bytesBuilder.add(_uint16(bytes.length));
+    }
+    bytesBuilder.add(bytes);
 
     return bytesBuilder.toBytes();
   }
@@ -809,6 +819,7 @@ class Compiler extends Parser with VMRef {
         return _localConst(index, HTValueTypeCode.utf8String);
       case HTLexicon.identifier:
         _curLeftValueType = LeftValueType.symbol;
+        // TODO: parse type args
         return _localSymbol(advance(1).lexeme);
       case HTLexicon.roundLeft:
         _curLeftValueType == LeftValueType.none;
@@ -919,28 +930,26 @@ class Compiler extends Parser with VMRef {
     bytesBuilder.addByte(HTOpCode.ifStmt);
     match(HTLexicon.roundLeft);
     final condition = _parseExpr(endOfExec: true);
-    final thenBranchIp = condition.length;
-    bytesBuilder.add(_uint16(thenBranchIp));
     match(HTLexicon.roundRight);
     Uint8List thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
       thenBranch = _parseBlock(endOfExec: true);
     } else {
-      thenBranch = _parseStmt(endOfExec: true);
+      thenBranch = _parseStmt(style: ParseStyle.block, endOfExec: true);
     }
     Uint8List? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (curTok.type == HTLexicon.curlyLeft) {
         elseBranch = _parseBlock(endOfExec: true);
       } else {
-        elseBranch = _parseStmt(endOfExec: true);
+        elseBranch = _parseStmt(style: ParseStyle.block, endOfExec: true);
       }
     }
-    var elseBranchIp = 0;
-    if (elseBranch != null) {
-      elseBranchIp = thenBranchIp + thenBranch.length;
-    }
-    bytesBuilder.add(_uint16(elseBranchIp));
+    final thenBranchLength = thenBranch.length;
+    final elseBranchLength = elseBranch?.length ?? 0;
+
+    bytesBuilder.add(_uint16(thenBranchLength));
+    bytesBuilder.add(_uint16(elseBranchLength));
     bytesBuilder.add(condition);
     bytesBuilder.add(thenBranch);
     if (elseBranch != null) {
@@ -954,23 +963,31 @@ class Compiler extends Parser with VMRef {
     advance(1);
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.whileStmt);
+    Uint8List condition;
     if (expect([HTLexicon.roundLeft], consume: true)) {
-      bytesBuilder.addByte(1); // bool: hasCondition
-      final condition = _parseExpr(endOfExec: true);
-      final loopIp = condition.length;
-      bytesBuilder.add(_uint16(loopIp));
-      bytesBuilder.add(condition);
+      condition = _parseExpr(endOfExec: true);
+      bytesBuilder.add(_uint16(condition.length)); // has condition & condition length
       match(HTLexicon.roundRight);
+      Uint8List loop;
+      if (curTok.type == HTLexicon.curlyLeft) {
+        loop = _parseBlock(endOfExec: true);
+      } else {
+        loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
+      }
+      bytesBuilder.add(_uint16(loop.length)); // loop length
+      bytesBuilder.add(condition);
+      bytesBuilder.add(loop);
     } else {
       bytesBuilder.addByte(0); // bool: hasCondition
+      Uint8List loop;
+      if (curTok.type == HTLexicon.curlyLeft) {
+        loop = _parseBlock(endOfExec: true);
+      } else {
+        loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
+      }
+      bytesBuilder.add(_uint16(loop.length)); // loop length
+      bytesBuilder.add(loop);
     }
-    Uint8List loop;
-    if (curTok.type == HTLexicon.curlyLeft) {
-      loop = _parseBlock(endOfExec: true);
-    } else {
-      loop = _parseStmt(endOfExec: true);
-    }
-    bytesBuilder.add(loop);
     return bytesBuilder.toBytes();
   }
 
@@ -983,7 +1000,7 @@ class Compiler extends Parser with VMRef {
       loop = _parseBlock(endOfExec: true);
       match(HTLexicon.curlyRight);
     } else {
-      loop = _parseStmt(endOfExec: true);
+      loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
     }
     final conditionp = loop.length;
     bytesBuilder.add(_uint16(conditionp));
@@ -1003,7 +1020,6 @@ class Compiler extends Parser with VMRef {
     advance(1);
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.blockStart);
-    final block = DeclarationBlock();
     bytesBuilder.addByte(HTOpCode.forStmt);
     match(HTLexicon.roundLeft);
     final forStmtType = peek(1).type;
@@ -1039,7 +1055,7 @@ class Compiler extends Parser with VMRef {
       loop = _parseBlock(endOfExec: true);
       match(HTLexicon.curlyRight);
     } else {
-      loop = _parseStmt(endOfExec: true);
+      loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
     }
     bytesBuilder.add(loop);
     bytesBuilder.addByte(HTOpCode.blockEnd);
@@ -1048,6 +1064,33 @@ class Compiler extends Parser with VMRef {
 
   Uint8List _parseWhenStmt() {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.whenStmt);
+    var caseCount = 0;
+    if (expect([HTLexicon.roundLeft], consume: true)) {
+      bytesBuilder.addByte(1); // bool: hasCondition
+      final condition = _parseExpr(hasLength: true, endOfExec: true);
+      bytesBuilder.add(condition); // casesIP
+      match(HTLexicon.roundRight);
+    } else {
+      bytesBuilder.addByte(0);
+    }
+    match(HTLexicon.curlyLeft);
+    final casesBytesBuilder = BytesBuilder();
+    while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+      casesBytesBuilder.add(_parseExpr(endOfExec: true));
+      if (curTok.type == HTLexicon.curlyLeft) {
+        casesBytesBuilder.add(_parseBlock(endOfExec: true));
+        match(HTLexicon.curlyRight);
+      } else {
+        casesBytesBuilder.add(_parseStmt(style: ParseStyle.block, endOfExec: true));
+      }
+      ++caseCount;
+    }
+    match(HTLexicon.curlyRight);
+
+    bytesBuilder.add(_uint16(caseCount));
+    bytesBuilder.add(casesBytesBuilder.toBytes());
+
     return bytesBuilder.toBytes();
   }
 

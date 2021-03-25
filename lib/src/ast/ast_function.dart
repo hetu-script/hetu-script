@@ -116,7 +116,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
             if (arg_type.isNotA(arg_type_decl)) {
               throw HTErrorArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
             }
-            closure.define(HTDeclaration(param.id.lexeme, value: arg, declType: arg_type_decl));
+            closure.define(HTDeclaration(param.id.lexeme, value: arg));
           } else {
             var varargs = [];
             for (var j = i; j < positionalArgs.length; ++j) {
@@ -127,7 +127,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
               }
               varargs.add(arg);
             }
-            closure.define(HTDeclaration(param.id.lexeme, value: varargs, declType: HTTypeId.list));
+            closure.define(HTDeclaration(param.id.lexeme, value: varargs));
             break;
           }
         }

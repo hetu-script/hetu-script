@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/interpreter.dart';
+
 import 'type.dart';
 import 'errors.dart';
 
@@ -13,8 +15,6 @@ class HTDeclaration {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic value;
 
-  late final HTTypeId? declType;
-
   final Function? getter;
   final Function? setter;
 
@@ -23,34 +23,33 @@ class HTDeclaration {
   final bool isMember;
   final bool isStatic;
 
-  /// 继承类会 override 这个接口来改变初始化过程
-  bool get isInitialized => true;
+  var _isInitialized = false;
+  bool get isInitialized => _isInitialized;
 
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
   HTDeclaration(this.id,
-      {this.value,
-      HTTypeId? declType,
-      this.getter,
-      this.setter,
-      this.isExtern = false,
-      this.isMember = false,
-      this.isStatic = false}) {
-    if (declType != null) {
-      this.declType = declType;
-    } else {
-      this.declType = HTTypeId.ANY;
-    }
+      {dynamic value, this.getter, this.setter, this.isExtern = false, this.isMember = false, this.isStatic = false}) {
+    if (value != null) assign(value);
   }
 
   /// 调用这个接口来初始化这个变量，继承类需要
   /// override 这个接口来实现自己的初始化过程
   void initialize() {}
 
-  /// 调用这个接口来赋值这个变量，继承类需要
+  /// 调用这个接口来赋值这个变量，继承类可以
   /// override 这个接口来实现自己的赋值过程
-  void assign(dynamic value) => throw HTErrorImmutable(id);
+  void assign(dynamic value) {
+    if (isImmutable && _isInitialized) {
+      throw HTErrorImmutable(id);
+    }
 
-  HTDeclaration clone() => HTDeclaration(id,
-      value: value, declType: declType, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember);
+    this.value = value;
+    if (!_isInitialized) {
+      _isInitialized = true;
+    }
+  }
+
+  HTDeclaration clone() =>
+      HTDeclaration(id, value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember);
 }

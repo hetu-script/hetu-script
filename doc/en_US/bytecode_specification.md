@@ -111,14 +111,14 @@ arity\*:
 
 ### If
 
-| Name              | Bytes length | type          | optional |
-| :---------------- | :----------- | :------------ | :------- |
-| HTOpCode.ifStmt   | 1            | byte          |          |
-| then branch ip    | 2            | uint16        |          |
-| else branch ip \* | 2            | uint16 & bool | true     |
-| condition         | ...          | uint8 list    |          |
-| then branch       | ...          | uint8 list    |          |
-| else branch       | ...          | uint8 list    | true     |
+| Name                  | Bytes length | type       | optional |
+| :-------------------- | :----------- | :--------- | :------- |
+| HTOpCode.ifStmt       | 1            | byte       |          |
+| then branch length \* | 2            | uint16     |          |
+| else branch length \* | 2            | uint16     |          |
+| condition             | ...          | uint8 list |          |
+| then branch           | ...          | uint8 list |          |
+| else branch           | ...          | uint8 list | true     |
 
 else branch ip \*:
 
@@ -126,13 +126,13 @@ If there's no else branch, then this ip is 0.
 
 ### While
 
-| Name               | Bytes length | type          | optional |
-| :----------------- | :----------- | :------------ | :------- |
-| HTOpCode.whileStmt | 1            | byte          |          |
-| has condition      | 1            | bool          |          |
-| loop ip \*         | 2            | uint16 & bool | true     |
-| condition          | ...          | uint8 list    |          |
-| loop               | ...          | uint8 list    |          |
+| Name                | Bytes length | type          | optional |
+| :------------------ | :----------- | :------------ | :------- |
+| HTOpCode.whileStmt  | 1            | byte          |          |
+| length of condition | 2            | uint16 & bool |          |
+| length of loop      | 2            | uint16        |          |
+| condition           | ...          | uint8 list    | true     |
+| loop                | ...          | uint8 list    |          |
 
 loop ip \*:
 
@@ -161,3 +161,14 @@ If there's no else branch, then this ip is 0.
 | condition ip \*      | 2            | uint16 & bool |          |
 | loop                 | ...          | uint8 list    |          |
 | condition            | ...          | uint8 list    | true     |
+
+### When
+
+| Name                | Bytes length | type          | optional |
+| :------------------ | :----------- | :------------ | :------- |
+| HTOpCode.whenStmt   | 1            | byte          |          |
+| length of condition | 2            | uint16 & bool |          |
+| condition           | ...          | uint8 list    |          |
+| length of cases     | 2            | uint16 & bool |          |
+| case                | ...          | uint8 list    |          |
+| case block          | ...          | uint8 list    |          |

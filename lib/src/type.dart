@@ -42,9 +42,9 @@ class HTTypeId {
     return typename.toString();
   }
 
-  bool isA(HTTypeId? typeid) {
+  bool isA(HTTypeId typeid) {
     var result = true;
-    if (typeid != null && typeid.id != HTLexicon.ANY) {
+    if (typeid.id != HTLexicon.ANY) {
       if (id == typeid.id) {
         if (arguments.length >= typeid.arguments.length) {
           for (var i = 0; i < typeid.arguments.length; ++i) {
@@ -67,7 +67,7 @@ class HTTypeId {
     return result;
   }
 
-  bool isNotA(HTTypeId? typeid) => !isA(typeid);
+  bool isNotA(HTTypeId typeid) => !isA(typeid);
 }
 
 class HTFunctionTypeId extends HTTypeId {

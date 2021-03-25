@@ -42,23 +42,33 @@ abstract class Interpreter {
   }
 
   Future<void> init(
-      {Map<String, Function> externalFunctions = const {}, List<HTExternalClass> externalClasses = const []}) async {
+      {bool coreModule = true,
+      bool coreExternalFunctions = true,
+      bool coreExternalClasses = true,
+      Map<String, Function> externalFunctions = const {},
+      List<HTExternalClass> externalClasses = const []}) async {
     // load classes and functions in core library.
     // TODO: dynamic load needed core lib in script
-    for (final file in coreModules.keys) {
-      await eval(coreModules[file]!, fileName: file);
+    if (coreModule) {
+      for (final file in coreModules.keys) {
+        await eval(coreModules[file]!, fileName: file);
+      }
     }
 
-    for (var key in HTExternalFunctions.functions.keys) {
-      bindExternalFunction(key, HTExternalFunctions.functions[key]!);
+    if (coreExternalFunctions) {
+      for (var key in HTExternalFunctions.functions.keys) {
+        bindExternalFunction(key, HTExternalFunctions.functions[key]!);
+      }
     }
 
-    bindExternalClass(HTExternClassNumber());
-    bindExternalClass(HTExternClassBool());
-    bindExternalClass(HTExternClassString());
-    bindExternalClass(HTExternClassMath());
-    bindExternalClass(HTExternClassSystem(this));
-    bindExternalClass(HTExternClassConsole());
+    if (coreExternalClasses) {
+      bindExternalClass(HTExternClassNumber());
+      bindExternalClass(HTExternClassBool());
+      bindExternalClass(HTExternClassString());
+      bindExternalClass(HTExternClassMath());
+      bindExternalClass(HTExternClassSystem(this));
+      bindExternalClass(HTExternClassConsole());
+    }
 
     for (var key in externalFunctions.keys) {
       bindExternalFunction(key, externalFunctions[key]!);
