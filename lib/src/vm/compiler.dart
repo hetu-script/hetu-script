@@ -863,10 +863,10 @@ class Compiler extends Parser with VMRef {
     }
   }
 
-  Uint8List _parseBlock({ParseStyle style = ParseStyle.block, bool endOfExec = false, DeclarationBlock? block}) {
+  Uint8List _parseBlock({ParseStyle style = ParseStyle.block, DeclarationBlock? block}) {
     match(HTLexicon.curlyLeft);
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.blockStart);
+    bytesBuilder.addByte(HTOpCode.block);
     final declsBytesBuilder = BytesBuilder();
     final blockBytesBuilder = BytesBuilder();
     final savedDeclBlock = _curBlock;
@@ -892,10 +892,7 @@ class Compiler extends Parser with VMRef {
     match(HTLexicon.curlyRight);
     bytesBuilder.add(declsBytesBuilder.toBytes());
     bytesBuilder.add(blockBytesBuilder.toBytes());
-    bytesBuilder.addByte(HTOpCode.blockEnd);
-    if (endOfExec && bytesBuilder.toBytes().last != HTOpCode.endOfExec) {
-      bytesBuilder.addByte(HTOpCode.endOfExec);
-    }
+    bytesBuilder.addByte(HTOpCode.endOfBlock);
     return bytesBuilder.toBytes();
   }
 
@@ -933,14 +930,14 @@ class Compiler extends Parser with VMRef {
     match(HTLexicon.roundRight);
     Uint8List thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
-      thenBranch = _parseBlock(endOfExec: true);
+      thenBranch = _parseBlock();
     } else {
       thenBranch = _parseStmt(style: ParseStyle.block, endOfExec: true);
     }
     Uint8List? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (curTok.type == HTLexicon.curlyLeft) {
-        elseBranch = _parseBlock(endOfExec: true);
+        elseBranch = _parseBlock();
       } else {
         elseBranch = _parseStmt(style: ParseStyle.block, endOfExec: true);
       }
@@ -970,7 +967,7 @@ class Compiler extends Parser with VMRef {
       match(HTLexicon.roundRight);
       Uint8List loop;
       if (curTok.type == HTLexicon.curlyLeft) {
-        loop = _parseBlock(endOfExec: true);
+        loop = _parseBlock();
       } else {
         loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
       }
@@ -981,7 +978,7 @@ class Compiler extends Parser with VMRef {
       bytesBuilder.addByte(0); // bool: hasCondition
       Uint8List loop;
       if (curTok.type == HTLexicon.curlyLeft) {
-        loop = _parseBlock(endOfExec: true);
+        loop = _parseBlock();
       } else {
         loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
       }
@@ -997,7 +994,7 @@ class Compiler extends Parser with VMRef {
     bytesBuilder.addByte(HTOpCode.doStmt);
     Uint8List loop;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loop = _parseBlock(endOfExec: true);
+      loop = _parseBlock();
       match(HTLexicon.curlyRight);
     } else {
       loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
@@ -1019,7 +1016,7 @@ class Compiler extends Parser with VMRef {
   Uint8List _parseForStmt() {
     advance(1);
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.blockStart);
+    bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.addByte(HTOpCode.forStmt);
     match(HTLexicon.roundLeft);
     final forStmtType = peek(1).type;
@@ -1052,13 +1049,13 @@ class Compiler extends Parser with VMRef {
     }
     Uint8List loop;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loop = _parseBlock(endOfExec: true);
+      loop = _parseBlock();
       match(HTLexicon.curlyRight);
     } else {
       loop = _parseStmt(style: ParseStyle.block, endOfExec: true);
     }
     bytesBuilder.add(loop);
-    bytesBuilder.addByte(HTOpCode.blockEnd);
+    bytesBuilder.addByte(HTOpCode.endOfBlock);
     return bytesBuilder.toBytes();
   }
 
@@ -1079,7 +1076,7 @@ class Compiler extends Parser with VMRef {
     while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
       casesBytesBuilder.add(_parseExpr(endOfExec: true));
       if (curTok.type == HTLexicon.curlyLeft) {
-        casesBytesBuilder.add(_parseBlock(endOfExec: true));
+        casesBytesBuilder.add(_parseBlock());
         match(HTLexicon.curlyRight);
       } else {
         casesBytesBuilder.add(_parseStmt(style: ParseStyle.block, endOfExec: true));
@@ -1327,7 +1324,7 @@ class Compiler extends Parser with VMRef {
     // 处理函数定义部分的语句块
     if (curTok.type == HTLexicon.curlyLeft) {
       funcBytesBuilder.addByte(1); // bool: has definition
-      final body = _parseBlock(endOfExec: true);
+      final body = _parseBlock();
       funcBytesBuilder.add(_uint16(body.length)); // definition bytes length
       funcBytesBuilder.add(body);
     } else {

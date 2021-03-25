@@ -11,8 +11,11 @@ void main() async {
     var i = 0
     while (i < 10) {
       ++i
-      if (i > 5) {
+      var while_block;
+      if (i < 5) {
         print(i)
+      } else {
+        break;
       }
     }
   }

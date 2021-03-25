@@ -29,12 +29,13 @@ abstract class HTOpCode {
   static const breakLoop = 6;
   static const continueLoop = 7;
 
-  static const endOfStmt = 8;
+  static const block = 8;
+  static const endOfBlock = 9;
 
-  static const endOfExec = 9;
+  static const endOfStmt = 10;
 
-  static const blockStart = 10;
-  static const blockEnd = 11;
+  static const endOfExec = 11;
+
   static const constTable = 12;
   static const declTable = 13;
 

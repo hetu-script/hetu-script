@@ -42,6 +42,9 @@ class HTVM extends Interpreter {
 
   final _leftValueStack = <LeftValueType>[];
 
+  /// List of loop start ips
+  var _conditionStack = <int>[];
+
   HTVM({HTErrorHandler? errorHandler, HTModuleHandler? importHandler})
       : super(errorHandler: errorHandler, importHandler: importHandler);
 
@@ -147,40 +150,40 @@ class HTVM extends Interpreter {
           _bytesReader.ip = _curLoopStartIp!;
           break;
         case HTOpCode.breakLoop:
-          curNamespace.conditionStack.removeLast();
+          _conditionStack.removeLast();
           break;
         case HTOpCode.continueLoop:
-          _bytesReader.ip = curNamespace.conditionStack.last;
+          _bytesReader.ip = _conditionStack.last;
           break;
         // 语句结束
         case HTOpCode.endOfStmt:
           _curSymbol = null;
           break;
         case HTOpCode.endOfExec:
-          curNamespace.conditionStack.clear();
+          _conditionStack.clear();
+          curNamespace = savedClosure;
           if (!keepIp) {
             _bytesReader.ip = savedIp;
           }
-          curNamespace = savedClosure;
           return _curValue;
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
-        case HTOpCode.blockStart:
-          if (_blockStack.isEmpty) {
-            _savedNamespace = curNamespace;
-          }
+        case HTOpCode.block:
           _blockStack.add(HTNamespace(this, closure: curNamespace));
           curNamespace = _blockStack.last;
           break;
-        case HTOpCode.blockEnd:
+        case HTOpCode.endOfBlock:
           if (_blockStack.isNotEmpty) {
             _blockStack.removeLast();
           }
           if (_blockStack.isNotEmpty) {
             curNamespace = _blockStack.last;
           } else {
-            curNamespace = _savedNamespace!;
+            curNamespace = savedClosure;
           }
-          break;
+          if (!keepIp) {
+            _bytesReader.ip = savedIp;
+          }
+          return _curValue;
         //常量表
         case HTOpCode.constTable:
           final int64Length = _bytesReader.readUint16();
@@ -269,7 +272,7 @@ class HTVM extends Interpreter {
     final elseBranchLength = _bytesReader.readUint16();
     final condition = execute(keepIp: true);
     if (condition) {
-      execute();
+      execute(keepIp: true);
       _bytesReader.skip(elseBranchLength);
     } else {
       _bytesReader.skip(thenBranchLength);
@@ -281,14 +284,14 @@ class HTVM extends Interpreter {
     final conditionLength = _bytesReader.readUint16();
     final loopLength = _bytesReader.readUint16();
     final loopStart = _bytesReader.ip + conditionLength;
+    final index = _conditionStack.length;
+    _conditionStack.add(_bytesReader.ip);
     if (conditionLength > 0) {
-      while (execute()) {
+      while (_conditionStack.length > index && execute()) {
         execute(ip: loopStart);
       }
     } else {
-      final index = curNamespace.conditionStack.length;
-      curNamespace.conditionStack.add(_bytesReader.ip);
-      while (curNamespace.conditionStack.length > index) {
+      while (_conditionStack.length > index) {
         execute(ip: loopStart);
       }
     }
