@@ -48,6 +48,13 @@ class BytesReader {
   }
 
   // Fetch a int64 from the byte list
+  int readInt16() {
+    final start = ip;
+    ip += 2;
+    return bytes.buffer.asByteData().getInt16(start);
+  }
+
+  // Fetch a int64 from the byte list
   int readInt64() {
     final start = ip;
     ip += 8;

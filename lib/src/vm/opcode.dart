@@ -10,29 +10,29 @@ abstract class HTOpCode {
   /// copy from to => reg[to] = reg[from]
   static const copy = 3;
 
-  static const leftValue = 4;
+  // static const leftValue = 4;
 
-  static const loop = 5;
+  static const goto = 5;
 
-  static const block = 6;
-  static const endOfBlock = 7;
+  static const loop = 6;
 
-  static const endOfStmt = 8;
+  static const block = 7;
+  static const endOfBlock = 8;
 
-  static const endOfExec = 9;
+  static const endOfStmt = 9;
 
-  static const breakLoop = 10;
+  static const endOfExec = 10;
 
-  static const continueLoop = 11;
+  static const breakLoop = 11;
 
-  static const constTable = 12;
-  static const declTable = 13;
+  static const continueLoop = 12;
+
+  static const constTable = 13;
+  static const declTable = 14;
 
   static const ifStmt = 21;
 
   static const whileStmt = 22;
-
-  static const doStmt = 23;
 
   static const forStmt = 24;
 
@@ -151,4 +151,10 @@ abstract class HTClassTypeCode {
 
 abstract class HTErrorCode {
   static const binOp = 0;
+}
+
+abstract class SymbolType {
+  static const normal = 0;
+  static const member = 1;
+  static const sub = 2;
 }

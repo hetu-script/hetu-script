@@ -32,7 +32,10 @@ class HTVM extends Interpreter {
 
   final _register = List<dynamic>.filled(24, null, growable: false);
 
-  final _leftValueStack = <LeftValueType>[];
+  var _curRefType = ReferrenceType.normal;
+
+  /// 每有一个赋值符号，就会添加一个左值类型
+  final _leftValueStack = <ReferrenceType>[];
 
   /// break 指令将会跳回最近的一个break point
   /// [key]: 原本的指令指针位置
@@ -60,8 +63,9 @@ class HTVM extends Interpreter {
     final tokens = Lexer().lex(content, curFileName);
     final bytes = await Compiler().compile(tokens, this, curFileName, style, debugMode);
     _bytesReader = BytesReader(bytes);
+    print(bytes);
 
-    var result = execute(0, curNamespace);
+    var result = execute(closure: curNamespace);
     if (style == ParseStyle.module && invokeFunc != null) {
       result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs);
     }
@@ -85,29 +89,28 @@ class HTVM extends Interpreter {
     return HTTypeId.ANY;
   }
 
-  dynamic execute(int ip, HTNamespace closure) {
+  /// 从 [ip] 位置开始解释，遇到 OP.return 后返回当前值。
+  /// 返回时，指针会回到执行前的 ip 位置。并且会回到之前的命名空间。
+  dynamic execute({int? ip, HTNamespace? closure}) {
     final savedIp = _bytesReader.ip;
     final savedNamespace = curNamespace;
-    _bytesReader.ip = ip;
-    curNamespace = closure;
 
-    final result = _execute();
-
-    _bytesReader.ip = savedIp;
-    curNamespace = savedNamespace;
-
-    return result;
-  }
-
-  dynamic evaluate([int? ip]) {
-    int? savedIp;
     if (ip != null) {
-      savedIp = _bytesReader.ip;
+      _bytesReader.ip = ip;
     }
+    if (closure != null) {
+      curNamespace = closure;
+    }
+
     final result = _execute();
-    if (savedIp != null) {
+
+    if (ip != null) {
       _bytesReader.ip = savedIp;
     }
+    if (closure != null) {
+      curNamespace = savedNamespace;
+    }
+
     return result;
   }
 
@@ -135,9 +138,13 @@ class HTVM extends Interpreter {
         case HTOpCode.register:
           _storeRegister(_bytesReader.read(), _curValue);
           break;
-        case HTOpCode.leftValue:
-          final leftValueType = LeftValueType.values.elementAt(_bytesReader.read());
-          _leftValueStack.add(leftValueType);
+        // case HTOpCode.leftValue:
+        //   final refType = ReferrenceType.values.elementAt(_bytesReader.read());
+        //   _leftValueStack.add(refType);
+        //   break;
+        case HTOpCode.goto:
+          final distance = _bytesReader.readInt16();
+          _bytesReader.ip += distance;
           break;
         // 循环开始，记录断点
         case HTOpCode.loop:
@@ -197,19 +204,30 @@ class HTVM extends Interpreter {
           }
           break;
         case HTOpCode.ifStmt:
-          _handleIfStmt();
+          bool condition = _curValue;
+          final thenBranchLength = _bytesReader.readUint16();
+          final elseBranchLength = _bytesReader.readUint16();
+          if (condition) {
+            execute();
+            _bytesReader.skip(thenBranchLength + elseBranchLength);
+          } else {
+            _bytesReader.skip(thenBranchLength);
+            execute();
+            _bytesReader.skip(elseBranchLength);
+          }
           break;
         case HTOpCode.whileStmt:
-          _handleWhileStmt();
-          break;
-        case HTOpCode.doStmt:
-          _handleDoStmt();
+          final hasCondition = _bytesReader.readBool();
+          final distance = _bytesReader.readUint16();
+          if (hasCondition && !_curValue) {
+            _bytesReader.skip(distance);
+          }
           break;
         case HTOpCode.forStmt:
-          _handleForStmt();
+          // _handleForStmt();
           break;
         case HTOpCode.whenStmt:
-          _handleWhenStmt();
+          // _handleWhenStmt();
           break;
         case HTOpCode.assign:
         case HTOpCode.assignMultiply:
@@ -264,43 +282,12 @@ class HTVM extends Interpreter {
     }
   }
 
-  void _handleIfStmt() {
-    bool condition = _curValue;
-    final thenBranchLength = _bytesReader.readUint16();
-    final elseBranchLength = _bytesReader.readUint16();
-    if (condition) {
-      evaluate();
-      _bytesReader.skip(thenBranchLength + elseBranchLength);
-    } else {
-      _bytesReader.skip(thenBranchLength);
-      evaluate();
-      _bytesReader.skip(elseBranchLength);
+  void _handleError() {
+    final err_type = _bytesReader.read();
+    // TODO: line 和 column
+    switch (err_type) {
     }
   }
-
-  void _handleWhileStmt() {
-    final conditionLength = _bytesReader.readUint16();
-    final loopLength = _bytesReader.readUint16();
-    final loopStart = _bytesReader.ip + conditionLength;
-    final index = _conditionStack.length;
-    _conditionStack.add(_bytesReader.ip);
-    if (conditionLength > 0) {
-      while (_conditionStack.length > index && execute()) {
-        execute(ip: loopStart);
-      }
-    } else {
-      while (_conditionStack.length > index) {
-        execute(ip: loopStart);
-      }
-    }
-    _bytesReader.skip(conditionLength + loopLength);
-  }
-
-  void _handleDoStmt() {}
-
-  void _handleForStmt() {}
-
-  void _handleWhenStmt() {}
 
   void _storeLocal() {
     final valueType = _bytesReader.read();
@@ -325,21 +312,22 @@ class HTVM extends Interpreter {
         break;
       case HTValueTypeCode.symbol:
         _curSymbol = _bytesReader.readShortUtf8String();
-        final isMember = _bytesReader.read() == 0 ? false : true;
-        if (!isMember) {
-          _curValue = curNamespace.fetch(_curSymbol!);
+        final isMemberGet = _bytesReader.readBool();
+        if (!isMemberGet) {
+          _curRefType = ReferrenceType.normal;
+          _curValue = curNamespace.fetch(_curSymbol!, from: curNamespace.fullName);
         } else {
+          _curRefType = ReferrenceType.member;
+          // 执行 member get 的时候，curValue 是 key，reg[13] 是 object
           _curValue = _curSymbol;
         }
-        break;
-      case HTValueTypeCode.group:
-        _curValue = execute(keepIp: true);
         break;
       case HTValueTypeCode.list:
         final list = [];
         final length = _bytesReader.readUint16();
         for (var i = 0; i < length; ++i) {
-          list.add(execute(keepIp: true));
+          final listItem = execute();
+          list.add(listItem);
         }
         _curValue = list;
         break;
@@ -347,8 +335,9 @@ class HTVM extends Interpreter {
         final map = {};
         final length = _bytesReader.readUint16();
         for (var i = 0; i < length; ++i) {
-          final key = execute(keepIp: true);
-          map[key] = execute(keepIp: true);
+          final key = execute();
+          final value = execute();
+          map[key] = value;
         }
         _curValue = map;
         break;
@@ -363,37 +352,14 @@ class HTVM extends Interpreter {
     _register[index] = value;
   }
 
-  void _handleError() {
-    final err_type = _bytesReader.read();
-    // TODO: line 和 column
-    switch (err_type) {
-    }
-  }
-
-  dynamic _fetchLeft() {
-    if (_leftValueStack.isEmpty) return;
-
-    switch (_leftValueStack.last) {
-      case LeftValueType.symbol:
-        return curNamespace.fetch(_curSymbol!);
-      case LeftValueType.member:
-        return _register[14]!;
-      default:
+  void _assignCurRef(dynamic value) {
+    switch (_curRefType) {
+      case ReferrenceType.normal:
+        curNamespace.assign(_curSymbol!, value);
         break;
-    }
-  }
-
-  void _assignLeft(dynamic value) {
-    if (_leftValueStack.isEmpty) return;
-
-    switch (_leftValueStack.last) {
-      case LeftValueType.symbol:
-        curNamespace.assign(_curSymbol!, _curValue);
-        _leftValueStack.removeLast();
-        break;
-      case LeftValueType.member:
-        final object = _register[15]!;
-        final key = _register[16]!;
+      case ReferrenceType.member:
+        final object = _register[HTRegIndex.unaryPostObject]!;
+        final key = _register[HTRegIndex.unaryPostKey]!;
         // 如果是 buildin 集合
         if ((object is List) || (object is Map)) {
           object[key] = value;
@@ -412,8 +378,6 @@ class HTVM extends Interpreter {
           externClass.instanceAssign(object, key, value);
         }
         break;
-      default:
-        break;
     }
   }
 
@@ -423,27 +387,27 @@ class HTVM extends Interpreter {
     switch (opcode) {
       case HTOpCode.assign:
         _curValue = _register[right];
-        _assignLeft(_curValue);
+        _assignCurRef(_curValue);
         break;
       case HTOpCode.assignMultiply:
-        final leftValue = _fetchLeft();
+        final leftValue = _curValue;
         _curValue = leftValue * _register[right];
-        _assignLeft(_curValue);
+        _assignCurRef(_curValue);
         break;
       case HTOpCode.assignDevide:
-        final leftValue = _fetchLeft();
+        final leftValue = _curValue;
         _curValue = leftValue / _register[right];
-        _assignLeft(_curValue);
+        _assignCurRef(_curValue);
         break;
       case HTOpCode.assignAdd:
-        final leftValue = _fetchLeft();
+        final leftValue = _curValue;
         _curValue = leftValue + _register[right];
-        _assignLeft(_curValue);
+        _assignCurRef(_curValue);
         break;
       case HTOpCode.assignSubtract:
-        final leftValue = _fetchLeft();
+        final leftValue = _curValue;
         _curValue = leftValue - _register[right];
-        _assignLeft(_curValue);
+        _assignCurRef(_curValue);
         break;
     }
   }
@@ -507,11 +471,11 @@ class HTVM extends Interpreter {
         break;
       case HTOpCode.preIncrement:
         _curValue = ++_curValue;
-        curNamespace.assign(_curSymbol!, _curValue);
+        _assignCurRef(_curValue);
         break;
       case HTOpCode.preDecrement:
         _curValue = --_curValue;
-        curNamespace.assign(_curSymbol!, _curValue);
+        _assignCurRef(_curValue);
         break;
       default:
       // throw HTErrorUndefinedOperator(_register[left].toString(), _register[right].toString(), HTLexicon.add);
@@ -523,7 +487,7 @@ class HTVM extends Interpreter {
     var positionalArgs = [];
     final positionalArgsLength = _bytesReader.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
-      final arg = execute(keepIp: true);
+      final arg = execute();
       positionalArgs.add(arg);
     }
 
@@ -531,7 +495,7 @@ class HTVM extends Interpreter {
     final namedArgsLength = _bytesReader.read();
     for (var i = 0; i < namedArgsLength; ++i) {
       final name = _bytesReader.readShortUtf8String();
-      final arg = execute(keepIp: true);
+      final arg = execute();
       namedArgs[name] = arg;
     }
 
@@ -543,13 +507,11 @@ class HTVM extends Interpreter {
 
   void _handleUnaryPostfixOp(int op) {
     final objIndex = _bytesReader.read();
-    final keyIndex = _bytesReader.read();
+    var object = _register[objIndex];
+    final key = _curValue;
 
     switch (op) {
       case HTOpCode.memberGet:
-        var object = _register[objIndex];
-        final key = _register[keyIndex];
-
         if (object is num) {
           object = HTNumber(object);
         } else if (object is bool) {
@@ -571,29 +533,27 @@ class HTVM extends Interpreter {
           if (typeid.contains('<')) {
             typeid = typeid.substring(0, typeid.indexOf('<'));
           }
-          var externClass = fetchExternalClass(typeid);
+          final externClass = fetchExternalClass(typeid);
           _curValue = externClass.instanceFetch(object, key);
         }
         break;
       case HTOpCode.subGet:
-        final object = _register[objIndex];
-        final key = _register[keyIndex];
         if (object is List || object is Map) {
           _curValue = object[key];
         }
         throw HTErrorSubGet(object.toString());
       case HTOpCode.call:
-        _handleCallExpr(index);
+        _handleCallExpr(objIndex);
         break;
       case HTOpCode.postIncrement:
-        _curValue = _register[index];
-        _register[index] += 1;
-        curNamespace.assign(_curSymbol!, _curValue + 1);
+        _curValue = _register[objIndex];
+        final newValue = _register[objIndex] += 1;
+        _assignCurRef(newValue);
         break;
       case HTOpCode.postDecrement:
-        _curValue = _register[index];
-        _register[index] -= 1;
-        curNamespace.assign(_curSymbol!, _curValue - 1);
+        _curValue = _register[objIndex];
+        final newValue = _register[objIndex] -= 1;
+        _assignCurRef(newValue);
         break;
     }
   }
@@ -764,6 +724,8 @@ class HTVM extends Interpreter {
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     curNamespace.define(HTDeclaration(id, value: klass));
+
+    execute(closure: klass);
 
     // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
     var curSuper = superClass;

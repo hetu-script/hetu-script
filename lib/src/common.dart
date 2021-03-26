@@ -41,14 +41,23 @@ class HTVersion {
   String toString() => '$major.$minor.$patch';
 }
 
-enum LeftValueType {
-  none,
-  symbol,
+enum ReferrenceType {
+  normal,
   member,
+}
+
+enum LeftValueLegality {
+  legal,
+  illegal,
 }
 
 enum ForStmtType {
   classic,
   keyIn,
   valueOf,
+}
+
+abstract class HTRegIndex {
+  static const unaryPostObject = 13;
+  static const unaryPostKey = 14;
 }

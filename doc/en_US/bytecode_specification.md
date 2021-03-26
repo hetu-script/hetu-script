@@ -118,6 +118,7 @@ arity\*:
 | then branch length | 2            | uint16     |          |
 | else branch length | 2            | uint16     |          |
 | then branch        | ...          | uint8 list |          |
+| HTOpCode.endOfExec | 1            | byte       |          |
 | else branch        | ...          | uint8 list | true     |
 
 ### While
@@ -128,24 +129,25 @@ arity\*:
 | HTOpCode.whileStmt | 1            | byte       |          |
 | has condition      | 1            | bool       |          |
 | length of loop     | 2            | uint16     |          |
+| HTOpCode.loop      | 1            | byte       |          |
 | loop               | ...          | uint8 list |          |
-
-loop ip \*:
-
-If there's no else branch, then this ip is 0.
+| HTOpCode.endOfExec | 1            | byte       |          |
 
 ### Do
 
-| Name            | Bytes length | type          | optional |
-| :-------------- | :----------- | :------------ | :------- |
-| HTOpCode.doStmt | 1            | byte          |          |
-| condition ip \* | 2            | uint16 & bool |          |
-| loop            | ...          | uint8 list    |          |
-| condition       | ...          | uint8 list    | true     |
+| Name               | Bytes length | type       | optional |
+| :----------------- | :----------- | :--------- | :------- |
+| HTOpCode.goto      | 2            | uint16     |          |
+| distance to loop   | 2            | int16      |          |
+| condition          | ...          | uint8 list | true     |
+| HTOpCode.whileStmt | 1            | byte       |          |
+| has condition \*   | 1            | byte       |          |
+| length of loop     | 2            | uint16     |          |
+| HTOpCode.loop      | 1            | byte       |          |
+| loop               | ...          | uint8 list |          |
 
-condition ip \*:
-
-If there's no else branch, then this ip is 0.
+has condition \*:
+This option is always true in Do statement.
 
 ### For
 

@@ -9,16 +9,10 @@ void main() async {
   external fun print(... arg)
   
   fun main {
-    var i = 0
-    while (i < 10) {
-      ++i
-      var while_block;
-      if (i < 5) {
-        print(i)
-      } else {
-        break;
-      }
-    }
+    
+    
   }
+  
+
   ''', invokeFunc: 'main');
 }
