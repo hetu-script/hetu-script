@@ -15,6 +15,10 @@ void main() async {
         return nested
       }
 
+      class A {
+        var a = 1
+      }
+
       fun main {
         var func = closure( fun (n) { return n * n } )
         func()

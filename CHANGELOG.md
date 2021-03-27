@@ -1,3 +1,28 @@
+## 0.1.0
+
+- Feature: Changed default interpreter to a bytecode evaluater.
+- Feature: Now fully support nested function and literal function. Example:
+
+```typescript
+fun closure(func) {
+  var i = 42
+  fun nested () {
+    i = i + 1
+    print(func(i))
+  }
+  return nested
+}
+
+fun main {
+  var func = closure( fun (n) { return n * n } )
+  func() // print: 1849
+  func() // print: 1936
+}
+```
+
+- Feature: Added ++, -- post and pre operators, and +=, -=, \*=, /= operators.
+- Feature: Added full support on While & Do loops, and both classic for(init;condition;increment) and for...in/of.
+
 ## 0.0.6
 
 - Feature: Error & import are now handle by plugins.
