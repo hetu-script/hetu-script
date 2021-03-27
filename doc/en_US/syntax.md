@@ -4,7 +4,7 @@ Hetu's grammar close to most modern languages, hence need very little time to ge
 
 Key characteristics of Hetu:
 
-- Optional semicolon, however, the lexer will implecitly add semicolon before a line when the line starts with one of '[, (, +, -, /', or add after a line when the line ends with 'return'.
+- Optional semicolon, however, the lexer will implecitly add semicolon before a line when the line starts with one of '[, (, +, -', or add after a line when the line ends with 'return'.
   Referrence: Javascript [Automatic semicolon insertion](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion).
 
 - Optional type annotation and checking. Type is annotated with a colon after the identifier like typescript/kotlin/swift.

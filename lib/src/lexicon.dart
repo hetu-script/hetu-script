@@ -26,7 +26,7 @@ abstract class HTLexicon {
   }
 
   /// Add semicolon before a line
-  /// starting with one of '[, (, +, -, /'
+  /// starting with one of '[, (, +, -'
   static const Set<String> ASIStart = {
     squareLeft,
     roundLeft,
@@ -34,7 +34,6 @@ abstract class HTLexicon {
     preIncrement,
     subtract,
     preDecrement,
-    devide,
   };
 
   /// Add semicolon after a line
