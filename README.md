@@ -109,9 +109,8 @@ hetu value: {greeting: hello, foo: bar}
 External functions (for both global and methods) can be binded as the following type:
 
 ```dart
-await hetu.init(externalFunctions: {
-  'hello': (List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}) => {'greeting': 'hello'},
-});
+typedef HTExternalFunction = dynamic Function(
+    [List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs]);
 ```
 
 or directy as a Dart Function:
