@@ -10,12 +10,12 @@ import '../declaration.dart';
 import '../lexicon.dart';
 import '../object.dart';
 
-class HTBytesFunction extends HTFunction with VMRef {
+class HTBytesFunction extends HTFunction with HetuRef {
   final Map<String, HTBytesParamDecl> paramDecls;
 
   final int? definitionIp;
 
-  HTBytesFunction(String id, HTVM interpreter,
+  HTBytesFunction(String id, Hetu interpreter,
       {String? className,
       FunctionType funcType = FunctionType.normal,
       this.paramDecls = const <String, HTBytesParamDecl>{},
@@ -80,8 +80,6 @@ class HTBytesFunction extends HTFunction with VMRef {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    HTFunction.callStack.add(id);
-
     if (definitionIp == null) {
       throw HTErrorMissingFuncDef(id);
     }
@@ -99,7 +97,7 @@ class HTBytesFunction extends HTFunction with VMRef {
     dynamic result;
     try {
       // 函数每次在调用时，临时生成一个新的作用域
-      final closure = HTNamespace(interpreter, closure: context);
+      final closure = HTNamespace(interpreter, id: '${HTLexicon.functionCall}[$id]', closure: context);
       if (context is HTInstance) {
         closure.define(HTDeclaration(HTLexicon.THIS, value: context));
       }

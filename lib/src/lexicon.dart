@@ -25,6 +25,26 @@ abstract class HTLexicon {
     return result;
   }
 
+  /// Add semicolon before a line
+  /// starting with one of '[, (, +, -, /'
+  static const Set<String> ASIStart = {
+    squareLeft,
+    roundLeft,
+    add,
+    preIncrement,
+    subtract,
+    preDecrement,
+    devide,
+  };
+
+  /// Add semicolon after a line
+  /// ending with 'return'
+  static const Set<String> ASIEnding = {
+    BREAK,
+    CONTINUE,
+    RETURN,
+  };
+
   static const tokenGroupComment = 1;
   static const tokenGroupIdentifier = 4;
   static const tokenGroupPunctuation = 5;
@@ -41,19 +61,19 @@ abstract class HTLexicon {
   static const keys = 'keys';
   static const values = 'values';
 
-  static Set<String> get literals => {
-        number,
-        boolean,
-        string,
-      };
+  static const Set<String> literals = {
+    number,
+    boolean,
+    string,
+  };
 
   static const endOfFile = 'end_of_file'; // 文件末尾
-  static const newLine = '\n';
   static const multiline = '\\';
   static const varargs = '...'; // variadic arguments
   static const anonymousScript = '__anonymousScript#';
   static const anonymousFunction = '__anonymousFunction#';
   static const anonymousNamespace = '__anonymousNamespace#';
+  static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';
   static const unknown = 'unknown';
@@ -77,11 +97,20 @@ abstract class HTLexicon {
   static const FALSE = 'false';
   static const NULL = 'null';
 
-  static const VOID = 'void';
   static const VAR = 'var';
   static const LET = 'let';
   static const FINAL = 'final';
   static const CONST = 'const';
+
+  /// 变量声明
+  static const Set<String> varDeclKeywords = {
+    VAR,
+    LET,
+    FINAL,
+    CONST,
+  };
+
+  static const VOID = 'void';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const ANY = 'any';
   static const TYPEDEF = 'typedef';
@@ -93,6 +122,7 @@ abstract class HTLexicon {
   static const STATIC = 'static';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
+  static const SHOW = 'show';
   static const CLASS = 'class';
   static const ENUM = 'enum';
   static const STRUCT = 'struct';
@@ -110,12 +140,12 @@ abstract class HTLexicon {
   static const MIXIN = 'mixin';
 
   /// 类名修饰符
-  static Set<String> get classPrefixs => {
-        EXTERNAL,
-        ABSTRACT,
-        INTERFACE,
-        MIXIN,
-      };
+  static const Set<String> classPrefixs = {
+    EXTERNAL,
+    ABSTRACT,
+    INTERFACE,
+    MIXIN,
+  };
 
   static const AWAIT = 'await';
   static const ASSERT = 'assert';
@@ -134,46 +164,46 @@ abstract class HTLexicon {
   static const IS = 'is';
 
   /// 保留字，不能用于变量名字
-  static Set<String> get keywords => {
-        NULL,
-        STATIC,
-        VAR,
-        LET,
-        FINAL,
-        CONST,
-        TYPEDEF,
-        AS,
-        CLASS,
-        ENUM,
-        STRUCT,
-        INTERFACE,
-        CONSTRUCT,
-        GET,
-        SET,
-        FUN,
-        ASYNC,
-        AWAIT,
-        VOID,
-        THIS,
-        SUPER,
-        EXTENDS,
-        IMPLEMENTS,
-        MIXIN,
-        EXTERNAL,
-        IMPORT,
-        BREAK,
-        CONTINUE,
-        FOR,
-        IN,
-        OF,
-        IF,
-        ELSE,
-        RETURN,
-        WHILE,
-        DO,
-        WHEN,
-        IS,
-      };
+  static const Set<String> reservedKeywords = {
+    NULL,
+    STATIC,
+    VAR,
+    LET,
+    FINAL,
+    CONST,
+    TYPEDEF,
+    AS,
+    CLASS,
+    ENUM,
+    STRUCT,
+    INTERFACE,
+    CONSTRUCT,
+    GET,
+    SET,
+    FUN,
+    ASYNC,
+    AWAIT,
+    VOID,
+    //THIS,
+    //SUPER,
+    EXTENDS,
+    IMPLEMENTS,
+    MIXIN,
+    EXTERNAL,
+    IMPORT,
+    BREAK,
+    CONTINUE,
+    FOR,
+    IN,
+    OF,
+    IF,
+    ELSE,
+    RETURN,
+    WHILE,
+    DO,
+    WHEN,
+    IS,
+  };
 
   /// 函数调用表达式
   static const nullExpr = 'null_expression';
@@ -210,6 +240,7 @@ abstract class HTLexicon {
   static const elseBranch = 'else_branch';
   static const doStmt = 'do_statement';
   static const whileStmt = 'while_statement';
+  static const forStmtInit = 'for_statement_init';
   static const forStmt = 'for_statement';
   static const whenStmt = 'when_statement';
   static const classDeclStmt = 'class_declaration_statement';
@@ -224,13 +255,13 @@ abstract class HTLexicon {
   static const postDecrement = '--';
 
   /// 后缀操作符，包含多个符号
-  static Set<String> get unaryPostfixs => {
-        memberGet,
-        subGet,
-        call,
-        postIncrement,
-        postDecrement,
-      };
+  static const Set<String> unaryPostfixs = {
+    memberGet,
+    subGet,
+    call,
+    postIncrement,
+    postDecrement,
+  };
 
   static const logicalNot = '!';
   static const negative = '-';
@@ -238,32 +269,32 @@ abstract class HTLexicon {
   static const preDecrement = '--';
 
   /// 前缀操作符，包含多个符号
-  static Set<String> get unaryPrefixs => {
-        logicalNot,
-        negative,
-        preIncrement,
-        preDecrement,
-      };
+  static const Set<String> unaryPrefixs = {
+    logicalNot,
+    negative,
+    preIncrement,
+    preDecrement,
+  };
 
   static const multiply = '*';
   static const devide = '/';
   static const modulo = '%';
 
   /// 乘除操作符，包含多个符号
-  static Set<String> get multiplicatives => {
-        multiply,
-        devide,
-        modulo,
-      };
+  static const Set<String> multiplicatives = {
+    multiply,
+    devide,
+    modulo,
+  };
 
   static const add = '+';
   static const subtract = '-';
 
   /// 加减操作符，包含多个符号
-  static Set<String> get additives => {
-        add,
-        subtract,
-      };
+  static const Set<String> additives = {
+    add,
+    subtract,
+  };
 
   static const greater = '>';
   static const greaterOrEqual = '>=';
@@ -271,22 +302,22 @@ abstract class HTLexicon {
   static const lesserOrEqual = '<=';
 
   /// 大小判断操作符，包含多个符号
-  static Set<String> get relationals => {
-        greater,
-        greaterOrEqual,
-        lesser,
-        lesserOrEqual,
-        IS,
-      };
+  static const Set<String> relationals = {
+    greater,
+    greaterOrEqual,
+    lesser,
+    lesserOrEqual,
+    IS,
+  };
 
   static const equal = '==';
   static const notEqual = '!=';
 
   /// 相等判断操作符，包含多个符号
-  static Set<String> get equalitys => {
-        equal,
-        notEqual,
-      };
+  static const Set<String> equalitys = {
+    equal,
+    notEqual,
+  };
 
   static const logicalAnd = '&&';
   static const logicalOr = '||';
@@ -298,13 +329,13 @@ abstract class HTLexicon {
   static const assignSubtract = '-=';
 
   /// 赋值类型操作符，包含多个符号
-  static Set<String> get assignments => {
-        assign,
-        assignMultiply,
-        assignDevide,
-        assignAdd,
-        assignSubtract,
-      };
+  static const Set<String> assignments = {
+    assign,
+    assignMultiply,
+    assignDevide,
+    assignAdd,
+    assignSubtract,
+  };
 
   static const comma = ',';
   static const colon = ':';
@@ -318,34 +349,34 @@ abstract class HTLexicon {
   static const angleLeft = '<';
   static const angleRight = '>';
 
-  static Set<String> get Punctuations => {
-        nullable,
-        logicalNot,
-        multiply,
-        devide,
-        modulo,
-        add,
-        subtract,
-        lesser, // angleLeft,
-        lesserOrEqual,
-        greater, // angleRight,
-        greaterOrEqual,
-        equal,
-        notEqual,
-        logicalAnd,
-        logicalOr,
-        assign,
-        comma,
-        colon,
-        semicolon,
-        memberGet,
-        roundLeft,
-        roundRight,
-        curlyLeft,
-        curlyRight,
-        squareLeft,
-        squareRight,
-      };
+  static const Set<String> Punctuations = {
+    nullable,
+    logicalNot,
+    multiply,
+    devide,
+    modulo,
+    add,
+    subtract,
+    lesser, // angleLeft,
+    lesserOrEqual,
+    greater, // angleRight,
+    greaterOrEqual,
+    equal,
+    notEqual,
+    logicalAnd,
+    logicalOr,
+    assign,
+    comma,
+    colon,
+    semicolon,
+    memberGet,
+    roundLeft,
+    roundRight,
+    curlyLeft,
+    curlyRight,
+    squareLeft,
+    squareRight,
+  };
 
   static const math = 'Math';
   static const system = 'System';

@@ -18,7 +18,7 @@ const cli_help = '''
 
 void main(List<String> args) async {
   try {
-    var hetu = HTAstInterpreter();
+    var hetu = Hetu();
 
     dynamic result;
     if (args.isNotEmpty) {

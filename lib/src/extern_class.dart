@@ -16,16 +16,20 @@ abstract class HTExternalClass extends HTObject {
 
   HTExternalClass(this.id);
 
-  dynamic instanceFetch(dynamic instance, String varName) => throw HTErrorUndefined(varName);
+  dynamic instanceMemberGet(dynamic instance, String varName) => throw HTErrorUndefined(varName);
 
-  void instanceAssign(dynamic instance, String varName, dynamic value) => throw HTErrorUndefined(varName);
+  void instanceMemberSet(dynamic instance, String varName, dynamic value) => throw HTErrorUndefined(varName);
+
+  dynamic instanceSubGet(dynamic instance, dynamic key) => throw HTErrorUndefined(key);
+
+  void instanceSubSet(dynamic instance, dynamic key, dynamic value) => throw HTErrorUndefined(key);
 }
 
 class HTExternClassNumber extends HTExternalClass {
   HTExternClassNumber() : super(HTLexicon.number);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
         return (
@@ -43,7 +47,7 @@ class HTExternClassBool extends HTExternalClass {
   HTExternClassBool() : super(HTLexicon.boolean);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
         return (
@@ -62,7 +66,7 @@ class HTExternClassString extends HTExternalClass {
   HTExternClassString() : super(HTLexicon.string);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'parse':
         return (
@@ -82,7 +86,7 @@ class HTExternClassMath extends HTExternalClass {
   HTExternClassMath() : super(HTLexicon.math);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'random':
         return (
@@ -132,7 +136,7 @@ class HTExternClassSystem extends HTExternalClass with InterpreterRef {
   }
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'invoke':
         return (
@@ -153,7 +157,7 @@ class HTExternClassConsole extends HTExternalClass {
   HTExternClassConsole() : super(HTLexicon.console);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'write':
         return (

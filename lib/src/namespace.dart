@@ -33,12 +33,13 @@ class HTNamespace extends HTObject with InterpreterRef {
   final _constInt = <int>[];
   List<int> get constInt => _constInt.toList(growable: false);
   int addConstInt(int value) {
-    for (var i = 0; i < _constInt.length; ++i) {
-      if (_constInt[i] == value) return i;
+    final index = _constInt.indexOf(value);
+    if (index == -1) {
+      _constInt.add(value);
+      return _constInt.length - 1;
+    } else {
+      return index;
     }
-
-    _constInt.add(value);
-    return _constInt.length - 1;
   }
 
   int getConstInt(int index) => _constInt[index];
@@ -46,12 +47,13 @@ class HTNamespace extends HTObject with InterpreterRef {
   final _constFloat = <double>[];
   List<double> get constFloat => _constFloat.toList(growable: false);
   int addConstFloat(double value) {
-    for (var i = 0; i < _constFloat.length; ++i) {
-      if (_constFloat[i] == value) return i;
+    final index = _constFloat.indexOf(value);
+    if (index == -1) {
+      _constFloat.add(value);
+      return _constFloat.length - 1;
+    } else {
+      return index;
     }
-
-    _constFloat.add(value);
-    return _constFloat.length - 1;
   }
 
   double getConstFloat(int index) => _constFloat[index];
@@ -59,12 +61,13 @@ class HTNamespace extends HTObject with InterpreterRef {
   final _constString = <String>[];
   List<String> get constUtf8String => _constString.toList(growable: false);
   int addConstString(String value) {
-    for (var i = 0; i < _constString.length; ++i) {
-      if (_constString[i] == value) return i;
+    final index = _constString.indexOf(value);
+    if (index == -1) {
+      _constString.add(value);
+      return _constString.length - 1;
+    } else {
+      return index;
     }
-
-    _constString.add(value);
-    return _constString.length - 1;
   }
 
   String getConstString(int index) => _constString[index];
@@ -72,16 +75,21 @@ class HTNamespace extends HTObject with InterpreterRef {
   // 变量表
   final Map<String, HTDeclaration> declarations = {};
 
-  late final HTNamespace? closure;
+  HTNamespace? closure;
 
   HTNamespace(
     Interpreter interpreter, {
     String? id,
-    this.closure,
+    HTNamespace? closure,
   }) : super() {
     this.id = id ?? '${HTLexicon.anonymousNamespace}${spaceIndex++}';
     this.interpreter = interpreter;
     fullName = getFullName(this.id, this);
+    if (this.id != HTLexicon.global) {
+      this.closure = closure ?? interpreter.curNamespace;
+    } else {
+      this.closure = closure;
+    }
   }
 
   HTNamespace closureAt(int distance) {
@@ -115,7 +123,7 @@ class HTNamespace extends HTObject with InterpreterRef {
   }
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
@@ -131,7 +139,7 @@ class HTNamespace extends HTObject with InterpreterRef {
     }
 
     if (closure != null) {
-      return closure!.fetch(varName, from: from);
+      return closure!.memberGet(varName, from: from);
     }
 
     throw HTErrorUndefined(varName);
@@ -139,12 +147,12 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   dynamic fetchAt(String varName, int distance, {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    return space.fetch(varName, from: space.fullName);
+    return space.memberGet(varName, from: space.fullName);
   }
 
   /// 向一个已经定义的变量赋值
   @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
@@ -156,7 +164,7 @@ class HTNamespace extends HTObject with InterpreterRef {
       decl.assign(value);
       return;
     } else if (closure != null) {
-      closure!.assign(varName, value, from: from);
+      closure!.memberSet(varName, value, from: from);
       return;
     }
 
@@ -165,7 +173,7 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   void assignAt(String varName, dynamic value, int distance, {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    space.assign(
+    space.memberSet(
       varName,
       value,
       from: space.fullName,

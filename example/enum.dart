@@ -11,7 +11,7 @@ class CountryEnumBinding extends HTExternalClass {
   CountryEnumBinding() : super('Country');
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'values':
         return Country.values;
@@ -29,7 +29,7 @@ class CountryEnumBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceFetch(dynamic instance, String varName) {
+  dynamic instanceMemberGet(dynamic instance, String varName) {
     switch (varName) {
       case 'typeid':
         return HTTypeId('Country');
@@ -50,7 +50,7 @@ class CountryEnumBinding extends HTExternalClass {
 }
 
 void main() async {
-  var hetu = HTAstInterpreter();
+  var hetu = Hetu();
 
   await hetu.init(externalClasses: [CountryEnumBinding()]);
 

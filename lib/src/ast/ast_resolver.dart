@@ -11,7 +11,7 @@ class HTAstResolver implements ASTNodeVisitor {
   int get curColumn => _curColumn;
   late final String curFileName;
 
-  late String _libName;
+  late String _moduleName;
 
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   final _blocks = <Map<String, bool>>[];
@@ -27,10 +27,10 @@ class HTAstResolver implements ASTNodeVisitor {
   final _distances = <ASTNode, int>{};
 
   // 返回每个表达式对应的求值深度
-  Map<ASTNode, int> resolve(List<ASTNode> statements, String fileName, {String libName = HTLexicon.global}) {
+  Map<ASTNode, int> resolve(List<ASTNode> statements, String fileName, {String moduleName = HTLexicon.global}) {
     curFileName = fileName;
-    _libName = libName;
-    if (_libName != HTLexicon.global) _beginBlock();
+    _moduleName = moduleName;
+    if (_moduleName != HTLexicon.global) _beginBlock();
 
     _beginBlock();
     for (final stmt in statements) {
@@ -44,7 +44,7 @@ class HTAstResolver implements ASTNodeVisitor {
       _resolveFunction(func);
     }
     _endBlock();
-    if (libName != HTLexicon.global) {
+    if (moduleName != HTLexicon.global) {
       _endBlock();
     }
 

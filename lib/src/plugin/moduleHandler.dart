@@ -18,9 +18,14 @@ class DefaultModuleHandler implements HTModuleHandler {
 
   final imported = <String>[];
 
-  DefaultModuleHandler({String workingDirectory = 'script/'}) {
-    final dir = Directory(workingDirectory);
-    this.workingDirectory = dir.absolute.path;
+  DefaultModuleHandler({String? workingDirectory}) {
+    if (workingDirectory != null) {
+      final dir = Directory(workingDirectory);
+      this.workingDirectory = dir.absolute.path;
+    } else {
+      final dir = Directory.current;
+      this.workingDirectory = dir.absolute.path;
+    }
   }
 
   @override

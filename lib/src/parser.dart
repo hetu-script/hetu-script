@@ -75,12 +75,4 @@ abstract class Parser {
 
   /// 获得当前Token
   Token get curTok => peek(0);
-  // {
-  // var cur = peek(0);
-  // if (cur == env.lexicon.Multiline) {
-  //   advance(1);
-  //   cur = peek(0);
-  // }
-  // return cur;
-  // }
 }

@@ -1,6 +1,3 @@
-import 'package:hetu_script/src/interpreter.dart';
-
-import 'type.dart';
 import 'errors.dart';
 
 /// 一个声明，包含了类型等额外信息。

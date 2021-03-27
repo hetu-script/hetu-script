@@ -21,7 +21,11 @@ abstract class HTObject with HTType {
 
   void define(HTDeclaration decl, {bool override = false}) => throw HTErrorUndefined(decl.id);
 
-  dynamic fetch(String varName, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
 
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
+  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
+
+  dynamic subGet(dynamic key, {String from = HTLexicon.global}) => throw HTErrorUndefined(key);
+
+  void subSet(String key, dynamic value, {String from = HTLexicon.global}) => throw HTErrorUndefined(key);
 }

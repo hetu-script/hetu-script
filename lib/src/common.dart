@@ -44,17 +44,12 @@ class HTVersion {
 enum ReferrenceType {
   normal,
   member,
+  sub,
 }
 
 enum LeftValueLegality {
   legal,
   illegal,
-}
-
-enum ForStmtType {
-  classic,
-  keyIn,
-  valueOf,
 }
 
 abstract class HTRegIndex {

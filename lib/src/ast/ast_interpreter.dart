@@ -39,25 +39,25 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
   Future<dynamic> eval(
     String content, {
     String? fileName,
-    String libName = HTLexicon.global,
+    String moduleName = HTLexicon.global,
     HTNamespace? namespace,
     ParseStyle style = ParseStyle.module,
-    bool debugMode = false,
+    bool debugMode = true,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    curFileName = fileName ?? HTLexicon.anonymousScript;
+    curModule = fileName ?? HTLexicon.anonymousScript;
     curNamespace = namespace ?? global;
 
     var lexer = Lexer();
     var parser = HTAstParser();
     var resolver = HTAstResolver();
     try {
-      var tokens = lexer.lex(content, curFileName);
+      var tokens = lexer.lex(content, curModule);
 
-      final statements = await parser.parse(tokens, this, curNamespace, curFileName, style);
-      _distances.addAll(resolver.resolve(statements, curFileName, libName: libName));
+      final statements = await parser.parse(tokens, this, curNamespace, curModule, style);
+      _distances.addAll(resolver.resolve(statements, curModule, moduleName: moduleName));
 
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
@@ -86,45 +86,11 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
         newErr = HTInterpreterError('${e.message}\nCall stack:\n$callStack', e.type, resolver.curFileName,
             resolver.curLine, resolver.curColumn);
       } else {
-        newErr = HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curFileName, curLine, curColumn);
+        newErr = HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
       }
 
       errorHandler.handle(newErr);
     }
-  }
-
-  /// 解析文件
-  @override
-  Future<dynamic> import(
-    String key, {
-    String? libName,
-    ParseStyle style = ParseStyle.module,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  }) async {
-    dynamic result;
-
-    final module = await importHandler.import(key, curFileName != HTLexicon.anonymousScript ? curFileName : null);
-    curFileName = module.fileName;
-
-    HTNamespace? library_namespace;
-    if ((libName != null) && (libName != HTLexicon.global)) {
-      library_namespace = HTNamespace(this, id: libName, closure: global);
-      global.define(HTDeclaration(libName, value: library_namespace));
-    }
-
-    result = eval(module.content,
-        fileName: curFileName,
-        namespace: library_namespace,
-        style: style,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs);
-
-    curFileName = '';
-
-    return result;
   }
 
   @override
@@ -199,7 +165,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       return curNamespace.fetchAt(name, distance);
     }
 
-    return global.fetch(name);
+    return global.memberGet(name);
   }
 
   dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
@@ -432,7 +398,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
           return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
         } else {
           final className = callee.className;
-          final klass = global.fetch(className!);
+          final klass = global.memberGet(className!);
           if (klass is HTClass) {
             if (klass.classType != ClassType.extern) {
               // 命名构造函数
@@ -441,7 +407,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
-              final constructor = externClass.fetch(callee.id);
+              final constructor = externClass.memberGet(callee.id);
               if (constructor is HTExternalFunction) {
                 try {
                   return constructor(positionalArgs, namedArgs);
@@ -479,7 +445,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       } else {
         // 外部默认构造函数
         final externClass = fetchExternalClass(callee.id);
-        final constructor = externClass.fetch(callee.id);
+        final constructor = externClass.memberGet(callee.id);
         if (constructor is HTExternalFunction) {
           try {
             return constructor(positionalArgs, namedArgs);
@@ -519,7 +485,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       // 尝试设置当前环境中的本地变量
       curNamespace.assignAt(expr.variable.lexeme, value, distance);
     } else {
-      global.assign(expr.variable.lexeme, value);
+      global.memberSet(expr.variable.lexeme, value);
     }
 
     // 返回右值
@@ -580,7 +546,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     }
 
     if ((object is HTObject)) {
-      return object.fetch(expr.key.lexeme, from: curNamespace.fullName);
+      return object.memberGet(expr.key.lexeme, from: curNamespace.fullName);
     }
     //如果是Dart对象
     else {
@@ -589,7 +555,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
         typeid = typeid.substring(0, typeid.indexOf('<'));
       }
       var externClass = fetchExternalClass(typeid);
-      return externClass.instanceFetch(object, expr.key.lexeme);
+      return externClass.instanceMemberGet(object, expr.key.lexeme);
     }
   }
 
@@ -613,7 +579,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
 
     var value = visitASTNode(expr.value);
     if (object is HTObject) {
-      object.assign(expr.key.lexeme, value, from: curNamespace.fullName);
+      object.memberSet(expr.key.lexeme, value, from: curNamespace.fullName);
       return value;
     }
     //如果是Dart对象
@@ -623,7 +589,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
         typeid = typeid.substring(0, typeid.indexOf('<'));
       }
       var externClass = fetchExternalClass(typeid);
-      externClass.instanceAssign(object, expr.key.lexeme, value);
+      externClass.instanceMemberSet(object, expr.key.lexeme, value);
       return value;
     }
   }
@@ -762,7 +728,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
     HTClass? superClass;
     if (stmt.id.lexeme != HTLexicon.rootClass) {
       if (stmt.superClass == null) {
-        superClass = global.fetch(HTLexicon.rootClass);
+        superClass = global.memberGet(HTLexicon.rootClass);
       } else {
         HTClass existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
         superClass = existSuperClass;

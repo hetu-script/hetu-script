@@ -32,9 +32,9 @@ class HTAstParser extends Parser {
       var stmt = _parseStmt(style: style);
       if (stmt is ImportStmt) {
         final savedFileName = _curFileName;
-        await interpreter.import(stmt.key, libName: stmt.namespace);
+        await interpreter.import(stmt.key, moduleName: stmt.namespace);
         _curFileName = savedFileName;
-        interpreter.curFileName = savedFileName;
+        interpreter.curModule = savedFileName;
       }
       statements.add(stmt);
     }
@@ -282,7 +282,6 @@ class HTAstParser extends Parser {
   }
 
   ASTNode _parseStmt({ParseStyle style = ParseStyle.module}) {
-    if (curTok.type == HTLexicon.newLine) advance(1);
     switch (style) {
       case ParseStyle.module:
         switch (curTok.type) {

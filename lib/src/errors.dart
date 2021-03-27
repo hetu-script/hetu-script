@@ -72,6 +72,10 @@ abstract class HTError {
 
   static const namedArg = 'Undefined argument name:';
 
+  static const iterable = 'is not Iterable.';
+
+  static const unkownValueType = 'Unkown OpCode value type: ';
+
   static void warn(String message) => print('hetu warn:\n' + message);
 
   final String message;
@@ -89,10 +93,6 @@ class HTParserError extends HTError {
 
 class HTResolverError extends HTError {
   HTResolverError(String message) : super(message, HTErrorType.resolver);
-}
-
-class HTCompilerError extends HTError {
-  HTCompilerError(String message) : super(message, HTErrorType.compiler);
 }
 
 class HTImportError extends HTError {
@@ -141,8 +141,8 @@ class HTErrorReturn extends HTResolverError {
   HTErrorReturn(String id) : super(HTError.outsideReturn);
 }
 
-class HTErrorIllegalLeftValueCompiler extends HTCompilerError {
-  HTErrorIllegalLeftValueCompiler() : super(HTError.invalidLeftValue);
+class HTErrorIllegalLeftValue extends HTParserError {
+  HTErrorIllegalLeftValue() : super(HTError.invalidLeftValue);
 }
 
 // class HTErrorAssign extends HTError {
@@ -298,4 +298,12 @@ class HTErrorInitialize extends HTError {
 
 class HTErrorNamedArg extends HTError {
   HTErrorNamedArg(String id) : super('${HTError.namedArg} [$id]', HTErrorType.interpreter);
+}
+
+class HTErrorIterable extends HTError {
+  HTErrorIterable(String id) : super('[$id] ${HTError.iterable}', HTErrorType.interpreter);
+}
+
+class HTErrorUnkownValueType extends HTError {
+  HTErrorUnkownValueType(int type) : super('${HTError.unkownValueType} [$type]', HTErrorType.interpreter);
 }

@@ -80,11 +80,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     dynamic result;
     try {
       if (funcStmt.definition != null) {
-        HTNamespace closure;
-        //_save = _closure;
-        //assert(closure != null);
         // 函数每次在调用时，临时生成一个新的作用域
-        closure = HTNamespace(interpreter, closure: context);
+        final closure = HTNamespace(interpreter, closure: context);
         if (context is HTInstance) {
           closure.define(HTDeclaration(HTLexicon.THIS, value: context));
         }

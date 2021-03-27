@@ -12,27 +12,29 @@ abstract class HTOpCode {
 
   // static const leftValue = 4;
 
-  static const goto = 5;
+  /// ip = ip + [distance], distance could be negative
+  static const goto = 4;
 
-  static const loop = 6;
+  static const loopPoint = 6;
 
-  static const block = 7;
-  static const endOfBlock = 8;
+  static const breakLoop = 7;
 
-  static const endOfStmt = 9;
+  static const continueLoop = 8;
 
-  static const endOfExec = 10;
+  static const block = 10;
+  static const endOfBlock = 11;
 
-  static const breakLoop = 11;
+  static const endOfStmt = 12;
 
-  static const continueLoop = 12;
+  static const endOfExec = 13;
 
-  static const constTable = 13;
-  static const declTable = 14;
+  static const declTable = 15;
 
   static const ifStmt = 21;
 
   static const whileStmt = 22;
+
+  static const doStmt = 23;
 
   static const forStmt = 24;
 
@@ -108,7 +110,7 @@ abstract class HTOpCode {
   /// 1 byte
   static const debug = 202;
 
-  /// uint32 line, uint32 column, uint8 symbolLength, symbol
+  /// uint16 line, uint16 column
   static const debugInfo = 203;
   static const error = 204; //
 }
@@ -157,4 +159,9 @@ abstract class SymbolType {
   static const normal = 0;
   static const member = 1;
   static const sub = 2;
+}
+
+abstract class ForStmtType {
+  static const keyIn = 0;
+  static const valueOf = 1;
 }

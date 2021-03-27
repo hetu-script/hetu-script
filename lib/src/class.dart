@@ -1,6 +1,3 @@
-import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script/src/declaration.dart';
-
 import 'lexicon.dart';
 import 'namespace.dart';
 import 'function.dart';
@@ -8,6 +5,8 @@ import 'errors.dart';
 import 'type.dart';
 import 'extern_function.dart';
 import 'interpreter.dart';
+import 'common.dart';
+import 'declaration.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 ///
@@ -72,7 +71,7 @@ class HTClass extends HTNamespace {
 
   /// Fetch the value of a static member from this class.
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
@@ -89,7 +88,7 @@ class HTClass extends HTNamespace {
         return decl.value;
       } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
-        return externClass.fetch(staticName);
+        return externClass.memberGet(staticName);
       }
     } else if (declarations.containsKey(getter)) {
       final decl = declarations[getter]!;
@@ -98,7 +97,7 @@ class HTClass extends HTNamespace {
         return func.call();
       } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
-        return externClass.fetch(staticName);
+        return externClass.memberGet(staticName);
       } else {
         final externGetterFunc = interpreter.fetchExternalFunction('$id.${HTLexicon.getter}$varName');
         return externGetterFunc();
@@ -109,16 +108,16 @@ class HTClass extends HTNamespace {
         return declarations[staticName]!.value;
       } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
-        return externClass.fetch(staticName);
+        return externClass.memberGet(staticName);
       } else {
         return interpreter.fetchExternalFunction(staticName);
       }
     } else if (superClass != null && superClass!.contains(varName)) {
-      return superClass!.fetch(varName, from: superClass!.fullName);
+      return superClass!.memberGet(varName, from: superClass!.fullName);
     }
 
     if (closure != null) {
-      return closure!.fetch(varName, from: closure!.fullName);
+      return closure!.memberGet(varName, from: closure!.fullName);
     }
 
     throw HTErrorUndefined(varName);
@@ -126,7 +125,7 @@ class HTClass extends HTNamespace {
 
   /// Assign a value to a static member of this class.
   @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
@@ -138,7 +137,7 @@ class HTClass extends HTNamespace {
     if (declarations.containsKey(varName)) {
       if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
-        externClass.assign(staticName, value);
+        externClass.memberSet(staticName, value);
       } else {
         final decl = declarations[varName]!;
         decl.assign(value);
@@ -150,7 +149,7 @@ class HTClass extends HTNamespace {
         setterFunc.call(positionalArgs: [value]);
       } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
-        externClass.assign(staticName, value);
+        externClass.memberSet(staticName, value);
       } else {
         final externSetterFunc = interpreter.fetchExternalFunction('$id.${HTLexicon.setter}$varName');
         if (externSetterFunc is HTExternalFunction) {
@@ -168,7 +167,7 @@ class HTClass extends HTNamespace {
     }
 
     if (closure != null) {
-      closure!.assign(varName, value, from: from);
+      closure!.memberSet(varName, value, from: from);
       return;
     }
 
@@ -212,7 +211,7 @@ class HTClass extends HTNamespace {
 
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    HTFunction? func = fetch(funcName, from: fullName);
+    HTFunction? func = memberGet(funcName, from: fullName);
     if ((func != null) && (!func.isStatic)) {
       return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
     }
@@ -239,7 +238,7 @@ class HTInstance extends HTNamespace {
 
   @override
   String toString() {
-    dynamic func = fetch('toString');
+    dynamic func = memberGet('toString');
     return interpreter.call(func);
   }
 
@@ -248,7 +247,7 @@ class HTInstance extends HTNamespace {
       declarations.containsKey(varName) || declarations.containsKey('${HTLexicon.getter}$varName');
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
@@ -282,12 +281,14 @@ class HTInstance extends HTNamespace {
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             '${HTLexicon.instanceOf}$typeid';
       default:
-        throw HTErrorUndefinedMember(varName, typeid.toString());
+        if (closure != null) {
+          return closure!.memberGet(varName, from: from);
+        }
     }
   }
 
   @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
@@ -298,7 +299,7 @@ class HTInstance extends HTNamespace {
     if (declarations.containsKey(varName)) {
       if (isExtern) {
         final externClass = interpreter.fetchExternalClass(id);
-        externClass.instanceAssign(this, varName, value);
+        externClass.instanceMemberSet(this, varName, value);
       } else {
         final decl = declarations[varName]!;
         decl.assign(value);
@@ -316,7 +317,7 @@ class HTInstance extends HTNamespace {
 
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
-    HTFunction func = fetch(funcName, from: fullName);
+    HTFunction func = memberGet(funcName, from: fullName);
     func.context = this;
     return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
   }

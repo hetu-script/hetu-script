@@ -16,7 +16,7 @@ class HTNumber extends HTExternObject<num> {
   final typeid = HTTypeId.number;
 
   @override
-  dynamic fetch(String id, {String from = HTLexicon.global}) {
+  dynamic memberGet(String id, {String from = HTLexicon.global}) {
     switch (id) {
       case 'typeid':
         return typeid;
@@ -52,7 +52,7 @@ class HTBoolean extends HTExternObject<bool> {
   final typeid = HTTypeId.boolean;
 
   @override
-  dynamic fetch(String id, {String from = HTLexicon.global}) {
+  dynamic memberGet(String id, {String from = HTLexicon.global}) {
     switch (id) {
       case 'typeid':
         return typeid;
@@ -78,7 +78,7 @@ class HTString extends HTExternObject<String> {
   final typeid = HTTypeId.string;
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'typeid':
         return typeid;
@@ -136,7 +136,7 @@ class HTList<T> extends HTExternObject<List<T>> {
   final typeid = HTTypeId.list;
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'typeid':
         return typeid;
@@ -217,7 +217,7 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
   final typeid = HTTypeId.map;
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'typeid':
         return typeid;

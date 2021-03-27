@@ -3,7 +3,9 @@ import '../type.dart';
 import 'vm.dart';
 import '../errors.dart';
 
-class HTBytesDecl extends HTDeclaration with VMRef {
+class HTBytesDecl extends HTDeclaration with HetuRef {
+  final String module;
+
   final bool isDynamic;
 
   @override
@@ -16,7 +18,7 @@ class HTBytesDecl extends HTDeclaration with VMRef {
 
   int? initializerIp;
 
-  HTBytesDecl(String id, HTVM interpreter,
+  HTBytesDecl(String id, Hetu interpreter, this.module,
       {dynamic value,
       HTTypeId? declType,
       this.initializerIp,
@@ -42,7 +44,12 @@ class HTBytesDecl extends HTDeclaration with VMRef {
     if (initializerIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
+        final savedModule = interpreter.curModule;
+        interpreter.curModule = module;
+        interpreter.curCode = interpreter.modules[module]!;
         final initVal = interpreter.execute(ip: initializerIp!);
+        interpreter.curModule = savedModule;
+        interpreter.curCode = interpreter.modules[savedModule]!;
         assign(initVal);
         _isInitializing = false;
       } else {
@@ -70,7 +77,7 @@ class HTBytesDecl extends HTDeclaration with VMRef {
   }
 
   @override
-  HTBytesDecl clone() => HTBytesDecl(id, interpreter,
+  HTBytesDecl clone() => HTBytesDecl(id, interpreter, module,
       value: value,
       initializerIp: initializerIp,
       getter: getter,
@@ -85,18 +92,19 @@ class HTBytesParamDecl extends HTBytesDecl {
   final bool isNamed;
   final bool isVariadic;
 
-  HTBytesParamDecl(String id, HTVM interpreter,
+  HTBytesParamDecl(String id, Hetu interpreter, String module,
       {dynamic value,
       HTTypeId? declType,
       int? initializerIp,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id, interpreter, value: value, declType: declType, initializerIp: initializerIp, isImmutable: true);
+      : super(id, interpreter, module,
+            value: value, declType: declType, initializerIp: initializerIp, isImmutable: true);
 
   @override
   HTBytesParamDecl clone() {
-    return HTBytesParamDecl(id, interpreter,
+    return HTBytesParamDecl(id, interpreter, module,
         value: value,
         declType: declType,
         initializerIp: initializerIp,

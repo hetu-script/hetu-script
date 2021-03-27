@@ -22,7 +22,7 @@ class HTEnum extends HTObject with InterpreterRef {
   bool contains(String varName) => defs.containsKey(varName);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (!isExtern) {
       if (defs.containsKey(varName)) {
         return defs[varName]!;
@@ -31,7 +31,7 @@ class HTEnum extends HTObject with InterpreterRef {
       }
     } else {
       final externEnumClass = interpreter.fetchExternalClass(id);
-      return externEnumClass.fetch(varName);
+      return externEnumClass.memberGet(varName);
     }
 
     // TODO: elementAt() 方法
@@ -40,7 +40,7 @@ class HTEnum extends HTObject with InterpreterRef {
   }
 
   @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
     if (defs.containsKey(varName)) {
       throw HTErrorImmutable(varName);
     }
@@ -62,7 +62,7 @@ class HTEnumItem extends HTObject {
   HTEnumItem(this.index, this.id, this.typeid);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'typeid':
         return typeid;
