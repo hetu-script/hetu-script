@@ -81,7 +81,7 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       HTInterpreterError newErr;
       if (e is HTParserError) {
         newErr = HTInterpreterError(
-            '${e.message}\nCall stack:\n$callStack', e.type, parser.curFileName, parser.curLine, parser.curColumn);
+            '${e.message}\nCall stack:\n$callStack', e.type, parser.curModule, parser.curLine, parser.curColumn);
       } else if (e is HTResolverError) {
         newErr = HTInterpreterError('${e.message}\nCall stack:\n$callStack', e.type, resolver.curFileName,
             resolver.curLine, resolver.curColumn);

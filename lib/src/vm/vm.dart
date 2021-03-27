@@ -1,23 +1,23 @@
+import 'compiler.dart';
+import 'opcode.dart';
+import 'bytes_reader.dart';
+import 'bytes_declaration.dart';
+import 'bytes_funciton.dart';
 import '../interpreter.dart';
 import '../type.dart';
 import '../common.dart';
 import '../lexicon.dart';
-import 'compiler.dart';
-import 'opcode.dart';
 import '../lexer.dart';
 import '../errors.dart';
-import '../plugin/moduleHandler.dart';
 import '../namespace.dart';
-import '../plugin/errorHandler.dart';
-import 'bytes_reader.dart';
-import 'bytes_declaration.dart';
-import 'bytes_funciton.dart';
 import '../declaration.dart';
 import '../class.dart';
 import '../extern_object.dart';
 import '../object.dart';
 import '../enum.dart';
 import '../function.dart';
+import '../plugin/moduleHandler.dart';
+import '../plugin/errorHandler.dart';
 
 mixin HetuRef {
   late final Hetu interpreter;
@@ -85,19 +85,23 @@ class Hetu extends Interpreter {
       sb.writeln('\n$stack');
       var callStack = sb.toString();
 
-      HTInterpreterError newErr;
-      if (e is HTParserError) {
-        newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, compiler.curFileName,
-            compiler.curLine, compiler.curColumn);
-      } else if (e is HTError) {
-        newErr =
-            HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
-      } else {
-        newErr =
-            HTInterpreterError('$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
-      }
+      if (e is! HTInterpreterError) {
+        HTInterpreterError newErr;
+        if (e is HTParserError) {
+          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, compiler.curModule,
+              compiler.curLine, compiler.curColumn);
+        } else if (e is HTError) {
+          newErr =
+              HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
+        } else {
+          newErr =
+              HTInterpreterError('$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
+        }
 
-      errorHandler.handle(newErr);
+        errorHandler.handle(newErr);
+      } else {
+        errorHandler.handle(e);
+      }
     }
   }
 
@@ -233,7 +237,7 @@ class Hetu extends Interpreter {
           _handleForStmt();
           break;
         case HTOpCode.whenStmt:
-          // _handleWhenStmt();
+          _handleWhenStmt();
           break;
         case HTOpCode.assign:
         case HTOpCode.assignMultiply:
@@ -482,6 +486,43 @@ class Hetu extends Interpreter {
         }
         curCode.skip(loopLength);
       }
+    }
+  }
+
+  void _handleWhenStmt() {
+    var condition = _curValue;
+    final hasCondition = curCode.readBool();
+
+    final casesCount = curCode.read();
+    final branchesIpList = <int>[];
+    final casesList = [];
+    for (var i = 0; i < casesCount; ++i) {
+      branchesIpList.add(curCode.readUint16());
+    }
+    final elseBranchIp = curCode.readUint16();
+    final endIp = curCode.readUint16();
+
+    for (var i = 0; i < casesCount; ++i) {
+      final value = execute();
+      casesList.add(value);
+    }
+
+    final startIp = curCode.ip;
+
+    var index = -1;
+    if (hasCondition) {
+      index = casesList.indexOf(condition);
+    }
+
+    if (index != -1) {
+      final distance = branchesIpList[index];
+      curCode.skip(distance);
+      execute();
+      curCode.ip = startIp + endIp;
+    } else {
+      final distance = elseBranchIp;
+      curCode.skip(distance);
+      execute();
     }
   }
 

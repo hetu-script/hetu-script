@@ -21,7 +21,38 @@ fun main {
 ```
 
 - Feature: Added ++, -- post and pre operators, and +=, -=, \*=, /= operators.
-- Feature: Added full support on While & Do loops, and both classic for(init;condition;increment) and for...in/of.
+- Feature: Added full support on While, Do loops, and both classic for(init;condition;increment) and for...in/of.
+- Feature: Added When statement, works like switch.
+
+Loops and When statement example:
+
+```dart
+fun main {
+  var i = 0
+  for (;;) {
+    ++i
+    when (i % 2) {
+      0: print('even:', i)
+      1: print('odd:', i)
+      else: print('never going to happen.')
+    }
+    if (i > 5) {
+      break
+    }
+  }
+}
+```
+
+The output is:
+
+```
+odd: 1
+even: 2
+odd: 3
+even: 4
+odd: 5
+even: 6
+```
 
 ## 0.0.6
 

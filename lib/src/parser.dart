@@ -26,7 +26,7 @@ abstract class Parser {
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
-  late String curFileName;
+  late String curModule;
 
   var _tokPos = 0;
 
@@ -69,7 +69,7 @@ abstract class Parser {
     if ((_tokPos + pos) < tokens.length) {
       return tokens[_tokPos + pos];
     } else {
-      return Token(HTLexicon.endOfFile, curFileName, -1, -1);
+      return Token(HTLexicon.endOfFile, curModule, -1, -1);
     }
   }
 

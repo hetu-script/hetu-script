@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../parser.dart';
 import 'opcode.dart';
+import 'vm.dart';
+import '../parser.dart';
 import '../token.dart';
 import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
-import 'vm.dart';
 import '../function.dart';
 
 /// 声明空间，保存当前文件、类和函数体中包含的声明
@@ -35,7 +35,7 @@ class Compiler extends Parser with HetuRef {
 
   String _curModuleKey = '';
   @override
-  String get curFileName => _curModuleKey;
+  String get curModule => _curModuleKey;
 
   late final DeclarationBlock _globalBlock;
   late DeclarationBlock _curBlock;
@@ -172,7 +172,7 @@ class Compiler extends Parser with HetuRef {
     return utf8.decoder.convert(bytes.sublist(1, length + 1));
   }
 
-  Uint8List _parseStmt({ParseStyle style = ParseStyle.module}) {
+  Uint8List _parseStmt({ParseStyle style = ParseStyle.module, bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
     switch (style) {
       case ParseStyle.module:
@@ -283,36 +283,50 @@ class Compiler extends Parser with HetuRef {
               _curBlock.funcDecls[id] = decl;
             } else {
               // 匿名函数表达式
-              return _parseExprStmt();
+              final func = _parseExprStmt();
+              bytesBuilder.add(func);
             }
             break;
           case HTLexicon.IF:
-            return _parseIfStmt();
+            final ifStmt = _parseIfStmt();
+            bytesBuilder.add(ifStmt);
+            break;
           case HTLexicon.WHILE:
-            return _parseWhileStmt();
+            final whileStmt = _parseWhileStmt();
+            bytesBuilder.add(whileStmt);
+            break;
           case HTLexicon.DO:
-            return _parseDoStmt();
+            final doStmt = _parseDoStmt();
+            bytesBuilder.add(doStmt);
+            break;
           case HTLexicon.FOR:
-            return _parseForStmt();
+            final forStmt = _parseForStmt();
+            bytesBuilder.add(forStmt);
+            break;
           case HTLexicon.WHEN:
-            return _parseWhenStmt();
+            final whenStmt = _parseWhenStmt();
+            bytesBuilder.add(whenStmt);
+            break;
           case HTLexicon.BREAK:
             advance(1);
-            expect([HTLexicon.semicolon], consume: true);
-            return Uint8List.fromList([HTOpCode.breakLoop]);
+            bytesBuilder.addByte(HTOpCode.breakLoop);
+            break;
           case HTLexicon.CONTINUE:
             advance(1);
-            expect([HTLexicon.semicolon], consume: true);
-            return Uint8List.fromList([HTOpCode.loopPoint]);
+            bytesBuilder.addByte(HTOpCode.loopPoint);
+            break;
           case HTLexicon.RETURN:
-            expect([HTLexicon.semicolon], consume: true);
-            return _parseReturnStmt();
+            final returnStmt = _parseReturnStmt();
+            bytesBuilder.add(returnStmt);
+            break;
           // 其他情况都认为是表达式
           case HTLexicon.semicolon:
             advance(1);
             break;
           default:
-            return _parseExprStmt();
+            final expr = _parseExprStmt();
+            bytesBuilder.add(expr);
+            break;
         }
         break;
       case ParseStyle.klass:
@@ -381,6 +395,9 @@ class Compiler extends Parser with HetuRef {
         break;
       case ParseStyle.script:
         break;
+    }
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
     }
 
     return bytesBuilder.toBytes();
@@ -484,7 +501,7 @@ class Compiler extends Parser with HetuRef {
   /// [hasLength]: 是否在表达式开头包含表达式长度信息，这样可以让ip跳过该表达式
   ///
   /// [endOfExec]: 是否在解析完表达式后中断执行，这样可以返回当前表达式的值
-  Uint8List _parseExpr({bool hasLength = false, bool endOfExec = false}) {
+  Uint8List _parseExpr({bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
     final exprBytesBuilder = BytesBuilder();
     final left = _parseLogicalOrExpr();
@@ -523,9 +540,6 @@ class Compiler extends Parser with HetuRef {
       exprBytesBuilder.addByte(HTOpCode.endOfExec);
     }
     final bytes = exprBytesBuilder.toBytes();
-    if (hasLength) {
-      bytesBuilder.add(_uint16(bytes.length));
-    }
     bytesBuilder.add(bytes);
 
     return bytesBuilder.toBytes();
@@ -878,7 +892,10 @@ class Compiler extends Parser with HetuRef {
   }
 
   Uint8List _parseBlock(String id,
-      {ParseStyle style = ParseStyle.block, bool createBlock = true, bool blockStatement = true}) {
+      {ParseStyle style = ParseStyle.block,
+      bool createBlock = true,
+      bool blockStatement = true,
+      bool endOfExec = false}) {
     match(HTLexicon.curlyLeft);
     final bytesBuilder = BytesBuilder();
     final savedDeclBlock = _curBlock;
@@ -918,6 +935,9 @@ class Compiler extends Parser with HetuRef {
     _curBlock = savedDeclBlock;
     if (blockStatement) {
       bytesBuilder.addByte(HTOpCode.endOfBlock);
+    }
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
     }
     return bytesBuilder.toBytes();
   }
@@ -1138,33 +1158,66 @@ class Compiler extends Parser with HetuRef {
   }
 
   Uint8List _parseWhenStmt() {
+    advance(1);
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.whenStmt);
-    var caseCount = 0;
+    Uint8List? condition;
     if (expect([HTLexicon.roundLeft], consume: true)) {
-      bytesBuilder.addByte(1); // bool: hasCondition
-      final condition = _parseExpr(hasLength: true, endOfExec: true);
-      bytesBuilder.add(condition); // casesIP
+      condition = _parseExpr();
+      bytesBuilder.add(condition);
       match(HTLexicon.roundRight);
-    } else {
-      bytesBuilder.addByte(0);
     }
+    bytesBuilder.addByte(HTOpCode.whenStmt);
+    bytesBuilder.addByte(condition != null ? 1 : 0);
+    final cases = <Uint8List>[];
+    final branches = <Uint8List>[];
+    Uint8List? elseBranch;
     match(HTLexicon.curlyLeft);
-    final casesBytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
-      casesBytesBuilder.add(_parseExpr(endOfExec: true));
-      if (curTok.type == HTLexicon.curlyLeft) {
-        casesBytesBuilder.add(_parseBlock(HTLexicon.whenStmt));
-        match(HTLexicon.curlyRight);
+      if (curTok.lexeme == HTLexicon.ELSE) {
+        advance(1);
+        match(HTLexicon.colon);
+        elseBranch = _parseExpr(endOfExec: true);
       } else {
-        casesBytesBuilder.add(_parseStmt(style: ParseStyle.block));
+        final caseExpr = _parseExpr(endOfExec: true);
+        cases.add(caseExpr);
+        match(HTLexicon.colon);
+        if (curTok.type == HTLexicon.curlyLeft) {
+          final caseBranch = _parseBlock(HTLexicon.whenStmt, endOfExec: true);
+          branches.add(caseBranch);
+          match(HTLexicon.curlyRight);
+        } else {
+          final caseBranch = _parseStmt(style: ParseStyle.block, endOfExec: true);
+          branches.add(caseBranch);
+        }
       }
-      ++caseCount;
     }
+
+    if (elseBranch == null) {
+      throw HTErrorNoElse();
+    }
+
     match(HTLexicon.curlyRight);
 
-    bytesBuilder.add(_uint16(caseCount));
-    bytesBuilder.add(casesBytesBuilder.toBytes());
+    bytesBuilder.addByte(cases.length);
+
+    var curIp = 0;
+    bytesBuilder.add(_uint16(0)); // the first ip starts from previous list's last one
+    for (var i = 1; i < branches.length; ++i) {
+      curIp = curIp + branches[i - 1].length;
+      bytesBuilder.add(_uint16(curIp));
+    }
+    curIp = curIp + branches.last.length;
+    bytesBuilder.add(_uint16(curIp));
+    bytesBuilder.add(_uint16(curIp + elseBranch.length));
+
+    for (final expr in cases) {
+      bytesBuilder.add(expr);
+    }
+    for (final branch in branches) {
+      bytesBuilder.add(branch);
+    }
+
+    bytesBuilder.add(elseBranch);
 
     return bytesBuilder.toBytes();
   }

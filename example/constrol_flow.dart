@@ -15,10 +15,12 @@ void main() async {
     var i = 0
     for (;;) {
       ++i
-      if ((i % 2) == 0) {
-        print(i)
+      when (i % 2) {
+        0: print('even:', i)
+        1: print('odd:', i)
+        else: print('never going to happen.')
       }
-      if (i > 10) {
+      if (i > 5) {
         break
       }
     }

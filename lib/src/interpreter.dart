@@ -219,16 +219,20 @@ abstract class Interpreter {
         sb.writeln('\n$stack');
         var callStack = sb.toString();
 
-        HTInterpreterError newErr;
-        if (e is HTError) {
-          newErr =
-              HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
-        } else {
-          newErr =
-              HTInterpreterError('$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
-        }
+        if (e is! HTInterpreterError) {
+          HTInterpreterError newErr;
+          if (e is HTError) {
+            newErr =
+                HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
+          } else {
+            newErr = HTInterpreterError(
+                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
+          }
 
-        errorHandler.handle(newErr);
+          errorHandler.handle(newErr);
+        } else {
+          errorHandler.handle(e);
+        }
       } else {
         rethrow;
       }
@@ -263,16 +267,20 @@ abstract class Interpreter {
         sb.writeln('\n$stack');
         var callStack = sb.toString();
 
-        HTInterpreterError newErr;
-        if (e is HTError) {
-          newErr =
-              HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
-        } else {
-          newErr =
-              HTInterpreterError('$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
-        }
+        if (e is! HTInterpreterError) {
+          HTInterpreterError newErr;
+          if (e is HTError) {
+            newErr =
+                HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
+          } else {
+            newErr = HTInterpreterError(
+                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
+          }
 
-        errorHandler.handle(newErr);
+          errorHandler.handle(newErr);
+        } else {
+          errorHandler.handle(e);
+        }
       } else {
         rethrow;
       }

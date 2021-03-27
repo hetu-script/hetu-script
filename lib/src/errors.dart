@@ -40,6 +40,7 @@ abstract class HTError {
   static const missingFuncBody = 'Missing function definition body of';
   static const notList = 'is not a List or Map';
   static const notClass = 'is not a class';
+  static const noElse = 'Must have a [else:] branch in When statement.';
   static const setterArity = 'Setter function\'s arity must be 1';
   // static const errorNullObject = 'is null';
   static const immutable = 'is immutable';
@@ -189,6 +190,10 @@ class HTErrorSetter extends HTParserError {
 
 class HTErrorNotClass extends HTParserError {
   HTErrorNotClass(String id) : super('[$id] ${HTError.notClass}');
+}
+
+class HTErrorNoElse extends HTParserError {
+  HTErrorNoElse() : super(HTError.noElse);
 }
 
 class HTErrorDefinedRuntime extends HTError {
