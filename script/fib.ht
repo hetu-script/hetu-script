@@ -25,7 +25,9 @@ fun fibn(n) {
 
 fun main {
   var before = System.now
-	print('result:', fib(20))
+  print(before)
+	print('result:', fib(30))
   var after = System.now
-  print('time: ', after - before)
+  print(after)
+  print('time: ', (after - before) / 1000)
 }

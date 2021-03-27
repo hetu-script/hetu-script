@@ -7,14 +7,14 @@ fun main {
     if (i == 10) {
       break
     } else if (i % 2 == 0) {
-      Console.print(i)
+      print(i)
     } else {
       continue
     }
   }
 
   var list = ['jimmy', 'tommy', 'larry', 'perry']
-  for (item in list) {
-    Console.print(item)
+  for (var item in list) {
+    print(item)
   }
 }

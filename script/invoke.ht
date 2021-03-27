@@ -1,7 +1,0 @@
-fun working(content: str) {
-  print('I\'m working on ' + content)
-}
-
-fun main {
-  System.invoke('working', 'strength')
-}

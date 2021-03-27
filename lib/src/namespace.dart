@@ -10,7 +10,7 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   static String getFullName(String id, HTNamespace? space) {
     var fullName = id;
-    var curSpace = space?.closure;
+    var curSpace = space;
     while (curSpace != null) {
       fullName = curSpace.id + HTLexicon.memberGet + fullName;
       curSpace = curSpace.closure;
@@ -84,7 +84,7 @@ class HTNamespace extends HTObject with InterpreterRef {
   }) : super() {
     this.id = id ?? '${HTLexicon.anonymousNamespace}${spaceIndex++}';
     this.interpreter = interpreter;
-    fullName = getFullName(this.id, this);
+    fullName = getFullName(this.id, closure);
     if (this.id != HTLexicon.global) {
       this.closure = closure ?? interpreter.curNamespace;
     } else {
@@ -124,9 +124,9 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateMember(varName);
     }
 
@@ -153,9 +153,9 @@ class HTNamespace extends HTObject with InterpreterRef {
   /// 向一个已经定义的变量赋值
   @override
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateMember(varName);
     }
 

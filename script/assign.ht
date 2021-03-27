@@ -5,8 +5,9 @@ class HelloWorld {
   var _privateNum = 99
 
   construct (hello: num, world: num) {
-    _hello = hello;
-    _world = world;
+    _hello = hello
+    _world = world
+    // print("hello" + _hello.toString() + "world" + _world.toString())
   }
 
   fun toString: str {
@@ -21,14 +22,11 @@ class HelloWorld {
 // 程序入口
 fun main {
   // 如果一个类没有定义构造函数，则可以使用struct 字面量进行赋值。
-  // var m: HelloWord = {"hello": 42, "world": 103}
 
-  //var m: Person = 12
-  //Console.print(m)
-
-  //m = "hello"
 
   var m = HelloWorld(6, 7)
 
-  Console.print(m.toString())
+  print(m.toString())
+
+
 }

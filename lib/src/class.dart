@@ -72,9 +72,9 @@ class HTClass extends HTNamespace {
   /// Fetch the value of a static member from this class.
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateMember(varName);
     }
     final getter = '${HTLexicon.getter}$varName';
@@ -126,9 +126,9 @@ class HTClass extends HTNamespace {
   /// Assign a value to a static member of this class.
   @override
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateMember(varName);
     }
 
@@ -232,7 +232,7 @@ class HTInstance extends HTNamespace {
   late final HTTypeId typeid;
 
   HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
-      : super(interpreter, id: '${klass.id}.${HTLexicon.instance}${instanceIndex++}') {
+      : super(interpreter, id: '${HTLexicon.instance}${instanceIndex++}', closure: klass) {
     typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
   }
 
@@ -248,9 +248,9 @@ class HTInstance extends HTNamespace {
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateMember(varName);
     }
 
@@ -289,9 +289,9 @@ class HTInstance extends HTNamespace {
 
   @override
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !fullName.startsWith(from)) {
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateMember(varName);
     }
 

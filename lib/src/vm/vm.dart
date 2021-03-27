@@ -105,11 +105,6 @@ class Hetu extends Interpreter {
     }
   }
 
-  @override
-  HTTypeId typeof(dynamic object) {
-    return HTTypeId.ANY;
-  }
-
   /// 从 [ip] 位置开始解释，遇到 OP.endOfExec 后返回当前值。
   /// 返回时，指针会回到执行前的 ip 位置。并且会回到之前的命名空间。
   dynamic execute({int? ip, HTNamespace? closure}) {
@@ -254,6 +249,8 @@ class Hetu extends Interpreter {
         case HTOpCode.greater:
         case HTOpCode.lesserOrEqual:
         case HTOpCode.greaterOrEqual:
+        case HTOpCode.typeIs:
+        case HTOpCode.typeIsNot:
         case HTOpCode.add:
         case HTOpCode.subtract:
         case HTOpCode.multiply:
@@ -370,18 +367,19 @@ class Hetu extends Interpreter {
           curCode.skip(length);
         }
 
-        _curValue = HTBytesFunction(
-          id,
-          this,
-          className: _curClassName,
-          funcType: funcType,
-          paramDecls: paramDecls,
-          returnType: returnType,
-          definitionIp: definitionIp,
-          isVariadic: isVariadic,
-          minArity: minArity,
-          maxArity: maxArity,
-        );
+        _curValue = HTBytesFunction(id, this, curModule,
+            className: _curClassName,
+            funcType: funcType,
+            paramDecls: paramDecls,
+            returnType: returnType,
+            definitionIp: definitionIp,
+            isVariadic: isVariadic,
+            minArity: minArity,
+            maxArity: maxArity,
+            context: curNamespace);
+        break;
+      case HTValueTypeCode.typeid:
+        _curValue = _getTypeId();
         break;
       default:
         throw HTErrorUnkownValueType(valueType);
@@ -399,7 +397,7 @@ class Hetu extends Interpreter {
   void _assignCurRef(dynamic value) {
     switch (_curRefType) {
       case ReferrenceType.normal:
-        curNamespace.memberSet(_curSymbol!, value);
+        curNamespace.memberSet(_curSymbol!, value, from: curNamespace.fullName);
         break;
       case ReferrenceType.member:
         final object = _register[HTRegIndex.unaryPostObject]!;
@@ -563,43 +561,59 @@ class Hetu extends Interpreter {
 
     switch (opcode) {
       case HTOpCode.logicalOr:
-        _curValue = _register[left] = _register[left] || _register[right];
+        _curValue = _register[left] || _register[right];
         break;
       case HTOpCode.logicalAnd:
-        _curValue = _register[left] = _register[left] && _register[right];
+        _curValue = _register[left] && _register[right];
         break;
       case HTOpCode.equal:
-        _curValue = _register[left] = _register[left] == _register[right];
+        _curValue = _register[left] == _register[right];
         break;
       case HTOpCode.notEqual:
-        _curValue = _register[left] = _register[left] != _register[right];
+        _curValue = _register[left] != _register[right];
         break;
       case HTOpCode.lesser:
-        _curValue = _register[left] = _register[left] < _register[right];
+        _curValue = _register[left] < _register[right];
         break;
       case HTOpCode.greater:
-        _curValue = _register[left] = _register[left] > _register[right];
+        _curValue = _register[left] > _register[right];
         break;
       case HTOpCode.lesserOrEqual:
-        _curValue = _register[left] = _register[left] <= _register[right];
+        _curValue = _register[left] <= _register[right];
         break;
       case HTOpCode.greaterOrEqual:
-        _curValue = _register[left] = _register[left] >= _register[right];
+        _curValue = _register[left] >= _register[right];
+        break;
+      case HTOpCode.typeIs:
+        final typeLeft = typeof(_register[left]);
+        var typeRight = _register[right];
+        if (typeRight is! HTTypeId) {
+          throw HTErrorNotType(typeRight.toString());
+        }
+        _curValue = typeLeft.isA(typeRight);
+        break;
+      case HTOpCode.typeIsNot:
+        final typeLeft = typeof(_register[left]);
+        var typeRight = _register[right];
+        if (typeRight is! HTTypeId) {
+          throw HTErrorNotType(typeRight.toString());
+        }
+        _curValue = typeLeft.isNotA(typeRight);
         break;
       case HTOpCode.add:
-        _curValue = _register[left] = _register[left] + _register[right];
+        _curValue = _register[left] + _register[right];
         break;
       case HTOpCode.subtract:
-        _curValue = _register[left] = _register[left] - _register[right];
+        _curValue = _register[left] - _register[right];
         break;
       case HTOpCode.multiply:
-        _curValue = _register[left] = _register[left] * _register[right];
+        _curValue = _register[left] * _register[right];
         break;
       case HTOpCode.devide:
-        _curValue = _register[left] = _register[left] / _register[right];
+        _curValue = _register[left] / _register[right];
         break;
       case HTOpCode.modulo:
-        _curValue = _register[left] = _register[left] % _register[right];
+        _curValue = _register[left] % _register[right];
         break;
       default:
       // throw HTErrorUndefinedBinaryOperator(_register[left].toString(), _register[right].toString(), opcode);
@@ -650,12 +664,12 @@ class Hetu extends Interpreter {
   }
 
   void _handleUnaryPostfixOp(int op) {
-    final objIndex = curCode.read();
-    var object = _register[objIndex];
-    final key = _curValue;
-
     switch (op) {
       case HTOpCode.memberGet:
+        final objIndex = curCode.read();
+        var object = _register[objIndex];
+        final objKey = curCode.read();
+        var key = _register[objKey];
         if (object is num) {
           object = HTNumber(object);
         } else if (object is bool) {
@@ -682,6 +696,10 @@ class Hetu extends Interpreter {
         }
         break;
       case HTOpCode.subGet:
+        final objIndex = curCode.read();
+        var object = _register[objIndex];
+        final objKey = curCode.read();
+        var key = _register[objKey];
         if (object is! List && object is! Map) {
           throw HTErrorSubGet(object.toString());
         }
@@ -689,15 +707,21 @@ class Hetu extends Interpreter {
         _curRefType = ReferrenceType.sub;
         break;
       case HTOpCode.call:
+        final objIndex = curCode.read();
+        var object = _register[objIndex];
         _handleCallExpr(object);
         break;
       case HTOpCode.postIncrement:
-        _curValue = _register[objIndex];
+        final objIndex = curCode.read();
+        var object = _register[objIndex];
+        _curValue = object;
         final newValue = _register[objIndex] += 1;
         _assignCurRef(newValue);
         break;
       case HTOpCode.postDecrement:
-        _curValue = _register[objIndex];
+        final objIndex = curCode.read();
+        var object = _register[objIndex];
+        _curValue = object;
         final newValue = _register[objIndex] -= 1;
         _assignCurRef(newValue);
         break;
@@ -838,6 +862,7 @@ class Hetu extends Interpreter {
     final func = HTBytesFunction(
       id,
       this,
+      curModule,
       className: _curClassName,
       funcType: funcType,
       paramDecls: paramDecls,

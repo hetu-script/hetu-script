@@ -2,16 +2,16 @@
 ///
 /// Automatically generated based on files in 'hetu_lib' folder.
 final Map<String, String> coreModules = const {
-  'core.ht': r'''class Object {}
+      'core.ht': r'''class Object {}
 
 // return the declaration type of a symbol
 // external fun decltypeof(value): str
 
 // print values of any type into lines
 external fun print(... args)''',
-  'value.ht': r'''external class num {
+'value.ht': r'''external class num {
 
-	static fun parse(value): num
+	static fun parse(value: str): num
 
   fun toStringAsFixed([fractionDigits: num = 0]): num
 
@@ -20,7 +20,7 @@ external fun print(... args)''',
 
 external class bool {
 
-	static fun parse(value): bool
+	static fun parse(value: str): bool
 }
 
 external class str {
@@ -119,9 +119,7 @@ external class Map {
 
   fun putIfAbsent(key, value): any
 }''',
-  'system.ht': r'''external class System {
-  // invoke a global or static member function
-  static fun invoke(functionName: str, {positionalArgs: List = [], namedArgs: Map<String> = {}})
+'system.ht': r'''external class System {
 
   static get now: num
 
@@ -129,7 +127,7 @@ external class Map {
 
   // static fun tok()
 }''',
-  'console.ht': r'''external class Console {
+'console.ht': r'''external class Console {
 
 	// write a line without return
 	static fun write(line: str)
@@ -145,7 +143,7 @@ external class Map {
 	
 	static fun cls()
 }''',
-  'math.ht': r'''fun max(a: num, b: num): num {
+'math.ht': r'''fun max(a: num, b: num): num {
   if (a > b) return a
   return b
 }
@@ -160,17 +158,19 @@ fun abs(x: num): num {
   return x
 }
 
-external fun random(): num
+external class Math {
+  static fun random(): num
 
-external fun randomInt(max: num): num
+  static fun randomInt(max: num): num
 
-external fun sqrt(x: num): num
+  static fun sqrt(x: num): num
 
-external fun log(x: num): num
+  static fun log(x: num): num
 
-external fun sin(x: num): num
+  static fun sin(x: num): num
 
-external fun cos(x: num): num
+  static fun cos(x: num): num
+}
 ''',
-  'help.ht': r'''external fun help(value): str''',
+'help.ht': r'''external fun help(value): str''',
 };

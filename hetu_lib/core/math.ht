@@ -13,14 +13,16 @@ fun abs(x: num): num {
   return x
 }
 
-external fun random(): num
+external class Math {
+  static fun random(): num
 
-external fun randomInt(max: num): num
+  static fun randomInt(max: num): num
 
-external fun sqrt(x: num): num
+  static fun sqrt(x: num): num
 
-external fun log(x: num): num
+  static fun log(x: num): num
 
-external fun sin(x: num): num
+  static fun sin(x: num): num
 
-external fun cos(x: num): num
+  static fun cos(x: num): num
+}

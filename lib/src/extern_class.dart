@@ -31,7 +31,7 @@ class HTExternClassNumber extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'parse':
+      case 'num.parse':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
@@ -49,7 +49,7 @@ class HTExternClassBool extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'parse':
+      case 'bool.parse':
         return (
             [List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
@@ -68,7 +68,7 @@ class HTExternClassString extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'parse':
+      case 'str.parse':
         return (
             [List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
@@ -88,37 +88,37 @@ class HTExternClassMath extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'random':
+      case 'Math.random':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             math.Random().nextDouble();
-      case 'randomInt':
+      case 'Math.randomInt':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             math.Random().nextInt(positionalArgs.first);
-      case 'sqrt':
+      case 'Math.sqrt':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             math.sqrt(positionalArgs.first);
-      case 'log':
+      case 'Math.log':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             math.log(positionalArgs.first);
-      case 'sin':
+      case 'Math.sin':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             math.sin(positionalArgs.first);
-      case 'cos':
+      case 'Math.cos':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
@@ -138,14 +138,7 @@ class HTExternClassSystem extends HTExternalClass with InterpreterRef {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'invoke':
-        return (
-                [List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
-            interpreter.invoke(positionalArgs[0],
-                positionalArgs: namedArgs['positionalArgs'], namedArgs: namedArgs['namedArgs']);
-      case 'now':
+      case 'System.now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
         throw HTErrorUndefined(varName);
@@ -159,19 +152,19 @@ class HTExternClassConsole extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'write':
+      case 'Console.write':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             stdout.write(positionalArgs.first);
-      case 'writeln':
+      case 'Console.writeln':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             stdout.writeln(positionalArgs.first);
-      case 'getln':
+      case 'Console.getln':
         return (
             [List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
@@ -183,19 +176,19 @@ class HTExternClassConsole extends HTExternalClass {
           }
           return stdin.readLineSync();
         };
-      case 'eraseLine':
+      case 'Console.eraseLine':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             stdout.write('\x1B[1F\x1B[1G\x1B[1K');
-      case 'setTitle':
+      case 'Console.setTitle':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
             stdout.write('\x1b]0;${positionalArgs.first}\x07');
-      case 'clear':
+      case 'Console.clear':
         return (
                 [List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},

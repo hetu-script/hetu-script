@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/constrol_flow.dart",
+      "program": "example/module_import.dart",
       "request": "launch",
       "type": "dart"
     }

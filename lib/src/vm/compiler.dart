@@ -552,9 +552,9 @@ class Compiler extends Parser with HetuRef {
     bytesBuilder.add(left);
     if (curTok.type == HTLexicon.logicalOr) {
       _leftValueLegality = LeftValueLegality.illegal;
-      bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(1);
       while (curTok.type == HTLexicon.logicalOr) {
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(1);
         advance(1); // or operator
         final right = _parseLogicalAndExpr();
         bytesBuilder.add(right);
@@ -574,9 +574,9 @@ class Compiler extends Parser with HetuRef {
     bytesBuilder.add(left);
     if (curTok.type == HTLexicon.logicalAnd) {
       _leftValueLegality = LeftValueLegality.illegal;
-      bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(3);
       while (curTok.type == HTLexicon.logicalAnd) {
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(3);
         advance(1); // and operator
         final right = _parseEqualityExpr();
         bytesBuilder.add(right);
@@ -616,7 +616,7 @@ class Compiler extends Parser with HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  /// 逻辑比较 <, >, <=, >=，优先级 8，不合并
+  /// 逻辑比较 <, >, <=, >=，is, is! 优先级 8，不合并
   Uint8List _parseRelationalExpr() {
     final bytesBuilder = BytesBuilder();
     final left = _parseAdditiveExpr();
@@ -626,23 +626,42 @@ class Compiler extends Parser with HetuRef {
       bytesBuilder.addByte(HTOpCode.register);
       bytesBuilder.addByte(7);
       final op = advance(1).type;
-      final right = _parseAdditiveExpr();
-      bytesBuilder.add(right);
-      bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(8);
       switch (op) {
         case HTLexicon.lesser:
+          final right = _parseAdditiveExpr();
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(8);
           bytesBuilder.addByte(HTOpCode.lesser);
           break;
         case HTLexicon.greater:
+          final right = _parseAdditiveExpr();
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(8);
           bytesBuilder.addByte(HTOpCode.greater);
           break;
         case HTLexicon.lesserOrEqual:
+          final right = _parseAdditiveExpr();
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(8);
           bytesBuilder.addByte(HTOpCode.lesserOrEqual);
           break;
         case HTLexicon.greaterOrEqual:
+          final right = _parseAdditiveExpr();
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(8);
           bytesBuilder.addByte(HTOpCode.greaterOrEqual);
           break;
+        case HTLexicon.IS:
+          final isNot = (peek(1).type == HTLexicon.logicalNot) ? true : false;
+          final right = _parseTypeId(localValue: true);
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(8);
+          bytesBuilder.addByte(isNot ? HTOpCode.typeIsNot : HTOpCode.typeIs);
       }
       bytesBuilder.add([7, 8]);
     }
@@ -656,9 +675,9 @@ class Compiler extends Parser with HetuRef {
     bytesBuilder.add(left);
     if (HTLexicon.additives.contains(curTok.type)) {
       _leftValueLegality = LeftValueLegality.illegal;
-      bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(9);
       while (HTLexicon.additives.contains(curTok.type)) {
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(9);
         final op = advance(1).type;
         final right = _parseMultiplicativeExpr();
         bytesBuilder.add(right);
@@ -672,7 +691,7 @@ class Compiler extends Parser with HetuRef {
             bytesBuilder.addByte(HTOpCode.subtract);
             break;
         }
-        bytesBuilder.add([9, 10]); // 寄存器 0 = 寄存器 1 - 寄存器 2
+        bytesBuilder.add([9, 10]);
       }
     }
     return bytesBuilder.toBytes();
@@ -685,9 +704,9 @@ class Compiler extends Parser with HetuRef {
     bytesBuilder.add(left);
     if (HTLexicon.multiplicatives.contains(curTok.type)) {
       _leftValueLegality = LeftValueLegality.illegal;
-      bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(11);
       while (HTLexicon.multiplicatives.contains(curTok.type)) {
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(11);
         final op = advance(1).type;
         final right = _parseUnaryPrefixExpr();
         bytesBuilder.add(right);
@@ -740,75 +759,75 @@ class Compiler extends Parser with HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  /// 后缀 e., e[], e(), e++, e-- 优先级 16，右合并
+  /// 后缀 e., e[], e(), e++, e-- 优先级 16，get 和 call 左合并
   Uint8List _parseUnaryPostfixExpr() {
     final bytesBuilder = BytesBuilder();
     final object = _parseLocalExpr();
     bytesBuilder.add(object); // object will stay in reg[13]
-    if (HTLexicon.unaryPostfixs.contains(curTok.type)) {
-      while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIndex.unaryPostObject);
-        final op = advance(1).type;
-        switch (op) {
-          case HTLexicon.memberGet:
-            final key = _localSymbol(isGetKey: true); // shortUtf8String
-            _leftValueLegality = LeftValueLegality.legal;
-            bytesBuilder.add(key);
-            bytesBuilder.addByte(HTOpCode.register);
-            bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
-            bytesBuilder.addByte(HTOpCode.memberGet);
-            bytesBuilder.addByte(HTRegIndex.unaryPostObject); // memberGet: _curValue = reg[13][_curValue]
-            break;
-          case HTLexicon.subGet:
-            final key = _parseExpr();
-            _leftValueLegality = LeftValueLegality.legal;
-            bytesBuilder.add(key); // int
-            bytesBuilder.addByte(HTOpCode.register);
-            bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
-            bytesBuilder.addByte(HTOpCode.subGet);
-            bytesBuilder.addByte(HTRegIndex.unaryPostObject); // subGet: _curValue = reg[13][_curValue]
-            match(HTLexicon.squareRight);
-            break;
-          case HTLexicon.call:
-            _leftValueLegality = LeftValueLegality.illegal;
-            final positionalArgs = <Uint8List>[];
-            final namedArgs = <String, Uint8List>{};
-            while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
-              if (expect([HTLexicon.identifier, HTLexicon.colon], consume: false)) {
-                final name = advance(2).lexeme;
-                namedArgs[name] = _parseExpr(endOfExec: true);
-              } else {
-                positionalArgs.add(_parseExpr(endOfExec: true));
-              }
-              if (curTok.type != HTLexicon.roundRight) {
-                match(HTLexicon.comma);
-              }
+    while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIndex.unaryPostObject);
+      final op = advance(1).type;
+      switch (op) {
+        case HTLexicon.memberGet:
+          final key = _localSymbol(isGetKey: true); // shortUtf8String
+          _leftValueLegality = LeftValueLegality.legal;
+          bytesBuilder.add(key);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          bytesBuilder.addByte(HTOpCode.memberGet);
+          bytesBuilder.addByte(HTRegIndex.unaryPostObject); // memberGet: _curValue = reg[13][_curValue]
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          break;
+        case HTLexicon.subGet:
+          final key = _parseExpr();
+          _leftValueLegality = LeftValueLegality.legal;
+          bytesBuilder.add(key); // int
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          bytesBuilder.addByte(HTOpCode.subGet);
+          bytesBuilder.addByte(HTRegIndex.unaryPostObject); // subGet: _curValue = reg[13][_curValue]
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          match(HTLexicon.squareRight);
+          break;
+        case HTLexicon.call:
+          _leftValueLegality = LeftValueLegality.illegal;
+          final positionalArgs = <Uint8List>[];
+          final namedArgs = <String, Uint8List>{};
+          while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
+            if (expect([HTLexicon.identifier, HTLexicon.colon], consume: false)) {
+              final name = advance(2).lexeme;
+              namedArgs[name] = _parseExpr(endOfExec: true);
+            } else {
+              positionalArgs.add(_parseExpr(endOfExec: true));
             }
-            match(HTLexicon.roundRight);
-            bytesBuilder.addByte(HTOpCode.call);
-            bytesBuilder.addByte(HTRegIndex.unaryPostObject);
-            bytesBuilder.addByte(positionalArgs.length);
-            for (var i = 0; i < positionalArgs.length; ++i) {
-              bytesBuilder.add(positionalArgs[i]);
+            if (curTok.type != HTLexicon.roundRight) {
+              match(HTLexicon.comma);
             }
-            bytesBuilder.addByte(namedArgs.length);
-            for (final name in namedArgs.keys) {
-              bytesBuilder.add(_shortUtf8String(name));
-              bytesBuilder.add(namedArgs[name]!);
-            }
-            break;
-          case HTLexicon.postIncrement:
-            _leftValueLegality = LeftValueLegality.illegal;
-            bytesBuilder.addByte(HTOpCode.postIncrement);
-            bytesBuilder.addByte(HTRegIndex.unaryPostObject);
-            break;
-          case HTLexicon.postDecrement:
-            _leftValueLegality = LeftValueLegality.illegal;
-            bytesBuilder.addByte(HTOpCode.postDecrement);
-            bytesBuilder.addByte(HTRegIndex.unaryPostObject);
-            break;
-        }
+          }
+          match(HTLexicon.roundRight);
+          bytesBuilder.addByte(HTOpCode.call);
+          bytesBuilder.addByte(HTRegIndex.unaryPostObject);
+          bytesBuilder.addByte(positionalArgs.length);
+          for (var i = 0; i < positionalArgs.length; ++i) {
+            bytesBuilder.add(positionalArgs[i]);
+          }
+          bytesBuilder.addByte(namedArgs.length);
+          for (final name in namedArgs.keys) {
+            bytesBuilder.add(_shortUtf8String(name));
+            bytesBuilder.add(namedArgs[name]!);
+          }
+          break;
+        case HTLexicon.postIncrement:
+          _leftValueLegality = LeftValueLegality.illegal;
+          bytesBuilder.addByte(HTOpCode.postIncrement);
+          bytesBuilder.addByte(HTRegIndex.unaryPostObject);
+          break;
+        case HTLexicon.postDecrement:
+          _leftValueLegality = LeftValueLegality.illegal;
+          bytesBuilder.addByte(HTOpCode.postDecrement);
+          bytesBuilder.addByte(HTRegIndex.unaryPostObject);
+          break;
       }
     }
     return bytesBuilder.toBytes();
@@ -1066,8 +1085,9 @@ class Compiler extends Parser with HetuRef {
       final init = _parseVarStmt(isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST);
       final id = _readId(init);
 
-      // 添加变量声明，函数和类的部分是空的
+      // 添加变量声明，枚举、函数和类的部分是空的
       bytesBuilder.addByte(HTOpCode.declTable);
+      bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(1));
@@ -1094,6 +1114,7 @@ class Compiler extends Parser with HetuRef {
 
       // 添加变量声明，函数和类的部分是空的
       bytesBuilder.addByte(HTOpCode.declTable);
+      bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(1));
@@ -1222,10 +1243,16 @@ class Compiler extends Parser with HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _parseTypeId() {
+  Uint8List _parseTypeId({bool localValue = false}) {
     final id = advance(1).lexeme;
 
     final bytesBuilder = BytesBuilder();
+
+    if (localValue) {
+      bytesBuilder.addByte(HTOpCode.local);
+      bytesBuilder.addByte(HTValueTypeCode.typeid);
+    }
+
     bytesBuilder.add(_shortUtf8String(id));
 
     final typeArgs = <Uint8List>[];
@@ -1464,7 +1491,7 @@ class Compiler extends Parser with HetuRef {
     // 处理函数定义部分的语句块
     if (curTok.type == HTLexicon.curlyLeft) {
       funcBytesBuilder.addByte(1); // bool: has definition
-      final body = _parseBlock(id);
+      final body = _parseBlock(HTLexicon.functionCall);
       funcBytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
       funcBytesBuilder.add(body);
       funcBytesBuilder.addByte(HTOpCode.endOfExec);

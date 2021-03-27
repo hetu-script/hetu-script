@@ -15,7 +15,7 @@ abstract class HTObject with HTType {
   static const NULL = _HTNull();
   //bool used = false;
 
-  final String fullName = '';
+  String get fullName => '';
 
   bool contains(String varName) => throw HTErrorUndefined(varName);
 

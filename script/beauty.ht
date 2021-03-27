@@ -9,5 +9,5 @@ fun getBeauty(x: num, cuteness: num, sexy: num): num {
 }
 
 fun main {
-  Console.print(getBeauty(200, 50, 100))
+  print(getBeauty(200, 50, 100))
 }

@@ -1,6 +1,6 @@
 external class num {
 
-	static fun parse(value): num
+	static fun parse(value: str): num
 
   fun toStringAsFixed([fractionDigits: num = 0]): num
 
@@ -9,7 +9,7 @@ external class num {
 
 external class bool {
 
-	static fun parse(value): bool
+	static fun parse(value: str): bool
 }
 
 external class str {

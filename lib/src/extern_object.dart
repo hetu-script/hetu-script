@@ -28,10 +28,12 @@ class HTNumber extends HTExternObject<num> {
             externObject.toString();
       case 'toStringAsFixed':
         return (
-                [List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
-            externObject.toStringAsFixed(positionalArgs.first);
+            [List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
+          final digit = positionalArgs.isEmpty ? 0 : positionalArgs.first;
+          return externObject.toStringAsFixed(digit);
+        };
       case 'truncate':
         return (
                 [List<dynamic> positionalArgs = const [],
@@ -82,6 +84,12 @@ class HTString extends HTExternObject<String> {
     switch (varName) {
       case 'typeid':
         return typeid;
+      case 'toString':
+        return (
+                [List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+            externObject.toString();
       case 'isEmpty':
         return externObject.isEmpty;
       case 'subString':

@@ -69,9 +69,9 @@ abstract class HTLexicon {
   static const endOfFile = 'end_of_file'; // 文件末尾
   static const multiline = '\\';
   static const varargs = '...'; // variadic arguments
-  static const anonymousScript = '__anonymousScript#';
-  static const anonymousFunction = '__anonymousFunction#';
-  static const anonymousNamespace = '__anonymousNamespace#';
+  static const anonymousScript = 'anonymousScript#';
+  static const anonymousFunction = 'anonymousFunction#';
+  static const anonymousNamespace = 'anonymousNamespace#';
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';

@@ -66,6 +66,10 @@ abstract class HTOpCode {
 
   static const greaterOrEqual = 49;
 
+  static const typeIs = 50;
+
+  static const typeIsNot = 51;
+
   /// add left right store => reg[store] = reg[left] + reg[right]
   static const add = 59;
 
@@ -124,12 +128,9 @@ abstract class HTValueTypeCode {
   static const symbol = 5;
   static const group = 6;
   static const list = 7;
-  static const listItem = 8;
-  static const map = 9;
-  static const mapKey = 10;
-  static const mapValue = 11;
-  static const function = 12;
-  // static const function = 12;
+  static const map = 8;
+  static const function = 9;
+  static const typeid = 10;
 }
 
 /// Extern function is not a [FunctionType]

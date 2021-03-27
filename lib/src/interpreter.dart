@@ -126,7 +126,7 @@ abstract class Interpreter {
       bool errorHandled = false}) {
     try {
       if (callee is HTFunction) {
-        HTFunction.callStack.add('#${HTFunction.callStack.length} ${callee.id} - ($curModule:$curLine:$curLine)');
+        HTFunction.callStack.add('#${HTFunction.callStack.length} ${callee.id} - ($curModule:$curLine:$curColumn)');
 
         if (!callee.isExtern) {
           // 普通函数
@@ -287,7 +287,65 @@ abstract class Interpreter {
     }
   }
 
-  HTTypeId typeof(dynamic object);
+  HTTypeId typeof(dynamic object) {
+    if ((object == null) || (object is NullThrownError)) {
+      return HTTypeId.NULL;
+    } // Class, Object, external class
+    else if (object is HTType) {
+      return object.typeid;
+    } else if (object is num) {
+      return HTTypeId.number;
+    } else if (object is bool) {
+      return HTTypeId.boolean;
+    } else if (object is String) {
+      return HTTypeId.string;
+    } else if (object is List) {
+      var valType = HTTypeId.ANY;
+      if (object.isNotEmpty) {
+        valType = typeof(object.first);
+        for (final item in object) {
+          if (typeof(item) != valType) {
+            valType = HTTypeId.ANY;
+            break;
+          }
+        }
+      }
+
+      return HTTypeId(HTLexicon.list, arguments: [valType]);
+    } else if (object is Map) {
+      var keyType = HTTypeId.ANY;
+      var valType = HTTypeId.ANY;
+      if (object.keys.isNotEmpty) {
+        keyType = typeof(object.keys.first);
+        for (final key in object.keys) {
+          if (typeof(key) != keyType) {
+            keyType = HTTypeId.ANY;
+            break;
+          }
+        }
+      }
+      if (object.values.isNotEmpty) {
+        valType = typeof(object.values.first);
+        for (final value in object.values) {
+          if (typeof(value) != valType) {
+            valType = HTTypeId.ANY;
+            break;
+          }
+        }
+      }
+      return HTTypeId(HTLexicon.map, arguments: [keyType, valType]);
+    } else {
+      var typeid = object.runtimeType.toString();
+      if (typeid.contains('<')) {
+        typeid = typeid.substring(0, typeid.indexOf('<'));
+      }
+      if (containsExternalClass(typeid)) {
+        final externClass = fetchExternalClass(typeid);
+        return HTTypeId(externClass.id);
+      }
+      return HTTypeId.unknown;
+    }
+  }
 
   // void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false}) {
   //   globals.define(key, declType: declType, value: value, isImmutable: isImmutable);

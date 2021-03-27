@@ -32,7 +32,7 @@ class Char {
     if (age != null)
       this.age = age
     else
-      this.age = 6000 + randomInt(6000)
+      this.age = 6000 + Math.randomInt(6000)
   }
 }
 
@@ -64,34 +64,28 @@ class Organization {
     if (info.contains('class')) {
       print('----------------')
       print('  classes:')
-      for (prof in profStats.keys) {
-        print('  ' +
-            prof +
-            ': ' +
-            profStats[prof].toStringAsFixed() +
-            '(' +
-            ((profStats[prof] / population.length) * 100).toStringAsFixed(2) +
-            '%)')
+      for (var prof in profStats.keys) {
+        print('  ' + prof + ': ' + profStats[prof].toStringAsFixed(0) + 
+              '(' + ((profStats[prof] / population.length) * 100).toStringAsFixed(2) +            '%)')
       }
     }
     if (info.contains('age')) {
       print('----------------')
       print('  age:')
-      for (period in ageStats.keys) {
+      for (var period in ageStats.keys) {
         print('  ' +
             period +
             ': ' +
-            ageStats[period].toStringAsFixed() +
-            '(' +
-            ((ageStats[period] / population.length) * 100).toStringAsFixed(2) +
+            ageStats[period].toStringAsFixed(0) +
+            '(' + ((ageStats[period] / population.length) * 100).toStringAsFixed(2) +
             '%)')
       }
     }
     if (info.contains('resource')) {
       print('----------------')
       print('  resource:')
-      for (resource in resources.keys) {
-        print('  ' + resource + ': ' + resources[resource].toStringAsFixed())
+      for (var resource in resources.keys) {
+        print('  ' + resource + ': ' + resources[resource].toStringAsFixed(0))
       }
     }
   }
@@ -99,7 +93,7 @@ class Organization {
   fun addChar(p: Char) {
     population.add(p)
 
-    for (prof in p.professions) {
+    for (var prof in p.professions) {
       if (profStats[prof] == null) profStats[prof] = 0
       profStats[prof] = profStats[prof] + 1
     }
@@ -122,6 +116,8 @@ class Organization {
 
 fun main {
   var huaxia = Organization()
+  // var c = Char(['farmer'])
+  // huaxia.addChar(c)
 
   var i = 0
   while (i <= 6) {

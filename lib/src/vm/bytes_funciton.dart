@@ -8,14 +8,15 @@ import '../errors.dart';
 import '../class.dart';
 import '../declaration.dart';
 import '../lexicon.dart';
-import '../object.dart';
 
 class HTBytesFunction extends HTFunction with HetuRef {
+  final String module;
+
   final Map<String, HTBytesParamDecl> paramDecls;
 
   final int? definitionIp;
 
-  HTBytesFunction(String id, Hetu interpreter,
+  HTBytesFunction(String id, Hetu interpreter, this.module,
       {String? className,
       FunctionType funcType = FunctionType.normal,
       this.paramDecls = const <String, HTBytesParamDecl>{},
@@ -47,33 +48,33 @@ class HTBytesFunction extends HTFunction with HetuRef {
         paramsTypes: paramDecls.values.map((paramDecl) => paramDecl.declType ?? HTTypeId.ANY).toList());
   }
 
-  // @override
-  // String toString() {
-  // var result = StringBuffer();
-  // result.write('${HTLexicon.function}');
-  // result.write(' $id');
-  // if (typeid.arguments.isNotEmpty) {
-  //   result.write('<');
-  //   for (var i = 0; i < typeid.arguments.length; ++i) {
-  //     result.write(typeid.arguments[i]);
-  //     if ((typeid.arguments.length > 1) && (i != typeid.arguments.length - 1)) result.write(', ');
-  //   }
-  //   result.write('>');
-  // }
+  @override
+  String toString() {
+    var result = StringBuffer();
+    result.write('${HTLexicon.function}');
+    result.write(' $id');
+    if (typeid.arguments.isNotEmpty) {
+      result.write('<');
+      for (var i = 0; i < typeid.arguments.length; ++i) {
+        result.write(typeid.arguments[i]);
+        if ((typeid.arguments.length > 1) && (i != typeid.arguments.length - 1)) result.write(', ');
+      }
+      result.write('>');
+    }
 
-  // result.write('(');
+    result.write('(');
 
-  // for (final param in funcStmt.params) {
-  //   if (param.isVariadic) {
-  //     result.write(HTLexicon.varargs + ' ');
-  //   }
-  //   result.write(param.id.lexeme + ': ' + (param.declType.toString()));
-  //   //if (param.initializer != null)
-  //   if (funcStmt.params.length > 1) result.write(', ');
-  // }
-  // result.write('): ' + funcStmt.returnType.toString());
-  // return result.toString();
-  // }
+    for (final param in paramDecls.values) {
+      if (param.isVariadic) {
+        result.write(HTLexicon.varargs + ' ');
+      }
+      result.write(param.id + ': ' + (param.declType.toString()));
+      //if (param.initializer != null)
+      if (paramDecls.length > 1) result.write(', ');
+    }
+    result.write('): ' + returnType.toString());
+    return result.toString();
+  }
 
   @override
   dynamic call(
@@ -95,67 +96,58 @@ class HTBytesFunction extends HTFunction with HetuRef {
     }
 
     dynamic result;
-    try {
-      // 函数每次在调用时，临时生成一个新的作用域
-      final closure = HTNamespace(interpreter, id: '${HTLexicon.functionCall}[$id]', closure: context);
-      if (context is HTInstance) {
-        closure.define(HTDeclaration(HTLexicon.THIS, value: context));
-      }
-
-      var variadicStart = -1;
-      HTBytesDecl? variadicParam;
-      for (var i = 0; i < paramDecls.length; ++i) {
-        var decl = paramDecls.values.elementAt(i).clone();
-        closure.define(decl);
-
-        if (i < positionalArgs.length) {
-          if (!decl.isVariadic) {
-            decl.assign(positionalArgs[i]);
-          } else {
-            variadicStart = i;
-            variadicParam = decl;
-            break;
-          }
-        } else if (i < maxArity) {
-          decl.initialize();
-        } else {
-          if (namedArgs.containsKey(decl.id)) {
-            decl.assign(namedArgs[decl.id]);
-          } else {
-            decl.initialize();
-          }
-        }
-      }
-
-      if (variadicStart >= 0) {
-        final variadicArg = <dynamic>[];
-        for (var i = variadicStart; i < positionalArgs.length; ++i) {
-          variadicArg.add(positionalArgs[i]);
-        }
-        variadicParam!.assign(variadicArg);
-      }
-
-      result = interpreter.execute(ip: definitionIp!, closure: closure);
-    } catch (returnValue) {
-      if ((returnValue is HTError) || (returnValue is Exception) || (returnValue is Error)) {
-        rethrow;
-      }
-
-      var returned_type = interpreter.typeof(returnValue);
-      if (returned_type.isNotA(returnType)) {
-        throw HTErrorReturnType(returned_type.toString(), id, returnType.toString());
-      }
-
-      if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {
-        result = returnValue;
-      }
-
-      HTFunction.callStack.removeLast();
-      return result;
+    // 函数每次在调用时，临时生成一个新的作用域
+    final closure = HTNamespace(interpreter, id: id, closure: context);
+    if (context is HTInstance) {
+      closure.define(HTDeclaration(HTLexicon.THIS, value: context));
     }
 
-    // 这里不能用finally，会导致异常无法继续抛出
-    HTFunction.callStack.removeLast();
+    var variadicStart = -1;
+    HTBytesDecl? variadicParam;
+    for (var i = 0; i < paramDecls.length; ++i) {
+      var decl = paramDecls.values.elementAt(i).clone();
+      closure.define(decl);
+
+      if (i < positionalArgs.length) {
+        if (!decl.isVariadic) {
+          decl.assign(positionalArgs[i]);
+        } else {
+          variadicStart = i;
+          variadicParam = decl;
+          break;
+        }
+      } else if (i < maxArity) {
+        decl.initialize();
+      } else {
+        if (namedArgs.containsKey(decl.id)) {
+          decl.assign(namedArgs[decl.id]);
+        } else {
+          decl.initialize();
+        }
+      }
+    }
+
+    if (variadicStart >= 0) {
+      final variadicArg = <dynamic>[];
+      for (var i = variadicStart; i < positionalArgs.length; ++i) {
+        variadicArg.add(positionalArgs[i]);
+      }
+      variadicParam!.assign(variadicArg);
+    }
+
+    final savedModule = interpreter.curModule;
+    interpreter.curModule = module;
+    interpreter.curCode = interpreter.modules[module]!;
+    result = interpreter.execute(ip: definitionIp!, closure: closure);
+    interpreter.curModule = savedModule;
+    interpreter.curCode = interpreter.modules[savedModule]!;
+
+    var returnedType = interpreter.typeof(result);
+    if (returnedType.isNotA(returnType)) {
+      throw HTErrorReturnType(returnedType.toString(), id, returnType.toString());
+    }
+
+    if (HTFunction.callStack.isNotEmpty) HTFunction.callStack.removeLast();
     return result;
   }
 }

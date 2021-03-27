@@ -6,7 +6,7 @@
 | Unary prefix   | -e, !e, ++e, --e       |     None      |     15     |
 | Multiplicative | \*, /, %               |     Left      |     14     |
 | Additive       | +, -                   |     Left      |     13     |
-| Relational     | <, >, <=, >=, is       |     None      |     8      |
+| Relational     | <, >, <=, >=, is, is!  |     None      |     8      |
 | Equality       | ==, !=                 |     None      |     7      |
 | Logical AND    | &&                     |     Left      |     6      |
 | Logical Or     | \|\|                   |     Left      |     5      |
