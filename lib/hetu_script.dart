@@ -8,7 +8,7 @@ export 'src/common.dart' show ParseStyle;
 export 'src/type.dart' show HTTypeId;
 export 'src/class.dart';
 export 'src/function.dart' show HTFunction;
-export 'src/extern_function.dart' show HTExternalFunctionType;
+export 'src/extern_function.dart' show HTExternalFunctionTypedef;
 export 'src/errors.dart';
 export 'src/extern_class.dart';
 export 'src/extern_object.dart';
