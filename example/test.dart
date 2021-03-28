@@ -6,28 +6,18 @@ void main() async {
   await hetu.init();
 
   await hetu.eval(r'''
-  class Profile {
-    var age = 17
-  }
+  var year = 2021
 
   class Person {
-    var p = { 'age' : 17 }
+    construct {
+      yesr = 2077
+    }
   }
 
   fun main {
-    // var p = Person()
-    // print(++p.p['age'])
-    // print(p.p)
-    
-    // if (1 < ((3 + 4) / 2)) print('hi')
+    var p = Person()
 
-    // print(num.parse('42'))
-
-    var prof = 'farmer'
-
-    // print('  ' +  prof  +   ': ' )
-
-    print( true && (1 is num) && ( 3 > 2))
+    print(year)
   }
   ''', style: ParseStyle.module, invokeFunc: 'main');
 }

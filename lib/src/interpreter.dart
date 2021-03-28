@@ -22,12 +22,12 @@ abstract class Interpreter {
 
   int curLine = -1;
   int curColumn = -1;
-  late String curModule;
+  late String curModuleName;
 
   late bool debugMode;
 
   late HTErrorHandler errorHandler;
-  late HTModuleHandler importHandler;
+  late HTModuleHandler moduleHandler;
 
   /// 全局命名空间
   late HTNamespace global;
@@ -35,11 +35,11 @@ abstract class Interpreter {
   /// 当前语句所在的命名空间
   late HTNamespace curNamespace;
 
-  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? importHandler}) {
+  Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler}) {
     curNamespace = global = HTNamespace(this, id: HTLexicon.global);
     this.debugMode = debugMode;
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
-    this.importHandler = importHandler ?? DefaultModuleHandler();
+    this.moduleHandler = moduleHandler ?? DefaultModuleHandler();
   }
 
   Future<void> init(
@@ -75,10 +75,9 @@ abstract class Interpreter {
   Future<dynamic> eval(
     String content, {
     String? fileName,
-    String moduleName = HTLexicon.global,
-    HTNamespace? namespace,
     ParseStyle style = ParseStyle.module,
     bool debugMode = true,
+    HTNamespace? namespace,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -96,8 +95,9 @@ abstract class Interpreter {
   }) async {
     dynamic result;
 
-    final module = await importHandler.import(key, !curModule.startsWith(HTLexicon.anonymousScript) ? curModule : null);
-    curModule = module.fileName;
+    final module =
+        await moduleHandler.import(key, !curModuleName.startsWith(HTLexicon.anonymousScript) ? curModuleName : null);
+    curModuleName = module.fileName;
 
     HTNamespace? library_namespace;
     if ((moduleName != null) && (moduleName != HTLexicon.global)) {
@@ -106,7 +106,7 @@ abstract class Interpreter {
     }
 
     result = eval(module.content,
-        fileName: curModule,
+        fileName: curModuleName,
         namespace: library_namespace,
         style: style,
         debugMode: debugMode,
@@ -126,7 +126,7 @@ abstract class Interpreter {
       bool errorHandled = false}) {
     try {
       if (callee is HTFunction) {
-        HTFunction.callStack.add('#${HTFunction.callStack.length} ${callee.id} - ($curModule:$curLine:$curColumn)');
+        HTFunction.callStack.add('#${HTFunction.callStack.length} ${callee.id} - ($curModuleName:$curLine:$curColumn)');
 
         if (!callee.isExtern) {
           // 普通函数
@@ -222,11 +222,11 @@ abstract class Interpreter {
         if (e is! HTInterpreterError) {
           HTInterpreterError newErr;
           if (e is HTError) {
-            newErr =
-                HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
+            newErr = HTInterpreterError(
+                '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
           } else {
             newErr = HTInterpreterError(
-                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
+                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
           }
 
           errorHandler.handle(newErr);
@@ -270,11 +270,11 @@ abstract class Interpreter {
         if (e is! HTInterpreterError) {
           HTInterpreterError newErr;
           if (e is HTError) {
-            newErr =
-                HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
+            newErr = HTInterpreterError(
+                '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
           } else {
             newErr = HTInterpreterError(
-                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
+                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
           }
 
           errorHandler.handle(newErr);

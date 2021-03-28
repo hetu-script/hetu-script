@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
+import '../const_table.dart';
 import 'opcode.dart';
 
 class BytesReader {
   late final Uint8List bytes;
+  final consts = ConstTable();
   var ip = 0; // instruction pointer
 
   BytesReader(this.bytes);

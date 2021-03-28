@@ -27,10 +27,8 @@ class HTAstResolver implements ASTNodeVisitor {
   final _distances = <ASTNode, int>{};
 
   // 返回每个表达式对应的求值深度
-  Map<ASTNode, int> resolve(List<ASTNode> statements, String fileName, {String moduleName = HTLexicon.global}) {
+  Map<ASTNode, int> resolve(List<ASTNode> statements, String fileName) {
     curFileName = fileName;
-    _moduleName = moduleName;
-    if (_moduleName != HTLexicon.global) _beginBlock();
 
     _beginBlock();
     for (final stmt in statements) {
@@ -44,10 +42,6 @@ class HTAstResolver implements ASTNodeVisitor {
       _resolveFunction(func);
     }
     _endBlock();
-    if (moduleName != HTLexicon.global) {
-      _endBlock();
-    }
-
     return _distances;
   }
 

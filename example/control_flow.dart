@@ -5,13 +5,6 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
   fun main {
-    var obj = {
-      1: "tom",
-      2: "jimmy",
-      3: "jerry",
-      4: "ted",
-      5: "larry",
-    }
     var i = 0
     for (;;) {
       ++i

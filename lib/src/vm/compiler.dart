@@ -9,6 +9,7 @@ import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
 import '../function.dart';
+import '../const_table.dart';
 
 /// 声明空间，保存当前文件、类和函数体中包含的声明
 /// 在编译后会提到整个代码块最前
@@ -21,96 +22,116 @@ class DeclarationBlock {
   bool contains(String id) => funcDecls.containsKey(id) || classDecls.containsKey(id) || varDecls.containsKey(id);
 }
 
-class CompilerModuleInfo {
+class ImportInfo {
   final String key;
   final String? name;
   final List<String> showList;
-  CompilerModuleInfo(this.key, {this.name, this.showList = const []});
+  ImportInfo(this.key, {this.name, this.showList = const []});
 }
 
-class Compiler extends Parser with HetuRef {
+class Compiler extends Parser with ConstTable, HetuRef {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
   static const hetuVersionData = [0, 1, 0, 0];
 
-  String _curModuleKey = '';
-  @override
-  String get curModule => _curModuleKey;
-
   late final DeclarationBlock _globalBlock;
   late DeclarationBlock _curBlock;
 
-  final _importedModules = <CompilerModuleInfo>[];
+  final _importedModules = <ImportInfo>[];
 
   String? _curClassName;
   ClassType? _curClassType;
 
   late bool _debugMode;
+  late bool _bundleMode;
+
+  ImportInfo? _curImportInfo;
 
   var _leftValueLegality = LeftValueLegality.illegal;
 
-  Future<Uint8List> compile(List<Token> tokens, Hetu interpreter, String moduleKey,
-      [ParseStyle style = ParseStyle.module, debugMode = false]) async {
+  Future<Uint8List> compile(List<Token> tokens, Hetu interpreter, String moduleName,
+      {ParseStyle style = ParseStyle.module, debugMode = false, bool bundleMode = false}) async {
     this.interpreter = interpreter;
-    _debugMode = debugMode;
-    this.tokens.clear();
-    this.tokens.addAll(tokens);
-    _curModuleKey = moduleKey;
+    _bundleMode = bundleMode;
+    _debugMode = _bundleMode ? false : debugMode;
+    curModuleName = moduleName;
 
     _curBlock = _globalBlock = DeclarationBlock();
 
-    final codeBytes = BytesBuilder();
+    final code = _compile(tokens, moduleName, style);
 
+    for (final importInfo in _importedModules) {
+      final savedFileName = curModuleName;
+      if (bundleMode) {
+      } else {
+        await interpreter.import(importInfo.key, moduleName: importInfo.name, debugMode: _debugMode);
+      }
+      curModuleName = savedFileName;
+      interpreter.curModuleName = savedFileName;
+    }
+
+    curModuleName = '';
+
+    final mainBuilder = BytesBuilder();
+    // 河图字节码标记
+    mainBuilder.addByte(HTOpCode.signature);
+    mainBuilder.add(hetuSignatureData);
+    // 版本号
+    mainBuilder.addByte(HTOpCode.version);
+    mainBuilder.add(hetuVersionData);
+    // 调试模式
+    mainBuilder.addByte(HTOpCode.debug);
+    mainBuilder.addByte(_debugMode ? 1 : 0);
+    // 添加常量表
+    mainBuilder.addByte(HTOpCode.constTable);
+    mainBuilder.add(_uint16(intTable.length));
+    for (final value in intTable) {
+      mainBuilder.add(_int64(value));
+    }
+    mainBuilder.add(_uint16(floatTable.length));
+    for (final value in floatTable) {
+      mainBuilder.add(_float64(value));
+    }
+    mainBuilder.add(_uint16(stringTable.length));
+    for (final value in stringTable) {
+      mainBuilder.add(_utf8String(value));
+    }
+    // 添加变量表，总是按照：函数、类、变量这个顺序
+    mainBuilder.addByte(HTOpCode.declTable);
+    mainBuilder.add(_uint16(_globalBlock.enumDecls.length));
+    for (final decl in _globalBlock.enumDecls.values) {
+      mainBuilder.add(decl);
+    }
+    mainBuilder.add(_uint16(_globalBlock.funcDecls.length));
+    for (final decl in _globalBlock.funcDecls.values) {
+      mainBuilder.add(decl);
+    }
+    mainBuilder.add(_uint16(_globalBlock.classDecls.length));
+    for (final decl in _globalBlock.classDecls.values) {
+      mainBuilder.add(decl);
+    }
+    mainBuilder.add(_uint16(_globalBlock.varDecls.length));
+    for (final decl in _globalBlock.varDecls.values) {
+      mainBuilder.add(decl);
+    }
+    // 添加程序本体代码
+    mainBuilder.add(code);
+
+    return mainBuilder.toBytes();
+  }
+
+  Uint8List _compile(List<Token> tokens, String moduleName,
+      [ParseStyle style = ParseStyle.module, ImportInfo? importInfo]) {
+    _curImportInfo = importInfo;
+    addTokens(tokens, moduleName);
+    final bytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.endOfFile) {
       final exprStmts = _parseStmt(style: style);
       if (style == ParseStyle.block || style == ParseStyle.script) {
-        codeBytes.add(exprStmts);
+        bytesBuilder.add(exprStmts);
       }
     }
-
-    for (final module in _importedModules) {
-      final savedFileName = _curModuleKey;
-      await interpreter.import(module.key, moduleName: module.name, debugMode: _debugMode);
-      _curModuleKey = savedFileName;
-      interpreter.curModule = savedFileName;
-    }
-
-    _curModuleKey = '';
-
-    final mainBytes = BytesBuilder();
-
-    // 河图字节码标记
-    mainBytes.addByte(HTOpCode.signature);
-    mainBytes.add(hetuSignatureData);
-    // 版本号
-    mainBytes.addByte(HTOpCode.version);
-    mainBytes.add(hetuVersionData);
-    // 调试模式
-    mainBytes.addByte(HTOpCode.debug);
-    mainBytes.addByte(_debugMode ? 1 : 0);
-
-    // 添加变量表，总是按照：函数、类、变量这个顺序
-    mainBytes.addByte(HTOpCode.declTable);
-    mainBytes.add(_uint16(_globalBlock.enumDecls.length));
-    for (var decl in _globalBlock.enumDecls.values) {
-      mainBytes.add(decl);
-    }
-    mainBytes.add(_uint16(_globalBlock.funcDecls.length));
-    for (var decl in _globalBlock.funcDecls.values) {
-      mainBytes.add(decl);
-    }
-    mainBytes.add(_uint16(_globalBlock.classDecls.length));
-    for (var decl in _globalBlock.classDecls.values) {
-      mainBytes.add(decl);
-    }
-    mainBytes.add(_uint16(_globalBlock.varDecls.length));
-    for (var decl in _globalBlock.varDecls.values) {
-      mainBytes.add(decl);
-    }
-
-    mainBytes.add(codeBytes.toBytes());
-
-    return mainBytes.toBytes();
+    return bytesBuilder.toBytes();
   }
 
   void _parseImportStmt() async {
@@ -133,7 +154,7 @@ class Compiler extends Parser with HetuRef {
       }
     }
 
-    _importedModules.add(CompilerModuleInfo(key, name: name, showList: showList));
+    _importedModules.add(ImportInfo(key, name: name, showList: showList));
   }
 
   /// -32768 to 32767
@@ -146,9 +167,9 @@ class Compiler extends Parser with HetuRef {
   // Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
 
   /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
-  // Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
+  Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
 
-  // Uint8List _float64(double value) => Uint8List(8)..buffer.asByteData().setFloat64(0, value, Endian.big);
+  Uint8List _float64(double value) => Uint8List(8)..buffer.asByteData().setFloat64(0, value, Endian.big);
 
   Uint8List _shortUtf8String(String value) {
     final bytesBuilder = BytesBuilder();
@@ -158,13 +179,13 @@ class Compiler extends Parser with HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  // Uint8List _utf8String(String value) {
-  //   final bytesBuilder = BytesBuilder();
-  //   final stringData = utf8.encoder.convert(value);
-  //   bytesBuilder.add(_uint16(stringData.length));
-  //   bytesBuilder.add(stringData);
-  //   return bytesBuilder.toBytes();
-  // }
+  Uint8List _utf8String(String value) {
+    final bytesBuilder = BytesBuilder();
+    final stringData = utf8.encoder.convert(value);
+    bytesBuilder.add(_uint16(stringData.length));
+    bytesBuilder.add(stringData);
+    return bytesBuilder.toBytes();
+  }
 
   // Fetch a utf8 string from the byte list
   String _readId(Uint8List bytes) {
@@ -851,19 +872,19 @@ class Compiler extends Parser with HetuRef {
       case HTLexicon.integer:
         _leftValueLegality = LeftValueLegality.illegal;
         final value = curTok.literal;
-        var index = interpreter.global.addConstInt(value);
+        var index = addConstInt(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.int64);
       case HTLexicon.float:
         _leftValueLegality = LeftValueLegality.illegal;
         final value = curTok.literal;
-        var index = interpreter.global.addConstFloat(value);
+        var index = addConstFloat(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.float64);
       case HTLexicon.string:
         _leftValueLegality = LeftValueLegality.illegal;
         final value = curTok.literal;
-        var index = interpreter.global.addConstString(value);
+        var index = addConstString(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.utf8String);
       case HTLexicon.identifier:
@@ -1077,7 +1098,7 @@ class Compiler extends Parser with HetuRef {
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_shortUtf8String(HTLexicon.forStmtInit));
     match(HTLexicon.roundLeft);
-    final forStmtType = peek(2).lexeme;
+    final forStmtType = peek(2).lexeme; // of 不是关键字，所以这里不是看 type 而是 lexeme
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
         throw HTErrorUnexpected(curTok.type);
@@ -1330,7 +1351,7 @@ class Compiler extends Parser with HetuRef {
       bool isConst = false}) {
     advance(1);
     String? declId;
-    late final id;
+    String? id;
     if (curTok.type == HTLexicon.identifier) {
       declId = advance(1).lexeme;
     }
@@ -1358,8 +1379,8 @@ class Compiler extends Parser with HetuRef {
         id = declId;
     }
 
-    if (_curBlock.contains(id)) {
-      throw HTErrorDefinedParser(id);
+    if (id == null) {
+      throw HTErrorExpected(HTLexicon.identifier, peek(-1).lexeme);
     }
 
     final funcBytesBuilder = BytesBuilder();

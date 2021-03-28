@@ -194,7 +194,7 @@ abstract class HTLexicon {
     CONTINUE,
     FOR,
     IN,
-    OF,
+    // OF,
     IF,
     ELSE,
     RETURN,

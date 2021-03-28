@@ -15,6 +15,9 @@ abstract class HTOpCode {
   /// ip = ip + [distance], distance could be negative
   static const goto = 4;
 
+  /// uint16 line & column
+  static const debugInfo = 5;
+
   static const loopPoint = 6;
 
   static const breakLoop = 7;
@@ -22,11 +25,14 @@ abstract class HTOpCode {
   static const continueLoop = 8;
 
   static const block = 10;
+
   static const endOfBlock = 11;
 
   static const endOfStmt = 12;
 
   static const endOfExec = 13;
+
+  static const constTable = 14;
 
   static const declTable = 15;
 
@@ -114,9 +120,11 @@ abstract class HTOpCode {
   /// 1 byte
   static const debug = 202;
 
-  /// uint16 line, uint16 column
-  static const debugInfo = 203;
-  static const error = 204; //
+  static const author = 203;
+
+  static const moduleName = 204;
+
+  static const created = 205;
 }
 
 abstract class HTValueTypeCode {

@@ -29,49 +29,6 @@ class HTNamespace extends HTObject with InterpreterRef {
   @override
   late final String fullName;
 
-  /// 常量表
-  final _constInt = <int>[];
-  List<int> get constInt => _constInt.toList(growable: false);
-  int addConstInt(int value) {
-    final index = _constInt.indexOf(value);
-    if (index == -1) {
-      _constInt.add(value);
-      return _constInt.length - 1;
-    } else {
-      return index;
-    }
-  }
-
-  int getConstInt(int index) => _constInt[index];
-
-  final _constFloat = <double>[];
-  List<double> get constFloat => _constFloat.toList(growable: false);
-  int addConstFloat(double value) {
-    final index = _constFloat.indexOf(value);
-    if (index == -1) {
-      _constFloat.add(value);
-      return _constFloat.length - 1;
-    } else {
-      return index;
-    }
-  }
-
-  double getConstFloat(int index) => _constFloat[index];
-
-  final _constString = <String>[];
-  List<String> get constUtf8String => _constString.toList(growable: false);
-  int addConstString(String value) {
-    final index = _constString.indexOf(value);
-    if (index == -1) {
-      _constString.add(value);
-      return _constString.length - 1;
-    } else {
-      return index;
-    }
-  }
-
-  String getConstString(int index) => _constString[index];
-
   // 变量表
   final Map<String, HTDeclaration> declarations = {};
 

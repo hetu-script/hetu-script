@@ -1,5 +1,8 @@
 import 'package:hetu_script/hetu_script.dart';
 
+import 'package:hetu_script/src/lexer.dart';
+import 'package:hetu_script/src/vm/compiler.dart';
+
 void main() async {
   final hetu = Hetu();
 
@@ -8,7 +11,7 @@ void main() async {
   final tokens = Lexer().lex(r'''
   var i = 0
   // ''', 'test');
-  final bytes = await Compiler().compile(tokens, hetu, 'test', ParseStyle.block);
+  final bytes = await Compiler().compile(tokens, hetu, 'test', style: ParseStyle.block);
 
   print(bytes);
 

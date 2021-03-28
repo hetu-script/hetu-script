@@ -57,8 +57,10 @@ class Lexer {
       if (toksOfLine.isNotEmpty) {
         if (HTLexicon.ASIStart.contains(toksOfLine.first.type)) {
           /// According to Javascript standard, add semicolon before a newline
-          /// if the new line starting with '[, (, +, -, /' tokens
-          tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
+          /// if the new line starting with '[, (, +, -' tokens
+          if (tokens.isNotEmpty && tokens.last.type != HTLexicon.colon) {
+            tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
+          }
           tokens.addAll(toksOfLine);
         } else if (HTLexicon.ASIEnding.contains(toksOfLine.last)) {
           tokens.addAll(toksOfLine);

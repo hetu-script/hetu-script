@@ -18,7 +18,15 @@ import 'errors.dart';
 ///
 /// <运算符>    ::=   <运算符>
 abstract class Parser {
-  final List<Token> tokens = [];
+  late List<Token> tokens;
+
+  void addTokens(List<Token> tokens, String moduleName) {
+    _tokPos = 0;
+    this.tokens = tokens;
+    _curLine = 0;
+    _curColumn = 0;
+    curModuleName = moduleName;
+  }
 
   static int internalVarIndex = 0;
 
@@ -26,7 +34,7 @@ abstract class Parser {
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
-  late String curModule;
+  late String curModuleName;
 
   var _tokPos = 0;
 
@@ -69,7 +77,7 @@ abstract class Parser {
     if ((_tokPos + pos) < tokens.length) {
       return tokens[_tokPos + pos];
     } else {
-      return Token(HTLexicon.endOfFile, curModule, -1, -1);
+      return Token(HTLexicon.endOfFile, curModuleName, -1, -1);
     }
   }
 

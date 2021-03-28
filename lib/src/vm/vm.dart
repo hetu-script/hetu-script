@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'compiler.dart';
 import 'opcode.dart';
 import 'bytes_reader.dart';
@@ -48,29 +50,28 @@ class Hetu extends Interpreter {
   /// break 指令将会跳回最近的一个loop point
   final _loops = <LoopInfo>[];
 
-  Hetu({HTErrorHandler? errorHandler, HTModuleHandler? importHandler})
-      : super(errorHandler: errorHandler, importHandler: importHandler);
+  Hetu({HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
+      : super(errorHandler: errorHandler, moduleHandler: moduleHandler);
 
   @override
   Future<dynamic> eval(
     String content, {
     String? fileName,
-    String moduleName = HTLexicon.global,
-    HTNamespace? namespace,
     ParseStyle style = ParseStyle.module,
     bool debugMode = true,
+    HTNamespace? namespace,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    curModule = fileName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+    curModuleName = fileName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
     curNamespace = namespace ?? global;
     final compiler = Compiler();
 
     try {
-      final tokens = Lexer().lex(content, curModule);
-      final bytes = await compiler.compile(tokens, this, curModule, style, debugMode);
-      curCode = modules[curModule] = BytesReader(bytes);
+      final tokens = Lexer().lex(content, curModuleName);
+      final bytes = await compiler.compile(tokens, this, curModuleName, style: style, debugMode: debugMode);
+      curCode = modules[curModuleName] = BytesReader(bytes);
 
       var result = execute(closure: curNamespace);
       if (style == ParseStyle.module && invokeFunc != null) {
@@ -88,14 +89,14 @@ class Hetu extends Interpreter {
       if (e is! HTInterpreterError) {
         HTInterpreterError newErr;
         if (e is HTParserError) {
-          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, compiler.curModule,
+          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, compiler.curModuleName,
               compiler.curLine, compiler.curColumn);
         } else if (e is HTError) {
-          newErr =
-              HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, curModule, curLine, curColumn);
+          newErr = HTInterpreterError(
+              '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
         } else {
-          newErr =
-              HTInterpreterError('$e\nHetu call stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
+          newErr = HTInterpreterError(
+              '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
         }
 
         errorHandler.handle(newErr);
@@ -104,6 +105,48 @@ class Hetu extends Interpreter {
       }
     }
   }
+
+  Future<Uint8List> compile(String content, String moduleName,
+      {ParseStyle style = ParseStyle.module, bool debugMode = true}) async {
+    final compiler = Compiler();
+    final bytesBuilder = BytesBuilder();
+
+    try {
+      final tokens = Lexer().lex(content, curModuleName);
+      final bytes = await compiler.compile(tokens, this, moduleName, style: style, debugMode: debugMode);
+
+      bytesBuilder.add(bytes);
+    } catch (e, stack) {
+      var sb = StringBuffer();
+      for (var funcName in HTFunction.callStack) {
+        sb.writeln('  $funcName');
+      }
+      sb.writeln('\n$stack');
+      var callStack = sb.toString();
+
+      if (e is! HTInterpreterError) {
+        HTInterpreterError newErr;
+        if (e is HTParserError) {
+          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack', e.type, compiler.curModuleName,
+              compiler.curLine, compiler.curColumn);
+        } else if (e is HTError) {
+          newErr = HTInterpreterError(
+              '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
+        } else {
+          newErr = HTInterpreterError(
+              '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
+        }
+
+        errorHandler.handle(newErr);
+      } else {
+        errorHandler.handle(e);
+      }
+    } finally {
+      return bytesBuilder.toBytes();
+    }
+  }
+
+  dynamic run(Uint8List code) {}
 
   /// 从 [ip] 位置开始解释，遇到 OP.endOfExec 后返回当前值。
   /// 返回时，指针会回到执行前的 ip 位置。并且会回到之前的命名空间。
@@ -190,6 +233,20 @@ class Hetu extends Interpreter {
           break;
         case HTOpCode.endOfExec:
           return _curValue;
+        case HTOpCode.constTable:
+          final int64Length = curCode.readUint16();
+          for (var i = 0; i < int64Length; ++i) {
+            curCode.consts.intTable.add(curCode.readInt64());
+          }
+          final float64Length = curCode.readUint16();
+          for (var i = 0; i < float64Length; ++i) {
+            curCode.consts.floatTable.add(curCode.readFloat64());
+          }
+          final utf8StringLength = curCode.readUint16();
+          for (var i = 0; i < utf8StringLength; ++i) {
+            curCode.consts.stringTable.add(curCode.readUtf8String());
+          }
+          break;
         // 变量表
         case HTOpCode.declTable:
           var enumDeclLength = curCode.readUint16();
@@ -271,10 +328,6 @@ class Hetu extends Interpreter {
         case HTOpCode.postDecrement:
           _handleUnaryPostfixOp(instruction);
           break;
-        // 错误处理
-        case HTOpCode.error:
-          _handleError();
-          break;
         default:
           print('Unknown opcode: $instruction');
           break;
@@ -285,13 +338,6 @@ class Hetu extends Interpreter {
   }
 
   // void _resolve() {}
-
-  void _handleError() {
-    final err_type = curCode.read();
-    // TODO: line 和 column
-    switch (err_type) {
-    }
-  }
 
   void _storeLocal() {
     final valueType = curCode.read();
@@ -304,15 +350,15 @@ class Hetu extends Interpreter {
         break;
       case HTValueTypeCode.int64:
         final index = curCode.readUint16();
-        _curValue = global.getConstInt(index);
+        _curValue = curCode.consts.getInt64(index);
         break;
       case HTValueTypeCode.float64:
         final index = curCode.readUint16();
-        _curValue = global.getConstFloat(index);
+        _curValue = curCode.consts.getFloat64(index);
         break;
       case HTValueTypeCode.utf8String:
         final index = curCode.readUint16();
-        _curValue = global.getConstString(index);
+        _curValue = curCode.consts.getUtf8String(index);
         break;
       case HTValueTypeCode.symbol:
         _curSymbol = curCode.readShortUtf8String();
@@ -367,7 +413,7 @@ class Hetu extends Interpreter {
           curCode.skip(length);
         }
 
-        _curValue = HTBytesFunction(id, this, curModule,
+        _curValue = HTBytesFunction(id, this, curModuleName,
             className: _curClassName,
             funcType: funcType,
             paramDecls: paramDecls,
@@ -766,7 +812,7 @@ class Hetu extends Interpreter {
       curCode.skip(length);
     }
 
-    final decl = HTBytesDecl(id, this, curModule,
+    final decl = HTBytesDecl(id, this, curModuleName,
         declType: declType,
         initializerIp: initializerIp,
         isDynamic: isDynamic,
@@ -805,7 +851,7 @@ class Hetu extends Interpreter {
         curCode.skip(length);
       }
 
-      paramDecls[id] = HTBytesParamDecl(id, this, curModule,
+      paramDecls[id] = HTBytesParamDecl(id, this, curModuleName,
           declType: declType,
           initializerIp: initializerIp,
           isOptional: isOptional,
@@ -862,7 +908,7 @@ class Hetu extends Interpreter {
     final func = HTBytesFunction(
       id,
       this,
-      curModule,
+      curModuleName,
       className: _curClassName,
       funcType: funcType,
       paramDecls: paramDecls,

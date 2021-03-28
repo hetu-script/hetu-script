@@ -19,45 +19,45 @@ import '../extern_object.dart';
 import '../enum.dart';
 import 'ast_declaration.dart';
 import '../declaration.dart';
+import '../const_table.dart';
 
 mixin AstInterpreterRef {
   late final HTAstInterpreter interpreter;
 }
 
 /// 负责对语句列表进行最终解释执行
-class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
+class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVisitor {
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _distances = <ASTNode, int>{};
 
   dynamic _curStmtValue;
 
-  HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? importHandler})
-      : super(debugMode: debugMode, errorHandler: errorHandler, importHandler: importHandler);
+  HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
+      : super(debugMode: debugMode, errorHandler: errorHandler, moduleHandler: moduleHandler);
 
   @override
   Future<dynamic> eval(
     String content, {
     String? fileName,
-    String moduleName = HTLexicon.global,
-    HTNamespace? namespace,
     ParseStyle style = ParseStyle.module,
     bool debugMode = true,
+    HTNamespace? namespace,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    curModule = fileName ?? HTLexicon.anonymousScript;
+    curModuleName = fileName ?? HTLexicon.anonymousScript;
     curNamespace = namespace ?? global;
 
     var lexer = Lexer();
-    var parser = HTAstParser();
+    var parser = HTAstParser(this);
     var resolver = HTAstResolver();
     try {
-      var tokens = lexer.lex(content, curModule);
+      var tokens = lexer.lex(content, curModuleName);
 
-      final statements = await parser.parse(tokens, this, curNamespace, curModule, style);
-      _distances.addAll(resolver.resolve(statements, curModule, moduleName: moduleName));
+      final statements = await parser.parse(tokens, curModuleName, style);
+      _distances.addAll(resolver.resolve(statements, curModuleName));
 
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
@@ -81,12 +81,13 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
       HTInterpreterError newErr;
       if (e is HTParserError) {
         newErr = HTInterpreterError(
-            '${e.message}\nCall stack:\n$callStack', e.type, parser.curModule, parser.curLine, parser.curColumn);
+            '${e.message}\nCall stack:\n$callStack', e.type, parser.curModuleName, parser.curLine, parser.curColumn);
       } else if (e is HTResolverError) {
         newErr = HTInterpreterError('${e.message}\nCall stack:\n$callStack', e.type, resolver.curFileName,
             resolver.curLine, resolver.curColumn);
       } else {
-        newErr = HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curModule, curLine, curColumn);
+        newErr =
+            HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
       }
 
       errorHandler.handle(newErr);
@@ -137,21 +138,21 @@ class HTAstInterpreter extends Interpreter implements ASTNodeVisitor {
   dynamic visitConstIntExpr(ConstIntExpr expr) {
     curLine = expr.line;
     curColumn = expr.column;
-    return global.getConstInt(expr.constIndex);
+    return getInt64(expr.constIndex);
   }
 
   @override
   dynamic visitConstFloatExpr(ConstFloatExpr expr) {
     curLine = expr.line;
     curColumn = expr.column;
-    return global.getConstFloat(expr.constIndex);
+    return getFloat64(expr.constIndex);
   }
 
   @override
   dynamic visitConstStringExpr(ConstStringExpr expr) {
     curLine = expr.line;
     curColumn = expr.column;
-    return global.getConstString(expr.constIndex);
+    return getUtf8String(expr.constIndex);
   }
 
   @override

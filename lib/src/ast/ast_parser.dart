@@ -1,30 +1,31 @@
+import 'package:hetu_script/src/ast/ast_interpreter.dart';
+
 import '../errors.dart';
 import 'ast.dart';
 import '../token.dart';
 import '../lexicon.dart';
 import '../type.dart';
-import '../namespace.dart';
-import '../interpreter.dart';
 import '../parser.dart';
 import '../common.dart';
 
-class HTAstParser extends Parser {
-  late final HTNamespace _context;
-
+class HTAstParser extends Parser with AstInterpreterRef {
   late String _curFileName;
   @override
-  String get curModule => _curFileName;
+  String get curModuleName => _curFileName;
 
   String? _curClassName;
   ClassType? _curClassType;
 
   static final Map<String, ASTNode> _classStmts = {};
 
-  Future<List<ASTNode>> parse(List<Token> tokens, Interpreter interpreter, HTNamespace context, String fileName,
+  HTAstParser(HTAstInterpreter interpreter) {
+    this.interpreter = interpreter;
+  }
+
+  Future<List<ASTNode>> parse(List<Token> tokens, String fileName,
       [ParseStyle style = ParseStyle.module, debugMode = false]) async {
     this.tokens.clear();
     this.tokens.addAll(tokens);
-    _context = context;
     _curFileName = fileName;
 
     final statements = <ASTNode>[];
@@ -34,7 +35,7 @@ class HTAstParser extends Parser {
         final savedFileName = _curFileName;
         await interpreter.import(stmt.key, moduleName: stmt.namespace);
         _curFileName = savedFileName;
-        interpreter.curModule = savedFileName;
+        interpreter.curModuleName = savedFileName;
       }
       statements.add(stmt);
     }
@@ -223,15 +224,15 @@ class HTAstParser extends Parser {
         advance(1);
         return BooleanExpr(false, _curFileName, peek(-1).line, peek(-1).column);
       case HTLexicon.integer:
-        var index = _context.addConstInt(curTok.literal);
+        var index = interpreter.addConstInt(curTok.literal);
         advance(1);
         return ConstIntExpr(index, _curFileName, peek(-1).line, peek(-1).column);
       case HTLexicon.float:
-        var index = _context.addConstFloat(curTok.literal);
+        var index = interpreter.addConstFloat(curTok.literal);
         advance(1);
         return ConstFloatExpr(index, _curFileName, peek(-1).line, peek(-1).column);
       case HTLexicon.string:
-        var index = _context.addConstString(curTok.literal);
+        var index = interpreter.addConstString(curTok.literal);
         advance(1);
         return ConstStringExpr(index, _curFileName, peek(-1).line, peek(-1).column);
       case HTLexicon.THIS:
@@ -430,7 +431,7 @@ class HTAstParser extends Parser {
       stmts.add(_parseStmt(style: style));
     }
     match(HTLexicon.curlyRight);
-    return BlockStmt(stmts, curModule, line, column);
+    return BlockStmt(stmts, curModuleName, line, column);
   }
 
   ImportStmt _parseImportStmt() {
@@ -519,9 +520,9 @@ class HTAstParser extends Parser {
     expect([HTLexicon.FOR, HTLexicon.roundLeft], consume: true);
     // 递增变量
     final i = '__i${Parser.internalVarIndex++}';
-    list_stmt.add(VarDeclStmt(TokenIdentifier(i, curModule, curTok.line, curTok.column),
+    list_stmt.add(VarDeclStmt(TokenIdentifier(i, curModuleName, curTok.line, curTok.column),
         declType: HTTypeId.number,
-        initializer: ConstIntExpr(_context.addConstInt(0), curModule, curTok.line, curTok.column)));
+        initializer: ConstIntExpr(interpreter.addConstInt(0), curModuleName, curTok.line, curTok.column)));
     // 指针
     var varname = match(HTLexicon.identifier).lexeme;
     var typeid = HTTypeId.ANY;
@@ -532,25 +533,26 @@ class HTAstParser extends Parser {
     match(HTLexicon.IN);
     var list_obj = _parseExpr();
     // 条件语句
-    var get_length = MemberGetExpr(list_obj, TokenIdentifier(HTLexicon.length, curModule, curTok.line, curTok.column));
-    var condition = BinaryExpr(SymbolExpr(TokenIdentifier(i, curModule, curTok.line, curTok.column)),
-        Token(HTLexicon.lesser, curModule, curTok.line, curTok.column), get_length);
+    var get_length =
+        MemberGetExpr(list_obj, TokenIdentifier(HTLexicon.length, curModuleName, curTok.line, curTok.column));
+    var condition = BinaryExpr(SymbolExpr(TokenIdentifier(i, curModuleName, curTok.line, curTok.column)),
+        Token(HTLexicon.lesser, curModuleName, curTok.line, curTok.column), get_length);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <ASTNode>[];
     // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
     var sub_get_value =
-        SubGetExpr(list_obj.clone(), SymbolExpr(TokenIdentifier(i, curModule, curTok.line, curTok.column)));
-    var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname, curModule, curTok.line, curTok.column),
-        Token(HTLexicon.assign, curModule, curTok.line, curTok.column), sub_get_value));
+        SubGetExpr(list_obj.clone(), SymbolExpr(TokenIdentifier(i, curModuleName, curTok.line, curTok.column)));
+    var assign_stmt = ExprStmt(AssignExpr(TokenIdentifier(varname, curModuleName, curTok.line, curTok.column),
+        Token(HTLexicon.assign, curModuleName, curTok.line, curTok.column), sub_get_value));
     loop_body.add(assign_stmt);
     // 递增下标变量
     var increment_expr = BinaryExpr(
-        SymbolExpr(TokenIdentifier(i, curModule, curTok.line, curTok.column)),
-        Token(HTLexicon.add, curModule, curTok.line, curTok.column),
-        ConstIntExpr(_context.addConstInt(1), curModule, curTok.line, curTok.column));
-    var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, curModule, curTok.line, curTok.column),
-        Token(HTLexicon.assign, curModule, curTok.line, curTok.column), increment_expr));
+        SymbolExpr(TokenIdentifier(i, curModuleName, curTok.line, curTok.column)),
+        Token(HTLexicon.add, curModuleName, curTok.line, curTok.column),
+        ConstIntExpr(interpreter.addConstInt(1), curModuleName, curTok.line, curTok.column));
+    var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, curModuleName, curTok.line, curTok.column),
+        Token(HTLexicon.assign, curModuleName, curTok.line, curTok.column), increment_expr));
     loop_body.add(increment_stmt);
     // 循环体
     match(HTLexicon.roundRight);
@@ -559,8 +561,8 @@ class HTAstParser extends Parser {
     } else {
       loop_body.add(_parseStmt(style: ParseStyle.block));
     }
-    list_stmt.add(WhileStmt(condition, BlockStmt(loop_body, curModule, curTok.line, curTok.column)));
-    return BlockStmt(list_stmt, curModule, curTok.line, curTok.column);
+    list_stmt.add(WhileStmt(condition, BlockStmt(loop_body, curModuleName, curTok.line, curTok.column)));
+    return BlockStmt(list_stmt, curModuleName, curTok.line, curTok.column);
   }
 
   /// 变量声明语句
@@ -720,7 +722,7 @@ class HTAstParser extends Parser {
     }
     expect([HTLexicon.semicolon], consume: true);
 
-    var stmt = FuncDeclStmt(return_type, params, curModule, keyword.line, keyword.column,
+    var stmt = FuncDeclStmt(return_type, params, curModuleName, keyword.line, keyword.column,
         id: func_name,
         typeParams: typeParams,
         arity: arity,
