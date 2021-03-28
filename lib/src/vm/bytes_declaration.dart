@@ -1,6 +1,6 @@
+import 'vm.dart';
 import '../declaration.dart';
 import '../type.dart';
-import 'vm.dart';
 import '../errors.dart';
 
 class HTBytesDecl extends HTDeclaration with HetuRef {

@@ -1,11 +1,10 @@
-import 'package:hetu_script/hetu_script.dart';
-
 import 'errors.dart';
 import 'lexicon.dart';
 import 'type.dart';
 import 'interpreter.dart';
 import 'declaration.dart';
 import 'object.dart';
+import 'function.dart';
 
 class HTNamespace extends HTObject with InterpreterRef {
   static int spaceIndex = 0;

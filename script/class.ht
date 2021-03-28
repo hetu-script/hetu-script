@@ -1,4 +1,4 @@
-import 'calculator.ht'
+import 'class_decl.ht'
 
 // 程序入口
 fun main {

@@ -56,7 +56,7 @@ class Hetu extends Interpreter {
   @override
   Future<dynamic> eval(
     String content, {
-    String? fileName,
+    String? moduleName,
     ParseStyle style = ParseStyle.module,
     bool debugMode = true,
     HTNamespace? namespace,
@@ -64,9 +64,9 @@ class Hetu extends Interpreter {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    if (content.isEmpty) throw HTErrorEmpty(fileName ?? '');
+    if (content.isEmpty) throw HTErrorEmpty(moduleName ?? '');
 
-    curModuleName = fileName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+    curModuleName = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
     curNamespace = namespace ?? global;
     final compiler = Compiler();
 

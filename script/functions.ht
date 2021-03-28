@@ -1,9 +1,0 @@
-fun doubleIt(n: num): num {
-	return n * 2
-}
-
-fun main {
-  let x = doubleIt(7); // expect 14
-
-  print(x);
-}

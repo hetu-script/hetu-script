@@ -2,8 +2,6 @@ import 'lexicon.dart';
 import 'namespace.dart';
 import 'common.dart';
 import 'type.dart';
-import 'plugin/moduleHandler.dart';
-import 'plugin/errorHandler.dart';
 import 'hetu_lib.dart';
 import 'extern_class.dart';
 import 'errors.dart';
@@ -11,6 +9,8 @@ import 'extern_function.dart';
 import 'function.dart';
 import 'class.dart';
 import 'declaration.dart';
+import 'plugin/moduleHandler.dart';
+import 'plugin/errorHandler.dart';
 
 mixin InterpreterRef {
   late final Interpreter interpreter;
@@ -50,7 +50,7 @@ abstract class Interpreter {
     // TODO: dynamic load needed core lib in script
     if (coreModule) {
       for (final file in coreModules.keys) {
-        await eval(coreModules[file]!, fileName: file);
+        await eval(coreModules[file]!, moduleName: file);
       }
       for (var key in coreFunctions.keys) {
         bindExternalFunction(key, coreFunctions[key]!);
@@ -78,7 +78,7 @@ abstract class Interpreter {
 
   Future<dynamic> eval(
     String content, {
-    String? fileName,
+    String? moduleName,
     ParseStyle style = ParseStyle.module,
     bool debugMode = true,
     HTNamespace? namespace,
@@ -113,7 +113,7 @@ abstract class Interpreter {
     }
 
     result = await eval(module.content,
-        fileName: curModuleName,
+        moduleName: curModuleName,
         namespace: library_namespace,
         style: style,
         debugMode: debugMode,
