@@ -48,10 +48,12 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
       : super(debugMode: debugMode, errorHandler: errorHandler, moduleHandler: moduleHandler);
 
+  @override
   void saveSnapshot() {
     _savedModuleName = _curModuleName;
   }
 
+  @override
   void resotreSnapshot() {
     _curModuleName = _savedModuleName!;
   }
