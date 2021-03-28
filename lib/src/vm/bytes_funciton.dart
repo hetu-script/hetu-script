@@ -1,9 +1,9 @@
+import 'vm.dart';
+import 'bytes_declaration.dart';
 import '../namespace.dart';
 import '../type.dart';
-import 'vm.dart';
 import '../function.dart';
 import '../common.dart';
-import 'bytes_declaration.dart';
 import '../errors.dart';
 import '../class.dart';
 import '../declaration.dart';

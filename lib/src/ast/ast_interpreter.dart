@@ -39,7 +39,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   @override
   Future<dynamic> eval(
     String content, {
-    String? fileName,
+    String? moduleName,
     ParseStyle style = ParseStyle.module,
     bool debugMode = true,
     HTNamespace? namespace,
@@ -47,7 +47,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    curModuleName = fileName ?? HTLexicon.anonymousScript;
+    curModuleName = moduleName ?? HTLexicon.anonymousScript;
     curNamespace = namespace ?? global;
 
     var lexer = Lexer();

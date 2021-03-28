@@ -10,10 +10,9 @@ const cli_help = '''
 
   hetu [option] [file_name] [invoke_func]
   
-  If [file_name] is provided, evaluate the file in function mode.
+  If only [file_name] is provided, evaluate the file in function mode.
   
-  If [invoke_func] is provided, will switch to program style interpretation.
-  Otherwise interpret file as a function.
+  If [file_name] and [invoke_func] is both provided, will use program style interpretation.
         ''';
 
 void main(List<String> args) async {
@@ -32,7 +31,7 @@ void main(List<String> args) async {
       if (result != null) print(result);
     } else {
       stdout.writeln('\nHetu Script Read-Evaluate-Print-Loop Tool\n'
-          'Version: 0.0.1\n\n'
+          'Version: 0.1.0\n\n'
           'Enter your code to evaluate.\n'
           'Enter \'\\\' for multiline, enter \'quit\' to quit.\n');
       var quit = false;

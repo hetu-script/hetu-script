@@ -698,11 +698,11 @@ class Compiler extends Parser with ConstTable, HetuRef {
           bytesBuilder.addByte(HTOpCode.greaterOrEqual);
           break;
         case HTLexicon.IS:
-          final isNot = (peek(1).type == HTLexicon.logicalNot) ? true : false;
           final right = _parseTypeId(localValue: true);
           bytesBuilder.add(right);
           bytesBuilder.addByte(HTOpCode.register);
           bytesBuilder.addByte(8);
+          final isNot = (peek(1).type == HTLexicon.logicalNot) ? true : false;
           bytesBuilder.addByte(isNot ? HTOpCode.typeIsNot : HTOpCode.typeIs);
       }
       bytesBuilder.add([7, 8]);
@@ -808,7 +808,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   Uint8List _parseUnaryPostfixExpr() {
     final bytesBuilder = BytesBuilder();
     final object = _parseLocalExpr();
-    bytesBuilder.add(object); // object will stay in reg[13]
+    bytesBuilder.add(object); // object will stay in reg[14]
     while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
       bytesBuilder.addByte(HTOpCode.register);
       bytesBuilder.addByte(HTRegIndex.unaryPostObject);
@@ -819,20 +819,20 @@ class Compiler extends Parser with ConstTable, HetuRef {
           _leftValueLegality = LeftValueLegality.legal;
           bytesBuilder.add(key);
           bytesBuilder.addByte(HTOpCode.register);
-          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[15]
           bytesBuilder.addByte(HTOpCode.memberGet);
-          bytesBuilder.addByte(HTRegIndex.unaryPostObject); // memberGet: _curValue = reg[13][_curValue]
-          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          bytesBuilder.addByte(HTRegIndex.unaryPostObject); // memberGet: _curValue = reg[14][_curValue]
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[15]
           break;
         case HTLexicon.subGet:
           final key = _parseExpr();
           _leftValueLegality = LeftValueLegality.legal;
           bytesBuilder.add(key); // int
           bytesBuilder.addByte(HTOpCode.register);
-          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[15]
           bytesBuilder.addByte(HTOpCode.subGet);
-          bytesBuilder.addByte(HTRegIndex.unaryPostObject); // subGet: _curValue = reg[13][_curValue]
-          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[14]
+          bytesBuilder.addByte(HTRegIndex.unaryPostObject); // subGet: _curValue = reg[14][_curValue]
+          bytesBuilder.addByte(HTRegIndex.unaryPostKey); // current key will stay in reg[15]
           match(HTLexicon.squareRight);
           break;
         case HTLexicon.call:
