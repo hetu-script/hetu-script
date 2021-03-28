@@ -3,19 +3,28 @@
 ## Table of Content:
 
 - [Introduction](#introduction)
+- [Quick start](#quick-start)
 - [Binding](#binding)
 - [Auto-Binding tools](#auto-binding-tools)
 - [Command line tool](#command-line-tool)
 
 ## Introduction
 
-[中文介绍](README_ZH.md)
-
 Hetu is a lightweight script language written in Dart for embedding in Flutter apps.
 
 Hetu's grammar is close to typescript/kotlin/swift and other modern languages, hence need very little time to get familar with.
 
 It meant to be used as a scripting language like lua, however, it is made to communicate with classes & functions in Dart very easily.
+
+[中文介绍](README_ZH.md)
+
+## Quick start
+
+Hetu's grammar is made similar to modern language like typescript/swift/kotlin:
+
+- Optional semicolon.
+- Function is declared with 'fun, get, set, construct'.
+- Optional type annotation. Variable declared with 'let, const' will infer its type from its initializer expression.
 
 [Syntax referrence](doc/en_US/SYNTAX.md)
 
@@ -54,33 +63,19 @@ fun main {
 }
 ```
 
-Hetu's grammar is almost same to typescript, except a few things:
-
-- Function is declared with [fun].
-- Variable declared with keyword [let] or [const] and without a type will be given a type if it has an initialization.
-
 ## Binding
 
-To call Dart functions in Hetu, just init Hetu with [externalFunctions].
+Hetu script is purely written in Dart, so passing object to and from script is extremely easy.
 
-Then define those dart funtion in Hetu with [external] keyword.
+Check [this page](doc/en_US/binding.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
-Then you can call those functions in Hetu.
-
-You can pass object from Dart to Hetu by the return value of external functions.
-
-You can pass object from Hetu to Dart by the return value of Interpreter's [invoke] function;
-
-```typescript
+```dart
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   var hetu = Hetu();
   await hetu.init(externalFunctions: {
-    'hello': (
-        [List<dynamic> positionalArgs = const [],
-        Map<String, dynamic> namedArgs = const {},
-        List<HTTypeId> typeArgs = const <HTTypeId>[]]) => {'greeting': 'hello'},
+    'hello': () => {'greeting': 'hello'},
   });
   await hetu.eval(r'''
       external fun hello
@@ -96,38 +91,6 @@ void main() async {
   print('hetu value: $hetuValue');
 }
 ```
-
-And the output should be:
-
-```
-dart value: {greeting: hello}
-hetu value: {greeting: hello, foo: bar}
-```
-
-## External function convention
-
-External functions (for both global and methods) can be binded as the following type:
-
-```dart
-typedef HTExternalFunction = dynamic Function(
-    [List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs]);
-```
-
-or directy as a Dart Function:
-
-```dart
-await hetu.init(externalFunctions: {
-  'hello': () => {'greeting': 'hello'},
-});
-```
-
-It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's [Function.apply] feature to call it. This is normally slower and inefficient than direct call.
-
-## Auto-Binding tools
-
-Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
-
-Please check out this repository: [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)
 
 ## Command line tool
 

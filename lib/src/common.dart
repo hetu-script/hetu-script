@@ -53,6 +53,6 @@ enum LeftValueLegality {
 }
 
 abstract class HTRegIndex {
-  static const unaryPostObject = 13;
-  static const unaryPostKey = 14;
+  static const unaryPostObject = 14;
+  static const unaryPostKey = 15;
 }

@@ -422,7 +422,7 @@ class Hetu extends Interpreter {
           curCode.skip(length);
         }
 
-        _curValue = HTBytesFunction(id, this, curModuleName,
+        final func = HTBytesFunction(id, this, curModuleName,
             className: _curClassName,
             funcType: funcType,
             externalTypedef: externalTypedef,
@@ -433,6 +433,13 @@ class Hetu extends Interpreter {
             minArity: minArity,
             maxArity: maxArity,
             context: curNamespace);
+
+        if (!hasExternalTypedef) {
+          _curValue = func;
+        } else {
+          final externalFunc = unwrapExternalFunctionType(externalTypedef!, func);
+          _curValue = externalFunc;
+        }
         break;
       case HTValueTypeCode.typeid:
         _curValue = _getTypeId();

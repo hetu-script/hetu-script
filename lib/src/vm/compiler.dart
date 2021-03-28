@@ -279,6 +279,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
             throw HTErrorUnexpected(curTok.lexeme);
         }
         break;
+      case ParseStyle.script:
       case ParseStyle.block:
         // 函数块中不能出现extern或者static关键字的声明
         switch (curTok.type) {
@@ -340,10 +341,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
             final returnStmt = _parseReturnStmt();
             bytesBuilder.add(returnStmt);
             break;
-          // 其他情况都认为是表达式
           case HTLexicon.semicolon:
             advance(1);
             break;
+          // 其他情况都认为是表达式
           default:
             final expr = _parseExprStmt();
             bytesBuilder.add(expr);
@@ -413,8 +414,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
           default:
             throw HTErrorUnexpected(curTok.lexeme);
         }
-        break;
-      case ParseStyle.script:
         break;
     }
     if (endOfExec) {
@@ -525,13 +524,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
   Uint8List _parseExpr({bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
     final exprBytesBuilder = BytesBuilder();
-    final left = _parseLogicalOrExpr();
+    final left = _parserTernaryExpr();
     if (HTLexicon.assignments.contains(curTok.type)) {
       if (_leftValueLegality == LeftValueLegality.illegal) {
         throw HTErrorIllegalLeftValue();
       }
       final op = advance(1).type;
-      final right = _parseExpr(); // 这里需要右合并，因此没有降到下一级
+      final right = _parseExpr();
       exprBytesBuilder.add(right); // 先从右边的表达式开始计算
       exprBytesBuilder.addByte(HTOpCode.register);
       exprBytesBuilder.addByte(0); // 要赋的值存入 reg[0]
@@ -566,6 +565,28 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
+  /// 三目运算符 e1 ? e2 : e3 ，优先级 3，右合并
+  Uint8List _parserTernaryExpr() {
+    final bytesBuilder = BytesBuilder();
+    final condition = _parseLogicalOrExpr();
+    bytesBuilder.add(condition);
+    if (curTok.type == HTLexicon.condition) {
+      advance(1);
+      bytesBuilder.addByte(HTOpCode.ifStmt);
+      final thenBranch = _parserTernaryExpr();
+      match(HTLexicon.colon);
+      final elseBranch = _parserTernaryExpr();
+      final thenBranchLength = thenBranch.length + 3;
+      final elseBranchLength = elseBranch.length;
+      bytesBuilder.add(_uint16(thenBranchLength));
+      bytesBuilder.add(thenBranch);
+      bytesBuilder.addByte(HTOpCode.goto); // 执行完 then 之后，直接跳过 else block
+      bytesBuilder.add(_int16(elseBranchLength));
+      bytesBuilder.add(elseBranch);
+    }
+    return bytesBuilder.toBytes();
+  }
+
   /// 逻辑或 or ，优先级 5，左合并
   Uint8List _parseLogicalOrExpr() {
     final bytesBuilder = BytesBuilder();
@@ -575,14 +596,14 @@ class Compiler extends Parser with ConstTable, HetuRef {
       _leftValueLegality = LeftValueLegality.illegal;
       while (curTok.type == HTLexicon.logicalOr) {
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(1);
+        bytesBuilder.addByte(2);
         advance(1); // or operator
         final right = _parseLogicalAndExpr();
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(2);
+        bytesBuilder.addByte(3);
         bytesBuilder.addByte(HTOpCode.logicalOr);
-        bytesBuilder.add([1, 2]);
+        bytesBuilder.add([2, 3]);
       }
     }
     return bytesBuilder.toBytes();
@@ -597,14 +618,14 @@ class Compiler extends Parser with ConstTable, HetuRef {
       _leftValueLegality = LeftValueLegality.illegal;
       while (curTok.type == HTLexicon.logicalAnd) {
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(3);
+        bytesBuilder.addByte(4);
         advance(1); // and operator
         final right = _parseEqualityExpr();
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(4);
+        bytesBuilder.addByte(5);
         bytesBuilder.addByte(HTOpCode.logicalAnd);
-        bytesBuilder.add([3, 4]);
+        bytesBuilder.add([4, 5]);
       }
     }
     return bytesBuilder.toBytes();
@@ -759,6 +780,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       var op = advance(1).type;
       final value = _parseUnaryPostfixExpr();
       bytesBuilder.add(value);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(13);
       switch (op) {
         case HTLexicon.negative:
           bytesBuilder.addByte(HTOpCode.negative);
@@ -773,6 +796,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
           bytesBuilder.addByte(HTOpCode.preDecrement);
           break;
       }
+      bytesBuilder.add([13]);
     } else {
       final value = _parseUnaryPostfixExpr();
       bytesBuilder.add(value);

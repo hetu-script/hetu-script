@@ -10,6 +10,7 @@
 | Equality       | ==, !=                 |     None      |     7      |
 | Logical AND    | &&                     |     Left      |     6      |
 | Logical Or     | \|\|                   |     Left      |     5      |
+| Conditional    | e1 ? e2 : e3           |     Right     |     3      |
 | Assignment     | =, \*=, /=, +=, -=     |     Right     |     1      |
 
 ## Dart operator precedence (for reference)
@@ -23,11 +24,11 @@
 | Shift          | <<, >>, >>>                      |     Left      |     12     |
 | Bitwise        | AND &                            |     Left      |     11     |
 | Bitwise        | XOR ˆ                            |     Left      |     10     |
-| Bitwise        | Or \|                            |     Left      |     9      |
+| Bitwise        | OR \|                            |     Left      |     9      |
 | Relational     | <, >, <=, >=, as, is, is!        |     None      |     8      |
 | Equality       | ==, !=                           |     None      |     7      |
-| Logical        | AND &&                           |     Left      |     6      |
-| Logical        | Or \|\|                          |     Left      |     5      |
+| Logical        | and &&                           |     Left      |     6      |
+| Logical        | or \|\|                          |     Left      |     5      |
 | If-null        | ??                               |     Left      |     4      |
 | Conditional    | e1 ? e2 : e3                     |     Right     |     3      |
 | Cascade        | ..                               |     Left      |     2      |

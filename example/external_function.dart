@@ -27,11 +27,13 @@ void main() async {
 
   await hetu.eval(r'''
       external fun hetuAdd(func)
-      fun [DartFunction] add(a: num, b: num): num {
+      fun [DartFunction] namedAdd(a: num, b: num): num {
         return a + b
       }
       fun main {
-        return hetuAdd(add)
+        return hetuAdd(fun [DartFunction] (a: num, b: num): num {
+          return a + b
+        })
       }''');
 
   var result = hetu.invoke('main');

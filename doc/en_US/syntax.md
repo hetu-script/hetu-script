@@ -91,21 +91,22 @@ var i: NotAType; // not an error
 
 ## Control statement
 
+Hetu has While, Do loops, and classic for(init;condition;increment) and for...in/of loops. As well as When statement, which works like switch.
+
 ```typescript
-if (year >= 2001) {
-  print('21st century');
-} else if (year >= 1901) {
-  print('20th century');
-} else {
-  print('unkown date');
-}
-
-for (var planet in gasGiants) {
-  print(planet);
-}
-
-while (year < 2040) {
-  year = year + 1;
+fun main {
+  var i = 0
+  for (;;) {
+    ++i
+    when (i % 2) {
+      0: print('even:', i)
+      1: print('odd:', i)
+      else: print('never going to happen.')
+    }
+    if (i > 5) {
+      break
+    }
+  }
 }
 ```
 

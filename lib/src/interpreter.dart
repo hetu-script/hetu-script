@@ -45,7 +45,7 @@ abstract class Interpreter {
       {bool coreModule = true,
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalFunctionType> externalFunctionTypedef = const {}}) async {
+      Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {}}) async {
     // load classes and functions in core library.
     // TODO: dynamic load needed core lib in script
     if (coreModule) {
@@ -366,7 +366,7 @@ abstract class Interpreter {
 
   final _externClasses = <String, HTExternalClass>{};
   final _externFunctions = <String, Function>{};
-  final _externFunctionTypeUnwraps = <String, HTExternalFunctionType>{};
+  final _externFunctionTypeUnwraps = <String, HTExternalFunctionTypedef>{};
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
@@ -400,7 +400,7 @@ abstract class Interpreter {
     return _externFunctions[id]!;
   }
 
-  void bindExternalFunctionType(String id, HTExternalFunctionType function) {
+  void bindExternalFunctionType(String id, HTExternalFunctionTypedef function) {
     if (_externFunctionTypeUnwraps.containsKey(id)) {
       throw HTErrorDefinedRuntime(id);
     }

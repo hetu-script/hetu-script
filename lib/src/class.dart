@@ -85,7 +85,13 @@ class HTClass extends HTNamespace {
         if (!decl.isInitialized) {
           decl.initialize();
         }
-        return decl.value;
+        final value = decl.value;
+        if (value is HTFunction && value.externalTypedef != null) {
+          final externalFunc = interpreter.unwrapExternalFunctionType(value.externalTypedef!, value);
+          return externalFunc;
+        } else {
+          return value;
+        }
       } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
         return externClass.memberGet(staticName);
@@ -263,10 +269,17 @@ class HTInstance extends HTNamespace {
         decl.initialize();
       }
       final value = decl.value;
-      if (value is HTFunction && value.context == null) {
-        value.context = this;
+      if (value is HTFunction) {
+        if (value.externalTypedef != null) {
+          final externalFunc = interpreter.unwrapExternalFunctionType(value.externalTypedef!, value);
+          return externalFunc;
+        } else if (value.context == null) {
+          value.context = this;
+          return value;
+        }
+      } else {
+        return value;
       }
-      return value;
     } else if (declarations.containsKey(getter)) {
       HTFunction method = declarations[getter]!.value;
       method.context = this;

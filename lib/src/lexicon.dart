@@ -321,6 +321,8 @@ abstract class HTLexicon {
   static const logicalAnd = '&&';
   static const logicalOr = '||';
 
+  static const condition = '?';
+
   static const assign = '=';
   static const assignMultiply = '*=';
   static const assignDevide = '/=';

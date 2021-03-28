@@ -10,7 +10,7 @@ typedef HTExternalFunction = dynamic Function(
 /// write a function in script. and want to pass it to a
 /// external dart function where it accepts only a pure Dart
 /// native function as parameter.
-typedef HTExternalFunctionType = Function Function(HTFunction hetuFunction);
+typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
 final Map<String, Function> coreFunctions = {
   // TODO: 读取注释

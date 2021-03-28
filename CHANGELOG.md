@@ -142,10 +142,7 @@ fun main {
 
 ## 0.0.2+1
 
-- Added some comments in the dart source file.
-- Added some test for error handling.
 - Added multiline comment.
-- Changed 'HetuEnv' into 'Hetu'.
 - Fixed bugs in method calling of instances.
 
 ## 0.0.2
