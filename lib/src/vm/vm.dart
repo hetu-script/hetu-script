@@ -43,7 +43,7 @@ class Hetu extends Interpreter {
   String? _curSymbol;
   String? _curClassName;
 
-  final _register = List<dynamic>.filled(24, null, growable: false);
+  final _register = List<dynamic>.filled(16, null, growable: false);
 
   var _curRefType = ReferrenceType.normal;
 
@@ -697,11 +697,11 @@ class Hetu extends Interpreter {
         break;
       case HTOpCode.preIncrement:
         _curValue = object + 1;
-        _assignCurRef(object);
+        _assignCurRef(_curValue);
         break;
       case HTOpCode.preDecrement:
         _curValue = object - 1;
-        _assignCurRef(object);
+        _assignCurRef(_curValue);
         break;
       default:
       // throw HTErrorUndefinedOperator(_register[left].toString(), _register[right].toString(), HTLexicon.add);

@@ -4,6 +4,8 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      print(-5)
+      for (var i=0; i<4; ++i) {
+        print(i)
+      }
     ''', style: ParseStyle.block);
 }
