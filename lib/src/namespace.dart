@@ -120,7 +120,9 @@ class HTNamespace extends HTObject with InterpreterRef {
       final decl = declarations[varName]!;
       decl.assign(value);
       return;
-    } else if (closure != null) {
+    }
+
+    if (closure != null) {
       closure!.memberSet(varName, value, from: from);
       return;
     }

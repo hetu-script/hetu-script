@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/test.dart",
+      "program": "example/test_lambda_vars.dart",
       "request": "launch",
       "type": "dart"
     }

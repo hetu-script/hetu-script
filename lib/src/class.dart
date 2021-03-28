@@ -261,7 +261,7 @@ class HTInstance extends HTNamespace {
         decl.initialize();
       }
       final value = decl.value;
-      if (value is HTFunction) {
+      if (value is HTFunction && value.context == null) {
         value.context = this;
       }
       return value;
@@ -284,6 +284,7 @@ class HTInstance extends HTNamespace {
         if (closure != null) {
           return closure!.memberGet(varName, from: from);
         }
+        throw HTErrorUndefined(varName);
     }
   }
 
@@ -297,19 +298,18 @@ class HTInstance extends HTNamespace {
 
     final setter = '${HTLexicon.setter}$varName';
     if (declarations.containsKey(varName)) {
-      if (isExtern) {
-        final externClass = interpreter.fetchExternalClass(id);
-        externClass.instanceMemberSet(this, varName, value);
-      } else {
-        final decl = declarations[varName]!;
-        decl.assign(value);
-      }
+      final decl = declarations[varName]!;
+      decl.assign(value);
       return;
     } else if (declarations.containsKey(setter)) {
       HTFunction method = declarations[setter]!.value;
       method.context = this;
       method.call(positionalArgs: [value]);
       return;
+    }
+
+    if (closure != null) {
+      return closure!.memberSet(varName, value, from: from);
     }
 
     throw HTErrorUndefined(varName);

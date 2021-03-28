@@ -11,8 +11,6 @@ class HTAstResolver implements ASTNodeVisitor {
   int get curColumn => _curColumn;
   late final String curFileName;
 
-  late String _moduleName;
-
   /// 代码块列表，每个代码块包含一个字典：key：变量标识符，value：变量是否已初始化
   final _blocks = <Map<String, bool>>[];
 

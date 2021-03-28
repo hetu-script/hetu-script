@@ -45,7 +45,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   late bool _debugMode;
   late bool _bundleMode;
 
-  ImportInfo? _curImportInfo;
+  // ImportInfo? _curImportInfo;
 
   var _leftValueLegality = LeftValueLegality.illegal;
 
@@ -120,9 +120,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return mainBuilder.toBytes();
   }
 
-  Uint8List _compile(List<Token> tokens, String moduleName,
-      [ParseStyle style = ParseStyle.module, ImportInfo? importInfo]) {
-    _curImportInfo = importInfo;
+  Uint8List _compile(List<Token> tokens, String moduleName, [ParseStyle style = ParseStyle.module]) {
+    //, ImportInfo? importInfo]) {
+    // _curImportInfo = importInfo;
     addTokens(tokens, moduleName);
     final bytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.endOfFile) {
