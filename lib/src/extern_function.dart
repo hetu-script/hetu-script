@@ -1,7 +1,11 @@
 import 'type.dart';
 
+import 'function.dart';
+
 typedef HTExternalFunction = dynamic Function(
     [List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs]);
+
+typedef HTExternalFunctionTypeUnwrap = Function Function(HTFunction hetuFunction);
 
 final Map<String, Function> coreFunctions = {
   // TODO: 读取注释

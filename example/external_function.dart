@@ -1,26 +1,40 @@
 import 'package:hetu_script/hetu_script.dart';
 
+typedef DartFunction = int Function(int a, int b);
+
+int hetuAdd(DartFunction func) {
+  return func(6, 7);
+}
+
 void main() async {
   var hetu = Hetu();
 
   await hetu.init(externalFunctions: {
-    'hello': (
-            [List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
-        {'greeting': 'hello'},
+    'hetuAdd': (
+        [List<dynamic> positionalArgs = const [],
+        Map<String, dynamic> namedArgs = const {},
+        List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
+      return hetuAdd(positionalArgs.first);
+    },
+  }, externalFunctionTypeUnwraps: {
+    'DartFunction': (HTFunction function) {
+      return (int a, int b) {
+        // must convert the return type here to let dart know its return value type.
+        return function.call([a, b]) as int;
+      };
+    },
   });
 
   await hetu.eval(r'''
-      external fun hello
+      external fun hetuAdd(func)
+      fun [DartFunction] add(a: num, b: num): num {
+        return a + b
+      }
       fun main {
-        var dartValue = hello()
-        // print('dart value:', dartValue)
-        dartValue['foo'] = 'bar'
-        return dartValue
+        return hetuAdd(add)
       }''');
 
-  var hetuValue = hetu.invoke('main');
+  var result = hetu.invoke('main');
 
-  print('hetu value: $hetuValue');
+  print(result);
 }

@@ -393,6 +393,13 @@ class Hetu extends Interpreter {
         break;
       case HTValueTypeCode.function:
         final id = curCode.readShortUtf8String();
+
+        final hasExternalTypedef = curCode.readBool();
+        String? externalTypedef;
+        if (hasExternalTypedef) {
+          externalTypedef = curCode.readShortUtf8String();
+        }
+
         final funcType = FunctionType.literal;
         final isVariadic = curCode.readBool();
         final minArity = curCode.read();
@@ -416,6 +423,7 @@ class Hetu extends Interpreter {
         _curValue = HTBytesFunction(id, this, curModuleName,
             className: _curClassName,
             funcType: funcType,
+            externalTypedef: externalTypedef,
             paramDecls: paramDecls,
             returnType: returnType,
             definitionIp: definitionIp,
@@ -881,6 +889,12 @@ class Hetu extends Interpreter {
   void _handleFuncDecl() {
     final id = curCode.readShortUtf8String();
 
+    final hasExternalTypedef = curCode.readBool();
+    String? externalTypedef;
+    if (hasExternalTypedef) {
+      externalTypedef = curCode.readShortUtf8String();
+    }
+
     final funcType = FunctionType.values[curCode.read()];
     final isExtern = curCode.readBool();
     final isStatic = curCode.readBool();
@@ -911,6 +925,7 @@ class Hetu extends Interpreter {
       curModuleName,
       className: _curClassName,
       funcType: funcType,
+      externalTypedef: externalTypedef,
       paramDecls: paramDecls,
       returnType: returnType,
       definitionIp: definitionIp,

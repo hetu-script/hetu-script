@@ -19,6 +19,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
   HTBytesFunction(String id, Hetu interpreter, this.module,
       {String? className,
       FunctionType funcType = FunctionType.normal,
+      String? externalTypedef,
       this.paramDecls = const <String, HTBytesParamDecl>{},
       HTTypeId? returnType,
       this.definitionIp,
@@ -33,6 +34,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
       : super(id,
             className: className,
             funcType: funcType,
+            externalTypedef: externalTypedef,
             typeParams: typeParams,
             isExtern: isExtern,
             isStatic: isStatic,
@@ -78,9 +80,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
 
   @override
   dynamic call(
-      {List<dynamic> positionalArgs = const [],
+      [List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {
+      List<HTTypeId> typeArgs = const []]) {
     if (definitionIp == null) {
       throw HTErrorMissingFuncDef(id);
     }

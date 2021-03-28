@@ -43,6 +43,9 @@ fun main {
 }
 ```
 
+- Feature: Added Ternary operator: 'conditon ? true : false'.
+- Feature: Added new interpreter function for bind Dart Function Typedef.
+
 The output is:
 
 ```

@@ -1,3 +1,5 @@
+import 'package:hetu_script/hetu_script.dart';
+
 import 'errors.dart';
 import 'lexicon.dart';
 import 'type.dart';
@@ -92,7 +94,13 @@ class HTNamespace extends HTObject with InterpreterRef {
       if (!decl.isInitialized) {
         decl.initialize();
       }
-      return declarations[varName]!.value;
+      final value = decl.value;
+      if (value is HTFunction && value.externalTypedef != null) {
+        final externalFunc = interpreter.unwrapExternalFunctionType(value.externalTypedef!, value);
+        return externalFunc;
+      } else {
+        return value;
+      }
     }
 
     if (closure != null) {

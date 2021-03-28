@@ -12,6 +12,8 @@ abstract class HTFunction with HTType {
 
   final FunctionType funcType;
 
+  final String? externalTypedef;
+
   @override
   late final HTFunctionTypeId typeid;
 
@@ -37,6 +39,7 @@ abstract class HTFunction with HTType {
   HTFunction(this.id,
       {this.className,
       this.funcType = FunctionType.normal,
+      this.externalTypedef,
       this.typeParams = const [],
       this.isExtern = false,
       this.isStatic = false,
@@ -46,7 +49,7 @@ abstract class HTFunction with HTType {
       this.maxArity = 0});
 
   dynamic call(
-      {List<dynamic> positionalArgs = const [],
+      [List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const <HTTypeId>[]}) {}
+      List<HTTypeId> typeArgs = const <HTTypeId>[]]) {}
 }

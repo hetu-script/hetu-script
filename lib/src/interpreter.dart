@@ -44,8 +44,9 @@ abstract class Interpreter {
 
   Future<void> init(
       {bool coreModule = true,
+      List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
-      List<HTExternalClass> externalClasses = const []}) async {
+      Map<String, HTExternalFunctionTypeUnwrap> externalFunctionTypeUnwraps = const {}}) async {
     // load classes and functions in core library.
     // TODO: dynamic load needed core lib in script
     if (coreModule) {
@@ -65,6 +66,10 @@ abstract class Interpreter {
 
     for (var key in externalFunctions.keys) {
       bindExternalFunction(key, externalFunctions[key]!);
+    }
+
+    for (var key in externalFunctionTypeUnwraps.keys) {
+      bindExternalFunctionType(key, externalFunctionTypeUnwraps[key]!);
     }
 
     for (var value in externalClasses) {
@@ -105,7 +110,7 @@ abstract class Interpreter {
       global.define(HTDeclaration(moduleName, value: library_namespace));
     }
 
-    result = eval(module.content,
+    result = await eval(module.content,
         fileName: curModuleName,
         namespace: library_namespace,
         style: style,
@@ -131,7 +136,7 @@ abstract class Interpreter {
         if (!callee.isExtern) {
           // 普通函数
           if (callee.funcType != FunctionType.constructor) {
-            return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+            return callee.call(positionalArgs, namedArgs);
           } else {
             final className = callee.className;
             final klass = global.memberGet(className!);
@@ -241,28 +246,30 @@ abstract class Interpreter {
 
   /// 调用一个全局函数或者类、对象上的函数
   // TODO: 调用构造函数
-  dynamic invoke(String functionName,
-      {String? objectName,
+  dynamic invoke(String funcName,
+      {String? className,
+      HTInstance? instance,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
       bool errorHandled = false}) {
     try {
       var func;
-      if (objectName == null) {
-        func = global.memberGet(functionName);
+      if (className != null) {
+        // 类的静态函数
+        HTClass klass = global.memberGet(className);
+        return klass.invoke(funcName, positionalArgs, namedArgs, typeArgs);
+      } else if (instance != null) {
+        return instance.invoke(funcName, positionalArgs, namedArgs, typeArgs);
       } else {
-        // 命名空间内的静态函数
-        HTObject object = global.memberGet(objectName);
-        func = object.memberGet(functionName, from: object.fullName);
+        func = global.memberGet(funcName);
+        return call(func, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs, errorHandled: true);
       }
-
-      return call(func, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs, errorHandled: true);
     } catch (e, stack) {
       if (!errorHandled) {
         var sb = StringBuffer();
-        for (var funcName in HTFunction.callStack) {
-          sb.writeln('  $funcName');
+        for (var func in HTFunction.callStack) {
+          sb.writeln('  $func');
         }
         sb.writeln('\n$stack');
         var callStack = sb.toString();
@@ -357,6 +364,7 @@ abstract class Interpreter {
 
   final _externClasses = <String, HTExternalClass>{};
   final _externFunctions = <String, Function>{};
+  final _externFunctionTypeUnwraps = <String, HTExternalFunctionTypeUnwrap>{};
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
@@ -388,5 +396,20 @@ abstract class Interpreter {
       throw HTErrorUndefined(id);
     }
     return _externFunctions[id]!;
+  }
+
+  void bindExternalFunctionType(String id, HTExternalFunctionTypeUnwrap function) {
+    if (_externFunctionTypeUnwraps.containsKey(id)) {
+      throw HTErrorDefinedRuntime(id);
+    }
+    _externFunctionTypeUnwraps[id] = function;
+  }
+
+  Function unwrapExternalFunctionType(String id, HTFunction function) {
+    if (!_externFunctionTypeUnwraps.containsKey(id)) {
+      throw HTErrorUndefined(id);
+    }
+    final unwrapFunc = _externFunctionTypeUnwraps[id]!;
+    return unwrapFunc(function);
   }
 }

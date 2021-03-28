@@ -330,7 +330,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       if (!callee.isExtern) {
         // 普通函数
         if (callee.funcType != FunctionType.constructor) {
-          return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+          return callee.call(positionalArgs, namedArgs);
         } else {
           final className = callee.className;
           final klass = global.memberGet(className!);

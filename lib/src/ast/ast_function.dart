@@ -15,11 +15,12 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   final FuncDeclStmt funcStmt;
 
   HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
-      {List<HTTypeId> typeParams = const [], HTNamespace? context})
+      {String? externalTypedef, List<HTTypeId> typeParams = const [], HTNamespace? context})
       : super(
           funcStmt.internalName,
           className: funcStmt.className,
           funcType: funcStmt.funcType,
+          externalTypedef: externalTypedef,
           typeParams: typeParams,
           // typeid:
           isExtern: funcStmt.isExtern,
@@ -67,9 +68,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
   @override
   dynamic call(
-      {List<dynamic> positionalArgs = const [],
+      [List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {
+      List<HTTypeId> typeArgs = const []]) {
     HTFunction.callStack.add(id);
 
     if (positionalArgs.length < funcStmt.arity ||

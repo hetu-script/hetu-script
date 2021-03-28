@@ -86,6 +86,8 @@ create the typeid according to the param types and return value type.
 | type params length   | 1            | byte                   |          |
 | type params list     | ...          | short utf8 string list |          |
 | function type        | 1            | byte                   |          |
+| hasExternalTypedef   | 1            | bool                   |          |
+| externalTypedef      | 256          | short utf8 string      |          |
 | isExtern             | 1            | bool                   |          |
 | isStatic             | 1            | bool                   |          |
 | isConst              | 1            | bool                   |          |

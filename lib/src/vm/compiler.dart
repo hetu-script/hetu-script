@@ -1350,6 +1350,15 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bool isStatic = false,
       bool isConst = false}) {
     advance(1);
+
+    var hasExternalTypedef = false;
+    String? externalTypedef;
+    if (expect([HTLexicon.squareLeft], consume: true)) {
+      hasExternalTypedef = true;
+      externalTypedef = match(HTLexicon.identifier).lexeme;
+      match(HTLexicon.squareRight);
+    }
+
     String? declId;
     String? id;
     if (curTok.type == HTLexicon.identifier) {
@@ -1394,6 +1403,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
       //   match(HTLexicon.angleRight);
       // }
 
+      if (hasExternalTypedef) {
+        funcBytesBuilder.addByte(1);
+        funcBytesBuilder.add(_shortUtf8String(externalTypedef!));
+      } else {
+        funcBytesBuilder.addByte(0);
+      }
+
       funcBytesBuilder.addByte(funcType.index);
       funcBytesBuilder.addByte(isExtern ? 1 : 0);
       funcBytesBuilder.addByte(isStatic ? 1 : 0);
@@ -1402,6 +1418,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
       funcBytesBuilder.addByte(HTOpCode.local);
       funcBytesBuilder.addByte(HTValueTypeCode.function);
       funcBytesBuilder.add(_shortUtf8String(id));
+
+      if (hasExternalTypedef) {
+        funcBytesBuilder.addByte(1);
+        funcBytesBuilder.add(_shortUtf8String(externalTypedef!));
+      } else {
+        funcBytesBuilder.addByte(0);
+      }
     }
 
     var isFuncVariadic = false;

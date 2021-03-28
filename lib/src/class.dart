@@ -146,7 +146,7 @@ class HTClass extends HTNamespace {
     } else if (declarations.containsKey(setter)) {
       HTFunction setterFunc = declarations[setter]!.value;
       if (!setterFunc.isExtern) {
-        setterFunc.call(positionalArgs: [value]);
+        setterFunc.call([value]);
       } else if (classType == ClassType.extern) {
         final externClass = interpreter.fetchExternalClass(id);
         externClass.memberSet(staticName, value);
@@ -203,17 +203,19 @@ class HTClass extends HTNamespace {
     if (declarations.containsKey(constructorName)) {
       HTFunction constructor = declarations[constructorName]!.value;
       constructor.context = instance;
-      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      constructor.call(positionalArgs, namedArgs);
     }
 
     return instance;
   }
 
   dynamic invoke(String funcName,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+      [List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []]) {
     HTFunction? func = memberGet(funcName, from: fullName);
     if ((func != null) && (!func.isStatic)) {
-      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      return func.call(positionalArgs, namedArgs, typeArgs);
     }
 
     throw HTErrorUndefined(funcName);
@@ -304,7 +306,7 @@ class HTInstance extends HTNamespace {
     } else if (declarations.containsKey(setter)) {
       HTFunction method = declarations[setter]!.value;
       method.context = this;
-      method.call(positionalArgs: [value]);
+      method.call([value]);
       return;
     }
 
@@ -316,9 +318,11 @@ class HTInstance extends HTNamespace {
   }
 
   dynamic invoke(String funcName,
-      {List<dynamic> positionalArgs = const [], Map<String, dynamic> namedArgs = const {}}) {
+      [List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []]) {
     HTFunction func = memberGet(funcName, from: fullName);
     func.context = this;
-    return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+    return func.call(positionalArgs, namedArgs, typeArgs);
   }
 }
