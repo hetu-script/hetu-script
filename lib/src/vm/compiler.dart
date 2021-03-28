@@ -61,13 +61,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
     final code = _compile(tokens, moduleName, style);
 
     for (final importInfo in _importedModules) {
-      final savedFileName = curModuleName;
+      interpreter.saveSnapshot();
       if (bundleMode) {
       } else {
         await interpreter.import(importInfo.key, moduleName: importInfo.name, debugMode: _debugMode);
       }
-      curModuleName = savedFileName;
-      interpreter.curModuleName = savedFileName;
+      interpreter.resotreSnapshot();
+      curModuleName = interpreter.curModuleName;
     }
 
     curModuleName = '';

@@ -9,9 +9,9 @@ import '../parser.dart';
 import '../common.dart';
 
 class HTAstParser extends Parser with AstInterpreterRef {
-  late String _curFileName;
+  late String _curModuleName;
   @override
-  String get curModuleName => _curFileName;
+  String get curModuleName => _curModuleName;
 
   String? _curClassName;
   ClassType? _curClassType;
@@ -26,20 +26,20 @@ class HTAstParser extends Parser with AstInterpreterRef {
       [ParseStyle style = ParseStyle.module, debugMode = false]) async {
     this.tokens.clear();
     this.tokens.addAll(tokens);
-    _curFileName = fileName;
+    _curModuleName = fileName;
 
     final statements = <ASTNode>[];
     while (curTok.type != HTLexicon.endOfFile) {
       var stmt = _parseStmt(style: style);
       if (stmt is ImportStmt) {
-        final savedFileName = _curFileName;
+        interpreter.saveSnapshot();
         await interpreter.import(stmt.key, moduleName: stmt.namespace);
-        _curFileName = savedFileName;
-        interpreter.curModuleName = savedFileName;
+        interpreter.resotreSnapshot();
+        _curModuleName = interpreter.curModuleName;
       }
       statements.add(stmt);
     }
-    _curFileName = '';
+    _curModuleName = '';
 
     return statements;
   }
@@ -216,25 +216,25 @@ class HTAstParser extends Parser with AstInterpreterRef {
     switch (curTok.type) {
       case HTLexicon.NULL:
         advance(1);
-        return NullExpr(_curFileName, peek(-1).line, peek(-1).column);
+        return NullExpr(_curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.TRUE:
         advance(1);
-        return BooleanExpr(true, _curFileName, peek(-1).line, peek(-1).column);
+        return BooleanExpr(true, _curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.FALSE:
         advance(1);
-        return BooleanExpr(false, _curFileName, peek(-1).line, peek(-1).column);
+        return BooleanExpr(false, _curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.integer:
         var index = interpreter.addConstInt(curTok.literal);
         advance(1);
-        return ConstIntExpr(index, _curFileName, peek(-1).line, peek(-1).column);
+        return ConstIntExpr(index, _curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.float:
         var index = interpreter.addConstFloat(curTok.literal);
         advance(1);
-        return ConstFloatExpr(index, _curFileName, peek(-1).line, peek(-1).column);
+        return ConstFloatExpr(index, _curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.string:
         var index = interpreter.addConstString(curTok.literal);
         advance(1);
-        return ConstStringExpr(index, _curFileName, peek(-1).line, peek(-1).column);
+        return ConstStringExpr(index, _curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.THIS:
         advance(1);
         return ThisExpr(peek(-1));
@@ -257,7 +257,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
           }
         }
         match(HTLexicon.squareRight);
-        return LiteralVectorExpr(_curFileName, line, column, list_expr);
+        return LiteralVectorExpr(_curModuleName, line, column, list_expr);
       case HTLexicon.curlyLeft:
         final line = curTok.line;
         final column = advance(1).column;
@@ -272,7 +272,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
           }
         }
         match(HTLexicon.curlyRight);
-        return LiteralDictExpr(_curFileName, line, column, map_expr);
+        return LiteralDictExpr(_curModuleName, line, column, map_expr);
 
       case HTLexicon.FUN:
         return _parseFuncDeclaration(funcType: FunctionType.literal);

@@ -32,20 +32,75 @@ class LoopInfo {
   LoopInfo(this.startIp, this.endIp, this.namespace);
 }
 
+class _Snapshot {
+  int line, column;
+  String moduleName;
+  String? symbol, className;
+  dynamic value;
+  ReferrenceType refType;
+
+  _Snapshot(this.line, this.column, this.moduleName, this.symbol, this.className, this.value, this.refType);
+}
+
 class Hetu extends Interpreter {
   static var _anonymousScriptIndex = 0;
 
   final modules = <String, BytesReader>{};
+  late BytesReader _curCode;
 
-  late BytesReader curCode;
-
-  dynamic _curValue; // local value
+  var _curLine = 0;
+  @override
+  int get curLine => _curLine;
+  var _curColumn = 0;
+  @override
+  int get curColumn => _curColumn;
+  late String _curModuleName;
+  @override
+  String get curModuleName => _curModuleName;
   String? _curSymbol;
   String? _curClassName;
+  dynamic _curValue; // local value
+  var _curRefType = ReferrenceType.normal;
+
+  final _snapshots = <_Snapshot>[];
+
+  @override
+  void saveSnapshot() {
+    _snapshots.add(_Snapshot(
+      _curLine,
+      _curColumn,
+      _curModuleName,
+      _curSymbol,
+      _curClassName,
+      _curValue,
+      _curRefType,
+    ));
+  }
+
+  void switchCode(String module) {
+    _curModuleName = module;
+    _curCode = modules[module]!;
+  }
+
+  @override
+  void resotreSnapshot() {
+    if (_snapshots.isNotEmpty) {
+      final snapshot = _snapshots.last;
+      _curLine = snapshot.line;
+      _curColumn = snapshot.column;
+      _curModuleName = snapshot.moduleName;
+      _curSymbol = snapshot.symbol;
+      _curClassName = snapshot.className;
+      _curValue = snapshot.value;
+      _curRefType = snapshot.refType;
+
+      _snapshots.removeLast();
+
+      _curCode = modules[_curModuleName]!;
+    }
+  }
 
   final _register = List<dynamic>.filled(16, null, growable: false);
-
-  var _curRefType = ReferrenceType.normal;
 
   /// break 指令将会跳回最近的一个loop point
   final _loops = <LoopInfo>[];
@@ -66,14 +121,14 @@ class Hetu extends Interpreter {
   }) async {
     if (content.isEmpty) throw HTErrorEmpty(moduleName ?? '');
 
-    curModuleName = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+    _curModuleName = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
     curNamespace = namespace ?? global;
     final compiler = Compiler();
 
     try {
-      final tokens = Lexer().lex(content, curModuleName);
-      final bytes = await compiler.compile(tokens, this, curModuleName, style: style, debugMode: debugMode);
-      curCode = modules[curModuleName] = BytesReader(bytes);
+      final tokens = Lexer().lex(content, _curModuleName);
+      final bytes = await compiler.compile(tokens, this, _curModuleName, style: style, debugMode: debugMode);
+      _curCode = modules[_curModuleName] = BytesReader(bytes);
 
       var result = execute(closure: curNamespace);
       if (style == ParseStyle.module && invokeFunc != null) {
@@ -95,10 +150,10 @@ class Hetu extends Interpreter {
               compiler.curLine, compiler.curColumn);
         } else if (e is HTError) {
           newErr = HTInterpreterError(
-              '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
+              '${e.message}\nHetu call stack:\n$callStack', e.type, _curModuleName, curLine, curColumn);
         } else {
           newErr = HTInterpreterError(
-              '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
+              '$e\nHetu call stack:\n$callStack', HTErrorType.other, _curModuleName, curLine, curColumn);
         }
 
         errorHandler.handle(newErr);
@@ -114,7 +169,7 @@ class Hetu extends Interpreter {
     final bytesBuilder = BytesBuilder();
 
     try {
-      final tokens = Lexer().lex(content, curModuleName);
+      final tokens = Lexer().lex(content, _curModuleName);
       final bytes = await compiler.compile(tokens, this, moduleName, style: style, debugMode: debugMode);
 
       bytesBuilder.add(bytes);
@@ -133,10 +188,10 @@ class Hetu extends Interpreter {
               compiler.curLine, compiler.curColumn);
         } else if (e is HTError) {
           newErr = HTInterpreterError(
-              '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
+              '${e.message}\nHetu call stack:\n$callStack', e.type, _curModuleName, curLine, curColumn);
         } else {
           newErr = HTInterpreterError(
-              '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
+              '$e\nHetu call stack:\n$callStack', HTErrorType.other, _curModuleName, curLine, curColumn);
         }
 
         errorHandler.handle(newErr);
@@ -153,11 +208,11 @@ class Hetu extends Interpreter {
   /// 从 [ip] 位置开始解释，遇到 OP.endOfExec 后返回当前值。
   /// 返回时，指针会回到执行前的 ip 位置。并且会回到之前的命名空间。
   dynamic execute({int? ip, HTNamespace? closure}) {
-    final savedIp = curCode.ip;
+    final savedIp = _curCode.ip;
     final savedNamespace = curNamespace;
 
     if (ip != null) {
-      curCode.ip = ip;
+      _curCode.ip = ip;
     }
     if (closure != null) {
       curNamespace = closure;
@@ -166,7 +221,7 @@ class Hetu extends Interpreter {
     final result = _execute();
 
     if (ip != null) {
-      curCode.ip = savedIp;
+      _curCode.ip = savedIp;
     }
     if (closure != null) {
       curNamespace = savedNamespace;
@@ -176,24 +231,24 @@ class Hetu extends Interpreter {
   }
 
   dynamic _execute() {
-    var instruction = curCode.read();
+    var instruction = _curCode.read();
     while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
         case HTOpCode.signature:
-          curCode.readUint32();
+          _curCode.readUint32();
           break;
         case HTOpCode.version:
-          final major = curCode.read();
-          final minor = curCode.read();
-          final patch = curCode.readUint16();
+          final major = _curCode.read();
+          final minor = _curCode.read();
+          final patch = _curCode.readUint16();
           scriptVersion = HTVersion(major, minor, patch);
           break;
         case HTOpCode.debug:
-          debugMode = curCode.read() == 0 ? false : true;
+          debugMode = _curCode.read() == 0 ? false : true;
           break;
         case HTOpCode.debugInfo:
-          curLine = curCode.readUint16();
-          curColumn = curCode.readUint16();
+          _curLine = _curCode.readUint16();
+          _curColumn = _curCode.readUint16();
           break;
         // 将字面量存储在本地变量中
         case HTOpCode.local:
@@ -201,29 +256,29 @@ class Hetu extends Interpreter {
           break;
         // 将本地变量存入下一个字节代表的寄存器位置中
         case HTOpCode.register:
-          _storeRegister(curCode.read(), _curValue);
+          _storeRegister(_curCode.read(), _curValue);
           break;
         case HTOpCode.goto:
-          final distance = curCode.readInt16();
-          curCode.ip += distance;
+          final distance = _curCode.readInt16();
+          _curCode.ip += distance;
           break;
         // 循环开始，记录断点
         case HTOpCode.loopPoint:
-          final endDistance = curCode.readUint16();
-          _loops.add(LoopInfo(curCode.ip, curCode.ip + endDistance, curNamespace));
+          final endDistance = _curCode.readUint16();
+          _loops.add(LoopInfo(_curCode.ip, _curCode.ip + endDistance, curNamespace));
           break;
         case HTOpCode.breakLoop:
-          curCode.ip = _loops.last.endIp;
+          _curCode.ip = _loops.last.endIp;
           curNamespace = _loops.last.namespace;
           _loops.removeLast();
           break;
         case HTOpCode.continueLoop:
-          curCode.ip = _loops.last.startIp;
+          _curCode.ip = _loops.last.startIp;
           curNamespace = _loops.last.namespace;
           break;
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
-          final id = curCode.readShortUtf8String();
+          final id = _curCode.readShortUtf8String();
           curNamespace = HTNamespace(this, id: id, closure: curNamespace);
           break;
         case HTOpCode.endOfBlock:
@@ -236,55 +291,55 @@ class Hetu extends Interpreter {
         case HTOpCode.endOfExec:
           return _curValue;
         case HTOpCode.constTable:
-          final int64Length = curCode.readUint16();
+          final int64Length = _curCode.readUint16();
           for (var i = 0; i < int64Length; ++i) {
-            curCode.consts.intTable.add(curCode.readInt64());
+            _curCode.consts.intTable.add(_curCode.readInt64());
           }
-          final float64Length = curCode.readUint16();
+          final float64Length = _curCode.readUint16();
           for (var i = 0; i < float64Length; ++i) {
-            curCode.consts.floatTable.add(curCode.readFloat64());
+            _curCode.consts.floatTable.add(_curCode.readFloat64());
           }
-          final utf8StringLength = curCode.readUint16();
+          final utf8StringLength = _curCode.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
-            curCode.consts.stringTable.add(curCode.readUtf8String());
+            _curCode.consts.stringTable.add(_curCode.readUtf8String());
           }
           break;
         // 变量表
         case HTOpCode.declTable:
-          var enumDeclLength = curCode.readUint16();
+          var enumDeclLength = _curCode.readUint16();
           for (var i = 0; i < enumDeclLength; ++i) {
             _handleEnumDecl();
           }
-          var funcDeclLength = curCode.readUint16();
+          var funcDeclLength = _curCode.readUint16();
           for (var i = 0; i < funcDeclLength; ++i) {
             _handleFuncDecl();
           }
-          var classDeclLength = curCode.readUint16();
+          var classDeclLength = _curCode.readUint16();
           for (var i = 0; i < classDeclLength; ++i) {
             _handleClassDecl();
           }
-          var varDeclLength = curCode.readUint16();
+          var varDeclLength = _curCode.readUint16();
           for (var i = 0; i < varDeclLength; ++i) {
             _handleVarDecl();
           }
           break;
         case HTOpCode.ifStmt:
           bool condition = _curValue;
-          final thenBranchLength = curCode.readUint16();
+          final thenBranchLength = _curCode.readUint16();
           if (!condition) {
-            curCode.skip(thenBranchLength);
+            _curCode.skip(thenBranchLength);
           }
           break;
         case HTOpCode.whileStmt:
-          final hasCondition = curCode.readBool();
+          final hasCondition = _curCode.readBool();
           if (hasCondition && !_curValue) {
-            curCode.ip = _loops.last.endIp;
+            _curCode.ip = _loops.last.endIp;
             _loops.removeLast();
           }
           break;
         case HTOpCode.doStmt:
           if (_curValue) {
-            curCode.ip = _loops.last.startIp;
+            _curCode.ip = _loops.last.startIp;
           }
           break;
         case HTOpCode.forStmt:
@@ -335,36 +390,36 @@ class Hetu extends Interpreter {
           break;
       }
 
-      instruction = curCode.read();
+      instruction = _curCode.read();
     }
   }
 
   // void _resolve() {}
 
   void _storeLocal() {
-    final valueType = curCode.read();
+    final valueType = _curCode.read();
     switch (valueType) {
       case HTValueTypeCode.NULL:
         _curValue = null;
         break;
       case HTValueTypeCode.boolean:
-        (curCode.read() == 0) ? _curValue = false : _curValue = true;
+        (_curCode.read() == 0) ? _curValue = false : _curValue = true;
         break;
       case HTValueTypeCode.int64:
-        final index = curCode.readUint16();
-        _curValue = curCode.consts.getInt64(index);
+        final index = _curCode.readUint16();
+        _curValue = _curCode.consts.getInt64(index);
         break;
       case HTValueTypeCode.float64:
-        final index = curCode.readUint16();
-        _curValue = curCode.consts.getFloat64(index);
+        final index = _curCode.readUint16();
+        _curValue = _curCode.consts.getFloat64(index);
         break;
       case HTValueTypeCode.utf8String:
-        final index = curCode.readUint16();
-        _curValue = curCode.consts.getUtf8String(index);
+        final index = _curCode.readUint16();
+        _curValue = _curCode.consts.getUtf8String(index);
         break;
       case HTValueTypeCode.symbol:
-        _curSymbol = curCode.readShortUtf8String();
-        final isGetKey = curCode.readBool();
+        _curSymbol = _curCode.readShortUtf8String();
+        final isGetKey = _curCode.readBool();
         if (!isGetKey) {
           _curRefType = ReferrenceType.normal;
           _curValue = curNamespace.memberGet(_curSymbol!, from: curNamespace.fullName);
@@ -376,7 +431,7 @@ class Hetu extends Interpreter {
         break;
       case HTValueTypeCode.list:
         final list = [];
-        final length = curCode.readUint16();
+        final length = _curCode.readUint16();
         for (var i = 0; i < length; ++i) {
           final listItem = execute();
           list.add(listItem);
@@ -385,7 +440,7 @@ class Hetu extends Interpreter {
         break;
       case HTValueTypeCode.map:
         final map = {};
-        final length = curCode.readUint16();
+        final length = _curCode.readUint16();
         for (var i = 0; i < length; ++i) {
           final key = execute();
           final value = execute();
@@ -394,35 +449,35 @@ class Hetu extends Interpreter {
         _curValue = map;
         break;
       case HTValueTypeCode.function:
-        final id = curCode.readShortUtf8String();
+        final id = _curCode.readShortUtf8String();
 
-        final hasExternalTypedef = curCode.readBool();
+        final hasExternalTypedef = _curCode.readBool();
         String? externalTypedef;
         if (hasExternalTypedef) {
-          externalTypedef = curCode.readShortUtf8String();
+          externalTypedef = _curCode.readShortUtf8String();
         }
 
         final funcType = FunctionType.literal;
-        final isVariadic = curCode.readBool();
-        final minArity = curCode.read();
-        final maxArity = curCode.read();
-        final paramDecls = _getParams(curCode.read());
+        final isVariadic = _curCode.readBool();
+        final minArity = _curCode.read();
+        final maxArity = _curCode.read();
+        final paramDecls = _getParams(_curCode.read());
 
         HTTypeId? returnType;
-        final hasType = curCode.readBool();
+        final hasType = _curCode.readBool();
         if (hasType) {
           returnType = _getTypeId();
         }
 
         int? definitionIp;
-        final hasDefinition = curCode.readBool();
+        final hasDefinition = _curCode.readBool();
         if (hasDefinition) {
-          final length = curCode.readUint16();
-          definitionIp = curCode.ip;
-          curCode.skip(length);
+          final length = _curCode.readUint16();
+          definitionIp = _curCode.ip;
+          _curCode.skip(length);
         }
 
-        final func = HTBytesFunction(id, this, curModuleName,
+        final func = HTBytesFunction(id, this, _curModuleName,
             className: _curClassName,
             funcType: funcType,
             externalTypedef: externalTypedef,
@@ -506,9 +561,9 @@ class Hetu extends Interpreter {
   /// 只包括 for in & of，普通的 for 其实是 while
   void _handleForStmt() {
     final object = _curValue;
-    final type = curCode.read();
-    final id = curCode.readShortUtf8String();
-    final loopLength = curCode.readUint16();
+    final type = _curCode.read();
+    final id = _curCode.readShortUtf8String();
+    final loopLength = _curCode.readUint16();
 
     if (type == ForStmtType.keyIn) {
       if (object is! Iterable && object is! Map) {
@@ -520,16 +575,16 @@ class Hetu extends Interpreter {
           for (var value in object) {
             decl.assign(value);
             execute();
-            curCode.ip -= loopLength;
+            _curCode.ip -= loopLength;
           }
-          curCode.skip(loopLength);
+          _curCode.skip(loopLength);
         } else if (object is Map) {
           for (var value in object.values) {
             decl.assign(value);
             execute();
-            curCode.ip -= loopLength;
+            _curCode.ip -= loopLength;
           }
-          curCode.skip(loopLength);
+          _curCode.skip(loopLength);
         }
       }
     }
@@ -543,32 +598,32 @@ class Hetu extends Interpreter {
         for (var value in object.values) {
           decl.assign(value);
           execute();
-          curCode.ip -= loopLength;
+          _curCode.ip -= loopLength;
         }
-        curCode.skip(loopLength);
+        _curCode.skip(loopLength);
       }
     }
   }
 
   void _handleWhenStmt() {
     var condition = _curValue;
-    final hasCondition = curCode.readBool();
+    final hasCondition = _curCode.readBool();
 
-    final casesCount = curCode.read();
+    final casesCount = _curCode.read();
     final branchesIpList = <int>[];
     final casesList = [];
     for (var i = 0; i < casesCount; ++i) {
-      branchesIpList.add(curCode.readUint16());
+      branchesIpList.add(_curCode.readUint16());
     }
-    final elseBranchIp = curCode.readUint16();
-    final endIp = curCode.readUint16();
+    final elseBranchIp = _curCode.readUint16();
+    final endIp = _curCode.readUint16();
 
     for (var i = 0; i < casesCount; ++i) {
       final value = execute();
       casesList.add(value);
     }
 
-    final startIp = curCode.ip;
+    final startIp = _curCode.ip;
 
     var index = -1;
     if (hasCondition) {
@@ -577,18 +632,18 @@ class Hetu extends Interpreter {
 
     if (index != -1) {
       final distance = branchesIpList[index];
-      curCode.skip(distance);
+      _curCode.skip(distance);
       execute();
-      curCode.ip = startIp + endIp;
+      _curCode.ip = startIp + endIp;
     } else {
       final distance = elseBranchIp;
-      curCode.skip(distance);
+      _curCode.skip(distance);
       execute();
     }
   }
 
   void _handleAssignOp(int opcode) {
-    final right = curCode.read();
+    final right = _curCode.read();
 
     switch (opcode) {
       case HTOpCode.assign:
@@ -619,8 +674,8 @@ class Hetu extends Interpreter {
   }
 
   void _handleBinaryOp(int opcode) {
-    final left = curCode.read();
-    final right = curCode.read();
+    final left = _curCode.read();
+    final right = _curCode.read();
 
     switch (opcode) {
       case HTOpCode.logicalOr:
@@ -684,7 +739,7 @@ class Hetu extends Interpreter {
   }
 
   void _handleUnaryPrefixOp(int op) {
-    final objIndex = curCode.read();
+    final objIndex = _curCode.read();
     final object = _register[objIndex];
     switch (op) {
       case HTOpCode.negative:
@@ -707,19 +762,19 @@ class Hetu extends Interpreter {
   }
 
   void _handleCallExpr() {
-    final objIndex = curCode.read();
+    final objIndex = _curCode.read();
     var object = _register[objIndex];
     var positionalArgs = [];
-    final positionalArgsLength = curCode.read();
+    final positionalArgsLength = _curCode.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
       final arg = execute();
       positionalArgs.add(arg);
     }
 
     var namedArgs = <String, dynamic>{};
-    final namedArgsLength = curCode.read();
+    final namedArgsLength = _curCode.read();
     for (var i = 0; i < namedArgsLength; ++i) {
-      final name = curCode.readShortUtf8String();
+      final name = _curCode.readShortUtf8String();
       final arg = execute();
       namedArgs[name] = arg;
     }
@@ -733,9 +788,9 @@ class Hetu extends Interpreter {
   void _handleUnaryPostfixOp(int op) {
     switch (op) {
       case HTOpCode.memberGet:
-        final objIndex = curCode.read();
+        final objIndex = _curCode.read();
         var object = _register[objIndex];
-        final objKey = curCode.read();
+        final objKey = _curCode.read();
         var key = _register[objKey];
         if (object is num) {
           object = HTNumber(object);
@@ -763,9 +818,9 @@ class Hetu extends Interpreter {
         }
         break;
       case HTOpCode.subGet:
-        final objIndex = curCode.read();
+        final objIndex = _curCode.read();
         var object = _register[objIndex];
-        final objKey = curCode.read();
+        final objKey = _curCode.read();
         var key = _register[objKey];
         if (object is! List && object is! Map) {
           throw HTErrorSubGet(object.toString());
@@ -777,14 +832,14 @@ class Hetu extends Interpreter {
         _handleCallExpr();
         break;
       case HTOpCode.postIncrement:
-        final objIndex = curCode.read();
+        final objIndex = _curCode.read();
         var object = _register[objIndex];
         _curValue = object;
         final newValue = _register[objIndex] += 1;
         _assignCurRef(newValue);
         break;
       case HTOpCode.postDecrement:
-        final objIndex = curCode.read();
+        final objIndex = _curCode.read();
         var object = _register[objIndex];
         _curValue = object;
         final newValue = _register[objIndex] -= 1;
@@ -794,44 +849,44 @@ class Hetu extends Interpreter {
   }
 
   HTTypeId _getTypeId() {
-    final id = curCode.readShortUtf8String();
+    final id = _curCode.readShortUtf8String();
 
-    final length = curCode.read();
+    final length = _curCode.read();
 
     final args = <HTTypeId>[];
     for (var i = 0; i < length; ++i) {
       args.add(_getTypeId());
     }
 
-    final isNullable = curCode.read() == 0 ? false : true;
+    final isNullable = _curCode.read() == 0 ? false : true;
 
     return HTTypeId(id, isNullable: isNullable, arguments: args);
   }
 
   void _handleVarDecl() {
-    final id = curCode.readShortUtf8String();
+    final id = _curCode.readShortUtf8String();
 
-    final isDynamic = curCode.readBool();
-    final isExtern = curCode.readBool();
-    final isImmutable = curCode.readBool();
-    final isMember = curCode.readBool();
-    final isStatic = curCode.readBool();
+    final isDynamic = _curCode.readBool();
+    final isExtern = _curCode.readBool();
+    final isImmutable = _curCode.readBool();
+    final isMember = _curCode.readBool();
+    final isStatic = _curCode.readBool();
 
     HTTypeId? declType;
-    final hasType = curCode.readBool();
+    final hasType = _curCode.readBool();
     if (hasType) {
       declType = _getTypeId();
     }
 
     int? initializerIp;
-    final hasInitializer = curCode.readBool();
+    final hasInitializer = _curCode.readBool();
     if (hasInitializer) {
-      final length = curCode.readUint16();
-      initializerIp = curCode.ip;
-      curCode.skip(length);
+      final length = _curCode.readUint16();
+      initializerIp = _curCode.ip;
+      _curCode.skip(length);
     }
 
-    final decl = HTBytesDecl(id, this, curModuleName,
+    final decl = HTBytesDecl(id, this, _curModuleName,
         declType: declType,
         initializerIp: initializerIp,
         isDynamic: isDynamic,
@@ -851,26 +906,26 @@ class Hetu extends Interpreter {
     final paramDecls = <String, HTBytesParamDecl>{};
 
     for (var i = 0; i < paramDeclsLength; ++i) {
-      final id = curCode.readShortUtf8String();
-      final isOptional = curCode.readBool();
-      final isNamed = curCode.readBool();
-      final isVariadic = curCode.readBool();
+      final id = _curCode.readShortUtf8String();
+      final isOptional = _curCode.readBool();
+      final isNamed = _curCode.readBool();
+      final isVariadic = _curCode.readBool();
 
       HTTypeId? declType;
-      final hasType = curCode.readBool();
+      final hasType = _curCode.readBool();
       if (hasType) {
         declType = _getTypeId();
       }
 
       int? initializerIp;
-      final hasInitializer = curCode.readBool();
+      final hasInitializer = _curCode.readBool();
       if (hasInitializer) {
-        final length = curCode.readUint16();
-        initializerIp = curCode.ip;
-        curCode.skip(length);
+        final length = _curCode.readUint16();
+        initializerIp = _curCode.ip;
+        _curCode.skip(length);
       }
 
-      paramDecls[id] = HTBytesParamDecl(id, this, curModuleName,
+      paramDecls[id] = HTBytesParamDecl(id, this, _curModuleName,
           declType: declType,
           initializerIp: initializerIp,
           isOptional: isOptional,
@@ -882,13 +937,13 @@ class Hetu extends Interpreter {
   }
 
   void _handleEnumDecl() {
-    final id = curCode.readShortUtf8String();
-    final isExtern = curCode.readBool();
-    final length = curCode.readUint16();
+    final id = _curCode.readShortUtf8String();
+    final isExtern = _curCode.readBool();
+    final length = _curCode.readUint16();
 
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < length; i++) {
-      final id = curCode.readShortUtf8String();
+      final id = _curCode.readShortUtf8String();
       defs[id] = HTEnumItem(i, id, HTTypeId(id));
     }
 
@@ -898,42 +953,42 @@ class Hetu extends Interpreter {
   }
 
   void _handleFuncDecl() {
-    final id = curCode.readShortUtf8String();
+    final id = _curCode.readShortUtf8String();
 
-    final hasExternalTypedef = curCode.readBool();
+    final hasExternalTypedef = _curCode.readBool();
     String? externalTypedef;
     if (hasExternalTypedef) {
-      externalTypedef = curCode.readShortUtf8String();
+      externalTypedef = _curCode.readShortUtf8String();
     }
 
-    final funcType = FunctionType.values[curCode.read()];
-    final isExtern = curCode.readBool();
-    final isStatic = curCode.readBool();
-    final isConst = curCode.readBool();
-    final isVariadic = curCode.readBool();
+    final funcType = FunctionType.values[_curCode.read()];
+    final isExtern = _curCode.readBool();
+    final isStatic = _curCode.readBool();
+    final isConst = _curCode.readBool();
+    final isVariadic = _curCode.readBool();
 
-    final minArity = curCode.read();
-    final maxArity = curCode.read();
-    final paramDecls = _getParams(curCode.read());
+    final minArity = _curCode.read();
+    final maxArity = _curCode.read();
+    final paramDecls = _getParams(_curCode.read());
 
     HTTypeId? returnType;
-    final hasType = curCode.readBool();
+    final hasType = _curCode.readBool();
     if (hasType) {
       returnType = _getTypeId();
     }
 
     int? definitionIp;
-    final hasDefinition = curCode.readBool();
+    final hasDefinition = _curCode.readBool();
     if (hasDefinition) {
-      final length = curCode.readUint16();
-      definitionIp = curCode.ip;
-      curCode.skip(length);
+      final length = _curCode.readUint16();
+      definitionIp = _curCode.ip;
+      _curCode.skip(length);
     }
 
     final func = HTBytesFunction(
       id,
       this,
-      curModuleName,
+      _curModuleName,
       className: _curClassName,
       funcType: funcType,
       externalTypedef: externalTypedef,
@@ -960,14 +1015,14 @@ class Hetu extends Interpreter {
   }
 
   void _handleClassDecl() {
-    final id = curCode.readShortUtf8String();
+    final id = _curCode.readShortUtf8String();
 
-    final classType = ClassType.values[curCode.read()];
+    final classType = ClassType.values[_curCode.read()];
 
     String? superClassId;
-    final hasSuperClass = curCode.readBool();
+    final hasSuperClass = _curCode.readBool();
     if (hasSuperClass) {
-      superClassId = curCode.readShortUtf8String();
+      superClassId = _curCode.readShortUtf8String();
     }
 
     HTClass? superClass;
