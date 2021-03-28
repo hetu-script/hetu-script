@@ -96,7 +96,9 @@ class Hetu extends Interpreter {
 
       _snapshots.removeLast();
 
-      _curCode = modules[_curModuleName]!;
+      if (modules.containsKey(_curModuleName)) {
+        _curCode = modules[_curModuleName]!;
+      }
     }
   }
 
