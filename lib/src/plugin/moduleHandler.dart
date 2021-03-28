@@ -6,7 +6,8 @@ import '../errors.dart';
 class HTModuleInfo {
   final String fileName;
   final String content;
-  HTModuleInfo(this.fileName, this.content);
+  final bool duplicate;
+  HTModuleInfo(this.fileName, this.content, {this.duplicate = false});
 }
 
 abstract class HTModuleHandler {
@@ -45,8 +46,11 @@ class DefaultModuleHandler implements HTModuleHandler {
       if (!imported.contains(fileName)) {
         imported.add(fileName);
         content = await File(fileName).readAsString();
+        if (content.isEmpty) throw HTErrorEmpty(fileName);
+        return HTModuleInfo(fileName, content);
+      } else {
+        return HTModuleInfo(fileName, content, duplicate: true);
       }
-      return HTModuleInfo(fileName, content);
     } catch (e) {
       throw (HTImportError(e.toString(), fileName));
     }

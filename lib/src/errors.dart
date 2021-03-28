@@ -75,7 +75,9 @@ abstract class HTError {
 
   static const iterable = 'is not Iterable.';
 
-  static const unkownValueType = 'Unkown OpCode value type: ';
+  static const unkownValueType = 'Unkown OpCode value type:';
+
+  static const emptyString = 'The script is empty.';
 
   static void warn(String message) => print('hetu warn:\n' + message);
 
@@ -103,6 +105,10 @@ class HTImportError extends HTError {
 
   @override
   String toString() => 'Hetu error:\n[$type}]\n[File: $fileName]\n$message';
+}
+
+class HTErrorEmpty extends HTImportError {
+  HTErrorEmpty(String fileName) : super(HTError.emptyString, fileName);
 }
 
 class HTInterpreterError extends HTError {

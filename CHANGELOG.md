@@ -43,9 +43,6 @@ fun main {
 }
 ```
 
-- Feature: Added Ternary operator: 'conditon ? true : false'.
-- Feature: Added new interpreter function for bind Dart Function Typedef.
-
 The output is:
 
 ```
@@ -56,6 +53,48 @@ even: 4
 odd: 5
 even: 6
 ```
+
+- Feature: Added Ternary operator: 'conditon ? true : false'.
+- Feature: Added new interpreter function for bind Dart Function Typedef. Example:
+
+In Hetu script:
+
+```dart
+fun [DartFunction] add(a: num, b: num): num {
+  return a + b
+}
+
+fun getFunc {
+  return add
+}
+```
+
+Then when you evaluate this [add] function in Hetu, you will get a native Dart function.
+
+```dart
+typedef DartFunction = int Function(int a, int b);
+
+int hetuAdd(DartFunction func) {
+  var func = hetu.invoke('getFunc');
+  return func(6, 7);
+}
+```
+
+You have to bind the Dart typedef in [Interpreter.init] before you can use it.
+
+```dart
+await hetu.init(externalFunctions: {
+  externalFunctionTypedef: {
+  'DartFunction': (HTFunction function) {
+    return (int a, int b) {
+      // must convert the return type here to let dart know its return value type.
+      return function.call([a, b]) as int;
+    };
+  },
+});
+```
+
+- Added empty string check in module handler.
 
 ## 0.0.6
 

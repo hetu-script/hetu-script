@@ -8,7 +8,6 @@ import 'hetu_lib.dart';
 import 'extern_class.dart';
 import 'errors.dart';
 import 'extern_function.dart';
-import 'object.dart';
 import 'function.dart';
 import 'class.dart';
 import 'declaration.dart';
@@ -46,7 +45,7 @@ abstract class Interpreter {
       {bool coreModule = true,
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalFunctionTypeUnwrap> externalFunctionTypeUnwraps = const {}}) async {
+      Map<String, HTExternalFunctionType> externalFunctionTypedef = const {}}) async {
     // load classes and functions in core library.
     // TODO: dynamic load needed core lib in script
     if (coreModule) {
@@ -68,8 +67,8 @@ abstract class Interpreter {
       bindExternalFunction(key, externalFunctions[key]!);
     }
 
-    for (var key in externalFunctionTypeUnwraps.keys) {
-      bindExternalFunctionType(key, externalFunctionTypeUnwraps[key]!);
+    for (var key in externalFunctionTypedef.keys) {
+      bindExternalFunctionType(key, externalFunctionTypedef[key]!);
     }
 
     for (var value in externalClasses) {
@@ -102,6 +101,9 @@ abstract class Interpreter {
 
     final module =
         await moduleHandler.import(key, !curModuleName.startsWith(HTLexicon.anonymousScript) ? curModuleName : null);
+
+    if (module.duplicate) return;
+
     curModuleName = module.fileName;
 
     HTNamespace? library_namespace;
@@ -364,7 +366,7 @@ abstract class Interpreter {
 
   final _externClasses = <String, HTExternalClass>{};
   final _externFunctions = <String, Function>{};
-  final _externFunctionTypeUnwraps = <String, HTExternalFunctionTypeUnwrap>{};
+  final _externFunctionTypeUnwraps = <String, HTExternalFunctionType>{};
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
@@ -398,7 +400,7 @@ abstract class Interpreter {
     return _externFunctions[id]!;
   }
 
-  void bindExternalFunctionType(String id, HTExternalFunctionTypeUnwrap function) {
+  void bindExternalFunctionType(String id, HTExternalFunctionType function) {
     if (_externFunctionTypeUnwraps.containsKey(id)) {
       throw HTErrorDefinedRuntime(id);
     }

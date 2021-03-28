@@ -64,6 +64,8 @@ class Hetu extends Interpreter {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
+    if (content.isEmpty) throw HTErrorEmpty(fileName ?? '');
+
     curModuleName = fileName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
     curNamespace = namespace ?? global;
     final compiler = Compiler();

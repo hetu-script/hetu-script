@@ -16,7 +16,7 @@ void main() async {
         List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
       return hetuAdd(positionalArgs.first);
     },
-  }, externalFunctionTypeUnwraps: {
+  }, externalFunctionTypedef: {
     'DartFunction': (HTFunction function) {
       return (int a, int b) {
         // must convert the return type here to let dart know its return value type.
