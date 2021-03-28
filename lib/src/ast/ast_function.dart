@@ -1,3 +1,4 @@
+import 'package:hetu_script/src/common.dart';
 import 'package:hetu_script/src/object.dart';
 
 import '../class.dart';
@@ -18,12 +19,13 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       {String? externalTypedef, List<HTTypeId> typeParams = const [], HTNamespace? context})
       : super(
           funcStmt.internalName,
+          funcStmt.id?.lexeme ?? '',
           className: funcStmt.className,
           funcType: funcStmt.funcType,
+          externType: ExternFunctionType.none, // TODO: 这里需要修改
           externalTypedef: externalTypedef,
           typeParams: typeParams,
           // typeid:
-          isExtern: funcStmt.isExtern,
           isConst: funcStmt.isConst,
           isVariadic: funcStmt.isVariadic,
           minArity: funcStmt.arity,
@@ -68,9 +70,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
   @override
   dynamic call(
-      [List<dynamic> positionalArgs = const [],
+      {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []]) {
+      List<HTTypeId> typeArgs = const []}) {
     HTFunction.callStack.add(id);
 
     if (positionalArgs.length < funcStmt.arity ||

@@ -349,10 +349,10 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     }
 
     if (callee is HTFunction) {
-      if (!callee.isExtern) {
+      if (callee.externType == ExternFunctionType.none) {
         // 普通函数
         if (callee.funcType != FunctionType.constructor) {
-          return callee.call(positionalArgs, namedArgs);
+          return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
         } else {
           final className = callee.className;
           final klass = global.memberGet(className!);
@@ -367,7 +367,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
               final constructor = externClass.memberGet(callee.id);
               if (constructor is HTExternalFunction) {
                 try {
-                  return constructor(positionalArgs, namedArgs);
+                  return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs);
                 } on RangeError {
                   throw HTErrorExternParams();
                 }
@@ -385,7 +385,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
         final externFunc = fetchExternalFunction(callee.id);
         if (externFunc is HTExternalFunction) {
           try {
-            return externFunc(positionalArgs, namedArgs);
+            return externFunc(positionalArgs: positionalArgs, namedArgs: namedArgs);
           } on RangeError {
             throw HTErrorExternParams();
           }
@@ -405,7 +405,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
         final constructor = externClass.memberGet(callee.id);
         if (constructor is HTExternalFunction) {
           try {
-            return constructor(positionalArgs, namedArgs);
+            return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs);
           } on RangeError {
             throw HTErrorExternParams();
           }
@@ -419,7 +419,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
         try {
-          return callee(positionalArgs, namedArgs);
+          return callee(positionalArgs: positionalArgs, namedArgs: namedArgs);
         } on RangeError {
           throw HTErrorExternParams();
         }

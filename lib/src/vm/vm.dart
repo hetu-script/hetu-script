@@ -964,7 +964,7 @@ class Hetu extends Interpreter {
     }
 
     final funcType = FunctionType.values[_curCode.read()];
-    final isExtern = _curCode.readBool();
+    final externType = ExternFunctionType.values[_curCode.read()];
     final isStatic = _curCode.readBool();
     final isConst = _curCode.readBool();
     final isVariadic = _curCode.readBool();
@@ -993,11 +993,11 @@ class Hetu extends Interpreter {
       _curModuleName,
       className: _curClassName,
       funcType: funcType,
+      externType: externType,
       externalTypedef: externalTypedef,
       paramDecls: paramDecls,
       returnType: returnType,
       definitionIp: definitionIp,
-      isExtern: isExtern,
       isStatic: isStatic,
       isConst: isConst,
       isVariadic: isVariadic,
@@ -1007,12 +1007,14 @@ class Hetu extends Interpreter {
 
     if (!isStatic &&
         (funcType == FunctionType.getter || funcType == FunctionType.setter || funcType == FunctionType.method)) {
-      (curNamespace as HTClass).defineInstance(HTDeclaration(id, value: func, isExtern: func.isExtern, isMember: true));
+      (curNamespace as HTClass).defineInstance(
+          HTDeclaration(id, value: func, isExtern: func.externType != ExternFunctionType.none, isMember: true));
     } else {
       if (funcType != FunctionType.constructor) {
         func.context = curNamespace;
       }
-      curNamespace.define(HTDeclaration(id, value: func, isExtern: func.isExtern, isMember: true));
+      curNamespace
+          .define(HTDeclaration(id, value: func, isExtern: func.externType != ExternFunctionType.none, isMember: true));
     }
   }
 

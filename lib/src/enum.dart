@@ -70,9 +70,9 @@ class HTEnumItem extends HTObject {
         return index;
       case 'toString':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             toString();
       default:
         throw HTErrorUndefinedMember(varName, typeid.toString());

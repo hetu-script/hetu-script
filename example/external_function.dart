@@ -11,16 +11,16 @@ void main() async {
 
   await hetu.init(externalFunctions: {
     'hetuAdd': (
-        [List<dynamic> positionalArgs = const [],
+        {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
-        List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
+        List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
       return hetuAdd(positionalArgs.first);
     },
   }, externalFunctionTypedef: {
     'DartFunction': (HTFunction function) {
       return (int a, int b) {
         // must convert the return type here to let dart know its return value type.
-        return function.call([a, b]) as int;
+        return function.call(positionalArgs: [a, b]) as int;
       };
     },
   });

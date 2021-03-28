@@ -28,9 +28,9 @@ extension PersonBinding on Person {
         return name;
       case 'greeting':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             greeting();
       case 'child':
         return child;
@@ -58,21 +58,21 @@ class PersonClassBinding extends HTExternalClass {
     switch (varName) {
       case 'Person':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             Person();
       case 'Person.withName':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             Person.withName(name: namedArgs['name']);
       case 'Person.meaning':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             Person.meaning(positionalArgs[0]);
       case 'Person.race':
         return Person.race;
@@ -126,22 +126,22 @@ void main() async {
         fun greeting
       }
       fun main {
-        let p1: Person = Person()
-        print(p1.typeid)
-        print(p1.name)
+        // let p1: Person = Person()
+        // print(p1.typeid)
+        // print(p1.name)
         var p2 = Person.withName(name: 'Jimmy')
         print(p2.name)
-        p2.name = 'John'
-        p2.greeting();
-        print(p1.child)
-        Person.level = '3'
-        print(Person.level)
+        // p2.name = 'John'
+        // p2.greeting();
+        // print(p1.child)
+        // Person.level = '3'
+        // print(Person.level)
 
-        print('My race is', Person.race)
-        Person.race = 'Reptile'
-        print('Oh no! My race turned into', Person.race)
+        // print('My race is', Person.race)
+        // Person.race = 'Reptile'
+        // print('Oh no! My race turned into', Person.race)
 
-        print(Person.meaning(42))
+        // print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }

@@ -33,9 +33,9 @@ class HTExternClassNumber extends HTExternalClass {
     switch (varName) {
       case 'num.parse':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             num.tryParse(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
@@ -51,9 +51,9 @@ class HTExternClassBool extends HTExternalClass {
     switch (varName) {
       case 'bool.parse':
         return (
-            [List<dynamic> positionalArgs = const [],
+            {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
+            List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
@@ -70,9 +70,9 @@ class HTExternClassString extends HTExternalClass {
     switch (varName) {
       case 'str.parse':
         return (
-            [List<dynamic> positionalArgs = const [],
+            {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
+            List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
           // TODO: 如果是脚本对象，需要调用脚本自己的toString
           return positionalArgs.first.toString();
         };
@@ -90,39 +90,39 @@ class HTExternClassMath extends HTExternalClass {
     switch (varName) {
       case 'Math.random':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             math.Random().nextDouble();
       case 'Math.randomInt':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             math.Random().nextInt(positionalArgs.first);
       case 'Math.sqrt':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             math.sqrt(positionalArgs.first);
       case 'Math.log':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             math.log(positionalArgs.first);
       case 'Math.sin':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             math.sin(positionalArgs.first);
       case 'Math.cos':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             math.cos(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
@@ -154,21 +154,21 @@ class HTExternClassConsole extends HTExternalClass {
     switch (varName) {
       case 'Console.write':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             stdout.write(positionalArgs.first);
       case 'Console.writeln':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             stdout.writeln(positionalArgs.first);
       case 'Console.getln':
         return (
-            [List<dynamic> positionalArgs = const [],
+            {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
+            List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
           if (positionalArgs.isNotEmpty) {
             stdout.write('${positionalArgs.first}');
           } else {
@@ -178,21 +178,21 @@ class HTExternClassConsole extends HTExternalClass {
         };
       case 'Console.eraseLine':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             stdout.write('\x1B[1F\x1B[1G\x1B[1K');
       case 'Console.setTitle':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             stdout.write('\x1b]0;${positionalArgs.first}\x07');
       case 'Console.clear':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             stdout.write('\x1B[2J\x1B[0;0H');
       default:
         throw HTErrorUndefined(varName);

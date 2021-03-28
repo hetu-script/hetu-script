@@ -97,9 +97,8 @@ class HTNamespace extends HTObject with InterpreterRef {
       if (value is HTFunction && value.externalTypedef != null) {
         final externalFunc = interpreter.unwrapExternalFunctionType(value.externalTypedef!, value);
         return externalFunc;
-      } else {
-        return value;
       }
+      return value;
     }
 
     if (closure != null) {

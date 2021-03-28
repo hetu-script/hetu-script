@@ -7,10 +7,13 @@ abstract class HTFunction with HTType {
   static var anonymousIndex = 0;
   static final callStack = <String>[];
 
-  late final String id;
+  final String id;
+  final String declId;
   final String? className;
 
   final FunctionType funcType;
+
+  final ExternFunctionType externType;
 
   final String? externalTypedef;
 
@@ -20,8 +23,6 @@ abstract class HTFunction with HTType {
   HTTypeId get returnType => typeid.returnType;
 
   final List<HTTypeId> typeParams; // function<T1, T2>
-
-  final bool isExtern;
 
   final bool isStatic;
 
@@ -36,12 +37,12 @@ abstract class HTFunction with HTType {
 
   HTNamespace? context;
 
-  HTFunction(this.id,
+  HTFunction(this.id, this.declId,
       {this.className,
       this.funcType = FunctionType.normal,
+      this.externType = ExternFunctionType.none,
       this.externalTypedef,
       this.typeParams = const [],
-      this.isExtern = false,
       this.isStatic = false,
       this.isConst = false,
       this.isVariadic = false,
@@ -49,7 +50,7 @@ abstract class HTFunction with HTType {
       this.maxArity = 0});
 
   dynamic call(
-      [List<dynamic> positionalArgs = const [],
+      {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const <HTTypeId>[]]) {}
+      List<HTTypeId> typeArgs = const <HTTypeId>[]}) {}
 }

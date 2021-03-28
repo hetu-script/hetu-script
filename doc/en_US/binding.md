@@ -40,9 +40,9 @@ void main() async {
   var hetu = Hetu();
   await hetu.init(externalFunctions: {
     'hello': (
-        [List<dynamic> positionalArgs = const [],
-        Map<String, dynamic> namedArgs = const {},
-        List<HTTypeId> typeArgs = const <HTTypeId>[]]) => {'greeting': 'hello'},
+        {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTTypeId> typeArgs = const <HTTypeId>[]}) => {'greeting': 'hello'},
   });
   await hetu.eval(r'''
       external fun hello

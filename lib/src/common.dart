@@ -8,6 +8,12 @@ enum FunctionType {
   nested, // function within function, may with name
 }
 
+enum ExternFunctionType {
+  none,
+  standalone,
+  klass,
+}
+
 enum ClassType {
   normal,
   nested,

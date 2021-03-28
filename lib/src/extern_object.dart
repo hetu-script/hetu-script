@@ -22,23 +22,23 @@ class HTNumber extends HTExternObject<num> {
         return typeid;
       case 'toString':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.toString();
       case 'toStringAsFixed':
         return (
-            [List<dynamic> positionalArgs = const [],
+            {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const <HTTypeId>[]]) {
+            List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
           final digit = positionalArgs.isEmpty ? 0 : positionalArgs.first;
           return externObject.toStringAsFixed(digit);
         };
       case 'truncate':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.truncate();
       default:
         throw HTErrorUndefined(id);
@@ -60,9 +60,9 @@ class HTBoolean extends HTExternObject<bool> {
         return typeid;
       case 'toString':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.toString();
       case 'parse':
         return externObject.toString;
@@ -86,9 +86,9 @@ class HTString extends HTExternObject<String> {
         return typeid;
       case 'toString':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.toString();
       case 'isEmpty':
         return externObject.isEmpty;
@@ -150,9 +150,9 @@ class HTList<T> extends HTExternObject<List<T>> {
         return typeid;
       case 'toString':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.toString();
       case 'length':
         return externObject.length;
@@ -162,51 +162,51 @@ class HTList<T> extends HTExternObject<List<T>> {
         return externObject.isNotEmpty;
       case 'contains':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.contains(positionalArgs.first);
       case 'add':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.add(positionalArgs.first);
       case 'addAll':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.addAll(positionalArgs.first);
       case 'clear':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.clear();
       case 'removeAt':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.removeAt(positionalArgs.first);
       case 'indexOf':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.indexOf(positionalArgs.first);
       case 'elementAt':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.elementAt(positionalArgs.first);
       case 'join':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.join(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);
@@ -231,9 +231,9 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
         return typeid;
       case 'toString':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.toString();
       case 'length':
         return externObject.length;
@@ -247,33 +247,33 @@ class HTMap<K, V> extends HTExternObject<Map<K, V>> {
         return externObject.values.toList();
       case 'containsKey':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.containsKey(positionalArgs.first);
       case 'containsValue':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.containsValue(positionalArgs.first);
       case 'addAll':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.addAll(positionalArgs.first);
       case 'clear':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.clear();
       case 'remove':
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             externObject.remove(positionalArgs.first);
       default:
         throw HTErrorUndefined(varName);

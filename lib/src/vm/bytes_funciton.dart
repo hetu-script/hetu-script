@@ -16,27 +16,27 @@ class HTBytesFunction extends HTFunction with HetuRef {
 
   final int? definitionIp;
 
-  HTBytesFunction(String id, Hetu interpreter, this.module,
+  HTBytesFunction(String id, String declId, Hetu interpreter, this.module,
       {String? className,
       FunctionType funcType = FunctionType.normal,
+      ExternFunctionType externType = ExternFunctionType.none,
       String? externalTypedef,
       this.paramDecls = const <String, HTBytesParamDecl>{},
       HTTypeId? returnType,
       this.definitionIp,
       List<HTTypeId> typeParams = const [],
-      bool isExtern = false,
       bool isStatic = false,
       bool isConst = false,
       bool isVariadic = false,
       int minArity = 0,
       int maxArity = 0,
       HTNamespace? context})
-      : super(id,
+      : super(id, declId,
             className: className,
             funcType: funcType,
+            externType: externType,
             externalTypedef: externalTypedef,
             typeParams: typeParams,
-            isExtern: isExtern,
             isStatic: isStatic,
             isConst: isConst,
             isVariadic: isVariadic,
@@ -66,14 +66,15 @@ class HTBytesFunction extends HTFunction with HetuRef {
 
     result.write('(');
 
-    final params = paramDecls.values.toList();
-    for (var i = 0; i < params.length; ++i) {
-      if (params[i].isVariadic) {
+    var i = 0;
+    for (final param in paramDecls.values) {
+      if (param.isVariadic) {
         result.write(HTLexicon.varargs + ' ');
       }
-      result.write(params[i].id + ': ' + (params[i].declType.toString()));
+      result.write(param.id + ': ' + (param.declType.toString()));
       //if (param.initializer != null)
-      if (paramDecls.length > 1 && i < params.length - 1) result.write(', ');
+      ++i;
+      if (i < paramDecls.length - 1) result.write(', ');
     }
     result.write('): ' + returnType.toString());
     return result.toString();
@@ -81,9 +82,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
 
   @override
   dynamic call(
-      [List<dynamic> positionalArgs = const [],
+      {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []]) {
+      List<HTTypeId> typeArgs = const []}) {
     if (definitionIp == null) {
       throw HTErrorMissingFuncDef(id);
     }
@@ -99,49 +100,54 @@ class HTBytesFunction extends HTFunction with HetuRef {
     }
 
     dynamic result;
-    // 函数每次在调用时，临时生成一个新的作用域
-    final closure = HTNamespace(interpreter, id: id, closure: context);
-    if (context is HTInstance) {
-      closure.define(HTDeclaration(HTLexicon.THIS, value: context));
-    }
+    if (externType == ExternFunctionType.none) {
+      // 函数每次在调用时，临时生成一个新的作用域
+      final closure = HTNamespace(interpreter, id: id, closure: context);
+      if (context is HTInstance) {
+        closure.define(HTDeclaration(HTLexicon.THIS, value: context));
+      }
 
-    var variadicStart = -1;
-    HTBytesDecl? variadicParam;
-    for (var i = 0; i < paramDecls.length; ++i) {
-      var decl = paramDecls.values.elementAt(i).clone();
-      closure.define(decl);
+      var variadicStart = -1;
+      HTBytesDecl? variadicParam;
+      for (var i = 0; i < paramDecls.length; ++i) {
+        var decl = paramDecls.values.elementAt(i).clone();
+        closure.define(decl);
 
-      if (i < positionalArgs.length) {
-        if (!decl.isVariadic) {
-          decl.assign(positionalArgs[i]);
-        } else {
-          variadicStart = i;
-          variadicParam = decl;
-          break;
-        }
-      } else if (i < maxArity) {
-        decl.initialize();
-      } else {
-        if (namedArgs.containsKey(decl.id)) {
-          decl.assign(namedArgs[decl.id]);
-        } else {
+        if (i < positionalArgs.length) {
+          if (!decl.isVariadic) {
+            decl.assign(positionalArgs[i]);
+          } else {
+            variadicStart = i;
+            variadicParam = decl;
+            break;
+          }
+        } else if (i < maxArity) {
           decl.initialize();
+        } else {
+          if (namedArgs.containsKey(decl.id)) {
+            decl.assign(namedArgs[decl.id]);
+          } else {
+            decl.initialize();
+          }
         }
       }
-    }
 
-    if (variadicStart >= 0) {
-      final variadicArg = <dynamic>[];
-      for (var i = variadicStart; i < positionalArgs.length; ++i) {
-        variadicArg.add(positionalArgs[i]);
+      if (variadicStart >= 0) {
+        final variadicArg = <dynamic>[];
+        for (var i = variadicStart; i < positionalArgs.length; ++i) {
+          variadicArg.add(positionalArgs[i]);
+        }
+        variadicParam!.assign(variadicArg);
       }
-      variadicParam!.assign(variadicArg);
-    }
 
-    interpreter.saveSnapshot();
-    interpreter.switchCode(module);
-    result = interpreter.execute(ip: definitionIp!, closure: closure);
-    interpreter.resotreSnapshot();
+      interpreter.saveSnapshot();
+      interpreter.switchCode(module);
+      result = interpreter.execute(ip: definitionIp!, closure: closure);
+      interpreter.resotreSnapshot();
+    } else {
+      if (externType == ExternFunctionType.standalone) {
+      } else if (externType == ExternFunctionType.klass) {}
+    }
 
     var returnedType = interpreter.typeof(result);
     if (returnedType.isNotA(returnType)) {

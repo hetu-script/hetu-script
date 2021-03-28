@@ -39,9 +39,9 @@ class CountryEnumBinding extends HTExternalClass {
       case 'toString':
         var i = instance as Country;
         return (
-                [List<dynamic> positionalArgs = const [],
+                {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]]) =>
+                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             i.toString();
       default:
         throw HTErrorUndefined(varName);

@@ -137,53 +137,7 @@ abstract class Interpreter {
       if (callee is HTFunction) {
         HTFunction.callStack.add('#${HTFunction.callStack.length} ${callee.id} - ($curModuleName:$curLine:$curColumn)');
 
-        if (!callee.isExtern) {
-          // 普通函数
-          if (callee.funcType != FunctionType.constructor) {
-            return callee.call(positionalArgs, namedArgs);
-          } else {
-            final className = callee.className;
-            final klass = global.memberGet(className!);
-            if (klass is HTClass) {
-              if (klass.classType != ClassType.extern) {
-                // 命名构造函数
-                return klass.createInstance(
-                    constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
-              } else {
-                // 外部命名构造函数
-                final externClass = fetchExternalClass(className);
-                final constructor = externClass.memberGet(callee.id);
-                if (constructor is HTExternalFunction) {
-                  try {
-                    return constructor(positionalArgs, namedArgs);
-                  } on RangeError {
-                    throw HTErrorExternParams();
-                  }
-                } else {
-                  return Function.apply(
-                      constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-                  // throw HTErrorExternFunc(constructor.toString());
-                }
-              }
-            } else {
-              throw HTErrorCallable(callee.toString());
-            }
-          }
-        } else {
-          final externFunc = fetchExternalFunction(callee.id);
-          if (externFunc is HTExternalFunction) {
-            try {
-              return externFunc(positionalArgs, namedArgs);
-            } on RangeError {
-              // TODO: 这里的错误处理太粗糙了
-              throw HTErrorExternParams();
-            }
-          } else {
-            return Function.apply(
-                externFunc, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-            // throw HTErrorExternFunc(constructor.toString());
-          }
-        }
+        return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
       } else if (callee is HTClass) {
         if (callee.classType != ClassType.extern) {
           // 默认构造函数
@@ -194,7 +148,7 @@ abstract class Interpreter {
           final constructor = externClass.memberGet(callee.id);
           if (constructor is HTExternalFunction) {
             try {
-              return constructor(positionalArgs, namedArgs);
+              return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs);
             } on RangeError {
               throw HTErrorExternParams();
             }
@@ -208,7 +162,7 @@ abstract class Interpreter {
       else if (callee is Function) {
         if (callee is HTExternalFunction) {
           try {
-            return callee(positionalArgs, namedArgs);
+            return callee(positionalArgs: positionalArgs, namedArgs: namedArgs);
           } on RangeError {
             throw HTErrorExternParams();
           }
@@ -262,9 +216,9 @@ abstract class Interpreter {
       if (className != null) {
         // 类的静态函数
         HTClass klass = global.memberGet(className);
-        return klass.invoke(funcName, positionalArgs, namedArgs, typeArgs);
+        return klass.invoke(funcName, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
       } else if (instance != null) {
-        return instance.invoke(funcName, positionalArgs, namedArgs, typeArgs);
+        return instance.invoke(funcName, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
       } else {
         func = global.memberGet(funcName);
         return call(func, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs, errorHandled: true);
