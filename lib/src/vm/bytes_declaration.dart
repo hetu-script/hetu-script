@@ -44,12 +44,10 @@ class HTBytesDecl extends HTDeclaration with HetuRef {
     if (initializerIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
-        final savedModule = interpreter.curModuleName;
-        interpreter.curModuleName = module;
-        interpreter.curCode = interpreter.modules[module]!;
+        interpreter.saveSnapshot();
+        interpreter.switchCode(module);
         final initVal = interpreter.execute(ip: initializerIp!);
-        interpreter.curModuleName = savedModule;
-        interpreter.curCode = interpreter.modules[savedModule]!;
+        interpreter.resotreSnapshot();
         assign(initVal);
         _isInitializing = false;
       } else {

@@ -4,21 +4,14 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      class A {
-        fun foo() {
-          print('foo')
-        }
-        
-        fun bar() {
-              foo()
-              print(foo)
-        }
-        
-      }
-      
       fun main() {
-        var a = A()
-        a.bar()
+        var i1 = 100
+        var i2 = 200
+        var a = i1
+        if (true) {
+          a = i2
+        }
+        print(a, i1, i2)
       }
     ''', invokeFunc: 'main');
 }

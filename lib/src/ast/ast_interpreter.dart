@@ -27,14 +27,34 @@ mixin AstInterpreterRef {
 
 /// 负责对语句列表进行最终解释执行
 class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVisitor {
+  var _curLine = 0;
+  @override
+  int get curLine => _curLine;
+  var _curColumn = 0;
+  @override
+  int get curColumn => _curColumn;
+  late String _curModuleName;
+  @override
+  String get curModuleName => _curModuleName;
+
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   final _distances = <ASTNode, int>{};
 
   dynamic _curStmtValue;
 
+  String? _savedModuleName;
+
   HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
       : super(debugMode: debugMode, errorHandler: errorHandler, moduleHandler: moduleHandler);
+
+  void saveSnapshot() {
+    _savedModuleName = _curModuleName;
+  }
+
+  void resotreSnapshot() {
+    _curModuleName = _savedModuleName!;
+  }
 
   @override
   Future<dynamic> eval(
@@ -47,17 +67,17 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
   }) async {
-    curModuleName = moduleName ?? HTLexicon.anonymousScript;
+    _curModuleName = moduleName ?? HTLexicon.anonymousScript;
     curNamespace = namespace ?? global;
 
     var lexer = Lexer();
     var parser = HTAstParser(this);
     var resolver = HTAstResolver();
     try {
-      var tokens = lexer.lex(content, curModuleName);
+      var tokens = lexer.lex(content, _curModuleName);
 
-      final statements = await parser.parse(tokens, curModuleName, style);
-      _distances.addAll(resolver.resolve(statements, curModuleName));
+      final statements = await parser.parse(tokens, _curModuleName, style);
+      _distances.addAll(resolver.resolve(statements, _curModuleName));
 
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
@@ -87,7 +107,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
             resolver.curLine, resolver.curColumn);
       } else {
         newErr =
-            HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
+            HTInterpreterError('$e\nCall stack:\n$callStack', HTErrorType.other, _curModuleName, _curLine, _curColumn);
       }
 
       errorHandler.handle(newErr);
@@ -122,50 +142,50 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitNullExpr(NullExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return null;
   }
 
   @override
   dynamic visitBooleanExpr(BooleanExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return expr.value;
   }
 
   @override
   dynamic visitConstIntExpr(ConstIntExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return getInt64(expr.constIndex);
   }
 
   @override
   dynamic visitConstFloatExpr(ConstFloatExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return getFloat64(expr.constIndex);
   }
 
   @override
   dynamic visitConstStringExpr(ConstStringExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return getUtf8String(expr.constIndex);
   }
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return visitASTNode(expr.inner);
   }
 
   @override
   dynamic visitLiteralVectorExpr(LiteralVectorExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var list = [];
     for (final item in expr.vector) {
       list.add(visitASTNode(item));
@@ -175,8 +195,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitLiteralDictExpr(LiteralDictExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var map = {};
     for (final key_expr in expr.map.keys) {
       var key = visitASTNode(key_expr);
@@ -188,15 +208,15 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitSymbolExpr(SymbolExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return _getValue(expr.id.lexeme, expr);
   }
 
   @override
   dynamic visitUnaryExpr(UnaryExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var value = visitASTNode(expr.value);
 
     if (expr.op.lexeme == HTLexicon.subtract) {
@@ -218,8 +238,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var left = visitASTNode(expr.left);
     var right;
     if (expr.op.type == HTLexicon.logicalAnd) {
@@ -313,8 +333,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var callee = visitASTNode(expr.callee);
     var positionalArgs = [];
     for (var i = 0; i < expr.positionalArgs.length; ++i) {
@@ -412,8 +432,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var value = visitASTNode(expr.value);
     var distance = _distances[expr];
     if (distance != null) {
@@ -429,15 +449,15 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitThisExpr(ThisExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     return _getValue(HTLexicon.THIS, expr);
   }
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var collection = visitASTNode(expr.collection);
     var key = visitASTNode(expr.key);
     if (collection is List || collection is Map) {
@@ -449,8 +469,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitSubSetExpr(SubSetExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var collection = visitASTNode(expr.collection);
     var key = visitASTNode(expr.key);
     var value = visitASTNode(expr.value);
@@ -464,8 +484,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     var object = visitASTNode(expr.collection);
 
     if (object is num) {
@@ -496,8 +516,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitMemberSetExpr(MemberSetExpr expr) {
-    curLine = expr.line;
-    curColumn = expr.column;
+    _curLine = expr.line;
+    _curColumn = expr.column;
     dynamic object = visitASTNode(expr.collection);
 
     if (object is num) {
@@ -531,28 +551,28 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitImportStmt(ImportStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
   }
 
   @override
   dynamic visitExprStmt(ExprStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     return visitASTNode(stmt.expr);
   }
 
   @override
   dynamic visitBlockStmt(BlockStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     return executeBlock(stmt.block, HTNamespace(this, closure: curNamespace));
   }
 
   @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     if (stmt.value != null) {
       var returnValue = visitASTNode(stmt.value!);
       (returnValue != null) ? throw returnValue : throw HTObject.NULL;
@@ -562,8 +582,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitIfStmt(IfStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     var value = visitASTNode(stmt.condition);
     if (value is bool) {
       if (value) {
@@ -579,8 +599,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitWhileStmt(WhileStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     var value = visitASTNode(stmt.condition);
     if (value is bool) {
       while ((value is bool) && (value)) {
@@ -604,22 +624,22 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitBreakStmt(BreakStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     throw HTBreak();
   }
 
   @override
   dynamic visitContinueStmt(ContinueStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     throw HTContinue();
   }
 
   @override
   dynamic visitVarDeclStmt(VarDeclStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     // dynamic value;
     // if (stmt.initializer != null) {
     //   value = visitASTNode(stmt.initializer!);
@@ -640,14 +660,14 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitParamDeclStmt(ParamDeclStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
   }
 
   @override
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     final func = HTAstFunction(stmt, this, context: curNamespace);
     if (stmt.id != null) {
       curNamespace
@@ -658,8 +678,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     HTClass? superClass;
     if (stmt.id.lexeme != HTLexicon.rootClass) {
       if (stmt.superClass == null) {
@@ -736,8 +756,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   @override
   dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
-    curLine = stmt.line;
-    curColumn = stmt.column;
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
 
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < stmt.enumerations.length; i++) {

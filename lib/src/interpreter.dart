@@ -19,9 +19,9 @@ mixin InterpreterRef {
 abstract class Interpreter {
   late HTVersion scriptVersion;
 
-  int curLine = -1;
-  int curColumn = -1;
-  late String curModuleName;
+  int get curLine;
+  int get curColumn;
+  String get curModuleName;
 
   late bool debugMode;
 
@@ -40,6 +40,10 @@ abstract class Interpreter {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.moduleHandler = moduleHandler ?? DefaultModuleHandler();
   }
+
+  void saveSnapshot();
+
+  void resotreSnapshot();
 
   Future<void> init(
       {bool coreModule = true,
@@ -103,8 +107,6 @@ abstract class Interpreter {
         await moduleHandler.import(key, !curModuleName.startsWith(HTLexicon.anonymousScript) ? curModuleName : null);
 
     if (module.duplicate) return;
-
-    curModuleName = module.fileName;
 
     HTNamespace? library_namespace;
     if ((moduleName != null) && (moduleName != HTLexicon.global)) {

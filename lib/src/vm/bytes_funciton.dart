@@ -138,12 +138,10 @@ class HTBytesFunction extends HTFunction with HetuRef {
       variadicParam!.assign(variadicArg);
     }
 
-    final savedModule = interpreter.curModuleName;
-    interpreter.curModuleName = module;
-    interpreter.curCode = interpreter.modules[module]!;
+    interpreter.saveSnapshot();
+    interpreter.switchCode(module);
     result = interpreter.execute(ip: definitionIp!, closure: closure);
-    interpreter.curModuleName = savedModule;
-    interpreter.curCode = interpreter.modules[savedModule]!;
+    interpreter.resotreSnapshot();
 
     var returnedType = interpreter.typeof(result);
     if (returnedType.isNotA(returnType)) {
