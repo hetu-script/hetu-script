@@ -75,6 +75,8 @@ class Hetu extends Interpreter {
       final bytes = await compiler.compile(tokens, this, curModuleName, style: style, debugMode: debugMode);
       curCode = modules[curModuleName] = BytesReader(bytes);
 
+      print(bytes);
+
       var result = execute(closure: curNamespace);
       if (style == ParseStyle.module && invokeFunc != null) {
         result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, errorHandled: true);
@@ -684,27 +686,31 @@ class Hetu extends Interpreter {
   }
 
   void _handleUnaryPrefixOp(int op) {
+    final objIndex = curCode.read();
+    final object = _register[objIndex];
     switch (op) {
       case HTOpCode.negative:
-        _curValue = -_curValue;
+        _curValue = -object;
         break;
       case HTOpCode.logicalNot:
-        _curValue = !_curValue;
+        _curValue = !object;
         break;
       case HTOpCode.preIncrement:
-        _curValue = ++_curValue;
-        _assignCurRef(_curValue);
+        _curValue = object + 1;
+        _assignCurRef(object);
         break;
       case HTOpCode.preDecrement:
-        _curValue = --_curValue;
-        _assignCurRef(_curValue);
+        _curValue = object - 1;
+        _assignCurRef(object);
         break;
       default:
       // throw HTErrorUndefinedOperator(_register[left].toString(), _register[right].toString(), HTLexicon.add);
     }
   }
 
-  void _handleCallExpr(dynamic callee) {
+  void _handleCallExpr() {
+    final objIndex = curCode.read();
+    var object = _register[objIndex];
     var positionalArgs = [];
     final positionalArgsLength = curCode.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
@@ -723,7 +729,7 @@ class Hetu extends Interpreter {
     // TODO: typeArgs
     var typeArgs = <HTTypeId>[];
 
-    _curValue = call(callee, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+    _curValue = call(object, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
   }
 
   void _handleUnaryPostfixOp(int op) {
@@ -770,9 +776,7 @@ class Hetu extends Interpreter {
         _curRefType = ReferrenceType.sub;
         break;
       case HTOpCode.call:
-        final objIndex = curCode.read();
-        var object = _register[objIndex];
-        _handleCallExpr(object);
+        _handleCallExpr();
         break;
       case HTOpCode.postIncrement:
         final objIndex = curCode.read();
