@@ -1157,7 +1157,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       final init = _parseVarStmt(isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST);
       final id = _readId(init);
 
-      // 添加变量声明，函数和类的部分是空的
+      // 添加变量声明，枚举、函数和类的部分是空的
       bytesBuilder.addByte(HTOpCode.declTable);
       bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(0));
@@ -1185,14 +1185,14 @@ class Compiler extends Parser with ConstTable, HetuRef {
         final init = _parseVarStmt(
             isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST, endOfStatement: true);
 
-        // 添加变量声明，函数和类的部分是空的
+        // 添加变量声明，枚举、函数和类的部分是空的
         bytesBuilder.addByte(HTOpCode.declTable);
+        bytesBuilder.add(_uint16(0));
         bytesBuilder.add(_uint16(0));
         bytesBuilder.add(_uint16(0));
         bytesBuilder.add(_uint16(1));
         bytesBuilder.add(init);
       }
-      match(HTLexicon.semicolon);
 
       Uint8List? condition;
       if (curTok.type != HTLexicon.semicolon) {
@@ -1206,8 +1206,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       }
       match(HTLexicon.roundRight);
 
-      Uint8List loop;
-      loop = _parseBlock(HTLexicon.forStmt);
+      final loop = _parseBlock(HTLexicon.forStmt);
       bytesBuilder.addByte(HTOpCode.loopPoint);
       final loopLength = (condition?.length ?? 0) + loop.length + (increment?.length ?? 0) + 5;
       bytesBuilder.add(_uint16(loopLength));

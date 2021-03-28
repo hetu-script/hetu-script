@@ -119,11 +119,11 @@ class HTClass extends HTNamespace {
         return interpreter.fetchExternalFunction(staticName);
       }
     } else if (superClass != null && superClass!.contains(varName)) {
-      return superClass!.memberGet(varName, from: superClass!.fullName);
+      return superClass!.memberGet(varName, from: from);
     }
 
     if (closure != null) {
-      return closure!.memberGet(varName, from: closure!.fullName);
+      return closure!.memberGet(varName, from: from);
     }
 
     throw HTErrorUndefined(varName);
@@ -275,6 +275,8 @@ class HTInstance extends HTNamespace {
           return externalFunc;
         } else if (value.context == null) {
           value.context = this;
+          return value;
+        } else {
           return value;
         }
       } else {

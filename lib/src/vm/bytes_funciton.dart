@@ -66,13 +66,14 @@ class HTBytesFunction extends HTFunction with HetuRef {
 
     result.write('(');
 
-    for (final param in paramDecls.values) {
-      if (param.isVariadic) {
+    final params = paramDecls.values.toList();
+    for (var i = 0; i < params.length; ++i) {
+      if (params[i].isVariadic) {
         result.write(HTLexicon.varargs + ' ');
       }
-      result.write(param.id + ': ' + (param.declType.toString()));
+      result.write(params[i].id + ': ' + (params[i].declType.toString()));
       //if (param.initializer != null)
-      if (paramDecls.length > 1) result.write(', ');
+      if (paramDecls.length > 1 && i < params.length - 1) result.write(', ');
     }
     result.write('): ' + returnType.toString());
     return result.toString();
