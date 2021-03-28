@@ -1146,7 +1146,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.addByte(HTOpCode.forStmt);
       bytesBuilder.addByte(ForStmtType.keyIn);
       bytesBuilder.add(_shortUtf8String(id));
-      final loop = _parseBlock(HTLexicon.forStmt, blockStatement: false);
+      final loop = _parseBlock(HTLexicon.forStmt);
       bytesBuilder.add(_uint16(loop.length + 1));
       bytesBuilder.add(loop);
       bytesBuilder.addByte(HTOpCode.endOfExec);
@@ -1173,7 +1173,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.addByte(HTOpCode.forStmt);
       bytesBuilder.addByte(ForStmtType.valueOf);
       bytesBuilder.add(_shortUtf8String(id));
-      final loop = _parseBlock(HTLexicon.forStmt, blockStatement: false);
+      final loop = _parseBlock(HTLexicon.forStmt);
       bytesBuilder.add(_uint16(loop.length + 1));
       bytesBuilder.add(loop);
       bytesBuilder.addByte(HTOpCode.endOfExec);
