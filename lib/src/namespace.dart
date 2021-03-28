@@ -111,7 +111,7 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   dynamic fetchAt(String varName, int distance, {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    return space.memberGet(varName, from: space.fullName);
+    return space.memberGet(varName, from: from);
   }
 
   /// 向一个已经定义的变量赋值

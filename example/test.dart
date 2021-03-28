@@ -4,8 +4,21 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      for (var i=0; i<4; ++i) {
-        print(i)
+      class A {
+        fun foo() {
+          print('foo')
+        }
+        
+        fun bar() {
+              foo()
+              print(foo)
+        }
+        
       }
-    ''', style: ParseStyle.block);
+      
+      fun main() {
+        var a = A()
+        a.bar()
+      }
+    ''', invokeFunc: 'main');
 }

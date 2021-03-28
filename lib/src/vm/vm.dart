@@ -75,8 +75,6 @@ class Hetu extends Interpreter {
       final bytes = await compiler.compile(tokens, this, curModuleName, style: style, debugMode: debugMode);
       curCode = modules[curModuleName] = BytesReader(bytes);
 
-      print(bytes);
-
       var result = execute(closure: curNamespace);
       if (style == ParseStyle.module && invokeFunc != null) {
         result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, errorHandled: true);
