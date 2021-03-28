@@ -4,10 +4,10 @@ import 'package:path/path.dart' as path;
 import '../errors.dart';
 
 class HTModuleInfo {
-  final String fileName;
+  final String key;
   final String content;
   final bool duplicate;
-  HTModuleInfo(this.fileName, this.content, {this.duplicate = false});
+  HTModuleInfo(this.key, this.content, {this.duplicate = false});
 }
 
 abstract class HTModuleHandler {

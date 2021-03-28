@@ -115,7 +115,7 @@ abstract class Interpreter {
     }
 
     result = await eval(module.content,
-        moduleName: curModuleName,
+        moduleName: module.key,
         namespace: library_namespace,
         style: style,
         debugMode: debugMode,
