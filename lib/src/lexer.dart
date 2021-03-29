@@ -86,7 +86,7 @@ class Lexer {
 
   List<Token> processString(String literal) {
     final tokens = <Token>[];
-    final pattern = RegExp(r'\${[\s\S]*}');
+    final pattern = RegExp(r'(\${[\s\S]*})|([\s\S])');
 
     var result = literal.substring(1).substring(0, literal.length - 2);
     for (final key in stringReplaces.keys) {

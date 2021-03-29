@@ -32,18 +32,13 @@ abstract class Interpreter {
   late HTNamespace global;
 
   /// 当前语句所在的命名空间
-  late HTNamespace curNamespace;
+  HTNamespace get curNamespace;
 
   Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler}) {
-    curNamespace = global = HTNamespace(this, id: HTLexicon.global);
     this.debugMode = debugMode;
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.moduleHandler = moduleHandler ?? DefaultModuleHandler();
   }
-
-  void saveSnapshot();
-
-  void resotreSnapshot();
 
   Future<void> init(
       {bool coreModule = true,

@@ -43,20 +43,15 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
   dynamic _curStmtValue;
 
-  String? _savedModuleName;
+  late String _savedModuleName;
+  late HTNamespace _savedNamespace;
+
+  late HTNamespace _curNamespace;
+  @override
+  HTNamespace get curNamespace => _curNamespace;
 
   HTAstInterpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
       : super(debugMode: debugMode, errorHandler: errorHandler, moduleHandler: moduleHandler);
-
-  @override
-  void saveSnapshot() {
-    _savedModuleName = _curModuleName;
-  }
-
-  @override
-  void resotreSnapshot() {
-    _curModuleName = _savedModuleName!;
-  }
 
   @override
   Future<dynamic> eval(String content,
@@ -68,8 +63,11 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) async {
+    _savedModuleName = _curModuleName;
+    _savedNamespace = _curNamespace;
+
     _curModuleName = moduleName ?? HTLexicon.anonymousScript;
-    curNamespace = namespace ?? global;
+    _curNamespace = namespace ?? global;
 
     var lexer = Lexer();
     var parser = HTAstParser(this);
@@ -83,6 +81,9 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
       }
+
+      _curModuleName = _savedModuleName;
+      _curNamespace = _savedNamespace;
 
       if (invokeFunc != null) {
         if (style == ParseStyle.module) {
@@ -118,22 +119,22 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   dynamic _getValue(String name, ASTNode expr) {
     var distance = _distances[expr];
     if (distance != null) {
-      return curNamespace.fetchAt(name, distance);
+      return _curNamespace.fetchAt(name, distance);
     }
 
     return global.memberGet(name);
   }
 
   dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
-    var saved_context = curNamespace;
+    var saved_context = _curNamespace;
 
     try {
-      curNamespace = environment;
+      _curNamespace = environment;
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
       }
     } finally {
-      curNamespace = saved_context;
+      _curNamespace = saved_context;
     }
 
     return _curStmtValue;
@@ -441,7 +442,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     var distance = _distances[expr];
     if (distance != null) {
       // 尝试设置当前环境中的本地变量
-      curNamespace.assignAt(expr.variable.lexeme, value, distance);
+      _curNamespace.assignAt(expr.variable.lexeme, value, distance);
     } else {
       global.memberSet(expr.variable.lexeme, value);
     }
@@ -504,7 +505,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     }
 
     if ((object is HTObject)) {
-      return object.memberGet(expr.key.lexeme, from: curNamespace.fullName);
+      return object.memberGet(expr.key.lexeme, from: _curNamespace.fullName);
     }
     //如果是Dart对象
     else {
@@ -537,7 +538,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
     var value = visitASTNode(expr.value);
     if (object is HTObject) {
-      object.memberSet(expr.key.lexeme, value, from: curNamespace.fullName);
+      object.memberSet(expr.key.lexeme, value, from: _curNamespace.fullName);
       return value;
     }
     //如果是Dart对象
@@ -569,7 +570,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   dynamic visitBlockStmt(BlockStmt stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    return executeBlock(stmt.block, HTNamespace(this, closure: curNamespace));
+    return executeBlock(stmt.block, HTNamespace(this, closure: _curNamespace));
   }
 
   @override
@@ -648,7 +649,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     //   value = visitASTNode(stmt.initializer!);
     // }
 
-    curNamespace.define(HTAstDecl(
+    _curNamespace.define(HTAstDecl(
       stmt.id.lexeme,
       this,
       declType: stmt.declType,
@@ -671,9 +672,9 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    final func = HTAstFunction(stmt, this, context: curNamespace);
+    final func = HTAstFunction(stmt, this, _curModuleName, context: _curNamespace);
     if (stmt.id != null) {
-      curNamespace
+      _curNamespace
           .define(HTDeclaration(stmt.id!.lexeme, value: func, isExtern: stmt.isExtern, isStatic: stmt.isStatic));
     }
     return func;
@@ -693,13 +694,13 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       }
     }
 
-    final klass = HTClass(stmt.id.lexeme, superClass, this, classType: stmt.classType, closure: curNamespace);
+    final klass = HTClass(stmt.id.lexeme, superClass, this, classType: stmt.classType, closure: _curNamespace);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curNamespace.define(HTDeclaration(stmt.id.lexeme, value: klass));
+    _curNamespace.define(HTDeclaration(stmt.id.lexeme, value: klass));
 
-    var save = curNamespace;
-    curNamespace = klass;
+    var save = _curNamespace;
+    _curNamespace = klass;
 
     for (final variable in stmt.variables) {
       if (stmt.classType != ClassType.extern && variable.isExtern) {
@@ -725,18 +726,18 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       }
     }
 
-    curNamespace = save;
+    _curNamespace = save;
 
     for (final method in stmt.methods) {
       HTFunction func;
       if (method.isStatic) {
-        func = HTAstFunction(method, this, context: klass);
+        func = HTAstFunction(method, this, _curModuleName, context: klass);
         klass.define(HTDeclaration(method.internalName, value: func, isExtern: method.isExtern), override: true);
       } else if (method.funcType == FunctionType.constructor) {
-        func = HTAstFunction(method, this);
+        func = HTAstFunction(method, this, _curModuleName);
         klass.define(HTDeclaration(method.internalName, value: func, isExtern: method.isExtern), override: true);
       } else {
-        func = HTAstFunction(method, this);
+        func = HTAstFunction(method, this, _curModuleName);
         klass.defineInstance(HTDeclaration(method.internalName, value: func, isExtern: method.isExtern));
       }
     }
@@ -770,6 +771,6 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
     final enumClass = HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
 
-    curNamespace.define(HTDeclaration(stmt.id.lexeme, value: enumClass));
+    _curNamespace.define(HTDeclaration(stmt.id.lexeme, value: enumClass));
   }
 }

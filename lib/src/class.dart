@@ -84,7 +84,6 @@ class HTClass extends HTNamespace {
     }
 
     final getter = '${HTLexicon.getter}$varName';
-    final constructor = '${HTLexicon.constructor}$varName';
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (!decl.isInitialized) {
@@ -168,12 +167,9 @@ class HTClass extends HTNamespace {
       List<HTTypeId> typeArgs = const []}) {
     var instance = HTInstance(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
 
-    var save = interpreter.curNamespace;
-    interpreter.curNamespace = instance;
     for (final decl in instanceDecls.values) {
       instance.define(decl.clone());
     }
-    interpreter.curNamespace = save;
 
     final funcId = '${HTLexicon.constructor}$constructorName';
     if (declarations.containsKey(funcId)) {

@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/namespace.dart';
+
 import 'errors.dart';
 
 /// 一个声明，包含了类型等额外信息。
@@ -23,10 +25,18 @@ class HTDeclaration {
   var _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
+  final HTNamespace? closure;
+
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
   HTDeclaration(this.id,
-      {dynamic value, this.getter, this.setter, this.isExtern = false, this.isMember = false, this.isStatic = false}) {
+      {dynamic value,
+      this.getter,
+      this.setter,
+      this.isExtern = false,
+      this.isMember = false,
+      this.isStatic = false,
+      this.closure}) {
     if (value != null) assign(value);
   }
 

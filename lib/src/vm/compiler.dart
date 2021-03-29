@@ -39,6 +39,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
   final _importedModules = <ImportInfo>[];
 
+  late String _curModuleName;
+  @override
+  String get curModuleName => _curModuleName;
   String? _curClassName;
   ClassType? _curClassType;
 
@@ -54,23 +57,20 @@ class Compiler extends Parser with ConstTable, HetuRef {
     this.interpreter = interpreter;
     _bundleMode = bundleMode;
     _debugMode = _bundleMode ? false : debugMode;
-    curModuleName = moduleName;
+    _curModuleName = moduleName;
 
     _curBlock = _globalBlock = DeclarationBlock();
 
     final code = _compile(tokens, moduleName, style);
 
     for (final importInfo in _importedModules) {
-      interpreter.saveSnapshot();
       if (bundleMode) {
       } else {
         await interpreter.import(importInfo.key, moduleName: importInfo.name, debugMode: _debugMode);
       }
-      interpreter.resotreSnapshot();
-      curModuleName = interpreter.curModuleName;
     }
 
-    curModuleName = '';
+    _curModuleName = '';
 
     final mainBuilder = BytesBuilder();
     // 河图字节码标记
@@ -123,7 +123,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   Uint8List _compile(List<Token> tokens, String moduleName, [ParseStyle style = ParseStyle.module]) {
     //, ImportInfo? importInfo]) {
     // _curImportInfo = importInfo;
-    addTokens(tokens, moduleName);
+    addTokens(tokens);
     final bytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.endOfFile) {
       final exprStmts = _parseStmt(style: style);

@@ -7,8 +7,8 @@ void main() async {
       fun main() { 
         var rows = [1, 2, 3]
 
-        for (var r in rows) {
-          var p = r * r
+        for (var attr in rows) {
+          var p = attr * attr
 
           print(p)
         } 

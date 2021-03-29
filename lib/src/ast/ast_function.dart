@@ -15,11 +15,11 @@ import '../object.dart';
 class HTAstFunction extends HTFunction with AstInterpreterRef {
   final FuncDeclStmt funcStmt;
 
-  HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
+  HTAstFunction(this.funcStmt, HTAstInterpreter interpreter, String module,
       {String? externalTypedef, List<HTTypeId> typeParams = const [], HTNamespace? context})
       : super(
           funcStmt.internalName,
-          funcStmt.id?.lexeme ?? '',
+          funcStmt.id?.lexeme ?? '', module,
           className: funcStmt.className,
           funcType: funcStmt.funcType,
           externType: ExternFunctionType.none, // TODO: 这里需要修改

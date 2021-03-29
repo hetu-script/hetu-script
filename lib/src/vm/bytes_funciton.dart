@@ -12,13 +12,11 @@ import '../declaration.dart';
 import '../lexicon.dart';
 
 class HTBytesFunction extends HTFunction with HetuRef {
-  final String module;
-
   final Map<String, HTBytesParamDecl> paramDecls;
 
   final int? definitionIp;
 
-  HTBytesFunction(String id, Hetu interpreter, this.module,
+  HTBytesFunction(String id, Hetu interpreter, String module,
       {String declId = '',
       String? className,
       FunctionType funcType = FunctionType.normal,
@@ -34,7 +32,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
       int minArity = 0,
       int maxArity = 0,
       HTNamespace? context})
-      : super(id, declId,
+      : super(id, declId, module,
             className: className,
             funcType: funcType,
             externType: externType,
@@ -146,10 +144,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
         variadicParam!.assign(variadicArg);
       }
 
-      interpreter.saveSnapshot();
-      interpreter.switchCode(module);
-      result = interpreter.execute(ip: definitionIp!, closure: closure);
-      interpreter.resotreSnapshot();
+      result = interpreter.execute(moduleName: module, ip: definitionIp!, namespace: closure);
     }
     // 如果是外部函数
     else {

@@ -4,14 +4,20 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      fun main() {
-        var i1 = 100
-        var i2 = 200
-        var a = i1
-        if (true) {
-          a = i2
-        }
-        print(a, i1, i2)
+      fun getIndex {
+        return 2
+      }
+
+      class Person {
+        var age = 12
+      }
+
+      fun main {
+        var tables = { 'weapon': [1,2,3] }
+        var rows = tables['weapon'];
+        var i = getIndex()
+        print(rows[i])
+
       }
     ''', invokeFunc: 'main');
 }

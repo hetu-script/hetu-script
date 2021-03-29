@@ -20,12 +20,11 @@ import 'errors.dart';
 abstract class Parser {
   late List<Token> tokens;
 
-  void addTokens(List<Token> tokens, String moduleName) {
+  void addTokens(List<Token> tokens) {
     _tokPos = 0;
     this.tokens = tokens;
     _curLine = 0;
     _curColumn = 0;
-    curModuleName = moduleName;
   }
 
   static int internalVarIndex = 0;
@@ -34,7 +33,7 @@ abstract class Parser {
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
-  late String curModuleName;
+  String get curModuleName;
 
   var _tokPos = 0;
 

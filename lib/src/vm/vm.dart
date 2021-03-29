@@ -32,20 +32,24 @@ class LoopInfo {
   LoopInfo(this.startIp, this.endIp, this.namespace);
 }
 
-class _Snapshot {
-  int line, column;
+class _InterpreterState {
+  int ip, line, column;
   String moduleName;
   String? symbol, className;
   dynamic value;
   ReferrenceType refType;
+  HTNamespace namespace;
 
-  _Snapshot(this.line, this.column, this.moduleName, this.symbol, this.className, this.value, this.refType);
+  // List<dynamic>
+
+  _InterpreterState(this.ip, this.line, this.column, this.moduleName, this.symbol, this.className, this.value,
+      this.refType, this.namespace);
 }
 
 class Hetu extends Interpreter {
   static var _anonymousScriptIndex = 0;
 
-  final modules = <String, BytesReader>{};
+  final _modules = <String, BytesReader>{};
   late BytesReader _curCode;
 
   var _curLine = 0;
@@ -62,53 +66,22 @@ class Hetu extends Interpreter {
   dynamic _curValue; // local value
   var _curRefType = ReferrenceType.normal;
 
-  final _snapshots = <_Snapshot>[];
+  final _savedStates = <_InterpreterState>[];
 
-  @override
-  void saveSnapshot() {
-    _snapshots.add(_Snapshot(
-      _curLine,
-      _curColumn,
-      _curModuleName,
-      _curSymbol,
-      _curClassName,
-      _curValue,
-      _curRefType,
-    ));
-  }
-
-  void switchCode(String module) {
-    _curModuleName = module;
-    _curCode = modules[module]!;
-  }
-
-  @override
-  void resotreSnapshot() {
-    if (_snapshots.isNotEmpty) {
-      final snapshot = _snapshots.last;
-      _curLine = snapshot.line;
-      _curColumn = snapshot.column;
-      _curModuleName = snapshot.moduleName;
-      _curSymbol = snapshot.symbol;
-      _curClassName = snapshot.className;
-      _curValue = snapshot.value;
-      _curRefType = snapshot.refType;
-
-      _snapshots.removeLast();
-
-      if (modules.containsKey(_curModuleName)) {
-        _curCode = modules[_curModuleName]!;
-      }
-    }
-  }
-
-  final _register = List<dynamic>.filled(16, null, growable: false);
+  var _regIndex = 0;
+  final _registers = List<dynamic>.filled(16, null, growable: true);
 
   /// break 指令将会跳回最近的一个loop point
   final _loops = <LoopInfo>[];
 
+  late HTNamespace _curNamespace;
+  @override
+  HTNamespace get curNamespace => _curNamespace;
+
   Hetu({HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
-      : super(errorHandler: errorHandler, moduleHandler: moduleHandler);
+      : super(errorHandler: errorHandler, moduleHandler: moduleHandler) {
+    _curNamespace = global = HTNamespace(this, id: HTLexicon.global);
+  }
 
   @override
   Future<dynamic> eval(String content,
@@ -123,15 +96,15 @@ class Hetu extends Interpreter {
     if (content.isEmpty) throw HTErrorEmpty(moduleName ?? '');
 
     _curModuleName = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
-    curNamespace = namespace ?? global;
+
     final compiler = Compiler();
 
     try {
       final tokens = Lexer().lex(content, _curModuleName);
       final bytes = await compiler.compile(tokens, this, _curModuleName, style: style, debugMode: debugMode);
-      _curCode = modules[_curModuleName] = BytesReader(bytes);
+      _curCode = _modules[_curModuleName] = BytesReader(bytes);
 
-      var result = execute(closure: curNamespace);
+      var result = execute(namespace: namespace ?? global);
       if (style == ParseStyle.module && invokeFunc != null) {
         result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, errorHandled: true);
       }
@@ -206,27 +179,62 @@ class Hetu extends Interpreter {
 
   dynamic run(Uint8List code) {}
 
-  /// 从 [ip] 位置开始解释，遇到 OP.endOfExec 后返回当前值。
-  /// 返回时，指针会回到执行前的 ip 位置。并且会回到之前的命名空间。
-  dynamic execute({int? ip, HTNamespace? closure}) {
-    final savedIp = _curCode.ip;
-    final savedNamespace = curNamespace;
+  /// 从 [ip?] 位置开始解释，遇到 [OP.endOfExec] 后返回当前值。
+  /// 如果之前 namespace
+  /// 如果之前 [closure != null] 会回到之前的命名空间
+  /// 如果之前 [ip != null] 会回到执行前的 [ip] 位置
+  dynamic execute({String? moduleName, int? ip, HTNamespace? namespace}) {
+    _savedStates.add(_InterpreterState(
+      _curCode.ip,
+      _curLine,
+      _curColumn,
+      _curModuleName,
+      _curSymbol,
+      _curClassName,
+      _curValue,
+      _curRefType,
+      _curNamespace,
+    ));
 
+    var changedCode = false;
+
+    if (moduleName != null && (_curModuleName != moduleName)) {
+      changedCode = true;
+      _curCode = _modules[moduleName]!;
+    }
     if (ip != null) {
       _curCode.ip = ip;
+      ++_regIndex;
+
+      if (_registers.length <= _regIndex * 16) _registers.length += 16;
     }
-    if (closure != null) {
-      curNamespace = closure;
+    if (namespace != null) {
+      _curNamespace = namespace;
     }
 
     final result = _execute();
 
+    final state = _savedStates.last;
+
+    _curLine = state.line;
+    _curColumn = state.column;
+    _curSymbol = state.symbol;
+    _curClassName = state.className;
+    _curValue = state.value;
+    _curRefType = state.refType;
+    _curNamespace = state.namespace;
+
+    if (changedCode) {
+      _curModuleName = state.moduleName;
+      _curCode = _modules[_curModuleName]!;
+    }
+
     if (ip != null) {
-      _curCode.ip = savedIp;
+      --_regIndex;
+      _curCode.ip = state.ip;
     }
-    if (closure != null) {
-      curNamespace = savedNamespace;
-    }
+
+    _savedStates.removeLast();
 
     return result;
   }
@@ -257,7 +265,8 @@ class Hetu extends Interpreter {
           break;
         // 将本地变量存入下一个字节代表的寄存器位置中
         case HTOpCode.register:
-          _storeRegister(_curCode.read(), _curValue);
+          final index = _curCode.read();
+          _storeRegVal(index, _curValue);
           break;
         case HTOpCode.goto:
           final distance = _curCode.readInt16();
@@ -266,24 +275,24 @@ class Hetu extends Interpreter {
         // 循环开始，记录断点
         case HTOpCode.loopPoint:
           final endDistance = _curCode.readUint16();
-          _loops.add(LoopInfo(_curCode.ip, _curCode.ip + endDistance, curNamespace));
+          _loops.add(LoopInfo(_curCode.ip, _curCode.ip + endDistance, _curNamespace));
           break;
         case HTOpCode.breakLoop:
           _curCode.ip = _loops.last.endIp;
-          curNamespace = _loops.last.namespace;
+          _curNamespace = _loops.last.namespace;
           _loops.removeLast();
           break;
         case HTOpCode.continueLoop:
           _curCode.ip = _loops.last.startIp;
-          curNamespace = _loops.last.namespace;
+          _curNamespace = _loops.last.namespace;
           break;
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
           final id = _curCode.readShortUtf8String();
-          curNamespace = HTNamespace(this, id: id, closure: curNamespace);
+          _curNamespace = HTNamespace(this, id: id, closure: _curNamespace);
           break;
         case HTOpCode.endOfBlock:
-          curNamespace = curNamespace.closure!;
+          _curNamespace = _curNamespace.closure!;
           break;
         // 语句结束
         case HTOpCode.endOfStmt:
@@ -423,7 +432,7 @@ class Hetu extends Interpreter {
         final isGetKey = _curCode.readBool();
         if (!isGetKey) {
           _curRefType = ReferrenceType.normal;
-          _curValue = curNamespace.memberGet(_curSymbol!, from: curNamespace.fullName);
+          _curValue = _curNamespace.memberGet(_curSymbol!, from: _curNamespace.fullName);
         } else {
           _curRefType = ReferrenceType.member;
           // reg[13] 是 object，reg[14] 是 key
@@ -488,7 +497,7 @@ class Hetu extends Interpreter {
             isVariadic: isVariadic,
             minArity: minArity,
             maxArity: maxArity,
-            context: curNamespace);
+            context: _curNamespace);
 
         if (!hasExternalTypedef) {
           _curValue = func;
@@ -505,25 +514,21 @@ class Hetu extends Interpreter {
     }
   }
 
-  void _storeRegister(int index, dynamic value) {
-    // if (index > _register.length) {
-    //   _register.length = index + 8;
-    // }
+  dynamic _getRegVal(int index) => _registers[(_regIndex * 16 + index)];
 
-    _register[index] = value;
-  }
+  void _storeRegVal(int index, dynamic value) => _registers[(_regIndex * 16 + index)] = value;
 
   void _assignCurRef(dynamic value) {
     switch (_curRefType) {
       case ReferrenceType.normal:
-        curNamespace.memberSet(_curSymbol!, value, from: curNamespace.fullName);
+        _curNamespace.memberSet(_curSymbol!, value, from: _curNamespace.fullName);
         break;
       case ReferrenceType.member:
-        final object = _register[HTRegIndex.unaryPostObject]!;
-        final key = _register[HTRegIndex.unaryPostKey]!;
+        final object = _getRegVal(HTRegIndex.unaryPostObject)!;
+        final key = _getRegVal(HTRegIndex.unaryPostKey);
         // 如果是 Hetu 对象
         if (object is HTObject) {
-          object.memberSet(key, value, from: curNamespace.fullName);
+          object.memberSet(key, value, from: _curNamespace.fullName);
         }
         // 如果是 Dart 对象
         else {
@@ -536,15 +541,15 @@ class Hetu extends Interpreter {
         }
         break;
       case ReferrenceType.sub:
-        final object = _register[HTRegIndex.unaryPostObject]!;
-        final key = _register[HTRegIndex.unaryPostKey]!;
+        final object = _getRegVal(HTRegIndex.unaryPostObject);
+        final key = _getRegVal(HTRegIndex.unaryPostKey);
         // 如果是 buildin 集合
         if ((object is List) || (object is Map)) {
           object[key] = value;
         }
         // 如果是 Hetu 对象
         else if (object is HTObject) {
-          object.subSet(key, value, from: curNamespace.fullName);
+          object.subSet(key, value, from: _curNamespace.fullName);
         }
         // 如果是 Dart 对象
         else {
@@ -571,7 +576,7 @@ class Hetu extends Interpreter {
         throw HTErrorIterable(_curSymbol!);
       } else {
         // 这里要直接获取声明，而不是变量的值
-        final decl = curNamespace.declarations[id]!;
+        final decl = _curNamespace.declarations[id]!;
         if (object is Iterable) {
           for (var value in object) {
             decl.assign(value);
@@ -595,7 +600,7 @@ class Hetu extends Interpreter {
         throw HTErrorIterable(_curSymbol!);
       } else {
         // 这里要直接获取声明，而不是变量的值
-        final decl = curNamespace.declarations[id]!;
+        final decl = _curNamespace.declarations[id]!;
         for (var value in object.values) {
           decl.assign(value);
           execute();
@@ -648,27 +653,27 @@ class Hetu extends Interpreter {
 
     switch (opcode) {
       case HTOpCode.assign:
-        _curValue = _register[right];
+        _curValue = _getRegVal(right);
         _assignCurRef(_curValue);
         break;
       case HTOpCode.assignMultiply:
         final leftValue = _curValue;
-        _curValue = leftValue * _register[right];
+        _curValue = leftValue * _getRegVal(right);
         _assignCurRef(_curValue);
         break;
       case HTOpCode.assignDevide:
         final leftValue = _curValue;
-        _curValue = leftValue / _register[right];
+        _curValue = leftValue / _getRegVal(right);
         _assignCurRef(_curValue);
         break;
       case HTOpCode.assignAdd:
         final leftValue = _curValue;
-        _curValue = leftValue + _register[right];
+        _curValue = leftValue + _getRegVal(right);
         _assignCurRef(_curValue);
         break;
       case HTOpCode.assignSubtract:
         final leftValue = _curValue;
-        _curValue = leftValue - _register[right];
+        _curValue = leftValue - _getRegVal(right);
         _assignCurRef(_curValue);
         break;
     }
@@ -680,68 +685,68 @@ class Hetu extends Interpreter {
 
     switch (opcode) {
       case HTOpCode.logicalOr:
-        _curValue = _register[left] || _register[right];
+        _curValue = _getRegVal(left) || _getRegVal(right);
         break;
       case HTOpCode.logicalAnd:
-        _curValue = _register[left] && _register[right];
+        _curValue = _getRegVal(left) && _getRegVal(right);
         break;
       case HTOpCode.equal:
-        _curValue = _register[left] == _register[right];
+        _curValue = _getRegVal(left) == _getRegVal(right);
         break;
       case HTOpCode.notEqual:
-        _curValue = _register[left] != _register[right];
+        _curValue = _getRegVal(left) != _getRegVal(right);
         break;
       case HTOpCode.lesser:
-        _curValue = _register[left] < _register[right];
+        _curValue = _getRegVal(left) < _getRegVal(right);
         break;
       case HTOpCode.greater:
-        _curValue = _register[left] > _register[right];
+        _curValue = _getRegVal(left) > _getRegVal(right);
         break;
       case HTOpCode.lesserOrEqual:
-        _curValue = _register[left] <= _register[right];
+        _curValue = _getRegVal(left) <= _getRegVal(right);
         break;
       case HTOpCode.greaterOrEqual:
-        _curValue = _register[left] >= _register[right];
+        _curValue = _getRegVal(left) >= _getRegVal(right);
         break;
       case HTOpCode.typeIs:
-        final typeLeft = typeof(_register[left]);
-        var typeRight = _register[right];
+        final typeLeft = typeof(_getRegVal(left));
+        var typeRight = _getRegVal(right);
         if (typeRight is! HTTypeId) {
           throw HTErrorNotType(typeRight.toString());
         }
         _curValue = typeLeft.isA(typeRight);
         break;
       case HTOpCode.typeIsNot:
-        final typeLeft = typeof(_register[left]);
-        var typeRight = _register[right];
+        final typeLeft = typeof(_getRegVal(left));
+        var typeRight = _getRegVal(right);
         if (typeRight is! HTTypeId) {
           throw HTErrorNotType(typeRight.toString());
         }
         _curValue = typeLeft.isNotA(typeRight);
         break;
       case HTOpCode.add:
-        _curValue = _register[left] + _register[right];
+        _curValue = _getRegVal(left) + _getRegVal(right);
         break;
       case HTOpCode.subtract:
-        _curValue = _register[left] - _register[right];
+        _curValue = _getRegVal(left) - _getRegVal(right);
         break;
       case HTOpCode.multiply:
-        _curValue = _register[left] * _register[right];
+        _curValue = _getRegVal(left) * _getRegVal(right);
         break;
       case HTOpCode.devide:
-        _curValue = _register[left] / _register[right];
+        _curValue = _getRegVal(left) / _getRegVal(right);
         break;
       case HTOpCode.modulo:
-        _curValue = _register[left] % _register[right];
+        _curValue = _getRegVal(left) % _getRegVal(right);
         break;
       default:
-      // throw HTErrorUndefinedBinaryOperator(_register[left].toString(), _register[right].toString(), opcode);
+      // throw HTErrorUndefinedBinaryOperator(_getRegVal(left).toString(), _getRegVal(right).toString(), opcode);
     }
   }
 
   void _handleUnaryPrefixOp(int op) {
     final objIndex = _curCode.read();
-    final object = _register[objIndex];
+    final object = _getRegVal(objIndex);
     switch (op) {
       case HTOpCode.negative:
         _curValue = -object;
@@ -758,13 +763,13 @@ class Hetu extends Interpreter {
         _assignCurRef(_curValue);
         break;
       default:
-      // throw HTErrorUndefinedOperator(_register[left].toString(), _register[right].toString(), HTLexicon.add);
+      // throw HTErrorUndefinedOperator(_getRegVal(left).toString(), _getRegVal(right).toString(), HTLexicon.add);
     }
   }
 
   void _handleCallExpr() {
     final objIndex = _curCode.read();
-    var object = _register[objIndex];
+    var object = _getRegVal(objIndex);
     var positionalArgs = [];
     final positionalArgsLength = _curCode.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
@@ -790,9 +795,9 @@ class Hetu extends Interpreter {
     switch (op) {
       case HTOpCode.memberGet:
         final objIndex = _curCode.read();
-        var object = _register[objIndex];
+        var object = _getRegVal(objIndex);
         final objKey = _curCode.read();
-        var key = _register[objKey];
+        var key = _getRegVal(objKey);
         if (object is num) {
           object = HTNumber(object);
         } else if (object is bool) {
@@ -806,7 +811,7 @@ class Hetu extends Interpreter {
         }
 
         if ((object is HTObject)) {
-          _curValue = object.memberGet(key, from: curNamespace.fullName);
+          _curValue = object.memberGet(key, from: _curNamespace.fullName);
         }
         //如果是Dart对象
         else {
@@ -820,9 +825,9 @@ class Hetu extends Interpreter {
         break;
       case HTOpCode.subGet:
         final objIndex = _curCode.read();
-        var object = _register[objIndex];
+        var object = _getRegVal(objIndex);
         final objKey = _curCode.read();
-        var key = _register[objKey];
+        var key = _getRegVal(objKey);
         // TODO: support script subget operator override
         // if (object is! List && object is! Map) {
         //   throw HTErrorSubGet(object.toString());
@@ -835,16 +840,18 @@ class Hetu extends Interpreter {
         break;
       case HTOpCode.postIncrement:
         final objIndex = _curCode.read();
-        var object = _register[objIndex];
+        var object = _getRegVal(objIndex);
         _curValue = object;
-        final newValue = _register[objIndex] += 1;
+        final value = _getRegVal(objIndex);
+        final newValue = value + 1;
         _assignCurRef(newValue);
         break;
       case HTOpCode.postDecrement:
         final objIndex = _curCode.read();
-        var object = _register[objIndex];
+        var object = _getRegVal(objIndex);
         _curValue = object;
-        final newValue = _register[objIndex] -= 1;
+        final value = _getRegVal(objIndex);
+        final newValue = value - 1;
         _assignCurRef(newValue);
         break;
     }
@@ -898,9 +905,9 @@ class Hetu extends Interpreter {
         isStatic: isStatic);
 
     if (!isMember || isStatic) {
-      curNamespace.define(decl);
+      _curNamespace.define(decl);
     } else {
-      (curNamespace as HTClass).defineInstance(decl);
+      (_curNamespace as HTClass).defineInstance(decl);
     }
   }
 
@@ -951,7 +958,7 @@ class Hetu extends Interpreter {
 
     final enumClass = HTEnum(id, defs, this, isExtern: isExtern);
 
-    curNamespace.define(HTDeclaration(id, value: enumClass));
+    _curNamespace.define(HTDeclaration(id, value: enumClass));
   }
 
   void _handleFuncDecl() {
@@ -1009,13 +1016,13 @@ class Hetu extends Interpreter {
 
     if (!isStatic &&
         (funcType == FunctionType.getter || funcType == FunctionType.setter || funcType == FunctionType.method)) {
-      (curNamespace as HTClass).defineInstance(
+      (_curNamespace as HTClass).defineInstance(
           HTDeclaration(id, value: func, isExtern: func.externType != ExternFunctionType.none, isMember: true));
     } else {
       if (funcType != FunctionType.constructor) {
-        func.context = curNamespace;
+        func.context = _curNamespace;
       }
-      curNamespace
+      _curNamespace
           .define(HTDeclaration(id, value: func, isExtern: func.externType != ExternFunctionType.none, isMember: true));
     }
   }
@@ -1038,16 +1045,16 @@ class Hetu extends Interpreter {
         // TODO: Object基类
         // superClass = global.fetch(HTLexicon.rootClass);
       } else {
-        superClass = curNamespace.memberGet(superClassId, from: curNamespace.fullName);
+        superClass = _curNamespace.memberGet(superClassId, from: _curNamespace.fullName);
       }
     }
 
-    final klass = HTClass(id, superClass, this, classType: classType, closure: curNamespace);
+    final klass = HTClass(id, superClass, this, classType: classType, closure: _curNamespace);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    curNamespace.define(HTDeclaration(id, value: klass));
+    _curNamespace.define(HTDeclaration(id, value: klass));
 
-    execute(closure: klass);
+    execute(namespace: klass);
 
     // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
     var curSuper = superClass;

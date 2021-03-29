@@ -32,9 +32,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     while (curTok.type != HTLexicon.endOfFile) {
       var stmt = _parseStmt(style: style);
       if (stmt is ImportStmt) {
-        interpreter.saveSnapshot();
         await interpreter.import(stmt.key, moduleName: stmt.namespace);
-        interpreter.resotreSnapshot();
         _curModuleName = interpreter.curModuleName;
       }
       statements.add(stmt);

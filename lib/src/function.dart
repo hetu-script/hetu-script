@@ -10,6 +10,7 @@ abstract class HTFunction with HTType {
   final String id;
   final String declId;
   final String? className;
+  final String module;
 
   final FunctionType funcType;
 
@@ -37,7 +38,7 @@ abstract class HTFunction with HTType {
 
   HTNamespace? context;
 
-  HTFunction(this.id, this.declId,
+  HTFunction(this.id, this.declId, this.module,
       {this.className,
       this.funcType = FunctionType.normal,
       this.externType = ExternFunctionType.none,
