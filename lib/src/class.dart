@@ -76,8 +76,14 @@ class HTClass extends HTNamespace {
     } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateMember(varName);
     }
-    final getter = '${HTLexicon.getter}$varName';
+
     final staticName = '$id.$varName';
+    if (classType == ClassType.extern) {
+      final externClass = interpreter.fetchExternalClass(id);
+      return externClass.memberGet(staticName);
+    }
+
+    final getter = '${HTLexicon.getter}$varName';
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (!decl.isInitialized) {
@@ -92,10 +98,6 @@ class HTClass extends HTNamespace {
           return value;
         }
       }
-      if (classType == ClassType.extern) {
-        final externClass = interpreter.fetchExternalClass(id);
-        return externClass.memberGet(staticName);
-      }
       return value;
     } else if (declarations.containsKey(getter)) {
       final decl = declarations[getter]!;
@@ -103,17 +105,6 @@ class HTClass extends HTNamespace {
       return func.call();
     } else if (declarations.containsKey(staticName)) {
       final decl = declarations[staticName]!;
-      if (decl.value is HTFunction) {
-        return decl.value;
-      }
-      if (decl.isExtern) {
-        if (classType == ClassType.extern) {
-          final externClass = interpreter.fetchExternalClass(id);
-          return externClass.memberGet(staticName);
-        } else {
-          return interpreter.fetchExternalFunction(staticName);
-        }
-      }
       return decl.value;
     } else if (superClass != null && superClass!.contains(varName)) {
       return superClass!.memberGet(varName, from: from);
@@ -135,15 +126,16 @@ class HTClass extends HTNamespace {
       throw HTErrorPrivateMember(varName);
     }
 
-    final setter = '${HTLexicon.setter}$varName';
     final staticName = '$id.$varName';
+    if (classType == ClassType.extern) {
+      final externClass = interpreter.fetchExternalClass(id);
+      externClass.memberSet(staticName, value);
+      return;
+    }
+
+    final setter = '${HTLexicon.setter}$varName';
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
-      if (classType == ClassType.extern) {
-        final externClass = interpreter.fetchExternalClass(id);
-        externClass.memberSet(staticName, value);
-        return;
-      }
       decl.assign(value);
       return;
     } else if (declarations.containsKey(setter)) {
@@ -189,7 +181,7 @@ class HTClass extends HTNamespace {
     if (declarations.containsKey(constructorName)) {
       HTFunction constructor = declarations[constructorName]!.value;
       constructor.context = instance;
-      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
     }
 
     return instance;

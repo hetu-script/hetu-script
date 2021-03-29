@@ -126,22 +126,22 @@ void main() async {
         fun greeting
       }
       fun main {
-        // let p1: Person = Person()
-        // print(p1.typeid)
-        // print(p1.name)
+        let p1: Person = Person()
+        print(p1.typeid)
+        print(p1.name)
         var p2 = Person.withName(name: 'Jimmy')
         print(p2.name)
-        // p2.name = 'John'
-        // p2.greeting();
-        // print(p1.child)
-        // Person.level = '3'
-        // print(Person.level)
+        p2.name = 'John'
+        p2.greeting();
+        print(p1.child)
+        Person.level = '3'
+        print(Person.level)
 
-        // print('My race is', Person.race)
-        // Person.race = 'Reptile'
-        // print('Oh no! My race turned into', Person.race)
+        print('My race is', Person.race)
+        Person.race = 'Reptile'
+        print('Oh no! My race turned into', Person.race)
 
-        // print(Person.meaning(42))
+        print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }

@@ -111,16 +111,15 @@ class Hetu extends Interpreter {
       : super(errorHandler: errorHandler, moduleHandler: moduleHandler);
 
   @override
-  Future<dynamic> eval(
-    String content, {
-    String? moduleName,
-    ParseStyle style = ParseStyle.module,
-    bool debugMode = true,
-    HTNamespace? namespace,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  }) async {
+  Future<dynamic> eval(String content,
+      {String? moduleName,
+      ParseStyle style = ParseStyle.module,
+      bool debugMode = true,
+      HTNamespace? namespace,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) async {
     if (content.isEmpty) throw HTErrorEmpty(moduleName ?? '');
 
     _curModuleName = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
@@ -956,6 +955,7 @@ class Hetu extends Interpreter {
 
   void _handleFuncDecl() {
     final id = _curCode.readShortUtf8String();
+    final declId = _curCode.readShortUtf8String();
 
     final hasExternalTypedef = _curCode.readBool();
     String? externalTypedef;
@@ -991,6 +991,7 @@ class Hetu extends Interpreter {
       id,
       this,
       _curModuleName,
+      declId: declId,
       className: _curClassName,
       funcType: funcType,
       externType: externType,
@@ -1020,6 +1021,7 @@ class Hetu extends Interpreter {
 
   void _handleClassDecl() {
     final id = _curCode.readShortUtf8String();
+    _curClassName = id;
 
     final classType = ClassType.values[_curCode.read()];
 
@@ -1058,5 +1060,7 @@ class Hetu extends Interpreter {
 
       curSuper = curSuper.superClass;
     }
+
+    _curClassName = null;
   }
 }

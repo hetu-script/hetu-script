@@ -23,7 +23,7 @@ final Map<String, Function> coreFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
     var sb = StringBuffer();
-    for (final arg in positionalArgs) {
+    for (final arg in positionalArgs[0]) {
       sb.write('${arg.toString()} ');
     }
     print(sb.toString());

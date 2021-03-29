@@ -80,27 +80,25 @@ abstract class Interpreter {
     }
   }
 
-  Future<dynamic> eval(
-    String content, {
-    String? moduleName,
-    ParseStyle style = ParseStyle.module,
-    bool debugMode = true,
-    HTNamespace? namespace,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  });
+  Future<dynamic> eval(String content,
+      {String? moduleName,
+      ParseStyle style = ParseStyle.module,
+      bool debugMode = true,
+      HTNamespace? namespace,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []});
 
   /// 解析文件
-  Future<dynamic> import(
-    String key, {
-    String? moduleName,
-    ParseStyle style = ParseStyle.module,
-    bool debugMode = true,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  }) async {
+  Future<dynamic> import(String key,
+      {String? moduleName,
+      ParseStyle style = ParseStyle.module,
+      bool debugMode = true,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) async {
     dynamic result;
 
     final module =
@@ -121,7 +119,8 @@ abstract class Interpreter {
         debugMode: debugMode,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
-        namedArgs: namedArgs);
+        namedArgs: namedArgs,
+        typeArgs: typeArgs);
 
     return result;
   }
@@ -137,38 +136,30 @@ abstract class Interpreter {
       if (callee is HTFunction) {
         HTFunction.callStack.add('#${HTFunction.callStack.length} ${callee.id} - ($curModuleName:$curLine:$curColumn)');
 
-        return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+        return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+      } // 外部函数
+      else if (callee is Function) {
+        if (callee is HTExternalFunction) {
+          return callee(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+        } else {
+          return Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(callee.toString());
+        }
       } else if (callee is HTClass) {
         if (callee.classType != ClassType.extern) {
           // 默认构造函数
-          return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs);
+          return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         } else {
           // 外部默认构造函数
           final externClass = fetchExternalClass(callee.id);
           final constructor = externClass.memberGet(callee.id);
           if (constructor is HTExternalFunction) {
-            try {
-              return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs);
-            } on RangeError {
-              throw HTErrorExternParams();
-            }
+            return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
           } else {
             return Function.apply(
                 constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
             // throw HTErrorExternFunc(constructor.toString());
           }
-        }
-      } // 外部函数
-      else if (callee is Function) {
-        if (callee is HTExternalFunction) {
-          try {
-            return callee(positionalArgs: positionalArgs, namedArgs: namedArgs);
-          } on RangeError {
-            throw HTErrorExternParams();
-          }
-        } else {
-          return Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(callee.toString());
         }
       } else {
         throw HTErrorCallable(callee.toString());

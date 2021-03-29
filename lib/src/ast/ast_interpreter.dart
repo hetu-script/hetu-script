@@ -59,16 +59,15 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   }
 
   @override
-  Future<dynamic> eval(
-    String content, {
-    String? moduleName,
-    ParseStyle style = ParseStyle.module,
-    bool debugMode = true,
-    HTNamespace? namespace,
-    String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-  }) async {
+  Future<dynamic> eval(String content,
+      {String? moduleName,
+      ParseStyle style = ParseStyle.module,
+      bool debugMode = true,
+      HTNamespace? namespace,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) async {
     _curModuleName = moduleName ?? HTLexicon.anonymousScript;
     curNamespace = namespace ?? global;
 
@@ -87,7 +86,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
       if (invokeFunc != null) {
         if (style == ParseStyle.module) {
-          return invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs);
+          return invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         }
       } else {
         return _curStmtValue;
@@ -337,22 +336,24 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   dynamic visitCallExpr(CallExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    var callee = visitASTNode(expr.callee);
-    var positionalArgs = [];
+    final callee = visitASTNode(expr.callee);
+    final positionalArgs = [];
     for (var i = 0; i < expr.positionalArgs.length; ++i) {
       positionalArgs.add(visitASTNode(expr.positionalArgs[i]));
     }
 
-    var namedArgs = <String, dynamic>{};
+    final namedArgs = <String, dynamic>{};
     for (var name in expr.namedArgs.keys) {
       namedArgs[name] = visitASTNode(expr.namedArgs[name]!);
     }
+
+    final typeArgs = <HTTypeId>[];
 
     if (callee is HTFunction) {
       if (callee.externType == ExternFunctionType.none) {
         // 普通函数
         if (callee.funcType != FunctionType.constructor) {
-          return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+          return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         } else {
           final className = callee.className;
           final klass = global.memberGet(className!);
@@ -360,14 +361,14 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
             if (klass.classType != ClassType.extern) {
               // 命名构造函数
               return klass.createInstance(
-                  constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs);
+                  constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
             } else {
               // 外部命名构造函数
               final externClass = fetchExternalClass(className);
               final constructor = externClass.memberGet(callee.id);
               if (constructor is HTExternalFunction) {
                 try {
-                  return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs);
+                  return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
                 } on RangeError {
                   throw HTErrorExternParams();
                 }
@@ -385,7 +386,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
         final externFunc = fetchExternalFunction(callee.id);
         if (externFunc is HTExternalFunction) {
           try {
-            return externFunc(positionalArgs: positionalArgs, namedArgs: namedArgs);
+            return externFunc(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
           } on RangeError {
             throw HTErrorExternParams();
           }
@@ -398,14 +399,14 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     } else if (callee is HTClass) {
       if (callee.classType != ClassType.extern) {
         // 默认构造函数
-        return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs);
+        return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
       } else {
         // 外部默认构造函数
         final externClass = fetchExternalClass(callee.id);
         final constructor = externClass.memberGet(callee.id);
         if (constructor is HTExternalFunction) {
           try {
-            return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs);
+            return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
           } on RangeError {
             throw HTErrorExternParams();
           }
@@ -419,7 +420,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
         try {
-          return callee(positionalArgs: positionalArgs, namedArgs: namedArgs);
+          return callee(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         } on RangeError {
           throw HTErrorExternParams();
         }

@@ -1346,7 +1346,11 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bool isStatic = false,
       bool endOfStatement = false}) {
     advance(1);
-    final id = match(HTLexicon.identifier).lexeme;
+    var id = match(HTLexicon.identifier).lexeme;
+
+    if (_curClassName != null && isExtern) {
+      id = '$_curClassName.$id';
+    }
 
     if (_curBlock.contains(id)) {
       throw HTErrorDefinedParser(id);
@@ -1408,37 +1412,45 @@ class Compiler extends Parser with ConstTable, HetuRef {
       declId = advance(1).lexeme;
     }
 
-    switch (funcType) {
-      case FunctionType.constructor:
-        id = (declId.isNotEmpty) ? _curClassName! : '${_curClassName!}.$declId';
-        break;
-      case FunctionType.getter:
-        if (_curBlock.contains(declId)) {
-          throw HTErrorDefinedParser(declId);
+    if (externType == ExternFunctionType.none) {
+      switch (funcType) {
+        case FunctionType.constructor:
+          id = (declId.isNotEmpty) ? _curClassName! : '${_curClassName!}.$declId';
+          break;
+        case FunctionType.getter:
+          if (_curBlock.contains(declId)) {
+            throw HTErrorDefinedParser(declId);
+          }
+          id = HTLexicon.getter + declId;
+          break;
+        case FunctionType.setter:
+          if (_curBlock.contains(declId)) {
+            throw HTErrorDefinedParser(declId);
+          }
+          id = HTLexicon.setter + declId;
+          break;
+        case FunctionType.literal:
+          id = HTLexicon.anonymousFunction + (HTFunction.anonymousIndex++).toString();
+          break;
+        default:
+          id = declId;
+      }
+    } else {
+      if (_curClassName != null) {
+        id = (declId.isEmpty) ? _curClassName! : '${_curClassName!}.$declId';
+      } else {
+        if (declId.isEmpty) {
+          throw HTErrorExpected(HTLexicon.identifier, peek(-1).lexeme);
         }
-        id = HTLexicon.getter + declId;
-        break;
-      case FunctionType.setter:
-        if (_curBlock.contains(declId)) {
-          throw HTErrorDefinedParser(declId);
-        }
-        id = HTLexicon.setter + declId;
-        break;
-      case FunctionType.literal:
-        id = HTLexicon.anonymousFunction + (HTFunction.anonymousIndex++).toString();
-        break;
-      default:
         id = declId;
-    }
-
-    if (id.isEmpty) {
-      throw HTErrorExpected(HTLexicon.identifier, peek(-1).lexeme);
+      }
     }
 
     final funcBytesBuilder = BytesBuilder();
     if (funcType != FunctionType.literal) {
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
       funcBytesBuilder.add(_shortUtf8String(id));
+      funcBytesBuilder.add(_shortUtf8String(declId));
 
       // if (expect([HTLexicon.angleLeft], consume: true)) {
       //   // 泛型param
