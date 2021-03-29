@@ -1,5 +1,13 @@
 ## 0.1.0+1
 
+- Feat: String interpolation. Example:
+
+```dart
+var a = 'dragon'
+// print: To kill the dragon, you have to wait 42 years.
+print('To kill the ${a}, you have to wait ${6*7} years.')
+```
+
 - Fix: Import path resolve bug.
 
 ## 0.1.0
