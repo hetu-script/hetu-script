@@ -823,9 +823,9 @@ class Hetu extends Interpreter {
         var object = _register[objIndex];
         final objKey = _curCode.read();
         var key = _register[objKey];
-        if (object is! List && object is! Map) {
-          throw HTErrorSubGet(object.toString());
-        }
+        // if (object is! List && object is! Map) {
+        //   throw HTErrorSubGet(object.toString());
+        // }
         _curValue = object[key];
         _curRefType = ReferrenceType.sub;
         break;
