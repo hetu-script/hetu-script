@@ -1,3 +1,5 @@
+import 'class_decl.ht'
+
 class Person {
   var name: str = 'just a guy'
 }

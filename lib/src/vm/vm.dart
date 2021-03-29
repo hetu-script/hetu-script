@@ -20,6 +20,7 @@ import '../enum.dart';
 import '../function.dart';
 import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
+import '../extern_function.dart';
 
 mixin HetuRef {
   late final Hetu interpreter;
@@ -95,21 +96,22 @@ class Hetu extends Interpreter {
       List<HTTypeId> typeArgs = const []}) async {
     if (content.isEmpty) throw HTErrorEmpty(moduleName ?? '');
 
-    _curModuleName = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+    // a non-null version
+    final name = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
 
     final compiler = Compiler();
 
     try {
-      final savedModuleName = _curModuleName; // import 过程中文件名会变化，所以需要先保存下
-      final tokens = Lexer().lex(content, _curModuleName);
-      final bytes = await compiler.compile(tokens, this, _curModuleName, style: style, debugMode: debugMode);
-      _curModuleName = savedModuleName;
-      _curCode = _modules[savedModuleName] = BytesReader(bytes);
+      final tokens = Lexer().lex(content, name);
+      final bytes = await compiler.compile(tokens, this, name, style: style, debugMode: debugMode);
+      _curCode = _modules[name] = BytesReader(bytes);
+      _curModuleName = name;
 
       var result = execute(namespace: namespace ?? global);
       if (style == ParseStyle.module && invokeFunc != null) {
         result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, errorHandled: true);
       }
+
       return result;
     } catch (e, stack) {
       var sb = StringBuffer();
@@ -155,8 +157,7 @@ class Hetu extends Interpreter {
       } else {
         func = global.memberGet(funcName);
         if (func is HTFunction) {
-          return call(func,
-              positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs, errorHandled: true);
+          return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         } else {
           HTErrorCallable(funcName);
         }
@@ -196,7 +197,7 @@ class Hetu extends Interpreter {
     final bytesBuilder = BytesBuilder();
 
     try {
-      final tokens = Lexer().lex(content, _curModuleName);
+      final tokens = Lexer().lex(content, moduleName);
       final bytes = await compiler.compile(tokens, this, moduleName, style: style, debugMode: debugMode);
 
       bytesBuilder.add(bytes);
@@ -253,6 +254,7 @@ class Hetu extends Interpreter {
 
     if (moduleName != null && (_curModuleName != moduleName)) {
       changedCode = true;
+      _curModuleName = moduleName;
       _curCode = _modules[moduleName]!;
     }
     if (ip != null) {
@@ -822,7 +824,8 @@ class Hetu extends Interpreter {
 
   void _handleCallExpr() {
     final objIndex = _curCode.read();
-    var object = _getRegVal(objIndex);
+    var callee = _getRegVal(objIndex);
+
     var positionalArgs = [];
     final positionalArgsLength = _curCode.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
@@ -841,7 +844,35 @@ class Hetu extends Interpreter {
     // TODO: typeArgs
     var typeArgs = <HTTypeId>[];
 
-    _curValue = call(object, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+    if (callee is HTFunction) {
+      _curValue = callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+    } // 外部函数
+    else if (callee is Function) {
+      if (callee is HTExternalFunction) {
+        _curValue = callee(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+      } else {
+        _curValue = Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        // throw HTErrorExternFunc(callee.toString());
+      }
+    } else if (callee is HTClass) {
+      if (callee.classType != ClassType.extern) {
+        // 默认构造函数
+        _curValue = callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+      } else {
+        // 外部默认构造函数
+        final externClass = fetchExternalClass(callee.id);
+        final constructor = externClass.memberGet(callee.id);
+        if (constructor is HTExternalFunction) {
+          _curValue = constructor(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+        } else {
+          _curValue =
+              Function.apply(constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          // throw HTErrorExternFunc(constructor.toString());
+        }
+      }
+    } else {
+      throw HTErrorCallable(callee.toString());
+    }
   }
 
   void _handleUnaryPostfixOp(int op) {

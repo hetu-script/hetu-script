@@ -97,6 +97,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
       }
     }
 
+    HTFunction.callStack.add(
+        '#${HTFunction.callStack.length} $id - (${interpreter.curModuleName}:${interpreter.curLine}:${interpreter.curColumn})');
+
     dynamic result;
     // 如果是脚本函数
     if (externType == ExternFunctionType.none) {

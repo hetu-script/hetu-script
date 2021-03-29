@@ -212,8 +212,8 @@ class HTInstance extends HTNamespace {
 
   @override
   String toString() {
-    dynamic func = memberGet('toString');
-    return interpreter.call(func);
+    HTFunction func = memberGet('toString');
+    return func.call();
   }
 
   @override

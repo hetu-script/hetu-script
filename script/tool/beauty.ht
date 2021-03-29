@@ -7,7 +7,3 @@ fun getBeauty(x: num, cuteness: num, sexy: num): num {
     return (-(x - b) * (x - b)) / 50 + 100
   }
 }
-
-fun main {
-  print(getBeauty(200, 50, 100))
-}

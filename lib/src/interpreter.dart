@@ -7,7 +7,6 @@ import 'extern_class.dart';
 import 'errors.dart';
 import 'extern_function.dart';
 import 'function.dart';
-import 'class.dart';
 import 'declaration.dart';
 import 'plugin/moduleHandler.dart';
 import 'plugin/errorHandler.dart';
@@ -21,7 +20,7 @@ abstract class Interpreter {
 
   int get curLine;
   int get curColumn;
-  String get curModuleName;
+  String? get curModuleName;
 
   late bool debugMode;
 
@@ -87,7 +86,8 @@ abstract class Interpreter {
 
   /// 解析文件
   Future<dynamic> import(String key,
-      {String? moduleName,
+      {String? curModuleName,
+      String? moduleName,
       ParseStyle style = ParseStyle.module,
       bool debugMode = true,
       String? invokeFunc,
@@ -95,21 +95,19 @@ abstract class Interpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) async {
     dynamic result;
-
-    final module =
-        await moduleHandler.import(key, !curModuleName.startsWith(HTLexicon.anonymousScript) ? curModuleName : null);
+    final module = await moduleHandler.import(key, curModuleName);
 
     if (module.duplicate) return;
 
-    HTNamespace? library_namespace;
+    HTNamespace? namespace;
     if ((moduleName != null) && (moduleName != HTLexicon.global)) {
-      library_namespace = HTNamespace(this, id: moduleName, closure: global);
-      global.define(HTDeclaration(moduleName, value: library_namespace));
+      namespace = HTNamespace(this, id: moduleName, closure: global);
+      global.define(HTDeclaration(moduleName, value: namespace));
     }
 
     result = await eval(module.content,
         moduleName: module.key,
-        namespace: library_namespace,
+        namespace: namespace,
         style: style,
         debugMode: debugMode,
         invokeFunc: invokeFunc,
@@ -118,74 +116,6 @@ abstract class Interpreter {
         typeArgs: typeArgs);
 
     return result;
-  }
-
-  /// Call a Hetu function or a Dart function,
-  /// use several different implements according to the callee type.
-  dynamic call(dynamic callee,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
-      bool errorHandled = false}) {
-    try {
-      if (callee is HTFunction) {
-        HTFunction.callStack.add('#${HTFunction.callStack.length} ${callee.id} - ($curModuleName:$curLine:$curColumn)');
-
-        return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-      } // 外部函数
-      else if (callee is Function) {
-        if (callee is HTExternalFunction) {
-          return callee(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-        } else {
-          return Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(callee.toString());
-        }
-      } else if (callee is HTClass) {
-        if (callee.classType != ClassType.extern) {
-          // 默认构造函数
-          return callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-        } else {
-          // 外部默认构造函数
-          final externClass = fetchExternalClass(callee.id);
-          final constructor = externClass.memberGet(callee.id);
-          if (constructor is HTExternalFunction) {
-            return constructor(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-          } else {
-            return Function.apply(
-                constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-            // throw HTErrorExternFunc(constructor.toString());
-          }
-        }
-      } else {
-        throw HTErrorCallable(callee.toString());
-      }
-    } catch (e, stack) {
-      if (!errorHandled) {
-        var sb = StringBuffer();
-        for (var funcName in HTFunction.callStack) {
-          sb.writeln('  $funcName');
-        }
-        sb.writeln('\n$stack');
-        var callStack = sb.toString();
-
-        if (e is! HTInterpreterError) {
-          HTInterpreterError newErr;
-          if (e is HTError) {
-            newErr = HTInterpreterError(
-                '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
-          } else {
-            newErr = HTInterpreterError(
-                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
-          }
-
-          errorHandler.handle(newErr);
-        } else {
-          errorHandler.handle(e);
-        }
-      } else {
-        rethrow;
-      }
-    }
   }
 
   /// 调用一个全局函数或者类、对象上的函数

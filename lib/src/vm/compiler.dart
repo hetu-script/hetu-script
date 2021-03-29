@@ -61,16 +61,15 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     _curBlock = _globalBlock = DeclarationBlock();
 
-    final code = _compile(tokens, moduleName, style);
+    final code = _compile(tokens, style);
 
     for (final importInfo in _importedModules) {
       if (bundleMode) {
       } else {
-        await interpreter.import(importInfo.key, moduleName: importInfo.name, debugMode: _debugMode);
+        await interpreter.import(importInfo.key,
+            curModuleName: moduleName, moduleName: importInfo.name, debugMode: _debugMode);
       }
     }
-
-    _curModuleName = '';
 
     final mainBuilder = BytesBuilder();
     // 河图字节码标记
@@ -120,7 +119,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return mainBuilder.toBytes();
   }
 
-  Uint8List _compile(List<Token> tokens, String moduleName, [ParseStyle style = ParseStyle.module]) {
+  Uint8List _compile(List<Token> tokens, [ParseStyle style = ParseStyle.module]) {
     //, ImportInfo? importInfo]) {
     // _curImportInfo = importInfo;
     addTokens(tokens);
