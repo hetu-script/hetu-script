@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/external_class.dart",
+      "program": "example/global_vars.dart",
       "request": "launch",
       "type": "dart"
     }

@@ -100,6 +100,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
     }
 
     dynamic result;
+    // 如果是脚本函数
     if (externType == ExternFunctionType.none) {
       if (definitionIp == null) {
         throw HTErrorMissingFuncDef(id);
@@ -149,7 +150,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
       interpreter.switchCode(module);
       result = interpreter.execute(ip: definitionIp!, closure: closure);
       interpreter.resotreSnapshot();
-    } else {
+    }
+    // 如果是外部函数
+    else {
       final finalPosArgs = <dynamic>[];
       final finalNamedArgs = <String, dynamic>{};
 
@@ -191,6 +194,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
         finalPosArgs.add(variadicArg);
       }
 
+      // 单独绑定的外部函数
       if (externType == ExternFunctionType.standalone) {
         final externFunc = interpreter.fetchExternalFunction(id);
         if (externFunc is HTExternalFunction) {
@@ -199,7 +203,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
           result =
               Function.apply(externFunc, finalPosArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
         }
-      } else if (externType == ExternFunctionType.klass) {
+      }
+      // 整个外部类的成员函数
+      else if (externType == ExternFunctionType.klass) {
         final externClass = interpreter.fetchExternalClass(className!);
 
         final externFunc = externClass.memberGet(id);

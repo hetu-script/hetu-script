@@ -1210,6 +1210,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
         bytesBuilder.add(_uint16(0));
         bytesBuilder.add(_uint16(1));
         bytesBuilder.add(init);
+      } else {
+        advance(1);
       }
 
       Uint8List? condition;
@@ -1415,7 +1417,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     if (externType == ExternFunctionType.none) {
       switch (funcType) {
         case FunctionType.constructor:
-          id = (declId.isNotEmpty) ? _curClassName! : '${_curClassName!}.$declId';
+          id = (declId.isEmpty) ? _curClassName! : '${_curClassName!}.$declId';
           break;
         case FunctionType.getter:
           if (_curBlock.contains(declId)) {
