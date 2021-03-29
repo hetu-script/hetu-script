@@ -1,3 +1,7 @@
+## 0.1.0+1
+
+- Fix: Import path resolve bug.
+
 ## 0.1.0
 
 - Feature: Changed default interpreter to a bytecode evaluater.

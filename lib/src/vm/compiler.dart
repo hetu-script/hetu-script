@@ -71,6 +71,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       }
     }
 
+    _curModuleName = '';
+
     final mainBuilder = BytesBuilder();
     // 河图字节码标记
     mainBuilder.addByte(HTOpCode.signature);

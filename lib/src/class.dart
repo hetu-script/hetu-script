@@ -185,12 +185,13 @@ class HTClass extends HTNamespace {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    HTFunction? func = memberGet(funcName, from: fullName);
-    if ((func != null) && (!func.isStatic)) {
-      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-    }
+    final func = memberGet(funcName, from: fullName);
 
-    throw HTErrorUndefined(funcName);
+    if (func is HTFunction) {
+      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+    } else {
+      throw HTErrorCallable(funcName);
+    }
   }
 }
 

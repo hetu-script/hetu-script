@@ -74,6 +74,5 @@ class TokenStringLiteral extends Token {
   @override
   dynamic get type => HTLexicon.string;
 
-  TokenStringLiteral(String lexeme, this.literal, String fileName, int line, int column)
-      : super(lexeme, fileName, line, column);
+  TokenStringLiteral(this.literal, String fileName, int line, int column) : super(literal, fileName, line, column);
 }

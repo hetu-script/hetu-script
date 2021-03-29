@@ -112,6 +112,8 @@ class Hetu extends Interpreter {
         result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, errorHandled: true);
       }
 
+      _curModuleName = '';
+
       return result;
     } catch (e, stack) {
       var sb = StringBuffer();
@@ -153,7 +155,13 @@ class Hetu extends Interpreter {
       if (className != null) {
         // 类的静态函数
         HTClass klass = global.memberGet(className);
-        return klass.invoke(funcName, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+        final func = klass.memberGet(funcName);
+
+        if (func is HTFunction) {
+          return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+        } else {
+          throw HTErrorCallable(funcName);
+        }
       } else {
         func = global.memberGet(funcName);
         if (func is HTFunction) {
