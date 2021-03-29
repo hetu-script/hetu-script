@@ -1417,7 +1417,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     if (externType == ExternFunctionType.none) {
       switch (funcType) {
         case FunctionType.constructor:
-          id = (declId.isEmpty) ? _curClassName! : '${_curClassName!}.$declId';
+          id = (declId.isEmpty) ? HTLexicon.constructor : '${HTLexicon.constructor}.$declId';
           break;
         case FunctionType.getter:
           if (_curBlock.contains(declId)) {

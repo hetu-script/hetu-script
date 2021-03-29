@@ -11,22 +11,7 @@ abstract class HTLexicon {
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
-  static const stringReplaces = <String, String>{
-    '\\\\': '\\',
-    '\\n': '\n',
-    '\\\'': '\'',
-  };
-
-  static String convertStringLiteral(String literal) {
-    var result = literal.substring(1).substring(0, literal.length - 2);
-    for (final key in stringReplaces.keys) {
-      result = result.replaceAll(key, stringReplaces[key]!);
-    }
-    return result;
-  }
-
-  /// Add semicolon before a line
-  /// starting with one of '[, (, +, -'
+  /// Add semicolon before a line starting with one of '[, (, +, -'
   static const Set<String> ASIStart = {
     squareLeft,
     roundLeft,
@@ -34,14 +19,6 @@ abstract class HTLexicon {
     preIncrement,
     subtract,
     preDecrement,
-  };
-
-  /// Add semicolon after a line
-  /// ending with 'return'
-  static const Set<String> ASIEnding = {
-    BREAK,
-    CONTINUE,
-    RETURN,
   };
 
   static const tokenGroupComment = 1;
@@ -76,8 +53,6 @@ abstract class HTLexicon {
   static const underscore = '_';
   static const global = 'global';
   static const unknown = 'unknown';
-  // static const extern = 'external__';
-  // static const method = '__method__';
   static const instance = '__instance#';
   static const constructor = '__constructor__';
   static const getter = '__getter__';
@@ -165,22 +140,22 @@ abstract class HTLexicon {
   /// 保留字，不能用于变量名字
   static const Set<String> reservedKeywords = {
     NULL,
+    EXTERNAL,
     STATIC,
     VAR,
     LET,
     FINAL,
     CONST,
-    TYPEDEF,
-    AS,
+    // TYPEDEF,
     CLASS,
     ENUM,
     STRUCT,
-    INTERFACE,
+    // INTERFACE,
     CONSTRUCT,
     GET,
     SET,
     FUN,
-    ASYNC,
+    ASYNC, // TODO: async单独可以用作函数声明关键字
     AWAIT,
     VOID,
     //THIS,
@@ -188,20 +163,20 @@ abstract class HTLexicon {
     EXTENDS,
     IMPLEMENTS,
     MIXIN,
-    EXTERNAL,
     IMPORT,
     BREAK,
     CONTINUE,
+    RETURN,
     FOR,
     IN,
     // OF,
     IF,
     ELSE,
-    RETURN,
     WHILE,
     DO,
     WHEN,
     IS,
+    AS,
   };
 
   /// 函数调用表达式
@@ -350,7 +325,31 @@ abstract class HTLexicon {
   static const angleLeft = '<';
   static const angleRight = '>';
 
-  static const Set<String> Punctuations = {
+  static const Set<String> leadingPunctuations = {
+    logicalNot,
+    multiply,
+    devide,
+    modulo,
+    add,
+    subtract,
+    lesser, // angleLeft,
+    lesserOrEqual,
+    greater, // angleRight,
+    greaterOrEqual,
+    equal,
+    notEqual,
+    logicalAnd,
+    logicalOr,
+    assign,
+    memberGet,
+    roundLeft,
+    curlyLeft,
+    squareLeft,
+    comma,
+    colon,
+  };
+
+  static const Set<String> punctuations = {
     nullable,
     logicalNot,
     multiply,
@@ -367,9 +366,6 @@ abstract class HTLexicon {
     logicalAnd,
     logicalOr,
     assign,
-    comma,
-    colon,
-    semicolon,
     memberGet,
     roundLeft,
     roundRight,
@@ -377,6 +373,9 @@ abstract class HTLexicon {
     curlyRight,
     squareLeft,
     squareRight,
+    comma,
+    colon,
+    semicolon,
   };
 
   static const math = 'Math';

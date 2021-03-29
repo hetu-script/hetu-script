@@ -84,6 +84,7 @@ class HTClass extends HTNamespace {
     }
 
     final getter = '${HTLexicon.getter}$varName';
+    final constructor = '${HTLexicon.constructor}$varName';
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (!decl.isInitialized) {
@@ -103,9 +104,6 @@ class HTClass extends HTNamespace {
       final decl = declarations[getter]!;
       HTFunction func = decl.value;
       return func.call();
-    } else if (declarations.containsKey(staticName)) {
-      final decl = declarations[staticName]!;
-      return decl.value;
     } else if (superClass != null && superClass!.contains(varName)) {
       return superClass!.memberGet(varName, from: from);
     }
@@ -164,7 +162,7 @@ class HTClass extends HTNamespace {
   /// Create a instance from this class.
   /// TODO：对象初始化时从父类逐个调用构造函数
   HTInstance createInstance(
-      {String? constructorName,
+      {String? constructorName = '',
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
@@ -177,9 +175,9 @@ class HTClass extends HTNamespace {
     }
     interpreter.curNamespace = save;
 
-    constructorName ??= id;
-    if (declarations.containsKey(constructorName)) {
-      HTFunction constructor = declarations[constructorName]!.value;
+    final funcId = '${HTLexicon.constructor}$constructorName';
+    if (declarations.containsKey(funcId)) {
+      HTFunction constructor = declarations[funcId]!.value;
       constructor.context = instance;
       constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
     }

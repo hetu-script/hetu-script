@@ -3,15 +3,23 @@ import 'token.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
 class Lexer {
+  static const stringReplaces = <String, String>{
+    '\\\\': '\\',
+    '\\n': '\n',
+    '\\\'': '\'',
+  };
+
+  var curLine = 0;
+  var curColumn = 0;
+  late String fileName;
+
   Lexer();
 
   List<Token> lex(String content, String fileName) {
+    this.fileName = fileName;
     final tokens = <Token>[];
-    var curLine = 0;
-    var curColumn;
     final pattern = RegExp(
       HTLexicon.scriptPattern,
-      caseSensitive: false,
       unicode: true,
     );
     for (final line in content.split('\n')) {
@@ -48,21 +56,23 @@ class Lexer {
           }
           // 字符串字面量
           else if (match.group(HTLexicon.tokenGroupString) != null) {
-            var literal = HTLexicon.convertStringLiteral(matchString);
-            toksOfLine.add(TokenStringLiteral(matchString, literal, fileName, curLine, curColumn));
+            final tokens = processString(matchString);
+            toksOfLine.addAll(tokens);
           }
         }
       }
 
       if (toksOfLine.isNotEmpty) {
         if (HTLexicon.ASIStart.contains(toksOfLine.first.type)) {
-          /// According to Javascript standard, add semicolon before a newline
-          /// if the new line starting with '[, (, +, -' tokens
-          if (tokens.isNotEmpty && tokens.last.type != HTLexicon.colon) {
-            tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
+          /// add semicolon before a newline if the new line starting with '[, (, +, -' tokens
+          if (tokens.isNotEmpty) {
+            final last = tokens.last.type;
+            if (!HTLexicon.leadingPunctuations.contains(last)) {
+              tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
+            }
           }
           tokens.addAll(toksOfLine);
-        } else if (HTLexicon.ASIEnding.contains(toksOfLine.last)) {
+        } else if (toksOfLine.last.type == HTLexicon.RETURN) {
           tokens.addAll(toksOfLine);
           tokens.add(Token(HTLexicon.semicolon, fileName, curLine, curColumn + 1));
         } else {
@@ -70,6 +80,19 @@ class Lexer {
         }
       }
     }
+
+    return tokens;
+  }
+
+  List<Token> processString(String literal) {
+    final tokens = <Token>[];
+    final pattern = RegExp(r'\${[\s\S]*}');
+
+    var result = literal.substring(1).substring(0, literal.length - 2);
+    for (final key in stringReplaces.keys) {
+      result = result.replaceAll(key, stringReplaces[key]!);
+    }
+    tokens.add(TokenStringLiteral(result, result, fileName, curLine, curColumn));
 
     return tokens;
   }

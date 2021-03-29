@@ -7,6 +7,7 @@ void main() async {
   fun main {
     var i = 0
     for (;;) {
+      print(i)
       ++i
       when (i % 2) {
         0: print('even:', i)

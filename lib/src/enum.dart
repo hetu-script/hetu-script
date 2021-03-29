@@ -57,7 +57,7 @@ class HTEnumItem extends HTObject {
   final String id;
 
   @override
-  String toString() => '${typeid.id}.$id';
+  String toString() => '${typeid.id}$id';
 
   HTEnumItem(this.index, this.id, this.typeid);
 
@@ -68,6 +68,8 @@ class HTEnumItem extends HTObject {
         return typeid;
       case 'index':
         return index;
+      case 'name':
+        return id;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],

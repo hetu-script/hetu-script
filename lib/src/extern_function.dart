@@ -24,7 +24,7 @@ final Map<String, Function> coreFunctions = {
       List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
     var sb = StringBuffer();
     for (final arg in positionalArgs[0]) {
-      sb.write('${arg.toString()} ');
+      sb.write('$arg ');
     }
     print(sb.toString());
   },
