@@ -11,5 +11,5 @@ class Jimmy extends Person {
 
 fun main {
   var j = Jimmy()
-  j.greeting();
+  j.greeting()
 }

@@ -74,12 +74,15 @@ class HTBytesDecl extends HTDeclaration with HetuRef {
   @override
   HTBytesDecl clone() => HTBytesDecl(id, interpreter, module,
       value: value,
+      declType: declType,
       initializerIp: initializerIp,
       getter: getter,
       setter: setter,
-      declType: declType,
+      isDynamic: isDynamic,
       isExtern: isExtern,
-      isImmutable: isImmutable);
+      isImmutable: isImmutable,
+      isMember: isMember,
+      isStatic: isStatic);
 }
 
 class HTBytesParamDecl extends HTBytesDecl {

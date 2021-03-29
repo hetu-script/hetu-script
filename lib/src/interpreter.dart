@@ -192,51 +192,10 @@ abstract class Interpreter {
   // TODO: 调用构造函数
   dynamic invoke(String funcName,
       {String? className,
-      HTInstance? instance,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
-      bool errorHandled = false}) {
-    try {
-      var func;
-      if (className != null) {
-        // 类的静态函数
-        HTClass klass = global.memberGet(className);
-        return klass.invoke(funcName, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-      } else if (instance != null) {
-        return instance.invoke(funcName, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-      } else {
-        func = global.memberGet(funcName);
-        return call(func, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs, errorHandled: true);
-      }
-    } catch (e, stack) {
-      if (!errorHandled) {
-        var sb = StringBuffer();
-        for (var func in HTFunction.callStack) {
-          sb.writeln('  $func');
-        }
-        sb.writeln('\n$stack');
-        var callStack = sb.toString();
-
-        if (e is! HTInterpreterError) {
-          HTInterpreterError newErr;
-          if (e is HTError) {
-            newErr = HTInterpreterError(
-                '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
-          } else {
-            newErr = HTInterpreterError(
-                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
-          }
-
-          errorHandler.handle(newErr);
-        } else {
-          errorHandler.handle(e);
-        }
-      } else {
-        rethrow;
-      }
-    }
-  }
+      bool errorHandled = false});
 
   HTTypeId typeof(dynamic object) {
     if ((object == null) || (object is NullThrownError)) {

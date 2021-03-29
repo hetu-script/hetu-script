@@ -100,9 +100,11 @@ class Hetu extends Interpreter {
     final compiler = Compiler();
 
     try {
+      final savedModuleName = _curModuleName; // import 过程中文件名会变化，所以需要先保存下
       final tokens = Lexer().lex(content, _curModuleName);
       final bytes = await compiler.compile(tokens, this, _curModuleName, style: style, debugMode: debugMode);
-      _curCode = _modules[_curModuleName] = BytesReader(bytes);
+      _curModuleName = savedModuleName;
+      _curCode = _modules[savedModuleName] = BytesReader(bytes);
 
       var result = execute(namespace: namespace ?? global);
       if (style == ParseStyle.module && invokeFunc != null) {
@@ -133,6 +135,57 @@ class Hetu extends Interpreter {
         errorHandler.handle(newErr);
       } else {
         errorHandler.handle(e);
+      }
+    }
+  }
+
+  @override
+  dynamic invoke(String funcName,
+      {String? className,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false}) {
+    try {
+      var func;
+      if (className != null) {
+        // 类的静态函数
+        HTClass klass = global.memberGet(className);
+        return klass.invoke(funcName, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+      } else {
+        func = global.memberGet(funcName);
+        if (func is HTFunction) {
+          return call(func,
+              positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs, errorHandled: true);
+        } else {
+          HTErrorCallable(funcName);
+        }
+      }
+    } catch (e, stack) {
+      if (!errorHandled) {
+        var sb = StringBuffer();
+        for (var func in HTFunction.callStack) {
+          sb.writeln('  $func');
+        }
+        sb.writeln('\n$stack');
+        var callStack = sb.toString();
+
+        if (e is! HTInterpreterError) {
+          HTInterpreterError newErr;
+          if (e is HTError) {
+            newErr = HTInterpreterError(
+                '${e.message}\nHetu call stack:\n$callStack', e.type, curModuleName, curLine, curColumn);
+          } else {
+            newErr = HTInterpreterError(
+                '$e\nHetu call stack:\n$callStack', HTErrorType.other, curModuleName, curLine, curColumn);
+          }
+
+          errorHandler.handle(newErr);
+        } else {
+          errorHandler.handle(e);
+        }
+      } else {
+        rethrow;
       }
     }
   }

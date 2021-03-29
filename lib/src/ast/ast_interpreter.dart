@@ -116,6 +116,14 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     }
   }
 
+  @override
+  dynamic invoke(String funcName,
+      {String? className,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false}) {}
+
   dynamic _getValue(String name, ASTNode expr) {
     var distance = _distances[expr];
     if (distance != null) {
