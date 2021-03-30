@@ -1,7 +1,6 @@
 import 'type.dart';
 import 'errors.dart';
 import 'lexicon.dart';
-import 'declaration.dart';
 
 class _HTNull with HTType {
   const _HTNull();
@@ -15,17 +14,13 @@ abstract class HTObject with HTType {
   static const NULL = _HTNull();
   //bool used = false;
 
-  String get fullName => '';
-
   bool contains(String varName) => throw HTErrorUndefined(varName);
-
-  void define(HTDeclaration decl, {bool override = false}) => throw HTErrorUndefined(decl.id);
 
   dynamic memberGet(String varName, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
 
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
 
-  dynamic subGet(dynamic key, {String from = HTLexicon.global}) => throw HTErrorUndefined(key);
+  dynamic subGet(dynamic key) => throw HTErrorUndefined(key);
 
-  void subSet(String key, dynamic value, {String from = HTLexicon.global}) => throw HTErrorUndefined(key);
+  void subSet(String key, dynamic value) => throw HTErrorUndefined(key);
 }

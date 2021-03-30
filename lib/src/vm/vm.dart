@@ -150,7 +150,7 @@ class Hetu extends Interpreter {
       var func;
       if (className != null) {
         // 类的静态函数
-        HTClass klass = global.memberGet(className);
+        HTClass klass = global.fetch(className);
         final func = klass.memberGet(funcName);
 
         if (func is HTFunction) {
@@ -159,7 +159,7 @@ class Hetu extends Interpreter {
           throw HTErrorCallable(funcName);
         }
       } else {
-        func = global.memberGet(funcName);
+        func = global.fetch(funcName);
         if (func is HTFunction) {
           return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         } else {
@@ -494,7 +494,7 @@ class Hetu extends Interpreter {
         final isGetKey = _curCode.readBool();
         if (!isGetKey) {
           _curRefType = ReferrenceType.normal;
-          _curValue = _curNamespace.memberGet(_curSymbol!, from: _curNamespace.fullName);
+          _curValue = _curNamespace.fetch(_curSymbol!, from: _curNamespace.fullName);
         } else {
           _curRefType = ReferrenceType.member;
           // reg[13] 是 object，reg[14] 是 key
@@ -579,7 +579,7 @@ class Hetu extends Interpreter {
   void _assignCurRef(dynamic value) {
     switch (_curRefType) {
       case ReferrenceType.normal:
-        _curNamespace.memberSet(_curSymbol!, value, from: _curNamespace.fullName);
+        _curNamespace.assign(_curSymbol!, value, from: _curNamespace.fullName);
         break;
       case ReferrenceType.member:
         final object = _getRegVal(HTRegIdx.postfix);
@@ -613,7 +613,7 @@ class Hetu extends Interpreter {
         }
         // 如果是 Hetu 对象
         else if (object is HTObject) {
-          object.subSet(key, value, from: _curNamespace.fullName);
+          object.subSet(key, value);
         }
         // 如果是 Dart 对象
         else {
@@ -1134,9 +1134,9 @@ class Hetu extends Interpreter {
     if (id != HTLexicon.rootClass) {
       if (superClassId == null) {
         // TODO: Object基类
-        superClass = global.memberGet(HTLexicon.rootClass);
+        superClass = global.fetch(HTLexicon.rootClass);
       } else {
-        superClass = _curNamespace.memberGet(superClassId, from: _curNamespace.fullName);
+        superClass = _curNamespace.fetch(superClassId, from: _curNamespace.fullName);
       }
     }
 

@@ -192,7 +192,7 @@ abstract class Interpreter {
   // }
 
   dynamic fetchGlobal(String key) {
-    return global.memberGet(key);
+    return global.fetch(key);
   }
 
   final _externClasses = <String, HTExternalClass>{};

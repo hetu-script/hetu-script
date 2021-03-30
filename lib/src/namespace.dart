@@ -1,9 +1,10 @@
+import 'package:hetu_script/src/object.dart';
+
 import 'errors.dart';
 import 'lexicon.dart';
 import 'type.dart';
 import 'interpreter.dart';
 import 'declaration.dart';
-import 'object.dart';
 import 'function.dart';
 
 class HTNamespace extends HTObject with InterpreterRef {
@@ -27,7 +28,6 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   late final String id;
 
-  @override
   late final String fullName;
 
   // 变量表
@@ -54,19 +54,7 @@ class HTNamespace extends HTObject with InterpreterRef {
     return namespace;
   }
 
-  @override
-  bool contains(String varName) {
-    if (declarations.containsKey(varName)) {
-      return true;
-    }
-    if (closure != null) {
-      return closure!.contains(varName);
-    }
-    return false;
-  }
-
   /// 在当前命名空间定义一个变量的类型
-  @override
   void define(HTDeclaration decl, {bool override = false}) {
     if (!declarations.containsKey(decl.id) || override) {
       declarations[decl.id] = decl;
@@ -75,8 +63,9 @@ class HTNamespace extends HTObject with InterpreterRef {
     }
   }
 
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  /// 从当前命名空间，以及超空间，递归获取一个变量
+  /// 注意和memberGet只是从对象本身取值不同
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
@@ -97,7 +86,7 @@ class HTNamespace extends HTObject with InterpreterRef {
     }
 
     if (closure != null) {
-      return closure!.memberGet(varName, from: from);
+      return closure!.fetch(varName, from: from);
     }
 
     throw HTErrorUndefined(varName);
@@ -105,12 +94,12 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   dynamic fetchAt(String varName, int distance, {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    return space.memberGet(varName, from: from);
+    return space.fetch(varName, from: from);
   }
 
-  /// 向一个已经定义的变量赋值
-  @override
-  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
+  /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
+  /// 注意和memberSet只是对对象本身的成员赋值不同
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
     } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
@@ -124,7 +113,7 @@ class HTNamespace extends HTObject with InterpreterRef {
     }
 
     if (closure != null) {
-      closure!.memberSet(varName, value, from: from);
+      closure!.assign(varName, value, from: from);
       return;
     }
 
@@ -133,10 +122,6 @@ class HTNamespace extends HTObject with InterpreterRef {
 
   void assignAt(String varName, dynamic value, int distance, {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    space.memberSet(
-      varName,
-      value,
-      from: space.fullName,
-    );
+    space.assign(varName, value, from: from);
   }
 }

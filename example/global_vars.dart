@@ -24,7 +24,7 @@ void main() async {
   fun main() {
     var a = A()
     a.test()
-    a.staticTest()
+    A.staticTest()
   }
   ''', codeType: CodeType.module, invokeFunc: 'main');
 }

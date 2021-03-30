@@ -130,7 +130,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       return _curNamespace.fetchAt(name, distance);
     }
 
-    return global.memberGet(name);
+    return global.fetch(name);
   }
 
   dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
@@ -365,7 +365,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
           return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         } else {
           final className = callee.className;
-          final klass = global.memberGet(className!);
+          final klass = global.fetch(className!);
           if (klass is HTClass) {
             if (klass.classType != ClassType.extern) {
               // 命名构造函数
@@ -695,7 +695,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     HTClass? superClass;
     if (stmt.id.lexeme != HTLexicon.rootClass) {
       if (stmt.superClass == null) {
-        superClass = global.memberGet(HTLexicon.rootClass);
+        superClass = global.fetch(HTLexicon.rootClass);
       } else {
         HTClass existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
         superClass = existSuperClass;

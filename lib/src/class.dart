@@ -63,9 +63,49 @@ class HTClass extends HTNamespace {
   /// Wether the class contains a static member.
   @override
   bool contains(String varName) =>
-      declarations.containsKey(varName) || declarations.containsKey('${HTLexicon.getter}$varName');
+      declarations.containsKey(varName) ||
+      declarations.containsKey('${HTLexicon.getter}$varName') ||
+      declarations.containsKey('$id.$varName');
 
-  /// Fetch the value of a static member from this class.
+  @override
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateMember(varName);
+    }
+
+    if (contains(varName)) {
+      return memberGet(varName);
+    }
+
+    if (closure != null) {
+      return closure!.fetch(varName, from: from);
+    }
+
+    throw HTErrorUndefined(varName);
+  }
+
+  @override
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateMember(varName);
+    }
+
+    if (contains(varName)) {
+      memberSet(varName, value);
+    }
+
+    if (closure != null) {
+      return closure!.assign(varName, value, from: from);
+    }
+
+    throw HTErrorUndefined(varName);
+  }
+
+  /// Get a value of a static member from this class.
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
@@ -102,10 +142,6 @@ class HTClass extends HTNamespace {
       return func.call();
     }
 
-    if (closure != null) {
-      return closure!.memberGet(varName, from: from);
-    }
-
     throw HTErrorUndefined(varName);
   }
 
@@ -133,11 +169,6 @@ class HTClass extends HTNamespace {
     } else if (declarations.containsKey(setter)) {
       HTFunction setterFunc = declarations[setter]!.value;
       setterFunc.call(positionalArgs: [value]);
-      return;
-    }
-
-    if (closure != null) {
-      closure!.memberSet(varName, value, from: from);
       return;
     }
 
@@ -219,6 +250,44 @@ class HTInstance extends HTNamespace {
       declarations.containsKey(varName) || declarations.containsKey('${HTLexicon.getter}$varName');
 
   @override
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateMember(varName);
+    }
+
+    if (contains(varName)) {
+      return memberGet(varName);
+    }
+
+    if (closure != null) {
+      return closure!.fetch(varName, from: from);
+    }
+
+    throw HTErrorUndefined(varName);
+  }
+
+  @override
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateDecl(fullName);
+    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      throw HTErrorPrivateMember(varName);
+    }
+
+    if (contains(varName)) {
+      memberSet(varName, value);
+    }
+
+    if (closure != null) {
+      return closure!.assign(varName, value, from: from);
+    }
+
+    throw HTErrorUndefined(varName);
+  }
+
+  @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
       throw HTErrorPrivateDecl(fullName);
@@ -248,6 +317,7 @@ class HTInstance extends HTNamespace {
       return method.call();
     }
 
+    // TODO: 这里应该改成写在脚本的Object上才对
     switch (varName) {
       case 'typeid':
         return typeid;
@@ -258,9 +328,6 @@ class HTInstance extends HTNamespace {
                 List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
             '${HTLexicon.instanceOf}$typeid';
       default:
-        if (closure != null) {
-          return closure!.memberGet(varName, from: from);
-        }
         throw HTErrorUndefined(varName);
     }
   }
@@ -283,10 +350,6 @@ class HTInstance extends HTNamespace {
       method.context = this;
       method.call(positionalArgs: [value]);
       return;
-    }
-
-    if (closure != null) {
-      return closure!.memberSet(varName, value, from: from);
     }
 
     throw HTErrorUndefined(varName);
