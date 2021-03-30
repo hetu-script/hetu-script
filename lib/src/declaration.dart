@@ -1,6 +1,5 @@
-import 'package:hetu_script/src/namespace.dart';
-
 import 'errors.dart';
+import 'namespace.dart';
 
 /// 一个声明，包含了类型等额外信息。
 /// 在命名空间中，所有的对象都被其各自的声明所包裹在内。

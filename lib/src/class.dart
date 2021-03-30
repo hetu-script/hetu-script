@@ -238,14 +238,10 @@ class HTInstance extends HTNamespace {
           final externalFunc = interpreter.unwrapExternalFunctionType(value.externalTypedef!, value);
           return externalFunc;
         }
-        if (value.context == null) {
-          value.context = this;
-          return value;
-        }
-        return value;
-      } else {
+        value.context = this;
         return value;
       }
+      return value;
     } else if (declarations.containsKey(getter)) {
       HTFunction method = declarations[getter]!.value;
       method.context = this;
@@ -301,7 +297,6 @@ class HTInstance extends HTNamespace {
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
     HTFunction func = memberGet(funcName, from: fullName);
-    func.context = this;
     return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
   }
 }
