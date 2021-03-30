@@ -882,6 +882,11 @@ class Hetu extends Interpreter {
       case HTOpCode.memberGet:
         var object = _getRegVal(HTRegIdx.postfix);
         var key = _curValue;
+
+        if (object == null || object == HTObject.NULL) {
+          throw HTErrorNullObject(_curObjectSymbol!);
+        }
+
         if (object is num) {
           object = HTNumber(object);
         } else if (object is bool) {
@@ -910,6 +915,11 @@ class Hetu extends Interpreter {
       case HTOpCode.subGet:
         var object = _getRegVal(HTRegIdx.postfix);
         var key = _curValue;
+
+        if (object == null || object == HTObject.NULL) {
+          throw HTErrorNullObject(_curObjectSymbol!);
+        }
+
         // TODO: support script subget operator override
         // if (object is! List && object is! Map) {
         //   throw HTErrorSubGet(object.toString());
