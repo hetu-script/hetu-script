@@ -27,6 +27,8 @@ import 'declaration.dart';
 /// }
 /// ```
 class HTClass extends HTNamespace {
+  var _instanceIndex = 0;
+
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -54,19 +56,14 @@ class HTClass extends HTNamespace {
   ///
   /// [closure] : the outer namespace of the class declaration,
   /// normally the global namespace of the interpreter.
-  ///
-  /// [superClass] : super class of this class.
   HTClass(String id, this.superClass, Interpreter interpreter,
       {this.classType = ClassType.normal, this.typeParams = const [], HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
-  /// Wether the class contains a static member, will also check super class.
+  /// Wether the class contains a static member.
   @override
   bool contains(String varName) =>
-      declarations.containsKey(varName) ||
-      declarations.containsKey('${HTLexicon.getter}$varName') ||
-      ((superClass?.contains(varName)) ?? false) ||
-      ((superClass?.contains('${HTLexicon.getter}$varName')) ?? false);
+      declarations.containsKey(varName) || declarations.containsKey('${HTLexicon.getter}$varName');
 
   /// Fetch the value of a static member from this class.
   @override
@@ -103,8 +100,6 @@ class HTClass extends HTNamespace {
       final decl = declarations[getter]!;
       HTFunction func = decl.value;
       return func.call();
-    } else if (superClass != null && superClass!.contains(varName)) {
-      return superClass!.memberGet(varName, from: from);
     }
 
     if (closure != null) {
@@ -165,7 +160,7 @@ class HTClass extends HTNamespace {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    var instance = HTInstance(this, interpreter, typeArgs: typeArgs.sublist(0, typeParams.length));
+    var instance = HTInstance(id, interpreter, _instanceIndex++, typeArgs: typeArgs, closure: this);
 
     for (final decl in instanceDecls.values) {
       instance.define(decl.clone());
@@ -195,20 +190,16 @@ class HTClass extends HTNamespace {
   }
 }
 
-/// [HTInstance] is the Dart implementation of the instance instance in Hetu.
+/// The Dart implementation of the instance instance in Hetu.
+/// [HTInstance] has no closure, it carries all decl from its super class.
 class HTInstance extends HTNamespace {
-  static var instanceIndex = 0;
-
-  final bool isExtern;
-
-  final HTClass klass;
-
   @override
   late final HTTypeId typeid;
 
-  HTInstance(this.klass, Interpreter interpreter, {List<HTTypeId> typeArgs = const [], this.isExtern = false})
-      : super(interpreter, id: '${HTLexicon.instance}${instanceIndex++}', closure: klass) {
-    typeid = HTTypeId(klass.id, arguments: typeArgs = const []);
+  HTInstance(String className, Interpreter interpreter, int index,
+      {List<HTTypeId> typeArgs = const [], HTNamespace? closure})
+      : super(interpreter, id: '$${HTLexicon.instance}$index', closure: closure) {
+    typeid = HTTypeId(className, arguments: typeArgs = const []);
   }
 
   @override

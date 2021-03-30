@@ -237,7 +237,8 @@ class Hetu extends Interpreter {
 
   dynamic run(Uint8List code) {}
 
-  /// 从 [moduleName] 代码文件的 [ip] 字节位置开始解释，遇到 [OP.endOfExec] 后返回当前值。
+  /// 从 [moduleName] 代码文件的 [ip] 字节位置开始解释
+  /// 遇到 [OpCode.endOfExec] 或 [OpCode.endOfFunc] 后返回当前值。
   /// 如果 [moduleName != null] 会回到之前的代码文件
   /// 如果 [ip != null] 会回到之前的指令位置
   /// 如果 [namespace != null] 会回到之前的命名空间
@@ -253,15 +254,14 @@ class Hetu extends Interpreter {
     var changedCode = false;
     var changedIp = false;
     if (moduleName != null && (curModuleName != moduleName)) {
-      changedCode = true;
-      changedIp = true;
       _curModuleName = moduleName;
       _curCode = _modules[moduleName]!;
-      _curCode.ip = 0;
+      changedCode = true;
+      changedIp = true;
     }
     if (ip != null && _curCode.ip != ip) {
-      changedIp = true;
       _curCode.ip = ip;
+      changedIp = true;
     }
     if (namespace != null && _curNamespace != namespace) {
       _curNamespace = namespace;
@@ -269,7 +269,9 @@ class Hetu extends Interpreter {
 
     if (changedIp) {
       ++_regIndex;
-      if (_registers.length <= _regIndex * HTRegIdx.length) _registers.length += HTRegIdx.length;
+      if (_registers.length <= _regIndex * HTRegIdx.length) {
+        _registers.length += HTRegIdx.length;
+      }
     }
 
     final result = _execute();
@@ -581,13 +583,13 @@ class Hetu extends Interpreter {
         break;
       case ReferrenceType.member:
         final object = _getRegVal(HTRegIdx.postfix)!;
-        final key = _curValue;
+        final key = _curSymbol;
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
         }
         // 如果是 Hetu 对象
         if (object is HTObject) {
-          object.memberSet(key, value, from: _curNamespace.fullName);
+          object.memberSet(key!, value, from: _curNamespace.fullName);
         }
         // 如果是 Dart 对象
         else {
@@ -596,7 +598,7 @@ class Hetu extends Interpreter {
             typeid = typeid.substring(0, typeid.indexOf('<'));
           }
           var externClass = fetchExternalClass(typeid);
-          externClass.instanceMemberSet(object, key, value);
+          externClass.instanceMemberSet(object, key!, value);
         }
         break;
       case ReferrenceType.sub:
@@ -919,15 +921,13 @@ class Hetu extends Interpreter {
         _handleCallExpr();
         break;
       case HTOpCode.postIncrement:
-        var object = _getRegVal(HTRegIdx.postfix);
-        _curValue = object;
-        final value = object + 1;
+        _curValue = _getRegVal(HTRegIdx.postfix);
+        final value = _curValue + 1;
         _assignCurRef(value);
         break;
       case HTOpCode.postDecrement:
-        var object = _getRegVal(HTRegIdx.postfix);
-        _curValue = object;
-        final value = object - 1;
+        _curValue = _getRegVal(HTRegIdx.postfix);
+        final value = _curValue - 1;
         _assignCurRef(value);
         break;
     }
@@ -1119,7 +1119,7 @@ class Hetu extends Interpreter {
     if (id != HTLexicon.rootClass) {
       if (superClassId == null) {
         // TODO: Object基类
-        // superClass = global.fetch(HTLexicon.rootClass);
+        superClass = global.memberGet(HTLexicon.rootClass);
       } else {
         superClass = _curNamespace.memberGet(superClassId, from: _curNamespace.fullName);
       }

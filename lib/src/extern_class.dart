@@ -73,7 +73,6 @@ class HTExternClassString extends HTExternalClass {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
-          // TODO: 如果是脚本对象，需要调用脚本自己的toString
           return positionalArgs.first.toString();
         };
       default:

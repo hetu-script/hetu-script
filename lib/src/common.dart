@@ -60,7 +60,7 @@ enum ReferrenceType {
 class HTRegIdx {
   static const value = 0;
   static const symbol = 1;
-  static const objectSymbol = 2; // TODO: object symbol
+  static const objectSymbol = 2;
   static const refType = 3;
   static const loopCount = 4;
   static const assign = 8;

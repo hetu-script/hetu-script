@@ -5,7 +5,6 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     var globalController = GlobalController()
-
     class Host {
       var name: str
       construct(name: str) {
@@ -19,7 +18,6 @@ void main() async {
 
     class Widget {
       var host: Host
-
       fun rebuild {
         _rebuild(host)
       }
@@ -28,37 +26,28 @@ void main() async {
     class ScriptWidget extends Widget {
       construct(host: Host) {
         this.host = host
-
         globalController.addListener(
           fun {
             rebuild()
           }
         )
       }
-
     }
 
     class GlobalController {
-      var listeners: List
-
+      var listeners: List = []
       fun addListener(listener) {
         listeners.add(listener)
       }
-
       fun fireEvent() {
         for (var listener in listeners) {
           listener()
         }
       }
     }
-
     fun main {
       var widget = ScriptWidget(Host('widget host'))
-
-      widget.rebuild()
-
       globalController.fireEvent()
-
     }
 
   ''', invokeFunc: 'main');

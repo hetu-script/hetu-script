@@ -33,21 +33,16 @@ class HTNamespace extends HTObject with InterpreterRef {
   // 变量表
   final Map<String, HTDeclaration> declarations = {};
 
-  HTNamespace? closure;
+  final HTNamespace? closure;
 
   HTNamespace(
     Interpreter interpreter, {
     String? id,
-    HTNamespace? closure,
+    this.closure,
   }) : super() {
     this.id = id ?? '${HTLexicon.anonymousNamespace}${spaceIndex++}';
     this.interpreter = interpreter;
     fullName = getFullName(this.id, closure);
-    if (this.id != HTLexicon.global) {
-      this.closure = closure ?? interpreter.curNamespace;
-    } else {
-      this.closure = closure;
-    }
   }
 
   HTNamespace closureAt(int distance) {

@@ -6,9 +6,9 @@ void main() async {
   await hetu.init();
 
   await hetu.eval(r'''
-var a = 'dragon'
+    var a = 'dragon'
 
-print('To kill the ${a}, you have to wait ${6*7} years.')
+    print('To kill the ${a}, you have to wait ${6*7} years.')
 
   ''', codeType: CodeType.script);
 }

@@ -12,7 +12,7 @@ const cli_help = '''
   
   If only [file_name] is provided, evaluate the file in function mode.
   
-  If [file_name] and [invoke_func] is both provided, will use program codeType interpretation.
+  If [file_name] and [invoke_func] is both provided, will interpret code as a program.
         ''';
 
 void main(List<String> args) async {
