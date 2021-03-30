@@ -11,14 +11,17 @@ abstract class HTLexicon {
       r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
       r'("(\\"|[^"])*"))';
 
-  /// Add semicolon before a line starting with one of '[, (, +, -'
+  /// Add semicolon before a line starting with one of '++, --, (, ['
   static const Set<String> ASIStart = {
-    squareLeft,
-    roundLeft,
-    add,
     preIncrement,
-    subtract,
     preDecrement,
+    roundLeft,
+    squareLeft,
+  };
+
+  /// Add semicolon after a line with 'return'
+  static const Set<String> ASIEnd = {
+    RETURN,
   };
 
   static const tokenGroupComment = 1;
@@ -46,6 +49,8 @@ abstract class HTLexicon {
   static const endOfFile = 'end_of_file'; // 文件末尾
   static const multiline = '\\';
   static const varargs = '...'; // variadic arguments
+  static const singleQuotation = "'";
+  static const doubleQuotation = '"';
   static const anonymousScript = 'anonymousScript#';
   static const anonymousFunction = 'anonymousFunction#';
   static const anonymousNamespace = 'anonymousNamespace#';
@@ -324,30 +329,6 @@ abstract class HTLexicon {
   static const squareRight = ']';
   static const angleLeft = '<';
   static const angleRight = '>';
-
-  static const Set<String> leadingPunctuations = {
-    logicalNot,
-    multiply,
-    devide,
-    modulo,
-    add,
-    subtract,
-    lesser, // angleLeft,
-    lesserOrEqual,
-    greater, // angleRight,
-    greaterOrEqual,
-    equal,
-    notEqual,
-    logicalAnd,
-    logicalOr,
-    assign,
-    memberGet,
-    roundLeft,
-    curlyLeft,
-    squareLeft,
-    comma,
-    colon,
-  };
 
   static const Set<String> punctuations = {
     nullable,

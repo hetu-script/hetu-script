@@ -153,6 +153,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       }
     }
 
+    expect([HTLexicon.semicolon], consume: true);
+
     _importedModules.add(ImportInfo(key, name: name, showList: showList));
   }
 
@@ -806,12 +808,16 @@ class Compiler extends Parser with ConstTable, HetuRef {
           final key = _localSymbol(isGetKey: true); // shortUtf8String
           _leftValueLegality = true;
           bytesBuilder.add(key);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIdx.key);
           bytesBuilder.addByte(HTOpCode.memberGet);
           break;
         case HTLexicon.subGet:
           final key = _parseExpr();
           _leftValueLegality = true;
           bytesBuilder.add(key); // int
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIdx.key);
           bytesBuilder.addByte(HTOpCode.subGet);
           match(HTLexicon.squareRight);
           break;
@@ -1558,9 +1564,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       funcBytesBuilder.addByte(HTOpCode.endOfFunc);
     } else {
       funcBytesBuilder.addByte(0); // bool: has no definition
+      expect([HTLexicon.semicolon], consume: true);
     }
-
-    expect([HTLexicon.semicolon], consume: true);
 
     return funcBytesBuilder.toBytes();
   }

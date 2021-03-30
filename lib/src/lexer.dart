@@ -103,12 +103,7 @@ class Lexer {
       if (toksOfLine.isNotEmpty) {
         if (HTLexicon.ASIStart.contains(toksOfLine.first.type)) {
           /// add semicolon before a newline if the new line starting with '[, (, +, -' tokens
-          if (tokens.isNotEmpty) {
-            final last = tokens.last.type;
-            if (!HTLexicon.leadingPunctuations.contains(last)) {
-              tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
-            }
-          }
+          tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
           tokens.addAll(toksOfLine);
         } else if (toksOfLine.last.type == HTLexicon.RETURN) {
           tokens.addAll(toksOfLine);

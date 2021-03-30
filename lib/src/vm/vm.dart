@@ -582,8 +582,8 @@ class Hetu extends Interpreter {
         _curNamespace.memberSet(_curSymbol!, value, from: _curNamespace.fullName);
         break;
       case ReferrenceType.member:
-        final object = _getRegVal(HTRegIdx.postfix)!;
-        final key = _curSymbol;
+        final object = _getRegVal(HTRegIdx.postfix);
+        final key = _getRegVal(HTRegIdx.key);
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
         }
@@ -602,8 +602,8 @@ class Hetu extends Interpreter {
         }
         break;
       case ReferrenceType.sub:
-        final object = _getRegVal(HTRegIdx.postfix)!;
-        final key = _curValue;
+        final object = _getRegVal(HTRegIdx.postfix);
+        final key = _getRegVal(HTRegIdx.key);
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(object);
         }
@@ -715,28 +715,33 @@ class Hetu extends Interpreter {
   void _handleAssignOp(int opcode) {
     switch (opcode) {
       case HTOpCode.assign:
-        _curValue = _getRegVal(HTRegIdx.assign);
-        _assignCurRef(_curValue);
+        final value = _getRegVal(HTRegIdx.assign);
+        _assignCurRef(value);
+        _curValue = value;
         break;
       case HTOpCode.assignMultiply:
         final leftValue = _curValue;
-        _curValue = leftValue * _getRegVal(HTRegIdx.assign);
-        _assignCurRef(_curValue);
+        final value = leftValue * _getRegVal(HTRegIdx.assign);
+        _assignCurRef(value);
+        _curValue = value;
         break;
       case HTOpCode.assignDevide:
         final leftValue = _curValue;
-        _curValue = leftValue / _getRegVal(HTRegIdx.assign);
+        final value = leftValue / _getRegVal(HTRegIdx.assign);
         _assignCurRef(_curValue);
+        _curValue = value;
         break;
       case HTOpCode.assignAdd:
         final leftValue = _curValue;
-        _curValue = leftValue + _getRegVal(HTRegIdx.assign);
+        final value = leftValue + _getRegVal(HTRegIdx.assign);
         _assignCurRef(_curValue);
+        _curValue = value;
         break;
       case HTOpCode.assignSubtract:
         final leftValue = _curValue;
-        _curValue = leftValue - _getRegVal(HTRegIdx.assign);
+        final value = leftValue - _getRegVal(HTRegIdx.assign);
         _assignCurRef(_curValue);
+        _curValue = value;
         break;
     }
   }
@@ -881,7 +886,7 @@ class Hetu extends Interpreter {
     switch (op) {
       case HTOpCode.memberGet:
         var object = _getRegVal(HTRegIdx.postfix);
-        var key = _curValue;
+        var key = _getRegVal(HTRegIdx.key);
 
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
@@ -914,7 +919,7 @@ class Hetu extends Interpreter {
         break;
       case HTOpCode.subGet:
         var object = _getRegVal(HTRegIdx.postfix);
-        var key = _curValue;
+        var key = _getRegVal(HTRegIdx.key);
 
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);

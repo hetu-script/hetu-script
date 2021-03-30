@@ -198,7 +198,7 @@ class HTInstance extends HTNamespace {
 
   HTInstance(String className, Interpreter interpreter, int index,
       {List<HTTypeId> typeArgs = const [], HTNamespace? closure})
-      : super(interpreter, id: '$${HTLexicon.instance}$index', closure: closure) {
+      : super(interpreter, id: '${HTLexicon.instance}$index', closure: closure) {
     typeid = HTTypeId(className, arguments: typeArgs = const []);
   }
 

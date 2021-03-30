@@ -5,12 +5,16 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     fun main {
-      var m = {}
-      var name = 'table'
-      m[name] = [1,2,3]
+      var j = 3
+      var i =
+        'hello' 
+      +  'hi' 
+      +    ' y'
 
-      print(m)
-      print(m[name])
+      ++j
+
+        print(i)
+        print(j)
     }
 
   ''', invokeFunc: 'main');
