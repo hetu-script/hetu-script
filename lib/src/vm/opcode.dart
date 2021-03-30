@@ -18,11 +18,13 @@ abstract class HTOpCode {
   /// uint16 line & column
   static const debugInfo = 5;
 
-  static const loopPoint = 6;
+  static const objectSymbol = 6;
 
-  static const breakLoop = 7;
+  static const loopPoint = 7;
 
-  static const continueLoop = 8;
+  static const breakLoop = 8;
+
+  static const continueLoop = 9;
 
   static const block = 10;
 
@@ -32,9 +34,11 @@ abstract class HTOpCode {
 
   static const endOfExec = 13;
 
-  static const constTable = 14;
+  static const endOfFunc = 14;
 
-  static const declTable = 15;
+  static const constTable = 18;
+
+  static const declTable = 19;
 
   static const ifStmt = 21;
 

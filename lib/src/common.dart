@@ -23,15 +23,19 @@ enum ClassType {
   extern,
 }
 
-enum ParseStyle {
+enum CodeType {
+  expression,
+
   /// 库脚本中只能出现变量、类、函数、import和export语句
   module,
 
-  /// 函数语句块中只能出现变量声明、控制语句、函数声明、函数调用和表达式
-  block,
-
   /// 类定义中只能出现变量和函数
   klass,
+
+  function,
+
+  /// 函数语句块中只能出现变量声明、控制语句、函数声明、函数调用和表达式
+  block,
 
   /// 脚本中可以出现所有的语句
   script,
@@ -53,12 +57,20 @@ enum ReferrenceType {
   sub,
 }
 
-enum LeftValueLegality {
-  legal,
-  illegal,
-}
+class HTRegIdx {
+  static const value = 0;
+  static const symbol = 1;
+  static const objectSymbol = 2; // TODO: object symbol
+  static const refType = 3;
+  static const loopCount = 4;
+  static const assign = 8;
+  static const or = 9;
+  static const and = 10;
+  static const equal = 11;
+  static const relation = 12;
+  static const add = 13;
+  static const multiply = 14;
+  static const postfix = 15;
 
-abstract class HTRegIndex {
-  static const unaryPostObject = 14;
-  static const unaryPostKey = 15;
+  static const length = 16;
 }

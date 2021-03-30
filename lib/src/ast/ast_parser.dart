@@ -23,21 +23,20 @@ class HTAstParser extends Parser with AstInterpreterRef {
   }
 
   Future<List<ASTNode>> parse(List<Token> tokens, String fileName,
-      [ParseStyle style = ParseStyle.module, debugMode = false]) async {
+      [CodeType codeType = CodeType.module, debugMode = false]) async {
     this.tokens.clear();
     this.tokens.addAll(tokens);
     _curModuleName = fileName;
 
     final statements = <ASTNode>[];
     while (curTok.type != HTLexicon.endOfFile) {
-      var stmt = _parseStmt(style: style);
+      var stmt = _parseStmt(codeType: codeType);
       if (stmt is ImportStmt) {
         await interpreter.import(stmt.key, moduleName: stmt.namespace);
         _curModuleName = interpreter.curModuleName;
       }
       statements.add(stmt);
     }
-    _curModuleName = '';
 
     return statements;
   }
@@ -280,9 +279,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
     }
   }
 
-  ASTNode _parseStmt({ParseStyle style = ParseStyle.module}) {
-    switch (style) {
-      case ParseStyle.module:
+  ASTNode _parseStmt({CodeType codeType = CodeType.module}) {
+    switch (codeType) {
+      case CodeType.module:
         switch (curTok.type) {
           case HTLexicon.EXTERNAL:
             advance(1);
@@ -326,8 +325,10 @@ class HTAstParser extends Parser with AstInterpreterRef {
           default:
             throw HTErrorUnexpected(curTok.lexeme);
         }
-      case ParseStyle.script:
-      case ParseStyle.block:
+      case CodeType.expression:
+      case CodeType.function:
+      case CodeType.script:
+      case CodeType.block:
         // 函数块中不能出现extern或者static关键字的声明
         // var变量声明
         if (expect([HTLexicon.VAR])) {
@@ -367,7 +368,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         else {
           return _parseExprStmt();
         }
-      case ParseStyle.klass:
+      case CodeType.klass:
         final isExtern = expect([HTLexicon.EXTERNAL], consume: true);
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         // var变量声明
@@ -412,21 +413,21 @@ class HTAstParser extends Parser with AstInterpreterRef {
     }
   }
 
-  List<ASTNode> _parseBlock({ParseStyle style = ParseStyle.module}) {
+  List<ASTNode> _parseBlock({CodeType codeType = CodeType.module}) {
     var stmts = <ASTNode>[];
     while ((curTok.type != HTLexicon.curlyRight) && (curTok.type != HTLexicon.endOfFile)) {
-      stmts.add(_parseStmt(style: style));
+      stmts.add(_parseStmt(codeType: codeType));
     }
     match(HTLexicon.curlyRight);
     return stmts;
   }
 
-  BlockStmt _parseBlockStmt({ParseStyle style = ParseStyle.module}) {
+  BlockStmt _parseBlockStmt({CodeType codeType = CodeType.module}) {
     var stmts = <ASTNode>[];
     var line = curTok.line;
     var column = curTok.column;
     while ((curTok.type != HTLexicon.curlyRight) && (curTok.type != HTLexicon.endOfFile)) {
-      stmts.add(_parseStmt(style: style));
+      stmts.add(_parseStmt(codeType: codeType));
     }
     match(HTLexicon.curlyRight);
     return BlockStmt(stmts, curModuleName, line, column);
@@ -482,16 +483,16 @@ class HTAstParser extends Parser with AstInterpreterRef {
     match(HTLexicon.roundRight);
     ASTNode? thenBranch;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      thenBranch = _parseBlockStmt(style: ParseStyle.block);
+      thenBranch = _parseBlockStmt(codeType: CodeType.block);
     } else {
-      thenBranch = _parseStmt(style: ParseStyle.block);
+      thenBranch = _parseStmt(codeType: CodeType.block);
     }
     ASTNode? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (expect([HTLexicon.curlyLeft], consume: true)) {
-        elseBranch = _parseBlockStmt(style: ParseStyle.block);
+        elseBranch = _parseBlockStmt(codeType: CodeType.block);
       } else {
-        elseBranch = _parseStmt(style: ParseStyle.block);
+        elseBranch = _parseStmt(codeType: CodeType.block);
       }
     }
     return IfStmt(condition, thenBranch, elseBranch);
@@ -505,9 +506,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
     match(HTLexicon.roundRight);
     ASTNode? loop;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop = _parseBlockStmt(style: ParseStyle.block);
+      loop = _parseBlockStmt(codeType: CodeType.block);
     } else {
-      loop = _parseStmt(style: ParseStyle.block);
+      loop = _parseStmt(codeType: CodeType.block);
     }
     return WhileStmt(condition, loop);
   }
@@ -555,9 +556,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
     // 循环体
     match(HTLexicon.roundRight);
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop_body.addAll(_parseBlock(style: ParseStyle.block));
+      loop_body.addAll(_parseBlock(codeType: CodeType.block));
     } else {
-      loop_body.add(_parseStmt(style: ParseStyle.block));
+      loop_body.add(_parseStmt(codeType: CodeType.block));
     }
     list_stmt.add(WhileStmt(condition, BlockStmt(loop_body, curModuleName, curTok.line, curTok.column)));
     return BlockStmt(list_stmt, curModuleName, curTok.line, curTok.column);
@@ -716,7 +717,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     var body = <ASTNode>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       // 处理函数定义部分的语句块
-      body = _parseBlock(style: ParseStyle.block);
+      body = _parseBlock(codeType: CodeType.block);
     }
     expect([HTLexicon.semicolon], consume: true);
 
@@ -789,7 +790,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     var methods = <FuncDeclStmt>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       while ((curTok.type != HTLexicon.curlyRight) && (curTok.type != HTLexicon.endOfFile)) {
-        var member = _parseStmt(style: ParseStyle.klass);
+        var member = _parseStmt(codeType: CodeType.klass);
         if (member is VarDeclStmt) {
           variables.add(member);
         } else if (member is FuncDeclStmt) {

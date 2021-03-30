@@ -5,5 +5,5 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
       print((5 > 4 ? true ? 'certainly' : 'yeah' : 'ha') + ', eva!')
-    ''', style: ParseStyle.block);
+    ''', codeType: CodeType.block);
 }

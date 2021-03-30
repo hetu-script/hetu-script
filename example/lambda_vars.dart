@@ -33,5 +33,5 @@ void main() async {
     print(a.age)
     
   }
-  ''', style: ParseStyle.module, invokeFunc: 'main');
+  ''', codeType: CodeType.module, invokeFunc: 'main');
 }

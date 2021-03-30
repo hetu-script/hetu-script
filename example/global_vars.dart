@@ -26,5 +26,5 @@ void main() async {
     a.test()
     a.staticTest()
   }
-  ''', style: ParseStyle.module, invokeFunc: 'main');
+  ''', codeType: CodeType.module, invokeFunc: 'main');
 }

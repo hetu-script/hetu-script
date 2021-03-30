@@ -17,7 +17,7 @@ abstract class HTError {
   static const expected = 'expected, ';
   static const constMustBeStatic = 'Class member constant must be static.';
   static const unexpected = 'Unexpected identifier';
-  static const outsideReturn = 'Return statement is not allowed outside of a function.';
+  static const outsideReturn = 'Return statement outside of a function.';
   static const privateMember = 'Could not acess private member';
   static const privateDecl = 'Could not acess private declaration';
   static const notInitialized = 'has not initialized';
@@ -42,7 +42,7 @@ abstract class HTError {
   static const notClass = 'is not a class';
   static const noElse = 'Must have a [else:] branch in When statement.';
   static const setterArity = 'Setter function\'s arity must be 1';
-  // static const errorNullObject = 'is null';
+  static const errorNullObject = 'Calling method on null object:';
   static const immutable = 'is immutable';
   static const notType = 'is not a type.';
 
@@ -145,7 +145,7 @@ class HTErrorInvalidLeftValueParser extends HTParserError {
 }
 
 class HTErrorReturn extends HTResolverError {
-  HTErrorReturn(String id) : super(HTError.outsideReturn);
+  HTErrorReturn() : super(HTError.outsideReturn);
 }
 
 class HTErrorIllegalLeftValue extends HTParserError {
@@ -243,9 +243,9 @@ class HTErrorExtends extends HTError {
   HTErrorExtends(String id) : super('[$id] ${HTError.notClass}', HTErrorType.interpreter);
 }
 
-// class HTErrorNullObject extends HTError {
-//   HTErrorNullObject(String id) : super('[$id] ${HTError.errorNullObject}');
-// }
+class HTErrorNullObject extends HTError {
+  HTErrorNullObject(String id) : super('${HTError.errorNullObject} [$id]', HTErrorType.interpreter);
+}
 
 class HTErrorTypeCheck extends HTError {
   HTErrorTypeCheck(String id, String valueType, String declValue)

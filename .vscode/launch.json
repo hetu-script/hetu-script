@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/string_interpolation.dart",
+      "program": "example/to_string.dart",
       "request": "launch",
       "type": "dart"
     }

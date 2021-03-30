@@ -213,8 +213,14 @@ class HTInstance extends HTNamespace {
 
   @override
   String toString() {
-    HTFunction func = memberGet('toString');
-    return func.call();
+    final func = memberGet('toString');
+    if (func is HTFunction) {
+      return func.call();
+    } else if (func is Function) {
+      return func();
+    } else {
+      return id;
+    }
   }
 
   @override

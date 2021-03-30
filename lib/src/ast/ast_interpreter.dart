@@ -56,7 +56,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
   @override
   Future<dynamic> eval(String content,
       {String? moduleName,
-      ParseStyle style = ParseStyle.module,
+      CodeType codeType = CodeType.module,
       bool debugMode = true,
       HTNamespace? namespace,
       String? invokeFunc,
@@ -75,7 +75,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     try {
       var tokens = lexer.lex(content, _curModuleName);
 
-      final statements = await parser.parse(tokens, _curModuleName, style);
+      final statements = await parser.parse(tokens, _curModuleName, codeType);
       _distances.addAll(resolver.resolve(statements, _curModuleName));
 
       for (final stmt in statements) {
@@ -86,7 +86,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       _curNamespace = _savedNamespace;
 
       if (invokeFunc != null) {
-        if (style == ParseStyle.module) {
+        if (codeType == CodeType.module) {
           return invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         }
       } else {

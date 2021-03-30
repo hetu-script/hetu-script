@@ -12,7 +12,7 @@ const cli_help = '''
   
   If only [file_name] is provided, evaluate the file in function mode.
   
-  If [file_name] and [invoke_func] is both provided, will use program style interpretation.
+  If [file_name] and [invoke_func] is both provided, will use program codeType interpretation.
         ''';
 
 void main(List<String> args) async {
@@ -24,9 +24,9 @@ void main(List<String> args) async {
       if ((args.first == '--help') || (args.first == '-h')) {
         print(cli_help);
       } else if (args.length == 1) {
-        result = await hetu.import(args.first, style: ParseStyle.block);
+        result = await hetu.import(args.first, codeType: CodeType.block);
       } else {
-        result = await hetu.import(args.first, style: ParseStyle.module, invokeFunc: args[1]);
+        result = await hetu.import(args.first, codeType: CodeType.module, invokeFunc: args[1]);
       }
       if (result != null) print(result);
     } else {
@@ -48,7 +48,7 @@ void main(List<String> args) async {
           }
 
           try {
-            result = await hetu.eval(input, style: ParseStyle.block);
+            result = await hetu.eval(input, codeType: CodeType.block);
             if (result != null) print(result);
           } catch (e) {
             print(e);

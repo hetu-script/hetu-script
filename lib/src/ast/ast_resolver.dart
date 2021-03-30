@@ -103,7 +103,6 @@ class HTAstResolver implements ASTNodeVisitor {
     // 类自己的默认构造函数
     _declare(stmt.id.lexeme, define: true);
 
-    // TODO: super表达式
     // _blocks.last[HTLexicon.SUPER] = true;
 
     // 注册类静态变量
@@ -361,7 +360,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curLine = stmt.line;
     _curColumn = stmt.column;
     if ((_curFuncType == null) || (_curFuncType == FunctionType.constructor)) {
-      throw HTErrorReturn(stmt.keyword.lexeme);
+      throw HTErrorReturn();
     }
 
     if (stmt.value != null) {

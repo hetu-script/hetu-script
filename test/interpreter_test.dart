@@ -12,7 +12,7 @@ void main() async {
           await hetu.eval('''
               const i = 42
               i = 137
-              ''', style: ParseStyle.block);
+              ''', codeType: CodeType.block);
         },
         throwsA(isA<HTErrorImmutable>()),
       );
