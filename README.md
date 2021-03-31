@@ -5,7 +5,6 @@
 - [Introduction](#introduction)
 - [Quick start](#quick-start)
 - [Binding](#binding)
-- [Auto-Binding tools](#auto-binding-tools)
 - [Command line tool](#command-line-tool)
 
 ## Introduction

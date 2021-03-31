@@ -1,7 +1,7 @@
 language: dart
 
 dart_task:
-- test:
+  - test:
 
 script:
-  - pub run tools/build_ht_lib
+  - pub run test test/test.dart

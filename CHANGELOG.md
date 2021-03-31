@@ -1,3 +1,7 @@
+## 0.1.0+2
+
+- Fixed several bugs.
+
 ## 0.1.0+1
 
 - Feat: String interpolation. Example:
