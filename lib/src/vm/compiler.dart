@@ -225,7 +225,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                 _curBlock.funcDecls[id] = decl;
                 break;
               default:
-                throw HTErrorUnexpected(curTok.type);
+                throw HTErrorExpected(HTLexicon.declStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
@@ -277,7 +277,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
             _curBlock.funcDecls[id] = decl;
             break;
           default:
-            throw HTErrorUnexpected(curTok.lexeme);
+            throw HTErrorExpected(HTLexicon.declStmt, curTok.lexeme);
         }
         break;
       case CodeType.expression:
@@ -934,7 +934,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       case HTLexicon.FUN:
         return _parseFuncDeclaration(funcType: FunctionType.literal);
       default:
-        throw HTErrorUnexpected(curTok.lexeme);
+        throw HTErrorExpected(HTLexicon.expression, curTok.lexeme);
     }
   }
 
@@ -1227,7 +1227,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
       if (curTok.lexeme == HTLexicon.ELSE) {
         advance(1);
         match(HTLexicon.colon);
-        elseBranch = _parseExpr(endOfExec: true);
+        if (curTok.type != HTLexicon.semicolon && curTok.type != HTLexicon.curlyRight) {
+          elseBranch = _parseExpr(endOfExec: true);
+        }
       } else {
         final caseExpr = _parseExpr(endOfExec: true);
         cases.add(caseExpr);
@@ -1243,10 +1245,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
       }
     }
 
-    if (elseBranch == null) {
-      throw HTErrorNoElse();
-    }
-
     match(HTLexicon.curlyRight);
 
     bytesBuilder.addByte(cases.length);
@@ -1258,8 +1256,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.add(_uint16(curIp));
     }
     curIp = curIp + branches.last.length;
-    bytesBuilder.add(_uint16(curIp));
-    bytesBuilder.add(_uint16(curIp + elseBranch.length));
+    if (elseBranch != null) {
+      bytesBuilder.add(_uint16(curIp)); // else branch ip
+    } else {
+      bytesBuilder.add(_uint16(0)); // has no else
+    }
+    bytesBuilder.add(_uint16(curIp + (elseBranch?.length ?? 0)));
 
     for (final expr in cases) {
       bytesBuilder.add(expr);
@@ -1268,7 +1270,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.add(branch);
     }
 
-    bytesBuilder.add(elseBranch);
+    if (elseBranch != null) {
+      bytesBuilder.add(elseBranch);
+    }
 
     return bytesBuilder.toBytes();
   }

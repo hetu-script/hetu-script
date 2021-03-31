@@ -706,9 +706,11 @@ class Hetu extends Interpreter {
       execute();
       _curCode.ip = startIp + endIp;
     } else {
-      final distance = elseBranchIp;
-      _curCode.skip(distance);
-      execute();
+      if (elseBranchIp > 0) {
+        final distance = elseBranchIp;
+        _curCode.skip(distance);
+        execute();
+      }
     }
   }
 
@@ -728,19 +730,19 @@ class Hetu extends Interpreter {
       case HTOpCode.assignDevide:
         final leftValue = _curValue;
         final value = leftValue / _getRegVal(HTRegIdx.assign);
-        _assignCurRef(_curValue);
+        _assignCurRef(value);
         _curValue = value;
         break;
       case HTOpCode.assignAdd:
         final leftValue = _curValue;
         final value = leftValue + _getRegVal(HTRegIdx.assign);
-        _assignCurRef(_curValue);
+        _assignCurRef(value);
         _curValue = value;
         break;
       case HTOpCode.assignSubtract:
         final leftValue = _curValue;
         final value = leftValue - _getRegVal(HTRegIdx.assign);
-        _assignCurRef(_curValue);
+        _assignCurRef(value);
         _curValue = value;
         break;
     }

@@ -4,20 +4,21 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-  fun main {
-    var i = 0
-    for (;;) {
+    fun main {
+      var j = 1
+      var i = 0
+      for (;;) {
+        ++i
+        when (i % 2) {
+          0: j += i
+          1: j *= i
+        }
+        if (i > 5) {
+          break
+        }
+      }
       print(i)
-      ++i
-      when (i % 2) {
-        0: print('even:', i)
-        1: print('odd:', i)
-        else: print('never going to happen.')
-      }
-      if (i > 5) {
-        break
-      }
+      print(j)
     }
-  }
   ''', invokeFunc: 'main');
 }

@@ -290,7 +290,9 @@ class HTInstance extends HTNamespace {
           final externalFunc = interpreter.unwrapExternalFunctionType(value.externalTypedef!, value);
           return externalFunc;
         }
-        value.context = this;
+        if (value.funcType != FunctionType.literal) {
+          value.context = this;
+        }
         return value;
       }
       return value;

@@ -12,14 +12,6 @@ class Calculator {
     return _name
   }
 
-  // static set name(new_name: str) {
-  //   _name = new_name
-  // }
-
-  static fun greeting {
-    print('hello! I\'m ' + name)
-  }
-
   // 带有参数的构造函数
   construct (x: num, y: num) {
     // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定

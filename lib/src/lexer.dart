@@ -102,8 +102,11 @@ class Lexer {
 
       if (toksOfLine.isNotEmpty) {
         if (HTLexicon.ASIStart.contains(toksOfLine.first.type)) {
-          /// add semicolon before a newline if the new line starting with '[, (, +, -' tokens
-          tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
+          /// Add semicolon before a newline if the new line starting with '[, (, +, -' tokens
+          /// and the last line does not ends with an unfinished token.
+          if (tokens.isNotEmpty && !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
+            tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
+          }
           tokens.addAll(toksOfLine);
         } else if (toksOfLine.last.type == HTLexicon.RETURN) {
           tokens.addAll(toksOfLine);

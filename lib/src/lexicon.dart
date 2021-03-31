@@ -15,8 +15,6 @@ abstract class HTLexicon {
   static const Set<String> ASIStart = {
     preIncrement,
     preDecrement,
-    roundLeft,
-    squareLeft,
   };
 
   /// Add semicolon after a line with 'return'
@@ -185,6 +183,7 @@ abstract class HTLexicon {
   };
 
   /// 函数调用表达式
+  static const expression = 'expression';
   static const nullExpr = 'null_expression';
   static const literalBooleanExpr = 'literal_boolean_expression';
   static const literalIntExpr = 'literal_integer_expression';
@@ -207,6 +206,7 @@ abstract class HTLexicon {
   static const memberSetExpr = 'member_set_expression';
 
   static const importStmt = 'import_statement';
+  static const declStmt = 'declaration_statement';
   static const varDeclStmt = 'variable_declaration_statement';
   static const paramStmt = 'parameter_declaration_statement';
   static const exprStmt = 'expression_statement';
@@ -329,6 +329,30 @@ abstract class HTLexicon {
   static const squareRight = ']';
   static const angleLeft = '<';
   static const angleRight = '>';
+
+  static const Set<String> unfinishedTokens = {
+    logicalNot,
+    multiply,
+    devide,
+    modulo,
+    add,
+    subtract,
+    lesser, // angleLeft,
+    lesserOrEqual,
+    greater, // angleRight,
+    greaterOrEqual,
+    equal,
+    notEqual,
+    logicalAnd,
+    logicalOr,
+    assign,
+    memberGet,
+    roundLeft,
+    curlyLeft,
+    squareLeft,
+    comma,
+    colon,
+  };
 
   static const Set<String> punctuations = {
     nullable,

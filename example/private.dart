@@ -5,11 +5,9 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     class A {
-      
       static fun _init {
         print('private _init called!')
       }
-
       fun _post {
         print('private _post called!')
       }
@@ -19,7 +17,6 @@ void main() async {
         _post()
       }
     }
-    
     fun main {
       var a = A()
       a.init()
