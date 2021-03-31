@@ -8,7 +8,7 @@ var a = 'dragon'
 print('To kill the ${a}, you have to wait ${6*7} years.')
 ```
 
-- Fix: Import path resolve bug.
+- Fixed Several bugs.
 
 ## 0.1.0
 

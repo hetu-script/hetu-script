@@ -3,3 +3,9 @@ import 'class_decl.ht'
 class Person {
   var name: str = 'just a guy'
 }
+
+
+class _PrivatePerson {
+
+  var level = 17
+}

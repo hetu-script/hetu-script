@@ -66,13 +66,10 @@ class HTNamespace extends HTObject with InterpreterRef {
   /// 从当前命名空间，以及超空间，递归获取一个变量
   /// 注意和memberGet只是从对象本身取值不同
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
-      throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
-      throw HTErrorPrivateMember(varName);
-    }
-
     if (declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+        throw HTErrorPrivateMember(varName);
+      }
       final decl = declarations[varName]!;
       if (!decl.isInitialized) {
         decl.initialize();
@@ -100,13 +97,10 @@ class HTNamespace extends HTObject with InterpreterRef {
   /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
   /// 注意和memberSet只是对对象本身的成员赋值不同
   void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (fullName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
-      throw HTErrorPrivateDecl(fullName);
-    } else if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
-      throw HTErrorPrivateMember(varName);
-    }
-
     if (declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+        throw HTErrorPrivateMember(varName);
+      }
       final decl = declarations[varName]!;
       decl.assign(value);
       return;
