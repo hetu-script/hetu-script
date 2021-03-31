@@ -25,7 +25,7 @@ Hetu's grammar is made similar to modern language like typescript/swift/kotlin:
 - Function is declared with 'fun, get, set, construct'.
 - Optional type annotation. Variable declared with 'let, const' will infer its type from its initializer expression.
 
-[Syntax referrence](doc/en_US/SYNTAX.md)
+[Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/syntax.md)
 
 [语法参考](doc/zh_Hans/SYNTAX.md)
 
