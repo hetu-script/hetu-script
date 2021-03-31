@@ -21,8 +21,8 @@ import 'declaration.dart';
 ///
 /// ```typescript
 /// class Map<KeyType, ValueType> {
-///   List<KeyType> keys
-///   List<ValueType> values
+///   final keys: List<KeyType>
+///   final values: List<ValueType>
 ///   ...
 /// }
 /// ```

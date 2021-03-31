@@ -1,7 +1,3 @@
-## 0.1.0+2
-
-- Fixed several bugs.
-
 ## 0.1.0+1
 
 - Feat: String interpolation. Example:
@@ -12,11 +8,8 @@ var a = 'dragon'
 print('To kill the ${a}, you have to wait ${6*7} years.')
 ```
 
-- Fixed Several bugs.
-
 ## 0.1.0
 
-- Feature: Changed default interpreter to a bytecode evaluater.
 - Feature: Now fully support nested function and literal function. Example:
 
 ```typescript
@@ -37,8 +30,7 @@ fun main {
 ```
 
 - Feature: Added ++, -- post and pre operators, and +=, -=, \*=, /= operators.
-- Feature: Added full support on While, Do loops, and both classic for(init;condition;increment) and for...in/of.
-- Feature: Added When statement, works like switch.
+- Feature: Full support on While, Do loops, classic for(init;condition;increment), for...in/of, when statement (works like switch).
 
 Loops and When statement example:
 
@@ -70,8 +62,8 @@ odd: 5
 even: 6
 ```
 
-- Feature: Added Ternary operator: 'conditon ? true : false'.
-- Feature: Added new interpreter function for bind Dart Function Typedef. Example:
+- Feature: Ternary operator: 'conditon ? true : false'.
+- Feature: Interpreter function for bind Dart Function Typedef. Example:
 
 In Hetu script:
 
@@ -110,61 +102,34 @@ await hetu.init(externalFunctions: {
 });
 ```
 
-- Added empty string check in module handler.
-
-## 0.0.6
-
-- Feature: Error & import are now handle by plugins.
-- Change: [evalf] function of interpreter now changed into [import]
-- Change: External static members' id unified into [className.varName] in binding.
-
 ## 0.0.5
 
 - Refactor: Migrate to null safety.
-- Refactor: Redesigned the binding (external classes, functions and variables).
-- Refactor: Redesigned the error handling.
-
-## 0.0.4
-
-- Feature: External class.
-- Refactor: Build-in dart types.
-
-## 0.0.3
 
 - Feature: Literal function expression (anonymous function). Usage:
 
 ```typescript
-fun main {
-  var func = fun (name: str) {
-    return name + '_postfix'
+  fun closure(func) {
+    var i = 42
+    fun nested () {
+      i = i + 1
+      return (func(i))
+    }
+    return nested
   }
-
-  print(func())
-}
+  fun main {
+    var func = literalFunction( fun (n) { return n * n } )
+    func()
+    func()
+  }
 ```
 
 - Feature: Named function parameters.
 - Feature: Support literal hexadecimal numbers.
-- Fixed class extends, member override and inheritance.
-- Fixed import statement.
-
-## 0.0.2+4
-
-- Fixed bug in method calling of instances.
-- Fixed bug of optional function parameters.
-- Fixed bug of import statement.
-- Fixed bug of member get from super classes.
-- Fixed bug of method expression resolving.
 
 ## 0.0.2+1
 
 - Added multiline comment.
-- Fixed bugs in method calling of instances.
-
-## 0.0.2
-
-- Fixed core library loading issue, no longer use outside source files.
-- Changed lisence from GNU GPLv3 to MIT.
 
 ## 0.0.1
 
