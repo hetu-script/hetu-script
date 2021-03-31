@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "example/global_vars.dart",
+      "program": "example/test.dart",
       "request": "launch",
       "type": "dart"
     }

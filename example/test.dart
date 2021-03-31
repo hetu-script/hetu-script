@@ -4,22 +4,14 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-    class Person {
-      var property = []
-      construct {
-        fill()
-      }
-      fun fill {
-        for (var i = 0; i < 4; ++i) {
-          property.add(i)
-        }
+    class A {
+      static var tables
+      static fun init() {
+        tables = []
       }
     }
     fun main {
-      var p1 = Person()
-      print(p1.property)
-      var p2 = Person()
-      print(p2.property)
+      A.init()
     }
 
   ''', invokeFunc: 'main');

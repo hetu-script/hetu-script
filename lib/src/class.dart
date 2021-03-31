@@ -96,10 +96,12 @@ class HTClass extends HTNamespace {
 
     if (contains(varName)) {
       memberSet(varName, value);
+      return;
     }
 
     if (closure != null) {
-      return closure!.assign(varName, value, from: from);
+      closure!.assign(varName, value, from: from);
+      return;
     }
 
     throw HTErrorUndefined(varName);
@@ -278,10 +280,12 @@ class HTInstance extends HTNamespace {
 
     if (contains(varName)) {
       memberSet(varName, value);
+      return;
     }
 
     if (closure != null) {
-      return closure!.assign(varName, value, from: from);
+      closure!.assign(varName, value, from: from);
+      return;
     }
 
     throw HTErrorUndefined(varName);
