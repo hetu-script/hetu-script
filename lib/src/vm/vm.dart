@@ -36,7 +36,7 @@ class LoopInfo {
 class Hetu extends Interpreter {
   static var _anonymousScriptIndex = 0;
 
-  final _compiler = Compiler();
+  late Compiler _compiler;
 
   final _modules = <String, Bytecode>{};
 
@@ -95,6 +95,8 @@ class Hetu extends Interpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) async {
     if (content.isEmpty) throw HTErrorEmpty(moduleName ?? '');
+
+    _compiler = Compiler(this);
 
     // a non-null version
     final name = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
@@ -180,12 +182,11 @@ class Hetu extends Interpreter {
 
   Future<Uint8List> compile(String content, String moduleName,
       {CodeType codeType = CodeType.module, bool debugMode = true}) async {
-    final compiler = Compiler();
     final bytesBuilder = BytesBuilder();
 
     try {
       final tokens = Lexer().lex(content, moduleName);
-      final bytes = await compiler.compile(tokens, this, moduleName, codeType: codeType, debugMode: debugMode);
+      final bytes = await _compiler.compile(tokens, this, moduleName, codeType: codeType, debugMode: debugMode);
 
       bytesBuilder.add(bytes);
     } catch (e, stack) {
@@ -200,7 +201,7 @@ class Hetu extends Interpreter {
         HTInterpreterError newErr;
         if (e is HTParserError) {
           newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-              compiler.curModuleName, compiler.curLine, compiler.curColumn);
+              _compiler.curModuleName, _compiler.curLine, _compiler.curColumn);
         } else if (e is HTError) {
           newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
               curModuleName, curLine, curColumn);

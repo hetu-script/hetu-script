@@ -34,7 +34,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   static const hetuSignature = 134550549;
   static const hetuVersionData = [0, 1, 0, 0];
 
-  late final DeclarationBlock _globalBlock;
+  late DeclarationBlock _globalBlock;
   late DeclarationBlock _curBlock;
 
   final _importedModules = <ImportInfo>[];
@@ -52,9 +52,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
   var _leftValueLegality = false;
 
+  Compiler(Hetu interpreter) {
+    this.interpreter = interpreter;
+  }
+
   Future<Uint8List> compile(List<Token> tokens, Hetu interpreter, String moduleName,
       {CodeType codeType = CodeType.module, debugMode = false, bool bundleMode = false}) async {
-    this.interpreter = interpreter;
     _bundleMode = bundleMode;
     _debugMode = _bundleMode ? false : debugMode;
     _curModuleName = moduleName;

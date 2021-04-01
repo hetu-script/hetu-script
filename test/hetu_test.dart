@@ -180,8 +180,8 @@ void main() async {
     });
   });
 
-  group('edge cases -', () {
-    test('import handler', () async {
+  group('import handler -', () {
+    test('import', () async {
       final result = await hetu.import('script/import_test.ht', debugMode: false, invokeFunc: 'importTest');
       expect(
         result,

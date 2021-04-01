@@ -15,7 +15,7 @@ mixin ConstTable {
   int getInt64(int index) => intTable[index];
 
   late final _floatTable = <double>[];
-  List<double> get floatTable => floatTable.toList(growable: false);
+  List<double> get floatTable => _floatTable.toList(growable: false);
   int addConstFloat(double value) {
     final index = _floatTable.indexOf(value);
     if (index == -1) {
@@ -29,7 +29,7 @@ mixin ConstTable {
   double getFloat64(int index) => floatTable[index];
 
   late final _stringTable = <String>[];
-  List<String> get stringTable => stringTable.toList(growable: false);
+  List<String> get stringTable => _stringTable.toList(growable: false);
   int addConstString(String value) {
     final index = _stringTable.indexOf(value);
     if (index == -1) {
