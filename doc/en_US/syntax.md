@@ -38,10 +38,11 @@ null, static, var, def, let, any, namespace, as, class, data, interface, mixin, 
 | Unary prefix   | -e, !e, ++e, --e       |     None      |     15     |
 | Multiplicative | \*, /, %               |     Left      |     14     |
 | Additive       | +, -                   |     Left      |     13     |
-| Relational     | <, >, <=, >=, is       |     None      |     8      |
+| Relational     | <, >, <=, >=, is, is!  |     None      |     8      |
 | Equality       | ==, !=                 |     None      |     7      |
 | Logical AND    | &&                     |     Left      |     6      |
 | Logical Or     | \|\|                   |     Left      |     5      |
+| Conditional    | e1 ? e2 : e3           |     Right     |     3      |
 | Assignment     | =, \*=, /=, +=, -=     |     Right     |     1      |
 
 ## Variable
@@ -80,6 +81,16 @@ const name = 'naruto';
 // name = "sasuke" // error!
 ```
 
+String literal can have interpolation the same to Javascript:
+
+```dart
+var a = 'dragon'
+// print: To kill the dragon, you have to wait 42 years.
+print('To kill the ${a}, you have to wait ${6*7} years.')
+```
+
+A little difference from Dart is that you have to write a curly brackets even if you have only one identifier.
+
 ## Type declaration
 
 Typename is not evaluated when declared, hence you can declare a variable with an non-exist type. However if you do this, you cannot assign it with any value.
@@ -91,6 +102,8 @@ var i: NotAType; // not an error
 ## Control statement
 
 Hetu has While, Do loops, and classic for(init;condition;increment) and for...in/of loops. As well as When statement, which works like switch.
+
+Check the [control flow](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/control_flow.md) page for more information
 
 ```typescript
 fun main {
@@ -130,44 +143,29 @@ Member functions can also be declared with [get], [set], [construct], they liter
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
 
-Functions can be passed as arguments and be return value from another function.
-
 Function can have no name, it will then become a literal function expression(anonymous function).
 
-```typescript
-fun foo(){
-  var i = 42
-  var bar = fun () {
-    return i
-  }
-  return bar
-}
+Functions can be nested, and nested functions can have names.
 
-fun main {
-  var func = foo()
-  print(func()) // Will print 42.
-}
-```
+Function are first class, you can use function as parameter, return value and store them in variables.
 
-In Hetu, function are first class, you can use function as parameter, return value and store them in variables. Example:
+Function can write in forms with fun => <expr> when there's only one exression as the body.
 
 ```typescript
 fun closure(func) {
   var i = 42
-  return fun () {
+  fun nested () {
     i = i + 1
-    print(func(i))
   }
+  return nested
 }
 
 fun main {
-  var func = closure( fun (n) { return n * n } )
-  func()
-  func()
+  var func = closure( fun (n) => n * n )
+  print(func()) // print: 1849
+  print(func()) // print: 1936
 }
 ```
-
-As shown above, the grammar of literal function expression (anonymous function) are normal function without a name.
 
 ## Class
 

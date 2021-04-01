@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'compiler.dart';
 import 'opcode.dart';
 import 'bytes_reader.dart';
-import 'bytes_declaration.dart';
+import 'bytes_variable.dart';
 import 'bytes_funciton.dart';
 import '../interpreter.dart';
 import '../type.dart';
@@ -12,7 +12,7 @@ import '../lexicon.dart';
 import '../lexer.dart';
 import '../errors.dart';
 import '../namespace.dart';
-import '../declaration.dart';
+import '../variable.dart';
 import '../class.dart';
 import '../extern_object.dart';
 import '../object.dart';
@@ -50,7 +50,7 @@ class Hetu extends Interpreter {
 
   late BytesReader _curCode;
 
-  String? _curClassName;
+  HTClass? _curClass;
 
   var _regIndex = 0;
   final _registers = List<dynamic>.filled(HTRegIdx.length, null, growable: true);
@@ -550,7 +550,7 @@ class Hetu extends Interpreter {
         }
 
         final func = HTBytesFunction(id, this, curModuleName,
-            className: _curClassName,
+            classId: _curClass?.id,
             funcType: funcType,
             externalTypedef: externalTypedef,
             paramDecls: paramDecls,
@@ -593,11 +593,9 @@ class Hetu extends Interpreter {
         }
         // 如果是 Dart 对象
         else {
-          var typeid = object.runtimeType.toString();
-          if (typeid.contains('<')) {
-            typeid = typeid.substring(0, typeid.indexOf('<'));
-          }
-          var externClass = fetchExternalClass(typeid);
+          var typeString = object.runtimeType.toString();
+          final typeid = HTTypeId.parse(typeString);
+          var externClass = fetchExternalClass(typeid.id);
           externClass.instanceMemberSet(object, key!, value);
         }
         break;
@@ -617,12 +615,10 @@ class Hetu extends Interpreter {
         }
         // 如果是 Dart 对象
         else {
-          var typeid = object.runtimeType.toString();
-          if (typeid.contains('<')) {
-            typeid = typeid.substring(0, typeid.indexOf('<'));
-          }
-          var externClass = fetchExternalClass(typeid);
-          externClass.instanceSubSet(object, key, value);
+          var typeString = object.runtimeType.toString();
+          final typeid = HTTypeId.parse(typeString);
+          var externClass = fetchExternalClass(typeid.id);
+          externClass.instanceSubSet(object, key!, value);
         }
         break;
     }
@@ -640,7 +636,7 @@ class Hetu extends Interpreter {
         throw HTErrorIterable(_curSymbol!);
       } else {
         // 这里要直接获取声明，而不是变量的值
-        final decl = _curNamespace.declarations[id]!;
+        final decl = _curNamespace.declarations[id] as HTVariable;
         if (object is Iterable) {
           for (var value in object) {
             decl.assign(value);
@@ -664,7 +660,7 @@ class Hetu extends Interpreter {
         throw HTErrorIterable(_curSymbol!);
       } else {
         // 这里要直接获取声明，而不是变量的值
-        final decl = _curNamespace.declarations[id]!;
+        final decl = _curNamespace.declarations[id] as HTVariable;
         for (var value in object.values) {
           decl.assign(value);
           execute();
@@ -775,20 +771,20 @@ class Hetu extends Interpreter {
         _curValue = _getRegVal(HTRegIdx.relation) >= _curValue;
         break;
       case HTOpCode.typeIs:
-        final typeLeft = typeof(_getRegVal(HTRegIdx.relation));
-        var typeRight = _curValue;
-        if (typeRight is! HTTypeId) {
-          throw HTErrorNotType(typeRight.toString());
+        var object = _getRegVal(HTRegIdx.relation);
+        var typeid = _curValue;
+        if (typeid is! HTTypeId) {
+          throw HTErrorNotType(typeid.toString());
         }
-        _curValue = typeLeft.isA(typeRight);
+        _curValue = encapsulate(object).isA(typeid);
         break;
       case HTOpCode.typeIsNot:
-        final typeLeft = typeof(_getRegVal(HTRegIdx.relation));
-        var typeRight = _curValue;
-        if (typeRight is! HTTypeId) {
-          throw HTErrorNotType(typeRight.toString());
+        var object = _getRegVal(HTRegIdx.relation);
+        var typeid = _curValue;
+        if (typeid is! HTTypeId) {
+          throw HTErrorNotType(typeid.toString());
         }
-        _curValue = typeLeft.isNotA(typeRight);
+        _curValue = encapsulate(object).isNotA(typeid);
         break;
       case HTOpCode.add:
         _curValue = _getRegVal(HTRegIdx.add) + _curValue;
@@ -911,11 +907,9 @@ class Hetu extends Interpreter {
         }
         //如果是Dart对象
         else {
-          var typeid = object.runtimeType.toString();
-          if (typeid.contains('<')) {
-            typeid = typeid.substring(0, typeid.indexOf('<'));
-          }
-          final externClass = fetchExternalClass(typeid);
+          var typeString = object.runtimeType.toString();
+          final typeid = HTTypeId.parse(typeString);
+          var externClass = fetchExternalClass(typeid.id);
           _curValue = externClass.instanceMemberGet(object, key);
         }
         break;
@@ -988,7 +982,7 @@ class Hetu extends Interpreter {
       _curCode.skip(length);
     }
 
-    final decl = HTBytesDecl(id, this, curModuleName,
+    final decl = HTBytesVariable(id, this, curModuleName,
         declType: declType,
         initializerIp: initializerIp,
         isDynamic: isDynamic,
@@ -1000,12 +994,12 @@ class Hetu extends Interpreter {
     if (!isMember || isStatic) {
       _curNamespace.define(decl);
     } else {
-      (_curNamespace as HTClass).defineInstance(decl);
+      _curClass!.defineInstanceMember(decl);
     }
   }
 
-  Map<String, HTBytesParamDecl> _getParams(int paramDeclsLength) {
-    final paramDecls = <String, HTBytesParamDecl>{};
+  Map<String, HTBytesParameter> _getParams(int paramDeclsLength) {
+    final paramDecls = <String, HTBytesParameter>{};
 
     for (var i = 0; i < paramDeclsLength; ++i) {
       final id = _curCode.readShortUtf8String();
@@ -1027,7 +1021,7 @@ class Hetu extends Interpreter {
         _curCode.skip(length);
       }
 
-      paramDecls[id] = HTBytesParamDecl(id, this, curModuleName,
+      paramDecls[id] = HTBytesParameter(id, this, curModuleName,
           declType: declType,
           initializerIp: initializerIp,
           isOptional: isOptional,
@@ -1051,7 +1045,7 @@ class Hetu extends Interpreter {
 
     final enumClass = HTEnum(id, defs, this, isExtern: isExtern);
 
-    _curNamespace.define(HTDeclaration(id, value: enumClass));
+    _curNamespace.define(enumClass);
   }
 
   void _handleFuncDecl() {
@@ -1065,7 +1059,7 @@ class Hetu extends Interpreter {
     }
 
     final funcType = FunctionType.values[_curCode.read()];
-    final externType = ExternFunctionType.values[_curCode.read()];
+    final externType = ExternalFuncDeclType.values[_curCode.read()];
     final isStatic = _curCode.readBool();
     final isConst = _curCode.readBool();
     final isVariadic = _curCode.readBool();
@@ -1093,7 +1087,7 @@ class Hetu extends Interpreter {
       this,
       curModuleName,
       declId: declId,
-      className: _curClassName,
+      classId: _curClass?.id,
       funcType: funcType,
       externType: externType,
       externalTypedef: externalTypedef,
@@ -1109,20 +1103,15 @@ class Hetu extends Interpreter {
 
     if (!isStatic &&
         (funcType == FunctionType.getter || funcType == FunctionType.setter || funcType == FunctionType.method)) {
-      (_curNamespace as HTClass).defineInstance(
-          HTDeclaration(id, value: func, isExtern: func.externType != ExternFunctionType.none, isMember: true));
+      _curClass!.defineInstanceMember(func);
     } else {
-      if (funcType != FunctionType.constructor) {
-        func.context = _curNamespace;
-      }
-      _curNamespace
-          .define(HTDeclaration(id, value: func, isExtern: func.externType != ExternFunctionType.none, isMember: true));
+      func.context = _curNamespace;
+      _curNamespace.define(func);
     }
   }
 
   void _handleClassDecl() {
     final id = _curCode.readShortUtf8String();
-    _curClassName = id;
 
     final classType = ClassType.values[_curCode.read()];
 
@@ -1133,35 +1122,42 @@ class Hetu extends Interpreter {
     }
 
     HTClass? superClass;
-    if (id != HTLexicon.rootClass) {
+    if (id != HTLexicon.object) {
       if (superClassId == null) {
         // TODO: Object基类
-        superClass = global.fetch(HTLexicon.rootClass);
+        superClass = global.fetch(HTLexicon.object);
       } else {
         superClass = _curNamespace.fetch(superClassId, from: _curNamespace.fullName);
       }
     }
 
-    final klass = HTClass(id, superClass, this, classType: classType, closure: _curNamespace);
+    final klassNamespace = HTClassNamespace(id, this, closure: _curNamespace);
+    final klass = HTClass(id, klassNamespace, superClass, this, classType: classType);
+
+    _curClass = klass;
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    _curNamespace.define(HTDeclaration(id, value: klass));
+    _curNamespace.define(klass);
 
-    execute(namespace: klass);
+    execute(namespace: klassNamespace);
 
     // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
     var curSuper = superClass;
     while (curSuper != null) {
-      for (final decl in curSuper.instanceDecls.values) {
+      for (final decl in curSuper.instanceMembers.values) {
         if (decl.id.startsWith(HTLexicon.underscore)) {
           continue;
         }
-        klass.defineInstance(decl.clone(), error: false);
+        if (decl is HTVariable) {
+          klass.defineInstanceMember(decl.clone(), error: false);
+        } else {
+          klass.defineInstanceMember(decl, error: false); // 函数不能复制，而是在每次call的时候被加上正确的context
+        }
       }
 
       curSuper = curSuper.superClass;
     }
 
-    _curClassName = null;
+    _curClass = null;
   }
 }

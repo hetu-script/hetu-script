@@ -1,15 +1,14 @@
 import 'lexicon.dart';
+import 'object.dart';
 
-mixin HTType {
-  HTTypeId get typeid;
-}
-
-class HTTypeId {
+class HTTypeId with HTObject {
+  static const TYPE = HTTypeId(HTLexicon.type);
   static const ANY = HTTypeId(HTLexicon.ANY);
   static const NULL = HTTypeId(HTLexicon.NULL);
   static const VOID = HTTypeId(HTLexicon.VOID);
   static const CLASS = HTTypeId(HTLexicon.CLASS);
   static const ENUM = HTTypeId(HTLexicon.ENUM);
+  static const object = HTTypeId(HTLexicon.object);
   static const namespace = HTTypeId(HTLexicon.NAMESPACE);
   static const function = HTTypeId(HTLexicon.function);
   static const unknown = HTTypeId(HTLexicon.unknown);
@@ -18,6 +17,24 @@ class HTTypeId {
   static const string = HTTypeId(HTLexicon.string);
   static const list = HTTypeId(HTLexicon.list);
   static const map = HTTypeId(HTLexicon.map);
+
+  @override
+  HTTypeId get typeid => HTTypeId.TYPE;
+
+  static HTTypeId parse(String typeid) {
+    final arguments = <HTTypeId>[];
+    var hasArgs = typeid.indexOf(HTLexicon.typesBracketLeft);
+    if (hasArgs != -1) {
+      final id = typeid.substring(0, hasArgs);
+      while (hasArgs != -1) {
+        final rest = typeid.substring(hasArgs + 1);
+        arguments.add(parse(rest));
+      }
+      return HTTypeId(id, arguments: arguments);
+    } else {
+      return HTTypeId(typeid);
+    }
+  }
 
   // List<HTType> get inheritances;
   // List<HTType> get compositions;
@@ -41,35 +58,9 @@ class HTTypeId {
     }
     return typename.toString();
   }
-
-  bool isA(HTTypeId typeid) {
-    var result = true;
-    if (typeid.id != HTLexicon.ANY) {
-      if (id == typeid.id) {
-        if (arguments.length >= typeid.arguments.length) {
-          for (var i = 0; i < typeid.arguments.length; ++i) {
-            if (arguments[i].isNotA(typeid.arguments[i])) {
-              result = false;
-              break;
-            }
-          }
-        } else {
-          result = false;
-        }
-      } else {
-        if (id == HTLexicon.NULL && typeid.isNullable) {
-          result = true;
-        } else {
-          result = false;
-        }
-      }
-    }
-    return result;
-  }
-
-  bool isNotA(HTTypeId typeid) => !isA(typeid);
 }
 
+// TODO: dart 的 typedef 本质就是定义一个 function type
 class HTFunctionTypeId extends HTTypeId {
   final HTTypeId returnType;
   final List<HTTypeId> paramsTypes; // function(T1 arg1, T2 arg2)

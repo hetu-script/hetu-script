@@ -21,7 +21,7 @@ extension PersonBinding on Person {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'typeid':
-        return HTTypeId('Person');
+        return const HTTypeId('Person');
       case 'toString':
         return toString;
       case 'name':
@@ -110,13 +110,11 @@ class PersonClassBinding extends HTExternalClass {
 
 void main() async {
   var hetu = Hetu();
-
   await hetu.init(externalClasses: [PersonClassBinding()]);
-
   await hetu.eval('''
       external class Person {
         static var race
-        static fun meaning
+        static fun meaning(n: str)
         construct
         get child
         static get level
@@ -126,20 +124,20 @@ void main() async {
         fun greeting
       }
       fun main {
-        let p1: Person = Person()
-        print(p1.typeid)
-        print(p1.name)
-        var p2 = Person.withName(name: 'Jimmy')
-        print(p2.name)
-        p2.name = 'John'
-        p2.greeting();
-        print(p1.child)
-        Person.level = '3'
-        print(Person.level)
+        // let p1: Person = Person()
+        // print(p1.typeid)
+        // print(p1.name)
+        // var p2 = Person.withName(name: 'Jimmy')
+        // print(p2.name)
+        // p2.name = 'John'
+        // p2.greeting();
+        // print(p1.child)
+        // Person.level = '3'
+        // print(Person.level)
 
-        print('My race is', Person.race)
-        Person.race = 'Reptile'
-        print('Oh no! My race turned into', Person.race)
+        // print('My race is', Person.race)
+        // Person.race = 'Reptile'
+        // print('Oh no! My race turned into', Person.race)
 
         print(Person.meaning(42))
       }

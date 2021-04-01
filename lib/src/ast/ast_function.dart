@@ -1,3 +1,4 @@
+import 'package:hetu_script/src/ast/ast_variable.dart';
 import 'package:hetu_script/src/common.dart';
 import 'package:hetu_script/src/object.dart';
 
@@ -8,7 +9,7 @@ import '../type.dart';
 import '../lexicon.dart';
 import 'ast.dart';
 import 'ast_interpreter.dart';
-import '../declaration.dart';
+import '../variable.dart';
 import '../function.dart';
 import '../object.dart';
 
@@ -20,9 +21,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       : super(
           funcStmt.internalName,
           funcStmt.id?.lexeme ?? '', module,
-          className: funcStmt.className,
+          classId: funcStmt.classId,
           funcType: funcStmt.funcType,
-          externType: ExternFunctionType.none, // TODO: 这里需要修改
+          externalFuncDeclType: ExternalFuncDeclType.none, // TODO: 这里需要修改
           externalTypedef: externalTypedef,
           typeParams: typeParams,
           // typeid:
@@ -86,7 +87,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
         // 函数每次在调用时，临时生成一个新的作用域
         final closure = HTNamespace(interpreter, closure: context);
         if (context is HTInstance) {
-          closure.define(HTDeclaration(HTLexicon.THIS, value: context));
+          closure.define(HTVariable(HTLexicon.THIS, value: context));
         }
 
         // TODO: 参数也改成Declaration而不是DeclStmt？
@@ -109,25 +110,27 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
           } else {
             arg = namedArgs[param.id.lexeme];
           }
-          final arg_type_decl = param.declType ?? HTTypeId.ANY;
+          final argTypeid = param.declType ?? HTTypeId.ANY;
 
           if (!param.isVariadic) {
-            var arg_type = interpreter.typeof(arg);
-            if (arg_type.isNotA(arg_type_decl)) {
-              throw HTErrorArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
+            final argEncapsulation = interpreter.encapsulate(arg);
+            if (argEncapsulation.isNotA(argTypeid)) {
+              final arg_type = interpreter.encapsulate(arg).typeid;
+              throw HTErrorArgType(arg.toString(), arg_type.toString(), argTypeid.toString());
             }
-            closure.define(HTDeclaration(param.id.lexeme, value: arg));
+            closure.define(HTVariable(param.id.lexeme, value: arg));
           } else {
             var varargs = [];
             for (var j = i; j < positionalArgs.length; ++j) {
               arg = positionalArgs[j];
-              var arg_type = interpreter.typeof(arg);
-              if (arg_type.isNotA(arg_type_decl)) {
-                throw HTErrorArgType(arg.toString(), arg_type.toString(), arg_type_decl.toString());
+              final argEncapsulation = interpreter.encapsulate(arg);
+              if (argEncapsulation.isNotA(argTypeid)) {
+                final arg_type = interpreter.encapsulate(arg).typeid;
+                throw HTErrorArgType(arg.toString(), arg_type.toString(), argTypeid.toString());
               }
               varargs.add(arg);
             }
-            closure.define(HTDeclaration(param.id.lexeme, value: varargs));
+            closure.define(HTVariable(param.id.lexeme, value: varargs));
             break;
           }
         }
@@ -141,9 +144,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
         rethrow;
       }
 
-      var returned_type = interpreter.typeof(returnValue);
-      if (returned_type.isNotA(funcStmt.returnType)) {
-        throw HTErrorReturnType(returned_type.toString(), id, funcStmt.returnType.toString());
+      final encapsulation = interpreter.encapsulate(result);
+      if (encapsulation.isNotA(returnType)) {
+        throw HTErrorReturnType(encapsulation.typeid.toString(), id, returnType.toString());
       }
 
       if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {

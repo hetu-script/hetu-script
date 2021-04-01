@@ -3,19 +3,19 @@ import 'object.dart';
 import 'lexicon.dart';
 import 'errors.dart';
 import 'interpreter.dart';
+import 'declaration.dart';
 
-class HTEnum extends HTObject with InterpreterRef {
+class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.ENUM;
-
-  final String id;
 
   final Map<String, HTEnumItem> defs;
 
   final bool isExtern;
 
-  HTEnum(this.id, this.defs, Interpreter interpreter, {this.isExtern = false}) {
+  HTEnum(String id, this.defs, Interpreter interpreter, {this.isExtern = false}) {
     this.interpreter = interpreter;
+    this.id = id;
   }
 
   @override
@@ -48,7 +48,7 @@ class HTEnum extends HTObject with InterpreterRef {
   }
 }
 
-class HTEnumItem extends HTObject {
+class HTEnumItem with HTObject {
   @override
   final HTTypeId typeid;
 

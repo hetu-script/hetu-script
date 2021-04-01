@@ -1,13 +1,15 @@
+import 'package:hetu_script/src/declaration.dart';
 import 'package:hetu_script/src/object.dart';
 
 import 'errors.dart';
 import 'lexicon.dart';
 import 'type.dart';
 import 'interpreter.dart';
-import 'declaration.dart';
+import 'variable.dart';
 import 'function.dart';
+import 'declaration.dart';
 
-class HTNamespace extends HTObject with InterpreterRef {
+class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   static int spaceIndex = 0;
 
   static String getFullName(String id, HTNamespace? space) {
@@ -71,15 +73,18 @@ class HTNamespace extends HTObject with InterpreterRef {
         throw HTErrorPrivateMember(varName);
       }
       final decl = declarations[varName]!;
-      if (!decl.isInitialized) {
-        decl.initialize();
+      if (decl is HTFunction) {
+        if (decl.externalTypedef != null) {
+          final externalFunc = interpreter.unwrapExternalFunctionType(decl.externalTypedef!, decl);
+          return externalFunc;
+        }
+      } else if (decl is HTVariable) {
+        if (!decl.isInitialized) {
+          decl.initialize();
+        }
+        return decl.value;
       }
-      final value = decl.value;
-      if (value is HTFunction && value.externalTypedef != null) {
-        final externalFunc = interpreter.unwrapExternalFunctionType(value.externalTypedef!, value);
-        return externalFunc;
-      }
-      return value;
+      return decl;
     }
 
     if (closure != null) {
@@ -102,8 +107,12 @@ class HTNamespace extends HTObject with InterpreterRef {
         throw HTErrorPrivateMember(varName);
       }
       final decl = declarations[varName]!;
-      decl.assign(value);
-      return;
+      if (decl is HTVariable) {
+        decl.assign(value);
+        return;
+      } else {
+        throw HTErrorImmutable(varName);
+      }
     }
 
     if (closure != null) {

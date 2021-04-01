@@ -22,6 +22,7 @@ abstract class HTError {
   static const privateDecl = 'Could not acess private declaration';
   static const notInitialized = 'has not initialized';
   static const undefined = 'Undefined identifier';
+  static const unknownType = 'Unkown type of object:';
   static const undefinedOperator = 'Undefined operator';
   // static const errorDeclared = 'is already declared';
   static const defined = 'is already defined';
@@ -76,6 +77,8 @@ abstract class HTError {
   static const iterable = 'is not Iterable.';
 
   static const unkownValueType = 'Unkown OpCode value type:';
+
+  static const classOnInstance = 'Don\'t define class on instance!';
 
   static const emptyString = 'The script is empty.';
 
@@ -174,6 +177,10 @@ class HTErrorInitialized extends HTError {
 
 class HTErrorUndefined extends HTError {
   HTErrorUndefined(String id) : super('${HTError.undefined} [$id]', HTErrorType.interpreter);
+}
+
+class HTErrorUnknownType extends HTError {
+  HTErrorUnknownType(String id) : super('${HTError.unknownType} [$id]', HTErrorType.interpreter);
 }
 
 class HTErrorUndefinedOperator extends HTError {
@@ -317,4 +324,8 @@ class HTErrorIterable extends HTError {
 
 class HTErrorUnkownValueType extends HTError {
   HTErrorUnkownValueType(int type) : super('${HTError.unkownValueType} [$type]', HTErrorType.interpreter);
+}
+
+class HTErrorClassOnInstance extends HTError {
+  HTErrorClassOnInstance() : super(HTError.classOnInstance, HTErrorType.interpreter);
 }

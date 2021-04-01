@@ -3,17 +3,17 @@ import 'object.dart';
 import 'type.dart';
 import 'lexicon.dart';
 
-abstract class HTExternObject<T> extends HTObject {
+class HTExternObject<T> with HTObject {
+  @override
+  final typeid;
+
   T externObject;
-  HTExternObject(this.externObject);
+  HTExternObject(this.externObject, {this.typeid = HTTypeId.unknown});
 }
 
 /// Mirror object for dart number.
 class HTNumber extends HTExternObject<num> {
-  HTNumber(num value) : super(value);
-
-  @override
-  final typeid = HTTypeId.number;
+  HTNumber(num value) : super(value, typeid: HTTypeId.number);
 
   @override
   dynamic memberGet(String id, {String from = HTLexicon.global}) {
@@ -48,10 +48,7 @@ class HTNumber extends HTExternObject<num> {
 
 /// Mirror object for dart boolean.
 class HTBoolean extends HTExternObject<bool> {
-  HTBoolean(bool value) : super(value);
-
-  @override
-  final typeid = HTTypeId.boolean;
+  HTBoolean(bool value) : super(value, typeid: HTTypeId.boolean);
 
   @override
   dynamic memberGet(String id, {String from = HTLexicon.global}) {
@@ -74,10 +71,7 @@ class HTBoolean extends HTExternObject<bool> {
 
 /// Mirror object for dart string.
 class HTString extends HTExternObject<String> {
-  HTString(String value) : super(value);
-
-  @override
-  final typeid = HTTypeId.string;
+  HTString(String value) : super(value, typeid: HTTypeId.string);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -135,13 +129,9 @@ class HTString extends HTExternObject<String> {
 }
 
 /// Mirror object for dart list.
-class HTList<T> extends HTExternObject<List<T>> {
-  final HTTypeId valueType;
-
-  HTList(List<T> value, {this.valueType = HTTypeId.ANY}) : super(value);
-
-  @override
-  final typeid = HTTypeId.list;
+class HTList extends HTExternObject<List> {
+  HTList(List value, {HTTypeId valueType = HTTypeId.ANY})
+      : super(value, typeid: HTTypeId(HTLexicon.list, arguments: [valueType]));
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -215,11 +205,9 @@ class HTList<T> extends HTExternObject<List<T>> {
 }
 
 /// Mirror object for dart map.
-class HTMap<K, V> extends HTExternObject<Map<K, V>> {
-  final HTTypeId keyType;
-  final HTTypeId valueType;
-
-  HTMap(Map<K, V> value, {this.keyType = HTTypeId.ANY, this.valueType = HTTypeId.ANY}) : super(value);
+class HTMap extends HTExternObject<Map> {
+  HTMap(Map value, {HTTypeId keyType = HTTypeId.ANY, HTTypeId valueType = HTTypeId.ANY})
+      : super(value, typeid: HTTypeId(HTLexicon.list, arguments: [keyType, valueType]));
 
   @override
   final typeid = HTTypeId.map;

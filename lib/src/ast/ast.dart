@@ -628,7 +628,8 @@ class FuncDeclStmt extends ASTNode {
   late final String _internalName;
   String get internalName => _internalName;
 
-  final String? className;
+  final String? classId;
+  // final HTTypeId? classTypeId;
 
   final List<ParamDeclStmt> params;
 
@@ -648,7 +649,7 @@ class FuncDeclStmt extends ASTNode {
 
   FuncDeclStmt(this.returnType, this.params, String fileName, int line, int column,
       {this.id,
-      this.className,
+      this.classId,
       this.typeParams = const [],
       this.arity = 0,
       this.definition,
@@ -661,7 +662,7 @@ class FuncDeclStmt extends ASTNode {
     var func_name = id?.lexeme ?? HTLexicon.anonymousFunction + (functionIndex++).toString();
 
     if (funcType == FunctionType.constructor) {
-      (id != null) ? _internalName = '$className.$func_name' : _internalName = '$className';
+      (id != null) ? _internalName = '$classId.$func_name' : _internalName = '$classId';
     } else if (funcType == FunctionType.getter) {
       _internalName = HTLexicon.getter + func_name;
     } else if (funcType == FunctionType.setter) {
@@ -688,7 +689,7 @@ class FuncDeclStmt extends ASTNode {
 
     return FuncDeclStmt(returnType, new_params, fileName, line, column,
         id: id,
-        className: className,
+        classId: classId,
         typeParams: typeParams,
         arity: arity,
         definition: new_body,

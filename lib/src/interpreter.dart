@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/object.dart';
+
 import 'lexicon.dart';
 import 'namespace.dart';
 import 'common.dart';
@@ -7,7 +9,8 @@ import 'extern_class.dart';
 import 'errors.dart';
 import 'extern_function.dart';
 import 'function.dart';
-import 'declaration.dart';
+import 'variable.dart';
+import 'extern_object.dart';
 import 'plugin/moduleHandler.dart';
 import 'plugin/errorHandler.dart';
 
@@ -102,7 +105,7 @@ abstract class Interpreter {
     HTNamespace? namespace;
     if ((moduleName != null) && (moduleName != HTLexicon.global)) {
       namespace = HTNamespace(this, id: moduleName, closure: global);
-      global.define(HTDeclaration(moduleName, value: namespace));
+      global.define(namespace);
     }
 
     result = await eval(module.content,
@@ -127,63 +130,67 @@ abstract class Interpreter {
       List<HTTypeId> typeArgs = const [],
       bool errorHandled = false});
 
-  HTTypeId typeof(dynamic object) {
+  HTObject encapsulate(dynamic object) {
     if ((object == null) || (object is NullThrownError)) {
-      return HTTypeId.NULL;
-    } // Class, Object, external class
-    else if (object is HTType) {
-      return object.typeid;
+      return HTObject.NULL;
     } else if (object is num) {
-      return HTTypeId.number;
+      return HTNumber(object);
     } else if (object is bool) {
-      return HTTypeId.boolean;
+      return HTBoolean(object);
     } else if (object is String) {
-      return HTTypeId.string;
+      return HTString(object);
     } else if (object is List) {
-      var valType = HTTypeId.ANY;
+      var valueType = HTTypeId.ANY;
       if (object.isNotEmpty) {
-        valType = typeof(object.first);
+        valueType = encapsulate(object.first).typeid;
         for (final item in object) {
-          if (typeof(item) != valType) {
-            valType = HTTypeId.ANY;
+          final value = encapsulate(item).typeid;
+          if (value.isNotA(valueType)) {
+            valueType = HTTypeId.ANY;
             break;
           }
         }
       }
 
-      return HTTypeId(HTLexicon.list, arguments: [valType]);
+      return HTList(object, valueType: valueType);
     } else if (object is Map) {
       var keyType = HTTypeId.ANY;
-      var valType = HTTypeId.ANY;
+      var valueType = HTTypeId.ANY;
       if (object.keys.isNotEmpty) {
-        keyType = typeof(object.keys.first);
-        for (final key in object.keys) {
-          if (typeof(key) != keyType) {
+        keyType = encapsulate(object.keys.first).typeid;
+        for (final item in object.keys) {
+          final value = encapsulate(item).typeid;
+          if (value.isNotA(keyType)) {
             keyType = HTTypeId.ANY;
             break;
           }
         }
       }
       if (object.values.isNotEmpty) {
-        valType = typeof(object.values.first);
-        for (final value in object.values) {
-          if (typeof(value) != valType) {
-            valType = HTTypeId.ANY;
+        valueType = encapsulate(object.values.first).typeid;
+        for (final item in object.values) {
+          final value = encapsulate(item).typeid;
+          if (value.isNotA(valueType)) {
+            valueType = HTTypeId.ANY;
             break;
           }
         }
       }
-      return HTTypeId(HTLexicon.map, arguments: [keyType, valType]);
+
+      return HTMap(object, keyType: keyType, valueType: valueType);
     } else {
-      var typeid = object.runtimeType.toString();
-      if (typeid.contains('<')) {
-        typeid = typeid.substring(0, typeid.indexOf('<'));
+      final typeString = object.runtimeType.toString();
+      final typeid = HTTypeId.parse(typeString);
+      if (containsExternalClass(typeid.id)) {
+        try {
+          // final externClass = fetchExternalClass(typeid.id);
+          return HTExternObject(object, typeid: typeid);
+        } on HTErrorUndefined {
+          return HTExternObject(object);
+        }
       }
-      if (containsExternalClass(typeid)) {
-        final externClass = fetchExternalClass(typeid);
-        return HTTypeId(externClass.id);
-      }
-      return HTTypeId.unknown;
+
+      return HTExternObject(object);
     }
   }
 
@@ -204,10 +211,10 @@ abstract class Interpreter {
   /// 注册外部类，以访问外部类的构造函数和static成员
   /// 在脚本中需要存在对应的extern class声明
   void bindExternalClass(HTExternalClass externalClass) {
-    if (_externClasses.containsKey(externalClass.id)) {
-      throw HTErrorDefinedRuntime(externalClass.id);
+    if (_externClasses.containsKey(externalClass.typeid)) {
+      throw HTErrorDefinedRuntime(externalClass.typeid.toString());
     }
-    _externClasses[externalClass.id] = externalClass;
+    _externClasses[externalClass.typename] = externalClass;
   }
 
   HTExternalClass fetchExternalClass(String id) {

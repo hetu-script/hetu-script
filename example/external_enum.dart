@@ -32,7 +32,7 @@ class CountryEnumBinding extends HTExternalClass {
   dynamic instanceMemberGet(dynamic instance, String varName) {
     switch (varName) {
       case 'typeid':
-        return HTTypeId('Country');
+        return const HTTypeId('Country');
       case 'index':
         var i = instance as Country;
         return i.index;

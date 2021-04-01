@@ -13,8 +13,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
   @override
   String get curModuleName => _curModuleName;
 
-  String? _curClassName;
   ClassType? _curClassType;
+  // HTTypeId? _curClassTypeId;
+  String? _curClassId;
 
   static final Map<String, ASTNode> _classStmts = {};
 
@@ -726,7 +727,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         typeParams: typeParams,
         arity: arity,
         definition: body,
-        className: _curClassName,
+        classId: _curClassId,
         isExtern: isExtern,
         isStatic: isStatic,
         isVariadic: isVariadic,
@@ -741,16 +742,18 @@ class HTAstParser extends Parser with AstInterpreterRef {
     // 已经判断过了所以直接跳过关键字
     advance(1);
 
-    final class_name = match(HTLexicon.identifier);
+    final className = match(HTLexicon.identifier);
 
-    if (_classStmts.containsKey(class_name.lexeme)) {
-      throw HTErrorDefinedParser(class_name.lexeme);
+    if (_classStmts.containsKey(className.lexeme)) {
+      throw HTErrorDefinedParser(className.lexeme);
     }
 
-    final savedClassName = _curClassName;
-    _curClassName = class_name.lexeme;
+    final savedClassId = _curClassId;
     final savedClassType = _curClassType;
+    // final savedClassTypeId = _curClassTypeId;
+    _curClassId = className.lexeme;
     _curClassType = classType;
+    // _curClassTypeId = HTTypeId(className.lexeme);
 
     // generic type参数
     var typeParams = <String>[];
@@ -769,8 +772,8 @@ class HTAstParser extends Parser with AstInterpreterRef {
     ClassDeclStmt? super_class_decl;
     HTTypeId? super_class_type_args;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
-      if (curTok.lexeme == class_name.lexeme) {
-        throw HTErrorUnexpected(class_name.lexeme);
+      if (curTok.lexeme == className.lexeme) {
+        throw HTErrorUnexpected(className.lexeme);
       } else if (_classStmts[curTok.lexeme] == null) {
         throw HTErrorNotClass(curTok.lexeme);
       }
@@ -802,17 +805,18 @@ class HTAstParser extends Parser with AstInterpreterRef {
       expect([HTLexicon.semicolon], consume: true);
     }
 
-    final stmt = ClassDeclStmt(class_name, variables, methods,
+    final stmt = ClassDeclStmt(className, variables, methods,
         classType: classType,
         typeParams: typeParams,
         superClass: super_class,
         superClassDeclStmt: super_class_decl,
         superClassTypeArgs: super_class_type_args);
 
-    _classStmts[class_name.lexeme] = stmt;
+    _classStmts[className.lexeme] = stmt;
 
-    _curClassName = savedClassName;
+    _curClassId = savedClassId;
     _curClassType = savedClassType;
+    // _curClassTypeId = savedClassTypeId;
     return stmt;
   }
 

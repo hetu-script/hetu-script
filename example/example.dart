@@ -20,7 +20,7 @@ void main() async {
       }
 
       fun main {
-        var func = closure( fun (n) { return n * n } )
+        var func = closure( fun (n) => n * n )
         func()
         func()
       }

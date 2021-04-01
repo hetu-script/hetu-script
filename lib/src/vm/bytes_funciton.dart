@@ -1,28 +1,28 @@
 import 'package:hetu_script/src/extern_function.dart';
 
 import 'vm.dart';
-import 'bytes_declaration.dart';
+import 'bytes_variable.dart';
 import '../namespace.dart';
 import '../type.dart';
 import '../function.dart';
 import '../common.dart';
 import '../errors.dart';
 import '../class.dart';
-import '../declaration.dart';
+import '../variable.dart';
 import '../lexicon.dart';
 
 class HTBytesFunction extends HTFunction with HetuRef {
-  final Map<String, HTBytesParamDecl> paramDecls;
+  final Map<String, HTBytesParameter> paramDecls;
 
   final int? definitionIp;
 
   HTBytesFunction(String id, Hetu interpreter, String module,
       {String declId = '',
-      String? className,
+      String? classId,
       FunctionType funcType = FunctionType.normal,
-      ExternFunctionType externType = ExternFunctionType.none,
+      ExternalFuncDeclType externType = ExternalFuncDeclType.none,
       String? externalTypedef,
-      this.paramDecls = const <String, HTBytesParamDecl>{},
+      this.paramDecls = const <String, HTBytesParameter>{},
       HTTypeId? returnType,
       this.definitionIp,
       List<HTTypeId> typeParams = const [],
@@ -33,9 +33,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
       int maxArity = 0,
       HTNamespace? context})
       : super(id, declId, module,
-            className: className,
+            classId: classId,
             funcType: funcType,
-            externType: externType,
+            externalFuncDeclType: externType,
             externalTypedef: externalTypedef,
             typeParams: typeParams,
             isStatic: isStatic,
@@ -102,18 +102,18 @@ class HTBytesFunction extends HTFunction with HetuRef {
 
     dynamic result;
     // 如果是脚本函数
-    if (externType == ExternFunctionType.none) {
+    if (externalFuncDeclType == ExternalFuncDeclType.none) {
       if (definitionIp == null) {
         throw HTErrorMissingFuncDef(id);
       }
       // 函数每次在调用时，临时生成一个新的作用域
       final closure = HTNamespace(interpreter, id: id, closure: context);
       if (context is HTInstance) {
-        closure.define(HTDeclaration(HTLexicon.THIS, value: context));
+        closure.define(HTVariable(HTLexicon.THIS, value: context));
       }
 
       var variadicStart = -1;
-      HTBytesDecl? variadicParam;
+      HTBytesVariable? variadicParam;
       for (var i = 0; i < paramDecls.length; ++i) {
         var decl = paramDecls.values.elementAt(i).clone();
         closure.define(decl);
@@ -193,7 +193,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
       }
 
       // 单独绑定的外部函数
-      if (externType == ExternFunctionType.standalone) {
+      if (externalFuncDeclType == ExternalFuncDeclType.standalone) {
         final externFunc = interpreter.fetchExternalFunction(id);
         if (externFunc is HTExternalFunction) {
           result = externFunc(positionalArgs: finalPosArgs, namedArgs: finalNamedArgs, typeArgs: typeArgs);
@@ -203,8 +203,8 @@ class HTBytesFunction extends HTFunction with HetuRef {
         }
       }
       // 整个外部类的成员函数
-      else if (externType == ExternFunctionType.klass) {
-        final externClass = interpreter.fetchExternalClass(className!);
+      else if (externalFuncDeclType == ExternalFuncDeclType.klass) {
+        final externClass = interpreter.fetchExternalClass(classId!);
 
         final externFunc = externClass.memberGet(id);
         if (externFunc is HTExternalFunction) {
@@ -216,9 +216,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
       }
     }
 
-    var returnedType = interpreter.typeof(result);
-    if (returnedType.isNotA(returnType)) {
-      throw HTErrorReturnType(returnedType.toString(), id, returnType.toString());
+    final encapsulation = interpreter.encapsulate(result);
+    if (encapsulation.isNotA(returnType)) {
+      throw HTErrorReturnType(encapsulation.typeid.toString(), id, returnType.toString());
     }
 
     if (HTFunction.callStack.isNotEmpty) HTFunction.callStack.removeLast();

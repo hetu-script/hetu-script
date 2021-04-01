@@ -8,13 +8,14 @@ import 'lexicon.dart';
 import 'interpreter.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
-abstract class HTExternalClass extends HTObject {
-  @override
-  final HTTypeId typeid = HTTypeId.CLASS;
+abstract class HTExternalClass with HTObject {
+  late final String typename;
+  late final List<String> typeArgs;
 
-  final String id;
-
-  HTExternalClass(this.id);
+  HTExternalClass(this.typename, [this.typeArgs = const []]);
+  // {
+  //   typeid = HTTypeId.parse(typeString);
+  // }
 
   dynamic instanceMemberGet(dynamic instance, String varName) => throw HTErrorUndefined(varName);
 

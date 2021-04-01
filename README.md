@@ -6,6 +6,7 @@
 - [Quick start](#quick-start)
 - [Binding](#binding)
 - [Command line tool](#command-line-tool)
+- [Referrences](#referrences)
 
 ## Introduction
 
@@ -15,7 +16,7 @@ Hetu's grammar is close to typescript/kotlin/swift and other modern languages, h
 
 It meant to be used as a scripting language like lua, however, it is made to communicate with classes & functions in Dart very easily.
 
-[中文介绍](README_ZH.md)
+[中文介绍](https://github.com/hetu-script/hetu-script/blob/master/doc/zh_Hans/README_ZH.md)
 
 ## Quick start
 
@@ -27,7 +28,7 @@ Hetu's grammar is made similar to modern language like typescript/swift/kotlin:
 
 [Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/syntax.md)
 
-[语法参考](doc/zh_Hans/SYNTAX.md)
+[语法参考](https://github.com/hetu-script/hetu-script/blob/master/doc/zh_Hans/SYNTAX.md)
 
 In your Dart code, you can interpret an script file by this:
 
@@ -66,7 +67,7 @@ fun main {
 
 Hetu script is purely written in Dart, so passing object to and from script is extremely easy.
 
-Check [this page](doc/en_US/binding.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
+Check [this page](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/binding.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -130,3 +131,8 @@ function hello(): any // repl will print out the eval result (in this case the t
 42 // repl print
 >>>
 ```
+
+## Referrences:
+
+- [Operator precedence](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/operator_precedence.md)
+- [bytecode specification](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/bytecode_specification.md)

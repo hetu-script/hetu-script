@@ -1,9 +1,9 @@
 import 'vm.dart';
-import '../declaration.dart';
+import '../variable.dart';
 import '../type.dart';
 import '../errors.dart';
 
-class HTBytesDecl extends HTDeclaration with HetuRef {
+class HTBytesVariable extends HTVariable with HetuRef {
   final String module;
 
   final bool isDynamic;
@@ -18,7 +18,7 @@ class HTBytesDecl extends HTDeclaration with HetuRef {
 
   int? initializerIp;
 
-  HTBytesDecl(String id, Hetu interpreter, this.module,
+  HTBytesVariable(String id, Hetu interpreter, this.module,
       {dynamic value,
       HTTypeId? declType,
       this.initializerIp,
@@ -57,22 +57,25 @@ class HTBytesDecl extends HTDeclaration with HetuRef {
 
   @override
   void assign(dynamic value) {
-    var valType = interpreter.typeof(value);
-    if (_declType == null) {
+    if (_declType != null) {
+      final encapsulation = interpreter.encapsulate(value);
+      if (encapsulation.isNotA(_declType!)) {
+        final valType = interpreter.encapsulate(value).typeid;
+        throw HTErrorTypeCheck(id, valType.toString(), _declType.toString());
+      }
+    } else {
       if (!isDynamic && value != null) {
-        _declType = valType;
+        _declType = interpreter.encapsulate(value).typeid;
       } else {
         _declType = HTTypeId.ANY;
       }
-    } else if (valType.isNotA(_declType!)) {
-      throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
     }
 
     super.assign(value);
   }
 
   @override
-  HTBytesDecl clone() => HTBytesDecl(id, interpreter, module,
+  HTBytesVariable clone() => HTBytesVariable(id, interpreter, module,
       value: value,
       declType: declType,
       initializerIp: initializerIp,
@@ -85,12 +88,12 @@ class HTBytesDecl extends HTDeclaration with HetuRef {
       isStatic: isStatic);
 }
 
-class HTBytesParamDecl extends HTBytesDecl {
+class HTBytesParameter extends HTBytesVariable {
   final bool isOptional;
   final bool isNamed;
   final bool isVariadic;
 
-  HTBytesParamDecl(String id, Hetu interpreter, String module,
+  HTBytesParameter(String id, Hetu interpreter, String module,
       {dynamic value,
       HTTypeId? declType,
       int? initializerIp,
@@ -101,8 +104,8 @@ class HTBytesParamDecl extends HTBytesDecl {
             value: value, declType: declType, initializerIp: initializerIp, isImmutable: true);
 
   @override
-  HTBytesParamDecl clone() {
-    return HTBytesParamDecl(id, interpreter, module,
+  HTBytesParameter clone() {
+    return HTBytesParameter(id, interpreter, module,
         value: value,
         declType: declType,
         initializerIp: initializerIp,

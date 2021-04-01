@@ -1,10 +1,10 @@
-import '../declaration.dart';
+import '../variable.dart';
 import 'ast.dart';
 import '../type.dart';
 import 'ast_interpreter.dart';
 import '../errors.dart';
 
-class HTAstDecl extends HTDeclaration with AstInterpreterRef {
+class HTAstVariable extends HTVariable with AstInterpreterRef {
   final bool isDynamic;
 
   @override
@@ -17,7 +17,7 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
 
   ASTNode? initializer;
 
-  HTAstDecl(String id, HTAstInterpreter interpreter,
+  HTAstVariable(String id, HTAstInterpreter interpreter,
       {dynamic value,
       HTTypeId? declType,
       this.initializer,
@@ -56,22 +56,24 @@ class HTAstDecl extends HTDeclaration with AstInterpreterRef {
 
   @override
   void assign(dynamic value) {
-    var valType = interpreter.typeof(value);
-    if (_declType == null) {
+    if (_declType != null) {
+      final encapsulation = interpreter.encapsulate(value);
+      if (encapsulation.isNotA(_declType!)) {
+        throw HTErrorTypeCheck(id, encapsulation.typeid.toString(), _declType.toString());
+      }
+    } else {
       if (!isDynamic && value != null) {
-        _declType = valType;
+        _declType = interpreter.encapsulate(value).typeid;
       } else {
         _declType = HTTypeId.ANY;
       }
-    } else if (valType.isNotA(declType)) {
-      throw HTErrorTypeCheck(id, valType.toString(), declType.toString());
     }
 
     super.assign(value);
   }
 
   @override
-  HTAstDecl clone() => HTAstDecl(id, interpreter,
+  HTAstVariable clone() => HTAstVariable(id, interpreter,
       value: value,
       initializer: initializer,
       getter: getter,

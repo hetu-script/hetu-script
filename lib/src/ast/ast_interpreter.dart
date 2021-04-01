@@ -17,8 +17,8 @@ import '../object.dart';
 import '../interpreter.dart';
 import '../extern_object.dart';
 import '../enum.dart';
-import 'ast_declaration.dart';
-import '../declaration.dart';
+import 'ast_variable.dart';
+import '../variable.dart';
 import '../const_table.dart';
 
 mixin AstInterpreterRef {
@@ -299,8 +299,9 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
           throw HTErrorUndefinedBinaryOperator(left.toString(), right.toString(), expr.op.lexeme);
         }
       } else if (expr.op.type == HTLexicon.IS) {
-        if (right is HTClass) {
-          return typeof(left).id == right.id;
+        if (right is HTTypeId) {
+          final encapsulation = encapsulate(left);
+          return encapsulation.isA(right);
         } else {
           throw HTErrorNotType(right.toString());
         }
@@ -359,13 +360,13 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     final typeArgs = <HTTypeId>[];
 
     if (callee is HTFunction) {
-      if (callee.externType == ExternFunctionType.none) {
+      if (callee.externalFuncDeclType == ExternalFuncDeclType.none) {
         // 普通函数
         if (callee.funcType != FunctionType.constructor) {
           return callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
         } else {
-          final className = callee.className;
-          final klass = global.fetch(className!);
+          final className = callee.classId!;
+          final klass = global.fetch(className);
           if (klass is HTClass) {
             if (klass.classType != ClassType.extern) {
               // 命名构造函数
@@ -373,7 +374,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
                   constructorName: callee.id, positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
             } else {
               // 外部命名构造函数
-              final externClass = fetchExternalClass(className);
+              final externClass = fetchExternalClass(klass.id);
               final constructor = externClass.memberGet(callee.id);
               if (constructor is HTExternalFunction) {
                 try {
@@ -517,11 +518,9 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     }
     //如果是Dart对象
     else {
-      var typeid = object.runtimeType.toString();
-      if (typeid.contains('<')) {
-        typeid = typeid.substring(0, typeid.indexOf('<'));
-      }
-      var externClass = fetchExternalClass(typeid);
+      var typeString = object.runtimeType.toString();
+      final typeid = HTTypeId.parse(typeString);
+      var externClass = fetchExternalClass(typeid.id);
       return externClass.instanceMemberGet(object, expr.key.lexeme);
     }
   }
@@ -551,11 +550,9 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     }
     //如果是Dart对象
     else {
-      var typeid = object.runtimeType.toString();
-      if (typeid.contains('<')) {
-        typeid = typeid.substring(0, typeid.indexOf('<'));
-      }
-      var externClass = fetchExternalClass(typeid);
+      var typeString = object.runtimeType.toString();
+      final typeid = HTTypeId.parse(typeString);
+      var externClass = fetchExternalClass(typeid.id);
       externClass.instanceMemberSet(object, expr.key.lexeme, value);
       return value;
     }
@@ -657,7 +654,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     //   value = visitASTNode(stmt.initializer!);
     // }
 
-    _curNamespace.define(HTAstDecl(
+    _curNamespace.define(HTAstVariable(
       stmt.id.lexeme,
       this,
       declType: stmt.declType,
@@ -682,8 +679,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     _curColumn = stmt.column;
     final func = HTAstFunction(stmt, this, _curModuleName, context: _curNamespace);
     if (stmt.id != null) {
-      _curNamespace
-          .define(HTDeclaration(stmt.id!.lexeme, value: func, isExtern: stmt.isExtern, isStatic: stmt.isStatic));
+      _curNamespace.define(func);
     }
     return func;
   }
@@ -693,22 +689,23 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     _curLine = stmt.line;
     _curColumn = stmt.column;
     HTClass? superClass;
-    if (stmt.id.lexeme != HTLexicon.rootClass) {
+    if (stmt.id.lexeme != HTLexicon.object) {
       if (stmt.superClass == null) {
-        superClass = global.fetch(HTLexicon.rootClass);
+        superClass = global.fetch(HTLexicon.object);
       } else {
         HTClass existSuperClass = _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
         superClass = existSuperClass;
       }
     }
 
-    final klass = HTClass(stmt.id.lexeme, superClass, this, classType: stmt.classType, closure: _curNamespace);
+    final klassNamespace = HTClassNamespace(stmt.id.lexeme, this, closure: _curNamespace);
+    final klass = HTClass(stmt.id.lexeme, klassNamespace, superClass, this, classType: stmt.classType);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    _curNamespace.define(HTDeclaration(stmt.id.lexeme, value: klass));
+    _curNamespace.define(klass);
 
     var save = _curNamespace;
-    _curNamespace = klass;
+    _curNamespace = klassNamespace;
 
     for (final variable in stmt.variables) {
       if (stmt.classType != ClassType.extern && variable.isExtern) {
@@ -719,7 +716,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       //   value = visitASTNode(variable.initializer!);
       // }
 
-      final decl = HTAstDecl(variable.id.lexeme, this,
+      final decl = HTAstVariable(variable.id.lexeme, this,
           declType: variable.declType,
           isDynamic: variable.isDynamic,
           isExtern: variable.isExtern,
@@ -728,9 +725,9 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
           isStatic: variable.isStatic);
 
       if (variable.isStatic) {
-        klass.define(decl);
+        klass.namespace.define(decl);
       } else {
-        klass.defineInstance(decl);
+        klass.defineInstanceMember(decl);
       }
     }
 
@@ -739,25 +736,29 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     for (final method in stmt.methods) {
       HTFunction func;
       if (method.isStatic) {
-        func = HTAstFunction(method, this, _curModuleName, context: klass);
-        klass.define(HTDeclaration(method.internalName, value: func, isExtern: method.isExtern), override: true);
+        func = HTAstFunction(method, this, _curModuleName, context: klass.namespace);
+        klass.namespace.define(func, override: true);
       } else if (method.funcType == FunctionType.constructor) {
         func = HTAstFunction(method, this, _curModuleName);
-        klass.define(HTDeclaration(method.internalName, value: func, isExtern: method.isExtern), override: true);
+        klass.namespace.define(func, override: true);
       } else {
         func = HTAstFunction(method, this, _curModuleName);
-        klass.defineInstance(HTDeclaration(method.internalName, value: func, isExtern: method.isExtern));
+        klass.defineInstanceMember(func);
       }
     }
 
     // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
     var curSuper = superClass;
     while (curSuper != null) {
-      for (final decl in curSuper.instanceDecls.values) {
+      for (final decl in curSuper.instanceMembers.values) {
         if (decl.id.startsWith(HTLexicon.underscore)) {
           continue;
         }
-        klass.defineInstance(decl.clone(), error: false);
+        if (decl is HTVariable) {
+          klass.defineInstanceMember(decl.clone(), error: false);
+        } else {
+          klass.defineInstanceMember(decl, error: false)); // 函数不能复制，而是在每次call的时候被加上正确的context
+        }
       }
 
       curSuper = curSuper.superClass;
@@ -779,6 +780,6 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
 
     final enumClass = HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
 
-    _curNamespace.define(HTDeclaration(stmt.id.lexeme, value: enumClass));
+    _curNamespace.define(enumClass);
   }
 }

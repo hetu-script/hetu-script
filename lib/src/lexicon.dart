@@ -4,7 +4,7 @@ abstract class HTLexicon {
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
-      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
+      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
       // r'(\d+\.\d+)|' // 浮点数字面量 group(6)
       // r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
@@ -62,7 +62,7 @@ abstract class HTLexicon {
   static const setter = '__setter__';
 
   static const instanceOf = 'instance of ';
-  static const rootClass = 'Object';
+  static const object = 'Object';
   static const function = 'function';
   static const list = 'List';
   static const map = 'Map';
@@ -86,6 +86,10 @@ abstract class HTLexicon {
     FINAL,
     CONST,
   };
+
+  static const type = 'Type';
+  static const typesBracketLeft = '<';
+  static const typesBracketRight = '>';
 
   static const VOID = 'void';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
@@ -124,6 +128,7 @@ abstract class HTLexicon {
     MIXIN,
   };
 
+  static const ARROW = '=>';
   static const AWAIT = 'await';
   static const ASSERT = 'assert';
   static const BREAK = 'break';

@@ -8,7 +8,7 @@ enum FunctionType {
   nested, // function within function, may with name
 }
 
-enum ExternFunctionType {
+enum ExternalFuncDeclType {
   none,
   standalone,
   klass,
