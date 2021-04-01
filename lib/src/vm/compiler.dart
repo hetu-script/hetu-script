@@ -1566,6 +1566,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
       funcBytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
       funcBytesBuilder.add(body);
       funcBytesBuilder.addByte(HTOpCode.endOfFunc);
+    } else if (expect([HTLexicon.assign, HTLexicon.angleRight], consume: true)) {
+      funcBytesBuilder.addByte(1); // bool: has definition
+      final body = _parseExprStmt();
+      funcBytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
+      funcBytesBuilder.add(body);
+      funcBytesBuilder.addByte(HTOpCode.endOfFunc);
+      expect([HTLexicon.semicolon], consume: true);
     } else {
       funcBytesBuilder.addByte(0); // bool: has no definition
       expect([HTLexicon.semicolon], consume: true);

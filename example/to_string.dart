@@ -10,9 +10,7 @@ void main() async {
     var firstName = 'Adam'
     var familyName = 'Christ'
 
-    fun toString() {
-      return firstName + ' ' + familyName
-    }
+    fun toString => firstName + ' ' + familyName
   }
 
   class Person {

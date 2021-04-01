@@ -116,7 +116,7 @@ void main() async {
   await hetu.eval('''
       external class Person {
         static var race
-        static fun meaning (n: num)
+        static fun meaning
         construct
         get child
         static get level
