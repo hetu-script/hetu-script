@@ -222,7 +222,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         advance(1);
         return BooleanExpr(false, _curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.integer:
-        var index = interpreter.addConstInt(curTok.literal);
+        var index = interpreter.addInt(curTok.literal);
         advance(1);
         return ConstIntExpr(index, _curModuleName, peek(-1).line, peek(-1).column);
       case HTLexicon.float:
@@ -522,7 +522,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     final i = '__i${Parser.internalVarIndex++}';
     list_stmt.add(VarDeclStmt(TokenIdentifier(i, curModuleName, curTok.line, curTok.column),
         declType: HTTypeId.number,
-        initializer: ConstIntExpr(interpreter.addConstInt(0), curModuleName, curTok.line, curTok.column)));
+        initializer: ConstIntExpr(interpreter.addInt(0), curModuleName, curTok.line, curTok.column)));
     // 指针
     var varname = match(HTLexicon.identifier).lexeme;
     var typeid = HTTypeId.ANY;
@@ -550,7 +550,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     var increment_expr = BinaryExpr(
         SymbolExpr(TokenIdentifier(i, curModuleName, curTok.line, curTok.column)),
         Token(HTLexicon.add, curModuleName, curTok.line, curTok.column),
-        ConstIntExpr(interpreter.addConstInt(1), curModuleName, curTok.line, curTok.column));
+        ConstIntExpr(interpreter.addInt(1), curModuleName, curTok.line, curTok.column));
     var increment_stmt = ExprStmt(AssignExpr(TokenIdentifier(i, curModuleName, curTok.line, curTok.column),
         Token(HTLexicon.assign, curModuleName, curTok.line, curTok.column), increment_expr));
     loop_body.add(increment_stmt);

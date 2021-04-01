@@ -1,12 +1,12 @@
-class ConstTable {
+mixin ConstTable {
   /// 常量表
-  late final intTable = <int>[];
-  List<int> get constInt => intTable.toList(growable: false);
-  int addConstInt(int value) {
-    final index = intTable.indexOf(value);
+  late final _intTable = <int>[];
+  List<int> get intTable => _intTable.toList(growable: false);
+  int addInt(int value) {
+    final index = _intTable.indexOf(value);
     if (index == -1) {
-      intTable.add(value);
-      return intTable.length - 1;
+      _intTable.add(value);
+      return _intTable.length - 1;
     } else {
       return index;
     }
@@ -14,13 +14,13 @@ class ConstTable {
 
   int getInt64(int index) => intTable[index];
 
-  late final floatTable = <double>[];
-  List<double> get constFloat => floatTable.toList(growable: false);
+  late final _floatTable = <double>[];
+  List<double> get floatTable => floatTable.toList(growable: false);
   int addConstFloat(double value) {
-    final index = floatTable.indexOf(value);
+    final index = _floatTable.indexOf(value);
     if (index == -1) {
-      floatTable.add(value);
-      return floatTable.length - 1;
+      _floatTable.add(value);
+      return _floatTable.length - 1;
     } else {
       return index;
     }
@@ -28,13 +28,13 @@ class ConstTable {
 
   double getFloat64(int index) => floatTable[index];
 
-  late final stringTable = <String>[];
-  List<String> get constUtf8String => stringTable.toList(growable: false);
+  late final _stringTable = <String>[];
+  List<String> get stringTable => stringTable.toList(growable: false);
   int addConstString(String value) {
-    final index = stringTable.indexOf(value);
+    final index = _stringTable.indexOf(value);
     if (index == -1) {
-      stringTable.add(value);
-      return stringTable.length - 1;
+      _stringTable.add(value);
+      return _stringTable.length - 1;
     } else {
       return index;
     }

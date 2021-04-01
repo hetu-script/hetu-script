@@ -4,14 +4,13 @@ import 'dart:convert';
 import 'opcode.dart';
 import '../const_table.dart';
 
-class BytesReader {
+class Bytecode with ConstTable {
   late final Uint8List bytes;
-  final consts = ConstTable();
   final symbols = <String, int>{};
 
   var ip = 0; // instruction pointer
 
-  BytesReader(this.bytes);
+  Bytecode(this.bytes);
 
   void skip(int distance) {
     ip += distance;

@@ -9,7 +9,6 @@ import 'extern_class.dart';
 import 'errors.dart';
 import 'extern_function.dart';
 import 'function.dart';
-import 'variable.dart';
 import 'extern_object.dart';
 import 'plugin/moduleHandler.dart';
 import 'plugin/errorHandler.dart';
@@ -129,6 +128,8 @@ abstract class Interpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
       bool errorHandled = false});
+
+  void handleError(Object error, [StackTrace? stack]);
 
   HTObject encapsulate(dynamic object) {
     if ((object == null) || (object is NullThrownError)) {

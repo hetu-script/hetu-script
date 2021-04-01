@@ -879,7 +879,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       case HTLexicon.integer:
         _leftValueLegality = false;
         final value = curTok.literal;
-        var index = addConstInt(value);
+        var index = addInt(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.int64);
       case HTLexicon.float:

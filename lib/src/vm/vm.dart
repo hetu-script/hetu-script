@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'compiler.dart';
 import 'opcode.dart';
-import 'bytes_reader.dart';
+import 'bytecode.dart';
 import 'bytes_variable.dart';
 import 'bytes_funciton.dart';
 import '../interpreter.dart';
@@ -36,7 +36,9 @@ class LoopInfo {
 class Hetu extends Interpreter {
   static var _anonymousScriptIndex = 0;
 
-  final _modules = <String, BytesReader>{};
+  final _compiler = Compiler();
+
+  final _modules = <String, Bytecode>{};
 
   var _curLine = 0;
   @override
@@ -48,7 +50,7 @@ class Hetu extends Interpreter {
   @override
   String get curModuleName => _curModuleName;
 
-  late BytesReader _curCode;
+  late Bytecode _curCode;
 
   HTClass? _curClass;
 
@@ -97,13 +99,11 @@ class Hetu extends Interpreter {
     // a non-null version
     final name = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
 
-    final compiler = Compiler();
-
     try {
       final tokens = Lexer().lex(content, name);
-      final bytes = await compiler.compile(tokens, this, name, codeType: codeType, debugMode: debugMode);
+      final bytes = await _compiler.compile(tokens, this, name, codeType: codeType, debugMode: debugMode);
 
-      _curCode = _modules[name] = BytesReader(bytes);
+      _curCode = _modules[name] = Bytecode(bytes);
       _curModuleName = name;
       var result = execute(namespace: namespace ?? global);
       if (codeType == CodeType.module && invokeFunc != null) {
@@ -111,31 +111,8 @@ class Hetu extends Interpreter {
       }
 
       return result;
-    } catch (e, stack) {
-      var sb = StringBuffer();
-      for (var funcName in HTFunction.callStack) {
-        sb.writeln('  $funcName');
-      }
-      sb.writeln('\n$stack');
-      var callStack = sb.toString();
-
-      if (e is! HTInterpreterError) {
-        HTInterpreterError newErr;
-        if (e is HTParserError) {
-          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-              compiler.curModuleName, compiler.curLine, compiler.curColumn);
-        } else if (e is HTError) {
-          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-              curModuleName, curLine, curColumn);
-        } else {
-          newErr = HTInterpreterError('$e\nHetu call stack:\n$callStack\nDart call stack:\n', HTErrorType.other,
-              curModuleName, curLine, curColumn);
-        }
-
-        errorHandler.handle(newErr);
-      } else {
-        errorHandler.handle(e);
-      }
+    } catch (error, stack) {
+      handleError(error, stack);
     }
   }
 
@@ -166,32 +143,38 @@ class Hetu extends Interpreter {
           HTErrorCallable(funcName);
         }
       }
-    } catch (e, stack) {
-      if (!errorHandled) {
-        var sb = StringBuffer();
-        for (var func in HTFunction.callStack) {
-          sb.writeln('  $func');
-        }
-        sb.writeln('\n$stack');
-        var callStack = sb.toString();
+    } catch (error, stack) {
+      if (errorHandled) rethrow;
 
-        if (e is! HTInterpreterError) {
-          HTInterpreterError newErr;
-          if (e is HTError) {
-            newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-                curModuleName, curLine, curColumn);
-          } else {
-            newErr = HTInterpreterError('$e\nHetu call stack:\n$callStack\nDart call stack:\n', HTErrorType.other,
-                curModuleName, curLine, curColumn);
-          }
+      handleError(error, stack);
+    }
+  }
 
-          errorHandler.handle(newErr);
-        } else {
-          errorHandler.handle(e);
-        }
+  @override
+  void handleError(Object error, [StackTrace? stack]) {
+    var sb = StringBuffer();
+    for (var funcName in HTFunction.callStack) {
+      sb.writeln('  $funcName');
+    }
+    sb.writeln('\n$stack');
+    var callStack = sb.toString();
+
+    if (error is! HTInterpreterError) {
+      HTInterpreterError itpErr;
+      if (error is HTParserError) {
+        itpErr = HTInterpreterError('${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n', error.type,
+            _compiler.curModuleName, _compiler.curLine, _compiler.curColumn);
+      } else if (error is HTError) {
+        itpErr = HTInterpreterError('${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n', error.type,
+            curModuleName, curLine, curColumn);
       } else {
-        rethrow;
+        itpErr = HTInterpreterError('$error\nHetu call stack:\n$callStack\nDart call stack:\n', HTErrorType.other,
+            curModuleName, curLine, curColumn);
       }
+
+      errorHandler.handle(itpErr);
+    } else {
+      errorHandler.handle(error);
     }
   }
 
@@ -365,15 +348,15 @@ class Hetu extends Interpreter {
         case HTOpCode.constTable:
           final int64Length = _curCode.readUint16();
           for (var i = 0; i < int64Length; ++i) {
-            _curCode.consts.intTable.add(_curCode.readInt64());
+            _curCode.addInt(_curCode.readInt64());
           }
           final float64Length = _curCode.readUint16();
           for (var i = 0; i < float64Length; ++i) {
-            _curCode.consts.floatTable.add(_curCode.readFloat64());
+            _curCode.addConstFloat(_curCode.readFloat64());
           }
           final utf8StringLength = _curCode.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
-            _curCode.consts.stringTable.add(_curCode.readUtf8String());
+            _curCode.addConstString(_curCode.readUtf8String());
           }
           break;
         // 变量表
@@ -479,15 +462,15 @@ class Hetu extends Interpreter {
         break;
       case HTValueTypeCode.int64:
         final index = _curCode.readUint16();
-        _curValue = _curCode.consts.getInt64(index);
+        _curValue = _curCode.getInt64(index);
         break;
       case HTValueTypeCode.float64:
         final index = _curCode.readUint16();
-        _curValue = _curCode.consts.getFloat64(index);
+        _curValue = _curCode.getFloat64(index);
         break;
       case HTValueTypeCode.utf8String:
         final index = _curCode.readUint16();
-        _curValue = _curCode.consts.getUtf8String(index);
+        _curValue = _curCode.getUtf8String(index);
         break;
       case HTValueTypeCode.symbol:
         _curSymbol = _curCode.readShortUtf8String();

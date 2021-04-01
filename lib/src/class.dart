@@ -271,13 +271,20 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {
-    final func = memberGet(funcName, from: namespace.fullName);
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false}) {
+    try {
+      final func = memberGet(funcName, from: namespace.fullName);
 
-    if (func is HTFunction) {
-      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
-    } else {
-      throw HTErrorCallable(funcName);
+      if (func is HTFunction) {
+        return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+      } else {
+        throw HTErrorCallable(funcName);
+      }
+    } catch (error, stack) {
+      if (errorHandled) rethrow;
+
+      interpreter.handleError(error, stack);
     }
   }
 }
@@ -415,8 +422,15 @@ class HTInstance extends HTNamespace {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {
-    HTFunction func = memberGet(funcName, from: fullName);
-    return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false}) {
+    try {
+      HTFunction func = memberGet(funcName, from: fullName);
+      return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+    } catch (error, stack) {
+      if (errorHandled) rethrow;
+
+      interpreter.handleError(error, stack);
+    }
   }
 }

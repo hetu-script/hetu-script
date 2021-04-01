@@ -124,6 +124,9 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
       List<HTTypeId> typeArgs = const [],
       bool errorHandled = false}) {}
 
+  @override
+  void handleError(Object error, [StackTrace? stack]) {}
+
   dynamic _getValue(String name, ASTNode expr) {
     var distance = _distances[expr];
     if (distance != null) {
@@ -757,7 +760,7 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
         if (decl is HTVariable) {
           klass.defineInstanceMember(decl.clone(), error: false);
         } else {
-          klass.defineInstanceMember(decl, error: false)); // 函数不能复制，而是在每次call的时候被加上正确的context
+          klass.defineInstanceMember(decl, error: false); // 函数不能复制，而是在每次call的时候被加上正确的context
         }
       }
 

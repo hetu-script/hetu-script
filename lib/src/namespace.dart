@@ -28,8 +28,6 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   @override
   final typeid = HTTypeId.namespace;
 
-  late final String id;
-
   late final String fullName;
 
   // 变量表

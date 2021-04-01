@@ -1,4 +1,3 @@
-import 'package:hetu_script/src/ast/ast_variable.dart';
 import 'package:hetu_script/src/common.dart';
 import 'package:hetu_script/src/object.dart';
 
@@ -73,7 +72,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false}) {
     HTFunction.callStack.add(id);
 
     if (positionalArgs.length < funcStmt.arity ||

@@ -58,5 +58,6 @@ abstract class HTFunction with HTDeclaration, HTObject {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const <HTTypeId>[]}) {}
+      List<HTTypeId> typeArgs = const <HTTypeId>[],
+      bool errorHandled = false});
 }
