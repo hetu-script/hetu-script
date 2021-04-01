@@ -135,4 +135,4 @@ function hello(): any // repl will print out the eval result (in this case the t
 ## Referrences:
 
 - [Operator precedence](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/operator_precedence.md)
-- [bytecode specification](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/bytecode_specification.md)
+- [Bytecode specification](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/bytecode_specification.md)

@@ -8,10 +8,16 @@ External functions (for both global and methods) can be binded as the following 
 
 ```dart
 typedef HTExternalFunction = dynamic Function(
-    [List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs]);
+    {List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs});
+
+await hetu.init(externalFunctions: {
+  // you can omit the type, and keep the correct type parameter names,
+  // this way Dart will still count it as HTExternalFunction
+  'hello': ({positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
+});
 ```
 
-or directy as a Dart Function:
+or even you can directy write it as a Dart Function:
 
 ```dart
 await hetu.init(externalFunctions: {
@@ -42,7 +48,7 @@ void main() async {
     'hello': (
         {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const <HTTypeId>[]}) => {'greeting': 'hello'},
+            List<HTTypeId> typeArgs = const []}) => {'greeting': 'hello'},
   });
   await hetu.eval(r'''
       external fun hello
