@@ -32,10 +32,10 @@ void main() async {
     });
     test('ternary operator', () async {
       final result = await hetu.eval(r'''
-      fun tenary {
+      fun ternary {
        return ((5 > 4 ? true ? 'certainly' : 'yeah' : 'ha') + ', eva!')
       }
-    ''', invokeFunc: 'tenary');
+    ''', invokeFunc: 'ternary');
       expect(
         result,
         'certainly, eva!',

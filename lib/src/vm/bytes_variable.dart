@@ -33,7 +33,9 @@ class HTBytesVariable extends HTVariable with HetuRef {
             value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember, isStatic: isStatic) {
     this.interpreter = interpreter;
     if (initializerIp == null && declType == null) {
-      declType = HTTypeId.ANY;
+      _declType = HTTypeId.ANY;
+    } else {
+      _declType = declType;
     }
   }
 

@@ -132,9 +132,9 @@ abstract class Interpreter {
   void handleError(Object error, [StackTrace? stack]);
 
   HTObject encapsulate(dynamic object) {
-    if (object is HTObject) return object;
-
-    if ((object == null) || (object is NullThrownError)) {
+    if (object is HTObject) {
+      return object;
+    } else if ((object == null) || (object is NullThrownError)) {
       return HTObject.NULL;
     } else if (object is num) {
       return HTNumber(object);
