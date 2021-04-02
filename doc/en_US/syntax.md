@@ -53,7 +53,7 @@ Variable is declared with [var], [let] or [const]. The type annotation and initi
 var person;
 var fineStructureConstant: num = 1 / 137;
 var isTimeTravelSuccessful: bool = true;
-var skill: Map<String> = {
+var skill: Map<str> = {
   tags: ['attack'],
   script: '//path/to/skill_script.ht',
 };
@@ -127,9 +127,7 @@ fun main {
 Function is declared with [fun], [get], [set], [construct]. the function name, parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
 
 ```typescript
-fun doubleIt(n: num): num {
-	return n * 2
-}
+fun doubleIt(n: num): num => n * 2
 
 fun main {
   def x = doubleIt(7) // expect 14
@@ -154,9 +152,7 @@ Function can write in forms with fun => <expr> when there's only one exression a
 ```typescript
 fun closure(func) {
   var i = 42
-  fun nested () {
-    i = i + 1
-  }
+  fun nested => i = i + 1
   return nested
 }
 
@@ -183,36 +179,29 @@ class Calculator {
   // instance member
   var x: num
   var y: num
-
   // static private member
   static var _name = 'the calculator'
-
   // static get function
   static get name: str {
-    // 类中的静态函数只能访问类中的静态对象
     return _name
   }
-
   // static set function
   static set name(new_name: str) {
     _name = new_name
   }
-
   // static function
   static fun greeting {
     print('hello! I\'m ' + name)
   }
-
   // constructor with parameters
   construct (x: num, y: num) {
     // use this to access instance members with same names
     this.x = x
     this.y = y
   }
-
   // method with return type
   fun meaning: num {
-    // when no shadowing, `this` keyword is omittable
+    // when no shadowing, `this` keyword can be omitted
     return x * y
   }
 }
@@ -225,7 +214,5 @@ Use import statement to import content from another script file.
 ```dart
 import 'hello.ht'
 
-fun main {
-  hello()
-}
+fun main => hello()
 ```

@@ -1,7 +1,4 @@
 language: dart
 
-dart_task:
-  - test:
-
 script:
   - pub run test test/hetu_test.dart

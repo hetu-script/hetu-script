@@ -13,7 +13,7 @@ void main() async {
     'hetuAdd': (
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
-        List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
+        List<HTTypeId> typeArgs = const []}) {
       return hetuAdd(positionalArgs.first);
     },
   }, externalFunctionTypedef: {

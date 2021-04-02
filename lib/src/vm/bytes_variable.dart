@@ -65,12 +65,8 @@ class HTBytesVariable extends HTVariable with HetuRef {
         final valType = interpreter.encapsulate(value).typeid;
         throw HTErrorTypeCheck(id, valType.toString(), _declType.toString());
       }
-    } else {
-      if (!isDynamic && value != null) {
-        _declType = interpreter.encapsulate(value).typeid;
-      } else {
-        _declType = HTTypeId.ANY;
-      }
+    } else if (!isDynamic && value != null) {
+      _declType = interpreter.encapsulate(value).typeid;
     }
 
     super.assign(value);

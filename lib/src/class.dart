@@ -385,7 +385,7 @@ class HTInstance extends HTNamespace {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
+                List<HTTypeId> typeArgs = const []}) =>
             '${HTLexicon.instanceOf}$typeid';
       default:
         throw HTErrorUndefined(varName);

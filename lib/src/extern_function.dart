@@ -17,11 +17,11 @@ final Map<String, Function> coreFunctions = {
   'help': (
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const <HTTypeId>[]}) {},
+      List<HTTypeId> typeArgs = const []}) {},
   'print': (
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const <HTTypeId>[]}) {
+      List<HTTypeId> typeArgs = const []}) {
     var sb = StringBuffer();
     for (final arg in positionalArgs[0]) {
       sb.write('$arg ');

@@ -30,7 +30,7 @@ extension PersonBinding on Person {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
+                List<HTTypeId> typeArgs = const []}) =>
             greeting();
       case 'child':
         return child;
@@ -60,19 +60,19 @@ class PersonClassBinding extends HTExternalClass {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
+                List<HTTypeId> typeArgs = const []}) =>
             Person();
       case 'Person.withName':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
+                List<HTTypeId> typeArgs = const []}) =>
             Person.withName(name: namedArgs['name']);
       case 'Person.meaning':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
+                List<HTTypeId> typeArgs = const []}) =>
             Person.meaning(positionalArgs[0]);
       case 'Person.race':
         return Person.race;

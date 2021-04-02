@@ -74,7 +74,7 @@ class HTEnumItem with HTObject {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const <HTTypeId>[]}) =>
+                List<HTTypeId> typeArgs = const []}) =>
             toString();
       default:
         throw HTErrorUndefinedMember(varName, typeid.toString());

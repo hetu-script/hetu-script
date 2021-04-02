@@ -12,15 +12,13 @@
 
 Hetu is a lightweight script language written in Dart for embedding in Flutter apps.
 
-Hetu's grammar is close to typescript/kotlin/swift and other modern languages, hence need very little time to get familar with.
-
 It meant to be used as a scripting language like lua, however, it is made to communicate with classes & functions in Dart very easily.
 
 [中文介绍](https://github.com/hetu-script/hetu-script/blob/master/doc/zh_Hans/README_ZH.md)
 
 ## Quick start
 
-Hetu's grammar is made similar to modern language like typescript/swift/kotlin:
+Hetu's grammar is close to typescript/kotlin/swift and other modern languages, need very little time to get familar with.
 
 - Optional semicolon.
 - Function is declared with 'fun, get, set, construct'.
@@ -30,7 +28,7 @@ Hetu's grammar is made similar to modern language like typescript/swift/kotlin:
 
 [语法参考](https://github.com/hetu-script/hetu-script/blob/master/doc/zh_Hans/SYNTAX.md)
 
-In your Dart code, you can interpret an script file by this:
+In your Dart code, you can interpret a script file:
 
 ```typescript
 import 'package:hetu_script/hetu_script.dart';
@@ -51,9 +49,7 @@ class Person {
   construct (name: str) {
     this.name = name
   }
-  fun greeting {
-    print('Hi! I\'m', name)
-  }
+  fun greeting => print('Hi! I\'m', name)
 }
 
 // This is where the script starts executing.

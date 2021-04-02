@@ -33,7 +33,7 @@ abstract class HTError {
   External function expected:
   dynamic Function({List<dynamic> positionalArgs = const [],
                     Map<String, dynamic> namedArgs = const {},
-                    List<HTTypeId> typeArgs = const <HTTypeId>[]})
+                    List<HTTypeId> typeArgs = const []})
   Got:\n''';
   static const externFuncParam = 'External function arguments mismatch.';
   static const undefinedMember = 'isn\'t defined for the class';
