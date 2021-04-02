@@ -46,9 +46,7 @@ abstract class HTOpCode {
 
   static const doStmt = 23;
 
-  static const forStmt = 24;
-
-  static const whenStmt = 25;
+  static const whenStmt = 24;
 
   static const assign = 30; // 1 byte right value
 
@@ -172,9 +170,4 @@ abstract class SymbolType {
   static const normal = 0;
   static const member = 1;
   static const sub = 2;
-}
-
-abstract class ForStmtType {
-  static const keyIn = 0;
-  static const valueOf = 1;
 }

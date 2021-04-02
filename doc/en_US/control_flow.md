@@ -41,15 +41,14 @@ do {
 - For statement's expr must be separated with ';'.
 - The expression itself is optional. If you write 'for (;;)', it will be the same to 'while (true)'
 - For statement's body must be enclosed in curly brackets.
-- When use for...in, the loop will iterate through the keys of a list/map.
-- When use for...of, the loop will iterate through the values of a map.
+- When use for...in, the loop will iterate through the keys of a list.
 
 ```dart
 for ( init; condition; increment ) {
   ...
 }
 
-for (var/let/const varName in/of object) {
+for (var/let/const varName in list) {
   ...
 }
 ```

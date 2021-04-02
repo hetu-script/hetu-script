@@ -167,14 +167,16 @@ class HTBytesFunction extends HTFunction with HetuRef {
           } else {
             if (i < maxArity) {
               if (i < positionalArgs.length) {
-                finalPosArgs.add(positionalArgs[i]);
+                decl.assign(positionalArgs[i]);
+                finalPosArgs.add(decl.value);
               } else {
                 decl.initialize();
                 finalPosArgs.add(decl.value);
               }
             } else {
               if (namedArgs.containsKey(decl.id)) {
-                finalNamedArgs[decl.id] = namedArgs[decl.id];
+                decl.assign(namedArgs[decl.id]);
+                finalNamedArgs[decl.id] = decl.value;
               } else {
                 decl.initialize();
                 finalNamedArgs[decl.id] = decl.value;

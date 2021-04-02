@@ -111,7 +111,7 @@ class HTImportError extends HTError {
 }
 
 class HTErrorEmpty extends HTImportError {
-  HTErrorEmpty(String fileName) : super(HTError.emptyString, fileName);
+  HTErrorEmpty(String fileName) : super('${HTError.emptyString} [$fileName]', fileName);
 }
 
 class HTInterpreterError extends HTError {

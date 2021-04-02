@@ -150,6 +150,10 @@ class HTList extends HTExternObject<List> {
         return externObject.isEmpty;
       case 'isNotEmpty':
         return externObject.isNotEmpty;
+      case 'first':
+        return externObject.first;
+      case 'last':
+        return externObject.last;
       case 'contains':
         return (
                 {List<dynamic> positionalArgs = const [],

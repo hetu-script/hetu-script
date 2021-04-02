@@ -21,12 +21,21 @@ void main() async {
   });
 
   group('operators -', () {
+    test('brackets', () async {
+      final result = await hetu.eval(r'''
+      fun math1 => 3 - (2 * 3 - 5)
+    ''', invokeFunc: 'math1');
+      expect(
+        result,
+        2,
+      );
+    });
     test('ternary operator', () async {
       final result = await hetu.eval(r'''
-      fun tenary {
+      fun ternary {
        return ((5 > 4 ? true ? 'certainly' : 'yeah' : 'ha') + ', eva!')
       }
-    ''', invokeFunc: 'tenary');
+    ''', invokeFunc: 'ternary');
       expect(
         result,
         'certainly, eva!',
@@ -61,19 +70,21 @@ void main() async {
 
     test('for in', () async {
       final result = await hetu.eval(r'''
-      fun forIn() { 
-        var rows = [1, 2, 3]
-        var r = 1
-        for (var attr in rows) {
-          var p = attr * attr
-          r += p
-        } 
-        return r
+      fun forIn {
+        let value = ['', 'hello', 'world']
+        let item = ''
+        for (let val in value) {
+          if (val != '') {
+            item = val
+            break
+          }
+        }
+        return item
       }
     ''', invokeFunc: 'forIn');
       expect(
         result,
-        15,
+        'hello',
       );
     });
   });
@@ -145,13 +156,13 @@ void main() async {
           }
         }
         fun getStatic {
-          var a = StaticField()
+          var a = StaticField('yellow')
           a.b()
         }
       ''', invokeFunc: 'getStatic');
       expect(
         result,
-        'a',
+        'yellow',
       );
     });
 

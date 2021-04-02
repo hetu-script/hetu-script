@@ -30,12 +30,12 @@ class DefaultModuleHandler implements HTModuleHandler {
   }
 
   @override
-  Future<HTModuleInfo> import(String key, [String? curFileName]) async {
+  Future<HTModuleInfo> import(String key, [String? curUniqueKey]) async {
     var fileName = key;
     try {
       late final String filePath;
-      if (curFileName != null) {
-        filePath = path.dirname(curFileName);
+      if (curUniqueKey != null) {
+        filePath = path.dirname(curUniqueKey);
       } else {
         filePath = workingDirectory;
       }

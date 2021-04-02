@@ -21,7 +21,7 @@ abstract class Parser {
   late List<Token> tokens;
 
   void addTokens(List<Token> tokens) {
-    _tokPos = 0;
+    tokPos = 0;
     this.tokens = tokens;
     _curLine = 0;
     _curColumn = 0;
@@ -35,7 +35,7 @@ abstract class Parser {
   int get curColumn => _curColumn;
   String? get curModuleName;
 
-  var _tokPos = 0;
+  var tokPos = 0;
 
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
   ///
@@ -65,7 +65,7 @@ abstract class Parser {
 
   /// 前进指定距离，返回原先位置的Token
   Token advance(int distance) {
-    _tokPos += distance;
+    tokPos += distance;
     _curLine = curTok.line;
     _curColumn = curTok.column;
     return peek(-distance);
@@ -73,8 +73,8 @@ abstract class Parser {
 
   /// 获得相对于目前位置一定距离的Token，不改变目前位置
   Token peek(int pos) {
-    if ((_tokPos + pos) < tokens.length) {
-      return tokens[_tokPos + pos];
+    if ((tokPos + pos) < tokens.length) {
+      return tokens[tokPos + pos];
     } else {
       return Token(HTLexicon.endOfFile, curModuleName!, -1, -1);
     }

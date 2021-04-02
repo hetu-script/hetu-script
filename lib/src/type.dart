@@ -21,18 +21,13 @@ class HTTypeId with HTObject {
   @override
   HTTypeId get typeid => HTTypeId.TYPE;
 
-  static HTTypeId parse(String typeid) {
-    final arguments = <HTTypeId>[];
-    var hasArgs = typeid.indexOf(HTLexicon.typesBracketLeft);
-    if (hasArgs != -1) {
-      final id = typeid.substring(0, hasArgs);
-      while (hasArgs != -1) {
-        final rest = typeid.substring(hasArgs + 1);
-        arguments.add(parse(rest));
-      }
-      return HTTypeId(id, arguments: arguments);
+  static String parseBaseTypeId(String typeString) {
+    final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
+    if (argsStart != -1) {
+      final id = typeString.substring(0, argsStart);
+      return id;
     } else {
-      return HTTypeId(typeid);
+      return typeString;
     }
   }
 

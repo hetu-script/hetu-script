@@ -132,7 +132,9 @@ abstract class Interpreter {
   void handleError(Object error, [StackTrace? stack]);
 
   HTObject encapsulate(dynamic object) {
-    if ((object == null) || (object is NullThrownError)) {
+    if (object is HTObject) {
+      return object;
+    } else if ((object == null) || (object is NullThrownError)) {
       return HTObject.NULL;
     } else if (object is num) {
       return HTNumber(object);
@@ -181,11 +183,11 @@ abstract class Interpreter {
       return HTMap(object, keyType: keyType, valueType: valueType);
     } else {
       final typeString = object.runtimeType.toString();
-      final typeid = HTTypeId.parse(typeString);
-      if (containsExternalClass(typeid.id)) {
+      final id = HTTypeId.parseBaseTypeId(typeString);
+      if (containsExternalClass(id)) {
         try {
           // final externClass = fetchExternalClass(typeid.id);
-          return HTExternObject(object, typeid: typeid);
+          return HTExternObject(object, typeid: HTTypeId(id));
         } on HTErrorUndefined {
           return HTExternObject(object);
         }
