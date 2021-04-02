@@ -5,6 +5,25 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
 
+  group('complicated operator usage', () {
+    test('math case 1', () async {
+      final result = await hetu.eval(r'''
+      fun math1 {
+        var n = 3
+        var c = 3
+        var r = 212
+        var f = 615
+        n = n - (c * r - f)
+        return n
+      }
+    ''', invokeFunc: 'math1');
+      expect(
+        result,
+        2,
+      );
+    });
+  });
+
   group('buildin values -', () {
     test('string interpolation', () async {
       final result = await hetu.eval(r'''
