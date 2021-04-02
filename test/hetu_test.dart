@@ -156,13 +156,13 @@ void main() async {
           }
         }
         fun getStatic {
-          var a = StaticField()
+          var a = StaticField('yellow')
           a.b()
         }
       ''', invokeFunc: 'getStatic');
       expect(
         result,
-        'a',
+        'yellow',
       );
     });
 

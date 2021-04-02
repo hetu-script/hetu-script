@@ -1392,8 +1392,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.add(arg);
     }
 
-    final isNullable = expect([HTLexicon.nullable], consume: true);
-    bytesBuilder.addByte(isNullable ? 1 : 0); // bool isNullable
+    // final isNullable = expect([HTLexicon.nullable], consume: true);
+    // bytesBuilder.addByte(isNullable ? 1 : 0); // bool isNullable
+    bytesBuilder.addByte(1); // bool isNullable
 
     return bytesBuilder.toBytes();
   }
