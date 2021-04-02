@@ -12,7 +12,7 @@ void main() async {
         var n = 3
         var c = 3
         var r = 212
-        var f = 615
+        var f = 635
         n = n - (c * r - f)
         return n
       }
