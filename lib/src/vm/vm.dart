@@ -230,28 +230,31 @@ class Hetu extends Interpreter {
   /// 一旦切换了moduleName，就会进入一个新的寄存器区域
   /// 每个寄存器区域有自己独立的一套临时变量
   /// 包括文件名，行列号，当前符号，当前值等等
-  dynamic execute({String? moduleName, int? ip, HTNamespace? namespace}) {
+  dynamic execute({String? moduleName, int? ip, HTNamespace? namespace, bool moveRegIndex = false}) {
     final savedModuleName = curModuleName;
     final savedIp = _curCode.ip;
     final savedNamespace = _curNamespace;
 
-    var changedCode = false;
-    var changedIp = false;
+    var codeChanged = false;
+    var ipChanged = false;
+    var regIndexMoved = moveRegIndex;
     if (moduleName != null && (curModuleName != moduleName)) {
       _curModuleName = moduleName;
       _curCode = _modules[moduleName]!;
-      changedCode = true;
-      changedIp = true;
+      codeChanged = true;
+      ipChanged = true;
+      regIndexMoved = true;
     }
     if (ip != null && _curCode.ip != ip) {
       _curCode.ip = ip;
-      changedIp = true;
+      ipChanged = true;
+      regIndexMoved = true;
     }
     if (namespace != null && _curNamespace != namespace) {
       _curNamespace = namespace;
     }
 
-    if (changedIp) {
+    if (regIndexMoved) {
       ++_regIndex;
       if (_registers.length <= _regIndex * HTRegIdx.length) {
         _registers.length += HTRegIdx.length;
@@ -260,13 +263,16 @@ class Hetu extends Interpreter {
 
     final result = _execute();
 
-    if (changedCode) {
+    if (codeChanged) {
       _curModuleName = savedModuleName;
       _curCode = _modules[_curModuleName]!;
     }
 
-    if (changedIp) {
+    if (ipChanged) {
       _curCode.ip = savedIp;
+    }
+
+    if (regIndexMoved) {
       --_regIndex;
     }
 
@@ -398,9 +404,6 @@ class Hetu extends Interpreter {
             _curCode.ip = _loops.last.startIp;
           }
           break;
-        case HTOpCode.forStmt:
-          _handleForStmt();
-          break;
         case HTOpCode.whenStmt:
           _handleWhenStmt();
           break;
@@ -485,6 +488,9 @@ class Hetu extends Interpreter {
           _curValue = _curSymbol;
         }
         break;
+      case HTValueTypeCode.group:
+        _curValue = execute(moveRegIndex: true);
+        break;
       case HTValueTypeCode.list:
         final list = [];
         final length = _curCode.readUint16();
@@ -520,8 +526,8 @@ class Hetu extends Interpreter {
         final paramDecls = _getParams(_curCode.read());
 
         HTTypeId? returnType;
-        final hasType = _curCode.readBool();
-        if (hasType) {
+        final hasTypeId = _curCode.readBool();
+        if (hasTypeId) {
           returnType = _getTypeId();
         }
 
@@ -578,8 +584,8 @@ class Hetu extends Interpreter {
         // 如果是 Dart 对象
         else {
           var typeString = object.runtimeType.toString();
-          final typeid = HTTypeId.parse(typeString);
-          var externClass = fetchExternalClass(typeid.id);
+          final id = HTTypeId.parseBaseTypeId(typeString);
+          var externClass = fetchExternalClass(id);
           externClass.instanceMemberSet(object, key!, value);
         }
         break;
@@ -600,58 +606,11 @@ class Hetu extends Interpreter {
         // 如果是 Dart 对象
         else {
           var typeString = object.runtimeType.toString();
-          final typeid = HTTypeId.parse(typeString);
-          var externClass = fetchExternalClass(typeid.id);
+          final id = HTTypeId.parseBaseTypeId(typeString);
+          var externClass = fetchExternalClass(id);
           externClass.instanceSubSet(object, key!, value);
         }
         break;
-    }
-  }
-
-  /// 只包括 for in & of，普通的 for 其实是 while
-  void _handleForStmt() {
-    final object = _curValue;
-    final type = _curCode.read();
-    final id = _curCode.readShortUtf8String();
-    final loopLength = _curCode.readUint16();
-
-    if (type == ForStmtType.keyIn) {
-      if (object is! Iterable && object is! Map) {
-        throw HTErrorIterable(_curSymbol!);
-      } else {
-        // 这里要直接获取声明，而不是变量的值
-        final decl = _curNamespace.declarations[id] as HTVariable;
-        if (object is Iterable) {
-          for (var value in object) {
-            decl.assign(value);
-            execute();
-            _curCode.ip -= loopLength;
-          }
-          _curCode.skip(loopLength);
-        } else if (object is Map) {
-          for (var value in object.values) {
-            decl.assign(value);
-            execute();
-            _curCode.ip -= loopLength;
-          }
-          _curCode.skip(loopLength);
-        }
-      }
-    }
-    //ForStmtType.valueOf
-    else {
-      if (object is! Map) {
-        throw HTErrorIterable(_curSymbol!);
-      } else {
-        // 这里要直接获取声明，而不是变量的值
-        final decl = _curNamespace.declarations[id] as HTVariable;
-        for (var value in object.values) {
-          decl.assign(value);
-          execute();
-          _curCode.ip -= loopLength;
-        }
-        _curCode.skip(loopLength);
-      }
     }
   }
 
@@ -774,7 +733,10 @@ class Hetu extends Interpreter {
         _curValue = _getRegVal(HTRegIdx.addLeft) + _curValue;
         break;
       case HTOpCode.subtract:
-        _curValue = _getRegVal(HTRegIdx.addLeft) - _getRegVal(HTRegIdx.addRight);
+        // final left = _getRegVal(HTRegIdx.addLeft);
+        // final right = _getRegVal(HTRegIdx.addRight);
+        // _curValue = left - right;
+        _curValue = _getRegVal(HTRegIdx.addLeft) - _curValue;
         break;
       case HTOpCode.multiply:
         _curValue = _getRegVal(HTRegIdx.multiplyLeft) * _curValue;
@@ -892,8 +854,8 @@ class Hetu extends Interpreter {
         //如果是Dart对象
         else {
           var typeString = object.runtimeType.toString();
-          final typeid = HTTypeId.parse(typeString);
-          var externClass = fetchExternalClass(typeid.id);
+          final id = HTTypeId.parseBaseTypeId(typeString);
+          var externClass = fetchExternalClass(id);
           _curValue = externClass.instanceMemberGet(object, key);
         }
         break;
@@ -953,8 +915,8 @@ class Hetu extends Interpreter {
     final isStatic = _curCode.readBool();
 
     HTTypeId? declType;
-    final hasType = _curCode.readBool();
-    if (hasType) {
+    final hasTypeId = _curCode.readBool();
+    if (hasTypeId) {
       declType = _getTypeId();
     }
 
@@ -992,8 +954,8 @@ class Hetu extends Interpreter {
       final isVariadic = _curCode.readBool();
 
       HTTypeId? declType;
-      final hasType = _curCode.readBool();
-      if (hasType) {
+      final hasTypeId = _curCode.readBool();
+      if (hasTypeId) {
         declType = _getTypeId();
       }
 
@@ -1053,8 +1015,8 @@ class Hetu extends Interpreter {
     final paramDecls = _getParams(_curCode.read());
 
     HTTypeId? returnType;
-    final hasType = _curCode.readBool();
-    if (hasType) {
+    final hasTypeId = _curCode.readBool();
+    if (hasTypeId) {
       returnType = _getTypeId();
     }
 

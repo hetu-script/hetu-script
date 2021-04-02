@@ -37,6 +37,12 @@ abstract class HTLexicon {
   static const string = 'str';
   static const keys = 'keys';
   static const values = 'values';
+  static const first = 'first';
+  static const last = 'last';
+  static const length = 'length';
+  static const isEmpty = 'isEmpty';
+  static const isNotEmpty = 'isNotEmpty';
+  static const elementAt = 'elementAt';
 
   static const Set<String> literals = {
     number,
@@ -66,7 +72,6 @@ abstract class HTLexicon {
   static const function = 'function';
   static const list = 'List';
   static const map = 'Map';
-  static const length = 'length';
   // static const procedure = 'procedure';
   static const identifier = 'identifier';
 

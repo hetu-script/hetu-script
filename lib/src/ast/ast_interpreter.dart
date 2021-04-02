@@ -522,8 +522,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     //如果是Dart对象
     else {
       var typeString = object.runtimeType.toString();
-      final typeid = HTTypeId.parse(typeString);
-      var externClass = fetchExternalClass(typeid.id);
+      final id = HTTypeId.parseBaseTypeId(typeString);
+      var externClass = fetchExternalClass(id);
       return externClass.instanceMemberGet(object, expr.key.lexeme);
     }
   }
@@ -554,8 +554,8 @@ class HTAstInterpreter extends Interpreter with ConstTable implements ASTNodeVis
     //如果是Dart对象
     else {
       var typeString = object.runtimeType.toString();
-      final typeid = HTTypeId.parse(typeString);
-      var externClass = fetchExternalClass(typeid.id);
+      final id = HTTypeId.parseBaseTypeId(typeString);
+      var externClass = fetchExternalClass(id);
       externClass.instanceMemberSet(object, expr.key.lexeme, value);
       return value;
     }

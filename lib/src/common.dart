@@ -63,21 +63,15 @@ class HTRegIdx {
   static const objectSymbol = 2;
   static const refType = 3;
   static const loopCount = 4;
-  static const assign = 5;
-  static const orLeft = 6;
-  static const orRight = 7;
-  static const andLeft = 8;
-  static const andRight = 9;
+  static const assign = 7;
+  static const orLeft = 8;
+  static const andLeft = 9;
   static const equalLeft = 10;
-  static const equalRight = 11;
-  static const relationLeft = 12;
-  static const relationRight = 13;
-  static const addLeft = 14;
-  static const addRight = 15;
-  static const multiplyLeft = 16;
-  static const multiplyRight = 17;
-  static const postfixObject = 18;
-  static const postfixKey = 19;
+  static const relationLeft = 11;
+  static const addLeft = 12;
+  static const multiplyLeft = 13;
+  static const postfixObject = 14;
+  static const postfixKey = 15;
 
-  static const length = 20;
+  static const length = 16;
 }

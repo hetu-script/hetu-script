@@ -534,6 +534,17 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
+  Uint8List _localGroup() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTValueTypeCode.group);
+    advance(1);
+    var innerExpr = _parseExpr(endOfExec: true);
+    match(HTLexicon.roundRight);
+    bytesBuilder.add(innerExpr);
+    return bytesBuilder.toBytes();
+  }
+
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
   ///
   /// 优先级最低的表达式，赋值表达式
@@ -724,8 +735,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
         final op = advance(1).type;
         final right = _parseMultiplicativeExpr();
         bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addRight);
         switch (op) {
           case HTLexicon.add:
             bytesBuilder.addByte(HTOpCode.add);
@@ -905,10 +914,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
         return _localSymbol();
       case HTLexicon.roundLeft:
         _leftValueLegality = false;
-        advance(1);
-        var innerExpr = _parseExpr();
-        match(HTLexicon.roundRight);
-        return innerExpr;
+        return _localGroup();
       case HTLexicon.squareLeft:
         _leftValueLegality = false;
         advance(1);
@@ -1104,74 +1110,153 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  /// For语句会在解析时转换为While语句
+  Uint8List _assembleLocalConstInt(int value, {bool endOfExec = false}) {
+    _leftValueLegality = true;
+    final bytesBuilder = BytesBuilder();
+
+    final index = addInt(0);
+    final constExpr = _localConst(index, HTValueTypeCode.int64);
+    bytesBuilder.add(constExpr);
+    if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _assembleLocalSymbol(String id, {bool isGetKey = false}) {
+    _leftValueLegality = true;
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTValueTypeCode.symbol);
+    bytesBuilder.add(_shortUtf8String(id));
+    bytesBuilder.addByte(isGetKey ? 1 : 0); // bool: isGetKey
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _assembleMemberGet(Uint8List object, String key, {bool endOfExec = false}) {
+    _leftValueLegality = true;
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(object);
+    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(HTRegIdx.postfixObject);
+    bytesBuilder.addByte(HTOpCode.objectSymbol); // save object symbol name in reg
+    final keySymbol = _assembleLocalSymbol(key, isGetKey: true);
+    bytesBuilder.add(keySymbol);
+    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(HTRegIdx.postfixKey);
+    bytesBuilder.addByte(HTOpCode.memberGet);
+    if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _assembleVarDecl(String id, [Uint8List? initializer]) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_shortUtf8String(id));
+    bytesBuilder.addByte(0); // bool: isDynamic
+    bytesBuilder.addByte(0); // bool: isExtern
+    bytesBuilder.addByte(0); // bool: isImmutable
+    bytesBuilder.addByte(0); // bool: isMember
+    bytesBuilder.addByte(0); // bool: isStatic
+    bytesBuilder.addByte(0); // bool: hasTypeId
+
+    if (initializer != null) {
+      bytesBuilder.addByte(1); // bool: has initializer
+      bytesBuilder.add(_uint16(initializer.length));
+      bytesBuilder.add(initializer);
+    } else {
+      bytesBuilder.addByte(0);
+    }
+
+    return bytesBuilder.toBytes();
+  }
+
+  // for 其实是拼装成的 while 语句
   Uint8List _parseForStmt() {
     advance(1);
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_shortUtf8String(HTLexicon.forStmtInit));
     match(HTLexicon.roundLeft);
-    final forStmtType = peek(2).lexeme; // of 不是关键字，所以这里不是看 type 而是 lexeme
+    final forStmtType = peek(2).lexeme;
+    Uint8List? condition;
+    Uint8List? increment;
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
         throw HTErrorUnexpected(curTok.type);
       }
-      final init = _parseVarStmt(isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST);
-      final id = _readId(init);
+      final declPos = tokPos;
+      // jump over keywrod
+      advance(1);
+      // get id of var decl and jump over in/of
+      final id = advance(2).lexeme;
+      final object = _parseExpr();
+      // the intializer of the var is a member get expression: object.length
+      final iterInit = _assembleMemberGet(object, HTLexicon.first, endOfExec: true);
+      match(HTLexicon.roundRight);
+      final blockStartPos = tokPos;
+      // go back to var declaration
+      tokPos = declPos;
+      final iterDecl = _parseVarStmt(
+          isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST, initializer: iterInit);
+
+      final increId = '__#i';
+      final increExprInit = _assembleLocalConstInt(0, endOfExec: true);
+      final increDecl = _assembleVarDecl(increId, increExprInit);
 
       // 添加变量声明，枚举、函数和类的部分是空的
       bytesBuilder.addByte(HTOpCode.declTable);
       bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(0));
       bytesBuilder.add(_uint16(0));
-      bytesBuilder.add(_uint16(1));
-      bytesBuilder.add(init);
+      bytesBuilder.add(_uint16(2));
+      bytesBuilder.add(iterDecl);
+      bytesBuilder.add(increDecl);
 
-      // jump over keyword 'in'
-      advance(1);
-      final object = _parseExpr();
-      match(HTLexicon.roundRight);
-      bytesBuilder.add(object);
-      bytesBuilder.addByte(HTOpCode.forStmt);
-      bytesBuilder.addByte(ForStmtType.keyIn);
-      bytesBuilder.add(_shortUtf8String(id));
-      final loop = _parseBlock(HTLexicon.forStmt);
-      bytesBuilder.add(_uint16(loop.length + 1));
-      bytesBuilder.add(loop);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
-    } else if (forStmtType == HTLexicon.OF) {
-      if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-        throw HTErrorUnexpected(curTok.type);
-      }
-      final init = _parseVarStmt(isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST);
-      final id = _readId(init);
+      // TODO: should be able to tell if it's a iterable (could not be list)
+      final conditionBytesBuilder = BytesBuilder();
+      final isNotEmptyExpr = _assembleMemberGet(object, HTLexicon.isNotEmpty);
+      conditionBytesBuilder.add(isNotEmptyExpr);
+      conditionBytesBuilder.addByte(HTOpCode.register);
+      conditionBytesBuilder.addByte(HTRegIdx.andLeft);
+      final lesserLeftExpr = _assembleLocalSymbol(increId);
+      conditionBytesBuilder.add(lesserLeftExpr);
+      conditionBytesBuilder.addByte(HTOpCode.register);
+      conditionBytesBuilder.addByte(HTRegIdx.relationLeft);
+      final iterableLengthExpr = _assembleMemberGet(object, HTLexicon.length);
+      conditionBytesBuilder.add(iterableLengthExpr);
+      conditionBytesBuilder.addByte(HTOpCode.lesser);
+      conditionBytesBuilder.addByte(HTOpCode.logicalAnd);
+      condition = conditionBytesBuilder.toBytes();
 
-      // 添加变量声明，枚举、函数和类的部分是空的
-      bytesBuilder.addByte(HTOpCode.declTable);
-      bytesBuilder.add(_uint16(0));
-      bytesBuilder.add(_uint16(0));
-      bytesBuilder.add(_uint16(0));
-      bytesBuilder.add(_uint16(1));
-      bytesBuilder.add(init);
+      final incrementBytesBuilder = BytesBuilder();
+      final preIncreExpr = _assembleLocalSymbol(increId);
+      incrementBytesBuilder.add(preIncreExpr);
+      incrementBytesBuilder.addByte(HTOpCode.preIncrement);
+      final getElemFunc = _assembleMemberGet(object, HTLexicon.elementAt);
+      incrementBytesBuilder.add(getElemFunc);
+      incrementBytesBuilder.addByte(HTOpCode.register);
+      incrementBytesBuilder.addByte(HTRegIdx.postfixObject);
+      incrementBytesBuilder.addByte(HTOpCode.call);
+      incrementBytesBuilder.addByte(1); // length of positionalArgs
+      final getElemFuncCallArg = _assembleLocalSymbol(increId);
+      incrementBytesBuilder.add(getElemFuncCallArg);
+      incrementBytesBuilder.addByte(HTOpCode.endOfExec);
+      incrementBytesBuilder.addByte(0); // length of namedArgs
+      incrementBytesBuilder.addByte(HTOpCode.register);
+      incrementBytesBuilder.addByte(HTRegIdx.assign);
+      final assignLeftExpr = _assembleLocalSymbol(id);
+      incrementBytesBuilder.add(assignLeftExpr);
+      incrementBytesBuilder.addByte(HTOpCode.assign);
+      increment = incrementBytesBuilder.toBytes();
 
-      // jump over keyword 'of'
-      advance(1);
-      final object = _parseExpr();
-      match(HTLexicon.roundRight);
-      bytesBuilder.add(object);
-      bytesBuilder.addByte(HTOpCode.forStmt);
-      bytesBuilder.addByte(ForStmtType.valueOf);
-      bytesBuilder.add(_shortUtf8String(id));
-      final loop = _parseBlock(HTLexicon.forStmt);
-      bytesBuilder.add(_uint16(loop.length + 1));
-      bytesBuilder.add(loop);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
+      // go back to block start
+      tokPos = blockStartPos;
     }
     // for (var i = 0; i < length; ++i)
-    // 这种类型的 for 其实是拼装成的 while 语句
     else {
       if (curTok.type != HTLexicon.semicolon) {
-        final init = _parseVarStmt(
+        if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
+          throw HTErrorUnexpected(curTok.type);
+        }
+        final iterDecl = _parseVarStmt(
             isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST, endOfStatement: true);
 
         // 添加变量声明，枚举、函数和类的部分是空的
@@ -1180,35 +1265,34 @@ class Compiler extends Parser with ConstTable, HetuRef {
         bytesBuilder.add(_uint16(0));
         bytesBuilder.add(_uint16(0));
         bytesBuilder.add(_uint16(1));
-        bytesBuilder.add(init);
+        bytesBuilder.add(iterDecl);
       } else {
         advance(1);
       }
 
-      Uint8List? condition;
       if (curTok.type != HTLexicon.semicolon) {
         condition = _parseExpr();
       }
       match(HTLexicon.semicolon);
 
-      Uint8List? increment;
       if (curTok.type != HTLexicon.roundRight) {
         increment = _parseExpr();
       }
       match(HTLexicon.roundRight);
-
-      final loop = _parseBlock(HTLexicon.forStmt);
-      bytesBuilder.addByte(HTOpCode.loopPoint);
-      final loopLength = (condition?.length ?? 0) + loop.length + (increment?.length ?? 0) + 5;
-      bytesBuilder.add(_uint16(loopLength));
-      if (condition != null) bytesBuilder.add(condition);
-      bytesBuilder.addByte(HTOpCode.whileStmt);
-      bytesBuilder.addByte((condition != null) ? 1 : 0); // bool: has condition
-      bytesBuilder.add(loop);
-      if (increment != null) bytesBuilder.add(increment);
-      bytesBuilder.addByte(HTOpCode.goto);
-      bytesBuilder.add(_int16(-loopLength));
     }
+
+    bytesBuilder.addByte(HTOpCode.loopPoint);
+    final loop = _parseBlock(HTLexicon.forStmt);
+    final loopLength = (condition?.length ?? 0) + loop.length + (increment?.length ?? 0) + 5;
+    bytesBuilder.add(_uint16(loopLength));
+    if (condition != null) bytesBuilder.add(condition);
+    bytesBuilder.addByte(HTOpCode.whileStmt);
+    bytesBuilder.addByte((condition != null) ? 1 : 0); // bool: has condition
+    bytesBuilder.add(loop);
+    if (increment != null) bytesBuilder.add(increment);
+    bytesBuilder.addByte(HTOpCode.goto);
+    bytesBuilder.add(_int16(-loopLength));
+
     bytesBuilder.addByte(HTOpCode.endOfBlock);
     return bytesBuilder.toBytes();
   }
@@ -1321,7 +1405,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bool isImmutable = false,
       bool isMember = false,
       bool isStatic = false,
-      bool endOfStatement = false}) {
+      bool endOfStatement = false,
+      Uint8List? initializer}) {
     advance(1);
     var id = match(HTLexicon.identifier).lexeme;
 
@@ -1350,6 +1435,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     if (expect([HTLexicon.assign], consume: true)) {
       final initializer = _parseExpr(endOfExec: true);
+      bytesBuilder.addByte(1); // bool: has initializer
+      bytesBuilder.add(_uint16(initializer.length));
+      bytesBuilder.add(initializer);
+    } else if (initializer != null) {
       bytesBuilder.addByte(1); // bool: has initializer
       bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
