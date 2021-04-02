@@ -4,4 +4,4 @@ dart_task:
   - test:
 
 script:
-  - pub run test test/test.dart
+  - pub run test test/hetu_test.dart
