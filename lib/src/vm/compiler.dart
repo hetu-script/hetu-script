@@ -616,7 +616,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       _leftValueLegality = false;
       while (curTok.type == HTLexicon.logicalOr) {
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.or);
+        bytesBuilder.addByte(HTRegIdx.orLeft);
         advance(1); // or operator
         final right = _parseLogicalAndExpr();
         bytesBuilder.add(right);
@@ -635,7 +635,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       _leftValueLegality = false;
       while (curTok.type == HTLexicon.logicalAnd) {
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.and);
+        bytesBuilder.addByte(HTRegIdx.andLeft);
         advance(1); // and operator
         final right = _parseEqualityExpr();
         bytesBuilder.add(right);
@@ -654,7 +654,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     if (HTLexicon.equalitys.contains(curTok.type)) {
       _leftValueLegality = false;
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(HTRegIdx.equal);
+      bytesBuilder.addByte(HTRegIdx.equalLeft);
       final op = advance(1).type;
       final right = _parseRelationalExpr();
       bytesBuilder.add(right);
@@ -678,7 +678,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     if (HTLexicon.relationals.contains(curTok.type)) {
       _leftValueLegality = false;
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relation);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
       final op = advance(1).type;
       switch (op) {
         case HTLexicon.lesser:
@@ -720,10 +720,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
       _leftValueLegality = false;
       while (HTLexicon.additives.contains(curTok.type)) {
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.add);
+        bytesBuilder.addByte(HTRegIdx.addLeft);
         final op = advance(1).type;
         final right = _parseMultiplicativeExpr();
         bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(HTRegIdx.addRight);
         switch (op) {
           case HTLexicon.add:
             bytesBuilder.addByte(HTOpCode.add);
@@ -746,7 +748,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       _leftValueLegality = false;
       while (HTLexicon.multiplicatives.contains(curTok.type)) {
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.multiply);
+        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
         final op = advance(1).type;
         final right = _parseUnaryPrefixExpr();
         bytesBuilder.add(right);
@@ -803,7 +805,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     bytesBuilder.add(object); // object will stay in reg[14]
     while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
       bytesBuilder.addByte(HTOpCode.register);
-      bytesBuilder.addByte(HTRegIdx.postfix);
+      bytesBuilder.addByte(HTRegIdx.postfixObject);
       final op = advance(1).type;
       switch (op) {
         case HTLexicon.memberGet:
@@ -812,7 +814,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
           _leftValueLegality = true;
           bytesBuilder.add(key);
           bytesBuilder.addByte(HTOpCode.register);
-          bytesBuilder.addByte(HTRegIdx.key);
+          bytesBuilder.addByte(HTRegIdx.postfixKey);
           bytesBuilder.addByte(HTOpCode.memberGet);
           break;
         case HTLexicon.subGet:
@@ -820,7 +822,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
           _leftValueLegality = true;
           bytesBuilder.add(key); // int
           bytesBuilder.addByte(HTOpCode.register);
-          bytesBuilder.addByte(HTRegIdx.key);
+          bytesBuilder.addByte(HTRegIdx.postfixKey);
           bytesBuilder.addByte(HTOpCode.subGet);
           match(HTLexicon.squareRight);
           break;

@@ -566,8 +566,8 @@ class Hetu extends Interpreter {
         _curNamespace.assign(_curSymbol!, value, from: _curNamespace.fullName);
         break;
       case ReferrenceType.member:
-        final object = _getRegVal(HTRegIdx.postfix);
-        final key = _getRegVal(HTRegIdx.key);
+        final object = _getRegVal(HTRegIdx.postfixObject);
+        final key = _getRegVal(HTRegIdx.postfixKey);
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
         }
@@ -584,8 +584,8 @@ class Hetu extends Interpreter {
         }
         break;
       case ReferrenceType.sub:
-        final object = _getRegVal(HTRegIdx.postfix);
-        final key = _getRegVal(HTRegIdx.key);
+        final object = _getRegVal(HTRegIdx.postfixObject);
+        final key = _getRegVal(HTRegIdx.postfixKey);
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(object);
         }
@@ -731,31 +731,31 @@ class Hetu extends Interpreter {
   void _handleBinaryOp(int opcode) {
     switch (opcode) {
       case HTOpCode.logicalOr:
-        _curValue = _getRegVal(HTRegIdx.or) || _curValue;
+        _curValue = _getRegVal(HTRegIdx.orLeft) || _curValue;
         break;
       case HTOpCode.logicalAnd:
-        _curValue = _getRegVal(HTRegIdx.and) && _curValue;
+        _curValue = _getRegVal(HTRegIdx.andLeft) && _curValue;
         break;
       case HTOpCode.equal:
-        _curValue = _getRegVal(HTRegIdx.equal) == _curValue;
+        _curValue = _getRegVal(HTRegIdx.equalLeft) == _curValue;
         break;
       case HTOpCode.notEqual:
-        _curValue = _getRegVal(HTRegIdx.equal) != _curValue;
+        _curValue = _getRegVal(HTRegIdx.equalLeft) != _curValue;
         break;
       case HTOpCode.lesser:
-        _curValue = _getRegVal(HTRegIdx.relation) < _curValue;
+        _curValue = _getRegVal(HTRegIdx.relationLeft) < _curValue;
         break;
       case HTOpCode.greater:
-        _curValue = _getRegVal(HTRegIdx.relation) > _curValue;
+        _curValue = _getRegVal(HTRegIdx.relationLeft) > _curValue;
         break;
       case HTOpCode.lesserOrEqual:
-        _curValue = _getRegVal(HTRegIdx.relation) <= _curValue;
+        _curValue = _getRegVal(HTRegIdx.relationLeft) <= _curValue;
         break;
       case HTOpCode.greaterOrEqual:
-        _curValue = _getRegVal(HTRegIdx.relation) >= _curValue;
+        _curValue = _getRegVal(HTRegIdx.relationLeft) >= _curValue;
         break;
       case HTOpCode.typeIs:
-        var object = _getRegVal(HTRegIdx.relation);
+        var object = _getRegVal(HTRegIdx.relationLeft);
         var typeid = _curValue;
         if (typeid is! HTTypeId) {
           throw HTErrorNotType(typeid.toString());
@@ -763,7 +763,7 @@ class Hetu extends Interpreter {
         _curValue = encapsulate(object).isA(typeid);
         break;
       case HTOpCode.typeIsNot:
-        var object = _getRegVal(HTRegIdx.relation);
+        var object = _getRegVal(HTRegIdx.relationLeft);
         var typeid = _curValue;
         if (typeid is! HTTypeId) {
           throw HTErrorNotType(typeid.toString());
@@ -771,19 +771,19 @@ class Hetu extends Interpreter {
         _curValue = encapsulate(object).isNotA(typeid);
         break;
       case HTOpCode.add:
-        _curValue = _getRegVal(HTRegIdx.add) + _curValue;
+        _curValue = _getRegVal(HTRegIdx.addLeft) + _curValue;
         break;
       case HTOpCode.subtract:
-        _curValue = _getRegVal(HTRegIdx.add) - _curValue;
+        _curValue = _getRegVal(HTRegIdx.addLeft) - _getRegVal(HTRegIdx.addRight);
         break;
       case HTOpCode.multiply:
-        _curValue = _getRegVal(HTRegIdx.multiply) * _curValue;
+        _curValue = _getRegVal(HTRegIdx.multiplyLeft) * _curValue;
         break;
       case HTOpCode.devide:
-        _curValue = _getRegVal(HTRegIdx.multiply) / _curValue;
+        _curValue = _getRegVal(HTRegIdx.multiplyLeft) / _curValue;
         break;
       case HTOpCode.modulo:
-        _curValue = _getRegVal(HTRegIdx.multiply) % _curValue;
+        _curValue = _getRegVal(HTRegIdx.multiplyLeft) % _curValue;
         break;
       default:
       // throw HTErrorUndefinedBinaryOperator(_getRegVal(left).toString(), _getRegVal(right).toString(), opcode);
@@ -813,7 +813,7 @@ class Hetu extends Interpreter {
   }
 
   void _handleCallExpr() {
-    var callee = _getRegVal(HTRegIdx.postfix);
+    var callee = _getRegVal(HTRegIdx.postfixObject);
 
     var positionalArgs = [];
     final positionalArgsLength = _curCode.read();
@@ -867,8 +867,8 @@ class Hetu extends Interpreter {
   void _handleUnaryPostfixOp(int op) {
     switch (op) {
       case HTOpCode.memberGet:
-        var object = _getRegVal(HTRegIdx.postfix);
-        var key = _getRegVal(HTRegIdx.key);
+        var object = _getRegVal(HTRegIdx.postfixObject);
+        var key = _getRegVal(HTRegIdx.postfixKey);
 
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
@@ -898,8 +898,8 @@ class Hetu extends Interpreter {
         }
         break;
       case HTOpCode.subGet:
-        var object = _getRegVal(HTRegIdx.postfix);
-        var key = _getRegVal(HTRegIdx.key);
+        var object = _getRegVal(HTRegIdx.postfixObject);
+        var key = _getRegVal(HTRegIdx.postfixKey);
 
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
@@ -916,12 +916,12 @@ class Hetu extends Interpreter {
         _handleCallExpr();
         break;
       case HTOpCode.postIncrement:
-        _curValue = _getRegVal(HTRegIdx.postfix);
+        _curValue = _getRegVal(HTRegIdx.postfixObject);
         final value = _curValue + 1;
         _assignCurRef(value);
         break;
       case HTOpCode.postDecrement:
-        _curValue = _getRegVal(HTRegIdx.postfix);
+        _curValue = _getRegVal(HTRegIdx.postfixObject);
         final value = _curValue - 1;
         _assignCurRef(value);
         break;
