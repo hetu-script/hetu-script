@@ -4,10 +4,21 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      fun main {
-        var i = 'hello'
-        var j = 'world'
-        print('${i} ${j}')
+      var globalVar = 0
+      class GetGlobal {
+        construct {
+          globalVar = 2
+        }
+        fun test {
+          return (globalVar * globalVar)
+        }
+        static fun staticTest {
+          return (globalVar + 1)
+        }
+s      }
+      fun getGlobalVar() {
+        var a = GetGlobal()
+        print( a.test() + GetGlobal.staticTest())
       }
-      ''', invokeFunc: 'main');
+      ''', invokeFunc: 'getGlobalVar');
 }

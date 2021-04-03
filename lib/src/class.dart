@@ -137,6 +137,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
+    final constructor = '${HTLexicon.constructor}$varName';
     final externalName = '$id.$varName';
 
     if (namespace.declarations.containsKey(varName)) {
@@ -165,8 +166,14 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
           !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final func = namespace.declarations[getter]! as HTFunction;
+      final func = namespace.declarations[getter] as HTFunction;
       return func.call();
+    } else if (namespace.declarations.containsKey(constructor)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTErrorPrivateMember(varName);
+      }
+      return namespace.declarations[constructor] as HTFunction;
     } else if (namespace.declarations.containsKey(externalName) &&
         _classType == ClassType.extern) {
       if (varName.startsWith(HTLexicon.underscore) &&
@@ -211,7 +218,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
           !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final setterFunc = namespace.declarations[setter]! as HTFunction;
+      final setterFunc = namespace.declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [value]);
       return;
     } else if (namespace.declarations.containsKey(externalName) &&
@@ -239,7 +246,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
 
   /// Create a [HTInstance] from this [HTClass].
   HTInstance createInstance(
-      {String? constructorName = '',
+      {String? constructorName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
@@ -254,10 +261,10 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       } else if (decl is HTClass) {}
     }
 
-    final funcId = '${HTLexicon.constructor}$constructorName';
+    final funcId = constructorName ?? HTLexicon.constructor;
     if (namespace.declarations.containsKey(funcId)) {
       /// TODO：对象初始化时从父类逐个调用构造函数
-      final constructor = namespace.declarations[funcId]! as HTFunction;
+      final constructor = namespace.declarations[funcId] as HTFunction;
       constructor.context = instance;
       constructor.call(
           positionalArgs: positionalArgs,
@@ -382,7 +389,7 @@ class HTInstance extends HTNamespace {
           !from.startsWith(fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final method = declarations[getter]! as HTFunction;
+      final method = declarations[getter] as HTFunction;
       method.context = this;
       return method.call();
     }
@@ -423,7 +430,7 @@ class HTInstance extends HTNamespace {
           !from.startsWith(fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final method = declarations[setter]! as HTFunction;
+      final method = declarations[setter] as HTFunction;
       method.context = this;
       method.call(positionalArgs: [value]);
       return;

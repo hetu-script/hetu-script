@@ -925,10 +925,37 @@ class Hetu extends Interpreter {
     final typeArgs = <HTTypeId>[];
 
     if (callee is HTFunction) {
-      _curValue = callee.call(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
+      // 普通函数
+      if (callee.funcType != FunctionType.constructor) {
+        _curValue = callee.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
+      } else {
+        final classId = callee.classId!;
+        HTClass klass = global.fetch(classId);
+        if (klass.classType != ClassType.extern) {
+          // 命名构造函数
+          _curValue = klass.createInstance(
+              constructorName: callee.id,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              typeArgs: typeArgs);
+        } else {
+          // 外部命名构造函数
+          final externClass = fetchExternalClass(classId);
+          final constructor = externClass.memberGet(callee.id);
+          if (constructor is HTExternalFunction) {
+            _curValue = constructor(
+                positionalArgs: positionalArgs,
+                namedArgs: namedArgs,
+                typeArgs: typeArgs);
+          } else {
+            return Function.apply(constructor, positionalArgs,
+                namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          }
+        }
+      }
     } // 外部函数
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
