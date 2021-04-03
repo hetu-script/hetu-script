@@ -1107,7 +1107,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       loopBody = _parseStmt(codeType: CodeType.block);
     }
     final loopLength = (condition?.length ?? 0) + loopBody.length + 5;
-    bytesBuilder.add(_uint16(loopLength)); // while loop end ip
+    bytesBuilder.add(_uint16(0)); // while loop continue ip
+    bytesBuilder.add(_uint16(loopLength)); // while loop break ip
     if (condition != null) {
       bytesBuilder.add(condition);
       bytesBuilder.addByte(HTOpCode.whileStmt);
@@ -1136,8 +1137,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
     match(HTLexicon.roundLeft);
     final condition = _parseExpr();
     match(HTLexicon.roundRight);
-    final loopLength = _uint16(loopBody.length + condition.length + 1);
-    bytesBuilder.add(loopLength);
+    final loopLength = loopBody.length + condition.length + 1;
+    bytesBuilder.add(_uint16(0)); // while loop continue ip
+    bytesBuilder.add(_uint16(loopLength)); // while loop break ip
     bytesBuilder.add(loopBody);
     bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.doStmt);
@@ -1211,6 +1213,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     match(HTLexicon.roundLeft);
     final forStmtType = peek(2).lexeme;
     Uint8List? condition;
+    Uint8List? assign;
     Uint8List? increment;
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
@@ -1260,25 +1263,28 @@ class Compiler extends Parser with ConstTable, HetuRef {
       conditionBytesBuilder.addByte(HTOpCode.logicalAnd);
       condition = conditionBytesBuilder.toBytes();
 
+      final assignBytesBuilder = BytesBuilder();
+      final getElemFunc = _assembleMemberGet(object, HTLexicon.elementAt);
+      assignBytesBuilder.add(getElemFunc);
+      assignBytesBuilder.addByte(HTOpCode.register);
+      assignBytesBuilder.addByte(HTRegIdx.postfixObject);
+      assignBytesBuilder.addByte(HTOpCode.call);
+      assignBytesBuilder.addByte(1); // length of positionalArgs
+      final getElemFuncCallArg = _assembleLocalSymbol(increId);
+      assignBytesBuilder.add(getElemFuncCallArg);
+      assignBytesBuilder.addByte(HTOpCode.endOfExec);
+      assignBytesBuilder.addByte(0); // length of namedArgs
+      assignBytesBuilder.addByte(HTOpCode.register);
+      assignBytesBuilder.addByte(HTRegIdx.assign);
+      final assignLeftExpr = _assembleLocalSymbol(id);
+      assignBytesBuilder.add(assignLeftExpr);
+      assignBytesBuilder.addByte(HTOpCode.assign);
+      assign = assignBytesBuilder.toBytes();
+
       final incrementBytesBuilder = BytesBuilder();
       final preIncreExpr = _assembleLocalSymbol(increId);
       incrementBytesBuilder.add(preIncreExpr);
       incrementBytesBuilder.addByte(HTOpCode.preIncrement);
-      final getElemFunc = _assembleMemberGet(object, HTLexicon.elementAt);
-      incrementBytesBuilder.add(getElemFunc);
-      incrementBytesBuilder.addByte(HTOpCode.register);
-      incrementBytesBuilder.addByte(HTRegIdx.postfixObject);
-      incrementBytesBuilder.addByte(HTOpCode.call);
-      incrementBytesBuilder.addByte(1); // length of positionalArgs
-      final getElemFuncCallArg = _assembleLocalSymbol(increId);
-      incrementBytesBuilder.add(getElemFuncCallArg);
-      incrementBytesBuilder.addByte(HTOpCode.endOfExec);
-      incrementBytesBuilder.addByte(0); // length of namedArgs
-      incrementBytesBuilder.addByte(HTOpCode.register);
-      incrementBytesBuilder.addByte(HTRegIdx.assign);
-      final assignLeftExpr = _assembleLocalSymbol(id);
-      incrementBytesBuilder.add(assignLeftExpr);
-      incrementBytesBuilder.addByte(HTOpCode.assign);
       increment = incrementBytesBuilder.toBytes();
 
       // go back to block start
@@ -1317,13 +1323,14 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final loop = _parseBlock(HTLexicon.forStmt);
-    final continueLength = (condition?.length ?? 0) + loop.length + 2;
+    final continueLength = (condition?.length ?? 0) + (assign?.length ?? 0) + loop.length + 2;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
     bytesBuilder.add(_uint16(continueLength));
     bytesBuilder.add(_uint16(breakLength));
     if (condition != null) bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.whileStmt);
     bytesBuilder.addByte((condition != null) ? 1 : 0); // bool: has condition
+    if (assign != null) bytesBuilder.add(assign);
     bytesBuilder.add(loop);
     if (increment != null) bytesBuilder.add(increment);
     bytesBuilder.addByte(HTOpCode.goto);

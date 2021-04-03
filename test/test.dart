@@ -5,14 +5,10 @@ void main() async {
   await hetu.init();
   await hetu.eval('''
       fun main {
-        var j = 0
-        for (var i = 0; i < 5; ++i) {
-          if (i % 2 == 0){
-            continue
-          }
-          j += i
+        var rows = [1,2,3]
+        for (var r in rows){
+          print(r)
         }
-        print(j)
       }
       ''', invokeFunc: 'main');
 }
