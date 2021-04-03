@@ -10,12 +10,13 @@ void main() async {
       final result = await hetu.eval(r'''
       fun interpolation {
         var a = 'dragon'
-        return ('To kill the ${a}, you have to wait ${6*7} years.')
+        var b
+        return ('To kill the ${a}, you have to wait ${b} years.')
       }
     ''', invokeFunc: 'interpolation');
       expect(
         result,
-        'To kill the dragon, you have to wait 42 years.',
+        'To kill the dragon, you have to wait null years.',
       );
     });
   });
