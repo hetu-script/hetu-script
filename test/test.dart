@@ -5,8 +5,9 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
       fun main {
-        var i
-        print('i: ${i}')
+        var i = 'hello'
+        var j = 'world'
+        print(' ${i} ${j}')
       }
       ''', invokeFunc: 'main');
 }
