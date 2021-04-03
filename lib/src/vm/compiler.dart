@@ -570,6 +570,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   }
 
   Uint8List _localSubValue() {
+    // 这里没有判断左括号，因为已经在 operator 那边跳过了
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.tuple);

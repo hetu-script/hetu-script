@@ -95,7 +95,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.CLASS;
 
-  final HTClassNamespace _namespace;
+  final HTClassNamespace namespace;
 
   late final ClassType _classType;
   ClassType get classType => _classType;
@@ -113,7 +113,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(String id, this._namespace, this.superClass, Interpreter interpreter,
+  HTClass(String id, this.namespace, this.superClass, Interpreter interpreter,
       {ClassType classType = ClassType.normal, this.typeParams = const []})
       : super(id, isNullable: false) {
     this.interpreter = interpreter;
@@ -124,20 +124,20 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   /// Wether there's a member in this [HTClass] by the [varName].
   @override
   bool contains(String varName) =>
-      _namespace.declarations.containsKey(varName) ||
-      _namespace.declarations.containsKey('${HTLexicon.getter}$varName') ||
-      _namespace.declarations.containsKey('$id.$varName');
+      namespace.declarations.containsKey(varName) ||
+      namespace.declarations.containsKey('${HTLexicon.getter}$varName') ||
+      namespace.declarations.containsKey('$id.$varName');
 
   /// Get a value of a static member from this [HTClass].
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
     final externalName = '$id.$varName';
-    if (_namespace.declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
+    if (namespace.declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final decl = _namespace.declarations[varName]!;
+      final decl = namespace.declarations[varName]!;
       if (decl is HTFunction) {
         if (decl.externalTypedef != null) {
           final externalFunc = interpreter.unwrapExternalFunctionType(decl.externalTypedef!, decl);
@@ -152,17 +152,17 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       } else if (decl is HTClass) {
         return null;
       }
-    } else if (_namespace.declarations.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
+    } else if (namespace.declarations.containsKey(getter)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final func = _namespace.declarations[getter]! as HTFunction;
+      final func = namespace.declarations[getter]! as HTFunction;
       return func.call();
-    } else if (_namespace.declarations.containsKey(externalName) && _classType == ClassType.extern) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
+    } else if (namespace.declarations.containsKey(externalName) && _classType == ClassType.extern) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final decl = _namespace.declarations[externalName]!;
+      final decl = namespace.declarations[externalName]!;
       final externClass = interpreter.fetchExternalClass(id);
       if (decl is HTFunction) {
         return decl;
@@ -182,25 +182,25 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     final setter = '${HTLexicon.setter}$varName';
     final externalName = '$id.$varName';
 
-    if (_namespace.declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
+    if (namespace.declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final decl = _namespace.declarations[varName]!;
+      final decl = namespace.declarations[varName]!;
       if (decl is HTVariable) {
         decl.assign(value);
         return;
       } else {
         throw HTErrorImmutable(varName);
       }
-    } else if (_namespace.declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
+    } else if (namespace.declarations.containsKey(setter)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final setterFunc = _namespace.declarations[setter]! as HTFunction;
+      final setterFunc = namespace.declarations[setter]! as HTFunction;
       setterFunc.call(positionalArgs: [value]);
       return;
-    } else if (_namespace.declarations.containsKey(externalName) && _classType == ClassType.extern) {
+    } else if (namespace.declarations.containsKey(externalName) && _classType == ClassType.extern) {
       final externClass = interpreter.fetchExternalClass(id);
       externClass.memberSet(externalName, value);
       return;
@@ -227,7 +227,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    var instance = HTInstance(id, interpreter, _instanceIndex++, typeArgs: typeArgs, closure: _namespace);
+    var instance = HTInstance(id, interpreter, _instanceIndex++, typeArgs: typeArgs, closure: namespace);
 
     for (final decl in instanceMembers.values) {
       if (decl is HTFunction) {
@@ -238,9 +238,9 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     }
 
     final funcId = '${HTLexicon.constructor}$constructorName';
-    if (_namespace.declarations.containsKey(funcId)) {
+    if (namespace.declarations.containsKey(funcId)) {
       /// TODO：对象初始化时从父类逐个调用构造函数
-      final constructor = _namespace.declarations[funcId]! as HTFunction;
+      final constructor = namespace.declarations[funcId]! as HTFunction;
       constructor.context = instance;
       constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
     }
@@ -255,7 +255,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       List<HTTypeId> typeArgs = const [],
       bool errorHandled = true}) {
     try {
-      final func = memberGet(funcName, from: _namespace.fullName);
+      final func = memberGet(funcName, from: namespace.fullName);
 
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
@@ -270,7 +270,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   }
 }
 
-/// The Dart implementation of the instance instance in Hetu.
+/// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 class HTInstance extends HTNamespace {
   @override

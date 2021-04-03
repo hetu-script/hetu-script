@@ -50,8 +50,8 @@ mixin HTObject {
   /// Wether this object is of the type by [otherTypeid]
   bool isA(HTTypeId otherTypeid) {
     var result = true;
-    if (otherTypeid.id != HTLexicon.ANY) {
-      if (typeid.id == otherTypeid.id) {
+    if (otherTypeid.name != HTLexicon.ANY) {
+      if (typeid.name == otherTypeid.name) {
         if (typeid.arguments.length >= otherTypeid.arguments.length) {
           for (var i = 0; i < otherTypeid.arguments.length; ++i) {
             if (typeid.arguments[i].isNotA(otherTypeid.arguments[i])) {
@@ -63,7 +63,7 @@ mixin HTObject {
           result = false;
         }
       } else {
-        if (typeid.id == HTLexicon.NULL && otherTypeid.isNullable) {
+        if (typeid.name == HTLexicon.NULL && otherTypeid.isNullable) {
           result = true;
         } else {
           result = false;

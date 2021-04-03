@@ -8,8 +8,8 @@ class HTTypeId with HTObject {
   static const VOID = HTTypeId(HTLexicon.VOID);
   static const CLASS = HTTypeId(HTLexicon.CLASS);
   static const ENUM = HTTypeId(HTLexicon.ENUM);
+  static const NAMESPACE = HTTypeId(HTLexicon.NAMESPACE);
   static const object = HTTypeId(HTLexicon.object);
-  static const namespace = HTTypeId(HTLexicon.NAMESPACE);
   static const function = HTTypeId(HTLexicon.function);
   static const unknown = HTTypeId(HTLexicon.unknown);
   static const number = HTTypeId(HTLexicon.number);
@@ -31,16 +31,16 @@ class HTTypeId with HTObject {
     }
   }
 
-  final String id;
+  final String name;
   final bool isNullable;
   final List<HTTypeId> arguments;
 
-  const HTTypeId(this.id, {this.isNullable = true, this.arguments = const []});
+  const HTTypeId(this.name, {this.isNullable = true, this.arguments = const []});
 
   @override
   String toString() {
     var typename = StringBuffer();
-    typename.write(id);
+    typename.write(name);
     if (arguments.isNotEmpty) {
       typename.write('<');
       for (var i = 0; i < arguments.length; ++i) {
@@ -65,7 +65,7 @@ class HTFunctionTypeId extends HTTypeId {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('$id');
+    result.write('$name');
     if (arguments.isNotEmpty) {
       result.write('<');
       for (var i = 0; i < arguments.length; ++i) {

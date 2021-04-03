@@ -10,25 +10,28 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.ENUM;
 
-  final Map<String, HTEnumItem> _enums;
+  /// The enumeration item of this [HTEnum].
+  final Map<String, HTEnumItem> enums;
 
+  /// Wether this is a external enum, which is declared in Dart codes.
   final bool isExtern;
 
-  HTEnum(String id, this._enums, Interpreter interpreter, {this.isExtern = false}) {
+  /// Create a default [HTEnum] class.
+  HTEnum(String id, this.enums, Interpreter interpreter, {this.isExtern = false}) {
     this.interpreter = interpreter;
     this.id = id;
   }
 
   @override
-  bool contains(String varName) => _enums.containsKey(varName);
+  bool contains(String varName) => enums.containsKey(varName);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (!isExtern) {
-      if (_enums.containsKey(varName)) {
-        return _enums[varName]!;
+      if (enums.containsKey(varName)) {
+        return enums[varName]!;
       } else if (varName == HTLexicon.values) {
-        return _enums.values.toList();
+        return enums.values.toList();
       }
     } else {
       final externEnumClass = interpreter.fetchExternalClass(id);
@@ -42,24 +45,28 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
 
   @override
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (_enums.containsKey(varName)) {
+    if (enums.containsKey(varName)) {
       throw HTErrorImmutable(varName);
     }
     throw HTErrorUndefined(varName);
   }
 }
 
+/// The Dart implementation of the enum item in Hetu.
 class HTEnumItem with HTObject {
   @override
   final HTTypeId typeid;
 
+  /// The index of this enum item.
   final int index;
 
+  /// The name of this enum item.
   final String id;
 
   @override
-  String toString() => '${typeid.id}$id';
+  String toString() => '${typeid.name}$id';
 
+  /// Default [HTEnumItem] constructor.
   HTEnumItem(this.index, this.id, this.typeid);
 
   @override

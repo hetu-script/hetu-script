@@ -1,7 +1,3 @@
-class HTBreak {}
-
-class HTContinue {}
-
 enum HTErrorType {
   parser,
   resolver,
@@ -12,8 +8,6 @@ enum HTErrorType {
 }
 
 abstract class HTError {
-  // static const errorAssign = 'Could not assgin to';
-  // static const errorUnsupport = 'Unsupport value type';
   static const expected = 'expected, ';
   static const constMustBeStatic = 'Class member constant must be static.';
   static const unexpected = 'Unexpected identifier';
@@ -25,7 +19,6 @@ abstract class HTError {
   static const undefinedExtern = 'Undefined external identifier';
   static const unknownType = 'Unkown type of object:';
   static const undefinedOperator = 'Undefined operator';
-  // static const errorDeclared = 'is already declared';
   static const defined = 'is already defined';
   // static const errorRange = 'Index out of range, should be less than';
   static const invalidLeftValue = 'Illegal left value.';
@@ -120,7 +113,6 @@ class HTInterpreterError extends HTError {
   final int column;
   final String fileName;
 
-  // interpreter会也会处理其他module抛出的异常，因此这里不指定类型
   HTInterpreterError(String message, HTErrorType type, this.fileName, this.line, this.column) : super(message, type);
 
   @override
@@ -156,14 +148,6 @@ class HTErrorIllegalLeftValue extends HTParserError {
   HTErrorIllegalLeftValue() : super(HTError.invalidLeftValue);
 }
 
-// class HTErrorAssign extends HTError {
-//   HTErrorAssign(String id) : super('${HTError.errorAssign} [$id]');
-// }
-
-// class HTErrorUnsupport extends HTError {
-//   HTErrorUnsupport(String id) : super('${HTError.errorUnsupport} [$id]');
-// }
-
 class HTErrorPrivateMember extends HTError {
   HTErrorPrivateMember(String id) : super('${HTError.privateMember} [$id]', HTErrorType.interpreter);
 }
@@ -197,10 +181,6 @@ class HTErrorUndefinedBinaryOperator extends HTError {
   HTErrorUndefinedBinaryOperator(String id1, String id2, String op)
       : super('${HTError.undefinedOperator} [$id1] [$op] [$id2]', HTErrorType.interpreter);
 }
-
-// class HTErrorDeclared extends HTError {
-//   HTErrorDeclared(String id) : super('[$id] ${HTError.errorDeclared}');
-// }
 
 class HTErrorSetter extends HTParserError {
   HTErrorSetter() : super(HTError.setterArity);
@@ -242,10 +222,6 @@ class HTErrorUndefinedMember extends HTError {
 class HTErrorCondition extends HTError {
   HTErrorCondition() : super(HTError.conditionMustBeBool, HTErrorType.interpreter);
 }
-
-// class HTErrorGet extends HTError {
-//   HTErrorGet(String id) : super('[$id] ${HTError.errorGet}', HTErrorType.interpreter);
-// }
 
 class HTErrorSubGet extends HTError {
   HTErrorSubGet(String id) : super('[$id] ${HTError.notList}', HTErrorType.interpreter);

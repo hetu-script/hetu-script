@@ -17,12 +17,28 @@ abstract class HTExternalClass with HTObject {
   //   typeid = HTTypeId.parse(typeString);
   // }
 
+  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object.key
+  /// ```
   dynamic instanceMemberGet(dynamic instance, String varName) => throw HTErrorUndefined(varName);
 
+  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object.key = value
+  /// ```
   void instanceMemberSet(dynamic instance, String varName, dynamic value) => throw HTErrorUndefined(varName);
 
+  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object[key]
+  /// ```
   dynamic instanceSubGet(dynamic instance, dynamic key) => throw HTErrorUndefined(key);
 
+  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object[key] = value
+  /// ```
   void instanceSubSet(dynamic instance, dynamic key, dynamic value) => throw HTErrorUndefined(key);
 }
 

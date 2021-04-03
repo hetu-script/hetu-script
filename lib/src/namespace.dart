@@ -26,7 +26,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
   @override
-  final typeid = HTTypeId.namespace;
+  final typeid = HTTypeId.NAMESPACE;
 
   late final String fullName;
 
