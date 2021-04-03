@@ -15,8 +15,8 @@ void main() async {
 
       fun main {
         var func = closure( fun (n) => n * n )
-        print(func())
-        print(func())
+        func()
+        func()
       }
       ''', invokeFunc: 'main');
 }

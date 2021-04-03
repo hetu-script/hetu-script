@@ -133,6 +133,11 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
     final externalName = '$id.$varName';
+    if (classType == ClassType.extern) {
+      final externClass = interpreter.fetchExternalClass(id);
+      return externClass.memberGet(externalName);
+    }
+
     if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
@@ -181,6 +186,12 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
     final externalName = '$id.$varName';
+
+    if (classType == ClassType.extern) {
+      final externClass = interpreter.fetchExternalClass(id);
+      externClass.memberSet(externalName, value);
+      return;
+    }
 
     if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
