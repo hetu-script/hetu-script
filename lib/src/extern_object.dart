@@ -31,7 +31,7 @@ class HTNumber extends HTExternObject<num> {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTTypeId> typeArgs = const []}) {
-          final digit = positionalArgs.isEmpty ? 0 : positionalArgs.first;
+          final digit = positionalArgs.first;
           return externObject.toStringAsFixed(digit);
         };
       case 'truncate':
