@@ -76,7 +76,15 @@ external class List {
 
 	get isNotEmpty: bool
 
-	fun add(value: dynamic)
+	get first
+
+	get last
+
+	fun contains(value): bool
+
+	fun add(value)
+
+	fun addAll(value: List)
 
 	fun clear()
 
@@ -85,12 +93,6 @@ external class List {
 	fun indexOf(value): num
 
 	fun elementAt(index: num): any
-
-	get first
-
-	get last
-
-	fun contains(value): bool
 
 	fun join(splitter: str): str
 }
