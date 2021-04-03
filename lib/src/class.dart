@@ -8,8 +8,8 @@ import 'common.dart';
 import 'variable.dart';
 import 'declaration.dart';
 
-/// class 成员所在的命名空间，通常用于成员函数内部
-/// 在没有 [this]，class id 的情况下检索变量
+/// A implementation of [HTNamespace] for [HTClass].
+/// For interpreter searching for symbols within class methods.
 class HTClassNamespace extends HTNamespace {
   HTClassNamespace(String id, Interpreter interpreter, {HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
@@ -84,24 +84,8 @@ class HTClassNamespace extends HTNamespace {
 }
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
-///
-/// [HTClass] extends [HTNamespace].
-///
-/// The values defined in this namespace are methods and [static] members in Hetu class.
-///
-/// The [variables] are instance members.
-///
-/// Class can have type parameters.
-///
-/// Type parameters are optional and defined after class name. Example:
-///
-/// ```typescript
-/// class Map<KeyType, ValueType> {
-///   final keys: List<KeyType>
-///   final values: List<ValueType>
-///   ...
-/// }
-/// ```
+/// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
+/// instance members of this class created by [createInstance] are stored in [instanceMembers].
 class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   var _instanceIndex = 0;
 
@@ -111,9 +95,10 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.CLASS;
 
-  final HTClassNamespace namespace;
+  final HTClassNamespace _namespace;
 
-  final ClassType classType;
+  late final ClassType _classType;
+  ClassType get classType => _classType;
 
   /// The type parameters of the class.
   final List<String> typeParams;
@@ -127,37 +112,32 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   final instanceMembers = <String, HTDeclaration>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
-  /// Create a class instance.
-  ///
-  /// [id] : the class name
-  ///
-  /// [typeParams] : the type parameters defined after class name.
-  ///
-  /// [closure] : the outer namespace of the class declaration,
-  /// normally the global namespace of the interpreter.
-  HTClass(String id, this.namespace, this.superClass, Interpreter interpreter,
-      {this.classType = ClassType.normal, this.typeParams = const []})
+  /// Create a default [HTClass] instance.
+  HTClass(String id, this._namespace, this.superClass, Interpreter interpreter,
+      {ClassType classType = ClassType.normal, this.typeParams = const []})
       : super(id, isNullable: false) {
     this.interpreter = interpreter;
     this.id = id;
+    _classType = classType;
   }
 
+  /// Wether there's a member in this [HTClass] by the [varName].
   @override
   bool contains(String varName) =>
-      namespace.declarations.containsKey(varName) ||
-      namespace.declarations.containsKey('${HTLexicon.getter}$varName') ||
-      namespace.declarations.containsKey('$id.$varName');
+      _namespace.declarations.containsKey(varName) ||
+      _namespace.declarations.containsKey('${HTLexicon.getter}$varName') ||
+      _namespace.declarations.containsKey('$id.$varName');
 
-  /// Get a value of a static member from this class.
+  /// Get a value of a static member from this [HTClass].
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
     final externalName = '$id.$varName';
-    if (namespace.declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
+    if (_namespace.declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final decl = namespace.declarations[varName]!;
+      final decl = _namespace.declarations[varName]!;
       if (decl is HTFunction) {
         if (decl.externalTypedef != null) {
           final externalFunc = interpreter.unwrapExternalFunctionType(decl.externalTypedef!, decl);
@@ -172,17 +152,17 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       } else if (decl is HTClass) {
         return null;
       }
-    } else if (namespace.declarations.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
+    } else if (_namespace.declarations.containsKey(getter)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final func = namespace.declarations[getter]! as HTFunction;
+      final func = _namespace.declarations[getter]! as HTFunction;
       return func.call();
-    } else if (namespace.declarations.containsKey(externalName) && classType == ClassType.extern) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
+    } else if (_namespace.declarations.containsKey(externalName) && _classType == ClassType.extern) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final decl = namespace.declarations[externalName]!;
+      final decl = _namespace.declarations[externalName]!;
       final externClass = interpreter.fetchExternalClass(id);
       if (decl is HTFunction) {
         return decl;
@@ -196,31 +176,31 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     throw HTErrorUndefined(varName);
   }
 
-  /// Assign a value to a static member of this class.
+  /// Assign a value to a static member of this [HTClass].
   @override
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
     final externalName = '$id.$varName';
 
-    if (namespace.declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
+    if (_namespace.declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final decl = namespace.declarations[varName]!;
+      final decl = _namespace.declarations[varName]!;
       if (decl is HTVariable) {
         decl.assign(value);
         return;
       } else {
         throw HTErrorImmutable(varName);
       }
-    } else if (namespace.declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
+    } else if (_namespace.declarations.containsKey(setter)) {
+      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(_namespace.fullName)) {
         throw HTErrorPrivateMember(varName);
       }
-      final setterFunc = namespace.declarations[setter]! as HTFunction;
+      final setterFunc = _namespace.declarations[setter]! as HTFunction;
       setterFunc.call(positionalArgs: [value]);
       return;
-    } else if (namespace.declarations.containsKey(externalName) && classType == ClassType.extern) {
+    } else if (_namespace.declarations.containsKey(externalName) && _classType == ClassType.extern) {
       final externClass = interpreter.fetchExternalClass(id);
       externClass.memberSet(externalName, value);
       return;
@@ -229,7 +209,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     throw HTErrorUndefined(varName);
   }
 
-  /// Add a instance member declaration to this class.
+  /// Add a instance member declaration to this [HTClass].
   void defineInstanceMember(HTDeclaration decl, {bool override = false, bool error = true}) {
     if (decl is HTClass) {
       throw HTErrorClassOnInstance();
@@ -241,14 +221,13 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     }
   }
 
-  /// Create a instance from this class.
-  /// TODO：对象初始化时从父类逐个调用构造函数
+  /// Create a [HTInstance] from this [HTClass].
   HTInstance createInstance(
       {String? constructorName = '',
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    var instance = HTInstance(id, interpreter, _instanceIndex++, typeArgs: typeArgs, closure: namespace);
+    var instance = HTInstance(id, interpreter, _instanceIndex++, typeArgs: typeArgs, closure: _namespace);
 
     for (final decl in instanceMembers.values) {
       if (decl is HTFunction) {
@@ -259,8 +238,9 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     }
 
     final funcId = '${HTLexicon.constructor}$constructorName';
-    if (namespace.declarations.containsKey(funcId)) {
-      final constructor = namespace.declarations[funcId]! as HTFunction;
+    if (_namespace.declarations.containsKey(funcId)) {
+      /// TODO：对象初始化时从父类逐个调用构造函数
+      final constructor = _namespace.declarations[funcId]! as HTFunction;
       constructor.context = instance;
       constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
     }
@@ -268,13 +248,14 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     return instance;
   }
 
+  /// Call a static function of this [HTClass].
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
-      bool errorHandled = false}) {
+      bool errorHandled = true}) {
     try {
-      final func = memberGet(funcName, from: namespace.fullName);
+      final func = memberGet(funcName, from: _namespace.fullName);
 
       if (func is HTFunction) {
         return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
@@ -290,11 +271,12 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
 }
 
 /// The Dart implementation of the instance instance in Hetu.
-/// [HTInstance] has no closure, it carries all decl from its super class.
+/// [HTInstance] carries all decl from its super classes.
 class HTInstance extends HTNamespace {
   @override
   late final HTTypeId typeid;
 
+  /// Create a default [HTInstance] instance.
   HTInstance(String className, Interpreter interpreter, int index,
       {List<HTTypeId> typeArgs = const [], HTNamespace? closure})
       : super(interpreter, id: '${HTLexicon.instance}$index', closure: closure) {
@@ -419,11 +401,12 @@ class HTInstance extends HTNamespace {
     throw HTErrorUndefined(varName);
   }
 
+  /// Call a member function of this [HTInstance].
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
-      bool errorHandled = false}) {
+      bool errorHandled = true}) {
     try {
       HTFunction func = memberGet(funcName, from: fullName);
       return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);

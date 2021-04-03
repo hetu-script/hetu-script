@@ -1,4 +1,5 @@
-///用于生成自动绑定代码的Annotation标记
+/// Annotation for auto-binding.
+/// Referrence: [https://github.com/hetu-script/hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)
 class HTAutoBinding {
   const HTAutoBinding();
 }

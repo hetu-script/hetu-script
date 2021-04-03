@@ -5,7 +5,7 @@ import 'package:hetu_script/hetu_script.dart';
 const cli_help = '''
 
   Hetu Script Command-line Tool
-  Version: 0.0.1
+  Version: 0.1.0
   Usage:
 
   hetu [option] [file_name] [invoke_func]
@@ -17,7 +17,8 @@ const cli_help = '''
 
 void main(List<String> args) async {
   try {
-    var hetu = Hetu();
+    final hetu = Hetu();
+    await hetu.init();
 
     dynamic result;
     if (args.isNotEmpty) {

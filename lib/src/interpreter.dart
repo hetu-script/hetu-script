@@ -1,6 +1,5 @@
-import 'package:hetu_script/src/object.dart';
+import 'package:pub_semver/pub_semver.dart';
 
-import 'lexicon.dart';
 import 'namespace.dart';
 import 'common.dart';
 import 'type.dart';
@@ -10,6 +9,7 @@ import 'errors.dart';
 import 'extern_function.dart';
 import 'function.dart';
 import 'extern_object.dart';
+import 'object.dart';
 import 'plugin/moduleHandler.dart';
 import 'plugin/errorHandler.dart';
 
@@ -18,11 +18,11 @@ mixin InterpreterRef {
 }
 
 abstract class Interpreter {
-  late HTVersion scriptVersion;
+  final version = Version(0, 1, 0);
 
   int get curLine;
   int get curColumn;
-  String? get curModuleName;
+  String? get curModuleUniqueKey;
 
   late bool debugMode;
 
@@ -31,9 +31,6 @@ abstract class Interpreter {
 
   /// 全局命名空间
   late HTNamespace global;
-
-  /// 当前语句所在的命名空间
-  HTNamespace get curNamespace;
 
   Interpreter({bool debugMode = false, HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler}) {
     this.debugMode = debugMode;
@@ -50,7 +47,7 @@ abstract class Interpreter {
     // TODO: dynamic load needed core lib in script
     if (coreModule) {
       for (final file in coreModules.keys) {
-        await eval(coreModules[file]!, moduleName: file);
+        await eval(coreModules[file]!, moduleUniqueKey: file);
       }
       for (var key in coreFunctions.keys) {
         bindExternalFunction(key, coreFunctions[key]!);
@@ -77,7 +74,7 @@ abstract class Interpreter {
   }
 
   Future<dynamic> eval(String content,
-      {String? moduleName,
+      {String? moduleUniqueKey,
       CodeType codeType = CodeType.module,
       bool debugMode = true,
       HTNamespace? namespace,
@@ -88,37 +85,14 @@ abstract class Interpreter {
 
   /// 解析文件
   Future<dynamic> import(String key,
-      {String? curModuleName,
+      {String? curModuleUniqueKey,
       String? moduleName,
       CodeType codeType = CodeType.module,
       bool debugMode = true,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) async {
-    dynamic result;
-    final module = await moduleHandler.import(key, curModuleName);
-
-    if (module.duplicate) return;
-
-    HTNamespace? namespace;
-    if ((moduleName != null) && (moduleName != HTLexicon.global)) {
-      namespace = HTNamespace(this, id: moduleName, closure: global);
-      global.define(namespace);
-    }
-
-    result = await eval(module.content,
-        moduleName: module.key,
-        namespace: namespace,
-        codeType: codeType,
-        debugMode: debugMode,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
-
-    return result;
-  }
+      List<HTTypeId> typeArgs = const []});
 
   /// 调用一个全局函数或者类、对象上的函数
   // TODO: 调用构造函数
@@ -206,8 +180,8 @@ abstract class Interpreter {
   }
 
   final _externClasses = <String, HTExternalClass>{};
-  final _externFunctions = <String, Function>{};
-  final _externFunctionTypeUnwraps = <String, HTExternalFunctionTypedef>{};
+  final _externFuncs = <String, Function>{};
+  final _externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
@@ -222,37 +196,37 @@ abstract class Interpreter {
 
   HTExternalClass fetchExternalClass(String id) {
     if (!_externClasses.containsKey(id)) {
-      throw HTErrorUndefined(id);
+      throw HTErrorUndefinedExtern(id);
     }
     return _externClasses[id]!;
   }
 
   void bindExternalFunction(String id, Function function) {
-    if (_externFunctions.containsKey(id)) {
+    if (_externFuncs.containsKey(id)) {
       throw HTErrorDefinedRuntime(id);
     }
-    _externFunctions[id] = function;
+    _externFuncs[id] = function;
   }
 
   Function fetchExternalFunction(String id) {
-    if (!_externFunctions.containsKey(id)) {
-      throw HTErrorUndefined(id);
+    if (!_externFuncs.containsKey(id)) {
+      throw HTErrorUndefinedExtern(id);
     }
-    return _externFunctions[id]!;
+    return _externFuncs[id]!;
   }
 
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function) {
-    if (_externFunctionTypeUnwraps.containsKey(id)) {
+    if (_externFuncTypeUnwrappers.containsKey(id)) {
       throw HTErrorDefinedRuntime(id);
     }
-    _externFunctionTypeUnwraps[id] = function;
+    _externFuncTypeUnwrappers[id] = function;
   }
 
   Function unwrapExternalFunctionType(String id, HTFunction function) {
-    if (!_externFunctionTypeUnwraps.containsKey(id)) {
-      throw HTErrorUndefined(id);
+    if (!_externFuncTypeUnwrappers.containsKey(id)) {
+      throw HTErrorUndefinedExtern(id);
     }
-    final unwrapFunc = _externFunctionTypeUnwraps[id]!;
+    final unwrapFunc = _externFuncTypeUnwrappers[id]!;
     return unwrapFunc(function);
   }
 }

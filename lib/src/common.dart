@@ -1,3 +1,4 @@
+/// Function types
 enum FunctionType {
   normal,
   method,
@@ -8,12 +9,14 @@ enum FunctionType {
   nested, // function within function, may with name
 }
 
-enum ExternalFuncDeclType {
+/// External function types
+enum ExternalFunctionType {
   none,
-  standalone,
-  klass,
+  externalFunction,
+  externalClassMethod,
 }
 
+/// Class types
 enum ClassType {
   normal,
   nested,
@@ -23,55 +26,26 @@ enum ClassType {
   extern,
 }
 
+/// Code module types
 enum CodeType {
+  /// Expression can only have a single expression statement
   expression,
 
-  /// 库脚本中只能出现变量、类、函数、import和export语句
+  /// Module can have declarations (variables, functions, classes, enums)
+  /// and import & export statement
   module,
 
-  /// 类定义中只能出现变量和函数
+  /// Class can only have declarations (variables, functions)
   klass,
 
+  /// Function & block can have declarations (variables, functions),
+  /// expression & control statements.
   function,
 
-  /// 函数语句块中只能出现变量声明、控制语句、函数声明、函数调用和表达式
+  /// Function & block can have declarations (variables, functions),
+  /// expression & control statements.
   block,
 
-  /// 脚本中可以出现所有的语句
+  /// A script can have all statements.
   script,
-}
-
-class HTVersion {
-  late final int major;
-  late final int minor;
-  late final int patch;
-  HTVersion(this.major, this.minor, this.patch);
-
-  @override
-  String toString() => '$major.$minor.$patch';
-}
-
-enum ReferrenceType {
-  normal,
-  member,
-  sub,
-}
-
-class HTRegIdx {
-  static const value = 0;
-  static const symbol = 1;
-  static const objectSymbol = 2;
-  static const refType = 3;
-  static const loopCount = 4;
-  static const assign = 7;
-  static const orLeft = 8;
-  static const andLeft = 9;
-  static const equalLeft = 10;
-  static const relationLeft = 11;
-  static const addLeft = 12;
-  static const multiplyLeft = 13;
-  static const postfixObject = 14;
-  static const postfixKey = 15;
-
-  static const length = 16;
 }

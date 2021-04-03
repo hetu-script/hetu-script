@@ -13,11 +13,11 @@ abstract class HTFunction with HTDeclaration, HTObject {
   final String declId;
   final String? classId;
   // final HTTypeId? classTypeId;
-  final String module;
+  final String moduleUniqueKey;
 
   final FunctionType funcType;
 
-  final ExternalFuncDeclType externalFuncDeclType;
+  final ExternalFunctionType externalFunctionType;
 
   final String? externalTypedef;
 
@@ -41,10 +41,10 @@ abstract class HTFunction with HTDeclaration, HTObject {
 
   HTNamespace? context;
 
-  HTFunction(String id, this.declId, this.module,
+  HTFunction(String id, this.declId, this.moduleUniqueKey,
       {this.classId,
       this.funcType = FunctionType.normal,
-      this.externalFuncDeclType = ExternalFuncDeclType.none,
+      this.externalFunctionType = ExternalFunctionType.none,
       this.externalTypedef,
       this.typeParams = const [],
       this.isStatic = false,
@@ -59,5 +59,5 @@ abstract class HTFunction with HTDeclaration, HTObject {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
-      bool errorHandled = false});
+      bool errorHandled = true});
 }

@@ -1,3 +1,4 @@
+/// Operation code used by compiler.
 abstract class HTOpCode {
   static const endOfFile = -1;
 
@@ -129,6 +130,7 @@ abstract class HTOpCode {
   static const created = 205;
 }
 
+/// Following a local operation, tells the value type, used by compiler.
 abstract class HTValueTypeCode {
   static const NULL = 0;
   static const boolean = 1;
@@ -137,14 +139,15 @@ abstract class HTValueTypeCode {
   static const utf8String = 4;
   static const symbol = 5;
   static const group = 6;
-  static const list = 7;
-  static const map = 8;
-  static const function = 9;
-  static const typeid = 10;
+  static const tuple = 7;
+  static const list = 8;
+  static const map = 9;
+  static const function = 10;
+  static const typeid = 11;
 }
 
-/// Extern function is not a [FunctionType]
-abstract class HTFuncTypeCode {
+/// Function type code.
+abstract class HTFunctionTypeCode {
   static const normal = 0;
   static const constructor = 1;
   static const getter = 2;
@@ -153,6 +156,7 @@ abstract class HTFuncTypeCode {
   static const nested = 5; // function within function, may with name
 }
 
+/// Class type code.
 abstract class HTClassTypeCode {
   static const normal = 0;
   static const nested = 1;
@@ -162,10 +166,7 @@ abstract class HTClassTypeCode {
   static const extern = 5;
 }
 
-abstract class HTErrorCode {
-  static const binOp = 0;
-}
-
+/// Current symbol type.
 abstract class SymbolType {
   static const normal = 0;
   static const member = 1;

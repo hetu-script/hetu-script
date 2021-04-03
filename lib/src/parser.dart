@@ -33,7 +33,7 @@ abstract class Parser {
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
-  String? get curModuleName;
+  String? get curModuleUniqueKey;
 
   var tokPos = 0;
 
@@ -76,7 +76,7 @@ abstract class Parser {
     if ((tokPos + pos) < tokens.length) {
       return tokens[tokPos + pos];
     } else {
-      return Token(HTLexicon.endOfFile, curModuleName!, -1, -1);
+      return Token(HTLexicon.endOfFile, curModuleUniqueKey!, -1, -1);
     }
   }
 

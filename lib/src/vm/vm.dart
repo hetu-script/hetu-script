@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
+import 'package:pub_semver/pub_semver.dart';
+
 import 'compiler.dart';
 import 'opcode.dart';
 import 'bytecode.dart';
-import 'bytes_variable.dart';
-import 'bytes_funciton.dart';
+import 'bytecode_variable.dart';
+import 'bytecode_funciton.dart';
 import '../interpreter.dart';
 import '../type.dart';
 import '../common.dart';
@@ -22,71 +24,90 @@ import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../extern_function.dart';
 
+/// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
   late final Hetu interpreter;
 }
 
-class LoopInfo {
+enum _RefType {
+  normal,
+  member,
+  sub,
+}
+
+class _LoopInfo {
   final int startIp;
   final int endIp;
   final HTNamespace namespace;
-  LoopInfo(this.startIp, this.endIp, this.namespace);
+  _LoopInfo(this.startIp, this.endIp, this.namespace);
 }
 
+/// A bytecode implementation of a Hetu script interpreter
 class Hetu extends Interpreter {
   static var _anonymousScriptIndex = 0;
 
   late Compiler _compiler;
 
-  final _modules = <String, Bytecode>{};
+  final _modules = <String, HTBytecode>{};
 
   var _curLine = 0;
+
+  /// Current line number of execution.
   @override
   int get curLine => _curLine;
   var _curColumn = 0;
+
+  /// Current column number of execution.
   @override
   int get curColumn => _curColumn;
-  late String _curModuleName;
-  @override
-  String get curModuleName => _curModuleName;
+  late String _curModuleUniqueKey;
 
-  late Bytecode _curCode;
+  /// Current module's unique key.
+  @override
+  String get curModuleUniqueKey => _curModuleUniqueKey;
+
+  late HTBytecode _curCode;
 
   HTClass? _curClass;
 
   var _regIndex = 0;
   final _registers = List<dynamic>.filled(HTRegIdx.length, null, growable: true);
 
-  int getRegIndex(int relative) => (_regIndex * HTRegIdx.length + relative);
-  void _setRegVal(int index, dynamic value) => _registers[getRegIndex(index)] = value;
-  dynamic _getRegVal(int index) => _registers[getRegIndex(index)];
-  set _curValue(dynamic value) => _registers[getRegIndex(HTRegIdx.value)] = value;
-  dynamic get _curValue => _registers[getRegIndex(HTRegIdx.value)];
-  set _curSymbol(String? value) => _registers[getRegIndex(HTRegIdx.symbol)] = value;
-  String? get _curSymbol => _registers[getRegIndex(HTRegIdx.symbol)];
-  set _curObjectSymbol(String? value) => _registers[getRegIndex(HTRegIdx.objectSymbol)] = value;
-  String? get _curObjectSymbol => _registers[getRegIndex(HTRegIdx.objectSymbol)];
-  set _curRefType(ReferrenceType value) => _registers[getRegIndex(HTRegIdx.refType)] = value;
-  ReferrenceType get _curRefType => _registers[getRegIndex(HTRegIdx.refType)] ?? ReferrenceType.normal;
-  set _curLoopCount(int value) => _registers[getRegIndex(HTRegIdx.loopCount)] = value;
-  int get _curLoopCount => _registers[getRegIndex(HTRegIdx.loopCount)] ?? 0;
+  int _getRegIndex(int relative) => (_regIndex * HTRegIdx.length + relative);
+  void _setRegVal(int index, dynamic value) => _registers[_getRegIndex(index)] = value;
+  dynamic _getRegVal(int index) => _registers[_getRegIndex(index)];
+  set _curValue(dynamic value) => _registers[_getRegIndex(HTRegIdx.value)] = value;
+  dynamic get _curValue => _registers[_getRegIndex(HTRegIdx.value)];
+  set _curSymbol(String? value) => _registers[_getRegIndex(HTRegIdx.symbol)] = value;
+  String? get _curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
+  set _curObjectSymbol(String? value) => _registers[_getRegIndex(HTRegIdx.objectSymbol)] = value;
+  String? get _curObjectSymbol => _registers[_getRegIndex(HTRegIdx.objectSymbol)];
+  set _curRefType(_RefType value) => _registers[_getRegIndex(HTRegIdx.refType)] = value;
+  _RefType get _curRefType => _registers[_getRegIndex(HTRegIdx.refType)] ?? _RefType.normal;
+  set _curLoopCount(int value) => _registers[_getRegIndex(HTRegIdx.loopCount)] = value;
+  int get _curLoopCount => _registers[_getRegIndex(HTRegIdx.loopCount)] ?? 0;
 
   /// loop 信息以栈的形式保存
   /// break 指令将会跳回最近的一个 loop 的出口
-  final _loops = <LoopInfo>[];
+  final _loops = <_LoopInfo>[];
 
   late HTNamespace _curNamespace;
-  @override
-  HTNamespace get curNamespace => _curNamespace;
 
+  /// Create a bytecode interpreter.
+  /// Each interpreter has a independent global [HTNamespace].
   Hetu({HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
       : super(errorHandler: errorHandler, moduleHandler: moduleHandler) {
     _curNamespace = global = HTNamespace(this, id: HTLexicon.global);
   }
 
+  /// Evaluate a string content.
+  /// During this process, all declarations will
+  /// be defined to current [HTNamespace].
+  /// If [invokeFunc] is provided, will immediately
+  /// call the function after evaluation completed.
   @override
   Future<dynamic> eval(String content,
-      {String? moduleName,
+      {String? moduleUniqueKey,
       CodeType codeType = CodeType.module,
       bool debugMode = true,
       HTNamespace? namespace,
@@ -94,19 +115,18 @@ class Hetu extends Interpreter {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) async {
-    if (content.isEmpty) throw HTErrorEmpty(moduleName ?? '');
+    if (content.isEmpty) throw HTErrorEmpty();
 
     _compiler = Compiler(this);
 
-    // a non-null version
-    final name = moduleName ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+    final name = moduleUniqueKey ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
 
     try {
       final tokens = Lexer().lex(content, name);
       final bytes = await _compiler.compile(tokens, this, name, codeType: codeType, debugMode: debugMode);
 
-      _curCode = _modules[name] = Bytecode(bytes);
-      _curModuleName = name;
+      _curCode = _modules[name] = HTBytecode(bytes);
+      _curModuleUniqueKey = name;
       var result = execute(namespace: namespace ?? global);
       if (codeType == CodeType.module && invokeFunc != null) {
         result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, errorHandled: true);
@@ -118,6 +138,52 @@ class Hetu extends Interpreter {
     }
   }
 
+  /// Import a module by a key,
+  /// will use module handler plug-in to resolve
+  /// the unique key from the key and [curModuleUniqueKey]
+  /// user provided to find the correct module.
+  /// Module with the same unique key will be ignored.
+  /// During this process, all declarations will
+  /// be defined to current [HTNamespace].
+  /// If [invokeFunc] is provided, will immediately
+  /// call the function after evaluation completed.
+  @override
+  Future<dynamic> import(String key,
+      {String? curModuleUniqueKey,
+      String? moduleName,
+      CodeType codeType = CodeType.module,
+      bool debugMode = true,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const []}) async {
+    dynamic result;
+    final module = await moduleHandler.import(key, curModuleUniqueKey);
+
+    if (module.duplicate) return;
+
+    final savedNamespace = _curNamespace;
+    if ((moduleName != null) && (moduleName != HTLexicon.global)) {
+      _curNamespace = HTNamespace(this, id: moduleName, closure: global);
+      global.define(_curNamespace);
+    }
+
+    result = await eval(module.content,
+        moduleUniqueKey: module.uniqueKey,
+        namespace: _curNamespace,
+        codeType: codeType,
+        debugMode: debugMode,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs);
+
+    _curNamespace = savedNamespace;
+
+    return result;
+  }
+
+  /// Call a function within current [HTNamespace].
   @override
   dynamic invoke(String funcName,
       {String? className,
@@ -152,6 +218,7 @@ class Hetu extends Interpreter {
     }
   }
 
+  /// Handle a error thrown by other funcion in Hetu.
   @override
   void handleError(Object error, [StackTrace? stack]) {
     var sb = StringBuffer();
@@ -165,13 +232,13 @@ class Hetu extends Interpreter {
       HTInterpreterError itpErr;
       if (error is HTParserError) {
         itpErr = HTInterpreterError('${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n', error.type,
-            _compiler.curModuleName, _compiler.curLine, _compiler.curColumn);
+            _compiler.curModuleUniqueKey, _compiler.curLine, _compiler.curColumn);
       } else if (error is HTError) {
         itpErr = HTInterpreterError('${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n', error.type,
-            curModuleName, curLine, curColumn);
+            curModuleUniqueKey, curLine, curColumn);
       } else {
         itpErr = HTInterpreterError('$error\nHetu call stack:\n$callStack\nDart call stack:\n', HTErrorType.other,
-            curModuleName, curLine, curColumn);
+            curModuleUniqueKey, curLine, curColumn);
       }
 
       errorHandler.handle(itpErr);
@@ -180,6 +247,7 @@ class Hetu extends Interpreter {
     }
   }
 
+  /// Compile a script content into bytecode for later use.
   Future<Uint8List> compile(String content, String moduleName,
       {CodeType codeType = CodeType.module, bool debugMode = true}) async {
     final bytesBuilder = BytesBuilder();
@@ -201,13 +269,13 @@ class Hetu extends Interpreter {
         HTInterpreterError newErr;
         if (e is HTParserError) {
           newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-              _compiler.curModuleName, _compiler.curLine, _compiler.curColumn);
+              _compiler.curModuleUniqueKey, _compiler.curLine, _compiler.curColumn);
         } else if (e is HTError) {
           newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-              curModuleName, curLine, curColumn);
+              curModuleUniqueKey, curLine, curColumn);
         } else {
           newErr = HTInterpreterError('$e\nHetu call stack:\n$callStack\nDart call stack:\n', HTErrorType.other,
-              curModuleName, curLine, curColumn);
+              curModuleUniqueKey, curLine, curColumn);
         }
 
         errorHandler.handle(newErr);
@@ -219,28 +287,31 @@ class Hetu extends Interpreter {
     }
   }
 
-  dynamic run(Uint8List code) {}
+  /// Load a pre-compiled bytecode in to module library.
+  /// If [run] is true, then execute the bytecode immediately.
+  dynamic load(Uint8List code, String moduleUniqueKey, {bool run = true, int ip = 0}) {}
 
-  /// 从 [moduleName] 代码文件的 [ip] 字节位置开始解释
-  /// 遇到 [OpCode.endOfExec] 或 [OpCode.endOfFunc] 后返回当前值。
-  /// 如果 [moduleName != null] 会回到之前的代码文件
-  /// 如果 [ip != null] 会回到之前的指令位置
-  /// 如果 [namespace != null] 会回到之前的命名空间
+  /// Interpret a loaded module with the key of [moduleUniqueKey]
+  /// Starting from the instruction pointer of [ip]
+  /// This function will return current value when encountered [OpCode.endOfExec] or [OpCode.endOfFunc].
+  /// If [moduleUniqueKey] != null, will return to original [HTBytecode] module.
+  /// If [ip] != null, will return to original [_curCode.ip].
+  /// If [namespace] != null, will return to original [HTNamespace]
   ///
-  /// 一旦切换了moduleName，就会进入一个新的寄存器区域
-  /// 每个寄存器区域有自己独立的一套临时变量
-  /// 包括文件名，行列号，当前符号，当前值等等
-  dynamic execute({String? moduleName, int? ip, HTNamespace? namespace, bool moveRegIndex = false}) {
-    final savedModuleName = curModuleName;
+  /// Once changed into a new module, will open a new area of register space
+  /// Every register space holds its own temporary values.
+  /// Such as currrent value, current symbol, current line & column, etc.
+  dynamic execute({String? moduleUniqueKey, int? ip, HTNamespace? namespace, bool moveRegIndex = false}) {
+    final savedModuleUniqueKey = curModuleUniqueKey;
     final savedIp = _curCode.ip;
     final savedNamespace = _curNamespace;
 
     var codeChanged = false;
     var ipChanged = false;
     var regIndexMoved = moveRegIndex;
-    if (moduleName != null && (curModuleName != moduleName)) {
-      _curModuleName = moduleName;
-      _curCode = _modules[moduleName]!;
+    if (moduleUniqueKey != null && (curModuleUniqueKey != moduleUniqueKey)) {
+      _curModuleUniqueKey = moduleUniqueKey;
+      _curCode = _modules[moduleUniqueKey]!;
       codeChanged = true;
       ipChanged = true;
       regIndexMoved = true;
@@ -264,8 +335,8 @@ class Hetu extends Interpreter {
     final result = _execute();
 
     if (codeChanged) {
-      _curModuleName = savedModuleName;
-      _curCode = _modules[_curModuleName]!;
+      _curModuleUniqueKey = savedModuleUniqueKey;
+      _curCode = _modules[_curModuleUniqueKey]!;
     }
 
     if (ipChanged) {
@@ -292,7 +363,7 @@ class Hetu extends Interpreter {
           final major = _curCode.read();
           final minor = _curCode.read();
           final patch = _curCode.readUint16();
-          scriptVersion = HTVersion(major, minor, patch);
+          _curCode.version = Version(major, minor, patch);
           break;
         case HTOpCode.debug:
           debugMode = _curCode.read() == 0 ? false : true;
@@ -320,7 +391,7 @@ class Hetu extends Interpreter {
         // 循环开始，记录断点
         case HTOpCode.loopPoint:
           final endDistance = _curCode.readUint16();
-          _loops.add(LoopInfo(_curCode.ip, _curCode.ip + endDistance, _curNamespace));
+          _loops.add(_LoopInfo(_curCode.ip, _curCode.ip + endDistance, _curNamespace));
           break;
         case HTOpCode.breakLoop:
           _curCode.ip = _loops.last.endIp;
@@ -480,15 +551,18 @@ class Hetu extends Interpreter {
         _curSymbol = _curCode.readShortUtf8String();
         final isGetKey = _curCode.readBool();
         if (!isGetKey) {
-          _curRefType = ReferrenceType.normal;
+          _curRefType = _RefType.normal;
           _curValue = _curNamespace.fetch(_curSymbol!, from: _curNamespace.fullName);
         } else {
-          _curRefType = ReferrenceType.member;
+          _curRefType = _RefType.member;
           // reg[13] 是 object，reg[14] 是 key
           _curValue = _curSymbol;
         }
         break;
       case HTValueTypeCode.group:
+        _curValue = execute(moveRegIndex: true);
+        break;
+      case HTValueTypeCode.tuple:
         _curValue = execute(moveRegIndex: true);
         break;
       case HTValueTypeCode.list:
@@ -525,7 +599,7 @@ class Hetu extends Interpreter {
         final maxArity = _curCode.read();
         final paramDecls = _getParams(_curCode.read());
 
-        HTTypeId? returnType;
+        var returnType = HTTypeId.ANY;
         final hasTypeId = _curCode.readBool();
         if (hasTypeId) {
           returnType = _getTypeId();
@@ -539,11 +613,11 @@ class Hetu extends Interpreter {
           _curCode.skip(length);
         }
 
-        final func = HTBytesFunction(id, this, curModuleName,
+        final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
             classId: _curClass?.id,
             funcType: funcType,
             externalTypedef: externalTypedef,
-            paramDecls: paramDecls,
+            parameterDeclarations: paramDecls,
             returnType: returnType,
             definitionIp: definitionIp,
             isVariadic: isVariadic,
@@ -568,10 +642,10 @@ class Hetu extends Interpreter {
 
   void _assignCurRef(dynamic value) {
     switch (_curRefType) {
-      case ReferrenceType.normal:
+      case _RefType.normal:
         _curNamespace.assign(_curSymbol!, value, from: _curNamespace.fullName);
         break;
-      case ReferrenceType.member:
+      case _RefType.member:
         final object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
         if (object == null || object == HTObject.NULL) {
@@ -583,13 +657,13 @@ class Hetu extends Interpreter {
         }
         // 如果是 Dart 对象
         else {
-          var typeString = object.runtimeType.toString();
+          final typeString = object.runtimeType.toString();
           final id = HTTypeId.parseBaseTypeId(typeString);
-          var externClass = fetchExternalClass(id);
+          final externClass = fetchExternalClass(id);
           externClass.instanceMemberSet(object, key!, value);
         }
         break;
-      case ReferrenceType.sub:
+      case _RefType.sub:
         final object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
         if (object == null || object == HTObject.NULL) {
@@ -605,9 +679,9 @@ class Hetu extends Interpreter {
         }
         // 如果是 Dart 对象
         else {
-          var typeString = object.runtimeType.toString();
+          final typeString = object.runtimeType.toString();
           final id = HTTypeId.parseBaseTypeId(typeString);
-          var externClass = fetchExternalClass(id);
+          final externClass = fetchExternalClass(id);
           externClass.instanceSubSet(object, key!, value);
         }
         break;
@@ -775,16 +849,16 @@ class Hetu extends Interpreter {
   }
 
   void _handleCallExpr() {
-    var callee = _getRegVal(HTRegIdx.postfixObject);
+    final callee = _getRegVal(HTRegIdx.postfixObject);
 
-    var positionalArgs = [];
+    final positionalArgs = [];
     final positionalArgsLength = _curCode.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
       final arg = execute();
       positionalArgs.add(arg);
     }
 
-    var namedArgs = <String, dynamic>{};
+    final namedArgs = <String, dynamic>{};
     final namedArgsLength = _curCode.read();
     for (var i = 0; i < namedArgsLength; ++i) {
       final name = _curCode.readShortUtf8String();
@@ -793,7 +867,7 @@ class Hetu extends Interpreter {
     }
 
     // TODO: typeArgs
-    var typeArgs = <HTTypeId>[];
+    final typeArgs = <HTTypeId>[];
 
     if (callee is HTFunction) {
       _curValue = callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
@@ -830,7 +904,7 @@ class Hetu extends Interpreter {
     switch (op) {
       case HTOpCode.memberGet:
         var object = _getRegVal(HTRegIdx.postfixObject);
-        var key = _getRegVal(HTRegIdx.postfixKey);
+        final key = _getRegVal(HTRegIdx.postfixKey);
 
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
@@ -853,15 +927,15 @@ class Hetu extends Interpreter {
         }
         //如果是Dart对象
         else {
-          var typeString = object.runtimeType.toString();
+          final typeString = object.runtimeType.toString();
           final id = HTTypeId.parseBaseTypeId(typeString);
-          var externClass = fetchExternalClass(id);
+          final externClass = fetchExternalClass(id);
           _curValue = externClass.instanceMemberGet(object, key);
         }
         break;
       case HTOpCode.subGet:
-        var object = _getRegVal(HTRegIdx.postfixObject);
-        var key = _getRegVal(HTRegIdx.postfixKey);
+        final object = _getRegVal(HTRegIdx.postfixObject);
+        final key = _getRegVal(HTRegIdx.postfixKey);
 
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
@@ -872,7 +946,7 @@ class Hetu extends Interpreter {
         //   throw HTErrorSubGet(object.toString());
         // }
         _curValue = object[key];
-        _curRefType = ReferrenceType.sub;
+        _curRefType = _RefType.sub;
         break;
       case HTOpCode.call:
         _handleCallExpr();
@@ -928,7 +1002,7 @@ class Hetu extends Interpreter {
       _curCode.skip(length);
     }
 
-    final decl = HTBytesVariable(id, this, curModuleName,
+    final decl = HTBytecodeVariable(id, this, curModuleUniqueKey,
         declType: declType,
         initializerIp: initializerIp,
         isDynamic: isDynamic,
@@ -967,7 +1041,7 @@ class Hetu extends Interpreter {
         _curCode.skip(length);
       }
 
-      paramDecls[id] = HTBytesParameter(id, this, curModuleName,
+      paramDecls[id] = HTBytesParameter(id, this, curModuleUniqueKey,
           declType: declType,
           initializerIp: initializerIp,
           isOptional: isOptional,
@@ -1005,7 +1079,7 @@ class Hetu extends Interpreter {
     }
 
     final funcType = FunctionType.values[_curCode.read()];
-    final externType = ExternalFuncDeclType.values[_curCode.read()];
+    final externType = ExternalFunctionType.values[_curCode.read()];
     final isStatic = _curCode.readBool();
     final isConst = _curCode.readBool();
     final isVariadic = _curCode.readBool();
@@ -1014,7 +1088,7 @@ class Hetu extends Interpreter {
     final maxArity = _curCode.read();
     final paramDecls = _getParams(_curCode.read());
 
-    HTTypeId? returnType;
+    var returnType = HTTypeId.ANY;
     final hasTypeId = _curCode.readBool();
     if (hasTypeId) {
       returnType = _getTypeId();
@@ -1028,16 +1102,16 @@ class Hetu extends Interpreter {
       _curCode.skip(length);
     }
 
-    final func = HTBytesFunction(
+    final func = HTBytecodeFunction(
       id,
       this,
-      curModuleName,
+      curModuleUniqueKey,
       declId: declId,
       classId: _curClass?.id,
       funcType: funcType,
-      externType: externType,
+      externalFunctionType: externType,
       externalTypedef: externalTypedef,
-      paramDecls: paramDecls,
+      parameterDeclarations: paramDecls,
       returnType: returnType,
       definitionIp: definitionIp,
       isStatic: isStatic,

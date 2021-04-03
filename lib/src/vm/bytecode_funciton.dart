@@ -1,7 +1,7 @@
 import 'package:hetu_script/src/extern_function.dart';
 
 import 'vm.dart';
-import 'bytes_variable.dart';
+import 'bytecode_variable.dart';
 import '../namespace.dart';
 import '../type.dart';
 import '../function.dart';
@@ -11,19 +11,26 @@ import '../class.dart';
 import '../variable.dart';
 import '../lexicon.dart';
 
-class HTBytesFunction extends HTFunction with HetuRef {
-  final Map<String, HTBytesParameter> paramDecls;
+/// Bytecode implementation of [HTFunction].
+class HTBytecodeFunction extends HTFunction with HetuRef {
+  /// Holds declarations of all parameters.
+  final Map<String, HTBytesParameter> parameterDeclarations;
 
+  /// intruction pointer of the function body.
   final int? definitionIp;
 
-  HTBytesFunction(String id, Hetu interpreter, String module,
+  /// Create a standard [HTBytecodeFunction].
+  ///
+  /// A [HTFunction] has to be defined in a [HTNamespace] of an [Interpreter]
+  /// before it can be called within a script.
+  HTBytecodeFunction(String id, Hetu interpreter, String module,
       {String declId = '',
       String? classId,
       FunctionType funcType = FunctionType.normal,
-      ExternalFuncDeclType externType = ExternalFuncDeclType.none,
+      ExternalFunctionType externalFunctionType = ExternalFunctionType.none,
       String? externalTypedef,
-      this.paramDecls = const <String, HTBytesParameter>{},
-      HTTypeId? returnType,
+      this.parameterDeclarations = const <String, HTBytesParameter>{},
+      HTTypeId returnType = HTTypeId.ANY,
       this.definitionIp,
       List<HTTypeId> typeParams = const [],
       bool isStatic = false,
@@ -35,7 +42,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
       : super(id, declId, module,
             classId: classId,
             funcType: funcType,
-            externalFuncDeclType: externType,
+            externalFunctionType: externalFunctionType,
             externalTypedef: externalTypedef,
             typeParams: typeParams,
             isStatic: isStatic,
@@ -47,64 +54,100 @@ class HTBytesFunction extends HTFunction with HetuRef {
     this.context = context;
 
     typeid = HTFunctionTypeId(
-        returnType: returnType ?? HTTypeId.ANY,
-        paramsTypes: paramDecls.values.map((paramDecl) => paramDecl.declType ?? HTTypeId.ANY).toList());
+        returnType: returnType,
+        paramsTypes: parameterDeclarations.values.map((paramDecl) => paramDecl.declType ?? HTTypeId.ANY).toList());
   }
 
+  /// Print function signature to String with function [id] and parameter [id].
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('${HTLexicon.function}');
+    result.write(HTLexicon.function);
     result.write(' $id');
     if (typeid.arguments.isNotEmpty) {
-      result.write('<');
+      result.write(HTLexicon.angleLeft);
       for (var i = 0; i < typeid.arguments.length; ++i) {
         result.write(typeid.arguments[i]);
         if ((typeid.arguments.length > 1) && (i != typeid.arguments.length - 1)) result.write(', ');
       }
-      result.write('>');
+      result.write(HTLexicon.angleRight);
     }
 
-    result.write('(');
+    result.write(HTLexicon.roundLeft);
 
     var i = 0;
-    for (final param in paramDecls.values) {
+    var optionalStarted = false;
+    var namedStarted = false;
+    for (final param in parameterDeclarations.values) {
       if (param.isVariadic) {
         result.write(HTLexicon.varargs + ' ');
       }
-      result.write(param.id + ': ' + (param.declType.toString()));
+      if (param.isOptional && !optionalStarted) {
+        optionalStarted = true;
+        result.write(HTLexicon.squareLeft);
+      } else if (param.isNamed && !namedStarted) {
+        namedStarted = true;
+        result.write(HTLexicon.curlyLeft);
+      }
+      result.write(param.id + '${HTLexicon.colon} ' + (param.declType.toString()));
       //if (param.initializer != null)
       //TODO: optional and named params;
+      if (i < parameterDeclarations.length - 1) {
+        result.write('${HTLexicon.comma} ');
+      }
+      if (optionalStarted) {
+        result.write(HTLexicon.squareRight);
+      } else if (namedStarted) {
+        namedStarted = true;
+        result.write(HTLexicon.curlyRight);
+      }
       ++i;
-      if (i < paramDecls.length - 1) result.write(', ');
     }
-    result.write('): ' + returnType.toString());
+    result.write('${HTLexicon.roundRight}${HTLexicon.colon} ' + returnType.toString());
     return result.toString();
   }
 
+  /// Call this function with specific arguments.
+  /// ```
+  /// function<typeArg1, typeArg2>(posArg1, posArg2, name1: namedArg1, name2: namedArg2)
+  /// ```
+  /// for variadic arguments, will transform all remaining positional arguments
+  /// into a named argument with the variadic argument's name.
+  /// variadic declaration:
+  /// ```
+  /// fun function(... args)
+  /// ```
+  /// variadic calling:
+  /// ```
+  /// function(posArg1, posArg2...)
+  /// ```
+  /// [HTBytecodeFunction.call]:
+  /// ```
+  /// namedArgs['args'] = [posArg1, posArg2...];
+  /// ```
   @override
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
-      bool errorHandled = false}) {
+      bool errorHandled = true}) {
     try {
       if (positionalArgs.length < minArity || (positionalArgs.length > maxArity && !isVariadic)) {
         throw HTErrorArity(id, positionalArgs.length, minArity);
       }
 
       for (final name in namedArgs.keys) {
-        if (!paramDecls.containsKey(name)) {
+        if (!parameterDeclarations.containsKey(name)) {
           throw HTErrorNamedArg(name);
         }
       }
 
       HTFunction.callStack.add(
-          '#${HTFunction.callStack.length} $id - (${interpreter.curModuleName}:${interpreter.curLine}:${interpreter.curColumn})');
+          '#${HTFunction.callStack.length} $id - (${interpreter.curModuleUniqueKey}:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数
-      if (externalFuncDeclType == ExternalFuncDeclType.none) {
+      if (externalFunctionType == ExternalFunctionType.none) {
         if (definitionIp == null) {
           throw HTErrorMissingFuncDef(id);
         }
@@ -115,9 +158,9 @@ class HTBytesFunction extends HTFunction with HetuRef {
         }
 
         var variadicStart = -1;
-        HTBytesVariable? variadicParam;
-        for (var i = 0; i < paramDecls.length; ++i) {
-          var decl = paramDecls.values.elementAt(i).clone();
+        HTBytecodeVariable? variadicParam;
+        for (var i = 0; i < parameterDeclarations.length; ++i) {
+          var decl = parameterDeclarations.values.elementAt(i).clone();
           closure.define(decl);
 
           if (decl.isVariadic) {
@@ -149,7 +192,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
           variadicParam!.assign(variadicArg);
         }
 
-        result = interpreter.execute(moduleName: module, ip: definitionIp!, namespace: closure);
+        result = interpreter.execute(moduleUniqueKey: moduleUniqueKey, ip: definitionIp!, namespace: closure);
       }
       // 如果是外部函数
       else {
@@ -158,7 +201,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
 
         var variadicStart = -1;
         var i = 0;
-        for (var param in paramDecls.values) {
+        for (var param in parameterDeclarations.values) {
           var decl = param.clone();
 
           if (decl.isVariadic) {
@@ -197,7 +240,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
         }
 
         // 单独绑定的外部函数
-        if (externalFuncDeclType == ExternalFuncDeclType.standalone) {
+        if (externalFunctionType == ExternalFunctionType.externalFunction) {
           final externFunc = interpreter.fetchExternalFunction(id);
           if (externFunc is HTExternalFunction) {
             result = externFunc(positionalArgs: finalPosArgs, namedArgs: finalNamedArgs, typeArgs: typeArgs);
@@ -207,7 +250,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
           }
         }
         // 整个外部类的成员函数
-        else if (externalFuncDeclType == ExternalFuncDeclType.klass) {
+        else if (externalFunctionType == ExternalFunctionType.externalClassMethod) {
           final externClass = interpreter.fetchExternalClass(classId!);
 
           final externFunc = externClass.memberGet(id);
@@ -228,7 +271,7 @@ class HTBytesFunction extends HTFunction with HetuRef {
       if (HTFunction.callStack.isNotEmpty) HTFunction.callStack.removeLast();
       return result;
     } catch (error, stack) {
-      if (errorHandled) rethrow;
+      if (!errorHandled) rethrow;
 
       interpreter.handleError(error, stack);
     }

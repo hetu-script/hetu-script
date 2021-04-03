@@ -1,3 +1,5 @@
+/// Helper mixin to store consts,
+/// used in [Compiler] and [HTBytecode]
 mixin ConstTable {
   /// 常量表
   late final _intTable = <int>[];

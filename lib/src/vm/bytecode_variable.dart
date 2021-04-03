@@ -3,22 +3,34 @@ import '../variable.dart';
 import '../type.dart';
 import '../errors.dart';
 
-class HTBytesVariable extends HTVariable with HetuRef {
-  final String module;
+/// Bytecode implementation of [HTVariable].
+class HTBytecodeVariable extends HTVariable with HetuRef {
+  /// The module this variable declared in.
+  final String moduleUniqueKey;
 
+  /// Whether this variable have [HTTypeId].
   final bool isDynamic;
 
+  /// Whether this variable is immutable.
   @override
   final bool isImmutable;
 
   var _isInitializing = false;
 
   HTTypeId? _declType;
+
+  /// The [HTTypeId] of this variable, will be used to
+  /// determine wether an assignment is legal.
   HTTypeId? get declType => _declType;
 
+  /// The instructor pointer of the initializer's bytecode.
   int? initializerIp;
 
-  HTBytesVariable(String id, Hetu interpreter, this.module,
+  /// Create a standard [HTBytecodeVariable].
+  ///
+  /// A [HTVariable] has to be defined in a [HTNamespace] of an [Interpreter]
+  /// before it can be used within a script.
+  HTBytecodeVariable(String id, Hetu interpreter, this.moduleUniqueKey,
       {dynamic value,
       HTTypeId? declType,
       this.initializerIp,
@@ -39,6 +51,7 @@ class HTBytesVariable extends HTVariable with HetuRef {
     }
   }
 
+  /// Initialize this variable with its declared initializer bytecode
   @override
   void initialize() {
     if (isInitialized) return;
@@ -46,7 +59,7 @@ class HTBytesVariable extends HTVariable with HetuRef {
     if (initializerIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
-        final initVal = interpreter.execute(moduleName: module, ip: initializerIp!, namespace: closure);
+        final initVal = interpreter.execute(moduleUniqueKey: moduleUniqueKey, ip: initializerIp!, namespace: closure);
         assign(initVal);
         _isInitializing = false;
       } else {
@@ -57,6 +70,8 @@ class HTBytesVariable extends HTVariable with HetuRef {
     }
   }
 
+  /// Assign a new value to this variable,
+  /// will perform [HTTypeId] check during this process.
   @override
   void assign(dynamic value) {
     if (_declType != null) {
@@ -72,8 +87,10 @@ class HTBytesVariable extends HTVariable with HetuRef {
     super.assign(value);
   }
 
+  /// Create a copy of this variable declaration,
+  /// mainly used on class member inheritance and function arguments passing.
   @override
-  HTBytesVariable clone() => HTBytesVariable(id, interpreter, module,
+  HTBytecodeVariable clone() => HTBytecodeVariable(id, interpreter, moduleUniqueKey,
       value: value,
       declType: declType,
       initializerIp: initializerIp,
@@ -86,11 +103,18 @@ class HTBytesVariable extends HTVariable with HetuRef {
       isStatic: isStatic);
 }
 
-class HTBytesParameter extends HTBytesVariable {
+/// An implementation of [HTVariable] for function parameter declaration.
+class HTBytesParameter extends HTBytecodeVariable {
+  /// Wether this is an optional parameter.
   final bool isOptional;
+
+  /// Wether this is a named parameter.
   final bool isNamed;
+
+  /// Wether this is a variadic parameter.
   final bool isVariadic;
 
+  /// Create a standard [HTBytesParameter].
   HTBytesParameter(String id, Hetu interpreter, String module,
       {dynamic value,
       HTTypeId? declType,
@@ -103,7 +127,7 @@ class HTBytesParameter extends HTBytesVariable {
 
   @override
   HTBytesParameter clone() {
-    return HTBytesParameter(id, interpreter, module,
+    return HTBytesParameter(id, interpreter, moduleUniqueKey,
         value: value,
         declType: declType,
         initializerIp: initializerIp,

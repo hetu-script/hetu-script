@@ -22,6 +22,7 @@ abstract class HTError {
   static const privateDecl = 'Could not acess private declaration';
   static const notInitialized = 'has not initialized';
   static const undefined = 'Undefined identifier';
+  static const undefinedExtern = 'Undefined external identifier';
   static const unknownType = 'Unkown type of object:';
   static const undefinedOperator = 'Undefined operator';
   // static const errorDeclared = 'is already declared';
@@ -111,7 +112,7 @@ class HTImportError extends HTError {
 }
 
 class HTErrorEmpty extends HTImportError {
-  HTErrorEmpty(String fileName) : super('${HTError.emptyString} [$fileName]', fileName);
+  HTErrorEmpty([String fileName = '']) : super('${HTError.emptyString} [$fileName]', fileName);
 }
 
 class HTInterpreterError extends HTError {
@@ -177,6 +178,10 @@ class HTErrorInitialized extends HTError {
 
 class HTErrorUndefined extends HTError {
   HTErrorUndefined(String id) : super('${HTError.undefined} [$id]', HTErrorType.interpreter);
+}
+
+class HTErrorUndefinedExtern extends HTError {
+  HTErrorUndefinedExtern(String id) : super('${HTError.undefinedExtern} [$id]', HTErrorType.interpreter);
 }
 
 class HTErrorUnknownType extends HTError {

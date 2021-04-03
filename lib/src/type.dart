@@ -31,8 +31,6 @@ class HTTypeId with HTObject {
     }
   }
 
-  // List<HTType> get inheritances;
-  // List<HTType> get compositions;
   final String id;
   final bool isNullable;
   final List<HTTypeId> arguments;

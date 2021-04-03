@@ -9,12 +9,14 @@ class GlobalState {
 
   GlobalState._internal();
 
-  static final state = {'meaning': 'nil'};
+  String state = 'nil';
 }
 
 extension GlobalStateBinding on GlobalState {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'state':
+        return state;
       default:
         throw HTErrorUndefined(varName);
     }
@@ -29,8 +31,6 @@ class GlobalStateClassBinding extends HTExternalClass {
     switch (varName) {
       case 'GlobalState':
         return () => GlobalState();
-      case 'GlobalState.state':
-        return GlobalState.state;
       default:
         throw HTErrorUndefined(varName);
     }
@@ -43,19 +43,36 @@ class GlobalStateClassBinding extends HTExternalClass {
   }
 }
 
+class App {
+  static final globalState = GlobalState();
+}
+
+class AppClassBinding extends HTExternalClass {
+  AppClassBinding() : super('App');
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      case 'App.globalState':
+        return App.globalState;
+      default:
+        throw HTErrorUndefined(varName);
+    }
+  }
+}
+
 void main() async {
   var hetu = Hetu();
-  await hetu.init(externalClasses: [GlobalStateClassBinding()]);
+  await hetu.init(externalClasses: [AppClassBinding(), GlobalStateClassBinding()]);
   await hetu.eval('''
       external class GlobalState {
         static const state
       }
-      class Tags {
-        static const meaning = 'meaning'
+      external class App {
+        static const globalState
       }
       fun main {
-        GlobalState.state[Tags.meaning] = 'nada'
-        print(GlobalState.state)
+        print(App.globalState.state)
       }
       ''', invokeFunc: 'main');
 }

@@ -9,30 +9,52 @@ class _HTNull with HTObject {
   HTTypeId get typeid => HTTypeId.NULL;
 }
 
-/// HTObject是命名空间、类、实例和枚举类的基类
+/// Almost everything within Hetu is a [HTObject].
+/// Includes [HTTypeid], [HTNamespace], [HTClass], [HTInstance],
+/// [HTEnum], [HTExternalClass], [HTFunction].
 mixin HTObject {
+  /// The [null] in Hetu is a static const variable of [HTObject].
+  /// Hence every null is the same.
   static const NULL = _HTNull();
-  //bool used = false;
 
+  /// Typeid of this [HTObject]
   HTTypeId get typeid => HTTypeId.object;
 
+  /// Wether this object contains a member with a name by [varName].
   bool contains(String varName) => throw HTErrorUndefined(varName);
 
+  /// Fetch a member by the [varName], in the form of
+  /// ```
+  /// object.key
+  /// ```
   dynamic memberGet(String varName, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
 
+  /// Assign a value to a member by the [varName], in the form of
+  /// ```
+  /// object.key = value
+  /// ```
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
 
+  /// Fetch a member by the [varName], in the form of
+  /// ```
+  /// object[key]
+  /// ```
   dynamic subGet(dynamic key) => throw HTErrorUndefined(key);
 
+  /// Assign a value to a member by the [varName], in the form of
+  /// ```
+  /// object[key] = value
+  /// ```
   void subSet(String key, dynamic value) => throw HTErrorUndefined(key);
 
-  bool isA(HTTypeId otherTypeId) {
+  /// Wether this object is of the type by [otherTypeid]
+  bool isA(HTTypeId otherTypeid) {
     var result = true;
-    if (otherTypeId.id != HTLexicon.ANY) {
-      if (typeid.id == otherTypeId.id) {
-        if (typeid.arguments.length >= otherTypeId.arguments.length) {
-          for (var i = 0; i < otherTypeId.arguments.length; ++i) {
-            if (typeid.arguments[i].isNotA(otherTypeId.arguments[i])) {
+    if (otherTypeid.id != HTLexicon.ANY) {
+      if (typeid.id == otherTypeid.id) {
+        if (typeid.arguments.length >= otherTypeid.arguments.length) {
+          for (var i = 0; i < otherTypeid.arguments.length; ++i) {
+            if (typeid.arguments[i].isNotA(otherTypeid.arguments[i])) {
               result = false;
               break;
             }
@@ -41,7 +63,7 @@ mixin HTObject {
           result = false;
         }
       } else {
-        if (typeid.id == HTLexicon.NULL && otherTypeId.isNullable) {
+        if (typeid.id == HTLexicon.NULL && otherTypeid.isNullable) {
           result = true;
         } else {
           result = false;
@@ -51,5 +73,6 @@ mixin HTObject {
     return result;
   }
 
+  /// Wether this object is not of the type by [otherTypeid]
   bool isNotA(HTTypeId typeid) => !isA(typeid);
 }

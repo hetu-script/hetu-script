@@ -5,29 +5,30 @@ import 'errors.dart';
 import 'interpreter.dart';
 import 'declaration.dart';
 
+/// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
 class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.ENUM;
 
-  final Map<String, HTEnumItem> defs;
+  final Map<String, HTEnumItem> _enums;
 
   final bool isExtern;
 
-  HTEnum(String id, this.defs, Interpreter interpreter, {this.isExtern = false}) {
+  HTEnum(String id, this._enums, Interpreter interpreter, {this.isExtern = false}) {
     this.interpreter = interpreter;
     this.id = id;
   }
 
   @override
-  bool contains(String varName) => defs.containsKey(varName);
+  bool contains(String varName) => _enums.containsKey(varName);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (!isExtern) {
-      if (defs.containsKey(varName)) {
-        return defs[varName]!;
+      if (_enums.containsKey(varName)) {
+        return _enums[varName]!;
       } else if (varName == HTLexicon.values) {
-        return defs.values.toList();
+        return _enums.values.toList();
       }
     } else {
       final externEnumClass = interpreter.fetchExternalClass(id);
@@ -41,7 +42,7 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
 
   @override
   void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (defs.containsKey(varName)) {
+    if (_enums.containsKey(varName)) {
       throw HTErrorImmutable(varName);
     }
     throw HTErrorUndefined(varName);

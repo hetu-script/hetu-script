@@ -11,9 +11,26 @@ import '../errors.dart';
 import '../function.dart';
 import '../const_table.dart';
 
-/// 声明空间，保存当前文件、类和函数体中包含的声明
-/// 在编译后会提到整个代码块最前
-class DeclarationBlock {
+class HTRegIdx {
+  static const value = 0;
+  static const symbol = 1;
+  static const objectSymbol = 2;
+  static const refType = 3;
+  static const loopCount = 4;
+  static const assign = 7;
+  static const orLeft = 8;
+  static const andLeft = 9;
+  static const equalLeft = 10;
+  static const relationLeft = 11;
+  static const addLeft = 12;
+  static const multiplyLeft = 13;
+  static const postfixObject = 14;
+  static const postfixKey = 15;
+
+  static const length = 16;
+}
+
+class _DeclarationBlock {
   final enumDecls = <String, Uint8List>{};
   final funcDecls = <String, Uint8List>{};
   final classDecls = <String, Uint8List>{};
@@ -22,47 +39,54 @@ class DeclarationBlock {
   bool contains(String id) => funcDecls.containsKey(id) || classDecls.containsKey(id) || varDecls.containsKey(id);
 }
 
-class ImportInfo {
+class _ImportInfo {
   final String key;
   final String? name;
   final List<String> showList;
-  ImportInfo(this.key, {this.name, this.showList = const []});
+  _ImportInfo(this.key, {this.name, this.showList = const []});
 }
 
+/// Utility class that parse a string content into a uint8 list
 class Compiler extends Parser with ConstTable, HetuRef {
+  /// Hetu script bytecode's unique header
   static const hetuSignatureData = [8, 5, 20, 21];
-  static const hetuSignature = 134550549;
+
+  /// The version of the compiled bytecode,
+  /// used to determine compatibility.
   static const hetuVersionData = [0, 1, 0, 0];
 
-  late DeclarationBlock _globalBlock;
-  late DeclarationBlock _curBlock;
+  late _DeclarationBlock _globalBlock;
+  late _DeclarationBlock _curBlock;
 
-  final _importedModules = <ImportInfo>[];
+  final _importedModules = <_ImportInfo>[];
 
-  late String _curModuleName;
+  late String _curModuleUniqueKey;
+
+  /// The module current processing, used in error message.
   @override
-  String get curModuleName => _curModuleName;
+  String get curModuleUniqueKey => _curModuleUniqueKey;
   String? _curClassName;
   ClassType? _curClassType;
 
   late bool _debugMode;
   late bool _bundleMode;
 
-  // ImportInfo? _curImportInfo;
-
   var _leftValueLegality = false;
 
+  /// Create a compiler, needed an interpreter ref
+  /// for importing another module during compilation
   Compiler(Hetu interpreter) {
     this.interpreter = interpreter;
   }
 
-  Future<Uint8List> compile(List<Token> tokens, Hetu interpreter, String moduleName,
+  /// Compiles a Token list.
+  Future<Uint8List> compile(List<Token> tokens, Hetu interpreter, String moduleUniqueKey,
       {CodeType codeType = CodeType.module, debugMode = false, bool bundleMode = false}) async {
     _bundleMode = bundleMode;
     _debugMode = _bundleMode ? false : debugMode;
-    _curModuleName = moduleName;
+    _curModuleUniqueKey = moduleUniqueKey;
 
-    _curBlock = _globalBlock = DeclarationBlock();
+    _curBlock = _globalBlock = _DeclarationBlock();
 
     final code = _compile(tokens, codeType);
 
@@ -70,7 +94,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       if (bundleMode) {
       } else {
         await interpreter.import(importInfo.key,
-            curModuleName: moduleName, moduleName: importInfo.name, debugMode: _debugMode);
+            curModuleUniqueKey: moduleUniqueKey, moduleName: importInfo.name, debugMode: _debugMode);
       }
     }
 
@@ -158,7 +182,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     expect([HTLexicon.semicolon], consume: true);
 
-    _importedModules.add(ImportInfo(key, name: name, showList: showList));
+    _importedModules.add(_ImportInfo(key, name: name, showList: showList));
   }
 
   /// -32768 to 32767
@@ -191,7 +215,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  // Fetch a utf8 string from the byte list
+  // Fetch a short utf8 string from the byte list
   String _readId(Uint8List bytes) {
     final length = bytes.first;
     return utf8.decoder.convert(bytes.sublist(1, length + 1));
@@ -223,7 +247,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
               case HTLexicon.CONST:
                 throw HTErrorExternVar();
               case HTLexicon.FUN:
-                final decl = _parseFuncDeclaration(externType: ExternalFuncDeclType.standalone);
+                final decl = _parseFuncDeclaration(externType: ExternalFunctionType.externalFunction);
                 final id = _readId(decl);
                 _curBlock.funcDecls[id] = decl;
                 break;
@@ -391,10 +415,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
             final decl = _parseFuncDeclaration(
                 funcType: FunctionType.method,
                 externType: _curClassType == ClassType.extern
-                    ? ExternalFuncDeclType.klass
+                    ? ExternalFunctionType.externalClassMethod
                     : isExtern
-                        ? ExternalFuncDeclType.standalone
-                        : ExternalFuncDeclType.none,
+                        ? ExternalFunctionType.externalFunction
+                        : ExternalFunctionType.none,
                 isStatic: isStatic);
             final id = _readId(decl);
             _curBlock.funcDecls[id] = decl;
@@ -403,10 +427,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
             final decl = _parseFuncDeclaration(
               funcType: FunctionType.constructor,
               externType: _curClassType == ClassType.extern
-                  ? ExternalFuncDeclType.klass
+                  ? ExternalFunctionType.externalClassMethod
                   : isExtern
-                      ? ExternalFuncDeclType.standalone
-                      : ExternalFuncDeclType.none,
+                      ? ExternalFunctionType.externalFunction
+                      : ExternalFunctionType.none,
             );
             final id = _readId(decl);
             _curBlock.funcDecls[id] = decl;
@@ -415,10 +439,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
             final decl = _parseFuncDeclaration(
                 funcType: FunctionType.getter,
                 externType: _curClassType == ClassType.extern
-                    ? ExternalFuncDeclType.klass
+                    ? ExternalFunctionType.externalClassMethod
                     : isExtern
-                        ? ExternalFuncDeclType.standalone
-                        : ExternalFuncDeclType.none,
+                        ? ExternalFunctionType.externalFunction
+                        : ExternalFunctionType.none,
                 isStatic: isStatic);
             final id = _readId(decl);
             _curBlock.funcDecls[id] = decl;
@@ -427,10 +451,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
             final decl = _parseFuncDeclaration(
                 funcType: FunctionType.setter,
                 externType: _curClassType == ClassType.extern
-                    ? ExternalFuncDeclType.klass
+                    ? ExternalFunctionType.externalClassMethod
                     : isExtern
-                        ? ExternalFuncDeclType.standalone
-                        : ExternalFuncDeclType.none,
+                        ? ExternalFunctionType.externalFunction
+                        : ExternalFunctionType.none,
                 isStatic: isStatic);
             final id = _readId(decl);
             _curBlock.funcDecls[id] = decl;
@@ -538,9 +562,19 @@ class Compiler extends Parser with ConstTable, HetuRef {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.group);
-    advance(1);
+    match(HTLexicon.roundLeft);
     var innerExpr = _parseExpr(endOfExec: true);
     match(HTLexicon.roundRight);
+    bytesBuilder.add(innerExpr);
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _localSubValue() {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTValueTypeCode.tuple);
+    var innerExpr = _parseExpr(endOfExec: true);
+    match(HTLexicon.squareRight);
     bytesBuilder.add(innerExpr);
     return bytesBuilder.toBytes();
   }
@@ -827,13 +861,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
           bytesBuilder.addByte(HTOpCode.memberGet);
           break;
         case HTLexicon.subGet:
-          final key = _parseExpr();
+          final key = _localSubValue();
           _leftValueLegality = true;
           bytesBuilder.add(key); // int
           bytesBuilder.addByte(HTOpCode.register);
           bytesBuilder.addByte(HTRegIdx.postfixKey);
           bytesBuilder.addByte(HTOpCode.subGet);
-          match(HTLexicon.squareRight);
           break;
         case HTLexicon.call:
           _leftValueLegality = false;
@@ -958,7 +991,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     final bytesBuilder = BytesBuilder();
     final savedDeclBlock = _curBlock;
     if (createBlock) {
-      _curBlock = DeclarationBlock();
+      _curBlock = _DeclarationBlock();
     }
     if (blockStatement) {
       bytesBuilder.addByte(HTOpCode.block);
@@ -1458,7 +1491,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
   Uint8List _parseFuncDeclaration(
       {FunctionType funcType = FunctionType.normal,
-      ExternalFuncDeclType externType = ExternalFuncDeclType.none,
+      ExternalFunctionType externType = ExternalFunctionType.none,
       bool isStatic = false,
       bool isConst = false}) {
     advance(1);
@@ -1466,7 +1499,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     var hasExternalTypedef = false;
     String? externalTypedef;
     if (expect([HTLexicon.squareLeft], consume: true)) {
-      if (externType != ExternalFuncDeclType.none) throw HTErrorUnexpected(peek(-1).lexeme);
+      if (externType != ExternalFunctionType.none) throw HTErrorUnexpected(peek(-1).lexeme);
 
       hasExternalTypedef = true;
       externalTypedef = match(HTLexicon.identifier).lexeme;
@@ -1479,7 +1512,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       declId = advance(1).lexeme;
     }
 
-    if (externType == ExternalFuncDeclType.none) {
+    if (externType == ExternalFunctionType.none) {
       switch (funcType) {
         case FunctionType.constructor:
           id = (declId.isEmpty) ? HTLexicon.constructor : '${HTLexicon.constructor}.$declId';
