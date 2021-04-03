@@ -12,6 +12,7 @@ abstract class HTExternalClass with HTObject {
   late final String typename;
   late final List<String> typeArgs;
 
+  /// Default [HTExternalClass] constructor.
   HTExternalClass(this.typename, [this.typeArgs = const []]);
   // {
   //   typeid = HTTypeId.parse(typeString);
@@ -21,25 +22,29 @@ abstract class HTExternalClass with HTObject {
   /// ```
   /// object.key
   /// ```
-  dynamic instanceMemberGet(dynamic instance, String varName) => throw HTErrorUndefined(varName);
+  dynamic instanceMemberGet(dynamic instance, String varName) =>
+      throw HTErrorUndefined(varName);
 
   /// Assign a value to a instance member of the Dart class by the [varName], in the form of
   /// ```
   /// object.key = value
   /// ```
-  void instanceMemberSet(dynamic instance, String varName, dynamic value) => throw HTErrorUndefined(varName);
+  void instanceMemberSet(dynamic instance, String varName, dynamic value) =>
+      throw HTErrorUndefined(varName);
 
   /// Fetch a instance member of the Dart class by the [varName], in the form of
   /// ```
   /// object[key]
   /// ```
-  dynamic instanceSubGet(dynamic instance, dynamic key) => throw HTErrorUndefined(key);
+  dynamic instanceSubGet(dynamic instance, dynamic key) =>
+      throw HTErrorUndefined(key);
 
   /// Assign a value to a instance member of the Dart class by the [varName], in the form of
   /// ```
   /// object[key] = value
   /// ```
-  void instanceSubSet(dynamic instance, dynamic key, dynamic value) => throw HTErrorUndefined(key);
+  void instanceSubSet(dynamic instance, dynamic key, dynamic value) =>
+      throw HTErrorUndefined(key);
 }
 
 class HTExternClassNumber extends HTExternalClass {
@@ -104,6 +109,30 @@ class HTExternClassMath extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
+      case 'Math.e':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            math.e;
+      case 'Math.pi':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            math.pi;
+      case 'Math.min':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            math.min(positionalArgs[0] as num, positionalArgs[1] as num);
+      case 'Math.max':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            math.max(positionalArgs[0] as num, positionalArgs[1] as num);
       case 'Math.random':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -115,31 +144,114 @@ class HTExternClassMath extends HTExternalClass {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const []}) =>
-            math.Random().nextInt(positionalArgs.first);
+            math.Random().nextInt(positionalArgs.first as int);
       case 'Math.sqrt':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const []}) =>
-            math.sqrt(positionalArgs.first);
-      case 'Math.log':
+            math.sqrt(positionalArgs.first as num);
+      case 'Math.pow':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const []}) =>
-            math.log(positionalArgs.first);
+            math.pow(positionalArgs[0] as num, positionalArgs[1] as num);
       case 'Math.sin':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const []}) =>
-            math.sin(positionalArgs.first);
+            math.sin(positionalArgs.first as num);
       case 'Math.cos':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const []}) =>
-            math.cos(positionalArgs.first);
+            math.cos(positionalArgs.first as num);
+      case 'Math.tan':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            math.tan(positionalArgs.first as num);
+      case 'Math.exp':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            math.exp(positionalArgs.first as num);
+      case 'Math.log':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            math.log(positionalArgs.first as num);
+      case 'Math.parseInt':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            int.tryParse(positionalArgs.first as String,
+                radix: namedArgs['radix'] as int) ??
+            0;
+      case 'Math.parseDouble':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            double.tryParse(positionalArgs.first as String) ?? 0.0;
+      case 'Math.sum':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            (positionalArgs.first as List<num>)
+                .reduce((value, element) => value + element);
+      case 'Math.checkBit':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            ((positionalArgs[0] as int) & (1 << (positionalArgs[1] as int))) !=
+            0;
+      case 'Math.bitLS':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            (positionalArgs[0] as int) << (positionalArgs[1] as int);
+      case 'Math.bitRS':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            (positionalArgs[0] as int) >> (positionalArgs[1] as int);
+      case 'Math.bitAnd':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            (positionalArgs[0] as int) & (positionalArgs[1] as int);
+      case 'Math.bitOr':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            (positionalArgs[0] as int) | (positionalArgs[1] as int);
+      case 'Math.bitNot':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            ~(positionalArgs[0] as int);
+      case 'Math.bitXor':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
+
       default:
         throw HTErrorUndefined(varName);
     }

@@ -84,7 +84,8 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void memberSet(String varName, dynamic value,
+      {String from = HTLexicon.global}) {
     switch (varName) {
       case 'Person.race':
         return Person.race = value;

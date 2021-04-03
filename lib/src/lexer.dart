@@ -11,7 +11,8 @@ class Lexer {
 
   Lexer();
 
-  List<Token> lex(String content, String fileName, {int line = 0, int column = 0}) {
+  List<Token> lex(String content, String fileName,
+      {int line = 0, int column = 0}) {
     var curLine = line;
     var curColumn = 0;
     final tokens = <Token>[];
@@ -32,11 +33,14 @@ class Lexer {
             if (HTLexicon.reservedKeywords.contains(matchString)) {
               toksOfLine.add(Token(matchString, fileName, curLine, curColumn));
             } else if (matchString == HTLexicon.TRUE) {
-              toksOfLine.add(TokenBoolLiteral(matchString, true, fileName, curLine, curColumn));
+              toksOfLine.add(TokenBoolLiteral(
+                  matchString, true, fileName, curLine, curColumn));
             } else if (matchString == HTLexicon.FALSE) {
-              toksOfLine.add(TokenBoolLiteral(matchString, false, fileName, curLine, curColumn));
+              toksOfLine.add(TokenBoolLiteral(
+                  matchString, false, fileName, curLine, curColumn));
             } else {
-              toksOfLine.add(TokenIdentifier(matchString, fileName, curLine, curColumn));
+              toksOfLine.add(
+                  TokenIdentifier(matchString, fileName, curLine, curColumn));
             }
           }
           // 标点符号和运算符号
@@ -46,9 +50,11 @@ class Lexer {
           // 数字字面量
           else if (match.group(HTLexicon.tokenGroupNumber) != null) {
             if (matchString.contains(HTLexicon.memberGet)) {
-              toksOfLine.add(TokenFloatLiteral(matchString, double.parse(matchString), fileName, curLine, curColumn));
+              toksOfLine.add(TokenFloatLiteral(matchString,
+                  double.parse(matchString), fileName, curLine, curColumn));
             } else {
-              toksOfLine.add(TokenIntLiteral(matchString, int.parse(matchString), fileName, curLine, curColumn));
+              toksOfLine.add(TokenIntLiteral(matchString,
+                  int.parse(matchString), fileName, curLine, curColumn));
             }
           }
           // 字符串字面量
@@ -66,32 +72,44 @@ class Lexer {
                   if (match.start > 0) {
                     final preString = literal.substring(start, match.start);
                     final processed = escapeString(preString);
-                    stringTokens.add(TokenStringLiteral(processed, fileName, curLine, curColumn));
-                    start += match.end - start;
-                    stringTokens.add(Token(HTLexicon.add, fileName, curLine, curColumn + 1));
+                    stringTokens.add(TokenStringLiteral(
+                        processed, fileName, curLine, curColumn));
+                    stringTokens.add(
+                        Token(HTLexicon.add, fileName, curLine, curColumn + 1));
                   }
+                  start += match.end - start;
 
                   final matchString = match.group(1)!;
-                  final expresstion = matchString.substring(2, matchString.length - 1);
-                  stringTokens.add(TokenIdentifier(HTLexicon.string, fileName, curLine, curColumn));
-                  stringTokens.add(Token(HTLexicon.memberGet, fileName, curLine, match.start));
-                  stringTokens.add(TokenIdentifier(HTLexicon.parse, fileName, curLine, curColumn));
-                  stringTokens.add(Token(HTLexicon.roundLeft, fileName, curLine, match.start));
-                  stringTokens.addAll(lex(expresstion, fileName, line: curLine, column: match.start));
-                  stringTokens.add(Token(HTLexicon.roundRight, fileName, curLine, match.end));
-                  stringTokens.add(Token(HTLexicon.add, fileName, curLine, match.end));
+                  final expresstion =
+                      matchString.substring(2, matchString.length - 1);
+                  stringTokens.add(TokenIdentifier(
+                      HTLexicon.string, fileName, curLine, curColumn));
+                  stringTokens.add(Token(
+                      HTLexicon.memberGet, fileName, curLine, match.start));
+                  stringTokens.add(TokenIdentifier(
+                      HTLexicon.parse, fileName, curLine, curColumn));
+                  stringTokens.add(Token(
+                      HTLexicon.roundLeft, fileName, curLine, match.start));
+                  stringTokens.addAll(lex(expresstion, fileName,
+                      line: curLine, column: match.start));
+                  stringTokens.add(Token(
+                      HTLexicon.roundRight, fileName, curLine, match.end));
+                  stringTokens
+                      .add(Token(HTLexicon.add, fileName, curLine, match.end));
                 }
               }
               if (start < literal.length) {
                 final restString = literal.substring(start);
                 final processed = escapeString(restString);
-                stringTokens.add(TokenStringLiteral(processed, fileName, curLine, curColumn));
+                stringTokens.add(TokenStringLiteral(
+                    processed, fileName, curLine, curColumn));
               } else {
                 stringTokens.removeLast();
               }
             } else {
               final processed = escapeString(literal);
-              stringTokens.add(TokenStringLiteral(processed, fileName, curLine, curColumn));
+              stringTokens.add(
+                  TokenStringLiteral(processed, fileName, curLine, curColumn));
             }
 
             toksOfLine.addAll(stringTokens);
@@ -103,13 +121,15 @@ class Lexer {
         if (HTLexicon.ASIStart.contains(toksOfLine.first.type)) {
           /// Add semicolon before a newline if the new line starting with '[, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
-          if (tokens.isNotEmpty && !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
+          if (tokens.isNotEmpty &&
+              !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
             tokens.add(Token(HTLexicon.semicolon, fileName, curLine, 1));
           }
           tokens.addAll(toksOfLine);
         } else if (toksOfLine.last.type == HTLexicon.RETURN) {
           tokens.addAll(toksOfLine);
-          tokens.add(Token(HTLexicon.semicolon, fileName, curLine, curColumn + 1));
+          tokens.add(
+              Token(HTLexicon.semicolon, fileName, curLine, curColumn + 1));
         } else {
           tokens.addAll(toksOfLine);
         }

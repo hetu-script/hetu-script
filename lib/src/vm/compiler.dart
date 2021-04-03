@@ -8,7 +8,6 @@ import '../token.dart';
 import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
-import '../function.dart';
 import '../const_table.dart';
 
 class HTRegIdx {
@@ -36,7 +35,10 @@ class _DeclarationBlock {
   final classDecls = <String, Uint8List>{};
   final varDecls = <String, Uint8List>{};
 
-  bool contains(String id) => funcDecls.containsKey(id) || classDecls.containsKey(id) || varDecls.containsKey(id);
+  bool contains(String id) =>
+      funcDecls.containsKey(id) ||
+      classDecls.containsKey(id) ||
+      varDecls.containsKey(id);
 }
 
 class _ImportInfo {
@@ -48,6 +50,8 @@ class _ImportInfo {
 
 /// Utility class that parse a string content into a uint8 list
 class Compiler extends Parser with ConstTable, HetuRef {
+  static var _anonymousFuncIndex = 0;
+
   /// Hetu script bytecode's unique header
   static const hetuSignatureData = [8, 5, 20, 21];
 
@@ -80,8 +84,11 @@ class Compiler extends Parser with ConstTable, HetuRef {
   }
 
   /// Compiles a Token list.
-  Future<Uint8List> compile(List<Token> tokens, Hetu interpreter, String moduleUniqueKey,
-      {CodeType codeType = CodeType.module, debugMode = false, bool bundleMode = false}) async {
+  Future<Uint8List> compile(
+      List<Token> tokens, Hetu interpreter, String moduleUniqueKey,
+      {CodeType codeType = CodeType.module,
+      debugMode = false,
+      bool bundleMode = false}) async {
     _bundleMode = bundleMode;
     _debugMode = _bundleMode ? false : debugMode;
     _curModuleUniqueKey = moduleUniqueKey;
@@ -94,7 +101,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
       if (bundleMode) {
       } else {
         await interpreter.import(importInfo.key,
-            curModuleUniqueKey: moduleUniqueKey, moduleName: importInfo.name, debugMode: _debugMode);
+            curModuleUniqueKey: moduleUniqueKey,
+            moduleName: importInfo.name,
+            debugMode: _debugMode);
       }
     }
 
@@ -146,14 +155,17 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return mainBuilder.toBytes();
   }
 
-  Uint8List _compile(List<Token> tokens, [CodeType codeType = CodeType.module]) {
+  Uint8List _compile(List<Token> tokens,
+      [CodeType codeType = CodeType.module]) {
     //, ImportInfo? importInfo]) {
     // _curImportInfo = importInfo;
     addTokens(tokens);
     final bytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.endOfFile) {
       final exprStmts = _parseStmt(codeType: codeType);
-      if (codeType == CodeType.block || codeType == CodeType.function || codeType == CodeType.script) {
+      if (codeType == CodeType.block ||
+          codeType == CodeType.function ||
+          codeType == CodeType.script) {
         bytesBuilder.add(exprStmts);
       }
     }
@@ -186,18 +198,22 @@ class Compiler extends Parser with ConstTable, HetuRef {
   }
 
   /// -32768 to 32767
-  Uint8List _int16(int value) => Uint8List(2)..buffer.asByteData().setInt16(0, value, Endian.big);
+  Uint8List _int16(int value) =>
+      Uint8List(2)..buffer.asByteData().setInt16(0, value, Endian.big);
 
   /// 0 to 65,535
-  Uint8List _uint16(int value) => Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
+  Uint8List _uint16(int value) =>
+      Uint8List(2)..buffer.asByteData().setUint16(0, value, Endian.big);
 
   /// 0 to 4,294,967,295
   // Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
 
   /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
-  Uint8List _int64(int value) => Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
+  Uint8List _int64(int value) =>
+      Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
 
-  Uint8List _float64(double value) => Uint8List(8)..buffer.asByteData().setFloat64(0, value, Endian.big);
+  Uint8List _float64(double value) =>
+      Uint8List(8)..buffer.asByteData().setFloat64(0, value, Endian.big);
 
   Uint8List _shortUtf8String(String value) {
     final bytesBuilder = BytesBuilder();
@@ -221,7 +237,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return utf8.decoder.convert(bytes.sublist(1, length + 1));
   }
 
-  Uint8List _parseStmt({CodeType codeType = CodeType.module, bool endOfExec = false}) {
+  Uint8List _parseStmt(
+      {CodeType codeType = CodeType.module, bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
     switch (codeType) {
       case CodeType.module:
@@ -247,7 +264,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
               case HTLexicon.CONST:
                 throw HTErrorExternVar();
               case HTLexicon.FUN:
-                final decl = _parseFuncDeclaration(externType: ExternalFunctionType.externalFunction);
+                final decl = _parseFuncDeclaration(
+                    externType: ExternalFunctionType.externalFunction);
                 final id = _readId(decl);
                 _curBlock.funcDecls[id] = decl;
                 break;
@@ -397,7 +415,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.LET:
             final decl = _parseVarStmt(
-                isExtern: isExtern || _curClassType == ClassType.extern, isMember: true, isStatic: isStatic);
+                isExtern: isExtern || _curClassType == ClassType.extern,
+                isMember: true,
+                isStatic: isStatic);
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
@@ -474,9 +494,11 @@ class Compiler extends Parser with ConstTable, HetuRef {
   Uint8List _debugInfo() {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.debugInfo);
-    final line = Uint8List(2)..buffer.asByteData().setUint16(0, curTok.line, Endian.big);
+    final line = Uint8List(2)
+      ..buffer.asByteData().setUint16(0, curTok.line, Endian.big);
     bytesBuilder.add(line);
-    final column = Uint8List(2)..buffer.asByteData().setUint16(0, curTok.column, Endian.big);
+    final column = Uint8List(2)
+      ..buffer.asByteData().setUint16(0, curTok.column, Endian.big);
     bytesBuilder.add(column);
     return bytesBuilder.toBytes();
   }
@@ -596,7 +618,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     final left = _parserTernaryExpr();
     if (HTLexicon.assignments.contains(curTok.type)) {
       if (!_leftValueLegality) {
-        throw HTErrorIllegalLeftValue();
+        throw HTErrorIllegalLeftValueParser();
       }
       final op = advance(1).type;
       final right = _parseExpr(); // 右合并：先计算右边
@@ -853,7 +875,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       final op = advance(1).type;
       switch (op) {
         case HTLexicon.memberGet:
-          bytesBuilder.addByte(HTOpCode.objectSymbol); // save object symbol name in reg
+          bytesBuilder
+              .addByte(HTOpCode.objectSymbol); // save object symbol name in reg
           final key = _localSymbol(isGetKey: true); // shortUtf8String
           _leftValueLegality = true;
           bytesBuilder.add(key);
@@ -873,8 +896,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
           _leftValueLegality = false;
           final positionalArgs = <Uint8List>[];
           final namedArgs = <String, Uint8List>{};
-          while ((curTok.type != HTLexicon.roundRight) && (curTok.type != HTLexicon.endOfFile)) {
-            if (expect([HTLexicon.identifier, HTLexicon.colon], consume: false)) {
+          while ((curTok.type != HTLexicon.roundRight) &&
+              (curTok.type != HTLexicon.endOfFile)) {
+            if (expect([HTLexicon.identifier, HTLexicon.colon],
+                consume: false)) {
               final name = advance(2).lexeme;
               namedArgs[name] = _parseExpr(endOfExec: true);
             } else {
@@ -1000,7 +1025,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     }
     final declsBytesBuilder = BytesBuilder();
     final blockBytesBuilder = BytesBuilder();
-    while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+    while (curTok.type != HTLexicon.curlyRight &&
+        curTok.type != HTLexicon.endOfFile) {
       blockBytesBuilder.add(_parseStmt(codeType: codeType));
     }
     // 添加变量表，总是按照：函数、类、变量这个顺序
@@ -1167,13 +1193,15 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _assembleMemberGet(Uint8List object, String key, {bool endOfExec = false}) {
+  Uint8List _assembleMemberGet(Uint8List object, String key,
+      {bool endOfExec = false}) {
     _leftValueLegality = true;
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(object);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
-    bytesBuilder.addByte(HTOpCode.objectSymbol); // save object symbol name in reg
+    bytesBuilder
+        .addByte(HTOpCode.objectSymbol); // save object symbol name in reg
     final keySymbol = _assembleLocalSymbol(key, isGetKey: true);
     bytesBuilder.add(keySymbol);
     bytesBuilder.addByte(HTOpCode.register);
@@ -1226,13 +1254,16 @@ class Compiler extends Parser with ConstTable, HetuRef {
       final id = advance(2).lexeme;
       final object = _parseExpr();
       // the intializer of the var is a member get expression: object.length
-      final iterInit = _assembleMemberGet(object, HTLexicon.first, endOfExec: true);
+      final iterInit =
+          _assembleMemberGet(object, HTLexicon.first, endOfExec: true);
       match(HTLexicon.roundRight);
       final blockStartPos = tokPos;
       // go back to var declaration
       tokPos = declPos;
       final iterDecl = _parseVarStmt(
-          isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST, initializer: iterInit);
+          isDynamic: curTok.type == HTLexicon.VAR,
+          isImmutable: curTok.type == HTLexicon.CONST,
+          initializer: iterInit);
 
       final increId = '__#i';
       final increExprInit = _assembleLocalConstInt(0, endOfExec: true);
@@ -1297,7 +1328,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
           throw HTErrorUnexpected(curTok.type);
         }
         final iterDecl = _parseVarStmt(
-            isDynamic: curTok.type == HTLexicon.VAR, isImmutable: curTok.type == HTLexicon.CONST, endOfStatement: true);
+            isDynamic: curTok.type == HTLexicon.VAR,
+            isImmutable: curTok.type == HTLexicon.CONST,
+            endOfStatement: true);
 
         // 添加变量声明，枚举、函数和类的部分是空的
         bytesBuilder.addByte(HTOpCode.declTable);
@@ -1323,7 +1356,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final loop = _parseBlock(HTLexicon.forStmt);
-    final continueLength = (condition?.length ?? 0) + (assign?.length ?? 0) + loop.length + 2;
+    final continueLength =
+        (condition?.length ?? 0) + (assign?.length ?? 0) + loop.length + 2;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
     bytesBuilder.add(_uint16(continueLength));
     bytesBuilder.add(_uint16(breakLength));
@@ -1355,11 +1389,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
     final branches = <Uint8List>[];
     Uint8List? elseBranch;
     match(HTLexicon.curlyLeft);
-    while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+    while (curTok.type != HTLexicon.curlyRight &&
+        curTok.type != HTLexicon.endOfFile) {
       if (curTok.lexeme == HTLexicon.ELSE) {
         advance(1);
         match(HTLexicon.colon);
-        if (curTok.type != HTLexicon.semicolon && curTok.type != HTLexicon.curlyRight) {
+        if (curTok.type != HTLexicon.semicolon &&
+            curTok.type != HTLexicon.curlyRight) {
           elseBranch = _parseExpr(endOfExec: true);
         }
       } else {
@@ -1371,7 +1407,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
           branches.add(caseBranch);
           match(HTLexicon.curlyRight);
         } else {
-          final caseBranch = _parseStmt(codeType: CodeType.block, endOfExec: true);
+          final caseBranch =
+              _parseStmt(codeType: CodeType.block, endOfExec: true);
           branches.add(caseBranch);
         }
       }
@@ -1382,7 +1419,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     bytesBuilder.addByte(cases.length);
 
     var curIp = 0;
-    bytesBuilder.add(_uint16(0)); // the first ip starts from previous list's last one
+    bytesBuilder
+        .add(_uint16(0)); // the first ip starts from previous list's last one
     for (var i = 1; i < branches.length; ++i) {
       curIp = curIp + branches[i - 1].length;
       bytesBuilder.add(_uint16(curIp));
@@ -1423,7 +1461,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     final typeArgs = <Uint8List>[];
     if (expect([HTLexicon.angleLeft], consume: true)) {
-      while ((curTok.type != HTLexicon.angleRight) && (curTok.type != HTLexicon.endOfFile)) {
+      while ((curTok.type != HTLexicon.angleRight) &&
+          (curTok.type != HTLexicon.endOfFile)) {
         typeArgs.add(_parseTypeId());
         expect([HTLexicon.comma], consume: true);
       }
@@ -1509,7 +1548,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     var hasExternalTypedef = false;
     String? externalTypedef;
     if (expect([HTLexicon.squareLeft], consume: true)) {
-      if (externType != ExternalFunctionType.none) throw HTErrorUnexpected(peek(-1).lexeme);
+      if (externType != ExternalFunctionType.none)
+        throw HTErrorUnexpected(peek(-1).lexeme);
 
       hasExternalTypedef = true;
       externalTypedef = match(HTLexicon.identifier).lexeme;
@@ -1525,7 +1565,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
     if (externType == ExternalFunctionType.none) {
       switch (funcType) {
         case FunctionType.constructor:
-          id = (declId.isEmpty) ? HTLexicon.constructor : '${HTLexicon.constructor}.$declId';
+          id = (declId.isEmpty)
+              ? HTLexicon.constructor
+              : '${HTLexicon.constructor}.$declId';
           break;
         case FunctionType.getter:
           if (_curBlock.contains(declId)) {
@@ -1540,7 +1582,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
           id = HTLexicon.setter + declId;
           break;
         case FunctionType.literal:
-          id = HTLexicon.anonymousFunction + (HTFunction.anonymousIndex++).toString();
+          id = HTLexicon.anonymousFunction + (_anonymousFuncIndex++).toString();
           break;
         default:
           id = declId;
@@ -1597,7 +1639,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     var maxArity = 0;
     var paramDecls = <Uint8List>[];
 
-    if (funcType != FunctionType.getter && expect([HTLexicon.roundLeft], consume: true)) {
+    if (funcType != FunctionType.getter &&
+        expect([HTLexicon.roundLeft], consume: true)) {
       var isOptional = false;
       var isNamed = false;
       while ((curTok.type != HTLexicon.roundRight) &&
@@ -1644,7 +1687,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
         Uint8List? initializer;
         //参数默认值
-        if ((isOptional || isNamed) && (expect([HTLexicon.assign], consume: true))) {
+        if ((isOptional || isNamed) &&
+            (expect([HTLexicon.assign], consume: true))) {
           initializer = _parseExpr(endOfExec: true);
           paramBytesBuilder.addByte(1); // bool，表示有初始化表达式
           paramBytesBuilder.add(_uint16(initializer.length));
@@ -1765,7 +1809,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.addByte(0); // bool: has super class
     }
 
-    final classDefinition = _parseBlock(id, codeType: CodeType.klass, blockStatement: false);
+    final classDefinition =
+        _parseBlock(id, codeType: CodeType.klass, blockStatement: false);
 
     bytesBuilder.add(classDefinition);
     bytesBuilder.addByte(HTOpCode.endOfExec);
@@ -1789,7 +1834,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     var enumerations = <String>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      while (curTok.type != HTLexicon.curlyRight && curTok.type != HTLexicon.endOfFile) {
+      while (curTok.type != HTLexicon.curlyRight &&
+          curTok.type != HTLexicon.endOfFile) {
         enumerations.add(match(HTLexicon.identifier).lexeme);
         if (curTok.type != HTLexicon.curlyRight) {
           match(HTLexicon.comma);

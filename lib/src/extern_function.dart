@@ -2,8 +2,11 @@ import 'type.dart';
 
 import 'function.dart';
 
+/// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
-    {List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs});
+    {List<dynamic> positionalArgs,
+    Map<String, dynamic> namedArgs,
+    List<HTTypeId> typeArgs});
 
 /// Accept a hetu function object, then return a dart function
 /// for use in Dart code. This is for usage where you want to
@@ -12,6 +15,7 @@ typedef HTExternalFunction = dynamic Function(
 /// native function as parameter.
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
+/// Core exernal functions for use globally in Hetu script.
 final Map<String, Function> coreFunctions = {
   // TODO: 读取注释
   'help': (
@@ -23,7 +27,7 @@ final Map<String, Function> coreFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
     var sb = StringBuffer();
-    for (final arg in positionalArgs[0]) {
+    for (final arg in namedArgs['args']) {
       sb.write('$arg ');
     }
     print(sb.toString());

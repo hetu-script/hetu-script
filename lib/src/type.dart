@@ -35,7 +35,8 @@ class HTTypeId with HTObject {
   final bool isNullable;
   final List<HTTypeId> arguments;
 
-  const HTTypeId(this.name, {this.isNullable = true, this.arguments = const []});
+  const HTTypeId(this.name,
+      {this.isNullable = true, this.arguments = const []});
 
   @override
   String toString() {
@@ -45,7 +46,8 @@ class HTTypeId with HTObject {
       typename.write('<');
       for (var i = 0; i < arguments.length; ++i) {
         typename.write(arguments[i]);
-        if ((arguments.length > 1) && (i != arguments.length - 1)) typename.write(', ');
+        if ((arguments.length > 1) && (i != arguments.length - 1))
+          typename.write(', ');
       }
       typename.write('>');
     }
@@ -59,7 +61,9 @@ class HTFunctionTypeId extends HTTypeId {
   final List<HTTypeId> paramsTypes; // function(T1 arg1, T2 arg2)
 
   const HTFunctionTypeId(
-      {this.returnType = HTTypeId.ANY, List<HTTypeId> arguments = const [], this.paramsTypes = const []})
+      {this.returnType = HTTypeId.ANY,
+      List<HTTypeId> arguments = const [],
+      this.paramsTypes = const []})
       : super(HTLexicon.function, arguments: arguments);
 
   @override
@@ -70,7 +74,8 @@ class HTFunctionTypeId extends HTTypeId {
       result.write('<');
       for (var i = 0; i < arguments.length; ++i) {
         result.write(arguments[i]);
-        if ((arguments.length > 1) && (i != arguments.length - 1)) result.write(', ');
+        if ((arguments.length > 1) && (i != arguments.length - 1))
+          result.write(', ');
       }
       result.write('>');
     }

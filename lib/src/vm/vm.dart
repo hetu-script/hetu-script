@@ -72,20 +72,29 @@ class Hetu extends Interpreter {
   HTClass? _curClass;
 
   var _regIndex = 0;
-  final _registers = List<dynamic>.filled(HTRegIdx.length, null, growable: true);
+  final _registers =
+      List<dynamic>.filled(HTRegIdx.length, null, growable: true);
 
   int _getRegIndex(int relative) => (_regIndex * HTRegIdx.length + relative);
-  void _setRegVal(int index, dynamic value) => _registers[_getRegIndex(index)] = value;
+  void _setRegVal(int index, dynamic value) =>
+      _registers[_getRegIndex(index)] = value;
   dynamic _getRegVal(int index) => _registers[_getRegIndex(index)];
-  set _curValue(dynamic value) => _registers[_getRegIndex(HTRegIdx.value)] = value;
+  set _curValue(dynamic value) =>
+      _registers[_getRegIndex(HTRegIdx.value)] = value;
   dynamic get _curValue => _registers[_getRegIndex(HTRegIdx.value)];
-  set _curSymbol(String? value) => _registers[_getRegIndex(HTRegIdx.symbol)] = value;
+  set _curSymbol(String? value) =>
+      _registers[_getRegIndex(HTRegIdx.symbol)] = value;
   String? get _curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
-  set _curObjectSymbol(String? value) => _registers[_getRegIndex(HTRegIdx.objectSymbol)] = value;
-  String? get _curObjectSymbol => _registers[_getRegIndex(HTRegIdx.objectSymbol)];
-  set _curRefType(_RefType value) => _registers[_getRegIndex(HTRegIdx.refType)] = value;
-  _RefType get _curRefType => _registers[_getRegIndex(HTRegIdx.refType)] ?? _RefType.normal;
-  set _curLoopCount(int value) => _registers[_getRegIndex(HTRegIdx.loopCount)] = value;
+  set _curObjectSymbol(String? value) =>
+      _registers[_getRegIndex(HTRegIdx.objectSymbol)] = value;
+  String? get _curObjectSymbol =>
+      _registers[_getRegIndex(HTRegIdx.objectSymbol)];
+  set _curRefType(_RefType value) =>
+      _registers[_getRegIndex(HTRegIdx.refType)] = value;
+  _RefType get _curRefType =>
+      _registers[_getRegIndex(HTRegIdx.refType)] ?? _RefType.normal;
+  set _curLoopCount(int value) =>
+      _registers[_getRegIndex(HTRegIdx.loopCount)] = value;
   int get _curLoopCount => _registers[_getRegIndex(HTRegIdx.loopCount)] ?? 0;
 
   /// loop 信息以栈的形式保存
@@ -120,17 +129,22 @@ class Hetu extends Interpreter {
 
     _compiler = Compiler(this);
 
-    final name = moduleUniqueKey ?? (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+    final name = moduleUniqueKey ??
+        (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
 
     try {
       final tokens = Lexer().lex(content, name);
-      final bytes = await _compiler.compile(tokens, this, name, codeType: codeType, debugMode: debugMode);
+      final bytes = await _compiler.compile(tokens, this, name,
+          codeType: codeType, debugMode: debugMode);
 
       _curCode = _modules[name] = HTBytecode(bytes);
       _curModuleUniqueKey = name;
       var result = execute(namespace: namespace ?? global);
       if (codeType == CodeType.module && invokeFunc != null) {
-        result = invoke(invokeFunc, positionalArgs: positionalArgs, namedArgs: namedArgs, errorHandled: true);
+        result = invoke(invokeFunc,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            errorHandled: true);
       }
 
       return result;
@@ -200,14 +214,20 @@ class Hetu extends Interpreter {
         final func = klass.memberGet(funcName);
 
         if (func is HTFunction) {
-          return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+          return func.call(
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              typeArgs: typeArgs);
         } else {
           throw HTErrorCallable(funcName);
         }
       } else {
         func = global.fetch(funcName);
         if (func is HTFunction) {
-          return func.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+          return func.call(
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              typeArgs: typeArgs);
         } else {
           HTErrorCallable(funcName);
         }
@@ -232,14 +252,26 @@ class Hetu extends Interpreter {
     if (error is! HTInterpreterError) {
       HTInterpreterError itpErr;
       if (error is HTParserError) {
-        itpErr = HTInterpreterError('${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n', error.type,
-            _compiler.curModuleUniqueKey, _compiler.curLine, _compiler.curColumn);
+        itpErr = HTInterpreterError(
+            '${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
+            error.type,
+            _compiler.curModuleUniqueKey,
+            _compiler.curLine,
+            _compiler.curColumn);
       } else if (error is HTError) {
-        itpErr = HTInterpreterError('${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n', error.type,
-            curModuleUniqueKey, curLine, curColumn);
+        itpErr = HTInterpreterError(
+            '${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
+            error.type,
+            curModuleUniqueKey,
+            curLine,
+            curColumn);
       } else {
-        itpErr = HTInterpreterError('$error\nHetu call stack:\n$callStack\nDart call stack:\n', HTErrorType.other,
-            curModuleUniqueKey, curLine, curColumn);
+        itpErr = HTInterpreterError(
+            '$error\nHetu call stack:\n$callStack\nDart call stack:\n',
+            HTErrorType.other,
+            curModuleUniqueKey,
+            curLine,
+            curColumn);
       }
 
       errorHandler.handle(itpErr);
@@ -255,7 +287,8 @@ class Hetu extends Interpreter {
 
     try {
       final tokens = Lexer().lex(content, moduleName);
-      final bytes = await _compiler.compile(tokens, this, moduleName, codeType: codeType, debugMode: debugMode);
+      final bytes = await _compiler.compile(tokens, this, moduleName,
+          codeType: codeType, debugMode: debugMode);
 
       bytesBuilder.add(bytes);
     } catch (e, stack) {
@@ -269,14 +302,26 @@ class Hetu extends Interpreter {
       if (e is! HTInterpreterError) {
         HTInterpreterError newErr;
         if (e is HTParserError) {
-          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-              _compiler.curModuleUniqueKey, _compiler.curLine, _compiler.curColumn);
+          newErr = HTInterpreterError(
+              '${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
+              e.type,
+              _compiler.curModuleUniqueKey,
+              _compiler.curLine,
+              _compiler.curColumn);
         } else if (e is HTError) {
-          newErr = HTInterpreterError('${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n', e.type,
-              curModuleUniqueKey, curLine, curColumn);
+          newErr = HTInterpreterError(
+              '${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
+              e.type,
+              curModuleUniqueKey,
+              curLine,
+              curColumn);
         } else {
-          newErr = HTInterpreterError('$e\nHetu call stack:\n$callStack\nDart call stack:\n', HTErrorType.other,
-              curModuleUniqueKey, curLine, curColumn);
+          newErr = HTInterpreterError(
+              '$e\nHetu call stack:\n$callStack\nDart call stack:\n',
+              HTErrorType.other,
+              curModuleUniqueKey,
+              curLine,
+              curColumn);
         }
 
         errorHandler.handle(newErr);
@@ -290,7 +335,8 @@ class Hetu extends Interpreter {
 
   /// Load a pre-compiled bytecode in to module library.
   /// If [run] is true, then execute the bytecode immediately.
-  dynamic load(Uint8List code, String moduleUniqueKey, {bool run = true, int ip = 0}) {}
+  dynamic load(Uint8List code, String moduleUniqueKey,
+      {bool run = true, int ip = 0}) {}
 
   /// Interpret a loaded module with the key of [moduleUniqueKey]
   /// Starting from the instruction pointer of [ip]
@@ -302,7 +348,11 @@ class Hetu extends Interpreter {
   /// Once changed into a new module, will open a new area of register space
   /// Every register space holds its own temporary values.
   /// Such as currrent value, current symbol, current line & column, etc.
-  dynamic execute({String? moduleUniqueKey, int? ip, HTNamespace? namespace, bool moveRegIndex = false}) {
+  dynamic execute(
+      {String? moduleUniqueKey,
+      int? ip,
+      HTNamespace? namespace,
+      bool moveRegIndex = false}) {
     final savedModuleUniqueKey = curModuleUniqueKey;
     final savedIp = _curCode.ip;
     final savedNamespace = _curNamespace;
@@ -393,7 +443,8 @@ class Hetu extends Interpreter {
         case HTOpCode.loopPoint:
           final continueLength = _curCode.readUint16();
           final breakLength = _curCode.readUint16();
-          _loops.add(_LoopInfo(_curCode.ip, _curCode.ip + continueLength, _curCode.ip + breakLength, _curNamespace));
+          _loops.add(_LoopInfo(_curCode.ip, _curCode.ip + continueLength,
+              _curCode.ip + breakLength, _curNamespace));
           break;
         case HTOpCode.breakLoop:
           _curCode.ip = _loops.last.breakIp;
@@ -554,7 +605,8 @@ class Hetu extends Interpreter {
         final isGetKey = _curCode.readBool();
         if (!isGetKey) {
           _curRefType = _RefType.normal;
-          _curValue = _curNamespace.fetch(_curSymbol!, from: _curNamespace.fullName);
+          _curValue =
+              _curNamespace.fetch(_curSymbol!, from: _curNamespace.fullName);
         } else {
           _curRefType = _RefType.member;
           // reg[13] 是 object，reg[14] 是 key
@@ -630,7 +682,8 @@ class Hetu extends Interpreter {
         if (!hasExternalTypedef) {
           _curValue = func;
         } else {
-          final externalFunc = unwrapExternalFunctionType(externalTypedef!, func);
+          final externalFunc =
+              unwrapExternalFunctionType(externalTypedef!, func);
           _curValue = externalFunc;
         }
         break;
@@ -872,28 +925,41 @@ class Hetu extends Interpreter {
     final typeArgs = <HTTypeId>[];
 
     if (callee is HTFunction) {
-      _curValue = callee.call(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+      _curValue = callee.call(
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs);
     } // 外部函数
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
-        _curValue = callee(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+        _curValue = callee(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
       } else {
-        _curValue = Function.apply(callee, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        _curValue = Function.apply(callee, positionalArgs,
+            namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
         // throw HTErrorExternFunc(callee.toString());
       }
     } else if (callee is HTClass) {
       if (callee.classType != ClassType.extern) {
         // 默认构造函数
-        _curValue = callee.createInstance(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+        _curValue = callee.createInstance(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
       } else {
         // 外部默认构造函数
         final externClass = fetchExternalClass(callee.id);
         final constructor = externClass.memberGet(callee.id);
         if (constructor is HTExternalFunction) {
-          _curValue = constructor(positionalArgs: positionalArgs, namedArgs: namedArgs, typeArgs: typeArgs);
+          _curValue = constructor(
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              typeArgs: typeArgs);
         } else {
-          _curValue =
-              Function.apply(constructor, positionalArgs, namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+          _curValue = Function.apply(constructor, positionalArgs,
+              namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
           // throw HTErrorExternFunc(constructor.toString());
         }
       }
@@ -1124,7 +1190,9 @@ class Hetu extends Interpreter {
     );
 
     if (!isStatic &&
-        (funcType == FunctionType.getter || funcType == FunctionType.setter || funcType == FunctionType.method)) {
+        (funcType == FunctionType.getter ||
+            funcType == FunctionType.setter ||
+            funcType == FunctionType.method)) {
       _curClass!.defineInstanceMember(func);
     } else {
       func.context = _curNamespace;
@@ -1149,12 +1217,14 @@ class Hetu extends Interpreter {
         // TODO: Object基类
         superClass = global.fetch(HTLexicon.object);
       } else {
-        superClass = _curNamespace.fetch(superClassId, from: _curNamespace.fullName);
+        superClass =
+            _curNamespace.fetch(superClassId, from: _curNamespace.fullName);
       }
     }
 
     final klassNamespace = HTClassNamespace(id, this, closure: _curNamespace);
-    final klass = HTClass(id, klassNamespace, superClass, this, classType: classType);
+    final klass =
+        HTClass(id, klassNamespace, superClass, this, classType: classType);
 
     _curClass = klass;
 
@@ -1173,7 +1243,8 @@ class Hetu extends Interpreter {
         if (decl is HTVariable) {
           klass.defineInstanceMember(decl.clone(), error: false);
         } else {
-          klass.defineInstanceMember(decl, error: false); // 函数不能复制，而是在每次call的时候被加上正确的context
+          klass.defineInstanceMember(decl,
+              error: false); // 函数不能复制，而是在每次call的时候被加上正确的context
         }
       }
 

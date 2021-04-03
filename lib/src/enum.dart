@@ -17,7 +17,8 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   final bool isExtern;
 
   /// Create a default [HTEnum] class.
-  HTEnum(String id, this.enums, Interpreter interpreter, {this.isExtern = false}) {
+  HTEnum(String id, this.enums, Interpreter interpreter,
+      {this.isExtern = false}) {
     this.interpreter = interpreter;
     this.id = id;
   }
@@ -44,7 +45,8 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   }
 
   @override
-  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void memberSet(String varName, dynamic value,
+      {String from = HTLexicon.global}) {
     if (enums.containsKey(varName)) {
       throw HTErrorImmutable(varName);
     }

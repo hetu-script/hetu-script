@@ -27,13 +27,16 @@ mixin HTObject {
   /// ```
   /// object.key
   /// ```
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
+      throw HTErrorUndefined(varName);
 
   /// Assign a value to a member by the [varName], in the form of
   /// ```
   /// object.key = value
   /// ```
-  void memberSet(String varName, dynamic value, {String from = HTLexicon.global}) => throw HTErrorUndefined(varName);
+  void memberSet(String varName, dynamic value,
+          {String from = HTLexicon.global}) =>
+      throw HTErrorUndefined(varName);
 
   /// Fetch a member by the [varName], in the form of
   /// ```

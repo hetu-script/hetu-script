@@ -16,7 +16,7 @@ Hetu is a lightweight script language purely written in Dart for embedding in Fl
 
 We did not choose to use another existing language to achieve the goal. Because we want to keep the language simple, and keep it away from interference of other language's complex implementation and their irrelative-to-Flutter eco-system, and make the debug process pain-free and remain in Dart realms.
 
-It takes very little time to bind almost anything in Dart/Flutter into Hetu and use almost exactly the same grammar to write your app. And to communicate with classes & functions in Dart is very easy.
+It takes very little time to bind almost anything in Dart/Flutter into Hetu and use similar grammar to write your app. And to communicate with classes & functions in Dart is very easy.
 
 ## Quick start
 

@@ -213,7 +213,8 @@ void main() async {
 
   group('import handler -', () {
     test('import', () async {
-      final result = await hetu.import('script/import_test.ht', debugMode: false, invokeFunc: 'importTest');
+      final result = await hetu.import('script/import_test.ht',
+          debugMode: false, invokeFunc: 'importTest');
       expect(
         result,
         87.5,

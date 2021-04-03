@@ -27,7 +27,8 @@ void main(List<String> args) async {
       } else if (args.length == 1) {
         result = await hetu.import(args.first, codeType: CodeType.block);
       } else {
-        result = await hetu.import(args.first, codeType: CodeType.module, invokeFunc: args[1]);
+        result = await hetu.import(args.first,
+            codeType: CodeType.module, invokeFunc: args[1]);
       }
       if (result != null) print(result);
     } else {
@@ -41,7 +42,10 @@ void main(List<String> args) async {
         stdout.write('>>>');
         var input = stdin.readLineSync();
 
-        if ((input == 'exit') || (input == 'quit') || (input == 'close') || (input == 'end')) {
+        if ((input == 'exit') ||
+            (input == 'quit') ||
+            (input == 'close') ||
+            (input == 'end')) {
           quit = true;
         } else {
           if (input!.endsWith('\\')) {

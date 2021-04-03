@@ -5,9 +5,10 @@ import 'common.dart';
 import 'namespace.dart';
 import 'type.dart';
 
-/// 函数抽象类，ast 和 字节码分别有各自的具体实现
+/// [HTFunction] is the base class of functions in Hetu.
+///
+/// Extends this class to call functions in ast or bytecode modules.
 abstract class HTFunction with HTDeclaration, HTObject {
-  static var anonymousIndex = 0;
   static final callStack = <String>[];
 
   final String declId;

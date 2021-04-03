@@ -4,7 +4,19 @@ external class num {
 
   fun toStringAsFixed([fractionDigits: num = 0]): num
 
+  fun abs(): num
+
+  fun floor(): num
+
+  fun ceil(): num
+
+  fun round(): num
+
   fun truncate(): num
+
+  fun toInt(): num
+
+  fun toDouble(): num
 }
 
 external class bool {

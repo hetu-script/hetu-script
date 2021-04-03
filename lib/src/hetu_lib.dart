@@ -2,14 +2,14 @@
 ///
 /// Automatically generated based on files in 'hetu_lib' folder.
 final Map<String, String> coreModules = const {
-      'core.ht': r'''class Object {}
+  'core.ht': r'''class Object {}
 
 // return the declaration type of a symbol
 // external fun decltypeof(value): str
 
 // print values of any type into lines
 external fun print(... args)''',
-'value.ht': r'''external class num {
+  'value.ht': r'''external class num {
 
 	static fun parse(value: str): num
 
@@ -119,7 +119,7 @@ external class Map {
 
   fun putIfAbsent(key, value): any
 }''',
-'system.ht': r'''external class System {
+  'system.ht': r'''external class System {
 
   static get now: num
 
@@ -127,7 +127,7 @@ external class Map {
 
   // static fun tok()
 }''',
-'console.ht': r'''external class Console {
+  'console.ht': r'''external class Console {
 
 	// write a line without return
 	static fun write(line: str)
@@ -143,7 +143,7 @@ external class Map {
 	
 	static fun cls()
 }''',
-'math.ht': r'''fun max(a: num, b: num): num {
+  'math.ht': r'''fun max(a: num, b: num): num {
   if (a > b) return a
   return b
 }
@@ -172,5 +172,5 @@ external class Math {
   static fun cos(x: num): num
 }
 ''',
-'help.ht': r'''external fun help(value): str''',
+  'help.ht': r'''external fun help(value): str''',
 };

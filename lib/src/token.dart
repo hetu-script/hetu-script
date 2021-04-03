@@ -20,7 +20,8 @@ class TokenIdentifier extends Token {
   @override
   dynamic get type => HTLexicon.identifier;
 
-  TokenIdentifier(String lexeme, String fileName, int line, int column) : super(lexeme, fileName, line, column);
+  TokenIdentifier(String lexeme, String fileName, int line, int column)
+      : super(lexeme, fileName, line, column);
 }
 
 class TokenBoolLiteral extends Token {
@@ -30,7 +31,8 @@ class TokenBoolLiteral extends Token {
   @override
   dynamic get type => lexeme;
 
-  TokenBoolLiteral(String lexeme, this.literal, String fileName, int line, int column)
+  TokenBoolLiteral(
+      String lexeme, this.literal, String fileName, int line, int column)
       : super(lexeme, fileName, line, column);
 }
 
@@ -41,7 +43,8 @@ class TokenNumberLiteral extends Token {
   @override
   dynamic get type => HTLexicon.number;
 
-  TokenNumberLiteral(String lexeme, this.literal, String fileName, int line, int column)
+  TokenNumberLiteral(
+      String lexeme, this.literal, String fileName, int line, int column)
       : super(lexeme, fileName, line, column);
 }
 
@@ -52,7 +55,8 @@ class TokenIntLiteral extends Token {
   @override
   dynamic get type => HTLexicon.integer;
 
-  TokenIntLiteral(String lexeme, this.literal, String fileName, int line, int column)
+  TokenIntLiteral(
+      String lexeme, this.literal, String fileName, int line, int column)
       : super(lexeme, fileName, line, column);
 }
 
@@ -63,7 +67,8 @@ class TokenFloatLiteral extends Token {
   @override
   dynamic get type => HTLexicon.float;
 
-  TokenFloatLiteral(String lexeme, this.literal, String fileName, int line, int column)
+  TokenFloatLiteral(
+      String lexeme, this.literal, String fileName, int line, int column)
       : super(lexeme, fileName, line, column);
 }
 
@@ -74,5 +79,6 @@ class TokenStringLiteral extends Token {
   @override
   dynamic get type => HTLexicon.string;
 
-  TokenStringLiteral(this.literal, String fileName, int line, int column) : super(literal, fileName, line, column);
+  TokenStringLiteral(this.literal, String fileName, int line, int column)
+      : super(literal, fileName, line, column);
 }

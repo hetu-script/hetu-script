@@ -52,6 +52,10 @@ class HTVariable with HTDeclaration {
     }
   }
 
-  HTVariable clone() =>
-      HTVariable(id, value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember);
+  HTVariable clone() => HTVariable(id,
+      value: value,
+      getter: getter,
+      setter: setter,
+      isExtern: isExtern,
+      isMember: isMember);
 }

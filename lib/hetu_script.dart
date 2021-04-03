@@ -12,7 +12,8 @@ export 'src/function.dart' show HTFunction;
 export 'src/errors.dart';
 export 'src/extern_class.dart';
 export 'src/extern_object.dart';
-export 'src/extern_function.dart' show HTExternalFunction, HTExternalFunctionTypedef;
+export 'src/extern_function.dart'
+    show HTExternalFunction, HTExternalFunctionTypedef;
 export 'src/lexicon.dart';
 export 'src/vm/vm.dart';
 export 'src/binding.dart';

@@ -1,28 +1,45 @@
-fun max(a: num, b: num): num {
-  if (a > b) return a
-  return b
-}
-
-fun min(a: num, b: num): num {
-  if (a < b) return a
-  return b
-}
-
-fun abs(x: num): num {
-  if (x < 0) return -x
-  return x
-}
 
 external class Math {
+  static const e: num = 2.718281828459045;
+  
+  static const pi: num = 3.1415926535897932;
+
   static fun random(): num
 
   static fun randomInt(max: num): num
 
   static fun sqrt(x: num): num
 
-  static fun log(x: num): num
+  static fun pow(x: num, exponent: num): num
 
   static fun sin(x: num): num
 
   static fun cos(x: num): num
+
+  static fun tan(x: num): num
+
+  static fun exp(x: num): num
+
+  static fun log(x: num): num
+
+  static fun parseInt(source: str, {int: radix}): num
+
+  static fun parseDouble(source: str): num
+
+  static fun sum(list: List<num>): num
+
+  static fun checkBit(index: num, check: num): bool
+
+  static fun bitLS(x: num, distance: num): bool
+
+  static fun bitRS(x: num, distance: num): bool
+
+  static fun bitAnd(x: num, y: num): bool
+
+  static fun bitOr(x: num, y: num): bool
+
+  static fun bitNot(x: num): bool
+
+  static fun bitXor(x: num, y: num): bool
+
 }

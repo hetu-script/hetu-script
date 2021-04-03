@@ -42,7 +42,12 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
       bool isMember = false,
       bool isStatic = false})
       : super(id,
-            value: value, getter: getter, setter: setter, isExtern: isExtern, isMember: isMember, isStatic: isStatic) {
+            value: value,
+            getter: getter,
+            setter: setter,
+            isExtern: isExtern,
+            isMember: isMember,
+            isStatic: isStatic) {
     this.interpreter = interpreter;
     if (initializerIp == null && declType == null) {
       _declType = HTTypeId.ANY;
@@ -59,7 +64,10 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
     if (initializerIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
-        final initVal = interpreter.execute(moduleUniqueKey: moduleUniqueKey, ip: initializerIp!, namespace: closure);
+        final initVal = interpreter.execute(
+            moduleUniqueKey: moduleUniqueKey,
+            ip: initializerIp!,
+            namespace: closure);
         assign(initVal);
         _isInitializing = false;
       } else {
@@ -90,17 +98,18 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   /// Create a copy of this variable declaration,
   /// mainly used on class member inheritance and function arguments passing.
   @override
-  HTBytecodeVariable clone() => HTBytecodeVariable(id, interpreter, moduleUniqueKey,
-      value: value,
-      declType: declType,
-      initializerIp: initializerIp,
-      getter: getter,
-      setter: setter,
-      isDynamic: isDynamic,
-      isExtern: isExtern,
-      isImmutable: isImmutable,
-      isMember: isMember,
-      isStatic: isStatic);
+  HTBytecodeVariable clone() =>
+      HTBytecodeVariable(id, interpreter, moduleUniqueKey,
+          value: value,
+          declType: declType,
+          initializerIp: initializerIp,
+          getter: getter,
+          setter: setter,
+          isDynamic: isDynamic,
+          isExtern: isExtern,
+          isImmutable: isImmutable,
+          isMember: isMember,
+          isStatic: isStatic);
 }
 
 /// An implementation of [HTVariable] for function parameter declaration.
@@ -123,7 +132,10 @@ class HTBytesParameter extends HTBytecodeVariable {
       this.isNamed = false,
       this.isVariadic = false})
       : super(id, interpreter, module,
-            value: value, declType: declType, initializerIp: initializerIp, isImmutable: true);
+            value: value,
+            declType: declType,
+            initializerIp: initializerIp,
+            isImmutable: true);
 
   @override
   HTBytesParameter clone() {

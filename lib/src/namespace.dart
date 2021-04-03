@@ -67,13 +67,15 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   /// 注意和memberGet只是从对象本身取值不同
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(fullName)) {
         throw HTErrorPrivateMember(varName);
       }
       final decl = declarations[varName]!;
       if (decl is HTFunction) {
         if (decl.externalTypedef != null) {
-          final externalFunc = interpreter.unwrapExternalFunctionType(decl.externalTypedef!, decl);
+          final externalFunc = interpreter.unwrapExternalFunctionType(
+              decl.externalTypedef!, decl);
           return externalFunc;
         }
       } else if (decl is HTVariable) {
@@ -92,7 +94,8 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     throw HTErrorUndefined(varName);
   }
 
-  dynamic fetchAt(String varName, int distance, {String from = HTLexicon.global}) {
+  dynamic fetchAt(String varName, int distance,
+      {String from = HTLexicon.global}) {
     var space = closureAt(distance);
     return space.fetch(varName, from: from);
   }
@@ -101,7 +104,8 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   /// 注意和memberSet只是对对象本身的成员赋值不同
   void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
     if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(fullName)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(fullName)) {
         throw HTErrorPrivateMember(varName);
       }
       final decl = declarations[varName]!;
@@ -121,7 +125,8 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     throw HTErrorUndefined(varName);
   }
 
-  void assignAt(String varName, dynamic value, int distance, {String from = HTLexicon.global}) {
+  void assignAt(String varName, dynamic value, int distance,
+      {String from = HTLexicon.global}) {
     var space = closureAt(distance);
     space.assign(varName, value, from: from);
   }

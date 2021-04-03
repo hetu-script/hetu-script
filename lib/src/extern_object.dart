@@ -3,6 +3,7 @@ import 'object.dart';
 import 'type.dart';
 import 'lexicon.dart';
 
+/// Base class for external object.
 class HTExternObject<T> with HTObject {
   @override
   final typeid;
@@ -11,7 +12,7 @@ class HTExternObject<T> with HTObject {
   HTExternObject(this.externObject, {this.typeid = HTTypeId.unknown});
 }
 
-/// Mirror object for dart number.
+/// Binding object for dart number.
 class HTNumber extends HTExternObject<num> {
   HTNumber(num value) : super(value, typeid: HTTypeId.number);
 
@@ -31,22 +32,57 @@ class HTNumber extends HTExternObject<num> {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTTypeId> typeArgs = const []}) {
-          final digit = positionalArgs.first;
-          return externObject.toStringAsFixed(digit);
+          return externObject.toStringAsFixed(positionalArgs.first as int);
         };
+      case 'abs':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            externObject.abs();
+      case 'floor':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            externObject.floor();
+      case 'ceil':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            externObject.ceil();
+      case 'round':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            externObject.round();
       case 'truncate':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTTypeId> typeArgs = const []}) =>
             externObject.truncate();
+      case 'toInt':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            externObject.toInt();
+      case 'toDouble':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTTypeId> typeArgs = const []}) =>
+            externObject.toDouble();
       default:
         throw HTErrorUndefined(id);
     }
   }
 }
 
-/// Mirror object for dart boolean.
+/// Binding object for dart bool.
 class HTBoolean extends HTExternObject<bool> {
   HTBoolean(bool value) : super(value, typeid: HTTypeId.boolean);
 
@@ -69,7 +105,7 @@ class HTBoolean extends HTExternObject<bool> {
   }
 }
 
-/// Mirror object for dart string.
+/// Binding object for dart string.
 class HTString extends HTExternObject<String> {
   HTString(String value) : super(value, typeid: HTTypeId.string);
 
@@ -128,7 +164,7 @@ class HTString extends HTExternObject<String> {
   }
 }
 
-/// Mirror object for dart list.
+/// Binding object for dart list.
 class HTList extends HTExternObject<List> {
   HTList(List value, {HTTypeId valueType = HTTypeId.ANY})
       : super(value, typeid: HTTypeId(HTLexicon.list, arguments: [valueType]));
@@ -208,10 +244,12 @@ class HTList extends HTExternObject<List> {
   }
 }
 
-/// Mirror object for dart map.
+/// Binding object for dart map.
 class HTMap extends HTExternObject<Map> {
-  HTMap(Map value, {HTTypeId keyType = HTTypeId.ANY, HTTypeId valueType = HTTypeId.ANY})
-      : super(value, typeid: HTTypeId(HTLexicon.list, arguments: [keyType, valueType]));
+  HTMap(Map value,
+      {HTTypeId keyType = HTTypeId.ANY, HTTypeId valueType = HTTypeId.ANY})
+      : super(value,
+            typeid: HTTypeId(HTLexicon.list, arguments: [keyType, valueType]));
 
   @override
   final typeid = HTTypeId.map;
