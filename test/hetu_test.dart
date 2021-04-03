@@ -87,6 +87,25 @@ void main() async {
         'hello',
       );
     });
+
+    test('continue', () async {
+      final result = await hetu.eval(r'''
+      fun continueLoop {
+        var j = 0
+        for (var i = 0; i < 5; ++i) {
+          if (i % 2 == 0){
+            continue
+          }
+          j += i
+        }
+        return j
+      }
+    ''', invokeFunc: 'continueLoop');
+      expect(
+        result,
+        4,
+      );
+    });
   });
 
   group('variables -', () {

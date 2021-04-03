@@ -133,6 +133,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
     final externalName = '$id.$varName';
+
     if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) && !from.startsWith(namespace.fullName)) {
         throw HTErrorPrivateMember(varName);

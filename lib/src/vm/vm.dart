@@ -37,9 +37,10 @@ enum _RefType {
 
 class _LoopInfo {
   final int startIp;
-  final int endIp;
+  final int continueIp;
+  final int breakIp;
   final HTNamespace namespace;
-  _LoopInfo(this.startIp, this.endIp, this.namespace);
+  _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
 /// A bytecode implementation of a Hetu script interpreter
@@ -390,17 +391,18 @@ class Hetu extends Interpreter {
           break;
         // 循环开始，记录断点
         case HTOpCode.loopPoint:
-          final endDistance = _curCode.readUint16();
-          _loops.add(_LoopInfo(_curCode.ip, _curCode.ip + endDistance, _curNamespace));
+          final continueLength = _curCode.readUint16();
+          final breakLength = _curCode.readUint16();
+          _loops.add(_LoopInfo(_curCode.ip, _curCode.ip + continueLength, _curCode.ip + breakLength, _curNamespace));
           break;
         case HTOpCode.breakLoop:
-          _curCode.ip = _loops.last.endIp;
+          _curCode.ip = _loops.last.breakIp;
           _curNamespace = _loops.last.namespace;
           _loops.removeLast();
           _curLoopCount -= 1;
           break;
         case HTOpCode.continueLoop:
-          _curCode.ip = _loops.last.startIp;
+          _curCode.ip = _loops.last.continueIp;
           _curNamespace = _loops.last.namespace;
           break;
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
@@ -466,7 +468,7 @@ class Hetu extends Interpreter {
         case HTOpCode.whileStmt:
           final hasCondition = _curCode.readBool();
           if (hasCondition && !_curValue) {
-            _curCode.ip = _loops.last.endIp;
+            _curCode.ip = _loops.last.breakIp;
             _loops.removeLast();
           }
           break;

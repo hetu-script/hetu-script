@@ -56,16 +56,17 @@ void main() async {
 
   await hetu.eval(r'''
       enum Race {
-        Caucasian,
-        Mongolian,
-        African,
+        caucasian,
+        mongolian,
+        african,
       }
 
       external enum Country // 不用写定义体
 
       fun main {
         print(Race.values)
-        let race: Race = Race.African
+        let race: Race = Race.african
+        print(race)
         print(race.typeid)
         print(race.index)
         print(race.toString())
