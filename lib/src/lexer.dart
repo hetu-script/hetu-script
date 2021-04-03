@@ -73,12 +73,11 @@ class Lexer {
 
                   final matchString = match.group(1)!;
                   final expresstion = matchString.substring(2, matchString.length - 1);
+                  stringTokens.add(TokenIdentifier(HTLexicon.string, fileName, curLine, curColumn));
+                  stringTokens.add(Token(HTLexicon.memberGet, fileName, curLine, match.start));
+                  stringTokens.add(TokenIdentifier(HTLexicon.parse, fileName, curLine, curColumn));
                   stringTokens.add(Token(HTLexicon.roundLeft, fileName, curLine, match.start));
                   stringTokens.addAll(lex(expresstion, fileName, line: curLine, column: match.start));
-                  stringTokens.add(Token(HTLexicon.roundRight, fileName, curLine, match.end));
-                  stringTokens.add(Token(HTLexicon.memberGet, fileName, curLine, match.end));
-                  stringTokens.add(TokenIdentifier('toString', fileName, curLine, match.end));
-                  stringTokens.add(Token(HTLexicon.roundLeft, fileName, curLine, match.end));
                   stringTokens.add(Token(HTLexicon.roundRight, fileName, curLine, match.end));
                   stringTokens.add(Token(HTLexicon.add, fileName, curLine, match.end));
                 }

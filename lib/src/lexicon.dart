@@ -43,6 +43,7 @@ abstract class HTLexicon {
   static const isEmpty = 'isEmpty';
   static const isNotEmpty = 'isNotEmpty';
   static const elementAt = 'elementAt';
+  static const parse = 'parse';
 
   static const Set<String> literals = {
     number,
@@ -310,7 +311,6 @@ abstract class HTLexicon {
 
   static const logicalAnd = '&&';
   static const logicalOr = '||';
-
   static const condition = '?';
 
   static const assign = '=';
