@@ -365,7 +365,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.CONTINUE:
             advance(1);
-            bytesBuilder.addByte(HTOpCode.loopPoint);
+            bytesBuilder.addByte(HTOpCode.continueLoop);
             break;
           case HTLexicon.RETURN:
             final returnStmt = _parseReturnStmt();
@@ -1317,15 +1317,17 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final loop = _parseBlock(HTLexicon.forStmt);
-    final loopLength = (condition?.length ?? 0) + loop.length + (increment?.length ?? 0) + 5;
-    bytesBuilder.add(_uint16(loopLength));
+    final continueLength = (condition?.length ?? 0) + loop.length + 2;
+    final breakLength = continueLength + (increment?.length ?? 0) + 3;
+    bytesBuilder.add(_uint16(continueLength));
+    bytesBuilder.add(_uint16(breakLength));
     if (condition != null) bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.whileStmt);
     bytesBuilder.addByte((condition != null) ? 1 : 0); // bool: has condition
     bytesBuilder.add(loop);
     if (increment != null) bytesBuilder.add(increment);
     bytesBuilder.addByte(HTOpCode.goto);
-    bytesBuilder.add(_int16(-loopLength));
+    bytesBuilder.add(_int16(-breakLength));
 
     bytesBuilder.addByte(HTOpCode.endOfBlock);
     return bytesBuilder.toBytes();
