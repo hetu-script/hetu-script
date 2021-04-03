@@ -67,17 +67,17 @@ void main() async {
         print(Race.values)
         let race: Race = Race.african
         print(race)
-        // print(race.typeid)
-        // print(race.index)
-        // print(race.toString())
-        // print(race)
+        print(race.typeid)
+        print(race.index)
+        print(race.toString())
+        print(race)
         
-        // print(Country.values)
-        // let country: Country = Country.Japan // 可以进行类型检查
-        // print(country.typeid)
-        // print(country.index)
-        // print(country.toString())
-        // print(country)
+        print(Country.values)
+        let country: Country = Country.Japan // 可以进行类型检查
+        print(country.typeid)
+        print(country.index)
+        print(country.toString())
+        print(country)
       }
       ''', invokeFunc: 'main');
 }
