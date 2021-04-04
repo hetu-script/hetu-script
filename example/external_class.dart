@@ -97,14 +97,14 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String varName) {
-    var i = instance as Person;
+  dynamic instanceMemberGet(dynamic object, String varName) {
+    var i = object as Person;
     return i.htFetch(varName);
   }
 
   @override
-  void instanceMemberSet(dynamic instance, String varName, dynamic value) {
-    var i = instance as Person;
+  void instanceMemberSet(dynamic object, String varName, dynamic value) {
+    var i = object as Person;
     i.htAssign(varName, value);
   }
 }

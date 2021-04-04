@@ -2,20 +2,32 @@
 ///
 /// Automatically generated based on files in 'hetu_lib' folder.
 final Map<String, String> coreModules = const {
-  'core.ht': r'''class Object {}
+      'core.ht': r'''class Object {}
 
 // return the declaration type of a symbol
 // external fun decltypeof(value): str
 
 // print values of any type into lines
 external fun print(... args)''',
-  'value.ht': r'''external class num {
+'value.ht': r'''external class num {
 
 	static fun parse(value: str): num
 
   fun toStringAsFixed([fractionDigits: num = 0]): num
 
+  fun abs(): num
+
+  fun floor(): num
+
+  fun ceil(): num
+
+  fun round(): num
+
   fun truncate(): num
+
+  fun toInt(): num
+
+  fun toDouble(): num
 }
 
 external class bool {
@@ -121,7 +133,7 @@ external class Map {
 
   fun putIfAbsent(key, value): any
 }''',
-  'system.ht': r'''external class System {
+'system.ht': r'''external class System {
 
   static get now: num
 
@@ -129,7 +141,7 @@ external class Map {
 
   // static fun tok()
 }''',
-  'console.ht': r'''external class Console {
+'console.ht': r'''external class Console {
 
 	// write a line without return
 	static fun write(line: str)
@@ -145,34 +157,51 @@ external class Map {
 	
 	static fun cls()
 }''',
-  'math.ht': r'''fun max(a: num, b: num): num {
-  if (a > b) return a
-  return b
-}
-
-fun min(a: num, b: num): num {
-  if (a < b) return a
-  return b
-}
-
-fun abs(x: num): num {
-  if (x < 0) return -x
-  return x
-}
-
+'math.ht': r'''
 external class Math {
+  static const e: num = 2.718281828459045;
+  
+  static const pi: num = 3.1415926535897932;
+
   static fun random(): num
 
   static fun randomInt(max: num): num
 
   static fun sqrt(x: num): num
 
-  static fun log(x: num): num
+  static fun pow(x: num, exponent: num): num
 
   static fun sin(x: num): num
 
   static fun cos(x: num): num
+
+  static fun tan(x: num): num
+
+  static fun exp(x: num): num
+
+  static fun log(x: num): num
+
+  static fun parseInt(source: str, {int: radix}): num
+
+  static fun parseDouble(source: str): num
+
+  static fun sum(list: List<num>): num
+
+  static fun checkBit(index: num, check: num): bool
+
+  static fun bitLS(x: num, distance: num): bool
+
+  static fun bitRS(x: num, distance: num): bool
+
+  static fun bitAnd(x: num, y: num): bool
+
+  static fun bitOr(x: num, y: num): bool
+
+  static fun bitNot(x: num): bool
+
+  static fun bitXor(x: num, y: num): bool
+
 }
 ''',
-  'help.ht': r'''external fun help(value): str''',
+'help.ht': r'''external fun help(value): str''',
 };

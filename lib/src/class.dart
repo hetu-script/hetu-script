@@ -1,3 +1,5 @@
+import 'package:hetu_script/src/object.dart';
+
 import 'lexicon.dart';
 import 'namespace.dart';
 import 'function.dart';
@@ -7,6 +9,47 @@ import 'interpreter.dart';
 import 'common.dart';
 import 'variable.dart';
 import 'declaration.dart';
+
+abstract class HTClassType extends HTTypeId with HTDeclaration {
+  @override
+  String toString() => '${HTLexicon.CLASS} $id';
+
+  @override
+  bool contains(String varName);
+
+  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object.key
+  /// ```
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      throw HTErrorUndefined(varName);
+
+  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object.key = value
+  /// ```
+  void instanceMemberSet(dynamic object, String varName, dynamic value) =>
+      throw HTErrorUndefined(varName);
+
+  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object[key]
+  /// ```
+  dynamic instanceSubGet(dynamic object, dynamic key) =>
+      throw HTErrorUndefined(key);
+
+  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object[key] = value
+  /// ```
+  void instanceSubSet(dynamic object, dynamic key, dynamic value) =>
+      throw HTErrorUndefined(key);
+
+  /// Create a default [HTClassType] instance.
+  HTClassType(String id) : super(id, isNullable: false) {
+    this.id = id;
+  }
+}
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within class methods.
@@ -91,11 +134,8 @@ class HTClassNamespace extends HTNamespace {
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
+class HTClass extends HTClassType with InterpreterRef {
   var _instanceIndex = 0;
-
-  @override
-  String toString() => '${HTLexicon.CLASS} $id';
 
   @override
   final HTTypeId typeid = HTTypeId.CLASS;
@@ -120,9 +160,8 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   /// Create a default [HTClass] instance.
   HTClass(String id, this.namespace, this.superClass, Interpreter interpreter,
       {ClassType classType = ClassType.normal, this.typeParams = const []})
-      : super(id, isNullable: false) {
+      : super(id) {
     this.interpreter = interpreter;
-    this.id = id;
     _classType = classType;
   }
 
@@ -231,6 +270,30 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     throw HTErrorUndefined(varName);
   }
 
+  /// Call a static function of this [HTClass].
+  dynamic invoke(String funcName,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = true}) {
+    try {
+      final func = memberGet(funcName, from: namespace.fullName);
+
+      if (func is HTFunction) {
+        return func.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
+      } else {
+        throw HTErrorCallable(funcName);
+      }
+    } catch (error, stack) {
+      if (errorHandled) rethrow;
+
+      interpreter.handleError(error, stack);
+    }
+  }
+
   /// Add a instance member declaration to this [HTClass].
   void defineInstanceMember(HTDeclaration decl,
       {bool override = false, bool error = true}) {
@@ -275,29 +338,47 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     return instance;
   }
 
-  /// Call a static function of this [HTClass].
-  dynamic invoke(String funcName,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
-      bool errorHandled = true}) {
-    try {
-      final func = memberGet(funcName, from: namespace.fullName);
-
-      if (func is HTFunction) {
-        return func.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      } else {
-        throw HTErrorCallable(funcName);
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) {
+    if (instanceMembers.containsKey(varName)) {
+      final decl = instanceMembers[varName];
+      if (decl is HTFunction && decl.funcType != FunctionType.literal) {
+        decl.context = object;
       }
-    } catch (error, stack) {
-      if (errorHandled) rethrow;
-
-      interpreter.handleError(error, stack);
+      return decl;
     }
+    throw HTErrorUndefined(varName);
   }
+}
+
+class HTCast with HTObject, InterpreterRef {
+  @override
+  late final HTTypeId typeid;
+
+  final HTClass klass;
+
+  final HTInstance object;
+
+  HTCast(this.object, this.klass, Interpreter interpreter,
+      {List<HTTypeId> typeArgs = const []}) {
+    this.interpreter = interpreter;
+    typeid = HTTypeId(klass.id, arguments: typeArgs);
+  }
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    final castee = interpreter.encapsulate(object);
+    if (castee.isNotA(typeid)) {
+      throw HTErrorTypeCast(object.toString(), typeid.toString());
+    }
+
+    klass.instanceMemberGet(object, varName);
+  }
+
+  @override
+  void memberSet(String varName, dynamic value,
+          {String from = HTLexicon.global}) =>
+      klass.instanceMemberSet(object, varName, value);
 }
 
 /// The Dart implementation of the instance in Hetu.
@@ -311,7 +392,7 @@ class HTInstance extends HTNamespace {
       {List<HTTypeId> typeArgs = const [], HTNamespace? closure})
       : super(interpreter,
             id: '${HTLexicon.instance}$index', closure: closure) {
-    typeid = HTTypeId(className, arguments: typeArgs = const []);
+    typeid = HTTypeId(className, arguments: typeArgs);
   }
 
   @override

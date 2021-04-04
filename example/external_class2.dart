@@ -37,8 +37,8 @@ class GlobalStateClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String varName) {
-    var i = instance as GlobalState;
+  dynamic instanceMemberGet(dynamic object, String varName) {
+    var i = object as GlobalState;
     return i.htFetch(varName);
   }
 }

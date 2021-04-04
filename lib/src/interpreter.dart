@@ -24,6 +24,9 @@ abstract class Interpreter {
   int get curColumn;
   String? get curModuleUniqueKey;
 
+  String? get curSymbol;
+  String? get curObjectSymbol;
+
   late bool debugMode;
 
   late HTErrorHandler errorHandler;

@@ -55,6 +55,7 @@ abstract class HTError {
   static const _unkownValueType = 'Unkown OpCode value type:';
   static const _classOnInstance = 'Don\'t define class on instance!';
   static const _emptyString = 'The script is empty.';
+  static const _typecast = '\'s type cannot be cast into';
 
   /// Print a warning message to standard output, will not throw.
   static void warn(String message) => print('hetu warn:\n' + message);
@@ -351,4 +352,11 @@ class HTErrorClassOnInstance extends HTError {
 class HTErrorEmpty extends HTError {
   HTErrorEmpty([String fileName = ''])
       : super('${HTError._emptyString} [$fileName]', HTErrorType.interpreter);
+}
+
+/// Illegal type cast.
+class HTErrorTypeCast extends HTError {
+  HTErrorTypeCast(String varName, String typeid)
+      : super('[$varName] ${HTError._typecast} [$typeid]',
+            HTErrorType.interpreter);
 }

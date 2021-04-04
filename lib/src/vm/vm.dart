@@ -84,10 +84,12 @@ class Hetu extends Interpreter {
   dynamic get _curValue => _registers[_getRegIndex(HTRegIdx.value)];
   set _curSymbol(String? value) =>
       _registers[_getRegIndex(HTRegIdx.symbol)] = value;
-  String? get _curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
+  @override
+  String? get curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
   set _curObjectSymbol(String? value) =>
       _registers[_getRegIndex(HTRegIdx.objectSymbol)] = value;
-  String? get _curObjectSymbol =>
+  @override
+  String? get curObjectSymbol =>
       _registers[_getRegIndex(HTRegIdx.objectSymbol)];
   set _curRefType(_RefType value) =>
       _registers[_getRegIndex(HTRegIdx.refType)] = value;
@@ -437,7 +439,7 @@ class Hetu extends Interpreter {
           _curColumn = _curCode.readUint16();
           break;
         case HTOpCode.objectSymbol:
-          _curObjectSymbol = _curSymbol;
+          _curObjectSymbol = curSymbol;
           break;
         // 循环开始，记录断点
         case HTOpCode.loopPoint:
@@ -601,16 +603,15 @@ class Hetu extends Interpreter {
         _curValue = _curCode.getUtf8String(index);
         break;
       case HTValueTypeCode.symbol:
-        _curSymbol = _curCode.readShortUtf8String();
+        final symbol = _curSymbol = _curCode.readShortUtf8String();
         final isGetKey = _curCode.readBool();
         if (!isGetKey) {
           _curRefType = _RefType.normal;
-          _curValue =
-              _curNamespace.fetch(_curSymbol!, from: _curNamespace.fullName);
+          _curValue = _curNamespace.fetch(symbol, from: _curNamespace.fullName);
         } else {
           _curRefType = _RefType.member;
           // reg[13] 是 object，reg[14] 是 key
-          _curValue = _curSymbol;
+          _curValue = symbol;
         }
         break;
       case HTValueTypeCode.group:
@@ -695,13 +696,13 @@ class Hetu extends Interpreter {
   void _assignCurRef(dynamic value) {
     switch (_curRefType) {
       case _RefType.normal:
-        _curNamespace.assign(_curSymbol!, value, from: _curNamespace.fullName);
+        _curNamespace.assign(curSymbol!, value, from: _curNamespace.fullName);
         break;
       case _RefType.member:
         final object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
         if (object == null || object == HTObject.NULL) {
-          throw HTErrorNullObject(_curObjectSymbol!);
+          throw HTErrorNullObject(curObjectSymbol!);
         }
         // 如果是 Hetu 对象
         if (object is HTObject) {
@@ -999,7 +1000,7 @@ class Hetu extends Interpreter {
         final key = _getRegVal(HTRegIdx.postfixKey);
 
         if (object == null || object == HTObject.NULL) {
-          throw HTErrorNullObject(_curObjectSymbol!);
+          throw HTErrorNullObject(curObjectSymbol!);
         }
 
         if (object is num) {
@@ -1030,7 +1031,7 @@ class Hetu extends Interpreter {
         final key = execute(moveRegIndex: true);
 
         if (object == null || object == HTObject.NULL) {
-          throw HTErrorNullObject(_curObjectSymbol!);
+          throw HTErrorNullObject(curObjectSymbol!);
         }
 
         // TODO: support script subget operator override

@@ -70,8 +70,10 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       result.write(HTLexicon.angleLeft);
       for (var i = 0; i < typeid.arguments.length; ++i) {
         result.write(typeid.arguments[i]);
-        if ((typeid.arguments.length > 1) && (i != typeid.arguments.length - 1))
+        if ((typeid.arguments.length > 1) &&
+            (i != typeid.arguments.length - 1)) {
           result.write(', ');
+        }
       }
       result.write(HTLexicon.angleRight);
     }
