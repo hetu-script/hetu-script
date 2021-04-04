@@ -419,7 +419,7 @@ class HTInstance extends HTNamespace {
   late final Set<HTTypeId> _typeids = <HTTypeId>{};
 
   @override
-  HTTypeId get typeid => _typeids.last;
+  HTTypeId get typeid => _typeids.first;
 
   /// Create a default [HTInstance] instance.
   HTInstance(HTClass klass, Interpreter interpreter, int index,
@@ -438,18 +438,16 @@ class HTInstance extends HTNamespace {
   /// Wether this object is of the type by [otherTypeId]
   @override
   bool isA(HTTypeId otherTypeId) {
-    var result = false;
-    if (otherTypeId.name != HTLexicon.ANY) {
+    if (otherTypeId == HTTypeId.ANY) {
+      return true;
+    } else {
       for (final superTypeId in _typeids) {
-        if (superTypeId.isA(otherTypeId)) {
-          result = true;
-          break;
+        if (superTypeId == otherTypeId) {
+          return true;
         }
       }
-    } else {
-      result = true;
     }
-    return result;
+    return false;
   }
 
   @override

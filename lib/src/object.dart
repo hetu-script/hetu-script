@@ -50,28 +50,15 @@ mixin HTObject {
   /// ```
   void subSet(String key, dynamic value) => throw HTErrorUndefined(key);
 
-  /// Wether this object is of the type by [otherTypeid]
-  bool isA(HTTypeId otherTypeid) {
-    var result = true;
-    if (otherTypeid.name != HTLexicon.ANY) {
-      if (typeid.name == otherTypeid.name) {
-        if (typeid.arguments.length >= otherTypeid.arguments.length) {
-          for (var i = 0; i < otherTypeid.arguments.length; ++i) {
-            if (typeid.arguments[i].isNotA(otherTypeid.arguments[i])) {
-              result = false;
-              break;
-            }
-          }
-        } else {
-          result = false;
-        }
-      } else {
-        result = false;
-      }
+  /// Wether this object is of the type by [otherTypeId]
+  bool isA(HTTypeId otherTypeId) {
+    if (otherTypeId == HTTypeId.ANY) {
+      return true;
+    } else {
+      return typeid == otherTypeId;
     }
-    return result;
   }
 
-  /// Wether this object is not of the type by [otherTypeid]
-  bool isNotA(HTTypeId typeid) => !isA(typeid);
+  /// Wether this object is not of the type by [otherTypeId]
+  bool isNotA(HTTypeId otherTypeId) => !isA(otherTypeId);
 }

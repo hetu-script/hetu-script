@@ -281,10 +281,12 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         }
       }
 
-      final encapsulation = interpreter.encapsulate(result);
-      if (encapsulation.isNotA(returnType)) {
-        throw HTErrorReturnType(
-            encapsulation.typeid.toString(), id, returnType.toString());
+      if (returnType != HTTypeId.ANY) {
+        final encapsulation = interpreter.encapsulate(result);
+        if (encapsulation.isNotA(returnType)) {
+          throw HTErrorReturnType(
+              encapsulation.typeid.toString(), id, returnType.toString());
+        }
       }
 
       if (HTFunction.callStack.isNotEmpty) HTFunction.callStack.removeLast();

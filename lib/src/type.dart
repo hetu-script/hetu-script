@@ -54,6 +54,18 @@ class HTTypeId with HTObject {
     }
     return typename.toString();
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! HTTypeId) {
+      return false;
+    } else {
+      return hashCode == other.hashCode;
+    }
+  }
+
+  @override
+  int get hashCode => toString().hashCode;
 }
 
 // TODO: dart 的 typedef 本质就是定义一个 function type
