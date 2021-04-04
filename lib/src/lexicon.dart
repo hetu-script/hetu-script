@@ -287,6 +287,7 @@ abstract class HTLexicon {
     greaterOrEqual,
     lesser,
     lesserOrEqual,
+    AS,
     IS,
   };
 

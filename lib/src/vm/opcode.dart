@@ -75,9 +75,11 @@ abstract class HTOpCode {
 
   static const greaterOrEqual = 49;
 
-  static const typeIs = 50;
+  static const typeAs = 50;
 
-  static const typeIsNot = 51;
+  static const typeIs = 51;
+
+  static const typeIsNot = 52;
 
   /// add left right store => reg[store] = reg[left] + reg[right]
   static const add = 59;

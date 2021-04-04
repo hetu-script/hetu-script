@@ -1,6 +1,7 @@
 import 'errors.dart';
 import 'namespace.dart';
 import 'declaration.dart';
+import 'class.dart' show HTCast;
 
 /// 一个变量，包含了类型等额外信息。
 /// 在编译后的代码中，被提前到整个代码块最前面。
@@ -46,7 +47,12 @@ class HTVariable with HTDeclaration {
       throw HTErrorImmutable(id);
     }
 
-    this.value = value;
+    if (value is HTCast) {
+      this.value = value.object;
+    } else {
+      this.value = value;
+    }
+
     if (!_isInitialized) {
       _isInitialized = true;
     }

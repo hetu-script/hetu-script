@@ -7,15 +7,13 @@ void main() async {
       class Super {
         var name = 'Super'
       }
-
       class Extend extends Super {
         var name = 'Extend'
       }
-
       fun main {
-        var a: any = Extend()
-
-        print(a is Super)
+        var a = Extend()
+        var b = a as Super
+        print(b.name)
         
       }
       ''', invokeFunc: 'main');

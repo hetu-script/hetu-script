@@ -14,10 +14,8 @@ void main() async {
             this.name = name
           }
         }
-
         fun namedConstructor {
           var p = AGuy.withName('harry')
-
           return p.name
         }
       ''', invokeFunc: 'namedConstructor');
@@ -72,6 +70,25 @@ void main() async {
       expect(
         result,
         42,
+      );
+    });
+
+    test('type check with super class', () async {
+      final result = await hetu.eval('''
+      class Super {
+        var name = 'Super'
+      }
+      class Extend extends Super {
+        var name = 'Extend'
+      }
+      fun superType {
+        var a: any = Extend()
+        return a is Super
+      }
+      ''', invokeFunc: 'superType');
+      expect(
+        result,
+        true,
       );
     });
   });

@@ -1,36 +1,46 @@
 import 'dart:io';
 import 'dart:math' as math;
-
-import 'package:hetu_script/hetu_script.dart';
-
 import 'type.dart';
 import 'errors.dart';
 import 'lexicon.dart';
 import 'interpreter.dart';
+import 'object.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
-abstract class HTExternalClass extends HTClassType {
+abstract class HTExternalClass with HTObject {
   late final String typename;
   late final List<String> typeArgs;
 
   /// Default [HTExternalClass] constructor.
-  HTExternalClass(this.typename, [this.typeArgs = const []]) : super(typename);
+  HTExternalClass(this.typename, [this.typeArgs = const []]);
   // {
   //   typeid = HTTypeId.parse(typeString);
   // }
 
-  @override
+  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object.key
+  /// ```
   dynamic instanceMemberGet(dynamic object, String varName) =>
       throw HTErrorUndefined(varName);
 
-  @override
+  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object.key = value
+  /// ```
   void instanceMemberSet(dynamic object, String varName, dynamic value) =>
       throw HTErrorUndefined(varName);
 
-  @override
+  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object[key]
+  /// ```
   dynamic instanceSubGet(dynamic object, dynamic key) => object[key];
 
-  @override
+  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// ```
+  /// object[key] = value
+  /// ```
   void instanceSubSet(dynamic object, dynamic key, dynamic value) =>
       object[key] = value;
 }

@@ -549,6 +549,7 @@ class Hetu extends Interpreter {
         case HTOpCode.greater:
         case HTOpCode.lesserOrEqual:
         case HTOpCode.greaterOrEqual:
+        case HTOpCode.typeAs:
         case HTOpCode.typeIs:
         case HTOpCode.typeIsNot:
         case HTOpCode.add:
@@ -857,20 +858,20 @@ class Hetu extends Interpreter {
       case HTOpCode.greaterOrEqual:
         _curValue = _getRegVal(HTRegIdx.relationLeft) >= _curValue;
         break;
+      case HTOpCode.typeAs:
+        final object = _getRegVal(HTRegIdx.relationLeft);
+        final HTTypeId typeid = _curValue;
+        final HTClass klass = global.fetch(typeid.name);
+        _curValue = HTCast(object, klass, this);
+        break;
       case HTOpCode.typeIs:
-        var object = _getRegVal(HTRegIdx.relationLeft);
-        var typeid = _curValue;
-        if (typeid is! HTTypeId) {
-          throw HTErrorNotType(typeid.toString());
-        }
+        final object = _getRegVal(HTRegIdx.relationLeft);
+        final HTTypeId typeid = _curValue;
         _curValue = encapsulate(object).isA(typeid);
         break;
       case HTOpCode.typeIsNot:
-        var object = _getRegVal(HTRegIdx.relationLeft);
-        var typeid = _curValue;
-        if (typeid is! HTTypeId) {
-          throw HTErrorNotType(typeid.toString());
-        }
+        final object = _getRegVal(HTRegIdx.relationLeft);
+        final HTTypeId typeid = _curValue;
         _curValue = encapsulate(object).isNotA(typeid);
         break;
       case HTOpCode.add:

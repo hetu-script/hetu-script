@@ -713,7 +713,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  /// 逻辑比较 <, >, <=, >=，is, is! 优先级 8，不合并
+  /// 逻辑比较 <, >, <=, >=，as, is, is! 优先级 8，不合并
   Uint8List _parseRelationalExpr() {
     final bytesBuilder = BytesBuilder();
     final left = _parseAdditiveExpr();
@@ -744,11 +744,17 @@ class Compiler extends Parser with ConstTable, HetuRef {
           bytesBuilder.add(right);
           bytesBuilder.addByte(HTOpCode.greaterOrEqual);
           break;
+        case HTLexicon.AS:
+          final right = _parseTypeId(localValue: true);
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.typeAs);
+          break;
         case HTLexicon.IS:
           final right = _parseTypeId(localValue: true);
           bytesBuilder.add(right);
           final isNot = (peek(1).type == HTLexicon.logicalNot) ? true : false;
           bytesBuilder.addByte(isNot ? HTOpCode.typeIsNot : HTOpCode.typeIs);
+          break;
       }
     }
     return bytesBuilder.toBytes();
@@ -1428,7 +1434,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   }
 
   Uint8List _parseTypeId({bool localValue = false}) {
-    final id = advance(1).lexeme;
+    final id = match(HTLexicon.identifier).lexeme;
 
     final bytesBuilder = BytesBuilder();
 
