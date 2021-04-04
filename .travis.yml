@@ -1,4 +1,4 @@
 language: dart
 
 script:
-  - pub run test test/hetu_test.dart
+  - pub run test
