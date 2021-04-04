@@ -445,6 +445,7 @@ class Hetu extends Interpreter {
           final breakLength = _curCode.readUint16();
           _loops.add(_LoopInfo(_curCode.ip, _curCode.ip + continueLength,
               _curCode.ip + breakLength, _curNamespace));
+          _curLoopCount += 1;
           break;
         case HTOpCode.breakLoop:
           _curCode.ip = _loops.last.breakIp;
@@ -462,6 +463,11 @@ class Hetu extends Interpreter {
           _curNamespace = HTNamespace(this, id: id, closure: _curNamespace);
           break;
         case HTOpCode.endOfBlock:
+          var namespace = _loops.isNotEmpty ? _loops.last.namespace : null;
+          while (namespace == _curNamespace) {
+            _loops.removeLast();
+            namespace = _loops.isNotEmpty ? _loops.last.namespace : null;
+          }
           _curNamespace = _curNamespace.closure!;
           break;
         // 语句结束
