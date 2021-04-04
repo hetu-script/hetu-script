@@ -591,17 +591,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _localSubValue() {
-    // 这里没有判断左括号，因为已经在 operator 那边跳过了
-    final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.tuple);
-    var innerExpr = _parseExpr(endOfExec: true);
-    match(HTLexicon.squareRight);
-    bytesBuilder.add(innerExpr);
-    return bytesBuilder.toBytes();
-  }
-
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
   ///
   /// 优先级最低的表达式，赋值表达式
@@ -885,12 +874,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
           bytesBuilder.addByte(HTOpCode.memberGet);
           break;
         case HTLexicon.subGet:
-          final key = _localSubValue();
+          final key = _parseExpr(endOfExec: true);
+          match(HTLexicon.squareRight);
           _leftValueLegality = true;
-          bytesBuilder.add(key); // int
-          bytesBuilder.addByte(HTOpCode.register);
-          bytesBuilder.addByte(HTRegIdx.postfixKey);
           bytesBuilder.addByte(HTOpCode.subGet);
+          // sub get key is after opcode
+          // it has to be exec with 'move reg index'
+          bytesBuilder.add(key);
           break;
         case HTLexicon.call:
           _leftValueLegality = false;

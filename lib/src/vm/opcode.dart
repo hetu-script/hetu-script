@@ -138,8 +138,8 @@ abstract class HTValueTypeCode {
   static const float64 = 3;
   static const utf8String = 4;
   static const symbol = 5;
-  static const group = 6;
-  static const tuple = 7;
+  static const subValue = 6;
+  static const group = 7;
   static const list = 8;
   static const map = 9;
   static const function = 10;

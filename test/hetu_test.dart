@@ -42,6 +42,25 @@ void main() async {
         'certainly, eva!',
       );
     });
+    test('member and sub get', () async {
+      final result = await hetu.eval(r'''
+        class Ming {
+          var first = 'tom'
+        }
+        class Member {
+          var array = {'tom': 'kaine'}
+          var name = Ming()
+        }
+        fun subGet() {
+          var m = Member()
+          print(m.array[m.name.first])
+        }
+    ''', invokeFunc: 'subGet');
+      expect(
+        result,
+        'kaine',
+      );
+    });
   });
 
   group('control flow -', () {
@@ -270,9 +289,9 @@ void main() async {
       }
       fun lateInit {
         var tables = { 'weapon': [1,2,3] }
-        var rows = tables['weapon'];
+        var rows = ;
         var i = getIndex()
-        return rows[i]
+        return tables['weapon'][i]
       }
   ''', invokeFunc: 'lateInit');
       expect(

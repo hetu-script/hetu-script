@@ -616,9 +616,6 @@ class Hetu extends Interpreter {
       case HTValueTypeCode.group:
         _curValue = execute(moveRegIndex: true);
         break;
-      case HTValueTypeCode.tuple:
-        _curValue = execute(moveRegIndex: true);
-        break;
       case HTValueTypeCode.list:
         final list = [];
         final length = _curCode.readUint16();
@@ -1030,7 +1027,7 @@ class Hetu extends Interpreter {
         break;
       case HTOpCode.subGet:
         final object = _getRegVal(HTRegIdx.postfixObject);
-        final key = _getRegVal(HTRegIdx.postfixKey);
+        final key = execute(moveRegIndex: true);
 
         if (object == null || object == HTObject.NULL) {
           throw HTErrorNullObject(_curObjectSymbol!);
