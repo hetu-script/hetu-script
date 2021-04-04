@@ -46,8 +46,9 @@ class HTTypeId with HTObject {
       typename.write('<');
       for (var i = 0; i < arguments.length; ++i) {
         typename.write(arguments[i]);
-        if ((arguments.length > 1) && (i != arguments.length - 1))
+        if ((arguments.length > 1) && (i != arguments.length - 1)) {
           typename.write(', ');
+        }
       }
       typename.write('>');
     }
@@ -74,8 +75,9 @@ class HTFunctionTypeId extends HTTypeId {
       result.write('<');
       for (var i = 0; i < arguments.length; ++i) {
         result.write(arguments[i]);
-        if ((arguments.length > 1) && (i != arguments.length - 1))
+        if ((arguments.length > 1) && (i != arguments.length - 1)) {
           result.write(', ');
+        }
       }
       result.write('>');
     }

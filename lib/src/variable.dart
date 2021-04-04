@@ -52,6 +52,7 @@ class HTVariable with HTDeclaration {
     }
   }
 
+  @override
   HTVariable clone() => HTVariable(id,
       value: value,
       getter: getter,

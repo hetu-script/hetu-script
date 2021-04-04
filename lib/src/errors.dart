@@ -36,6 +36,7 @@ abstract class HTError {
   static const _immutable = 'is immutable';
   static const _notType = 'is not a type.';
   static const _ofType = 'of type';
+  static const _nullable = 'is not nullable.';
   static const _typeCheck1 = 'Variable';
   static const _typeCheck2 = 'can\'t be assigned with type';
   static const _argType1 = 'Argument';
@@ -56,6 +57,8 @@ abstract class HTError {
   static const _classOnInstance = 'Don\'t define class on instance!';
   static const _emptyString = 'The script is empty.';
   static const _typecast = '\'s type cannot be cast into';
+  static const _castee = 'Illegal cast target';
+  static const _clone = 'Illegal clone on';
 
   /// Print a warning message to standard output, will not throw.
   static void warn(String message) => print('hetu warn:\n' + message);
@@ -250,6 +253,12 @@ class HTErrorTypeCheck extends HTError {
             HTErrorType.interpreter);
 }
 
+/// Type is not nullable.
+class HTErrorNullable extends HTError {
+  HTErrorNullable(String id)
+      : super('[$id] ${HTError._nullable}', HTErrorType.interpreter);
+}
+
 /// Try to assign a immutable variable.
 class HTErrorImmutable extends HTError {
   HTErrorImmutable(String id)
@@ -356,7 +365,19 @@ class HTErrorEmpty extends HTError {
 
 /// Illegal type cast.
 class HTErrorTypeCast extends HTError {
-  HTErrorTypeCast(String varName, String typeid)
-      : super('[$varName] ${HTError._typecast} [$typeid]',
+  HTErrorTypeCast(String object, String typeid)
+      : super('[$object] ${HTError._typecast} [$typeid]',
             HTErrorType.interpreter);
+}
+
+/// Illegal castee.
+class HTErrorCastee extends HTError {
+  HTErrorCastee(String varName)
+      : super('${HTError._castee} [$varName]', HTErrorType.interpreter);
+}
+
+/// Illegal clone.
+class HTErrorClone extends HTError {
+  HTErrorClone(String varName)
+      : super('${HTError._clone} [$varName]', HTErrorType.interpreter);
 }

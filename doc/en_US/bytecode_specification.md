@@ -2,10 +2,20 @@
 
 ## OpCode
 
+### OpCode.goto
+
 | Name          | Bytes length | type  | optional |
 | :------------ | :----------- | :---- | :------- |
 | HTOpCode.goto | 1            | byte  |          |
 | distance      | 2            | int16 |          |
+
+### OpCode.goto
+
+| Name                 | Bytes length | type     | optional |
+| :------------------- | :----------- | :------- | :------- |
+| HTOpCode.logicalAnd  | 1            | byte     |          |
+| length of right expr | 2            | uint16   |          |
+| right expr           | 65,535       | bytecode |          |
 
 ## Value
 

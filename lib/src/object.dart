@@ -25,26 +25,26 @@ mixin HTObject {
 
   /// Fetch a member by the [varName], in the form of
   /// ```
-  /// object.key
+  /// object.varName
   /// ```
   dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
       throw HTErrorUndefined(varName);
 
   /// Assign a value to a member by the [varName], in the form of
   /// ```
-  /// object.key = value
+  /// object.varName = value
   /// ```
   void memberSet(String varName, dynamic value,
           {String from = HTLexicon.global}) =>
       throw HTErrorUndefined(varName);
 
-  /// Fetch a member by the [varName], in the form of
+  /// Fetch a member by the [key], in the form of
   /// ```
   /// object[key]
   /// ```
   dynamic subGet(dynamic key) => throw HTErrorUndefined(key);
 
-  /// Assign a value to a member by the [varName], in the form of
+  /// Assign a value to a member by the [key], in the form of
   /// ```
   /// object[key] = value
   /// ```
@@ -66,11 +66,7 @@ mixin HTObject {
           result = false;
         }
       } else {
-        if (typeid.name == HTLexicon.NULL && otherTypeid.isNullable) {
-          result = true;
-        } else {
-          result = false;
-        }
+        result = false;
       }
     }
     return result;

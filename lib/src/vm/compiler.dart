@@ -278,24 +278,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
             final id = _readId(decl);
             _curBlock.enumDecls[id] = decl;
             break;
-          case HTLexicon.ABSTRACT:
-            match(HTLexicon.CLASS);
-            final decl = _parseClassDeclStmt(classType: ClassType.abstracted);
-            final id = _readId(decl);
-            _curBlock.classDecls[id] = decl;
-            break;
-          case HTLexicon.INTERFACE:
-            match(HTLexicon.CLASS);
-            final decl = _parseClassDeclStmt(classType: ClassType.interface);
-            final id = _readId(decl);
-            _curBlock.classDecls[id] = decl;
-            break;
-          case HTLexicon.MIXIN:
-            match(HTLexicon.CLASS);
-            final decl = _parseClassDeclStmt(classType: ClassType.mixIn);
-            final id = _readId(decl);
-            _curBlock.classDecls[id] = decl;
-            break;
           case HTLexicon.CLASS:
             final decl = _parseClassDeclStmt();
             final id = _readId(decl);
@@ -674,10 +656,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
       while (curTok.type == HTLexicon.logicalOr) {
         bytesBuilder.addByte(HTOpCode.register);
         bytesBuilder.addByte(HTRegIdx.orLeft);
-        advance(1); // or operator
-        final right = _parseLogicalAndExpr();
-        bytesBuilder.add(right);
+        advance(1); // and operator
         bytesBuilder.addByte(HTOpCode.logicalOr);
+        final right = _parseLogicalAndExpr();
+        bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.endOfExec);
       }
     }
     return bytesBuilder.toBytes();
@@ -694,9 +678,11 @@ class Compiler extends Parser with ConstTable, HetuRef {
         bytesBuilder.addByte(HTOpCode.register);
         bytesBuilder.addByte(HTRegIdx.andLeft);
         advance(1); // and operator
-        final right = _parseEqualityExpr();
-        bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.logicalAnd);
+        final right = _parseEqualityExpr();
+        bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.endOfExec);
       }
     }
     return bytesBuilder.toBytes();
@@ -1274,14 +1260,18 @@ class Compiler extends Parser with ConstTable, HetuRef {
       conditionBytesBuilder.add(isNotEmptyExpr);
       conditionBytesBuilder.addByte(HTOpCode.register);
       conditionBytesBuilder.addByte(HTRegIdx.andLeft);
+      conditionBytesBuilder.addByte(HTOpCode.logicalAnd);
       final lesserLeftExpr = _assembleLocalSymbol(increId);
+      final iterableLengthExpr = _assembleMemberGet(object, HTLexicon.length);
+      final logicalAndRightLength =
+          lesserLeftExpr.length + iterableLengthExpr.length + 4;
+      conditionBytesBuilder.add(_uint16(logicalAndRightLength));
       conditionBytesBuilder.add(lesserLeftExpr);
       conditionBytesBuilder.addByte(HTOpCode.register);
       conditionBytesBuilder.addByte(HTRegIdx.relationLeft);
-      final iterableLengthExpr = _assembleMemberGet(object, HTLexicon.length);
       conditionBytesBuilder.add(iterableLengthExpr);
       conditionBytesBuilder.addByte(HTOpCode.lesser);
-      conditionBytesBuilder.addByte(HTOpCode.logicalAnd);
+      conditionBytesBuilder.addByte(HTOpCode.endOfExec);
       condition = conditionBytesBuilder.toBytes();
 
       final assignBytesBuilder = BytesBuilder();
@@ -1538,8 +1528,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
     var hasExternalTypedef = false;
     String? externalTypedef;
     if (expect([HTLexicon.squareLeft], consume: true)) {
-      if (externType != ExternalFunctionType.none)
+      if (externType != ExternalFunctionType.none) {
         throw HTErrorUnexpected(peek(-1).lexeme);
+      }
 
       hasExternalTypedef = true;
       externalTypedef = match(HTLexicon.identifier).lexeme;

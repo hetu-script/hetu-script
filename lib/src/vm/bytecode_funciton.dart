@@ -23,7 +23,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
   ///
   /// A [HTFunction] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTBytecodeFunction(String id, Hetu interpreter, String module,
+  HTBytecodeFunction(String id, Hetu interpreter, String moduleUniqueKey,
       {String declId = '',
       String? classId,
       FunctionType funcType = FunctionType.normal,
@@ -39,7 +39,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       int minArity = 0,
       int maxArity = 0,
       HTNamespace? context})
-      : super(id, declId, module,
+      : super(id, declId, moduleUniqueKey,
             classId: classId,
             funcType: funcType,
             externalFunctionType: externalFunctionType,
@@ -294,5 +294,10 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
 
       interpreter.handleError(error, stack);
     }
+  }
+
+  @override
+  HTBytecodeFunction clone() {
+    return HTBytecodeFunction(id, interpreter, moduleUniqueKey);
   }
 }

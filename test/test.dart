@@ -4,22 +4,16 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      fun getNum(j: num) {
-        for (var i = 0; i < 5; ++i) {
-          if (i == j) {
-            return i
+      fun forIn {
+        let value = ['', 'hello', 'world']
+        let item = ''
+        for (let val in value) {
+          if (val != '') {
+            item = val
+            break
           }
         }
-        return -1
+        print(item)
       }
-      fun main() {
-        var k = getNum(3)
-        if (k != -1) {
-          print( k )
-        } else {
-          print( 'k is -1 ' )
-        }
-        print('where are you?')
-      }
-      ''', invokeFunc: 'main');
+      ''', invokeFunc: 'forIn');
 }

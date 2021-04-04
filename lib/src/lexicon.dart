@@ -122,17 +122,7 @@ abstract class HTLexicon {
   static const EXTERNAL = 'external';
   static const IMPORT = 'import';
 
-  static const ABSTRACT = 'abstract';
-  static const INTERFACE = 'interface';
   static const MIXIN = 'mixin';
-
-  /// 类名修饰符
-  static const Set<String> classPrefixs = {
-    EXTERNAL,
-    ABSTRACT,
-    INTERFACE,
-    MIXIN,
-  };
 
   static const ARROW = '=>';
   static const AWAIT = 'await';

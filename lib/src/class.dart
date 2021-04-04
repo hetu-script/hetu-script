@@ -133,7 +133,7 @@ class HTClassNamespace extends HTNamespace {
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
-/// instance members of this class created by [createInstance] are stored in [instanceMembers].
+/// instance members of this class created by [createInstance] are stored in [_instanceMembers].
 class HTClass extends HTClassType with InterpreterRef {
   var _instanceIndex = 0;
 
@@ -151,18 +151,39 @@ class HTClass extends HTClassType with InterpreterRef {
   /// Super class of this class
   ///
   /// If a class is not extends from any super class, then it is the child of class `Object`
-  final HTClass? superClass;
+  HTClass? _superClass;
 
   /// The instance member variables defined in class definition.
-  final instanceMembers = <String, HTDeclaration>{};
+  final _instanceMembers = <String, HTDeclaration>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(String id, this.namespace, this.superClass, Interpreter interpreter,
+  HTClass(String id, this.namespace, Interpreter interpreter,
       {ClassType classType = ClassType.normal, this.typeParams = const []})
       : super(id) {
     this.interpreter = interpreter;
     _classType = classType;
+  }
+
+  /// This function is used after constructor,
+  /// only the first non-null call will take effect.
+  void inherit(HTClass? superClass) {
+    if (_superClass != null) return;
+    if (superClass == null) return;
+
+    _superClass = superClass;
+
+    // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
+    HTClass? curSuper = superClass;
+    while (curSuper != null) {
+      for (final decl in curSuper._instanceMembers.values) {
+        if (decl.id.startsWith(HTLexicon.underscore)) {
+          continue;
+        }
+        defineInstanceMember(decl.clone(), error: false);
+      }
+      curSuper = curSuper._superClass;
+    }
   }
 
   /// Wether there's a member in this [HTClass] by the [varName].
@@ -300,8 +321,8 @@ class HTClass extends HTClassType with InterpreterRef {
     if (decl is HTClass) {
       throw HTErrorClassOnInstance();
     }
-    if ((!instanceMembers.containsKey(decl.id)) || override) {
-      instanceMembers[decl.id] = decl;
+    if ((!_instanceMembers.containsKey(decl.id)) || override) {
+      _instanceMembers[decl.id] = decl;
     } else {
       if (error) throw HTErrorDefinedRuntime(decl.id);
     }
@@ -313,10 +334,10 @@ class HTClass extends HTClassType with InterpreterRef {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    var instance = HTInstance(id, interpreter, _instanceIndex++,
+    var instance = HTInstance(this, interpreter, _instanceIndex++,
         typeArgs: typeArgs, closure: namespace);
 
-    for (final decl in instanceMembers.values) {
+    for (final decl in _instanceMembers.values) {
       if (decl is HTFunction) {
         instance.define(decl);
       } else if (decl is HTVariable) {
@@ -340,8 +361,8 @@ class HTClass extends HTClassType with InterpreterRef {
 
   @override
   dynamic instanceMemberGet(dynamic object, String varName) {
-    if (instanceMembers.containsKey(varName)) {
-      final decl = instanceMembers[varName];
+    if (_instanceMembers.containsKey(varName)) {
+      final decl = _instanceMembers[varName];
       if (decl is HTFunction && decl.funcType != FunctionType.literal) {
         decl.context = object;
       }
@@ -357,23 +378,33 @@ class HTCast with HTObject, InterpreterRef {
 
   final HTClass klass;
 
-  final HTInstance object;
+  late final HTObject object;
 
-  HTCast(this.object, this.klass, Interpreter interpreter,
+  HTCast(HTObject object, this.klass, Interpreter interpreter,
       {List<HTTypeId> typeArgs = const []}) {
     this.interpreter = interpreter;
     typeid = HTTypeId(klass.id, arguments: typeArgs);
+
+    if (object is HTInstance) {
+      final castee = interpreter.encapsulate(object);
+      if (castee.isNotA(typeid)) {
+        throw HTErrorTypeCast(object.toString(), typeid.toString());
+      }
+      this.object = object;
+    } else if (object is HTCast) {
+      final castee = interpreter.encapsulate(object.object);
+      if (castee.isNotA(typeid)) {
+        throw HTErrorTypeCast(object.object.toString(), typeid.toString());
+      }
+      this.object = object.object;
+    } else {
+      throw HTErrorCastee(interpreter.curSymbol!);
+    }
   }
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
-    final castee = interpreter.encapsulate(object);
-    if (castee.isNotA(typeid)) {
-      throw HTErrorTypeCast(object.toString(), typeid.toString());
-    }
-
-    klass.instanceMemberGet(object, varName);
-  }
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
+      klass.instanceMemberGet(object, varName);
 
   @override
   void memberSet(String varName, dynamic value,
@@ -383,16 +414,42 @@ class HTCast with HTObject, InterpreterRef {
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
+/// [HTInstance] inherits all its super classes' [HTTypeID]s.
 class HTInstance extends HTNamespace {
+  late final Set<HTTypeId> _typeids = <HTTypeId>{};
+
   @override
-  late final HTTypeId typeid;
+  HTTypeId get typeid => _typeids.last;
 
   /// Create a default [HTInstance] instance.
-  HTInstance(String className, Interpreter interpreter, int index,
+  HTInstance(HTClass klass, Interpreter interpreter, int index,
       {List<HTTypeId> typeArgs = const [], HTNamespace? closure})
       : super(interpreter,
             id: '${HTLexicon.instance}$index', closure: closure) {
-    typeid = HTTypeId(className, arguments: typeArgs);
+    HTClass? curSuper = klass;
+    while (curSuper != null) {
+      // TODO: 父类没有type param怎么处理？
+      final superTypeId = HTTypeId(curSuper.id, arguments: typeArgs);
+      _typeids.add(superTypeId);
+      curSuper = curSuper._superClass;
+    }
+  }
+
+  /// Wether this object is of the type by [otherTypeId]
+  @override
+  bool isA(HTTypeId otherTypeId) {
+    var result = false;
+    if (otherTypeId.name != HTLexicon.ANY) {
+      for (final superTypeId in _typeids) {
+        if (superTypeId.isA(otherTypeId)) {
+          result = true;
+          break;
+        }
+      }
+    } else {
+      result = true;
+    }
+    return result;
   }
 
   @override

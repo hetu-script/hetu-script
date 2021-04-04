@@ -166,12 +166,12 @@ abstract class Interpreter {
       final typeString = object.runtimeType.toString();
       final id = HTTypeId.parseBaseTypeId(typeString);
       if (containsExternalClass(id)) {
-        try {
-          // final externClass = fetchExternalClass(typeid.id);
-          return HTExternObject(object, typeid: HTTypeId(id));
-        } on HTErrorUndefined {
-          return HTExternObject(object);
-        }
+        // try {
+        // final externClass = fetchExternalClass(typeid.id);
+        return HTExternObject(object, typeid: HTTypeId(id));
+        // } on HTErrorUndefined {
+        //   return HTExternObject(object);
+        // }
       }
 
       return HTExternObject(object);

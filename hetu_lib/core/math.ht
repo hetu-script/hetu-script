@@ -4,6 +4,10 @@ external class Math {
   
   static const pi: num = 3.1415926535897932;
 
+  static fun min(a, b)
+
+  static fun max(a, b)
+
   static fun random(): num
 
   static fun randomInt(max: num): num

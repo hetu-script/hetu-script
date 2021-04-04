@@ -8,7 +8,10 @@ class HTExternObject<T> with HTObject {
   @override
   final typeid;
 
+  /// the external object.
   T externObject;
+
+  /// Create a external class object.
   HTExternObject(this.externObject, {this.typeid = HTTypeId.unknown});
 }
 
@@ -17,8 +20,8 @@ class HTNumber extends HTExternObject<num> {
   HTNumber(num value) : super(value, typeid: HTTypeId.number);
 
   @override
-  dynamic memberGet(String id, {String from = HTLexicon.global}) {
-    switch (id) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
       case 'typeid':
         return typeid;
       case 'toString':
@@ -77,7 +80,7 @@ class HTNumber extends HTExternObject<num> {
                 List<HTTypeId> typeArgs = const []}) =>
             externObject.toDouble();
       default:
-        throw HTErrorUndefined(id);
+        throw HTErrorUndefined(varName);
     }
   }
 }
@@ -87,8 +90,8 @@ class HTBoolean extends HTExternObject<bool> {
   HTBoolean(bool value) : super(value, typeid: HTTypeId.boolean);
 
   @override
-  dynamic memberGet(String id, {String from = HTLexicon.global}) {
-    switch (id) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
       case 'typeid':
         return typeid;
       case 'toString':
@@ -100,7 +103,7 @@ class HTBoolean extends HTExternObject<bool> {
       case 'parse':
         return externObject.toString;
       default:
-        throw HTErrorUndefined(id);
+        throw HTErrorUndefined(varName);
     }
   }
 }

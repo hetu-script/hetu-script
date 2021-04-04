@@ -14,7 +14,6 @@ import '../lexicon.dart';
 import '../lexer.dart';
 import '../errors.dart';
 import '../namespace.dart';
-import '../variable.dart';
 import '../class.dart';
 import '../extern_object.dart';
 import '../object.dart';
@@ -819,10 +818,26 @@ class Hetu extends Interpreter {
   void _handleBinaryOp(int opcode) {
     switch (opcode) {
       case HTOpCode.logicalOr:
-        _curValue = _getRegVal(HTRegIdx.orLeft) || _curValue;
+        final bool leftValue = _getRegVal(HTRegIdx.andLeft);
+        final rightValueLength = _curCode.readUint16();
+        if (leftValue) {
+          _curCode.skip(rightValueLength);
+          _curValue = true;
+        } else {
+          final bool rightValue = execute();
+          _curValue = rightValue;
+        }
         break;
       case HTOpCode.logicalAnd:
-        _curValue = _getRegVal(HTRegIdx.andLeft) && _curValue;
+        final bool leftValue = _getRegVal(HTRegIdx.andLeft);
+        final rightValueLength = _curCode.readUint16();
+        if (leftValue) {
+          final bool rightValue = execute();
+          _curValue = leftValue && rightValue;
+        } else {
+          _curCode.skip(rightValueLength);
+          _curValue = false;
+        }
         break;
       case HTOpCode.equal:
         _curValue = _getRegVal(HTRegIdx.equalLeft) == _curValue;
@@ -862,9 +877,6 @@ class Hetu extends Interpreter {
         _curValue = _getRegVal(HTRegIdx.addLeft) + _curValue;
         break;
       case HTOpCode.subtract:
-        // final left = _getRegVal(HTRegIdx.addLeft);
-        // final right = _getRegVal(HTRegIdx.addRight);
-        // _curValue = left - right;
         _curValue = _getRegVal(HTRegIdx.addLeft) - _curValue;
         break;
       case HTOpCode.multiply:
@@ -876,8 +888,6 @@ class Hetu extends Interpreter {
       case HTOpCode.modulo:
         _curValue = _getRegVal(HTRegIdx.multiplyLeft) % _curValue;
         break;
-      default:
-      // throw HTErrorUndefinedBinaryOperator(_getRegVal(left).toString(), _getRegVal(right).toString(), opcode);
     }
   }
 
@@ -898,8 +908,6 @@ class Hetu extends Interpreter {
         _curValue = object - 1;
         _assignCurRef(_curValue);
         break;
-      default:
-      // throw HTErrorUndefinedOperator(_getRegVal(left).toString(), _getRegVal(right).toString(), HTLexicon.add);
     }
   }
 
@@ -1250,8 +1258,7 @@ class Hetu extends Interpreter {
     }
 
     final klassNamespace = HTClassNamespace(id, this, closure: _curNamespace);
-    final klass =
-        HTClass(id, klassNamespace, superClass, this, classType: classType);
+    final klass = HTClass(id, klassNamespace, this, classType: classType);
 
     _curClass = klass;
 
@@ -1260,23 +1267,7 @@ class Hetu extends Interpreter {
 
     execute(namespace: klassNamespace);
 
-    // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
-    var curSuper = superClass;
-    while (curSuper != null) {
-      for (final decl in curSuper.instanceMembers.values) {
-        if (decl.id.startsWith(HTLexicon.underscore)) {
-          continue;
-        }
-        if (decl is HTVariable) {
-          klass.defineInstanceMember(decl.clone(), error: false);
-        } else {
-          klass.defineInstanceMember(decl,
-              error: false); // 函数不能复制，而是在每次call的时候被加上正确的context
-        }
-      }
-
-      curSuper = curSuper.superClass;
-    }
+    klass.inherit(superClass);
 
     _curClass = null;
   }

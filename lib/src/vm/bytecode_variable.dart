@@ -49,8 +49,10 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
             isMember: isMember,
             isStatic: isStatic) {
     this.interpreter = interpreter;
-    if (initializerIp == null && declType == null) {
-      _declType = HTTypeId.ANY;
+    if (initializerIp == null) {
+      if (declType == null) {
+        _declType = HTTypeId.ANY;
+      }
     } else {
       _declType = declType;
     }
@@ -83,10 +85,16 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   @override
   void assign(dynamic value) {
     if (_declType != null) {
-      final encapsulation = interpreter.encapsulate(value);
-      if (encapsulation.isNotA(_declType!)) {
-        final valType = interpreter.encapsulate(value).typeid;
-        throw HTErrorTypeCheck(id, valType.toString(), _declType.toString());
+      if (value != null) {
+        final encapsulation = interpreter.encapsulate(value);
+        if (encapsulation.isNotA(_declType!)) {
+          final valType = interpreter.encapsulate(value).typeid;
+          throw HTErrorTypeCheck(id, valType.toString(), _declType.toString());
+        }
+      } else {
+        if (!(_declType!.isNullable)) {
+          throw HTErrorNullable(id);
+        }
       }
     } else if (!isDynamic && value != null) {
       _declType = interpreter.encapsulate(value).typeid;
