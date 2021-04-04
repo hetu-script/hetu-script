@@ -4,16 +4,22 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-        class Ming {
-          var first = 'tom'
+      fun getNum(j: num) {
+        for (var i = 0; i < 5; ++i) {
+          if (i == j) {
+            return i
+          }
         }
-        class Member {
-          var array = {'tom': 'kaine'}
-          var name = Ming()
+        return -1
+      }
+      fun main() {
+        var k = getNum(3)
+        if (k != -1) {
+          print( k )
+        } else {
+          print( 'k is -1 ' )
         }
-        fun subGet() {
-          var m = Member()
-          print(m.array[m.name.first])
-        }
-      ''', invokeFunc: 'getGlobalVar');
+        print('where are you?')
+      }
+      ''', invokeFunc: 'main');
 }
