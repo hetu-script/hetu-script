@@ -53,7 +53,7 @@ void main() async {
         }
         fun subGet() {
           var m = Member()
-          print(m.array[m.name.first])
+          return m.array[m.name.first]
         }
     ''', invokeFunc: 'subGet');
       expect(
@@ -289,9 +289,9 @@ void main() async {
       }
       fun lateInit {
         var tables = { 'weapon': [1,2,3] }
-        var rows = ;
+        var rows = tables['weapon'];
         var i = getIndex()
-        return tables['weapon'][i]
+        return rows[i]
       }
   ''', invokeFunc: 'lateInit');
       expect(

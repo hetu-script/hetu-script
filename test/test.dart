@@ -4,16 +4,16 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      class Name {
-        var first = 'tom'
-      }
-      class Member {
-        var array = {'tom': 'kaine'}
-        var name = Name()
-      }
-      fun getGlobalVar() {
-        var m = Member()
-        print(m.array[m.name.first])
-      }
+        class Ming {
+          var first = 'tom'
+        }
+        class Member {
+          var array = {'tom': 'kaine'}
+          var name = Ming()
+        }
+        fun subGet() {
+          var m = Member()
+          print(m.array[m.name.first])
+        }
       ''', invokeFunc: 'getGlobalVar');
 }
