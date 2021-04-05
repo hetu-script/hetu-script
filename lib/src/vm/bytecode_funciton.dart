@@ -1,4 +1,4 @@
-import 'package:hetu_script/src/extern_function.dart';
+import 'dart:typed_data';
 
 import 'vm.dart';
 import 'bytecode_variable.dart';
@@ -10,13 +10,20 @@ import '../errors.dart';
 import '../instance.dart';
 import '../variable.dart';
 import '../lexicon.dart';
+import '../extern_function.dart';
 
 /// Bytecode implementation of [HTFunction].
 class HTBytecodeFunction extends HTFunction with HetuRef {
   /// Holds declarations of all parameters.
   final Map<String, HTBytesParameter> parameterDeclarations;
 
-  /// intruction pointer of the function body.
+  /// Holds ips of super class's constructor's positional argumnets
+  final List<int> superConstructorPositionalArgsIp;
+
+  /// Holds ips of super class's constructor's named argumnets
+  final Map<String, int> superConstructorNamedArgsIp;
+
+  /// Holds ip of unction body.
   final int? definitionIp;
 
   /// Create a standard [HTBytecodeFunction].
@@ -38,7 +45,9 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       bool isVariadic = false,
       int minArity = 0,
       int maxArity = 0,
-      HTNamespace? context})
+      HTNamespace? context,
+      this.superConstructorPositionalArgs = const <Uint8List>[],
+      this.superConstructorNamedArgs = const <String, Uint8List>{}})
       : super(id, declId, moduleUniqueKey,
             classId: classId,
             funcType: funcType,

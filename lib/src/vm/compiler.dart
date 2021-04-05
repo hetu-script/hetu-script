@@ -876,32 +876,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
           break;
         case HTLexicon.call:
           _leftValueLegality = false;
-          final positionalArgs = <Uint8List>[];
-          final namedArgs = <String, Uint8List>{};
-          while ((curTok.type != HTLexicon.roundRight) &&
-              (curTok.type != HTLexicon.endOfFile)) {
-            if (expect([HTLexicon.identifier, HTLexicon.colon],
-                consume: false)) {
-              final name = advance(2).lexeme;
-              namedArgs[name] = _parseExpr(endOfExec: true);
-            } else {
-              positionalArgs.add(_parseExpr(endOfExec: true));
-            }
-            if (curTok.type != HTLexicon.roundRight) {
-              match(HTLexicon.comma);
-            }
-          }
-          match(HTLexicon.roundRight);
           bytesBuilder.addByte(HTOpCode.call);
-          bytesBuilder.addByte(positionalArgs.length);
-          for (var i = 0; i < positionalArgs.length; ++i) {
-            bytesBuilder.add(positionalArgs[i]);
-          }
-          bytesBuilder.addByte(namedArgs.length);
-          for (final name in namedArgs.keys) {
-            bytesBuilder.add(_shortUtf8String(name));
-            bytesBuilder.add(namedArgs[name]!);
-          }
+          final callArgs = _parseArguments();
+          bytesBuilder.add(callArgs);
           break;
         case HTLexicon.postIncrement:
           _leftValueLegality = false;
@@ -1038,6 +1015,44 @@ class Compiler extends Parser with ConstTable, HetuRef {
     }
     if (endOfExec) {
       bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _parseArguments({bool hasLength = false}) {
+    final bytesBuilder = BytesBuilder();
+    final positionalArgs = <Uint8List>[];
+    final namedArgs = <String, Uint8List>{};
+    while ((curTok.type != HTLexicon.roundRight) &&
+        (curTok.type != HTLexicon.endOfFile)) {
+      if (expect([HTLexicon.identifier, HTLexicon.colon], consume: false)) {
+        final name = advance(2).lexeme;
+        namedArgs[name] = _parseExpr(endOfExec: true);
+      } else {
+        positionalArgs.add(_parseExpr(endOfExec: true));
+      }
+      if (curTok.type != HTLexicon.roundRight) {
+        match(HTLexicon.comma);
+      }
+    }
+    match(HTLexicon.roundRight);
+    bytesBuilder.addByte(positionalArgs.length);
+    for (var i = 0; i < positionalArgs.length; ++i) {
+      final argExpr = positionalArgs[i];
+      if (hasLength) {
+        bytesBuilder.add(_uint16(argExpr.length));
+      }
+      bytesBuilder.add(argExpr);
+    }
+    bytesBuilder.addByte(namedArgs.length);
+    for (final name in namedArgs.keys) {
+      final nameExpr = _shortUtf8String(name);
+      bytesBuilder.add(nameExpr);
+      final argExpr = namedArgs[name]!;
+      if (hasLength) {
+        bytesBuilder.add(_uint16(argExpr.length));
+      }
+      bytesBuilder.add(argExpr);
     }
     return bytesBuilder.toBytes();
   }
@@ -1727,12 +1742,26 @@ class Compiler extends Parser with ConstTable, HetuRef {
       funcBytesBuilder.add(decl);
     }
 
-    // 返回值类型
+    // 返回值类型，或者超类构造函数
     if (expect([HTLexicon.colon], consume: true)) {
-      funcBytesBuilder.addByte(1); // bool: has return type
-      funcBytesBuilder.add(_parseTypeId());
+      if (funcType != FunctionType.constructor) {
+        funcBytesBuilder
+            .addByte(FunctionReturnType.typeid.index); // bool: has return type
+        funcBytesBuilder.add(_parseTypeId());
+      } else {
+        // 构造函数不能返回值，因此这里不会和返回值类型的解析冲突
+        funcBytesBuilder.addByte(FunctionReturnType
+            .superClassConstructor.index); // bool: has return type
+        if (advance(1).type != HTLexicon.SUPER) {
+          throw HTErrorConstructor();
+        }
+        match(HTLexicon.roundLeft);
+        final callArgs = _parseArguments(hasLength: true);
+        funcBytesBuilder.add(callArgs);
+      }
     } else {
-      funcBytesBuilder.addByte(0); // bool: has return type
+      funcBytesBuilder
+          .addByte(FunctionReturnType.none.index); // bool: has return type
     }
 
     // 处理函数定义部分的语句块

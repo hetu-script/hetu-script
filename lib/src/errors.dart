@@ -32,6 +32,8 @@ abstract class HTError {
   static const _notList = 'is not a List or Map.';
   static const _notClass = 'is not a class.';
   static const _notMember = 'is not a instance member declaration.';
+  static const _constructor = 'Constructor cannot have a return type.';
+
   static const _setterArity = 'Setter function\'s arity must be 1.';
   static const _errorNullObject = 'Calling method on null object:';
   static const _immutable = 'is immutable.';
@@ -203,6 +205,11 @@ class HTErrorNotClass extends HTParserError {
 /// Symbol is not a class name.
 class HTErrorNotMember extends HTParserError {
   HTErrorNotMember(String id) : super('[$id] ${HTError._notMember}');
+}
+
+/// Not a super class of this instance.
+class HTErrorConstructor extends HTParserError {
+  HTErrorConstructor() : super(HTError._constructor);
 }
 
 /// A same name declaration is already existed.

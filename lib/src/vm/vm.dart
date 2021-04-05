@@ -1202,9 +1202,26 @@ class Hetu extends Interpreter {
     final paramDecls = _getParams(_curCode.read());
 
     var returnType = HTTypeId.ANY;
-    final hasTypeId = _curCode.readBool();
-    if (hasTypeId) {
+    final positionalArgIps = <int>[];
+    final namedArgIps = <String, int>{};
+    final returnTypeEnum = FunctionReturnType.values.elementAt(_curCode.read());
+    if (returnTypeEnum == FunctionReturnType.typeid) {
       returnType = _getTypeId();
+    } else if (returnTypeEnum == FunctionReturnType.superClassConstructor) {
+      final positionalArgIpsLength = _curCode.read();
+      for (var i = 0; i < positionalArgIpsLength; ++i) {
+        final argLength = _curCode.readUint16();
+        positionalArgIps.add(_curCode.ip);
+        _curCode.skip(argLength);
+      }
+
+      final namedArgsLength = _curCode.read();
+      for (var i = 0; i < namedArgsLength; ++i) {
+        final argName = _curCode.readShortUtf8String();
+        final argLength = _curCode.readUint16();
+        namedArgIps[argName] = _curCode.ip;
+        _curCode.skip(argLength);
+      }
     }
 
     int? definitionIp;
@@ -1232,6 +1249,8 @@ class Hetu extends Interpreter {
       isVariadic: isVariadic,
       minArity: minArity,
       maxArity: maxArity,
+      superConstructorPositionalArgs: positionalArgIps,
+      superConstructorNamedArgs: namedArgIps,
     );
 
     if (!isStatic &&

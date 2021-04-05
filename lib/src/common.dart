@@ -16,6 +16,12 @@ enum ExternalFunctionType {
   externalClassMethod,
 }
 
+enum FunctionReturnType {
+  none, // void
+  typeid, // HTTypeid
+  superClassConstructor, // super class constructor
+}
+
 /// Class types
 enum ClassType {
   normal,
