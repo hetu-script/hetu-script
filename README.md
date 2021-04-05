@@ -1,12 +1,8 @@
 # Hetu Script
 
-## Table of Content:
+## Warning
 
-- [Introduction](#introduction)
-- [Quick start](#quick-start)
-- [Binding](#binding)
-- [Command line tool](#command-line-tool)
-- [Referrences](#referrences)
+**Hetu is early WIP! We are focusing on making Hetu stable and feature complete right now.**
 
 ## Introduction
 
@@ -61,7 +57,7 @@ fun main {
 
 Hetu script is purely written in Dart, so passing object to and from script is extremely easy.
 
-Check [this page](https://github.com/hetu-script/site-www/blob/main/docs/en-US/binding.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
+Check [this page](https://github.com/hetu-script/site-www/blob/main/docs/en-US/binding/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -128,5 +124,11 @@ function hello(): any // repl will print out the eval result (in this case the t
 
 ## Referrences:
 
-- [Operator precedence](https://github.com/hetu-script/site-www/blob/main/docs/en-US/operator_precedence.md)
-- [Bytecode specification](https://github.com/hetu-script/site-www/blob/main/docs/en-US/bytecode_specification.md)
+- [Operator precedence](https://github.com/hetu-script/site-www/blob/main/docs/en-US/operator_precedence/index.md)
+- [Bytecode specification](https://github.com/hetu-script/site-www/blob/main/docs/en-US/bytecode_specification/index.md)
+
+## Apps that embedded Hetu:
+
+| Name                     | Author                                        | Description |    Download    | Source |
+| :----------------------- | :-------------------------------------------- | :---------- | :------------: | :----- |
+| Monster Hunter Companion | [rockingdice](https://github.com/rockingdice) |             | Android<br>iOS |        |

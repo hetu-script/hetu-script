@@ -1,3 +1,10 @@
+## 0.1.1
+
+- Refactor: Rewrite instance implementation to support type cast.
+- Feature: linked constructor calling through super classes.
+- Feature: 'super' keyword with instance method, for calling super class method.
+- Feature: 'as' & 'is' operator, with super class checking & casting.
+
 ## 0.1.0+1
 
 - Refactor: Changed default interpreter into bytecode machine.
