@@ -9,10 +9,12 @@ import 'variable.dart';
 import 'function.dart';
 import 'declaration.dart';
 
+/// A implementation of [HTNamespace].
+/// For interpreter searching for symbols from a certain block or module.
 class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
-  static int spaceIndex = 0;
+  static int _spaceIndex = 0;
 
-  static String getFullName(String id, HTNamespace? space) {
+  static String _getFullName(String id, HTNamespace? space) {
     var fullName = id;
     var curSpace = space;
     while (curSpace != null) {
@@ -28,11 +30,15 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   @override
   final typeid = HTTypeId.NAMESPACE;
 
+  /// The full closure path of this namespace
   late final String fullName;
 
-  // 变量表
-  final Map<String, HTDeclaration> declarations = {};
+  /// [HTDeclaration]s in this [HTNamespace],
+  /// could be [HTVariable], [HTFunction], [HTEnum] or [HTClass]
+  final declarations = <String, HTDeclaration>{};
 
+  /// [HTDeclaration]s in this [HTNamespace],
+  /// could be [HTVariable], [HTFunction], [HTEnum] or [HTClass]
   final HTNamespace? closure;
 
   HTNamespace(
@@ -40,9 +46,9 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     String? id,
     this.closure,
   }) : super() {
-    this.id = id ?? '${HTLexicon.anonymousNamespace}${spaceIndex++}';
+    this.id = id ?? '${HTLexicon.anonymousNamespace}${_spaceIndex++}';
     this.interpreter = interpreter;
-    fullName = getFullName(this.id, closure);
+    fullName = _getFullName(this.id, closure);
   }
 
   HTNamespace closureAt(int distance) {

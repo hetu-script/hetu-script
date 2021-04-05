@@ -170,7 +170,8 @@ class HTString extends HTExternObject<String> {
 /// Binding object for dart list.
 class HTList extends HTExternObject<List> {
   HTList(List value, {HTTypeId valueType = HTTypeId.ANY})
-      : super(value, typeid: HTTypeId(HTLexicon.list, arguments: [valueType]));
+      : super(value,
+            typeid: HTTypeId(HTLexicon.list, typeArguments: [valueType]));
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -252,7 +253,8 @@ class HTMap extends HTExternObject<Map> {
   HTMap(Map value,
       {HTTypeId keyType = HTTypeId.ANY, HTTypeId valueType = HTTypeId.ANY})
       : super(value,
-            typeid: HTTypeId(HTLexicon.list, arguments: [keyType, valueType]));
+            typeid:
+                HTTypeId(HTLexicon.list, typeArguments: [keyType, valueType]));
 
   @override
   final typeid = HTTypeId.map;

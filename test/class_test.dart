@@ -73,22 +73,25 @@ void main() async {
       );
     });
 
-    test('type check with super class', () async {
-      final result = await hetu.eval('''
-      class Super {
-        var name = 'Super'
-      }
-      class Extend extends Super {
-        var name = 'Extend'
-      }
-      fun superType {
-        var a: any = Extend()
-        return a is Super
-      }
-      ''', invokeFunc: 'superType');
+    test('super class type cast', () async {
+      final result = await hetu.eval(r'''
+        class SuperClass {
+          var name = 'Super'
+        }
+        class ExtendClass extends SuperClass {
+          var name = 'Extend'
+        }
+        fun superMember {
+          var a = ExtendClass()
+          var b = a as SuperClass
+          b.name = 'changed super name'
+
+          return a.name
+        }
+      ''', invokeFunc: 'superMember');
       expect(
         result,
-        true,
+        'Extend',
       );
     });
   });

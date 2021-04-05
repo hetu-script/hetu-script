@@ -7,7 +7,7 @@ import '../type.dart';
 import '../function.dart';
 import '../common.dart';
 import '../errors.dart';
-import '../class.dart';
+import '../instance.dart';
 import '../variable.dart';
 import '../lexicon.dart';
 
@@ -66,12 +66,12 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     var result = StringBuffer();
     result.write(HTLexicon.function);
     result.write(' $id');
-    if (typeid.arguments.isNotEmpty) {
+    if (typeid.typeArguments.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < typeid.arguments.length; ++i) {
-        result.write(typeid.arguments[i]);
-        if ((typeid.arguments.length > 1) &&
-            (i != typeid.arguments.length - 1)) {
+      for (var i = 0; i < typeid.typeArguments.length; ++i) {
+        result.write(typeid.typeArguments[i]);
+        if ((typeid.typeArguments.length > 1) &&
+            (i != typeid.typeArguments.length - 1)) {
           result.write(', ');
         }
       }

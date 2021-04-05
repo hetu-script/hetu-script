@@ -19,10 +19,10 @@ enum ExternalFunctionType {
 /// Class types
 enum ClassType {
   normal,
-  nested,
-  abstracted,
-  interface,
-  mixIn,
+  // nested,
+  // abstracted,
+  // interface,
+  // mixIn,
   extern,
 }
 

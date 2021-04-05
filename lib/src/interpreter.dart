@@ -13,10 +13,12 @@ import 'object.dart';
 import 'plugin/moduleHandler.dart';
 import 'plugin/errorHandler.dart';
 
+/// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
   late final Interpreter interpreter;
 }
 
+/// Shared interface for a ast or bytecode interpreter of Hetu.
 abstract class Interpreter {
   final version = Version(0, 1, 0);
 
@@ -26,6 +28,8 @@ abstract class Interpreter {
 
   String? get curSymbol;
   String? get curObjectSymbol;
+
+  HTNamespace get curNamespace;
 
   late bool debugMode;
 

@@ -31,7 +31,8 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   /// A [HTVariable] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be used within a script.
   HTBytecodeVariable(String id, Hetu interpreter, this.moduleUniqueKey,
-      {dynamic value,
+      {String? classId,
+      dynamic value,
       HTTypeId? declType,
       this.initializerIp,
       Function? getter,
@@ -42,6 +43,7 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
       bool isMember = false,
       bool isStatic = false})
       : super(id,
+            classId: classId,
             value: value,
             getter: getter,
             setter: setter,
@@ -49,9 +51,13 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
             isMember: isMember,
             isStatic: isStatic) {
     this.interpreter = interpreter;
-    if (initializerIp == null) {
-      if (declType == null) {
+    if (declType == null) {
+      if (initializerIp == null) {
         _declType = HTTypeId.ANY;
+      } else {
+        // 初始化时也会尝试对 _declType 赋值
+        // TODO: 这里挪到 vm 里面进行？
+        // initialize();
       }
     } else {
       _declType = declType;
@@ -70,7 +76,9 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
             moduleUniqueKey: moduleUniqueKey,
             ip: initializerIp!,
             namespace: closure);
+
         assign(initVal);
+
         _isInitializing = false;
       } else {
         throw HTErrorCircleInit(id);
@@ -108,6 +116,7 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   @override
   HTBytecodeVariable clone() =>
       HTBytecodeVariable(id, interpreter, moduleUniqueKey,
+          classId: classId,
           value: value,
           declType: declType,
           initializerIp: initializerIp,

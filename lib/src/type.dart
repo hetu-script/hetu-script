@@ -31,22 +31,22 @@ class HTTypeId with HTObject {
     }
   }
 
-  final String name;
+  final String typeName;
   final bool isNullable;
-  final List<HTTypeId> arguments;
+  final List<HTTypeId> typeArguments;
 
-  const HTTypeId(this.name,
-      {this.isNullable = true, this.arguments = const []});
+  const HTTypeId(this.typeName,
+      {this.isNullable = true, this.typeArguments = const []});
 
   @override
   String toString() {
     var typename = StringBuffer();
-    typename.write(name);
-    if (arguments.isNotEmpty) {
+    typename.write(typeName);
+    if (typeArguments.isNotEmpty) {
       typename.write('<');
-      for (var i = 0; i < arguments.length; ++i) {
-        typename.write(arguments[i]);
-        if ((arguments.length > 1) && (i != arguments.length - 1)) {
+      for (var i = 0; i < typeArguments.length; ++i) {
+        typename.write(typeArguments[i]);
+        if ((typeArguments.length > 1) && (i != typeArguments.length - 1)) {
           typename.write(', ');
         }
       }
@@ -77,17 +77,17 @@ class HTFunctionTypeId extends HTTypeId {
       {this.returnType = HTTypeId.ANY,
       List<HTTypeId> arguments = const [],
       this.paramsTypes = const []})
-      : super(HTLexicon.function, arguments: arguments);
+      : super(HTLexicon.function, typeArguments: arguments);
 
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('$name');
-    if (arguments.isNotEmpty) {
+    result.write('$typeName');
+    if (typeArguments.isNotEmpty) {
       result.write('<');
-      for (var i = 0; i < arguments.length; ++i) {
-        result.write(arguments[i]);
-        if ((arguments.length > 1) && (i != arguments.length - 1)) {
+      for (var i = 0; i < typeArguments.length; ++i) {
+        result.write(typeArguments[i]);
+        if ((typeArguments.length > 1) && (i != typeArguments.length - 1)) {
           result.write(', ');
         }
       }

@@ -12,7 +12,6 @@ abstract class HTFunction with HTDeclaration, HTObject {
   static final callStack = <String>[];
 
   final String declId;
-  final String? classId;
   // final HTTypeId? classTypeId;
   final String moduleUniqueKey;
 
@@ -43,7 +42,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
   HTNamespace? context;
 
   HTFunction(String id, this.declId, this.moduleUniqueKey,
-      {this.classId,
+      {String? classId,
       this.funcType = FunctionType.normal,
       this.externalFunctionType = ExternalFunctionType.none,
       this.externalTypedef,
@@ -54,6 +53,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
       this.minArity = 0,
       this.maxArity = 0}) {
     this.id = id;
+    this.classId = classId;
   }
 
   dynamic call(

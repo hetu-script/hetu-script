@@ -4,17 +4,18 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      class Super {
+      class SuperClass {
         var name = 'Super'
       }
-      class Extend extends Super {
+      class ExtendClass extends SuperClass {
         var name = 'Extend'
       }
-      fun main {
-        var a = Extend()
-        var b = a as Super
-        print(b.name)
-        
+      fun superMember {
+        var a = ExtendClass()
+        var b = a as SuperClass
+        b.name = 'changed super name'
+
+        return a.name
       }
-      ''', invokeFunc: 'main');
+      ''', invokeFunc: 'superMember');
 }

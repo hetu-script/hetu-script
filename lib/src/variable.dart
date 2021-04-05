@@ -1,7 +1,6 @@
 import 'errors.dart';
 import 'namespace.dart';
 import 'declaration.dart';
-import 'class.dart' show HTCast;
 
 /// 一个变量，包含了类型等额外信息。
 /// 在编译后的代码中，被提前到整个代码块最前面。
@@ -25,7 +24,8 @@ class HTVariable with HTDeclaration {
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
   HTVariable(String id,
-      {dynamic value,
+      {String? classId,
+      dynamic value,
       this.getter,
       this.setter,
       this.isExtern = false,
@@ -33,6 +33,7 @@ class HTVariable with HTDeclaration {
       this.isStatic = false,
       this.closure}) {
     this.id = id;
+    this.classId = classId;
     if (value != null) assign(value);
   }
 
@@ -47,11 +48,7 @@ class HTVariable with HTDeclaration {
       throw HTErrorImmutable(id);
     }
 
-    if (value is HTCast) {
-      this.value = value.object;
-    } else {
-      this.value = value;
-    }
+    this.value = value;
 
     if (!_isInitialized) {
       _isInitialized = true;
@@ -60,6 +57,7 @@ class HTVariable with HTDeclaration {
 
   @override
   HTVariable clone() => HTVariable(id,
+      classId: classId,
       value: value,
       getter: getter,
       setter: setter,

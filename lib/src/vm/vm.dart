@@ -22,6 +22,7 @@ import '../function.dart';
 import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../extern_function.dart';
+import '../cast.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -103,6 +104,8 @@ class Hetu extends Interpreter {
   final _loops = <_LoopInfo>[];
 
   late HTNamespace _curNamespace;
+  @override
+  HTNamespace get curNamespace => _curNamespace;
 
   /// Create a bytecode interpreter.
   /// Each interpreter has a independent global [HTNamespace].
@@ -861,7 +864,7 @@ class Hetu extends Interpreter {
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTTypeId typeid = _curValue;
-        final HTClass klass = global.fetch(typeid.name);
+        final HTClass klass = global.fetch(typeid.typeName);
         _curValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
@@ -1080,11 +1083,16 @@ class Hetu extends Interpreter {
 
     final isNullable = _curCode.read() == 0 ? false : true;
 
-    return HTTypeId(id, isNullable: isNullable, arguments: args);
+    return HTTypeId(id, isNullable: isNullable, typeArguments: args);
   }
 
   void _handleVarDecl() {
     final id = _curCode.readShortUtf8String();
+    String? classId;
+    final hasClassId = _curCode.readBool();
+    if (hasClassId) {
+      classId = _curCode.readShortUtf8String();
+    }
 
     final isDynamic = _curCode.readBool();
     final isExtern = _curCode.readBool();
@@ -1107,6 +1115,7 @@ class Hetu extends Interpreter {
     }
 
     final decl = HTBytecodeVariable(id, this, curModuleUniqueKey,
+        classId: classId,
         declType: declType,
         initializerIp: initializerIp,
         isDynamic: isDynamic,
@@ -1258,17 +1267,16 @@ class Hetu extends Interpreter {
       }
     }
 
-    final klassNamespace = HTClassNamespace(id, this, closure: _curNamespace);
-    final klass = HTClass(id, klassNamespace, this, classType: classType);
+    final klass =
+        HTClass(id, superClass, this, _curNamespace, classType: classType);
+    _curNamespace.define(klass);
 
     _curClass = klass;
 
-    // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    _curNamespace.define(klass);
+    execute(namespace: klass.namespace);
 
-    execute(namespace: klassNamespace);
-
-    klass.inherit(superClass);
+    // 继承不在这里处理
+    // klass.inherit(superClass);
 
     _curClass = null;
   }

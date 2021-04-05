@@ -1,5 +1,3 @@
-import 'package:hetu_script/src/object.dart';
-
 import 'lexicon.dart';
 import 'namespace.dart';
 import 'function.dart';
@@ -9,9 +7,11 @@ import 'interpreter.dart';
 import 'common.dart';
 import 'variable.dart';
 import 'declaration.dart';
+import 'instance.dart';
+import 'enum.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
-/// For interpreter searching for symbols within class methods.
+/// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
   HTClassNamespace(String id, Interpreter interpreter, {HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
@@ -92,7 +92,7 @@ class HTClassNamespace extends HTNamespace {
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
-/// instance members of this class created by [createInstance] are stored in [_instanceMembers].
+/// instance members of this class created by [createInstance] are stored in [instanceMembers].
 class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
@@ -102,7 +102,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.CLASS;
 
-  final HTClassNamespace namespace;
+  late final HTClassNamespace namespace;
 
   late final ClassType _classType;
   ClassType get classType => _classType;
@@ -113,40 +113,23 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   /// Super class of this class
   ///
   /// If a class is not extends from any super class, then it is the child of class `Object`
-  HTClass? _superClass;
+  final HTClass? superClass;
 
   /// The instance member variables defined in class definition.
-  final _instanceMembers = <String, HTDeclaration>{};
+  final instanceMembers = <String, HTDeclaration>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(String id, this.namespace, Interpreter interpreter,
+  HTClass(
+      String id, this.superClass, Interpreter interpreter, HTNamespace closure,
       {ClassType classType = ClassType.normal, this.typeParams = const []})
       : super(id, isNullable: false) {
     this.id = id;
     this.interpreter = interpreter;
+
+    namespace = HTClassNamespace(id, interpreter, closure: closure);
+
     _classType = classType;
-  }
-
-  /// This function is used after constructor,
-  /// only the first non-null call will take effect.
-  void inherit(HTClass? superClass) {
-    if (_superClass != null) return;
-    if (superClass == null) return;
-
-    _superClass = superClass;
-
-    // 继承所有父类的成员变量和方法，忽略掉已经被覆盖的那些
-    HTClass? curSuper = superClass;
-    while (curSuper != null) {
-      for (final decl in curSuper._instanceMembers.values) {
-        if (decl.id.startsWith(HTLexicon.underscore)) {
-          continue;
-        }
-        defineInstanceMember(decl.clone(), error: false);
-      }
-      curSuper = curSuper._superClass;
-    }
   }
 
   /// Wether there's a member in this [HTClass] by the [varName].
@@ -281,11 +264,11 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   /// Add a instance member declaration to this [HTClass].
   void defineInstanceMember(HTDeclaration decl,
       {bool override = false, bool error = true}) {
-    if (decl is HTClass) {
+    if (decl is HTClass || decl is HTEnum) {
       throw HTErrorClassOnInstance();
     }
-    if ((!_instanceMembers.containsKey(decl.id)) || override) {
-      _instanceMembers[decl.id] = decl;
+    if ((!instanceMembers.containsKey(decl.id)) || override) {
+      instanceMembers[decl.id] = decl;
     } else {
       if (error) throw HTErrorDefinedRuntime(decl.id);
     }
@@ -297,22 +280,14 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const []}) {
-    var instance = HTInstance(this, interpreter, _instanceIndex++,
-        typeArgs: typeArgs, closure: namespace);
-
-    for (final decl in _instanceMembers.values) {
-      if (decl is HTFunction) {
-        instance.define(decl);
-      } else if (decl is HTVariable) {
-        instance.define(decl.clone());
-      } else if (decl is HTClass) {}
-    }
+    var instance =
+        HTInstance(this, interpreter, _instanceIndex++, typeArgs: typeArgs);
 
     final funcId = constructorName ?? HTLexicon.constructor;
     if (namespace.declarations.containsKey(funcId)) {
       /// TODO：对象初始化时从父类逐个调用构造函数
       final constructor = namespace.declarations[funcId] as HTFunction;
-      constructor.context = instance;
+      constructor.context = instance.namespace;
       constructor.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
@@ -320,250 +295,5 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     }
 
     return instance;
-  }
-}
-
-/// The implementation of a certain type cast of a object
-class HTCast with HTObject, InterpreterRef {
-  late final _typeids = <HTTypeId>[];
-
-  @override
-  HTTypeId get typeid => _typeids.first;
-
-  final HTClass klass;
-
-  late final HTObject object;
-
-  HTCast(HTObject object, this.klass, Interpreter interpreter,
-      {List<HTTypeId> typeArgs = const []}) {
-    this.interpreter = interpreter;
-
-    HTClass? curSuper = klass;
-    while (curSuper != null) {
-      // TODO: 父类没有type param怎么处理？
-      final superTypeId = HTTypeId(curSuper.id, arguments: typeArgs);
-      _typeids.add(superTypeId);
-      curSuper = curSuper._superClass;
-    }
-
-    if (object is HTInstance) {
-      if (object.isNotA(typeid)) {
-        throw HTErrorTypeCast(object.toString(), typeid.toString());
-      }
-      this.object = object;
-    } else if (object is HTCast) {
-      if (object.isNotA(typeid)) {
-        throw HTErrorTypeCast(object.object.toString(), typeid.toString());
-      }
-      this.object = object.object;
-    } else {
-      throw HTErrorCastee(interpreter.curSymbol!);
-    }
-  }
-
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
-    throw HTErrorUndefined(varName);
-  }
-
-  @override
-  void memberSet(String varName, dynamic value,
-      {String from = HTLexicon.global}) {}
-
-  @override
-  bool isA(HTTypeId otherTypeId) {
-    if (otherTypeId == HTTypeId.ANY) {
-      return true;
-    } else {
-      for (final superTypeId in _typeids) {
-        if (superTypeId == otherTypeId) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-}
-
-/// The Dart implementation of the instance in Hetu.
-/// [HTInstance] carries all decl from its super classes.
-/// [HTInstance] inherits all its super classes' [HTTypeID]s.
-class HTInstance extends HTNamespace {
-  late final _typeids = <HTTypeId>[];
-
-  @override
-  HTTypeId get typeid => _typeids.first;
-
-  /// Create a default [HTInstance] instance.
-  HTInstance(HTClass klass, Interpreter interpreter, int index,
-      {List<HTTypeId> typeArgs = const [], HTNamespace? closure})
-      : super(interpreter,
-            id: '${HTLexicon.instance}$index', closure: closure) {
-    HTClass? curSuper = klass;
-    while (curSuper != null) {
-      // TODO: 父类没有type param怎么处理？
-      final superTypeId = HTTypeId(curSuper.id, arguments: typeArgs);
-      _typeids.add(superTypeId);
-      curSuper = curSuper._superClass;
-    }
-  }
-
-  /// Wether this object is of the type by [otherTypeId]
-  @override
-  bool isA(HTTypeId otherTypeId) {
-    if (otherTypeId == HTTypeId.ANY) {
-      return true;
-    } else {
-      for (final superTypeId in _typeids) {
-        if (superTypeId == otherTypeId) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @override
-  String toString() {
-    final func = memberGet('toString');
-    if (func is HTFunction) {
-      return func.call();
-    } else if (func is Function) {
-      return func();
-    } else {
-      return id;
-    }
-  }
-
-  @override
-  bool contains(String varName) =>
-      declarations.containsKey(varName) ||
-      declarations.containsKey('${HTLexicon.getter}$varName');
-
-  @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
-    if (contains(varName)) {
-      return memberGet(varName, from: from);
-    }
-
-    if (closure != null) {
-      return closure!.fetch(varName, from: from);
-    }
-
-    throw HTErrorUndefined(varName);
-  }
-
-  @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (contains(varName)) {
-      memberSet(varName, value, from: from);
-      return;
-    }
-
-    if (closure != null) {
-      closure!.assign(varName, value, from: from);
-      return;
-    }
-
-    throw HTErrorUndefined(varName);
-  }
-
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
-    final getter = '${HTLexicon.getter}$varName';
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
-      }
-      final decl = declarations[varName]!;
-      if (decl is HTFunction) {
-        if (decl.externalTypedef != null) {
-          final externalFunc = interpreter.unwrapExternalFunctionType(
-              decl.externalTypedef!, decl);
-          return externalFunc;
-        }
-        if (decl.funcType != FunctionType.literal) {
-          decl.context = this;
-        }
-        return decl;
-      } else if (decl is HTVariable) {
-        if (!decl.isInitialized) {
-          decl.initialize();
-        }
-        return decl.value;
-      }
-    } else if (declarations.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
-      }
-      final method = declarations[getter] as HTFunction;
-      method.context = this;
-      return method.call();
-    }
-
-    // TODO: 这里应该改成写在脚本的Object上才对
-    switch (varName) {
-      case 'typeid':
-        return typeid;
-      case 'toString':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
-            '${HTLexicon.instanceOf}$typeid';
-      default:
-        throw HTErrorUndefined(varName);
-    }
-  }
-
-  @override
-  void memberSet(String varName, dynamic value,
-      {String from = HTLexicon.global}) {
-    final setter = '${HTLexicon.setter}$varName';
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
-      }
-      final decl = declarations[varName]!;
-      if (decl is HTVariable) {
-        decl.assign(value);
-        return;
-      } else {
-        throw HTErrorImmutable(varName);
-      }
-    } else if (declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
-      }
-      final method = declarations[setter] as HTFunction;
-      method.context = this;
-      method.call(positionalArgs: [value]);
-      return;
-    }
-
-    throw HTErrorUndefined(varName);
-  }
-
-  /// Call a member function of this [HTInstance].
-  dynamic invoke(String funcName,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
-      bool errorHandled = true}) {
-    try {
-      HTFunction func = memberGet(funcName, from: fullName);
-      return func.call(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
-    } catch (error, stack) {
-      if (errorHandled) rethrow;
-
-      interpreter.handleError(error, stack);
-    }
   }
 }

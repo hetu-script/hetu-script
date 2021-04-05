@@ -1489,6 +1489,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_shortUtf8String(id));
+    if (_curClassName != null) {
+      bytesBuilder.addByte(1); // bool: has class id
+      bytesBuilder.add(_shortUtf8String(_curClassName!));
+    } else {
+      bytesBuilder.addByte(0); // bool: has class id
+    }
     bytesBuilder.addByte(isDynamic ? 1 : 0);
     bytesBuilder.addByte(isExtern ? 1 : 0);
     bytesBuilder.addByte(isImmutable ? 1 : 0);

@@ -12,8 +12,6 @@
 
 Hetu is a lightweight script language purely written in Dart for embedding in Flutter apps. The main goal is to enable Flutter app have hotfix and scripting ability.
 
-[中文介绍](https://github.com/hetu-script/hetu-script/blob/master/doc/zh_Hans/README_ZH.md)
-
 We did not choose to use another existing language to achieve the goal. Because we want to keep the language simple, and keep it away from interference of other language's complex implementation and their irrelative-to-Flutter eco-system, and make the debug process pain-free and remain in Dart realms.
 
 It takes very little time to bind almost anything in Dart/Flutter into Hetu and use similar grammar to write your app. And to communicate with classes & functions in Dart is very easy.
@@ -26,9 +24,7 @@ Hetu's grammar is close to typescript/kotlin/swift and other modern languages, n
 - Function is declared with 'fun, get, set, construct'.
 - Optional type annotation. Variable declared with 'let, const' will infer its type from its initializer expression.
 
-[Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/syntax.md)
-
-[语法参考](https://github.com/hetu-script/hetu-script/blob/master/doc/zh_Hans/SYNTAX.md)
+[Syntax referrence](https://github.com/hetu-script/site-www/blob/main/docs/en-US/syntax/index.md)
 
 In your Dart code, you can interpret a script file:
 
@@ -65,7 +61,7 @@ fun main {
 
 Hetu script is purely written in Dart, so passing object to and from script is extremely easy.
 
-Check [this page](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/binding.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
+Check [this page](https://github.com/hetu-script/site-www/blob/main/docs/en-US/binding.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -132,5 +128,5 @@ function hello(): any // repl will print out the eval result (in this case the t
 
 ## Referrences:
 
-- [Operator precedence](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/operator_precedence.md)
-- [Bytecode specification](https://github.com/hetu-script/hetu-script/blob/master/doc/en_US/bytecode_specification.md)
+- [Operator precedence](https://github.com/hetu-script/site-www/blob/main/docs/en-US/operator_precedence.md)
+- [Bytecode specification](https://github.com/hetu-script/site-www/blob/main/docs/en-US/bytecode_specification.md)

@@ -66,7 +66,7 @@ class HTEnumItem with HTObject {
   final String id;
 
   @override
-  String toString() => '${typeid.name}$id';
+  String toString() => '${typeid.typeName}$id';
 
   /// Default [HTEnumItem] constructor.
   HTEnumItem(this.index, this.id, this.typeid);

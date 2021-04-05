@@ -29,11 +29,12 @@ abstract class HTError {
   static const _conditionMustBeBool =
       'Condition expression must evaluate to type [bool]';
   static const _missingFuncBody = 'Missing function definition body of';
-  static const _notList = 'is not a List or Map';
-  static const _notClass = 'is not a class';
-  static const _setterArity = 'Setter function\'s arity must be 1';
+  static const _notList = 'is not a List or Map.';
+  static const _notClass = 'is not a class.';
+  static const _notMember = 'is not a instance member declaration.';
+  static const _setterArity = 'Setter function\'s arity must be 1.';
   static const _errorNullObject = 'Calling method on null object:';
-  static const _immutable = 'is immutable';
+  static const _immutable = 'is immutable.';
   static const _notType = 'is not a type.';
   static const _ofType = 'of type';
   static const _nullable = 'is not nullable.';
@@ -59,6 +60,7 @@ abstract class HTError {
   static const _typecast = '\'s type cannot be cast into';
   static const _castee = 'Illegal cast target';
   static const _clone = 'Illegal clone on';
+  static const _notSuper = 'is not a super class of';
 
   /// Print a warning message to standard output, will not throw.
   static void warn(String message) => print('hetu warn:\n' + message);
@@ -196,6 +198,11 @@ class HTErrorSetter extends HTParserError {
 /// Symbol is not a class name.
 class HTErrorNotClass extends HTParserError {
   HTErrorNotClass(String id) : super('[$id] ${HTError._notClass}');
+}
+
+/// Symbol is not a class name.
+class HTErrorNotMember extends HTParserError {
+  HTErrorNotMember(String id) : super('[$id] ${HTError._notMember}');
 }
 
 /// A same name declaration is already existed.
@@ -380,4 +387,10 @@ class HTErrorCastee extends HTError {
 class HTErrorClone extends HTError {
   HTErrorClone(String varName)
       : super('${HTError._clone} [$varName]', HTErrorType.interpreter);
+}
+
+/// Not a super class of this instance.
+class HTErrorNotSuper extends HTError {
+  HTErrorNotSuper(String classId, String id)
+      : super('[$classId] ${HTError._notSuper} [$id]', HTErrorType.interpreter);
 }
