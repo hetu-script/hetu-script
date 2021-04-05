@@ -15,13 +15,14 @@ import '../object.dart';
 class HTAstFunction extends HTFunction with AstInterpreterRef {
   final FuncDeclStmt funcStmt;
 
-  HTAstFunction(this.funcStmt, HTAstInterpreter interpreter, String module,
+  HTAstFunction(
+      this.funcStmt, HTAstInterpreter interpreter, String moduleUniqueKey,
       {String? externalTypedef,
       List<HTTypeId> typeParams = const [],
       HTNamespace? context})
       : super(
           funcStmt.internalName,
-          funcStmt.id?.lexeme ?? '', module,
+          funcStmt.id?.lexeme ?? '', moduleUniqueKey,
           classId: funcStmt.classId,
           funcType: funcStmt.funcType,
           externalFunctionType: ExternalFunctionType.none, // TODO: 这里需要修改
@@ -175,4 +176,10 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     HTFunction.callStack.removeLast();
     return result;
   }
+
+  @override
+  HTAstFunction clone() => HTAstFunction(funcStmt, interpreter, moduleUniqueKey,
+      externalTypedef: externalTypedef,
+      typeParams: typeParams,
+      context: context);
 }

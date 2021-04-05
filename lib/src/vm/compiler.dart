@@ -1196,6 +1196,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   Uint8List _assembleVarDecl(String id, [Uint8List? initializer]) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_shortUtf8String(id));
+    bytesBuilder.addByte(0); // bool: hasClassId
     bytesBuilder.addByte(0); // bool: isDynamic
     bytesBuilder.addByte(0); // bool: isExtern
     bytesBuilder.addByte(0); // bool: isImmutable

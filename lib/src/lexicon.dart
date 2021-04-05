@@ -63,10 +63,10 @@ abstract class HTLexicon {
   static const underscore = '_';
   static const global = 'global';
   static const unknown = 'unknown';
-  static const instance = '__instance#';
-  static const constructor = '__constructor__';
-  static const getter = '__getter__';
-  static const setter = '__setter__';
+  static const instance = '\$instance#';
+  static const constructor = '\$constructor__';
+  static const getter = '\$getter__';
+  static const setter = '\$setter__';
 
   static const instanceOf = 'instance of ';
   static const object = 'Object';

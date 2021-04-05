@@ -51,9 +51,11 @@ abstract class HTFunction with HTDeclaration, HTObject {
       this.isConst = false,
       this.isVariadic = false,
       this.minArity = 0,
-      this.maxArity = 0}) {
+      this.maxArity = 0,
+      HTNamespace? context}) {
     this.id = id;
     this.classId = classId;
+    this.context = context;
   }
 
   dynamic call(
@@ -61,4 +63,8 @@ abstract class HTFunction with HTDeclaration, HTObject {
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
       bool errorHandled = true});
+
+  /// Sub-classes of [HTFunction] must has a definition of [clone].
+  @override
+  HTFunction clone();
 }

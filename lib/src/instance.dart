@@ -14,38 +14,73 @@ import 'cast.dart';
 
 /// A implementation of [HTNamespace] for [HTInstance].
 /// For interpreter searching for symbols within instance methods.
+/// [HTInstanceNamespace] is a singly linked list node,
+/// it holds its super classes' [HTInstanceNamespace]'s referrences.
 class HTInstanceNamespace extends HTNamespace {
-  HTInstanceNamespace(String id, Interpreter interpreter,
-      {HTNamespace? closure})
-      : super(interpreter, id: id, closure: closure);
+  final HTInstance instance;
 
+  HTInstanceNamespace? next;
+
+  HTInstanceNamespace(
+      String id, String? classId, this.instance, Interpreter interpreter,
+      {HTNamespace? closure})
+      : super(interpreter, id: id, classId: classId, closure: closure);
+
+  /// [HTInstanceNamespace] overrided [HTNamespace]'s [fetch],
+  /// with a new named parameter [recursive].
+  /// If [recursive] is false, then it won't continue to
+  /// try fetching variable from enclosed namespace.
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
-    if (contains(varName)) {
-      return memberGet(varName, from: from);
+  dynamic fetch(String varName,
+      {String from = HTLexicon.global, bool recursive = true}) {
+    final getter = '${HTLexicon.getter}$varName';
+    if (declarations.containsKey(varName) || declarations.containsKey(getter)) {
+      return instance.memberGet(varName, from: from, classId: classId);
+    } else {
+      if (next != null) {
+        return next!.fetch(varName, from: from);
+      }
     }
 
-    if (closure != null) {
+    if (recursive && closure != null) {
       return closure!.fetch(varName, from: from);
     }
 
     throw HTErrorUndefined(varName);
   }
 
+  /// [HTInstanceNamespace] overrided [HTNamespace]'s [assign],
+  /// with a new named parameter [recursive].
+  /// If [recursive] is false, then it won't continue to
+  /// try assigning variable from enclosed namespace.
   @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
-    if (contains(varName)) {
-      memberSet(varName, value, from: from);
-      return;
+  void assign(String varName, dynamic value,
+      {String from = HTLexicon.global, bool recursive = true}) {
+    final setter = '${HTLexicon.getter}$varName';
+    if (declarations.containsKey(varName) || declarations.containsKey(setter)) {
+      return instance.memberSet(varName, value, from: from, classId: classId);
+    } else {
+      if (next != null) {
+        return next!.assign(varName, value, from: from);
+      }
     }
 
-    if (closure != null) {
+    if (recursive && closure != null) {
       closure!.assign(varName, value, from: from);
       return;
     }
 
     throw HTErrorUndefined(varName);
   }
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
+      fetch(varName, from: from, recursive: false);
+
+  @override
+  void memberSet(String varName, dynamic value,
+          {String from = HTLexicon.global}) =>
+      assign(varName, value, from: from, recursive: false);
 }
 
 /// The Dart implementation of the instance in Hetu.
@@ -78,13 +113,17 @@ class HTInstance with HTObject, InterpreterRef {
     classId = klass.id;
 
     HTClass? curKlass = klass;
+    var curNamespace = HTInstanceNamespace(id, curKlass.id, this, interpreter,
+        closure: klass.namespace);
     while (curKlass != null) {
+      curNamespace.next = HTInstanceNamespace(
+          id, curKlass.id, this, interpreter,
+          closure: klass.namespace);
+      curNamespace = curNamespace.next!;
+
       // TODO: 父类没有type param怎么处理？
       final superTypeId = HTTypeId(curKlass.id);
       _typeids.add(superTypeId);
-
-      final curNamespace =
-          HTInstanceNamespace(id, interpreter, closure: klass.namespace);
 
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
@@ -105,7 +144,6 @@ class HTInstance with HTObject, InterpreterRef {
     }
   }
 
-  /// Wether this object is of the type by [otherTypeId]
   @override
   bool isA(HTTypeId otherTypeId) {
     if (otherTypeId == HTTypeId.ANY) {

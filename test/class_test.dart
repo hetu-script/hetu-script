@@ -49,7 +49,7 @@ void main() async {
       );
     });
 
-    test('inheritance', () async {
+    test('inheritance 1', () async {
       final result = await hetu.eval('''
       class Guy {
         fun meaning {
@@ -72,20 +72,51 @@ void main() async {
         42,
       );
     });
-  });
 
-  group('super classes - ', () {
+    test('inheritance 2', () async {
+      final result = await hetu.eval('''
+      class SuperClass {
+        var name = 'Super'
+        var age = 1
+        fun addAge() {
+          age = age + 1
+        }
+      }
+      class ExtendClass extends SuperClass {
+        var name = 'Extend'
+        fun addAge() {
+          age = age + 1
+          super.addAge()
+        }
+      }
+      fun inherits {
+        var a = ExtendClass()
+        a.addAge()
+        return a.age
+      }
+      ''', invokeFunc: 'inherits');
+      expect(
+        result,
+        3,
+      );
+    });
+    test('explicit super method calling', () async {
+      final result = await hetu.eval(r'''
+        fun superMethod {
+          var a = ExtendClass()
+          a.addAge()
+          return a.age
+        }
+      ''', invokeFunc: 'superMethod');
+      expect(
+        result,
+        3,
+      );
+    });
     test('extends check', () async {
       final result = await hetu.eval(r'''
-        class SuperClass {
-          var name = 'Super'
-        }
-        class ExtendClass extends SuperClass {
-          var name = 'Extend'
-        }
         fun extendsCheck {
           var a = ExtendClass()
-
           return a is SuperClass
         }
       ''', invokeFunc: 'extendsCheck');
@@ -100,7 +131,6 @@ void main() async {
           var a = ExtendClass()
           var b = a as SuperClass
           b.name = 'changed super name'
-
           return a.name
         }
       ''', invokeFunc: 'superMember');

@@ -49,9 +49,9 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
             isConst: isConst,
             isVariadic: isVariadic,
             minArity: minArity,
-            maxArity: maxArity) {
+            maxArity: maxArity,
+            context: context) {
     this.interpreter = interpreter;
-    this.context = context;
 
     typeid = HTFunctionTypeId(
         returnType: returnType,
@@ -159,8 +159,14 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         }
         // 函数每次在调用时，临时生成一个新的作用域
         final closure = HTNamespace(interpreter, id: id, closure: context);
-        if (context is HTInstance) {
-          closure.define(HTVariable(HTLexicon.THIS, value: context));
+        if (context is HTInstanceNamespace) {
+          final instanceNamespace = context as HTInstanceNamespace;
+          if (instanceNamespace.next != null) {
+            closure.define(
+                HTVariable(HTLexicon.SUPER, value: instanceNamespace.next));
+          }
+
+          closure.define(HTVariable(HTLexicon.THIS, value: instanceNamespace));
         }
 
         var variadicStart = -1;
@@ -300,6 +306,21 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
 
   @override
   HTBytecodeFunction clone() {
-    return HTBytecodeFunction(id, interpreter, moduleUniqueKey);
+    return HTBytecodeFunction(id, interpreter, moduleUniqueKey,
+        declId: declId,
+        classId: classId,
+        funcType: funcType,
+        externalFunctionType: externalFunctionType,
+        externalTypedef: externalTypedef,
+        parameterDeclarations: parameterDeclarations,
+        returnType: returnType,
+        definitionIp: definitionIp,
+        typeParams: typeParams,
+        isStatic: isStatic,
+        isConst: isConst,
+        isVariadic: isVariadic,
+        minArity: minArity,
+        maxArity: maxArity,
+        context: context);
   }
 }

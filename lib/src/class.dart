@@ -13,8 +13,9 @@ import 'enum.dart';
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
-  HTClassNamespace(String id, Interpreter interpreter, {HTNamespace? closure})
-      : super(interpreter, id: id, closure: closure);
+  HTClassNamespace(String id, String classId, Interpreter interpreter,
+      {HTNamespace? closure})
+      : super(interpreter, id: id, classId: classId, closure: closure);
 
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
@@ -127,7 +128,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     this.id = id;
     this.interpreter = interpreter;
 
-    namespace = HTClassNamespace(id, interpreter, closure: closure);
+    namespace = HTClassNamespace(id, id, interpreter, closure: closure);
 
     _classType = classType;
   }

@@ -44,9 +44,11 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   HTNamespace(
     Interpreter interpreter, {
     String? id,
+    String? classId,
     this.closure,
   }) : super() {
     this.id = id ?? '${HTLexicon.anonymousNamespace}${_spaceIndex++}';
+    this.classId = classId;
     this.interpreter = interpreter;
     fullName = _getFullName(this.id, closure);
   }
