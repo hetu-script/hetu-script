@@ -152,6 +152,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     // 添加程序本体代码
     mainBuilder.add(code);
 
+    mainBuilder.addByte(HTOpCode.endOfExec);
+
     return mainBuilder.toBytes();
   }
 

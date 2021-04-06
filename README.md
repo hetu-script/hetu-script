@@ -115,8 +115,9 @@ If you want to write multiple line in REPL mode, use '\\' to end a line.
 
 ```typescript
 >>>fun hello {\
-return 6 * 7} // press enter
-function hello(): any // repl will print out the eval result (in this case the type of this function)
+return 6 * 7}
+>>>hello
+function hello(): any // repl print
 >>>hello()
 42 // repl print
 >>>

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:hetu_script/hetu_script.dart';
 
 const cli_help = '''
-
   Hetu Script Command-line Tool
   Version: 0.1.0
   Usage:
@@ -25,7 +24,7 @@ void main(List<String> args) async {
       if ((args.first == '--help') || (args.first == '-h')) {
         print(cli_help);
       } else if (args.length == 1) {
-        result = await hetu.import(args.first, codeType: CodeType.block);
+        result = await hetu.import(args.first, codeType: CodeType.script);
       } else {
         result = await hetu.import(args.first,
             codeType: CodeType.module, invokeFunc: args[1]);
@@ -35,18 +34,15 @@ void main(List<String> args) async {
       stdout.writeln('\nHetu Script Read-Evaluate-Print-Loop Tool\n'
           'Version: 0.1.0\n\n'
           'Enter your code to evaluate.\n'
-          'Enter \'\\\' for multiline, enter \'quit\' to quit.\n');
-      var quit = false;
+          'Enter \'\\\' for multiline, enter \'.exit\' to quit.\n');
+      var exit = false;
 
-      while (!quit) {
+      while (!exit) {
         stdout.write('>>>');
         var input = stdin.readLineSync();
 
-        if ((input == 'exit') ||
-            (input == 'quit') ||
-            (input == 'close') ||
-            (input == 'end')) {
-          quit = true;
+        if (input == '.exit') {
+          exit = true;
         } else {
           if (input!.endsWith('\\')) {
             input += '\n' + stdin.readLineSync()!;
