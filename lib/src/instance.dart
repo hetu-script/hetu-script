@@ -104,6 +104,9 @@ class HTInstance with HTObject, InterpreterRef {
   final LinkedHashMap<String, HTInstanceNamespace> _namespaces =
       LinkedHashMap();
 
+  /// The [HTNamespace] for this instance.
+  /// Variables will start from the lowest class,
+  /// searching through all super classes.
   HTInstanceNamespace get namespace => _namespaces[classId]!;
 
   /// Create a default [HTInstance] instance.
@@ -125,6 +128,8 @@ class HTInstance with HTObject, InterpreterRef {
       final superTypeId = HTTypeId(curKlass.id);
       _typeids.add(superTypeId);
 
+      // TODO: check wether has default constructor and warn user?
+      // final hasDefaultConstructor = false;
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
         if (decl.id.startsWith(HTLexicon.underscore)) {

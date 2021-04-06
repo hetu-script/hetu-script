@@ -1,9 +1,9 @@
-import 'package:hetu_script/src/declaration.dart';
-import 'package:hetu_script/src/object.dart';
-
 import 'common.dart';
 import 'namespace.dart';
 import 'type.dart';
+import 'declaration.dart';
+import 'object.dart';
+import 'class.dart';
 
 /// [HTFunction] is the base class of functions in Hetu.
 ///
@@ -12,8 +12,8 @@ abstract class HTFunction with HTDeclaration, HTObject {
   static final callStack = <String>[];
 
   final String declId;
-  // final HTTypeId? classTypeId;
   final String moduleUniqueKey;
+  final HTClass? klass;
 
   final FunctionType funcType;
 
@@ -42,7 +42,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
   HTNamespace? context;
 
   HTFunction(String id, this.declId, this.moduleUniqueKey,
-      {String? classId,
+      {this.klass,
       this.funcType = FunctionType.normal,
       this.externalFunctionType = ExternalFunctionType.none,
       this.externalTypedef,
@@ -54,7 +54,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
       this.maxArity = 0,
       HTNamespace? context}) {
     this.id = id;
-    this.classId = classId;
+    classId = klass?.id;
     this.context = context;
   }
 

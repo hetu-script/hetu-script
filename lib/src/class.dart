@@ -103,9 +103,13 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   @override
   final HTTypeId typeid = HTTypeId.CLASS;
 
+  /// The [HTNamespace] for this class,
+  /// for searching for static variables.
   late final HTClassNamespace namespace;
 
   late final ClassType _classType;
+
+  /// The type of this [HTClass]
   ClassType get classType => _classType;
 
   /// The type parameters of the class.
@@ -286,8 +290,8 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
 
     final funcId = constructorName ?? HTLexicon.constructor;
     if (namespace.declarations.containsKey(funcId)) {
-      /// TODO：对象初始化时从父类逐个调用构造函数
       final constructor = namespace.declarations[funcId] as HTFunction;
+      // constructor's context is on this newly created instance
       constructor.context = instance.namespace;
       constructor.call(
           positionalArgs: positionalArgs,

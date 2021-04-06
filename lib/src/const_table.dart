@@ -1,46 +1,54 @@
 /// Helper mixin to store consts,
 /// used in [Compiler] and [HTBytecode]
 mixin ConstTable {
-  /// 常量表
-  late final _intTable = <int>[];
-  List<int> get intTable => _intTable.toList(growable: false);
+  /// Const int table.
+  late final intTable = <int>[];
+
+  /// Add a int to the const int table.
   int addInt(int value) {
-    final index = _intTable.indexOf(value);
+    final index = intTable.indexOf(value);
     if (index == -1) {
-      _intTable.add(value);
-      return _intTable.length - 1;
+      intTable.add(value);
+      return intTable.length - 1;
     } else {
       return index;
     }
   }
 
+  /// Get a int in the const int table at the [index].
   int getInt64(int index) => intTable[index];
 
-  late final _floatTable = <double>[];
-  List<double> get floatTable => _floatTable.toList(growable: false);
+  /// Const float table.
+  late final floatTable = <double>[];
+
+  /// Add a float to the const float table.
   int addConstFloat(double value) {
-    final index = _floatTable.indexOf(value);
+    final index = floatTable.indexOf(value);
     if (index == -1) {
-      _floatTable.add(value);
-      return _floatTable.length - 1;
+      floatTable.add(value);
+      return floatTable.length - 1;
     } else {
       return index;
     }
   }
 
+  /// Get a float in the const float table at the [index].
   double getFloat64(int index) => floatTable[index];
 
-  late final _stringTable = <String>[];
-  List<String> get stringTable => _stringTable.toList(growable: false);
+  /// Const string table.
+  late final stringTable = <String>[];
+
+  /// Add a string to the const string table.
   int addConstString(String value) {
-    final index = _stringTable.indexOf(value);
+    final index = stringTable.indexOf(value);
     if (index == -1) {
-      _stringTable.add(value);
-      return _stringTable.length - 1;
+      stringTable.add(value);
+      return stringTable.length - 1;
     } else {
       return index;
     }
   }
 
+  /// Get a string in the const string table at the [index].
   String getUtf8String(int index) => stringTable[index];
 }

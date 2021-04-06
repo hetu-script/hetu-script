@@ -23,7 +23,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       : super(
           funcStmt.internalName,
           funcStmt.id?.lexeme ?? '', moduleUniqueKey,
-          classId: funcStmt.classId,
+          // classId: funcStmt.classId,
           funcType: funcStmt.funcType,
           externalFunctionType: ExternalFunctionType.none, // TODO: 这里需要修改
           externalTypedef: externalTypedef,

@@ -56,17 +56,17 @@ abstract class HTLexicon {
   static const varargs = '...'; // variadic arguments
   static const singleQuotation = "'";
   static const doubleQuotation = '"';
-  static const anonymousScript = 'anonymousScript#';
-  static const anonymousFunction = 'anonymousFunction#';
-  static const anonymousNamespace = 'anonymousNamespace#';
+  static const anonymousScript = '\$anonymousScript\$';
+  static const anonymousFunction = '\$anonymousFunction\$';
+  static const anonymousNamespace = '\$anonymousNamespace\$';
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';
   static const unknown = 'unknown';
-  static const instance = '\$instance#';
-  static const constructor = '\$constructor__';
-  static const getter = '\$getter__';
-  static const setter = '\$setter__';
+  static const instance = '\$instance\$';
+  static const constructor = '\$constructor\$';
+  static const getter = '\$getter\$';
+  static const setter = '\$setter\$';
 
   static const instanceOf = 'instance of ';
   static const object = 'Object';

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'vm.dart';
 import 'bytecode_variable.dart';
 import '../namespace.dart';
@@ -11,17 +9,32 @@ import '../instance.dart';
 import '../variable.dart';
 import '../lexicon.dart';
 import '../extern_function.dart';
+import '../class.dart';
+
+class HTBytecodeFunctionSuperConstructor {
+  /// id of super class's constructor
+  late final String id;
+
+  /// Holds ips of super class's constructor's positional argumnets
+  final List<int> positionalArgsIp;
+
+  /// Holds ips of super class's constructor's named argumnets
+  final Map<String, int> namedArgsIp;
+
+  HTBytecodeFunctionSuperConstructor(String? id,
+      {this.positionalArgsIp = const <int>[],
+      this.namedArgsIp = const <String, int>{}}) {
+    this.id =
+        id == null ? HTLexicon.constructor : '${HTLexicon.constructor}$id';
+  }
+}
 
 /// Bytecode implementation of [HTFunction].
 class HTBytecodeFunction extends HTFunction with HetuRef {
   /// Holds declarations of all parameters.
   final Map<String, HTBytesParameter> parameterDeclarations;
 
-  /// Holds ips of super class's constructor's positional argumnets
-  final List<int> superConstructorPositionalArgsIp;
-
-  /// Holds ips of super class's constructor's named argumnets
-  final Map<String, int> superConstructorNamedArgsIp;
+  final HTBytecodeFunctionSuperConstructor? superConstructor;
 
   /// Holds ip of unction body.
   final int? definitionIp;
@@ -30,26 +43,28 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
   ///
   /// A [HTFunction] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTBytecodeFunction(String id, Hetu interpreter, String moduleUniqueKey,
-      {String declId = '',
-      String? classId,
-      FunctionType funcType = FunctionType.normal,
-      ExternalFunctionType externalFunctionType = ExternalFunctionType.none,
-      String? externalTypedef,
-      this.parameterDeclarations = const <String, HTBytesParameter>{},
-      HTTypeId returnType = HTTypeId.ANY,
-      this.definitionIp,
-      List<HTTypeId> typeParams = const [],
-      bool isStatic = false,
-      bool isConst = false,
-      bool isVariadic = false,
-      int minArity = 0,
-      int maxArity = 0,
-      HTNamespace? context,
-      this.superConstructorPositionalArgs = const <Uint8List>[],
-      this.superConstructorNamedArgs = const <String, Uint8List>{}})
-      : super(id, declId, moduleUniqueKey,
-            classId: classId,
+  HTBytecodeFunction(
+    String id,
+    Hetu interpreter,
+    String moduleUniqueKey, {
+    String declId = '',
+    HTClass? klass,
+    FunctionType funcType = FunctionType.normal,
+    ExternalFunctionType externalFunctionType = ExternalFunctionType.none,
+    String? externalTypedef,
+    this.parameterDeclarations = const <String, HTBytesParameter>{},
+    HTTypeId returnType = HTTypeId.ANY,
+    this.definitionIp,
+    List<HTTypeId> typeParams = const [],
+    bool isStatic = false,
+    bool isConst = false,
+    bool isVariadic = false,
+    int minArity = 0,
+    int maxArity = 0,
+    HTNamespace? context,
+    this.superConstructor,
+  }) : super(id, declId, moduleUniqueKey,
+            klass: klass,
             funcType: funcType,
             externalFunctionType: externalFunctionType,
             externalTypedef: externalTypedef,
@@ -157,6 +172,37 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         }
       }
 
+      var superCtorCalled = false;
+      if (funcType == FunctionType.constructor && superConstructor != null) {
+        final superClass = klass!.superClass!;
+        final superCtorId = superConstructor!.id;
+        final constructor =
+            superClass.namespace.declarations[superCtorId] as HTFunction;
+        // constructor's context is on this newly created instance
+        final instanceNamespace = context as HTInstanceNamespace;
+        constructor.context = instanceNamespace.next!;
+
+        final superCtorPosArgs = [];
+        final superCtorPosArgIps = superConstructor!.positionalArgsIp;
+        for (var i = 0; i < superCtorPosArgIps.length; ++i) {
+          final arg = interpreter.execute(ip: superCtorPosArgIps[i]);
+          superCtorPosArgs.add(arg);
+        }
+
+        final superCtorNamedArgs = <String, dynamic>{};
+        final superCtorNamedArgIps = superConstructor!.namedArgsIp;
+        for (final name in superCtorNamedArgIps.keys) {
+          final namedArgIp = superCtorNamedArgIps[name]!;
+          final arg = interpreter.execute(ip: namedArgIp);
+          superCtorNamedArgs[name] = arg;
+        }
+
+        constructor.call(
+            positionalArgs: superCtorPosArgs, namedArgs: superCtorNamedArgs);
+
+        superCtorCalled = true;
+      }
+
       HTFunction.callStack.add(
           '#${HTFunction.callStack.length} $id - (${interpreter.curModuleUniqueKey}:${interpreter.curLine}:${interpreter.curColumn})');
 
@@ -164,6 +210,9 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       // 如果是脚本函数
       if (externalFunctionType == ExternalFunctionType.none) {
         if (definitionIp == null) {
+          if (superCtorCalled) {
+            return;
+          }
           throw HTErrorMissingFuncDef(id);
         }
         // 函数每次在调用时，临时生成一个新的作用域
@@ -317,7 +366,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
   HTBytecodeFunction clone() {
     return HTBytecodeFunction(id, interpreter, moduleUniqueKey,
         declId: declId,
-        classId: classId,
+        klass: klass,
         funcType: funcType,
         externalFunctionType: externalFunctionType,
         externalTypedef: externalTypedef,
@@ -330,6 +379,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         isVariadic: isVariadic,
         minArity: minArity,
         maxArity: maxArity,
-        context: context);
+        context: context,
+        superConstructor: superConstructor);
   }
 }

@@ -1020,6 +1020,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   }
 
   Uint8List _parseArguments({bool hasLength = false}) {
+    // 这里不判断左括号，已经跳过了
     final bytesBuilder = BytesBuilder();
     final positionalArgs = <Uint8List>[];
     final namedArgs = <String, Uint8List>{};
@@ -1745,23 +1746,32 @@ class Compiler extends Parser with ConstTable, HetuRef {
     // 返回值类型，或者超类构造函数
     if (expect([HTLexicon.colon], consume: true)) {
       if (funcType != FunctionType.constructor) {
-        funcBytesBuilder
-            .addByte(FunctionReturnType.typeid.index); // bool: has return type
+        funcBytesBuilder.addByte(FunctionReturnType
+            .typeid.index); // enum: return type or super constructor
         funcBytesBuilder.add(_parseTypeId());
       } else {
         // 构造函数不能返回值，因此这里不会和返回值类型的解析冲突
-        funcBytesBuilder.addByte(FunctionReturnType
-            .superClassConstructor.index); // bool: has return type
-        if (advance(1).type != HTLexicon.SUPER) {
+        funcBytesBuilder.addByte(FunctionReturnType.superClassConstructor
+            .index); // enum: return type or super constructor
+        if (advance(1).lexeme != HTLexicon.SUPER) {
           throw HTErrorConstructor();
         }
-        match(HTLexicon.roundLeft);
+        final tokLexem = advance(1).type;
+        if (tokLexem == HTLexicon.memberGet) {
+          funcBytesBuilder.addByte(1); // bool: has super constructor name
+          final superCtorId = match(HTLexicon.identifier).lexeme;
+          funcBytesBuilder.add(_shortUtf8String(superCtorId));
+          match(HTLexicon.roundLeft);
+        } else if (tokLexem == HTLexicon.roundLeft) {
+          funcBytesBuilder.addByte(0); // bool: has super constructor name
+        }
+
         final callArgs = _parseArguments(hasLength: true);
         funcBytesBuilder.add(callArgs);
       }
     } else {
-      funcBytesBuilder
-          .addByte(FunctionReturnType.none.index); // bool: has return type
+      funcBytesBuilder.addByte(FunctionReturnType
+          .none.index); // enum: return type or super constructor
     }
 
     // 处理函数定义部分的语句块

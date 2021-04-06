@@ -6,7 +6,7 @@ void main() async {
   await hetu.init();
 
   group('functions -', () {
-    test('closure', () async {
+    test('nested & anonymous', () async {
       final result = await hetu.eval('''
             fun literalFunction(func) {
               var i = 42
@@ -25,6 +25,32 @@ void main() async {
       expect(
         result,
         1936,
+      );
+    });
+    test('closure in loop', () async {
+      final result = await hetu.eval('''
+        fun closureInLoop {
+          var list = [];
+          var builders = [];
+          fun build(i, add) {
+            builders.add(fun () {
+              add(i);
+            });
+          }
+          for (var i = 0; i < 5; ++i) {
+            build(i, fun (n)  {
+              list.add(n);
+            });
+          }
+          for (var func in builders) {
+            func();
+          }
+          return list[1]
+        }
+      ''', invokeFunc: 'closureInLoop');
+      expect(
+        result,
+        1,
       );
     });
   });

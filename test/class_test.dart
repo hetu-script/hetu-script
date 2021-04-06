@@ -49,7 +49,7 @@ void main() async {
       );
     });
 
-    test('inheritance 1', () async {
+    test('override', () async {
       final result = await hetu.eval('''
       class Guy {
         fun meaning {
@@ -62,27 +62,27 @@ void main() async {
           return number
         }
       }
-      fun inheritance {
+      fun override {
         var j = John()
         return j.meaning();
       }
-      ''', invokeFunc: 'inheritance');
+      ''', invokeFunc: 'override');
       expect(
         result,
         42,
       );
     });
 
-    test('inheritance 2', () async {
+    test('inherits', () async {
       final result = await hetu.eval('''
-      class SuperClass {
+      class Super1 {
         var name = 'Super'
         var age = 1
         fun addAge() {
           age = age + 1
         }
       }
-      class ExtendClass extends SuperClass {
+      class Extend1 extends Super1 {
         var name = 'Extend'
         fun addAge() {
           age = age + 1
@@ -90,7 +90,7 @@ void main() async {
         }
       }
       fun inherits {
-        var a = ExtendClass()
+        var a = Extend1()
         a.addAge()
         return a.age
       }
@@ -100,24 +100,17 @@ void main() async {
         3,
       );
     });
-    test('explicit super method calling', () async {
-      final result = await hetu.eval(r'''
-        fun superMethod {
-          var a = ExtendClass()
-          a.addAge()
-          return a.age
-        }
-      ''', invokeFunc: 'superMethod');
-      expect(
-        result,
-        3,
-      );
-    });
     test('extends check', () async {
       final result = await hetu.eval(r'''
+        class Super2 {
+          var name = 'Super'
+        }
+        class Extend2 extends Super2 {
+          var name = 'Extend'
+        }
         fun extendsCheck {
-          var a = ExtendClass()
-          return a is SuperClass
+          var a = Extend2()
+          return a is Super2
         }
       ''', invokeFunc: 'extendsCheck');
       expect(
@@ -127,16 +120,45 @@ void main() async {
     });
     test('type cast', () async {
       final result = await hetu.eval(r'''
+        class Super3 {
+          var name = 'Super'
+        }
+        class Extend3 extends Super3 {
+          var name = 'Extend'
+        }
         fun superMember {
-          var a = ExtendClass()
-          var b = a as SuperClass
-          b.name = 'changed super name'
-          return a.name
+          var a = Extend3()
+          var b = a as Super3
+          b.name = 'changed'
+          return (a as Super3).name
         }
       ''', invokeFunc: 'superMember');
       expect(
         result,
-        'Extend',
+        'changed',
+      );
+    });
+    test('derived sequence', () async {
+      final result = await hetu.eval(r'''
+        class SuperC1 {
+          var name
+          construct (name) {
+            this.name = name
+          }
+        }
+        class DerivedC1 extends SuperC1 {
+          construct: super('Derived') {
+            name += 'Sequence'
+          }
+        }
+        fun cotrSequence {
+          var d = DerivedC1()
+          return d.name
+        }
+      ''', invokeFunc: 'cotrSequence');
+      expect(
+        result,
+        'DerivedSequence',
       );
     });
   });

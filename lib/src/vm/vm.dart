@@ -671,7 +671,6 @@ class Hetu extends Interpreter {
         }
 
         final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
-            classId: _curClass?.id,
             funcType: funcType,
             externalTypedef: externalTypedef,
             parameterDeclarations: paramDecls,
@@ -1165,22 +1164,6 @@ class Hetu extends Interpreter {
     return paramDecls;
   }
 
-  void _handleEnumDecl() {
-    final id = _curCode.readShortUtf8String();
-    final isExtern = _curCode.readBool();
-    final length = _curCode.readUint16();
-
-    var defs = <String, HTEnumItem>{};
-    for (var i = 0; i < length; i++) {
-      final enumId = _curCode.readShortUtf8String();
-      defs[enumId] = HTEnumItem(i, enumId, HTTypeId(id));
-    }
-
-    final enumClass = HTEnum(id, defs, this, isExtern: isExtern);
-
-    _curNamespace.define(enumClass);
-  }
-
   void _handleFuncDecl() {
     final id = _curCode.readShortUtf8String();
     final declId = _curCode.readShortUtf8String();
@@ -1202,12 +1185,19 @@ class Hetu extends Interpreter {
     final paramDecls = _getParams(_curCode.read());
 
     var returnType = HTTypeId.ANY;
+    HTBytecodeFunctionSuperConstructor? superConstructor;
+    String? superCtorId;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
     final returnTypeEnum = FunctionReturnType.values.elementAt(_curCode.read());
     if (returnTypeEnum == FunctionReturnType.typeid) {
       returnType = _getTypeId();
     } else if (returnTypeEnum == FunctionReturnType.superClassConstructor) {
+      final hasSuperCtorid = _curCode.readBool();
+      if (hasSuperCtorid) {
+        superCtorId = _curCode.readShortUtf8String();
+      }
+
       final positionalArgIpsLength = _curCode.read();
       for (var i = 0; i < positionalArgIpsLength; ++i) {
         final argLength = _curCode.readUint16();
@@ -1222,6 +1212,8 @@ class Hetu extends Interpreter {
         namedArgIps[argName] = _curCode.ip;
         _curCode.skip(argLength);
       }
+      superConstructor = HTBytecodeFunctionSuperConstructor(superCtorId,
+          positionalArgsIp: positionalArgIps, namedArgsIp: namedArgIps);
     }
 
     int? definitionIp;
@@ -1237,7 +1229,7 @@ class Hetu extends Interpreter {
       this,
       curModuleUniqueKey,
       declId: declId,
-      classId: _curClass?.id,
+      klass: _curClass,
       funcType: funcType,
       externalFunctionType: externType,
       externalTypedef: externalTypedef,
@@ -1249,17 +1241,22 @@ class Hetu extends Interpreter {
       isVariadic: isVariadic,
       minArity: minArity,
       maxArity: maxArity,
-      superConstructorPositionalArgs: positionalArgIps,
-      superConstructorNamedArgs: namedArgIps,
+      superConstructor: superConstructor,
     );
 
     if (!isStatic &&
-        (funcType == FunctionType.getter ||
-            funcType == FunctionType.setter ||
-            funcType == FunctionType.method)) {
+        (funcType == FunctionType.method ||
+            funcType == FunctionType.getter ||
+            funcType == FunctionType.setter)) {
+      // instance methods are defined separately.
       _curClass!.defineInstanceMember(func);
     } else {
-      func.context = _curNamespace;
+      // constructor are defined in class's namespace,
+      // however its context is on instance.
+      if (funcType != FunctionType.constructor) {
+        func.context = _curNamespace;
+      }
+      // static methods are defined in class's namespace,
       _curNamespace.define(func);
     }
   }
@@ -1298,5 +1295,21 @@ class Hetu extends Interpreter {
     // klass.inherit(superClass);
 
     _curClass = null;
+  }
+
+  void _handleEnumDecl() {
+    final id = _curCode.readShortUtf8String();
+    final isExtern = _curCode.readBool();
+    final length = _curCode.readUint16();
+
+    var defs = <String, HTEnumItem>{};
+    for (var i = 0; i < length; i++) {
+      final enumId = _curCode.readShortUtf8String();
+      defs[enumId] = HTEnumItem(i, enumId, HTTypeId(id));
+    }
+
+    final enumClass = HTEnum(id, defs, this, isExtern: isExtern);
+
+    _curNamespace.define(enumClass);
   }
 }
