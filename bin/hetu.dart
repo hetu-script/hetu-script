@@ -49,7 +49,7 @@ void main(List<String> args) async {
           }
 
           try {
-            result = await hetu.eval(input, codeType: CodeType.block);
+            result = await hetu.eval(input, codeType: CodeType.function);
             if (result != null) print(result);
           } catch (e) {
             print(e);

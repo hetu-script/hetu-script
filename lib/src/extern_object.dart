@@ -80,7 +80,7 @@ class HTNumber extends HTExternObject<num> {
                 List<HTTypeId> typeArgs = const []}) =>
             externObject.toDouble();
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -103,7 +103,7 @@ class HTBoolean extends HTExternObject<bool> {
       case 'parse':
         return externObject.toString;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -162,7 +162,7 @@ class HTString extends HTExternObject<String> {
       case 'toUpperCase':
         return externObject.toUpperCase;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -170,8 +170,7 @@ class HTString extends HTExternObject<String> {
 /// Binding object for dart list.
 class HTList extends HTExternObject<List> {
   HTList(List value, {HTTypeId valueType = HTTypeId.ANY})
-      : super(value,
-            typeid: HTTypeId(HTLexicon.list, typeArguments: [valueType]));
+      : super(value, typeid: HTTypeId(HTLexicon.list, typeArgs: [valueType]));
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -243,7 +242,7 @@ class HTList extends HTExternObject<List> {
                 List<HTTypeId> typeArgs = const []}) =>
             externObject.join(positionalArgs.first);
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -253,8 +252,7 @@ class HTMap extends HTExternObject<Map> {
   HTMap(Map value,
       {HTTypeId keyType = HTTypeId.ANY, HTTypeId valueType = HTTypeId.ANY})
       : super(value,
-            typeid:
-                HTTypeId(HTLexicon.list, typeArguments: [keyType, valueType]));
+            typeid: HTTypeId(HTLexicon.list, typeArgs: [keyType, valueType]));
 
   @override
   final typeid = HTTypeId.map;
@@ -311,7 +309,7 @@ class HTMap extends HTExternObject<Map> {
                 List<HTTypeId> typeArgs = const []}) =>
             externObject.remove(positionalArgs.first);
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }

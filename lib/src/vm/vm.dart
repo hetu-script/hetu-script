@@ -128,13 +128,16 @@ class Hetu extends Interpreter {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) async {
-    if (content.isEmpty) throw HTErrorEmpty();
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false}) async {
+    if (content.isEmpty) throw HTError.empty();
 
+    // TODO: 不要保存
     _compiler = Compiler(this);
 
     final name = moduleUniqueKey ??
         (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+    _curModuleUniqueKey = name;
 
     try {
       final tokens = Lexer().lex(content, name);
@@ -223,7 +226,7 @@ class Hetu extends Interpreter {
               namedArgs: namedArgs,
               typeArgs: typeArgs);
         } else {
-          throw HTErrorCallable(funcName);
+          throw HTError.callable(funcName);
         }
       } else {
         func = global.fetch(funcName);
@@ -233,7 +236,7 @@ class Hetu extends Interpreter {
               namedArgs: namedArgs,
               typeArgs: typeArgs);
         } else {
-          HTErrorCallable(funcName);
+          HTError.callable(funcName);
         }
       }
     } catch (error, stack) {
@@ -253,34 +256,22 @@ class Hetu extends Interpreter {
     sb.writeln('\n$stack');
     var callStack = sb.toString();
 
-    if (error is! HTInterpreterError) {
-      HTInterpreterError itpErr;
-      if (error is HTParserError) {
-        itpErr = HTInterpreterError(
-            '${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
-            error.type,
-            _compiler.curModuleUniqueKey,
-            _compiler.curLine,
-            _compiler.curColumn);
-      } else if (error is HTError) {
-        itpErr = HTInterpreterError(
-            '${error.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
-            error.type,
-            curModuleUniqueKey,
-            curLine,
-            curColumn);
+    if (error is HTError) {
+      error.message = '${error.message}\nCall stack:\n$callStack';
+      if (error.type == HTErrorType.parser) {
+        error.moduleUniqueKey = _compiler.curModuleUniqueKey;
+        error.line = _compiler.curLine;
+        error.column = _compiler.curColumn;
       } else {
-        itpErr = HTInterpreterError(
-            '$error\nHetu call stack:\n$callStack\nDart call stack:\n',
-            HTErrorType.other,
-            curModuleUniqueKey,
-            curLine,
-            curColumn);
+        error.moduleUniqueKey = _curModuleUniqueKey;
+        error.line = _curLine;
+        error.column = _curColumn;
       }
-
-      errorHandler.handle(itpErr);
-    } else {
       errorHandler.handle(error);
+    } else {
+      final hetuError = HTError('$error\nCall stack:\n$callStack',
+          HTErrorType.interpreter, _curModuleUniqueKey, _curLine, _curColumn);
+      errorHandler.handle(hetuError);
     }
   }
 
@@ -288,6 +279,7 @@ class Hetu extends Interpreter {
   Future<Uint8List> compile(String content, String moduleName,
       {CodeType codeType = CodeType.module, bool debugMode = true}) async {
     final bytesBuilder = BytesBuilder();
+    _compiler = Compiler(this);
 
     try {
       final tokens = Lexer().lex(content, moduleName);
@@ -295,7 +287,7 @@ class Hetu extends Interpreter {
           codeType: codeType, debugMode: debugMode);
 
       bytesBuilder.add(bytes);
-    } catch (e, stack) {
+    } catch (error, stack) {
       var sb = StringBuffer();
       for (var funcName in HTFunction.callStack) {
         sb.writeln('  $funcName');
@@ -303,34 +295,22 @@ class Hetu extends Interpreter {
       sb.writeln('\n$stack');
       var callStack = sb.toString();
 
-      if (e is! HTInterpreterError) {
-        HTInterpreterError newErr;
-        if (e is HTParserError) {
-          newErr = HTInterpreterError(
-              '${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
-              e.type,
-              _compiler.curModuleUniqueKey,
-              _compiler.curLine,
-              _compiler.curColumn);
-        } else if (e is HTError) {
-          newErr = HTInterpreterError(
-              '${e.message}\nHetu call stack:\n$callStack\nDart call stack:\n',
-              e.type,
-              curModuleUniqueKey,
-              curLine,
-              curColumn);
+      if (error is HTError) {
+        error.message = '${error.message}\nCall stack:\n$callStack';
+        if (error.type == HTErrorType.parser) {
+          error.moduleUniqueKey = _compiler.curModuleUniqueKey;
+          error.line = _compiler.curLine;
+          error.column = _compiler.curColumn;
         } else {
-          newErr = HTInterpreterError(
-              '$e\nHetu call stack:\n$callStack\nDart call stack:\n',
-              HTErrorType.other,
-              curModuleUniqueKey,
-              curLine,
-              curColumn);
+          error.moduleUniqueKey = _curModuleUniqueKey;
+          error.line = _curLine;
+          error.column = _curColumn;
         }
-
-        errorHandler.handle(newErr);
+        errorHandler.handle(error);
       } else {
-        errorHandler.handle(e);
+        final hetuError = HTError('$error\nCall stack:\n$callStack',
+            HTErrorType.interpreter, _curModuleUniqueKey, _curLine, _curColumn);
+        errorHandler.handle(hetuError);
       }
     } finally {
       return bytesBuilder.toBytes();
@@ -693,7 +673,7 @@ class Hetu extends Interpreter {
         _curValue = _getTypeId();
         break;
       default:
-        throw HTErrorUnkownValueType(valueType);
+        throw HTError.unkownValueType(valueType);
     }
   }
 
@@ -706,7 +686,7 @@ class Hetu extends Interpreter {
         final object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
         if (object == null || object == HTObject.NULL) {
-          throw HTErrorNullObject(curObjectSymbol!);
+          throw HTError.nullObject(curObjectSymbol!);
         }
         // 如果是 Hetu 对象
         if (object is HTObject) {
@@ -724,7 +704,7 @@ class Hetu extends Interpreter {
         final object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
         if (object == null || object == HTObject.NULL) {
-          throw HTErrorNullObject(object);
+          throw HTError.nullObject(object);
         }
         // 如果是 buildin 集合
         if ((object is List) || (object is Map)) {
@@ -1002,7 +982,7 @@ class Hetu extends Interpreter {
         }
       }
     } else {
-      throw HTErrorCallable(callee.toString());
+      throw HTError.callable(callee.toString());
     }
   }
 
@@ -1012,11 +992,9 @@ class Hetu extends Interpreter {
         var object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
 
-        if (object == null || object == HTObject.NULL) {
-          throw HTErrorNullObject(curObjectSymbol!);
-        }
-
-        if (object is num) {
+        if (object == null) {
+          object = HTObject.NULL;
+        } else if (object is num) {
           object = HTNumber(object);
         } else if (object is bool) {
           object = HTBoolean(object);
@@ -1044,12 +1022,12 @@ class Hetu extends Interpreter {
         final key = execute(moveRegIndex: true);
 
         if (object == null || object == HTObject.NULL) {
-          throw HTErrorNullObject(curObjectSymbol!);
+          throw HTError.nullObject(curObjectSymbol!);
         }
 
         // TODO: support script subget operator override
         // if (object is! List && object is! Map) {
-        //   throw HTErrorSubGet(object.toString());
+        //   throw HTError.subGet(object.toString());
         // }
         _curValue = object[key];
         _curRefType = _RefType.sub;
@@ -1071,18 +1049,32 @@ class Hetu extends Interpreter {
   }
 
   HTTypeId _getTypeId() {
-    final id = _curCode.readShortUtf8String();
+    final typeIdType = TypeIdType.values.elementAt(_curCode.read());
 
-    final length = _curCode.read();
+    switch (typeIdType) {
+      case TypeIdType.normal:
+        final id = _curCode.readShortUtf8String();
+        final length = _curCode.read();
+        final args = <HTTypeId>[];
+        for (var i = 0; i < length; ++i) {
+          args.add(_getTypeId());
+        }
+        final isNullable = _curCode.read() == 0 ? false : true;
+        return HTTypeId(id, isNullable: isNullable, typeArgs: args);
+      case TypeIdType.function:
+        final paramsLength = _curCode.read();
 
-    final args = <HTTypeId>[];
-    for (var i = 0; i < length; ++i) {
-      args.add(_getTypeId());
+        final paramTypes = <HTTypeId>[];
+        for (var i = 0; i < paramsLength; ++i) {
+          final paramType = _getTypeId();
+          paramTypes.add(paramType);
+        }
+
+        final returnType = _getTypeId();
+
+        return HTFunctionTypeId(
+            paramsTypes: paramTypes, returnType: returnType);
     }
-
-    final isNullable = _curCode.read() == 0 ? false : true;
-
-    return HTTypeId(id, isNullable: isNullable, typeArguments: args);
   }
 
   void _handleVarDecl() {

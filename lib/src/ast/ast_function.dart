@@ -18,7 +18,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   HTAstFunction(
       this.funcStmt, HTAstInterpreter interpreter, String moduleUniqueKey,
       {String? externalTypedef,
-      List<HTTypeId> typeParams = const [],
+      List<HTTypeId> typeArgs = const [],
       HTNamespace? context})
       : super(
           funcStmt.internalName,
@@ -27,7 +27,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
           funcType: funcStmt.funcType,
           externalFunctionType: ExternalFunctionType.none, // TODO: 这里需要修改
           externalTypedef: externalTypedef,
-          typeParams: typeParams,
+          typeArgs: typeArgs,
           // typeid:
           isConst: funcStmt.isConst,
           isVariadic: funcStmt.isVariadic,
@@ -49,12 +49,11 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     var result = StringBuffer();
     result.write('${HTLexicon.function}');
     result.write(' $id');
-    if (typeid.typeArguments.isNotEmpty) {
+    if (typeid.typeArgs.isNotEmpty) {
       result.write('<');
-      for (var i = 0; i < typeid.typeArguments.length; ++i) {
-        result.write(typeid.typeArguments[i]);
-        if ((typeid.typeArguments.length > 1) &&
-            (i != typeid.typeArguments.length - 1)) {
+      for (var i = 0; i < typeid.typeArgs.length; ++i) {
+        result.write(typeid.typeArgs[i]);
+        if ((typeid.typeArgs.length > 1) && (i != typeid.typeArgs.length - 1)) {
           result.write(', ');
         }
       }
@@ -71,7 +70,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       //if (param.initializer != null)
       if (funcStmt.params.length > 1) result.write(', ');
     }
-    result.write('): ' + funcStmt.returnType.toString());
+    result.write(') -> ' + funcStmt.returnType.toString());
     return result.toString();
   }
 
@@ -86,7 +85,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     if (positionalArgs.length < funcStmt.arity ||
         (positionalArgs.length > funcStmt.params.length &&
             !funcStmt.isVariadic)) {
-      throw HTErrorArity(id, positionalArgs.length, funcStmt.arity);
+      throw HTError.arity(id, positionalArgs.length, funcStmt.arity);
     }
 
     dynamic result;
@@ -126,7 +125,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
             final argEncapsulation = interpreter.encapsulate(arg);
             if (argEncapsulation.isNotA(argTypeid)) {
               final arg_type = interpreter.encapsulate(arg).typeid;
-              throw HTErrorArgType(
+              throw HTError.argType(
                   arg.toString(), arg_type.toString(), argTypeid.toString());
             }
             closure.define(HTVariable(param.id.lexeme, value: arg));
@@ -137,7 +136,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
               final argEncapsulation = interpreter.encapsulate(arg);
               if (argEncapsulation.isNotA(argTypeid)) {
                 final arg_type = interpreter.encapsulate(arg).typeid;
-                throw HTErrorArgType(
+                throw HTError.argType(
                     arg.toString(), arg_type.toString(), argTypeid.toString());
               }
               varargs.add(arg);
@@ -149,7 +148,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
         result = interpreter.executeBlock(funcStmt.definition!, closure);
       } else {
-        throw HTErrorMissingFuncDef(id);
+        throw HTError.missingFuncDef(id);
       }
     } catch (returnValue) {
       if ((returnValue is HTError) ||
@@ -160,7 +159,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
       final encapsulation = interpreter.encapsulate(result);
       if (encapsulation.isNotA(returnType)) {
-        throw HTErrorReturnType(
+        throw HTError.returnType(
             encapsulation.typeid.toString(), id, returnType.toString());
       }
 
@@ -179,7 +178,5 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
   @override
   HTAstFunction clone() => HTAstFunction(funcStmt, interpreter, moduleUniqueKey,
-      externalTypedef: externalTypedef,
-      typeParams: typeParams,
-      context: context);
+      externalTypedef: externalTypedef, typeArgs: typeArgs, context: context);
 }

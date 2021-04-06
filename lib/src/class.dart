@@ -23,7 +23,7 @@ class HTClassNamespace extends HTNamespace {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
       if (decl is HTFunction) {
@@ -44,7 +44,7 @@ class HTClassNamespace extends HTNamespace {
     } else if (declarations.containsKey(getter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = declarations[getter] as HTFunction;
       return decl.call();
@@ -54,7 +54,7 @@ class HTClassNamespace extends HTNamespace {
       return closure!.fetch(varName, from: from);
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   @override
@@ -63,19 +63,19 @@ class HTClassNamespace extends HTNamespace {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
       if (decl is HTVariable) {
         decl.assign(value);
         return;
       } else {
-        throw HTErrorImmutable(varName);
+        throw HTError.immutable(varName);
       }
     } else if (declarations.containsKey(setter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final setterFunc = declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [value]);
@@ -87,7 +87,7 @@ class HTClassNamespace extends HTNamespace {
       return;
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 }
 
@@ -154,7 +154,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[varName]!;
       if (decl is HTFunction) {
@@ -175,21 +175,21 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     } else if (namespace.declarations.containsKey(getter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final func = namespace.declarations[getter] as HTFunction;
       return func.call();
     } else if (namespace.declarations.containsKey(constructor)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       return namespace.declarations[constructor] as HTFunction;
     } else if (namespace.declarations.containsKey(externalName) &&
         _classType == ClassType.extern) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[externalName]!;
       final externClass = interpreter.fetchExternalClass(id);
@@ -202,7 +202,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       }
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   /// Assign a value to a static member of this [HTClass].
@@ -215,19 +215,19 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
     if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[varName]!;
       if (decl is HTVariable) {
         decl.assign(value);
         return;
       } else {
-        throw HTErrorImmutable(varName);
+        throw HTError.immutable(varName);
       }
     } else if (namespace.declarations.containsKey(setter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final setterFunc = namespace.declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [value]);
@@ -239,7 +239,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       return;
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   /// Call a static function of this [HTClass].
@@ -257,7 +257,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        throw HTErrorCallable(funcName);
+        throw HTError.callable(funcName);
       }
     } catch (error, stack) {
       if (errorHandled) rethrow;
@@ -270,12 +270,12 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   void defineInstanceMember(HTDeclaration decl,
       {bool override = false, bool error = true}) {
     if (decl is HTClass || decl is HTEnum) {
-      throw HTErrorClassOnInstance();
+      throw HTError.classOnInstance();
     }
     if ((!instanceMembers.containsKey(decl.id)) || override) {
       instanceMembers[decl.id] = decl;
     } else {
-      if (error) throw HTErrorDefinedRuntime(decl.id);
+      if (error) throw HTError.definedRuntime(decl.id);
     }
   }
 

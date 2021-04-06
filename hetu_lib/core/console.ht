@@ -6,7 +6,7 @@ external class Console {
 	// write a line ends with return
 	static fun writeln(line: str)
 	
-	static fun getln(info: str): str
+	static fun getln(info: str) -> str
 	
 	static fun eraseLine()
 	

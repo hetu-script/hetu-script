@@ -46,7 +46,7 @@ class HTInstanceNamespace extends HTNamespace {
       return closure!.fetch(varName, from: from);
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [assign],
@@ -70,7 +70,7 @@ class HTInstanceNamespace extends HTNamespace {
       return;
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   @override
@@ -201,7 +201,7 @@ class HTInstance with HTObject, InterpreterRef {
         if (space.declarations.containsKey(varName)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
-            throw HTErrorPrivateMember(varName);
+            throw HTError.privateMember(varName);
           }
 
           var decl = space.declarations[varName]!;
@@ -221,7 +221,7 @@ class HTInstance with HTObject, InterpreterRef {
         } else if (space.declarations.containsKey(getter)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
-            throw HTErrorPrivateMember(varName);
+            throw HTError.privateMember(varName);
           }
 
           var method = space.declarations[getter]! as HTFunction;
@@ -230,14 +230,14 @@ class HTInstance with HTObject, InterpreterRef {
       }
     } else {
       if (!_namespaces.containsKey(classId)) {
-        throw HTErrorNotSuper(classId, interpreter.curSymbol!);
+        throw HTError.notSuper(classId, interpreter.curSymbol!);
       }
 
       final space = _namespaces[classId]!;
       if (space.declarations.containsKey(varName)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
-          throw HTErrorPrivateMember(varName);
+          throw HTError.privateMember(varName);
         }
 
         var decl = space.declarations[varName]!;
@@ -257,7 +257,7 @@ class HTInstance with HTObject, InterpreterRef {
       } else if (space.declarations.containsKey(getter)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
-          throw HTErrorPrivateMember(varName);
+          throw HTError.privateMember(varName);
         }
 
         var method = space.declarations[getter]! as HTFunction;
@@ -276,7 +276,7 @@ class HTInstance with HTObject, InterpreterRef {
                 List<HTTypeId> typeArgs = const []}) =>
             '${HTLexicon.instanceOf}$typeid';
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 
@@ -294,7 +294,7 @@ class HTInstance with HTObject, InterpreterRef {
         if (space.declarations.containsKey(varName)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
-            throw HTErrorPrivateMember(varName);
+            throw HTError.privateMember(varName);
           }
 
           var decl = space.declarations[varName]!;
@@ -302,12 +302,12 @@ class HTInstance with HTObject, InterpreterRef {
             decl.assign(value);
             return;
           } else {
-            throw HTErrorImmutable(varName);
+            throw HTError.immutable(varName);
           }
         } else if (space.declarations.containsKey(setter)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
-            throw HTErrorPrivateMember(varName);
+            throw HTError.privateMember(varName);
           }
 
           var method = space.declarations[setter]! as HTFunction;
@@ -316,14 +316,14 @@ class HTInstance with HTObject, InterpreterRef {
       }
     } else {
       if (!_namespaces.containsKey(classId)) {
-        throw HTErrorNotSuper(classId, interpreter.curSymbol!);
+        throw HTError.notSuper(classId, interpreter.curSymbol!);
       }
 
       final space = _namespaces[classId]!;
       if (space.declarations.containsKey(varName)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
-          throw HTErrorPrivateMember(varName);
+          throw HTError.privateMember(varName);
         }
 
         var decl = space.declarations[varName]!;
@@ -331,12 +331,12 @@ class HTInstance with HTObject, InterpreterRef {
           decl.assign(value);
           return;
         } else {
-          throw HTErrorImmutable(varName);
+          throw HTError.immutable(varName);
         }
       } else if (space.declarations.containsKey(setter)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
-          throw HTErrorPrivateMember(varName);
+          throw HTError.privateMember(varName);
         }
 
         var method = space.declarations[setter]! as HTFunction;
@@ -344,7 +344,7 @@ class HTInstance with HTObject, InterpreterRef {
       }
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   /// Call a member function of this [HTInstance].

@@ -60,7 +60,7 @@ abstract class Parser {
       return advance(1);
     }
 
-    throw HTErrorExpected(tokenType, curTok.lexeme);
+    throw HTError.expected(tokenType, curTok.lexeme);
   }
 
   /// 前进指定距离，返回原先位置的Token

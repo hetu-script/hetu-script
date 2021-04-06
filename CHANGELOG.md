@@ -14,7 +14,6 @@
 - Feature: Full support on While, Do loops, classic for(init;condition;increment), for...in/of, when statement (works like switch).
 - Feature: Ternary operator: 'conditon ? true : false'.
 - Feature: Interpreter function for bind Dart Function Typedef.
-- Feature: Arrow function.
 
 ## 0.0.5
 

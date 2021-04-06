@@ -81,7 +81,7 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
 
         _isInitializing = false;
       } else {
-        throw HTErrorCircleInit(id);
+        throw HTError.circleInit(id);
       }
     } else {
       assign(null); // null 也要 assign 一下，因为需要类型检查
@@ -97,11 +97,11 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
         final encapsulation = interpreter.encapsulate(value);
         if (encapsulation.isNotA(_declType!)) {
           final valType = interpreter.encapsulate(value).typeid;
-          throw HTErrorTypeCheck(id, valType.toString(), _declType.toString());
+          throw HTError.typeCheck(id, valType.toString(), _declType.toString());
         }
       } else {
         if (!(_declType!.isNullable)) {
-          throw HTErrorNullable(id);
+          throw HTError.nullable(id);
         }
       }
     } else if (!isDynamic && value != null) {

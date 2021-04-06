@@ -8,42 +8,42 @@ external class Math {
 
   static fun max(a, b)
 
-  static fun random(): num
+  static fun random() -> num
 
-  static fun randomInt(max: num): num
+  static fun randomInt(max: num) -> num
 
-  static fun sqrt(x: num): num
+  static fun sqrt(x: num) -> num
 
-  static fun pow(x: num, exponent: num): num
+  static fun pow(x: num, exponent: num) -> num
 
-  static fun sin(x: num): num
+  static fun sin(x: num) -> num
 
-  static fun cos(x: num): num
+  static fun cos(x: num) -> num
 
-  static fun tan(x: num): num
+  static fun tan(x: num) -> num
 
-  static fun exp(x: num): num
+  static fun exp(x: num) -> num
 
-  static fun log(x: num): num
+  static fun log(x: num) -> num
 
-  static fun parseInt(source: str, {int: radix}): num
+  static fun parseInt(source: str, {int: radix}) -> num
 
-  static fun parseDouble(source: str): num
+  static fun parseDouble(source: str) -> num
 
-  static fun sum(list: List<num>): num
+  static fun sum(list: List<num>) -> num
 
-  static fun checkBit(index: num, check: num): bool
+  static fun checkBit(index: num, check: num) -> bool
 
-  static fun bitLS(x: num, distance: num): bool
+  static fun bitLS(x: num, distance: num) -> bool
 
-  static fun bitRS(x: num, distance: num): bool
+  static fun bitRS(x: num, distance: num) -> bool
 
-  static fun bitAnd(x: num, y: num): bool
+  static fun bitAnd(x: num, y: num) -> bool
 
-  static fun bitOr(x: num, y: num): bool
+  static fun bitOr(x: num, y: num) -> bool
 
-  static fun bitNot(x: num): bool
+  static fun bitNot(x: num) -> bool
 
-  static fun bitXor(x: num, y: num): bool
+  static fun bitXor(x: num, y: num) -> bool
 
 }

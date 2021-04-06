@@ -4,7 +4,7 @@ abstract class HTLexicon {
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
-      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
+      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
       // r'(\d+\.\d+)|' // 浮点数字面量 group(6)
       // r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
@@ -35,6 +35,7 @@ abstract class HTLexicon {
   static const integer = 'int';
   static const float = 'float';
   static const string = 'str';
+  static const function = 'fun';
   static const keys = 'keys';
   static const values = 'values';
   static const first = 'first';
@@ -70,7 +71,6 @@ abstract class HTLexicon {
 
   static const instanceOf = 'instance of ';
   static const object = 'Object';
-  static const function = 'function';
   static const list = 'List';
   static const map = 'Map';
   // static const procedure = 'procedure';
@@ -96,6 +96,8 @@ abstract class HTLexicon {
   static const type = 'Type';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
+  static const arrow = '->';
+  static const bigarrow = '=>';
 
   static const VOID = 'void';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
@@ -113,7 +115,7 @@ abstract class HTLexicon {
   static const CLASS = 'class';
   static const ENUM = 'enum';
   static const STRUCT = 'struct';
-  static const FUN = 'fun';
+  static const FUNCTION = 'fun';
   static const ASYNC = 'async';
   static const THIS = 'this';
   static const SUPER = 'super';
@@ -124,7 +126,6 @@ abstract class HTLexicon {
 
   static const MIXIN = 'mixin';
 
-  static const ARROW = '=>';
   static const AWAIT = 'await';
   static const ASSERT = 'assert';
   static const BREAK = 'break';
@@ -144,36 +145,33 @@ abstract class HTLexicon {
   /// 保留字，不能用于变量名字
   static const Set<String> reservedKeywords = {
     NULL,
+    IMPORT,
     EXTERNAL,
     STATIC,
     VAR,
     LET,
     FINAL,
     CONST,
-    // TYPEDEF,
     CLASS,
     ENUM,
     STRUCT,
-    // INTERFACE,
     CONSTRUCT,
     GET,
     SET,
-    FUN,
+    FUNCTION,
     ASYNC, // TODO: async单独可以用作函数声明关键字
     AWAIT,
     VOID,
-    //THIS,
-    //SUPER,
     EXTENDS,
     IMPLEMENTS,
     MIXIN,
-    IMPORT,
+    THIS,
+    SUPER,
     BREAK,
     CONTINUE,
     RETURN,
     FOR,
     IN,
-    // OF,
     IF,
     ELSE,
     WHILE,
@@ -182,6 +180,9 @@ abstract class HTLexicon {
     IS,
     AS,
   };
+
+  /// 可以用作变量名字的关键字
+  static const Set<String> otherKeywords = {};
 
   /// 函数调用表达式
   static const expression = 'expression';

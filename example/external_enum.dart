@@ -24,7 +24,7 @@ class CountryEnumBinding extends HTExternalClass {
       case 'Ukraine':
         return Country.Ukraine;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 
@@ -44,7 +44,7 @@ class CountryEnumBinding extends HTExternalClass {
                 List<HTTypeId> typeArgs = const []}) =>
             i.toString();
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }

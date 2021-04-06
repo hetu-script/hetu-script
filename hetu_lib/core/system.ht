@@ -1,6 +1,6 @@
 external class System {
 
-  static get now: num
+  static get now -> num
 
   // static fun tik()
 

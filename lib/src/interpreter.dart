@@ -92,7 +92,8 @@ abstract class Interpreter {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []});
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false});
 
   /// 解析文件
   Future<dynamic> import(String key,
@@ -173,7 +174,7 @@ abstract class Interpreter {
         // try {
         // final externClass = fetchExternalClass(typeid.id);
         return HTExternObject(object, typeid: HTTypeId(id));
-        // } on HTErrorUndefined {
+        // } on HTError.undefined {
         //   return HTExternObject(object);
         // }
       }
@@ -200,42 +201,42 @@ abstract class Interpreter {
   /// 在脚本中需要存在对应的extern class声明
   void bindExternalClass(HTExternalClass externalClass) {
     if (_externClasses.containsKey(externalClass.typeid)) {
-      throw HTErrorDefinedRuntime(externalClass.typeid.toString());
+      throw HTError.definedRuntime(externalClass.typeid.toString());
     }
     _externClasses[externalClass.typename] = externalClass;
   }
 
   HTExternalClass fetchExternalClass(String id) {
     if (!_externClasses.containsKey(id)) {
-      throw HTErrorUndefinedExtern(id);
+      throw HTError.undefinedExtern(id);
     }
     return _externClasses[id]!;
   }
 
   void bindExternalFunction(String id, Function function) {
     if (_externFuncs.containsKey(id)) {
-      throw HTErrorDefinedRuntime(id);
+      throw HTError.definedRuntime(id);
     }
     _externFuncs[id] = function;
   }
 
   Function fetchExternalFunction(String id) {
     if (!_externFuncs.containsKey(id)) {
-      throw HTErrorUndefinedExtern(id);
+      throw HTError.undefinedExtern(id);
     }
     return _externFuncs[id]!;
   }
 
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function) {
     if (_externFuncTypeUnwrappers.containsKey(id)) {
-      throw HTErrorDefinedRuntime(id);
+      throw HTError.definedRuntime(id);
     }
     _externFuncTypeUnwrappers[id] = function;
   }
 
   Function unwrapExternalFunctionType(String id, HTFunction function) {
     if (!_externFuncTypeUnwrappers.containsKey(id)) {
-      throw HTErrorUndefinedExtern(id);
+      throw HTError.undefinedExtern(id);
     }
     final unwrapFunc = _externFuncTypeUnwrappers[id]!;
     return unwrapFunc(function);

@@ -67,7 +67,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     if (!declarations.containsKey(decl.id) || override) {
       declarations[decl.id] = decl;
     } else {
-      throw HTErrorDefinedRuntime(decl.id);
+      throw HTError.definedRuntime(decl.id);
     }
   }
 
@@ -77,7 +77,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
       if (decl is HTFunction) {
@@ -99,7 +99,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
       return closure!.fetch(varName, from: from);
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   dynamic fetchAt(String varName, int distance,
@@ -114,14 +114,14 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
-        throw HTErrorPrivateMember(varName);
+        throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
       if (decl is HTVariable) {
         decl.assign(value);
         return;
       } else {
-        throw HTErrorImmutable(varName);
+        throw HTError.immutable(varName);
       }
     }
 
@@ -130,7 +130,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
       return;
     }
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   void assignAt(String varName, dynamic value, int distance,

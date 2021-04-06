@@ -5,5 +5,5 @@ abstract class HTDeclaration {
   late final String id;
   late final String? classId;
 
-  HTDeclaration clone() => throw HTErrorClone(id);
+  HTDeclaration clone() => throw HTError.clone(id);
 }

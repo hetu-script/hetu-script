@@ -45,7 +45,7 @@ class HTVariable with HTDeclaration {
   /// override 这个接口来实现自己的赋值过程
   void assign(dynamic value) {
     if (isImmutable && _isInitialized) {
-      throw HTErrorImmutable(id);
+      throw HTError.immutable(id);
     }
 
     this.value = value;

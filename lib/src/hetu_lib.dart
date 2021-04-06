@@ -5,94 +5,94 @@ final Map<String, String> coreModules = const {
       'core.ht': r'''class Object {}
 
 // return the declaration type of a symbol
-// external fun decltypeof(value): str
+// external fun decltypeof(value) -> str
 
 // print values of any type into lines
 external fun print(... args)''',
 'value.ht': r'''external class num {
 
-	static fun parse(value: str): num
+	static fun parse(value: str) -> num
 
-  fun toStringAsFixed([fractionDigits: num = 0]): num
+  fun toStringAsFixed([fractionDigits: num = 0]) -> num
 
-  fun abs(): num
+  fun abs() -> num
 
-  fun floor(): num
+  fun floor() -> num
 
-  fun ceil(): num
+  fun ceil() -> num
 
-  fun round(): num
+  fun round() -> num
 
-  fun truncate(): num
+  fun truncate() -> num
 
-  fun toInt(): num
+  fun toInt() -> num
 
-  fun toDouble(): num
+  fun toDouble() -> num
 }
 
 external class bool {
 
-	static fun parse(value: str): bool
+	static fun parse(value: str) -> bool
 }
 
 external class str {
 
-	static fun parse(value): str
+	static fun parse(value) -> str
 
-	get isEmpty: bool
+	get isEmpty -> bool
 
-	get isNotEmpty: bool
+	get isNotEmpty -> bool
 
-	fun substring(startIndex: num, [endIndex: num]): str
+	fun substring(startIndex: num, [endIndex: num]) -> str
 
-	fun startsWith(pattern: str, [index: num]): bool
+	fun startsWith(pattern: str, [index: num]) -> bool
 
-	fun endsWith(other: str): bool
+	fun endsWith(other: str) -> bool
 
-	fun indexOf(pattern: str, [start: num]): num
+	fun indexOf(pattern: str, [start: num]) -> num
 
-	fun lastIndexOf(pattern, [start: num]): num
+	fun lastIndexOf(pattern, [start: num]) -> num
 
-	fun compareTo(other): num
+	fun compareTo(other) -> num
 
-	fun trim(): str
+	fun trim() -> str
 
-	fun trimLeft(): str
+	fun trimLeft() -> str
 
-	fun trimRight(): str
+	fun trimRight() -> str
 
-	fun padLeft(width: num, [padding: str]): str
+	fun padLeft(width: num, [padding: str]) -> str
 
-	fun padRight(width: num, [padding: str]): str
+	fun padRight(width: num, [padding: str]) -> str
 
-	fun contains(other: str, [startIndex: num]): bool
+	fun contains(other: str, [startIndex: num]) -> bool
 
-	fun replaceFirst(from: str, to: str, [startIndex: num]): str
+	fun replaceFirst(from: str, to: str, [startIndex: num]) -> str
 
-	fun replaceAll(from: str, replace: str): str
+	fun replaceAll(from: str, replace: str) -> str
 
-	fun replaceRange(start: num, end: num, replacement: str): str
+	fun replaceRange(start: num, end: num, replacement: str) -> str
 
-	fun split(pattern: str): List
+	fun split(pattern: str) -> List
 
-	fun toLowerCase(): str
+	fun toLowerCase() -> str
 
-	fun toUpperCase(): str
+	fun toUpperCase() -> str
 }
 
 external class List {
 
-	get length: num
+	get length -> num
 
-	get isEmpty: bool
+	get isEmpty -> bool
 
-	get isNotEmpty: bool
+	get isNotEmpty -> bool
 
 	get first
 
 	get last
 
-	fun contains(value): bool
+	fun contains(value) -> bool
 
 	fun add(value)
 
@@ -102,28 +102,28 @@ external class List {
 
 	fun removeAt(index: num)
 
-	fun indexOf(value): num
+	fun indexOf(value) -> num
 
-	fun elementAt(index: num): any
+	fun elementAt(index: num) -> any
 
-	fun join(splitter: str): str
+	fun join(splitter: str) -> str
 }
 
 external class Map {
 
-	get length: num
+	get length -> num
 
-	get isEmpty: bool
+	get isEmpty -> bool
 
-	get isNotEmpty: bool
+	get isNotEmpty -> bool
 
-  get keys: List
+  get keys -> List
 
-  get values: List
+  get values -> List
 
-	fun containsKey(value): bool
+	fun containsKey(value) -> bool
 
-	fun containsValue(value): bool
+	fun containsValue(value) -> bool
 
 	fun addAll(other: Map)
 
@@ -131,11 +131,11 @@ external class Map {
 
 	fun remove(key)
 
-  fun putIfAbsent(key, value): any
+  fun putIfAbsent(key, value) -> any
 }''',
 'system.ht': r'''external class System {
 
-  static get now: num
+  static get now -> num
 
   // static fun tik()
 
@@ -149,7 +149,7 @@ external class Map {
 	// write a line ends with return
 	static fun writeln(line: str)
 	
-	static fun getln(info: str): str
+	static fun getln(info: str) -> str
 	
 	static fun eraseLine()
 	
@@ -167,45 +167,45 @@ external class Math {
 
   static fun max(a, b)
 
-  static fun random(): num
+  static fun random() -> num
 
-  static fun randomInt(max: num): num
+  static fun randomInt(max: num) -> num
 
-  static fun sqrt(x: num): num
+  static fun sqrt(x: num) -> num
 
-  static fun pow(x: num, exponent: num): num
+  static fun pow(x: num, exponent: num) -> num
 
-  static fun sin(x: num): num
+  static fun sin(x: num) -> num
 
-  static fun cos(x: num): num
+  static fun cos(x: num) -> num
 
-  static fun tan(x: num): num
+  static fun tan(x: num) -> num
 
-  static fun exp(x: num): num
+  static fun exp(x: num) -> num
 
-  static fun log(x: num): num
+  static fun log(x: num) -> num
 
-  static fun parseInt(source: str, {int: radix}): num
+  static fun parseInt(source: str, {int: radix}) -> num
 
-  static fun parseDouble(source: str): num
+  static fun parseDouble(source: str) -> num
 
-  static fun sum(list: List<num>): num
+  static fun sum(list: List<num>) -> num
 
-  static fun checkBit(index: num, check: num): bool
+  static fun checkBit(index: num, check: num) -> bool
 
-  static fun bitLS(x: num, distance: num): bool
+  static fun bitLS(x: num, distance: num) -> bool
 
-  static fun bitRS(x: num, distance: num): bool
+  static fun bitRS(x: num, distance: num) -> bool
 
-  static fun bitAnd(x: num, y: num): bool
+  static fun bitAnd(x: num, y: num) -> bool
 
-  static fun bitOr(x: num, y: num): bool
+  static fun bitOr(x: num, y: num) -> bool
 
-  static fun bitNot(x: num): bool
+  static fun bitNot(x: num) -> bool
 
-  static fun bitXor(x: num, y: num): bool
+  static fun bitXor(x: num, y: num) -> bool
 
 }
 ''',
-'help.ht': r'''external fun help(value): str''',
+'help.ht': r'''external fun help(value) -> str''',
 };

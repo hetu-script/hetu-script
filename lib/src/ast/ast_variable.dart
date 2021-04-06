@@ -54,7 +54,7 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
         assign(initVal);
         _isInitializing = false;
       } else {
-        throw HTErrorCircleInit(id);
+        throw HTError.circleInit(id);
       }
     } else {
       assign(null); // null 也要 assign 一下，因为需要类型检查
@@ -66,7 +66,7 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
       if (encapsulation.isNotA(_declType!)) {
-        throw HTErrorTypeCheck(
+        throw HTError.typeCheck(
             id, encapsulation.typeid.toString(), _declType.toString());
       }
     } else {

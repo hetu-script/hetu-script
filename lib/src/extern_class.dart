@@ -22,14 +22,14 @@ abstract class HTExternalClass with HTObject {
   /// object.key
   /// ```
   dynamic instanceMemberGet(dynamic object, String varName) =>
-      throw HTErrorUndefined(varName);
+      throw HTError.undefined(varName);
 
   /// Assign a value to a instance member of the Dart class by the [varName], in the form of
   /// ```
   /// object.key = value
   /// ```
   void instanceMemberSet(dynamic object, String varName, dynamic value) =>
-      throw HTErrorUndefined(varName);
+      throw HTError.undefined(varName);
 
   /// Fetch a instance member of the Dart class by the [varName], in the form of
   /// ```
@@ -58,7 +58,7 @@ class HTExternClassNumber extends HTExternalClass {
                 List<HTTypeId> typeArgs = const []}) =>
             num.tryParse(positionalArgs.first);
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -77,7 +77,7 @@ class HTExternClassBool extends HTExternalClass {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -96,7 +96,7 @@ class HTExternClassString extends HTExternalClass {
           return positionalArgs.first.toString();
         };
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -251,7 +251,7 @@ class HTExternClassMath extends HTExternalClass {
             (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
 
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -267,7 +267,7 @@ class HTExternClassSystem extends HTExternalClass with InterpreterRef {
       case 'System.now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -321,7 +321,7 @@ class HTExternClassConsole extends HTExternalClass {
                 List<HTTypeId> typeArgs = const []}) =>
             stdout.write('\x1B[2J\x1B[0;0H');
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }

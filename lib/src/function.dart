@@ -7,7 +7,7 @@ import 'class.dart';
 
 /// [HTFunction] is the base class of functions in Hetu.
 ///
-/// Extends this class to call functions in ast or bytecode modules.
+/// Ast and byte codes has their own implementation.
 abstract class HTFunction with HTDeclaration, HTObject {
   static final callStack = <String>[];
 
@@ -26,7 +26,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
 
   HTTypeId get returnType => typeid.returnType;
 
-  final List<HTTypeId> typeParams; // function<T1, T2>
+  final List<HTTypeId> typeArgs; // function<T1, T2>
 
   final bool isStatic;
 
@@ -46,7 +46,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
       this.funcType = FunctionType.normal,
       this.externalFunctionType = ExternalFunctionType.none,
       this.externalTypedef,
-      this.typeParams = const [],
+      this.typeArgs = const [],
       this.isStatic = false,
       this.isConst = false,
       this.isVariadic = false,
@@ -58,13 +58,29 @@ abstract class HTFunction with HTDeclaration, HTObject {
     this.context = context;
   }
 
+  /// Sub-classes of [HTFunction] must define [clone] method.
+  @override
+  HTFunction clone();
+
+  /// Sub-classes of [HTFunction] must define [toString] method.
+  @override
+  String toString();
+
+  /// Sub-classes of [HTFunction] must define [call] method.
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTTypeId> typeArgs = const [],
       bool errorHandled = true});
 
-  /// Sub-classes of [HTFunction] must has a definition of [clone].
   @override
-  HTFunction clone();
+  bool isA(HTTypeId otherTypeId) {
+    if (otherTypeId == HTTypeId.ANY) {
+      return true;
+    } else if (HTTypeId is! HTFunctionTypeId) {
+      return false;
+    } else {
+      return typeid == otherTypeId;
+    }
+  }
 }

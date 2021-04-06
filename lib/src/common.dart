@@ -22,6 +22,11 @@ enum FunctionReturnType {
   superClassConstructor, // super class constructor
 }
 
+enum TypeIdType {
+  normal, // HTTypeid
+  function, // HTFunctionTypeid
+}
+
 /// Class types
 enum ClassType {
   normal,
@@ -47,10 +52,6 @@ enum CodeType {
   /// Function & block can have declarations (variables, functions),
   /// expression & control statements.
   function,
-
-  /// Function & block can have declarations (variables, functions),
-  /// expression & control statements.
-  block,
 
   /// A script can have all statements.
   script,

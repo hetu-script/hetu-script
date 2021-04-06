@@ -24,7 +24,9 @@ void main() async {
   group('operators -', () {
     test('brackets', () async {
       final result = await hetu.eval(r'''
-      fun math1 => 3 - (2 * 3 - 5)
+      fun math1 { 
+        return 3 - (2 * 3 - 5)
+      }
     ''', invokeFunc: 'math1');
       expect(
         result,

@@ -3,10 +3,15 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   var hetu = Hetu();
   await hetu.init();
-  final result = await hetu.eval(r'''
-  var a  =4 
-  a
-      ''', codeType: CodeType.script);
+  await hetu.eval(r'''
 
-  print(result);
+  fun add(n: num) -> num {
+    return n + 1
+  }
+
+  const a: fun(num) -> num = add
+
+  print(a(3))
+
+      ''', codeType: CodeType.script);
 }

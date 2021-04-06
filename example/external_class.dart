@@ -35,7 +35,7 @@ extension PersonBinding on Person {
       case 'child':
         return child;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 
@@ -45,7 +45,7 @@ extension PersonBinding on Person {
         name = value;
         break;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -79,7 +79,7 @@ class PersonClassBinding extends HTExternalClass {
       case 'Person.level':
         return Person.level;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 
@@ -92,7 +92,7 @@ class PersonClassBinding extends HTExternalClass {
       case 'Person.level':
         return Person.level = value;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 

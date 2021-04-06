@@ -17,7 +17,7 @@ void main() async {
               return nested
             }
             fun closure {
-              var func = literalFunction( fun (n) => n * n )
+              var func = literalFunction( fun (n) { return n * n } )
               func()
               return func()
             }

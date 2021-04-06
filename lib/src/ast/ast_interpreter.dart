@@ -80,7 +80,8 @@ class HTAstInterpreter extends Interpreter
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) async {
+      List<HTTypeId> typeArgs = const [],
+      bool errorHandled = false}) async {
     _savedModuleName = _curModuleUniqueKey;
     _savedNamespace = _curNamespace;
 
@@ -114,7 +115,7 @@ class HTAstInterpreter extends Interpreter
       } else {
         return _curStmtValue;
       }
-    } catch (e, stack) {
+    } catch (error, stack) {
       var sb = StringBuffer();
       for (var funcName in HTFunction.callStack) {
         sb.writeln('  $funcName');
@@ -122,23 +123,23 @@ class HTAstInterpreter extends Interpreter
       sb.writeln('\n$stack');
       var callStack = sb.toString();
 
-      HTInterpreterError newErr;
-      if (e is HTParserError) {
-        newErr = HTInterpreterError(
-            '${e.message}\nCall stack:\n$callStack',
-            e.type,
-            parser.curModuleUniqueKey,
-            parser.curLine,
-            parser.curColumn);
-      } else if (e is HTResolverError) {
-        newErr = HTInterpreterError('${e.message}\nCall stack:\n$callStack',
-            e.type, resolver.curFileName, resolver.curLine, resolver.curColumn);
+      if (error is HTError) {
+        error.message = '${error.message}\nCall stack:\n$callStack';
+        if (error.type == HTErrorType.parser) {
+          error.moduleUniqueKey = parser.curModuleUniqueKey;
+          error.line = parser.curLine;
+          error.column = parser.curColumn;
+        } else {
+          error.moduleUniqueKey = _curModuleUniqueKey;
+          error.line = _curLine;
+          error.column = _curColumn;
+        }
+        errorHandler.handle(error);
       } else {
-        newErr = HTInterpreterError('$e\nCall stack:\n$callStack',
-            HTErrorType.other, _curModuleUniqueKey, _curLine, _curColumn);
+        final hetuError = HTError('$error\nCall stack:\n$callStack',
+            HTErrorType.interpreter, _curModuleUniqueKey, _curLine, _curColumn);
+        errorHandler.handle(hetuError);
       }
-
-      errorHandler.handle(newErr);
     }
   }
 
@@ -300,16 +301,16 @@ class HTAstInterpreter extends Interpreter
       if (value is num) {
         return -value;
       } else {
-        throw HTErrorUndefinedOperator(value.toString(), expr.op.lexeme);
+        throw HTError.undefinedOperator(value.toString(), expr.op.lexeme);
       }
     } else if (expr.op.lexeme == HTLexicon.logicalNot) {
       if (value is bool) {
         return !value;
       } else {
-        throw HTErrorUndefinedOperator(value.toString(), expr.op.lexeme);
+        throw HTError.undefinedOperator(value.toString(), expr.op.lexeme);
       }
     } else {
-      throw HTErrorUndefinedOperator(value.toString(), expr.op.lexeme);
+      throw HTError.undefinedOperator(value.toString(), expr.op.lexeme);
     }
   }
 
@@ -329,11 +330,11 @@ class HTAstInterpreter extends Interpreter
           if (right is bool) {
             return left && right;
           } else {
-            throw HTErrorCondition();
+            throw HTError.condition();
           }
         }
       } else {
-        throw HTErrorCondition();
+        throw HTError.condition();
       }
     } else {
       right = visitASTNode(expr.right);
@@ -344,10 +345,10 @@ class HTAstInterpreter extends Interpreter
           if (right is bool) {
             return left || right;
           } else {
-            throw HTErrorCondition();
+            throw HTError.condition();
           }
         } else {
-          throw HTErrorCondition();
+          throw HTError.condition();
         }
       } else if (expr.op.type == HTLexicon.equal) {
         return left == right;
@@ -365,7 +366,7 @@ class HTAstInterpreter extends Interpreter
           final encapsulation = encapsulate(left);
           return encapsulation.isA(right);
         } else {
-          throw HTErrorNotType(right.toString());
+          throw HTError.notType(right.toString());
         }
       } else if (expr.op.type == HTLexicon.multiply) {
         return left * right;
@@ -440,7 +441,7 @@ class HTAstInterpreter extends Interpreter
               }
             }
           } else {
-            throw HTErrorCallable(callee.toString());
+            throw HTError.callable(callee.toString());
           }
         }
       } else {
@@ -491,7 +492,7 @@ class HTAstInterpreter extends Interpreter
         // throw HTErrorExternFunc(callee.toString());
       }
     } else {
-      throw HTErrorCallable(callee.toString());
+      throw HTError.callable(callee.toString());
     }
   }
 
@@ -529,7 +530,7 @@ class HTAstInterpreter extends Interpreter
       return collection[key];
     }
 
-    throw HTErrorSubGet(collection.toString());
+    throw HTError.subGet(collection.toString());
   }
 
   @override
@@ -544,7 +545,7 @@ class HTAstInterpreter extends Interpreter
       return value;
     }
 
-    throw HTErrorSubGet(collection.toString());
+    throw HTError.subGet(collection.toString());
   }
 
   @override
@@ -654,7 +655,7 @@ class HTAstInterpreter extends Interpreter
       }
       return _curStmtValue;
     } else {
-      throw HTErrorCondition();
+      throw HTError.condition();
     }
   }
 
@@ -679,7 +680,7 @@ class HTAstInterpreter extends Interpreter
         }
       }
     } else {
-      throw HTErrorCondition();
+      throw HTError.condition();
     }
   }
 
@@ -763,7 +764,7 @@ class HTAstInterpreter extends Interpreter
 
     for (final variable in stmt.variables) {
       if (stmt.classType != ClassType.extern && variable.isExtern) {
-        throw HTErrorExternVar();
+        throw HTError.externVar();
       }
       // dynamic value;
       // if (variable.initializer != null) {

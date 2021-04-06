@@ -56,7 +56,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
       match(HTLexicon.angleRight);
     }
 
-    return HTTypeId(type_name, typeArguments: type_args);
+    return HTTypeId(type_name, typeArgs: type_args);
   }
 
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
@@ -80,7 +80,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         return SubSetExpr(expr.collection, expr.key, value);
       }
 
-      throw HTErrorIllegalLeftValueParser();
+      throw HTError.illegalLeftValueParser();
     }
 
     return expr;
@@ -183,7 +183,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
               var value = _parseExpr();
               namedArgs[arg.id.lexeme] = value;
             } else {
-              throw HTErrorUnexpected(
+              throw HTError.unexpected(
                 curTok.lexeme,
               );
             }
@@ -280,11 +280,11 @@ class HTAstParser extends Parser with AstInterpreterRef {
         match(HTLexicon.curlyRight);
         return LiteralDictExpr(_curModuleUniqueKey, line, column, map_expr);
 
-      case HTLexicon.FUN:
+      case HTLexicon.FUNCTION:
         return _parseFuncDeclaration(funcType: FunctionType.literal);
 
       default:
-        throw HTErrorUnexpected(curTok.lexeme);
+        throw HTError.unexpected(curTok.lexeme);
     }
   }
 
@@ -305,10 +305,10 @@ class HTAstParser extends Parser with AstInterpreterRef {
                 return _parseVarStmt(isExtern: true);
               case HTLexicon.CONST:
                 return _parseVarStmt(isExtern: true, isImmutable: true);
-              case HTLexicon.FUN:
+              case HTLexicon.FUNCTION:
                 return _parseFuncDeclaration(isExtern: true);
               default:
-                throw HTErrorUnexpected(curTok.type);
+                throw HTError.unexpected(curTok.type);
             }
           // case HTLexicon.ABSTRACT:
           //   match(HTLexicon.CLASS);
@@ -329,15 +329,14 @@ class HTAstParser extends Parser with AstInterpreterRef {
             return _parseVarStmt();
           case HTLexicon.CONST:
             return _parseVarStmt(isImmutable: true);
-          case HTLexicon.FUN:
+          case HTLexicon.FUNCTION:
             return _parseFuncDeclaration();
           default:
-            throw HTErrorUnexpected(curTok.lexeme);
+            throw HTError.unexpected(curTok.lexeme);
         }
       case CodeType.expression:
       case CodeType.function:
       case CodeType.script:
-      case CodeType.block:
         // 函数块中不能出现extern或者static关键字的声明
         // var变量声明
         if (expect([HTLexicon.VAR])) {
@@ -349,7 +348,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         else if (expect([HTLexicon.CONST])) {
           return _parseVarStmt(isImmutable: true);
         } // 函数声明
-        else if (expect([HTLexicon.FUN])) {
+        else if (expect([HTLexicon.FUNCTION])) {
           return _parseFuncDeclaration();
         } // 赋值语句
         else if (expect([HTLexicon.identifier, HTLexicon.assign])) {
@@ -393,7 +392,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
               isStatic: isStatic);
         } // const
         else if (expect([HTLexicon.CONST])) {
-          if (!isStatic) throw HTErrorConstMustBeStatic(curTok.lexeme);
+          if (!isStatic) throw HTError.constMustBeStatic(curTok.lexeme);
           return _parseVarStmt(
               isDynamic: true,
               isExtern: isExtern || _curClassType == ClassType.extern,
@@ -418,12 +417,12 @@ class HTAstParser extends Parser with AstInterpreterRef {
               isExtern: isExtern || _curClassType == ClassType.extern,
               isStatic: isStatic);
         } // 成员函数声明
-        else if (expect([HTLexicon.FUN])) {
+        else if (expect([HTLexicon.FUNCTION])) {
           return _parseFuncDeclaration(
               isExtern: isExtern || _curClassType == ClassType.extern,
               isStatic: isStatic);
         } else {
-          throw HTErrorUnexpected(curTok.lexeme);
+          throw HTError.unexpected(curTok.lexeme);
         }
     }
   }
@@ -500,16 +499,16 @@ class HTAstParser extends Parser with AstInterpreterRef {
     match(HTLexicon.roundRight);
     ASTNode? thenBranch;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      thenBranch = _parseBlockStmt(codeType: CodeType.block);
+      thenBranch = _parseBlockStmt(codeType: CodeType.function);
     } else {
-      thenBranch = _parseStmt(codeType: CodeType.block);
+      thenBranch = _parseStmt(codeType: CodeType.function);
     }
     ASTNode? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (expect([HTLexicon.curlyLeft], consume: true)) {
-        elseBranch = _parseBlockStmt(codeType: CodeType.block);
+        elseBranch = _parseBlockStmt(codeType: CodeType.function);
       } else {
-        elseBranch = _parseStmt(codeType: CodeType.block);
+        elseBranch = _parseStmt(codeType: CodeType.function);
       }
     }
     return IfStmt(condition, thenBranch, elseBranch);
@@ -523,9 +522,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
     match(HTLexicon.roundRight);
     ASTNode? loop;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop = _parseBlockStmt(codeType: CodeType.block);
+      loop = _parseBlockStmt(codeType: CodeType.function);
     } else {
-      loop = _parseStmt(codeType: CodeType.block);
+      loop = _parseStmt(codeType: CodeType.function);
     }
     return WhileStmt(condition, loop);
   }
@@ -591,9 +590,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
     // 循环体
     match(HTLexicon.roundRight);
     if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop_body.addAll(_parseBlock(codeType: CodeType.block));
+      loop_body.addAll(_parseBlock(codeType: CodeType.function));
     } else {
-      loop_body.add(_parseStmt(codeType: CodeType.block));
+      loop_body.add(_parseStmt(codeType: CodeType.function));
     }
     list_stmt.add(WhileStmt(condition,
         BlockStmt(loop_body, curModuleUniqueKey, curTok.line, curTok.column)));
@@ -746,7 +745,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
         // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
         if ((funcType == FunctionType.setter) && (arity != 1)) {
-          throw HTErrorSetter();
+          throw HTError.setter();
         }
       }
     }
@@ -760,7 +759,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     var body = <ASTNode>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       // 处理函数定义部分的语句块
-      body = _parseBlock(codeType: CodeType.block);
+      body = _parseBlock(codeType: CodeType.function);
     }
     expect([HTLexicon.semicolon], consume: true);
 
@@ -788,7 +787,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     final className = match(HTLexicon.identifier);
 
     if (_classStmts.containsKey(className.lexeme)) {
-      throw HTErrorDefinedParser(className.lexeme);
+      throw HTError.definedParser(className.lexeme);
     }
 
     final savedClassId = _curClassId;
@@ -817,9 +816,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
     HTTypeId? super_class_type_args;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
       if (curTok.lexeme == className.lexeme) {
-        throw HTErrorUnexpected(className.lexeme);
+        throw HTError.unexpected(className.lexeme);
       } else if (_classStmts[curTok.lexeme] == null) {
-        throw HTErrorNotClass(curTok.lexeme);
+        throw HTError.notClass(curTok.lexeme);
       }
 
       super_class = SymbolExpr(curTok);
@@ -872,7 +871,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     final class_name = match(HTLexicon.identifier);
 
     if (_classStmts.containsKey(class_name.lexeme)) {
-      throw HTErrorDefinedParser(class_name.lexeme);
+      throw HTError.definedParser(class_name.lexeme);
     }
 
     var enumerations = <String>[];

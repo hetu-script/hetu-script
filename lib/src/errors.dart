@@ -1,17 +1,16 @@
 /// Error type tells who throws this erro
 enum HTErrorType {
   parser,
-  resolver,
-  compiler,
   interpreter,
   import,
-  other,
 }
 
 /// Base error class, contains static error messages.
-abstract class HTError {
+class HTError {
+  static const _import = 'Module import handler error.';
   static const _expected = 'expected, ';
-  static const _constMustBeStatic = 'Class member constant must be static.';
+  static const _constMustBeStatic = 'Constant class member must be static.';
+  static const _constMustInit = 'Constant must be initialized.';
   static const _unexpected = 'Unexpected identifier';
   static const _outsideReturn = 'Return statement outside of a function.';
   static const _privateMember = 'Could not acess private member';
@@ -25,7 +24,7 @@ abstract class HTError {
   // static const errorRange = 'Index out of range, should be less than';
   static const _invalidLeftValue = 'Illegal left value.';
   static const _notCallable = 'is not callable';
-  static const _undefinedMember = 'isn\'t defined for the class';
+  static const _undefinedMember = 'isn\'t defined for the class.';
   static const _conditionMustBeBool =
       'Condition expression must evaluate to type [bool]';
   static const _missingFuncBody = 'Missing function definition body of';
@@ -68,336 +67,325 @@ abstract class HTError {
   static void warn(String message) => print('hetu warn:\n' + message);
 
   /// Error message.
-  final String message;
+  String? message;
 
   /// Error type.
-  final HTErrorType type;
+  HTErrorType? type;
 
-  @override
-  String toString() => message;
+  /// moduleUniqueKey when error occured.
+  String? moduleUniqueKey;
 
-  /// Default constructor of [HTError].
-  HTError(this.message, this.type);
-}
+  /// Line number when error occured.
+  int? line;
 
-/// [HTError] throws by parser (compiler).
-class HTParserError extends HTError {
-  HTParserError(String message) : super(message, HTErrorType.parser);
-}
-
-/// [HTError] throws by resolver.
-class HTResolverError extends HTError {
-  HTResolverError(String message) : super(message, HTErrorType.resolver);
-}
-
-/// [HTError] throws by module handler.
-class HTImportError extends HTError {
-  final String fileName;
-
-  HTImportError(String message, this.fileName)
-      : super(message, HTErrorType.import);
-
-  @override
-  String toString() => 'Hetu error:\n[$type}]\n[File: $fileName]\n$message';
-}
-
-/// [HTError] throws by interpreter.
-class HTInterpreterError extends HTError {
-  final int line;
-  final int column;
-  final String fileName;
-
-  HTInterpreterError(
-      String message, HTErrorType type, this.fileName, this.line, this.column)
-      : super(message, type);
+  /// Column number when error occured.
+  int? column;
 
   @override
   String toString() =>
-      'Hetu error:\n[$type}]\n[File: $fileName]\n[Line: $line, Column: $column]\n$message';
-}
+      'Hetu error:\n[$type}]\n[File: $moduleUniqueKey]\n[Line: $line, Column: $column]\n$message';
 
-/// Expected a token while met another.
-class HTErrorExpected extends HTParserError {
-  HTErrorExpected(String expected, String met)
-      : super(
-            '[${expected != '\n' ? expected : '\\n'}] ${HTError._expected} [${met != '\n' ? met : '\\n'}]');
-}
+  /// [HTError] can not be created by default constructor.
+  HTError(this.message, this.type,
+      [this.moduleUniqueKey, this.line, this.column]);
 
-/// Const variable in a class must be static
-class HTErrorConstMustBeStatic extends HTParserError {
-  HTErrorConstMustBeStatic(String id) : super(HTError._constMustBeStatic);
-}
+  /// Error: Module import error
+  HTError.import(String id) {
+    message = _import;
+    type = HTErrorType.import;
+  }
 
-/// A unexpected token appeared.
-class HTErrorUnexpected extends HTParserError {
-  HTErrorUnexpected(String id)
-      : super('${HTError._unexpected} [${id != '\n' ? id : '\\n'}]');
-}
+  /// Error: Expected a token while met another.
+  HTError.expected(String expected, String met) {
+    message =
+        '[${expected != '\n' ? expected : '\\n'}] $_expected [${met != '\n' ? met : '\\n'}]';
+    type = HTErrorType.parser;
+  }
 
-/// A same name declaration is already existed.
-class HTErrorDefinedParser extends HTParserError {
-  HTErrorDefinedParser(String id) : super('[$id] ${HTError._defined}');
-}
+  /// Error: Const variable in a class must be static.
+  HTError.constMustBeStatic(String id) {
+    message = _constMustBeStatic;
+    type = HTErrorType.parser;
+  }
 
-/// Illegal value appeared on left of assignment.
-class HTErrorIllegalLeftValueParser extends HTParserError {
-  HTErrorIllegalLeftValueParser() : super(HTError._invalidLeftValue);
-}
+  /// Error: Const variable must be initialized.
+  HTError.constMustInit(String id) {
+    message = _constMustInit;
+    type = HTErrorType.parser;
+  }
 
-/// Return appeared outside of a function.
-class HTErrorReturn extends HTResolverError {
-  HTErrorReturn() : super(HTError._outsideReturn);
-}
+  /// Error: A unexpected token appeared.
+  HTError.unexpected(String id) {
+    message = '${HTError._unexpected} [${id != '\n' ? id : '\\n'}]';
+    type = HTErrorType.parser;
+  }
 
-/// Access private member.
-class HTErrorPrivateMember extends HTError {
-  HTErrorPrivateMember(String id)
-      : super('${HTError._privateMember} [$id]', HTErrorType.interpreter);
-}
+  /// Error: A same name declaration is already existed.
+  HTError.definedParser(String id) {
+    message = '[$id] ${HTError._defined}';
+    type = HTErrorType.parser;
+  }
 
-/// Access private declaration.
-class HTErrorPrivateDecl extends HTError {
-  HTErrorPrivateDecl(String id)
-      : super('${HTError._privateDecl} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Illegal value appeared on left of assignment.
+  HTError.illegalLeftValueParser() {
+    message = HTError._invalidLeftValue;
+    type = HTErrorType.parser;
+  }
 
-/// Use a variable before its initialization.
-class HTErrorInitialized extends HTError {
-  HTErrorInitialized(String id)
-      : super('[$id] ${HTError._notInitialized}', HTErrorType.resolver);
-}
+  /// Error: Return appeared outside of a function.
+  HTError.outsideReturn() {
+    message = HTError._outsideReturn;
+    type = HTErrorType.parser;
+  }
 
-/// Use a variable without declaration.
-class HTErrorUndefined extends HTError {
-  HTErrorUndefined(String id)
-      : super('${HTError._undefined} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Illegal setter declaration.
+  HTError.setter() {
+    message = HTError._setterArity;
+    type = HTErrorType.parser;
+  }
 
-/// Use a external variable without its binding.
-class HTErrorUndefinedExtern extends HTError {
-  HTErrorUndefinedExtern(String id)
-      : super('${HTError._undefinedExtern} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Symbol is not a class name.
+  HTError.notClass(String id) {
+    message = '[$id] ${HTError._notClass}';
+    type = HTErrorType.parser;
+  }
 
-/// Try to operate unkown type object.
-class HTErrorUnknownType extends HTError {
-  HTErrorUnknownType(String id)
-      : super('${HTError._unknownType} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Symbol is not a class name.
+  HTError.notMember(String id) {
+    message = '[$id] ${HTError._notMember}';
+    type = HTErrorType.parser;
+  }
 
-/// Unknown operator.
-class HTErrorUndefinedOperator extends HTError {
-  HTErrorUndefinedOperator(String id1, String op)
-      : super('${HTError._undefinedOperator} [$id1] [$op]',
-            HTErrorType.interpreter);
-}
+  /// Error: Not a super class of this instance.
+  HTError.constructor() {
+    message = HTError._constructor;
+    type = HTErrorType.parser;
+  }
 
-/// Illegal setter declaration.
-class HTErrorSetter extends HTParserError {
-  HTErrorSetter() : super(HTError._setterArity);
-}
+  /// Error: Access private member.
+  HTError.privateMember(String id) {
+    message = '${HTError._privateMember} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Symbol is not a class name.
-class HTErrorNotClass extends HTParserError {
-  HTErrorNotClass(String id) : super('[$id] ${HTError._notClass}');
-}
+  /// Error: Access private declaration.
+  HTError.privateDecl(String id) {
+    message = '${HTError._privateDecl} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Symbol is not a class name.
-class HTErrorNotMember extends HTParserError {
-  HTErrorNotMember(String id) : super('[$id] ${HTError._notMember}');
-}
+  /// Error: Try to use a variable before its initialization.
+  HTError.initialized(String id) {
+    message = '[$id] ${HTError._notInitialized}';
+    type = HTErrorType.interpreter;
+  }
 
-/// Not a super class of this instance.
-class HTErrorConstructor extends HTParserError {
-  HTErrorConstructor() : super(HTError._constructor);
-}
+  /// Error: Try to use a undefined variable.
+  HTError.undefined(String id) {
+    message = '${HTError._undefined} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-/// A same name declaration is already existed.
-class HTErrorDefinedRuntime extends HTError {
-  HTErrorDefinedRuntime(String id)
-      : super('[$id] ${HTError._defined}', HTErrorType.interpreter);
-}
+  /// Error: Try to use a external variable without its binding.
+  HTError.undefinedExtern(String id) {
+    message = '${HTError._undefinedExtern} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-// class HTErrorRange extends HTError {
-//   HTErrorRange(int length) : super('${HTError.errorRange} [$length]');
+  /// Error: Try to operate unkown type object.
+  HTError.unknownType(String id) {
+    message = '${HTError._unknownType} [$id]';
+    type = HTErrorType.interpreter;
+  }
+
+  /// Error: Unknown operator.
+  HTError.undefinedOperator(String id1, String op) {
+    message = '${HTError._undefinedOperator} [$id1] [$op]';
+    HTErrorType.interpreter;
+  }
+
+  /// Error: A same name declaration is already existed.
+  HTError.definedRuntime(String id) {
+    message = '[$id] ${HTError._defined}';
+    type = HTErrorType.interpreter;
+  }
+
+// HTError.range(int length) { message = '${HTError.errorRange} [$length]';type = HTErrorType.interpreter;
 // }
 
-/// Object is not callable.
-class HTErrorCallable extends HTError {
-  HTErrorCallable(String id)
-      : super('[$id] ${HTError._notCallable}', HTErrorType.interpreter);
-}
+  /// Error: Object is not callable.
+  HTError.callable(String id) {
+    message = '[$id] ${HTError._notCallable}';
+    type = HTErrorType.interpreter;
+  }
 
-/// Undefined member of a class/enum.
-class HTErrorUndefinedMember extends HTError {
-  HTErrorUndefinedMember(String id, String type)
-      : super('[$id] ${HTError._undefinedMember} [$type]',
-            HTErrorType.interpreter);
-}
+  /// Error: Undefined member of a class/enum.
+  HTError.undefinedMember(String id) {
+    message = '[$id] ${HTError._undefinedMember}';
+    type = HTErrorType.interpreter;
+  }
 
-/// if/while condition expression must be boolean type.
-class HTErrorCondition extends HTError {
-  HTErrorCondition()
-      : super(HTError._conditionMustBeBool, HTErrorType.interpreter);
-}
+  /// Error: if/while condition expression must be boolean type.
+  HTError.condition() {
+    message = HTError._conditionMustBeBool;
+    type = HTErrorType.interpreter;
+  }
 
-/// Try to use sub get operator on a non-list object.
-class HTErrorSubGet extends HTError {
-  HTErrorSubGet(String id)
-      : super('[$id] ${HTError._notList}', HTErrorType.interpreter);
-}
+  /// Error: Try to use sub get operator on a non-list object.
+  HTError.subGet(String id) {
+    message = '[$id] ${HTError._notList}';
+    type = HTErrorType.interpreter;
+  }
 
-/// extends Type must be a class.
-class HTErrorExtends extends HTError {
-  HTErrorExtends(String id)
-      : super('[$id] ${HTError._notClass}', HTErrorType.interpreter);
-}
+  /// Error: extends Type must be a class.
+  HTError.extendsNotAClass(String id) {
+    message = '[$id] ${HTError._notClass}';
+    type = HTErrorType.interpreter;
+  }
 
-/// Calling method on null object.
-class HTErrorNullObject extends HTError {
-  HTErrorNullObject(String id)
-      : super('${HTError._errorNullObject} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Calling method on null object.
+  HTError.nullObject(String id) {
+    message = '${HTError._errorNullObject} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Type check failed.
-class HTErrorTypeCheck extends HTError {
-  HTErrorTypeCheck(String id, String valueType, String declValue)
-      : super(
-            '${HTError._typeCheck1} [$id] ${HTError._ofType} [$declValue] ${HTError._typeCheck2} [$valueType]',
-            HTErrorType.interpreter);
-}
+  /// Error: Type check failed.
+  HTError.typeCheck(String id, String valueType, String declValue) {
+    message =
+        '${HTError._typeCheck1} [$id] ${HTError._ofType} [$declValue] ${HTError._typeCheck2} [$valueType]';
+    HTErrorType.interpreter;
+  }
 
-/// Type is not nullable.
-class HTErrorNullable extends HTError {
-  HTErrorNullable(String id)
-      : super('[$id] ${HTError._nullable}', HTErrorType.interpreter);
-}
+  /// Error: Type is assign a unnullable varialbe with null.
+  HTError.nullable(String id) {
+    message = '[$id] ${HTError._nullable}';
+    type = HTErrorType.interpreter;
+  }
 
-/// Try to assign a immutable variable.
-class HTErrorImmutable extends HTError {
-  HTErrorImmutable(String id)
-      : super('[$id] ${HTError._immutable}', HTErrorType.interpreter);
-}
+  /// Error: Try to assign a immutable variable.
+  HTError.immutable(String id) {
+    message = '[$id] ${HTError._immutable}';
+    type = HTErrorType.interpreter;
+  }
 
-/// Symbol is not a type.
-class HTErrorNotType extends HTError {
-  HTErrorNotType(String id)
-      : super('[$id] ${HTError._notType}', HTErrorType.interpreter);
-}
+  /// Error: Symbol is not a type.
+  HTError.notType(String id) {
+    message = '[$id] ${HTError._notType}';
+    type = HTErrorType.interpreter;
+  }
 
-/// Arguments type check failed.
-class HTErrorArgType extends HTError {
-  HTErrorArgType(String id, String assignValue, String declValue)
-      : super(
-            '${HTError._argType1} [$assignValue] ${HTError._ofType} [$assignValue] ${HTError._argType2} [$declValue]',
-            HTErrorType.interpreter);
-}
+  /// Error: Arguments type check failed.
+  HTError.argType(String id, String assignValue, String declValue) {
+    message =
+        '${HTError._argType1} [$assignValue] ${HTError._ofType} [$assignValue] ${HTError._argType2} [$declValue]';
+    HTErrorType.interpreter;
+  }
 
-/// Return value type check failed.
-class HTErrorReturnType extends HTError {
-  HTErrorReturnType(
+  /// Error: Return value type check failed.
+  HTError.returnType(
     String returnedType,
     String funcName,
     String declReturnType,
-  ) : super(
-            '[$returnedType] ${HTError._returnType1}'
-            ' [$funcName] ${HTError._returnType2} [$declReturnType]',
-            HTErrorType.interpreter);
-}
+  ) {
+    message = '[$returnedType] ${HTError._returnType1}'
+        ' [$funcName] ${HTError._returnType2} [$declReturnType]';
+    HTErrorType.interpreter;
+  }
 
-/// Try to call a function without definition.
-class HTErrorMissingFuncDef extends HTError {
-  HTErrorMissingFuncDef(String funcName)
-      : super(
-            '${HTError._missingFuncBody} [$funcName]', HTErrorType.interpreter);
-}
+  /// Error: Try to call a function without definition.
+  HTError.missingFuncDef(String funcName) {
+    message = '${HTError._missingFuncBody} [$funcName]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Function arity check failed.
-class HTErrorArity extends HTError {
-  HTErrorArity(String id, int argsCount, int paramsCount)
-      : super(
-            '${HTError._arity1} [$argsCount] ${HTError._arity2} [$id] [$paramsCount]',
-            HTErrorType.interpreter);
-}
+  /// Error: Function arity check failed.
+  HTError.arity(String id, int argsCount, int paramsCount) {
+    message =
+        '${HTError._arity1} [$argsCount] ${HTError._arity2} [$id] [$paramsCount]';
+    HTErrorType.interpreter;
+  }
 
-/// Missing binding extension on dart object.
-class HTErrorBinding extends HTError {
-  HTErrorBinding(String id)
-      : super('${HTError._binding} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Missing binding extension on dart object.
+  HTError.binding(String id) {
+    message = '${HTError._binding} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Can not declare a external variable in global namespace.
-class HTErrorExternVar extends HTError {
-  HTErrorExternVar() : super(HTError._externalVar, HTErrorType.parser);
-}
+  /// Error: Can not declare a external variable in global namespace.
+  HTError.externVar() {
+    message = HTError._externalVar;
+    type = HTErrorType.parser;
+  }
 
-/// Bytecode signature check failed.
-class HTErrorSignature extends HTError {
-  HTErrorSignature() : super(HTError._bytesSig, HTErrorType.interpreter);
-}
+  /// Error: Bytecode signature check failed.
+  HTError.signature() {
+    message = HTError._bytesSig;
+    type = HTErrorType.interpreter;
+  }
 
-/// Variable's initialization relies on itself.
-class HTErrorCircleInit extends HTError {
-  HTErrorCircleInit(String id)
-      : super('${HTError._circleInit} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Variable's initialization relies on itself.
+  HTError.circleInit(String id) {
+    message = '${HTError._circleInit} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Missing variable initializer.
-class HTErrorInitialize extends HTError {
-  HTErrorInitialize() : super(HTError._initialize, HTErrorType.interpreter);
-}
+  /// Error: Missing variable initializer.
+  HTError.initialize() {
+    message = HTError._initialize;
+    type = HTErrorType.interpreter;
+  }
 
-/// Named arguments does not exist.
-class HTErrorNamedArg extends HTError {
-  HTErrorNamedArg(String id)
-      : super('${HTError._namedArg} [$id]', HTErrorType.interpreter);
-}
+  /// Error: Named arguments does not exist.
+  HTError.namedArg(String id) {
+    message = '${HTError._namedArg} [$id]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Object is not iterable.
-class HTErrorIterable extends HTError {
-  HTErrorIterable(String id)
-      : super('[$id] ${HTError._iterable}', HTErrorType.interpreter);
-}
+  /// Error: Object is not iterable.
+  HTError.iterable(String id) {
+    message = '[$id] ${HTError._iterable}';
+    type = HTErrorType.interpreter;
+  }
 
-/// Object is not iterable.
-class HTErrorUnkownValueType extends HTError {
-  HTErrorUnkownValueType(int type)
-      : super('${HTError._unkownValueType} [$type]', HTErrorType.interpreter);
-}
+  /// Error: Object is not iterable.
+  HTError.unkownValueType(int valType) {
+    message = '${HTError._unkownValueType} [$valType]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Unkown opcode value type.
-class HTErrorClassOnInstance extends HTError {
-  HTErrorClassOnInstance()
-      : super(HTError._classOnInstance, HTErrorType.interpreter);
-}
+  /// Error: Unkown opcode value type.
+  HTError.classOnInstance() {
+    message = HTError._classOnInstance;
+    type = HTErrorType.interpreter;
+  }
 
-/// Illegal empty string.
-class HTErrorEmpty extends HTError {
-  HTErrorEmpty([String fileName = ''])
-      : super('${HTError._emptyString} [$fileName]', HTErrorType.interpreter);
-}
+  /// Error: Illegal empty string.
+  HTError.empty([String fileName = '']) {
+    message = '${HTError._emptyString} [$fileName]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Illegal type cast.
-class HTErrorTypeCast extends HTError {
-  HTErrorTypeCast(String object, String typeid)
-      : super('[$object] ${HTError._typecast} [$typeid]',
-            HTErrorType.interpreter);
-}
+  /// Error: Illegal type cast.
+  HTError.typeCast(String object, String typeid) {
+    message = '[$object] ${HTError._typecast} [$typeid]';
+    HTErrorType.interpreter;
+  }
 
-/// Illegal castee.
-class HTErrorCastee extends HTError {
-  HTErrorCastee(String varName)
-      : super('${HTError._castee} [$varName]', HTErrorType.interpreter);
-}
+  /// Error: Illegal castee.
+  HTError.castee(String varName) {
+    message = '${HTError._castee} [$varName]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Illegal clone.
-class HTErrorClone extends HTError {
-  HTErrorClone(String varName)
-      : super('${HTError._clone} [$varName]', HTErrorType.interpreter);
-}
+  /// Error: Illegal clone.
+  HTError.clone(String varName) {
+    message = '${HTError._clone} [$varName]';
+    type = HTErrorType.interpreter;
+  }
 
-/// Not a super class of this instance.
-class HTErrorNotSuper extends HTError {
-  HTErrorNotSuper(String classId, String id)
-      : super('[$classId] ${HTError._notSuper} [$id]', HTErrorType.interpreter);
+  /// Error: Not a super class of this instance.
+  HTError.notSuper(String classId, String id) {
+    message = '[$classId] ${HTError._notSuper} [$id]';
+    type = HTErrorType.interpreter;
+  }
 }

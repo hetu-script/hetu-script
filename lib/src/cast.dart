@@ -33,7 +33,7 @@ class HTCast with HTObject, InterpreterRef {
     }
 
     if (object.isNotA(typeid)) {
-      throw HTErrorTypeCast(object.toString(), typeid.toString());
+      throw HTError.typeCast(object.toString(), typeid.toString());
     }
 
     if (object is HTInstance) {
@@ -41,7 +41,7 @@ class HTCast with HTObject, InterpreterRef {
     } else if (object is HTCast) {
       this.object = object.object;
     } else {
-      throw HTErrorCastee(interpreter.curSymbol!);
+      throw HTError.castee(interpreter.curSymbol!);
     }
   }
 

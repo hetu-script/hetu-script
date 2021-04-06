@@ -41,16 +41,16 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
 
     // TODO: elementAt() 方法
 
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 
   @override
   void memberSet(String varName, dynamic value,
       {String from = HTLexicon.global}) {
     if (enums.containsKey(varName)) {
-      throw HTErrorImmutable(varName);
+      throw HTError.immutable(varName);
     }
-    throw HTErrorUndefined(varName);
+    throw HTError.undefined(varName);
   }
 }
 
@@ -87,7 +87,7 @@ class HTEnumItem with HTObject {
                 List<HTTypeId> typeArgs = const []}) =>
             toString();
       default:
-        throw HTErrorUndefinedMember(varName, typeid.toString());
+        throw HTError.undefinedMember(varName);
     }
   }
 }

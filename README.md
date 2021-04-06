@@ -43,7 +43,9 @@ class Person {
   construct (name: str) {
     this.name = name
   }
-  fun greeting => print('Hi! I\'m', name)
+  fun greeting {
+    print('Hi! I\'m', name)
+  }
 }
 
 // This is where the script starts executing.
@@ -117,7 +119,7 @@ If you want to write multiple line in REPL mode, use '\\' to end a line.
 >>>fun hello {\
 return 6 * 7}
 >>>hello
-function hello(): any // repl print
+function hello() -> any // repl print
 >>>hello()
 42 // repl print
 >>>

@@ -16,7 +16,7 @@ extension GlobalStateBinding on GlobalState {
   dynamic htFetch(String varName) {
     switch (varName) {
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -32,7 +32,7 @@ class GlobalStateClassBinding extends HTExternalClass {
       case 'GlobalState.state':
         return GlobalState.state;
       default:
-        throw HTErrorUndefined(varName);
+        throw HTError.undefined(varName);
     }
   }
 

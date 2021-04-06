@@ -139,7 +139,8 @@ class HTAstResolver implements ASTNodeVisitor {
       // 注册变量名
       for (final varStmt in curStmt.variables) {
         if (!varStmt.isStatic) {
-          if (curStmt != stmt && varStmt.id.lexeme.startsWith(HTLexicon.underscore)) {
+          if (curStmt != stmt &&
+              varStmt.id.lexeme.startsWith(HTLexicon.underscore)) {
             continue;
           }
           visitVarDeclStmt(varStmt);
@@ -148,8 +149,11 @@ class HTAstResolver implements ASTNodeVisitor {
 
       // 注册函数名
       for (final funcStmt in curStmt.methods) {
-        if (!funcStmt.isStatic && (funcStmt.funcType != FunctionType.constructor)) {
-          if (curStmt != stmt && funcStmt.id != null && funcStmt.id!.lexeme.startsWith(HTLexicon.underscore)) {
+        if (!funcStmt.isStatic &&
+            (funcStmt.funcType != FunctionType.constructor)) {
+          if (curStmt != stmt &&
+              funcStmt.id != null &&
+              funcStmt.id!.lexeme.startsWith(HTLexicon.underscore)) {
             continue;
           }
           _declare(funcStmt.id!.lexeme, define: true);
@@ -246,7 +250,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curLine = expr.line;
     _curColumn = expr.column;
     if (_blocks.isNotEmpty && _blocks.last[expr.id.lexeme] == false) {
-      throw HTErrorInitialized(expr.id.lexeme);
+      throw HTError.initialized(expr.id.lexeme);
     }
 
     _lookUpVar(expr, expr.id.lexeme);
@@ -295,7 +299,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curLine = expr.line;
     _curColumn = expr.column;
     if (_curClassType == null) {
-      throw HTErrorUnexpected(expr.keyword.lexeme);
+      throw HTError.unexpected(expr.keyword.lexeme);
     }
 
     _lookUpVar(expr, expr.keyword.lexeme);
@@ -360,7 +364,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curLine = stmt.line;
     _curColumn = stmt.column;
     if ((_curFuncType == null) || (_curFuncType == FunctionType.constructor)) {
-      throw HTErrorReturn();
+      throw HTError.outsideReturn();
     }
 
     if (stmt.value != null) {

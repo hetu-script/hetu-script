@@ -55,7 +55,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     this.parameterDeclarations = const <String, HTBytesParameter>{},
     HTTypeId returnType = HTTypeId.ANY,
     this.definitionIp,
-    List<HTTypeId> typeParams = const [],
+    List<HTTypeId> typeArgs = const [],
     bool isStatic = false,
     bool isConst = false,
     bool isVariadic = false,
@@ -68,7 +68,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
             funcType: funcType,
             externalFunctionType: externalFunctionType,
             externalTypedef: externalTypedef,
-            typeParams: typeParams,
+            typeArgs: typeArgs,
             isStatic: isStatic,
             isConst: isConst,
             isVariadic: isVariadic,
@@ -90,12 +90,11 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     var result = StringBuffer();
     result.write(HTLexicon.function);
     result.write(' $id');
-    if (typeid.typeArguments.isNotEmpty) {
+    if (typeid.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < typeid.typeArguments.length; ++i) {
-        result.write(typeid.typeArguments[i]);
-        if ((typeid.typeArguments.length > 1) &&
-            (i != typeid.typeArguments.length - 1)) {
+      for (var i = 0; i < typeid.typeArgs.length; ++i) {
+        result.write(typeid.typeArgs[i]);
+        if ((typeid.typeArgs.length > 1) && (i != typeid.typeArgs.length - 1)) {
           result.write(', ');
         }
       }
@@ -119,7 +118,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         result.write(HTLexicon.curlyLeft);
       }
       result.write(
-          param.id + '${HTLexicon.colon} ' + (param.declType.toString()));
+          param.id + '${HTLexicon.arrow} ' + (param.declType.toString()));
       if (i < parameterDeclarations.length - 1) {
         result.write('${HTLexicon.comma} ');
       }
@@ -163,12 +162,12 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     try {
       if (positionalArgs.length < minArity ||
           (positionalArgs.length > maxArity && !isVariadic)) {
-        throw HTErrorArity(id, positionalArgs.length, minArity);
+        throw HTError.arity(id, positionalArgs.length, minArity);
       }
 
       for (final name in namedArgs.keys) {
         if (!parameterDeclarations.containsKey(name)) {
-          throw HTErrorNamedArg(name);
+          throw HTError.namedArg(name);
         }
       }
 
@@ -213,7 +212,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
           if (superCtorCalled) {
             return;
           }
-          throw HTErrorMissingFuncDef(id);
+          throw HTError.missingFuncDef(id);
         }
         // 函数每次在调用时，临时生成一个新的作用域
         final closure = HTNamespace(interpreter, id: id, closure: context);
@@ -348,7 +347,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       if (returnType != HTTypeId.ANY) {
         final encapsulation = interpreter.encapsulate(result);
         if (encapsulation.isNotA(returnType)) {
-          throw HTErrorReturnType(
+          throw HTError.returnType(
               encapsulation.typeid.toString(), id, returnType.toString());
         }
       }
@@ -373,7 +372,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         parameterDeclarations: parameterDeclarations,
         returnType: returnType,
         definitionIp: definitionIp,
-        typeParams: typeParams,
+        typeArgs: typeArgs,
         isStatic: isStatic,
         isConst: isConst,
         isVariadic: isVariadic,
