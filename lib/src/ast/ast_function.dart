@@ -41,7 +41,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       paramsTypes.add(param.declType ?? HTType.ANY);
     }
     type = HTFunctionType(
-        returnType: funcStmt.returnType, paramsTypes: paramsTypes);
+        returnType: funcStmt.returnType, positionalParameterTypes: paramsTypes);
   }
 
   @override

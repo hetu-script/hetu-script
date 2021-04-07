@@ -78,7 +78,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
 
     type = HTFunctionType(
         returnType: returnType,
-        paramsTypes: parameterDeclarations.values
+        parameterTypes: parameterDeclarations.values
             .map((paramDecl) => paramDecl.declType ?? HTType.ANY)
             .toList());
   }

@@ -177,15 +177,19 @@ class HTInstanceType extends HTType {
   }
 }
 
+class HTParameterType extends HTType {
+  HTParameterType(String id, HTType type) : super(type.typeName);
+}
+
 /// [HTFunctionType] is equivalent to Dart's function typedef,
 class HTFunctionType extends HTType {
-  final List<String> typeParams;
-  final List<HTType> paramsTypes; // function(T1 arg1, T2 arg2)
+  final List<String> typeParameters;
+  final Map<String, HTParameterType> parameterTypes;
   final HTType returnType;
 
   const HTFunctionType(
-      {this.typeParams = const [],
-      this.paramsTypes = const [],
+      {this.typeParameters = const [],
+      this.parameterTypes = const {},
       this.returnType = HTType.ANY})
       : super(HTLexicon.function);
 
@@ -193,11 +197,11 @@ class HTFunctionType extends HTType {
   String toString() {
     var result = StringBuffer();
     result.write(HTLexicon.function);
-    if (typeParams.isNotEmpty) {
+    if (typeParameters.isNotEmpty) {
       result.write('<');
-      for (var i = 0; i < typeParams.length; ++i) {
-        result.write(typeParams[i]);
-        if ((typeParams.length > 1) && (i != typeParams.length - 1)) {
+      for (var i = 0; i < typeParameters.length; ++i) {
+        result.write(typeParameters[i]);
+        if ((typeParameters.length > 1) && (i != typeParameters.length - 1)) {
           result.write(', ');
         }
       }
@@ -206,10 +210,10 @@ class HTFunctionType extends HTType {
 
     result.write('(');
 
-    for (final paramType in paramsTypes) {
+    for (final paramType in positionalParameterTypes) {
       result.write(paramType.toString());
       //if (param.initializer != null)
-      if (paramsTypes.length > 1) result.write(', ');
+      if (positionalParameterTypes.length > 1) result.write(', ');
     }
     result.write(') -> ' + returnType.toString());
     return result.toString();
@@ -223,8 +227,8 @@ class HTFunctionType extends HTType {
     for (final typeArg in typeArgs) {
       hashList.add(typeArg.hashCode);
     }
-    hashList.add(typeParams.length.hashCode);
-    for (final paramType in paramsTypes) {
+    hashList.add(typeParameters.length.hashCode);
+    for (final paramType in positionalParameterTypes) {
       hashList.add(paramType.hashCode);
     }
     hashList.add(returnType.hashCode);
@@ -237,16 +241,18 @@ class HTFunctionType extends HTType {
     if (other == HTType.ANY) {
       return true;
     } else if (other is HTFunctionType) {
-      if (typeParams.length != other.typeParams.length) {
+      if (typeParameters.length != other.typeParameters.length) {
         return false;
-      } else if (paramsTypes.length != other.paramsTypes.length) {
+      } else if (positionalParameterTypes.length !=
+          other.positionalParameterTypes.length) {
         return false;
       } else {
         if (returnType.isNotA(other.returnType)) {
           return false;
         }
-        for (var i = 0; i < paramsTypes.length; ++i) {
-          if (other.paramsTypes[i].isNotA(paramsTypes[i])) {
+        for (var i = 0; i < positionalParameterTypes.length; ++i) {
+          if (other.positionalParameterTypes[i]
+              .isNotA(positionalParameterTypes[i])) {
             return false;
           }
         }

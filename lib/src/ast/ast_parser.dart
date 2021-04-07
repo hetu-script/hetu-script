@@ -704,17 +704,17 @@ class HTAstParser extends Parser with AstInterpreterRef {
       bool isStatic = false}) {
     final keyword = advance(1);
     Token? func_name;
-    var typeParams = <String>[];
+    var typeParameters = <String>[];
     if (curTok.type == HTLexicon.identifier) {
       func_name = advance(1);
 
       if (expect([HTLexicon.angleLeft], consume: true)) {
         while ((curTok.type != HTLexicon.angleRight) &&
             (curTok.type != HTLexicon.endOfFile)) {
-          if (typeParams.isNotEmpty) {
+          if (typeParameters.isNotEmpty) {
             match(HTLexicon.comma);
           }
-          typeParams.add(advance(1).lexeme);
+          typeParameters.add(advance(1).lexeme);
         }
         match(HTLexicon.angleRight);
       }
@@ -766,7 +766,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     var stmt = FuncDeclStmt(
         return_type, params, curModuleUniqueKey, keyword.line, keyword.column,
         id: func_name,
-        typeParams: typeParams,
+        typeParameters: typeParameters,
         arity: arity,
         definition: body,
         classId: _curClassId,
@@ -798,14 +798,14 @@ class HTAstParser extends Parser with AstInterpreterRef {
     // _curClassType = HTType(className.lexeme);
 
     // generic type参数
-    var typeParams = <String>[];
+    var typeParameters = <String>[];
     if (expect([HTLexicon.angleLeft], consume: true)) {
       while ((curTok.type != HTLexicon.angleRight) &&
           (curTok.type != HTLexicon.endOfFile)) {
-        if (typeParams.isNotEmpty) {
+        if (typeParameters.isNotEmpty) {
           match(HTLexicon.comma);
         }
-        typeParams.add(advance(1).lexeme);
+        typeParameters.add(advance(1).lexeme);
       }
       match(HTLexicon.angleRight);
     }
@@ -851,7 +851,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
     final stmt = ClassDeclStmt(className, variables, methods,
         classType: classType,
-        typeParams: typeParams,
+        typeParameters: typeParameters,
         superClass: super_class,
         superClassDeclStmt: super_class_decl,
         superClassTypeArgs: super_class_type_args);

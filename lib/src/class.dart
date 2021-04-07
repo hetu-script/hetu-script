@@ -34,7 +34,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   ClassType get classType => _classType;
 
   /// The type parameters of the class.
-  final List<String> typeParams;
+  final List<String> typeParameters;
 
   /// Super class of this class.
   ///
@@ -62,7 +62,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   HTClass(String id, this.superClass, this.superClassType,
       Interpreter interpreter, this.moduleUniqueKey, HTNamespace closure,
       {ClassType classType = ClassType.normal,
-      this.typeParams = const [],
+      this.typeParameters = const [],
       this.implementedClass = const [],
       this.mixinedClass = const []})
       : super(id, isNullable: false) {

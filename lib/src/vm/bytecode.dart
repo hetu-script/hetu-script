@@ -126,7 +126,8 @@ class HTBytecode with ConstTable {
           paramTypes.add(paramType);
         }
         final returnType = readType();
-        return HTFunctionType(paramsTypes: paramTypes, returnType: returnType);
+        return HTFunctionType(
+            positionalParameterTypes: paramTypes, returnType: returnType);
       case TypeType.struct:
       case TypeType.union:
         return HTType(readShortUtf8String());

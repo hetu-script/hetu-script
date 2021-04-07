@@ -283,9 +283,9 @@ class BinaryExpr extends ASTNode {
 
 //   final List<TypeExpr> arguments;
 
-//   TypeExpr(this.name, this.typeParams, String fileName) : super(name.line, name.column, fileName);
+//   TypeExpr(this.name, this.typeParameters, String fileName) : super(name.line, name.column, fileName);
 
-//   Expr clone() => TypeExpr(name, typeParams, fileName);
+//   Expr clone() => TypeExpr(name, typeParameters, fileName);
 // }
 
 class SymbolExpr extends ASTNode {
@@ -654,7 +654,7 @@ class FuncDeclStmt extends ASTNode {
 
   final Token? id;
 
-  final List<String> typeParams;
+  final List<String> typeParameters;
 
   final HTType returnType;
 
@@ -684,7 +684,7 @@ class FuncDeclStmt extends ASTNode {
       this.returnType, this.params, String fileName, int line, int column,
       {this.id,
       this.classId,
-      this.typeParams = const [],
+      this.typeParameters = const [],
       this.arity = 0,
       this.definition,
       this.isExtern = false,
@@ -727,7 +727,7 @@ class FuncDeclStmt extends ASTNode {
     return FuncDeclStmt(returnType, new_params, fileName, line, column,
         id: id,
         classId: classId,
-        typeParams: typeParams,
+        typeParameters: typeParameters,
         arity: arity,
         definition: new_body,
         isExtern: isExtern,
@@ -749,7 +749,7 @@ class ClassDeclStmt extends ASTNode {
 
   final List<FuncDeclStmt> methods;
 
-  final List<String> typeParams;
+  final List<String> typeParameters;
 
   final SymbolExpr? superClass;
 
@@ -759,7 +759,7 @@ class ClassDeclStmt extends ASTNode {
 
   ClassDeclStmt(this.id, this.variables, this.methods,
       {this.classType = ClassType.normal,
-      this.typeParams = const [],
+      this.typeParameters = const [],
       this.superClass,
       this.superClassDeclStmt,
       this.superClassTypeArgs})
@@ -779,7 +779,7 @@ class ClassDeclStmt extends ASTNode {
 
     return ClassDeclStmt(id, new_vars, new_methods,
         classType: classType,
-        typeParams: typeParams,
+        typeParameters: typeParameters,
         superClass: superClass,
         superClassDeclStmt: superClassDeclStmt,
         superClassTypeArgs: superClassTypeArgs);
