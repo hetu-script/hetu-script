@@ -31,8 +31,8 @@ class CountryEnumBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic object, String varName) {
     switch (varName) {
-      case 'typeid':
-        return const HTTypeId('Country');
+      case 'type':
+        return const HTType('Country');
       case 'index':
         var i = object as Country;
         return i.index;
@@ -41,7 +41,7 @@ class CountryEnumBinding extends HTExternalClass {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             i.toString();
       default:
         throw HTError.undefined(varName);
@@ -67,14 +67,14 @@ void main() async {
         print(Race.values)
         let race: Race = Race.african
         print(race)
-        print(race.typeid)
+        print(race.type)
         print(race.index)
         print(race.toString())
         print(race)
         
         print(Country.values)
         let country: Country = Country.Japan // 可以进行类型检查
-        print(country.typeid)
+        print(country.type)
         print(country.index)
         print(country.toString())
         print(country)

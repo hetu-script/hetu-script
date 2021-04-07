@@ -6,7 +6,7 @@ import 'function.dart';
 typedef HTExternalFunction = dynamic Function(
     {List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
-    List<HTTypeId> typeArgs});
+    List<HTType> typeArgs});
 
 /// Accept a hetu function object, then return a dart function
 /// for use in Dart code. This is for usage where you want to
@@ -21,11 +21,11 @@ final Map<String, Function> coreFunctions = {
   'help': (
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {},
+      List<HTType> typeArgs = const []}) {},
   'print': (
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {
+      List<HTType> typeArgs = const []}) {
     var sb = StringBuffer();
     for (final arg in namedArgs['args']) {
       sb.write('$arg ');

@@ -106,18 +106,16 @@ If [invoke_func] is provided, evaluate the file in [module] mode and call a cert
 
 If no option is provided, enter REPL mode.
 
-In REPL mode, everything you entered will be evaluated and print out immediately.
-
-```typescript
->>>var a = 42
-42
-```
+In REPL mode, every exrepssion you entered will be evaluated and print out immediately.
 
 If you want to write multiple line in REPL mode, use '\\' to end a line.
 
 ```typescript
+>>>var a = 42
+>>>a
+42
 >>>fun hello {\
-return 6 * 7}
+return a }
 >>>hello
 function hello() -> any // repl print
 >>>hello()

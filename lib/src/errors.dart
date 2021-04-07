@@ -366,8 +366,8 @@ class HTError {
   }
 
   /// Error: Illegal type cast.
-  HTError.typeCast(String object, String typeid) {
-    message = '[$object] ${HTError._typecast} [$typeid]';
+  HTError.typeCast(String object, String type) {
+    message = '[$object] ${HTError._typecast} [$type]';
     HTErrorType.interpreter;
   }
 

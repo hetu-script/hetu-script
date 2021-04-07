@@ -9,7 +9,7 @@ class _HTNull with HTObject {
   String toString() => HTLexicon.NULL;
 
   @override
-  HTTypeId get typeid => HTTypeId.NULL;
+  HTType get type => HTType.NULL;
 }
 
 /// Almost everything within Hetu is a [HTObject].
@@ -21,7 +21,7 @@ mixin HTObject {
   static const NULL = _HTNull();
 
   /// Typeid of this [HTObject]
-  HTTypeId get typeid => HTTypeId.object;
+  HTType get type => HTType.object;
 
   /// Wether this object contains a member with a name by [varName].
   bool contains(String varName) => throw HTError.undefined(varName);
@@ -32,13 +32,13 @@ mixin HTObject {
   /// ```
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             toString();
       default:
         throw HTError.undefined(varName);
@@ -64,16 +64,4 @@ mixin HTObject {
   /// object[key] = value
   /// ```
   void subSet(String key, dynamic value) => throw HTError.undefined(key);
-
-  /// Wether this object is of the type by [otherTypeId]
-  bool isA(HTTypeId otherTypeId) {
-    if (otherTypeId == HTTypeId.ANY) {
-      return true;
-    } else {
-      return typeid == otherTypeId;
-    }
-  }
-
-  /// Wether this object is not of the type by [otherTypeId]
-  bool isNotA(HTTypeId otherTypeId) => !isA(otherTypeId);
 }

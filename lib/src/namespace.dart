@@ -1,6 +1,3 @@
-import 'package:hetu_script/src/declaration.dart';
-import 'package:hetu_script/src/object.dart';
-
 import 'errors.dart';
 import 'lexicon.dart';
 import 'type.dart';
@@ -8,6 +5,8 @@ import 'interpreter.dart';
 import 'variable.dart';
 import 'function.dart';
 import 'declaration.dart';
+import 'instance.dart';
+import 'object.dart';
 
 /// A implementation of [HTNamespace].
 /// For interpreter searching for symbols from a certain block or module.
@@ -28,7 +27,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
   @override
-  final typeid = HTTypeId.NAMESPACE;
+  final type = HTType.NAMESPACE;
 
   /// The full closure path of this namespace
   late final String fullName;
@@ -138,4 +137,157 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     var space = closureAt(distance);
     space.assign(varName, value, from: from);
   }
+}
+
+/// A implementation of [HTNamespace] for [HTClass].
+/// For interpreter searching for symbols within static methods.
+class HTClassNamespace extends HTNamespace {
+  HTClassNamespace(String id, String classId, Interpreter interpreter,
+      {HTNamespace? closure})
+      : super(interpreter, id: id, classId: classId, closure: closure);
+
+  @override
+  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+    final getter = '${HTLexicon.getter}$varName';
+    if (declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final decl = declarations[varName]!;
+      if (decl is HTFunction) {
+        if (decl.externalTypedef != null) {
+          final externalFunc = interpreter.unwrapExternalFunctionType(
+              decl.externalTypedef!, decl);
+          return externalFunc;
+        }
+        return decl;
+      } else if (decl is HTVariable) {
+        if (!decl.isInitialized) {
+          decl.initialize();
+        }
+        return decl.value;
+      }
+      // else if (decl is HTClass) {
+      //   return null;
+      // }
+    } else if (declarations.containsKey(getter)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final decl = declarations[getter] as HTFunction;
+      return decl.call();
+    }
+
+    if (closure != null) {
+      return closure!.fetch(varName, from: from);
+    }
+
+    throw HTError.undefined(varName);
+  }
+
+  @override
+  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+    final setter = '${HTLexicon.setter}$varName';
+    if (declarations.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final decl = declarations[varName]!;
+      if (decl is HTVariable) {
+        decl.assign(value);
+        return;
+      } else {
+        throw HTError.immutable(varName);
+      }
+    } else if (declarations.containsKey(setter)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final setterFunc = declarations[setter] as HTFunction;
+      setterFunc.call(positionalArgs: [value]);
+      return;
+    }
+
+    if (closure != null) {
+      closure!.assign(varName, value, from: from);
+      return;
+    }
+
+    throw HTError.undefined(varName);
+  }
+}
+
+/// A implementation of [HTNamespace] for [HTInstance].
+/// For interpreter searching for symbols within instance methods.
+/// [HTInstanceNamespace] is a singly linked list node,
+/// it holds its super classes' [HTInstanceNamespace]'s referrences.
+class HTInstanceNamespace extends HTNamespace {
+  final HTInstance instance;
+
+  HTInstanceNamespace? next;
+
+  HTInstanceNamespace(
+      String id, String? classId, this.instance, Interpreter interpreter,
+      {HTNamespace? closure})
+      : super(interpreter, id: id, classId: classId, closure: closure);
+
+  /// [HTInstanceNamespace] overrided [HTNamespace]'s [fetch],
+  /// with a new named parameter [recursive].
+  /// If [recursive] is false, then it won't continue to
+  /// try fetching variable from enclosed namespace.
+  @override
+  dynamic fetch(String varName,
+      {String from = HTLexicon.global, bool recursive = true}) {
+    final getter = '${HTLexicon.getter}$varName';
+    if (declarations.containsKey(varName) || declarations.containsKey(getter)) {
+      return instance.memberGet(varName, from: from, classId: classId);
+    } else {
+      if (next != null) {
+        return next!.fetch(varName, from: from);
+      }
+    }
+
+    if (recursive && closure != null) {
+      return closure!.fetch(varName, from: from);
+    }
+
+    throw HTError.undefined(varName);
+  }
+
+  /// [HTInstanceNamespace] overrided [HTNamespace]'s [assign],
+  /// with a new named parameter [recursive].
+  /// If [recursive] is false, then it won't continue to
+  /// try assigning variable from enclosed namespace.
+  @override
+  void assign(String varName, dynamic value,
+      {String from = HTLexicon.global, bool recursive = true}) {
+    final setter = '${HTLexicon.getter}$varName';
+    if (declarations.containsKey(varName) || declarations.containsKey(setter)) {
+      return instance.memberSet(varName, value, from: from, classId: classId);
+    } else {
+      if (next != null) {
+        return next!.assign(varName, value, from: from);
+      }
+    }
+
+    if (recursive && closure != null) {
+      closure!.assign(varName, value, from: from);
+      return;
+    }
+
+    throw HTError.undefined(varName);
+  }
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
+      fetch(varName, from: from, recursive: false);
+
+  @override
+  void memberSet(String varName, dynamic value,
+          {String from = HTLexicon.global}) =>
+      assign(varName, value, from: from, recursive: false);
 }

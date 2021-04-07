@@ -5,6 +5,8 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'opcode.dart';
 import '../const_table.dart';
+import '../type.dart';
+import '../common.dart';
 
 /// Code module class, represent a trunk of bytecode.
 /// Every bytecode file has its own const tables
@@ -100,5 +102,34 @@ class HTBytecode with ConstTable {
     ip += length;
     final codeUnits = bytes.sublist(start, ip);
     return utf8.decoder.convert(codeUnits);
+  }
+
+  HTType readType() {
+    final index = read();
+    final typeType = TypeType.values.elementAt(index);
+
+    switch (typeType) {
+      case TypeType.normal:
+        final id = readShortUtf8String();
+        final length = read();
+        final args = <HTType>[];
+        for (var i = 0; i < length; ++i) {
+          args.add(readType());
+        }
+        final isNullable = read() == 0 ? false : true;
+        return HTType(id, isNullable: isNullable, typeArgs: args);
+      case TypeType.function:
+        final paramsLength = read();
+        final paramTypes = <HTType>[];
+        for (var i = 0; i < paramsLength; ++i) {
+          final paramType = readType();
+          paramTypes.add(paramType);
+        }
+        final returnType = readType();
+        return HTFunctionType(paramsTypes: paramTypes, returnType: returnType);
+      case TypeType.struct:
+      case TypeType.union:
+        return HTType(readShortUtf8String());
+    }
   }
 }

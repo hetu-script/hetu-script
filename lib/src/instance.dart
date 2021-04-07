@@ -12,88 +12,16 @@ import 'common.dart';
 import 'variable.dart';
 import 'cast.dart';
 
-/// A implementation of [HTNamespace] for [HTInstance].
-/// For interpreter searching for symbols within instance methods.
-/// [HTInstanceNamespace] is a singly linked list node,
-/// it holds its super classes' [HTInstanceNamespace]'s referrences.
-class HTInstanceNamespace extends HTNamespace {
-  final HTInstance instance;
-
-  HTInstanceNamespace? next;
-
-  HTInstanceNamespace(
-      String id, String? classId, this.instance, Interpreter interpreter,
-      {HTNamespace? closure})
-      : super(interpreter, id: id, classId: classId, closure: closure);
-
-  /// [HTInstanceNamespace] overrided [HTNamespace]'s [fetch],
-  /// with a new named parameter [recursive].
-  /// If [recursive] is false, then it won't continue to
-  /// try fetching variable from enclosed namespace.
-  @override
-  dynamic fetch(String varName,
-      {String from = HTLexicon.global, bool recursive = true}) {
-    final getter = '${HTLexicon.getter}$varName';
-    if (declarations.containsKey(varName) || declarations.containsKey(getter)) {
-      return instance.memberGet(varName, from: from, classId: classId);
-    } else {
-      if (next != null) {
-        return next!.fetch(varName, from: from);
-      }
-    }
-
-    if (recursive && closure != null) {
-      return closure!.fetch(varName, from: from);
-    }
-
-    throw HTError.undefined(varName);
-  }
-
-  /// [HTInstanceNamespace] overrided [HTNamespace]'s [assign],
-  /// with a new named parameter [recursive].
-  /// If [recursive] is false, then it won't continue to
-  /// try assigning variable from enclosed namespace.
-  @override
-  void assign(String varName, dynamic value,
-      {String from = HTLexicon.global, bool recursive = true}) {
-    final setter = '${HTLexicon.getter}$varName';
-    if (declarations.containsKey(varName) || declarations.containsKey(setter)) {
-      return instance.memberSet(varName, value, from: from, classId: classId);
-    } else {
-      if (next != null) {
-        return next!.assign(varName, value, from: from);
-      }
-    }
-
-    if (recursive && closure != null) {
-      closure!.assign(varName, value, from: from);
-      return;
-    }
-
-    throw HTError.undefined(varName);
-  }
-
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
-      fetch(varName, from: from, recursive: false);
-
-  @override
-  void memberSet(String varName, dynamic value,
-          {String from = HTLexicon.global}) =>
-      assign(varName, value, from: from, recursive: false);
-}
-
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
 class HTInstance with HTObject, InterpreterRef {
   late final String id;
-  late final String classId;
-
-  late final _typeids = <HTTypeId>[];
 
   @override
-  HTTypeId get typeid => _typeids.first;
+  late final HTInstanceType type;
+
+  String get classId => type.typeName;
 
   /// A [HTInstance] has all members inherited from all super classes,
   /// Key is the id of a super class.
@@ -111,11 +39,11 @@ class HTInstance with HTObject, InterpreterRef {
 
   /// Create a default [HTInstance] instance.
   HTInstance(HTClass klass, Interpreter interpreter, int index,
-      {List<HTTypeId> typeArgs = const []}) {
+      {List<HTType> typeArgs = const []}) {
     id = '${HTLexicon.instance}$index';
-    classId = klass.id;
 
     HTClass? curKlass = klass;
+    final extended = <HTType>[];
     var curNamespace = HTInstanceNamespace(id, curKlass.id, this, interpreter,
         closure: klass.namespace);
     while (curKlass != null) {
@@ -123,10 +51,6 @@ class HTInstance with HTObject, InterpreterRef {
           id, curKlass.id, this, interpreter,
           closure: klass.namespace);
       curNamespace = curNamespace.next!;
-
-      // TODO: 父类没有type param怎么处理？
-      final superTypeId = HTTypeId(curKlass.id);
-      _typeids.add(superTypeId);
 
       // TODO: check wether has default constructor and warn user?
       // final hasDefaultConstructor = false;
@@ -145,22 +69,14 @@ class HTInstance with HTObject, InterpreterRef {
 
       _namespaces[curKlass.id] = curNamespace;
 
+      if (curKlass.superClassType != null) {
+        extended.add(curKlass.superClassType!);
+      }
       curKlass = curKlass.superClass;
     }
-  }
 
-  @override
-  bool isA(HTTypeId otherTypeId) {
-    if (otherTypeId == HTTypeId.ANY) {
-      return true;
-    } else {
-      for (final superTypeId in _typeids) {
-        if (superTypeId == otherTypeId) {
-          return true;
-        }
-      }
-    }
-    return false;
+    type = HTInstanceType(klass.id, interpreter.curModuleUniqueKey!,
+        typeArgs: typeArgs, extended: extended);
   }
 
   @override
@@ -267,14 +183,14 @@ class HTInstance with HTObject, InterpreterRef {
 
     // TODO: 这里应该改成写在脚本的Object上才对
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
-            '${HTLexicon.instanceOf}$typeid';
+                List<HTType> typeArgs = const []}) =>
+            '${HTLexicon.instanceOf}$type';
       default:
         throw HTError.undefined(varName);
     }
@@ -351,7 +267,7 @@ class HTInstance with HTObject, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
       HTFunction func = memberGet(funcName, from: namespace.fullName);

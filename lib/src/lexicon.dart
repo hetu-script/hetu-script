@@ -93,12 +93,12 @@ abstract class HTLexicon {
     CONST,
   };
 
-  static const type = 'Type';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
   static const arrow = '->';
   static const bigarrow = '=>';
 
+  static const TYPE = 'Type';
   static const VOID = 'void';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const ANY = 'any';

@@ -145,7 +145,7 @@ abstract class HTValueTypeCode {
   static const list = 8;
   static const map = 9;
   static const function = 10;
-  static const typeid = 11;
+  static const type = 11;
 }
 
 /// Function type code.

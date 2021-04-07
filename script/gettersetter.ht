@@ -14,7 +14,7 @@ class Types extends Root {
     name = the_name;
   }
 
-  get age: num {
+  get age -> num {
     return _age
   }
 

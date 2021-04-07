@@ -8,7 +8,7 @@ import 'declaration.dart';
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
 class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   @override
-  final HTTypeId typeid = HTTypeId.ENUM;
+  final HTType type = HTType.ENUM;
 
   /// The enumeration item of this [HTEnum].
   final Map<String, HTEnumItem> enums;
@@ -57,7 +57,7 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
 /// The Dart implementation of the enum item in Hetu.
 class HTEnumItem with HTObject {
   @override
-  final HTTypeId typeid;
+  final HTType type;
 
   /// The index of this enum item.
   final int index;
@@ -66,16 +66,16 @@ class HTEnumItem with HTObject {
   final String id;
 
   @override
-  String toString() => '${typeid.typeName}$id';
+  String toString() => '${type.typeName}$id';
 
   /// Default [HTEnumItem] constructor.
-  HTEnumItem(this.index, this.id, this.typeid);
+  HTEnumItem(this.index, this.id, this.type);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'index':
         return index;
       case 'name':
@@ -84,7 +84,7 @@ class HTEnumItem with HTObject {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             toString();
       default:
         throw HTError.undefinedMember(varName);

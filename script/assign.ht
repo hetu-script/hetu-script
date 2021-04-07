@@ -10,11 +10,11 @@ class HelloWorld {
     // print("hello" + _hello.toString() + "world" + _world.toString())
   }
 
-  fun toString: str {
+  fun toString -> str {
     return "hello" + _hello.toString() + "world" + _world.toString()
   }
 
-  get private: num {
+  get private -> num {
     return _privateNum
   }
 }

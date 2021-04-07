@@ -6,78 +6,78 @@ import 'lexicon.dart';
 /// Base class for external object.
 class HTExternObject<T> with HTObject {
   @override
-  final typeid;
+  final type;
 
   /// the external object.
   T externObject;
 
   /// Create a external class object.
-  HTExternObject(this.externObject, {this.typeid = HTTypeId.unknown});
+  HTExternObject(this.externObject, {this.type = HTType.unknown});
 }
 
 /// Binding object for dart number.
 class HTNumber extends HTExternObject<num> {
-  HTNumber(num value) : super(value, typeid: HTTypeId.number);
+  HTNumber(num value) : super(value, type: HTType.number);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.toString();
       case 'toStringAsFixed':
         return (
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const []}) {
+            List<HTType> typeArgs = const []}) {
           return externObject.toStringAsFixed(positionalArgs.first as int);
         };
       case 'abs':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.abs();
       case 'floor':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.floor();
       case 'ceil':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.ceil();
       case 'round':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.round();
       case 'truncate':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.truncate();
       case 'toInt':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.toInt();
       case 'toDouble':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.toDouble();
       default:
         throw HTError.undefined(varName);
@@ -87,18 +87,18 @@ class HTNumber extends HTExternObject<num> {
 
 /// Binding object for dart bool.
 class HTBoolean extends HTExternObject<bool> {
-  HTBoolean(bool value) : super(value, typeid: HTTypeId.boolean);
+  HTBoolean(bool value) : super(value, type: HTType.boolean);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.toString();
       case 'parse':
         return externObject.toString;
@@ -110,18 +110,18 @@ class HTBoolean extends HTExternObject<bool> {
 
 /// Binding object for dart string.
 class HTString extends HTExternObject<String> {
-  HTString(String value) : super(value, typeid: HTTypeId.string);
+  HTString(String value) : super(value, type: HTType.string);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.toString();
       case 'isEmpty':
         return externObject.isEmpty;
@@ -169,19 +169,19 @@ class HTString extends HTExternObject<String> {
 
 /// Binding object for dart list.
 class HTList extends HTExternObject<List> {
-  HTList(List value, {HTTypeId valueType = HTTypeId.ANY})
-      : super(value, typeid: HTTypeId(HTLexicon.list, typeArgs: [valueType]));
+  HTList(List value, {HTType valueType = HTType.ANY})
+      : super(value, type: HTType(HTLexicon.list, typeArgs: [valueType]));
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.toString();
       case 'length':
         return externObject.length;
@@ -197,49 +197,49 @@ class HTList extends HTExternObject<List> {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.contains(positionalArgs.first);
       case 'add':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.add(positionalArgs.first);
       case 'addAll':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.addAll(positionalArgs.first);
       case 'clear':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.clear();
       case 'removeAt':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.removeAt(positionalArgs.first);
       case 'indexOf':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.indexOf(positionalArgs.first);
       case 'elementAt':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.elementAt(positionalArgs.first);
       case 'join':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.join(positionalArgs.first);
       default:
         throw HTError.undefined(varName);
@@ -249,24 +249,23 @@ class HTList extends HTExternObject<List> {
 
 /// Binding object for dart map.
 class HTMap extends HTExternObject<Map> {
-  HTMap(Map value,
-      {HTTypeId keyType = HTTypeId.ANY, HTTypeId valueType = HTTypeId.ANY})
+  HTMap(Map value, {HTType keyType = HTType.ANY, HTType valueType = HTType.ANY})
       : super(value,
-            typeid: HTTypeId(HTLexicon.list, typeArgs: [keyType, valueType]));
+            type: HTType(HTLexicon.list, typeArgs: [keyType, valueType]));
 
   @override
-  final typeid = HTTypeId.map;
+  final type = HTType.map;
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'typeid':
-        return typeid;
+      case 'type':
+        return type;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.toString();
       case 'length':
         return externObject.length;
@@ -282,31 +281,31 @@ class HTMap extends HTExternObject<Map> {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.containsKey(positionalArgs.first);
       case 'containsValue':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.containsValue(positionalArgs.first);
       case 'addAll':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.addAll(positionalArgs.first);
       case 'clear':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.clear();
       case 'remove':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             externObject.remove(positionalArgs.first);
       default:
         throw HTError.undefined(varName);

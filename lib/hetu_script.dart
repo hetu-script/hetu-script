@@ -6,7 +6,7 @@ library hetu_script;
 
 export 'src/common.dart' show CodeType;
 export 'src/object.dart';
-export 'src/type.dart' show HTTypeId;
+export 'src/type.dart' show HTType;
 export 'src/namespace.dart';
 export 'src/class.dart';
 export 'src/function.dart' show HTFunction;

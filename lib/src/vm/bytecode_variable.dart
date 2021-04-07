@@ -8,7 +8,7 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   /// The module this variable declared in.
   final String moduleUniqueKey;
 
-  /// Whether this variable have [HTTypeId].
+  /// Whether this variable have [HTType].
   final bool isDynamic;
 
   /// Whether this variable is immutable.
@@ -17,11 +17,11 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
 
   var _isInitializing = false;
 
-  HTTypeId? _declType;
+  HTType? _declType;
 
-  /// The [HTTypeId] of this variable, will be used to
+  /// The [HTType] of this variable, will be used to
   /// determine wether an assignment is legal.
-  HTTypeId? get declType => _declType;
+  HTType? get declType => _declType;
 
   /// The instructor pointer of the initializer's bytecode.
   int? initializerIp;
@@ -33,7 +33,7 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   HTBytecodeVariable(String id, Hetu interpreter, this.moduleUniqueKey,
       {String? classId,
       dynamic value,
-      HTTypeId? declType,
+      HTType? declType,
       this.initializerIp,
       Function? getter,
       Function? setter,
@@ -53,7 +53,7 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
     this.interpreter = interpreter;
     if (declType == null) {
       if (initializerIp == null) {
-        _declType = HTTypeId.ANY;
+        _declType = HTType.ANY;
       } else {
         // 初始化时也会尝试对 _declType 赋值
         // TODO: 这里挪到 vm 里面进行？
@@ -89,23 +89,17 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   }
 
   /// Assign a new value to this variable,
-  /// will perform [HTTypeId] check during this process.
+  /// will perform [HTType] check during this process.
   @override
   void assign(dynamic value) {
     if (_declType != null) {
-      if (value != null) {
-        final encapsulation = interpreter.encapsulate(value);
-        if (encapsulation.isNotA(_declType!)) {
-          final valType = interpreter.encapsulate(value).typeid;
-          throw HTError.typeCheck(id, valType.toString(), _declType.toString());
-        }
-      } else {
-        if (!(_declType!.isNullable)) {
-          throw HTError.nullable(id);
-        }
+      final encapsulation = interpreter.encapsulate(value);
+      if (encapsulation.type.isNotA(_declType!)) {
+        final valType = interpreter.encapsulate(value).type;
+        throw HTError.typeCheck(id, valType.toString(), _declType.toString());
       }
     } else if (!isDynamic && value != null) {
-      _declType = interpreter.encapsulate(value).typeid;
+      _declType = interpreter.encapsulate(value).type;
     }
 
     super.assign(value);
@@ -143,7 +137,7 @@ class HTBytesParameter extends HTBytecodeVariable {
   /// Create a standard [HTBytesParameter].
   HTBytesParameter(String id, Hetu interpreter, String module,
       {dynamic value,
-      HTTypeId? declType,
+      HTType? declType,
       int? initializerIp,
       this.isOptional = false,
       this.isNamed = false,

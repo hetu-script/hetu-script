@@ -12,15 +12,15 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
 
   var _isInitializing = false;
 
-  HTTypeId? _declType;
-  HTTypeId get declType => _declType!;
+  HTType? _declType;
+  HTType get declType => _declType!;
 
   ASTNode? initializer;
 
   HTAstVariable(String id, HTAstInterpreter interpreter,
       {String? classId,
       dynamic value,
-      HTTypeId? declType,
+      HTType? declType,
       this.initializer,
       Function? getter,
       Function? setter,
@@ -39,7 +39,7 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
             isStatic: isStatic) {
     this.interpreter = interpreter;
     if (initializer == null && declType == null) {
-      _declType = HTTypeId.ANY;
+      _declType = HTType.ANY;
     }
   }
 
@@ -65,15 +65,15 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
   void assign(dynamic value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
-      if (encapsulation.isNotA(_declType!)) {
+      if (encapsulation.type.isNotA(_declType!)) {
         throw HTError.typeCheck(
-            id, encapsulation.typeid.toString(), _declType.toString());
+            id, encapsulation.type.toString(), _declType.toString());
       }
     } else {
       if (!isDynamic && value != null) {
-        _declType = interpreter.encapsulate(value).typeid;
+        _declType = interpreter.encapsulate(value).type;
       } else {
-        _declType = HTTypeId.ANY;
+        _declType = HTType.ANY;
       }
     }
 

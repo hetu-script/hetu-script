@@ -18,7 +18,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   HTAstFunction(
       this.funcStmt, HTAstInterpreter interpreter, String moduleUniqueKey,
       {String? externalTypedef,
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       HTNamespace? context})
       : super(
           funcStmt.internalName,
@@ -28,7 +28,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
           externalFunctionType: ExternalFunctionType.none, // TODO: 这里需要修改
           externalTypedef: externalTypedef,
           typeArgs: typeArgs,
-          // typeid:
+          // type:
           isConst: funcStmt.isConst,
           isVariadic: funcStmt.isVariadic,
           minArity: funcStmt.arity,
@@ -36,11 +36,11 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     this.interpreter = interpreter;
     this.context = context;
 
-    var paramsTypes = <HTTypeId>[];
+    var paramsTypes = <HTType>[];
     for (final param in funcStmt.params) {
-      paramsTypes.add(param.declType ?? HTTypeId.ANY);
+      paramsTypes.add(param.declType ?? HTType.ANY);
     }
-    typeid = HTFunctionTypeId(
+    type = HTFunctionType(
         returnType: funcStmt.returnType, paramsTypes: paramsTypes);
   }
 
@@ -49,11 +49,11 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     var result = StringBuffer();
     result.write('${HTLexicon.function}');
     result.write(' $id');
-    if (typeid.typeArgs.isNotEmpty) {
+    if (type.typeArgs.isNotEmpty) {
       result.write('<');
-      for (var i = 0; i < typeid.typeArgs.length; ++i) {
-        result.write(typeid.typeArgs[i]);
-        if ((typeid.typeArgs.length > 1) && (i != typeid.typeArgs.length - 1)) {
+      for (var i = 0; i < type.typeArgs.length; ++i) {
+        result.write(type.typeArgs[i]);
+        if ((type.typeArgs.length > 1) && (i != type.typeArgs.length - 1)) {
           result.write(', ');
         }
       }
@@ -78,7 +78,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     HTFunction.callStack.add(id);
 
@@ -119,12 +119,12 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
           } else {
             arg = namedArgs[param.id.lexeme];
           }
-          final argTypeid = param.declType ?? HTTypeId.ANY;
+          final argTypeid = param.declType ?? HTType.ANY;
 
           if (!param.isVariadic) {
             final argEncapsulation = interpreter.encapsulate(arg);
-            if (argEncapsulation.isNotA(argTypeid)) {
-              final arg_type = interpreter.encapsulate(arg).typeid;
+            if (argEncapsulation.type.isNotA(argTypeid)) {
+              final arg_type = interpreter.encapsulate(arg).type;
               throw HTError.argType(
                   arg.toString(), arg_type.toString(), argTypeid.toString());
             }
@@ -134,8 +134,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
             for (var j = i; j < positionalArgs.length; ++j) {
               arg = positionalArgs[j];
               final argEncapsulation = interpreter.encapsulate(arg);
-              if (argEncapsulation.isNotA(argTypeid)) {
-                final arg_type = interpreter.encapsulate(arg).typeid;
+              if (argEncapsulation.type.isNotA(argTypeid)) {
+                final arg_type = interpreter.encapsulate(arg).type;
                 throw HTError.argType(
                     arg.toString(), arg_type.toString(), argTypeid.toString());
               }
@@ -158,9 +158,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       }
 
       final encapsulation = interpreter.encapsulate(result);
-      if (encapsulation.isNotA(returnType)) {
+      if (encapsulation.type.isNotA(returnType)) {
         throw HTError.returnType(
-            encapsulation.typeid.toString(), id, returnType.toString());
+            encapsulation.type.toString(), id, returnType.toString());
       }
 
       if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {

@@ -92,7 +92,7 @@ abstract class Interpreter {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = false});
 
   /// 解析文件
@@ -104,7 +104,7 @@ abstract class Interpreter {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []});
+      List<HTType> typeArgs = const []});
 
   /// 调用一个全局函数或者类、对象上的函数
   // TODO: 调用构造函数
@@ -112,7 +112,7 @@ abstract class Interpreter {
       {String? className,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = false});
 
   void handleError(Object error, [StackTrace? stack]);
@@ -129,13 +129,13 @@ abstract class Interpreter {
     } else if (object is String) {
       return HTString(object);
     } else if (object is List) {
-      var valueType = HTTypeId.ANY;
+      var valueType = HTType.ANY;
       if (object.isNotEmpty) {
-        valueType = encapsulate(object.first).typeid;
+        valueType = encapsulate(object.first).type;
         for (final item in object) {
-          final value = encapsulate(item).typeid;
+          final value = encapsulate(item).type;
           if (value.isNotA(valueType)) {
-            valueType = HTTypeId.ANY;
+            valueType = HTType.ANY;
             break;
           }
         }
@@ -143,24 +143,24 @@ abstract class Interpreter {
 
       return HTList(object, valueType: valueType);
     } else if (object is Map) {
-      var keyType = HTTypeId.ANY;
-      var valueType = HTTypeId.ANY;
+      var keyType = HTType.ANY;
+      var valueType = HTType.ANY;
       if (object.keys.isNotEmpty) {
-        keyType = encapsulate(object.keys.first).typeid;
+        keyType = encapsulate(object.keys.first).type;
         for (final item in object.keys) {
-          final value = encapsulate(item).typeid;
+          final value = encapsulate(item).type;
           if (value.isNotA(keyType)) {
-            keyType = HTTypeId.ANY;
+            keyType = HTType.ANY;
             break;
           }
         }
       }
       if (object.values.isNotEmpty) {
-        valueType = encapsulate(object.values.first).typeid;
+        valueType = encapsulate(object.values.first).type;
         for (final item in object.values) {
-          final value = encapsulate(item).typeid;
+          final value = encapsulate(item).type;
           if (value.isNotA(valueType)) {
-            valueType = HTTypeId.ANY;
+            valueType = HTType.ANY;
             break;
           }
         }
@@ -169,11 +169,11 @@ abstract class Interpreter {
       return HTMap(object, keyType: keyType, valueType: valueType);
     } else {
       final typeString = object.runtimeType.toString();
-      final id = HTTypeId.parseBaseTypeId(typeString);
+      final id = HTType.parseBaseType(typeString);
       if (containsExternalClass(id)) {
         // try {
-        // final externClass = fetchExternalClass(typeid.id);
-        return HTExternObject(object, typeid: HTTypeId(id));
+        // final externClass = fetchExternalClass(type.id);
+        return HTExternObject(object, type: HTType(id));
         // } on HTError.undefined {
         //   return HTExternObject(object);
         // }
@@ -183,7 +183,7 @@ abstract class Interpreter {
     }
   }
 
-  // void defineGlobal(String key, {HTTypeId? declType, dynamic value, bool isImmutable = false}) {
+  // void defineGlobal(String key, {HTType? declType, dynamic value, bool isImmutable = false}) {
   //   globals.define(key, declType: declType, value: value, isImmutable: isImmutable);
   // }
 
@@ -200,8 +200,8 @@ abstract class Interpreter {
   /// 注册外部类，以访问外部类的构造函数和static成员
   /// 在脚本中需要存在对应的extern class声明
   void bindExternalClass(HTExternalClass externalClass) {
-    if (_externClasses.containsKey(externalClass.typeid)) {
-      throw HTError.definedRuntime(externalClass.typeid.toString());
+    if (_externClasses.containsKey(externalClass.type)) {
+      throw HTError.definedRuntime(externalClass.type.toString());
     }
     _externClasses[externalClass.typename] = externalClass;
   }

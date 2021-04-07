@@ -128,7 +128,7 @@ class Hetu extends Interpreter {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
     if (content.isEmpty) throw HTError.empty();
 
@@ -156,7 +156,11 @@ class Hetu extends Interpreter {
 
       return result;
     } catch (error, stack) {
-      handleError(error, stack);
+      if (errorHandled) {
+        rethrow;
+      } else {
+        handleError(error, stack);
+      }
     }
   }
 
@@ -178,7 +182,7 @@ class Hetu extends Interpreter {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) async {
+      List<HTType> typeArgs = const []}) async {
     dynamic result;
     final module = await moduleHandler.import(key, curModuleUniqueKey);
 
@@ -211,7 +215,7 @@ class Hetu extends Interpreter {
       {String? className,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
       var func;
@@ -636,10 +640,10 @@ class Hetu extends Interpreter {
         final maxArity = _curCode.read();
         final paramDecls = _getParams(_curCode.read());
 
-        var returnType = HTTypeId.ANY;
-        final hasTypeId = _curCode.readBool();
-        if (hasTypeId) {
-          returnType = _getTypeId();
+        var returnType = HTType.ANY;
+        final hasType = _curCode.readBool();
+        if (hasType) {
+          returnType = _curCode.readType();
         }
 
         int? definitionIp;
@@ -669,8 +673,8 @@ class Hetu extends Interpreter {
           _curValue = externalFunc;
         }
         break;
-      case HTValueTypeCode.typeid:
-        _curValue = _getTypeId();
+      case HTValueTypeCode.type:
+        _curValue = _curCode.readType();
         break;
       default:
         throw HTError.unkownValueType(valueType);
@@ -695,7 +699,7 @@ class Hetu extends Interpreter {
         // 如果是 Dart 对象
         else {
           final typeString = object.runtimeType.toString();
-          final id = HTTypeId.parseBaseTypeId(typeString);
+          final id = HTType.parseBaseType(typeString);
           final externClass = fetchExternalClass(id);
           externClass.instanceMemberSet(object, key!, value);
         }
@@ -717,7 +721,7 @@ class Hetu extends Interpreter {
         // 如果是 Dart 对象
         else {
           final typeString = object.runtimeType.toString();
-          final id = HTTypeId.parseBaseTypeId(typeString);
+          final id = HTType.parseBaseType(typeString);
           final externClass = fetchExternalClass(id);
           externClass.instanceSubSet(object, key!, value);
         }
@@ -842,19 +846,21 @@ class Hetu extends Interpreter {
         break;
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final HTTypeId typeid = _curValue;
-        final HTClass klass = global.fetch(typeid.typeName);
+        final HTType type = _curValue;
+        final HTClass klass = global.fetch(type.typeName);
         _curValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final HTTypeId typeid = _curValue;
-        _curValue = encapsulate(object).isA(typeid);
+        final HTType type = _curValue;
+        final encapsulated = encapsulate(object);
+        _curValue = encapsulated.type.isA(type);
         break;
       case HTOpCode.typeIsNot:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final HTTypeId typeid = _curValue;
-        _curValue = encapsulate(object).isNotA(typeid);
+        final HTType type = _curValue;
+        final encapsulated = encapsulate(object);
+        _curValue = encapsulated.type.isNotA(type);
         break;
       case HTOpCode.add:
         _curValue = _getRegVal(HTRegIdx.addLeft) + _curValue;
@@ -913,7 +919,7 @@ class Hetu extends Interpreter {
     }
 
     // TODO: typeArgs
-    final typeArgs = <HTTypeId>[];
+    final typeArgs = <HTType>[];
 
     if (callee is HTFunction) {
       // 普通函数
@@ -1012,7 +1018,7 @@ class Hetu extends Interpreter {
         //如果是Dart对象
         else {
           final typeString = object.runtimeType.toString();
-          final id = HTTypeId.parseBaseTypeId(typeString);
+          final id = HTType.parseBaseType(typeString);
           final externClass = fetchExternalClass(id);
           _curValue = externClass.instanceMemberGet(object, key);
         }
@@ -1048,35 +1054,6 @@ class Hetu extends Interpreter {
     }
   }
 
-  HTTypeId _getTypeId() {
-    final typeIdType = TypeIdType.values.elementAt(_curCode.read());
-
-    switch (typeIdType) {
-      case TypeIdType.normal:
-        final id = _curCode.readShortUtf8String();
-        final length = _curCode.read();
-        final args = <HTTypeId>[];
-        for (var i = 0; i < length; ++i) {
-          args.add(_getTypeId());
-        }
-        final isNullable = _curCode.read() == 0 ? false : true;
-        return HTTypeId(id, isNullable: isNullable, typeArgs: args);
-      case TypeIdType.function:
-        final paramsLength = _curCode.read();
-
-        final paramTypes = <HTTypeId>[];
-        for (var i = 0; i < paramsLength; ++i) {
-          final paramType = _getTypeId();
-          paramTypes.add(paramType);
-        }
-
-        final returnType = _getTypeId();
-
-        return HTFunctionTypeId(
-            paramsTypes: paramTypes, returnType: returnType);
-    }
-  }
-
   void _handleVarDecl() {
     final id = _curCode.readShortUtf8String();
     String? classId;
@@ -1091,10 +1068,10 @@ class Hetu extends Interpreter {
     final isMember = _curCode.readBool();
     final isStatic = _curCode.readBool();
 
-    HTTypeId? declType;
-    final hasTypeId = _curCode.readBool();
-    if (hasTypeId) {
-      declType = _getTypeId();
+    HTType? declType;
+    final hasType = _curCode.readBool();
+    if (hasType) {
+      declType = _curCode.readType();
     }
 
     int? initializerIp;
@@ -1131,10 +1108,10 @@ class Hetu extends Interpreter {
       final isNamed = _curCode.readBool();
       final isVariadic = _curCode.readBool();
 
-      HTTypeId? declType;
-      final hasTypeId = _curCode.readBool();
-      if (hasTypeId) {
-        declType = _getTypeId();
+      HTType? declType;
+      final hasType = _curCode.readBool();
+      if (hasType) {
+        declType = _curCode.readType();
       }
 
       int? initializerIp;
@@ -1176,14 +1153,14 @@ class Hetu extends Interpreter {
     final maxArity = _curCode.read();
     final paramDecls = _getParams(_curCode.read());
 
-    var returnType = HTTypeId.ANY;
+    var returnType = HTType.ANY;
     HTBytecodeFunctionSuperConstructor? superConstructor;
     String? superCtorId;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
     final returnTypeEnum = FunctionReturnType.values.elementAt(_curCode.read());
-    if (returnTypeEnum == FunctionReturnType.typeid) {
-      returnType = _getTypeId();
+    if (returnTypeEnum == FunctionReturnType.type) {
+      returnType = _curCode.readType();
     } else if (returnTypeEnum == FunctionReturnType.superClassConstructor) {
       final hasSuperCtorid = _curCode.readBool();
       if (hasSuperCtorid) {
@@ -1258,25 +1235,26 @@ class Hetu extends Interpreter {
 
     final classType = ClassType.values[_curCode.read()];
 
-    String? superClassId;
+    HTType? superClassType;
     final hasSuperClass = _curCode.readBool();
     if (hasSuperClass) {
-      superClassId = _curCode.readShortUtf8String();
+      superClassType = _curCode.readType();
     }
 
     HTClass? superClass;
     if (id != HTLexicon.object) {
-      if (superClassId == null) {
+      if (superClassType == null) {
         // TODO: Object基类
         superClass = global.fetch(HTLexicon.object);
       } else {
-        superClass =
-            _curNamespace.fetch(superClassId, from: _curNamespace.fullName);
+        superClass = _curNamespace.fetch(superClassType.typeName,
+            from: _curNamespace.fullName);
       }
     }
 
-    final klass =
-        HTClass(id, superClass, this, _curNamespace, classType: classType);
+    final klass = HTClass(id, superClass, superClassType, this,
+        _curModuleUniqueKey, _curNamespace,
+        classType: classType);
     _curNamespace.define(klass);
 
     _curClass = klass;
@@ -1297,7 +1275,7 @@ class Hetu extends Interpreter {
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < length; i++) {
       final enumId = _curCode.readShortUtf8String();
-      defs[enumId] = HTEnumItem(i, enumId, HTTypeId(id));
+      defs[enumId] = HTEnumItem(i, enumId, HTType(id));
     }
 
     final enumClass = HTEnum(id, defs, this, isExtern: isExtern);

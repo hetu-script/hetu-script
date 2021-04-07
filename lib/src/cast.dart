@@ -8,10 +8,8 @@ import 'instance.dart';
 
 /// The implementation of a certain type cast of a object
 class HTCast with HTObject, InterpreterRef {
-  late final _typeids = <HTTypeId>[];
-
   @override
-  HTTypeId get typeid => _typeids.first;
+  late final HTInstanceType type;
 
   final HTClass klass;
 
@@ -21,19 +19,24 @@ class HTCast with HTObject, InterpreterRef {
   String toString() => object.toString();
 
   HTCast(HTObject object, this.klass, Interpreter interpreter,
-      {List<HTTypeId> typeArgs = const []}) {
+      {List<HTType> typeArgs = const []}) {
     this.interpreter = interpreter;
+
+    final extended = <HTType>[];
 
     HTClass? curSuper = klass;
     while (curSuper != null) {
       // TODO: 父类没有type param怎么处理？
-      final superTypeId = HTTypeId(curSuper.id);
-      _typeids.add(superTypeId);
+      final superType = HTType(curSuper.id);
+      extended.add(superType);
       curSuper = curSuper.superClass;
     }
 
-    if (object.isNotA(typeid)) {
-      throw HTError.typeCast(object.toString(), typeid.toString());
+    type = HTInstanceType(klass.id, interpreter.curModuleUniqueKey!,
+        typeArgs: typeArgs, extended: extended);
+
+    if (object.type.isNotA(type)) {
+      throw HTError.typeCast(object.toString(), type.toString());
     }
 
     if (object is HTInstance) {
@@ -53,27 +56,4 @@ class HTCast with HTObject, InterpreterRef {
   void memberSet(String varName, dynamic value,
           {String from = HTLexicon.global}) =>
       object.memberSet(varName, value, from: from, classId: klass.id);
-
-  @override
-  bool isA(HTTypeId otherTypeId) {
-    if (otherTypeId == HTTypeId.ANY) {
-      return true;
-    } else {
-      for (final superTypeId in _typeids) {
-        if (superTypeId == otherTypeId) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (other is HTInstance) {
-      return object == other;
-    } else {
-      return hashCode == other.hashCode;
-    }
-  }
 }

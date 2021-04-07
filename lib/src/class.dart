@@ -10,98 +10,19 @@ import 'declaration.dart';
 import 'instance.dart';
 import 'enum.dart';
 
-/// A implementation of [HTNamespace] for [HTClass].
-/// For interpreter searching for symbols within static methods.
-class HTClassNamespace extends HTNamespace {
-  HTClassNamespace(String id, String classId, Interpreter interpreter,
-      {HTNamespace? closure})
-      : super(interpreter, id: id, classId: classId, closure: closure);
-
-  @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
-    final getter = '${HTLexicon.getter}$varName';
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      final decl = declarations[varName]!;
-      if (decl is HTFunction) {
-        if (decl.externalTypedef != null) {
-          final externalFunc = interpreter.unwrapExternalFunctionType(
-              decl.externalTypedef!, decl);
-          return externalFunc;
-        }
-        return decl;
-      } else if (decl is HTVariable) {
-        if (!decl.isInitialized) {
-          decl.initialize();
-        }
-        return decl.value;
-      } else if (decl is HTClass) {
-        return null;
-      }
-    } else if (declarations.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      final decl = declarations[getter] as HTFunction;
-      return decl.call();
-    }
-
-    if (closure != null) {
-      return closure!.fetch(varName, from: from);
-    }
-
-    throw HTError.undefined(varName);
-  }
-
-  @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
-    final setter = '${HTLexicon.setter}$varName';
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      final decl = declarations[varName]!;
-      if (decl is HTVariable) {
-        decl.assign(value);
-        return;
-      } else {
-        throw HTError.immutable(varName);
-      }
-    } else if (declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      final setterFunc = declarations[setter] as HTFunction;
-      setterFunc.call(positionalArgs: [value]);
-      return;
-    }
-
-    if (closure != null) {
-      closure!.assign(varName, value, from: from);
-      return;
-    }
-
-    throw HTError.undefined(varName);
-  }
-}
-
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
+class HTClass extends HTType with HTDeclaration, InterpreterRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
   var _instanceIndex = 0;
 
+  final String moduleUniqueKey;
+
   @override
-  final HTTypeId typeid = HTTypeId.CLASS;
+  final HTType type = HTType.CLASS;
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.
@@ -115,25 +36,40 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   /// The type parameters of the class.
   final List<String> typeParams;
 
-  /// Super class of this class
+  /// Super class of this class.
   ///
-  /// If a class is not extends from any super class, then it is the child of class `Object`
+  /// If a class is not extends from any super class, then it is extended of class `Object`
   final HTClass? superClass;
+
+  final HTType? superClassType;
+
+  /// implements class of this class.
+  ///
+  /// implements only inherits methods declaration,
+  /// and the child must define all implements methods.
+  final List<HTClass> implementedClass;
+
+  /// Mixined class of this class.
+  ///
+  /// Those mixined class can not have any constructors.
+  final List<HTClass> mixinedClass;
 
   /// The instance member variables defined in class definition.
   final instanceMembers = <String, HTDeclaration>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(
-      String id, this.superClass, Interpreter interpreter, HTNamespace closure,
-      {ClassType classType = ClassType.normal, this.typeParams = const []})
+  HTClass(String id, this.superClass, this.superClassType,
+      Interpreter interpreter, this.moduleUniqueKey, HTNamespace closure,
+      {ClassType classType = ClassType.normal,
+      this.typeParams = const [],
+      this.implementedClass = const [],
+      this.mixinedClass = const []})
       : super(id, isNullable: false) {
     this.id = id;
     this.interpreter = interpreter;
 
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
-
     _classType = classType;
   }
 
@@ -246,7 +182,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
       final func = memberGet(funcName, from: namespace.fullName);
@@ -284,7 +220,7 @@ class HTClass extends HTTypeId with HTDeclaration, InterpreterRef {
       {String? constructorName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) {
+      List<HTType> typeArgs = const []}) {
     var instance =
         HTInstance(this, interpreter, _instanceIndex++, typeArgs: typeArgs);
 

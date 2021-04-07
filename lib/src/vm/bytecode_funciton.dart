@@ -5,7 +5,6 @@ import '../type.dart';
 import '../function.dart';
 import '../common.dart';
 import '../errors.dart';
-import '../instance.dart';
 import '../variable.dart';
 import '../lexicon.dart';
 import '../extern_function.dart';
@@ -53,9 +52,9 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     ExternalFunctionType externalFunctionType = ExternalFunctionType.none,
     String? externalTypedef,
     this.parameterDeclarations = const <String, HTBytesParameter>{},
-    HTTypeId returnType = HTTypeId.ANY,
+    HTType returnType = HTType.ANY,
     this.definitionIp,
-    List<HTTypeId> typeArgs = const [],
+    List<HTType> typeArgs = const [],
     bool isStatic = false,
     bool isConst = false,
     bool isVariadic = false,
@@ -77,10 +76,10 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
             context: context) {
     this.interpreter = interpreter;
 
-    typeid = HTFunctionTypeId(
+    type = HTFunctionType(
         returnType: returnType,
         paramsTypes: parameterDeclarations.values
-            .map((paramDecl) => paramDecl.declType ?? HTTypeId.ANY)
+            .map((paramDecl) => paramDecl.declType ?? HTType.ANY)
             .toList());
   }
 
@@ -90,11 +89,11 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     var result = StringBuffer();
     result.write(HTLexicon.function);
     result.write(' $id');
-    if (typeid.typeArgs.isNotEmpty) {
+    if (type.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < typeid.typeArgs.length; ++i) {
-        result.write(typeid.typeArgs[i]);
-        if ((typeid.typeArgs.length > 1) && (i != typeid.typeArgs.length - 1)) {
+      for (var i = 0; i < type.typeArgs.length; ++i) {
+        result.write(type.typeArgs[i]);
+        if ((type.typeArgs.length > 1) && (i != type.typeArgs.length - 1)) {
           result.write(', ');
         }
       }
@@ -157,7 +156,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
       if (positionalArgs.length < minArity ||
@@ -344,11 +343,11 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         }
       }
 
-      if (returnType != HTTypeId.ANY) {
+      if (returnType != HTType.ANY) {
         final encapsulation = interpreter.encapsulate(result);
-        if (encapsulation.isNotA(returnType)) {
+        if (encapsulation.type.isNotA(returnType)) {
           throw HTError.returnType(
-              encapsulation.typeid.toString(), id, returnType.toString());
+              encapsulation.type.toString(), id, returnType.toString());
         }
       }
 

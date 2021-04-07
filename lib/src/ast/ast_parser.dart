@@ -14,7 +14,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
   String get curModuleUniqueKey => _curModuleUniqueKey;
 
   ClassType? _curClassType;
-  // HTTypeId? _curClassTypeId;
+  // HTType? _curClassType;
   String? _curClassId;
 
   final _classStmts = <String, ASTNode>{};
@@ -42,13 +42,13 @@ class HTAstParser extends Parser with AstInterpreterRef {
     return statements;
   }
 
-  HTTypeId _parseTypeId() {
+  HTType _parseType() {
     final type_name = advance(1).lexeme;
-    var type_args = <HTTypeId>[];
+    var type_args = <HTType>[];
     if (expect([HTLexicon.angleLeft], consume: true)) {
       while ((curTok.type != HTLexicon.angleRight) &&
           (curTok.type != HTLexicon.endOfFile)) {
-        type_args.add(_parseTypeId());
+        type_args.add(_parseType());
         if (curTok.type != HTLexicon.angleRight) {
           match(HTLexicon.comma);
         }
@@ -56,7 +56,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
       match(HTLexicon.angleRight);
     }
 
-    return HTTypeId(type_name, typeArgs: type_args);
+    return HTType(type_name, typeArgs: type_args);
   }
 
   /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
@@ -537,18 +537,18 @@ class HTAstParser extends Parser with AstInterpreterRef {
     final i = '__i${Parser.internalVarIndex++}';
     list_stmt.add(VarDeclStmt(
         TokenIdentifier(i, curModuleUniqueKey, curTok.line, curTok.column),
-        declType: HTTypeId.number,
+        declType: HTType.number,
         initializer: ConstIntExpr(interpreter.addInt(0), curModuleUniqueKey,
             curTok.line, curTok.column)));
     // 指针
     var varname = match(HTLexicon.identifier).lexeme;
-    var typeid = HTTypeId.ANY;
+    var type = HTType.ANY;
     if (expect([HTLexicon.colon], consume: true)) {
-      typeid = _parseTypeId();
+      type = _parseType();
     }
     list_stmt.add(VarDeclStmt(
         TokenIdentifier(varname, curTok.fileName, curTok.line, curTok.column),
-        declType: typeid));
+        declType: type));
     match(HTLexicon.IN);
     var list_obj = _parseExpr();
     // 条件语句
@@ -612,7 +612,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
     var decl_type;
     if (expect([HTLexicon.colon], consume: true)) {
-      decl_type = _parseTypeId();
+      decl_type = _parseType();
     }
 
     ASTNode? initializer;
@@ -657,9 +657,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
       }
 
       var name = match(HTLexicon.identifier);
-      HTTypeId? declType;
+      HTType? declType;
       if (expect([HTLexicon.colon], consume: true)) {
-        declType = _parseTypeId();
+        declType = _parseType();
       }
 
       ASTNode? initializer;
@@ -750,10 +750,10 @@ class HTAstParser extends Parser with AstInterpreterRef {
       }
     }
 
-    var return_type = HTTypeId.ANY;
+    var return_type = HTType.ANY;
     if ((funcType != FunctionType.constructor) &&
         (expect([HTLexicon.colon], consume: true))) {
-      return_type = _parseTypeId();
+      return_type = _parseType();
     }
 
     var body = <ASTNode>[];
@@ -792,10 +792,10 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
     final savedClassId = _curClassId;
     final savedClassType = _curClassType;
-    // final savedClassTypeId = _curClassTypeId;
+    // final savedClassType = _curClassType;
     _curClassId = className.lexeme;
     _curClassType = classType;
-    // _curClassTypeId = HTTypeId(className.lexeme);
+    // _curClassType = HTType(className.lexeme);
 
     // generic type参数
     var typeParams = <String>[];
@@ -813,7 +813,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     // 继承父类
     SymbolExpr? super_class;
     ClassDeclStmt? super_class_decl;
-    HTTypeId? super_class_type_args;
+    HTType? super_class_type_args;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
       if (curTok.lexeme == className.lexeme) {
         throw HTError.unexpected(className.lexeme);
@@ -826,7 +826,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
       advance(1);
       if (expect([HTLexicon.angleLeft], consume: true)) {
         // 类型传入参数
-        super_class_type_args = _parseTypeId();
+        super_class_type_args = _parseType();
         match(HTLexicon.angleRight);
       }
     }
@@ -860,7 +860,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
     _curClassId = savedClassId;
     _curClassType = savedClassType;
-    // _curClassTypeId = savedClassTypeId;
+    // _curClassType = savedClassType;
     return stmt;
   }
 

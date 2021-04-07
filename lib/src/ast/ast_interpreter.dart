@@ -80,7 +80,7 @@ class HTAstInterpreter extends Interpreter
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
     _savedModuleName = _curModuleUniqueKey;
     _savedNamespace = _curNamespace;
@@ -153,7 +153,7 @@ class HTAstInterpreter extends Interpreter
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const []}) async {
+      List<HTType> typeArgs = const []}) async {
     dynamic result;
 
     final module = await moduleHandler.import(
@@ -186,7 +186,7 @@ class HTAstInterpreter extends Interpreter
       {String? className,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = false}) {}
 
   @override
@@ -362,9 +362,9 @@ class HTAstInterpreter extends Interpreter
           return left - right;
         }
       } else if (expr.op.type == HTLexicon.IS) {
-        if (right is HTTypeId) {
+        if (right is HTType) {
           final encapsulation = encapsulate(left);
-          return encapsulation.isA(right);
+          return encapsulation.type.isA(right);
         } else {
           throw HTError.notType(right.toString());
         }
@@ -401,7 +401,7 @@ class HTAstInterpreter extends Interpreter
       namedArgs[name] = visitASTNode(expr.namedArgs[name]!);
     }
 
-    final typeArgs = <HTTypeId>[];
+    final typeArgs = <HTType>[];
 
     if (callee is HTFunction) {
       if (callee.externalFunctionType == ExternalFunctionType.none) {
@@ -572,7 +572,7 @@ class HTAstInterpreter extends Interpreter
     //如果是Dart对象
     else {
       var typeString = object.runtimeType.toString();
-      final id = HTTypeId.parseBaseTypeId(typeString);
+      final id = HTType.parseBaseType(typeString);
       var externClass = fetchExternalClass(id);
       return externClass.instanceMemberGet(object, expr.key.lexeme);
     }
@@ -604,7 +604,7 @@ class HTAstInterpreter extends Interpreter
     //如果是Dart对象
     else {
       var typeString = object.runtimeType.toString();
-      final id = HTTypeId.parseBaseTypeId(typeString);
+      final id = HTType.parseBaseType(typeString);
       var externClass = fetchExternalClass(id);
       externClass.instanceMemberSet(object, expr.key.lexeme, value);
       return value;
@@ -753,7 +753,8 @@ class HTAstInterpreter extends Interpreter
       }
     }
 
-    final klass = HTClass(stmt.id.lexeme, superClass, this, _curNamespace,
+    final klass = HTClass(stmt.id.lexeme, superClass, null, this,
+        _curModuleUniqueKey, _curNamespace,
         classType: stmt.classType);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
@@ -816,7 +817,7 @@ class HTAstInterpreter extends Interpreter
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < stmt.enumerations.length; i++) {
       final id = stmt.enumerations[i];
-      defs[id] = HTEnumItem(i, id, HTTypeId(stmt.id.lexeme));
+      defs[id] = HTEnumItem(i, id, HTType(stmt.id.lexeme));
     }
 
     final enumClass =

@@ -22,11 +22,11 @@ abstract class HTFunction with HTDeclaration, HTObject {
   final String? externalTypedef;
 
   @override
-  late final HTFunctionTypeId typeid;
+  late final HTFunctionType type;
 
-  HTTypeId get returnType => typeid.returnType;
+  HTType get returnType => type.returnType;
 
-  final List<HTTypeId> typeArgs; // function<T1, T2>
+  final List<HTType> typeArgs; // function<T1, T2>
 
   final bool isStatic;
 
@@ -58,10 +58,6 @@ abstract class HTFunction with HTDeclaration, HTObject {
     this.context = context;
   }
 
-  /// Sub-classes of [HTFunction] must define [clone] method.
-  @override
-  HTFunction clone();
-
   /// Sub-classes of [HTFunction] must define [toString] method.
   @override
   String toString();
@@ -70,17 +66,10 @@ abstract class HTFunction with HTDeclaration, HTObject {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTTypeId> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = true});
 
+  /// Sub-classes of [HTFunction] must define [clone] method.
   @override
-  bool isA(HTTypeId otherTypeId) {
-    if (otherTypeId == HTTypeId.ANY) {
-      return true;
-    } else if (HTTypeId is! HTFunctionTypeId) {
-      return false;
-    } else {
-      return typeid == otherTypeId;
-    }
-  }
+  HTFunction clone();
 }

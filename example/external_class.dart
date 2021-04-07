@@ -20,8 +20,8 @@ class Person {
 extension PersonBinding on Person {
   dynamic htFetch(String varName) {
     switch (varName) {
-      case 'typeid':
-        return const HTTypeId('Person');
+      case 'type':
+        return const HTType('Person');
       case 'toString':
         return toString;
       case 'name':
@@ -30,7 +30,7 @@ extension PersonBinding on Person {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             greeting();
       case 'child':
         return child;
@@ -60,19 +60,19 @@ class PersonClassBinding extends HTExternalClass {
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             Person();
       case 'Person.withName':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             Person.withName(name: namedArgs['name']);
       case 'Person.meaning':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
-                List<HTTypeId> typeArgs = const []}) =>
+                List<HTType> typeArgs = const []}) =>
             Person.meaning(positionalArgs[0]);
       case 'Person.race':
         return Person.race;
@@ -126,7 +126,7 @@ void main() async {
       }
       fun main {
         let p1: Person = Person()
-        print(p1.typeid)
+        print(p1.type)
         print(p1.name)
         var p2 = Person.withName(name: 'Jimmy')
         print(p2.name)

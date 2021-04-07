@@ -100,24 +100,6 @@ void main() async {
         3,
       );
     });
-    test('extends check', () async {
-      final result = await hetu.eval(r'''
-        class Super2 {
-          var name = 'Super'
-        }
-        class Extend2 extends Super2 {
-          var name = 'Extend'
-        }
-        fun extendsCheck {
-          var a = Extend2()
-          return a is Super2
-        }
-      ''', invokeFunc: 'extendsCheck');
-      expect(
-        result,
-        true,
-      );
-    });
     test('type cast', () async {
       final result = await hetu.eval(r'''
         class Super3 {

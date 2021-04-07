@@ -23,7 +23,7 @@ class Char {
   var job: str
   var professions: List
 
-  get ageByYear: num {
+  get ageByYear -> num {
     return age / (12 * 30).truncate()
   }
 

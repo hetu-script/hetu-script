@@ -7,7 +7,7 @@ class Calculator {
   // 静态私有成员
   static var _name = 'the calculator'
 
-  static get name: str {
+  static get name -> str {
     // 类中的静态函数只能访问类中的静态对象
     return _name
   }
@@ -20,7 +20,7 @@ class Calculator {
   }
 
   // 带有返回类型的成员函数
-  fun meaning: num {
+  fun meaning -> num {
     // 可以不通过this直接使用成员变量
     return x * y
   }

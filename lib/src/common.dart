@@ -18,13 +18,15 @@ enum ExternalFunctionType {
 
 enum FunctionReturnType {
   none, // void
-  typeid, // HTTypeid
+  type, // HTTypeid
   superClassConstructor, // super class constructor
 }
 
-enum TypeIdType {
+enum TypeType {
   normal, // HTTypeid
   function, // HTFunctionTypeid
+  struct,
+  union,
 }
 
 /// Class types

@@ -1,27 +1,29 @@
+import 'package:quiver/core.dart';
+
 import 'lexicon.dart';
 import 'object.dart';
 
-class HTTypeId with HTObject {
-  static const ANY = HTTypeId(HTLexicon.ANY);
-  static const NULL = HTTypeId(HTLexicon.NULL);
-  static const VOID = HTTypeId(HTLexicon.VOID);
-  static const CLASS = HTTypeId(HTLexicon.CLASS);
-  static const ENUM = HTTypeId(HTLexicon.ENUM);
-  static const NAMESPACE = HTTypeId(HTLexicon.NAMESPACE);
-  static const type = HTTypeId(HTLexicon.type);
-  static const object = HTTypeId(HTLexicon.object);
-  static const function = HTTypeId(HTLexicon.function);
-  static const unknown = HTTypeId(HTLexicon.unknown);
-  static const number = HTTypeId(HTLexicon.number);
-  static const boolean = HTTypeId(HTLexicon.boolean);
-  static const string = HTTypeId(HTLexicon.string);
-  static const list = HTTypeId(HTLexicon.list);
-  static const map = HTTypeId(HTLexicon.map);
+class HTType with HTObject {
+  static const TYPE = HTType(HTLexicon.TYPE);
+  static const ANY = HTType(HTLexicon.ANY);
+  static const NULL = HTType(HTLexicon.NULL);
+  static const VOID = HTType(HTLexicon.VOID);
+  static const CLASS = HTType(HTLexicon.CLASS);
+  static const ENUM = HTType(HTLexicon.ENUM);
+  static const NAMESPACE = HTType(HTLexicon.NAMESPACE);
+  static const object = HTType(HTLexicon.object);
+  static const function = HTType(HTLexicon.function);
+  static const unknown = HTType(HTLexicon.unknown);
+  static const number = HTType(HTLexicon.number);
+  static const boolean = HTType(HTLexicon.boolean);
+  static const string = HTType(HTLexicon.string);
+  static const list = HTType(HTLexicon.list);
+  static const map = HTType(HTLexicon.map);
 
   @override
-  HTTypeId get typeid => HTTypeId.type;
+  HTType get type => HTType.TYPE;
 
-  static String parseBaseTypeId(String typeString) {
+  static String parseBaseType(String typeString) {
     final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
     if (argsStart != -1) {
       final id = typeString.substring(0, argsStart);
@@ -32,62 +34,159 @@ class HTTypeId with HTObject {
   }
 
   final String typeName;
+  final List<HTType> typeArgs;
   final bool isNullable;
-  final List<HTTypeId> typeArgs;
 
-  const HTTypeId(this.typeName,
-      {this.isNullable = true, this.typeArgs = const []});
+  const HTType(this.typeName,
+      {this.typeArgs = const [], this.isNullable = false});
 
   @override
   String toString() {
     var typename = StringBuffer();
     typename.write(typeName);
     if (typeArgs.isNotEmpty) {
-      typename.write('<');
+      typename.write(HTLexicon.angleLeft);
       for (var i = 0; i < typeArgs.length; ++i) {
         typename.write(typeArgs[i]);
         if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
-          typename.write(', ');
+          typename.write('${HTLexicon.comma} ');
         }
       }
-      typename.write('>');
+      typename.write(HTLexicon.angleRight);
+    }
+    if (isNullable) {
+      typename.write(HTLexicon.nullable);
     }
     return typename.toString();
   }
 
   @override
-  bool operator ==(Object other) {
-    if (other is! HTTypeId) {
-      return false;
+  int get hashCode {
+    final hashList = <int>[];
+    hashList.add(typeName.hashCode);
+    hashList.add(isNullable.hashCode);
+    for (final typeArg in typeArgs) {
+      hashList.add(typeArg.hashCode);
+    }
+    final hash = hashObjects(hashList);
+    return hash;
+  }
+
+  /// Wether object of this [HTType] can be assigned to other [HTType]
+  bool isA(Object other) {
+    if (this == HTType.unknown) {
+      if (other == HTType.ANY || other == HTType.unknown) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (other == HTType.ANY) {
+      return true;
+    } else if (other is HTType) {
+      if (this == HTType.NULL) {
+        // TODO: 这里是 nullable 功能的开关
+        // if (other.isNullable) {
+        //   return true;
+        // } else {
+        //   return false;
+        // }
+        return true;
+      }
+      if (typeName != other.typeName) {
+        return false;
+      } else if (typeArgs.length != other.typeArgs.length) {
+        return false;
+      } else {
+        for (var i = 0; i < typeArgs.length; ++i) {
+          if (!typeArgs[i].isA(typeArgs[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
     } else {
-      return hashCode == other.hashCode;
+      return false;
     }
   }
 
+  bool isNotA(Object other) => !isA(other);
+}
+
+class HTInstanceType extends HTType {
+  final String moduleUniqueKey;
+  final List<HTType> extended;
+  final List<HTType> implemented;
+  final List<HTType> mixined;
+
+  const HTInstanceType(String typeName, this.moduleUniqueKey,
+      {List<HTType> typeArgs = const [],
+      this.extended = const [],
+      this.implemented = const [],
+      this.mixined = const []})
+      : super(typeName, typeArgs: typeArgs, isNullable: false);
+
   @override
-  int get hashCode => toString().hashCode;
+  int get hashCode {
+    final hashList = <int>[];
+    hashList.add(typeName.hashCode);
+    hashList.add(isNullable.hashCode);
+    for (final typeArg in typeArgs) {
+      hashList.add(typeArg.hashCode);
+    }
+    for (final type in extended) {
+      hashList.add(type.hashCode);
+    }
+    for (final type in implemented) {
+      hashList.add(type.hashCode);
+    }
+    for (final type in mixined) {
+      hashList.add(type.hashCode);
+    }
+    final hash = hashObjects(hashList);
+    return hash;
+  }
+
+  @override
+  bool isA(Object other) {
+    if (other is HTType) {
+      if (other == HTType.ANY) {
+        return true;
+      } else if (other is HTInstanceType &&
+          moduleUniqueKey != other.moduleUniqueKey) {
+        return false;
+      }
+      for (var i = 0; i < extended.length; ++i) {
+        if (extended[i].isA(other)) {
+          return true;
+        }
+      }
+      for (var i = 0; i < implemented.length; ++i) {
+        if (implemented[i].isA(other)) {
+          return true;
+        }
+      }
+      for (var i = 0; i < mixined.length; ++i) {
+        if (mixined[i].isA(other)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return false;
+    }
+  }
 }
 
-typedef DDD = int Function<T>(int a, int b);
-
-DDD ddd = <T>(int a, int b) {
-  return a + b;
-};
-
-class HTClassTypeId extends HTTypeId {
-  // TOOD:
-}
-
-/// [HTFunctionTypeId] is equivalent to Dart's function typedef,
-class HTFunctionTypeId extends HTTypeId {
+/// [HTFunctionType] is equivalent to Dart's function typedef,
+class HTFunctionType extends HTType {
   final List<String> typeParams;
-  final List<HTTypeId> paramsTypes; // function(T1 arg1, T2 arg2)
-  final HTTypeId returnType;
+  final List<HTType> paramsTypes; // function(T1 arg1, T2 arg2)
+  final HTType returnType;
 
-  const HTFunctionTypeId(
+  const HTFunctionType(
       {this.typeParams = const [],
       this.paramsTypes = const [],
-      this.returnType = HTTypeId.ANY})
+      this.returnType = HTType.ANY})
       : super(HTLexicon.function);
 
   @override
@@ -116,5 +215,45 @@ class HTFunctionTypeId extends HTTypeId {
     return result.toString();
   }
 
-  // TODO: 通过重写isA，实现函数的逆变
+  @override
+  int get hashCode {
+    final hashList = <int>[];
+    hashList.add(typeName.hashCode);
+    hashList.add(isNullable.hashCode);
+    for (final typeArg in typeArgs) {
+      hashList.add(typeArg.hashCode);
+    }
+    hashList.add(typeParams.length.hashCode);
+    for (final paramType in paramsTypes) {
+      hashList.add(paramType.hashCode);
+    }
+    hashList.add(returnType.hashCode);
+    final hash = hashObjects(hashList);
+    return hash;
+  }
+
+  @override
+  bool isA(Object other) {
+    if (other == HTType.ANY) {
+      return true;
+    } else if (other is HTFunctionType) {
+      if (typeParams.length != other.typeParams.length) {
+        return false;
+      } else if (paramsTypes.length != other.paramsTypes.length) {
+        return false;
+      } else {
+        if (returnType.isNotA(other.returnType)) {
+          return false;
+        }
+        for (var i = 0; i < paramsTypes.length; ++i) {
+          if (other.paramsTypes[i].isNotA(paramsTypes[i])) {
+            return false;
+          }
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
