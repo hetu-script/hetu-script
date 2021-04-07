@@ -94,12 +94,12 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   void assign(dynamic value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
-      if (encapsulation.type.isNotA(_declType!)) {
-        final valType = interpreter.encapsulate(value).type;
+      if (encapsulation.rtType.isNotA(_declType!)) {
+        final valType = interpreter.encapsulate(value).rtType;
         throw HTError.typeCheck(id, valType.toString(), _declType.toString());
       }
     } else if (!isDynamic && value != null) {
-      _declType = interpreter.encapsulate(value).type;
+      _declType = interpreter.encapsulate(value).rtType;
     }
 
     super.assign(value);
@@ -124,38 +124,38 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
 }
 
 /// An implementation of [HTVariable] for function parameter declaration.
-class HTBytesParameter extends HTBytecodeVariable {
-  /// Wether this is an optional parameter.
-  final bool isOptional;
-
-  /// Wether this is a named parameter.
-  final bool isNamed;
-
-  /// Wether this is a variadic parameter.
-  final bool isVariadic;
-
-  /// Create a standard [HTBytesParameter].
-  HTBytesParameter(String id, Hetu interpreter, String module,
-      {dynamic value,
-      HTType? declType,
-      int? initializerIp,
-      this.isOptional = false,
-      this.isNamed = false,
-      this.isVariadic = false})
-      : super(id, interpreter, module,
-            value: value,
-            declType: declType,
-            initializerIp: initializerIp,
-            isImmutable: true);
-
+class HTBytecodeParameter extends HTBytecodeVariable {
   @override
-  HTBytesParameter clone() {
-    return HTBytesParameter(id, interpreter, moduleUniqueKey,
-        value: value,
-        declType: declType,
-        initializerIp: initializerIp,
+  late final HTType declType;
+
+  late final HTParameterType paramType;
+
+  /// Create a standard [HTBytecodeParameter].
+  HTBytecodeParameter(String id, Hetu interpreter, String module,
+      {dynamic value,
+      this.declType = HTType.ANY,
+      int? initializerIp,
+      bool isOptional = false,
+      bool isNamed = false,
+      bool isVariadic = false})
+      : super(id, interpreter, module,
+            value: value, initializerIp: initializerIp, isImmutable: true) {
+    paramType = HTParameterType(declType.typeName,
+        typeArgs: declType.typeArgs,
+        isNullable: declType.isNullable,
         isOptional: isOptional,
         isNamed: isNamed,
         isVariadic: isVariadic);
+  }
+
+  @override
+  HTBytecodeParameter clone() {
+    return HTBytecodeParameter(id, interpreter, moduleUniqueKey,
+        value: value,
+        declType: declType,
+        initializerIp: initializerIp,
+        isOptional: paramType.isOptional,
+        isNamed: paramType.isNamed,
+        isVariadic: paramType.isVariadic);
   }
 }

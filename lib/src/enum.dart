@@ -8,7 +8,7 @@ import 'declaration.dart';
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
 class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   @override
-  final HTType type = HTType.ENUM;
+  final HTType rtType = HTType.ENUM;
 
   /// The enumeration item of this [HTEnum].
   final Map<String, HTEnumItem> enums;
@@ -57,7 +57,7 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
 /// The Dart implementation of the enum item in Hetu.
 class HTEnumItem with HTObject {
   @override
-  final HTType type;
+  final HTType rtType;
 
   /// The index of this enum item.
   final int index;
@@ -66,16 +66,16 @@ class HTEnumItem with HTObject {
   final String id;
 
   @override
-  String toString() => '${type.typeName}$id';
+  String toString() => '${rtType.typeName}$id';
 
   /// Default [HTEnumItem] constructor.
-  HTEnumItem(this.index, this.id, this.type);
+  HTEnumItem(this.index, this.id, this.rtType);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'index':
         return index;
       case 'name':

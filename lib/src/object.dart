@@ -9,7 +9,7 @@ class _HTNull with HTObject {
   String toString() => HTLexicon.NULL;
 
   @override
-  HTType get type => HTType.NULL;
+  HTType get rtType => HTType.NULL;
 }
 
 /// Almost everything within Hetu is a [HTObject].
@@ -21,7 +21,7 @@ mixin HTObject {
   static const NULL = _HTNull();
 
   /// Typeid of this [HTObject]
-  HTType get type => HTType.object;
+  HTType get rtType => HTType.object;
 
   /// Wether this object contains a member with a name by [varName].
   bool contains(String varName) => throw HTError.undefined(varName);
@@ -32,8 +32,8 @@ mixin HTObject {
   /// ```
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],

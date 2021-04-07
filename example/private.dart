@@ -6,14 +6,13 @@ void main() async {
   await hetu.eval(r'''
     class A {
       static fun _init {
-        print('private _init called!')
+        print('private static _init called!')
       }
       fun _post {
-        print('private _post called!')
+        print('private instance _post called!')
       }
-
       fun init {
-        A._init()
+        _init()
         _post()
       }
     }

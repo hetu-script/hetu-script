@@ -5,9 +5,8 @@ import 'declaration.dart';
 import 'object.dart';
 import 'class.dart';
 
-/// [HTFunction] is the base class of functions in Hetu.
-///
-/// Ast and byte codes has their own implementation.
+/// [HTFunction] is the base class of
+/// [HTAstFunction] and [HTBytecodeFunction] in Hetu.
 abstract class HTFunction with HTDeclaration, HTObject {
   static final callStack = <String>[];
 
@@ -22,9 +21,9 @@ abstract class HTFunction with HTDeclaration, HTObject {
   final String? externalTypedef;
 
   @override
-  late final HTFunctionType type;
+  late final HTFunctionType rtType;
 
-  HTType get returnType => type.returnType;
+  HTType get returnType => rtType.returnType;
 
   final List<HTType> typeArgs; // function<T1, T2>
 

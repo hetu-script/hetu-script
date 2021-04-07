@@ -20,7 +20,7 @@ class Person {
 extension PersonBinding on Person {
   dynamic htFetch(String varName) {
     switch (varName) {
-      case 'type':
+      case 'rtType':
         return const HTType('Person');
       case 'toString':
         return toString;
@@ -126,7 +126,7 @@ void main() async {
       }
       fun main {
         let p1: Person = Person()
-        print(p1.type)
+        print(p1.rtType)
         print(p1.name)
         var p2 = Person.withName(name: 'Jimmy')
         print(p2.name)

@@ -61,6 +61,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
   /// used to determine compatibility.
   static const hetuVersionData = [0, 1, 0, 0];
 
+  // Fetch a short utf8 string from the byte list
+  static String readId(Uint8List bytes) {
+    final length = bytes.first;
+    return utf8.decoder.convert(bytes.sublist(1, length + 1));
+  }
+
   late _DeclarationBlock _globalBlock;
   late _DeclarationBlock _curBlock;
 
@@ -235,12 +241,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  // Fetch a short utf8 string from the byte list
-  String _readId(Uint8List bytes) {
-    final length = bytes.first;
-    return utf8.decoder.convert(bytes.sublist(1, length + 1));
-  }
-
   Uint8List _compileStmt(
       {CodeType codeType = CodeType.module, bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
@@ -255,12 +255,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
             switch (curTok.type) {
               case HTLexicon.CLASS:
                 final decl = _compileClassDeclStmt(classType: ClassType.extern);
-                final id = _readId(decl);
+                final id = readId(decl);
                 _curBlock.classDecls[id] = decl;
                 break;
               case HTLexicon.ENUM:
                 final decl = _compileEnumDeclStmt(isExtern: true);
-                final id = _readId(decl);
+                final id = readId(decl);
                 _curBlock.enumDecls[id] = decl;
                 break;
               case HTLexicon.VAR:
@@ -270,7 +270,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
               case HTLexicon.FUNCTION:
                 final decl = _compileFuncDeclaration(
                     externType: ExternalFunctionType.externalFunction);
-                final id = _readId(decl);
+                final id = readId(decl);
                 _curBlock.funcDecls[id] = decl;
                 break;
               default:
@@ -279,33 +279,33 @@ class Compiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.ENUM:
             final decl = _compileEnumDeclStmt();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.enumDecls[id] = decl;
             break;
           case HTLexicon.CLASS:
             final decl = _compileClassDeclStmt();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.classDecls[id] = decl;
             break;
           case HTLexicon.VAR:
             final decl = _compileVarStmt(isDynamic: true);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.LET:
             final decl = _compileVarStmt();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.CONST:
             final decl = _compileVarStmt(isImmutable: true);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.FUNCTION:
             if (peek(1).type == HTLexicon.identifier) {
               final decl = _compileFuncDeclaration();
-              final id = _readId(decl);
+              final id = readId(decl);
               _curBlock.funcDecls[id] = decl;
             } else {
               final func = _compileExprStmt();
@@ -351,12 +351,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
             switch (curTok.type) {
               case HTLexicon.CLASS:
                 final decl = _compileClassDeclStmt(classType: ClassType.extern);
-                final id = _readId(decl);
+                final id = readId(decl);
                 _curBlock.classDecls[id] = decl;
                 break;
               case HTLexicon.ENUM:
                 final decl = _compileEnumDeclStmt(isExtern: true);
-                final id = _readId(decl);
+                final id = readId(decl);
                 _curBlock.enumDecls[id] = decl;
                 break;
               case HTLexicon.VAR:
@@ -366,7 +366,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
               case HTLexicon.FUNCTION:
                 final decl = _compileFuncDeclaration(
                     externType: ExternalFunctionType.externalFunction);
-                final id = _readId(decl);
+                final id = readId(decl);
                 _curBlock.funcDecls[id] = decl;
                 break;
               default:
@@ -375,32 +375,32 @@ class Compiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.ENUM:
             final decl = _compileEnumDeclStmt();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.enumDecls[id] = decl;
             break;
           case HTLexicon.CLASS:
             final decl = _compileClassDeclStmt();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.classDecls[id] = decl;
             break;
           case HTLexicon.VAR:
             final decl = _compileVarStmt(isDynamic: true);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.LET:
             final decl = _compileVarStmt();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.CONST:
             final decl = _compileVarStmt(isImmutable: true);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.FUNCTION:
             final decl = _compileFuncDeclaration();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.funcDecls[id] = decl;
             break;
           default:
@@ -412,23 +412,23 @@ class Compiler extends Parser with ConstTable, HetuRef {
         switch (curTok.type) {
           case HTLexicon.VAR:
             final decl = _compileVarStmt(isDynamic: true);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.LET:
             final decl = _compileVarStmt();
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.CONST:
             final decl = _compileVarStmt(isImmutable: true);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.FUNCTION:
             if (peek(1).type == HTLexicon.identifier) {
               final decl = _compileFuncDeclaration();
-              final id = _readId(decl);
+              final id = readId(decl);
               _curBlock.funcDecls[id] = decl;
             } else {
               final func = _compileExprStmt();
@@ -487,7 +487,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                 isExtern: isExtern || _curClassType == ClassType.extern,
                 isMember: true,
                 isStatic: isStatic);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.LET:
@@ -495,7 +495,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                 isExtern: isExtern || _curClassType == ClassType.extern,
                 isMember: true,
                 isStatic: isStatic);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.CONST:
@@ -504,7 +504,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                 isImmutable: true,
                 isMember: true,
                 isStatic: isStatic);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
           // 函数声明
@@ -517,7 +517,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                         ? ExternalFunctionType.externalFunction
                         : ExternalFunctionType.none,
                 isStatic: isStatic);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.funcDecls[id] = decl;
             break;
           case HTLexicon.CONSTRUCT:
@@ -529,7 +529,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                       ? ExternalFunctionType.externalFunction
                       : ExternalFunctionType.none,
             );
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.funcDecls[id] = decl;
             break;
           case HTLexicon.GET:
@@ -541,7 +541,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                         ? ExternalFunctionType.externalFunction
                         : ExternalFunctionType.none,
                 isStatic: isStatic);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.funcDecls[id] = decl;
             break;
           case HTLexicon.SET:
@@ -553,7 +553,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                         ? ExternalFunctionType.externalFunction
                         : ExternalFunctionType.none,
                 isStatic: isStatic);
-            final id = _readId(decl);
+            final id = readId(decl);
             _curBlock.funcDecls[id] = decl;
             break;
           default:
@@ -1557,7 +1557,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _compileType({bool localValue = false}) {
+  Uint8List _compileType({bool localValue = false, bool isParam = false}) {
     final bytesBuilder = BytesBuilder();
     if (localValue) {
       bytesBuilder.addByte(HTOpCode.local);
@@ -1565,7 +1565,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
     }
     // normal type
     if (curTok.type == HTLexicon.identifier) {
-      bytesBuilder.addByte(TypeType.normal.index); // enum: normal type
+      bytesBuilder.addByte(isParam
+          ? TypeType.parameter.index
+          : TypeType.normal.index); // enum: normal type
       final id = match(HTLexicon.identifier).lexeme;
 
       bytesBuilder.add(_shortUtf8String(id));
@@ -1592,14 +1594,53 @@ class Compiler extends Parser with ConstTable, HetuRef {
       advance(1);
       bytesBuilder.addByte(TypeType.function.index); // enum: normal type
 
+      // TODO: typeParameters 泛型参数
+
       final paramTypes = <Uint8List>[];
       match(HTLexicon.roundLeft);
+
+      var minArity = 0;
+      var isOptional = false;
+      var isNamed = false;
+      var isVariadic = false;
+      final paramBytesBuilder = BytesBuilder();
+
       while (curTok.type != HTLexicon.roundRight &&
           curTok.type != HTLexicon.endOfFile) {
-        final paramType = _compileType();
-        paramTypes.add(paramType);
+        if (!isOptional) {
+          isOptional = expect([HTLexicon.squareLeft], consume: true);
+          if (!isOptional && !isNamed) {
+            isNamed = expect([HTLexicon.curlyLeft], consume: true);
+          }
+        }
+
+        if (!isNamed) {
+          isVariadic = expect([HTLexicon.varargs], consume: true);
+        }
+
+        if (!isNamed && !isVariadic && !isOptional) {
+          ++minArity;
+        }
+
+        final paramType = _compileType(isParam: true);
+        paramBytesBuilder.add(paramType);
+        paramBytesBuilder.addByte(isOptional ? 1 : 0);
+        paramBytesBuilder.addByte(isNamed ? 1 : 0);
+        paramBytesBuilder.addByte(isVariadic ? 1 : 0);
+
+        paramTypes.add(paramBytesBuilder.toBytes());
         if (curTok.type != HTLexicon.roundRight) {
           match(HTLexicon.comma);
+        }
+
+        if (curTok.type != HTLexicon.squareRight &&
+            curTok.type != HTLexicon.curlyRight &&
+            curTok.type != HTLexicon.roundRight) {
+          match(HTLexicon.comma);
+        }
+
+        if (isVariadic) {
+          break;
         }
       }
       match(HTLexicon.roundRight);
@@ -1608,6 +1649,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       for (final paramType in paramTypes) {
         bytesBuilder.add(paramType);
       }
+
+      bytesBuilder.addByte(minArity);
 
       match(HTLexicon.arrow);
 
@@ -1671,7 +1714,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
     } else {
-      if (isImmutable) {
+      if (isImmutable && !isExtern) {
         throw HTError.constMustInit(id);
       }
 
@@ -1793,20 +1836,20 @@ class Compiler extends Parser with ConstTable, HetuRef {
         expect([HTLexicon.roundLeft], consume: true)) {
       var isOptional = false;
       var isNamed = false;
+      var isVariadic = false;
       while ((curTok.type != HTLexicon.roundRight) &&
           (curTok.type != HTLexicon.squareRight) &&
           (curTok.type != HTLexicon.curlyRight) &&
           (curTok.type != HTLexicon.endOfFile)) {
-        // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
+        // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加 minArity
         if (!isOptional) {
           isOptional = expect([HTLexicon.squareLeft], consume: true);
           if (!isOptional && !isNamed) {
-            //检查命名参数，根据是否有花括号判断
+            //命名参数，根据是否有花括号判断
             isNamed = expect([HTLexicon.curlyLeft], consume: true);
           }
         }
 
-        var isVariadic = false;
         if (!isNamed) {
           isVariadic = expect([HTLexicon.varargs], consume: true);
         }

@@ -31,7 +31,7 @@ class HTBytecodeFunctionSuperConstructor {
 /// Bytecode implementation of [HTFunction].
 class HTBytecodeFunction extends HTFunction with HetuRef {
   /// Holds declarations of all parameters.
-  final Map<String, HTBytesParameter> parameterDeclarations;
+  final Map<String, HTBytecodeParameter> parameterDeclarations;
 
   final HTBytecodeFunctionSuperConstructor? superConstructor;
 
@@ -51,7 +51,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     FunctionType funcType = FunctionType.normal,
     ExternalFunctionType externalFunctionType = ExternalFunctionType.none,
     String? externalTypedef,
-    this.parameterDeclarations = const <String, HTBytesParameter>{},
+    this.parameterDeclarations = const <String, HTBytecodeParameter>{},
     HTType returnType = HTType.ANY,
     this.definitionIp,
     List<HTType> typeArgs = const [],
@@ -76,11 +76,11 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
             context: context) {
     this.interpreter = interpreter;
 
-    type = HTFunctionType(
-        returnType: returnType,
-        parameterTypes: parameterDeclarations.values
-            .map((paramDecl) => paramDecl.declType ?? HTType.ANY)
-            .toList());
+    rtType = HTFunctionType(
+        parameterTypes: parameterDeclarations
+            .map((key, value) => MapEntry(key, value.paramType)),
+        minArity: minArity,
+        returnType: returnType);
   }
 
   /// Print function signature to String with function [id] and parameter [id].
@@ -89,12 +89,12 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     var result = StringBuffer();
     result.write(HTLexicon.function);
     result.write(' $id');
-    if (type.typeArgs.isNotEmpty) {
+    if (rtType.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < type.typeArgs.length; ++i) {
-        result.write(type.typeArgs[i]);
-        if ((type.typeArgs.length > 1) && (i != type.typeArgs.length - 1)) {
-          result.write(', ');
+      for (var i = 0; i < rtType.typeArgs.length; ++i) {
+        result.write(rtType.typeArgs[i]);
+        if (i < rtType.typeArgs.length - 1) {
+          result.write('${HTLexicon.comma} ');
         }
       }
       result.write(HTLexicon.angleRight);
@@ -106,18 +106,18 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     var optionalStarted = false;
     var namedStarted = false;
     for (final param in parameterDeclarations.values) {
-      if (param.isVariadic) {
+      if (param.paramType.isVariadic) {
         result.write(HTLexicon.varargs + ' ');
       }
-      if (param.isOptional && !optionalStarted) {
+      if (param.paramType.isOptional && !optionalStarted) {
         optionalStarted = true;
         result.write(HTLexicon.squareLeft);
-      } else if (param.isNamed && !namedStarted) {
+      } else if (param.paramType.isNamed && !namedStarted) {
         namedStarted = true;
         result.write(HTLexicon.curlyLeft);
       }
       result.write(
-          param.id + '${HTLexicon.arrow} ' + (param.declType.toString()));
+          param.id + '${HTLexicon.colon} ' + (param.declType.toString()));
       if (i < parameterDeclarations.length - 1) {
         result.write('${HTLexicon.comma} ');
       }
@@ -231,7 +231,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
           var decl = parameterDeclarations.values.elementAt(i).clone();
           closure.define(decl);
 
-          if (decl.isVariadic) {
+          if (decl.paramType.isVariadic) {
             variadicStart = i;
             variadicParam = decl;
             break;
@@ -276,7 +276,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         for (var param in parameterDeclarations.values) {
           var decl = param.clone();
 
-          if (decl.isVariadic) {
+          if (decl.paramType.isVariadic) {
             variadicStart = i;
             variadicParam = decl;
             break;
@@ -345,9 +345,9 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
 
       if (returnType != HTType.ANY) {
         final encapsulation = interpreter.encapsulate(result);
-        if (encapsulation.type.isNotA(returnType)) {
+        if (encapsulation.rtType.isNotA(returnType)) {
           throw HTError.returnType(
-              encapsulation.type.toString(), id, returnType.toString());
+              encapsulation.rtType.toString(), id, returnType.toString());
         }
       }
 

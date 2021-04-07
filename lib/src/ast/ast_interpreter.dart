@@ -364,7 +364,7 @@ class HTAstInterpreter extends Interpreter
       } else if (expr.op.type == HTLexicon.IS) {
         if (right is HTType) {
           final encapsulation = encapsulate(left);
-          return encapsulation.type.isA(right);
+          return encapsulation.rtType.isA(right);
         } else {
           throw HTError.notType(right.toString());
         }

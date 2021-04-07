@@ -9,7 +9,7 @@ import 'instance.dart';
 /// The implementation of a certain type cast of a object
 class HTCast with HTObject, InterpreterRef {
   @override
-  late final HTInstanceType type;
+  late final HTInstanceType rtType;
 
   final HTClass klass;
 
@@ -32,11 +32,10 @@ class HTCast with HTObject, InterpreterRef {
       curSuper = curSuper.superClass;
     }
 
-    type = HTInstanceType(klass.id, interpreter.curModuleUniqueKey!,
-        typeArgs: typeArgs, extended: extended);
+    rtType = HTInstanceType(klass.id, typeArgs: typeArgs, extended: extended);
 
-    if (object.type.isNotA(type)) {
-      throw HTError.typeCast(object.toString(), type.toString());
+    if (object.rtType.isNotA(rtType)) {
+      throw HTError.typeCast(object.toString(), rtType.toString());
     }
 
     if (object is HTInstance) {

@@ -110,24 +110,45 @@ class HTBytecode with ConstTable {
 
     switch (typeType) {
       case TypeType.normal:
-        final id = readShortUtf8String();
+        final typeName = readShortUtf8String();
         final length = read();
-        final args = <HTType>[];
+        final typeArgs = <HTType>[];
         for (var i = 0; i < length; ++i) {
-          args.add(readType());
+          typeArgs.add(readType());
         }
         final isNullable = read() == 0 ? false : true;
-        return HTType(id, isNullable: isNullable, typeArgs: args);
+        return HTType(typeName, isNullable: isNullable, typeArgs: typeArgs);
+      case TypeType.parameter:
+        final typeName = readShortUtf8String();
+        final length = read();
+        final typeArgs = <HTType>[];
+        for (var i = 0; i < length; ++i) {
+          typeArgs.add(readType());
+        }
+        final isNullable = read() == 0 ? false : true;
+        final isOptional = read() == 0 ? false : true;
+        final isNamed = read() == 0 ? false : true;
+        final isVariadic = read() == 0 ? false : true;
+        return HTParameterType(typeName,
+            typeArgs: typeArgs,
+            isNullable: isNullable,
+            isOptional: isOptional,
+            isNamed: isNamed,
+            isVariadic: isVariadic);
+
       case TypeType.function:
         final paramsLength = read();
-        final paramTypes = <HTType>[];
+        final parameterTypes = <String, HTParameterType>{};
         for (var i = 0; i < paramsLength; ++i) {
-          final paramType = readType();
-          paramTypes.add(paramType);
+          final paramType = readType() as HTParameterType;
+          parameterTypes[paramType.typeName] = paramType;
         }
+        final minArity = read();
         final returnType = readType();
         return HTFunctionType(
-            positionalParameterTypes: paramTypes, returnType: returnType);
+            parameterTypes: parameterTypes,
+            minArity: minArity,
+            returnType: returnType);
       case TypeType.struct:
       case TypeType.union:
         return HTType(readShortUtf8String());

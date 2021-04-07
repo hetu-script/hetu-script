@@ -36,12 +36,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     this.interpreter = interpreter;
     this.context = context;
 
-    var paramsTypes = <HTType>[];
-    for (final param in funcStmt.params) {
-      paramsTypes.add(param.declType ?? HTType.ANY);
-    }
-    type = HTFunctionType(
-        returnType: funcStmt.returnType, positionalParameterTypes: paramsTypes);
+    // TODO: 参数改成声明，这里才能创建类型
+    // type = HTFunctionType(
+    //     returnType: funcStmt.returnType, positionalParameterTypes: paramsTypes);
   }
 
   @override
@@ -49,11 +46,11 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     var result = StringBuffer();
     result.write('${HTLexicon.function}');
     result.write(' $id');
-    if (type.typeArgs.isNotEmpty) {
+    if (rtType.typeArgs.isNotEmpty) {
       result.write('<');
-      for (var i = 0; i < type.typeArgs.length; ++i) {
-        result.write(type.typeArgs[i]);
-        if ((type.typeArgs.length > 1) && (i != type.typeArgs.length - 1)) {
+      for (var i = 0; i < rtType.typeArgs.length; ++i) {
+        result.write(rtType.typeArgs[i]);
+        if ((rtType.typeArgs.length > 1) && (i != rtType.typeArgs.length - 1)) {
           result.write(', ');
         }
       }
@@ -123,8 +120,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
           if (!param.isVariadic) {
             final argEncapsulation = interpreter.encapsulate(arg);
-            if (argEncapsulation.type.isNotA(argTypeid)) {
-              final arg_type = interpreter.encapsulate(arg).type;
+            if (argEncapsulation.rtType.isNotA(argTypeid)) {
+              final arg_type = interpreter.encapsulate(arg).rtType;
               throw HTError.argType(
                   arg.toString(), arg_type.toString(), argTypeid.toString());
             }
@@ -134,8 +131,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
             for (var j = i; j < positionalArgs.length; ++j) {
               arg = positionalArgs[j];
               final argEncapsulation = interpreter.encapsulate(arg);
-              if (argEncapsulation.type.isNotA(argTypeid)) {
-                final arg_type = interpreter.encapsulate(arg).type;
+              if (argEncapsulation.rtType.isNotA(argTypeid)) {
+                final arg_type = interpreter.encapsulate(arg).rtType;
                 throw HTError.argType(
                     arg.toString(), arg_type.toString(), argTypeid.toString());
               }
@@ -158,9 +155,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       }
 
       final encapsulation = interpreter.encapsulate(result);
-      if (encapsulation.type.isNotA(returnType)) {
+      if (encapsulation.rtType.isNotA(returnType)) {
         throw HTError.returnType(
-            encapsulation.type.toString(), id, returnType.toString());
+            encapsulation.rtType.toString(), id, returnType.toString());
       }
 
       if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {

@@ -6,24 +6,24 @@ import 'lexicon.dart';
 /// Base class for external object.
 class HTExternObject<T> with HTObject {
   @override
-  final type;
+  final rtType;
 
   /// the external object.
   T externObject;
 
   /// Create a external class object.
-  HTExternObject(this.externObject, {this.type = HTType.unknown});
+  HTExternObject(this.externObject, {this.rtType = HTType.unknown});
 }
 
 /// Binding object for dart number.
 class HTNumber extends HTExternObject<num> {
-  HTNumber(num value) : super(value, type: HTType.number);
+  HTNumber(num value) : super(value, rtType: HTType.number);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -87,13 +87,13 @@ class HTNumber extends HTExternObject<num> {
 
 /// Binding object for dart bool.
 class HTBoolean extends HTExternObject<bool> {
-  HTBoolean(bool value) : super(value, type: HTType.boolean);
+  HTBoolean(bool value) : super(value, rtType: HTType.boolean);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -110,13 +110,13 @@ class HTBoolean extends HTExternObject<bool> {
 
 /// Binding object for dart string.
 class HTString extends HTExternObject<String> {
-  HTString(String value) : super(value, type: HTType.string);
+  HTString(String value) : super(value, rtType: HTType.string);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -170,13 +170,13 @@ class HTString extends HTExternObject<String> {
 /// Binding object for dart list.
 class HTList extends HTExternObject<List> {
   HTList(List value, {HTType valueType = HTType.ANY})
-      : super(value, type: HTType(HTLexicon.list, typeArgs: [valueType]));
+      : super(value, rtType: HTType(HTLexicon.list, typeArgs: [valueType]));
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -251,16 +251,16 @@ class HTList extends HTExternObject<List> {
 class HTMap extends HTExternObject<Map> {
   HTMap(Map value, {HTType keyType = HTType.ANY, HTType valueType = HTType.ANY})
       : super(value,
-            type: HTType(HTLexicon.list, typeArgs: [keyType, valueType]));
+            rtType: HTType(HTLexicon.list, typeArgs: [keyType, valueType]));
 
   @override
-  final type = HTType.map;
+  final rtType = HTType.map;
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],

@@ -21,7 +21,7 @@ class HTType with HTObject {
   static const map = HTType(HTLexicon.map);
 
   @override
-  HTType get type => HTType.TYPE;
+  HTType get rtType => HTType.TYPE;
 
   static String parseBaseType(String typeString) {
     final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
@@ -91,8 +91,7 @@ class HTType with HTObject {
         //   return false;
         // }
         return true;
-      }
-      if (typeName != other.typeName) {
+      } else if (typeName != other.typeName) {
         return false;
       } else if (typeArgs.length != other.typeArgs.length) {
         return false;
@@ -109,16 +108,19 @@ class HTType with HTObject {
     }
   }
 
+  /// Wether object of this [HTType] cannot be assigned to other [HTType]
   bool isNotA(Object other) => !isA(other);
+
+  @override
+  bool operator ==(Object other) => hashCode == other.hashCode;
 }
 
 class HTInstanceType extends HTType {
-  final String moduleUniqueKey;
   final List<HTType> extended;
   final List<HTType> implemented;
   final List<HTType> mixined;
 
-  const HTInstanceType(String typeName, this.moduleUniqueKey,
+  const HTInstanceType(String typeName,
       {List<HTType> typeArgs = const [],
       this.extended = const [],
       this.implemented = const [],
@@ -151,26 +153,24 @@ class HTInstanceType extends HTType {
     if (other is HTType) {
       if (other == HTType.ANY) {
         return true;
-      } else if (other is HTInstanceType &&
-          moduleUniqueKey != other.moduleUniqueKey) {
+      } else {
+        for (var i = 0; i < extended.length; ++i) {
+          if (extended[i].isA(other)) {
+            return true;
+          }
+        }
+        for (var i = 0; i < implemented.length; ++i) {
+          if (implemented[i].isA(other)) {
+            return true;
+          }
+        }
+        for (var i = 0; i < mixined.length; ++i) {
+          if (mixined[i].isA(other)) {
+            return true;
+          }
+        }
         return false;
       }
-      for (var i = 0; i < extended.length; ++i) {
-        if (extended[i].isA(other)) {
-          return true;
-        }
-      }
-      for (var i = 0; i < implemented.length; ++i) {
-        if (implemented[i].isA(other)) {
-          return true;
-        }
-      }
-      for (var i = 0; i < mixined.length; ++i) {
-        if (mixined[i].isA(other)) {
-          return true;
-        }
-      }
-      return false;
     } else {
       return false;
     }
@@ -178,18 +178,52 @@ class HTInstanceType extends HTType {
 }
 
 class HTParameterType extends HTType {
-  HTParameterType(String id, HTType type) : super(type.typeName);
+  /// Wether this is an optional parameter.
+  final bool isOptional;
+
+  /// Wether this is a named parameter.
+  final bool isNamed;
+
+  /// Wether this is a variadic parameter.
+  final bool isVariadic;
+
+  HTParameterType(String typeName,
+      {List<HTType> typeArgs = const [],
+      isNullable = false,
+      this.isOptional = false,
+      this.isNamed = false,
+      this.isVariadic = false})
+      : super(typeName, typeArgs: typeArgs, isNullable: isNullable);
+
+  @override
+  bool isA(Object other) {
+    if (other is HTParameterType) {
+      if (isNamed && (typeName != other.typeName)) {
+        return false;
+      } else if ((isOptional != other.isOptional) ||
+          (isNamed != other.isNamed) ||
+          (isVariadic != other.isVariadic)) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
 }
 
 /// [HTFunctionType] is equivalent to Dart's function typedef,
 class HTFunctionType extends HTType {
   final List<String> typeParameters;
   final Map<String, HTParameterType> parameterTypes;
+  final int minArity;
   final HTType returnType;
 
   const HTFunctionType(
       {this.typeParameters = const [],
       this.parameterTypes = const {},
+      this.minArity = 0,
       this.returnType = HTType.ANY})
       : super(HTLexicon.function);
 
@@ -197,25 +231,47 @@ class HTFunctionType extends HTType {
   String toString() {
     var result = StringBuffer();
     result.write(HTLexicon.function);
-    if (typeParameters.isNotEmpty) {
-      result.write('<');
-      for (var i = 0; i < typeParameters.length; ++i) {
-        result.write(typeParameters[i]);
-        if ((typeParameters.length > 1) && (i != typeParameters.length - 1)) {
-          result.write(', ');
+    if (rtType.typeArgs.isNotEmpty) {
+      result.write(HTLexicon.angleLeft);
+      for (var i = 0; i < rtType.typeArgs.length; ++i) {
+        result.write(rtType.typeArgs[i]);
+        if (i < rtType.typeArgs.length - 1) {
+          result.write('${HTLexicon.comma} ');
         }
       }
-      result.write('>');
+      result.write(HTLexicon.angleRight);
     }
 
-    result.write('(');
+    result.write(HTLexicon.roundLeft);
 
-    for (final paramType in positionalParameterTypes) {
-      result.write(paramType.toString());
-      //if (param.initializer != null)
-      if (positionalParameterTypes.length > 1) result.write(', ');
+    var i = 0;
+    var optionalStarted = false;
+    var namedStarted = false;
+    for (final param in parameterTypes.values) {
+      if (param.isVariadic) {
+        result.write(HTLexicon.varargs + ' ');
+      }
+      if (param.isOptional && !optionalStarted) {
+        optionalStarted = true;
+        result.write(HTLexicon.squareLeft);
+      } else if (param.isNamed && !namedStarted) {
+        namedStarted = true;
+        result.write(HTLexicon.curlyLeft);
+      }
+      result.write(param.toString());
+      if (i < parameterTypes.length - 1) {
+        result.write('${HTLexicon.comma} ');
+      }
+      if (optionalStarted) {
+        result.write(HTLexicon.squareRight);
+      } else if (namedStarted) {
+        namedStarted = true;
+        result.write(HTLexicon.curlyRight);
+      }
+      ++i;
     }
-    result.write(') -> ' + returnType.toString());
+    result.write(
+        '${HTLexicon.roundRight} ${HTLexicon.arrow} ' + returnType.toString());
     return result.toString();
   }
 
@@ -228,8 +284,9 @@ class HTFunctionType extends HTType {
       hashList.add(typeArg.hashCode);
     }
     hashList.add(typeParameters.length.hashCode);
-    for (final paramType in positionalParameterTypes) {
+    for (final paramType in parameterTypes.keys) {
       hashList.add(paramType.hashCode);
+      hashList.add(parameterTypes[paramType].hashCode);
     }
     hashList.add(returnType.hashCode);
     final hash = hashObjects(hashList);
@@ -243,21 +300,29 @@ class HTFunctionType extends HTType {
     } else if (other is HTFunctionType) {
       if (typeParameters.length != other.typeParameters.length) {
         return false;
-      } else if (positionalParameterTypes.length !=
-          other.positionalParameterTypes.length) {
+      } else if (returnType.isNotA(other.returnType)) {
+        return false;
+      } else if (minArity != other.minArity) {
         return false;
       } else {
-        if (returnType.isNotA(other.returnType)) {
-          return false;
-        }
-        for (var i = 0; i < positionalParameterTypes.length; ++i) {
-          if (other.positionalParameterTypes[i]
-              .isNotA(positionalParameterTypes[i])) {
-            return false;
+        var i = 0;
+        for (final paramKey in parameterTypes.keys) {
+          final param = parameterTypes[paramKey]!;
+          HTParameterType? otherParam;
+          if (param.isNamed) {
+            otherParam = other.parameterTypes[paramKey];
+          } else {
+            otherParam = other.parameterTypes.values.elementAt(i);
           }
+          if (!param.isOptional && !param.isVariadic) {
+            if (otherParam == null || param.isNotA(otherParam)) {
+              return false;
+            }
+          }
+          ++i;
         }
+        return true;
       }
-      return true;
     } else {
       return false;
     }

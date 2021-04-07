@@ -27,7 +27,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
   @override
-  final type = HTType.NAMESPACE;
+  final rtType = HTType.NAMESPACE;
 
   /// The full closure path of this namespace
   late final String fullName;

@@ -22,7 +22,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   final String moduleUniqueKey;
 
   @override
-  final HTType type = HTType.CLASS;
+  final HTType rtType = HTType.CLASS;
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.

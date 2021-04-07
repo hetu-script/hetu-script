@@ -24,6 +24,7 @@ enum FunctionReturnType {
 
 enum TypeType {
   normal, // HTTypeid
+  parameter,
   function, // HTFunctionTypeid
   struct,
   union,

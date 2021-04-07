@@ -131,9 +131,9 @@ abstract class Interpreter {
     } else if (object is List) {
       var valueType = HTType.ANY;
       if (object.isNotEmpty) {
-        valueType = encapsulate(object.first).type;
+        valueType = encapsulate(object.first).rtType;
         for (final item in object) {
-          final value = encapsulate(item).type;
+          final value = encapsulate(item).rtType;
           if (value.isNotA(valueType)) {
             valueType = HTType.ANY;
             break;
@@ -146,9 +146,9 @@ abstract class Interpreter {
       var keyType = HTType.ANY;
       var valueType = HTType.ANY;
       if (object.keys.isNotEmpty) {
-        keyType = encapsulate(object.keys.first).type;
+        keyType = encapsulate(object.keys.first).rtType;
         for (final item in object.keys) {
-          final value = encapsulate(item).type;
+          final value = encapsulate(item).rtType;
           if (value.isNotA(keyType)) {
             keyType = HTType.ANY;
             break;
@@ -156,9 +156,9 @@ abstract class Interpreter {
         }
       }
       if (object.values.isNotEmpty) {
-        valueType = encapsulate(object.values.first).type;
+        valueType = encapsulate(object.values.first).rtType;
         for (final item in object.values) {
-          final value = encapsulate(item).type;
+          final value = encapsulate(item).rtType;
           if (value.isNotA(valueType)) {
             valueType = HTType.ANY;
             break;
@@ -173,7 +173,7 @@ abstract class Interpreter {
       if (containsExternalClass(id)) {
         // try {
         // final externClass = fetchExternalClass(type.id);
-        return HTExternObject(object, type: HTType(id));
+        return HTExternObject(object, rtType: HTType(id));
         // } on HTError.undefined {
         //   return HTExternObject(object);
         // }
@@ -200,8 +200,8 @@ abstract class Interpreter {
   /// 注册外部类，以访问外部类的构造函数和static成员
   /// 在脚本中需要存在对应的extern class声明
   void bindExternalClass(HTExternalClass externalClass) {
-    if (_externClasses.containsKey(externalClass.type)) {
-      throw HTError.definedRuntime(externalClass.type.toString());
+    if (_externClasses.containsKey(externalClass.rtType)) {
+      throw HTError.definedRuntime(externalClass.rtType.toString());
     }
     _externClasses[externalClass.typename] = externalClass;
   }

@@ -19,9 +19,9 @@ class HTInstance with HTObject, InterpreterRef {
   late final String id;
 
   @override
-  late final HTInstanceType type;
+  late final HTInstanceType rtType;
 
-  String get classId => type.typeName;
+  String get classId => rtType.typeName;
 
   /// A [HTInstance] has all members inherited from all super classes,
   /// Key is the id of a super class.
@@ -42,6 +42,7 @@ class HTInstance with HTObject, InterpreterRef {
       {List<HTType> typeArgs = const []}) {
     id = '${HTLexicon.instance}$index';
 
+    var firstClass = true;
     HTClass? curKlass = klass;
     final extended = <HTType>[];
     var curNamespace = HTInstanceNamespace(id, curKlass.id, this, interpreter,
@@ -56,7 +57,7 @@ class HTInstance with HTObject, InterpreterRef {
       // final hasDefaultConstructor = false;
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
-        if (decl.id.startsWith(HTLexicon.underscore)) {
+        if (decl.id.startsWith(HTLexicon.underscore) && !firstClass) {
           continue;
         }
         final clone = decl.clone();
@@ -73,10 +74,11 @@ class HTInstance with HTObject, InterpreterRef {
         extended.add(curKlass.superClassType!);
       }
       curKlass = curKlass.superClass;
+
+      firstClass = false;
     }
 
-    type = HTInstanceType(klass.id, interpreter.curModuleUniqueKey!,
-        typeArgs: typeArgs, extended: extended);
+    rtType = HTInstanceType(klass.id, typeArgs: typeArgs, extended: extended);
   }
 
   @override
@@ -183,14 +185,14 @@ class HTInstance with HTObject, InterpreterRef {
 
     // TODO: 这里应该改成写在脚本的Object上才对
     switch (varName) {
-      case 'type':
-        return type;
+      case 'rtType':
+        return rtType;
       case 'toString':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            '${HTLexicon.instanceOf}$type';
+            '${HTLexicon.instanceOf}$rtType';
       default:
         throw HTError.undefined(varName);
     }

@@ -5,26 +5,8 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
 
-  group('functions -', () {
-    test('nested & anonymous', () async {
-      final result = await hetu.eval('''
-        fun functionAssign {
-
-          fun convert(n) -> num {
-            return num.parse(n)
-          }
-
-          const a: fun(num) -> num = convert
-
-          return a.type.toString()
-        }
-      ''', invokeFunc: 'functionAssign');
-      expect(
-        result,
-        'fun(any) -> num',
-      );
-    });
-    test('extends check', () async {
+  group('type -', () {
+    test('extends', () async {
       final result = await hetu.eval(r'''
         class Super2 {
           var name = 'Super'
@@ -40,6 +22,33 @@ void main() async {
       expect(
         result,
         true,
+      );
+    });
+    test('arguments', () async {
+      final result = await hetu.eval('''
+        fun functionAssign1 {
+          fun convert(n) -> num {
+            return num.parse(n)
+          }
+          const a: fun(num) -> num = convert
+          return a.rtType.toString()
+        }
+      ''', invokeFunc: 'functionAssign1');
+      expect(
+        result,
+        'fun(any) -> num',
+      );
+    });
+    test('return type', () async {
+      final result = await hetu.eval('''
+        fun functionAssign2 {
+          var a: fun(any) -> any = fun(n: num) -> num { return n + 1 }
+          return a.rtType.toString()
+        }
+      ''', invokeFunc: 'functionAssign2');
+      expect(
+        result,
+        'fun(num) -> num',
       );
     });
   });

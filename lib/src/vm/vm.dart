@@ -854,13 +854,13 @@ class Hetu extends Interpreter {
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTType type = _curValue;
         final encapsulated = encapsulate(object);
-        _curValue = encapsulated.type.isA(type);
+        _curValue = encapsulated.rtType.isA(type);
         break;
       case HTOpCode.typeIsNot:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTType type = _curValue;
         final encapsulated = encapsulate(object);
-        _curValue = encapsulated.type.isNotA(type);
+        _curValue = encapsulated.rtType.isNotA(type);
         break;
       case HTOpCode.add:
         _curValue = _getRegVal(HTRegIdx.addLeft) + _curValue;
@@ -1099,8 +1099,8 @@ class Hetu extends Interpreter {
     }
   }
 
-  Map<String, HTBytesParameter> _getParams(int paramDeclsLength) {
-    final paramDecls = <String, HTBytesParameter>{};
+  Map<String, HTBytecodeParameter> _getParams(int paramDeclsLength) {
+    final paramDecls = <String, HTBytecodeParameter>{};
 
     for (var i = 0; i < paramDeclsLength; ++i) {
       final id = _curCode.readShortUtf8String();
@@ -1108,7 +1108,7 @@ class Hetu extends Interpreter {
       final isNamed = _curCode.readBool();
       final isVariadic = _curCode.readBool();
 
-      HTType? declType;
+      var declType = HTType.ANY;
       final hasType = _curCode.readBool();
       if (hasType) {
         declType = _curCode.readType();
@@ -1122,7 +1122,7 @@ class Hetu extends Interpreter {
         _curCode.skip(length);
       }
 
-      paramDecls[id] = HTBytesParameter(id, this, curModuleUniqueKey,
+      paramDecls[id] = HTBytecodeParameter(id, this, curModuleUniqueKey,
           declType: declType,
           initializerIp: initializerIp,
           isOptional: isOptional,
