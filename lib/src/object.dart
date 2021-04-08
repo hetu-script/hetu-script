@@ -51,7 +51,7 @@ mixin HTObject {
   /// ```
   /// object.varName = value
   /// ```
-  void memberSet(String varName, dynamic value,
+  void memberSet(String varName, dynamic varValue,
           {String from = HTLexicon.global}) =>
       throw HTError.undefined(varName);
 
@@ -65,5 +65,5 @@ mixin HTObject {
   /// ```
   /// object[key] = value
   /// ```
-  void subSet(String key, dynamic value) => throw HTError.undefined(key);
+  void subSet(String key, dynamic varValue) => throw HTError.undefined(key);
 }

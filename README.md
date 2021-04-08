@@ -5,7 +5,9 @@
 **Hetu is early WIP! We are focusing on making Hetu stable and feature complete right now.**
 
 Discussion group:
+
 Discord: [https://discord.gg/Q8JWQYEw](https://discord.gg/Q8JWQYEw)
+
 QQ: 812529118
 
 ## Introduction

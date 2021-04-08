@@ -159,14 +159,14 @@ abstract class HTFunctionTypeCode {
 }
 
 /// Class type code.
-abstract class HTClassTypeCode {
-  static const normal = 0;
-  static const nested = 1;
-  static const abstracted = 2;
-  static const interface = 3;
-  static const mix_in = 4;
-  static const extern = 5;
-}
+// abstract class HTClassTypeCode {
+//   static const normal = 0;
+//   static const nested = 1;
+//   static const abstracted = 2;
+//   static const interface = 3;
+//   static const mix_in = 4;
+//   static const extern = 5;
+// }
 
 /// Current symbol type.
 abstract class SymbolType {

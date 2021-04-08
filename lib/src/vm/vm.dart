@@ -23,7 +23,6 @@ import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../extern_function.dart';
 import '../cast.dart';
-import '../instance.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -96,6 +95,10 @@ class Hetu extends Interpreter {
       _registers[_getRegIndex(HTRegIdx.refType)] = value;
   _RefType get _curRefType =>
       _registers[_getRegIndex(HTRegIdx.refType)] ?? _RefType.normal;
+  set _curTypeArgs(List<HTType> value) =>
+      _registers[_getRegIndex(HTRegIdx.typeArgs)] = value;
+  List<HTType> get _curTypeArgs =>
+      _registers[_getRegIndex(HTRegIdx.typeArgs)] ?? const <HTType>[];
   set _curLoopCount(int value) =>
       _registers[_getRegIndex(HTRegIdx.loopCount)] = value;
   int get _curLoopCount => _registers[_getRegIndex(HTRegIdx.loopCount)] ?? 0;
@@ -563,8 +566,7 @@ class Hetu extends Interpreter {
           _handleUnaryPostfixOp(instruction);
           break;
         default:
-          print('Unknown opcode: $instruction');
-          break;
+          throw HTError.unknownOpCode(instruction);
       }
 
       instruction = _curCode.read();
@@ -602,8 +604,17 @@ class Hetu extends Interpreter {
           _curValue = _curNamespace.fetch(symbol, from: _curNamespace.fullName);
         } else {
           _curRefType = _RefType.member;
-          // reg[13] 是 object，reg[14] 是 key
           _curValue = symbol;
+        }
+        final hasTypeArgs = _curCode.readBool();
+        if (hasTypeArgs) {
+          final typeArgsLength = _curCode.read();
+          final typeArgs = <HTType>[];
+          for (var i = 0; i < typeArgsLength; ++i) {
+            final arg = _curCode.readType();
+            typeArgs.add(arg);
+          }
+          _curTypeArgs = typeArgs;
         }
         break;
       case HTValueTypeCode.group:
@@ -637,6 +648,8 @@ class Hetu extends Interpreter {
           externalTypedef = _curCode.readShortUtf8String();
         }
 
+        final hasParameterDeclarations = _curCode.readBool();
+
         final funcType = FunctionType.literal;
         final isVariadic = _curCode.readBool();
         final minArity = _curCode.read();
@@ -660,6 +673,7 @@ class Hetu extends Interpreter {
         final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
             funcType: funcType,
             externalTypedef: externalTypedef,
+            hasParameterDeclarations: hasParameterDeclarations,
             parameterDeclarations: paramDecls,
             returnType: returnType,
             definitionIp: definitionIp,
@@ -921,8 +935,7 @@ class Hetu extends Interpreter {
       namedArgs[name] = arg;
     }
 
-    // TODO: typeArgs
-    final typeArgs = <HTType>[];
+    final typeArgs = _curTypeArgs;
 
     if (callee is HTFunction) {
       _curValue = callee.call(
@@ -934,7 +947,7 @@ class Hetu extends Interpreter {
         throw HTError.abstracted();
       }
 
-      if (callee.contains(HTLexicon.constructor)) {
+      if (!callee.isExtern) {
         final constructor =
             callee.memberGet(HTLexicon.constructor) as HTFunction;
         _curValue = constructor.call(
@@ -942,7 +955,11 @@ class Hetu extends Interpreter {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        _curValue = HTInstance(callee, this, typeArgs: typeArgs);
+        final constructor = callee.memberGet(callee.id) as HTFunction;
+        _curValue = constructor.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
       }
     } // 外部函数
     else if (callee is Function) {
@@ -1115,11 +1132,14 @@ class Hetu extends Interpreter {
     final isExtern = _curCode.readBool();
     final isStatic = _curCode.readBool();
     final isConst = _curCode.readBool();
-    final isVariadic = _curCode.readBool();
 
+    final hasParameterDeclarations = _curCode.readBool();
+
+    final isVariadic = _curCode.readBool();
     final minArity = _curCode.read();
     final maxArity = _curCode.read();
-    final paramDecls = _getParams(_curCode.read());
+
+    final parameterDeclarations = _getParams(_curCode.read());
 
     var returnType = HTType.ANY;
     HTBytecodeFunctionSuperConstructor? superConstructor;
@@ -1170,7 +1190,8 @@ class Hetu extends Interpreter {
       funcType: funcType,
       isExtern: isExtern,
       externalTypedef: externalTypedef,
-      parameterDeclarations: paramDecls,
+      hasParameterDeclarations: hasParameterDeclarations,
+      parameterDeclarations: parameterDeclarations,
       returnType: returnType,
       definitionIp: definitionIp,
       isStatic: isStatic,
@@ -1233,6 +1254,23 @@ class Hetu extends Interpreter {
     final hasBody = _curCode.readBool();
     if (hasBody) {
       execute(namespace: klass.namespace);
+    }
+
+    // Add default constructor if non-exist.
+    if (!isAbstract) {
+      if (!isExtern) {
+        if (!klass.namespace.contains(HTLexicon.constructor)) {
+          klass.namespace.define(HTBytecodeFunction(
+              HTLexicon.constructor, this, curModuleUniqueKey,
+              klass: klass, funcType: FunctionType.constructor));
+        }
+      } else {
+        if (!klass.namespace.contains(klass.id)) {
+          klass.namespace.define(HTBytecodeFunction(
+              klass.id, this, curModuleUniqueKey,
+              klass: klass, funcType: FunctionType.constructor));
+        }
+      }
     }
 
     // 继承不在这里处理

@@ -52,6 +52,10 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     fullName = _getFullName(this.id, closure);
   }
 
+  /// Search for a variable by the exact name and do not search recursively.
+  @override
+  bool contains(String varName) => declarations.containsKey(varName);
+
   HTNamespace closureAt(int distance) {
     var namespace = this;
     for (var i = 0; i < distance; ++i) {
@@ -109,7 +113,8 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
 
   /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
   /// 注意和memberSet只是对对象本身的成员赋值不同
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void assign(String varName, dynamic varValue,
+      {String from = HTLexicon.global}) {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
@@ -117,7 +122,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
       }
       final decl = declarations[varName]!;
       if (decl is HTVariable) {
-        decl.assign(value);
+        decl.assign(varValue);
         return;
       } else {
         throw HTError.immutable(varName);
@@ -125,17 +130,17 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     }
 
     if (closure != null) {
-      closure!.assign(varName, value, from: from);
+      closure!.assign(varName, varValue, from: from);
       return;
     }
 
     throw HTError.undefined(varName);
   }
 
-  void assignAt(String varName, dynamic value, int distance,
+  void assignAt(String varName, dynamic varValue, int distance,
       {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    space.assign(varName, value, from: from);
+    space.assign(varName, varValue, from: from);
   }
 }
 
@@ -188,7 +193,8 @@ class HTClassNamespace extends HTNamespace {
   }
 
   @override
-  void assign(String varName, dynamic value, {String from = HTLexicon.global}) {
+  void assign(String varName, dynamic varValue,
+      {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
@@ -197,7 +203,7 @@ class HTClassNamespace extends HTNamespace {
       }
       final decl = declarations[varName]!;
       if (decl is HTVariable) {
-        decl.assign(value);
+        decl.assign(varValue);
         return;
       } else {
         throw HTError.immutable(varName);
@@ -208,12 +214,12 @@ class HTClassNamespace extends HTNamespace {
         throw HTError.privateMember(varName);
       }
       final setterFunc = declarations[setter] as HTFunction;
-      setterFunc.call(positionalArgs: [value]);
+      setterFunc.call(positionalArgs: [varValue]);
       return;
     }
 
     if (closure != null) {
-      closure!.assign(varName, value, from: from);
+      closure!.assign(varName, varValue, from: from);
       return;
     }
 
@@ -263,19 +269,20 @@ class HTInstanceNamespace extends HTNamespace {
   /// If [recursive] is false, then it won't continue to
   /// try assigning variable from enclosed namespace.
   @override
-  void assign(String varName, dynamic value,
+  void assign(String varName, dynamic varValue,
       {String from = HTLexicon.global, bool recursive = true}) {
     final setter = '${HTLexicon.getter}$varName';
     if (declarations.containsKey(varName) || declarations.containsKey(setter)) {
-      return instance.memberSet(varName, value, from: from, classId: classId);
+      return instance.memberSet(varName, varValue,
+          from: from, classId: classId);
     } else {
       if (next != null) {
-        return next!.assign(varName, value, from: from);
+        return next!.assign(varName, varValue, from: from);
       }
     }
 
     if (recursive && closure != null) {
-      closure!.assign(varName, value, from: from);
+      closure!.assign(varName, varValue, from: from);
       return;
     }
 
@@ -287,7 +294,7 @@ class HTInstanceNamespace extends HTNamespace {
       fetch(varName, from: from, recursive: false);
 
   @override
-  void memberSet(String varName, dynamic value,
+  void memberSet(String varName, dynamic varValue,
           {String from = HTLexicon.global}) =>
-      assign(varName, value, from: from, recursive: false);
+      assign(varName, varValue, from: from, recursive: false);
 }

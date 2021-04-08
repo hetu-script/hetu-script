@@ -25,8 +25,6 @@ abstract class HTFunction with HTDeclaration, HTObject {
 
   HTType get returnType => rtType.returnType;
 
-  final List<HTType> typeArgs; // function<T1, T2>
-
   final bool isStatic;
 
   final bool isConst;
@@ -45,7 +43,6 @@ abstract class HTFunction with HTDeclaration, HTObject {
       this.funcType = FunctionType.normal,
       this.isExtern = false,
       this.externalTypedef,
-      this.typeArgs = const [],
       this.isStatic = false,
       this.isConst = false,
       this.isVariadic = false,

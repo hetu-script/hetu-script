@@ -196,6 +196,7 @@ abstract class HTLexicon {
   static const literalFunctionExpr = 'literal_function_expression';
   static const groupExpr = 'group_expression';
   static const literalVectorExpr = 'vector_expression';
+  static const typeExpression = 'type_expression';
   static const blockExpr = 'block_expression';
   static const symbolExpr = 'symbol_expression';
   static const typeExpr = 'type_expression';

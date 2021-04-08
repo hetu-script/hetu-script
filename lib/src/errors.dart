@@ -34,8 +34,9 @@ class HTError {
   static const _ctorReturn = 'Constructor cannot have a return type.';
   static const _abstract = 'Cannot create instance from abstract class.';
   static const _abstractCtor = 'Cannot create contructor for abstract class.';
-
   static const _setterArity = 'Setter function\'s arity must be 1.';
+
+  static const _unknownOpCode = 'Unknown opcode:';
   static const _errorNullObject = 'Calling method on null object:';
   static const _immutable = 'is immutable.';
   static const _notType = 'is not a type.';
@@ -174,6 +175,12 @@ class HTError {
   HTError.abstractedCtor() {
     message = HTError._abstractCtor;
     type = HTErrorType.parser;
+  }
+
+  /// Error: Access private member.
+  HTError.unknownOpCode(int opcode) {
+    message = '${HTError._unknownOpCode} [$opcode]';
+    type = HTErrorType.interpreter;
   }
 
   /// Error: Access private member.
@@ -374,8 +381,8 @@ class HTError {
   }
 
   /// Error: Illegal empty string.
-  HTError.empty([String fileName = '']) {
-    message = '${HTError._emptyString} [$fileName]';
+  HTError.empty([String message = '']) {
+    message = '${HTError._emptyString} [$message]';
     type = HTErrorType.interpreter;
   }
 

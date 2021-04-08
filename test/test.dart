@@ -4,12 +4,23 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-
-  fun main {
-    var a: fun(any) -> any = fun(n: num) -> num { return n + 1 }
-
-    print(a.rtType)
-  }
-
-      ''', invokeFunc: 'main');
+        fun closureInLoop {
+          var list = [];
+          var builders = [];
+          fun build(i, add) {
+            builders.add(fun () {
+              add(i);
+            });
+          }
+          for (var i = 0; i < 5; ++i) {
+            build(i, fun (n)  {
+              list.add(n);
+            });
+          }
+          for (var func in builders) {
+            func();
+          }
+          print(list[1])
+        }
+      ''', invokeFunc: 'closureInLoop');
 }

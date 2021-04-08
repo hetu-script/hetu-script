@@ -45,7 +45,7 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   }
 
   @override
-  void memberSet(String varName, dynamic value,
+  void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global}) {
     if (enums.containsKey(varName)) {
       throw HTError.immutable(varName);

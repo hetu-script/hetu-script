@@ -1,18 +1,42 @@
 import 'dart:io';
 import 'dart:math' as math;
+
 import 'type.dart';
 import 'errors.dart';
 import 'lexicon.dart';
 import 'interpreter.dart';
 import 'object.dart';
+// import 'ast/ast_parser.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
 abstract class HTExternalClass with HTObject {
-  late final String typename;
-  late final List<String> typeArgs;
+  final String typeName;
+  // final List<HTType> typeArgs;
+  // late final HTInstanceType instanceType;
 
   /// Default [HTExternalClass] constructor.
-  HTExternalClass(this.typename, [this.typeArgs = const []]);
+  HTExternalClass(this.typeName);
+  // String typeString,
+  // {List<String> extended = const [],
+  // List<String> implemented = const [],
+  // List<String> mixined = const []}) {
+  // final baseType = HTAstParser.parseType(typeString);
+
+  // final extendedTypes = <HTType>[];
+  // final implementedTypes = <HTType>[];
+  // final mixinedTypes = <HTType>[];
+
+  // for (final typeString in extended) {
+  //   final type = HTAstParser.parseType(typeString);
+  //   extendedTypes.add(type)
+  // }
+
+  // instanceType = HTInstanceType(
+  //   baseType.typeName,
+  //   typeArgs: baseType.typeArgs,
+  //   extended: extended,
+  // );
+  // }
   // {
   //   type = HTType.parse(typeString);
   // }
@@ -28,7 +52,7 @@ abstract class HTExternalClass with HTObject {
   /// ```
   /// object.key = value
   /// ```
-  void instanceMemberSet(dynamic object, String varName, dynamic value) =>
+  void instanceMemberSet(dynamic object, String varName, dynamic varValue) =>
       throw HTError.undefined(varName);
 
   /// Fetch a instance member of the Dart class by the [varName], in the form of
@@ -41,8 +65,8 @@ abstract class HTExternalClass with HTObject {
   /// ```
   /// object[key] = value
   /// ```
-  void instanceSubSet(dynamic object, dynamic key, dynamic value) =>
-      object[key] = value;
+  void instanceSubSet(dynamic object, dynamic key, dynamic varValue) =>
+      object[key] = varValue;
 }
 
 class HTExternClassNumber extends HTExternalClass {

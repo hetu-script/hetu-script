@@ -1,12 +1,6 @@
 import 'package:hetu_script/hetu_script.dart';
 
-abstract class Animal {
-  String name;
-
-  Animal([this.name = 'nameless animal']);
-}
-
-class Person extends Animal {
+class Person {
   static final races = <String>['Caucasian'];
   static String _level = '0';
   static String get level => _level;
@@ -15,11 +9,12 @@ class Person extends Animal {
 
   String get child => 'Tom';
 
+  String name;
   String race;
 
-  Person([this.race = 'Caucasian']) : super('Jerry');
+  Person([this.name = 'Jimmy', this.race = 'Caucasian']);
 
-  Person.withName(String name, [this.race = 'Caucasian']);
+  Person.withName(this.name, [this.race = 'Caucasian']);
 
   void greeting() {
     print('Hi! I\'m $name');
@@ -30,7 +25,7 @@ extension PersonBinding on Person {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'rtType':
-        return const HTType('Person');
+        return HTType.unknown;
       case 'toString':
         return toString;
       case 'name':
@@ -50,13 +45,13 @@ extension PersonBinding on Person {
     }
   }
 
-  void htAssign(String varName, dynamic value) {
+  void htAssign(String varName, dynamic varValue) {
     switch (varName) {
       case 'name':
-        name = value;
+        name = varValue;
         break;
       case 'race':
-        race = value;
+        race = varValue;
         break;
       default:
         throw HTError.undefined(varName);
@@ -75,13 +70,15 @@ class PersonClassBinding extends HTExternalClass {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            Person(positionalArgs[0]);
+            Person((positionalArgs.isNotEmpty ? positionalArgs[0] : 'Jimmy'),
+                (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.withName':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            Person.withName(positionalArgs[0], positionalArgs[1]);
+            Person.withName(positionalArgs[0],
+                (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.meaning':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -96,13 +93,13 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void memberSet(String varName, dynamic value,
+  void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global}) {
     switch (varName) {
       case 'Person.race':
         throw HTError.immutable(varName);
       case 'Person.level':
-        return Person.level = value;
+        return Person.level = varValue;
       default:
         throw HTError.undefined(varName);
     }
@@ -115,9 +112,9 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void instanceMemberSet(dynamic object, String varName, dynamic value) {
+  void instanceMemberSet(dynamic object, String varName, dynamic varValue) {
     var i = object as Person;
-    i.htAssign(varName, value);
+    i.htAssign(varName, varValue);
   }
 }
 
@@ -125,28 +122,25 @@ void main() async {
   var hetu = Hetu();
   await hetu.init(externalClasses: [PersonClassBinding()]);
   await hetu.eval('''
-      external abstract class Animal {
-        var name: str
-      }
       external class Person {
         var race: str
-        construct ([race: str = 'Caucasian'])
+        construct
         get child
         static fun meaning(n: num)
         static get level
         static set level (value: str)
-        construct withName(name: str, [race: str = 'Caucasian'])
+        construct withName
         var name
         fun greeting
       }
       fun main {
-        // let p1: Person = Person()
-        // print(p1.rtType)
-        // print(p1.name)
-        // print(p1.child)
-        // print('My race is', p1.race)
-        // p1.race = 'Reptile'
-        // print('Oh no! My race turned into', p1.race)
+        let p1: unknown = Person()
+        print(p1.rtType)
+        print(p1.name)
+        print(p1.child)
+        print('My race is', p1.race)
+        p1.race = 'Reptile'
+        print('Oh no! My race turned into', p1.race)
 
         var p2 = Person.withName('Jimmy')
         print(p2.name)
@@ -156,7 +150,7 @@ void main() async {
         Person.level = '3'
         print(Person.level)
 
-        print(Person.meaning(42))
+        print(Person.meaning('42'))
       }
       ''', invokeFunc: 'main');
 }

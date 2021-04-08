@@ -14,9 +14,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
   HTAstFunction(
       this.funcStmt, HTAstInterpreter interpreter, String moduleUniqueKey,
-      {String? externalTypedef,
-      List<HTType> typeArgs = const [],
-      HTNamespace? context})
+      {String? externalTypedef, HTNamespace? context})
       : super(
           funcStmt.internalName,
           funcStmt.id?.lexeme ?? '', moduleUniqueKey,
@@ -24,7 +22,6 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
           funcType: funcStmt.funcType,
           isExtern: false,
           externalTypedef: externalTypedef,
-          typeArgs: typeArgs,
           // type:
           isConst: funcStmt.isConst,
           isVariadic: funcStmt.isVariadic,
@@ -173,5 +170,5 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
   @override
   HTAstFunction clone() => HTAstFunction(funcStmt, interpreter, moduleUniqueKey,
-      externalTypedef: externalTypedef, typeArgs: typeArgs, context: context);
+      externalTypedef: externalTypedef, context: context);
 }

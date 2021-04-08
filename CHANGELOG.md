@@ -1,6 +1,5 @@
 ## 0.1.1
 
-- Refactor: Rewrite instance implementation to support type cast.
 - Feature: Sequenced constructor calling through super classes.
 - Feature: 'super' keyword with instance method, for calling super class method.
 - Feature: 'as' & 'is' operator, with super class checking & casting.

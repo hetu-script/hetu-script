@@ -328,3 +328,15 @@ class HTFunctionType extends HTType {
     }
   }
 }
+
+String convertTypeArgsToString(List<HTType> typeArgs) {
+  final sb = StringBuffer();
+  if (typeArgs.isNotEmpty) {
+    sb.write(HTLexicon.angleLeft);
+    for (final arg in typeArgs) {
+      sb.write(arg.toString());
+    }
+    sb.write(HTLexicon.angleRight);
+  }
+  return sb.toString();
+}

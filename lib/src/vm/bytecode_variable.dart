@@ -125,24 +125,25 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
 
 /// An implementation of [HTVariable] for function parameter declaration.
 class HTBytecodeParameter extends HTBytecodeVariable {
-  @override
-  late final HTType declType;
-
   late final HTParameterType paramType;
 
   /// Create a standard [HTBytecodeParameter].
-  HTBytecodeParameter(String id, Hetu interpreter, String module,
+  HTBytecodeParameter(String id, Hetu interpreter, String moduleUniqueKey,
       {dynamic value,
-      this.declType = HTType.ANY,
+      HTType? declType,
       int? initializerIp,
       bool isOptional = false,
       bool isNamed = false,
       bool isVariadic = false})
-      : super(id, interpreter, module,
-            value: value, initializerIp: initializerIp, isImmutable: true) {
-    paramType = HTParameterType(declType.typeName,
-        typeArgs: declType.typeArgs,
-        isNullable: declType.isNullable,
+      : super(id, interpreter, moduleUniqueKey,
+            value: value,
+            declType: declType,
+            initializerIp: initializerIp,
+            isImmutable: true) {
+    final paramDeclType = declType ?? HTType.ANY;
+    paramType = HTParameterType(paramDeclType.typeName,
+        typeArgs: paramDeclType.typeArgs,
+        isNullable: paramDeclType.isNullable,
         isOptional: isOptional,
         isNamed: isNamed,
         isVariadic: isVariadic);

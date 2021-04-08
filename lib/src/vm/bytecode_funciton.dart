@@ -31,6 +31,8 @@ class HTBytecodeFunctionSuperConstructor {
 
 /// Bytecode implementation of [HTFunction].
 class HTBytecodeFunction extends HTFunction with HetuRef {
+  final bool hasParameterDeclarations;
+
   /// Holds declarations of all parameters.
   final Map<String, HTBytecodeParameter> parameterDeclarations;
 
@@ -52,10 +54,10 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     FunctionType funcType = FunctionType.normal,
     bool isExtern = false,
     String? externalTypedef,
+    this.hasParameterDeclarations = true,
     this.parameterDeclarations = const <String, HTBytecodeParameter>{},
     HTType returnType = HTType.ANY,
     this.definitionIp,
-    List<HTType> typeArgs = const [],
     bool isStatic = false,
     bool isConst = false,
     bool isVariadic = false,
@@ -68,7 +70,6 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
             funcType: funcType,
             isExtern: isExtern,
             externalTypedef: externalTypedef,
-            typeArgs: typeArgs,
             isStatic: isStatic,
             isConst: isConst,
             isVariadic: isVariadic,
@@ -161,30 +162,30 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       bool createInstance = true,
       bool errorHandled = true}) {
     try {
-      if (positionalArgs.length < minArity ||
-          (positionalArgs.length > maxArity && !isVariadic)) {
-        throw HTError.arity(id, positionalArgs.length, minArity);
-      }
-
-      for (final name in namedArgs.keys) {
-        if (!parameterDeclarations.containsKey(name)) {
-          throw HTError.namedArg(name);
-        }
-      }
-
       HTFunction.callStack.add(
           '#${HTFunction.callStack.length} $id - (${interpreter.curModuleUniqueKey}:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数
       if (!isExtern) {
-        if (definitionIp == null) {
-          return;
+        if (positionalArgs.length < minArity ||
+            (positionalArgs.length > maxArity && !isVariadic)) {
+          throw HTError.arity(id, positionalArgs.length, minArity);
+        }
+
+        for (final name in namedArgs.keys) {
+          if (!parameterDeclarations.containsKey(name)) {
+            throw HTError.namedArg(name);
+          }
         }
 
         if (funcType == FunctionType.constructor && createInstance) {
           result = HTInstance(klass!, interpreter, typeArgs: typeArgs);
           context = result.namespace;
+        }
+
+        if (definitionIp == null) {
+          return result;
         }
         // 函数每次在调用时，临时生成一个新的作用域
         final closure = HTNamespace(interpreter, id: id, closure: context);
@@ -277,84 +278,102 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       }
       // 如果是外部函数
       else {
-        final finalPosArgs = <dynamic>[];
-        final finalNamedArgs = <String, dynamic>{};
+        late final finalPosArgs;
+        late final finalNamedArgs;
 
-        var variadicStart = -1;
-        HTBytecodeVariable? variadicParam;
-        var i = 0;
-        for (var param in parameterDeclarations.values) {
-          var decl = param.clone();
+        if (hasParameterDeclarations) {
+          if (positionalArgs.length < minArity ||
+              (positionalArgs.length > maxArity && !isVariadic)) {
+            throw HTError.arity(id, positionalArgs.length, minArity);
+          }
 
-          if (decl.paramType.isVariadic) {
-            variadicStart = i;
-            variadicParam = decl;
-            break;
-          } else {
-            if (i < maxArity) {
-              if (i < positionalArgs.length) {
-                decl.assign(positionalArgs[i]);
-                finalPosArgs.add(decl.value);
-              } else {
-                decl.initialize();
-                finalPosArgs.add(decl.value);
-              }
-            } else {
-              if (namedArgs.containsKey(decl.id)) {
-                decl.assign(namedArgs[decl.id]);
-                finalNamedArgs[decl.id] = decl.value;
-              } else {
-                decl.initialize();
-                finalNamedArgs[decl.id] = decl.value;
-              }
+          for (final name in namedArgs.keys) {
+            if (!parameterDeclarations.containsKey(name)) {
+              throw HTError.namedArg(name);
             }
           }
 
-          ++i;
-        }
+          finalPosArgs = <dynamic>[];
+          finalNamedArgs = <String, dynamic>{};
 
-        if (variadicStart >= 0) {
-          final variadicArg = <dynamic>[];
-          for (var i = variadicStart; i < positionalArgs.length; ++i) {
-            variadicArg.add(positionalArgs[i]);
+          var variadicStart = -1;
+          HTBytecodeVariable? variadicParam;
+          var i = 0;
+          for (var param in parameterDeclarations.values) {
+            var decl = param.clone();
+
+            if (decl.paramType.isVariadic) {
+              variadicStart = i;
+              variadicParam = decl;
+              break;
+            } else {
+              if (i < maxArity) {
+                if (i < positionalArgs.length) {
+                  decl.assign(positionalArgs[i]);
+                  finalPosArgs.add(decl.value);
+                } else {
+                  decl.initialize();
+                  finalPosArgs.add(decl.value);
+                }
+              } else {
+                if (namedArgs.containsKey(decl.id)) {
+                  decl.assign(namedArgs[decl.id]);
+                  finalNamedArgs[decl.id] = decl.value;
+                } else {
+                  decl.initialize();
+                  finalNamedArgs[decl.id] = decl.value;
+                }
+              }
+            }
+
+            ++i;
           }
 
-          finalNamedArgs[variadicParam!.id] = variadicArg;
+          if (variadicStart >= 0) {
+            final variadicArg = <dynamic>[];
+            for (var i = variadicStart; i < positionalArgs.length; ++i) {
+              variadicArg.add(positionalArgs[i]);
+            }
+
+            finalNamedArgs[variadicParam!.id] = variadicArg;
+          }
+        } else {
+          finalPosArgs = positionalArgs;
+          finalNamedArgs = namedArgs;
         }
 
         // 单独绑定的外部函数
-        if (classId == null) {
-          late final Function externFunc;
-          if (isExtern) {
-            // 类成员外部函数
-            externFunc = interpreter.fetchExternalFunction('$classId.$id');
-          } else {
-            // 普通外部函数
-            externFunc = interpreter.fetchExternalFunction(id);
-          }
+        if (!(klass?.isExtern ?? false)) {
+          // 普通外部函数或者内部类的外部成员函数
+          late final externFunc = interpreter.fetchExternalFunction(id);
           if (externFunc is HTExternalFunction) {
             result = externFunc(
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);
           } else {
-            result = Function.apply(externFunc, finalPosArgs,
-                namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+            result = Function.apply(
+                externFunc,
+                finalPosArgs,
+                finalNamedArgs
+                    .map((key, value) => MapEntry(Symbol(key), value)));
           }
         }
         // 外部类的成员函数
         else {
           final externClass = interpreter.fetchExternalClass(classId!);
 
-          final externFunc = externClass.memberGet(id);
+          final typeArgsString = convertTypeArgsToString(typeArgs);
+          final externFunc = externClass.memberGet('$id$typeArgsString');
           if (externFunc is HTExternalFunction) {
             result = externFunc(
-                positionalArgs: finalPosArgs,
-                namedArgs: finalNamedArgs,
-                typeArgs: typeArgs);
+                positionalArgs: finalPosArgs, namedArgs: finalNamedArgs);
           } else {
-            result = Function.apply(externFunc, finalPosArgs,
-                namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+            result = Function.apply(
+                externFunc,
+                finalPosArgs,
+                finalNamedArgs
+                    .map((key, value) => MapEntry(Symbol(key), value)));
           }
         }
       }
@@ -394,7 +413,6 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         parameterDeclarations: parameterDeclarations,
         returnType: returnType,
         definitionIp: definitionIp,
-        typeArgs: typeArgs,
         isStatic: isStatic,
         isConst: isConst,
         isVariadic: isVariadic,

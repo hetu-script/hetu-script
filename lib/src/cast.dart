@@ -54,7 +54,7 @@ class HTCast with HTObject, InterpreterRef {
       object.memberGet(varName, from: from, classId: klass.id);
 
   @override
-  void memberSet(String varName, dynamic value,
+  void memberSet(String varName, dynamic varValue,
           {String from = HTLexicon.global}) =>
-      object.memberSet(varName, value, from: from, classId: klass.id);
+      object.memberSet(varName, varValue, from: from, classId: klass.id);
 }

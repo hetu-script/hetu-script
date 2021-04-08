@@ -17,7 +17,8 @@ class HTRegIdx {
   static const symbol = 1;
   static const objectSymbol = 2;
   static const refType = 3;
-  static const loopCount = 4;
+  static const typeArgs = 4;
+  static const loopCount = 5;
   static const assign = 7;
   static const orLeft = 8;
   static const andLeft = 9;
@@ -664,9 +665,30 @@ class Compiler extends Parser with ConstTable, HetuRef {
     bytesBuilder.addByte(HTValueTypeCode.symbol);
     bytesBuilder.add(_shortUtf8String(symbolId));
     bytesBuilder.addByte(isGetKey ? 1 : 0);
-    // TODO: 泛型参数应该在这里解析
-    // 但需要提前判断是否有右括号
-    // 这样才能和小于号区分开
+    if (expect([
+          HTLexicon.angleLeft,
+          HTLexicon.identifier,
+          HTLexicon.angleRight
+        ]) ||
+        expect(
+            [HTLexicon.angleLeft, HTLexicon.identifier, HTLexicon.angleLeft]) ||
+        expect([HTLexicon.angleLeft, HTLexicon.identifier, HTLexicon.comma])) {
+      bytesBuilder.addByte(1); // bool: has type args
+      advance(1);
+      final typeArgs = <Uint8List>[];
+      while (curTok.type != HTLexicon.angleRight &&
+          curTok.type != HTLexicon.endOfFile) {
+        final typeArg = _compileType();
+        typeArgs.add(typeArg);
+      }
+      bytesBuilder.addByte(typeArgs.length);
+      for (final arg in typeArgs) {
+        bytesBuilder.add(arg);
+      }
+      match(HTLexicon.angleRight);
+    } else {
+      bytesBuilder.addByte(0); // bool: has type args
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1065,7 +1087,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
         return _localConst(index, HTValueTypeCode.utf8String);
       case HTLexicon.identifier:
         _leftValueLegality = true;
-        // TODO: parse type args
         return _localSymbol();
       case HTLexicon.THIS:
         _leftValueLegality = false;
@@ -1333,6 +1354,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     bytesBuilder.addByte(HTValueTypeCode.symbol);
     bytesBuilder.add(_shortUtf8String(id));
     bytesBuilder.addByte(isGetKey ? 1 : 0); // bool: isGetKey
+    bytesBuilder.addByte(0); // bool: has type args
     return bytesBuilder.toBytes();
   }
 
@@ -1422,7 +1444,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.add(iterDecl);
       bytesBuilder.add(increDecl);
 
-      // TODO: should be able to tell if it's a iterable (could not be list)
       final conditionBytesBuilder = BytesBuilder();
       final isNotEmptyExpr = _assembleMemberGet(object, HTLexicon.isNotEmpty);
       conditionBytesBuilder.add(isNotEmptyExpr);
@@ -1875,6 +1896,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     if (funcType != FunctionType.getter &&
         expect([HTLexicon.roundLeft], consume: true)) {
+      funcBytesBuilder.addByte(1); // bool: has parameter declarations
       var isOptional = false;
       var isNamed = false;
       var isVariadic = false;
@@ -1956,6 +1978,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
       if ((funcType == FunctionType.setter) && (minArity != 1)) {
         throw HTError.setter();
       }
+    } else {
+      funcBytesBuilder.addByte(0); // bool: has parameter declarations
     }
 
     funcBytesBuilder.addByte(isFuncVariadic ? 1 : 0);

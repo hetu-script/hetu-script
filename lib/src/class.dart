@@ -146,7 +146,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
 
   /// Assign a value to a static member of this [HTClass].
   @override
-  void memberSet(String varName, dynamic value,
+  void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
     final externalName = '$id.$varName';
@@ -158,7 +158,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
       }
       final decl = namespace.declarations[varName]!;
       if (decl is HTVariable) {
-        decl.assign(value);
+        decl.assign(varValue);
         return;
       } else {
         throw HTError.immutable(varName);
@@ -169,11 +169,11 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       final setterFunc = namespace.declarations[setter] as HTFunction;
-      setterFunc.call(positionalArgs: [value]);
+      setterFunc.call(positionalArgs: [varValue]);
       return;
     } else if (namespace.declarations.containsKey(externalName) && isExtern) {
       final externClass = interpreter.fetchExternalClass(id);
-      externClass.memberSet(externalName, value);
+      externClass.memberSet(externalName, varValue);
       return;
     }
 

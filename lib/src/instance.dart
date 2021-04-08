@@ -203,7 +203,7 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [classId] is provided, then the instance will
   /// only search that [classId]'s corresponed [HTInstanceNamespace].
   @override
-  void memberSet(String varName, dynamic value,
+  void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global, String? classId}) {
     final setter = '${HTLexicon.setter}$varName';
 
@@ -217,7 +217,7 @@ class HTInstance with HTObject, InterpreterRef {
 
           var decl = space.declarations[varName]!;
           if (decl is HTVariable) {
-            decl.assign(value);
+            decl.assign(varValue);
             return;
           } else {
             throw HTError.immutable(varName);
@@ -229,7 +229,7 @@ class HTInstance with HTObject, InterpreterRef {
           }
 
           var method = space.declarations[setter]! as HTFunction;
-          return method.call(positionalArgs: [value]);
+          return method.call(positionalArgs: [varValue]);
         }
       }
     } else {
@@ -246,7 +246,7 @@ class HTInstance with HTObject, InterpreterRef {
 
         var decl = space.declarations[varName]!;
         if (decl is HTVariable) {
-          decl.assign(value);
+          decl.assign(varValue);
           return;
         } else {
           throw HTError.immutable(varName);
@@ -258,7 +258,7 @@ class HTInstance with HTObject, InterpreterRef {
         }
 
         var method = space.declarations[setter]! as HTFunction;
-        return method.call(positionalArgs: [value]);
+        return method.call(positionalArgs: [varValue]);
       }
     }
 

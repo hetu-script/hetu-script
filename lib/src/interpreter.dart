@@ -170,20 +170,19 @@ abstract class Interpreter {
     } else {
       final typeString = object.runtimeType.toString();
       final id = HTType.parseBaseType(typeString);
-      if (containsExternalClass(id)) {
-        // try {
-        // final externClass = fetchExternalClass(type.id);
-        return HTExternObject(object, rtType: HTType(id));
-        // } on HTError.undefined {
-        //   return HTExternObject(object);
-        // }
-      }
-
-      return HTExternObject(object);
+      // if (containsExternalClass(id)) {
+      // try {
+      //   final externClass = fetchExternalClass(id);
+      return HTExternObject(object, rtType: HTType(id));
+      // } on HTError {
+      // return HTExternObject(object);
+      //   }
+      // }
+      // return HTExternObject(object);
     }
   }
 
-  // void defineGlobal(String key, {HTType? declType, dynamic value, bool isImmutable = false}) {
+  // void defineGlobal(String key, {HTType? declType, dynamic varValue, bool isImmutable = false}) {
   //   globals.define(key, declType: declType, value: value, isImmutable: isImmutable);
   // }
 
@@ -203,7 +202,7 @@ abstract class Interpreter {
     if (_externClasses.containsKey(externalClass.rtType)) {
       throw HTError.definedRuntime(externalClass.rtType.toString());
     }
-    _externClasses[externalClass.typename] = externalClass;
+    _externClasses[externalClass.typeName] = externalClass;
   }
 
   HTExternalClass fetchExternalClass(String id) {
