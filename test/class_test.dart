@@ -41,6 +41,7 @@ void main() async {
         fun getStatic {
           var a = StaticField('yellow')
           a.b()
+          return StaticField.field
         }
       ''', invokeFunc: 'getStatic');
       expect(

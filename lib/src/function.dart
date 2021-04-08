@@ -16,7 +16,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
 
   final FunctionType funcType;
 
-  final ExternalFunctionType externalFunctionType;
+  final bool isExtern;
 
   final String? externalTypedef;
 
@@ -43,7 +43,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
   HTFunction(String id, this.declId, this.moduleUniqueKey,
       {this.klass,
       this.funcType = FunctionType.normal,
-      this.externalFunctionType = ExternalFunctionType.none,
+      this.isExtern = false,
       this.externalTypedef,
       this.typeArgs = const [],
       this.isStatic = false,
@@ -66,6 +66,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
+      bool createInstance = true,
       bool errorHandled = true});
 
   /// Sub-classes of [HTFunction] must define [clone] method.

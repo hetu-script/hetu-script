@@ -1,6 +1,3 @@
-import 'package:hetu_script/src/common.dart';
-import 'package:hetu_script/src/object.dart';
-
 import '../instance.dart';
 import '../namespace.dart';
 import '../errors.dart';
@@ -25,7 +22,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
           funcStmt.id?.lexeme ?? '', moduleUniqueKey,
           // classId: funcStmt.classId,
           funcType: funcStmt.funcType,
-          externalFunctionType: ExternalFunctionType.none, // TODO: 这里需要修改
+          isExtern: false,
           externalTypedef: externalTypedef,
           typeArgs: typeArgs,
           // type:
@@ -76,7 +73,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
+      bool createInstance = true,
+      bool errorHandled = true}) {
     HTFunction.callStack.add(id);
 
     if (positionalArgs.length < funcStmt.arity ||

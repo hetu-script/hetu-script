@@ -13,9 +13,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
   @override
   String get curModuleUniqueKey => _curModuleUniqueKey;
 
-  ClassType? _curClassType;
+  ClassInfo? _curClass;
   // HTType? _curClassType;
-  String? _curClassId;
+  // String? _curClassId;
 
   final _classStmts = <String, ASTNode>{};
 
@@ -296,7 +296,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
             advance(1);
             switch (curTok.type) {
               case HTLexicon.CLASS:
-                return _parseClassDeclStmt(classType: ClassType.extern);
+                return _parseClassDeclStmt(isExtern: true);
               case HTLexicon.ENUM:
                 return _parseEnumDeclStmt(isExtern: true);
               case HTLexicon.VAR:
@@ -382,44 +382,44 @@ class HTAstParser extends Parser with AstInterpreterRef {
         // var变量声明
         if (expect([HTLexicon.VAR])) {
           return _parseVarStmt(
-              isExtern: isExtern || _curClassType == ClassType.extern,
+              isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } // let
         else if (expect([HTLexicon.LET])) {
           return _parseVarStmt(
               isDynamic: true,
-              isExtern: isExtern || _curClassType == ClassType.extern,
+              isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } // const
         else if (expect([HTLexicon.CONST])) {
           if (!isStatic) throw HTError.constMustBeStatic(curTok.lexeme);
           return _parseVarStmt(
               isDynamic: true,
-              isExtern: isExtern || _curClassType == ClassType.extern,
+              isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: true,
               isImmutable: true);
         } // 构造函数
         else if (curTok.lexeme == HTLexicon.CONSTRUCT) {
           return _parseFuncDeclaration(
               funcType: FunctionType.constructor,
-              isExtern: isExtern || _curClassType == ClassType.extern,
+              isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } // setter函数声明
         else if (curTok.lexeme == HTLexicon.GET) {
           return _parseFuncDeclaration(
               funcType: FunctionType.getter,
-              isExtern: isExtern || _curClassType == ClassType.extern,
+              isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } // getter函数声明
         else if (curTok.lexeme == HTLexicon.SET) {
           return _parseFuncDeclaration(
               funcType: FunctionType.setter,
-              isExtern: isExtern || _curClassType == ClassType.extern,
+              isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } // 成员函数声明
         else if (expect([HTLexicon.FUNCTION])) {
           return _parseFuncDeclaration(
-              isExtern: isExtern || _curClassType == ClassType.extern,
+              isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } else {
           throw HTError.unexpected(curTok.lexeme);
@@ -769,7 +769,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         typeParameters: typeParameters,
         arity: arity,
         definition: body,
-        classId: _curClassId,
+        classId: _curClass?.id,
         isExtern: isExtern,
         isStatic: isStatic,
         isVariadic: isVariadic,
@@ -780,7 +780,8 @@ class HTAstParser extends Parser with AstInterpreterRef {
     return stmt;
   }
 
-  ClassDeclStmt _parseClassDeclStmt({ClassType classType = ClassType.normal}) {
+  ClassDeclStmt _parseClassDeclStmt(
+      {bool isExtern = false, bool isAbstract = false}) {
     // 已经判断过了所以直接跳过关键字
     advance(1);
 
@@ -790,12 +791,17 @@ class HTAstParser extends Parser with AstInterpreterRef {
       throw HTError.definedParser(className.lexeme);
     }
 
-    final savedClassId = _curClassId;
-    final savedClassType = _curClassType;
+    final savedClass = _curClass;
+
+    // final savedClassId = _curClassId;
     // final savedClassType = _curClassType;
-    _curClassId = className.lexeme;
-    _curClassType = classType;
+    // final savedClassType = _curClassType;
+    // _curClassId = className.lexeme;
+    // _curClassType = classType;
     // _curClassType = HTType(className.lexeme);
+
+    _curClass =
+        ClassInfo(className.lexeme, isExtern: isExtern, isAbstract: isAbstract);
 
     // generic type参数
     var typeParameters = <String>[];
@@ -850,7 +856,8 @@ class HTAstParser extends Parser with AstInterpreterRef {
     }
 
     final stmt = ClassDeclStmt(className, variables, methods,
-        classType: classType,
+        isExtern: isExtern,
+        isAbstract: isAbstract,
         typeParameters: typeParameters,
         superClass: super_class,
         superClassDeclStmt: super_class_decl,
@@ -858,8 +865,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
     _classStmts[className.lexeme] = stmt;
 
-    _curClassId = savedClassId;
-    _curClassType = savedClassType;
+    _curClass = savedClass;
+    // _curClassId = savedClassId;
+    // _curClassType = savedClassType;
     // _curClassType = savedClassType;
     return stmt;
   }

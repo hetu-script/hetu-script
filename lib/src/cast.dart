@@ -25,11 +25,13 @@ class HTCast with HTObject, InterpreterRef {
     final extended = <HTType>[];
 
     HTClass? curSuper = klass;
+    var superClassType = HTType(klass.id, typeArgs: typeArgs);
     while (curSuper != null) {
-      // TODO: 父类没有type param怎么处理？
-      final superType = HTType(curSuper.id);
-      extended.add(superType);
+      extended.add(superClassType);
       curSuper = curSuper.superClass;
+      if (curSuper?.superClassType != null) {
+        extended.add(curSuper!.superClassType!);
+      }
     }
 
     rtType = HTInstanceType(klass.id, typeArgs: typeArgs, extended: extended);

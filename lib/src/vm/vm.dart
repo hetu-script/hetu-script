@@ -23,6 +23,7 @@ import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../extern_function.dart';
 import '../cast.dart';
+import '../instance.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -244,9 +245,11 @@ class Hetu extends Interpreter {
         }
       }
     } catch (error, stack) {
-      if (errorHandled) rethrow;
-
-      handleError(error, stack);
+      if (errorHandled) {
+        rethrow;
+      } else {
+        handleError(error, stack);
+      }
     }
   }
 
@@ -922,36 +925,24 @@ class Hetu extends Interpreter {
     final typeArgs = <HTType>[];
 
     if (callee is HTFunction) {
-      // 普通函数
-      if (callee.funcType != FunctionType.constructor) {
-        _curValue = callee.call(
+      _curValue = callee.call(
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs);
+    } else if (callee is HTClass) {
+      if (callee.isAbstract) {
+        throw HTError.abstracted();
+      }
+
+      if (callee.contains(HTLexicon.constructor)) {
+        final constructor =
+            callee.memberGet(HTLexicon.constructor) as HTFunction;
+        _curValue = constructor.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        final classId = callee.classId!;
-        HTClass klass = global.fetch(classId);
-        if (klass.classType != ClassType.extern) {
-          // 命名构造函数
-          _curValue = klass.createInstance(
-              constructorName: callee.id,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          // 外部命名构造函数
-          final externClass = fetchExternalClass(classId);
-          final constructor = externClass.memberGet(callee.id);
-          if (constructor is HTExternalFunction) {
-            _curValue = constructor(
-                positionalArgs: positionalArgs,
-                namedArgs: namedArgs,
-                typeArgs: typeArgs);
-          } else {
-            return Function.apply(constructor, positionalArgs,
-                namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          }
-        }
+        _curValue = HTInstance(callee, this, typeArgs: typeArgs);
       }
     } // 外部函数
     else if (callee is Function) {
@@ -963,29 +954,6 @@ class Hetu extends Interpreter {
       } else {
         _curValue = Function.apply(callee, positionalArgs,
             namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-        // throw HTErrorExternFunc(callee.toString());
-      }
-    } else if (callee is HTClass) {
-      if (callee.classType != ClassType.extern) {
-        // 默认构造函数
-        _curValue = callee.createInstance(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      } else {
-        // 外部默认构造函数
-        final externClass = fetchExternalClass(callee.id);
-        final constructor = externClass.memberGet(callee.id);
-        if (constructor is HTExternalFunction) {
-          _curValue = constructor(
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          _curValue = Function.apply(constructor, positionalArgs,
-              namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(constructor.toString());
-        }
       }
     } else {
       throw HTError.callable(callee.toString());
@@ -1144,7 +1112,7 @@ class Hetu extends Interpreter {
     }
 
     final funcType = FunctionType.values[_curCode.read()];
-    final externType = ExternalFunctionType.values[_curCode.read()];
+    final isExtern = _curCode.readBool();
     final isStatic = _curCode.readBool();
     final isConst = _curCode.readBool();
     final isVariadic = _curCode.readBool();
@@ -1200,7 +1168,7 @@ class Hetu extends Interpreter {
       declId: declId,
       klass: _curClass,
       funcType: funcType,
-      externalFunctionType: externType,
+      isExtern: isExtern,
       externalTypedef: externalTypedef,
       parameterDeclarations: paramDecls,
       returnType: returnType,
@@ -1233,7 +1201,10 @@ class Hetu extends Interpreter {
   void _handleClassDecl() {
     final id = _curCode.readShortUtf8String();
 
-    final classType = ClassType.values[_curCode.read()];
+    final isExtern = _curCode.readBool();
+    final isAbstract = _curCode.readBool();
+
+    // final classType = ClassType.values[_curCode.read()];
 
     HTType? superClassType;
     final hasSuperClass = _curCode.readBool();
@@ -1254,12 +1225,15 @@ class Hetu extends Interpreter {
 
     final klass = HTClass(id, superClass, superClassType, this,
         _curModuleUniqueKey, _curNamespace,
-        classType: classType);
+        isExtern: isExtern, isAbstract: isAbstract);
     _curNamespace.define(klass);
 
     _curClass = klass;
 
-    execute(namespace: klass.namespace);
+    final hasBody = _curCode.readBool();
+    if (hasBody) {
+      execute(namespace: klass.namespace);
+    }
 
     // 继承不在这里处理
     // klass.inherit(superClass);

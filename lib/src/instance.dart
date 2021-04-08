@@ -38,9 +38,9 @@ class HTInstance with HTObject, InterpreterRef {
   HTInstanceNamespace get namespace => _namespaces[classId]!;
 
   /// Create a default [HTInstance] instance.
-  HTInstance(HTClass klass, Interpreter interpreter, int index,
+  HTInstance(HTClass klass, Interpreter interpreter,
       {List<HTType> typeArgs = const []}) {
-    id = '${HTLexicon.instance}$index';
+    id = '${HTLexicon.instance}${klass.instanceIndex}';
 
     var firstClass = true;
     HTClass? curKlass = klass;
@@ -278,9 +278,11 @@ class HTInstance with HTObject, InterpreterRef {
           namedArgs: namedArgs,
           typeArgs: typeArgs);
     } catch (error, stack) {
-      if (errorHandled) rethrow;
-
-      interpreter.handleError(error, stack);
+      if (errorHandled) {
+        rethrow;
+      } else {
+        interpreter.handleError(error, stack);
+      }
     }
   }
 

@@ -4,10 +4,9 @@ import 'function.dart';
 import 'errors.dart';
 import 'type.dart';
 import 'interpreter.dart';
-import 'common.dart';
 import 'variable.dart';
 import 'declaration.dart';
-import 'instance.dart';
+// import 'instance.dart';
 import 'enum.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
@@ -18,6 +17,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   String toString() => '${HTLexicon.CLASS} $id';
 
   var _instanceIndex = 0;
+  int get instanceIndex => _instanceIndex++;
 
   final String moduleUniqueKey;
 
@@ -28,10 +28,13 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   /// for searching for static variables.
   late final HTClassNamespace namespace;
 
-  late final ClassType _classType;
+  final bool isExtern;
+  final bool isAbstract;
+
+  // late final ClassType _classType;
 
   /// The type of this [HTClass]
-  ClassType get classType => _classType;
+  // ClassType get classType => _classType;
 
   /// The type parameters of the class.
   final List<String> typeParameters;
@@ -61,7 +64,8 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   /// Create a default [HTClass] instance.
   HTClass(String id, this.superClass, this.superClassType,
       Interpreter interpreter, this.moduleUniqueKey, HTNamespace closure,
-      {ClassType classType = ClassType.normal,
+      {this.isExtern = false,
+      this.isAbstract = false,
       this.typeParameters = const [],
       this.implementedClass = const [],
       this.mixinedClass = const []})
@@ -70,7 +74,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
     this.interpreter = interpreter;
 
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
-    _classType = classType;
+    // _classType = classType;
   }
 
   /// Wether there's a member in this [HTClass] by the [varName].
@@ -121,8 +125,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       return namespace.declarations[constructor] as HTFunction;
-    } else if (namespace.declarations.containsKey(externalName) &&
-        _classType == ClassType.extern) {
+    } else if (namespace.declarations.containsKey(externalName) && isExtern) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -168,8 +171,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
       final setterFunc = namespace.declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [value]);
       return;
-    } else if (namespace.declarations.containsKey(externalName) &&
-        _classType == ClassType.extern) {
+    } else if (namespace.declarations.containsKey(externalName) && isExtern) {
       final externClass = interpreter.fetchExternalClass(id);
       externClass.memberSet(externalName, value);
       return;
@@ -196,9 +198,11 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
         throw HTError.callable(funcName);
       }
     } catch (error, stack) {
-      if (errorHandled) rethrow;
-
-      interpreter.handleError(error, stack);
+      if (errorHandled) {
+        rethrow;
+      } else {
+        interpreter.handleError(error, stack);
+      }
     }
   }
 
@@ -216,25 +220,24 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   }
 
   /// Create a [HTInstance] from this [HTClass].
-  HTInstance createInstance(
-      {String? constructorName,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    var instance =
-        HTInstance(this, interpreter, _instanceIndex++, typeArgs: typeArgs);
+  // HTInstance createInstance(
+  //     {String? constructorName,
+  //     List<dynamic> positionalArgs = const [],
+  //     Map<String, dynamic> namedArgs = const {},
+  //     List<HTType> typeArgs = const []}) {
+  //   var instance = HTInstance(this, interpreter, typeArgs: typeArgs);
 
-    final funcId = constructorName ?? HTLexicon.constructor;
-    if (namespace.declarations.containsKey(funcId)) {
-      final constructor = namespace.declarations[funcId] as HTFunction;
-      // constructor's context is on this newly created instance
-      constructor.context = instance.namespace;
-      constructor.call(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
-    }
+  //   final funcId = constructorName ?? HTLexicon.constructor;
+  //   if (namespace.declarations.containsKey(funcId)) {
+  //     final constructor = namespace.declarations[funcId] as HTFunction;
+  //     // constructor's context is on this newly created instance
+  //     constructor.context = instance.namespace;
+  //     constructor.call(
+  //         positionalArgs: positionalArgs,
+  //         namedArgs: namedArgs,
+  //         typeArgs: typeArgs);
+  //   }
 
-    return instance;
-  }
+  //   return instance;
+  // }
 }

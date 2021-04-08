@@ -9,6 +9,7 @@ import '../variable.dart';
 import '../lexicon.dart';
 import '../extern_function.dart';
 import '../class.dart';
+import '../instance.dart';
 
 class HTBytecodeFunctionSuperConstructor {
   /// id of super class's constructor
@@ -49,7 +50,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     String declId = '',
     HTClass? klass,
     FunctionType funcType = FunctionType.normal,
-    ExternalFunctionType externalFunctionType = ExternalFunctionType.none,
+    bool isExtern = false,
     String? externalTypedef,
     this.parameterDeclarations = const <String, HTBytecodeParameter>{},
     HTType returnType = HTType.ANY,
@@ -65,7 +66,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
   }) : super(id, declId, moduleUniqueKey,
             klass: klass,
             funcType: funcType,
-            externalFunctionType: externalFunctionType,
+            isExtern: isExtern,
             externalTypedef: externalTypedef,
             typeArgs: typeArgs,
             isStatic: isStatic,
@@ -157,6 +158,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
+      bool createInstance = true,
       bool errorHandled = true}) {
     try {
       if (positionalArgs.length < minArity ||
@@ -170,48 +172,19 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         }
       }
 
-      var superCtorCalled = false;
-      if (funcType == FunctionType.constructor && superConstructor != null) {
-        final superClass = klass!.superClass!;
-        final superCtorId = superConstructor!.id;
-        final constructor =
-            superClass.namespace.declarations[superCtorId] as HTFunction;
-        // constructor's context is on this newly created instance
-        final instanceNamespace = context as HTInstanceNamespace;
-        constructor.context = instanceNamespace.next!;
-
-        final superCtorPosArgs = [];
-        final superCtorPosArgIps = superConstructor!.positionalArgsIp;
-        for (var i = 0; i < superCtorPosArgIps.length; ++i) {
-          final arg = interpreter.execute(ip: superCtorPosArgIps[i]);
-          superCtorPosArgs.add(arg);
-        }
-
-        final superCtorNamedArgs = <String, dynamic>{};
-        final superCtorNamedArgIps = superConstructor!.namedArgsIp;
-        for (final name in superCtorNamedArgIps.keys) {
-          final namedArgIp = superCtorNamedArgIps[name]!;
-          final arg = interpreter.execute(ip: namedArgIp);
-          superCtorNamedArgs[name] = arg;
-        }
-
-        constructor.call(
-            positionalArgs: superCtorPosArgs, namedArgs: superCtorNamedArgs);
-
-        superCtorCalled = true;
-      }
-
       HTFunction.callStack.add(
           '#${HTFunction.callStack.length} $id - (${interpreter.curModuleUniqueKey}:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数
-      if (externalFunctionType == ExternalFunctionType.none) {
+      if (!isExtern) {
         if (definitionIp == null) {
-          if (superCtorCalled) {
-            return;
-          }
-          throw HTError.missingFuncDef(id);
+          return;
+        }
+
+        if (funcType == FunctionType.constructor && createInstance) {
+          result = HTInstance(klass!, interpreter, typeArgs: typeArgs);
+          context = result.namespace;
         }
         // 函数每次在调用时，临时生成一个新的作用域
         final closure = HTNamespace(interpreter, id: id, closure: context);
@@ -223,6 +196,36 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
           }
 
           closure.define(HTVariable(HTLexicon.THIS, value: instanceNamespace));
+        }
+
+        if (funcType == FunctionType.constructor && superConstructor != null) {
+          final superClass = klass!.superClass!;
+          final superCtorId = superConstructor!.id;
+          final constructor =
+              superClass.namespace.declarations[superCtorId] as HTFunction;
+          // constructor's context is on this newly created instance
+          final instanceNamespace = context as HTInstanceNamespace;
+          constructor.context = instanceNamespace.next!;
+
+          final superCtorPosArgs = [];
+          final superCtorPosArgIps = superConstructor!.positionalArgsIp;
+          for (var i = 0; i < superCtorPosArgIps.length; ++i) {
+            final arg = interpreter.execute(ip: superCtorPosArgIps[i]);
+            superCtorPosArgs.add(arg);
+          }
+
+          final superCtorNamedArgs = <String, dynamic>{};
+          final superCtorNamedArgIps = superConstructor!.namedArgsIp;
+          for (final name in superCtorNamedArgIps.keys) {
+            final namedArgIp = superCtorNamedArgIps[name]!;
+            final arg = interpreter.execute(ip: namedArgIp);
+            superCtorNamedArgs[name] = arg;
+          }
+
+          constructor.call(
+              positionalArgs: superCtorPosArgs,
+              namedArgs: superCtorNamedArgs,
+              createInstance: false);
         }
 
         var variadicStart = -1;
@@ -260,10 +263,17 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
           variadicParam!.assign(variadicArg);
         }
 
-        result = interpreter.execute(
-            moduleUniqueKey: moduleUniqueKey,
-            ip: definitionIp!,
-            namespace: closure);
+        if (funcType != FunctionType.constructor) {
+          result = interpreter.execute(
+              moduleUniqueKey: moduleUniqueKey,
+              ip: definitionIp!,
+              namespace: closure);
+        } else {
+          interpreter.execute(
+              moduleUniqueKey: moduleUniqueKey,
+              ip: definitionIp!,
+              namespace: closure);
+        }
       }
       // 如果是外部函数
       else {
@@ -313,8 +323,15 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         }
 
         // 单独绑定的外部函数
-        if (externalFunctionType == ExternalFunctionType.externalFunction) {
-          final externFunc = interpreter.fetchExternalFunction(id);
+        if (classId == null) {
+          late final Function externFunc;
+          if (isExtern) {
+            // 类成员外部函数
+            externFunc = interpreter.fetchExternalFunction('$classId.$id');
+          } else {
+            // 普通外部函数
+            externFunc = interpreter.fetchExternalFunction(id);
+          }
           if (externFunc is HTExternalFunction) {
             result = externFunc(
                 positionalArgs: finalPosArgs,
@@ -325,9 +342,8 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
                 namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
           }
         }
-        // 整个外部类的成员函数
-        else if (externalFunctionType ==
-            ExternalFunctionType.externalClassMethod) {
+        // 外部类的成员函数
+        else {
           final externClass = interpreter.fetchExternalClass(classId!);
 
           final externFunc = externClass.memberGet(id);
@@ -343,20 +359,27 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         }
       }
 
-      if (returnType != HTType.ANY) {
-        final encapsulation = interpreter.encapsulate(result);
-        if (encapsulation.rtType.isNotA(returnType)) {
-          throw HTError.returnType(
-              encapsulation.rtType.toString(), id, returnType.toString());
+      if (funcType != FunctionType.constructor) {
+        if (returnType != HTType.ANY) {
+          final encapsulation = interpreter.encapsulate(result);
+          if (encapsulation.rtType.isNotA(returnType)) {
+            throw HTError.returnType(
+                encapsulation.rtType.toString(), id, returnType.toString());
+          }
         }
       }
 
-      if (HTFunction.callStack.isNotEmpty) HTFunction.callStack.removeLast();
+      if (HTFunction.callStack.isNotEmpty) {
+        HTFunction.callStack.removeLast();
+      }
+
       return result;
     } catch (error, stack) {
-      if (!errorHandled) rethrow;
-
-      interpreter.handleError(error, stack);
+      if (errorHandled) {
+        rethrow;
+      } else {
+        interpreter.handleError(error, stack);
+      }
     }
   }
 
@@ -366,7 +389,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         declId: declId,
         klass: klass,
         funcType: funcType,
-        externalFunctionType: externalFunctionType,
+        isExtern: isExtern,
         externalTypedef: externalTypedef,
         parameterDeclarations: parameterDeclarations,
         returnType: returnType,

@@ -1,17 +1,26 @@
 import 'package:hetu_script/hetu_script.dart';
 
-class Person {
-  static String race = 'Caucasian';
+abstract class Animal {
+  String name;
+
+  Animal([this.name = 'nameless animal']);
+}
+
+class Person extends Animal {
+  static final races = <String>['Caucasian'];
   static String _level = '0';
+  static String get level => _level;
+  static set level(value) => _level = value;
   static String meaning(int n) => 'The meaning of life is $n';
 
   String get child => 'Tom';
-  static String get level => _level;
-  static set level(value) => _level = value;
-  Person();
-  Person.withName({this.name = 'some guy'});
 
-  String name = 'default name';
+  String race;
+
+  Person([this.race = 'Caucasian']) : super('Jerry');
+
+  Person.withName(String name, [this.race = 'Caucasian']);
+
   void greeting() {
     print('Hi! I\'m $name');
   }
@@ -26,6 +35,8 @@ extension PersonBinding on Person {
         return toString;
       case 'name':
         return name;
+      case 'race':
+        return race;
       case 'greeting':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -44,6 +55,9 @@ extension PersonBinding on Person {
       case 'name':
         name = value;
         break;
+      case 'race':
+        race = value;
+        break;
       default:
         throw HTError.undefined(varName);
     }
@@ -61,21 +75,19 @@ class PersonClassBinding extends HTExternalClass {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            Person();
+            Person(positionalArgs[0]);
       case 'Person.withName':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            Person.withName(name: namedArgs['name']);
+            Person.withName(positionalArgs[0], positionalArgs[1]);
       case 'Person.meaning':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person.meaning(positionalArgs[0]);
-      case 'Person.race':
-        return Person.race;
       case 'Person.level':
         return Person.level;
       default:
@@ -88,7 +100,7 @@ class PersonClassBinding extends HTExternalClass {
       {String from = HTLexicon.global}) {
     switch (varName) {
       case 'Person.race':
-        return Person.race = value;
+        throw HTError.immutable(varName);
       case 'Person.level':
         return Person.level = value;
       default:
@@ -113,32 +125,36 @@ void main() async {
   var hetu = Hetu();
   await hetu.init(externalClasses: [PersonClassBinding()]);
   await hetu.eval('''
+      external abstract class Animal {
+        var name: str
+      }
       external class Person {
-        static var race
-        static fun meaning(n: num)
-        construct
+        var race: str
+        construct ([race: str = 'Caucasian'])
         get child
+        static fun meaning(n: num)
         static get level
         static set level (value: str)
-        construct withName({name: str})
+        construct withName(name: str, [race: str = 'Caucasian'])
         var name
         fun greeting
       }
       fun main {
-        let p1: Person = Person()
-        print(p1.rtType)
-        print(p1.name)
-        var p2 = Person.withName(name: 'Jimmy')
+        // let p1: Person = Person()
+        // print(p1.rtType)
+        // print(p1.name)
+        // print(p1.child)
+        // print('My race is', p1.race)
+        // p1.race = 'Reptile'
+        // print('Oh no! My race turned into', p1.race)
+
+        var p2 = Person.withName('Jimmy')
         print(p2.name)
         p2.name = 'John'
         p2.greeting();
-        print(p1.child)
+
         Person.level = '3'
         print(Person.level)
-
-        print('My race is', Person.race)
-        Person.race = 'Reptile'
-        print('Oh no! My race turned into', Person.race)
 
         print(Person.meaning(42))
       }

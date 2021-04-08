@@ -57,17 +57,17 @@ abstract class HTLexicon {
   static const varargs = '...'; // variadic arguments
   static const singleQuotation = "'";
   static const doubleQuotation = '"';
-  static const anonymousScript = '\$anonymousScript\$';
-  static const anonymousFunction = '\$anonymousFunction\$';
-  static const anonymousNamespace = '\$anonymousNamespace\$';
+  static const anonymousScript = '\$anonymousScript#';
+  static const anonymousFunction = '\$anonymousFunction#';
+  static const anonymousNamespace = '\$anonymousNamespace#';
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';
   static const unknown = 'unknown';
-  static const instance = '\$instance\$';
-  static const constructor = '\$constructor\$';
-  static const getter = '\$getter\$';
-  static const setter = '\$setter\$';
+  static const instance = '\$instance#';
+  static const constructor = '\$constructor:';
+  static const getter = '\$getter:';
+  static const setter = '\$setter:';
 
   static const instanceOf = 'instance of ';
   static const object = 'Object';
@@ -119,6 +119,7 @@ abstract class HTLexicon {
   static const ASYNC = 'async';
   static const THIS = 'this';
   static const SUPER = 'super';
+  static const ABSTRACT = 'abstract';
   static const EXTENDS = 'extends';
   static const IMPLEMENTS = 'implements';
   static const EXTERNAL = 'external';
@@ -147,6 +148,7 @@ abstract class HTLexicon {
     NULL,
     IMPORT,
     EXTERNAL,
+    ABSTRACT,
     STATIC,
     VAR,
     LET,

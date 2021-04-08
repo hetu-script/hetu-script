@@ -18,7 +18,7 @@ class HTAstResolver implements ASTNodeVisitor {
   final _funcs = <FuncDeclStmt>[];
 
   FunctionType? _curFuncType;
-  ClassType? _curClassType;
+  ClassInfo? _curClass;
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
@@ -94,9 +94,10 @@ class HTAstResolver implements ASTNodeVisitor {
   }
 
   void _resolveClass(ClassDeclStmt stmt) {
-    final savedClassType = _curClassType;
+    final savedClass = _curClass;
 
-    _curClassType = ClassType.normal;
+    _curClass = ClassInfo(stmt.id.lexeme,
+        isExtern: stmt.isExtern, isAbstract: stmt.isAbstract);
 
     _beginBlock();
 
@@ -178,7 +179,7 @@ class HTAstResolver implements ASTNodeVisitor {
 
     _endBlock();
 
-    _curClassType = savedClassType;
+    _curClass = savedClass;
   }
 
   void _resolveASTNode(ASTNode ast) => ast.accept(this);
@@ -298,7 +299,7 @@ class HTAstResolver implements ASTNodeVisitor {
   dynamic visitThisExpr(ThisExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    if (_curClassType == null) {
+    if (_curClass == null) {
       throw HTError.unexpected(expr.keyword.lexeme);
     }
 

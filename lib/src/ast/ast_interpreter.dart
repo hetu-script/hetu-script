@@ -404,81 +404,93 @@ class HTAstInterpreter extends Interpreter
     final typeArgs = <HTType>[];
 
     if (callee is HTFunction) {
-      if (callee.externalFunctionType == ExternalFunctionType.none) {
-        // 普通函数
-        if (callee.funcType != FunctionType.constructor) {
-          return callee.call(
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          final className = callee.classId!;
-          final klass = global.fetch(className);
-          if (klass is HTClass) {
-            if (klass.classType != ClassType.extern) {
-              // 命名构造函数
-              return klass.createInstance(
-                  constructorName: callee.id,
-                  positionalArgs: positionalArgs,
-                  namedArgs: namedArgs,
-                  typeArgs: typeArgs);
-            } else {
-              // 外部命名构造函数
-              final externClass = fetchExternalClass(klass.id);
-              final constructor = externClass.memberGet(callee.id);
-              if (constructor is HTExternalFunction) {
-                return constructor(
-                    positionalArgs: positionalArgs,
-                    namedArgs: namedArgs,
-                    typeArgs: typeArgs);
-              } else {
-                return Function.apply(
-                    constructor,
-                    positionalArgs,
-                    namedArgs
-                        .map((key, value) => MapEntry(Symbol(key), value)));
-                // throw HTErrorExternFunc(constructor.toString());
-              }
-            }
-          } else {
-            throw HTError.callable(callee.toString());
-          }
-        }
-      } else {
-        final externFunc = fetchExternalFunction(callee.id);
-        if (externFunc is HTExternalFunction) {
-          return externFunc(
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          return Function.apply(externFunc, positionalArgs,
-              namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(constructor.toString());
-        }
-      }
+      // if (!callee.isExtern) {
+      // 普通函数
+      // if (callee.funcType != FunctionType.constructor) {
+      return callee.call(
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs);
+      // } else {
+      //   final className = callee.classId!;
+      //   final klass = global.fetch(className);
+      //   if (klass is HTClass) {
+      //     if (!klass.isExtern) {
+      //       // 命名构造函数
+      //       return klass.createInstance(
+      //           constructorName: callee.id,
+      //           positionalArgs: positionalArgs,
+      //           namedArgs: namedArgs,
+      //           typeArgs: typeArgs);
+      //     } else {
+      //       // 外部命名构造函数
+      //       final externClass = fetchExternalClass(klass.id);
+      //       final constructor = externClass.memberGet(callee.id);
+      //       if (constructor is HTExternalFunction) {
+      //         return constructor(
+      //             positionalArgs: positionalArgs,
+      //             namedArgs: namedArgs,
+      //             typeArgs: typeArgs);
+      //       } else {
+      //         return Function.apply(
+      //             constructor,
+      //             positionalArgs,
+      //             namedArgs
+      //                 .map((key, value) => MapEntry(Symbol(key), value)));
+      //         // throw HTErrorExternFunc(constructor.toString());
+      //       }
+      //     }
+      //   } else {
+      //     throw HTError.callable(callee.toString());
+      //   }
+      // }
+      // } else {
+      //   final externFunc = fetchExternalFunction(callee.id);
+      //   if (externFunc is HTExternalFunction) {
+      //     return externFunc(
+      //         positionalArgs: positionalArgs,
+      //         namedArgs: namedArgs,
+      //         typeArgs: typeArgs);
+      //   } else {
+      //     return Function.apply(externFunc, positionalArgs,
+      //         namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+      //     // throw HTErrorExternFunc(constructor.toString());
+      //   }
+      // }
     } else if (callee is HTClass) {
-      if (callee.classType != ClassType.extern) {
-        // 默认构造函数
-        return callee.createInstance(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      } else {
-        // 外部默认构造函数
-        final externClass = fetchExternalClass(callee.id);
-        final constructor = externClass.memberGet(callee.id);
-        if (constructor is HTExternalFunction) {
-          return constructor(
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          return Function.apply(constructor, positionalArgs,
-              namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
-          // throw HTErrorExternFunc(constructor.toString());
-        }
+      if (callee.isAbstract) {
+        throw HTError.abstracted();
       }
+
+      final constructor = callee.memberGet(HTLexicon.constructor) as HTFunction;
+      // constructor's context is on this newly created instance
+      // constructor.context = instance.namespace;
+      constructor.call(
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs);
+
+      // if (!callee.isExtern) {
+      //   // 默认构造函数
+      //   return callee.createInstance(
+      //       positionalArgs: positionalArgs,
+      //       namedArgs: namedArgs,
+      //       typeArgs: typeArgs);
+      // } else {
+      //   // 外部默认构造函数
+      //   final externClass = fetchExternalClass(callee.id);
+      //   final constructor = externClass.memberGet(callee.id);
+      //   if (constructor is HTExternalFunction) {
+      //     return constructor(
+      //         positionalArgs: positionalArgs,
+      //         namedArgs: namedArgs,
+      //         typeArgs: typeArgs);
+      //   } else {
+      //     return Function.apply(constructor, positionalArgs,
+      //         namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+      //     // throw HTErrorExternFunc(constructor.toString());
+      //   }
+      // }
     } // 外部函数
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
@@ -755,7 +767,7 @@ class HTAstInterpreter extends Interpreter
 
     final klass = HTClass(stmt.id.lexeme, superClass, null, this,
         _curModuleUniqueKey, _curNamespace,
-        classType: stmt.classType);
+        isExtern: stmt.isExtern, isAbstract: stmt.isAbstract);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     _curNamespace.define(klass);
@@ -764,7 +776,7 @@ class HTAstInterpreter extends Interpreter
     _curNamespace = klass.namespace;
 
     for (final variable in stmt.variables) {
-      if (stmt.classType != ClassType.extern && variable.isExtern) {
+      if (stmt.isExtern && variable.isExtern) {
         throw HTError.externVar();
       }
       // dynamic value;

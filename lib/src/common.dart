@@ -10,11 +10,11 @@ enum FunctionType {
 }
 
 /// External function types
-enum ExternalFunctionType {
-  none,
-  externalFunction,
-  externalClassMethod,
-}
+// enum ExternalFunctionType {
+//   none,
+//   externalFunction,
+//   externalClassMethod,
+// }
 
 enum FunctionReturnType {
   none, // void
@@ -30,15 +30,23 @@ enum TypeType {
   union,
 }
 
-/// Class types
-enum ClassType {
-  normal,
-  // nested,
-  // abstracted,
-  // interface,
-  // mixIn,
-  extern,
+class ClassInfo {
+  final String id;
+  final bool isExtern;
+  final bool isAbstract;
+  ClassInfo(this.id, {this.isExtern = false, this.isAbstract = false});
 }
+
+// /// Class types
+// enum ClassType {
+//   normal,
+//   // nested,
+//   abstracted,
+//   // interface,
+//   // mixIn,
+//   extern,
+//   externalAbstract,
+// }
 
 /// Code module types
 enum CodeType {

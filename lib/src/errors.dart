@@ -31,7 +31,9 @@ class HTError {
   static const _notList = 'is not a List or Map.';
   static const _notClass = 'is not a class.';
   static const _notMember = 'is not a instance member declaration.';
-  static const _constructor = 'Constructor cannot have a return type.';
+  static const _ctorReturn = 'Constructor cannot have a return type.';
+  static const _abstract = 'Cannot create instance from abstract class.';
+  static const _abstractCtor = 'Cannot create contructor for abstract class.';
 
   static const _setterArity = 'Setter function\'s arity must be 1.';
   static const _errorNullObject = 'Calling method on null object:';
@@ -157,8 +159,20 @@ class HTError {
   }
 
   /// Error: Not a super class of this instance.
-  HTError.constructor() {
-    message = HTError._constructor;
+  HTError.ctorNotSuper() {
+    message = HTError._ctorReturn;
+    type = HTErrorType.parser;
+  }
+
+  /// Error: Not a super class of this instance.
+  HTError.abstracted() {
+    message = HTError._abstract;
+    type = HTErrorType.parser;
+  }
+
+  /// Error: Not a super class of this instance.
+  HTError.abstractedCtor() {
+    message = HTError._abstractCtor;
     type = HTErrorType.parser;
   }
 

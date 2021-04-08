@@ -20,7 +20,9 @@ mixin HTObject {
   /// Hence every null is the same.
   static const NULL = _HTNull();
 
-  /// Typeid of this [HTObject]
+  /// The [HTType] of this [HTObject],
+  /// this is the runtime value type,
+  /// not necessarily the declaration type
   HTType get rtType => HTType.object;
 
   /// Wether this object contains a member with a name by [varName].

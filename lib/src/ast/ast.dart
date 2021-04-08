@@ -743,7 +743,9 @@ class ClassDeclStmt extends ASTNode {
 
   final Token id;
 
-  final ClassType classType;
+  final bool isExtern;
+
+  final bool isAbstract;
 
   final List<VarDeclStmt> variables;
 
@@ -758,7 +760,8 @@ class ClassDeclStmt extends ASTNode {
   final HTType? superClassTypeArgs;
 
   ClassDeclStmt(this.id, this.variables, this.methods,
-      {this.classType = ClassType.normal,
+      {this.isExtern = false,
+      this.isAbstract = false,
       this.typeParameters = const [],
       this.superClass,
       this.superClassDeclStmt,
@@ -778,7 +781,8 @@ class ClassDeclStmt extends ASTNode {
     }
 
     return ClassDeclStmt(id, new_vars, new_methods,
-        classType: classType,
+        isExtern: isExtern,
+        isAbstract: isAbstract,
         typeParameters: typeParameters,
         superClass: superClass,
         superClassDeclStmt: superClassDeclStmt,
