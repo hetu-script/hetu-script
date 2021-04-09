@@ -4,21 +4,12 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      var globalVar = 0
-      class GetGlobal {
-        construct {
-          globalVar = 2
-        }
-        fun test {
-          return (globalVar * globalVar)
-        }
-        static fun staticTest {
-          return (globalVar + 1)
-        }
+      fun whenSwitch() {
+        var i = 4
+          when (i % 2) {
+            0: {print('even')}
+            1: {print('odd')}
+          }
       }
-      fun getGlobalVar() {
-        var a = GetGlobal()
-        print( a.test() + GetGlobal.staticTest())
-      }
-      ''', invokeFunc: 'getGlobalVar');
+      ''', invokeFunc: 'whenSwitch');
 }

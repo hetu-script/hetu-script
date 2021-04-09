@@ -1404,7 +1404,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
         if (curTok.type == HTLexicon.curlyLeft) {
           final caseBranch = _parseBlock(HTLexicon.whenStmt, endOfExec: true);
           branches.add(caseBranch);
-          match(HTLexicon.curlyRight);
         } else {
           final caseBranch =
               _parseStmt(codeType: CodeType.block, endOfExec: true);
