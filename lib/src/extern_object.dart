@@ -22,7 +22,7 @@ class HTNumber extends HTExternObject<num> {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'toString':
         return (
@@ -92,7 +92,7 @@ class HTBoolean extends HTExternObject<bool> {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'toString':
         return (
@@ -115,7 +115,7 @@ class HTString extends HTExternObject<String> {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'toString':
         return (
@@ -175,7 +175,7 @@ class HTList extends HTExternObject<List> {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'toString':
         return (
@@ -259,7 +259,7 @@ class HTMap extends HTExternObject<Map> {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'toString':
         return (

@@ -34,7 +34,7 @@ mixin HTObject {
   /// ```
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'toString':
         return (

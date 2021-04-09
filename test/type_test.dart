@@ -31,7 +31,7 @@ void main() async {
             return num.parse(n)
           }
           const a: fun(num) -> num = convert
-          return a.rtType.toString()
+          return a.runtimeType.toString()
         }
       ''', invokeFunc: 'functionAssign1');
       expect(
@@ -43,7 +43,7 @@ void main() async {
       final result = await hetu.eval('''
         fun functionAssign2 {
           var a: fun(any) -> any = fun(n: num) -> num { return n + 1 }
-          return a.rtType.toString()
+          return a.runtimeType.toString()
         }
       ''', invokeFunc: 'functionAssign2');
       expect(

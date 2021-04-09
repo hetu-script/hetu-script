@@ -74,7 +74,7 @@ class HTEnumItem with HTObject {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'index':
         return index;

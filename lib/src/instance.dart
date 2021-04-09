@@ -185,7 +185,7 @@ class HTInstance with HTObject, InterpreterRef {
 
     // TODO: 这里应该改成写在脚本的Object上才对
     switch (varName) {
-      case 'rtType':
+      case 'runtimeType':
         return rtType;
       case 'toString':
         return (
