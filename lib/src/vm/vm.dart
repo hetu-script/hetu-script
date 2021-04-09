@@ -703,11 +703,9 @@ class Hetu extends Interpreter {
         _curNamespace.assign(curSymbol!, value, from: _curNamespace.fullName);
         break;
       case _RefType.member:
-        final object = _getRegVal(HTRegIdx.postfixObject);
+        var object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
-        if (object == null || object == HTObject.NULL) {
-          throw HTError.nullObject(curObjectSymbol!);
-        }
+        object = encapsulate(object);
         // 如果是 Hetu 对象
         if (object is HTObject) {
           object.memberSet(key!, value, from: _curNamespace.fullName);
@@ -981,24 +979,18 @@ class Hetu extends Interpreter {
       case HTOpCode.memberGet:
         var object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
-
         object = encapsulate(object);
-
         _curValue = object.memberGet(key, from: _curNamespace.fullName);
         break;
       case HTOpCode.subGet:
-        final object = _getRegVal(HTRegIdx.postfixObject);
+        var object = _getRegVal(HTRegIdx.postfixObject);
         final key = execute(moveRegIndex: true);
-
-        if (object == null || object == HTObject.NULL) {
-          throw HTError.nullObject(curObjectSymbol!);
+        _setRegVal(HTRegIdx.postfixKey, key);
+        if (object is HTObject) {
+          _curValue = object.subGet(key);
+        } else {
+          _curValue = object[key];
         }
-
-        // TODO: support script subget operator override
-        // if (object is! List && object is! Map) {
-        //   throw HTError.subGet(object.toString());
-        // }
-        _curValue = object[key];
         _curRefType = _RefType.sub;
         break;
       case HTOpCode.call:

@@ -1,145 +1,238 @@
 import '../type.dart';
 import '../errors.dart';
-import '../binding/external_object.dart';
 import '../interpreter.dart';
 import '../lexicon.dart';
+import '../binding/external_object.dart';
 
-extension IntExtension on int {
-  dynamic htFetch(String varName) {
+class HTNumber<T extends num> extends HTExternalObject<T> {
+  HTNumber(T value, Interpreter interpreter) : super(value, interpreter);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'runtimeType':
-        return HTType.integer;
       case 'remainder':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            remainder(positionalArgs[0]);
+            externObject.remainder(positionalArgs[0]);
+      case 'compareTo':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.compareTo(positionalArgs[0]);
       case 'isNaN':
-        return isNaN;
+        return externObject.isNaN;
       case 'isNegative':
-        return isNegative;
+        return externObject.isNegative;
       case 'isInfinite':
-        return isInfinite;
+        return externObject.isInfinite;
       case 'isFinite':
-        return isFinite;
+        return externObject.isFinite;
       case 'clamp':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            clamp(positionalArgs[0], positionalArgs[1]);
+            externObject.clamp(positionalArgs[0], positionalArgs[1]);
+      case 'toStringAsFixed':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toStringAsFixed(positionalArgs[0]);
       case 'toStringAsExponential':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            toStringAsExponential(positionalArgs[0]);
+            externObject.toStringAsExponential(positionalArgs[0]);
       case 'toStringAsPrecision':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            toStringAsPrecision(positionalArgs[0]);
-
-      case 'modPow':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            modPow(positionalArgs[0], positionalArgs[1]);
-      case 'modInverse':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            modInverse(positionalArgs[0]);
-      case 'gcd':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            gcd(positionalArgs[0]);
-      case 'isEven':
-        return isEven;
-      case 'isOdd':
-        return isOdd;
-      case 'bitLength':
-        return bitLength;
-      case 'toUnsigned':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            toUnsigned(positionalArgs[0]);
-      case 'toSigned':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            toSigned(positionalArgs[0]);
-      case 'abs':
-        return ({positionalArgs, namedArgs, typeArgs}) => abs();
-      case 'sign':
-        return sign;
-      case 'round':
-        return ({positionalArgs, namedArgs, typeArgs}) => round();
-      case 'floor':
-        return ({positionalArgs, namedArgs, typeArgs}) => floor();
-      case 'ceil':
-        return ({positionalArgs, namedArgs, typeArgs}) => ceil();
-      case 'truncate':
-        return ({positionalArgs, namedArgs, typeArgs}) => truncate();
-      case 'roundToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => roundToDouble();
-      case 'floorToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => floorToDouble();
-      case 'ceilToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => ceilToDouble();
-      case 'truncateToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => truncateToDouble();
-      case 'toString':
-        return ({positionalArgs, namedArgs, typeArgs}) => toString();
-      case 'toRadixString':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            toRadixString(positionalArgs[0]);
-      default:
-        throw HTError.undefined(varName);
+            externObject.toStringAsPrecision(positionalArgs[0]);
     }
   }
 }
 
-extension BoolExtension on bool {
-  dynamic htFetch(String varName) {
+class HTInteger extends HTNumber<int> {
+  HTInteger(int value, Interpreter interpreter) : super(value, interpreter);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      case 'runtimeType':
+        return HTType.integer;
+      case 'toString':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toString();
+      case 'modPow':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.modPow(positionalArgs[0], positionalArgs[1]);
+      case 'modInverse':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.modInverse(positionalArgs[0]);
+      case 'gcd':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.gcd(positionalArgs[0]);
+      case 'isEven':
+        return externObject.isEven;
+      case 'isOdd':
+        return externObject.isOdd;
+      case 'bitLength':
+        return externObject.bitLength;
+      case 'toUnsigned':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toUnsigned(positionalArgs[0]);
+      case 'toSigned':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toSigned(positionalArgs[0]);
+      case 'abs':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.abs();
+      case 'sign':
+        return externObject.sign;
+      case 'round':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.round();
+      case 'floor':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.floor();
+      case 'ceil':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.ceil();
+      case 'truncate':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.truncate();
+      case 'roundToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.roundToDouble();
+      case 'floorToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.floorToDouble();
+      case 'ceilToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.ceilToDouble();
+      case 'truncateToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.truncateToDouble();
+      case 'toRadixString':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toRadixString(positionalArgs[0]);
+      default:
+        return super.memberGet(varName, from: from);
+    }
+  }
+}
+
+class HTFloat extends HTNumber<double> {
+  HTFloat(double value, Interpreter interpreter) : super(value, interpreter);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      case 'runtimeType':
+        return HTType.float;
+      case 'toString':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toString();
+      case 'abs':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.abs();
+      case 'sign':
+        return externObject.sign;
+      case 'round':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.round();
+      case 'floor':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.floor();
+      case 'ceil':
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.ceil();
+      case 'truncate':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.truncate();
+      case 'roundToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.roundToDouble();
+      case 'floorToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.floorToDouble();
+      case 'ceilToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.ceilToDouble();
+      case 'truncateToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.truncateToDouble();
+      default:
+        return super.memberGet(varName, from: from);
+    }
+  }
+}
+
+class HTBoolean extends HTExternalObject<bool> {
+  HTBoolean(bool value, Interpreter interpreter) : super(value, interpreter);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'runtimeType':
         return HTType.boolean;
       case 'toString':
-        return ({positionalArgs, namedArgs, typeArgs}) => toString();
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toString();
       default:
         throw HTError.undefined(varName);
     }
   }
 }
 
-extension StringExtension on String {
-  dynamic htFetch(String varName) {
+class HTString extends HTExternalObject<String> {
+  HTString(String value, Interpreter interpreter) : super(value, interpreter);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
       case 'runtimeType':
         return HTType.string;
       case 'toString':
-        return ({positionalArgs, namedArgs, typeArgs}) => toString();
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toString();
       case 'isEmpty':
-        return isEmpty;
+        return externObject.isEmpty;
       case 'subString':
-        return substring;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.substring(positionalArgs[0], positionalArgs[1]);
       case 'startsWith':
-        return startsWith;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.startsWith(positionalArgs[0], positionalArgs[1]);
       case 'endsWith':
-        return endsWith;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.endsWith(positionalArgs[0]);
       case 'indexOf':
-        return indexOf;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.indexOf(positionalArgs[0], positionalArgs[1]);
       case 'lastIndexOf':
-        return lastIndexOf;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.lastIndexOf(positionalArgs[0], positionalArgs[1]);
       case 'compareTo':
-        return compareTo;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.compareTo(positionalArgs[0]);
       case 'trim':
-        return trim;
+        return ({positionalArgs, namedArgs, typeArgs}) => externObject.trim();
       case 'trimLeft':
-        return trimLeft;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.trimLeft();
       case 'trimRight':
-        return trimRight;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.trimRight();
       case 'padLeft':
-        return padLeft;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.padLeft(positionalArgs[0], positionalArgs[1]);
       case 'padRight':
-        return padRight;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.padRight(positionalArgs[0], positionalArgs[1]);
       case 'contains':
-        return contains;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.contains(positionalArgs[0], positionalArgs[1]);
       case 'replaceFirst':
-        return replaceFirst;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.replaceFirst(
+                positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'replaceAll':
-        return replaceAll;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.replaceAll(positionalArgs[0], positionalArgs[1]);
       case 'replaceRange':
-        return replaceRange;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.replaceRange(
+                positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'split':
-        return split;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.split(positionalArgs[0]);
       case 'toLowerCase':
-        return toLowerCase;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toLowerCase();
       case 'toUpperCase':
-        return toUpperCase;
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.toUpperCase();
       default:
         throw HTError.undefined(varName);
     }
@@ -147,30 +240,14 @@ extension StringExtension on String {
 }
 
 /// Binding object for dart list.
-class HTList extends HTExternalObject {
+class HTList<T> extends HTExternalObject<List<T>> {
   @override
   late final rtType;
 
-  HTList(List value, Interpreter interpreter, {HTType valueType = HTType.ANY})
+  HTList(List<T> value, Interpreter interpreter,
+      {HTType valueType = HTType.ANY})
       : super(value, interpreter) {
     rtType = HTType(HTLexicon.list, typeArgs: [valueType]);
-
-    switch (valueType.toString()) {
-      case 'str':
-        value = List<String>.from(value);
-        break;
-      case 'int':
-        value = List<int>.from(value);
-        break;
-      case 'float':
-        value = List<double>.from(value);
-        break;
-      case 'bool':
-        value = List<bool>.from(value);
-        break;
-      default:
-        value = value;
-    }
   }
 
   @override

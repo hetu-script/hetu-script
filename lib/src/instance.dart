@@ -42,6 +42,7 @@ class HTInstance with HTObject, InterpreterRef {
   HTInstance(HTClass klass, Interpreter interpreter,
       {List<HTType> typeArgs = const []}) {
     id = '${HTLexicon.instance}${klass.instanceIndex}';
+    this.interpreter = interpreter;
 
     var firstClass = true;
     HTClass? curKlass = klass;

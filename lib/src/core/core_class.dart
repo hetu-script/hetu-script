@@ -6,10 +6,8 @@ import '../type.dart';
 import '../lexicon.dart';
 import '../errors.dart';
 
-import '../core/core_object.dart';
-
-class NumHTBinding extends HTExternalClass {
-  NumHTBinding() : super(HTLexicon.number);
+class HTNumberClass extends HTExternalClass {
+  HTNumberClass() : super(HTLexicon.number);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -26,8 +24,8 @@ class NumHTBinding extends HTExternalClass {
   }
 }
 
-class IntHTBinding extends HTExternalClass {
-  IntHTBinding() : super(HTLexicon.integer);
+class HTIntegerClass extends HTExternalClass {
+  HTIntegerClass() : super(HTLexicon.integer);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -49,15 +47,10 @@ class IntHTBinding extends HTExternalClass {
         throw HTError.undefined(varName);
     }
   }
-
-  @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
-    return (instance as int).htFetch(id);
-  }
 }
 
-class FloatHTBinding extends HTExternalClass {
-  FloatHTBinding() : super(HTLexicon.float);
+class HTFloatClass extends HTExternalClass {
+  HTFloatClass() : super(HTLexicon.DOUBLE);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -76,15 +69,10 @@ class FloatHTBinding extends HTExternalClass {
         throw HTError.undefined(varName);
     }
   }
-
-  @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
-    return (instance as double).htFetch(id);
-  }
 }
 
-class BoolHTBinding extends HTExternalClass {
-  BoolHTBinding() : super(HTLexicon.boolean);
+class HTBooleanClass extends HTExternalClass {
+  HTBooleanClass() : super(HTLexicon.boolean);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -102,8 +90,8 @@ class BoolHTBinding extends HTExternalClass {
   }
 }
 
-class StringHTBinding extends HTExternalClass {
-  StringHTBinding() : super(HTLexicon.string);
+class HTStringClass extends HTExternalClass {
+  HTStringClass() : super(HTLexicon.string);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -121,8 +109,8 @@ class StringHTBinding extends HTExternalClass {
   }
 }
 
-class MathHTBinding extends HTExternalClass {
-  MathHTBinding() : super(HTLexicon.math);
+class HTMathClass extends HTExternalClass {
+  HTMathClass() : super(HTLexicon.math);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -276,8 +264,8 @@ class MathHTBinding extends HTExternalClass {
   }
 }
 
-class SystemHTBinding extends HTExternalClass {
-  SystemHTBinding() : super(HTLexicon.system);
+class HTSystemClass extends HTExternalClass {
+  HTSystemClass() : super(HTLexicon.system);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -290,8 +278,8 @@ class SystemHTBinding extends HTExternalClass {
   }
 }
 
-class ConsoleHTBinding extends HTExternalClass {
-  ConsoleHTBinding() : super(HTLexicon.console);
+class HTConsoleClass extends HTExternalClass {
+  HTConsoleClass() : super(HTLexicon.console);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {

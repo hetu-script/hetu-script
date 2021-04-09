@@ -14,6 +14,7 @@ import 'binding/external_function.dart';
 import 'binding/external_object.dart';
 import 'core/core_class.dart';
 import 'core/core_function.dart';
+import 'core/core_object.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -65,14 +66,14 @@ abstract class Interpreter {
       for (var key in coreFunctions.keys) {
         bindExternalFunction(key, coreFunctions[key]!);
       }
-      bindExternalClass(NumHTBinding());
-      bindExternalClass(IntHTBinding());
-      bindExternalClass(FloatHTBinding());
-      bindExternalClass(BoolHTBinding());
-      bindExternalClass(StringHTBinding());
-      bindExternalClass(MathHTBinding());
-      bindExternalClass(SystemHTBinding());
-      bindExternalClass(ConsoleHTBinding());
+      bindExternalClass(HTNumberClass());
+      bindExternalClass(HTIntegerClass());
+      bindExternalClass(HTFloatClass());
+      bindExternalClass(HTBooleanClass());
+      bindExternalClass(HTStringClass());
+      bindExternalClass(HTMathClass());
+      bindExternalClass(HTSystemClass());
+      bindExternalClass(HTConsoleClass());
     }
 
     for (var key in externalFunctions.keys) {
@@ -126,46 +127,53 @@ abstract class Interpreter {
       return object;
     } else if ((object == null) || (object is NullThrownError)) {
       return HTObject.NULL;
-      // } else if (object is List) {
-      //   var valueType = HTType.ANY;
-      //   if (object.isNotEmpty) {
-      //     valueType = encapsulate(object.first).rtType;
-      //     for (final item in object) {
-      //       final value = encapsulate(item).rtType;
-      //       if (value.isNotA(valueType)) {
-      //         valueType = HTType.ANY;
-      //         break;
-      //       }
-      //     }
-      //   }
+    } else if (object is bool) {
+      return HTBoolean(object, this);
+    } else if (object is int) {
+      return HTInteger(object, this);
+    } else if (object is double) {
+      return HTFloat(object, this);
+    } else if (object is String) {
+      return HTString(object, this);
+    } else if (object is List) {
+      var valueType = HTType.ANY;
+      if (object.isNotEmpty) {
+        valueType = encapsulate(object.first).rtType;
+        for (final item in object) {
+          final value = encapsulate(item).rtType;
+          if (value.isNotA(valueType)) {
+            valueType = HTType.ANY;
+            break;
+          }
+        }
+      }
 
-      //   return HTList(object, valueType: valueType);
-      // } else if (object is Map) {
-      //   var keyType = HTType.ANY;
-      //   var valueType = HTType.ANY;
-      //   if (object.keys.isNotEmpty) {
-      //     keyType = encapsulate(object.keys.first).rtType;
-      //     for (final item in object.keys) {
-      //       final value = encapsulate(item).rtType;
-      //       if (value.isNotA(keyType)) {
-      //         keyType = HTType.ANY;
-      //         break;
-      //       }
-      //     }
-      //   }
-      //   if (object.values.isNotEmpty) {
-      //     valueType = encapsulate(object.values.first).rtType;
-      //     for (final item in object.values) {
-      //       final value = encapsulate(item).rtType;
-      //       if (value.isNotA(valueType)) {
-      //         valueType = HTType.ANY;
-      //         break;
-      //       }
-      //     }
-      //   }
+      return HTList(object, this, valueType: valueType);
+    } else if (object is Map) {
+      var keyType = HTType.ANY;
+      var valueType = HTType.ANY;
+      if (object.keys.isNotEmpty) {
+        keyType = encapsulate(object.keys.first).rtType;
+        for (final item in object.keys) {
+          final value = encapsulate(item).rtType;
+          if (value.isNotA(keyType)) {
+            keyType = HTType.ANY;
+            break;
+          }
+        }
+      }
+      if (object.values.isNotEmpty) {
+        valueType = encapsulate(object.values.first).rtType;
+        for (final item in object.values) {
+          final value = encapsulate(item).rtType;
+          if (value.isNotA(valueType)) {
+            valueType = HTType.ANY;
+            break;
+          }
+        }
+      }
 
-      //   return HTMap(object, keyType: keyType, valueType: valueType);
-      //
+      return HTMap(object, this, keyType: keyType, valueType: valueType);
     } else {
       return HTExternalObject(object, this);
     }

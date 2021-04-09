@@ -33,7 +33,8 @@ abstract class HTLexicon {
   static const boolean = 'bool';
   static const number = 'num';
   static const integer = 'int';
-  static const float = 'double';
+  static const DOUBLE = 'double';
+  static const float = 'float';
   static const string = 'str';
   static const function = 'fun';
   static const rtType = 'runtimeType';

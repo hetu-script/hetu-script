@@ -3,11 +3,12 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   var hetu = Hetu();
   await hetu.init();
-  await hetu.eval(r'''
+  final result = await hetu.eval(r'''
         fun main {
-          var i = 41.0
-          print(i)
-          print(i.runtimeType)
+          var i: List<String> = ["dd", "2", "3"]
+          i[1] = 'as'
+          return i
         }
       ''', invokeFunc: 'main');
+  print(result);
 }
