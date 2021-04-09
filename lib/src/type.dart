@@ -2,6 +2,7 @@ import 'package:quiver/core.dart';
 
 import 'lexicon.dart';
 import 'object.dart';
+import 'class.dart';
 
 class HTType with HTObject {
   static const TYPE = HTType(HTLexicon.TYPE);
@@ -13,15 +14,15 @@ class HTType with HTObject {
   static const NAMESPACE = HTType(HTLexicon.NAMESPACE);
   static const object = HTType(HTLexicon.object);
   static const function = HTType(HTLexicon.function);
-  static const unknown = HTType(HTLexicon.unknown);
   static const number = HTType(HTLexicon.number);
   static const boolean = HTType(HTLexicon.boolean);
   static const string = HTType(HTLexicon.string);
-  static const list = HTType(HTLexicon.list);
-  static const map = HTType(HTLexicon.map);
 
-  @override
-  HTType get rtType => HTType.TYPE;
+  static final integer =
+      HTInstanceType(HTLexicon.integer, extended: [HTType.number]);
+
+  static final float =
+      HTInstanceType(HTLexicon.float, extended: [HTType.number]);
 
   static String parseBaseType(String typeString) {
     final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
@@ -32,6 +33,9 @@ class HTType with HTObject {
       return typeString;
     }
   }
+
+  @override
+  HTType get rtType => HTType.TYPE;
 
   final String typeName;
   final List<HTType> typeArgs;
@@ -74,8 +78,8 @@ class HTType with HTObject {
 
   /// Wether object of this [HTType] can be assigned to other [HTType]
   bool isA(Object other) {
-    if (this == HTType.unknown) {
-      if (other == HTType.ANY || other == HTType.unknown) {
+    if (this is HTUnknownType) {
+      if (other == HTType.ANY || other is HTUnknownType) {
         return true;
       } else {
         return false;
@@ -115,17 +119,40 @@ class HTType with HTObject {
   bool operator ==(Object other) => hashCode == other.hashCode;
 }
 
-class HTInstanceType extends HTType {
-  final List<HTType> extended;
-  final List<HTType> implemented;
-  final List<HTType> mixined;
+class HTUnknownType extends HTType {
+  final String typeString;
 
-  const HTInstanceType(String typeName,
+  HTUnknownType(this.typeString) : super(HTLexicon.unknownType);
+
+  @override
+  String toString() => '${HTLexicon.unknownType}${HTLexicon.colon} $typeString';
+}
+
+class HTInstanceType extends HTType {
+  late final List<HTType> extended;
+  // late final List<HTType> implemented;
+  // late final List<HTType> mixined;
+
+  HTInstanceType.from(HTInheritable klass,
+      {List<HTType> typeArgs = const [], bool isNullable = false})
+      : super(klass.id, typeArgs: typeArgs, isNullable: isNullable) {
+    HTInheritable? curKlass = klass;
+    extended = <HTType>[];
+    while (curKlass != null) {
+      if (curKlass.superClassType != null) {
+        extended.add(curKlass.superClassType!);
+      }
+      curKlass = curKlass.superClass;
+    }
+  }
+
+  HTInstanceType(String typeName,
       {List<HTType> typeArgs = const [],
       this.extended = const [],
-      this.implemented = const [],
-      this.mixined = const []})
-      : super(typeName, typeArgs: typeArgs, isNullable: false);
+      // this.implemented = const [],
+      // this.mixined = const [],
+      bool isNullable = false})
+      : super(typeName, typeArgs: typeArgs, isNullable: isNullable);
 
   @override
   int get hashCode {
@@ -138,12 +165,12 @@ class HTInstanceType extends HTType {
     for (final type in extended) {
       hashList.add(type.hashCode);
     }
-    for (final type in implemented) {
-      hashList.add(type.hashCode);
-    }
-    for (final type in mixined) {
-      hashList.add(type.hashCode);
-    }
+    // for (final type in implemented) {
+    //   hashList.add(type.hashCode);
+    // }
+    // for (final type in mixined) {
+    //   hashList.add(type.hashCode);
+    // }
     final hash = hashObjects(hashList);
     return hash;
   }
@@ -153,22 +180,24 @@ class HTInstanceType extends HTType {
     if (other is HTType) {
       if (other == HTType.ANY) {
         return true;
+      } else if (this == other) {
+        return true;
       } else {
         for (var i = 0; i < extended.length; ++i) {
           if (extended[i].isA(other)) {
             return true;
           }
         }
-        for (var i = 0; i < implemented.length; ++i) {
-          if (implemented[i].isA(other)) {
-            return true;
-          }
-        }
-        for (var i = 0; i < mixined.length; ++i) {
-          if (mixined[i].isA(other)) {
-            return true;
-          }
-        }
+        // for (var i = 0; i < implemented.length; ++i) {
+        //   if (implemented[i].isA(other)) {
+        //     return true;
+        //   }
+        // }
+        // for (var i = 0; i < mixined.length; ++i) {
+        //   if (mixined[i].isA(other)) {
+        //     return true;
+        //   }
+        // }
         return false;
       }
     } else {

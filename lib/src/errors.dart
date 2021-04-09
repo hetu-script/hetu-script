@@ -35,6 +35,9 @@ class HTError {
   static const _abstract = 'Cannot create instance from abstract class.';
   static const _abstractCtor = 'Cannot create contructor for abstract class.';
   static const _setterArity = 'Setter function\'s arity must be 1.';
+  static const _externMember =
+      'Non-external class cannot have non-static external members.';
+  static const _emptyTypeArgs = 'Empty type arguments.';
 
   static const _unknownOpCode = 'Unknown opcode:';
   static const _errorNullObject = 'Calling method on null object:';
@@ -144,6 +147,18 @@ class HTError {
   /// Error: Illegal setter declaration.
   HTError.setter() {
     message = HTError._setterArity;
+    type = HTErrorType.parser;
+  }
+
+  /// Error: Illegal external member.
+  HTError.externMember() {
+    message = HTError._externMember;
+    type = HTErrorType.parser;
+  }
+
+  /// Error: Type arguments is emtpy brackets.
+  HTError.emptyTypeArgs() {
+    message = HTError._emptyTypeArgs;
     type = HTErrorType.parser;
   }
 

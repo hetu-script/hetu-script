@@ -1,166 +1,145 @@
-import 'errors.dart';
-import 'object.dart';
-import 'type.dart';
-import 'lexicon.dart';
+import '../type.dart';
+import '../errors.dart';
+import '../binding/external_object.dart';
+import '../interpreter.dart';
+import '../lexicon.dart';
 
-/// Base class for external object.
-class HTExternObject<T> with HTObject {
-  @override
-  final rtType;
-
-  /// the external object.
-  T externObject;
-
-  /// Create a external class object.
-  HTExternObject(this.externObject, {this.rtType = HTType.unknown});
-}
-
-/// Binding object for dart number.
-class HTNumber extends HTExternObject<num> {
-  HTNumber(num value) : super(value, rtType: HTType.number);
-
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+extension IntExtension on int {
+  dynamic htFetch(String varName) {
     switch (varName) {
       case 'runtimeType':
-        return rtType;
-      case 'toString':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.toString();
-      case 'toStringAsFixed':
-        return (
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          return externObject.toStringAsFixed(positionalArgs.first as int);
-        };
+        return HTType.integer;
+      case 'remainder':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            remainder(positionalArgs[0]);
+      case 'isNaN':
+        return isNaN;
+      case 'isNegative':
+        return isNegative;
+      case 'isInfinite':
+        return isInfinite;
+      case 'isFinite':
+        return isFinite;
+      case 'clamp':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            clamp(positionalArgs[0], positionalArgs[1]);
+      case 'toStringAsExponential':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            toStringAsExponential(positionalArgs[0]);
+      case 'toStringAsPrecision':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            toStringAsPrecision(positionalArgs[0]);
+
+      case 'modPow':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            modPow(positionalArgs[0], positionalArgs[1]);
+      case 'modInverse':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            modInverse(positionalArgs[0]);
+      case 'gcd':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            gcd(positionalArgs[0]);
+      case 'isEven':
+        return isEven;
+      case 'isOdd':
+        return isOdd;
+      case 'bitLength':
+        return bitLength;
+      case 'toUnsigned':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            toUnsigned(positionalArgs[0]);
+      case 'toSigned':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            toSigned(positionalArgs[0]);
       case 'abs':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.abs();
-      case 'floor':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.floor();
-      case 'ceil':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.ceil();
+        return ({positionalArgs, namedArgs, typeArgs}) => abs();
+      case 'sign':
+        return sign;
       case 'round':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.round();
+        return ({positionalArgs, namedArgs, typeArgs}) => round();
+      case 'floor':
+        return ({positionalArgs, namedArgs, typeArgs}) => floor();
+      case 'ceil':
+        return ({positionalArgs, namedArgs, typeArgs}) => ceil();
       case 'truncate':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.truncate();
-      case 'toInt':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.toInt();
-      case 'toDouble':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.toDouble();
+        return ({positionalArgs, namedArgs, typeArgs}) => truncate();
+      case 'roundToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) => roundToDouble();
+      case 'floorToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) => floorToDouble();
+      case 'ceilToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) => ceilToDouble();
+      case 'truncateToDouble':
+        return ({positionalArgs, namedArgs, typeArgs}) => truncateToDouble();
+      case 'toString':
+        return ({positionalArgs, namedArgs, typeArgs}) => toString();
+      case 'toRadixString':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            toRadixString(positionalArgs[0]);
       default:
         throw HTError.undefined(varName);
     }
   }
 }
 
-/// Binding object for dart bool.
-class HTBoolean extends HTExternObject<bool> {
-  HTBoolean(bool value) : super(value, rtType: HTType.boolean);
-
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+extension BoolExtension on bool {
+  dynamic htFetch(String varName) {
     switch (varName) {
       case 'runtimeType':
-        return rtType;
+        return HTType.boolean;
       case 'toString':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.toString();
-      case 'parse':
-        return externObject.toString;
+        return ({positionalArgs, namedArgs, typeArgs}) => toString();
       default:
         throw HTError.undefined(varName);
     }
   }
 }
 
-/// Binding object for dart string.
-class HTString extends HTExternObject<String> {
-  HTString(String value) : super(value, rtType: HTType.string);
-
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+extension StringExtension on String {
+  dynamic htFetch(String varName) {
     switch (varName) {
       case 'runtimeType':
-        return rtType;
+        return HTType.string;
       case 'toString':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externObject.toString();
+        return ({positionalArgs, namedArgs, typeArgs}) => toString();
       case 'isEmpty':
-        return externObject.isEmpty;
+        return isEmpty;
       case 'subString':
-        return externObject.substring;
+        return substring;
       case 'startsWith':
-        return externObject.startsWith;
+        return startsWith;
       case 'endsWith':
-        return externObject.endsWith;
+        return endsWith;
       case 'indexOf':
-        return externObject.indexOf;
+        return indexOf;
       case 'lastIndexOf':
-        return externObject.lastIndexOf;
+        return lastIndexOf;
       case 'compareTo':
-        return externObject.compareTo;
+        return compareTo;
       case 'trim':
-        return externObject.trim;
+        return trim;
       case 'trimLeft':
-        return externObject.trimLeft;
+        return trimLeft;
       case 'trimRight':
-        return externObject.trimRight;
+        return trimRight;
       case 'padLeft':
-        return externObject.padLeft;
+        return padLeft;
       case 'padRight':
-        return externObject.padRight;
+        return padRight;
       case 'contains':
-        return externObject.contains;
+        return contains;
       case 'replaceFirst':
-        return externObject.replaceFirst;
+        return replaceFirst;
       case 'replaceAll':
-        return externObject.replaceAll;
+        return replaceAll;
       case 'replaceRange':
-        return externObject.replaceRange;
+        return replaceRange;
       case 'split':
-        return externObject.split;
+        return split;
       case 'toLowerCase':
-        return externObject.toLowerCase;
+        return toLowerCase;
       case 'toUpperCase':
-        return externObject.toUpperCase;
+        return toUpperCase;
       default:
         throw HTError.undefined(varName);
     }
@@ -168,9 +147,31 @@ class HTString extends HTExternObject<String> {
 }
 
 /// Binding object for dart list.
-class HTList extends HTExternObject<List> {
-  HTList(List value, {HTType valueType = HTType.ANY})
-      : super(value, rtType: HTType(HTLexicon.list, typeArgs: [valueType]));
+class HTList extends HTExternalObject {
+  @override
+  late final rtType;
+
+  HTList(List value, Interpreter interpreter, {HTType valueType = HTType.ANY})
+      : super(value, interpreter) {
+    rtType = HTType(HTLexicon.list, typeArgs: [valueType]);
+
+    switch (valueType.toString()) {
+      case 'str':
+        value = List<String>.from(value);
+        break;
+      case 'int':
+        value = List<int>.from(value);
+        break;
+      case 'float':
+        value = List<double>.from(value);
+        break;
+      case 'bool':
+        value = List<bool>.from(value);
+        break;
+      default:
+        value = value;
+    }
+  }
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -242,19 +243,21 @@ class HTList extends HTExternObject<List> {
                 List<HTType> typeArgs = const []}) =>
             externObject.join(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        return super.memberGet(varName, from: from);
     }
   }
 }
 
 /// Binding object for dart map.
-class HTMap extends HTExternObject<Map> {
-  HTMap(Map value, {HTType keyType = HTType.ANY, HTType valueType = HTType.ANY})
-      : super(value,
-            rtType: HTType(HTLexicon.list, typeArgs: [keyType, valueType]));
-
+class HTMap extends HTExternalObject {
   @override
-  final rtType = HTType.map;
+  late final rtType;
+
+  HTMap(Map value, Interpreter interpreter,
+      {HTType keyType = HTType.ANY, HTType valueType = HTType.ANY})
+      : super(value, interpreter) {
+    rtType = HTType(HTLexicon.map, typeArgs: [keyType, valueType]);
+  }
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -308,7 +311,7 @@ class HTMap extends HTExternObject<Map> {
                 List<HTType> typeArgs = const []}) =>
             externObject.remove(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        return super.memberGet(varName, from: from);
     }
   }
 }

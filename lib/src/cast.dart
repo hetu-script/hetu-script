@@ -24,7 +24,7 @@ class HTCast with HTObject, InterpreterRef {
 
     final extended = <HTType>[];
 
-    HTClass? curSuper = klass;
+    HTInheritable? curSuper = klass;
     var superClassType = HTType(klass.id, typeArgs: typeArgs);
     while (curSuper != null) {
       extended.add(superClassType);

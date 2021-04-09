@@ -65,9 +65,9 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
   void assign(dynamic value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
-      if (encapsulation.rtType.isNotA(_declType!)) {
-        throw HTError.typeCheck(
-            id, encapsulation.rtType.toString(), _declType.toString());
+      final valueType = encapsulation.rtType;
+      if (valueType.isNotA(_declType!)) {
+        throw HTError.typeCheck(id, valueType.toString(), _declType.toString());
       }
     } else {
       if (!isDynamic && value != null) {

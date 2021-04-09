@@ -2,32 +2,96 @@
 ///
 /// Automatically generated based on files in 'hetu_lib' folder.
 final Map<String, String> coreModules = const {
-      'core.ht': r'''class Object {}
+      'core.ht': r'''class Object {
+
+  // external get runtimeType -> Type
+
+  // external fun toString -> str
+}
 
 // return the declaration type of a symbol
 // external fun decltypeof(value) -> str
 
 // print values of any type into lines
 external fun print(... args)''',
-'value.ht': r'''external class num {
+'value.ht': r'''/// The apis here are named based on Dart SDK's
+/// [num], [int], [double], [bool], [String], [List] and [Map]
+
+external class num {
 
 	static fun parse(value: str) -> num
 
-  fun toStringAsFixed([fractionDigits: num = 0]) -> num
+}
 
-  fun abs() -> num
+external class int extends num {
+  /// Parse [source] as a, possibly signed, integer literal.
+  static fun parse(source: str, {radix: int}) -> int
+	
+  /// Returns this integer to the power of [exponent] modulo [modulus].
+  fun modPow(exponent: int, modulus: int) -> int
 
-  fun floor() -> num
+  /// Returns the modular multiplicative inverse of this integer
+  fun modInverse(modulus: int) -> int
 
-  fun ceil() -> num
+  /// Returns the greatest common divisor of this integer and [other].
+  fun gcd(other: int) -> int
 
-  fun round() -> num
+  /// Returns true if and only if this integer is even.
+  get isEven -> bool
 
-  fun truncate() -> num
+  /// Returns true if and only if this integer is odd.
+  get isOdd -> bool
 
-  fun toInt() -> num
+  /// Returns the minimum number of bits required to store this integer.
+  get bitLength -> int
+	
+  /// Returns the least significant [width] bits of this integer as a
+  /// non-negative number (i.e. unsigned representation).  The returned value has
+  /// zeros in all bit positions higher than [width].
+  fun toUnsigned(width: int) -> int
+	
+  /// Returns the least significant [width] bits of this integer, extending the
+  /// highest retained bit to the sign.  This is the same as truncating the value
+  /// to fit in [width] bits using an signed 2-s complement representation.  The
+  /// returned value has the same bit value in all positions higher than [width].
+  fun toSigned(width: int) -> int
 
-  fun toDouble() -> num
+  /// Returns the absolute value of this integer.
+  fun abs() -> int
+
+  /// Returns the sign of this integer.
+  get sign -> int
+
+  /// Returns `this`.
+  fun round() -> int
+
+  /// Returns `this`.
+  fun floor() -> int
+
+  /// Returns `this`.
+  fun ceil() -> int
+
+  /// Returns `this`.
+  fun truncate() -> int
+
+  /// Returns `this.toDouble()`.
+  fun roundToDouble() -> float
+
+  /// Returns `this.toDouble()`.
+  fun floorToDouble() -> float
+
+  /// Returns `this.toDouble()`.
+  fun ceilToDouble() -> float
+
+  /// Returns `this.toDouble()`.
+  fun truncateToDouble() -> float
+  
+  /// Converts [this] to a string representation in the given [radix].
+  fun toRadixString(radix: int) -> str
+}
+
+external class float extends num {
+	
 }
 
 external class bool {

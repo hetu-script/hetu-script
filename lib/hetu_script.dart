@@ -6,14 +6,14 @@ library hetu_script;
 
 export 'src/common.dart' show CodeType;
 export 'src/object.dart';
-export 'src/type.dart' show HTType;
+export 'src/type.dart';
 export 'src/namespace.dart';
 export 'src/class.dart';
 export 'src/function.dart' show HTFunction;
 export 'src/errors.dart';
-export 'src/extern_class.dart';
-export 'src/extern_object.dart';
-export 'src/extern_function.dart'
+export 'src/binding/external_class.dart';
+export 'src/binding/external_object.dart';
+export 'src/binding/external_function.dart'
     show HTExternalFunction, HTExternalFunctionTypedef;
 export 'src/lexicon.dart';
 export 'src/vm/vm.dart';

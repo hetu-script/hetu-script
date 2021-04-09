@@ -1633,6 +1633,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
       final typeArgs = <Uint8List>[];
       if (expect([HTLexicon.angleLeft], consume: true)) {
+        if (curTok.type == HTLexicon.angleRight) {
+          throw HTError.emptyTypeArgs();
+        }
         while ((curTok.type != HTLexicon.angleRight) &&
             (curTok.type != HTLexicon.endOfFile)) {
           typeArgs.add(_compileType());
@@ -1734,12 +1737,17 @@ class Compiler extends Parser with ConstTable, HetuRef {
     advance(1);
     var id = match(HTLexicon.identifier).lexeme;
 
-    if (_curClass != null && isExtern) {
-      id = '${_curClass!.id}.$id';
-    }
-
     if (_curBlock.contains(id)) {
       throw HTError.definedParser(id);
+    }
+
+    if (_curClass != null) {
+      if (isExtern) {
+        if (!(_curClass!.isExtern) && !isStatic) {
+          throw HTError.externMember();
+        }
+        id = '${_curClass!.id}.$id';
+      }
     }
 
     final bytesBuilder = BytesBuilder();
@@ -1844,6 +1852,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
       }
     } else {
       if (_curClass != null) {
+        if (!(_curClass!.isExtern) && !isStatic) {
+          throw HTError.externMember();
+        }
+
         id = (declId.isEmpty) ? _curClass!.id : '${_curClass!.id}.$declId';
       } else {
         if (declId.isEmpty) {

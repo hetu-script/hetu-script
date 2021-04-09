@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import 'package:hetu_script/src/declaration.dart';
+
 import 'object.dart';
 import 'interpreter.dart';
 import 'class.dart';
@@ -9,7 +11,6 @@ import 'lexicon.dart';
 import 'function.dart';
 import 'namespace.dart';
 import 'common.dart';
-import 'variable.dart';
 import 'cast.dart';
 
 /// The Dart implementation of the instance in Hetu.
@@ -53,8 +54,6 @@ class HTInstance with HTObject, InterpreterRef {
           closure: klass.namespace);
       curNamespace = curNamespace.next!;
 
-      // TODO: check wether has default constructor and warn user?
-      // final hasDefaultConstructor = false;
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
         if (decl.id.startsWith(HTLexicon.underscore) && !firstClass) {
@@ -123,19 +122,7 @@ class HTInstance with HTObject, InterpreterRef {
           }
 
           var decl = space.declarations[varName]!;
-          if (decl is HTFunction) {
-            if (decl.externalTypedef != null) {
-              final externalFunc = interpreter.unwrapExternalFunctionType(
-                  decl.externalTypedef!, decl);
-              return externalFunc;
-            }
-            return decl;
-          } else if (decl is HTVariable) {
-            if (!decl.isInitialized) {
-              decl.initialize();
-            }
-            return decl.value;
-          }
+          return HTDeclaration.fetch(decl, interpreter);
         } else if (space.declarations.containsKey(getter)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
@@ -159,19 +146,7 @@ class HTInstance with HTObject, InterpreterRef {
         }
 
         var decl = space.declarations[varName]!;
-        if (decl is HTFunction) {
-          if (decl.externalTypedef != null) {
-            final externalFunc = interpreter.unwrapExternalFunctionType(
-                decl.externalTypedef!, decl);
-            return externalFunc;
-          }
-          return decl;
-        } else if (decl is HTVariable) {
-          if (!decl.isInitialized) {
-            decl.initialize();
-          }
-          return decl.value;
-        }
+        return HTDeclaration.fetch(decl, interpreter);
       } else if (space.declarations.containsKey(getter)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
@@ -188,10 +163,7 @@ class HTInstance with HTObject, InterpreterRef {
       case 'runtimeType':
         return rtType;
       case 'toString':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs, typeArgs}) =>
             '${HTLexicon.instanceOf}$rtType';
       default:
         throw HTError.undefined(varName);
@@ -216,12 +188,8 @@ class HTInstance with HTObject, InterpreterRef {
           }
 
           var decl = space.declarations[varName]!;
-          if (decl is HTVariable) {
-            decl.assign(varValue);
-            return;
-          } else {
-            throw HTError.immutable(varName);
-          }
+          HTDeclaration.assign(decl, varValue);
+          return;
         } else if (space.declarations.containsKey(setter)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
@@ -229,7 +197,8 @@ class HTInstance with HTObject, InterpreterRef {
           }
 
           var method = space.declarations[setter]! as HTFunction;
-          return method.call(positionalArgs: [varValue]);
+          method.call(positionalArgs: [varValue]);
+          return;
         }
       }
     } else {
@@ -245,12 +214,8 @@ class HTInstance with HTObject, InterpreterRef {
         }
 
         var decl = space.declarations[varName]!;
-        if (decl is HTVariable) {
-          decl.assign(varValue);
-          return;
-        } else {
-          throw HTError.immutable(varName);
-        }
+        HTDeclaration.assign(decl, varValue);
+        return;
       } else if (space.declarations.containsKey(setter)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
@@ -258,7 +223,8 @@ class HTInstance with HTObject, InterpreterRef {
         }
 
         var method = space.declarations[setter]! as HTFunction;
-        return method.call(positionalArgs: [varValue]);
+        method.call(positionalArgs: [varValue]);
+        return;
       }
     }
 

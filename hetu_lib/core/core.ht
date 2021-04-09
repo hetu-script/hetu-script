@@ -1,4 +1,9 @@
-class Object {}
+class Object {
+
+  // external get runtimeType -> Type
+
+  // external fun toString -> str
+}
 
 // return the declaration type of a symbol
 // external fun decltypeof(value) -> str

@@ -7,7 +7,7 @@ import '../common.dart';
 import '../errors.dart';
 import '../variable.dart';
 import '../lexicon.dart';
-import '../extern_function.dart';
+import '../binding/external_function.dart';
 import '../class.dart';
 import '../instance.dart';
 
@@ -363,12 +363,17 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         else {
           final externClass = interpreter.fetchExternalClass(classId!);
 
-          final typeArgsString = convertTypeArgsToString(typeArgs);
-          final externFunc = externClass.memberGet('$id$typeArgsString');
+          // final typeArgsString = convertTypeArgsToString(typeArgs);
+          // final externFunc = externClass.memberGet('$id$typeArgsString');
+
+          final externFunc = externClass.memberGet(id);
           if (externFunc is HTExternalFunction) {
             result = externFunc(
-                positionalArgs: finalPosArgs, namedArgs: finalNamedArgs);
+                positionalArgs: finalPosArgs,
+                namedArgs: finalNamedArgs,
+                typeArgs: typeArgs);
           } else {
+            // Use Function.apply will lose type args information.
             result = Function.apply(
                 externFunc,
                 finalPosArgs,

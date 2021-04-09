@@ -1,76 +1,15 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'type.dart';
-import 'errors.dart';
-import 'lexicon.dart';
-import 'interpreter.dart';
-import 'object.dart';
-// import 'ast/ast_parser.dart';
+import '../binding/external_class.dart';
+import '../type.dart';
+import '../lexicon.dart';
+import '../errors.dart';
 
-/// Namespace class of low level external dart functions for Hetu to use.
-abstract class HTExternalClass with HTObject {
-  final String typeName;
-  // final List<HTType> typeArgs;
-  // late final HTInstanceType instanceType;
+import '../core/core_object.dart';
 
-  /// Default [HTExternalClass] constructor.
-  HTExternalClass(this.typeName);
-  // String typeString,
-  // {List<String> extended = const [],
-  // List<String> implemented = const [],
-  // List<String> mixined = const []}) {
-  // final baseType = HTAstParser.parseType(typeString);
-
-  // final extendedTypes = <HTType>[];
-  // final implementedTypes = <HTType>[];
-  // final mixinedTypes = <HTType>[];
-
-  // for (final typeString in extended) {
-  //   final type = HTAstParser.parseType(typeString);
-  //   extendedTypes.add(type)
-  // }
-
-  // instanceType = HTInstanceType(
-  //   baseType.typeName,
-  //   typeArgs: baseType.typeArgs,
-  //   extended: extended,
-  // );
-  // }
-  // {
-  //   type = HTType.parse(typeString);
-  // }
-
-  /// Fetch a instance member of the Dart class by the [varName], in the form of
-  /// ```
-  /// object.key
-  /// ```
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      throw HTError.undefined(varName);
-
-  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
-  /// ```
-  /// object.key = value
-  /// ```
-  void instanceMemberSet(dynamic object, String varName, dynamic varValue) =>
-      throw HTError.undefined(varName);
-
-  /// Fetch a instance member of the Dart class by the [varName], in the form of
-  /// ```
-  /// object[key]
-  /// ```
-  dynamic instanceSubGet(dynamic object, dynamic key) => object[key];
-
-  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
-  /// ```
-  /// object[key] = value
-  /// ```
-  void instanceSubSet(dynamic object, dynamic key, dynamic varValue) =>
-      object[key] = varValue;
-}
-
-class HTExternClassNumber extends HTExternalClass {
-  HTExternClassNumber() : super(HTLexicon.number);
+class NumHTBinding extends HTExternalClass {
+  NumHTBinding() : super(HTLexicon.number);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -87,8 +26,65 @@ class HTExternClassNumber extends HTExternalClass {
   }
 }
 
-class HTExternClassBool extends HTExternalClass {
-  HTExternClassBool() : super(HTLexicon.boolean);
+class IntHTBinding extends HTExternalClass {
+  IntHTBinding() : super(HTLexicon.integer);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      case 'int.fromEnvironment':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            int.fromEnvironment(positionalArgs[0],
+                defaultValue: namedArgs['defaultValue']);
+      case 'int.parse':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    return (instance as int).htFetch(id);
+  }
+}
+
+class FloatHTBinding extends HTExternalClass {
+  FloatHTBinding() : super(HTLexicon.float);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      case 'float.nan':
+        return double.nan;
+      case 'float.infinity':
+        return double.infinity;
+      case 'float.negativeInfinity':
+        return double.negativeInfinity;
+      case 'float.minPositive':
+        return double.minPositive;
+      case 'float.maxFinite':
+        return double.maxFinite;
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    return (instance as double).htFetch(id);
+  }
+}
+
+class BoolHTBinding extends HTExternalClass {
+  BoolHTBinding() : super(HTLexicon.boolean);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -106,8 +102,8 @@ class HTExternClassBool extends HTExternalClass {
   }
 }
 
-class HTExternClassString extends HTExternalClass {
-  HTExternClassString() : super(HTLexicon.string);
+class StringHTBinding extends HTExternalClass {
+  StringHTBinding() : super(HTLexicon.string);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -125,8 +121,8 @@ class HTExternClassString extends HTExternalClass {
   }
 }
 
-class HTExternClassMath extends HTExternalClass {
-  HTExternClassMath() : super(HTLexicon.math);
+class MathHTBinding extends HTExternalClass {
+  MathHTBinding() : super(HTLexicon.math);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -280,10 +276,8 @@ class HTExternClassMath extends HTExternalClass {
   }
 }
 
-class HTExternClassSystem extends HTExternalClass with InterpreterRef {
-  HTExternClassSystem(Interpreter interpreter) : super(HTLexicon.system) {
-    this.interpreter = interpreter;
-  }
+class SystemHTBinding extends HTExternalClass {
+  SystemHTBinding() : super(HTLexicon.system);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -296,8 +290,8 @@ class HTExternClassSystem extends HTExternalClass with InterpreterRef {
   }
 }
 
-class HTExternClassConsole extends HTExternalClass {
-  HTExternClassConsole() : super(HTLexicon.console);
+class ConsoleHTBinding extends HTExternalClass {
+  ConsoleHTBinding() : super(HTLexicon.console);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {

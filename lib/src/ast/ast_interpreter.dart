@@ -1,6 +1,6 @@
 import '../plugin/errorHandler.dart';
 import '../plugin/moduleHandler.dart';
-import '../extern_function.dart';
+import '../binding/external_function.dart';
 import '../errors.dart';
 import 'ast.dart';
 import '../type.dart';
@@ -15,7 +15,6 @@ import '../lexicon.dart';
 import 'ast_resolver.dart';
 import '../object.dart';
 import '../interpreter.dart';
-import '../extern_object.dart';
 import '../enum.dart';
 import 'ast_variable.dart';
 import '../const_table.dart';
@@ -566,17 +565,17 @@ class HTAstInterpreter extends Interpreter
     _curColumn = expr.column;
     var object = visitASTNode(expr.collection);
 
-    if (object is num) {
-      object = HTNumber(object);
-    } else if (object is bool) {
-      object = HTBoolean(object);
-    } else if (object is String) {
-      object = HTString(object);
-    } else if (object is List) {
-      object = HTList(object);
-    } else if (object is Map) {
-      object = HTMap(object);
-    }
+    // if (object is num) {
+    //   object = HTNumber(object);
+    // } else if (object is bool) {
+    //   object = HTBoolean(object);
+    // } else if (object is String) {
+    //   object = HTString(object);
+    // } else if (object is List) {
+    //   object = HTList(object);
+    // } else if (object is Map) {
+    //   object = HTMap(object);
+    // }
 
     if ((object is HTObject)) {
       return object.memberGet(expr.key.lexeme, from: _curNamespace.fullName);
@@ -596,17 +595,17 @@ class HTAstInterpreter extends Interpreter
     _curColumn = expr.column;
     dynamic object = visitASTNode(expr.collection);
 
-    if (object is num) {
-      object = HTNumber(object);
-    } else if (object is bool) {
-      object = HTBoolean(object);
-    } else if (object is String) {
-      object = HTString(object);
-    } else if (object is List) {
-      object = HTList(object);
-    } else if (object is Map) {
-      object = HTMap(object);
-    }
+    // if (object is num) {
+    //   object = HTNumber(object);
+    // } else if (object is bool) {
+    //   object = HTBoolean(object);
+    // } else if (object is String) {
+    //   object = HTString(object);
+    // } else if (object is List) {
+    //   object = HTList(object);
+    // } else if (object is Map) {
+    //   object = HTMap(object);
+    // }
 
     var value = visitASTNode(expr.value);
     if (object is HTObject) {
@@ -765,9 +764,12 @@ class HTAstInterpreter extends Interpreter
       }
     }
 
-    final klass = HTClass(stmt.id.lexeme, superClass, null, this,
-        _curModuleUniqueKey, _curNamespace,
-        isExtern: stmt.isExtern, isAbstract: stmt.isAbstract);
+    final klass =
+        HTClass(stmt.id.lexeme, this, _curModuleUniqueKey, _curNamespace,
+            superClass: superClass,
+            superClassType: null, // TODO: 这里需要修改
+            isExtern: stmt.isExtern,
+            isAbstract: stmt.isAbstract);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     _curNamespace.define(klass);

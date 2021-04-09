@@ -33,12 +33,11 @@ class GenericClassBinding extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'Generic<num>':
+      case 'Generic':
         return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            Generic<num>(positionalArgs[0]);
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {};
       default:
         throw HTError.undefined(varName);
     }

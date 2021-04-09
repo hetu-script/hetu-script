@@ -8,11 +8,20 @@ import 'variable.dart';
 import 'declaration.dart';
 // import 'instance.dart';
 import 'enum.dart';
+import 'object.dart';
+
+abstract class HTInheritable {
+  String get id;
+
+  HTInheritable? get superClass;
+
+  HTType? get superClassType;
+}
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass extends HTType with HTDeclaration, InterpreterRef {
+class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -31,29 +40,24 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   final bool isExtern;
   final bool isAbstract;
 
-  // late final ClassType _classType;
-
-  /// The type of this [HTClass]
-  // ClassType get classType => _classType;
-
   /// The type parameters of the class.
   final List<String> typeParameters;
 
   /// Super class of this class.
-  ///
   /// If a class is not extends from any super class, then it is extended of class `Object`
+  @override
   final HTClass? superClass;
 
+  @override
   final HTType? superClassType;
 
-  /// implements class of this class.
-  ///
-  /// implements only inherits methods declaration,
-  /// and the child must define all implements methods.
+  /// Implemented classes of this class.
+  /// Implements only inherits methods declaration,
+  /// and the child must re-define all implements methods,
+  /// and the re-definition must be of the same function signature.
   final List<HTClass> implementedClass;
 
   /// Mixined class of this class.
-  ///
   /// Those mixined class can not have any constructors.
   final List<HTClass> mixinedClass;
 
@@ -62,19 +66,19 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(String id, this.superClass, this.superClassType,
-      Interpreter interpreter, this.moduleUniqueKey, HTNamespace closure,
-      {this.isExtern = false,
+  HTClass(String id, Interpreter interpreter, this.moduleUniqueKey,
+      HTNamespace closure,
+      {this.superClass,
+      this.superClassType,
+      this.isExtern = false,
       this.isAbstract = false,
       this.typeParameters = const [],
       this.implementedClass = const [],
-      this.mixinedClass = const []})
-      : super(id, isNullable: false) {
-    this.id = id;
+      this.mixinedClass = const []}) {
+    this.id = classId = id;
     this.interpreter = interpreter;
 
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
-    // _classType = classType;
   }
 
   /// Wether there's a member in this [HTClass] by the [varName].
@@ -97,21 +101,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[varName]!;
-      if (decl is HTFunction) {
-        if (decl.externalTypedef != null) {
-          final externalFunc = interpreter.unwrapExternalFunctionType(
-              decl.externalTypedef!, decl);
-          return externalFunc;
-        }
-        return decl;
-      } else if (decl is HTVariable) {
-        if (!decl.isInitialized) {
-          decl.initialize();
-        }
-        return decl.value;
-      } else if (decl is HTClass) {
-        return null;
-      }
+      return HTDeclaration.fetch(decl, interpreter);
     } else if (namespace.declarations.containsKey(getter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
@@ -131,14 +121,7 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[externalName]!;
-      final externClass = interpreter.fetchExternalClass(id);
-      if (decl is HTFunction) {
-        return decl;
-      } else if (decl is HTVariable) {
-        return externClass.memberGet(externalName);
-      } else if (decl is HTClass) {
-        return null;
-      }
+      return HTDeclaration.fetch(decl, interpreter);
     }
 
     throw HTError.undefined(varName);
@@ -218,26 +201,4 @@ class HTClass extends HTType with HTDeclaration, InterpreterRef {
       if (error) throw HTError.definedRuntime(decl.id);
     }
   }
-
-  /// Create a [HTInstance] from this [HTClass].
-  // HTInstance createInstance(
-  //     {String? constructorName,
-  //     List<dynamic> positionalArgs = const [],
-  //     Map<String, dynamic> namedArgs = const {},
-  //     List<HTType> typeArgs = const []}) {
-  //   var instance = HTInstance(this, interpreter, typeArgs: typeArgs);
-
-  //   final funcId = constructorName ?? HTLexicon.constructor;
-  //   if (namespace.declarations.containsKey(funcId)) {
-  //     final constructor = namespace.declarations[funcId] as HTFunction;
-  //     // constructor's context is on this newly created instance
-  //     constructor.context = instance.namespace;
-  //     constructor.call(
-  //         positionalArgs: positionalArgs,
-  //         namedArgs: namedArgs,
-  //         typeArgs: typeArgs);
-  //   }
-
-  //   return instance;
-  // }
 }

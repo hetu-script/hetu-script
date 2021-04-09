@@ -5,8 +5,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'opcode.dart';
 import '../const_table.dart';
-import '../type.dart';
-import '../common.dart';
 
 /// Code module class, represent a trunk of bytecode.
 /// Every bytecode file has its own const tables
@@ -102,56 +100,5 @@ class HTBytecode with ConstTable {
     ip += length;
     final codeUnits = bytes.sublist(start, ip);
     return utf8.decoder.convert(codeUnits);
-  }
-
-  HTType readType() {
-    final index = read();
-    final typeType = TypeType.values.elementAt(index);
-
-    switch (typeType) {
-      case TypeType.normal:
-        final typeName = readShortUtf8String();
-        final length = read();
-        final typeArgs = <HTType>[];
-        for (var i = 0; i < length; ++i) {
-          typeArgs.add(readType());
-        }
-        final isNullable = read() == 0 ? false : true;
-        return HTType(typeName, isNullable: isNullable, typeArgs: typeArgs);
-      case TypeType.parameter:
-        final typeName = readShortUtf8String();
-        final length = read();
-        final typeArgs = <HTType>[];
-        for (var i = 0; i < length; ++i) {
-          typeArgs.add(readType());
-        }
-        final isNullable = read() == 0 ? false : true;
-        final isOptional = read() == 0 ? false : true;
-        final isNamed = read() == 0 ? false : true;
-        final isVariadic = read() == 0 ? false : true;
-        return HTParameterType(typeName,
-            typeArgs: typeArgs,
-            isNullable: isNullable,
-            isOptional: isOptional,
-            isNamed: isNamed,
-            isVariadic: isVariadic);
-
-      case TypeType.function:
-        final paramsLength = read();
-        final parameterTypes = <String, HTParameterType>{};
-        for (var i = 0; i < paramsLength; ++i) {
-          final paramType = readType() as HTParameterType;
-          parameterTypes[paramType.typeName] = paramType;
-        }
-        final minArity = read();
-        final returnType = readType();
-        return HTFunctionType(
-            parameterTypes: parameterTypes,
-            minArity: minArity,
-            returnType: returnType);
-      case TypeType.struct:
-      case TypeType.union:
-        return HTType(readShortUtf8String());
-    }
   }
 }

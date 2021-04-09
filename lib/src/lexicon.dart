@@ -33,9 +33,10 @@ abstract class HTLexicon {
   static const boolean = 'bool';
   static const number = 'num';
   static const integer = 'int';
-  static const float = 'float';
+  static const float = 'double';
   static const string = 'str';
   static const function = 'fun';
+  static const rtType = 'runtimeType';
   static const keys = 'keys';
   static const values = 'values';
   static const first = 'first';
@@ -63,7 +64,7 @@ abstract class HTLexicon {
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';
-  static const unknown = 'unknown';
+  static const unknownType = 'unknown type';
   static const instance = '\$instance#';
   static const constructor = '\$constructor:';
   static const getter = '\$getter:';
@@ -102,7 +103,22 @@ abstract class HTLexicon {
   static const VOID = 'void';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const ANY = 'any';
-  static const TYPEDEF = 'typedef';
+
+  static const Set<String> primitiveType = {
+    TYPE,
+    ANY,
+    NULL,
+    VOID,
+    CLASS,
+    ENUM,
+    NAMESPACE,
+    unknownType,
+    object,
+    function,
+    number,
+    boolean,
+    string,
+  };
 
   static const CONSTRUCT = 'construct';
   static const GET = 'get';

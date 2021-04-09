@@ -4,14 +4,16 @@ import 'namespace.dart';
 import 'common.dart';
 import 'type.dart';
 import 'hetu_lib.dart';
-import 'extern_class.dart';
 import 'errors.dart';
-import 'extern_function.dart';
 import 'function.dart';
-import 'extern_object.dart';
 import 'object.dart';
 import 'plugin/moduleHandler.dart';
 import 'plugin/errorHandler.dart';
+import 'binding/external_class.dart';
+import 'binding/external_function.dart';
+import 'binding/external_object.dart';
+import 'core/core_class.dart';
+import 'core/core_function.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -63,12 +65,14 @@ abstract class Interpreter {
       for (var key in coreFunctions.keys) {
         bindExternalFunction(key, coreFunctions[key]!);
       }
-      bindExternalClass(HTExternClassNumber());
-      bindExternalClass(HTExternClassBool());
-      bindExternalClass(HTExternClassString());
-      bindExternalClass(HTExternClassMath());
-      bindExternalClass(HTExternClassSystem(this));
-      bindExternalClass(HTExternClassConsole());
+      bindExternalClass(NumHTBinding());
+      bindExternalClass(IntHTBinding());
+      bindExternalClass(FloatHTBinding());
+      bindExternalClass(BoolHTBinding());
+      bindExternalClass(StringHTBinding());
+      bindExternalClass(MathHTBinding());
+      bindExternalClass(SystemHTBinding());
+      bindExternalClass(ConsoleHTBinding());
     }
 
     for (var key in externalFunctions.keys) {
@@ -122,63 +126,48 @@ abstract class Interpreter {
       return object;
     } else if ((object == null) || (object is NullThrownError)) {
       return HTObject.NULL;
-    } else if (object is num) {
-      return HTNumber(object);
-    } else if (object is bool) {
-      return HTBoolean(object);
-    } else if (object is String) {
-      return HTString(object);
-    } else if (object is List) {
-      var valueType = HTType.ANY;
-      if (object.isNotEmpty) {
-        valueType = encapsulate(object.first).rtType;
-        for (final item in object) {
-          final value = encapsulate(item).rtType;
-          if (value.isNotA(valueType)) {
-            valueType = HTType.ANY;
-            break;
-          }
-        }
-      }
-
-      return HTList(object, valueType: valueType);
-    } else if (object is Map) {
-      var keyType = HTType.ANY;
-      var valueType = HTType.ANY;
-      if (object.keys.isNotEmpty) {
-        keyType = encapsulate(object.keys.first).rtType;
-        for (final item in object.keys) {
-          final value = encapsulate(item).rtType;
-          if (value.isNotA(keyType)) {
-            keyType = HTType.ANY;
-            break;
-          }
-        }
-      }
-      if (object.values.isNotEmpty) {
-        valueType = encapsulate(object.values.first).rtType;
-        for (final item in object.values) {
-          final value = encapsulate(item).rtType;
-          if (value.isNotA(valueType)) {
-            valueType = HTType.ANY;
-            break;
-          }
-        }
-      }
-
-      return HTMap(object, keyType: keyType, valueType: valueType);
-    } else {
-      final typeString = object.runtimeType.toString();
-      final id = HTType.parseBaseType(typeString);
-      // if (containsExternalClass(id)) {
-      // try {
-      //   final externClass = fetchExternalClass(id);
-      return HTExternObject(object, rtType: HTType(id));
-      // } on HTError {
-      // return HTExternObject(object);
+      // } else if (object is List) {
+      //   var valueType = HTType.ANY;
+      //   if (object.isNotEmpty) {
+      //     valueType = encapsulate(object.first).rtType;
+      //     for (final item in object) {
+      //       final value = encapsulate(item).rtType;
+      //       if (value.isNotA(valueType)) {
+      //         valueType = HTType.ANY;
+      //         break;
+      //       }
+      //     }
       //   }
-      // }
-      // return HTExternObject(object);
+
+      //   return HTList(object, valueType: valueType);
+      // } else if (object is Map) {
+      //   var keyType = HTType.ANY;
+      //   var valueType = HTType.ANY;
+      //   if (object.keys.isNotEmpty) {
+      //     keyType = encapsulate(object.keys.first).rtType;
+      //     for (final item in object.keys) {
+      //       final value = encapsulate(item).rtType;
+      //       if (value.isNotA(keyType)) {
+      //         keyType = HTType.ANY;
+      //         break;
+      //       }
+      //     }
+      //   }
+      //   if (object.values.isNotEmpty) {
+      //     valueType = encapsulate(object.values.first).rtType;
+      //     for (final item in object.values) {
+      //       final value = encapsulate(item).rtType;
+      //       if (value.isNotA(valueType)) {
+      //         valueType = HTType.ANY;
+      //         break;
+      //       }
+      //     }
+      //   }
+
+      //   return HTMap(object, keyType: keyType, valueType: valueType);
+      //
+    } else {
+      return HTExternalObject(object, this);
     }
   }
 
@@ -202,7 +191,7 @@ abstract class Interpreter {
     if (_externClasses.containsKey(externalClass.rtType)) {
       throw HTError.definedRuntime(externalClass.rtType.toString());
     }
-    _externClasses[externalClass.typeName] = externalClass;
+    _externClasses[externalClass.id] = externalClass;
   }
 
   HTExternalClass fetchExternalClass(String id) {

@@ -2,6 +2,7 @@ import 'vm.dart';
 import '../variable.dart';
 import '../type.dart';
 import '../errors.dart';
+import '../lexicon.dart';
 
 /// Bytecode implementation of [HTVariable].
 class HTBytecodeVariable extends HTVariable with HetuRef {
@@ -69,6 +70,22 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   void initialize() {
     if (isInitialized) return;
 
+    // if the declared type is not initialize.
+    if (_declType != null &&
+        _declType is! HTFunctionType &&
+        _declType is! HTInstanceType) {
+      final typeName = _declType!.typeName;
+      if (!(HTLexicon.primitiveType.contains(typeName))) {
+        if (interpreter.global.contains(typeName)) {
+          final typeClass = interpreter.fetchGlobal(_declType!.typeName);
+          _declType = HTInstanceType.from(typeClass,
+              typeArgs: _declType!.typeArgs, isNullable: _declType!.isNullable);
+        } else {
+          // typeClass = interpreter.fetchExternalClass(typeName);
+        }
+      }
+    }
+
     if (initializerIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
@@ -94,9 +111,9 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   void assign(dynamic value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
-      if (encapsulation.rtType.isNotA(_declType!)) {
-        final valType = interpreter.encapsulate(value).rtType;
-        throw HTError.typeCheck(id, valType.toString(), _declType.toString());
+      final valueType = encapsulation.rtType;
+      if (valueType.isNotA(_declType!)) {
+        throw HTError.typeCheck(id, valueType.toString(), _declType.toString());
       }
     } else if (!isDynamic && value != null) {
       _declType = interpreter.encapsulate(value).rtType;
