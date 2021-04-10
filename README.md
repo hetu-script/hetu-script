@@ -8,7 +8,7 @@ Discussion group:
 
 Discord: [https://discord.gg/Q8JWQYEw](https://discord.gg/Q8JWQYEw)
 
-QQ: 812529118
+QQ 群: 812529118
 
 ## Introduction
 

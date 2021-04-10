@@ -37,7 +37,21 @@ class GenericClassBinding extends HTExternalClass {
         return (
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {};
+            List<HTType> typeArgs = const []}) {
+          final typeString = typeArgs[0].toString();
+          switch (typeString) {
+            case 'num':
+              return Generic<num>(positionalArgs[0]);
+            case 'int':
+              return Generic<int>(positionalArgs[0]);
+            case 'float':
+              return Generic<double>(positionalArgs[0]);
+            case 'str':
+              return Generic<String>(positionalArgs[0]);
+            default:
+              return Generic(positionalArgs[0]);
+          }
+        };
       default:
         throw HTError.undefined(varName);
     }
@@ -65,7 +79,7 @@ void main() async {
         const value
       }
       fun main {
-        var obj = Generic<num>(42)
+        var obj = Generic<str>('hello world')
         print(obj.value)
       }
       ''', invokeFunc: 'main');
