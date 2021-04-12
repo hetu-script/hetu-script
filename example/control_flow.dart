@@ -10,8 +10,8 @@ void main() async {
       for (;;) {
         ++i
         when (i % 2) {
-          0: j += i
-          1: j *= i
+          0 -> j += i
+          1 -> j *= i
         }
         if (i > 5) {
           break

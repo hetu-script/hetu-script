@@ -1562,7 +1562,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
         curTok.type != HTLexicon.endOfFile) {
       if (curTok.lexeme == HTLexicon.ELSE) {
         advance(1);
-        match(HTLexicon.colon);
+        match(HTLexicon.arrow);
         if (curTok.type != HTLexicon.semicolon &&
             curTok.type != HTLexicon.curlyRight) {
           elseBranch = _compileExpr(endOfExec: true);
@@ -1570,7 +1570,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       } else {
         final caseExpr = _compileExpr(endOfExec: true);
         cases.add(caseExpr);
-        match(HTLexicon.colon);
+        match(HTLexicon.arrow);
         if (curTok.type == HTLexicon.curlyLeft) {
           final caseBranch = _compileBlock(HTLexicon.whenStmt, endOfExec: true);
           branches.add(caseBranch);
