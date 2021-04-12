@@ -89,7 +89,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write(HTLexicon.function);
+    result.write(HTLexicon.FUNCTION);
     result.write(' $id');
     if (rtType.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);

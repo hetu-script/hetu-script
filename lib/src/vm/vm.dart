@@ -681,13 +681,18 @@ class Hetu extends Interpreter {
             maxArity: maxArity,
             context: _curNamespace);
 
-        if (!hasExternalTypedef) {
-          _curValue = func;
+        if (hasDefinition) {
+          if (!hasExternalTypedef) {
+            _curValue = func;
+          } else {
+            final externalFunc =
+                unwrapExternalFunctionType(externalTypedef!, func);
+            _curValue = externalFunc;
+          }
         } else {
-          final externalFunc =
-              unwrapExternalFunctionType(externalTypedef!, func);
-          _curValue = externalFunc;
+          _curValue = func.rtType;
         }
+
         break;
       case HTValueTypeCode.type:
         _curValue = _getType();

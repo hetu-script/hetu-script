@@ -2,7 +2,7 @@
 ///
 /// Automatically generated based on files in 'hetu_lib' folder.
 final Map<String, String> coreModules = const {
-      'core.ht': r'''class Object {
+      'core.ht': r'''class object {
 
   // external get runtimeType -> Type
 

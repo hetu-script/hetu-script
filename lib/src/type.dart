@@ -9,14 +9,15 @@ class HTType with HTObject {
   static const ANY = HTType(HTLexicon.ANY);
   static const NULL = HTType(HTLexicon.NULL);
   static const VOID = HTType(HTLexicon.VOID);
-  static const CLASS = HTType(HTLexicon.CLASS);
   static const ENUM = HTType(HTLexicon.ENUM);
   static const NAMESPACE = HTType(HTLexicon.NAMESPACE);
+  static final FUNCTION = HTType(HTLexicon.FUNCTION);
   static const object = HTType(HTLexicon.object);
-  static const function = HTType(HTLexicon.function);
   static const number = HTType(HTLexicon.number);
   static const boolean = HTType(HTLexicon.boolean);
   static const string = HTType(HTLexicon.string);
+
+  static final CLASS = HTInstanceType(HTLexicon.CLASS, extended: [HTType.TYPE]);
 
   static final integer =
       HTInstanceType(HTLexicon.integer, extended: [HTType.number]);
@@ -34,8 +35,9 @@ class HTType with HTObject {
     }
   }
 
+  /// A [HTType]'s type is itself.
   @override
-  HTType get rtType => HTType.TYPE;
+  HTType get rtType => this;
 
   final String typeName;
   final List<HTType> typeArgs;
@@ -133,7 +135,7 @@ class HTInstanceType extends HTType {
   // late final List<HTType> implemented;
   // late final List<HTType> mixined;
 
-  HTInstanceType.from(HTInheritable klass,
+  HTInstanceType.fromClass(HTInheritable klass,
       {List<HTType> typeArgs = const [], bool isNullable = false})
       : super(klass.id, typeArgs: typeArgs, isNullable: isNullable) {
     HTInheritable? curKlass = klass;
@@ -243,23 +245,23 @@ class HTParameterType extends HTType {
 }
 
 /// [HTFunctionType] is equivalent to Dart's function typedef,
-class HTFunctionType extends HTType {
+class HTFunctionType extends HTInstanceType {
   final List<String> typeParameters;
   final Map<String, HTParameterType> parameterTypes;
   final int minArity;
   final HTType returnType;
 
-  const HTFunctionType(
+  HTFunctionType(
       {this.typeParameters = const [],
       this.parameterTypes = const {},
       this.minArity = 0,
       this.returnType = HTType.ANY})
-      : super(HTLexicon.function);
+      : super(HTLexicon.FUNCTION, extended: [HTType.TYPE]);
 
   @override
   String toString() {
     var result = StringBuffer();
-    result.write(HTLexicon.function);
+    result.write(HTLexicon.FUNCTION);
     if (rtType.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
       for (var i = 0; i < rtType.typeArgs.length; ++i) {
@@ -352,6 +354,10 @@ class HTFunctionType extends HTType {
         }
         return true;
       }
+    } else if (other == HTType.FUNCTION) {
+      return true;
+    } else if (other == HTType.TYPE) {
+      return true;
     } else {
       return false;
     }

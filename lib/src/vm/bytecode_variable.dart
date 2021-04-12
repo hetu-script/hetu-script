@@ -3,6 +3,8 @@ import '../variable.dart';
 import '../type.dart';
 import '../errors.dart';
 import '../lexicon.dart';
+import '../class.dart';
+import '../function.dart';
 
 /// Bytecode implementation of [HTVariable].
 class HTBytecodeVariable extends HTVariable with HetuRef {
@@ -76,12 +78,15 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
         _declType is! HTInstanceType) {
       final typeName = _declType!.typeName;
       if (!(HTLexicon.primitiveType.contains(typeName))) {
-        if (interpreter.global.contains(typeName)) {
-          final typeClass = interpreter.fetchGlobal(_declType!.typeName);
-          _declType = HTInstanceType.from(typeClass,
+        final typeDef = interpreter.curNamespace.fetch(_declType!.typeName,
+            from: interpreter.curNamespace.fullName);
+        if (typeDef is HTClass) {
+          _declType = HTInstanceType.fromClass(typeDef,
               typeArgs: _declType!.typeArgs, isNullable: _declType!.isNullable);
+        } else if (typeDef is HTFunction) {
+          _declType = typeDef.rtType;
         } else {
-          // typeClass = interpreter.fetchExternalClass(typeName);
+          _declType = typeDef as HTType;
         }
       }
     }

@@ -1,4 +1,4 @@
-class Object {
+class object {
 
   // external get runtimeType -> Type
 

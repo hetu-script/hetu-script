@@ -51,5 +51,20 @@ void main() async {
         'fun(num) -> num',
       );
     });
+    test('function type', () async {
+      final result = await hetu.eval('''
+        fun functionType {
+          var typename: fun = fun(any) -> num
+
+          var functype: fun(num) -> num = typename
+
+          return functype.toString()
+        }
+      ''', invokeFunc: 'functionType');
+      expect(
+        result,
+        'fun(any) -> num',
+      );
+    });
   });
 }

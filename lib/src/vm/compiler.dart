@@ -1622,11 +1622,13 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.addByte(HTValueTypeCode.type);
     }
     // normal type
-    if (curTok.type == HTLexicon.identifier) {
+    if (curTok.type == HTLexicon.identifier ||
+        (curTok.type == HTLexicon.FUNCTION &&
+            peek(1).type != HTLexicon.roundLeft)) {
       bytesBuilder.addByte(isParam
           ? TypeType.parameter.index
           : TypeType.normal.index); // enum: normal type
-      final id = match(HTLexicon.identifier).lexeme;
+      final id = advance(1).lexeme;
 
       bytesBuilder.add(_shortUtf8String(id));
 
@@ -2049,6 +2051,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       funcBytesBuilder.addByte(HTOpCode.endOfFunc);
     } else {
       if (funcType != FunctionType.constructor &&
+          funcType != FunctionType.literal &&
           !isExtern &&
           !(_curClass?.isAbstract ?? false)) {
         throw HTError.missingFuncDef(id);

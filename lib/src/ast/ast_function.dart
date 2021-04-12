@@ -38,7 +38,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   @override
   String toString() {
     var result = StringBuffer();
-    result.write('${HTLexicon.function}');
+    result.write('${HTLexicon.FUNCTION}');
     result.write(' $id');
     if (rtType.typeArgs.isNotEmpty) {
       result.write('<');

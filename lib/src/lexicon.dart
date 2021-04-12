@@ -36,7 +36,6 @@ abstract class HTLexicon {
   static const DOUBLE = 'double';
   static const float = 'float';
   static const string = 'str';
-  static const function = 'fun';
   static const rtType = 'runtimeType';
   static const keys = 'keys';
   static const values = 'values';
@@ -72,7 +71,7 @@ abstract class HTLexicon {
   static const setter = '\$setter:';
 
   static const instanceOf = 'instance of ';
-  static const object = 'Object';
+  static const object = 'object';
   static const list = 'List';
   static const map = 'Map';
   // static const procedure = 'procedure';
@@ -100,7 +99,7 @@ abstract class HTLexicon {
   static const arrow = '->';
   static const bigarrow = '=>';
 
-  static const TYPE = 'Type';
+  static const TYPE = 'type';
   static const VOID = 'void';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const ANY = 'any';
@@ -113,9 +112,9 @@ abstract class HTLexicon {
     CLASS,
     ENUM,
     NAMESPACE,
+    FUNCTION,
     unknownType,
     object,
-    function,
     number,
     boolean,
     string,
