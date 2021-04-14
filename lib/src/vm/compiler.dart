@@ -1389,6 +1389,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     if (initializer != null) {
       bytesBuilder.addByte(1); // bool: has initializer
+      bytesBuilder.add(_uint16(curTok.line));
+      bytesBuilder.add(_uint16(curTok.column));
       bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
     } else {
@@ -1775,10 +1777,14 @@ class Compiler extends Parser with ConstTable, HetuRef {
     if (expect([HTLexicon.assign], consume: true)) {
       final initializer = _compileExpr(endOfExec: true);
       bytesBuilder.addByte(1); // bool: has initializer
+      bytesBuilder.add(_uint16(curTok.line));
+      bytesBuilder.add(_uint16(curTok.column));
       bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
     } else if (initializer != null) {
       bytesBuilder.addByte(1); // bool: has initializer
+      bytesBuilder.add(_uint16(curTok.line));
+      bytesBuilder.add(_uint16(curTok.column));
       bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
     } else {
@@ -2045,6 +2051,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     // 处理函数定义部分的语句块
     if (curTok.type == HTLexicon.curlyLeft) {
       funcBytesBuilder.addByte(1); // bool: has definition
+      funcBytesBuilder.add(_uint16(curTok.line));
+      funcBytesBuilder.add(_uint16(curTok.column));
       final body = _compileBlock(HTLexicon.functionCall);
       funcBytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
       funcBytesBuilder.add(body);

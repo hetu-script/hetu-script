@@ -5,12 +5,15 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     fun main {
-      var funcTypedef: type = fun(str) -> num
-      var numparse: funcTypedef = fun(value: str) -> num { return num.parse(value) }
-      var getType = fun { return numparse.runtimeType }
-      var funcTypedef2 = getType()
-      var strlength: funcTypedef2 = fun(value: str) -> num { return value.length }
-      print(strlength('hello world'))
+      let value = ['', 'hello', 'world']
+      let item = ''
+      for (let val in value) {
+        if (val != '') {
+          item = val
+          break
+        }
+      }
+      print(value)
     }
       ''', invokeFunc: 'main');
 }

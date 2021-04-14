@@ -665,10 +665,12 @@ class Hetu extends Interpreter {
           returnType = _getType();
         }
 
-        int? definitionIp;
+        int? line, column, definitionIp;
         final hasDefinition = _curCode.readBool();
 
         if (hasDefinition) {
+          line = _curCode.readUint16();
+          column = _curCode.readUint16();
           final length = _curCode.readUint16();
           definitionIp = _curCode.ip;
           _curCode.skip(length);
@@ -679,6 +681,8 @@ class Hetu extends Interpreter {
               parameterDeclarations: paramDecls,
               returnType: returnType,
               definitionIp: definitionIp,
+              line: line,
+              column: column,
               isVariadic: isVariadic,
               minArity: minArity,
               maxArity: maxArity,
@@ -1095,9 +1099,11 @@ class Hetu extends Interpreter {
       declType = _getType();
     }
 
-    int? definitionIp;
+    int? line, column, definitionIp;
     final hasInitializer = _curCode.readBool();
     if (hasInitializer) {
+      line = _curCode.readUint16();
+      column = _curCode.readUint16();
       final length = _curCode.readUint16();
       definitionIp = _curCode.ip;
       _curCode.skip(length);
@@ -1107,6 +1113,8 @@ class Hetu extends Interpreter {
         classId: classId,
         declType: declType,
         definitionIp: definitionIp,
+        line: line,
+        column: column,
         isDynamic: isDynamic,
         isExtern: isExtern,
         isImmutable: isImmutable,
@@ -1209,9 +1217,11 @@ class Hetu extends Interpreter {
           positionalArgsIp: positionalArgIps, namedArgsIp: namedArgIps);
     }
 
-    int? definitionIp;
+    int? line, column, definitionIp;
     final hasDefinition = _curCode.readBool();
     if (hasDefinition) {
+      line = _curCode.readUint16();
+      column = _curCode.readUint16();
       final length = _curCode.readUint16();
       definitionIp = _curCode.ip;
       _curCode.skip(length);
@@ -1230,6 +1240,8 @@ class Hetu extends Interpreter {
       parameterDeclarations: parameterDeclarations,
       returnType: returnType,
       definitionIp: definitionIp,
+      line: line,
+      column: column,
       isStatic: isStatic,
       isConst: isConst,
       isVariadic: isVariadic,
