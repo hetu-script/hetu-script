@@ -56,8 +56,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
     this.parameterDeclarations = const <String, HTBytecodeParameter>{},
     HTType returnType = HTType.ANY,
     int? definitionIp,
-    int? line,
-    int? column,
+    int? definitionLine,
+    int? definitionColumn,
     bool isStatic = false,
     bool isConst = false,
     bool isVariadic = false,
@@ -79,8 +79,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
     this.interpreter = interpreter;
     this.moduleUniqueKey = moduleUniqueKey;
     this.definitionIp = definitionIp;
-    this.line = line;
-    this.column = column;
+    this.definitionLine = definitionLine;
+    this.definitionColumn = definitionColumn;
 
     rtType = HTFunctionType(
         parameterTypes: parameterDeclarations
@@ -272,12 +272,16 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
           result = interpreter.execute(
               moduleUniqueKey: moduleUniqueKey,
               ip: definitionIp!,
-              namespace: closure);
+              namespace: closure,
+              line: definitionLine,
+              column: definitionColumn);
         } else {
           interpreter.execute(
               moduleUniqueKey: moduleUniqueKey,
               ip: definitionIp!,
-              namespace: closure);
+              namespace: closure,
+              line: definitionLine,
+              column: definitionColumn);
         }
       }
       // 如果是外部函数
@@ -422,8 +426,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
         parameterDeclarations: parameterDeclarations,
         returnType: returnType,
         definitionIp: definitionIp,
-        line: line,
-        column: column,
+        definitionLine: definitionLine,
+        definitionColumn: definitionColumn,
         isStatic: isStatic,
         isConst: isConst,
         isVariadic: isVariadic,

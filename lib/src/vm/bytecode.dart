@@ -112,8 +112,8 @@ mixin GotoInfo {
   int? definitionIp;
 
   /// The line of the definition's bytecode.
-  int? line;
+  int? definitionLine;
 
   /// The column of the definition's bytecode.
-  int? column;
+  int? definitionColumn;
 }

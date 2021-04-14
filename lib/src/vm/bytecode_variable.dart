@@ -32,8 +32,8 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       dynamic value,
       HTType? declType,
       int? definitionIp,
-      int? line,
-      int? column,
+      int? definitionLine,
+      int? definitionColumn,
       Function? getter,
       Function? setter,
       this.isDynamic = false,
@@ -52,8 +52,8 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
     this.interpreter = interpreter;
     this.moduleUniqueKey = moduleUniqueKey;
     this.definitionIp = definitionIp;
-    this.line = line;
-    this.column = column;
+    this.definitionLine = definitionLine;
+    this.definitionColumn = definitionColumn;
 
     if (declType == null) {
       if (definitionIp == null) {
@@ -97,7 +97,9 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
         final initVal = interpreter.execute(
             moduleUniqueKey: moduleUniqueKey,
             ip: definitionIp!,
-            namespace: closure);
+            namespace: closure,
+            line: definitionLine,
+            column: definitionColumn);
 
         assign(initVal);
 
@@ -136,8 +138,8 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
           value: value,
           declType: declType,
           definitionIp: definitionIp,
-          line: line,
-          column: column,
+          definitionLine: definitionLine,
+          definitionColumn: definitionColumn,
           getter: getter,
           setter: setter,
           isDynamic: isDynamic,
@@ -156,8 +158,8 @@ class HTBytecodeParameter extends HTBytecodeVariable {
       {dynamic value,
       HTType? declType,
       int? definitionIp,
-      int? line,
-      int? column,
+      int? definitionLine,
+      int? definitionColumn,
       bool isOptional = false,
       bool isNamed = false,
       bool isVariadic = false})
@@ -165,8 +167,8 @@ class HTBytecodeParameter extends HTBytecodeVariable {
             value: value,
             declType: declType,
             definitionIp: definitionIp,
-            line: line,
-            column: column,
+            definitionLine: definitionLine,
+            definitionColumn: definitionColumn,
             isImmutable: true) {
     final paramDeclType = declType ?? HTType.ANY;
     paramType = HTParameterType(paramDeclType.typeName,
@@ -183,8 +185,8 @@ class HTBytecodeParameter extends HTBytecodeVariable {
         value: value,
         declType: declType,
         definitionIp: definitionIp,
-        line: line,
-        column: column,
+        definitionLine: definitionLine,
+        definitionColumn: definitionColumn,
         isOptional: paramType.isOptional,
         isNamed: paramType.isNamed,
         isVariadic: paramType.isVariadic);
