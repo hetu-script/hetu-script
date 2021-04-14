@@ -12,12 +12,11 @@ import '../object.dart';
 class HTAstFunction extends HTFunction with AstInterpreterRef {
   final FuncDeclStmt funcStmt;
 
-  HTAstFunction(
-      this.funcStmt, HTAstInterpreter interpreter, String moduleUniqueKey,
+  HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
       {String? externalTypedef, HTNamespace? context})
       : super(
           funcStmt.internalName,
-          funcStmt.id?.lexeme ?? '', moduleUniqueKey,
+          funcStmt.id?.lexeme ?? '',
           // classId: funcStmt.classId,
           funcType: funcStmt.funcType,
           isExtern: false,
@@ -169,6 +168,6 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
   }
 
   @override
-  HTAstFunction clone() => HTAstFunction(funcStmt, interpreter, moduleUniqueKey,
+  HTAstFunction clone() => HTAstFunction(funcStmt, interpreter,
       externalTypedef: externalTypedef, context: context);
 }

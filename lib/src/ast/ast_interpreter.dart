@@ -741,8 +741,7 @@ class HTAstInterpreter extends Interpreter
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    final func =
-        HTAstFunction(stmt, this, _curModuleUniqueKey, context: _curNamespace);
+    final func = HTAstFunction(stmt, this, context: _curNamespace);
     if (stmt.id != null) {
       _curNamespace.define(func);
     }
@@ -806,14 +805,13 @@ class HTAstInterpreter extends Interpreter
     for (final method in stmt.methods) {
       HTFunction func;
       if (method.isStatic) {
-        func = HTAstFunction(method, this, _curModuleUniqueKey,
-            context: klass.namespace);
+        func = HTAstFunction(method, this, context: klass.namespace);
         klass.namespace.define(func, override: true);
       } else if (method.funcType == FunctionType.constructor) {
-        func = HTAstFunction(method, this, _curModuleUniqueKey);
+        func = HTAstFunction(method, this);
         klass.namespace.define(func, override: true);
       } else {
-        func = HTAstFunction(method, this, _curModuleUniqueKey);
+        func = HTAstFunction(method, this);
         klass.defineInstanceMember(func);
       }
     }

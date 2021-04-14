@@ -176,26 +176,30 @@ class HTString extends HTExternalObject<String> {
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externObject.toString();
-      case 'isEmpty':
-        return externObject.isEmpty;
-      case 'subString':
+      case 'codeUnitAt':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.substring(positionalArgs[0], positionalArgs[1]);
-      case 'startsWith':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.startsWith(positionalArgs[0], positionalArgs[1]);
+            externObject.codeUnitAt(positionalArgs[0]);
+      case 'length':
+        return externObject.length;
       case 'endsWith':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externObject.endsWith(positionalArgs[0]);
+      case 'startsWith':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externObject.startsWith(positionalArgs[0], positionalArgs[1]);
       case 'indexOf':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externObject.indexOf(positionalArgs[0], positionalArgs[1]);
       case 'lastIndexOf':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externObject.lastIndexOf(positionalArgs[0], positionalArgs[1]);
-      case 'compareTo':
+      case 'isEmpty':
+        return externObject.isEmpty;
+      case 'isNotEmpty':
+        return externObject.isNotEmpty;
+      case 'subString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.compareTo(positionalArgs[0]);
+            externObject.substring(positionalArgs[0], positionalArgs[1]);
       case 'trim':
         return ({positionalArgs, namedArgs, typeArgs}) => externObject.trim();
       case 'trimLeft':

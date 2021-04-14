@@ -345,6 +345,8 @@ class Hetu extends Interpreter {
       {String? moduleUniqueKey,
       int? ip,
       HTNamespace? namespace,
+      int? line,
+      int? column,
       bool moveRegIndex = false}) {
     final savedModuleUniqueKey = curModuleUniqueKey;
     final savedIp = _curCode.ip;
@@ -374,6 +376,8 @@ class Hetu extends Interpreter {
       if (_registers.length <= _regIndex * HTRegIdx.length) {
         _registers.length += HTRegIdx.length;
       }
+      _curLine = line ?? 0;
+      _curColumn = column ?? 0;
     }
 
     final result = _execute();
@@ -663,25 +667,22 @@ class Hetu extends Interpreter {
 
         int? definitionIp;
         final hasDefinition = _curCode.readBool();
+
         if (hasDefinition) {
           final length = _curCode.readUint16();
           definitionIp = _curCode.ip;
           _curCode.skip(length);
-        }
-
-        final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
-            funcType: funcType,
-            externalTypedef: externalTypedef,
-            hasParameterDeclarations: hasParameterDeclarations,
-            parameterDeclarations: paramDecls,
-            returnType: returnType,
-            definitionIp: definitionIp,
-            isVariadic: isVariadic,
-            minArity: minArity,
-            maxArity: maxArity,
-            context: _curNamespace);
-
-        if (hasDefinition) {
+          final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
+              funcType: funcType,
+              externalTypedef: externalTypedef,
+              hasParameterDeclarations: hasParameterDeclarations,
+              parameterDeclarations: paramDecls,
+              returnType: returnType,
+              definitionIp: definitionIp,
+              isVariadic: isVariadic,
+              minArity: minArity,
+              maxArity: maxArity,
+              context: _curNamespace);
           if (!hasExternalTypedef) {
             _curValue = func;
           } else {
@@ -690,7 +691,11 @@ class Hetu extends Interpreter {
             _curValue = externalFunc;
           }
         } else {
-          _curValue = func.rtType;
+          _curValue = HTFunctionType(
+              parameterTypes: paramDecls
+                  .map((key, value) => MapEntry(key, value.paramType)),
+              minArity: minArity,
+              returnType: returnType);
         }
 
         break;
@@ -754,7 +759,7 @@ class Hetu extends Interpreter {
 
     final casesCount = _curCode.read();
     final branchesIpList = <int>[];
-    final casesList = [];
+    final cases = <dynamic, int>{};
     for (var i = 0; i < casesCount; ++i) {
       branchesIpList.add(_curCode.readUint16());
     }
@@ -763,26 +768,31 @@ class Hetu extends Interpreter {
 
     for (var i = 0; i < casesCount; ++i) {
       final value = execute();
-      casesList.add(value);
+      cases[value] = branchesIpList[i];
     }
 
     final startIp = _curCode.ip;
 
-    var index = -1;
     if (hasCondition) {
-      index = casesList.indexOf(condition);
-    }
-
-    if (index != -1) {
-      final distance = branchesIpList[index];
-      _curCode.skip(distance);
-      execute();
-      _curCode.ip = startIp + endIp;
-    } else {
-      if (elseBranchIp > 0) {
+      if (cases.containsKey(condition)) {
+        final distance = cases[condition]!;
+        _curCode.skip(distance);
+        execute();
+        _curCode.ip = startIp + endIp;
+      } else if (elseBranchIp > 0) {
         final distance = elseBranchIp;
         _curCode.skip(distance);
         execute();
+      }
+    } else {
+      for (final key in cases.keys) {
+        if (key) {
+          final distance = cases[key]!;
+          _curCode.skip(distance);
+          execute();
+          _curCode.ip = startIp + endIp;
+          break;
+        }
       }
     }
   }
@@ -1085,18 +1095,18 @@ class Hetu extends Interpreter {
       declType = _getType();
     }
 
-    int? initializerIp;
+    int? definitionIp;
     final hasInitializer = _curCode.readBool();
     if (hasInitializer) {
       final length = _curCode.readUint16();
-      initializerIp = _curCode.ip;
+      definitionIp = _curCode.ip;
       _curCode.skip(length);
     }
 
     final decl = HTBytecodeVariable(id, this, curModuleUniqueKey,
         classId: classId,
         declType: declType,
-        initializerIp: initializerIp,
+        definitionIp: definitionIp,
         isDynamic: isDynamic,
         isExtern: isExtern,
         isImmutable: isImmutable,
@@ -1125,17 +1135,17 @@ class Hetu extends Interpreter {
         declType = _getType();
       }
 
-      int? initializerIp;
+      int? definitionIp;
       final hasInitializer = _curCode.readBool();
       if (hasInitializer) {
         final length = _curCode.readUint16();
-        initializerIp = _curCode.ip;
+        definitionIp = _curCode.ip;
         _curCode.skip(length);
       }
 
       paramDecls[id] = HTBytecodeParameter(id, this, curModuleUniqueKey,
           declType: declType,
-          initializerIp: initializerIp,
+          definitionIp: definitionIp,
           isOptional: isOptional,
           isNamed: isNamed,
           isVariadic: isVariadic);

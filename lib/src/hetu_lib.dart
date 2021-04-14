@@ -103,21 +103,23 @@ external class str {
 
 	static fun parse(value) -> str
 
-	get isEmpty -> bool
+  fun codeUnitAt(index: int) -> int
 
-	get isNotEmpty -> bool
-
-	fun substring(startIndex: num, [endIndex: num]) -> str
-
-	fun startsWith(pattern: str, [index: num]) -> bool
+  get length -> int
 
 	fun endsWith(other: str) -> bool
+
+	fun startsWith(pattern: str, [index: num]) -> bool
 
 	fun indexOf(pattern: str, [start: num]) -> num
 
 	fun lastIndexOf(pattern, [start: num]) -> num
 
-	fun compareTo(other) -> num
+	get isEmpty -> bool
+
+	get isNotEmpty -> bool
+
+	fun substring(startIndex: num, [endIndex: num]) -> str
 
 	fun trim() -> str
 

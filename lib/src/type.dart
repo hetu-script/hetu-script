@@ -37,7 +37,7 @@ class HTType with HTObject {
 
   /// A [HTType]'s type is itself.
   @override
-  HTType get rtType => this;
+  HTType get rtType => HTType.TYPE;
 
   final String typeName;
   final List<HTType> typeArgs;
@@ -355,8 +355,6 @@ class HTFunctionType extends HTInstanceType {
         return true;
       }
     } else if (other == HTType.FUNCTION) {
-      return true;
-    } else if (other == HTType.TYPE) {
       return true;
     } else {
       return false;

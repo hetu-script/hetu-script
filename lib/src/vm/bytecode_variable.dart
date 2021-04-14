@@ -1,16 +1,13 @@
 import 'vm.dart';
+import 'bytecode.dart' show GotoInfo;
 import '../variable.dart';
 import '../type.dart';
 import '../errors.dart';
 import '../lexicon.dart';
 import '../class.dart';
-import '../function.dart';
 
 /// Bytecode implementation of [HTVariable].
-class HTBytecodeVariable extends HTVariable with HetuRef {
-  /// The module this variable declared in.
-  final String moduleUniqueKey;
-
+class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   /// Whether this variable have [HTType].
   final bool isDynamic;
 
@@ -26,18 +23,17 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   /// determine wether an assignment is legal.
   HTType? get declType => _declType;
 
-  /// The instructor pointer of the initializer's bytecode.
-  int? initializerIp;
-
   /// Create a standard [HTBytecodeVariable].
   ///
   /// A [HTVariable] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be used within a script.
-  HTBytecodeVariable(String id, Hetu interpreter, this.moduleUniqueKey,
+  HTBytecodeVariable(String id, Hetu interpreter, String moduleUniqueKey,
       {String? classId,
       dynamic value,
       HTType? declType,
-      this.initializerIp,
+      int? definitionIp,
+      int? line,
+      int? column,
       Function? getter,
       Function? setter,
       this.isDynamic = false,
@@ -54,8 +50,13 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
             isMember: isMember,
             isStatic: isStatic) {
     this.interpreter = interpreter;
+    this.moduleUniqueKey = moduleUniqueKey;
+    this.definitionIp = definitionIp;
+    this.line = line;
+    this.column = column;
+
     if (declType == null) {
-      if (initializerIp == null) {
+      if (definitionIp == null) {
         _declType = HTType.ANY;
       } else {
         // 初始化时也会尝试对 _declType 赋值
@@ -72,7 +73,7 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
   void initialize() {
     if (isInitialized) return;
 
-    // if the declared type is not initialize.
+    // initialize the declared type if it's a class name.
     if (_declType != null &&
         _declType is! HTFunctionType &&
         _declType is! HTInstanceType) {
@@ -83,20 +84,19 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
         if (typeDef is HTClass) {
           _declType = HTInstanceType.fromClass(typeDef,
               typeArgs: _declType!.typeArgs, isNullable: _declType!.isNullable);
-        } else if (typeDef is HTFunction) {
-          _declType = typeDef.rtType;
         } else {
-          _declType = typeDef as HTType;
+          // typeDef is a function type
+          _declType = typeDef;
         }
       }
     }
 
-    if (initializerIp != null) {
+    if (definitionIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
             moduleUniqueKey: moduleUniqueKey,
-            ip: initializerIp!,
+            ip: definitionIp!,
             namespace: closure);
 
         assign(initVal);
@@ -135,7 +135,9 @@ class HTBytecodeVariable extends HTVariable with HetuRef {
           classId: classId,
           value: value,
           declType: declType,
-          initializerIp: initializerIp,
+          definitionIp: definitionIp,
+          line: line,
+          column: column,
           getter: getter,
           setter: setter,
           isDynamic: isDynamic,
@@ -153,14 +155,18 @@ class HTBytecodeParameter extends HTBytecodeVariable {
   HTBytecodeParameter(String id, Hetu interpreter, String moduleUniqueKey,
       {dynamic value,
       HTType? declType,
-      int? initializerIp,
+      int? definitionIp,
+      int? line,
+      int? column,
       bool isOptional = false,
       bool isNamed = false,
       bool isVariadic = false})
       : super(id, interpreter, moduleUniqueKey,
             value: value,
             declType: declType,
-            initializerIp: initializerIp,
+            definitionIp: definitionIp,
+            line: line,
+            column: column,
             isImmutable: true) {
     final paramDeclType = declType ?? HTType.ANY;
     paramType = HTParameterType(paramDeclType.typeName,
@@ -176,7 +182,9 @@ class HTBytecodeParameter extends HTBytecodeVariable {
     return HTBytecodeParameter(id, interpreter, moduleUniqueKey,
         value: value,
         declType: declType,
-        initializerIp: initializerIp,
+        definitionIp: definitionIp,
+        line: line,
+        column: column,
         isOptional: paramType.isOptional,
         isNamed: paramType.isNamed,
         isVariadic: paramType.isVariadic);

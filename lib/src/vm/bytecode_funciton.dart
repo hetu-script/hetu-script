@@ -1,5 +1,6 @@
 import 'vm.dart';
 import 'bytecode_variable.dart';
+import 'bytecode.dart' show GotoInfo;
 import '../namespace.dart';
 import '../type.dart';
 import '../function.dart';
@@ -30,16 +31,13 @@ class HTBytecodeFunctionSuperConstructor {
 }
 
 /// Bytecode implementation of [HTFunction].
-class HTBytecodeFunction extends HTFunction with HetuRef {
+class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
   final bool hasParameterDeclarations;
 
   /// Holds declarations of all parameters.
   final Map<String, HTBytecodeParameter> parameterDeclarations;
 
   final HTBytecodeFunctionSuperConstructor? superConstructor;
-
-  /// Holds ip of unction body.
-  final int? definitionIp;
 
   /// Create a standard [HTBytecodeFunction].
   ///
@@ -57,7 +55,9 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     this.hasParameterDeclarations = true,
     this.parameterDeclarations = const <String, HTBytecodeParameter>{},
     HTType returnType = HTType.ANY,
-    this.definitionIp,
+    int? definitionIp,
+    int? line,
+    int? column,
     bool isStatic = false,
     bool isConst = false,
     bool isVariadic = false,
@@ -65,7 +65,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
     int maxArity = 0,
     HTNamespace? context,
     this.superConstructor,
-  }) : super(id, declId, moduleUniqueKey,
+  }) : super(id, declId,
             klass: klass,
             funcType: funcType,
             isExtern: isExtern,
@@ -77,6 +77,10 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
             maxArity: maxArity,
             context: context) {
     this.interpreter = interpreter;
+    this.moduleUniqueKey = moduleUniqueKey;
+    this.definitionIp = definitionIp;
+    this.line = line;
+    this.column = column;
 
     rtType = HTFunctionType(
         parameterTypes: parameterDeclarations
@@ -132,7 +136,7 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
       ++i;
     }
     result.write(
-        '${HTLexicon.roundRight}${HTLexicon.colon} ' + returnType.toString());
+        '${HTLexicon.roundRight}${HTLexicon.arrow} ' + returnType.toString());
     return result.toString();
   }
 
@@ -418,6 +422,8 @@ class HTBytecodeFunction extends HTFunction with HetuRef {
         parameterDeclarations: parameterDeclarations,
         returnType: returnType,
         definitionIp: definitionIp,
+        line: line,
+        column: column,
         isStatic: isStatic,
         isConst: isConst,
         isVariadic: isVariadic,

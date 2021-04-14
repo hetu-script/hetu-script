@@ -102,3 +102,18 @@ class HTBytecode with ConstTable {
     return utf8.decoder.convert(codeUnits);
   }
 }
+
+/// The information of snippet need goto
+mixin GotoInfo {
+  /// The module this variable declared in.
+  late final String moduleUniqueKey;
+
+  /// The instructor pointer of the definition's bytecode.
+  int? definitionIp;
+
+  /// The line of the definition's bytecode.
+  int? line;
+
+  /// The column of the definition's bytecode.
+  int? column;
+}
