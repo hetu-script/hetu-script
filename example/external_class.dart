@@ -25,7 +25,7 @@ extension PersonBinding on Person {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'runtimeType':
-        return HTInstanceType('Person');
+        return HTType('Person');
       case 'toString':
         return toString;
       case 'name':
