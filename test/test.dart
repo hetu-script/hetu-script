@@ -4,29 +4,15 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   final result = await hetu.eval('''
-    import 'script/tool/person.ht'
-    import 'script/tool/beauty.ht'
-
-    class Jimmy extends Person {
-      var age = 17
-      construct {
-        name = 'Jimmy'
-      }
-      fun greeting {
-        print("Hi! I'm", name)
-      }
+    fun getDartFun(dartfun) {
+      print(dartfun)
     }
 
-    fun importTest {
-      var cal = Calculator(6, 7)
-
-      var j = Jimmy()
-
-      // print(cal.meaning())
-
-      return (getBeauty(cal.meaning(), j.age, 100))
+    fun main {
+      
+      getDartFun( fun [DartFunTypeDef] { return 42 } )
 
     }
-    ''', invokeFunc: 'importTest');
+    ''', invokeFunc: 'main');
   print(result);
 }

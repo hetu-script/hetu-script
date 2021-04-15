@@ -1820,10 +1820,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
     var hasExternalTypedef = false;
     String? externalTypedef;
     if (expect([HTLexicon.squareLeft], consume: true)) {
-      if (!isExtern) {
-        throw HTError.unexpected(peek(-1).lexeme);
-      }
-
       hasExternalTypedef = true;
       externalTypedef = match(HTLexicon.identifier).lexeme;
       match(HTLexicon.squareRight);
