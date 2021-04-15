@@ -114,7 +114,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
       if (bundleMode) {
       } else {
         await interpreter.import(importInfo.key,
-            curModuleUniqueKey: moduleUniqueKey,
+            curModuleUniqueKey:
+                moduleUniqueKey.startsWith(HTLexicon.anonymousScript)
+                    ? null
+                    : moduleUniqueKey,
             moduleName: importInfo.name,
             debugMode: _debugMode);
       }
