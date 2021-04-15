@@ -12,30 +12,30 @@ class HTNumber<T extends num> extends HTExternalObject<T> {
     switch (varName) {
       case 'remainder':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.remainder(positionalArgs[0]);
+            externalObject.remainder(positionalArgs[0]);
       case 'compareTo':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.compareTo(positionalArgs[0]);
+            externalObject.compareTo(positionalArgs[0]);
       case 'isNaN':
-        return externObject.isNaN;
+        return externalObject.isNaN;
       case 'isNegative':
-        return externObject.isNegative;
+        return externalObject.isNegative;
       case 'isInfinite':
-        return externObject.isInfinite;
+        return externalObject.isInfinite;
       case 'isFinite':
-        return externObject.isFinite;
+        return externalObject.isFinite;
       case 'clamp':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.clamp(positionalArgs[0], positionalArgs[1]);
+            externalObject.clamp(positionalArgs[0], positionalArgs[1]);
       case 'toStringAsFixed':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toStringAsFixed(positionalArgs[0]);
+            externalObject.toStringAsFixed(positionalArgs[0]);
       case 'toStringAsExponential':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toStringAsExponential(positionalArgs[0]);
+            externalObject.toStringAsExponential(positionalArgs[0]);
       case 'toStringAsPrecision':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toStringAsPrecision(positionalArgs[0]);
+            externalObject.toStringAsPrecision(positionalArgs[0]);
     }
   }
 }
@@ -50,56 +50,58 @@ class HTInteger extends HTNumber<int> {
         return HTType.integer;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toString();
+            externalObject.toString();
       case 'modPow':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.modPow(positionalArgs[0], positionalArgs[1]);
+            externalObject.modPow(positionalArgs[0], positionalArgs[1]);
       case 'modInverse':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.modInverse(positionalArgs[0]);
+            externalObject.modInverse(positionalArgs[0]);
       case 'gcd':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.gcd(positionalArgs[0]);
+            externalObject.gcd(positionalArgs[0]);
       case 'isEven':
-        return externObject.isEven;
+        return externalObject.isEven;
       case 'isOdd':
-        return externObject.isOdd;
+        return externalObject.isOdd;
       case 'bitLength':
-        return externObject.bitLength;
+        return externalObject.bitLength;
       case 'toUnsigned':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toUnsigned(positionalArgs[0]);
+            externalObject.toUnsigned(positionalArgs[0]);
       case 'toSigned':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toSigned(positionalArgs[0]);
+            externalObject.toSigned(positionalArgs[0]);
       case 'abs':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.abs();
+        return ({positionalArgs, namedArgs, typeArgs}) => externalObject.abs();
       case 'sign':
-        return externObject.sign;
+        return externalObject.sign;
       case 'round':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.round();
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externalObject.round();
       case 'floor':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.floor();
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externalObject.floor();
       case 'ceil':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.ceil();
+        return ({positionalArgs, namedArgs, typeArgs}) => externalObject.ceil();
       case 'truncate':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.truncate();
+            externalObject.truncate();
       case 'roundToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.roundToDouble();
+            externalObject.roundToDouble();
       case 'floorToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.floorToDouble();
+            externalObject.floorToDouble();
       case 'ceilToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.ceilToDouble();
+            externalObject.ceilToDouble();
       case 'truncateToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.truncateToDouble();
+            externalObject.truncateToDouble();
       case 'toRadixString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toRadixString(positionalArgs[0]);
+            externalObject.toRadixString(positionalArgs[0]);
       default:
         return super.memberGet(varName, from: from);
     }
@@ -116,32 +118,34 @@ class HTFloat extends HTNumber<double> {
         return HTType.float;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toString();
+            externalObject.toString();
       case 'abs':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.abs();
+        return ({positionalArgs, namedArgs, typeArgs}) => externalObject.abs();
       case 'sign':
-        return externObject.sign;
+        return externalObject.sign;
       case 'round':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.round();
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externalObject.round();
       case 'floor':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.floor();
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externalObject.floor();
       case 'ceil':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.ceil();
+        return ({positionalArgs, namedArgs, typeArgs}) => externalObject.ceil();
       case 'truncate':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.truncate();
+            externalObject.truncate();
       case 'roundToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.roundToDouble();
+            externalObject.roundToDouble();
       case 'floorToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.floorToDouble();
+            externalObject.floorToDouble();
       case 'ceilToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.ceilToDouble();
+            externalObject.ceilToDouble();
       case 'truncateToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.truncateToDouble();
+            externalObject.truncateToDouble();
       default:
         return super.memberGet(varName, from: from);
     }
@@ -158,7 +162,7 @@ class HTBoolean extends HTExternalObject<bool> {
         return HTType.boolean;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toString();
+            externalObject.toString();
       default:
         throw HTError.undefined(varName);
     }
@@ -175,68 +179,68 @@ class HTString extends HTExternalObject<String> {
         return HTType.string;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toString();
+            externalObject.toString();
       case 'codeUnitAt':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.codeUnitAt(positionalArgs[0]);
+            externalObject.codeUnitAt(positionalArgs[0]);
       case 'length':
-        return externObject.length;
+        return externalObject.length;
       case 'endsWith':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.endsWith(positionalArgs[0]);
+            externalObject.endsWith(positionalArgs[0]);
       case 'startsWith':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.startsWith(positionalArgs[0], positionalArgs[1]);
+            externalObject.startsWith(positionalArgs[0], positionalArgs[1]);
       case 'indexOf':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.indexOf(positionalArgs[0], positionalArgs[1]);
+            externalObject.indexOf(positionalArgs[0], positionalArgs[1]);
       case 'lastIndexOf':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.lastIndexOf(positionalArgs[0], positionalArgs[1]);
+            externalObject.lastIndexOf(positionalArgs[0], positionalArgs[1]);
       case 'isEmpty':
-        return externObject.isEmpty;
+        return externalObject.isEmpty;
       case 'isNotEmpty':
-        return externObject.isNotEmpty;
+        return externalObject.isNotEmpty;
       case 'subString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.substring(positionalArgs[0], positionalArgs[1]);
+            externalObject.substring(positionalArgs[0], positionalArgs[1]);
       case 'trim':
-        return ({positionalArgs, namedArgs, typeArgs}) => externObject.trim();
+        return ({positionalArgs, namedArgs, typeArgs}) => externalObject.trim();
       case 'trimLeft':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.trimLeft();
+            externalObject.trimLeft();
       case 'trimRight':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.trimRight();
+            externalObject.trimRight();
       case 'padLeft':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.padLeft(positionalArgs[0], positionalArgs[1]);
+            externalObject.padLeft(positionalArgs[0], positionalArgs[1]);
       case 'padRight':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.padRight(positionalArgs[0], positionalArgs[1]);
+            externalObject.padRight(positionalArgs[0], positionalArgs[1]);
       case 'contains':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.contains(positionalArgs[0], positionalArgs[1]);
+            externalObject.contains(positionalArgs[0], positionalArgs[1]);
       case 'replaceFirst':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.replaceFirst(
+            externalObject.replaceFirst(
                 positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'replaceAll':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.replaceAll(positionalArgs[0], positionalArgs[1]);
+            externalObject.replaceAll(positionalArgs[0], positionalArgs[1]);
       case 'replaceRange':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.replaceRange(
+            externalObject.replaceRange(
                 positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'split':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.split(positionalArgs[0]);
+            externalObject.split(positionalArgs[0]);
       case 'toLowerCase':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toLowerCase();
+            externalObject.toLowerCase();
       case 'toUpperCase':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            externObject.toUpperCase();
+            externalObject.toUpperCase();
       default:
         throw HTError.undefined(varName);
     }
@@ -264,65 +268,65 @@ class HTList<T> extends HTExternalObject<List<T>> {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.toString();
+            externalObject.toString();
       case 'length':
-        return externObject.length;
+        return externalObject.length;
       case 'isEmpty':
-        return externObject.isEmpty;
+        return externalObject.isEmpty;
       case 'isNotEmpty':
-        return externObject.isNotEmpty;
+        return externalObject.isNotEmpty;
       case 'first':
-        return externObject.first;
+        return externalObject.first;
       case 'last':
-        return externObject.last;
+        return externalObject.last;
       case 'contains':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.contains(positionalArgs.first);
+            externalObject.contains(positionalArgs.first);
       case 'add':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.add(positionalArgs.first);
+            externalObject.add(positionalArgs.first);
       case 'addAll':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.addAll(positionalArgs.first);
+            externalObject.addAll(positionalArgs.first);
       case 'clear':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.clear();
+            externalObject.clear();
       case 'removeAt':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.removeAt(positionalArgs.first);
+            externalObject.removeAt(positionalArgs.first);
       case 'indexOf':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.indexOf(positionalArgs.first);
+            externalObject.indexOf(positionalArgs.first);
       case 'elementAt':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.elementAt(positionalArgs.first);
+            externalObject.elementAt(positionalArgs.first);
       case 'join':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.join(positionalArgs.first);
+            externalObject.join(positionalArgs.first);
       default:
         return super.memberGet(varName, from: from);
     }
@@ -350,47 +354,47 @@ class HTMap extends HTExternalObject {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.toString();
+            externalObject.toString();
       case 'length':
-        return externObject.length;
+        return externalObject.length;
       case 'isEmpty':
-        return externObject.isEmpty;
+        return externalObject.isEmpty;
       case 'isNotEmpty':
-        return externObject.isNotEmpty;
+        return externalObject.isNotEmpty;
       case 'keys':
-        return externObject.keys.toList();
+        return externalObject.keys.toList();
       case 'values':
-        return externObject.values.toList();
+        return externalObject.values.toList();
       case 'containsKey':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.containsKey(positionalArgs.first);
+            externalObject.containsKey(positionalArgs.first);
       case 'containsValue':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.containsValue(positionalArgs.first);
+            externalObject.containsValue(positionalArgs.first);
       case 'addAll':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.addAll(positionalArgs.first);
+            externalObject.addAll(positionalArgs.first);
       case 'clear':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.clear();
+            externalObject.clear();
       case 'remove':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            externObject.remove(positionalArgs.first);
+            externalObject.remove(positionalArgs.first);
       default:
         return super.memberGet(varName, from: from);
     }

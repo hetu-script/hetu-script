@@ -1,3 +1,5 @@
+import 'package:hetu_script/hetu_script.dart';
+
 import '../interpreter.dart';
 import '../object.dart';
 import '../type.dart';
@@ -10,30 +12,45 @@ class HTExternalObject<T> with HTObject, InterpreterRef {
   HTType get rtType => memberGet(HTLexicon.rtType);
 
   /// the external object.
-  T externObject;
+  final T externalObject;
+  late final _typeString;
+  late final HTExternalClass? externalClass;
 
   /// Create a external class object.
-  HTExternalObject(this.externObject, Interpreter interpreter) {
+  HTExternalObject(this.externalObject, Interpreter interpreter) {
     this.interpreter = interpreter;
+
+    _typeString = externalObject.runtimeType.toString();
+    final id = HTType.parseBaseType(_typeString);
+    if (interpreter.containsExternalClass(id)) {
+      externalClass = interpreter.fetchExternalClass(id);
+    }
   }
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
-    final typeString = externObject.runtimeType.toString();
-    final id = HTType.parseBaseType(typeString);
-    if (interpreter.containsExternalClass(id)) {
-      final externClass = interpreter.fetchExternalClass(id);
-      return externClass.instanceMemberGet(externObject, varName);
+    if (externalClass != null) {
+      return externalClass!.instanceMemberGet(externalObject, varName);
     } else {
       switch (varName) {
         case 'runtimeType':
-          return HTUnknownType(typeString);
+          return HTUnknownType(_typeString);
         case 'toString':
           return ({positionalArgs, namedArgs, typeArgs}) =>
-              externObject.toString();
+              externalObject.toString();
         default:
-          throw HTError.unknownType(typeString);
+          throw HTError.unknownType(_typeString);
       }
+    }
+  }
+
+  @override
+  void memberSet(String varName, dynamic varValue,
+      {String from = HTLexicon.global}) {
+    if (externalClass != null) {
+      externalClass!.instanceMemberSet(externalObject, varName, varValue);
+    } else {
+      throw HTError.unknownType(_typeString);
     }
   }
 }
