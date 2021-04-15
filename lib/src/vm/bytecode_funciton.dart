@@ -363,8 +363,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
             result = Function.apply(
                 externFunc,
                 finalPosArgs,
-                finalNamedArgs
-                    .map((key, value) => MapEntry(Symbol(key), value)));
+                finalNamedArgs.map<Symbol, dynamic>(
+                    (key, value) => MapEntry(Symbol(key), value)));
           }
         }
         // 外部类的成员函数
@@ -385,8 +385,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
             result = Function.apply(
                 externFunc,
                 finalPosArgs,
-                finalNamedArgs
-                    .map((key, value) => MapEntry(Symbol(key), value)));
+                finalNamedArgs.map<Symbol, dynamic>(
+                    (key, value) => MapEntry(Symbol(key), value)));
           }
         }
       }

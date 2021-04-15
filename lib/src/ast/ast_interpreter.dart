@@ -435,7 +435,7 @@ class HTAstInterpreter extends Interpreter
       //             constructor,
       //             positionalArgs,
       //             namedArgs
-      //                 .map((key, value) => MapEntry(Symbol(key), value)));
+      //                 .map<Symbol, dynamic>((key, value) => MapEntry(Symbol(key), value)));
       //         // throw HTErrorExternFunc(constructor.toString());
       //       }
       //     }
@@ -452,7 +452,7 @@ class HTAstInterpreter extends Interpreter
       //         typeArgs: typeArgs);
       //   } else {
       //     return Function.apply(externFunc, positionalArgs,
-      //         namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+      //         namedArgs.map<Symbol, dynamic>((key, value) => MapEntry(Symbol(key), value)));
       //     // throw HTErrorExternFunc(constructor.toString());
       //   }
       // }
@@ -486,7 +486,7 @@ class HTAstInterpreter extends Interpreter
       //         typeArgs: typeArgs);
       //   } else {
       //     return Function.apply(constructor, positionalArgs,
-      //         namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+      //         namedArgs.map<Symbol, dynamic>((key, value) => MapEntry(Symbol(key), value)));
       //     // throw HTErrorExternFunc(constructor.toString());
       //   }
       // }
@@ -498,8 +498,11 @@ class HTAstInterpreter extends Interpreter
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        return Function.apply(callee, positionalArgs,
-            namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        return Function.apply(
+            callee,
+            positionalArgs,
+            namedArgs.map<Symbol, dynamic>(
+                (key, value) => MapEntry(Symbol(key), value)));
         // throw HTErrorExternFunc(callee.toString());
       }
     } else {

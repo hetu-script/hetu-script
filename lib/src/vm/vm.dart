@@ -985,8 +985,11 @@ class Hetu extends Interpreter {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        _curValue = Function.apply(callee, positionalArgs,
-            namedArgs.map((key, value) => MapEntry(Symbol(key), value)));
+        _curValue = Function.apply(
+            callee,
+            positionalArgs,
+            namedArgs.map<Symbol, dynamic>(
+                (key, value) => MapEntry(Symbol(key), value)));
       }
     } else {
       throw HTError.callable(callee.toString());
