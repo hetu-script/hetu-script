@@ -24,6 +24,8 @@ class HTExternalObject<T> with HTObject, InterpreterRef {
     final id = HTType.parseBaseType(_typeString);
     if (interpreter.containsExternalClass(id)) {
       externalClass = interpreter.fetchExternalClass(id);
+    } else {
+      externalClass = null;
     }
   }
 

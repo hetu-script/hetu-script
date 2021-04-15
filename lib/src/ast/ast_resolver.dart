@@ -251,7 +251,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curLine = expr.line;
     _curColumn = expr.column;
     if (_blocks.isNotEmpty && _blocks.last[expr.id.lexeme] == false) {
-      throw HTError.initialized(expr.id.lexeme);
+      throw HTError.notInitialized(expr.id.lexeme);
     }
 
     _lookUpVar(expr, expr.id.lexeme);

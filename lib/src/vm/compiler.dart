@@ -286,7 +286,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
               case HTLexicon.VAR:
               case HTLexicon.LET:
               case HTLexicon.CONST:
-                throw HTError.externVar();
+                throw HTError.externalVar();
               case HTLexicon.FUNCTION:
                 final decl = _compileFuncDeclaration(isExtern: true);
                 final id = readId(decl);
@@ -418,7 +418,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
               case HTLexicon.VAR:
               case HTLexicon.LET:
               case HTLexicon.CONST:
-                throw HTError.externVar();
+                throw HTError.externalVar();
               default:
                 throw HTError.expected(HTLexicon.declStmt, curTok.lexeme);
             }
@@ -579,7 +579,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
               final id = readId(decl);
               _curBlock.funcDecls[id] = decl;
             } else {
-              throw HTError.abstractedCtor();
+              throw HTError.abstractCtor();
             }
             break;
           case HTLexicon.GET:
@@ -751,7 +751,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     final left = _compilerTernaryExpr();
     if (HTLexicon.assignments.contains(curTok.type)) {
       if (!_leftValueLegality) {
-        throw HTError.illegalLeftValueParser();
+        throw HTError.invalidLeftValue();
       }
       final op = advance(1).type;
       final right = _compileExpr(); // 右合并：先计算右边
@@ -1994,7 +1994,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
       // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
       if ((funcType == FunctionType.setter) && (minArity != 1)) {
-        throw HTError.setter();
+        throw HTError.setterArity();
       }
     } else {
       funcBytesBuilder.addByte(0); // bool: has parameter declarations
@@ -2012,7 +2012,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     // 返回值类型
     if (expect([HTLexicon.arrow], consume: true)) {
       if (funcType == FunctionType.constructor) {
-        throw HTError.ctorNotSuper();
+        throw HTError.ctorReturn();
       }
       funcBytesBuilder.addByte(FunctionReturnType
           .type.index); // enum: return type or super constructor
@@ -2061,7 +2061,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
           funcType != FunctionType.literal &&
           !isExtern &&
           !(_curClass?.isAbstract ?? false)) {
-        throw HTError.missingFuncDef(id);
+        throw HTError.missingFuncBody(id);
       }
       funcBytesBuilder.addByte(0); // bool: has no definition
       expect([HTLexicon.semicolon], consume: true);

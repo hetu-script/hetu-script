@@ -55,7 +55,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
   static HTType parseType(String typeString) {
     final tokens = Lexer().lex(typeString, HTLexicon.typeExpression);
     if (tokens.isEmpty) {
-      throw HTError.empty(HTLexicon.typeExpression);
+      throw HTError.emptyString(HTLexicon.typeExpression);
     }
 
     if (tokens.first.type != HTLexicon.identifier) {
@@ -138,7 +138,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         return SubSetExpr(expr.collection, expr.key, value);
       }
 
-      throw HTError.illegalLeftValueParser();
+      throw HTError.invalidLeftValue();
     }
 
     return expr;
@@ -803,7 +803,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
         // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
         if ((funcType == FunctionType.setter) && (arity != 1)) {
-          throw HTError.setter();
+          throw HTError.setterArity();
         }
       }
     }

@@ -65,13 +65,13 @@ class DefaultModuleHandler implements HTModuleHandler {
       if (!imported.contains(fileName)) {
         imported.add(fileName);
         content = await File(fileName).readAsString();
-        if (content.isEmpty) throw HTError.empty(fileName);
+        if (content.isEmpty) throw HTError.emptyString(fileName);
         return HTModuleInfo(fileName, content);
       } else {
         return HTModuleInfo(fileName, content, duplicate: true);
       }
     } catch (e) {
-      throw (HTError(e.toString(), HTErrorType.import));
+      throw (HTError(e.toString(), HTErrorCode.dartError, HTErrorType.import));
     }
   }
 }

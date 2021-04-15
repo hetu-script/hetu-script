@@ -154,6 +154,8 @@ class HTClassNamespace extends HTNamespace {
   @override
   dynamic fetch(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
+    final externalStatic = '$id.$varName';
+
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
@@ -166,16 +168,13 @@ class HTClassNamespace extends HTNamespace {
               decl.externalTypedef!, decl);
           return externalFunc;
         }
-        return decl;
       } else if (decl is HTVariable) {
         if (!decl.isInitialized) {
           decl.initialize();
         }
         return decl.value;
       }
-      // else if (decl is HTClass) {
-      //   return null;
-      // }
+      return decl;
     } else if (declarations.containsKey(getter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
@@ -183,6 +182,13 @@ class HTClassNamespace extends HTNamespace {
       }
       final decl = declarations[getter] as HTFunction;
       return decl.call();
+    } else if (declarations.containsKey(externalStatic)) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final decl = declarations[externalStatic] as HTFunction;
+      return decl;
     }
 
     if (closure != null) {
@@ -234,7 +240,7 @@ class HTClassNamespace extends HTNamespace {
 class HTInstanceNamespace extends HTNamespace {
   final HTInstance instance;
 
-  HTInstanceNamespace? next;
+  late HTInstanceNamespace? next;
 
   HTInstanceNamespace(
       String id, String? classId, this.instance, Interpreter interpreter,
@@ -249,11 +255,15 @@ class HTInstanceNamespace extends HTNamespace {
   dynamic fetch(String varName,
       {String from = HTLexicon.global, bool recursive = true}) {
     final getter = '${HTLexicon.getter}$varName';
-    if (declarations.containsKey(varName) || declarations.containsKey(getter)) {
-      return instance.memberGet(varName, from: from, classId: classId);
-    } else {
-      if (next != null) {
-        return next!.fetch(varName, from: from);
+
+    HTInstanceNamespace? curNamespace = this;
+    while (curNamespace != null) {
+      if (curNamespace.declarations.containsKey(varName) ||
+          curNamespace.declarations.containsKey(getter)) {
+        return instance.memberGet(varName,
+            from: from, classId: curNamespace.classId);
+      } else {
+        curNamespace = curNamespace.next;
       }
     }
 
@@ -272,12 +282,16 @@ class HTInstanceNamespace extends HTNamespace {
   void assign(String varName, dynamic varValue,
       {String from = HTLexicon.global, bool recursive = true}) {
     final setter = '${HTLexicon.getter}$varName';
-    if (declarations.containsKey(varName) || declarations.containsKey(setter)) {
-      return instance.memberSet(varName, varValue,
-          from: from, classId: classId);
-    } else {
-      if (next != null) {
-        return next!.assign(varName, varValue, from: from);
+
+    HTInstanceNamespace? curNamespace = this;
+    while (curNamespace != null) {
+      if (curNamespace.declarations.containsKey(varName) ||
+          curNamespace.declarations.containsKey(setter)) {
+        instance.memberSet(varName, varValue,
+            from: from, classId: curNamespace.classId);
+        return;
+      } else {
+        curNamespace = curNamespace.next;
       }
     }
 

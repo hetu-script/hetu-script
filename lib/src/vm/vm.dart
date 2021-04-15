@@ -133,7 +133,7 @@ class Hetu extends Interpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
-    if (content.isEmpty) throw HTError.empty();
+    if (content.isEmpty) throw HTError.emptyString();
 
     // TODO: 不要保存
     _compiler = Compiler(this);
@@ -233,7 +233,7 @@ class Hetu extends Interpreter {
               namedArgs: namedArgs,
               typeArgs: typeArgs);
         } else {
-          throw HTError.callable(funcName);
+          throw HTError.notCallable(funcName);
         }
       } else {
         func = global.fetch(funcName);
@@ -243,7 +243,7 @@ class Hetu extends Interpreter {
               namedArgs: namedArgs,
               typeArgs: typeArgs);
         } else {
-          HTError.callable(funcName);
+          HTError.notCallable(funcName);
         }
       }
     } catch (error, stack) {
@@ -278,8 +278,13 @@ class Hetu extends Interpreter {
       }
       errorHandler.handle(error);
     } else {
-      final hetuError = HTError('$error\nCall stack:\n$callStack',
-          HTErrorType.interpreter, _curModuleUniqueKey, _curLine, _curColumn);
+      final hetuError = HTError(
+          '$error\nCall stack:\n$callStack',
+          HTErrorCode.dartError,
+          HTErrorType.interpreter,
+          _curModuleUniqueKey,
+          _curLine,
+          _curColumn);
       errorHandler.handle(hetuError);
     }
   }
@@ -317,8 +322,13 @@ class Hetu extends Interpreter {
         }
         errorHandler.handle(error);
       } else {
-        final hetuError = HTError('$error\nCall stack:\n$callStack',
-            HTErrorType.interpreter, _curModuleUniqueKey, _curLine, _curColumn);
+        final hetuError = HTError(
+            '$error\nCall stack:\n$callStack',
+            HTErrorCode.dartError,
+            HTErrorType.interpreter,
+            _curModuleUniqueKey,
+            _curLine,
+            _curColumn);
         errorHandler.handle(hetuError);
       }
     } finally {
@@ -992,7 +1002,7 @@ class Hetu extends Interpreter {
                 (key, value) => MapEntry(Symbol(key), value)));
       }
     } else {
-      throw HTError.callable(callee.toString());
+      throw HTError.notCallable(callee.toString());
     }
   }
 
@@ -1230,34 +1240,31 @@ class Hetu extends Interpreter {
       _curCode.skip(length);
     }
 
-    final func = HTBytecodeFunction(
-      id,
-      this,
-      curModuleUniqueKey,
-      declId: declId,
-      klass: _curClass,
-      funcType: funcType,
-      isExtern: isExtern,
-      externalTypedef: externalTypedef,
-      hasParameterDeclarations: hasParameterDeclarations,
-      parameterDeclarations: parameterDeclarations,
-      returnType: returnType,
-      definitionIp: definitionIp,
-      definitionLine: line,
-      definitionColumn: column,
-      isStatic: isStatic,
-      isConst: isConst,
-      isVariadic: isVariadic,
-      minArity: minArity,
-      maxArity: maxArity,
-      superConstructor: superConstructor,
-    );
+    final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
+        declId: declId,
+        klass: _curClass,
+        funcType: funcType,
+        isExtern: isExtern,
+        externalTypedef: externalTypedef,
+        hasParameterDeclarations: hasParameterDeclarations,
+        parameterDeclarations: parameterDeclarations,
+        returnType: returnType,
+        definitionIp: definitionIp,
+        definitionLine: line,
+        definitionColumn: column,
+        isStatic: isStatic,
+        isConst: isConst,
+        isVariadic: isVariadic,
+        minArity: minArity,
+        maxArity: maxArity,
+        superConstructor: superConstructor);
 
     if (!isStatic &&
         (funcType == FunctionType.method ||
             funcType == FunctionType.getter ||
             funcType == FunctionType.setter)) {
-      // instance methods are defined separately.
+      // Instance methods are not defined on namespaces yet,
+      // they will be when the instance is created.
       _curClass!.defineInstanceMember(func);
     } else {
       // constructor are defined in class's namespace,

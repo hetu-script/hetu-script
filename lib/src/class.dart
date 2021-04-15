@@ -178,7 +178,7 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        throw HTError.callable(funcName);
+        throw HTError.notCallable(funcName);
       }
     } catch (error, stack) {
       if (errorHandled) {

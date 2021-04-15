@@ -139,7 +139,7 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
         result = interpreter.executeBlock(funcStmt.definition!, closure);
       } else {
-        throw HTError.missingFuncDef(id);
+        throw HTError.missingFuncBody(id);
       }
     } catch (returnValue) {
       if ((returnValue is HTError) ||

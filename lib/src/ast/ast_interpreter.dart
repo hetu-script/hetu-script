@@ -135,8 +135,13 @@ class HTAstInterpreter extends Interpreter
         }
         errorHandler.handle(error);
       } else {
-        final hetuError = HTError('$error\nCall stack:\n$callStack',
-            HTErrorType.interpreter, _curModuleUniqueKey, _curLine, _curColumn);
+        final hetuError = HTError(
+            '$error\nCall stack:\n$callStack',
+            HTErrorCode.dartError,
+            HTErrorType.interpreter,
+            _curModuleUniqueKey,
+            _curLine,
+            _curColumn);
         errorHandler.handle(hetuError);
       }
     }
@@ -506,7 +511,7 @@ class HTAstInterpreter extends Interpreter
         // throw HTErrorExternFunc(callee.toString());
       }
     } else {
-      throw HTError.callable(callee.toString());
+      throw HTError.notCallable(callee.toString());
     }
   }
 
@@ -544,7 +549,7 @@ class HTAstInterpreter extends Interpreter
       return collection[key];
     }
 
-    throw HTError.subGet(collection.toString());
+    throw HTError.notList(collection.toString());
   }
 
   @override
@@ -559,7 +564,7 @@ class HTAstInterpreter extends Interpreter
       return value;
     }
 
-    throw HTError.subGet(collection.toString());
+    throw HTError.notList(collection.toString());
   }
 
   @override
@@ -781,7 +786,7 @@ class HTAstInterpreter extends Interpreter
 
     for (final variable in stmt.variables) {
       if (stmt.isExtern && variable.isExtern) {
-        throw HTError.externVar();
+        throw HTError.externalVar();
       }
       // dynamic value;
       // if (variable.initializer != null) {

@@ -52,14 +52,14 @@ class HTInstance with HTObject, InterpreterRef {
     while (curKlass != null) {
       curNamespace.next = HTInstanceNamespace(
           id, curKlass.id, this, interpreter,
-          closure: klass.namespace);
+          closure: curKlass.namespace);
       curNamespace = curNamespace.next!;
 
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
-        if (decl.id.startsWith(HTLexicon.underscore) && !firstClass) {
-          continue;
-        }
+        // if (decl.id.startsWith(HTLexicon.underscore) && !firstClass) {
+        //   continue;
+        // }
         final clone = decl.clone();
         if (clone is HTFunction && clone.funcType != FunctionType.literal) {
           clone.context = curNamespace;
@@ -77,6 +77,8 @@ class HTInstance with HTObject, InterpreterRef {
 
       firstClass = false;
     }
+
+    curNamespace.next = null;
 
     rtType = HTInstanceType(klass.id, typeArgs: typeArgs, extended: extended);
   }

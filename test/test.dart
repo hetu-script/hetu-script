@@ -8,10 +8,15 @@ void main() async {
   final hetu = Hetu();
   await hetu.init(externalFunctions: {'getStr': () => getStr()});
   await hetu.eval(r'''
-    external fun getStr
-    fun main {
-      var a = getStr()
-      print(a)
-    }
-    ''', invokeFunc: 'main');
+        class AGuy {
+          var name
+          construct withName (name: str) {
+            this.name = name
+          }
+        }
+        fun namedConstructor {
+          var p = AGuy.withName('harry')
+          print(p.name)
+        }
+    ''', invokeFunc: 'namedConstructor');
 }
