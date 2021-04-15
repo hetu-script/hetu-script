@@ -4,9 +4,9 @@ import 'token.dart';
 /// 负责对原始文本进行词法分析并生成Token列表
 class Lexer {
   static const stringReplaces = <String, String>{
-    '\\\\': '\\',
-    '\\n': '\n',
-    '\\\'': '\'',
+    r'\\': '\\',
+    r'\n': '\n',
+    r"\'": '\'',
   };
 
   Lexer();

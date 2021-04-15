@@ -3,16 +3,12 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   final hetu = Hetu();
   await hetu.init();
-  final result = await hetu.eval('''
-    fun getDartFun(dartfun) {
-      print(dartfun)
-    }
-
+  await hetu.eval(r'''
     fun main {
       
-      getDartFun( fun [DartFunTypeDef] { return 42 } )
+      var a = 'a \n b'
 
+      print(a.toString())
     }
     ''', invokeFunc: 'main');
-  print(result);
 }
