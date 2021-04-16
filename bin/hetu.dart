@@ -3,16 +3,18 @@ import 'dart:io';
 import 'package:hetu_script/hetu_script.dart';
 
 const cli_help = '''
-  Hetu Script Command-line Tool
-  Version: 0.1.0
-  Usage:
+Hetu Script Command-line Tool
+Version: 0.1.0
+Usage:
+hetu [option] [file_name] [invoke_func]
+If only [file_name] is provided, evaluate the file in function mode.
+If [file_name] and [invoke_func] is both provided, will interpret code as a program.''';
 
-  hetu [option] [file_name] [invoke_func]
-  
-  If only [file_name] is provided, evaluate the file in function mode.
-  
-  If [file_name] and [invoke_func] is both provided, will interpret code as a program.
-        ''';
+const repl_info = '''
+Hetu Script Read-Evaluate-Print-Loop Tool
+Version: 0.1.0
+Enter expression to evaluate.
+Enter '\' for multiline, enter '.exit' to quit.''';
 
 void main(List<String> args) async {
   try {
@@ -31,10 +33,7 @@ void main(List<String> args) async {
       }
       if (result != null) print(result);
     } else {
-      stdout.writeln('\nHetu Script Read-Evaluate-Print-Loop Tool\n'
-          'Version: 0.1.0\n\n'
-          'Enter your code to evaluate.\n'
-          'Enter \'\\\' for multiline, enter \'.exit\' to quit.\n');
+      print(repl_info);
       var exit = false;
 
       while (!exit) {
@@ -50,7 +49,7 @@ void main(List<String> args) async {
 
           try {
             result = await hetu.eval(input, codeType: CodeType.function);
-            if (result != null) print(result);
+            print(result);
           } catch (e) {
             print(e);
           }

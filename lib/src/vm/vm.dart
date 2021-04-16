@@ -126,7 +126,6 @@ class Hetu extends Interpreter {
   Future<dynamic> eval(String content,
       {String? moduleUniqueKey,
       CodeType codeType = CodeType.module,
-      bool debugMode = true,
       HTNamespace? namespace,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -144,8 +143,8 @@ class Hetu extends Interpreter {
 
     try {
       final tokens = Lexer().lex(content, name);
-      final bytes = await _compiler.compile(tokens, this, name,
-          codeType: codeType, debugMode: debugMode);
+      final bytes =
+          await _compiler.compile(tokens, this, name, codeType: codeType);
 
       _curCode = _modules[name] = HTBytecode(bytes);
       _curModuleUniqueKey = name;
@@ -181,7 +180,6 @@ class Hetu extends Interpreter {
       {String? curModuleUniqueKey,
       String? moduleName,
       CodeType codeType = CodeType.module,
-      bool debugMode = true,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -201,7 +199,6 @@ class Hetu extends Interpreter {
         moduleUniqueKey: module.uniqueKey,
         namespace: _curNamespace,
         codeType: codeType,
-        debugMode: debugMode,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
@@ -298,7 +295,7 @@ class Hetu extends Interpreter {
     try {
       final tokens = Lexer().lex(content, moduleName);
       final bytes = await _compiler.compile(tokens, this, moduleName,
-          codeType: codeType, debugMode: debugMode);
+          codeType: codeType, debugInfo: debugMode);
 
       bytesBuilder.add(bytes);
     } catch (error, stack) {
@@ -422,9 +419,6 @@ class Hetu extends Interpreter {
           final minor = _curCode.read();
           final patch = _curCode.readUint16();
           _curCode.version = Version(major, minor, patch);
-          break;
-        case HTOpCode.debug:
-          debugMode = _curCode.read() == 0 ? false : true;
           break;
         // 将字面量存储在本地变量中
         case HTOpCode.local:

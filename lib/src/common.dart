@@ -9,13 +9,6 @@ enum FunctionType {
   nested, // function within function, may with name
 }
 
-/// External function types
-// enum ExternalFunctionType {
-//   none,
-//   externalFunction,
-//   externalClassMethod,
-// }
-
 enum FunctionReturnType {
   none, // void
   type, // HTTypeid
@@ -36,17 +29,6 @@ class ClassInfo {
   final bool isAbstract;
   ClassInfo(this.id, {this.isExtern = false, this.isAbstract = false});
 }
-
-// /// Class types
-// enum ClassType {
-//   normal,
-//   // nested,
-//   abstracted,
-//   // interface,
-//   // mixIn,
-//   extern,
-//   externalAbstract,
-// }
 
 /// Code module types
 enum CodeType {

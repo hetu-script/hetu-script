@@ -65,10 +65,7 @@ class HTAstInterpreter extends Interpreter
       {bool debugMode = false,
       HTErrorHandler? errorHandler,
       HTModuleHandler? moduleHandler})
-      : super(
-            debugMode: debugMode,
-            errorHandler: errorHandler,
-            moduleHandler: moduleHandler);
+      : super(errorHandler: errorHandler, moduleHandler: moduleHandler);
 
   @override
   Future<dynamic> eval(String content,

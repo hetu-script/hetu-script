@@ -16,8 +16,8 @@ class Person {
 
   Person.withName(this.name, [this.race = 'Caucasian']);
 
-  void greeting() {
-    print('Hi! I\'m $name');
+  void greeting(String tag) {
+    print('Hi! $tag');
   }
 }
 
@@ -37,7 +37,7 @@ extension PersonBinding on Person {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            greeting();
+            greeting(positionalArgs.first);
       case 'child':
         return child;
       default:
@@ -131,26 +131,27 @@ void main() async {
         static set level (value: str)
         construct withName
         var name
-        fun greeting
+        fun greeting(tag: str)
       }
       fun main {
-        let p1: unknown = Person()
-        print(p1.runtimeType)
-        print(p1.name)
-        print(p1.child)
-        print('My race is', p1.race)
-        p1.race = 'Reptile'
-        print('Oh no! My race turned into', p1.race)
+        let p1: Person = Person()
+        p1.greeting()
+        // print(p1.runtimeType)
+        // print(p1.name)
+        // print(p1.child)
+        // print('My race is', p1.race)
+        // p1.race = 'Reptile'
+        // print('Oh no! My race turned into', p1.race)
 
-        var p2 = Person.withName('Jimmy')
-        print(p2.name)
-        p2.name = 'John'
-        p2.greeting();
+        // var p2 = Person.withName('Jimmy')
+        // print(p2.name)
+        // p2.name = 'John'
+        // p2.greeting();
 
-        Person.level = '3'
-        print(Person.level)
+        // Person.level = '3'
+        // print(Person.level)
 
-        print(Person.meaning('42'))
+        // print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }

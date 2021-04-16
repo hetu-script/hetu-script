@@ -21,6 +21,51 @@ external class num {
 
 	static fun parse(value: str) -> num
 
+  fun compareTo(compareTo: num) -> int
+
+  fun remainder(other: num) -> num
+
+  /// Returns the integer closest to this number.
+  fun round() -> int
+
+  /// Returns the greatest integer no greater than this number.
+  fun floor() -> int
+
+  /// Returns the least integer which is not smaller than this number.
+  fun ceil() -> int
+
+  /// Returns the integer obtained by discarding any fractional
+  /// part of this number.
+  fun truncate() -> int
+
+  /// Returns the integer double value closest to `this`.
+  fun roundToDouble() -> float
+
+  /// Returns the greatest integer double value no greater than `this`.
+  fun floorToDouble() -> float
+
+  /// Returns the least integer double value no smaller than `this`.
+  fun ceilToDouble() -> float
+
+  /// Returns the integer double value obtained by discarding any fractional
+  /// digits from `this`.
+  fun truncateToDouble() -> float
+
+  get isNaN -> bool
+
+  get isNegative -> bool
+
+  get isInfinite -> bool
+
+  get isFinite -> bool
+
+  fun clamp(lowerLimit: num, upperLimit: num) -> num
+
+  fun toStringAsFixed(fractionDigits: int) -> str
+
+  fun toStringAsExponential([fractionDigits: int]) -> str
+
+  fun toStringAsPrecision(precision: int) -> str
 }
 
 external class int extends num {
@@ -62,36 +107,19 @@ external class int extends num {
   /// Returns the sign of this integer.
   get sign -> int
 
-  /// Returns `this`.
-  fun round() -> int
-
-  /// Returns `this`.
-  fun floor() -> int
-
-  /// Returns `this`.
-  fun ceil() -> int
-
-  /// Returns `this`.
-  fun truncate() -> int
-
-  /// Returns `this.toDouble()`.
-  fun roundToDouble() -> float
-
-  /// Returns `this.toDouble()`.
-  fun floorToDouble() -> float
-
-  /// Returns `this.toDouble()`.
-  fun ceilToDouble() -> float
-
-  /// Returns `this.toDouble()`.
-  fun truncateToDouble() -> float
-  
   /// Converts [this] to a string representation in the given [radix].
   fun toRadixString(radix: int) -> str
 }
 
 external class float extends num {
 	
+	static fun parse(value: str) -> float
+  
+  /// Returns the absolute value of this number.
+  fun abs() -> float
+
+  /// Returns the sign of the double's numerical value.
+  get sign -> float
 }
 
 external class bool {
@@ -102,6 +130,8 @@ external class bool {
 external class str {
 
 	static fun parse(value) -> str
+
+  fun compareTo(index: str) -> int
 
   fun codeUnitAt(index: int) -> int
 
@@ -148,31 +178,47 @@ external class str {
 
 external class List {
 
-	get length -> num
-
 	get isEmpty -> bool
 
 	get isNotEmpty -> bool
 
-	get first
-
-	get last
-
 	fun contains(value) -> bool
+
+	fun elementAt(index: int) -> any
+
+	fun join(separator: str) -> str
+
+	var first
+
+	var last
+
+	var length
 
 	fun add(value)
 
-	fun addAll(value: List)
+  fun addAll(iterable)
+
+  get reversed
+
+	fun indexOf(value, [start: int = 0]) -> int
+
+	fun lastIndexOf(value, [start: int]) -> int
+
+	fun insert(index: int, value)
+
+	fun insertAll(index: int, iterable)
 
 	fun clear()
 
-	fun removeAt(index: num)
+	fun remove(value)
 
-	fun indexOf(value) -> num
+	fun removeAt(index: int)
 
-	fun elementAt(index: num) -> any
+	fun removeLast()
 
-	fun join(splitter: str) -> str
+  fun sublist(start: int, [end: int]) -> List
+
+  fun asMap() -> Map
 }
 
 external class Map {

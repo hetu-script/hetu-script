@@ -122,9 +122,6 @@ abstract class HTOpCode {
   /// uint8, uint8, uint16
   static const version = 201;
 
-  /// 1 byte
-  static const debug = 202;
-
   static const author = 203;
 
   static const moduleName = 204;

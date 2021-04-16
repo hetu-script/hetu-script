@@ -7,7 +7,7 @@ import '../lexicon.dart';
 import '../errors.dart';
 
 /// Class for external object.
-class HTExternalObject<T> with HTObject, InterpreterRef {
+class HTExternalInstance<T> with HTObject, InterpreterRef {
   @override
   HTType get rtType => memberGet(HTLexicon.rtType);
 
@@ -17,7 +17,7 @@ class HTExternalObject<T> with HTObject, InterpreterRef {
   late final HTExternalClass? externalClass;
 
   /// Create a external class object.
-  HTExternalObject(this.externalObject, Interpreter interpreter) {
+  HTExternalInstance(this.externalObject, Interpreter interpreter) {
     this.interpreter = interpreter;
 
     _typeString = externalObject.runtimeType.toString();

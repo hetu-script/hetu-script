@@ -4,7 +4,7 @@ import '../interpreter.dart';
 import '../lexicon.dart';
 import '../binding/external_object.dart';
 
-class HTNumber<T extends num> extends HTExternalObject<T> {
+class HTNumber<T extends num> extends HTExternalInstance<T> {
   HTNumber(T value, Interpreter interpreter) : super(value, interpreter);
 
   @override
@@ -152,7 +152,7 @@ class HTFloat extends HTNumber<double> {
   }
 }
 
-class HTBoolean extends HTExternalObject<bool> {
+class HTBoolean extends HTExternalInstance<bool> {
   HTBoolean(bool value, Interpreter interpreter) : super(value, interpreter);
 
   @override
@@ -169,7 +169,7 @@ class HTBoolean extends HTExternalObject<bool> {
   }
 }
 
-class HTString extends HTExternalObject<String> {
+class HTString extends HTExternalInstance<String> {
   HTString(String value, Interpreter interpreter) : super(value, interpreter);
 
   @override
@@ -180,6 +180,9 @@ class HTString extends HTExternalObject<String> {
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externalObject.toString();
+      case 'compareTo':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            externalObject.compareTo(positionalArgs[0]);
       case 'codeUnitAt':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externalObject.codeUnitAt(positionalArgs[0]);
@@ -248,7 +251,7 @@ class HTString extends HTExternalObject<String> {
 }
 
 /// Binding object for dart list.
-class HTList<T> extends HTExternalObject<List<T>> {
+class HTList<T> extends HTExternalInstance<List<T>> {
   @override
   late final rtType;
 
@@ -269,52 +272,16 @@ class HTList<T> extends HTExternalObject<List<T>> {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             externalObject.toString();
-      case 'length':
-        return externalObject.length;
       case 'isEmpty':
         return externalObject.isEmpty;
       case 'isNotEmpty':
         return externalObject.isNotEmpty;
-      case 'first':
-        return externalObject.first;
-      case 'last':
-        return externalObject.last;
       case 'contains':
         return (
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             externalObject.contains(positionalArgs.first);
-      case 'add':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externalObject.add(positionalArgs.first);
-      case 'addAll':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externalObject.addAll(positionalArgs.first);
-      case 'clear':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externalObject.clear();
-      case 'removeAt':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externalObject.removeAt(positionalArgs.first);
-      case 'indexOf':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            externalObject.indexOf(positionalArgs.first);
       case 'elementAt':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -327,6 +294,86 @@ class HTList<T> extends HTExternalObject<List<T>> {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             externalObject.join(positionalArgs.first);
+      case 'first':
+        return externalObject.first;
+      case 'last':
+        return externalObject.last;
+      case 'length':
+        return externalObject.length;
+      case 'add':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.add(positionalArgs.first);
+      case 'addAll':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.addAll(positionalArgs.first);
+      case 'reversed':
+        return externalObject.reversed;
+      case 'indexOf':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.indexOf(positionalArgs[0], positionalArgs[1]);
+      case 'lastIndexOf':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.lastIndexOf(positionalArgs[0], positionalArgs[1]);
+      case 'insert':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.insert(positionalArgs[0], positionalArgs[1]);
+      case 'insertAll':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.insertAll(positionalArgs[0], positionalArgs[1]);
+      case 'clear':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.clear();
+      case 'remove':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.remove(positionalArgs.first);
+      case 'removeAt':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.removeAt(positionalArgs.first);
+      case 'removeLast':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.removeLast();
+      case 'sublist':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.sublist(positionalArgs[0], positionalArgs[1]);
+      case 'asMap':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            externalObject.asMap();
       default:
         return super.memberGet(varName, from: from);
     }
@@ -334,7 +381,7 @@ class HTList<T> extends HTExternalObject<List<T>> {
 }
 
 /// Binding object for dart map.
-class HTMap extends HTExternalObject {
+class HTMap extends HTExternalInstance {
   @override
   late final rtType;
 

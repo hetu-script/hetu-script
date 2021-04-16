@@ -4,20 +4,12 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      fun loop {
-        var j = 1
-        var i = 0
-        for (;;) {
-          ++i
-          when (i % 2) {
-            0 -> j += i
-            1 -> j *= i
-          }
-          if (i > 5) {
-            break
-          }
-        }
-        print(j)
-      }
-    ''', invokeFunc: 'loop');
+      // var l = List()
+      // l.add(4)
+      // l.add(3)
+
+      // print(l)
+      var i = 42
+      print(i.toString())
+    ''', codeType: CodeType.script);
 }

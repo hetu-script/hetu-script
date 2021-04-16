@@ -100,10 +100,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
   Future<Uint8List> compile(
       List<Token> tokens, Hetu interpreter, String moduleUniqueKey,
       {CodeType codeType = CodeType.module,
-      debugMode = false,
+      debugInfo = true,
       bool bundleMode = false}) async {
     _bundleMode = bundleMode;
-    _debugMode = _bundleMode ? false : debugMode;
+    _debugMode = _bundleMode ? false : debugInfo;
     _curModuleUniqueKey = moduleUniqueKey;
 
     _curBlock = _globalBlock = _DeclarationBlock();
@@ -118,8 +118,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
                 moduleUniqueKey.startsWith(HTLexicon.anonymousScript)
                     ? null
                     : moduleUniqueKey,
-            moduleName: importInfo.name,
-            debugMode: _debugMode);
+            moduleName: importInfo.name);
       }
     }
 
@@ -130,9 +129,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
     // 版本号
     mainBuilder.addByte(HTOpCode.version);
     mainBuilder.add(hetuVersionData);
-    // 调试模式
-    mainBuilder.addByte(HTOpCode.debug);
-    mainBuilder.addByte(_debugMode ? 1 : 0);
     // 添加常量表
     mainBuilder.addByte(HTOpCode.constTable);
     mainBuilder.add(_uint16(intTable.length));

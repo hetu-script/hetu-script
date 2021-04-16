@@ -21,6 +21,15 @@ mixin InterpreterRef {
   late final Interpreter interpreter;
 }
 
+class InterpreterConfig {
+  final bool isDebugMode;
+  final bool includeHetuStackTraceInError;
+  final bool includeDartStackTraceInError;
+
+  InterpreterConfig(this.isDebugMode, this.includeHetuStackTraceInError,
+      this.includeDartStackTraceInError);
+}
+
 /// Shared interface for a ast or bytecode interpreter of Hetu.
 abstract class Interpreter {
   final version = Version(0, 1, 0);
@@ -34,19 +43,13 @@ abstract class Interpreter {
 
   HTNamespace get curNamespace;
 
-  late bool debugMode;
-
   late HTErrorHandler errorHandler;
   late HTModuleHandler moduleHandler;
 
   /// 全局命名空间
   late HTNamespace global;
 
-  Interpreter(
-      {bool debugMode = false,
-      HTErrorHandler? errorHandler,
-      HTModuleHandler? moduleHandler}) {
-    this.debugMode = debugMode;
+  Interpreter({HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.moduleHandler = moduleHandler ?? DefaultModuleHandler();
   }
@@ -92,7 +95,6 @@ abstract class Interpreter {
   Future<dynamic> eval(String content,
       {String? moduleUniqueKey,
       CodeType codeType = CodeType.module,
-      bool debugMode = true,
       HTNamespace? namespace,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -105,7 +107,6 @@ abstract class Interpreter {
       {String? curModuleUniqueKey,
       String? moduleName,
       CodeType codeType = CodeType.module,
-      bool debugMode = true,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -147,7 +148,6 @@ abstract class Interpreter {
           }
         }
       }
-
       return HTList(object, this, valueType: valueType);
     } else if (object is Map) {
       var keyType = HTType.ANY;
@@ -172,10 +172,9 @@ abstract class Interpreter {
           }
         }
       }
-
       return HTMap(object, this, keyType: keyType, valueType: valueType);
     } else {
-      return HTExternalObject(object, this);
+      return HTExternalInstance(object, this);
     }
   }
 
