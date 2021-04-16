@@ -62,6 +62,7 @@ abstract class HTLexicon {
   static const anonymousFunction = '\$anonymousFunction#';
   static const anonymousNamespace = '\$anonymousNamespace#';
   static const anonymousBlock = '\$anonymousBlock#';
+  static const increment = '\$increment';
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';

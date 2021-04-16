@@ -44,7 +44,7 @@ class HTInstance with HTObject, InterpreterRef {
     id = '${HTLexicon.instance}${klass.instanceIndex}';
     this.interpreter = interpreter;
 
-    var firstClass = true;
+    // var firstClass = true;
     HTClass? curKlass = klass;
     final extended = <HTType>[];
     var curNamespace = HTInstanceNamespace(id, curKlass.id, this, interpreter,
@@ -75,7 +75,7 @@ class HTInstance with HTObject, InterpreterRef {
       }
       curKlass = curKlass.superClass;
 
-      firstClass = false;
+      // firstClass = false;
     }
 
     curNamespace.next = null;
