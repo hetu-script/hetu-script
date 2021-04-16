@@ -1,3 +1,5 @@
+import 'lexicon.dart';
+
 /// Error type tells who throws this erro
 enum HTErrorType {
   parser,
@@ -91,7 +93,7 @@ class HTError {
   static const _abstracted = 'Cannot create instance from abstract class.';
   static const _abstractCtor = 'Cannot create contructor for abstract class.';
   static const _setterArity = 'Setter function\'s arity must be 1.';
-  static const _externMember =
+  static const _externalMember =
       'Non-external class cannot have non-static external members.';
   static const _emptyTypeArgs = 'Empty type arguments.';
 
@@ -119,7 +121,7 @@ class HTError {
   static const _iterable = 'is not Iterable.';
   static const _unkownValueType = 'Unkown OpCode value type:';
   static const _classOnInstance = 'Don\'t define class on instance!';
-  static const _emptyString = 'The script is empty.';
+  static const _emptyString = 'is empty.';
   static const _typeCast = '\'s type cannot be cast into';
   static const _castee = 'Illegal cast target';
   static const _clone = 'Illegal clone on';
@@ -218,8 +220,8 @@ class HTError {
   }
 
   /// Error: Illegal external member.
-  HTError.externMember() {
-    message = HTError._externMember;
+  HTError.externalMember() {
+    message = HTError._externalMember;
     type = HTErrorType.parser;
     code = HTErrorCode.externMember;
   }
@@ -495,8 +497,9 @@ class HTError {
   }
 
   /// Error: Illegal empty string.
-  HTError.emptyString([String message = '']) {
-    message = '${HTError._emptyString} [$message]';
+  HTError.emptyString([String? message]) {
+    message =
+        '[${message ?? (HTLexicon.identifier + ' ' + HTLexicon.string)}] ${HTError._emptyString}';
     type = HTErrorType.interpreter;
     code = HTErrorCode.emptyString;
   }

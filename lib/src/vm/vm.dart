@@ -1105,6 +1105,7 @@ class Hetu extends Interpreter {
     final isImmutable = _curCode.readBool();
     final isMember = _curCode.readBool();
     final isStatic = _curCode.readBool();
+    final lateInitialize = _curCode.readBool();
 
     HTType? declType;
     final hasType = _curCode.readBool();
@@ -1133,6 +1134,10 @@ class Hetu extends Interpreter {
         isImmutable: isImmutable,
         isMember: isMember,
         isStatic: isStatic);
+
+    if (!lateInitialize) {
+      decl.initialize();
+    }
 
     if (!isMember || isStatic) {
       _curNamespace.define(decl);
