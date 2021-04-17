@@ -188,7 +188,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
   void _compileImportStmt() async {
     advance(1);
-    String key = match(HTLexicon.str).literal;
+    String key = match(HTLexicon.string).literal;
     String? name;
     if (expect([HTLexicon.AS], consume: true)) {
       name = match(HTLexicon.identifier).lexeme;
@@ -317,17 +317,18 @@ class Compiler extends Parser with ConstTable, HetuRef {
             _curBlock.classDecls[id] = decl;
             break;
           case HTLexicon.VAR:
-            final decl = _compileVarStmt(isDynamic: true);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
-            break;
-          case HTLexicon.LET:
             final decl = _compileVarStmt();
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
+          case HTLexicon.LET:
+            final decl = _compileVarStmt(typeInferrence: true);
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
           case HTLexicon.CONST:
-            final decl = _compileVarStmt(isImmutable: true);
+            final decl =
+                _compileVarStmt(typeInferrence: true, isImmutable: true);
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
@@ -434,17 +435,18 @@ class Compiler extends Parser with ConstTable, HetuRef {
             _curBlock.classDecls[id] = decl;
             break;
           case HTLexicon.VAR:
-            final decl = _compileVarStmt(isDynamic: true);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
-            break;
-          case HTLexicon.LET:
             final decl = _compileVarStmt();
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
+          case HTLexicon.LET:
+            final decl = _compileVarStmt(typeInferrence: true);
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
           case HTLexicon.CONST:
-            final decl = _compileVarStmt(isImmutable: true);
+            final decl =
+                _compileVarStmt(typeInferrence: true, isImmutable: true);
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
@@ -461,17 +463,18 @@ class Compiler extends Parser with ConstTable, HetuRef {
         // 函数块中不能出现extern或者static关键字的声明，也不能定义class
         switch (curTok.type) {
           case HTLexicon.VAR:
-            final decl = _compileVarStmt(isDynamic: true);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
-            break;
-          case HTLexicon.LET:
             final decl = _compileVarStmt();
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
+          case HTLexicon.LET:
+            final decl = _compileVarStmt(typeInferrence: true);
+            final id = _readId(decl);
+            _curBlock.varDecls[id] = decl;
+            break;
           case HTLexicon.CONST:
-            final decl = _compileVarStmt(isImmutable: true);
+            final decl =
+                _compileVarStmt(typeInferrence: true, isImmutable: true);
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
             break;
@@ -537,7 +540,6 @@ class Compiler extends Parser with ConstTable, HetuRef {
           // 变量声明
           case HTLexicon.VAR:
             final decl = _compileVarStmt(
-                isDynamic: true,
                 isExtern: isExtern || (_curClass?.isExtern ?? false),
                 isMember: true,
                 isStatic: isStatic);
@@ -546,6 +548,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.LET:
             final decl = _compileVarStmt(
+                typeInferrence: true,
                 isExtern: isExtern || (_curClass?.isExtern ?? false),
                 isMember: true,
                 isStatic: isStatic);
@@ -554,6 +557,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.CONST:
             final decl = _compileVarStmt(
+                typeInferrence: true,
                 isExtern: isExtern || (_curClass?.isExtern ?? false),
                 isImmutable: true,
                 isMember: true,
@@ -1082,7 +1086,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
         var index = addConstFloat(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.float64);
-      case HTLexicon.str:
+      case HTLexicon.string:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = addConstString(value);
@@ -1450,7 +1454,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       // go back to var declaration
       tokPos = declPos;
       final iterDecl = _compileVarStmt(
-          isDynamic: curTok.type == HTLexicon.VAR,
+          typeInferrence: curTok.type != HTLexicon.VAR,
           isImmutable: curTok.type == HTLexicon.CONST,
           initializer: iterInit);
 
@@ -1523,7 +1527,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
         final initDeclId = peek(1).lexeme;
         final initDecl = _compileVarStmt(
             declId: initDeclId,
-            isDynamic: curTok.type == HTLexicon.VAR,
+            typeInferrence: curTok.type != HTLexicon.VAR,
             isImmutable: curTok.type == HTLexicon.CONST,
             endOfStatement: true);
 
@@ -1776,7 +1780,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
   /// 变量声明语句
   Uint8List _compileVarStmt(
       {String? declId,
-      bool isDynamic = false,
+      bool typeInferrence = false,
       bool isExtern = false,
       bool isImmutable = false,
       bool isMember = false,
@@ -1810,7 +1814,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
-    bytesBuilder.addByte(isDynamic ? 1 : 0);
+    bytesBuilder.addByte(typeInferrence ? 1 : 0);
     bytesBuilder.addByte(isExtern ? 1 : 0);
     bytesBuilder.addByte(isImmutable ? 1 : 0);
     bytesBuilder.addByte(isMember ? 1 : 0);
@@ -1842,7 +1846,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
         throw HTError.constMustInit(id);
       }
 
-      bytesBuilder.addByte(0);
+      bytesBuilder.addByte(0); // bool: has initializer
     }
     // 语句结尾
     if (endOfStatement) {

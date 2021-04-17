@@ -49,13 +49,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       }
       rtType = HTInstanceType(klass.id, extended: extended);
     } else {
-      if (externalObject is double) {
-        rtType = HTType.float;
-      } else if (externalObject is String) {
-        rtType = HTType.string;
-      } else {
-        rtType = HTUnknownType(typeString);
-      }
+      rtType = HTUnknownType(typeString);
     }
   }
 
@@ -68,14 +62,18 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externalObject.toString();
       default:
-        final member =
-            externalClass!.instanceMemberGet(externalObject, varName);
-        if (member is Function) {
-          final funcDecl = functions[varName]!;
-          funcDecl.externalFuncDef = member;
-          return funcDecl;
+        if (externalClass != null) {
+          final member =
+              externalClass!.instanceMemberGet(externalObject, varName);
+          if (member is Function) {
+            final funcDecl = functions[varName]!;
+            funcDecl.externalFuncDef = member;
+            return funcDecl;
+          }
+          return member;
+        } else {
+          throw HTError.undefined(varName);
         }
-        return member;
     }
   }
 

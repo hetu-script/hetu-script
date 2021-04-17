@@ -47,13 +47,10 @@ class HTInstance with HTObject, InterpreterRef {
     // var firstClass = true;
     HTClass? curKlass = klass;
     final extended = <HTType>[];
-    var curNamespace = HTInstanceNamespace(id, curKlass.id, this, interpreter,
+    HTInstanceNamespace? curNamespace = HTInstanceNamespace(
+        id, curKlass.id, this, interpreter,
         closure: klass.namespace);
-    while (curKlass != null) {
-      curNamespace.next = HTInstanceNamespace(
-          id, curKlass.id, this, interpreter,
-          closure: curKlass.namespace);
-
+    while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
         // if (decl.id.startsWith(HTLexicon.underscore) && !firstClass) {
@@ -73,12 +70,18 @@ class HTInstance with HTObject, InterpreterRef {
         extended.add(curKlass.superClassType!);
       }
       curKlass = curKlass.superClass;
-      curNamespace = curNamespace.next!;
+      if (curKlass != null) {
+        curNamespace.next = HTInstanceNamespace(
+            id, curKlass.id, this, interpreter,
+            closure: curKlass.namespace);
+      } else {
+        curNamespace.next = null;
+      }
+
+      curNamespace = curNamespace.next;
 
       // firstClass = false;
     }
-
-    curNamespace.next = null;
 
     rtType = HTInstanceType(klass.id, typeArgs: typeArgs, extended: extended);
   }

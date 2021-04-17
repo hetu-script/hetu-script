@@ -74,6 +74,8 @@ abstract class Interpreter {
       bindExternalClass(HTFloatClass());
       bindExternalClass(HTBooleanClass());
       bindExternalClass(HTStringClass());
+      bindExternalClass(HTListClass());
+      bindExternalClass(HTMapClass());
       bindExternalClass(HTMathClass());
       bindExternalClass(HTSystemClass());
       bindExternalClass(HTConsoleClass());
@@ -138,10 +140,10 @@ abstract class Interpreter {
       typeString = HTLexicon.integer;
       // return HTInteger(object, this);
     } else if (object is double) {
-      typeString = HTLexicon.dartFloat;
+      typeString = HTLexicon.float;
       // return HTFloat(object, this);
     } else if (object is String) {
-      typeString = HTLexicon.dartString;
+      typeString = HTLexicon.string;
       // return HTString(object, this);
     } else if (object is List) {
       typeString = HTLexicon.list;

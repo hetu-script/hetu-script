@@ -3,19 +3,20 @@ import 'bytecode.dart' show GotoInfo;
 import '../variable.dart';
 import '../type.dart';
 import '../errors.dart';
-import '../lexicon.dart';
 import '../class.dart';
+import '../lexicon.dart';
 
 /// Bytecode implementation of [HTVariable].
 class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
-  /// Whether this variable have [HTType].
-  final bool isDynamic;
+  final bool typeInferrence;
 
   /// Whether this variable is immutable.
   @override
   final bool isImmutable;
 
   var _isInitializing = false;
+
+  var _isTypeInitialized = false;
 
   HTType? _declType;
 
@@ -36,8 +37,8 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
       int? definitionColumn,
       Function? getter,
       Function? setter,
-      this.isDynamic = false,
       bool isExtern = false,
+      this.typeInferrence = false,
       this.isImmutable = false,
       bool isMember = false,
       bool isStatic = false})
@@ -55,41 +56,41 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
 
-    if (declType == null) {
-      if (definitionIp == null) {
-        _declType = HTType.ANY;
-      } else {
-        // 初始化时也会尝试对 _declType 赋值
-        // TODO: 这里挪到 vm 里面进行？
-        // initialize();
+    if (declType != null) {
+      _declType = declType;
+
+      if (_declType is HTFunctionType ||
+          _declType is HTInstanceType ||
+          (HTLexicon.primitiveType.contains(declType.typeName))) {
+        _isTypeInitialized = true;
       }
     } else {
-      _declType = declType;
+      if (!typeInferrence || (definitionIp == null)) {
+        _declType = HTType.ANY;
+        _isTypeInitialized = true;
+      }
     }
+  }
+
+  /// initialize the declared type if it's a class name.
+  void _initializeType() {
+    final typeDef = interpreter.curNamespace
+        .fetch(_declType!.typeName, from: interpreter.curNamespace.fullName);
+    if (typeDef is HTClass) {
+      _declType = HTInstanceType.fromClass(typeDef,
+          typeArgs: _declType!.typeArgs, isNullable: _declType!.isNullable);
+    } else {
+      // typeDef is a function type
+      _declType = typeDef;
+    }
+
+    _isTypeInitialized = true;
   }
 
   /// Initialize this variable with its declared initializer bytecode
   @override
   void initialize() {
     if (isInitialized) return;
-
-    // initialize the declared type if it's a class name.
-    if (_declType != null &&
-        _declType is! HTFunctionType &&
-        _declType is! HTInstanceType) {
-      final typeName = _declType!.typeName;
-      if (!(HTLexicon.primitiveType.contains(typeName))) {
-        final typeDef = interpreter.curNamespace.fetch(_declType!.typeName,
-            from: interpreter.curNamespace.fullName);
-        if (typeDef is HTClass) {
-          _declType = HTInstanceType.fromClass(typeDef,
-              typeArgs: _declType!.typeArgs, isNullable: _declType!.isNullable);
-        } else {
-          // typeDef is a function type
-          _declType = typeDef;
-        }
-      }
-    }
 
     if (definitionIp != null) {
       if (!_isInitializing) {
@@ -117,13 +118,19 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
   @override
   void assign(T? value) {
     if (_declType != null) {
+      if (!_isTypeInitialized) {
+        _initializeType();
+      }
+
       final encapsulation = interpreter.encapsulate(value);
       final valueType = encapsulation.rtType;
       if (valueType.isNotA(_declType!)) {
         throw HTError.typeCheck(id, valueType.toString(), _declType.toString());
       }
-    } else if (!isDynamic && value != null) {
-      _declType = interpreter.encapsulate(value).rtType;
+    } else {
+      if ((_declType == null) && typeInferrence && (value != null)) {
+        _declType = interpreter.encapsulate(value).rtType;
+      }
     }
 
     super.assign(value);
@@ -142,7 +149,7 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
           definitionColumn: definitionColumn,
           getter: getter,
           setter: setter,
-          isDynamic: isDynamic,
+          typeInferrence: typeInferrence,
           isExtern: isExtern,
           isImmutable: isImmutable,
           isMember: isMember,
@@ -169,6 +176,7 @@ class HTBytecodeParameter extends HTBytecodeVariable {
             definitionIp: definitionIp,
             definitionLine: definitionLine,
             definitionColumn: definitionColumn,
+            typeInferrence: false,
             isImmutable: true) {
     final paramDeclType = declType ?? HTType.ANY;
     paramType = HTParameterType(paramDeclType.typeName,

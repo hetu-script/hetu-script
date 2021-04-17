@@ -502,7 +502,7 @@ class HTError {
   /// Error: Illegal empty string.
   HTError.emptyString([String? message]) {
     message =
-        '[${message ?? (HTLexicon.identifier + ' ' + HTLexicon.str)}] ${HTError._emptyString}';
+        '[${message ?? (HTLexicon.identifier + ' ' + HTLexicon.string)}] ${HTError._emptyString}';
     type = HTErrorType.interpreter;
     code = HTErrorCode.emptyString;
   }

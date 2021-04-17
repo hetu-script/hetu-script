@@ -294,7 +294,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         advance(1);
         return ConstFloatExpr(
             index, _curModuleUniqueKey, peek(-1).line, peek(-1).column);
-      case HTLexicon.str:
+      case HTLexicon.string:
         var index = interpreter.addConstString(curTok.literal);
         advance(1);
         return ConstStringExpr(
@@ -510,7 +510,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
   ImportStmt _parseImportStmt() {
     // 之前校验过了所以这里直接跳过
     final keyword = advance(1);
-    String fileName = match(HTLexicon.str).literal;
+    String fileName = match(HTLexicon.string).literal;
     String? spaceName;
     if (expect([HTLexicon.AS], consume: true)) {
       spaceName = match(HTLexicon.identifier).lexeme;

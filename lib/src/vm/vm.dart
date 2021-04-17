@@ -1094,7 +1094,7 @@ class Hetu extends Interpreter {
       classId = _curCode.readShortUtf8String();
     }
 
-    final isDynamic = _curCode.readBool();
+    final typeInferrence = _curCode.readBool();
     final isExtern = _curCode.readBool();
     final isImmutable = _curCode.readBool();
     final isMember = _curCode.readBool();
@@ -1123,7 +1123,7 @@ class Hetu extends Interpreter {
         definitionIp: definitionIp,
         definitionLine: line,
         definitionColumn: column,
-        isDynamic: isDynamic,
+        typeInferrence: typeInferrence,
         isExtern: isExtern,
         isImmutable: isImmutable,
         isMember: isMember,

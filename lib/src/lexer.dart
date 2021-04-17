@@ -83,7 +83,7 @@ class Lexer {
                   final expresstion =
                       matchString.substring(2, matchString.length - 1);
                   stringTokens.add(TokenIdentifier(
-                      HTLexicon.str, fileName, curLine, curColumn));
+                      HTLexicon.string, fileName, curLine, curColumn));
                   stringTokens.add(Token(
                       HTLexicon.memberGet, fileName, curLine, match.start));
                   stringTokens.add(TokenIdentifier(

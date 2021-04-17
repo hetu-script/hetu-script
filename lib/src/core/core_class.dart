@@ -55,7 +55,7 @@ class HTIntegerClass extends HTExternalClass {
 }
 
 class HTFloatClass extends HTExternalClass {
-  HTFloatClass() : super(HTLexicon.dartFloat);
+  HTFloatClass() : super(HTLexicon.float);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -74,6 +74,10 @@ class HTFloatClass extends HTExternalClass {
         throw HTError.undefined(varName);
     }
   }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as double).htFetch(varName);
 }
 
 class HTBooleanClass extends HTExternalClass {
@@ -96,7 +100,7 @@ class HTBooleanClass extends HTExternalClass {
 }
 
 class HTStringClass extends HTExternalClass {
-  HTStringClass() : super(HTLexicon.dartString);
+  HTStringClass() : super(HTLexicon.string);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -112,6 +116,42 @@ class HTStringClass extends HTExternalClass {
         throw HTError.undefined(varName);
     }
   }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as String).htFetch(varName);
+}
+
+class HTListClass extends HTExternalClass {
+  HTListClass() : super(HTLexicon.list);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as List).htFetch(varName);
+}
+
+class HTMapClass extends HTExternalClass {
+  HTMapClass() : super(HTLexicon.map);
+
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+    switch (varName) {
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as Map).htFetch(varName);
 }
 
 class HTMathClass extends HTExternalClass {

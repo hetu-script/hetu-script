@@ -240,7 +240,7 @@ class HTClassNamespace extends HTNamespace {
 class HTInstanceNamespace extends HTNamespace {
   final HTInstance instance;
 
-  late HTInstanceNamespace? next;
+  late final HTInstanceNamespace? next;
 
   HTInstanceNamespace(
       String id, String? classId, this.instance, Interpreter interpreter,

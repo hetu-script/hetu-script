@@ -15,7 +15,7 @@ class HTType with HTObject {
   static const object = HTType(HTLexicon.object);
   static const number = HTType(HTLexicon.number);
   static const boolean = HTType(HTLexicon.boolean);
-  static const string = HTType(HTLexicon.str);
+  static const string = HTType(HTLexicon.string);
 
   static final CLASS = HTInstanceType(HTLexicon.CLASS, extended: [HTType.TYPE]);
 
