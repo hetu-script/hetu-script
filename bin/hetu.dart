@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:hetu_script/hetu_script.dart';
 
-const cli_help = '''
+const cli_help = r'''
 Hetu Script Command-line Tool
 Version: 0.1.0
 Usage:
@@ -10,7 +10,7 @@ hetu [option] [file_name] [invoke_func]
 If only [file_name] is provided, evaluate the file in function mode.
 If [file_name] and [invoke_func] is both provided, will interpret code as a program.''';
 
-const repl_info = '''
+const repl_info = r'''
 Hetu Script Read-Evaluate-Print-Loop Tool
 Version: 0.1.0
 Enter expression to evaluate.
