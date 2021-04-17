@@ -5,6 +5,7 @@ import '../binding/external_class.dart';
 import '../type.dart';
 import '../lexicon.dart';
 import '../errors.dart';
+import 'core_instance.dart';
 
 class HTNumberClass extends HTExternalClass {
   HTNumberClass() : super(HTLexicon.number);
@@ -47,10 +48,14 @@ class HTIntegerClass extends HTExternalClass {
         throw HTError.undefined(varName);
     }
   }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as int).htFetch(varName);
 }
 
 class HTFloatClass extends HTExternalClass {
-  HTFloatClass() : super(HTLexicon.DOUBLE);
+  HTFloatClass() : super(HTLexicon.dartFloat);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
@@ -91,7 +96,7 @@ class HTBooleanClass extends HTExternalClass {
 }
 
 class HTStringClass extends HTExternalClass {
-  HTStringClass() : super(HTLexicon.string);
+  HTStringClass() : super(HTLexicon.dartString);
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {

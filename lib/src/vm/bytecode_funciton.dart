@@ -51,6 +51,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
     HTClass? klass,
     FunctionType funcType = FunctionType.normal,
     bool isExtern = false,
+    Function? externalFuncDef,
     String? externalTypedef,
     this.hasParameterDeclarations = true,
     this.parameterDeclarations = const <String, HTBytecodeParameter>{},
@@ -69,6 +70,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
             klass: klass,
             funcType: funcType,
             isExtern: isExtern,
+            externalFuncDef: externalFuncDef,
             externalTypedef: externalTypedef,
             isStatic: isStatic,
             isConst: isConst,
@@ -350,40 +352,46 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
           finalNamedArgs = namedArgs;
         }
 
-        // 单独绑定的外部函数
+        // standalone binding external function
+        // either a normal external function or
+        // a external static method in a non-external class
         if (!(klass?.isExtern ?? false)) {
-          // 普通外部函数或者内部类的外部成员函数
-          late final externFunc = interpreter.fetchExternalFunction(id);
-          if (externFunc is HTExternalFunction) {
-            result = externFunc(
+          final func =
+              externalFuncDef ??= interpreter.fetchExternalFunction(id);
+
+          if (externalFuncDef is HTExternalFunction) {
+            result = func(
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);
           } else {
             result = Function.apply(
-                externFunc,
+                func,
                 finalPosArgs,
                 finalNamedArgs.map<Symbol, dynamic>(
                     (key, value) => MapEntry(Symbol(key), value)));
           }
         }
-        // 外部类的成员函数
+        // external class method
         else {
-          final externClass = interpreter.fetchExternalClass(classId!);
+          if (externalFuncDef == null) {
+            if (isStatic || (funcType == FunctionType.constructor)) {
+              final externClass = interpreter.fetchExternalClass(classId!);
+              externalFuncDef = externClass.memberGet(id);
+            } else {
+              throw HTError.missingExternalFuncDef(id);
+            }
+          }
 
-          // final typeArgsString = convertTypeArgsToString(typeArgs);
-          // final externFunc = externClass.memberGet('$id$typeArgsString');
-
-          final externFunc = externClass.memberGet(id);
-          if (externFunc is HTExternalFunction) {
-            result = externFunc(
+          if (externalFuncDef is HTExternalFunction) {
+            result = externalFuncDef!(
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);
           } else {
             // Use Function.apply will lose type args information.
             result = Function.apply(
-                externFunc,
+                externalFuncDef!,
                 finalPosArgs,
                 finalNamedArgs.map<Symbol, dynamic>(
                     (key, value) => MapEntry(Symbol(key), value)));
@@ -422,6 +430,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
         klass: klass,
         funcType: funcType,
         isExtern: isExtern,
+        externalFuncDef: externalFuncDef,
         externalTypedef: externalTypedef,
         parameterDeclarations: parameterDeclarations,
         returnType: returnType,

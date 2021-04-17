@@ -188,7 +188,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
   void _compileImportStmt() async {
     advance(1);
-    String key = match(HTLexicon.string).literal;
+    String key = match(HTLexicon.str).literal;
     String? name;
     if (expect([HTLexicon.AS], consume: true)) {
       name = match(HTLexicon.identifier).lexeme;
@@ -1082,7 +1082,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
         var index = addConstFloat(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.float64);
-      case HTLexicon.string:
+      case HTLexicon.str:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = addConstString(value);
@@ -1867,6 +1867,9 @@ class Compiler extends Parser with ConstTable, HetuRef {
     var hasExternalTypedef = false;
     String? externalTypedef;
     if (expect([HTLexicon.squareLeft], consume: true)) {
+      if (isExtern) {
+        throw HTError.unexpected(HTLexicon.squareLeft);
+      }
       hasExternalTypedef = true;
       externalTypedef = match(HTLexicon.identifier).lexeme;
       match(HTLexicon.squareRight);
@@ -1874,8 +1877,15 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     var declId = '';
     late String id;
-    if (curTok.type == HTLexicon.identifier) {
-      declId = advance(1).lexeme;
+
+    if (funcType != FunctionType.literal) {
+      if (funcType == FunctionType.constructor) {
+        if (curTok.type == HTLexicon.identifier) {
+          declId = advance(1).lexeme;
+        }
+      } else {
+        declId = match(HTLexicon.identifier).lexeme;
+      }
     }
 
     if (!isExtern) {
@@ -1908,12 +1918,12 @@ class Compiler extends Parser with ConstTable, HetuRef {
         if (!(_curClass!.isExtern) && !isStatic) {
           throw HTError.externalMember();
         }
-
-        id = (declId.isEmpty) ? _curClass!.id : '${_curClass!.id}.$declId';
-      } else {
-        if (declId.isEmpty) {
-          throw HTError.expected(HTLexicon.identifier, peek(-1).lexeme);
+        if (isStatic || (funcType == FunctionType.constructor)) {
+          id = (declId.isEmpty) ? _curClass!.id : '${_curClass!.id}.$declId';
+        } else {
+          id = declId;
         }
+      } else {
         id = declId;
       }
     }

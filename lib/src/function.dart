@@ -17,6 +17,8 @@ abstract class HTFunction with HTDeclaration, HTObject {
 
   final bool isExtern;
 
+  Function? externalFuncDef;
+
   final String? externalTypedef;
 
   @override
@@ -41,6 +43,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
       {this.klass,
       this.funcType = FunctionType.normal,
       this.isExtern = false,
+      this.externalFuncDef,
       this.externalTypedef,
       this.isStatic = false,
       this.isConst = false,

@@ -1,15 +1,20 @@
 import '../errors.dart';
-import '../class.dart' show HTInheritable;
+// import '../class.dart' show HTInheritable;
 import '../type.dart';
 import '../object.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
 abstract class HTExternalClass with HTObject {
-  late final String id;
+  // @override
+  // final HTExternalClass? superClass;
 
-  HTExternalClass(String id) {
-    this.id = id;
-  }
+  @override
+  final HTType rtType = HTType.CLASS;
+
+  // @override
+  final String id;
+
+  HTExternalClass(this.id); //, {this.superClass, this.superClassType});
 
   /// Default [HTExternalClass] constructor.
   /// Fetch a instance member of the Dart class by the [varName], in the form of
@@ -38,17 +43,4 @@ abstract class HTExternalClass with HTObject {
   /// ```
   void instanceSubSet(dynamic object, dynamic key, dynamic varValue) =>
       object[key] = varValue;
-}
-
-class HTInheritableExternalClass extends HTExternalClass with HTInheritable {
-  static final instanceTypes = <int, HTInstanceType>{};
-
-  @override
-  final HTInheritableExternalClass? superClass;
-
-  @override
-  final HTType? superClassType;
-
-  HTInheritableExternalClass(String id, {this.superClass, this.superClassType})
-      : super(id);
 }

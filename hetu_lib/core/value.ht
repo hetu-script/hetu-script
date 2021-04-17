@@ -96,6 +96,12 @@ external class int extends num {
 }
 
 external class float extends num {
+  
+  static const nan -> float;
+  static const infinity -> float;
+  static const negativeInfinity -> float;
+  static const minPositive -> float;
+  static const maxFinite -> float;
 	
 	static fun parse(value: str) -> float
   

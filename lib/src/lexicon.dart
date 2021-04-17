@@ -33,9 +33,10 @@ abstract class HTLexicon {
   static const boolean = 'bool';
   static const number = 'num';
   static const integer = 'int';
-  static const DOUBLE = 'double';
+  static const dartFloat = 'double';
   static const float = 'float';
-  static const string = 'str';
+  static const str = 'str';
+  static const dartString = 'String';
   static const rtType = 'runtimeType';
   static const keys = 'keys';
   static const values = 'values';
@@ -50,7 +51,7 @@ abstract class HTLexicon {
   static const Set<String> literals = {
     number,
     boolean,
-    string,
+    str,
   };
 
   static const endOfFile = 'end_of_file'; // 文件末尾
@@ -119,7 +120,7 @@ abstract class HTLexicon {
     object,
     number,
     boolean,
-    string,
+    str,
   };
 
   static const CONSTRUCT = 'construct';

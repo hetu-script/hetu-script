@@ -446,14 +446,14 @@ class HTAstInterpreter extends Interpreter
       //   }
       // }
       // } else {
-      //   final externFunc = fetchExternalFunction(callee.id);
-      //   if (externFunc is HTExternalFunction) {
-      //     return externFunc(
+      //   final externalFuncDef = fetchExternalFunction(callee.id);
+      //   if (externalFuncDef is HTExternalFunction) {
+      //     return externalFuncDef(
       //         positionalArgs: positionalArgs,
       //         namedArgs: namedArgs,
       //         typeArgs: typeArgs);
       //   } else {
-      //     return Function.apply(externFunc, positionalArgs,
+      //     return Function.apply(externalFuncDef, positionalArgs,
       //         namedArgs.map<Symbol, dynamic>((key, value) => MapEntry(Symbol(key), value)));
       //     // throw HTErrorExternFunc(constructor.toString());
       //   }

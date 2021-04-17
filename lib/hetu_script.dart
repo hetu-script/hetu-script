@@ -16,7 +16,7 @@ export 'src/namespace.dart' show HTNamespace;
 export 'src/class.dart' show HTClass;
 export 'src/vm/vm.dart';
 export 'src/binding/external_class.dart';
-export 'src/binding/external_object.dart';
+export 'src/binding/external_instance.dart';
 export 'src/binding/external_function.dart';
 export 'src/plugin/errorHandler.dart';
 export 'src/plugin/moduleHandler.dart';

@@ -7,61 +7,62 @@ enum HTErrorType {
   import,
 }
 
-class HTErrorCode {
-  static const dartError = 0;
+enum HTErrorCode {
+  dartError,
 
-  static const import = 0;
-  static const expected = 0;
-  static const constMustBeStatic = 0;
-  static const constMustInit = 0;
-  static const unexpected = 0;
-  static const outsideReturn = 0;
-  static const privateMember = 0;
-  static const privateDecl = 0;
-  static const notInitialized = 0;
-  static const undefined = 0;
-  static const undefinedExtern = 0;
-  static const unknownType = 0;
-  static const undefinedOperator = 0;
-  static const defined = 0;
-  static const invalidLeftValue = 0;
-  static const notCallable = 0;
-  static const undefinedMember = 0;
-  static const condition = 0;
-  static const missingFuncBody = 0;
-  static const notList = 0;
-  static const notClass = 0;
-  static const notMember = 0;
-  static const ctorReturn = 0;
-  static const abstracted = 0;
-  static const abstractCtor = 0;
-  static const setterArity = 0;
-  static const externMember = 0;
-  static const emptyTypeArgs = 0;
-  static const unknownOpCode = 0;
-  static const nullObject = 0;
-  static const nullable = 0;
-  static const immutable = 0;
-  static const notType = 0;
-  static const ofType = 0;
-  static const typeCheck = 0;
-  static const argType = 0;
-  static const returnType = 0;
-  static const arity = 0;
-  static const binding = 0;
-  static const externalVar = 0;
-  static const bytesSig = 0;
-  static const circleInit = 0;
-  static const initialize = 0;
-  static const namedArg = 0;
-  static const iterable = 0;
-  static const unkownValueType = 0;
-  static const classOnInstance = 0;
-  static const emptyString = 0;
-  static const typeCast = 0;
-  static const castee = 0;
-  static const clone = 0;
-  static const notSuper = 0;
+  import,
+  expected,
+  constMustBeStatic,
+  constMustInit,
+  unexpected,
+  outsideReturn,
+  privateMember,
+  privateDecl,
+  notInitialized,
+  undefined,
+  undefinedExtern,
+  unknownType,
+  undefinedOperator,
+  defined,
+  invalidLeftValue,
+  notCallable,
+  undefinedMember,
+  condition,
+  missingFuncBody,
+  notList,
+  notClass,
+  notMember,
+  ctorReturn,
+  abstracted,
+  abstractCtor,
+  setterArity,
+  externMember,
+  emptyTypeArgs,
+  unknownOpCode,
+  nullObject,
+  nullable,
+  immutable,
+  notType,
+  ofType,
+  typeCheck,
+  argType,
+  returnType,
+  arity,
+  binding,
+  externalVar,
+  bytesSig,
+  circleInit,
+  initialize,
+  namedArg,
+  iterable,
+  unkownValueType,
+  classOnInstance,
+  emptyString,
+  typeCast,
+  castee,
+  clone,
+  notSuper,
+  missingExternalFuncDef,
 }
 
 /// Base error class, contains static error messages.
@@ -126,6 +127,8 @@ class HTError {
   static const _castee = 'Illegal cast target';
   static const _clone = 'Illegal clone on';
   static const _notSuper = 'is not a super class of';
+  static const _missingExternalFuncDef =
+      'Missing external function definition.';
 
   /// Print a warning message to standard output, will not throw.
   static void warn(String message) => print('hetu warn:\n' + message);
@@ -133,7 +136,7 @@ class HTError {
   /// Error message.
   String? message;
 
-  int? code;
+  HTErrorCode? code;
 
   /// Error type.
   HTErrorType? type;
@@ -499,7 +502,7 @@ class HTError {
   /// Error: Illegal empty string.
   HTError.emptyString([String? message]) {
     message =
-        '[${message ?? (HTLexicon.identifier + ' ' + HTLexicon.string)}] ${HTError._emptyString}';
+        '[${message ?? (HTLexicon.identifier + ' ' + HTLexicon.str)}] ${HTError._emptyString}';
     type = HTErrorType.interpreter;
     code = HTErrorCode.emptyString;
   }
@@ -530,5 +533,11 @@ class HTError {
     message = '[$classId] ${HTError._notSuper} [$id]';
     type = HTErrorType.interpreter;
     code = HTErrorCode.notSuper;
+  }
+
+  HTError.missingExternalFuncDef(String id) {
+    message = '${HTError._missingExternalFuncDef} [$id]';
+    type = HTErrorType.interpreter;
+    code = HTErrorCode.missingExternalFuncDef;
   }
 }

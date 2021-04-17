@@ -1129,6 +1129,7 @@ class Hetu extends Interpreter {
         isMember: isMember,
         isStatic: isStatic);
 
+    // TODO: should eval before create HTBytecodeVariable instance
     if (!lateInitialize) {
       decl.initialize();
     }
@@ -1284,19 +1285,17 @@ class Hetu extends Interpreter {
 
     // final classType = ClassType.values[_curCode.read()];
 
+    HTClass? superClass;
     HTType? superClassType;
     final hasSuperClass = _curCode.readBool();
     if (hasSuperClass) {
       superClassType = _getType();
-    }
-
-    HTClass? superClass;
-    if (!isExtern && id != HTLexicon.object) {
-      if (superClassType == null) {
+      superClass = _curNamespace.fetch(superClassType.typeName,
+          from: _curNamespace.fullName);
+    } else {
+      if (!isExtern && (id != HTLexicon.object)) {
+        superClassType = HTType.object;
         superClass = global.fetch(HTLexicon.object);
-      } else {
-        superClass = _curNamespace.fetch(superClassType.typeName,
-            from: _curNamespace.fullName);
       }
     }
 
@@ -1322,13 +1321,14 @@ class Hetu extends Interpreter {
               HTLexicon.constructor, this, curModuleUniqueKey,
               klass: klass, funcType: FunctionType.constructor));
         }
-      } else {
-        if (!klass.namespace.contains(klass.id)) {
-          klass.namespace.define(HTBytecodeFunction(
-              klass.id, this, curModuleUniqueKey,
-              klass: klass, funcType: FunctionType.constructor));
-        }
       }
+      // else {
+      //   if (!klass.namespace.contains(klass.id)) {
+      //     klass.namespace.define(HTBytecodeFunction(
+      //         klass.id, this, curModuleUniqueKey,
+      //         klass: klass, funcType: FunctionType.constructor));
+      //   }
+      // }
     }
 
     // 继承不在这里处理

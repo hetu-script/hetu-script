@@ -4,12 +4,8 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      // var l = List()
-      // l.add(4)
-      // l.add(3)
+      print((3).toStringAsExponential())
 
-      // print(l)
-      var i = 42
-      print(i.toString())
+      print([1,3,565].runtimeType)
     ''', codeType: CodeType.script);
 }

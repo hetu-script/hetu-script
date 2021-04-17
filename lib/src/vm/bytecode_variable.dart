@@ -7,7 +7,7 @@ import '../lexicon.dart';
 import '../class.dart';
 
 /// Bytecode implementation of [HTVariable].
-class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
+class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
   /// Whether this variable have [HTType].
   final bool isDynamic;
 
@@ -29,7 +29,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   /// before it can be used within a script.
   HTBytecodeVariable(String id, Hetu interpreter, String moduleUniqueKey,
       {String? classId,
-      dynamic value,
+      T? value,
       HTType? declType,
       int? definitionIp,
       int? definitionLine,
@@ -115,7 +115,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   /// Assign a new value to this variable,
   /// will perform [HTType] check during this process.
   @override
-  void assign(dynamic value) {
+  void assign(T? value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
       final valueType = encapsulation.rtType;

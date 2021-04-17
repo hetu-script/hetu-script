@@ -53,7 +53,6 @@ class HTInstance with HTObject, InterpreterRef {
       curNamespace.next = HTInstanceNamespace(
           id, curKlass.id, this, interpreter,
           closure: curKlass.namespace);
-      curNamespace = curNamespace.next!;
 
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
@@ -74,6 +73,7 @@ class HTInstance with HTObject, InterpreterRef {
         extended.add(curKlass.superClassType!);
       }
       curKlass = curKlass.superClass;
+      curNamespace = curNamespace.next!;
 
       // firstClass = false;
     }

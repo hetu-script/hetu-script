@@ -70,8 +70,7 @@ class PersonClassBinding extends HTExternalClass {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            Person((positionalArgs.isNotEmpty ? positionalArgs[0] : 'Jimmy'),
-                (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
+            Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -124,34 +123,33 @@ void main() async {
   await hetu.eval('''
       external class Person {
         var race: str
-        construct
+        construct([name: str = 'Jimmy', race: str = 'Caucasian']);
         get child
         static fun meaning(n: num)
         static get level
         static set level (value: str)
-        construct withName
+        construct withName(name: str, [race: str = 'Caucasian'])
         var name
         fun greeting(tag: str)
       }
       fun main {
         let p1: Person = Person()
-        p1.greeting()
-        // print(p1.runtimeType)
-        // print(p1.name)
-        // print(p1.child)
-        // print('My race is', p1.race)
-        // p1.race = 'Reptile'
-        // print('Oh no! My race turned into', p1.race)
+        p1.greeting('jimmy')
+        print(p1.runtimeType)
+        print(p1.name)
+        print(p1.child)
+        print('My race is', p1.race)
+        p1.race = 'Reptile'
+        print('Oh no! My race turned into', p1.race)
 
-        // var p2 = Person.withName('Jimmy')
-        // print(p2.name)
-        // p2.name = 'John'
-        // p2.greeting();
+        var p2 = Person.withName('Jimmy')
+        print(p2.name)
+        p2.name = 'John'
 
-        // Person.level = '3'
-        // print(Person.level)
+        Person.level = '3'
+        print(Person.level)
 
-        // print(Person.meaning(42))
+        print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }
