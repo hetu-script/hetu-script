@@ -4,23 +4,6 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      fun closureInLoop {
-        var list = [];
-        var builders = [];
-        fun build(i, add) {
-          builders.add(fun () {
-            add(i);
-          });
-        }
-        for (var i = 0; i < 5; ++i) {
-          build(i, fun (n)  {
-            list.add(n);
-          });
-        }
-        for (var func in builders) {
-          func();
-        }
-        print(list)
-      }
-    ''', codeType: CodeType.module, invokeFunc: 'closureInLoop');
+      print('24334'.indexOf('4'))
+    ''', codeType: CodeType.script);
 }

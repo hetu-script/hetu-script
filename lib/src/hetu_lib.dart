@@ -112,6 +112,12 @@ external class int extends num {
 }
 
 external class float extends num {
+  
+  static get nan -> float;
+  static get infinity -> float;
+  static get negativeInfinity -> float;
+  static get minPositive -> float;
+  static get maxFinite -> float;
 	
 	static fun parse(value: str) -> float
   
@@ -139,9 +145,9 @@ external class str {
 
 	fun endsWith(other: str) -> bool
 
-	fun startsWith(pattern: str, [index: num]) -> bool
+	fun startsWith(pattern: str, [index: num = 0]) -> bool
 
-	fun indexOf(pattern: str, [start: num]) -> num
+	fun indexOf(pattern: str, [start: num = 0]) -> num
 
 	fun lastIndexOf(pattern, [start: num]) -> num
 
@@ -157,19 +163,19 @@ external class str {
 
 	fun trimRight() -> str
 
-	fun padLeft(width: num, [padding: str]) -> str
+	fun padLeft(width: num, [padding: str = ' ']) -> str
 
-	fun padRight(width: num, [padding: str]) -> str
+	fun padRight(width: num, [padding: str = ' ']) -> str
 
-	fun contains(other: str, [startIndex: num]) -> bool
+	fun contains(other: str, [startIndex: num = 0]) -> bool
 
-	fun replaceFirst(from: str, to: str, [startIndex: num]) -> str
+	fun replaceFirst(from: str, to: str, [startIndex: num = 0]) -> str
 
 	fun replaceAll(from: str, replace: str) -> str
 
 	fun replaceRange(start: num, end: num, replacement: str) -> str
 
-	fun split(pattern: str) -> List
+	fun split(pattern) -> List
 
 	fun toLowerCase() -> str
 

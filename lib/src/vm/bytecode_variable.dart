@@ -130,6 +130,7 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
     } else {
       if ((_declType == null) && typeInferrence && (value != null)) {
         _declType = interpreter.encapsulate(value).rtType;
+        _isTypeInitialized = true;
       }
     }
 
