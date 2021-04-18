@@ -4,6 +4,17 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-      print('24334'.indexOf('4'))
+      class Person {
+        var age = 17
+        var name = 'Jimmy'
+        var klass = 'farmer'
+      }
+
+      var p = Person.fromJson({'age': 8, 'name': 'Lawrence', 'klass': 'magician'})
+      print(p.age)
+      print(p.name)
+      print(p.klass)
+      print(p.toJson())
+
     ''', codeType: CodeType.script);
 }

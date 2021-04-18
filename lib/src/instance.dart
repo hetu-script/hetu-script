@@ -1,7 +1,5 @@
 import 'dart:collection';
 
-import 'package:hetu_script/src/declaration.dart';
-
 import 'object.dart';
 import 'interpreter.dart';
 import 'class.dart';
@@ -12,6 +10,8 @@ import 'function.dart';
 import 'namespace.dart';
 import 'common.dart';
 import 'cast.dart';
+import 'declaration.dart';
+import 'variable.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
@@ -40,11 +40,10 @@ class HTInstance with HTObject, InterpreterRef {
 
   /// Create a default [HTInstance] instance.
   HTInstance(HTClass klass, Interpreter interpreter,
-      {List<HTType> typeArgs = const []}) {
+      {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject}) {
     id = '${HTLexicon.instance}${klass.instanceIndex}';
     this.interpreter = interpreter;
 
-    // var firstClass = true;
     HTClass? curKlass = klass;
     final extended = <HTType>[];
     HTInstanceNamespace? curNamespace = HTInstanceNamespace(
@@ -53,15 +52,21 @@ class HTInstance with HTObject, InterpreterRef {
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
-        // if (decl.id.startsWith(HTLexicon.underscore) && !firstClass) {
-        //   continue;
-        // }
+        if (decl is HTFunction &&
+            (decl.funcType == FunctionType.constructor)) {}
         final clone = decl.clone();
         if (clone is HTFunction && clone.funcType != FunctionType.literal) {
           clone.context = curNamespace;
         }
         // TODO: check if override, and if so, check the type wether fits super's type.
         curNamespace.define(clone);
+
+        if (jsonObject != null &&
+            jsonObject.containsKey(clone.id) &&
+            (clone is HTVariable)) {
+          final value = jsonObject[clone.id];
+          clone.assign(value);
+        }
       }
 
       _namespaces[curKlass.id] = curNamespace;
@@ -79,8 +84,6 @@ class HTInstance with HTObject, InterpreterRef {
       }
 
       curNamespace = curNamespace.next;
-
-      // firstClass = false;
     }
 
     rtType = HTInstanceType(klass.id, typeArgs: typeArgs, extended: extended);
@@ -96,6 +99,23 @@ class HTInstance with HTObject, InterpreterRef {
     } else {
       return id;
     }
+  }
+
+  Map<String, dynamic> toJson() {
+    final jsonObject = <String, dynamic>{};
+
+    HTInstanceNamespace? curNamespace = namespace;
+    while (curNamespace != null) {
+      for (final decl in curNamespace.declarations.values) {
+        if (decl is! HTVariable || jsonObject.containsKey(decl.id)) {
+          continue;
+        }
+        jsonObject[decl.id] = HTDeclaration.fetch(decl, interpreter);
+      }
+      curNamespace = curNamespace.next;
+    }
+
+    return jsonObject;
   }
 
   @override
@@ -164,13 +184,15 @@ class HTInstance with HTObject, InterpreterRef {
       }
     }
 
-    // TODO: 这里应该改成写在脚本的Object上才对
+    // TODO: this part should be declared in the hetu script codes
     switch (varName) {
       case 'runtimeType':
         return rtType;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            '${HTLexicon.instanceOf}$rtType';
+            '${HTLexicon.instanceOf} $rtType';
+      case 'toJson':
+        return ({positionalArgs, namedArgs, typeArgs}) => toJson();
       default:
         throw HTError.undefined(varName);
     }

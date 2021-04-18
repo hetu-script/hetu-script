@@ -1,3 +1,8 @@
+## 0.1.2
+
+- Feature: Added default implementation of 'fromJson' to on class
+  and 'toJson' on instances.
+
 ## 0.1.1
 
 - Feature: Sequenced constructor calling through super classes.

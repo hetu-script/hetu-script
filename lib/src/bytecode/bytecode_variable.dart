@@ -1,10 +1,11 @@
-import 'vm.dart';
-import 'bytecode.dart' show GotoInfo;
 import '../variable.dart';
 import '../type.dart';
 import '../errors.dart';
 import '../class.dart';
 import '../lexicon.dart';
+
+import 'bytecode_interpreter.dart';
+import 'bytecode.dart' show GotoInfo;
 
 /// Bytecode implementation of [HTVariable].
 class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {

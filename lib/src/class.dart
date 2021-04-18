@@ -6,7 +6,7 @@ import 'type.dart';
 import 'interpreter.dart';
 import 'variable.dart';
 import 'declaration.dart';
-// import 'instance.dart';
+import 'instance.dart';
 import 'enum.dart';
 import 'object.dart';
 
@@ -81,6 +81,14 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
   }
 
+  HTInstance createInstanceFromJson(Map<dynamic, dynamic> jsonObject,
+      {List<HTType> typeArgs = const []}) {
+    return HTInstance(this, interpreter,
+        typeArgs: typeArgs,
+        jsonObject:
+            jsonObject.map((key, value) => MapEntry(key.toString(), value)));
+  }
+
   /// Wether there's a member in this [HTClass] by the [varName].
   @override
   bool contains(String varName) =>
@@ -124,7 +132,17 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
       return HTDeclaration.fetch(decl, interpreter);
     }
 
-    throw HTError.undefined(varName);
+    switch (varName) {
+      case 'runtimeType':
+        return rtType;
+      case 'fromJson':
+        return ({positionalArgs, namedArgs, typeArgs}) {
+          return createInstanceFromJson(positionalArgs.first,
+              typeArgs: typeArgs ?? const <HTType>[]);
+        };
+      default:
+        throw HTError.undefined(varName);
+    }
   }
 
   /// Assign a value to a static member of this [HTClass].

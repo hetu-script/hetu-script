@@ -2,11 +2,6 @@ import 'dart:typed_data';
 
 import 'package:pub_semver/pub_semver.dart';
 
-import 'compiler.dart';
-import 'opcode.dart';
-import 'bytecode.dart';
-import 'bytecode_variable.dart';
-import 'bytecode_funciton.dart';
 import '../interpreter.dart';
 import '../type.dart';
 import '../common.dart';
@@ -22,6 +17,12 @@ import '../cast.dart';
 import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../binding/external_function.dart';
+
+import 'compiler.dart';
+import 'opcode.dart';
+import 'bytecode.dart';
+import 'bytecode_variable.dart';
+import 'bytecode_funciton.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -1199,7 +1200,7 @@ class Hetu extends Interpreter {
     final parameterDeclarations = _getParams(_curCode.read());
 
     var returnType = HTType.ANY;
-    HTBytecodeFunctionSuperConstructor? superConstructor;
+    HTBytecodeFunctionReferConstructor? referConstructor;
     String? superCtorId;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
@@ -1226,7 +1227,7 @@ class Hetu extends Interpreter {
         namedArgIps[argName] = _curCode.ip;
         _curCode.skip(argLength);
       }
-      superConstructor = HTBytecodeFunctionSuperConstructor(superCtorId,
+      referConstructor = HTBytecodeFunctionReferConstructor(superCtorId,
           positionalArgsIp: positionalArgIps, namedArgsIp: namedArgIps);
     }
 
@@ -1257,7 +1258,7 @@ class Hetu extends Interpreter {
         isVariadic: isVariadic,
         minArity: minArity,
         maxArity: maxArity,
-        superConstructor: superConstructor);
+        referConstructor: referConstructor);
 
     if (!isStatic &&
         (funcType == FunctionType.method ||

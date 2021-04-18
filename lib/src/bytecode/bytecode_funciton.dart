@@ -1,4 +1,4 @@
-import 'vm.dart';
+import 'bytecode_interpreter.dart';
 import 'bytecode_variable.dart';
 import 'bytecode.dart' show GotoInfo;
 import '../namespace.dart';
@@ -12,9 +12,12 @@ import '../binding/external_function.dart';
 import '../class.dart';
 import '../instance.dart';
 
-class HTBytecodeFunctionSuperConstructor {
+class HTBytecodeFunctionReferConstructor {
   /// id of super class's constructor
   late final String id;
+
+  /// If is referring to a super constructor
+  final bool isSuper;
 
   /// Holds ips of super class's constructor's positional argumnets
   final List<int> positionalArgsIp;
@@ -22,8 +25,9 @@ class HTBytecodeFunctionSuperConstructor {
   /// Holds ips of super class's constructor's named argumnets
   final Map<String, int> namedArgsIp;
 
-  HTBytecodeFunctionSuperConstructor(String? id,
-      {this.positionalArgsIp = const <int>[],
+  HTBytecodeFunctionReferConstructor(String? id,
+      {this.isSuper = false,
+      this.positionalArgsIp = const <int>[],
       this.namedArgsIp = const <String, int>{}}) {
     this.id =
         id == null ? HTLexicon.constructor : '${HTLexicon.constructor}$id';
@@ -37,7 +41,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
   /// Holds declarations of all parameters.
   final Map<String, HTBytecodeParameter> parameterDeclarations;
 
-  final HTBytecodeFunctionSuperConstructor? superConstructor;
+  final HTBytecodeFunctionReferConstructor? referConstructor;
 
   /// Create a standard [HTBytecodeFunction].
   ///
@@ -65,7 +69,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
     int minArity = 0,
     int maxArity = 0,
     HTNamespace? context,
-    this.superConstructor,
+    this.referConstructor,
   }) : super(id, declId,
             klass: klass,
             funcType: funcType,
@@ -147,7 +151,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
   /// function<typeArg1, typeArg2>(posArg1, posArg2, name1: namedArg1, name2: namedArg2)
   /// ```
   /// for variadic arguments, will transform all remaining positional arguments
-  /// into a named argument with the variadic argument's name.
+  /// into a positional argument with the variadic argument's name.
   /// variadic declaration:
   /// ```
   /// fun function(... args)
@@ -205,9 +209,9 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
           closure.define(HTVariable(HTLexicon.THIS, value: instanceNamespace));
         }
 
-        if (funcType == FunctionType.constructor && superConstructor != null) {
+        if (funcType == FunctionType.constructor && referConstructor != null) {
           final superClass = klass!.superClass!;
-          final superCtorId = superConstructor!.id;
+          final superCtorId = referConstructor!.id;
           final constructor =
               superClass.namespace.declarations[superCtorId] as HTFunction;
           // constructor's context is on this newly created instance
@@ -215,14 +219,14 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
           constructor.context = instanceNamespace.next!;
 
           final superCtorPosArgs = [];
-          final superCtorPosArgIps = superConstructor!.positionalArgsIp;
+          final superCtorPosArgIps = referConstructor!.positionalArgsIp;
           for (var i = 0; i < superCtorPosArgIps.length; ++i) {
             final arg = interpreter.execute(ip: superCtorPosArgIps[i]);
             superCtorPosArgs.add(arg);
           }
 
           final superCtorNamedArgs = <String, dynamic>{};
-          final superCtorNamedArgIps = superConstructor!.namedArgsIp;
+          final superCtorNamedArgIps = referConstructor!.namedArgsIp;
           for (final name in superCtorNamedArgIps.keys) {
             final namedArgIp = superCtorNamedArgIps[name]!;
             final arg = interpreter.execute(ip: namedArgIp);
@@ -345,7 +349,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
               variadicArg.add(positionalArgs[i]);
             }
 
-            finalNamedArgs[variadicParam!.id] = variadicArg;
+            finalPosArgs.add(variadicArg);
           }
         } else {
           finalPosArgs = positionalArgs;
@@ -443,6 +447,6 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
         minArity: minArity,
         maxArity: maxArity,
         context: context,
-        superConstructor: superConstructor);
+        referConstructor: referConstructor);
   }
 }

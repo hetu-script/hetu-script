@@ -1,16 +1,15 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:hetu_script/hetu_script.dart';
-
-import 'opcode.dart';
-import 'vm.dart';
 import '../parser.dart';
 import '../token.dart';
 import '../common.dart';
 import '../lexicon.dart';
 import '../errors.dart';
 import '../const_table.dart';
+
+import 'opcode.dart';
+import 'bytecode_interpreter.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -2021,7 +2020,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
         }
 
         Uint8List? initializer;
-        //参数默认值
+        // 参数默认值
         if ((isOptional || isNamed) &&
             (expect([HTLexicon.assign], consume: true))) {
           initializer = _compileExpr(endOfExec: true);
@@ -2053,7 +2052,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
       match(HTLexicon.roundRight);
 
-      // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
+      // setter can only have one parameter
       if ((funcType == FunctionType.setter) && (minArity != 1)) {
         throw HTError.setterArity();
       }
@@ -2070,7 +2069,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       funcBytesBuilder.add(decl);
     }
 
-    // 返回值类型
+    // the return value type declaration
     if (expect([HTLexicon.arrow], consume: true)) {
       if (funcType == FunctionType.constructor) {
         throw HTError.ctorReturn();
@@ -2079,7 +2078,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
           .type.index); // enum: return type or super constructor
       funcBytesBuilder.add(_compileType());
     }
-    // 超类构造函数
+    // referring to another constructor
     else if (expect([HTLexicon.colon], consume: true)) {
       if (funcType != FunctionType.constructor) {
         throw HTError.unexpected(curTok.lexeme);
