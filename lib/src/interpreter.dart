@@ -186,6 +186,10 @@ abstract class Interpreter {
       // return HTMap(object, this, keyType: keyType, valueType: valueType);
     } else {
       typeString = object.runtimeType.toString();
+      typeString = HTType.parseBaseType(typeString);
+      if (_externReflection.containsKey(typeString)) {
+        typeString = _externReflection[typeString];
+      }
     }
 
     // {
@@ -204,6 +208,7 @@ abstract class Interpreter {
   final _externClasses = <String, HTExternalClass>{};
   final _externFuncs = <String, Function>{};
   final _externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
+  final _externReflection = <String, String>{};
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
@@ -250,5 +255,13 @@ abstract class Interpreter {
     }
     final unwrapFunc = _externFuncTypeUnwrappers[id]!;
     return unwrapFunc(function);
+  }
+
+  /// Bind a external class name to a abstract class name for interpreter get dart class name by reflection
+  void bindExternalReflection(String classId, String abstractClassId) {
+    if (_externReflection.containsKey(classId)) {
+      throw HTError.definedRuntime(classId);
+    }
+    _externReflection[classId] = abstractClassId;
   }
 }
