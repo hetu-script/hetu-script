@@ -89,31 +89,6 @@ void main() async {
         71,
       );
     });
-    test('closure in loop', () async {
-      final result = await hetu.eval(r'''
-      var finalList = []
-      var builders = []
-      fun closureInLoop {
-        for (var i = 0; i < 5; ++i) {
-          builders.add(
-            fun {
-              finalList.add(i)
-            }
-
-          )
-        }
-        for (var func in builders) {
-          func()
-        }
-        return finalList.toString()
-      }
-    ''', invokeFunc: 'closureInLoop');
-      expect(
-        result,
-        '[0, 1, 2, 3, 4]',
-      );
-    });
-
     test('for in', () async {
       final result = await hetu.eval(r'''
       fun forIn {

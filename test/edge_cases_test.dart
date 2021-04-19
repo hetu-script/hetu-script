@@ -28,7 +28,6 @@ void main() async {
         return
             return j
         }
-
   ''', invokeFunc: 'asi');
       expect(
         result,

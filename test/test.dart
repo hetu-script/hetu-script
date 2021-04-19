@@ -4,9 +4,23 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-    var list = [1,2,3,4]
-    var item = list[3]
-    list.removeLast()
-    print(item)
-    ''', codeType: CodeType.script);
+        fun closureInLoop {
+          var list = [];
+          var builders = [];
+          fun build(i, add) {
+            builders.add(fun () {
+              add(i);
+            });
+          }
+          for (var i = 0; i < 5; ++i) {
+            build(i, fun (n)  {
+              list.add(n);
+            });
+          }
+          for (var func in builders) {
+            func();
+          }
+          print(list[1])
+        }
+    ''', invokeFunc: 'closureInLoop');
 }

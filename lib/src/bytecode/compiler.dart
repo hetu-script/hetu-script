@@ -53,7 +53,7 @@ class _ImportInfo {
 // Fetch a short utf8 string from the byte list
 String _readId(Uint8List bytes) {
   final length = bytes[1];
-  return utf8.decoder.convert(bytes.sublist(1, length + 1));
+  return utf8.decoder.convert(bytes.sublist(2, length + 2));
 }
 
 /// Utility class that parse a string content into a uint8 list
@@ -312,30 +312,26 @@ class Compiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.VAR:
             final decl = _compileVarDeclStmt(lateInitialize: false);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
             final decl = _compileVarDeclStmt(
                 typeInferrence: true, lateInitialize: false);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
             final decl = _compileVarDeclStmt(
                 typeInferrence: true, isImmutable: true, lateInitialize: false);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
+            late final Uint8List func;
             if (peek(1).type == HTLexicon.identifier) {
-              final decl = _compileFuncDeclaration();
-              final id = _readId(decl);
-              _curBlock.funcDecls[id] = decl;
+              func = _compileFuncDeclaration();
             } else {
-              final func = _compileExprStmt();
-              bytesBuilder.add(func);
+              func = _compileExprStmt();
             }
+            bytesBuilder.add(func);
             break;
           case HTLexicon.IF:
             final ifStmt = _compileIfStmt();
@@ -459,30 +455,26 @@ class Compiler extends Parser with ConstTable, HetuRef {
         switch (curTok.type) {
           case HTLexicon.VAR:
             final decl = _compileVarDeclStmt(lateInitialize: false);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
             final decl = _compileVarDeclStmt(
                 typeInferrence: true, lateInitialize: false);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
             final decl = _compileVarDeclStmt(
                 typeInferrence: true, isImmutable: true, lateInitialize: false);
-            final id = _readId(decl);
-            _curBlock.varDecls[id] = decl;
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
+            late final Uint8List func;
             if (peek(1).type == HTLexicon.identifier) {
-              final decl = _compileFuncDeclaration();
-              final id = _readId(decl);
-              _curBlock.funcDecls[id] = decl;
+              func = _compileFuncDeclaration();
             } else {
-              final func = _compileExprStmt();
-              bytesBuilder.add(func);
+              func = _compileExprStmt();
             }
+            bytesBuilder.add(func);
             break;
           case HTLexicon.IF:
             final ifStmt = _compileIfStmt();
@@ -1184,6 +1176,10 @@ class Compiler extends Parser with ConstTable, HetuRef {
         declsBytesBuilder.add(decl);
       }
       bytesBuilder.add(declsBytesBuilder.toBytes());
+    } else {
+      for (final decl in varDecl) {
+        bytesBuilder.add(decl);
+      }
     }
     for (final stmt in statements) {
       bytesBuilder.add(stmt);
@@ -1919,8 +1915,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     }
 
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.funcDecl);
     if (funcType != FunctionType.literal) {
+      bytesBuilder.addByte(HTOpCode.funcDecl);
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
       bytesBuilder.add(_shortUtf8String(id));
       bytesBuilder.add(_shortUtf8String(declId));
