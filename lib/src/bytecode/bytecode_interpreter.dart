@@ -493,24 +493,17 @@ class Hetu extends Interpreter {
             _curCode.addConstString(_curCode.readUtf8String());
           }
           break;
-        // 变量表
-        case HTOpCode.declTable:
-          var enumDeclLength = _curCode.readUint16();
-          for (var i = 0; i < enumDeclLength; ++i) {
-            _handleEnumDecl();
-          }
-          var funcDeclLength = _curCode.readUint16();
-          for (var i = 0; i < funcDeclLength; ++i) {
-            _handleFuncDecl();
-          }
-          var classDeclLength = _curCode.readUint16();
-          for (var i = 0; i < classDeclLength; ++i) {
-            _handleClassDecl();
-          }
-          var varDeclLength = _curCode.readUint16();
-          for (var i = 0; i < varDeclLength; ++i) {
-            _handleVarDecl();
-          }
+        case HTOpCode.enumDecl:
+          _handleEnumDecl();
+          break;
+        case HTOpCode.funcDecl:
+          _handleFuncDecl();
+          break;
+        case HTOpCode.classDecl:
+          _handleClassDecl();
+          break;
+        case HTOpCode.varDecl:
+          _handleVarDecl();
           break;
         case HTOpCode.ifStmt:
           bool condition = _curValue;

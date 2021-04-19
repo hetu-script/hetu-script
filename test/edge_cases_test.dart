@@ -35,7 +35,6 @@ void main() async {
         4,
       );
     });
-
     test('late initialization', () async {
       final result = await hetu.eval(r'''
       fun getIndex {
@@ -53,7 +52,20 @@ void main() async {
         3,
       );
     });
-
+    test('late initialization 2', () async {
+      final result = await hetu.eval(r'''
+      fun lateInit2 {
+        var list = [1,2,3,4]
+        var item = list[3]
+        list.removeLast()
+        return item
+      }
+  ''', invokeFunc: 'lateInit2');
+      expect(
+        result,
+        4,
+      );
+    });
     test('var in lambda', () async {
       final result = await hetu.eval(r'''
         class Left {

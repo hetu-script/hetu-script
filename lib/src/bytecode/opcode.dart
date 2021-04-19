@@ -39,15 +39,21 @@ abstract class HTOpCode {
 
   static const constTable = 18;
 
-  static const declTable = 19;
+  static const enumDecl = 20;
 
-  static const ifStmt = 21;
+  static const funcDecl = 21;
 
-  static const whileStmt = 22;
+  static const classDecl = 22;
 
-  static const doStmt = 23;
+  static const varDecl = 23;
 
-  static const whenStmt = 24;
+  static const ifStmt = 26;
+
+  static const whileStmt = 27;
+
+  static const doStmt = 28;
+
+  static const whenStmt = 29;
 
   static const assign = 30; // 1 byte right value
 
