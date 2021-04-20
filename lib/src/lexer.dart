@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import 'lexicon.dart';
 import 'token.dart';
 
@@ -7,6 +9,7 @@ class Lexer {
     r'\\': '\\',
     r'\n': '\n',
     r"\'": '\'',
+    r'\"': '\"',
   };
 
   Lexer();
@@ -63,7 +66,7 @@ class Lexer {
 
             final literal = matchString.substring(1, matchString.length - 1);
 
-            final pattern = RegExp(r'(\${([^}]+)})');
+            final pattern = RegExp(r'(\${([^\${}]+)})');
             final matches = pattern.allMatches(literal);
             var start = 0;
             if (matches.isNotEmpty) {
