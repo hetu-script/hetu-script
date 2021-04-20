@@ -81,6 +81,12 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
   }
 
+  /// Create a [HTInstance] of this [HTClass],
+  /// will not call constructors
+  HTInstance createInstance({List<HTType> typeArgs = const []}) {
+    return HTInstance(this, interpreter, typeArgs: typeArgs);
+  }
+
   HTInstance createInstanceFromJson(Map<dynamic, dynamic> jsonObject,
       {List<HTType> typeArgs = const []}) {
     return HTInstance(this, interpreter,

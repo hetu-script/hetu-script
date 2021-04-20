@@ -22,12 +22,12 @@ mixin InterpreterRef {
 }
 
 class InterpreterConfig {
-  final bool isDebugMode;
-  final bool includeHetuStackTraceInError;
-  final bool includeDartStackTraceInError;
+  final bool compileWithLineInfo;
+  final bool reportHetuStackTrace;
+  final bool reportDartStackTrace;
 
-  InterpreterConfig(this.isDebugMode, this.includeHetuStackTraceInError,
-      this.includeDartStackTraceInError);
+  InterpreterConfig(this.compileWithLineInfo, this.reportHetuStackTrace,
+      this.reportDartStackTrace);
 }
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.

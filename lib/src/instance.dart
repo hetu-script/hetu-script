@@ -52,8 +52,6 @@ class HTInstance with HTObject, InterpreterRef {
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
-        if (decl is HTFunction &&
-            (decl.funcType == FunctionType.constructor)) {}
         final clone = decl.clone();
         if (clone is HTFunction && clone.funcType != FunctionType.literal) {
           clone.context = curNamespace;

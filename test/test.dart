@@ -4,23 +4,42 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-        fun closureInLoop {
-          var list = [];
-          var builders = [];
-          fun build(i, add) {
-            builders.add(fun () {
-              add(i);
-            });
+        class Name {
+          var first: str
+          var last: str
+          fun toString {
+            return '{first: ${first}, last: ${last}}'
           }
-          for (var i = 0; i < 5; ++i) {
-            build(i, fun (n)  {
-              list.add(n);
-            });
-          }
-          for (var func in builders) {
-            func();
-          }
-          print(list[1])
         }
-    ''', invokeFunc: 'closureInLoop');
+        class Stats {
+          var age: int
+          var height: float
+          var weight: float
+          fun toString {
+            return '{age: ${age}, height: ${height}, weight: ${weight}}'
+          }
+        }
+        class Person {
+          var name: Map<str, Name>
+          var stats: List<Stats>
+          fun toString {
+            return 'name: ${name}\nstats: ${stats}'
+          }
+        }
+        var pp = Person.fromJson({
+          'name': {
+            'family' : {
+              'first': 'Tom',
+              'last': 'Riddle',
+            },
+            'guild' : {
+              'first': 'Voldmort',
+              'last': 'the Lord',
+            }
+          },
+          'stats': [
+            {'age': 12, 'height': 155.0, 'weight': 43.0}
+          ]})
+        print(pp.stats[0])
+    ''', codeType: CodeType.script);
 }

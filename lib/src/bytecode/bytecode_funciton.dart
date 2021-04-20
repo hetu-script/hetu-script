@@ -311,14 +311,14 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
           finalNamedArgs = <String, dynamic>{};
 
           var variadicStart = -1;
-          HTBytecodeVariable? variadicParam;
+          // HTBytecodeVariable? variadicParam; // 这里没有对variadic param做类型检查
           var i = 0;
           for (var param in parameterDeclarations.values) {
             var decl = param.clone();
 
             if (decl.paramType.isVariadic) {
               variadicStart = i;
-              variadicParam = decl;
+              // variadicParam = decl;
               break;
             } else {
               if (i < maxArity) {

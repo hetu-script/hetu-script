@@ -8,7 +8,7 @@ import 'bytecode_interpreter.dart';
 import 'bytecode.dart' show GotoInfo;
 
 /// Bytecode implementation of [HTVariable].
-class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
+class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   final bool typeInferrence;
 
   /// Whether this variable is immutable.
@@ -21,6 +21,9 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
 
   HTType? _declType;
 
+  // The class decl, if this is a internal class
+  HTClass? _declClass;
+
   /// The [HTType] of this variable, will be used to
   /// determine wether an assignment is legal.
   HTType? get declType => _declType;
@@ -31,7 +34,7 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
   /// before it can be used within a script.
   HTBytecodeVariable(String id, Hetu interpreter, String moduleUniqueKey,
       {String? classId,
-      T? value,
+      dynamic value,
       HTType? declType,
       int? definitionIp,
       int? definitionLine,
@@ -74,17 +77,11 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
   }
 
   /// initialize the declared type if it's a class name.
+  /// only return the [HTClass] when its a non-external class
   void _initializeType() {
-    final typeDef = interpreter.curNamespace
-        .fetch(_declType!.typeName, from: interpreter.curNamespace.fullName);
-    if (typeDef is HTClass) {
-      _declType = HTInstanceType.fromClass(typeDef,
-          typeArgs: _declType!.typeArgs, isNullable: _declType!.isNullable);
-    } else {
-      // typeDef is a function type
-      _declType = typeDef;
-    }
-
+    final resolvedType = HTType.resolve(_declType!, interpreter);
+    _declType = resolvedType.type;
+    _declClass = resolvedType.klass;
     _isTypeInitialized = true;
   }
 
@@ -114,19 +111,57 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
     }
   }
 
+  dynamic _computeValue(dynamic value, HTType type, [HTClass? klass]) {
+    if (klass == null) {
+      final resolveResult = HTType.resolve(type, interpreter);
+      klass = resolveResult.klass;
+    }
+    if (klass != null) {
+      return klass.createInstanceFromJson(value);
+    } else {
+      // basically doing a type erasure here.
+      if ((value is List) &&
+          (type.typeName == HTLexicon.list) &&
+          (type.typeArgs.isNotEmpty)) {
+        final computedValueList = [];
+        for (final item in value) {
+          final computedValue = _computeValue(item, type.typeArgs.first);
+          computedValueList.add(computedValue);
+        }
+        return computedValueList;
+      } else if ((value is Map) &&
+          (type.typeName == HTLexicon.map) &&
+          (type.typeArgs.length >= 2)) {
+        final mapValueTypeResolveResult =
+            HTType.resolve(type.typeArgs[1], interpreter);
+        if (mapValueTypeResolveResult.klass != null) {
+          final computedValueMap = {};
+          for (final entry in value.entries) {
+            final computedValue = mapValueTypeResolveResult.klass!
+                .createInstanceFromJson(entry.value);
+            computedValueMap[entry.key] = computedValue;
+          }
+          return computedValueMap;
+        }
+      } else {
+        final encapsulation = interpreter.encapsulate(value);
+        final valueType = encapsulation.rtType;
+        if (valueType.isNotA(_declType!)) {
+          throw HTError.typeCheck(
+              id, valueType.toString(), _declType.toString());
+        }
+        return value;
+      }
+    }
+  }
+
   /// Assign a new value to this variable,
   /// will perform [HTType] check during this process.
   @override
-  void assign(T? value) {
+  void assign(dynamic value) {
     if (_declType != null) {
       if (!_isTypeInitialized) {
         _initializeType();
-      }
-
-      final encapsulation = interpreter.encapsulate(value);
-      final valueType = encapsulation.rtType;
-      if (valueType.isNotA(_declType!)) {
-        throw HTError.typeCheck(id, valueType.toString(), _declType.toString());
       }
     } else {
       if ((_declType == null) && typeInferrence && (value != null)) {
@@ -135,7 +170,7 @@ class HTBytecodeVariable<T> extends HTVariable<T> with GotoInfo, HetuRef {
       }
     }
 
-    super.assign(value);
+    super.assign(_computeValue(value, _declType!, _declClass));
   }
 
   /// Create a copy of this variable declaration,
@@ -179,7 +214,7 @@ class HTBytecodeParameter extends HTBytecodeVariable {
             definitionLine: definitionLine,
             definitionColumn: definitionColumn,
             typeInferrence: false,
-            isImmutable: true) {
+            isImmutable: false) {
     final paramDeclType = declType ?? HTType.ANY;
     paramType = HTParameterType(paramDeclType.typeName,
         typeArgs: paramDeclType.typeArgs,

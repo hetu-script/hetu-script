@@ -3,6 +3,14 @@ import 'package:quiver/core.dart';
 import 'lexicon.dart';
 import 'object.dart';
 import 'class.dart';
+import 'interpreter.dart';
+
+class TypeResolveResult {
+  HTType type;
+  HTClass? klass;
+
+  TypeResolveResult(this.type, this.klass);
+}
 
 class HTType with HTObject {
   static const TYPE = HTType(HTLexicon.TYPE);
@@ -35,6 +43,33 @@ class HTType with HTObject {
     }
   }
 
+  /// initialize the declared type if it's a class name.
+  /// only return the [HTClass] when its a non-external class
+  static TypeResolveResult resolve(HTType type, Interpreter interpreter) {
+    late HTType typeResult;
+    HTClass? typeClass;
+    if (type is HTFunctionType ||
+        type is HTInstanceType ||
+        HTLexicon.primitiveType.contains(type.typeName)) {
+      typeResult = type;
+    } else {
+      final typeDef = interpreter.curNamespace
+          .fetch(type.typeName, from: interpreter.curNamespace.fullName);
+      if (typeDef is HTClass) {
+        if (!typeDef.isExtern) {
+          typeClass = typeDef;
+        }
+        typeResult = HTInstanceType.fromClass(typeDef,
+            typeArgs: type.typeArgs, isNullable: type.isNullable);
+      } else {
+        // typeDef is a function type
+        typeResult = typeDef;
+      }
+    }
+
+    return TypeResolveResult(typeResult, typeClass);
+  }
+
   /// A [HTType]'s type is itself.
   @override
   HTType get rtType => HTType.TYPE;
@@ -44,7 +79,7 @@ class HTType with HTObject {
   final bool isNullable;
 
   const HTType(this.typeName,
-      {this.typeArgs = const [], this.isNullable = false});
+      {this.typeArgs = const <HTType>[], this.isNullable = false});
 
   @override
   String toString() {
