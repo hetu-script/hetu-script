@@ -11,7 +11,7 @@ export 'src/errors.dart';
 export 'src/lexicon.dart';
 export 'src/binding.dart';
 export 'src/object.dart';
-export 'src/type.dart' show HTType;
+export 'src/type.dart';
 export 'src/namespace.dart' show HTNamespace;
 export 'src/class.dart' show HTClass;
 export 'src/bytecode/bytecode_interpreter.dart';

@@ -30,7 +30,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     }
 
     if (interpreter.global.contains(id)) {
-      HTClass klass = interpreter.fetchGlobal(id);
+      HTClass klass = interpreter.global.fetch(id);
       HTClass? curKlass = klass;
       final extended = <HTType>[];
       while (curKlass != null) {

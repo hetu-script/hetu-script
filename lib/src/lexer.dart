@@ -1,5 +1,3 @@
-import 'package:characters/characters.dart';
-
 import 'lexicon.dart';
 import 'token.dart';
 

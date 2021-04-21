@@ -1339,7 +1339,7 @@ class Hetu extends Interpreter {
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < length; i++) {
       final enumId = _curCode.readShortUtf8String();
-      defs[enumId] = HTEnumItem(i, enumId, HTType(id));
+      defs[enumId] = HTEnumItem<int>(i, enumId, HTType(id));
     }
 
     final enumClass = HTEnum(id, defs, this, isExtern: isExtern);

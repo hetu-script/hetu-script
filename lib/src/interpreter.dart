@@ -135,16 +135,13 @@ abstract class Interpreter {
     String? typeString;
 
     if (object is bool) {
-      // return HTBoolean(object, this);
+      typeString = HTLexicon.boolean;
     } else if (object is int) {
       typeString = HTLexicon.integer;
-      // return HTInteger(object, this);
     } else if (object is double) {
       typeString = HTLexicon.float;
-      // return HTFloat(object, this);
     } else if (object is String) {
       typeString = HTLexicon.string;
-      // return HTString(object, this);
     } else if (object is List) {
       typeString = HTLexicon.list;
       // var valueType = HTType.ANY;
@@ -185,30 +182,28 @@ abstract class Interpreter {
       // }
       // return HTMap(object, this, keyType: keyType, valueType: valueType);
     } else {
-      typeString = object.runtimeType.toString();
-      typeString = HTType.parseBaseType(typeString);
-      if (_externReflection.containsKey(typeString)) {
-        typeString = _externReflection[typeString];
+      var reflected = false;
+      for (final reflect in _externTypeReflection) {
+        final result = reflect(object);
+        if (result.success) {
+          reflected = true;
+          typeString = result.typeString;
+          break;
+        }
+      }
+      if (!reflected) {
+        typeString = object.runtimeType.toString();
+        typeString = HTType.parseBaseType(typeString);
       }
     }
 
-    // {
     return HTExternalInstance(object, this, typeString);
-    // }
-  }
-
-  // void defineGlobal(String key, {HTType? declType, dynamic varValue, bool isImmutable = false}) {
-  //   globals.define(key, declType: declType, value: value, isImmutable: isImmutable);
-  // }
-
-  dynamic fetchGlobal(String key) {
-    return global.fetch(key);
   }
 
   final _externClasses = <String, HTExternalClass>{};
   final _externFuncs = <String, Function>{};
   final _externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
-  final _externReflection = <String, String>{};
+  final _externTypeReflection = <HTExternalTypeReflection>[];
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
@@ -258,10 +253,7 @@ abstract class Interpreter {
   }
 
   /// Bind a external class name to a abstract class name for interpreter get dart class name by reflection
-  void bindExternalReflection(String classId, String abstractClassId) {
-    if (_externReflection.containsKey(classId)) {
-      throw HTError.definedRuntime(classId);
-    }
-    _externReflection[classId] = abstractClassId;
+  void bindExternalReflection(HTExternalTypeReflection reflection) {
+    _externTypeReflection.add(reflection);
   }
 }
