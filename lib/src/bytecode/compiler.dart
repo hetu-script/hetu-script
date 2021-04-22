@@ -18,6 +18,7 @@ class HTRegIdx {
   static const refType = 3;
   static const typeArgs = 4;
   static const loopCount = 5;
+  static const anchor = 6;
   static const assign = 7;
   static const orLeft = 8;
   static const andLeft = 9;
@@ -793,7 +794,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       final elseBranchLength = elseBranch.length;
       bytesBuilder.add(_uint16(thenBranchLength));
       bytesBuilder.add(thenBranch);
-      bytesBuilder.addByte(HTOpCode.goto); // 执行完 then 之后，直接跳过 else block
+      bytesBuilder.addByte(HTOpCode.skip); // 执行完 then 之后，直接跳过 else block
       bytesBuilder.add(_int16(elseBranchLength));
       bytesBuilder.add(elseBranch);
     }
@@ -1282,7 +1283,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     bytesBuilder.add(_uint16(thenBranchLength));
     bytesBuilder.add(thenBranch);
-    bytesBuilder.addByte(HTOpCode.goto); // 执行完 then 之后，直接跳过 else block
+    bytesBuilder.addByte(HTOpCode.skip); // 执行完 then 之后，直接跳过 else block
     bytesBuilder.add(_int16(elseBranchLength));
     if (elseBranch != null) {
       bytesBuilder.add(elseBranch);
@@ -1318,7 +1319,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.addByte(0); // bool: has condition
     }
     bytesBuilder.add(loopBody);
-    bytesBuilder.addByte(HTOpCode.goto);
+    bytesBuilder.addByte(HTOpCode.skip);
     bytesBuilder.add(_int16(-loopLength));
     return bytesBuilder.toBytes();
   }
@@ -1567,7 +1568,7 @@ class Compiler extends Parser with ConstTable, HetuRef {
     if (assign != null) bytesBuilder.add(assign);
     bytesBuilder.add(loop);
     if (increment != null) bytesBuilder.add(increment);
-    bytesBuilder.addByte(HTOpCode.goto);
+    bytesBuilder.addByte(HTOpCode.skip);
     bytesBuilder.add(_int16(-breakLength));
 
     bytesBuilder.addByte(HTOpCode.endOfBlock);
@@ -1580,11 +1581,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
     Uint8List? condition;
     if (expect([HTLexicon.roundLeft], consume: true)) {
       condition = _compileExpr();
-      bytesBuilder.add(condition);
       match(HTLexicon.roundRight);
     }
-    bytesBuilder.addByte(HTOpCode.whenStmt);
-    bytesBuilder.addByte(condition != null ? 1 : 0);
     final cases = <Uint8List>[];
     final branches = <Uint8List>[];
     Uint8List? elseBranch;
@@ -1594,35 +1592,46 @@ class Compiler extends Parser with ConstTable, HetuRef {
       if (curTok.lexeme == HTLexicon.ELSE) {
         advance(1);
         match(HTLexicon.arrow);
-        if (curTok.type != HTLexicon.semicolon &&
-            curTok.type != HTLexicon.curlyRight) {
-          elseBranch = _compileExpr(endOfExec: true);
+        if (curTok.type == HTLexicon.curlyLeft) {
+          elseBranch = _compileBlock(id: HTLexicon.whenStmt, endOfExec: true);
+        } else {
+          elseBranch =
+              _compileStmt(codeType: CodeType.function, endOfExec: true);
         }
       } else {
         final caseExpr = _compileExpr(endOfExec: true);
         cases.add(caseExpr);
         match(HTLexicon.arrow);
+        late final caseBranch;
         if (curTok.type == HTLexicon.curlyLeft) {
-          final caseBranch =
-              _compileBlock(id: HTLexicon.whenStmt, endOfExec: true);
-          branches.add(caseBranch);
+          caseBranch = _compileBlock(id: HTLexicon.whenStmt, endOfExec: true);
         } else {
-          final caseBranch =
+          caseBranch =
               _compileStmt(codeType: CodeType.function, endOfExec: true);
-          branches.add(caseBranch);
         }
+        branches.add(caseBranch);
       }
     }
 
     match(HTLexicon.curlyRight);
 
+    final offsetIp = (condition?.length ?? 0) + 3;
+    bytesBuilder.addByte(HTOpCode.anchor);
+    if (condition != null) {
+      bytesBuilder.add(condition);
+    }
+    bytesBuilder.addByte(HTOpCode.whenStmt);
+    bytesBuilder.addByte(condition != null ? 1 : 0);
     bytesBuilder.addByte(cases.length);
 
     var curIp = 0;
-    bytesBuilder
-        .add(_uint16(0)); // the first ip starts from previous list's last one
+    // the first ip in the branches list
+    final branchesIpList = <int>[];
+    branchesIpList.add(0);
+    bytesBuilder.add(_uint16(0));
     for (var i = 1; i < branches.length; ++i) {
-      curIp = curIp + branches[i - 1].length;
+      curIp = curIp + branches[i - 1].length + 3;
+      branchesIpList.add(curIp);
       bytesBuilder.add(_uint16(curIp));
     }
     curIp = curIp + branches.last.length;
@@ -1631,13 +1640,15 @@ class Compiler extends Parser with ConstTable, HetuRef {
     } else {
       bytesBuilder.add(_uint16(0)); // has no else
     }
-    bytesBuilder.add(_uint16(curIp + (elseBranch?.length ?? 0)));
+    final endIp = curIp + (elseBranch?.length ?? 0);
 
     for (final expr in cases) {
       bytesBuilder.add(expr);
     }
-    for (final branch in branches) {
-      bytesBuilder.add(branch);
+    for (var i = 0; i < branches.length; ++i) {
+      bytesBuilder.add(branches[i]);
+      bytesBuilder.addByte(HTOpCode.goto);
+      bytesBuilder.add(_uint16(offsetIp + endIp));
     }
 
     if (elseBranch != null) {

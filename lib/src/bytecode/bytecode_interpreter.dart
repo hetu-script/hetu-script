@@ -102,6 +102,9 @@ class Hetu extends Interpreter {
   set _curLoopCount(int value) =>
       _registers[_getRegIndex(HTRegIdx.loopCount)] = value;
   int get _curLoopCount => _registers[_getRegIndex(HTRegIdx.loopCount)] ?? 0;
+  set _curAnchor(int value) =>
+      _registers[_getRegIndex(HTRegIdx.anchor)] = value;
+  int get _curAnchor => _registers[_getRegIndex(HTRegIdx.anchor)] ?? 0;
 
   /// loop 信息以栈的形式保存
   /// break 指令将会跳回最近的一个 loop 的出口
@@ -430,9 +433,16 @@ class Hetu extends Interpreter {
           final index = _curCode.read();
           _setRegVal(index, _curValue);
           break;
-        case HTOpCode.goto:
+        case HTOpCode.skip:
           final distance = _curCode.readInt16();
           _curCode.ip += distance;
+          break;
+        case HTOpCode.anchor:
+          _curAnchor = _curCode.ip;
+          break;
+        case HTOpCode.goto:
+          final distance = _curCode.readInt16();
+          _curCode.ip = _curAnchor + distance;
           break;
         case HTOpCode.debugInfo:
           _curLine = _curCode.readUint16();
@@ -766,25 +776,19 @@ class Hetu extends Interpreter {
       branchesIpList.add(_curCode.readUint16());
     }
     final elseBranchIp = _curCode.readUint16();
-    final endIp = _curCode.readUint16();
 
     for (var i = 0; i < casesCount; ++i) {
       final value = execute();
       cases[value] = branchesIpList[i];
     }
 
-    final startIp = _curCode.ip;
-
     if (hasCondition) {
       if (cases.containsKey(condition)) {
         final distance = cases[condition]!;
         _curCode.skip(distance);
-        execute();
-        _curCode.ip = startIp + endIp;
       } else if (elseBranchIp > 0) {
         final distance = elseBranchIp;
         _curCode.skip(distance);
-        execute();
       }
     } else {
       for (final key in cases.keys) {
@@ -792,7 +796,6 @@ class Hetu extends Interpreter {
           final distance = cases[key]!;
           _curCode.skip(distance);
           execute();
-          _curCode.ip = startIp + endIp;
           break;
         }
       }

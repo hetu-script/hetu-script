@@ -14,38 +14,43 @@ abstract class HTOpCode {
   // static const leftValue = 4;
 
   /// ip = ip + [distance], distance could be negative
-  static const goto = 4;
+  static const skip = 4;
+
+  static const anchor = 5;
+
+  /// ip = pos, distance could be negative
+  static const goto = 6;
 
   /// uint16 line & column
-  static const debugInfo = 5;
+  static const debugInfo = 10;
 
-  static const objectSymbol = 6;
+  static const objectSymbol = 11;
 
-  static const loopPoint = 7;
+  static const loopPoint = 12;
 
-  static const breakLoop = 8;
+  static const breakLoop = 13;
 
-  static const continueLoop = 9;
+  static const continueLoop = 14;
 
-  static const block = 10;
+  static const block = 15;
 
-  static const endOfBlock = 11;
+  static const endOfBlock = 16;
 
-  static const endOfStmt = 12;
+  static const endOfStmt = 17;
 
-  static const endOfExec = 13;
+  static const endOfExec = 18;
 
-  static const endOfFunc = 14;
+  static const endOfFunc = 19;
 
-  static const constTable = 18;
+  static const constTable = 20;
 
-  static const enumDecl = 20;
+  static const enumDecl = 21;
 
-  static const funcDecl = 21;
+  static const funcDecl = 22;
 
-  static const classDecl = 22;
+  static const classDecl = 23;
 
-  static const varDecl = 23;
+  static const varDecl = 24;
 
   static const ifStmt = 26;
 
