@@ -803,7 +803,11 @@ class Hetu extends Interpreter {
         }
       }
       if (!condition) {
-        _curCode.skip(endIp);
+        if (elseBranchIp > 0) {
+          _curCode.skip(elseBranchIp);
+        } else {
+          _curCode.skip(endIp);
+        }
       }
     }
   }
