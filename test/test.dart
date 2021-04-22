@@ -4,17 +4,14 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-    fun getID(expr) {
-      when {
-        (1 > 3) -> return '0'
-        (1 > 5) -> return '1'
-        else -> return 'else'
-      }
-      return 'missed'
-    }
-
-    print(getID(5 - 2))
-
-  
+        fun swtich(expr) {
+          when(expr) {
+            0-> return '0'
+            1-> return '1'
+            else-> return 'else'
+          }
+          return 'missed'
+        }
+        print( swtich(5 - 2) )
     ''', codeType: CodeType.script);
 }
