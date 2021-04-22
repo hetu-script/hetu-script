@@ -1626,21 +1626,19 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     var curIp = 0;
     // the first ip in the branches list
-    final branchesIpList = <int>[];
-    branchesIpList.add(0);
     bytesBuilder.add(_uint16(0));
     for (var i = 1; i < branches.length; ++i) {
       curIp = curIp + branches[i - 1].length + 3;
-      branchesIpList.add(curIp);
       bytesBuilder.add(_uint16(curIp));
     }
-    curIp = curIp + branches.last.length;
+    curIp = curIp + branches.last.length + 3;
     if (elseBranch != null) {
       bytesBuilder.add(_uint16(curIp)); // else branch ip
     } else {
       bytesBuilder.add(_uint16(0)); // has no else
     }
-    final endIp = curIp + (elseBranch?.length ?? 0);
+    final endIp = curIp + (elseBranch?.length ?? 0) + 3;
+    bytesBuilder.add(_uint16(endIp));
 
     for (final expr in cases) {
       bytesBuilder.add(expr);
@@ -1653,6 +1651,8 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
     if (elseBranch != null) {
       bytesBuilder.add(elseBranch);
+      bytesBuilder.addByte(HTOpCode.goto);
+      bytesBuilder.add(_uint16(offsetIp + endIp));
     }
 
     return bytesBuilder.toBytes();

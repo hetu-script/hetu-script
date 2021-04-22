@@ -776,6 +776,7 @@ class Hetu extends Interpreter {
       branchesIpList.add(_curCode.readUint16());
     }
     final elseBranchIp = _curCode.readUint16();
+    final endIp = _curCode.readUint16();
 
     for (var i = 0; i < casesCount; ++i) {
       final value = execute();
@@ -787,17 +788,22 @@ class Hetu extends Interpreter {
         final distance = cases[condition]!;
         _curCode.skip(distance);
       } else if (elseBranchIp > 0) {
-        final distance = elseBranchIp;
-        _curCode.skip(distance);
+        _curCode.skip(elseBranchIp);
+      } else {
+        _curCode.skip(endIp);
       }
     } else {
+      var condition = false;
       for (final key in cases.keys) {
         if (key) {
           final distance = cases[key]!;
           _curCode.skip(distance);
-          execute();
+          condition = true;
           break;
         }
+      }
+      if (!condition) {
+        _curCode.skip(endIp);
       }
     }
   }

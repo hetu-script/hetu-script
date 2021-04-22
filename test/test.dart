@@ -5,14 +5,15 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     fun getID(expr) {
-      when(expr) {
-        0-> return '0'
-        1-> return '1'
+      when {
+        (1 > 3) -> return '0'
+        (1 > 5) -> return '1'
+        else -> return 'else'
       }
-      return ''
+      return 'missed'
     }
 
-    print(getID(5 - 5))
+    print(getID(5 - 2))
 
   
     ''', codeType: CodeType.script);

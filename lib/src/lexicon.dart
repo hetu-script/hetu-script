@@ -13,6 +13,7 @@ abstract class HTLexicon {
 
   /// Add semicolon before a line starting with one of '++, --, (, ['
   static const Set<String> ASIStart = {
+    roundLeft,
     preIncrement,
     preDecrement,
   };
