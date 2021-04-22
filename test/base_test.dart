@@ -108,7 +108,6 @@ void main() async {
         'hello',
       );
     });
-
     test('continue', () async {
       final result = await hetu.eval(r'''
       fun continueLoop {
@@ -125,6 +124,24 @@ void main() async {
       expect(
         result,
         4,
+      );
+    });
+    test('when', () async {
+      final result = await hetu.eval(r'''
+        fun swtich(expr) {
+          when(expr) {
+            0-> return '0'
+            1-> return '1'
+          }
+          return ''
+        }
+        fun whenStmt {
+          return swtich(5 - 4)
+        }
+    ''', invokeFunc: 'whenStmt');
+      expect(
+        result,
+        '1',
       );
     });
   });
