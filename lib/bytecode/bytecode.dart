@@ -1,16 +1,13 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:pub_semver/pub_semver.dart';
-
+import '../source/source.dart';
+import '../src/const_table.dart';
 import 'opcode.dart';
-import '../const_table.dart';
 
 /// Code module class, represent a trunk of bytecode.
 /// Every bytecode file has its own const tables
-class HTBytecode with ConstTable {
-  late Version version;
-
+class HTBytecodeSource extends HTSource with ConstTable {
   /// The bytecode, stores as uint8 list
   late final Uint8List bytes;
 
@@ -20,7 +17,7 @@ class HTBytecode with ConstTable {
   var ip = 0;
 
   /// Create a bytecode module from an uint8 list
-  HTBytecode(this.bytes);
+  HTBytecodeSource(Uri uri, this.bytes) : super(uri);
 
   /// Skip forward [distance] of bytes
   void skip(int distance) {
@@ -106,7 +103,7 @@ class HTBytecode with ConstTable {
 /// The information of snippet need goto
 mixin GotoInfo {
   /// The module this variable declared in.
-  late final String moduleUniqueKey;
+  late final String moduleFullName;
 
   /// The instructor pointer of the definition's bytecode.
   int? definitionIp;

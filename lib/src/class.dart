@@ -28,7 +28,7 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
 
-  final String moduleUniqueKey;
+  final String moduleFullName;
 
   @override
   final HTType rtType = HTType.CLASS;
@@ -66,7 +66,7 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(String id, Interpreter interpreter, this.moduleUniqueKey,
+  HTClass(String id, Interpreter interpreter, this.moduleFullName,
       HTNamespace closure,
       {this.superClass,
       this.superClassType,

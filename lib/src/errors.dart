@@ -141,8 +141,8 @@ class HTError {
   /// Error type.
   HTErrorType? type;
 
-  /// moduleUniqueKey when error occured.
-  String? moduleUniqueKey;
+  /// moduleFullName when error occured.
+  String? moduleFullName;
 
   /// Line number when error occured.
   int? line;
@@ -152,11 +152,11 @@ class HTError {
 
   @override
   String toString() =>
-      'Hetu error:\n[$type}]\n[File: $moduleUniqueKey]\n[Line: $line, Column: $column]\n$message';
+      'Hetu error:\n[$type}]\n[File: $moduleFullName]\n[Line: $line, Column: $column]\n$message';
 
   /// [HTError] can not be created by default constructor.
   HTError(this.message, this.code, this.type,
-      [this.moduleUniqueKey, this.line, this.column]);
+      [this.moduleFullName, this.line, this.column]);
 
   /// Error: Module import error
   HTError.import(String id) {

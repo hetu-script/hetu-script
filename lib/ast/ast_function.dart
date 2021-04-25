@@ -1,13 +1,13 @@
-import '../instance.dart';
-import '../namespace.dart';
-import '../errors.dart';
-import '../type.dart';
-import '../lexicon.dart';
+import '../src/instance.dart';
+import '../src/namespace.dart';
+import '../src/errors.dart';
+import '../src/type.dart';
+import '../src/lexicon.dart';
+import '../src/variable.dart';
+import '../src/function.dart';
+import '../src/object.dart';
 import 'ast.dart';
 import 'ast_interpreter.dart';
-import '../variable.dart';
-import '../function.dart';
-import '../object.dart';
 
 class HTAstFunction extends HTFunction with AstInterpreterRef {
   final FuncDeclStmt funcStmt;

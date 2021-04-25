@@ -1,5 +1,13 @@
 import 'package:pub_semver/pub_semver.dart';
 
+import '../plugin/moduleHandler.dart';
+import '../plugin/errorHandler.dart';
+import '../binding/external_class.dart';
+import '../binding/external_function.dart';
+import '../binding/external_instance.dart';
+import '../core/core_class.dart';
+import '../core/core_function.dart';
+
 import 'namespace.dart';
 import 'common.dart';
 import 'type.dart';
@@ -8,13 +16,6 @@ import 'errors.dart';
 import 'function.dart';
 import 'object.dart';
 import 'lexicon.dart';
-import 'plugin/moduleHandler.dart';
-import 'plugin/errorHandler.dart';
-import 'binding/external_class.dart';
-import 'binding/external_function.dart';
-import 'binding/external_instance.dart';
-import 'core/core_class.dart';
-import 'core/core_function.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -36,7 +37,7 @@ abstract class Interpreter {
 
   int get curLine;
   int get curColumn;
-  String? get curModuleUniqueKey;
+  String? get curModuleFullName;
 
   String? get curSymbol;
   String? get curObjectSymbol;
@@ -64,7 +65,7 @@ abstract class Interpreter {
     // TODO: dynamic load needed core lib in script
     if (coreModule) {
       for (final file in coreModules.keys) {
-        await eval(coreModules[file]!, moduleUniqueKey: file);
+        await eval(coreModules[file]!, moduleFullName: file);
       }
       for (var key in coreFunctions.keys) {
         bindExternalFunction(key, coreFunctions[key]!);
@@ -95,7 +96,7 @@ abstract class Interpreter {
   }
 
   Future<dynamic> eval(String content,
-      {String? moduleUniqueKey,
+      {String? moduleFullName,
       CodeType codeType = CodeType.module,
       HTNamespace? namespace,
       String? invokeFunc,
@@ -106,7 +107,7 @@ abstract class Interpreter {
 
   /// 解析文件
   Future<dynamic> import(String key,
-      {String? curModuleUniqueKey,
+      {String? curModuleFullName,
       String? moduleName,
       CodeType codeType = CodeType.module,
       String? invokeFunc,

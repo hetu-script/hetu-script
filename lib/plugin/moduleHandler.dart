@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
-import '../errors.dart';
+import '../src/errors.dart';
 
 /// Result of module handler's import function
 class HTModuleInfo {

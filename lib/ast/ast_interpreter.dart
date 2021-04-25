@@ -1,23 +1,23 @@
 import '../plugin/errorHandler.dart';
 import '../plugin/moduleHandler.dart';
 import '../binding/external_function.dart';
-import '../errors.dart';
+import '../src/errors.dart';
+import '../src/type.dart';
+import '../src/namespace.dart';
+import '../src/class.dart';
+import '../src/function.dart';
+import '../src/lexer.dart';
+import '../src/common.dart';
+import '../src/lexicon.dart';
+import '../src/object.dart';
+import '../src/interpreter.dart';
+import '../src/enum.dart';
+import '../src/const_table.dart';
 import 'ast.dart';
-import '../type.dart';
-import '../namespace.dart';
-import '../class.dart';
-import '../function.dart';
 import 'ast_function.dart';
-import '../lexer.dart';
-import '../common.dart';
 import 'ast_parser.dart';
-import '../lexicon.dart';
 import 'ast_resolver.dart';
-import '../object.dart';
-import '../interpreter.dart';
-import '../enum.dart';
 import 'ast_variable.dart';
-import '../const_table.dart';
 
 mixin AstInterpreterRef {
   late final HTAstInterpreter interpreter;
@@ -37,9 +37,9 @@ class HTAstInterpreter extends Interpreter
   var _curColumn = 0;
   @override
   int get curColumn => _curColumn;
-  late String _curModuleUniqueKey;
+  late String _curModuleFullName;
   @override
-  String get curModuleUniqueKey => _curModuleUniqueKey;
+  String get curModuleFullName => _curModuleFullName;
 
   String? _curSymbol;
   @override
@@ -69,7 +69,7 @@ class HTAstInterpreter extends Interpreter
 
   @override
   Future<dynamic> eval(String content,
-      {String? moduleUniqueKey,
+      {String? moduleFullName,
       CodeType codeType = CodeType.module,
       bool debugMode = true,
       HTNamespace? namespace,
@@ -78,27 +78,27 @@ class HTAstInterpreter extends Interpreter
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
-    _savedModuleName = _curModuleUniqueKey;
+    _savedModuleName = _curModuleFullName;
     _savedNamespace = _curNamespace;
 
-    _curModuleUniqueKey = moduleUniqueKey ?? HTLexicon.anonymousScript;
+    _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curNamespace = namespace ?? global;
 
     var lexer = Lexer();
     var parser = HTAstParser(this);
     var resolver = HTAstResolver();
     try {
-      var tokens = lexer.lex(content, _curModuleUniqueKey);
+      var tokens = lexer.lex(content, _curModuleFullName);
 
       final statements =
-          await parser.parse(tokens, _curModuleUniqueKey, codeType);
-      _distances.addAll(resolver.resolve(statements, _curModuleUniqueKey));
+          await parser.parse(tokens, _curModuleFullName, codeType);
+      _distances.addAll(resolver.resolve(statements, _curModuleFullName));
 
       for (final stmt in statements) {
         _curStmtValue = visitASTNode(stmt);
       }
 
-      _curModuleUniqueKey = _savedModuleName;
+      _curModuleFullName = _savedModuleName;
       _curNamespace = _savedNamespace;
 
       if (invokeFunc != null) {
@@ -122,11 +122,11 @@ class HTAstInterpreter extends Interpreter
       if (error is HTError) {
         error.message = '${error.message}\nCall stack:\n$callStack';
         if (error.type == HTErrorType.parser) {
-          error.moduleUniqueKey = parser.curModuleUniqueKey;
+          error.moduleFullName = parser.curModuleFullName;
           error.line = parser.curLine;
           error.column = parser.curColumn;
         } else {
-          error.moduleUniqueKey = _curModuleUniqueKey;
+          error.moduleFullName = _curModuleFullName;
           error.line = _curLine;
           error.column = _curColumn;
         }
@@ -136,7 +136,7 @@ class HTAstInterpreter extends Interpreter
             '$error\nCall stack:\n$callStack',
             HTErrorCode.dartError,
             HTErrorType.interpreter,
-            _curModuleUniqueKey,
+            _curModuleFullName,
             _curLine,
             _curColumn);
         errorHandler.handle(hetuError);
@@ -147,7 +147,7 @@ class HTAstInterpreter extends Interpreter
   /// 解析文件
   @override
   Future<dynamic> import(String key,
-      {String? curModuleUniqueKey,
+      {String? curModuleFullName,
       String? moduleName,
       CodeType codeType = CodeType.module,
       bool debugMode = true,
@@ -159,10 +159,10 @@ class HTAstInterpreter extends Interpreter
 
     final module = await moduleHandler.import(
         key,
-        curModuleUniqueKey != HTLexicon.anonymousScript
-            ? curModuleUniqueKey
+        curModuleFullName != HTLexicon.anonymousScript
+            ? curModuleFullName
             : null);
-    curModuleUniqueKey = module.uniqueKey;
+    curModuleFullName = module.uniqueKey;
 
     HTNamespace? namespace;
     if ((moduleName != null) && (moduleName != HTLexicon.global)) {
@@ -171,7 +171,7 @@ class HTAstInterpreter extends Interpreter
     }
 
     result = eval(module.content,
-        moduleUniqueKey: curModuleUniqueKey,
+        moduleFullName: curModuleFullName,
         namespace: namespace,
         codeType: codeType,
         invokeFunc: invokeFunc,
@@ -769,7 +769,7 @@ class HTAstInterpreter extends Interpreter
     }
 
     final klass =
-        HTClass(stmt.id.lexeme, this, _curModuleUniqueKey, _curNamespace,
+        HTClass(stmt.id.lexeme, this, _curModuleFullName, _curNamespace,
             superClass: superClass,
             superClassType: null, // TODO: 这里需要修改
             isExtern: stmt.isExtern,

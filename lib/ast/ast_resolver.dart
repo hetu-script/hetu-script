@@ -1,7 +1,7 @@
-import '../errors.dart';
+import '../src/errors.dart';
+import '../src/lexicon.dart';
+import '../src/common.dart';
 import 'ast.dart';
-import '../lexicon.dart';
-import '../common.dart';
 
 /// 负责对语句列表进行分析，并生成变量作用域
 class HTAstResolver implements ASTNodeVisitor {

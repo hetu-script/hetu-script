@@ -2,18 +2,18 @@ import 'dart:typed_data';
 
 import 'package:pub_semver/pub_semver.dart';
 
-import '../interpreter.dart';
-import '../type.dart';
-import '../common.dart';
-import '../lexicon.dart';
-import '../lexer.dart';
-import '../errors.dart';
-import '../namespace.dart';
-import '../class.dart';
-import '../object.dart';
-import '../enum.dart';
-import '../function.dart';
-import '../cast.dart';
+import '../src/interpreter.dart';
+import '../src/type.dart';
+import '../src/common.dart';
+import '../src/lexicon.dart';
+import '../src/lexer.dart';
+import '../src/errors.dart';
+import '../src/namespace.dart';
+import '../src/class.dart';
+import '../src/object.dart';
+import '../src/enum.dart';
+import '../src/function.dart';
+import '../src/cast.dart';
 import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../binding/external_function.dart';
@@ -47,9 +47,9 @@ class _LoopInfo {
 class Hetu extends Interpreter {
   static var _anonymousScriptIndex = 0;
 
-  late Compiler _compiler;
+  late HTCompiler _curCompiler;
 
-  final _modules = <String, HTBytecode>{};
+  final _modules = <String, HTBytecodeSource>{};
 
   var _curLine = 0;
 
@@ -61,13 +61,13 @@ class Hetu extends Interpreter {
   /// Current column number of execution.
   @override
   int get curColumn => _curColumn;
-  late String _curModuleUniqueKey;
+  late String _curModuleFullName;
 
   /// Current module's unique key.
   @override
-  String get curModuleUniqueKey => _curModuleUniqueKey;
+  String get curModuleFullName => _curModuleFullName;
 
-  late HTBytecode _curCode;
+  late HTBytecodeSource _curCode;
 
   HTClass? _curClass;
 
@@ -128,7 +128,7 @@ class Hetu extends Interpreter {
   /// call the function after evaluation completed.
   @override
   Future<dynamic> eval(String content,
-      {String? moduleUniqueKey,
+      {String? moduleFullName,
       CodeType codeType = CodeType.module,
       HTNamespace? namespace,
       String? invokeFunc,
@@ -138,20 +138,20 @@ class Hetu extends Interpreter {
       bool errorHandled = false}) async {
     if (content.isEmpty) throw HTError.emptyString();
 
-    // TODO: 不要保存
-    _compiler = Compiler(this);
+    _curCompiler = HTCompiler(this);
 
-    final name = moduleUniqueKey ??
+    final fullName = moduleFullName ??
         (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
-    _curModuleUniqueKey = name;
+    _curModuleFullName = fullName;
 
     try {
-      final tokens = Lexer().lex(content, name);
-      final bytes =
-          await _compiler.compile(tokens, this, name, codeType: codeType);
+      final tokens = Lexer().lex(content, fullName);
+      final bytes = await _curCompiler.compile(tokens, this, fullName,
+          codeType: codeType);
 
-      _curCode = _modules[name] = HTBytecode(bytes);
-      _curModuleUniqueKey = name;
+      _curCode =
+          _modules[fullName] = HTBytecodeSource(Uri(path: fullName), bytes);
+      _curModuleFullName = fullName;
       var result = execute(namespace: namespace ?? global);
       if (codeType == CodeType.module && invokeFunc != null) {
         result = invoke(invokeFunc,
@@ -172,7 +172,7 @@ class Hetu extends Interpreter {
 
   /// Import a module by a key,
   /// will use module handler plug-in to resolve
-  /// the unique key from the key and [curModuleUniqueKey]
+  /// the unique key from the key and [curModuleFullName]
   /// user provided to find the correct module.
   /// Module with the same unique key will be ignored.
   /// During this process, all declarations will
@@ -181,7 +181,7 @@ class Hetu extends Interpreter {
   /// call the function after evaluation completed.
   @override
   Future<dynamic> import(String key,
-      {String? curModuleUniqueKey,
+      {String? curModuleFullName,
       String? moduleName,
       CodeType codeType = CodeType.module,
       String? invokeFunc,
@@ -189,7 +189,7 @@ class Hetu extends Interpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) async {
     dynamic result;
-    final module = await moduleHandler.import(key, curModuleUniqueKey);
+    final module = await moduleHandler.import(key, curModuleFullName);
 
     if (module.duplicate) return;
 
@@ -200,7 +200,7 @@ class Hetu extends Interpreter {
     }
 
     result = await eval(module.content,
-        moduleUniqueKey: module.uniqueKey,
+        moduleFullName: module.uniqueKey,
         namespace: _curNamespace,
         codeType: codeType,
         invokeFunc: invokeFunc,
@@ -269,11 +269,11 @@ class Hetu extends Interpreter {
     if (error is HTError) {
       error.message = '${error.message}\nCall stack:\n$callStack';
       if (error.type == HTErrorType.parser) {
-        error.moduleUniqueKey = _compiler.curModuleUniqueKey;
-        error.line = _compiler.curLine;
-        error.column = _compiler.curColumn;
+        error.moduleFullName = _curCompiler.curModuleFullName;
+        error.line = _curCompiler.curLine;
+        error.column = _curCompiler.curColumn;
       } else {
-        error.moduleUniqueKey = _curModuleUniqueKey;
+        error.moduleFullName = _curModuleFullName;
         error.line = _curLine;
         error.column = _curColumn;
       }
@@ -283,7 +283,7 @@ class Hetu extends Interpreter {
           '$error\nCall stack:\n$callStack',
           HTErrorCode.dartError,
           HTErrorType.interpreter,
-          _curModuleUniqueKey,
+          _curModuleFullName,
           _curLine,
           _curColumn);
       errorHandler.handle(hetuError);
@@ -294,11 +294,11 @@ class Hetu extends Interpreter {
   Future<Uint8List> compile(String content, String moduleName,
       {CodeType codeType = CodeType.module, bool debugMode = true}) async {
     final bytesBuilder = BytesBuilder();
-    _compiler = Compiler(this);
+    _curCompiler = HTCompiler(this);
 
     try {
       final tokens = Lexer().lex(content, moduleName);
-      final bytes = await _compiler.compile(tokens, this, moduleName,
+      final bytes = await _curCompiler.compile(tokens, this, moduleName,
           codeType: codeType, debugInfo: debugMode);
 
       bytesBuilder.add(bytes);
@@ -313,11 +313,11 @@ class Hetu extends Interpreter {
       if (error is HTError) {
         error.message = '${error.message}\nCall stack:\n$callStack';
         if (error.type == HTErrorType.parser) {
-          error.moduleUniqueKey = _compiler.curModuleUniqueKey;
-          error.line = _compiler.curLine;
-          error.column = _compiler.curColumn;
+          error.moduleFullName = _curCompiler.curModuleFullName;
+          error.line = _curCompiler.curLine;
+          error.column = _curCompiler.curColumn;
         } else {
-          error.moduleUniqueKey = _curModuleUniqueKey;
+          error.moduleFullName = _curModuleFullName;
           error.line = _curLine;
           error.column = _curColumn;
         }
@@ -327,7 +327,7 @@ class Hetu extends Interpreter {
             '$error\nCall stack:\n$callStack',
             HTErrorCode.dartError,
             HTErrorType.interpreter,
-            _curModuleUniqueKey,
+            _curModuleFullName,
             _curLine,
             _curColumn);
         errorHandler.handle(hetuError);
@@ -339,13 +339,13 @@ class Hetu extends Interpreter {
 
   /// Load a pre-compiled bytecode in to module library.
   /// If [run] is true, then execute the bytecode immediately.
-  dynamic load(Uint8List code, String moduleUniqueKey,
+  dynamic load(Uint8List code, String moduleFullName,
       {bool run = true, int ip = 0}) {}
 
-  /// Interpret a loaded module with the key of [moduleUniqueKey]
+  /// Interpret a loaded module with the key of [moduleFullName]
   /// Starting from the instruction pointer of [ip]
   /// This function will return current value when encountered [OpCode.endOfExec] or [OpCode.endOfFunc].
-  /// If [moduleUniqueKey] != null, will return to original [HTBytecode] module.
+  /// If [moduleFullName] != null, will return to original [HTBytecodeSource] module.
   /// If [ip] != null, will return to original [_curCode.ip].
   /// If [namespace] != null, will return to original [HTNamespace]
   ///
@@ -353,22 +353,22 @@ class Hetu extends Interpreter {
   /// Every register space holds its own temporary values.
   /// Such as currrent value, current symbol, current line & column, etc.
   dynamic execute(
-      {String? moduleUniqueKey,
+      {String? moduleFullName,
       int? ip,
       HTNamespace? namespace,
       int? line,
       int? column,
       bool moveRegIndex = false}) {
-    final savedModuleUniqueKey = curModuleUniqueKey;
+    final savedModuleUniqueKey = curModuleFullName;
     final savedIp = _curCode.ip;
     final savedNamespace = _curNamespace;
 
     var codeChanged = false;
     var ipChanged = false;
     var regIndexMoved = moveRegIndex;
-    if (moduleUniqueKey != null && (curModuleUniqueKey != moduleUniqueKey)) {
-      _curModuleUniqueKey = moduleUniqueKey;
-      _curCode = _modules[moduleUniqueKey]!;
+    if (moduleFullName != null && (curModuleFullName != moduleFullName)) {
+      _curModuleFullName = moduleFullName;
+      _curCode = _modules[moduleFullName]!;
       codeChanged = true;
       ipChanged = true;
       regIndexMoved = true;
@@ -394,8 +394,8 @@ class Hetu extends Interpreter {
     final result = _execute();
 
     if (codeChanged) {
-      _curModuleUniqueKey = savedModuleUniqueKey;
-      _curCode = _modules[_curModuleUniqueKey]!;
+      _curModuleFullName = savedModuleUniqueKey;
+      _curCode = _modules[_curModuleFullName]!;
     }
 
     if (ipChanged) {
@@ -682,7 +682,7 @@ class Hetu extends Interpreter {
           final length = _curCode.readUint16();
           definitionIp = _curCode.ip;
           _curCode.skip(length);
-          final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
+          final func = HTBytecodeFunction(id, this, curModuleFullName,
               funcType: funcType,
               externalTypedef: externalTypedef,
               hasParameterDeclarations: hasParameterDeclarations,
@@ -1124,7 +1124,7 @@ class Hetu extends Interpreter {
       _curCode.skip(length);
     }
 
-    final decl = HTBytecodeVariable(id, this, curModuleUniqueKey,
+    final decl = HTBytecodeVariable(id, this, curModuleFullName,
         classId: classId,
         declType: declType,
         definitionIp: definitionIp,
@@ -1171,7 +1171,7 @@ class Hetu extends Interpreter {
         _curCode.skip(length);
       }
 
-      paramDecls[id] = HTBytecodeParameter(id, this, curModuleUniqueKey,
+      paramDecls[id] = HTBytecodeParameter(id, this, curModuleFullName,
           declType: declType,
           definitionIp: definitionIp,
           isOptional: isOptional,
@@ -1247,7 +1247,7 @@ class Hetu extends Interpreter {
       _curCode.skip(length);
     }
 
-    final func = HTBytecodeFunction(id, this, curModuleUniqueKey,
+    final func = HTBytecodeFunction(id, this, curModuleFullName,
         declId: declId,
         klass: _curClass,
         funcType: funcType,
@@ -1306,7 +1306,7 @@ class Hetu extends Interpreter {
       }
     }
 
-    final klass = HTClass(id, this, _curModuleUniqueKey, _curNamespace,
+    final klass = HTClass(id, this, _curModuleFullName, _curNamespace,
         superClass: superClass,
         superClassType: superClassType,
         isExtern: isExtern,
@@ -1325,14 +1325,14 @@ class Hetu extends Interpreter {
       if (!isExtern) {
         if (!klass.namespace.contains(HTLexicon.constructor)) {
           klass.namespace.define(HTBytecodeFunction(
-              HTLexicon.constructor, this, curModuleUniqueKey,
+              HTLexicon.constructor, this, curModuleFullName,
               klass: klass, funcType: FunctionType.constructor));
         }
       }
       // else {
       //   if (!klass.namespace.contains(klass.id)) {
       //     klass.namespace.define(HTBytecodeFunction(
-      //         klass.id, this, curModuleUniqueKey,
+      //         klass.id, this, curModuleFullName,
       //         klass: klass, funcType: FunctionType.constructor));
       //   }
       // }

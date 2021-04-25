@@ -1,16 +1,16 @@
+import '../src/namespace.dart';
+import '../src/type.dart';
+import '../src/function.dart';
+import '../src/common.dart';
+import '../src/errors.dart';
+import '../src/variable.dart';
+import '../src/lexicon.dart';
+import '../src/class.dart';
+import '../src/instance.dart';
+import '../binding/external_function.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode_variable.dart';
 import 'bytecode.dart' show GotoInfo;
-import '../namespace.dart';
-import '../type.dart';
-import '../function.dart';
-import '../common.dart';
-import '../errors.dart';
-import '../variable.dart';
-import '../lexicon.dart';
-import '../binding/external_function.dart';
-import '../class.dart';
-import '../instance.dart';
 
 class HTBytecodeFunctionReferConstructor {
   /// id of super class's constructor
@@ -50,7 +50,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
   HTBytecodeFunction(
     String id,
     Hetu interpreter,
-    String moduleUniqueKey, {
+    String moduleFullName, {
     String declId = '',
     HTClass? klass,
     FunctionType funcType = FunctionType.normal,
@@ -83,7 +83,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
             maxArity: maxArity,
             context: context) {
     this.interpreter = interpreter;
-    this.moduleUniqueKey = moduleUniqueKey;
+    this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
@@ -173,7 +173,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
       bool errorHandled = true}) {
     try {
       HTFunction.callStack.add(
-          '#${HTFunction.callStack.length} $id - (${interpreter.curModuleUniqueKey}:${interpreter.curLine}:${interpreter.curColumn})');
+          '#${HTFunction.callStack.length} $id - (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数
@@ -276,14 +276,14 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
 
         if (funcType != FunctionType.constructor) {
           result = interpreter.execute(
-              moduleUniqueKey: moduleUniqueKey,
+              moduleFullName: moduleFullName,
               ip: definitionIp!,
               namespace: closure,
               line: definitionLine,
               column: definitionColumn);
         } else {
           interpreter.execute(
-              moduleUniqueKey: moduleUniqueKey,
+              moduleFullName: moduleFullName,
               ip: definitionIp!,
               namespace: closure,
               line: definitionLine,
@@ -429,7 +429,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
 
   @override
   HTBytecodeFunction clone() {
-    return HTBytecodeFunction(id, interpreter, moduleUniqueKey,
+    return HTBytecodeFunction(id, interpreter, moduleFullName,
         declId: declId,
         klass: klass,
         funcType: funcType,

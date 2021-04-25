@@ -1,8 +1,8 @@
-import '../variable.dart';
+import '../src/variable.dart';
+import '../src/type.dart';
+import '../src/errors.dart';
 import 'ast.dart';
-import '../type.dart';
 import 'ast_interpreter.dart';
-import '../errors.dart';
 
 class HTAstVariable extends HTVariable with AstInterpreterRef {
   final bool isDynamic;

@@ -1,5 +1,5 @@
-import '../type.dart' show HTType;
-import '../function.dart' show HTFunction;
+import '../src/type.dart' show HTType;
+import '../src/function.dart' show HTFunction;
 
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(

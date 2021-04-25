@@ -1,10 +1,11 @@
-import 'package:hetu_script/hetu_script.dart';
-
-import '../interpreter.dart';
-import '../object.dart';
-import '../type.dart';
-import '../lexicon.dart';
-import '../errors.dart';
+import '../src/interpreter.dart';
+import '../src/object.dart';
+import '../src/type.dart';
+import '../src/lexicon.dart';
+import '../src/errors.dart';
+import '../src/class.dart';
+import '../src/function.dart';
+import 'external_class.dart';
 
 /// Class for external object.
 class HTExternalInstance<T> with HTObject, InterpreterRef {

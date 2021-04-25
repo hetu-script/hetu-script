@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import '../src/type.dart';
+import '../src/lexicon.dart';
+import '../src/errors.dart';
 import '../binding/external_class.dart';
-import '../type.dart';
-import '../lexicon.dart';
-import '../errors.dart';
 import 'core_instance.dart';
 
 class HTNumberClass extends HTExternalClass {

@@ -1,9 +1,8 @@
-import '../variable.dart';
-import '../type.dart';
-import '../errors.dart';
-import '../class.dart';
-import '../lexicon.dart';
-
+import '../src/variable.dart';
+import '../src/type.dart';
+import '../src/errors.dart';
+import '../src/class.dart';
+import '../src/lexicon.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode.dart' show GotoInfo;
 
@@ -32,7 +31,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   ///
   /// A [HTVariable] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be used within a script.
-  HTBytecodeVariable(String id, Hetu interpreter, String moduleUniqueKey,
+  HTBytecodeVariable(String id, Hetu interpreter, String moduleFullName,
       {String? classId,
       dynamic value,
       HTType? declType,
@@ -55,7 +54,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
             isMember: isMember,
             isStatic: isStatic) {
     this.interpreter = interpreter;
-    this.moduleUniqueKey = moduleUniqueKey;
+    this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
@@ -94,7 +93,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
-            moduleUniqueKey: moduleUniqueKey,
+            moduleFullName: moduleFullName,
             ip: definitionIp!,
             namespace: closure,
             line: definitionLine,
@@ -177,7 +176,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   /// mainly used on class member inheritance and function arguments passing.
   @override
   HTBytecodeVariable clone() =>
-      HTBytecodeVariable(id, interpreter, moduleUniqueKey,
+      HTBytecodeVariable(id, interpreter, moduleFullName,
           classId: classId,
           value: value,
           declType: declType,
@@ -198,7 +197,7 @@ class HTBytecodeParameter extends HTBytecodeVariable {
   late final HTParameterType paramType;
 
   /// Create a standard [HTBytecodeParameter].
-  HTBytecodeParameter(String id, Hetu interpreter, String moduleUniqueKey,
+  HTBytecodeParameter(String id, Hetu interpreter, String moduleFullName,
       {dynamic value,
       HTType? declType,
       int? definitionIp,
@@ -207,7 +206,7 @@ class HTBytecodeParameter extends HTBytecodeVariable {
       bool isOptional = false,
       bool isNamed = false,
       bool isVariadic = false})
-      : super(id, interpreter, moduleUniqueKey,
+      : super(id, interpreter, moduleFullName,
             value: value,
             declType: declType,
             definitionIp: definitionIp,
@@ -226,7 +225,7 @@ class HTBytecodeParameter extends HTBytecodeVariable {
 
   @override
   HTBytecodeParameter clone() {
-    return HTBytecodeParameter(id, interpreter, moduleUniqueKey,
+    return HTBytecodeParameter(id, interpreter, moduleFullName,
         value: value,
         declType: declType,
         definitionIp: definitionIp,

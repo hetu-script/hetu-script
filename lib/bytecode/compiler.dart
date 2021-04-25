@@ -1,13 +1,12 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../parser.dart';
-import '../token.dart';
-import '../common.dart';
-import '../lexicon.dart';
-import '../errors.dart';
-import '../const_table.dart';
-
+import '../src/parser.dart';
+import '../src/token.dart';
+import '../src/common.dart';
+import '../src/lexicon.dart';
+import '../src/errors.dart';
+import '../src/const_table.dart';
 import 'opcode.dart';
 import 'bytecode_interpreter.dart';
 
@@ -58,7 +57,7 @@ String _readId(Uint8List bytes) {
 }
 
 /// Utility class that parse a string content into a uint8 list
-class Compiler extends Parser with ConstTable, HetuRef {
+class HTCompiler extends Parser with ConstTable, HetuRef {
   static var _anonymousFuncIndex = 0;
 
   /// Hetu script bytecode's unique header
@@ -73,11 +72,11 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
   final _importedModules = <_ImportInfo>[];
 
-  late String _curModuleUniqueKey;
+  late String _curModuleFullName;
 
   /// The module current processing, used in error message.
   @override
-  String get curModuleUniqueKey => _curModuleUniqueKey;
+  String get curModuleFullName => _curModuleFullName;
 
   ClassInfo? _curClass;
   // String? _curClassName;
@@ -92,32 +91,32 @@ class Compiler extends Parser with ConstTable, HetuRef {
 
   /// Create a compiler, needed an interpreter ref
   /// for importing another module during compilation
-  Compiler(Hetu interpreter) {
+  HTCompiler(Hetu interpreter) {
     this.interpreter = interpreter;
   }
 
   /// Compiles a Token list.
   Future<Uint8List> compile(
-      List<Token> tokens, Hetu interpreter, String moduleUniqueKey,
+      List<Token> tokens, Hetu interpreter, String moduleFullName,
       {CodeType codeType = CodeType.module,
       debugInfo = true,
-      bool bundleMode = false}) async {
-    _bundleMode = bundleMode;
+      ParserConfig config = const ParserConfig()}) async {
+    _bundleMode = config.bundle;
     _debugMode = _bundleMode ? false : debugInfo;
-    _curModuleUniqueKey = moduleUniqueKey;
+    _curModuleFullName = moduleFullName;
 
     _curBlock = _globalBlock = _DeclarationBlock();
 
     final code = _compile(tokens, codeType);
 
     for (final importInfo in _importedModules) {
-      if (bundleMode) {
+      if (_bundleMode) {
       } else {
         await interpreter.import(importInfo.key,
-            curModuleUniqueKey:
-                moduleUniqueKey.startsWith(HTLexicon.anonymousScript)
+            curModuleFullName:
+                moduleFullName.startsWith(HTLexicon.anonymousScript)
                     ? null
-                    : moduleUniqueKey,
+                    : moduleFullName,
             moduleName: importInfo.name);
       }
     }

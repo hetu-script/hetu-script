@@ -2,23 +2,29 @@ import 'token.dart';
 import 'lexicon.dart';
 import 'errors.dart';
 
-/// 负责对Token列表进行语法分析并生成语句列表
-///
-/// 语法定义如下
-///
-/// <程序>    ::=   <导入语句> | <变量声明>
-///
-/// <变量声明>      ::=   <变量声明> | <函数定义> | <类定义>
-///
-/// <语句块>    ::=   "{" <语句> { <语句> } "}"
-///
-/// <语句>      ::=   <声明> | <表达式> ";"
-///
-/// <表达式>    ::=   <标识符> | <单目> | <双目> | <三目>
-///
-/// <运算符>    ::=   <运算符>
+class ParserConfig {
+  final bool bundle;
+  final bool lineInfo;
+
+  const ParserConfig({this.bundle = false, this.lineInfo = true});
+}
+
+/// Parse a token list and generate source code,
+/// [HTAstParser] and [HTCompiler] implements this class
 abstract class Parser {
+  int _curLine = 0;
+  int _curColumn = 0;
+  int get curLine => _curLine;
+  int get curColumn => _curColumn;
+  String? get curModuleFullName;
+
+  var tokPos = 0;
+
+  ParserConfig config;
+
   late List<Token> tokens;
+
+  Parser({this.config = const ParserConfig()});
 
   void addTokens(List<Token> tokens) {
     tokPos = 0;
@@ -26,16 +32,6 @@ abstract class Parser {
     _curLine = 0;
     _curColumn = 0;
   }
-
-  static int internalVarIndex = 0;
-
-  int _curLine = 0;
-  int _curColumn = 0;
-  int get curLine => _curLine;
-  int get curColumn => _curColumn;
-  String? get curModuleUniqueKey;
-
-  var tokPos = 0;
 
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
   ///
@@ -76,7 +72,7 @@ abstract class Parser {
     if ((tokPos + pos) < tokens.length) {
       return tokens[tokPos + pos];
     } else {
-      return Token(HTLexicon.endOfFile, curModuleUniqueKey!, -1, -1);
+      return Token(HTLexicon.endOfFile, curModuleFullName!, -1, -1);
     }
   }
 
