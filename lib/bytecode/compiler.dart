@@ -60,7 +60,7 @@ String _readId(Uint8List bytes) {
 class HTCompiler extends Parser with ConstTable, HetuRef {
   static var _anonymousFuncIndex = 0;
 
-  /// Hetu script bytecode's unique header
+  /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
 
   /// The version of the compiled bytecode,

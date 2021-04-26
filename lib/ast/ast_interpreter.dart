@@ -162,7 +162,7 @@ class HTAstInterpreter extends Interpreter
         curModuleFullName != HTLexicon.anonymousScript
             ? curModuleFullName
             : null);
-    curModuleFullName = module.uniqueKey;
+    curModuleFullName = module.fullName;
 
     HTNamespace? namespace;
     if ((moduleName != null) && (moduleName != HTLexicon.global)) {

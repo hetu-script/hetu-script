@@ -6,7 +6,7 @@ import '../src/errors.dart';
 /// Result of module handler's import function
 class HTModuleInfo {
   /// To tell a duplicated module
-  final String uniqueKey;
+  final String fullName;
 
   /// The string content of the module
   final String content;
@@ -14,7 +14,7 @@ class HTModuleInfo {
   /// If true, this is a duplicated module,
   /// the content will be a empty string
   final bool duplicate;
-  HTModuleInfo(this.uniqueKey, this.content, {this.duplicate = false});
+  HTModuleInfo(this.fullName, this.content, {this.duplicate = false});
 }
 
 /// Abstract module import handler class
@@ -45,16 +45,16 @@ class DefaultModuleHandler implements HTModuleHandler {
 
   /// Fetch a script module with a certain [key]
   ///
-  /// If [curUniqueKey] is provided, the handler will try to get a relative path
+  /// If [curFilePath] is provided, the handler will try to get a relative path
   ///
   /// Otherwise, a absolute path is calculated from [workingDirectory]
   @override
-  Future<HTModuleInfo> import(String key, [String? curUniqueKey]) async {
+  Future<HTModuleInfo> import(String key, [String? curFilePath]) async {
     var fileName = key;
     try {
       late final String filePath;
-      if (curUniqueKey != null) {
-        filePath = path.dirname(curUniqueKey);
+      if (curFilePath != null) {
+        filePath = path.dirname(curFilePath);
       } else {
         filePath = workingDirectory;
       }

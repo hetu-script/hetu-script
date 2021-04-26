@@ -63,7 +63,7 @@ class Hetu extends Interpreter {
   int get curColumn => _curColumn;
   late String _curModuleFullName;
 
-  /// Current module's unique key.
+  /// Current module's full name.
   @override
   String get curModuleFullName => _curModuleFullName;
 
@@ -172,9 +172,9 @@ class Hetu extends Interpreter {
 
   /// Import a module by a key,
   /// will use module handler plug-in to resolve
-  /// the unique key from the key and [curModuleFullName]
+  /// the full name from the key and [curModuleFullName]
   /// user provided to find the correct module.
-  /// Module with the same unique key will be ignored.
+  /// Module with the same full name will be ignored.
   /// During this process, all declarations will
   /// be defined to current [HTNamespace].
   /// If [invokeFunc] is provided, will immediately
@@ -200,7 +200,7 @@ class Hetu extends Interpreter {
     }
 
     result = await eval(module.content,
-        moduleFullName: module.uniqueKey,
+        moduleFullName: module.fullName,
         namespace: _curNamespace,
         codeType: codeType,
         invokeFunc: invokeFunc,
@@ -359,7 +359,7 @@ class Hetu extends Interpreter {
       int? line,
       int? column,
       bool moveRegIndex = false}) {
-    final savedModuleUniqueKey = curModuleFullName;
+    final savedModuleFullName = curModuleFullName;
     final savedIp = _curCode.ip;
     final savedNamespace = _curNamespace;
 
@@ -394,7 +394,7 @@ class Hetu extends Interpreter {
     final result = _execute();
 
     if (codeChanged) {
-      _curModuleFullName = savedModuleUniqueKey;
+      _curModuleFullName = savedModuleFullName;
       _curCode = _modules[_curModuleFullName]!;
     }
 
