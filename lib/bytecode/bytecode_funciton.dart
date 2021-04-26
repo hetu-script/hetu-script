@@ -1,7 +1,7 @@
 import '../src/namespace.dart';
 import '../src/type.dart';
 import '../src/function.dart';
-import '../src/common.dart';
+import '../src/constants.dart';
 import '../src/errors.dart';
 import '../src/variable.dart';
 import '../src/lexicon.dart';
@@ -360,32 +360,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
         // either a normal external function or
         // a external static method in a non-external class
         if (!(klass?.isExtern ?? false)) {
-          final func =
-              externalFuncDef ??= interpreter.fetchExternalFunction(id);
-
-          if (externalFuncDef is HTExternalFunction) {
-            result = func(
-                positionalArgs: finalPosArgs,
-                namedArgs: finalNamedArgs,
-                typeArgs: typeArgs);
-          } else {
-            result = Function.apply(
-                func,
-                finalPosArgs,
-                finalNamedArgs.map<Symbol, dynamic>(
-                    (key, value) => MapEntry(Symbol(key), value)));
-          }
-        }
-        // external class method
-        else {
-          if (externalFuncDef == null) {
-            if (isStatic || (funcType == FunctionType.constructor)) {
-              final externClass = interpreter.fetchExternalClass(classId!);
-              externalFuncDef = externClass.memberGet(id);
-            } else {
-              throw HTError.missingExternalFuncDef(id);
-            }
-          }
+          externalFuncDef ??= interpreter.fetchExternalFunction(id);
 
           if (externalFuncDef is HTExternalFunction) {
             result = externalFuncDef!(
@@ -393,12 +368,44 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);
           } else {
-            // Use Function.apply will lose type args information.
             result = Function.apply(
                 externalFuncDef!,
                 finalPosArgs,
                 finalNamedArgs.map<Symbol, dynamic>(
                     (key, value) => MapEntry(Symbol(key), value)));
+          }
+        }
+        // external class method
+        else {
+          if (funcType != FunctionType.getter) {
+            if (externalFuncDef == null) {
+              if (isStatic || (funcType == FunctionType.constructor)) {
+                final externClass = interpreter.fetchExternalClass(classId!);
+                final funcName =
+                    (declId.isEmpty) ? classId! : '${classId!}.$declId';
+                externalFuncDef = externClass.memberGet(funcName);
+              } else {
+                throw HTError.missingExternalFuncDef(id);
+              }
+            }
+
+            if (externalFuncDef is HTExternalFunction) {
+              result = externalFuncDef!(
+                  positionalArgs: finalPosArgs,
+                  namedArgs: finalNamedArgs,
+                  typeArgs: typeArgs);
+            } else {
+              // Use Function.apply will lose type args information.
+              result = Function.apply(
+                  externalFuncDef!,
+                  finalPosArgs,
+                  finalNamedArgs.map<Symbol, dynamic>(
+                      (key, value) => MapEntry(Symbol(key), value)));
+            }
+          } else {
+            final externClass = interpreter.fetchExternalClass(classId!);
+            final funcName = isStatic ? '${classId!}.$declId' : declId;
+            result = externClass.memberGet(funcName);
           }
         }
       }

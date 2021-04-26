@@ -4,7 +4,7 @@
 
 library hetu_script;
 
-export 'src/common.dart' show CodeType;
+export 'src/constants.dart' show CodeType;
 export 'src/function.dart';
 export 'src/instance.dart';
 export 'src/errors.dart';

@@ -1,6 +1,6 @@
 import '../src/errors.dart';
 import '../src/lexicon.dart';
-import '../src/common.dart';
+import '../src/constants.dart';
 import 'ast.dart';
 
 /// 负责对语句列表进行分析，并生成变量作用域

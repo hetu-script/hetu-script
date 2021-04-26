@@ -1,7 +1,7 @@
 import '../src/token.dart';
 import '../src/lexicon.dart';
 import '../src/type.dart';
-import '../src/common.dart';
+import '../src/constants.dart';
 
 /// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
 abstract class ASTNodeVisitor {

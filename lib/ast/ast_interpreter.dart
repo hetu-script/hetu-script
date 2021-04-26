@@ -7,7 +7,7 @@ import '../src/namespace.dart';
 import '../src/class.dart';
 import '../src/function.dart';
 import '../src/lexer.dart';
-import '../src/common.dart';
+import '../src/constants.dart';
 import '../src/lexicon.dart';
 import '../src/object.dart';
 import '../src/interpreter.dart';

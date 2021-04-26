@@ -4,7 +4,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../src/interpreter.dart';
 import '../src/type.dart';
-import '../src/common.dart';
+import '../src/constants.dart';
 import '../src/lexicon.dart';
 import '../src/lexer.dart';
 import '../src/errors.dart';

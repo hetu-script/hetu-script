@@ -9,7 +9,7 @@ import '../core/core_class.dart';
 import '../core/core_function.dart';
 
 import 'namespace.dart';
-import 'common.dart';
+import 'constants.dart';
 import 'type.dart';
 import 'hetu_lib.dart';
 import 'errors.dart';

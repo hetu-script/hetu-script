@@ -2,6 +2,7 @@ import 'errors.dart';
 import 'variable.dart';
 import 'function.dart';
 import 'interpreter.dart';
+import 'constants.dart';
 
 /// A [HTDeclaration] could be a [HTVariable], a [HTClass] or a [HTFunction]
 abstract class HTDeclaration {
@@ -12,8 +13,11 @@ abstract class HTDeclaration {
         final externalFunc =
             interpreter.unwrapExternalFunctionType(decl.externalTypedef!, decl);
         return externalFunc;
+      } else if (decl.funcType == FunctionType.getter) {
+        return decl.call();
+      } else {
+        return decl;
       }
-      return decl;
     } else if (decl is HTVariable) {
       if (!decl.isExtern) {
         if (!decl.isInitialized) {

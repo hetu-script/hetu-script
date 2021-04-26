@@ -2,7 +2,7 @@ import '../src/errors.dart';
 import '../src/lexicon.dart';
 import '../src/type.dart';
 import '../src/parser.dart';
-import '../src/common.dart';
+import '../src/constants.dart';
 import '../src/lexer.dart';
 import '../src/token.dart';
 import 'ast.dart';

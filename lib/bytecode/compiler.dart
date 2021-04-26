@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import '../src/parser.dart';
 import '../src/token.dart';
-import '../src/common.dart';
+import '../src/constants.dart';
 import '../src/lexicon.dart';
 import '../src/errors.dart';
 import '../src/const_table.dart';
@@ -1884,45 +1884,45 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       }
     }
 
-    if (!isExtern) {
-      switch (funcType) {
-        case FunctionType.constructor:
-          id = (declId.isEmpty)
-              ? HTLexicon.constructor
-              : '${HTLexicon.constructor}$declId';
-          break;
-        case FunctionType.getter:
-          if (_curBlock.contains(declId)) {
-            throw HTError.definedParser(declId);
-          }
-          id = HTLexicon.getter + declId;
-          break;
-        case FunctionType.setter:
-          if (_curBlock.contains(declId)) {
-            throw HTError.definedParser(declId);
-          }
-          id = HTLexicon.setter + declId;
-          break;
-        case FunctionType.literal:
-          id = HTLexicon.anonymousFunction + (_anonymousFuncIndex++).toString();
-          break;
-        default:
-          id = declId;
-      }
-    } else {
-      if (_curClass != null) {
-        if (!(_curClass!.isExtern) && !isStatic) {
-          throw HTError.externalMember();
+    // if (!isExtern) {
+    switch (funcType) {
+      case FunctionType.constructor:
+        id = (declId.isEmpty)
+            ? HTLexicon.constructor
+            : '${HTLexicon.constructor}$declId';
+        break;
+      case FunctionType.getter:
+        if (_curBlock.contains(declId)) {
+          throw HTError.definedParser(declId);
         }
-        if (isStatic || (funcType == FunctionType.constructor)) {
-          id = (declId.isEmpty) ? _curClass!.id : '${_curClass!.id}.$declId';
-        } else {
-          id = declId;
+        id = HTLexicon.getter + declId;
+        break;
+      case FunctionType.setter:
+        if (_curBlock.contains(declId)) {
+          throw HTError.definedParser(declId);
         }
-      } else {
+        id = HTLexicon.setter + declId;
+        break;
+      case FunctionType.literal:
+        id = HTLexicon.anonymousFunction + (_anonymousFuncIndex++).toString();
+        break;
+      default:
         id = declId;
-      }
     }
+    // } else {
+    //   if (_curClass != null) {
+    //     if (!(_curClass!.isExtern) && !isStatic) {
+    //       throw HTError.externalMember();
+    //     }
+    //     if (isStatic || (funcType == FunctionType.constructor)) {
+    //       id = (declId.isEmpty) ? _curClass!.id : '${_curClass!.id}.$declId';
+    //     } else {
+    //       id = declId;
+    //     }
+    //   } else {
+    //     id = declId;
+    //   }
+    // }
 
     final bytesBuilder = BytesBuilder();
     if (funcType != FunctionType.literal) {

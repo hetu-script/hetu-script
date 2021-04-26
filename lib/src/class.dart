@@ -9,6 +9,7 @@ import 'declaration.dart';
 import 'instance.dart';
 import 'enum.dart';
 import 'object.dart';
+import 'constants.dart';
 
 abstract class HTInheritable {
   String get id;
@@ -107,9 +108,26 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
     final constructor = '${HTLexicon.constructor}$varName';
-    final externalName = '$id.$varName';
 
-    if (namespace.declarations.containsKey(varName)) {
+    if (isExtern) {
+      if (varName.startsWith(HTLexicon.underscore) &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      HTDeclaration? decl;
+      if (namespace.declarations.containsKey(varName)) {
+        decl = namespace.declarations[varName];
+      } else if (namespace.declarations.containsKey(getter)) {
+        decl = namespace.declarations[getter];
+      } else if ((varName == id) &&
+          namespace.declarations.containsKey(HTLexicon.constructor)) {
+        decl = namespace.declarations[HTLexicon.constructor];
+      }
+
+      if (decl != null) {
+        return HTDeclaration.fetch(decl, interpreter);
+      }
+    } else if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -129,13 +147,6 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       return namespace.declarations[constructor] as HTFunction;
-    } else if (namespace.declarations.containsKey(externalName) && isExtern) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      final decl = namespace.declarations[externalName]!;
-      return HTDeclaration.fetch(decl, interpreter);
     }
 
     switch (varName) {
@@ -156,9 +167,12 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
   void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
-    final externalName = '$id.$varName';
 
-    if (namespace.declarations.containsKey(varName)) {
+    if (isExtern) {
+      final externClass = interpreter.fetchExternalClass(id);
+      externClass.memberSet('$id.$varName', varValue);
+      return;
+    } else if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -177,10 +191,6 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
       }
       final setterFunc = namespace.declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
-      return;
-    } else if (namespace.declarations.containsKey(externalName) && isExtern) {
-      final externClass = interpreter.fetchExternalClass(id);
-      externClass.memberSet(externalName, varValue);
       return;
     }
 

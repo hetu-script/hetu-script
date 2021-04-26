@@ -1,4 +1,4 @@
-import 'common.dart';
+import 'constants.dart';
 import 'namespace.dart';
 import 'type.dart';
 import 'declaration.dart';

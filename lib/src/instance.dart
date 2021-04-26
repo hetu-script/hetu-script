@@ -8,7 +8,7 @@ import 'errors.dart';
 import 'lexicon.dart';
 import 'function.dart';
 import 'namespace.dart';
-import 'common.dart';
+import 'constants.dart';
 import 'cast.dart';
 import 'declaration.dart';
 import 'variable.dart';
