@@ -157,9 +157,8 @@ class HTAstInterpreter extends Interpreter
       List<HTType> typeArgs = const []}) async {
     dynamic result;
 
-    final module = await moduleHandler.import(
-        key,
-        curModuleFullName != HTLexicon.anonymousScript
+    final module = await moduleHandler.import(key,
+        curFilePath: curModuleFullName != HTLexicon.anonymousScript
             ? curModuleFullName
             : null);
     curModuleFullName = module.fullName;

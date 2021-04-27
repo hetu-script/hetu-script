@@ -4,7 +4,6 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-    var i = 42
-    print('value: ' + str.parse(i + 2))
+    print('hi' + 2)
   ''', codeType: CodeType.script);
 }

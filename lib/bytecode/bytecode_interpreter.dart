@@ -189,7 +189,8 @@ class Hetu extends Interpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) async {
     dynamic result;
-    final module = await moduleHandler.import(key, curModuleFullName);
+    final module =
+        await moduleHandler.import(key, curFilePath: curModuleFullName);
 
     if (module.duplicate) return;
 
