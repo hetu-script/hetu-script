@@ -71,7 +71,7 @@ class Hetu extends Interpreter {
 
   HTClass? _curClass;
 
-  var _regIndex = 0;
+  var _regIndex = -1;
   final _registers =
       List<dynamic>.filled(HTRegIdx.length, null, growable: true);
 
@@ -357,39 +357,40 @@ class Hetu extends Interpreter {
       int? ip,
       HTNamespace? namespace,
       int? line,
-      int? column,
-      bool moveRegIndex = false}) {
+      int? column
+      // ,      bool moveRegIndex = false
+      }) {
     final savedModuleFullName = curModuleFullName;
     final savedIp = _curCode.ip;
     final savedNamespace = _curNamespace;
 
     var codeChanged = false;
     var ipChanged = false;
-    var regIndexMoved = moveRegIndex;
+    // var regIndexMoved = moveRegIndex;
     if (moduleFullName != null && (curModuleFullName != moduleFullName)) {
       _curModuleFullName = moduleFullName;
       _curCode = _modules[moduleFullName]!;
       codeChanged = true;
       ipChanged = true;
-      regIndexMoved = true;
+      // regIndexMoved = true;
     }
     if (ip != null && _curCode.ip != ip) {
       _curCode.ip = ip;
       ipChanged = true;
-      regIndexMoved = true;
+      // regIndexMoved = true;
     }
     if (namespace != null && _curNamespace != namespace) {
       _curNamespace = namespace;
     }
 
-    if (regIndexMoved) {
-      ++_regIndex;
-      if (_registers.length <= _regIndex * HTRegIdx.length) {
-        _registers.length += HTRegIdx.length;
-      }
-      _curLine = line ?? 0;
-      _curColumn = column ?? 0;
+    // if (regIndexMoved) {
+    ++_regIndex;
+    if (_registers.length <= _regIndex * HTRegIdx.length) {
+      _registers.length += HTRegIdx.length;
     }
+    _curLine = line ?? 0;
+    _curColumn = column ?? 0;
+    // }
 
     final result = _execute();
 
@@ -402,9 +403,9 @@ class Hetu extends Interpreter {
       _curCode.ip = savedIp;
     }
 
-    if (regIndexMoved) {
-      --_regIndex;
-    }
+    // if (regIndexMoved) {
+    --_regIndex;
+    // }
 
     _curNamespace = savedNamespace;
 
@@ -629,7 +630,8 @@ class Hetu extends Interpreter {
         }
         break;
       case HTValueTypeCode.group:
-        _curValue = execute(moveRegIndex: true);
+        _curValue = execute();
+        // _curValue = execute(moveRegIndex: true);
         break;
       case HTValueTypeCode.list:
         final list = [];
@@ -950,7 +952,8 @@ class Hetu extends Interpreter {
     final positionalArgs = [];
     final positionalArgsLength = _curCode.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
-      final arg = execute(moveRegIndex: true);
+      final arg = execute();
+      // final arg = execute(moveRegIndex: true);
       positionalArgs.add(arg);
     }
 
@@ -958,7 +961,8 @@ class Hetu extends Interpreter {
     final namedArgsLength = _curCode.read();
     for (var i = 0; i < namedArgsLength; ++i) {
       final name = _curCode.readShortUtf8String();
-      final arg = execute(moveRegIndex: true);
+      final arg = execute();
+      // final arg = execute(moveRegIndex: true);
       namedArgs[name] = arg;
     }
 
@@ -1017,7 +1021,8 @@ class Hetu extends Interpreter {
         break;
       case HTOpCode.subGet:
         var object = _getRegVal(HTRegIdx.postfixObject);
-        final key = execute(moveRegIndex: true);
+        final key = execute();
+        // final key = execute(moveRegIndex: true);
         _setRegVal(HTRegIdx.postfixKey, key);
         if (object is HTObject) {
           _curValue = object.subGet(key);
