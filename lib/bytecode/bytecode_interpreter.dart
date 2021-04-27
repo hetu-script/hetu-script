@@ -950,7 +950,7 @@ class Hetu extends Interpreter {
     final positionalArgs = [];
     final positionalArgsLength = _curCode.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
-      final arg = execute();
+      final arg = execute(moveRegIndex: true);
       positionalArgs.add(arg);
     }
 
@@ -958,7 +958,7 @@ class Hetu extends Interpreter {
     final namedArgsLength = _curCode.read();
     for (var i = 0; i < namedArgsLength; ++i) {
       final name = _curCode.readShortUtf8String();
-      final arg = execute();
+      final arg = execute(moveRegIndex: true);
       namedArgs[name] = arg;
     }
 
