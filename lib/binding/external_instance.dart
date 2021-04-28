@@ -84,7 +84,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     if (externalClass != null) {
       externalClass!.instanceMemberSet(externalObject, varName, varValue);
     } else {
-      throw HTError.unknownType(typeString);
+      throw HTError.unknownTypeName(typeString);
     }
   }
 }

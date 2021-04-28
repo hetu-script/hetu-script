@@ -146,8 +146,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
         final encapsulation = interpreter.encapsulate(value);
         final valueType = encapsulation.rtType;
         if (valueType.isNotA(_declType!)) {
-          throw HTError.typeCheck(
-              id, valueType.toString(), _declType.toString());
+          throw HTError.type(id, valueType.toString(), _declType.toString());
         }
         return value;
       }

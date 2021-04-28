@@ -33,17 +33,17 @@ class HTAstParser extends Parser with AstInterpreterRef {
             if (tokens[pos].type == HTLexicon.comma) {
               ++pos;
             } else {
-              throw HTError.unexpected(tokens[pos].lexeme);
+              throw HTError.unexpected(HTLexicon.comma, tokens[pos].lexeme);
             }
           }
         }
         if (tokens[pos].type != HTLexicon.angleRight) {
-          throw HTError.expected(HTLexicon.angleRight, tokens[pos].lexeme);
+          throw HTError.unexpected(HTLexicon.angleRight, tokens[pos].lexeme);
         } else {
           break;
         }
       } else {
-        throw HTError.unexpected(tokens[pos].lexeme);
+        throw HTError.unexpected(HTLexicon.angleLeft, tokens[pos].lexeme);
       }
     }
 
@@ -58,7 +58,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     }
 
     if (tokens.first.type != HTLexicon.identifier) {
-      throw HTError.expected(HTLexicon.identifier, tokens.first.lexeme);
+      throw HTError.unexpected(HTLexicon.identifier, tokens.first.lexeme);
     }
 
     final parseResult = _parseTypeFromTokens(tokens);
@@ -240,9 +240,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
               var value = _parseExpr();
               namedArgs[arg.id.lexeme] = value;
             } else {
-              throw HTError.unexpected(
-                curTok.lexeme,
-              );
+              throw HTError.unexpected(HTLexicon.symbolExpr, curTok.lexeme);
             }
           } else {
             positionalArgs.add(arg);
@@ -341,7 +339,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         return _parseFuncDeclaration(funcType: FunctionType.literal);
 
       default:
-        throw HTError.unexpected(curTok.lexeme);
+        throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
     }
   }
 
@@ -365,7 +363,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
               case HTLexicon.FUNCTION:
                 return _parseFuncDeclaration(isExtern: true);
               default:
-                throw HTError.unexpected(curTok.type);
+                throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
             }
           // case HTLexicon.ABSTRACT:
           //   match(HTLexicon.CLASS);
@@ -389,7 +387,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
           case HTLexicon.FUNCTION:
             return _parseFuncDeclaration();
           default:
-            throw HTError.unexpected(curTok.lexeme);
+            throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
         }
       case CodeType.expression:
       case CodeType.function:
@@ -479,7 +477,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
               isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } else {
-          throw HTError.unexpected(curTok.lexeme);
+          throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
         }
     }
   }
@@ -878,7 +876,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     HTType? super_class_type_args;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
       if (curTok.lexeme == className.lexeme) {
-        throw HTError.unexpected(className.lexeme);
+        throw HTError.extendsSelf();
       } else if (_classStmts[curTok.lexeme] == null) {
         throw HTError.notClass(curTok.lexeme);
       }

@@ -269,7 +269,7 @@ class Hetu extends Interpreter {
 
     if (error is HTError) {
       error.message = '${error.message}\nCall stack:\n$callStack';
-      if (error.type == HTErrorType.parser) {
+      if (error.type == ErrorType.COMPILE_TIME_ERROR) {
         error.moduleFullName = _curCompiler.curModuleFullName;
         error.line = _curCompiler.curLine;
         error.column = _curCompiler.curColumn;
@@ -280,20 +280,20 @@ class Hetu extends Interpreter {
       }
       errorHandler.handle(error);
     } else {
-      final hetuError = HTError(
-          '$error\nCall stack:\n$callStack',
-          HTErrorCode.dartError,
-          HTErrorType.interpreter,
-          _curModuleFullName,
-          _curLine,
-          _curColumn);
+      final hetuError = HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+          message: '$error\nCall stack:\n$callStack',
+          moduleFullName: _curModuleFullName,
+          line: _curLine,
+          column: _curColumn);
       errorHandler.handle(hetuError);
     }
   }
 
   /// Compile a script content into bytecode for later use.
   Future<Uint8List> compile(String content, String moduleName,
-      {CodeType codeType = CodeType.module, bool debugMode = true}) async {
+      {CodeType codeType = CodeType.module,
+      bool debugMode = true,
+      bool errorHandled = false}) async {
     final bytesBuilder = BytesBuilder();
     _curCompiler = HTCompiler(this);
 
@@ -304,34 +304,10 @@ class Hetu extends Interpreter {
 
       bytesBuilder.add(bytes);
     } catch (error, stack) {
-      var sb = StringBuffer();
-      for (var funcName in HTFunction.callStack) {
-        sb.writeln('  $funcName');
-      }
-      sb.writeln('\n$stack');
-      var callStack = sb.toString();
-
-      if (error is HTError) {
-        error.message = '${error.message}\nCall stack:\n$callStack';
-        if (error.type == HTErrorType.parser) {
-          error.moduleFullName = _curCompiler.curModuleFullName;
-          error.line = _curCompiler.curLine;
-          error.column = _curCompiler.curColumn;
-        } else {
-          error.moduleFullName = _curModuleFullName;
-          error.line = _curLine;
-          error.column = _curColumn;
-        }
-        errorHandler.handle(error);
+      if (errorHandled) {
+        rethrow;
       } else {
-        final hetuError = HTError(
-            '$error\nCall stack:\n$callStack',
-            HTErrorCode.dartError,
-            HTErrorType.interpreter,
-            _curModuleFullName,
-            _curLine,
-            _curColumn);
-        errorHandler.handle(hetuError);
+        handleError(error, stack);
       }
     } finally {
       return bytesBuilder.toBytes();

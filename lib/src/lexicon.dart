@@ -211,12 +211,12 @@ abstract class HTLexicon {
   static const literalFloatExpr = 'literal_float_expression';
   static const literalStringExpr = 'literal_string_expression';
   static const literalFunctionExpr = 'literal_function_expression';
+  static const typeExpr = 'type_expression';
   static const groupExpr = 'group_expression';
   static const literalVectorExpr = 'vector_expression';
   static const typeExpression = 'type_expression';
   static const blockExpr = 'block_expression';
   static const symbolExpr = 'symbol_expression';
-  static const typeExpr = 'type_expression';
   static const unaryExpr = 'unary_expression';
   static const binaryExpr = 'binary_expression';
   static const callExpr = 'call_expression';
@@ -408,4 +408,79 @@ abstract class HTLexicon {
   static const math = 'Math';
   static const system = 'System';
   static const console = 'Console';
+
+  static const errorUnexpected = '[{0}] expected, met [{1}].';
+  static const errorConstMustBeStatic =
+      'Constant class member [{0}] must also be declared as static.';
+  static const errorConstMustInit =
+      'Constant declaration [{0}] must be initialized.';
+  static const errorDefined = '[{0}] is already defined.';
+  static const errorInvalidLeftValue = 'Illegal left value.';
+  static const errorOutsideReturn =
+      'Unexpected return statement outside of a function.';
+  static const errorOutsideThis =
+      'Unexpected this expression outside of a function.';
+  static const errorSetterArity =
+      'Setter function must have exactly one parameter.';
+  static const errorExternMember =
+      'Non-external class cannot have non-static external members.';
+  static const errorEmptyTypeArgs = 'Empty type arguments.';
+  static const errorNotMember = '[{0}] is not a class member of [{1}].';
+  static const errorNotClass = '[{0}] is not a class.';
+  static const errorExtendsSelf = 'Class try to extends itself.';
+  static const errorCtorReturn = 'Constructor cannot have a return type.';
+  static const errorAbstracted = 'Cannot create instance from abstract class.';
+  static const errorAbstractCtor =
+      'Cannot create contructor for abstract class.';
+
+  static const errorUnknownOpCode = 'Unknown opcode [{0}]';
+  static const errorPrivateMember = 'Could not acess private member [{0}].';
+  static const errorPrivateDecl = 'Could not acess private declaration [{0}].';
+  static const errorNotInitialized = '[{0}] has not yet been initialized.';
+  static const errorUndefined = 'Undefined identifier [{0}].';
+  static const errorUndefinedExtern = 'Undefined external identifier [{0}].';
+  static const errorUnknownTypeName = 'Unknown type name: [{0}].';
+  static const errorUndefinedOperator = 'Undefined operator: [{0}].';
+  // static const errorRange = 'Index out of range, should be less than';
+  static const errorNotCallable = '[{0}] is not callable.';
+  static const errorUndefinedMember = '[{0}] isn\'t defined for the class.';
+  static const errorCondition =
+      'Condition expression must evaluate to type [bool]';
+  static const errorNotList = '[{0}] is not a List or Map.';
+  static const errorNullObject = 'Calling method on null object: [{0}]';
+  static const errorNullable = '[{0}] is not nullable.';
+  static const errorType = 'Variable [{0}] can\'t be assigned with type [{1}].';
+  static const errorImmutable = '[{0}] is immutable.';
+  static const errorNotType = '[{0}] is not a type.';
+  static const errorArgType =
+      'Argument [{0}] of type [{1}] doesn\'t match parameter type [{2}].';
+  static const errorReturnType =
+      '[{0}] can\'t be returned from function [{1}] with return type [{2}].';
+  static const errorMissingFuncBody = 'Missing function definition of [{0}].';
+  static const errorArity =
+      'Number of arguments [{0}] doesn\'t match function [{1}]\'s parameter requirement [{2}].';
+  static const errorBinding = 'Missing binding extension on dart object';
+  static const errorExternalVar = 'External variable is not allowed.';
+  static const errorBytesSig = 'Unknown bytecode signature.';
+  static const errorCircleInit =
+      'Variable [{0}]\'s initializer depend on itself being initialized.';
+  static const errorInitialize = 'Missing variable initializer.';
+  static const errorNamedArg = 'Undefined named parameter: [{0}]';
+  static const errorIterable = '[{0}] is not Iterable.';
+  static const errorUnkownValueType = 'Unkown OpCode value type: [{0}].';
+  static const errorEmptyString = 'Unexpected empty string content. {0}';
+  static const errorTypeCast = '[{0}]\'s type cannot be cast into [{1}].';
+  static const errorCastee = 'Illegal cast target [{0}].';
+  static const errorClone = 'Illegal clone on [{0}].';
+  static const errorNotSuper = '[{0}] is not a super class of [{1}].';
+  static const errorMissingExternalFuncDef =
+      'Missing external function definition of [{0}].';
+  static const errorInternalFuncWithExternalTypeDef =
+      'Unexpected external typedef on internal function.';
+  static const errorExternalCtorWithReferCtor =
+      'Unexpected refer constructor on external constructor.';
+  static const errorNonCotrWithReferCtor =
+      'Unexpected refer constructor on normal function.';
+  static const errorModuleImport = 'Module import handler error on file: [{0}]';
+  static const errorClassOnInstance = 'Try to define a class on instance.';
 }

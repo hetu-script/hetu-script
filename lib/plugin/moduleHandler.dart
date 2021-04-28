@@ -93,7 +93,8 @@ class DefaultModuleHandler implements HTModuleHandler {
         }
       }
     } catch (e) {
-      throw HTError(e.toString(), HTErrorCode.dartError, HTErrorType.import);
+      throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+          message: e.toString());
     }
   }
 
@@ -118,7 +119,8 @@ class DefaultModuleHandler implements HTModuleHandler {
         }
       }
     } catch (e) {
-      throw HTError(e.toString(), HTErrorCode.dartError, HTErrorType.import);
+      throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+          message: e.toString());
     }
   }
 }

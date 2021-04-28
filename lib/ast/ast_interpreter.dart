@@ -121,7 +121,7 @@ class HTAstInterpreter extends Interpreter
 
       if (error is HTError) {
         error.message = '${error.message}\nCall stack:\n$callStack';
-        if (error.type == HTErrorType.parser) {
+        if (error.type == ErrorType.COMPILE_TIME_ERROR) {
           error.moduleFullName = parser.curModuleFullName;
           error.line = parser.curLine;
           error.column = parser.curColumn;
@@ -132,13 +132,11 @@ class HTAstInterpreter extends Interpreter
         }
         errorHandler.handle(error);
       } else {
-        final hetuError = HTError(
-            '$error\nCall stack:\n$callStack',
-            HTErrorCode.dartError,
-            HTErrorType.interpreter,
-            _curModuleFullName,
-            _curLine,
-            _curColumn);
+        final hetuError = HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+            message: '$error\nCall stack:\n$callStack',
+            moduleFullName: _curModuleFullName,
+            line: _curLine,
+            column: _curColumn);
         errorHandler.handle(hetuError);
       }
     }

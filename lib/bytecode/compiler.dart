@@ -263,7 +263,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   final id = _readId(decl);
                   _curBlock.classDecls[id] = decl;
                 } else {
-                  throw HTError.expected(
+                  throw HTError.unexpected(
                       HTLexicon.classDeclStmt, curTok.lexeme);
                 }
                 break;
@@ -287,7 +287,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                 _curBlock.funcDecls[id] = decl;
                 break;
               default:
-                throw HTError.expected(HTLexicon.declStmt, curTok.lexeme);
+                throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ABSTRACT:
@@ -297,7 +297,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
               final id = _readId(decl);
               _curBlock.classDecls[id] = decl;
             } else {
-              throw HTError.expected(HTLexicon.classDeclStmt, curTok.lexeme);
+              throw HTError.unexpected(HTLexicon.classDeclStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
@@ -374,7 +374,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
               final id = _readId(decl);
               _curBlock.classDecls[id] = decl;
             } else {
-              throw HTError.expected(HTLexicon.classDeclStmt, curTok.lexeme);
+              throw HTError.unexpected(HTLexicon.classDeclStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.EXTERNAL:
@@ -388,7 +388,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   final id = _readId(decl);
                   _curBlock.classDecls[id] = decl;
                 } else {
-                  throw HTError.expected(
+                  throw HTError.unexpected(
                       HTLexicon.classDeclStmt, curTok.lexeme);
                 }
                 break;
@@ -412,7 +412,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
               case HTLexicon.CONST:
                 throw HTError.externalVar();
               default:
-                throw HTError.expected(HTLexicon.declStmt, curTok.lexeme);
+                throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
@@ -447,7 +447,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             _curBlock.funcDecls[id] = decl;
             break;
           default:
-            throw HTError.expected(HTLexicon.declStmt, curTok.lexeme);
+            throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
         }
         break;
       case CodeType.function:
@@ -591,7 +591,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             _curBlock.funcDecls[id] = decl;
             break;
           default:
-            throw HTError.unexpected(curTok.lexeme);
+            throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
         }
         break;
       case CodeType.expression:
@@ -1124,7 +1124,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       case HTLexicon.FUNCTION:
         return _compileFuncDeclaration(funcType: FunctionType.literal);
       default:
-        throw HTError.expected(HTLexicon.expression, curTok.lexeme);
+        throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
     }
   }
 
@@ -1429,7 +1429,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     Uint8List? increment;
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-        throw HTError.unexpected(curTok.type);
+        throw HTError.unexpected(HTLexicon.varDeclStmt, curTok.type);
       }
       final declPos = tokPos;
       // jump over keywrod
@@ -1507,7 +1507,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     else {
       if (curTok.type != HTLexicon.semicolon) {
         if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-          throw HTError.unexpected(curTok.type);
+          throw HTError.unexpected(HTLexicon.varDeclStmt, curTok.type);
         }
 
         final initDeclId = peek(1).lexeme;
@@ -1762,7 +1762,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       final returnType = _compileType();
       bytesBuilder.add(returnType);
     } else {
-      throw HTError.unexpected(curTok.lexeme);
+      throw HTError.unexpected(HTLexicon.typeExpr, curTok.type);
     }
 
     return bytesBuilder.toBytes();
@@ -1784,7 +1784,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
     if (_curClass != null && isExtern) {
       if (!(_curClass!.isExtern) && !isStatic) {
-        throw HTError.externalMember();
+        throw HTError.externMember();
       }
       id = '${_curClass!.id}.$id';
     }
@@ -1864,7 +1864,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     String? externalTypedef;
     if (expect([HTLexicon.squareLeft], consume: true)) {
       if (isExtern) {
-        throw HTError.unexpected(HTLexicon.squareLeft);
+        throw HTError.internalFuncWithExternalTypeDef();
       }
       hasExternalTypedef = true;
       externalTypedef = match(HTLexicon.identifier).lexeme;
@@ -2075,16 +2075,16 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     // referring to another constructor
     else if (expect([HTLexicon.colon], consume: true)) {
       if (funcType != FunctionType.constructor) {
-        throw HTError.unexpected(curTok.lexeme);
+        throw HTError.nonCotrWithReferCtor();
       }
       if (isExtern) {
-        throw HTError.unexpected(curTok.lexeme);
+        throw HTError.externalCtorWithReferCtor();
       }
 
       bytesBuilder.addByte(FunctionReturnType.superClassConstructor
           .index); // enum: return type or super constructor
       if (advance(1).lexeme != HTLexicon.SUPER) {
-        throw HTError.unexpected(curTok.lexeme);
+        throw HTError.unexpected(HTLexicon.SUPER, curTok.lexeme);
       }
       final tokLexem = advance(1).type;
       if (tokLexem == HTLexicon.memberGet) {

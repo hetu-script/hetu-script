@@ -9,7 +9,6 @@ import 'declaration.dart';
 import 'instance.dart';
 import 'enum.dart';
 import 'object.dart';
-import 'constants.dart';
 
 abstract class HTInheritable {
   String get id;

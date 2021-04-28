@@ -1,52 +1,44 @@
 import 'lexicon.dart';
 
-/// Error type tells who throws this erro
-enum HTErrorType {
-  parser,
-  interpreter,
-  import,
-}
-
-enum HTErrorCode {
-  dartError,
-
-  import,
-  expected,
+enum ErrorCode {
+  unexpected,
   constMustBeStatic,
   constMustInit,
-  unexpected,
+  defined,
+  invalidLeftValue,
   outsideReturn,
+  outsideThis,
+  setterArity,
+  externMember,
+  emptyTypeArgs,
+  notMember,
+  notClass,
+  extendsSelf,
+  ctorReturn,
+  abstracted,
+  abstractCtor,
+
+  extern,
+  unknownOpCode,
   privateMember,
   privateDecl,
   notInitialized,
   undefined,
   undefinedExtern,
-  unknownType,
+  unknownTypeName,
   undefinedOperator,
-  defined,
-  invalidLeftValue,
   notCallable,
   undefinedMember,
   condition,
-  missingFuncBody,
   notList,
-  notClass,
-  notMember,
-  ctorReturn,
-  abstracted,
-  abstractCtor,
-  setterArity,
-  externMember,
-  emptyTypeArgs,
-  unknownOpCode,
   nullObject,
   nullable,
+  type,
   immutable,
   notType,
-  ofType,
-  typeCheck,
   argType,
   returnType,
+  missingFuncBody,
   arity,
   binding,
   externalVar,
@@ -56,90 +48,149 @@ enum HTErrorCode {
   namedArg,
   iterable,
   unkownValueType,
-  classOnInstance,
   emptyString,
   typeCast,
   castee,
   clone,
   notSuper,
   missingExternalFuncDef,
+  externalCtorWithReferCtor,
+  nonCotrWithReferCtor,
+  internalFuncWithExternalTypeDef,
+  moduleImport,
+  classOnInstance
 }
 
-/// Base error class, contains static error messages.
+/// The severity of an [ErrorCode].
+class ErrorSeverity implements Comparable<ErrorSeverity> {
+  /// The severity representing a non-error. This is never used for any error
+  /// code, but is useful for clients.
+  static const NONE = ErrorSeverity('NONE', 0, 'none');
+
+  /// The severity representing an informational level analysis issue.
+  static const INFO = ErrorSeverity('INFO', 1, 'info');
+
+  /// The severity representing a warning. Warnings can become errors if the
+  /// `-Werror` command line flag is specified.
+  static const WARNING = ErrorSeverity('WARNING', 2, 'warning');
+
+  /// The severity representing an error.
+  static const ERROR = ErrorSeverity('ERROR', 3, 'error');
+
+  static const List<ErrorSeverity> values = [NONE, INFO, WARNING, ERROR];
+
+  /// The name of this error code.
+  final String name;
+
+  /// The weight value of the error code.
+  final int weight;
+
+  /// The name of the severity used when producing readable output.
+  final String displayName;
+
+  /// Initialize a newly created severity with the given names.
+  const ErrorSeverity(this.name, this.weight, this.displayName);
+
+  @override
+  int get hashCode => weight;
+
+  @override
+  int compareTo(ErrorSeverity other) => weight - other.weight;
+
+  /// Return the severity constant that represents the greatest severity.
+  ErrorSeverity max(ErrorSeverity severity) =>
+      weight >= severity.weight ? this : severity;
+
+  @override
+  String toString() => name;
+}
+
+/// The type of an [HTError].
+class ErrorType implements Comparable<ErrorType> {
+  /// Task (todo) comments in user code.
+  static const TODO = ErrorType('TODO', 0, ErrorSeverity.INFO);
+
+  /// Extra analysis run over the code to follow best practices, which are not in
+  /// the Dart Language Specification.
+  static const HINT = ErrorType('HINT', 1, ErrorSeverity.INFO);
+
+  /// Lint warnings describe style and best practice recommendations that can be
+  /// used to formalize a project's style guidelines.
+  static const LINT = ErrorType('LINT', 2, ErrorSeverity.INFO);
+
+  /// Static warnings are those warnings reported by the static checker.
+  /// They have no effect on execution. Static warnings must be
+  /// provided by compilers used during development.
+  static const STATIC_WARNING =
+      ErrorType('STATIC_WARNING', 3, ErrorSeverity.WARNING);
+
+  /// Syntactic errors are errors produced as a result of input that does not
+  /// conform to the grammar.
+  static const SYNTACTIC_ERROR =
+      ErrorType('SYNTACTIC_ERROR', 5, ErrorSeverity.ERROR);
+
+  /// Compile-time errors are errors that preclude execution. A compile time
+  /// error must be reported by a compiler before the erroneous code is
+  /// executed.
+  static const COMPILE_TIME_ERROR =
+      ErrorType('COMPILE_TIME_ERROR', 6, ErrorSeverity.ERROR);
+
+  /// Run-time errors are errors that occurred during execution. A run time
+  /// error is reported by the interpreter.
+  static const RUN_TIME_ERROR =
+      ErrorType('RUN_TIME_ERROR', 7, ErrorSeverity.ERROR);
+
+  /// External errors are errors reported by the dart side.
+  static const EXTERNAL_ERROR =
+      ErrorType('NATIVE_ERROR', 7, ErrorSeverity.ERROR);
+
+  static const values = [
+    TODO,
+    HINT,
+    LINT,
+    STATIC_WARNING,
+    SYNTACTIC_ERROR,
+    COMPILE_TIME_ERROR,
+    RUN_TIME_ERROR,
+    EXTERNAL_ERROR
+  ];
+
+  /// The name of this error type.
+  final String name;
+
+  /// The weight value of the error type.
+  final int weight;
+
+  /// The severity of this type of error.
+  final ErrorSeverity severity;
+
+  /// Initialize a newly created error type to have the given [name] and
+  /// [severity].
+  const ErrorType(this.name, this.weight, this.severity);
+
+  String get displayName => name.toLowerCase().replaceAll('_', ' ');
+
+  @override
+  int get hashCode => weight;
+
+  @override
+  int compareTo(ErrorType other) => weight - other.weight;
+
+  @override
+  String toString() => name;
+}
+
+/// Contains error messages.
 class HTError {
-  static const _import = 'Module import handler error.';
-  static const _expected = 'expected, ';
-  static const _constMustBeStatic = 'Constant class member must be static.';
-  static const _constMustInit = 'Constant must be initialized.';
-  static const _unexpected = 'Unexpected identifier';
-  static const _outsideReturn = 'Return statement outside of a function.';
-  static const _privateMember = 'Could not acess private member';
-  static const _privateDecl = 'Could not acess private declaration';
-  static const _notInitialized = 'has not initialized';
-  static const _undefined = 'Undefined identifier';
-  static const _undefinedExtern = 'Undefined external identifier';
-  static const _unknownType = 'Unkown type of object:';
-  static const _undefinedOperator = 'Undefined operator';
-  static const _defined = 'is already defined';
-  // static const errorRange = 'Index out of range, should be less than';
-  static const _invalidLeftValue = 'Illegal left value.';
-  static const _notCallable = 'is not callable';
-  static const _undefinedMember = 'isn\'t defined for the class.';
-  static const _condition = 'Condition expression must evaluate to type [bool]';
-  static const _missingFuncBody = 'Missing function definition body of';
-  static const _notList = 'is not a List or Map.';
-  static const _notClass = 'is not a class.';
-  static const _notMember = 'is not a instance member declaration.';
-  static const _ctorReturn = 'Constructor cannot have a return type.';
-  static const _abstracted = 'Cannot create instance from abstract class.';
-  static const _abstractCtor = 'Cannot create contructor for abstract class.';
-  static const _setterArity = 'Setter function\'s arity must be 1.';
-  static const _externalMember =
-      'Non-external class cannot have non-static external members.';
-  static const _emptyTypeArgs = 'Empty type arguments.';
-
-  static const _unknownOpCode = 'Unknown opcode:';
-  static const _nullObject = 'Calling method on null object:';
-  static const _nullable = 'is not nullable.';
-  static const _immutable = 'is immutable.';
-  static const _notType = 'is not a type.';
-  static const _ofType = 'of type';
-  static const _typeCheck1 = 'Variable';
-  static const _typeCheck2 = 'can\'t be assigned with type';
-  static const _argType1 = 'Argument';
-  static const _argType2 = 'doesn\'t match parameter type';
-  static const _returnType1 = 'can\'t be returned from function';
-  static const _returnType2 = 'because it has a return type of';
-  static const _arity1 = 'Number of arguments';
-  static const _arity2 = 'doesn\'t match parameter requirement of function';
-  static const _binding = 'Missing binding extension on dart object';
-  static const _externalVar = 'External variable is not allowed.';
-  static const _bytesSig = 'Unknown bytecode signature.';
-  static const _circleInit =
-      'Variable initializer depend on itself being initialized:';
-  static const _initialize = 'Missing variable initializer.';
-  static const _namedArg = 'Undefined argument name:';
-  static const _iterable = 'is not Iterable.';
-  static const _unkownValueType = 'Unkown OpCode value type:';
-  static const _classOnInstance = 'Don\'t define class on instance!';
-  static const _emptyString = 'is empty.';
-  static const _typeCast = '\'s type cannot be cast into';
-  static const _castee = 'Illegal cast target';
-  static const _clone = 'Illegal clone on';
-  static const _notSuper = 'is not a super class of';
-  static const _missingExternalFuncDef =
-      'Missing external function definition.';
-
-  /// Print a warning message to standard output, will not throw.
-  static void warn(String message) => print('hetu warn:\n' + message);
-
-  /// Error message.
-  String? message;
-
-  HTErrorCode? code;
+  final ErrorCode code;
 
   /// Error type.
-  HTErrorType? type;
+  final ErrorType type;
+
+  ErrorSeverity get severity => type.severity;
+
+  /// Error message.
+  late final String message;
 
   /// moduleFullName when error occured.
   String? moduleFullName;
@@ -152,392 +203,315 @@ class HTError {
 
   @override
   String toString() =>
-      'Hetu error:\n[$type}]\n[File: $moduleFullName]\n[Line: $line, Column: $column]\n$message';
+      '[$code]\n[$type}]\n[File: $moduleFullName]\n[Line: $line, Column: $column]\n$message';
 
   /// [HTError] can not be created by default constructor.
-  HTError(this.message, this.code, this.type,
-      [this.moduleFullName, this.line, this.column]);
-
-  /// Error: Module import error
-  HTError.import(String id) {
-    message = _import;
-    type = HTErrorType.import;
-    code = HTErrorCode.import;
+  HTError(this.code, this.type,
+      {String message = '',
+      List<String> interpolations = const <String>[],
+      this.moduleFullName,
+      this.line,
+      this.column}) {
+    for (var i = 0; i < interpolations.length; ++i) {
+      message.replaceAll('{$i}', interpolations[i]);
+    }
+    this.message = message;
   }
 
   /// Error: Expected a token while met another.
-  HTError.expected(String expected, String met) {
-    message =
-        '[${expected != '\n' ? expected : '\\n'}] $_expected [${met != '\n' ? met : '\\n'}]';
-    type = HTErrorType.parser;
-    code = HTErrorCode.expected;
-  }
+  HTError.unexpected(String expected, String met)
+      : this(ErrorCode.unexpected, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorUnexpected,
+            interpolations: [expected, met]);
 
   /// Error: Const variable in a class must be static.
-  HTError.constMustBeStatic(String id) {
-    message = _constMustBeStatic;
-    type = HTErrorType.parser;
-    code = HTErrorCode.constMustBeStatic;
-  }
+  HTError.constMustBeStatic(String id)
+      : this(ErrorCode.constMustBeStatic, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorConstMustBeStatic, interpolations: [id]);
 
   /// Error: Const variable must be initialized.
-  HTError.constMustInit(String id) {
-    message = _constMustInit;
-    type = HTErrorType.parser;
-    code = HTErrorCode.constMustInit;
-  }
-
-  /// Error: A unexpected token appeared.
-  HTError.unexpected(String id) {
-    message = '${HTError._unexpected} [${id != '\n' ? id : '\\n'}]';
-    type = HTErrorType.parser;
-    code = HTErrorCode.unexpected;
-  }
+  HTError.constMustInit(String id)
+      : this(ErrorCode.constMustInit, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorConstMustInit, interpolations: [id]);
 
   /// Error: A same name declaration is already existed.
-  HTError.definedParser(String id) {
-    message = '[$id] ${HTError._defined}';
-    type = HTErrorType.parser;
-    code = HTErrorCode.defined;
-  }
+  HTError.definedParser(String id)
+      : this(ErrorCode.defined, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorDefined);
 
   /// Error: Illegal value appeared on left of assignment.
-  HTError.invalidLeftValue() {
-    message = HTError._invalidLeftValue;
-    type = HTErrorType.parser;
-    code = HTErrorCode.invalidLeftValue;
-  }
+  HTError.invalidLeftValue()
+      : this(ErrorCode.invalidLeftValue, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorInvalidLeftValue);
 
   /// Error: Return appeared outside of a function.
-  HTError.outsideReturn() {
-    message = HTError._outsideReturn;
-    type = HTErrorType.parser;
-    code = HTErrorCode.outsideReturn;
-  }
+  HTError.outsideReturn()
+      : this(ErrorCode.outsideReturn, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorOutsideReturn);
+
+  /// Error: This appeared outside of a function.
+  HTError.outsideThis()
+      : this(ErrorCode.outsideThis, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorOutsideThis);
 
   /// Error: Illegal setter declaration.
-  HTError.setterArity() {
-    message = HTError._setterArity;
-    type = HTErrorType.parser;
-    code = HTErrorCode.setterArity;
-  }
+  HTError.setterArity()
+      : this(ErrorCode.setterArity, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorSetterArity);
 
   /// Error: Illegal external member.
-  HTError.externalMember() {
-    message = HTError._externalMember;
-    type = HTErrorType.parser;
-    code = HTErrorCode.externMember;
-  }
+  HTError.externMember()
+      : this(ErrorCode.externMember, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorExternMember);
 
   /// Error: Type arguments is emtpy brackets.
-  HTError.emptyTypeArgs() {
-    message = HTError._emptyTypeArgs;
-    type = HTErrorType.parser;
-    code = HTErrorCode.emptyTypeArgs;
-  }
+  HTError.emptyTypeArgs()
+      : this(ErrorCode.emptyTypeArgs, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorEmptyTypeArgs);
+
+  /// Error: Symbol is not a class member.
+  HTError.notMember(String id, String className)
+      : this(ErrorCode.notMember, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorNotMember, interpolations: [id, className]);
 
   /// Error: Symbol is not a class name.
-  HTError.notClass(String id) {
-    message = '[$id] ${HTError._notClass}';
-    type = HTErrorType.parser;
-    code = HTErrorCode.notClass;
-  }
+  HTError.notClass(String id)
+      : this(ErrorCode.notClass, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorNotClass, interpolations: [id]);
 
   /// Error: Symbol is not a class name.
-  HTError.notMember(String id) {
-    message = '[$id] ${HTError._notMember}';
-    type = HTErrorType.parser;
-    code = HTErrorCode.notMember;
-  }
+  HTError.extendsSelf()
+      : this(ErrorCode.extendsSelf, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorExtendsSelf);
 
   /// Error: Not a super class of this instance.
-  HTError.ctorReturn() {
-    message = HTError._ctorReturn;
-    type = HTErrorType.parser;
-    code = HTErrorCode.ctorReturn;
-  }
+  HTError.ctorReturn()
+      : this(ErrorCode.ctorReturn, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorCtorReturn);
 
   /// Error: Not a super class of this instance.
-  HTError.abstracted() {
-    message = HTError._abstracted;
-    type = HTErrorType.parser;
-    code = HTErrorCode.abstracted;
-  }
+  HTError.abstracted()
+      : this(ErrorCode.abstracted, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorAbstracted);
 
   /// Error: Not a super class of this instance.
-  HTError.abstractCtor() {
-    message = HTError._abstractCtor;
-    type = HTErrorType.parser;
-    code = HTErrorCode.abstractCtor;
-  }
+  HTError.abstractCtor()
+      : this(ErrorCode.abstractCtor, ErrorType.COMPILE_TIME_ERROR,
+            message: HTLexicon.errorAbstractCtor);
 
   /// Error: Access private member.
-  HTError.unknownOpCode(int opcode) {
-    message = '${HTError._unknownOpCode} [$opcode]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.unknownOpCode;
-  }
+  HTError.unknownOpCode(int opcode)
+      : this(ErrorCode.unknownOpCode, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorUnknownOpCode,
+            interpolations: [opcode.toString()]);
 
   /// Error: Access private member.
-  HTError.privateMember(String id) {
-    message = '${HTError._privateMember} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.privateMember;
-  }
+  HTError.privateMember(String id)
+      : this(ErrorCode.privateMember, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorPrivateMember, interpolations: [id]);
 
   /// Error: Access private declaration.
-  HTError.privateDecl(String id) {
-    message = '${HTError._privateDecl} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.privateDecl;
-  }
+  HTError.privateDecl(String id)
+      : this(ErrorCode.privateDecl, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorPrivateDecl, interpolations: [id]);
 
   /// Error: Try to use a variable before its initialization.
-  HTError.notInitialized(String id) {
-    message = '[$id] ${HTError._notInitialized}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.notInitialized;
-  }
+  HTError.notInitialized(String id)
+      : this(ErrorCode.notInitialized, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNotInitialized, interpolations: [id]);
 
   /// Error: Try to use a undefined variable.
-  HTError.undefined(String id) {
-    message = '${HTError._undefined} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.undefined;
-  }
+  HTError.undefined(String id)
+      : this(ErrorCode.undefined, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorUndefined, interpolations: [id]);
 
   /// Error: Try to use a external variable without its binding.
-  HTError.undefinedExtern(String id) {
-    message = '${HTError._undefinedExtern} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.undefinedExtern;
-  }
+  HTError.undefinedExtern(String id)
+      : this(ErrorCode.undefinedExtern, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorUndefinedExtern, interpolations: [id]);
 
   /// Error: Try to operate unkown type object.
-  HTError.unknownType(String id) {
-    message = '${HTError._unknownType} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.unknownType;
-  }
+  HTError.unknownTypeName(String id)
+      : this(ErrorCode.unknownTypeName, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorUnknownTypeName, interpolations: [id]);
 
   /// Error: Unknown operator.
-  HTError.undefinedOperator(String id1, String op) {
-    message = '${HTError._undefinedOperator} [$id1] [$op]';
-    HTErrorType.interpreter;
-    code = HTErrorCode.undefinedOperator;
-  }
+  HTError.undefinedOperator(String id, String op)
+      : this(ErrorCode.undefinedOperator, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorUndefinedOperator,
+            interpolations: [id, op]);
 
   /// Error: A same name declaration is already existed.
-  HTError.definedRuntime(String id) {
-    message = '[$id] ${HTError._defined}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.defined;
-  }
+  HTError.definedRuntime(String id)
+      : this(ErrorCode.defined, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorDefined, interpolations: [id]);
 
 // HTError.range(int length) { message = '${HTError.errorRange} [$length]';type = HTErrorType.interpreter;
 // }
 
   /// Error: Object is not callable.
-  HTError.notCallable(String id) {
-    message = '[$id] ${HTError._notCallable}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.notCallable;
-  }
+  HTError.notCallable(String id)
+      : this(ErrorCode.notCallable, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNotCallable, interpolations: [id]);
 
   /// Error: Undefined member of a class/enum.
-  HTError.undefinedMember(String id) {
-    message = '[$id] ${HTError._undefinedMember}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.undefinedMember;
-  }
+  HTError.undefinedMember(String id)
+      : this(ErrorCode.undefinedMember, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorUndefinedMember, interpolations: [id]);
 
   /// Error: if/while condition expression must be boolean type.
-  HTError.condition() {
-    message = HTError._condition;
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.condition;
-  }
+  HTError.condition()
+      : this(ErrorCode.condition, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorCondition);
 
   /// Error: Try to use sub get operator on a non-list object.
-  HTError.notList(String id) {
-    message = '[$id] ${HTError._notList}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.notList;
-  }
+  HTError.notList(String id)
+      : this(ErrorCode.notList, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNotList, interpolations: [id]);
 
   /// Error: Calling method on null object.
-  HTError.nullObject(String id) {
-    message = '${HTError._nullObject} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.nullObject;
-  }
-
-  /// Error: Type check failed.
-  HTError.typeCheck(String id, String valueType, String declValue) {
-    message =
-        '${HTError._typeCheck1} [$id] ${HTError._ofType} [$declValue] ${HTError._typeCheck2} [$valueType]';
-    HTErrorType.interpreter;
-    code = HTErrorCode.typeCheck;
-  }
+  HTError.nullObject(String id)
+      : this(ErrorCode.nullObject, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNullObject, interpolations: [id]);
 
   /// Error: Type is assign a unnullable varialbe with null.
-  HTError.nullable(String id) {
-    message = '[$id] ${HTError._nullable}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.nullable;
-  }
+  HTError.nullable(String id)
+      : this(ErrorCode.nullable, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNullable, interpolations: [id]);
+
+  /// Error: Type check failed.
+  HTError.type(String id, String valueType, String declValue)
+      : this(ErrorCode.type, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorType,
+            interpolations: [id, valueType, declValue]);
 
   /// Error: Try to assign a immutable variable.
-  HTError.immutable(String id) {
-    message = '[$id] ${HTError._immutable}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.immutable;
-  }
+  HTError.immutable(String id)
+      : this(ErrorCode.immutable, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorImmutable, interpolations: [id]);
 
   /// Error: Symbol is not a type.
-  HTError.notType(String id) {
-    message = '[$id] ${HTError._notType}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.notType;
-  }
+  HTError.notType(String id)
+      : this(ErrorCode.notType, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNotType, interpolations: [id]);
 
   /// Error: Arguments type check failed.
-  HTError.argType(String id, String assignValue, String declValue) {
-    message =
-        '${HTError._argType1} [$assignValue] ${HTError._ofType} [$assignValue] ${HTError._argType2} [$declValue]';
-    HTErrorType.interpreter;
-    code = HTErrorCode.argType;
-  }
+  HTError.argType(String id, String assignType, String declValue)
+      : this(ErrorCode.argType, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorArgType,
+            interpolations: [id, assignType, declValue]);
 
   /// Error: Return value type check failed.
   HTError.returnType(
     String returnedType,
     String funcName,
     String declReturnType,
-  ) {
-    message = '[$returnedType] ${HTError._returnType1}'
-        ' [$funcName] ${HTError._returnType2} [$declReturnType]';
-    HTErrorType.interpreter;
-    code = HTErrorCode.returnType;
-  }
+  ) : this(ErrorCode.returnType, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorReturnType,
+            interpolations: [returnedType, funcName, declReturnType]);
 
   /// Error: Try to call a function without definition.
-  HTError.missingFuncBody(String funcName) {
-    message = '${HTError._missingFuncBody} [$funcName]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.missingFuncBody;
-  }
+  HTError.missingFuncBody(String id)
+      : this(ErrorCode.missingFuncBody, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorMissingFuncBody, interpolations: [id]);
 
   /// Error: Function arity check failed.
-  HTError.arity(String id, int argsCount, int paramsCount) {
-    message =
-        '${HTError._arity1} [$argsCount] ${HTError._arity2} [$id] [$paramsCount]';
-    HTErrorType.interpreter;
-    code = HTErrorCode.arity;
-  }
+  HTError.arity(String id, int argsCount, int paramsCount)
+      : this(ErrorCode.arity, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorArity,
+            interpolations: [id, argsCount.toString(), paramsCount.toString()]);
 
   /// Error: Missing binding extension on dart object.
-  HTError.binding(String id) {
-    message = '${HTError._binding} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.binding;
-  }
+  HTError.binding(String id)
+      : this(ErrorCode.binding, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorBinding, interpolations: [id]);
 
   /// Error: Can not declare a external variable in global namespace.
-  HTError.externalVar() {
-    message = HTError._externalVar;
-    type = HTErrorType.parser;
-    code = HTErrorCode.externalVar;
-  }
+  HTError.externalVar()
+      : this(ErrorCode.externalVar, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorExternalVar);
 
   /// Error: Bytecode signature check failed.
-  HTError.bytesSig() {
-    message = HTError._bytesSig;
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.bytesSig;
-  }
+  HTError.bytesSig()
+      : this(ErrorCode.bytesSig, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorBytesSig);
 
   /// Error: Variable's initialization relies on itself.
-  HTError.circleInit(String id) {
-    message = '${HTError._circleInit} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.circleInit;
-  }
+  HTError.circleInit(String id)
+      : this(ErrorCode.circleInit, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorCircleInit, interpolations: [id]);
 
   /// Error: Missing variable initializer.
-  HTError.initialize() {
-    message = HTError._initialize;
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.initialize;
-  }
+  HTError.initialize()
+      : this(ErrorCode.initialize, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorInitialize);
 
   /// Error: Named arguments does not exist.
-  HTError.namedArg(String id) {
-    message = '${HTError._namedArg} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.namedArg;
-  }
+  HTError.namedArg(String id)
+      : this(ErrorCode.namedArg, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNamedArg, interpolations: [id]);
 
   /// Error: Object is not iterable.
-  HTError.iterable(String id) {
-    message = '[$id] ${HTError._iterable}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.iterable;
-  }
+  HTError.iterable(String id)
+      : this(ErrorCode.iterable, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorIterable, interpolations: [id]);
 
-  /// Error: Object is not iterable.
-  HTError.unkownValueType(int valType) {
-    message = '${HTError._unkownValueType} [$valType]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.unkownValueType;
-  }
-
-  /// Error: Unkown opcode value type.
-  HTError.classOnInstance() {
-    message = HTError._classOnInstance;
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.classOnInstance;
-  }
+  /// Error: Unknown value type code
+  HTError.unkownValueType(int valType)
+      : this(ErrorCode.unkownValueType, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorUnkownValueType,
+            interpolations: [valType.toString()]);
 
   /// Error: Illegal empty string.
-  HTError.emptyString([String? message]) {
-    message =
-        '[${message ?? (HTLexicon.identifier + ' ' + HTLexicon.string)}] ${HTError._emptyString}';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.emptyString;
-  }
+  HTError.emptyString([String? message])
+      : this(ErrorCode.emptyString, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorEmptyString,
+            interpolations: message != null ? [message] : []);
 
   /// Error: Illegal type cast.
-  HTError.typeCast(String object, String type) {
-    message = '[$object] ${HTError._typeCast} [$type]';
-    HTErrorType.interpreter;
-    code = HTErrorCode.typeCast;
-  }
+  HTError.typeCast(String object, String type)
+      : this(ErrorCode.typeCast, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorTypeCast, interpolations: [object, type]);
 
   /// Error: Illegal castee.
-  HTError.castee(String varName) {
-    message = '${HTError._castee} [$varName]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.castee;
-  }
+  HTError.castee(String varName)
+      : this(ErrorCode.castee, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorCastee, interpolations: [varName]);
 
   /// Error: Illegal clone.
-  HTError.clone(String varName) {
-    message = '${HTError._clone} [$varName]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.clone;
-  }
+  HTError.clone(String varName)
+      : this(ErrorCode.clone, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorClone, interpolations: [varName]);
 
   /// Error: Not a super class of this instance.
-  HTError.notSuper(String classId, String id) {
-    message = '[$classId] ${HTError._notSuper} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.notSuper;
-  }
+  HTError.notSuper(String classId, String id)
+      : this(ErrorCode.notSuper, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNotSuper, interpolations: [classId, id]);
 
-  HTError.missingExternalFuncDef(String id) {
-    message = '${HTError._missingExternalFuncDef} [$id]';
-    type = HTErrorType.interpreter;
-    code = HTErrorCode.missingExternalFuncDef;
-  }
+  HTError.missingExternalFuncDef(String id)
+      : this(ErrorCode.missingExternalFuncDef, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorMissingExternalFuncDef,
+            interpolations: [id]);
+
+  HTError.internalFuncWithExternalTypeDef()
+      : this(ErrorCode.missingExternalFuncDef, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorInternalFuncWithExternalTypeDef);
+
+  HTError.externalCtorWithReferCtor()
+      : this(ErrorCode.externalCtorWithReferCtor, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorExternalCtorWithReferCtor);
+
+  HTError.nonCotrWithReferCtor()
+      : this(ErrorCode.nonCotrWithReferCtor, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorNonCotrWithReferCtor);
+
+  /// Error: Module import error
+  HTError.moduleImport(String id)
+      : this(ErrorCode.moduleImport, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorModuleImport, interpolations: [id]);
+
+  /// Error: Try to define a class on a instance.
+  HTError.classOnInstance()
+      : this(ErrorCode.classOnInstance, ErrorType.RUN_TIME_ERROR,
+            message: HTLexicon.errorClassOnInstance);
 }

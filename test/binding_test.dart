@@ -12,7 +12,9 @@ class Profile {
   late Name name;
 
   bool _isCivilian = true;
+  // ignore: unnecessary_getters_setters
   bool get isCivilian => _isCivilian;
+  // ignore: unnecessary_getters_setters
   set isCivilian(bool value) => _isCivilian = value;
 
   Profile(String familyName, String firstName) {

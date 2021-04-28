@@ -300,7 +300,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curLine = expr.line;
     _curColumn = expr.column;
     if (_curClass == null) {
-      throw HTError.unexpected(expr.keyword.lexeme);
+      throw HTError.outsideThis();
     }
 
     _lookUpVar(expr, expr.keyword.lexeme);
