@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../source/source.dart';
+import '../common/source.dart';
 import '../src/const_table.dart';
 import 'opcode.dart';
 

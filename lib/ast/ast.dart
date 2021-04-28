@@ -124,7 +124,7 @@ class NullExpr extends ASTNode {
   dynamic accept(ASTNodeVisitor visitor) => visitor.visitNullExpr(this);
 
   NullExpr(String fileName, int line, int column)
-      : super(HTLexicon.nullExpr, fileName, line, column);
+      : super(SemanticType.literalNullExpr, fileName, line, column);
 
   @override
   ASTNode clone() => NullExpr(fileName, line, column);
@@ -137,7 +137,7 @@ class BooleanExpr extends ASTNode {
   final bool value;
 
   BooleanExpr(this.value, String fileName, int line, int column)
-      : super(HTLexicon.literalBooleanExpr, fileName, line, column);
+      : super(SemanticType.literalBooleanExpr, fileName, line, column);
 
   @override
   ASTNode clone() => BooleanExpr(value, fileName, line, column);
@@ -150,7 +150,7 @@ class ConstIntExpr extends ASTNode {
   final int constIndex;
 
   ConstIntExpr(this.constIndex, String fileName, int line, int column)
-      : super(HTLexicon.literalIntExpr, fileName, line, column);
+      : super(SemanticType.literalIntExpr, fileName, line, column);
 
   @override
   ASTNode clone() => ConstIntExpr(constIndex, fileName, line, column);
@@ -163,7 +163,7 @@ class ConstFloatExpr extends ASTNode {
   final int constIndex;
 
   ConstFloatExpr(this.constIndex, String fileName, int line, int column)
-      : super(HTLexicon.literalFloatExpr, fileName, line, column);
+      : super(SemanticType.literalFloatExpr, fileName, line, column);
 
   @override
   ASTNode clone() => ConstFloatExpr(constIndex, fileName, line, column);
@@ -176,7 +176,7 @@ class ConstStringExpr extends ASTNode {
   final int constIndex;
 
   ConstStringExpr(this.constIndex, String fileName, int line, int column)
-      : super(HTLexicon.literalStringExpr, fileName, line, column);
+      : super(SemanticType.literalStringExpr, fileName, line, column);
 
   @override
   ASTNode clone() => ConstStringExpr(constIndex, fileName, line, column);
@@ -191,7 +191,7 @@ class LiteralVectorExpr extends ASTNode {
 
   LiteralVectorExpr(String fileName, int line, int column,
       [this.vector = const []])
-      : super(HTLexicon.literalVectorExpr, fileName, line, column);
+      : super(SemanticType.literalVectorExpr, fileName, line, column);
 
   @override
   ASTNode clone() {
@@ -210,7 +210,7 @@ class LiteralDictExpr extends ASTNode {
   final Map<ASTNode, ASTNode> map;
 
   LiteralDictExpr(String fileName, int line, int column, [this.map = const {}])
-      : super(HTLexicon.blockExpr, fileName, line, column);
+      : super(SemanticType.blockExpr, fileName, line, column);
 
   @override
   ASTNode clone() {
@@ -229,7 +229,7 @@ class GroupExpr extends ASTNode {
   final ASTNode inner;
 
   GroupExpr(this.inner)
-      : super(HTLexicon.groupExpr, inner.fileName, inner.line, inner.column);
+      : super(SemanticType.groupExpr, inner.fileName, inner.line, inner.column);
 
   @override
   ASTNode clone() => GroupExpr(inner.clone());
@@ -246,7 +246,7 @@ class UnaryExpr extends ASTNode {
   final ASTNode value;
 
   UnaryExpr(this.op, this.value)
-      : super(HTLexicon.unaryExpr, op.fileName, op.line, op.column);
+      : super(SemanticType.unaryExpr, op.fileName, op.line, op.column);
 
   @override
   ASTNode clone() => UnaryExpr(op, value.clone());
@@ -266,7 +266,7 @@ class BinaryExpr extends ASTNode {
   final ASTNode right;
 
   BinaryExpr(this.left, this.op, this.right)
-      : super(HTLexicon.binaryExpr, op.fileName, op.line, op.column);
+      : super(SemanticType.binaryExpr, op.fileName, op.line, op.column);
 
   @override
   ASTNode clone() => BinaryExpr(left.clone(), op, right.clone());
@@ -295,7 +295,7 @@ class SymbolExpr extends ASTNode {
   final Token id;
 
   SymbolExpr(this.id)
-      : super(HTLexicon.symbolExpr, id.fileName, id.line, id.column);
+      : super(SemanticType.symbolExpr, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => SymbolExpr(id);
@@ -315,7 +315,7 @@ class AssignExpr extends ASTNode {
   final ASTNode value;
 
   AssignExpr(this.variable, this.op, this.value)
-      : super(HTLexicon.assignExpr, variable.fileName, op.line, op.column);
+      : super(SemanticType.assignExpr, variable.fileName, op.line, op.column);
 
   @override
   ASTNode clone() => AssignExpr(variable, op, value);
@@ -332,7 +332,7 @@ class SubGetExpr extends ASTNode {
   final ASTNode key;
 
   SubGetExpr(this.collection, this.key)
-      : super(HTLexicon.subGetExpr, collection.fileName, collection.line,
+      : super(SemanticType.subGetExpr, collection.fileName, collection.line,
             collection.column);
 
   @override
@@ -353,7 +353,7 @@ class SubSetExpr extends ASTNode {
   final ASTNode value;
 
   SubSetExpr(this.collection, this.key, this.value)
-      : super(HTLexicon.subSetExpr, collection.fileName, collection.line,
+      : super(SemanticType.subSetExpr, collection.fileName, collection.line,
             collection.column);
 
   @override
@@ -371,7 +371,7 @@ class MemberGetExpr extends ASTNode {
   final Token key;
 
   MemberGetExpr(this.collection, this.key)
-      : super(HTLexicon.memberGetExpr, collection.fileName, collection.line,
+      : super(SemanticType.memberGetExpr, collection.fileName, collection.line,
             collection.column);
 
   @override
@@ -392,7 +392,7 @@ class MemberSetExpr extends ASTNode {
   final ASTNode value;
 
   MemberSetExpr(this.collection, this.key, this.value)
-      : super(HTLexicon.memberSetExpr, collection.fileName, collection.line,
+      : super(SemanticType.memberSetExpr, collection.fileName, collection.line,
             collection.column);
 
   @override
@@ -412,7 +412,8 @@ class CallExpr extends ASTNode {
   final Map<String, ASTNode> namedArgs;
 
   CallExpr(this.callee, this.positionalArgs, this.namedArgs)
-      : super(HTLexicon.callExpr, callee.fileName, callee.line, callee.column);
+      : super(
+            SemanticType.callExpr, callee.fileName, callee.line, callee.column);
 
   @override
   ASTNode clone() {
@@ -437,8 +438,8 @@ class ThisExpr extends ASTNode {
   final Token keyword;
 
   ThisExpr(this.keyword)
-      : super(
-            HTLexicon.thisExpr, keyword.fileName, keyword.line, keyword.column);
+      : super(SemanticType.thisExpr, keyword.fileName, keyword.line,
+            keyword.column);
 
   @override
   ASTNode clone() => ThisExpr(keyword);
@@ -455,7 +456,7 @@ class ImportStmt extends ASTNode {
   final String? namespace;
 
   ImportStmt(this.keyword, this.key, [this.namespace])
-      : super(HTLexicon.importStmt, keyword.fileName, keyword.line,
+      : super(SemanticType.importStmt, keyword.fileName, keyword.line,
             keyword.column);
 
   @override
@@ -470,7 +471,7 @@ class ExprStmt extends ASTNode {
   final ASTNode expr;
 
   ExprStmt(this.expr)
-      : super(HTLexicon.exprStmt, expr.fileName, expr.line, expr.column);
+      : super(SemanticType.exprStmt, expr.fileName, expr.line, expr.column);
 
   @override
   ASTNode clone() => ExprStmt(expr.clone());
@@ -483,7 +484,7 @@ class BlockStmt extends ASTNode {
   final List<ASTNode> block;
 
   BlockStmt(this.block, String fileName, int line, int column)
-      : super(HTLexicon.blockStmt, fileName, line, column);
+      : super(SemanticType.blockStmt, fileName, line, column);
 
   @override
   ASTNode clone() {
@@ -504,7 +505,7 @@ class ReturnStmt extends ASTNode {
   final ASTNode? value;
 
   ReturnStmt(this.keyword, this.value)
-      : super(HTLexicon.returnStmt, keyword.fileName, keyword.line,
+      : super(SemanticType.returnStmt, keyword.fileName, keyword.line,
             keyword.column);
 
   @override
@@ -522,7 +523,7 @@ class IfStmt extends ASTNode {
   final ASTNode? elseBranch;
 
   IfStmt(this.condition, this.thenBranch, this.elseBranch)
-      : super(HTLexicon.ifStmt, condition.fileName, condition.line,
+      : super(SemanticType.ifStmt, condition.fileName, condition.line,
             condition.column);
 
   @override
@@ -539,7 +540,7 @@ class WhileStmt extends ASTNode {
   final ASTNode? loop;
 
   WhileStmt(this.condition, this.loop)
-      : super(HTLexicon.whileStmt, condition.fileName, condition.line,
+      : super(SemanticType.whileStmt, condition.fileName, condition.line,
             condition.column);
 
   @override
@@ -553,7 +554,7 @@ class BreakStmt extends ASTNode {
   final Token keyword;
 
   BreakStmt(this.keyword)
-      : super(HTLexicon.breakStmt, keyword.fileName, keyword.line,
+      : super(SemanticType.breakStmt, keyword.fileName, keyword.line,
             keyword.column);
 
   @override
@@ -567,7 +568,7 @@ class ContinueStmt extends ASTNode {
   final Token keyword;
 
   ContinueStmt(this.keyword)
-      : super(HTLexicon.continueStmt, keyword.fileName, keyword.line,
+      : super(SemanticType.continueStmt, keyword.fileName, keyword.line,
             keyword.column);
 
   @override
@@ -600,7 +601,7 @@ class VarDeclStmt extends ASTNode {
       this.isExtern = false,
       this.isImmutable = false,
       this.isStatic = false})
-      : super(HTLexicon.varDeclStmt, id.fileName, id.line, id.column);
+      : super(SemanticType.varDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => VarDeclStmt(id,
@@ -613,7 +614,7 @@ class VarDeclStmt extends ASTNode {
 
 class ParamDeclStmt extends VarDeclStmt {
   @override
-  final type = HTLexicon.paramStmt;
+  final type = SemanticType.paramStmt;
 
   @override
   dynamic accept(ASTNodeVisitor visitor) => visitor.visitParamDeclStmt(this);
@@ -692,7 +693,7 @@ class FuncDeclStmt extends ASTNode {
       this.isConst = false,
       this.isVariadic = false,
       this.funcType = FunctionType.normal})
-      : super(HTLexicon.funcDeclStmt, fileName, line, column) {
+      : super(SemanticType.funcDeclStmt, fileName, line, column) {
     var func_name = id?.lexeme ??
         HTLexicon.anonymousFunction + (functionIndex++).toString();
 
@@ -766,7 +767,7 @@ class ClassDeclStmt extends ASTNode {
       this.superClass,
       this.superClassDeclStmt,
       this.superClassTypeArgs})
-      : super(HTLexicon.classDeclStmt, id.fileName, id.line, id.column);
+      : super(SemanticType.classDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() {
@@ -800,7 +801,7 @@ class EnumDeclStmt extends ASTNode {
   final bool isExtern;
 
   EnumDeclStmt(this.id, this.enumerations, {this.isExtern = false})
-      : super(HTLexicon.enumDeclStmt, id.fileName, id.line, id.column);
+      : super(SemanticType.enumDeclStmt, id.fileName, id.line, id.column);
 
   @override
   ASTNode clone() => EnumDeclStmt(id, enumerations, isExtern: isExtern);

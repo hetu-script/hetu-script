@@ -1192,10 +1192,11 @@ class Hetu extends Interpreter {
     String? superCtorId;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
-    final returnTypeEnum = FunctionReturnType.values.elementAt(_curCode.read());
-    if (returnTypeEnum == FunctionReturnType.type) {
+    final returnTypeEnum =
+        FunctionAppendixType.values.elementAt(_curCode.read());
+    if (returnTypeEnum == FunctionAppendixType.type) {
       returnType = _getType();
-    } else if (returnTypeEnum == FunctionReturnType.superClassConstructor) {
+    } else if (returnTypeEnum == FunctionAppendixType.referConstructor) {
       final hasSuperCtorid = _curCode.readBool();
       if (hasSuperCtorid) {
         superCtorId = _curCode.readShortUtf8String();

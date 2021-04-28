@@ -264,7 +264,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   _curBlock.classDecls[id] = decl;
                 } else {
                   throw HTError.unexpected(
-                      HTLexicon.classDeclStmt, curTok.lexeme);
+                      SemanticType.classDeclStmt, curTok.lexeme);
                 }
                 break;
               case HTLexicon.CLASS:
@@ -297,7 +297,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
               final id = _readId(decl);
               _curBlock.classDecls[id] = decl;
             } else {
-              throw HTError.unexpected(HTLexicon.classDeclStmt, curTok.lexeme);
+              throw HTError.unexpected(
+                  SemanticType.classDeclStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
@@ -374,7 +375,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
               final id = _readId(decl);
               _curBlock.classDecls[id] = decl;
             } else {
-              throw HTError.unexpected(HTLexicon.classDeclStmt, curTok.lexeme);
+              throw HTError.unexpected(
+                  SemanticType.classDeclStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.EXTERNAL:
@@ -389,7 +391,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   _curBlock.classDecls[id] = decl;
                 } else {
                   throw HTError.unexpected(
-                      HTLexicon.classDeclStmt, curTok.lexeme);
+                      SemanticType.classDeclStmt, curTok.lexeme);
                 }
                 break;
               case HTLexicon.CLASS:
@@ -1302,7 +1304,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     }
     Uint8List loopBody;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loopBody = _compileBlock(id: HTLexicon.whileStmt);
+      loopBody = _compileBlock(id: SemanticType.whileStmt);
     } else {
       loopBody = _compileStmt(codeType: CodeType.function);
     }
@@ -1329,7 +1331,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     bytesBuilder.addByte(HTOpCode.loopPoint);
     Uint8List loopBody;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loopBody = _compileBlock(id: HTLexicon.whileStmt);
+      loopBody = _compileBlock(id: SemanticType.whileStmt);
     } else {
       loopBody = _compileStmt(codeType: CodeType.function);
     }
@@ -1420,7 +1422,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     advance(1);
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
-    bytesBuilder.add(_shortUtf8String(HTLexicon.forStmtInit));
+    bytesBuilder.add(_shortUtf8String(SemanticType.forStmtInit));
     match(HTLexicon.roundLeft);
     final forStmtType = peek(2).lexeme;
     Uint8List? condition;
@@ -1429,7 +1431,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     Uint8List? increment;
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-        throw HTError.unexpected(HTLexicon.varDeclStmt, curTok.type);
+        throw HTError.unexpected(SemanticType.varDeclStmt, curTok.type);
       }
       final declPos = tokPos;
       // jump over keywrod
@@ -1507,7 +1509,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     else {
       if (curTok.type != HTLexicon.semicolon) {
         if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-          throw HTError.unexpected(HTLexicon.varDeclStmt, curTok.type);
+          throw HTError.unexpected(SemanticType.varDeclStmt, curTok.type);
         }
 
         final initDeclId = peek(1).lexeme;
@@ -1555,7 +1557,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     }
 
     bytesBuilder.addByte(HTOpCode.loopPoint);
-    final loop = _compileBlock(id: HTLexicon.forStmt, varDecl: shadowDecls);
+    final loop = _compileBlock(id: SemanticType.forStmt, varDecl: shadowDecls);
     final continueLength =
         (condition?.length ?? 0) + (assign?.length ?? 0) + loop.length + 2;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
@@ -1592,7 +1594,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         advance(1);
         match(HTLexicon.arrow);
         if (curTok.type == HTLexicon.curlyLeft) {
-          elseBranch = _compileBlock(id: HTLexicon.whenStmt);
+          elseBranch = _compileBlock(id: SemanticType.whenStmt);
         } else {
           elseBranch = _compileStmt(codeType: CodeType.function);
         }
@@ -1602,7 +1604,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         match(HTLexicon.arrow);
         late final caseBranch;
         if (curTok.type == HTLexicon.curlyLeft) {
-          caseBranch = _compileBlock(id: HTLexicon.whenStmt);
+          caseBranch = _compileBlock(id: SemanticType.whenStmt);
         } else {
           caseBranch = _compileStmt(codeType: CodeType.function);
         }
@@ -1762,7 +1764,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       final returnType = _compileType();
       bytesBuilder.add(returnType);
     } else {
-      throw HTError.unexpected(HTLexicon.typeExpr, curTok.type);
+      throw HTError.unexpected(SemanticType.typeExpr, curTok.type);
     }
 
     return bytesBuilder.toBytes();
@@ -2068,7 +2070,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       if (funcType == FunctionType.constructor) {
         throw HTError.ctorReturn();
       }
-      bytesBuilder.addByte(FunctionReturnType
+      bytesBuilder.addByte(FunctionAppendixType
           .type.index); // enum: return type or super constructor
       bytesBuilder.add(_compileType());
     }
@@ -2081,8 +2083,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         throw HTError.externalCtorWithReferCtor();
       }
 
-      bytesBuilder.addByte(FunctionReturnType.superClassConstructor
-          .index); // enum: return type or super constructor
+      bytesBuilder.addByte(FunctionAppendixType
+          .referConstructor.index); // enum: return type or super constructor
       if (advance(1).lexeme != HTLexicon.SUPER) {
         throw HTError.unexpected(HTLexicon.SUPER, curTok.lexeme);
       }
@@ -2098,7 +2100,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       final callArgs = _compileArguments(hasLength: true);
       bytesBuilder.add(callArgs);
     } else {
-      bytesBuilder.addByte(FunctionReturnType.none.index);
+      bytesBuilder.addByte(FunctionAppendixType.none.index);
     }
 
     // 处理函数定义部分的语句块

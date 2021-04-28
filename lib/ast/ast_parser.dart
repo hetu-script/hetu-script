@@ -52,9 +52,9 @@ class HTAstParser extends Parser with AstInterpreterRef {
   }
 
   static HTType parseType(String typeString) {
-    final tokens = Lexer().lex(typeString, HTLexicon.typeExpression);
+    final tokens = Lexer().lex(typeString, SemanticType.typeExpression);
     if (tokens.isEmpty) {
-      throw HTError.emptyString(HTLexicon.typeExpression);
+      throw HTError.emptyString(SemanticType.typeExpression);
     }
 
     if (tokens.first.type != HTLexicon.identifier) {
@@ -240,7 +240,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
               var value = _parseExpr();
               namedArgs[arg.id.lexeme] = value;
             } else {
-              throw HTError.unexpected(HTLexicon.symbolExpr, curTok.lexeme);
+              throw HTError.unexpected(SemanticType.symbolExpr, curTok.lexeme);
             }
           } else {
             positionalArgs.add(arg);

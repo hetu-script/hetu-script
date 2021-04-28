@@ -9,7 +9,7 @@ import '../core/core_class.dart';
 import '../core/core_function.dart';
 
 import 'namespace.dart';
-import 'constants.dart';
+import '../common/constants.dart';
 import 'type.dart';
 import 'hetu_lib.dart';
 import 'errors.dart';
@@ -62,7 +62,6 @@ abstract class Interpreter {
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) async {
     // load classes and functions in core library.
-    // TODO: dynamic load needed core lib in script
     if (coreModule) {
       for (final file in coreModules.keys) {
         await eval(coreModules[file]!, moduleFullName: file);
