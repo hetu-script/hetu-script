@@ -16,11 +16,10 @@ import '../common/constants.dart';
 import 'ast.dart';
 import 'ast_function.dart';
 import 'ast_parser.dart';
-import 'ast_resolver.dart';
 import 'ast_variable.dart';
 
-mixin AstInterpreterRef {
-  late final HTAstInterpreter interpreter;
+mixin AnalyzerRef {
+  late final HTAnalyzer interpreter;
 }
 
 class HTBreak {}
@@ -28,9 +27,7 @@ class HTBreak {}
 class HTContinue {}
 
 /// 负责对语句列表进行最终解释执行
-class HTAstInterpreter extends Interpreter
-    with ConstTable
-    implements AstNodeVisitor {
+class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   var _curLine = 0;
   @override
   int get curLine => _curLine;
@@ -50,7 +47,7 @@ class HTAstInterpreter extends Interpreter
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  final _distances = <AstNode, int>{};
+  // final _distances = <AstNode, int>{};
 
   dynamic _curStmtValue;
 
@@ -61,7 +58,7 @@ class HTAstInterpreter extends Interpreter
   @override
   HTNamespace get curNamespace => _curNamespace;
 
-  HTAstInterpreter(
+  HTAnalyzer(
       {bool debugMode = false,
       HTErrorHandler? errorHandler,
       HTModuleHandler? moduleHandler})
@@ -84,10 +81,8 @@ class HTAstInterpreter extends Interpreter
     _curNamespace = namespace ?? global;
 
     var parser = HTAstParser(this);
-    var resolver = HTAstResolver();
     try {
       final result = await parser.parse(content, _curModuleFullName, config);
-      _distances.addAll(resolver.resolve(result.root, _curModuleFullName));
 
       _curStmtValue = visitASTNode(result.root);
 
@@ -182,14 +177,14 @@ class HTAstInterpreter extends Interpreter
   @override
   void handleError(Object error, [StackTrace? stack]) {}
 
-  dynamic _getValue(String name, AstNode expr) {
-    var distance = _distances[expr];
-    if (distance != null) {
-      return _curNamespace.fetchAt(name, distance);
-    }
+  // dynamic _getValue(String name, AstNode expr) {
+  //   var distance = _distances[expr];
+  //   if (distance != null) {
+  //     return _curNamespace.fetchAt(name, distance);
+  //   }
 
-    return global.fetch(name);
-  }
+  //   return global.fetch(name);
+  // }
 
   dynamic executeBlock(List<AstNode> statements, HTNamespace environment) {
     var saved_context = _curNamespace;
@@ -251,7 +246,7 @@ class HTAstInterpreter extends Interpreter
   }
 
   @override
-  dynamic visitLiteralVectorExpr(LiteralVectorExpr expr) {
+  dynamic visitLiteralListExpr(LiteralVectorExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
     var list = [];
@@ -262,7 +257,7 @@ class HTAstInterpreter extends Interpreter
   }
 
   @override
-  dynamic visitLiteralDictExpr(LiteralDictExpr expr) {
+  dynamic visitLiteralMapExpr(LiteralDictExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
     var map = {};
@@ -278,7 +273,7 @@ class HTAstInterpreter extends Interpreter
   dynamic visitSymbolExpr(SymbolExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    return _getValue(expr.id.lexeme, expr);
+    return _curNamespace.fetch(expr.id.lexeme);
   }
 
   @override

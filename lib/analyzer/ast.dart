@@ -5,102 +5,66 @@ import '../common/constants.dart';
 
 /// Visitor interface for a abstract syntactic tree node
 abstract class AstNodeVisitor {
-  /// Null
   dynamic visitNullExpr(NullExpr expr);
 
-  // 布尔
   dynamic visitBooleanExpr(BooleanExpr expr);
 
-  /// 数字常量
   dynamic visitConstIntExpr(ConstIntExpr expr);
 
-  /// 数字常量
   dynamic visitConstFloatExpr(ConstFloatExpr expr);
 
-  /// 字符串常量
   dynamic visitConstStringExpr(ConstStringExpr expr);
 
-  /// 数组字面量
-  dynamic visitLiteralVectorExpr(LiteralVectorExpr expr);
+  dynamic visitLiteralListExpr(LiteralVectorExpr expr);
 
-  /// 字典字面量
-  dynamic visitLiteralDictExpr(LiteralDictExpr expr);
+  dynamic visitLiteralMapExpr(LiteralDictExpr expr);
 
-  /// 圆括号表达式
   dynamic visitGroupExpr(GroupExpr expr);
 
-  /// 单目表达式
   dynamic visitUnaryExpr(UnaryExpr expr);
 
-  /// 双目表达式
   dynamic visitBinaryExpr(BinaryExpr expr);
 
-  /// 类型名
   // dynamic visitTypeExpr(TypeExpr expr);
 
-  /// 变量名
   dynamic visitSymbolExpr(SymbolExpr expr);
 
-  /// 赋值表达式，返回右值，执行顺序优先右边
-  ///
-  /// 因此，a = b = c 解析为 a = (b = c)
   dynamic visitAssignExpr(AssignExpr expr);
 
-  /// 下标取值表达式
   dynamic visitSubGetExpr(SubGetExpr expr);
 
-  /// 下标赋值表达式
   dynamic visitSubSetExpr(SubSetExpr expr);
 
-  /// 属性取值表达式
   dynamic visitMemberGetExpr(MemberGetExpr expr);
 
-  /// 属性赋值表达式
   dynamic visitMemberSetExpr(MemberSetExpr expr);
 
-  /// 函数调用表达式，即便返回值是void的函数仍然还是表达式
   dynamic visitCallExpr(CallExpr expr);
 
-  /// This表达式
-  dynamic visitThisExpr(ThisExpr expr);
-
-  /// 导入语句
   dynamic visitImportStmt(ImportStmt stmt);
 
-  /// 表达式语句
   dynamic visitExprStmt(ExprStmt stmt);
 
-  /// 语句块：用于既允许单条语句，又允许语句块的场合，比如IfStatment
   dynamic visitBlockStmt(BlockStmt stmt);
 
-  /// 返回语句
   dynamic visitReturnStmt(ReturnStmt stmt);
 
-  /// If语句
   dynamic visitIfStmt(IfStmt stmt);
 
-  /// While语句
   dynamic visitWhileStmt(WhileStmt stmt);
 
-  /// Break语句
   dynamic visitBreakStmt(BreakStmt stmt);
 
-  /// Continue语句
   dynamic visitContinueStmt(ContinueStmt stmt);
 
-  /// 变量声明语句
   dynamic visitVarDeclStmt(VarDeclStmt stmt);
 
-  /// 参数声明语句
   dynamic visitParamDeclStmt(ParamDeclStmt stmt);
 
-  /// 函数声明和定义
   dynamic visitFuncDeclStmt(FuncDeclStmt stmt);
 
-  /// 类
   dynamic visitClassDeclStmt(ClassDeclStmt stmt);
 
-  /// 枚举类
   dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
 
   /// Parse result of a single script file, root for analyze
@@ -187,8 +151,7 @@ class ConstStringExpr extends AstNode {
 
 class LiteralVectorExpr extends AstNode {
   @override
-  dynamic accept(AstNodeVisitor visitor) =>
-      visitor.visitLiteralVectorExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitLiteralListExpr(this);
 
   final List<AstNode> vector;
 
@@ -208,7 +171,7 @@ class LiteralVectorExpr extends AstNode {
 
 class LiteralDictExpr extends AstNode {
   @override
-  dynamic accept(AstNodeVisitor visitor) => visitor.visitLiteralDictExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitLiteralMapExpr(this);
 
   final Map<AstNode, AstNode> map;
 
@@ -276,20 +239,19 @@ class BinaryExpr extends AstNode {
   AstNode clone() => BinaryExpr(left.clone(), op, right.clone());
 }
 
-// class TypeExpr extends Expr {
+// class TypeExpr extends AstNode {
 //   @override
-//   final String type = env.lexicon.VarExpr;
+//   dynamic accept(AstNodeVisitor visitor) => visitor.visitTypeExpr(this);
 
-//   @override
-//   dynamic accept(ExprVisitor visitor) => visitor.visitTypeExpr(this);
-
-//   final Token name;
+//   final Token id;
 
 //   final List<TypeExpr> arguments;
 
-//   TypeExpr(this.name, this.typeParameters, String fileName) : super(name.line, name.column, fileName);
+//   TypeExpr(this.id, this.arguments)
+//       : super(SemanticType.typeExpr, id.fileName, id.line, id.column);
 
-//   Expr clone() => TypeExpr(name, typeParameters, fileName);
+//   @override
+//   AstNode clone() => TypeExpr(id, arguments);
 // }
 
 class SymbolExpr extends AstNode {
@@ -433,20 +395,6 @@ class CallExpr extends AstNode {
 
     return CallExpr(callee.clone(), new_args, new_named_args);
   }
-}
-
-class ThisExpr extends AstNode {
-  @override
-  dynamic accept(AstNodeVisitor visitor) => visitor.visitThisExpr(this);
-
-  final Token keyword;
-
-  ThisExpr(this.keyword)
-      : super(SemanticType.thisExpr, keyword.fileName, keyword.line,
-            keyword.column);
-
-  @override
-  AstNode clone() => ThisExpr(keyword);
 }
 
 class ImportStmt extends AstNode {

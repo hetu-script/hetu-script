@@ -7,12 +7,12 @@ import '../implementation/variable.dart';
 import '../implementation/function.dart';
 import '../implementation/object.dart';
 import 'ast.dart';
-import 'ast_interpreter.dart';
+import 'ast_analyzer.dart';
 
-class HTAstFunction extends HTFunction with AstInterpreterRef {
+class HTAstFunction extends HTFunction with AnalyzerRef {
   final FuncDeclStmt funcStmt;
 
-  HTAstFunction(this.funcStmt, HTAstInterpreter interpreter,
+  HTAstFunction(this.funcStmt, HTAnalyzer interpreter,
       {String? externalTypedef, HTNamespace? context})
       : super(
           funcStmt.internalName,

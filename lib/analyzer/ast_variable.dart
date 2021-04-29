@@ -2,9 +2,9 @@ import '../implementation/variable.dart';
 import '../implementation/type.dart';
 import '../implementation/errors.dart';
 import 'ast.dart';
-import 'ast_interpreter.dart';
+import 'ast_analyzer.dart';
 
-class HTAstVariable extends HTVariable with AstInterpreterRef {
+class HTAstVariable extends HTVariable with AnalyzerRef {
   final bool isDynamic;
 
   @override
@@ -17,7 +17,7 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
 
   AstNode? initializer;
 
-  HTAstVariable(String id, HTAstInterpreter interpreter,
+  HTAstVariable(String id, HTAnalyzer interpreter,
       {String? classId,
       dynamic value,
       HTType? declType,

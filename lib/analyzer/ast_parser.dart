@@ -7,7 +7,7 @@ import '../implementation/token.dart';
 import '../implementation/class.dart';
 import '../common/constants.dart';
 import 'ast.dart';
-import 'ast_interpreter.dart';
+import 'ast_analyzer.dart';
 
 class AstParseResult {
   String content;
@@ -17,7 +17,7 @@ class AstParseResult {
   AstParseResult(this.content, this.root);
 }
 
-class HTAstParser extends Parser with AstInterpreterRef {
+class HTAstParser extends Parser with AnalyzerRef {
   late String _curModuleName;
   @override
   String get curModuleFullName => _curModuleName;
@@ -26,7 +26,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
   final _classStmts = <String, AstNode>{};
 
-  HTAstParser(HTAstInterpreter interpreter) {
+  HTAstParser(HTAnalyzer interpreter) {
     this.interpreter = interpreter;
   }
 
@@ -369,9 +369,6 @@ class HTAstParser extends Parser with AstInterpreterRef {
         advance(1);
         return ConstStringExpr(
             index, _curModuleName, peek(-1).line, peek(-1).column);
-      case HTLexicon.THIS:
-        advance(1);
-        return ThisExpr(peek(-1));
       case HTLexicon.identifier:
         advance(1);
         return SymbolExpr(peek(-1));
