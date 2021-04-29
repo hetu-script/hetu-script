@@ -1,13 +1,13 @@
-import '../src/namespace.dart';
-import '../src/type.dart';
-import '../src/function.dart';
-import '../src/constants.dart';
-import '../src/errors.dart';
-import '../src/variable.dart';
-import '../src/lexicon.dart';
-import '../src/class.dart';
-import '../src/instance.dart';
+import '../common/constants.dart';
 import '../binding/external_function.dart';
+import '../implementation/namespace.dart';
+import '../implementation/type.dart';
+import '../implementation/function.dart';
+import '../implementation/errors.dart';
+import '../implementation/variable.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/class.dart';
+import '../implementation/instance.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode_variable.dart';
 import 'bytecode.dart' show GotoInfo;
@@ -88,7 +88,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
 
-    rtType = HTFunctionType(
+    objectType = HTFunctionType(
         parameterTypes: parameterDeclarations
             .map((key, value) => MapEntry(key, value.paramType)),
         minArity: minArity,
@@ -101,11 +101,11 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
     var result = StringBuffer();
     result.write(HTLexicon.FUNCTION);
     result.write(' $id');
-    if (rtType.typeArgs.isNotEmpty) {
+    if (objectType.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < rtType.typeArgs.length; ++i) {
-        result.write(rtType.typeArgs[i]);
-        if (i < rtType.typeArgs.length - 1) {
+      for (var i = 0; i < objectType.typeArgs.length; ++i) {
+        result.write(objectType.typeArgs[i]);
+        if (i < objectType.typeArgs.length - 1) {
           result.write('${HTLexicon.comma} ');
         }
       }
@@ -413,9 +413,9 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
       if (funcType != FunctionType.constructor) {
         if (returnType != HTType.ANY) {
           final encapsulation = interpreter.encapsulate(result);
-          if (encapsulation.rtType.isNotA(returnType)) {
+          if (encapsulation.objectType.isNotA(returnType)) {
             throw HTError.returnType(
-                encapsulation.rtType.toString(), id, returnType.toString());
+                encapsulation.objectType.toString(), id, returnType.toString());
           }
         }
       }

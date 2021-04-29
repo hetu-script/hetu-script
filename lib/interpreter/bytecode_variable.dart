@@ -1,8 +1,8 @@
-import '../src/variable.dart';
-import '../src/type.dart';
-import '../src/errors.dart';
-import '../src/class.dart';
-import '../src/lexicon.dart';
+import '../implementation/variable.dart';
+import '../implementation/type.dart';
+import '../implementation/errors.dart';
+import '../implementation/class.dart';
+import '../implementation/lexicon.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode.dart' show GotoInfo;
 
@@ -43,7 +43,6 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       bool isExtern = false,
       this.typeInferrence = false,
       this.isImmutable = false,
-      bool isMember = false,
       bool isStatic = false})
       : super(id,
             classId: classId,
@@ -51,7 +50,6 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
             getter: getter,
             setter: setter,
             isExtern: isExtern,
-            isMember: isMember,
             isStatic: isStatic) {
     this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
@@ -63,7 +61,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       _declType = declType;
 
       if (_declType is HTFunctionType ||
-          _declType is HTInstanceType ||
+          _declType is HTObjectType ||
           (HTLexicon.primitiveType.contains(declType.typeName))) {
         _isTypeInitialized = true;
       }
@@ -144,7 +142,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
         }
       } else {
         final encapsulation = interpreter.encapsulate(value);
-        final valueType = encapsulation.rtType;
+        final valueType = encapsulation.objectType;
         if (valueType.isNotA(_declType!)) {
           throw HTError.type(id, valueType.toString(), _declType.toString());
         }
@@ -163,7 +161,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       }
     } else {
       if ((_declType == null) && typeInferrence && (value != null)) {
-        _declType = interpreter.encapsulate(value).rtType;
+        _declType = interpreter.encapsulate(value).objectType;
         _isTypeInitialized = true;
       }
     }
@@ -187,7 +185,6 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
           typeInferrence: typeInferrence,
           isExtern: isExtern,
           isImmutable: isImmutable,
-          isMember: isMember,
           isStatic: isStatic);
 }
 

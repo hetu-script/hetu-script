@@ -1,33 +1,31 @@
 import 'dart:io';
+
 import 'package:path/path.dart' as path;
 
-import '../src/errors.dart';
+import '../implementation/errors.dart';
 
 /// Result of module handler's import function
-class ImportResult {
+class ModuleContent {
   /// To tell a duplicated module
   final String fullName;
 
   /// The string content of the module
   final String content;
 
-  /// If true, this is a duplicated module,
-  /// the content will be a empty string
-  final bool duplicate;
-  ImportResult(this.fullName, this.content, {this.duplicate = false});
+  ModuleContent(this.fullName, this.content);
 }
 
 /// Abstract module import handler class
 abstract class HTModuleHandler {
   bool hasModule(String path);
 
-  String? getString(String path);
+  String resolveFullName(String key, [String? currentModuleFullName]);
 
-  Future<ImportResult> import(String key,
-      {String? curFilePath, bool checkDuplicate = true});
+  Future<ModuleContent> getContent(String key,
+      {String? curModuleFullName, bool reload = true});
 
-  ImportResult importSync(String key,
-      {String? curFilePath, bool checkDuplicate = true});
+  ModuleContent getContentSync(String key,
+      {String? curFilePath, bool reload = true});
 }
 
 /// Default module import handler implementation
@@ -55,72 +53,56 @@ class DefaultModuleHandler implements HTModuleHandler {
   bool hasModule(String key) => _importedFiles.containsKey(key);
 
   @override
-  String? getString(String key) => _importedFiles[key];
-
-  String _resolvePath(String key, [String? curFilePath]) {
-    late final String filePath;
-    if (curFilePath != null) {
-      filePath = path.dirname(curFilePath);
+  String resolveFullName(String key, [String? curModuleFullName]) {
+    late final String fullName;
+    if (curModuleFullName != null) {
+      fullName = path.dirname(curModuleFullName);
     } else {
-      filePath = workingDirectory;
+      fullName = workingDirectory;
     }
 
-    return path.join(filePath, key);
+    return path.join(fullName, key);
   }
 
   /// Import a script module with a certain [key], ignore those already imported
   ///
-  /// If [curFilePath] is provided, the handler will try to get a relative path
+  /// If [curModuleFullName] is provided, the handler will try to get a relative path
   ///
   /// Otherwise, a absolute path is calculated from [workingDirectory]
   @override
-  Future<ImportResult> import(String key,
-      {String? curFilePath, bool checkDuplicate = true}) async {
+  Future<ModuleContent> getContent(String key,
+      {String? curModuleFullName, bool reload = true}) async {
     try {
-      var filePath = _resolvePath(key, curFilePath);
+      var fullName = resolveFullName(key, curModuleFullName);
 
       var content = '';
-      if (checkDuplicate && _importedFiles.containsKey(filePath)) {
-        return ImportResult(filePath, content, duplicate: true);
-      } else {
-        content = await File(filePath).readAsString();
+      if (!hasModule(fullName) || reload) {
+        content = await File(fullName).readAsString();
         if (content.isNotEmpty) {
-          _importedFiles[filePath] = content;
-          if (content.isEmpty) throw HTError.emptyString(filePath);
-          return ImportResult(filePath, content);
+          _importedFiles[fullName] = content;
+          if (content.isEmpty) throw HTError.emptyString(fullName);
+          return ModuleContent(fullName, content);
         } else {
-          throw HTError.emptyString(filePath);
+          throw HTError.emptyString(fullName);
         }
+      } else {
+        return ModuleContent(fullName, _importedFiles[fullName]!);
       }
     } catch (e) {
-      throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
-          message: e.toString());
+      if (e is HTError) {
+        rethrow;
+      } else {
+        throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+            message: e.toString());
+      }
     }
   }
 
   /// Synchronized version of [import].
   @override
-  ImportResult importSync(String key,
-      {String? curFilePath, bool checkDuplicate = true}) {
-    try {
-      var filePath = _resolvePath(key, curFilePath);
-
-      var content = '';
-      if (checkDuplicate && _importedFiles.containsKey(filePath)) {
-        return ImportResult(filePath, content, duplicate: true);
-      } else {
-        content = File(filePath).readAsStringSync();
-        if (content.isNotEmpty) {
-          _importedFiles[filePath] = content;
-          if (content.isEmpty) throw HTError.emptyString(filePath);
-          return ImportResult(filePath, content);
-        } else {
-          throw HTError.emptyString(filePath);
-        }
-      }
-    } catch (e) {
-      throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
-          message: e.toString());
-    }
+  ModuleContent getContentSync(String key,
+      {String? curFilePath, bool reload = true}) {
+    throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+        message: 'getContentSync is currently unusable');
   }
 }

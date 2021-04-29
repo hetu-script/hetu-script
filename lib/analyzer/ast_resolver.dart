@@ -1,10 +1,11 @@
-import '../src/errors.dart';
-import '../src/lexicon.dart';
-import '../src/constants.dart';
+import '../implementation/errors.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/class.dart';
+import '../common/constants.dart';
 import 'ast.dart';
 
-/// 负责对语句列表进行分析，并生成变量作用域
-class HTAstResolver implements ASTNodeVisitor {
+/// Class for generating name scopes of symbols.
+class HTAstResolver implements AstNodeVisitor {
   int _curLine = 0;
   int get curLine => _curLine;
   int _curColumn = 0;
@@ -22,14 +23,14 @@ class HTAstResolver implements ASTNodeVisitor {
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  final _distances = <ASTNode, int>{};
+  final _distances = <AstNode, int>{};
 
   // 返回每个表达式对应的求值深度
-  Map<ASTNode, int> resolve(List<ASTNode> statements, String fileName) {
+  Map<AstNode, int> resolve(AstNode node, String fileName) {
     curFileName = fileName;
 
     _beginBlock();
-    for (final stmt in statements) {
+    for (final stmt in module.statements) {
       _resolveASTNode(stmt);
     }
     for (final klass in _classes) {
@@ -63,7 +64,7 @@ class HTAstResolver implements ASTNodeVisitor {
     }
   }
 
-  void _lookUpVar(ASTNode expr, String varname) {
+  void _lookUpVar(AstNode expr, String varname) {
     for (var i = _blocks.length - 1; i >= 0; --i) {
       if (_blocks[i].containsKey(varname)) {
         _distances[expr] = _blocks.length - 1 - i;
@@ -74,7 +75,7 @@ class HTAstResolver implements ASTNodeVisitor {
     // Not found. Assume it is global.
   }
 
-  void _resolveBlock(List<ASTNode> statements) {
+  void _resolveBlock(List<AstNode> statements) {
     for (final stmt in statements) {
       _resolveASTNode(stmt);
     }
@@ -182,7 +183,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curClass = savedClass;
   }
 
-  void _resolveASTNode(ASTNode ast) => ast.accept(this);
+  void _resolveASTNode(AstNode ast) => ast.accept(this);
 
   /// Null并没有任何变量需要解析，因此这里留空
   @override
@@ -356,7 +357,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curLine = stmt.line;
     _curColumn = stmt.column;
     _beginBlock();
-    _resolveBlock(stmt.block);
+    _resolveBlock(stmt.statements);
     _endBlock();
   }
 
@@ -452,4 +453,7 @@ class HTAstResolver implements ASTNodeVisitor {
     _curColumn = stmt.column;
     _declare(stmt.id.lexeme, define: true);
   }
+
+  @override
+  dynamic visitAstModule(AstModule module) {}
 }

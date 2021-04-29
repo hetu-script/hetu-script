@@ -1,16 +1,16 @@
-import '../src/interpreter.dart';
-import '../src/object.dart';
-import '../src/type.dart';
-import '../src/lexicon.dart';
-import '../src/errors.dart';
-import '../src/class.dart';
-import '../src/function.dart';
+import '../implementation/interpreter.dart';
+import '../implementation/object.dart';
+import '../implementation/type.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/errors.dart';
+import '../implementation/class.dart';
+import '../implementation/function.dart';
 import 'external_class.dart';
 
 /// Class for external object.
 class HTExternalInstance<T> with HTObject, InterpreterRef {
   @override
-  late final HTType rtType;
+  late final HTType objectType;
 
   /// the external object.
   final T externalObject;
@@ -43,22 +43,22 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
             }
           }
         }
-        if (curKlass.superClassType != null) {
-          extended.add(curKlass.superClassType!);
+        if (curKlass.extendedType != null) {
+          extended.add(curKlass.extendedType!);
         }
         curKlass = curKlass.superClass;
       }
-      rtType = HTInstanceType(klass.id, extended: extended);
+      objectType = HTObjectType(klass.id, extended: extended);
     } else {
-      rtType = HTUnknownType(typeString);
+      objectType = HTUnknownType(typeString);
     }
   }
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'runtimeType':
-        return rtType;
+      case 'objectType':
+        return objectType;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externalObject.toString();

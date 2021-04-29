@@ -25,13 +25,12 @@ class HTType with HTObject {
   static const boolean = HTType(HTLexicon.boolean);
   static const string = HTType(HTLexicon.string);
 
-  static final CLASS = HTInstanceType(HTLexicon.CLASS, extended: [HTType.TYPE]);
+  static final CLASS = HTObjectType(HTLexicon.CLASS, extended: [HTType.TYPE]);
 
   static final integer =
-      HTInstanceType(HTLexicon.integer, extended: [HTType.number]);
+      HTObjectType(HTLexicon.integer, extended: [HTType.number]);
 
-  static final float =
-      HTInstanceType(HTLexicon.float, extended: [HTType.number]);
+  static final float = HTObjectType(HTLexicon.float, extended: [HTType.number]);
 
   static String parseBaseType(String typeString) {
     final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
@@ -49,7 +48,7 @@ class HTType with HTObject {
     late HTType typeResult;
     HTClass? typeClass;
     if (type is HTFunctionType ||
-        type is HTInstanceType ||
+        type is HTObjectType ||
         HTLexicon.primitiveType.contains(type.typeName)) {
       typeResult = type;
     } else {
@@ -59,7 +58,7 @@ class HTType with HTObject {
         if (!typeDef.isExtern) {
           typeClass = typeDef;
         }
-        typeResult = HTInstanceType.fromClass(typeDef,
+        typeResult = HTObjectType.fromClass(typeDef,
             typeArgs: type.typeArgs, isNullable: type.isNullable);
       } else {
         // typeDef is a function type
@@ -72,7 +71,7 @@ class HTType with HTObject {
 
   /// A [HTType]'s type is itself.
   @override
-  HTType get rtType => HTType.TYPE;
+  HTType get objectType => HTType.TYPE;
 
   final String typeName;
   final List<HTType> typeArgs;
@@ -165,25 +164,25 @@ class HTUnknownType extends HTType {
   String toString() => '${HTLexicon.unknownType}${HTLexicon.colon} $typeString';
 }
 
-class HTInstanceType extends HTType {
+class HTObjectType extends HTType {
   late final List<HTType> extended;
   // late final List<HTType> implemented;
   // late final List<HTType> mixined;
 
-  HTInstanceType.fromClass(HTInheritable klass,
+  HTObjectType.fromClass(HTClass klass,
       {List<HTType> typeArgs = const [], bool isNullable = false})
       : super(klass.id, typeArgs: typeArgs, isNullable: isNullable) {
-    HTInheritable? curKlass = klass;
+    HTClass? curKlass = klass;
     extended = <HTType>[];
     while (curKlass != null) {
-      if (curKlass.superClassType != null) {
-        extended.add(curKlass.superClassType!);
+      if (curKlass.extendedType != null) {
+        extended.add(curKlass.extendedType!);
       }
       curKlass = curKlass.superClass;
     }
   }
 
-  HTInstanceType(String typeName,
+  HTObjectType(String typeName,
       {List<HTType> typeArgs = const [],
       this.extended = const [],
       // this.implemented = const [],
@@ -280,7 +279,7 @@ class HTParameterType extends HTType {
 }
 
 /// [HTFunctionType] is equivalent to Dart's function typedef,
-class HTFunctionType extends HTInstanceType {
+class HTFunctionType extends HTObjectType {
   final List<String> typeParameters;
   final Map<String, HTParameterType> parameterTypes;
   final int minArity;
@@ -297,11 +296,11 @@ class HTFunctionType extends HTInstanceType {
   String toString() {
     var result = StringBuffer();
     result.write(HTLexicon.FUNCTION);
-    if (rtType.typeArgs.isNotEmpty) {
+    if (objectType.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < rtType.typeArgs.length; ++i) {
-        result.write(rtType.typeArgs[i]);
-        if (i < rtType.typeArgs.length - 1) {
+      for (var i = 0; i < objectType.typeArgs.length; ++i) {
+        result.write(objectType.typeArgs[i]);
+        if (i < objectType.typeArgs.length - 1) {
           result.write('${HTLexicon.comma} ');
         }
       }
@@ -397,7 +396,7 @@ class HTFunctionType extends HTInstanceType {
   }
 }
 
-String convertTypeArgsToString(List<HTType> typeArgs) {
+String conveobjectTypeArgsToString(List<HTType> typeArgs) {
   final sb = StringBuffer();
   if (typeArgs.isNotEmpty) {
     sb.write(HTLexicon.angleLeft);

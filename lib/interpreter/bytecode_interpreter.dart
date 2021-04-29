@@ -2,22 +2,21 @@ import 'dart:typed_data';
 
 import 'package:pub_semver/pub_semver.dart';
 
-import '../src/interpreter.dart';
-import '../src/type.dart';
-import '../src/constants.dart';
-import '../src/lexicon.dart';
-import '../src/lexer.dart';
-import '../src/errors.dart';
-import '../src/namespace.dart';
-import '../src/class.dart';
-import '../src/object.dart';
-import '../src/enum.dart';
-import '../src/function.dart';
-import '../src/cast.dart';
+import '../common/constants.dart';
 import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../binding/external_function.dart';
-
+import '../implementation/interpreter.dart';
+import '../implementation/type.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/errors.dart';
+import '../implementation/namespace.dart';
+import '../implementation/class.dart';
+import '../implementation/object.dart';
+import '../implementation/enum.dart';
+import '../implementation/function.dart';
+import '../implementation/cast.dart';
+import '../implementation/parser.dart';
 import 'compiler.dart';
 import 'opcode.dart';
 import 'bytecode.dart';
@@ -129,8 +128,8 @@ class Hetu extends Interpreter {
   @override
   Future<dynamic> eval(String content,
       {String? moduleFullName,
-      CodeType codeType = CodeType.module,
       HTNamespace? namespace,
+      ParserConfig config = const ParserConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -138,22 +137,24 @@ class Hetu extends Interpreter {
       bool errorHandled = false}) async {
     if (content.isEmpty) throw HTError.emptyString();
 
-    _curCompiler = HTCompiler(this);
+    _curCompiler = HTCompiler();
 
     final fullName = moduleFullName ??
         (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
     _curModuleFullName = fullName;
 
     try {
-      final tokens = Lexer().lex(content, fullName);
-      final bytes = await _curCompiler.compile(tokens, this, fullName,
-          codeType: codeType);
+      final compilation = await _curCompiler
+          .compile(content, moduleHandler, fullName, config: config);
 
-      _curCode =
-          _modules[fullName] = HTBytecodeSource(Uri(path: fullName), bytes);
+      _modules.addAll(compilation.modules);
+
+      _curCode = _modules[fullName]!;
+
       _curModuleFullName = fullName;
+
       var result = execute(namespace: namespace ?? global);
-      if (codeType == CodeType.module && invokeFunc != null) {
+      if (config.codeType == CodeType.module && invokeFunc != null) {
         result = invoke(invokeFunc,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
@@ -183,35 +184,38 @@ class Hetu extends Interpreter {
   Future<dynamic> import(String key,
       {String? curModuleFullName,
       String? moduleName,
-      CodeType codeType = CodeType.module,
+      ParserConfig config = const ParserConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) async {
     dynamic result;
-    final module =
-        await moduleHandler.import(key, curFilePath: curModuleFullName);
 
-    if (module.duplicate) return;
+    final fullName = moduleHandler.resolveFullName(key);
 
-    final savedNamespace = _curNamespace;
-    if ((moduleName != null) && (moduleName != HTLexicon.global)) {
-      _curNamespace = HTNamespace(this, id: moduleName, closure: global);
-      global.define(_curNamespace);
+    if (config.reload || !moduleHandler.hasModule(fullName)) {
+      final module = await moduleHandler.getContent(key,
+          curModuleFullName: curModuleFullName);
+
+      final savedNamespace = _curNamespace;
+      if ((moduleName != null) && (moduleName != HTLexicon.global)) {
+        _curNamespace = HTNamespace(this, id: moduleName, closure: global);
+        global.define(_curNamespace);
+      }
+
+      result = await eval(module.content,
+          moduleFullName: module.fullName,
+          namespace: _curNamespace,
+          config: config,
+          invokeFunc: invokeFunc,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs);
+
+      _curNamespace = savedNamespace;
+
+      return result;
     }
-
-    result = await eval(module.content,
-        moduleFullName: module.fullName,
-        namespace: _curNamespace,
-        codeType: codeType,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
-
-    _curNamespace = savedNamespace;
-
-    return result;
   }
 
   /// Call a function within current [HTNamespace].
@@ -290,28 +294,11 @@ class Hetu extends Interpreter {
   }
 
   /// Compile a script content into bytecode for later use.
-  Future<Uint8List> compile(String content, String moduleName,
-      {CodeType codeType = CodeType.module,
-      bool debugMode = true,
+  Future<HTBytecodeCompilation> compile(String content, String moduleName,
+      {ParserConfig config = const ParserConfig(),
       bool errorHandled = false}) async {
-    final bytesBuilder = BytesBuilder();
-    _curCompiler = HTCompiler(this);
-
-    try {
-      final tokens = Lexer().lex(content, moduleName);
-      final bytes = await _curCompiler.compile(tokens, this, moduleName,
-          codeType: codeType, debugInfo: debugMode);
-
-      bytesBuilder.add(bytes);
-    } catch (error, stack) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        handleError(error, stack);
-      }
-    } finally {
-      return bytesBuilder.toBytes();
-    }
+    throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+        message: 'compile is currently unusable');
   }
 
   /// Load a pre-compiled bytecode in to module library.
@@ -877,13 +864,13 @@ class Hetu extends Interpreter {
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTType type = _curValue;
         final encapsulated = encapsulate(object);
-        _curValue = encapsulated.rtType.isA(type);
+        _curValue = encapsulated.objectType.isA(type);
         break;
       case HTOpCode.typeIsNot:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTType type = _curValue;
         final encapsulated = encapsulate(object);
-        _curValue = encapsulated.rtType.isNotA(type);
+        _curValue = encapsulated.objectType.isNotA(type);
         break;
       case HTOpCode.add:
         _curValue = _getRegVal(HTRegIdx.addLeft) + _curValue;
@@ -1086,7 +1073,6 @@ class Hetu extends Interpreter {
     final typeInferrence = _curCode.readBool();
     final isExtern = _curCode.readBool();
     final isImmutable = _curCode.readBool();
-    final isMember = _curCode.readBool();
     final isStatic = _curCode.readBool();
     final lateInitialize = _curCode.readBool();
 
@@ -1115,7 +1101,6 @@ class Hetu extends Interpreter {
         typeInferrence: typeInferrence,
         isExtern: isExtern,
         isImmutable: isImmutable,
-        isMember: isMember,
         isStatic: isStatic);
 
     // TODO: should eval before create HTBytecodeVariable instance
@@ -1123,7 +1108,7 @@ class Hetu extends Interpreter {
       decl.initialize();
     }
 
-    if (!isMember || isStatic) {
+    if (!hasClassId || isStatic) {
       _curNamespace.define(decl);
     } else {
       _curClass!.defineInstanceMember(decl);
@@ -1276,22 +1261,22 @@ class Hetu extends Interpreter {
     // final classType = ClassType.values[_curCode.read()];
 
     HTClass? superClass;
-    HTType? superClassType;
+    HTType? extendedType;
     final hasSuperClass = _curCode.readBool();
     if (hasSuperClass) {
-      superClassType = _getType();
-      superClass = _curNamespace.fetch(superClassType.typeName,
+      extendedType = _getType();
+      superClass = _curNamespace.fetch(extendedType.typeName,
           from: _curNamespace.fullName);
     } else {
       if (!isExtern && (id != HTLexicon.object)) {
-        superClassType = HTType.object;
+        extendedType = HTType.object;
         superClass = global.fetch(HTLexicon.object);
       }
     }
 
     final klass = HTClass(id, this, _curModuleFullName, _curNamespace,
         superClass: superClass,
-        superClassType: superClassType,
+        extendedType: extendedType,
         isExtern: isExtern,
         isAbstract: isAbstract);
     _curNamespace.define(klass);

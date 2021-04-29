@@ -23,13 +23,6 @@ enum TypeType {
   union,
 }
 
-class ClassInfo {
-  final String id;
-  final bool isExtern;
-  final bool isAbstract;
-  ClassInfo(this.id, {this.isExtern = false, this.isAbstract = false});
-}
-
 /// Code module types
 enum CodeType {
   /// Expression can only have a single expression statement
@@ -90,4 +83,7 @@ abstract class SemanticType {
   static const classDeclStmt = 'class_declaration_statement';
   static const enumDeclStmt = 'enum_declaration_statement';
   static const funcDeclStmt = 'function_declaration_statement';
+
+  static const module = 'module';
+  static const library = 'library';
 }

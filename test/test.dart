@@ -5,5 +5,5 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     print('hi' + 2)
-  ''', codeType: CodeType.script);
+  ''', config: ParserConfig(codeType: CodeType.script));
 }

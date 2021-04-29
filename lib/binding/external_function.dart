@@ -1,5 +1,5 @@
-import '../src/type.dart' show HTType;
-import '../src/function.dart' show HTFunction;
+import '../implementation/type.dart' show HTType;
+import '../implementation/function.dart' show HTFunction;
 
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
@@ -14,12 +14,12 @@ typedef HTExternalFunction = dynamic Function(
 /// native function as parameter.
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
-class DartTypeReflectResult {
+class DaobjectTypeReflectResult {
   final bool success;
   final String typeString;
 
-  DartTypeReflectResult(this.success, this.typeString);
+  DaobjectTypeReflectResult(this.success, this.typeString);
 }
 
-typedef HTExternalTypeReflection = DartTypeReflectResult Function(
+typedef HTExternalTypeReflection = DaobjectTypeReflectResult Function(
     dynamic object);

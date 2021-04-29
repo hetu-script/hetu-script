@@ -8,10 +8,10 @@ import 'errors.dart';
 import 'lexicon.dart';
 import 'function.dart';
 import 'namespace.dart';
-import 'constants.dart';
 import 'cast.dart';
 import 'declaration.dart';
 import 'variable.dart';
+import '../common/constants.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
@@ -20,9 +20,9 @@ class HTInstance with HTObject, InterpreterRef {
   late final String id;
 
   @override
-  late final HTInstanceType rtType;
+  late final HTObjectType objectType;
 
-  String get classId => rtType.typeName;
+  String get classId => objectType.typeName;
 
   /// A [HTInstance] has all members inherited from all super classes,
   /// Key is the id of a super class.
@@ -69,8 +69,8 @@ class HTInstance with HTObject, InterpreterRef {
 
       _namespaces[curKlass.id] = curNamespace;
 
-      if (curKlass.superClassType != null) {
-        extended.add(curKlass.superClassType!);
+      if (curKlass.extendedType != null) {
+        extended.add(curKlass.extendedType!);
       }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
@@ -84,7 +84,7 @@ class HTInstance with HTObject, InterpreterRef {
       curNamespace = curNamespace.next;
     }
 
-    rtType = HTInstanceType(klass.id, typeArgs: typeArgs, extended: extended);
+    objectType = HTObjectType(klass.id, typeArgs: typeArgs, extended: extended);
   }
 
   @override
@@ -184,11 +184,11 @@ class HTInstance with HTObject, InterpreterRef {
 
     // TODO: this part should be declared in the hetu script codes
     switch (varName) {
-      case 'runtimeType':
-        return rtType;
+      case 'objectType':
+        return objectType;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            '${HTLexicon.instanceOf} $rtType';
+            '${HTLexicon.instanceOf} $objectType';
       case 'toJson':
         return ({positionalArgs, namedArgs, typeArgs}) => toJson();
       default:

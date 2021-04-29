@@ -1,10 +1,10 @@
-import '../src/token.dart';
-import '../src/lexicon.dart';
-import '../src/type.dart';
-import '../src/constants.dart';
+import '../implementation/token.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/type.dart';
+import '../common/constants.dart';
 
-/// 抽象的访问者模式，包含访问表达式的抽象语法树的接口
-abstract class ASTNodeVisitor {
+/// Visitor interface for a abstract syntactic tree node
+abstract class AstNodeVisitor {
   /// Null
   dynamic visitNullExpr(NullExpr expr);
 
@@ -102,37 +102,40 @@ abstract class ASTNodeVisitor {
 
   /// 枚举类
   dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
+
+  /// Parse result of a single script file, root for analyze
+  dynamic visitAstModule(AstModule module);
 }
 
-abstract class ASTNode {
+abstract class AstNode {
   final String type;
 
-  final String fileName;
+  final String moduleFullName;
   final int line;
   final int column;
 
   /// 取表达式右值，返回值本身
-  dynamic accept(ASTNodeVisitor visitor);
+  dynamic accept(AstNodeVisitor visitor);
 
-  ASTNode(this.type, this.fileName, this.line, this.column);
+  AstNode(this.type, this.moduleFullName, this.line, this.column);
 
-  ASTNode clone();
+  AstNode clone();
 }
 
-class NullExpr extends ASTNode {
+class NullExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitNullExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitNullExpr(this);
 
   NullExpr(String fileName, int line, int column)
       : super(SemanticType.literalNullExpr, fileName, line, column);
 
   @override
-  ASTNode clone() => NullExpr(fileName, line, column);
+  AstNode clone() => NullExpr(moduleFullName, line, column);
 }
 
-class BooleanExpr extends ASTNode {
+class BooleanExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitBooleanExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitBooleanExpr(this);
 
   final bool value;
 
@@ -140,12 +143,12 @@ class BooleanExpr extends ASTNode {
       : super(SemanticType.literalBooleanExpr, fileName, line, column);
 
   @override
-  ASTNode clone() => BooleanExpr(value, fileName, line, column);
+  AstNode clone() => BooleanExpr(value, moduleFullName, line, column);
 }
 
-class ConstIntExpr extends ASTNode {
+class ConstIntExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitConstIntExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitConstIntExpr(this);
 
   final int constIndex;
 
@@ -153,12 +156,12 @@ class ConstIntExpr extends ASTNode {
       : super(SemanticType.literalIntExpr, fileName, line, column);
 
   @override
-  ASTNode clone() => ConstIntExpr(constIndex, fileName, line, column);
+  AstNode clone() => ConstIntExpr(constIndex, moduleFullName, line, column);
 }
 
-class ConstFloatExpr extends ASTNode {
+class ConstFloatExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitConstFloatExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitConstFloatExpr(this);
 
   final int constIndex;
 
@@ -166,12 +169,12 @@ class ConstFloatExpr extends ASTNode {
       : super(SemanticType.literalFloatExpr, fileName, line, column);
 
   @override
-  ASTNode clone() => ConstFloatExpr(constIndex, fileName, line, column);
+  AstNode clone() => ConstFloatExpr(constIndex, moduleFullName, line, column);
 }
 
-class ConstStringExpr extends ASTNode {
+class ConstStringExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitConstStringExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitConstStringExpr(this);
 
   final int constIndex;
 
@@ -179,97 +182,98 @@ class ConstStringExpr extends ASTNode {
       : super(SemanticType.literalStringExpr, fileName, line, column);
 
   @override
-  ASTNode clone() => ConstStringExpr(constIndex, fileName, line, column);
+  AstNode clone() => ConstStringExpr(constIndex, moduleFullName, line, column);
 }
 
-class LiteralVectorExpr extends ASTNode {
+class LiteralVectorExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) =>
+  dynamic accept(AstNodeVisitor visitor) =>
       visitor.visitLiteralVectorExpr(this);
 
-  final List<ASTNode> vector;
+  final List<AstNode> vector;
 
   LiteralVectorExpr(String fileName, int line, int column,
       [this.vector = const []])
       : super(SemanticType.literalVectorExpr, fileName, line, column);
 
   @override
-  ASTNode clone() {
-    var new_list = <ASTNode>[];
+  AstNode clone() {
+    var new_list = <AstNode>[];
     for (final expr in vector) {
       new_list.add(expr.clone());
     }
-    return LiteralVectorExpr(fileName, line, column, new_list);
+    return LiteralVectorExpr(moduleFullName, line, column, new_list);
   }
 }
 
-class LiteralDictExpr extends ASTNode {
+class LiteralDictExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitLiteralDictExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitLiteralDictExpr(this);
 
-  final Map<ASTNode, ASTNode> map;
+  final Map<AstNode, AstNode> map;
 
   LiteralDictExpr(String fileName, int line, int column, [this.map = const {}])
       : super(SemanticType.blockExpr, fileName, line, column);
 
   @override
-  ASTNode clone() {
-    var new_map = <ASTNode, ASTNode>{};
+  AstNode clone() {
+    var new_map = <AstNode, AstNode>{};
     for (final expr in map.keys) {
       new_map[expr.clone()] = map[expr]!.clone();
     }
-    return LiteralDictExpr(fileName, line, column, new_map);
+    return LiteralDictExpr(moduleFullName, line, column, new_map);
   }
 }
 
-class GroupExpr extends ASTNode {
+class GroupExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitGroupExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitGroupExpr(this);
 
-  final ASTNode inner;
+  final AstNode inner;
 
   GroupExpr(this.inner)
-      : super(SemanticType.groupExpr, inner.fileName, inner.line, inner.column);
+      : super(SemanticType.groupExpr, inner.moduleFullName, inner.line,
+            inner.column);
 
   @override
-  ASTNode clone() => GroupExpr(inner.clone());
+  AstNode clone() => GroupExpr(inner.clone());
 }
 
-class UnaryExpr extends ASTNode {
+class UnaryExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitUnaryExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitUnaryExpr(this);
 
   /// 各种单目操作符
   final Token op;
 
   /// 变量名、表达式、函数调用
-  final ASTNode value;
+  final AstNode value;
 
   UnaryExpr(this.op, this.value)
       : super(SemanticType.unaryExpr, op.fileName, op.line, op.column);
 
   @override
-  ASTNode clone() => UnaryExpr(op, value.clone());
+  AstNode clone() => UnaryExpr(op, value.clone());
 }
 
-class BinaryExpr extends ASTNode {
+class BinaryExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitBinaryExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitBinaryExpr(this);
 
   /// 左值
-  final ASTNode left;
+  final AstNode left;
 
   /// 各种双目操作符
   final Token op;
 
   /// 变量名、表达式、函数调用
-  final ASTNode right;
+  final AstNode right;
 
   BinaryExpr(this.left, this.op, this.right)
       : super(SemanticType.binaryExpr, op.fileName, op.line, op.column);
 
   @override
-  ASTNode clone() => BinaryExpr(left.clone(), op, right.clone());
+  AstNode clone() => BinaryExpr(left.clone(), op, right.clone());
 }
 
 // class TypeExpr extends Expr {
@@ -288,9 +292,9 @@ class BinaryExpr extends ASTNode {
 //   Expr clone() => TypeExpr(name, typeParameters, fileName);
 // }
 
-class SymbolExpr extends ASTNode {
+class SymbolExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitSymbolExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitSymbolExpr(this);
 
   final Token id;
 
@@ -298,12 +302,12 @@ class SymbolExpr extends ASTNode {
       : super(SemanticType.symbolExpr, id.fileName, id.line, id.column);
 
   @override
-  ASTNode clone() => SymbolExpr(id);
+  AstNode clone() => SymbolExpr(id);
 }
 
-class AssignExpr extends ASTNode {
+class AssignExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitAssignExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitAssignExpr(this);
 
   /// 变量名
   final Token variable;
@@ -312,117 +316,117 @@ class AssignExpr extends ASTNode {
   final Token op;
 
   /// 变量名、表达式、函数调用
-  final ASTNode value;
+  final AstNode value;
 
   AssignExpr(this.variable, this.op, this.value)
       : super(SemanticType.assignExpr, variable.fileName, op.line, op.column);
 
   @override
-  ASTNode clone() => AssignExpr(variable, op, value);
+  AstNode clone() => AssignExpr(variable, op, value);
 }
 
-class SubGetExpr extends ASTNode {
+class SubGetExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitSubGetExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitSubGetExpr(this);
 
   /// 数组
-  final ASTNode collection;
+  final AstNode collection;
 
   /// 索引
-  final ASTNode key;
+  final AstNode key;
 
   SubGetExpr(this.collection, this.key)
-      : super(SemanticType.subGetExpr, collection.fileName, collection.line,
-            collection.column);
+      : super(SemanticType.subGetExpr, collection.moduleFullName,
+            collection.line, collection.column);
 
   @override
-  ASTNode clone() => SubGetExpr(collection, key);
+  AstNode clone() => SubGetExpr(collection, key);
 }
 
-class SubSetExpr extends ASTNode {
+class SubSetExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitSubSetExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitSubSetExpr(this);
 
   /// 数组
-  final ASTNode collection;
+  final AstNode collection;
 
   /// 索引
-  final ASTNode key;
+  final AstNode key;
 
   /// 值
-  final ASTNode value;
+  final AstNode value;
 
   SubSetExpr(this.collection, this.key, this.value)
-      : super(SemanticType.subSetExpr, collection.fileName, collection.line,
-            collection.column);
+      : super(SemanticType.subSetExpr, collection.moduleFullName,
+            collection.line, collection.column);
 
   @override
-  ASTNode clone() => SubSetExpr(collection, key, value);
+  AstNode clone() => SubSetExpr(collection, key, value);
 }
 
-class MemberGetExpr extends ASTNode {
+class MemberGetExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitMemberGetExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitMemberGetExpr(this);
 
   /// 集合
-  final ASTNode collection;
+  final AstNode collection;
 
   /// 属性
   final Token key;
 
   MemberGetExpr(this.collection, this.key)
-      : super(SemanticType.memberGetExpr, collection.fileName, collection.line,
-            collection.column);
+      : super(SemanticType.memberGetExpr, collection.moduleFullName,
+            collection.line, collection.column);
 
   @override
-  ASTNode clone() => MemberGetExpr(collection, key);
+  AstNode clone() => MemberGetExpr(collection, key);
 }
 
-class MemberSetExpr extends ASTNode {
+class MemberSetExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitMemberSetExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitMemberSetExpr(this);
 
   /// 集合
-  final ASTNode collection;
+  final AstNode collection;
 
   /// 属性
   final Token key;
 
   /// 值
-  final ASTNode value;
+  final AstNode value;
 
   MemberSetExpr(this.collection, this.key, this.value)
-      : super(SemanticType.memberSetExpr, collection.fileName, collection.line,
-            collection.column);
+      : super(SemanticType.memberSetExpr, collection.moduleFullName,
+            collection.line, collection.column);
 
   @override
-  ASTNode clone() => MemberSetExpr(collection, key, value);
+  AstNode clone() => MemberSetExpr(collection, key, value);
 }
 
-class CallExpr extends ASTNode {
+class CallExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitCallExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitCallExpr(this);
 
   /// 可能是单独的变量名，也可能是一个表达式作为函数使用
-  final ASTNode callee;
+  final AstNode callee;
 
   /// 函数声明的参数是parameter，调用时传入的变量叫argument
-  final List<ASTNode> positionalArgs;
+  final List<AstNode> positionalArgs;
 
-  final Map<String, ASTNode> namedArgs;
+  final Map<String, AstNode> namedArgs;
 
   CallExpr(this.callee, this.positionalArgs, this.namedArgs)
-      : super(
-            SemanticType.callExpr, callee.fileName, callee.line, callee.column);
+      : super(SemanticType.callExpr, callee.moduleFullName, callee.line,
+            callee.column);
 
   @override
-  ASTNode clone() {
-    var new_args = <ASTNode>[];
+  AstNode clone() {
+    var new_args = <AstNode>[];
     for (final expr in positionalArgs) {
       new_args.add(expr.clone());
     }
 
-    var new_named_args = <String, ASTNode>{};
+    var new_named_args = <String, AstNode>{};
     for (final name in namedArgs.keys) {
       new_named_args[name] = namedArgs[name]!.clone();
     }
@@ -431,9 +435,9 @@ class CallExpr extends ASTNode {
   }
 }
 
-class ThisExpr extends ASTNode {
+class ThisExpr extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitThisExpr(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitThisExpr(this);
 
   final Token keyword;
 
@@ -442,12 +446,12 @@ class ThisExpr extends ASTNode {
             keyword.column);
 
   @override
-  ASTNode clone() => ThisExpr(keyword);
+  AstNode clone() => ThisExpr(keyword);
 }
 
-class ImportStmt extends ASTNode {
+class ImportStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitImportStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitImportStmt(this);
 
   final Token keyword;
 
@@ -460,96 +464,97 @@ class ImportStmt extends ASTNode {
             keyword.column);
 
   @override
-  ASTNode clone() => ImportStmt(keyword, key, namespace);
+  AstNode clone() => ImportStmt(keyword, key, namespace);
 }
 
-class ExprStmt extends ASTNode {
+class ExprStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitExprStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitExprStmt(this);
 
   /// 可能是单独的变量名，也可能是一个表达式作为函数使用
-  final ASTNode expr;
+  final AstNode expr;
 
   ExprStmt(this.expr)
-      : super(SemanticType.exprStmt, expr.fileName, expr.line, expr.column);
+      : super(
+            SemanticType.exprStmt, expr.moduleFullName, expr.line, expr.column);
 
   @override
-  ASTNode clone() => ExprStmt(expr.clone());
+  AstNode clone() => ExprStmt(expr.clone());
 }
 
-class BlockStmt extends ASTNode {
+class BlockStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitBlockStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitBlockStmt(this);
 
-  final List<ASTNode> block;
+  final List<AstNode> statements;
 
-  BlockStmt(this.block, String fileName, int line, int column)
+  BlockStmt(this.statements, String fileName, int line, int column)
       : super(SemanticType.blockStmt, fileName, line, column);
 
   @override
-  ASTNode clone() {
-    var new_list = <ASTNode>[];
-    for (final expr in block) {
+  AstNode clone() {
+    var new_list = <AstNode>[];
+    for (final expr in statements) {
       new_list.add(expr.clone());
     }
-    return BlockStmt(new_list, fileName, line, column);
+    return BlockStmt(new_list, moduleFullName, line, column);
   }
 }
 
-class ReturnStmt extends ASTNode {
+class ReturnStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitReturnStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitReturnStmt(this);
 
   final Token keyword;
 
-  final ASTNode? value;
+  final AstNode? value;
 
   ReturnStmt(this.keyword, this.value)
       : super(SemanticType.returnStmt, keyword.fileName, keyword.line,
             keyword.column);
 
   @override
-  ASTNode clone() => ReturnStmt(keyword, value?.clone());
+  AstNode clone() => ReturnStmt(keyword, value?.clone());
 }
 
-class IfStmt extends ASTNode {
+class IfStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitIfStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitIfStmt(this);
 
-  final ASTNode condition;
+  final AstNode condition;
 
-  final ASTNode? thenBranch;
+  final AstNode? thenBranch;
 
-  final ASTNode? elseBranch;
+  final AstNode? elseBranch;
 
   IfStmt(this.condition, this.thenBranch, this.elseBranch)
-      : super(SemanticType.ifStmt, condition.fileName, condition.line,
+      : super(SemanticType.ifStmt, condition.moduleFullName, condition.line,
             condition.column);
 
   @override
-  ASTNode clone() =>
+  AstNode clone() =>
       IfStmt(condition.clone(), thenBranch?.clone(), elseBranch?.clone());
 }
 
-class WhileStmt extends ASTNode {
+class WhileStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitWhileStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitWhileStmt(this);
 
-  final ASTNode condition;
+  final AstNode condition;
 
-  final ASTNode? loop;
+  final AstNode? loop;
 
   WhileStmt(this.condition, this.loop)
-      : super(SemanticType.whileStmt, condition.fileName, condition.line,
+      : super(SemanticType.whileStmt, condition.moduleFullName, condition.line,
             condition.column);
 
   @override
-  ASTNode clone() => WhileStmt(condition.clone(), loop?.clone());
+  AstNode clone() => WhileStmt(condition.clone(), loop?.clone());
 }
 
-class BreakStmt extends ASTNode {
+class BreakStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitBreakStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitBreakStmt(this);
 
   final Token keyword;
 
@@ -558,12 +563,12 @@ class BreakStmt extends ASTNode {
             keyword.column);
 
   @override
-  ASTNode clone() => BreakStmt(keyword);
+  AstNode clone() => BreakStmt(keyword);
 }
 
-class ContinueStmt extends ASTNode {
+class ContinueStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitContinueStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitContinueStmt(this);
 
   final Token keyword;
 
@@ -572,18 +577,18 @@ class ContinueStmt extends ASTNode {
             keyword.column);
 
   @override
-  ASTNode clone() => ContinueStmt(keyword);
+  AstNode clone() => ContinueStmt(keyword);
 }
 
-class VarDeclStmt extends ASTNode {
+class VarDeclStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitVarDeclStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitVarDeclStmt(this);
 
   final Token id;
 
   final HTType? declType;
 
-  final ASTNode? initializer;
+  final AstNode? initializer;
 
   final bool isDynamic;
 
@@ -604,7 +609,7 @@ class VarDeclStmt extends ASTNode {
       : super(SemanticType.varDeclStmt, id.fileName, id.line, id.column);
 
   @override
-  ASTNode clone() => VarDeclStmt(id,
+  AstNode clone() => VarDeclStmt(id,
       declType: declType,
       initializer: initializer,
       isExtern: isExtern,
@@ -617,7 +622,7 @@ class ParamDeclStmt extends VarDeclStmt {
   final type = SemanticType.paramStmt;
 
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitParamDeclStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitParamDeclStmt(this);
 
   final bool isVariadic;
 
@@ -627,7 +632,7 @@ class ParamDeclStmt extends VarDeclStmt {
 
   ParamDeclStmt(Token id,
       {HTType? declType,
-      ASTNode? initializer,
+      AstNode? initializer,
       bool isImmutable = false,
       this.isVariadic = false,
       this.isOptional = false,
@@ -638,7 +643,7 @@ class ParamDeclStmt extends VarDeclStmt {
             isImmutable: isImmutable);
 
   @override
-  ASTNode clone() => ParamDeclStmt(id,
+  AstNode clone() => ParamDeclStmt(id,
       declType: declType,
       initializer: initializer,
       isImmutable: isImmutable,
@@ -647,11 +652,11 @@ class ParamDeclStmt extends VarDeclStmt {
       isNamed: isNamed);
 }
 
-class FuncDeclStmt extends ASTNode {
+class FuncDeclStmt extends AstNode {
   static int functionIndex = 0;
 
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitFuncDeclStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitFuncDeclStmt(this);
 
   final Token? id;
 
@@ -669,7 +674,7 @@ class FuncDeclStmt extends ASTNode {
 
   final int arity;
 
-  final List<ASTNode>? definition;
+  final List<AstNode>? definition;
 
   final bool isExtern;
 
@@ -711,7 +716,7 @@ class FuncDeclStmt extends ASTNode {
   }
 
   @override
-  ASTNode clone() {
+  AstNode clone() {
     var new_params = <ParamDeclStmt>[];
     for (final expr in params) {
       new_params.add(expr.clone() as ParamDeclStmt);
@@ -719,13 +724,13 @@ class FuncDeclStmt extends ASTNode {
 
     var new_body;
     if (definition != null) {
-      new_body = <ASTNode>[];
+      new_body = <AstNode>[];
       for (final expr in definition!) {
         new_body.add(expr.clone());
       }
     }
 
-    return FuncDeclStmt(returnType, new_params, fileName, line, column,
+    return FuncDeclStmt(returnType, new_params, moduleFullName, line, column,
         id: id,
         classId: classId,
         typeParameters: typeParameters,
@@ -738,9 +743,9 @@ class FuncDeclStmt extends ASTNode {
   }
 }
 
-class ClassDeclStmt extends ASTNode {
+class ClassDeclStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitClassDeclStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitClassDeclStmt(this);
 
   final Token id;
 
@@ -770,7 +775,7 @@ class ClassDeclStmt extends ASTNode {
       : super(SemanticType.classDeclStmt, id.fileName, id.line, id.column);
 
   @override
-  ASTNode clone() {
+  AstNode clone() {
     var new_vars = <VarDeclStmt>[];
     for (final expr in variables) {
       new_vars.add(expr.clone() as VarDeclStmt);
@@ -791,9 +796,10 @@ class ClassDeclStmt extends ASTNode {
   }
 }
 
-class EnumDeclStmt extends ASTNode {
+class EnumDeclStmt extends AstNode {
   @override
-  dynamic accept(ASTNodeVisitor visitor) => visitor.visitEnumDeclStmt(this);
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitEnumDeclStmt(this);
+
   final Token id;
 
   final List<String> enumerations;
@@ -804,5 +810,24 @@ class EnumDeclStmt extends ASTNode {
       : super(SemanticType.enumDeclStmt, id.fileName, id.line, id.column);
 
   @override
-  ASTNode clone() => EnumDeclStmt(id, enumerations, isExtern: isExtern);
+  AstNode clone() => EnumDeclStmt(id, enumerations, isExtern: isExtern);
+}
+
+class AstModule extends AstNode {
+  @override
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitAstModule(this);
+
+  final List<AstNode> statements;
+
+  AstModule(this.statements, String fileName, int line, int column)
+      : super(SemanticType.blockStmt, fileName, line, column);
+
+  @override
+  AstNode clone() {
+    var new_list = <AstNode>[];
+    for (final expr in statements) {
+      new_list.add(expr.clone());
+    }
+    return AstModule(new_list, moduleFullName, line, column);
+  }
 }

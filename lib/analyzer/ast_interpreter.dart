@@ -1,18 +1,18 @@
 import '../plugin/errorHandler.dart';
 import '../plugin/moduleHandler.dart';
 import '../binding/external_function.dart';
-import '../src/errors.dart';
-import '../src/type.dart';
-import '../src/namespace.dart';
-import '../src/class.dart';
-import '../src/function.dart';
-import '../src/lexer.dart';
-import '../src/constants.dart';
-import '../src/lexicon.dart';
-import '../src/object.dart';
-import '../src/interpreter.dart';
-import '../src/enum.dart';
-import '../src/const_table.dart';
+import '../implementation/errors.dart';
+import '../implementation/type.dart';
+import '../implementation/namespace.dart';
+import '../implementation/class.dart';
+import '../implementation/function.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/object.dart';
+import '../implementation/interpreter.dart';
+import '../implementation/enum.dart';
+import '../implementation/const_table.dart';
+import '../implementation/parser.dart';
+import '../common/constants.dart';
 import 'ast.dart';
 import 'ast_function.dart';
 import 'ast_parser.dart';
@@ -30,7 +30,7 @@ class HTContinue {}
 /// 负责对语句列表进行最终解释执行
 class HTAstInterpreter extends Interpreter
     with ConstTable
-    implements ASTNodeVisitor {
+    implements AstNodeVisitor {
   var _curLine = 0;
   @override
   int get curLine => _curLine;
@@ -50,7 +50,7 @@ class HTAstInterpreter extends Interpreter
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  final _distances = <ASTNode, int>{};
+  final _distances = <AstNode, int>{};
 
   dynamic _curStmtValue;
 
@@ -70,9 +70,8 @@ class HTAstInterpreter extends Interpreter
   @override
   Future<dynamic> eval(String content,
       {String? moduleFullName,
-      CodeType codeType = CodeType.module,
-      bool debugMode = true,
       HTNamespace? namespace,
+      ParserConfig config = const ParserConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -84,25 +83,19 @@ class HTAstInterpreter extends Interpreter
     _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curNamespace = namespace ?? global;
 
-    var lexer = Lexer();
     var parser = HTAstParser(this);
     var resolver = HTAstResolver();
     try {
-      var tokens = lexer.lex(content, _curModuleFullName);
+      final result = await parser.parse(content, _curModuleFullName, config);
+      _distances.addAll(resolver.resolve(result.root, _curModuleFullName));
 
-      final statements =
-          await parser.parse(tokens, _curModuleFullName, codeType);
-      _distances.addAll(resolver.resolve(statements, _curModuleFullName));
-
-      for (final stmt in statements) {
-        _curStmtValue = visitASTNode(stmt);
-      }
+      _curStmtValue = visitASTNode(result.root);
 
       _curModuleFullName = _savedModuleName;
       _curNamespace = _savedNamespace;
 
       if (invokeFunc != null) {
-        if (codeType == CodeType.module) {
+        if (config.codeType == CodeType.module) {
           return invoke(invokeFunc,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
@@ -147,16 +140,15 @@ class HTAstInterpreter extends Interpreter
   Future<dynamic> import(String key,
       {String? curModuleFullName,
       String? moduleName,
-      CodeType codeType = CodeType.module,
-      bool debugMode = true,
+      ParserConfig config = const ParserConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) async {
     dynamic result;
 
-    final module = await moduleHandler.import(key,
-        curFilePath: curModuleFullName != HTLexicon.anonymousScript
+    final module = await moduleHandler.getContent(key,
+        curModuleFullName: curModuleFullName != HTLexicon.anonymousScript
             ? curModuleFullName
             : null);
     curModuleFullName = module.fullName;
@@ -170,7 +162,7 @@ class HTAstInterpreter extends Interpreter
     result = eval(module.content,
         moduleFullName: curModuleFullName,
         namespace: namespace,
-        codeType: codeType,
+        config: config,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
@@ -190,7 +182,7 @@ class HTAstInterpreter extends Interpreter
   @override
   void handleError(Object error, [StackTrace? stack]) {}
 
-  dynamic _getValue(String name, ASTNode expr) {
+  dynamic _getValue(String name, AstNode expr) {
     var distance = _distances[expr];
     if (distance != null) {
       return _curNamespace.fetchAt(name, distance);
@@ -199,7 +191,7 @@ class HTAstInterpreter extends Interpreter
     return global.fetch(name);
   }
 
-  dynamic executeBlock(List<ASTNode> statements, HTNamespace environment) {
+  dynamic executeBlock(List<AstNode> statements, HTNamespace environment) {
     var saved_context = _curNamespace;
 
     try {
@@ -214,7 +206,7 @@ class HTAstInterpreter extends Interpreter
     return _curStmtValue;
   }
 
-  dynamic visitASTNode(ASTNode ast) => ast.accept(this);
+  dynamic visitASTNode(AstNode ast) => ast.accept(this);
 
   @override
   dynamic visitNullExpr(NullExpr expr) {
@@ -362,7 +354,7 @@ class HTAstInterpreter extends Interpreter
       } else if (expr.op.type == HTLexicon.IS) {
         if (right is HTType) {
           final encapsulation = encapsulate(left);
-          return encapsulation.rtType.isA(right);
+          return encapsulation.objectType.isA(right);
         } else {
           throw HTError.notType(right.toString());
         }
@@ -641,7 +633,8 @@ class HTAstInterpreter extends Interpreter
   dynamic visitBlockStmt(BlockStmt stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    return executeBlock(stmt.block, HTNamespace(this, closure: _curNamespace));
+    return executeBlock(
+        stmt.statements, HTNamespace(this, closure: _curNamespace));
   }
 
   @override
@@ -768,7 +761,7 @@ class HTAstInterpreter extends Interpreter
     final klass =
         HTClass(stmt.id.lexeme, this, _curModuleFullName, _curNamespace,
             superClass: superClass,
-            superClassType: null, // TODO: 这里需要修改
+            extendedType: null, // TODO: 这里需要修改
             isExtern: stmt.isExtern,
             isAbstract: stmt.isAbstract);
 
@@ -838,5 +831,14 @@ class HTAstInterpreter extends Interpreter
         HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
 
     _curNamespace.define(enumClass);
+  }
+
+  @override
+  dynamic visitAstModule(AstModule module) {
+    var result;
+    for (final stmt in module.statements) {
+      result = visitASTNode(stmt);
+    }
+    return result;
   }
 }

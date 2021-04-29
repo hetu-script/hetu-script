@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../common/source.dart';
-import '../src/const_table.dart';
+import '../implementation/const_table.dart';
 import 'opcode.dart';
 
 /// Code module class, represent a trunk of bytecode.

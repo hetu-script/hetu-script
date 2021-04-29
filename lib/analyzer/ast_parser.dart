@@ -1,349 +1,56 @@
-import '../src/errors.dart';
-import '../src/lexicon.dart';
-import '../src/type.dart';
-import '../src/parser.dart';
-import '../src/constants.dart';
-import '../src/lexer.dart';
-import '../src/token.dart';
+import '../implementation/errors.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/type.dart';
+import '../implementation/parser.dart';
+import '../implementation/lexer.dart';
+import '../implementation/token.dart';
+import '../implementation/class.dart';
+import '../common/constants.dart';
 import 'ast.dart';
 import 'ast_interpreter.dart';
 
-class _ParseTypeResult {
-  HTType parsedType;
-  int pos;
+class AstParseResult {
+  String content;
 
-  _ParseTypeResult(this.parsedType, this.pos);
+  AstNode root;
+
+  AstParseResult(this.content, this.root);
 }
 
 class HTAstParser extends Parser with AstInterpreterRef {
-  static _ParseTypeResult _parseTypeFromTokens(List<Token> tokens) {
-    final typeName = tokens.first.lexeme;
-    var pos = 1;
-    var type_args = <HTType>[];
-
-    while (pos < tokens.length) {
-      if (tokens[pos].type == HTLexicon.angleLeft) {
-        pos++;
-        while (
-            (pos < tokens.length) && tokens[pos].type != HTLexicon.angleRight) {
-          final result = _parseTypeFromTokens(tokens.sublist(pos));
-          type_args.add(result.parsedType);
-          pos = result.pos;
-          if (tokens[pos].type != HTLexicon.angleRight) {
-            if (tokens[pos].type == HTLexicon.comma) {
-              ++pos;
-            } else {
-              throw HTError.unexpected(HTLexicon.comma, tokens[pos].lexeme);
-            }
-          }
-        }
-        if (tokens[pos].type != HTLexicon.angleRight) {
-          throw HTError.unexpected(HTLexicon.angleRight, tokens[pos].lexeme);
-        } else {
-          break;
-        }
-      } else {
-        throw HTError.unexpected(HTLexicon.angleLeft, tokens[pos].lexeme);
-      }
-    }
-
-    final parsedType = HTType(typeName, typeArgs: type_args);
-    return _ParseTypeResult(parsedType, pos);
-  }
-
-  static HTType parseType(String typeString) {
-    final tokens = Lexer().lex(typeString, SemanticType.typeExpression);
-    if (tokens.isEmpty) {
-      throw HTError.emptyString(SemanticType.typeExpression);
-    }
-
-    if (tokens.first.type != HTLexicon.identifier) {
-      throw HTError.unexpected(HTLexicon.identifier, tokens.first.lexeme);
-    }
-
-    final parseResult = _parseTypeFromTokens(tokens);
-
-    return parseResult.parsedType;
-  }
-
-  late String _curModuleFullName;
+  late String _curModuleName;
   @override
-  String get curModuleFullName => _curModuleFullName;
+  String get curModuleFullName => _curModuleName;
 
   ClassInfo? _curClass;
-  // HTType? _curClassType;
-  // String? _curClassId;
 
-  final _classStmts = <String, ASTNode>{};
+  final _classStmts = <String, AstNode>{};
 
   HTAstParser(HTAstInterpreter interpreter) {
     this.interpreter = interpreter;
   }
 
-  Future<List<ASTNode>> parse(List<Token> tokens, String fileName,
-      [CodeType codeType = CodeType.module, debugMode = false]) async {
-    this.tokens.clear();
-    this.tokens.addAll(tokens);
-    _curModuleFullName = fileName;
+  Future<AstParseResult> parse(String content, String moduleName,
+      [ParserConfig config = const ParserConfig()]) async {
+    var lexer = Lexer();
+    addTokens(lexer.lex(content, _curModuleName));
 
-    final statements = <ASTNode>[];
+    _curModuleName = moduleName;
+
+    final statements = <AstNode>[];
     while (curTok.type != HTLexicon.endOfFile) {
-      var stmt = _parseStmt(codeType: codeType);
+      var stmt = _parseStmt(codeType: config.codeType);
       if (stmt is ImportStmt) {
         await interpreter.import(stmt.key, moduleName: stmt.namespace);
-        _curModuleFullName = interpreter.curModuleFullName;
+        _curModuleName = interpreter.curModuleFullName;
       }
       statements.add(stmt);
     }
 
-    return statements;
+    return AstParseResult(content, AstModule(statements, moduleName, 0, 0));
   }
 
-  HTType _parseType() {
-    final type_name = advance(1).lexeme;
-    var type_args = <HTType>[];
-    if (expect([HTLexicon.angleLeft], consume: true)) {
-      while ((curTok.type != HTLexicon.angleRight) &&
-          (curTok.type != HTLexicon.endOfFile)) {
-        type_args.add(_parseType());
-        if (curTok.type != HTLexicon.angleRight) {
-          match(HTLexicon.comma);
-        }
-      }
-      match(HTLexicon.angleRight);
-    }
-
-    return HTType(type_name, typeArgs: type_args);
-  }
-
-  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
-  ASTNode _parseExpr() => _parseAssignmentExpr();
-
-  /// 赋值 = ，优先级 1，右合并
-  ///
-  /// 需要判断嵌套赋值、取属性、取下标的叠加
-  ASTNode _parseAssignmentExpr() {
-    final expr = _parseLogicalOrExpr();
-
-    if (HTLexicon.assignments.contains(curTok.type)) {
-      final op = advance(1);
-      final value = _parseAssignmentExpr();
-
-      if (expr is SymbolExpr) {
-        return AssignExpr(expr.id, op, value);
-      } else if (expr is MemberGetExpr) {
-        return MemberSetExpr(expr.collection, expr.key, value);
-      } else if (expr is SubGetExpr) {
-        return SubSetExpr(expr.collection, expr.key, value);
-      }
-
-      throw HTError.invalidLeftValue();
-    }
-
-    return expr;
-  }
-
-  /// 逻辑或 or ，优先级 5，左合并
-  ASTNode _parseLogicalOrExpr() {
-    var expr = _parseLogicalAndExpr();
-    while (curTok.type == HTLexicon.logicalOr) {
-      final op = advance(1);
-      final right = _parseLogicalAndExpr();
-      expr = BinaryExpr(expr, op, right);
-    }
-    return expr;
-  }
-
-  /// 逻辑和 and ，优先级 6，左合并
-  ASTNode _parseLogicalAndExpr() {
-    var expr = _parseEqualityExpr();
-    while (curTok.type == HTLexicon.logicalAnd) {
-      final op = advance(1);
-      final right = _parseEqualityExpr();
-      expr = BinaryExpr(expr, op, right);
-    }
-    return expr;
-  }
-
-  /// 逻辑相等 ==, !=，优先级 7，不合并
-  ASTNode _parseEqualityExpr() {
-    var expr = _parseRelationalExpr();
-    if (HTLexicon.equalitys.contains(curTok.type)) {
-      final op = advance(1);
-      final right = _parseRelationalExpr();
-      expr = BinaryExpr(expr, op, right);
-    }
-    return expr;
-  }
-
-  /// 逻辑比较 <, >, <=, >=，优先级 8，不合并
-  ASTNode _parseRelationalExpr() {
-    var expr = _parseAdditiveExpr();
-    if (HTLexicon.relationals.contains(curTok.type)) {
-      final op = advance(1);
-      final right = _parseAdditiveExpr();
-      expr = BinaryExpr(expr, op, right);
-    }
-    return expr;
-  }
-
-  /// 加法 +, -，优先级 13，左合并
-  ASTNode _parseAdditiveExpr() {
-    var expr = _parseMultiplicativeExpr();
-    while (HTLexicon.additives.contains(curTok.type)) {
-      final op = advance(1);
-      final right = _parseMultiplicativeExpr();
-      expr = BinaryExpr(expr, op, right);
-    }
-    return expr;
-  }
-
-  /// 乘法 *, /, %，优先级 14，左合并
-  ASTNode _parseMultiplicativeExpr() {
-    var expr = _parseUnaryPrefixExpr();
-    while (HTLexicon.multiplicatives.contains(curTok.type)) {
-      final op = advance(1);
-      final right = _parseUnaryPrefixExpr();
-      expr = BinaryExpr(expr, op, right);
-    }
-    return expr;
-  }
-
-  /// 前缀 -e, !e，优先级 15，不合并
-  ASTNode _parseUnaryPrefixExpr() {
-    // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
-    ASTNode expr;
-    if (HTLexicon.unaryPrefixs.contains(curTok.type)) {
-      var op = advance(1);
-
-      expr = UnaryExpr(op, _parseUnaryPostfixExpr());
-    } else {
-      expr = _parseUnaryPostfixExpr();
-    }
-    return expr;
-  }
-
-  /// 后缀 e., e[], e()，优先级 16，右合并
-  ASTNode _parseUnaryPostfixExpr() {
-    var expr = _parsePrimaryExpr();
-    while (true) {
-      if (expect([HTLexicon.call], consume: true)) {
-        var positionalArgs = <ASTNode>[];
-        var namedArgs = <String, ASTNode>{};
-
-        while ((curTok.type != HTLexicon.roundRight) &&
-            (curTok.type != HTLexicon.endOfFile)) {
-          final arg = _parseExpr();
-          if (expect([HTLexicon.colon], consume: false)) {
-            if (arg is SymbolExpr) {
-              advance(1);
-              var value = _parseExpr();
-              namedArgs[arg.id.lexeme] = value;
-            } else {
-              throw HTError.unexpected(SemanticType.symbolExpr, curTok.lexeme);
-            }
-          } else {
-            positionalArgs.add(arg);
-          }
-
-          if (curTok.type != HTLexicon.roundRight) {
-            match(HTLexicon.comma);
-          }
-        }
-        match(HTLexicon.roundRight);
-        expr = CallExpr(
-            expr, positionalArgs, namedArgs); // TODO: typeArgs: typeArgs
-      } else if (expect([HTLexicon.memberGet], consume: true)) {
-        final name = match(HTLexicon.identifier);
-        expr = MemberGetExpr(expr, name);
-      } else if (expect([HTLexicon.subGet], consume: true)) {
-        var index_expr = _parseExpr();
-        match(HTLexicon.squareRight);
-        expr = SubGetExpr(expr, index_expr);
-      } else {
-        break;
-      }
-    }
-    return expr;
-  }
-
-  /// 只有一个Token的简单表达式
-  ASTNode _parsePrimaryExpr() {
-    switch (curTok.type) {
-      case HTLexicon.NULL:
-        advance(1);
-        return NullExpr(_curModuleFullName, peek(-1).line, peek(-1).column);
-      case HTLexicon.TRUE:
-        advance(1);
-        return BooleanExpr(
-            true, _curModuleFullName, peek(-1).line, peek(-1).column);
-      case HTLexicon.FALSE:
-        advance(1);
-        return BooleanExpr(
-            false, _curModuleFullName, peek(-1).line, peek(-1).column);
-      case HTLexicon.integer:
-        var index = interpreter.addInt(curTok.literal);
-        advance(1);
-        return ConstIntExpr(
-            index, _curModuleFullName, peek(-1).line, peek(-1).column);
-      case HTLexicon.float:
-        var index = interpreter.addConstFloat(curTok.literal);
-        advance(1);
-        return ConstFloatExpr(
-            index, _curModuleFullName, peek(-1).line, peek(-1).column);
-      case HTLexicon.string:
-        var index = interpreter.addConstString(curTok.literal);
-        advance(1);
-        return ConstStringExpr(
-            index, _curModuleFullName, peek(-1).line, peek(-1).column);
-      case HTLexicon.THIS:
-        advance(1);
-        return ThisExpr(peek(-1));
-      case HTLexicon.identifier:
-        advance(1);
-        return SymbolExpr(peek(-1));
-      case HTLexicon.roundLeft:
-        advance(1);
-        var innerExpr = _parseExpr();
-        match(HTLexicon.roundRight);
-        return GroupExpr(innerExpr);
-      case HTLexicon.squareLeft:
-        final line = curTok.line;
-        final column = advance(1).column;
-        var list_expr = <ASTNode>[];
-        while (curTok.type != HTLexicon.squareRight) {
-          list_expr.add(_parseExpr());
-          if (curTok.type != HTLexicon.squareRight) {
-            match(HTLexicon.comma);
-          }
-        }
-        match(HTLexicon.squareRight);
-        return LiteralVectorExpr(_curModuleFullName, line, column, list_expr);
-      case HTLexicon.curlyLeft:
-        final line = curTok.line;
-        final column = advance(1).column;
-        var map_expr = <ASTNode, ASTNode>{};
-        while (curTok.type != HTLexicon.curlyRight) {
-          var key_expr = _parseExpr();
-          match(HTLexicon.colon);
-          var value_expr = _parseExpr();
-          map_expr[key_expr] = value_expr;
-          if (curTok.type != HTLexicon.curlyRight) {
-            match(HTLexicon.comma);
-          }
-        }
-        match(HTLexicon.curlyRight);
-        return LiteralDictExpr(_curModuleFullName, line, column, map_expr);
-
-      case HTLexicon.FUNCTION:
-        return _parseFuncDeclaration(funcType: FunctionType.literal);
-
-      default:
-        throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
-    }
-  }
-
-  ASTNode _parseStmt({CodeType codeType = CodeType.module}) {
+  AstNode _parseStmt({CodeType codeType = CodeType.module}) {
     switch (codeType) {
       case CodeType.module:
         switch (curTok.type) {
@@ -482,8 +189,252 @@ class HTAstParser extends Parser with AstInterpreterRef {
     }
   }
 
-  List<ASTNode> _parseBlock({CodeType codeType = CodeType.module}) {
-    var stmts = <ASTNode>[];
+  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
+  AstNode _parseExpr() => _parseAssignmentExpr();
+
+  /// 赋值 = ，优先级 1，右合并
+  ///
+  /// 需要判断嵌套赋值、取属性、取下标的叠加
+  AstNode _parseAssignmentExpr() {
+    final expr = _parseLogicalOrExpr();
+
+    if (HTLexicon.assignments.contains(curTok.type)) {
+      final op = advance(1);
+      final value = _parseAssignmentExpr();
+
+      if (expr is SymbolExpr) {
+        return AssignExpr(expr.id, op, value);
+      } else if (expr is MemberGetExpr) {
+        return MemberSetExpr(expr.collection, expr.key, value);
+      } else if (expr is SubGetExpr) {
+        return SubSetExpr(expr.collection, expr.key, value);
+      }
+
+      throw HTError.invalidLeftValue();
+    }
+
+    return expr;
+  }
+
+  /// 逻辑或 or ，优先级 5，左合并
+  AstNode _parseLogicalOrExpr() {
+    var expr = _parseLogicalAndExpr();
+    while (curTok.type == HTLexicon.logicalOr) {
+      final op = advance(1);
+      final right = _parseLogicalAndExpr();
+      expr = BinaryExpr(expr, op, right);
+    }
+    return expr;
+  }
+
+  /// 逻辑和 and ，优先级 6，左合并
+  AstNode _parseLogicalAndExpr() {
+    var expr = _parseEqualityExpr();
+    while (curTok.type == HTLexicon.logicalAnd) {
+      final op = advance(1);
+      final right = _parseEqualityExpr();
+      expr = BinaryExpr(expr, op, right);
+    }
+    return expr;
+  }
+
+  /// 逻辑相等 ==, !=，优先级 7，不合并
+  AstNode _parseEqualityExpr() {
+    var expr = _parseRelationalExpr();
+    if (HTLexicon.equalitys.contains(curTok.type)) {
+      final op = advance(1);
+      final right = _parseRelationalExpr();
+      expr = BinaryExpr(expr, op, right);
+    }
+    return expr;
+  }
+
+  /// 逻辑比较 <, >, <=, >=，优先级 8，不合并
+  AstNode _parseRelationalExpr() {
+    var expr = _parseAdditiveExpr();
+    if (HTLexicon.relationals.contains(curTok.type)) {
+      final op = advance(1);
+      final right = _parseAdditiveExpr();
+      expr = BinaryExpr(expr, op, right);
+    }
+    return expr;
+  }
+
+  /// 加法 +, -，优先级 13，左合并
+  AstNode _parseAdditiveExpr() {
+    var expr = _parseMultiplicativeExpr();
+    while (HTLexicon.additives.contains(curTok.type)) {
+      final op = advance(1);
+      final right = _parseMultiplicativeExpr();
+      expr = BinaryExpr(expr, op, right);
+    }
+    return expr;
+  }
+
+  /// 乘法 *, /, %，优先级 14，左合并
+  AstNode _parseMultiplicativeExpr() {
+    var expr = _parseUnaryPrefixExpr();
+    while (HTLexicon.multiplicatives.contains(curTok.type)) {
+      final op = advance(1);
+      final right = _parseUnaryPrefixExpr();
+      expr = BinaryExpr(expr, op, right);
+    }
+    return expr;
+  }
+
+  /// 前缀 -e, !e，优先级 15，不合并
+  AstNode _parseUnaryPrefixExpr() {
+    // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
+    AstNode expr;
+    if (HTLexicon.unaryPrefixs.contains(curTok.type)) {
+      var op = advance(1);
+
+      expr = UnaryExpr(op, _parseUnaryPostfixExpr());
+    } else {
+      expr = _parseUnaryPostfixExpr();
+    }
+    return expr;
+  }
+
+  /// 后缀 e., e[], e()，优先级 16，右合并
+  AstNode _parseUnaryPostfixExpr() {
+    var expr = _parsePrimaryExpr();
+    while (true) {
+      if (expect([HTLexicon.call], consume: true)) {
+        var positionalArgs = <AstNode>[];
+        var namedArgs = <String, AstNode>{};
+
+        while ((curTok.type != HTLexicon.roundRight) &&
+            (curTok.type != HTLexicon.endOfFile)) {
+          final arg = _parseExpr();
+          if (expect([HTLexicon.colon], consume: false)) {
+            if (arg is SymbolExpr) {
+              advance(1);
+              var value = _parseExpr();
+              namedArgs[arg.id.lexeme] = value;
+            } else {
+              throw HTError.unexpected(SemanticType.symbolExpr, curTok.lexeme);
+            }
+          } else {
+            positionalArgs.add(arg);
+          }
+
+          if (curTok.type != HTLexicon.roundRight) {
+            match(HTLexicon.comma);
+          }
+        }
+        match(HTLexicon.roundRight);
+        expr = CallExpr(
+            expr, positionalArgs, namedArgs); // TODO: typeArgs: typeArgs
+      } else if (expect([HTLexicon.memberGet], consume: true)) {
+        final name = match(HTLexicon.identifier);
+        expr = MemberGetExpr(expr, name);
+      } else if (expect([HTLexicon.subGet], consume: true)) {
+        var index_expr = _parseExpr();
+        match(HTLexicon.squareRight);
+        expr = SubGetExpr(expr, index_expr);
+      } else {
+        break;
+      }
+    }
+    return expr;
+  }
+
+  /// 只有一个Token的简单表达式
+  AstNode _parsePrimaryExpr() {
+    switch (curTok.type) {
+      case HTLexicon.NULL:
+        advance(1);
+        return NullExpr(_curModuleName, peek(-1).line, peek(-1).column);
+      case HTLexicon.TRUE:
+        advance(1);
+        return BooleanExpr(
+            true, _curModuleName, peek(-1).line, peek(-1).column);
+      case HTLexicon.FALSE:
+        advance(1);
+        return BooleanExpr(
+            false, _curModuleName, peek(-1).line, peek(-1).column);
+      case HTLexicon.integer:
+        var index = interpreter.addInt(curTok.literal);
+        advance(1);
+        return ConstIntExpr(
+            index, _curModuleName, peek(-1).line, peek(-1).column);
+      case HTLexicon.float:
+        var index = interpreter.addConstFloat(curTok.literal);
+        advance(1);
+        return ConstFloatExpr(
+            index, _curModuleName, peek(-1).line, peek(-1).column);
+      case HTLexicon.string:
+        var index = interpreter.addConstString(curTok.literal);
+        advance(1);
+        return ConstStringExpr(
+            index, _curModuleName, peek(-1).line, peek(-1).column);
+      case HTLexicon.THIS:
+        advance(1);
+        return ThisExpr(peek(-1));
+      case HTLexicon.identifier:
+        advance(1);
+        return SymbolExpr(peek(-1));
+      case HTLexicon.roundLeft:
+        advance(1);
+        var innerExpr = _parseExpr();
+        match(HTLexicon.roundRight);
+        return GroupExpr(innerExpr);
+      case HTLexicon.squareLeft:
+        final line = curTok.line;
+        final column = advance(1).column;
+        var list_expr = <AstNode>[];
+        while (curTok.type != HTLexicon.squareRight) {
+          list_expr.add(_parseExpr());
+          if (curTok.type != HTLexicon.squareRight) {
+            match(HTLexicon.comma);
+          }
+        }
+        match(HTLexicon.squareRight);
+        return LiteralVectorExpr(_curModuleName, line, column, list_expr);
+      case HTLexicon.curlyLeft:
+        final line = curTok.line;
+        final column = advance(1).column;
+        var map_expr = <AstNode, AstNode>{};
+        while (curTok.type != HTLexicon.curlyRight) {
+          var key_expr = _parseExpr();
+          match(HTLexicon.colon);
+          var value_expr = _parseExpr();
+          map_expr[key_expr] = value_expr;
+          if (curTok.type != HTLexicon.curlyRight) {
+            match(HTLexicon.comma);
+          }
+        }
+        match(HTLexicon.curlyRight);
+        return LiteralDictExpr(_curModuleName, line, column, map_expr);
+
+      case HTLexicon.FUNCTION:
+        return _parseFuncDeclaration(funcType: FunctionType.literal);
+
+      default:
+        throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
+    }
+  }
+
+  HTType _parseTypeExpr() {
+    final type_name = advance(1).lexeme;
+    var type_args = <HTType>[];
+    if (expect([HTLexicon.angleLeft], consume: true)) {
+      while ((curTok.type != HTLexicon.angleRight) &&
+          (curTok.type != HTLexicon.endOfFile)) {
+        type_args.add(_parseTypeExpr());
+        if (curTok.type != HTLexicon.angleRight) {
+          match(HTLexicon.comma);
+        }
+      }
+      match(HTLexicon.angleRight);
+    }
+
+    return HTType(type_name, typeArgs: type_args);
+  }
+
+  List<AstNode> _parseBlock({CodeType codeType = CodeType.module}) {
+    var stmts = <AstNode>[];
     while ((curTok.type != HTLexicon.curlyRight) &&
         (curTok.type != HTLexicon.endOfFile)) {
       stmts.add(_parseStmt(codeType: codeType));
@@ -493,7 +444,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
   }
 
   BlockStmt _parseBlockStmt({CodeType codeType = CodeType.module}) {
-    var stmts = <ASTNode>[];
+    var stmts = <AstNode>[];
     var line = curTok.line;
     var column = curTok.column;
     while ((curTok.type != HTLexicon.curlyRight) &&
@@ -539,7 +490,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
   ReturnStmt _parseReturnStmt() {
     var keyword = advance(1);
-    ASTNode? expr;
+    AstNode? expr;
     if (!expect([HTLexicon.semicolon], consume: true)) {
       expr = _parseExpr();
     }
@@ -552,13 +503,13 @@ class HTAstParser extends Parser with AstInterpreterRef {
     match(HTLexicon.roundLeft);
     var condition = _parseExpr();
     match(HTLexicon.roundRight);
-    ASTNode? thenBranch;
+    AstNode? thenBranch;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       thenBranch = _parseBlockStmt(codeType: CodeType.function);
     } else {
       thenBranch = _parseStmt(codeType: CodeType.function);
     }
-    ASTNode? elseBranch;
+    AstNode? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (expect([HTLexicon.curlyLeft], consume: true)) {
         elseBranch = _parseBlockStmt(codeType: CodeType.function);
@@ -575,7 +526,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     match(HTLexicon.roundLeft);
     var condition = _parseExpr();
     match(HTLexicon.roundRight);
-    ASTNode? loop;
+    AstNode? loop;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       loop = _parseBlockStmt(codeType: CodeType.function);
     } else {
@@ -586,7 +537,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
   /// For语句其实会在解析时转换为While语句
   BlockStmt _parseForStmt() {
-    var list_stmt = <ASTNode>[];
+    var list_stmt = <AstNode>[];
     expect([HTLexicon.FOR, HTLexicon.roundLeft], consume: true);
     // 递增变量
     final i = HTLexicon.increment;
@@ -599,7 +550,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
     var varname = match(HTLexicon.identifier).lexeme;
     var type = HTType.ANY;
     if (expect([HTLexicon.colon], consume: true)) {
-      type = _parseType();
+      type = _parseTypeExpr();
     }
     list_stmt.add(VarDeclStmt(
         TokenIdentifier(varname, curTok.fileName, curTok.line, curTok.column),
@@ -618,7 +569,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
         get_length);
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
-    var loop_body = <ASTNode>[];
+    var loop_body = <AstNode>[];
     // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
     var sub_get_value = SubGetExpr(
         list_obj.clone(),
@@ -666,10 +617,10 @@ class HTAstParser extends Parser with AstInterpreterRef {
 
     var decl_type;
     if (expect([HTLexicon.colon], consume: true)) {
-      decl_type = _parseType();
+      decl_type = _parseTypeExpr();
     }
 
-    ASTNode? initializer;
+    AstNode? initializer;
     if (expect([HTLexicon.assign], consume: true)) {
       initializer = _parseExpr();
     }
@@ -713,10 +664,10 @@ class HTAstParser extends Parser with AstInterpreterRef {
       var name = match(HTLexicon.identifier);
       HTType? declType;
       if (expect([HTLexicon.colon], consume: true)) {
-        declType = _parseType();
+        declType = _parseTypeExpr();
       }
 
-      ASTNode? initializer;
+      AstNode? initializer;
       if (isOptional || isNamed) {
         //参数默认值
         if (expect([HTLexicon.assign], consume: true)) {
@@ -807,10 +758,10 @@ class HTAstParser extends Parser with AstInterpreterRef {
     var return_type = HTType.ANY;
     if ((funcType != FunctionType.constructor) &&
         (expect([HTLexicon.colon], consume: true))) {
-      return_type = _parseType();
+      return_type = _parseTypeExpr();
     }
 
-    var body = <ASTNode>[];
+    var body = <AstNode>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       // 处理函数定义部分的语句块
       body = _parseBlock(codeType: CodeType.function);
@@ -886,7 +837,7 @@ class HTAstParser extends Parser with AstInterpreterRef {
       advance(1);
       if (expect([HTLexicon.angleLeft], consume: true)) {
         // 类型传入参数
-        super_class_type_args = _parseType();
+        super_class_type_args = _parseTypeExpr();
         match(HTLexicon.angleRight);
       }
     }

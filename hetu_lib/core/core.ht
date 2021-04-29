@@ -1,8 +1,6 @@
-class object {
+abstract class Object {
 
-  // external get runtimeType -> Type
-
-  // external fun toString -> str
+  get objectType -> Type
 }
 
 // return the declaration type of a symbol

@@ -1,14 +1,18 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../src/parser.dart';
-import '../src/token.dart';
-import '../src/constants.dart';
-import '../src/lexicon.dart';
-import '../src/errors.dart';
-import '../src/const_table.dart';
+import '../common/constants.dart';
+import '../implementation/parser.dart';
+import '../implementation/token.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/errors.dart';
+import '../implementation/const_table.dart';
+import '../implementation/class.dart';
+import '../implementation/lexer.dart';
+import '../plugin/moduleHandler.dart';
 import 'opcode.dart';
 import 'bytecode_interpreter.dart';
+import 'bytecode.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -56,10 +60,12 @@ String _readId(Uint8List bytes) {
   return utf8.decoder.convert(bytes.sublist(2, length + 2));
 }
 
+class HTBytecodeCompilation {
+  final modules = <String, HTBytecodeSource>{};
+}
+
 /// Utility class that parse a string content into a uint8 list
 class HTCompiler extends Parser with ConstTable, HetuRef {
-  static var _anonymousFuncIndex = 0;
-
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
 
@@ -79,45 +85,42 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
   String get curModuleFullName => _curModuleFullName;
 
   ClassInfo? _curClass;
-  // String? _curClassName;
-  // ClassType? _curClassType;
 
   FunctionType? _curFuncType;
 
-  late bool _debugMode;
-  late bool _bundleMode;
-
   var _leftValueLegality = false;
 
-  /// Create a compiler, needed an interpreter ref
-  /// for importing another module during compilation
-  HTCompiler(Hetu interpreter) {
-    this.interpreter = interpreter;
+  void reset() {
+    _curBlock = _globalBlock = _DeclarationBlock();
+    _importedModules.clear();
+    _curClass = null;
+    _curFuncType = null;
   }
 
   /// Compiles a Token list.
-  Future<Uint8List> compile(
-      List<Token> tokens, Hetu interpreter, String moduleFullName,
-      {CodeType codeType = CodeType.module,
-      debugInfo = true,
-      ParserConfig config = const ParserConfig()}) async {
-    _bundleMode = config.bundle;
-    _debugMode = _bundleMode ? false : debugInfo;
-    _curModuleFullName = moduleFullName;
+  Future<HTBytecodeCompilation> compile(
+      String content, HTModuleHandler moduleHandler, String fullName,
+      {ParserConfig config = const ParserConfig()}) async {
+    this.config = config;
+    _curModuleFullName = fullName;
 
-    _curBlock = _globalBlock = _DeclarationBlock();
+    reset();
 
-    final code = _compile(tokens, codeType);
+    final compilation = HTBytecodeCompilation();
+
+    final tokens = Lexer().lex(content, fullName);
+    final code = _compile(tokens, config.codeType);
 
     for (final importInfo in _importedModules) {
-      if (_bundleMode) {
-      } else {
-        await interpreter.import(importInfo.key,
-            curModuleFullName:
-                moduleFullName.startsWith(HTLexicon.anonymousScript)
-                    ? null
-                    : moduleFullName,
-            moduleName: importInfo.name);
+      final importedFullName = moduleHandler.resolveFullName(importInfo.key);
+      if (!moduleHandler.hasModule(importedFullName)) {
+        _curModuleFullName = importedFullName;
+        final importedContent = await moduleHandler.getContent(importedFullName,
+            curModuleFullName: _curModuleFullName);
+        final compilation2 = await compile(
+            importedContent.content, moduleHandler, importedFullName);
+
+        compilation.modules.addAll(compilation2.modules);
       }
     }
 
@@ -160,13 +163,14 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
     mainBuilder.addByte(HTOpCode.endOfExec);
 
-    return mainBuilder.toBytes();
+    compilation.modules[fullName] =
+        HTBytecodeSource(Uri(path: fullName), mainBuilder.toBytes());
+
+    return compilation;
   }
 
   Uint8List _compile(List<Token> tokens,
       [CodeType codeType = CodeType.module]) {
-    //, ImportInfo? importInfo]) {
-    // _curImportInfo = importInfo;
     addTokens(tokens);
     final bytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.endOfFile) {
@@ -622,7 +626,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
   Uint8List _localNull() {
     final bytesBuilder = BytesBuilder();
-    if (_debugMode) {
+    if (config.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -632,7 +636,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
   Uint8List _localBool(bool value) {
     final bytesBuilder = BytesBuilder();
-    if (_debugMode) {
+    if (config.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -643,7 +647,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
   Uint8List _localConst(int constIndex, int type) {
     final bytesBuilder = BytesBuilder();
-    if (_debugMode) {
+    if (config.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -655,7 +659,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
   Uint8List _localSymbol({String? id, bool isGetKey = false}) {
     final symbolId = id ?? match(HTLexicon.identifier).lexeme;
     final bytesBuilder = BytesBuilder();
-    if (_debugMode) {
+    if (config.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -691,7 +695,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
   Uint8List _localList(List<Uint8List> exprList) {
     final bytesBuilder = BytesBuilder();
-    if (_debugMode) {
+    if (config.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -705,7 +709,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
   Uint8List _localMap(Map<Uint8List, Uint8List> exprMap) {
     final bytesBuilder = BytesBuilder();
-    if (_debugMode) {
+    if (config.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -1906,7 +1910,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         id = HTLexicon.setter + declId;
         break;
       case FunctionType.literal:
-        id = HTLexicon.anonymousFunction + (_anonymousFuncIndex++).toString();
+        id = HTLexicon.anonymousFunction +
+            (Parser.anonymousFuncIndex++).toString();
         break;
       default:
         id = declId;

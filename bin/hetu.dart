@@ -26,10 +26,12 @@ void main(List<String> args) async {
       if ((args.first == '--help') || (args.first == '-h')) {
         print(cli_help);
       } else if (args.length == 1) {
-        result = await hetu.import(args.first, codeType: CodeType.script);
+        result = await hetu.import(args.first,
+            config: ParserConfig(codeType: CodeType.script));
       } else {
         result = await hetu.import(args.first,
-            codeType: CodeType.module, invokeFunc: args[1]);
+            config: ParserConfig(codeType: CodeType.module),
+            invokeFunc: args[1]);
       }
       if (result != null) print(result);
     } else {
@@ -48,7 +50,8 @@ void main(List<String> args) async {
           }
 
           try {
-            result = await hetu.eval(input, codeType: CodeType.function);
+            result = await hetu.eval(input,
+                config: ParserConfig(codeType: CodeType.script));
             print(result);
           } catch (e) {
             print(e);

@@ -4,13 +4,13 @@
 fun main {
   // 列表的创建和添加元素
   var list1 = ['hello', 'world']
-  print(list1.runtimeType)
+  print(list1.objectType)
   var list2 = ['meaning', 42]
-  print(list2.runtimeType)
+  print(list2.objectType)
   var map1 = {'hello': 42, 'world': 233}
-  print(map1.runtimeType)
+  print(map1.objectType)
   var map2: Map<String> = {'foo': 42, 'bar': false}
   
-  print(map2.runtimeType)
+  print(map2.objectType)
 
 }

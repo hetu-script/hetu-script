@@ -10,18 +10,20 @@ import 'instance.dart';
 import 'enum.dart';
 import 'object.dart';
 
-abstract class HTInheritable {
-  String get id;
+class ClassInfo with HTDeclaration {
+  final bool isExtern;
 
-  HTInheritable? get superClass;
+  final bool isAbstract;
 
-  HTType? get superClassType;
+  ClassInfo(String id, {this.isExtern = false, this.isAbstract = false}) {
+    this.id = id;
+  }
 }
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
+class HTClass extends ClassInfo with HTObject, InterpreterRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -31,25 +33,20 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
   final String moduleFullName;
 
   @override
-  final HTType rtType = HTType.CLASS;
+  final HTType objectType = HTType.CLASS;
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.
   late final HTClassNamespace namespace;
-
-  final bool isExtern;
-  final bool isAbstract;
 
   /// The type parameters of the class.
   final List<String> typeParameters;
 
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
-  @override
-  final HTClass? superClass;
+  HTClass? superClass;
 
-  @override
-  final HTType? superClassType;
+  HTType? extendedType;
 
   /// Implemented classes of this class.
   /// Implements only inherits methods declaration,
@@ -68,14 +65,14 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
   /// Create a default [HTClass] instance.
   HTClass(String id, Interpreter interpreter, this.moduleFullName,
       HTNamespace closure,
-      {this.superClass,
-      this.superClassType,
-      this.isExtern = false,
-      this.isAbstract = false,
+      {bool isExtern = false,
+      bool isAbstract = false,
+      this.superClass,
+      this.extendedType,
       this.typeParameters = const [],
       this.implementedClass = const [],
-      this.mixinedClass = const []}) {
-    this.id = classId = id;
+      this.mixinedClass = const []})
+      : super(id, isExtern: isExtern, isAbstract: isAbstract) {
     this.interpreter = interpreter;
 
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
@@ -149,8 +146,8 @@ class HTClass with HTInheritable, HTDeclaration, HTObject, InterpreterRef {
     }
 
     switch (varName) {
-      case 'runtimeType':
-        return rtType;
+      case 'objectType':
+        return objectType;
       case 'fromJson':
         return ({positionalArgs, namedArgs, typeArgs}) {
           return createInstanceFromJson(positionalArgs.first,

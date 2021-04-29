@@ -31,7 +31,7 @@ abstract class HTLexicon {
   static const tokenGroupInt = 7;
   static const tokenGroupString = 8;
 
-  static const object = 'object';
+  static const object = 'Object';
   static const boolean = 'bool';
   static const number = 'num';
   static const integer = 'int';
@@ -41,8 +41,9 @@ abstract class HTLexicon {
   static const dartString = 'String';
   static const list = 'List';
   static const map = 'Map';
-  static const jsonObject = 'JSON Object';
-  static const rtType = 'runtimeType';
+  static const jsonObject = 'JsonObject';
+  static const objectType = 'objectType';
+  static const interfaceType = 'interfaceType';
   static const keys = 'keys';
   static const values = 'values';
   static const first = 'first';

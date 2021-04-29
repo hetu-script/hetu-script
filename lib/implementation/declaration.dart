@@ -2,7 +2,7 @@ import 'errors.dart';
 import 'variable.dart';
 import 'function.dart';
 import 'interpreter.dart';
-import 'constants.dart';
+import '../common/constants.dart';
 
 /// A [HTDeclaration] could be a [HTVariable], a [HTClass] or a [HTFunction]
 abstract class HTDeclaration {
@@ -44,6 +44,8 @@ abstract class HTDeclaration {
 
   late final String id;
   String? classId;
+
+  bool get isMember => classId != null;
 
   /// A [HTDeclaration] is uncloneable by default.
   HTDeclaration clone() => throw HTError.clone(id);

@@ -1,6 +1,6 @@
-import '../src/variable.dart';
-import '../src/type.dart';
-import '../src/errors.dart';
+import '../implementation/variable.dart';
+import '../implementation/type.dart';
+import '../implementation/errors.dart';
 import 'ast.dart';
 import 'ast_interpreter.dart';
 
@@ -15,7 +15,7 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
   HTType? _declType;
   HTType get declType => _declType!;
 
-  ASTNode? initializer;
+  AstNode? initializer;
 
   HTAstVariable(String id, HTAstInterpreter interpreter,
       {String? classId,
@@ -35,7 +35,6 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
             getter: getter,
             setter: setter,
             isExtern: isExtern,
-            isMember: isMember,
             isStatic: isStatic) {
     this.interpreter = interpreter;
     if (initializer == null && declType == null) {
@@ -65,13 +64,13 @@ class HTAstVariable extends HTVariable with AstInterpreterRef {
   void assign(dynamic value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
-      final valueType = encapsulation.rtType;
+      final valueType = encapsulation.objectType;
       if (valueType.isNotA(_declType!)) {
         throw HTError.type(id, valueType.toString(), _declType.toString());
       }
     } else {
       if (!isDynamic && value != null) {
-        _declType = interpreter.encapsulate(value).rtType;
+        _declType = interpreter.encapsulate(value).objectType;
       } else {
         _declType = HTType.ANY;
       }

@@ -1,4 +1,4 @@
-import 'constants.dart';
+import '../common/constants.dart';
 import 'namespace.dart';
 import 'type.dart';
 import 'declaration.dart';
@@ -22,9 +22,9 @@ abstract class HTFunction with HTDeclaration, HTObject {
   final String? externalTypedef;
 
   @override
-  late final HTFunctionType rtType;
+  late final HTFunctionType objectType;
 
-  HTType get returnType => rtType.returnType;
+  HTType get returnType => objectType.returnType;
 
   final bool isStatic;
 

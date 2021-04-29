@@ -1,3 +1,4 @@
+import 'package:hetu_script/implementation/parser.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../plugin/moduleHandler.dart';
@@ -9,7 +10,6 @@ import '../core/core_class.dart';
 import '../core/core_function.dart';
 
 import 'namespace.dart';
-import '../common/constants.dart';
 import 'type.dart';
 import 'hetu_lib.dart';
 import 'errors.dart';
@@ -96,8 +96,8 @@ abstract class Interpreter {
 
   Future<dynamic> eval(String content,
       {String? moduleFullName,
-      CodeType codeType = CodeType.module,
       HTNamespace? namespace,
+      ParserConfig config = const ParserConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -108,7 +108,7 @@ abstract class Interpreter {
   Future<dynamic> import(String key,
       {String? curModuleFullName,
       String? moduleName,
-      CodeType codeType = CodeType.module,
+      ParserConfig config = const ParserConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -146,9 +146,9 @@ abstract class Interpreter {
       typeString = HTLexicon.list;
       // var valueType = HTType.ANY;
       // if (object.isNotEmpty) {
-      //   valueType = encapsulate(object.first).rtType;
+      //   valueType = encapsulate(object.first).objectType;
       //   for (final item in object) {
-      //     final value = encapsulate(item).rtType;
+      //     final value = encapsulate(item).objectType;
       //     if (value.isNotA(valueType)) {
       //       valueType = HTType.ANY;
       //       break;
@@ -161,9 +161,9 @@ abstract class Interpreter {
       // var keyType = HTType.ANY;
       // var valueType = HTType.ANY;
       // if (object.keys.isNotEmpty) {
-      //   keyType = encapsulate(object.keys.first).rtType;
+      //   keyType = encapsulate(object.keys.first).objectType;
       //   for (final item in object.keys) {
-      //     final value = encapsulate(item).rtType;
+      //     final value = encapsulate(item).objectType;
       //     if (value.isNotA(keyType)) {
       //       keyType = HTType.ANY;
       //       break;
@@ -171,9 +171,9 @@ abstract class Interpreter {
       //   }
       // }
       // if (object.values.isNotEmpty) {
-      //   valueType = encapsulate(object.values.first).rtType;
+      //   valueType = encapsulate(object.values.first).objectType;
       //   for (final item in object.values) {
-      //     final value = encapsulate(item).rtType;
+      //     final value = encapsulate(item).objectType;
       //     if (value.isNotA(valueType)) {
       //       valueType = HTType.ANY;
       //       break;
@@ -210,8 +210,8 @@ abstract class Interpreter {
   /// 注册外部类，以访问外部类的构造函数和static成员
   /// 在脚本中需要存在对应的extern class声明
   void bindExternalClass(HTExternalClass externalClass) {
-    if (_externClasses.containsKey(externalClass.rtType)) {
-      throw HTError.definedRuntime(externalClass.rtType.toString());
+    if (_externClasses.containsKey(externalClass.objectType)) {
+      throw HTError.definedRuntime(externalClass.objectType.toString());
     }
     _externClasses[externalClass.id] = externalClass;
   }

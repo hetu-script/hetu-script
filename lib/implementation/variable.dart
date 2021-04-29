@@ -13,7 +13,6 @@ class HTVariable with HTDeclaration {
 
   final bool isExtern;
   bool get isImmutable => true;
-  final bool isMember;
   final bool isStatic;
 
   var _isInitialized = false;
@@ -29,7 +28,6 @@ class HTVariable with HTDeclaration {
       this.getter,
       this.setter,
       this.isExtern = false,
-      this.isMember = false,
       this.isStatic = false,
       this.closure}) {
     this.id = id;
@@ -61,6 +59,5 @@ class HTVariable with HTDeclaration {
       value: value,
       getter: getter,
       setter: setter,
-      isExtern: isExtern,
-      isMember: isMember);
+      isExtern: isExtern);
 }

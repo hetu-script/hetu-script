@@ -1,11 +1,11 @@
-import '../src/instance.dart';
-import '../src/namespace.dart';
-import '../src/errors.dart';
-import '../src/type.dart';
-import '../src/lexicon.dart';
-import '../src/variable.dart';
-import '../src/function.dart';
-import '../src/object.dart';
+import '../implementation/instance.dart';
+import '../implementation/namespace.dart';
+import '../implementation/errors.dart';
+import '../implementation/type.dart';
+import '../implementation/lexicon.dart';
+import '../implementation/variable.dart';
+import '../implementation/function.dart';
+import '../implementation/object.dart';
 import 'ast.dart';
 import 'ast_interpreter.dart';
 
@@ -39,11 +39,12 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
     var result = StringBuffer();
     result.write('${HTLexicon.FUNCTION}');
     result.write(' $id');
-    if (rtType.typeArgs.isNotEmpty) {
+    if (objectType.typeArgs.isNotEmpty) {
       result.write('<');
-      for (var i = 0; i < rtType.typeArgs.length; ++i) {
-        result.write(rtType.typeArgs[i]);
-        if ((rtType.typeArgs.length > 1) && (i != rtType.typeArgs.length - 1)) {
+      for (var i = 0; i < objectType.typeArgs.length; ++i) {
+        result.write(objectType.typeArgs[i]);
+        if ((objectType.typeArgs.length > 1) &&
+            (i != objectType.typeArgs.length - 1)) {
           result.write(', ');
         }
       }
@@ -114,8 +115,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
 
           if (!param.isVariadic) {
             final argEncapsulation = interpreter.encapsulate(arg);
-            if (argEncapsulation.rtType.isNotA(argTypeid)) {
-              final arg_type = interpreter.encapsulate(arg).rtType;
+            if (argEncapsulation.objectType.isNotA(argTypeid)) {
+              final arg_type = interpreter.encapsulate(arg).objectType;
               throw HTError.argType(
                   arg.toString(), arg_type.toString(), argTypeid.toString());
             }
@@ -125,8 +126,8 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
             for (var j = i; j < positionalArgs.length; ++j) {
               arg = positionalArgs[j];
               final argEncapsulation = interpreter.encapsulate(arg);
-              if (argEncapsulation.rtType.isNotA(argTypeid)) {
-                final arg_type = interpreter.encapsulate(arg).rtType;
+              if (argEncapsulation.objectType.isNotA(argTypeid)) {
+                final arg_type = interpreter.encapsulate(arg).objectType;
                 throw HTError.argType(
                     arg.toString(), arg_type.toString(), argTypeid.toString());
               }
@@ -149,9 +150,9 @@ class HTAstFunction extends HTFunction with AstInterpreterRef {
       }
 
       final encapsulation = interpreter.encapsulate(result);
-      if (encapsulation.rtType.isNotA(returnType)) {
+      if (encapsulation.objectType.isNotA(returnType)) {
         throw HTError.returnType(
-            encapsulation.rtType.toString(), id, returnType.toString());
+            encapsulation.objectType.toString(), id, returnType.toString());
       }
 
       if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {

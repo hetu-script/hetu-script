@@ -4,17 +4,18 @@
 
 library hetu_script;
 
-export 'src/function.dart';
-export 'src/instance.dart';
-export 'src/errors.dart';
-export 'src/lexicon.dart';
-export 'src/binding.dart';
-export 'src/object.dart';
-export 'src/type.dart';
-export 'src/namespace.dart' show HTNamespace;
-export 'src/class.dart' show HTClass;
-export 'ast/ast.dart';
-export 'bytecode/bytecode_interpreter.dart';
+export 'implementation/parser.dart' show ParserConfig;
+export 'implementation/function.dart';
+export 'implementation/instance.dart';
+export 'implementation/errors.dart';
+export 'implementation/lexicon.dart';
+export 'implementation/binding.dart';
+export 'implementation/object.dart';
+export 'implementation/type.dart';
+export 'implementation/namespace.dart' show HTNamespace;
+export 'implementation/class.dart' show HTClass;
+export 'analyzer/ast.dart';
+export 'interpreter/bytecode_interpreter.dart';
 export 'binding/external_class.dart';
 export 'binding/external_instance.dart';
 export 'binding/external_function.dart';
@@ -22,3 +23,4 @@ export 'plugin/errorHandler.dart';
 export 'plugin/moduleHandler.dart';
 export 'common/constants.dart';
 export 'common/line_info.dart';
+export 'common/source.dart';
