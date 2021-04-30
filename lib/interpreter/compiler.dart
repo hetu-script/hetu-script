@@ -1,18 +1,18 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../common/constants.dart';
 import '../implementation/parser.dart';
 import '../implementation/token.dart';
 import '../implementation/lexicon.dart';
-import '../implementation/errors.dart';
 import '../implementation/const_table.dart';
 import '../implementation/class.dart';
 import '../implementation/lexer.dart';
+import '../common/constants.dart';
+import '../common/errors.dart';
 import '../plugin/moduleHandler.dart';
 import 'opcode.dart';
 import 'bytecode_interpreter.dart';
-import 'bytecode.dart';
+import 'bytecode_source.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -58,10 +58,6 @@ class _ImportInfo {
 String _readId(Uint8List bytes) {
   final length = bytes[1];
   return utf8.decoder.convert(bytes.sublist(2, length + 2));
-}
-
-class HTBytecodeCompilation {
-  final modules = <String, HTBytecodeSource>{};
 }
 
 /// Utility class that parse a string content into a uint8 list
@@ -117,10 +113,11 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         _curModuleFullName = importedFullName;
         final importedContent = await moduleHandler.getContent(importedFullName,
             curModuleFullName: _curModuleFullName);
-        final compilation2 = await compile(
+        final compiler = HTCompiler();
+        final compilation2 = await compiler.compile(
             importedContent.content, moduleHandler, importedFullName);
 
-        compilation.modules.addAll(compilation2.modules);
+        compilation.addAll(compilation2);
       }
     }
 
@@ -163,8 +160,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
     mainBuilder.addByte(HTOpCode.endOfExec);
 
-    compilation.modules[fullName] =
-        HTBytecodeSource(Uri(path: fullName), mainBuilder.toBytes());
+    compilation.add(HTBytecodeSource(fullName, mainBuilder.toBytes()));
 
     return compilation;
   }
@@ -535,7 +531,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
           case HTLexicon.VAR:
             final decl = _compileVarDeclStmt(
                 isExtern: isExtern || (_curClass?.isExtern ?? false),
-                isMember: true,
                 isStatic: isStatic);
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
@@ -544,7 +539,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             final decl = _compileVarDeclStmt(
                 typeInferrence: true,
                 isExtern: isExtern || (_curClass?.isExtern ?? false),
-                isMember: true,
                 isStatic: isStatic);
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
@@ -554,7 +548,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                 typeInferrence: true,
                 isExtern: isExtern || (_curClass?.isExtern ?? false),
                 isImmutable: true,
-                isMember: true,
                 isStatic: isStatic);
             final id = _readId(decl);
             _curBlock.varDecls[id] = decl;
@@ -1403,7 +1396,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     bytesBuilder.addByte(initializer != null ? 1 : 0); // bool: isDynamic
     bytesBuilder.addByte(0); // bool: isExtern
     bytesBuilder.addByte(0); // bool: isImmutable
-    bytesBuilder.addByte(0); // bool: isMember
     bytesBuilder.addByte(0); // bool: isStatic
     bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
     bytesBuilder.addByte(0); // bool: hasType
@@ -1780,7 +1772,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       bool typeInferrence = false,
       bool isExtern = false,
       bool isImmutable = false,
-      bool isMember = false,
       bool isStatic = false,
       bool lateInitialize = true,
       bool endOfStatement = false,
@@ -1815,7 +1806,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     bytesBuilder.addByte(typeInferrence ? 1 : 0);
     bytesBuilder.addByte(isExtern ? 1 : 0);
     bytesBuilder.addByte(isImmutable ? 1 : 0);
-    bytesBuilder.addByte(isMember ? 1 : 0);
     bytesBuilder.addByte(isStatic ? 1 : 0);
     bytesBuilder.addByte(lateInitialize ? 1 : 0);
 

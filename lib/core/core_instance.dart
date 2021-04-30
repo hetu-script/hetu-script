@@ -1,7 +1,7 @@
-import '../src/type.dart';
-import '../src/errors.dart';
-import '../src/interpreter.dart';
-import '../src/lexicon.dart';
+import '../implementation/type.dart';
+import '../implementation/interpreter.dart';
+import '../implementation/lexicon.dart';
+import '../common/errors.dart';
 import '../binding/external_instance.dart';
 
 extension IntBinding on int {

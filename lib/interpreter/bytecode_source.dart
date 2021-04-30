@@ -17,7 +17,7 @@ class HTBytecodeSource extends HTSource with ConstTable {
   var ip = 0;
 
   /// Create a bytecode module from an uint8 list
-  HTBytecodeSource(Uri uri, this.bytes) : super(uri);
+  HTBytecodeSource(String fullName, this.bytes) : super(fullName);
 
   /// Skip forward [distance] of bytes
   void skip(int distance) {
@@ -113,4 +113,32 @@ mixin GotoInfo {
 
   /// The column of the definition's bytecode.
   int? definitionColumn;
+}
+
+class HTBytecodeCompilation implements HTCompilation {
+  final _modules = <String, HTBytecodeSource>{};
+
+  @override
+  Iterable<String> get keys => _modules.keys;
+
+  @override
+  Iterable<HTBytecodeSource> get sources => _modules.values;
+
+  @override
+  bool contains(String fullName) => _modules.containsKey(fullName);
+
+  @override
+  HTBytecodeSource fetch(String fullName) {
+    if (_modules.containsKey(fullName)) {
+      return _modules[fullName]!;
+    } else {
+      throw 'Unknown source: $fullName';
+    }
+  }
+
+  void add(HTBytecodeSource source) => _modules[source.fullName] = source;
+
+  void addAll(HTBytecodeCompilation other) {
+    _modules.addAll(other._modules);
+  }
 }

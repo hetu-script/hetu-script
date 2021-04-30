@@ -8,11 +8,11 @@ import '../binding/external_function.dart';
 import '../binding/external_instance.dart';
 import '../core/core_class.dart';
 import '../core/core_function.dart';
+import '../common/errors.dart';
 
 import 'namespace.dart';
 import 'type.dart';
 import 'hetu_lib.dart';
-import 'errors.dart';
 import 'function.dart';
 import 'object.dart';
 import 'lexicon.dart';

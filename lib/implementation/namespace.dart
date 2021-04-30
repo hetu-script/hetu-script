@@ -1,4 +1,4 @@
-import 'errors.dart';
+import '../common/errors.dart';
 import 'lexicon.dart';
 import 'type.dart';
 import 'interpreter.dart';

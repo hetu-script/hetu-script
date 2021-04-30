@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import '../implementation/errors.dart';
+import '../common/errors.dart';
 
 /// Result of module handler's import function
 class ModuleContent {
@@ -92,7 +92,7 @@ class DefaultModuleHandler implements HTModuleHandler {
       if (e is HTError) {
         rethrow;
       } else {
-        throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+        throw HTError(ErrorCode.extern, ErrorType.externalError,
             message: e.toString());
       }
     }
@@ -102,7 +102,7 @@ class DefaultModuleHandler implements HTModuleHandler {
   @override
   ModuleContent getContentSync(String key,
       {String? curFilePath, bool reload = true}) {
-    throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+    throw HTError(ErrorCode.extern, ErrorType.externalError,
         message: 'getContentSync is currently unusable');
   }
 }

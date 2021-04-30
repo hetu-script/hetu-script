@@ -4,13 +4,13 @@ import 'object.dart';
 import 'interpreter.dart';
 import 'class.dart';
 import 'type.dart';
-import 'errors.dart';
 import 'lexicon.dart';
 import 'function.dart';
 import 'namespace.dart';
 import 'cast.dart';
 import 'declaration.dart';
 import 'variable.dart';
+import '../common/errors.dart';
 import '../common/constants.dart';
 
 /// The Dart implementation of the instance in Hetu.

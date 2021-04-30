@@ -2,11 +2,9 @@
 ///
 /// Automatically generated based on files in 'hetu_lib' folder.
 final Map<String, String> coreModules = const {
-      'core.ht': r'''class object {
+      'core.ht': r'''abstract class Object {
 
-  // external get runtimeType -> Type
-
-  // external fun toString -> str
+  get objectType -> Type
 }
 
 // return the declaration type of a symbol

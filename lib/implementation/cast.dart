@@ -1,8 +1,8 @@
+import '../common/errors.dart';
 import 'object.dart';
 import 'interpreter.dart';
 import 'class.dart';
 import 'type.dart';
-import 'errors.dart';
 import 'lexicon.dart';
 import 'instance.dart';
 

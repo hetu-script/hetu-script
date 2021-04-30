@@ -1,7 +1,6 @@
 import '../plugin/errorHandler.dart';
 import '../plugin/moduleHandler.dart';
 import '../binding/external_function.dart';
-import '../implementation/errors.dart';
 import '../implementation/type.dart';
 import '../implementation/namespace.dart';
 import '../implementation/class.dart';
@@ -12,6 +11,7 @@ import '../implementation/interpreter.dart';
 import '../implementation/enum.dart';
 import '../implementation/const_table.dart';
 import '../implementation/parser.dart';
+import '../common/errors.dart';
 import '../common/constants.dart';
 import 'ast.dart';
 import 'ast_function.dart';
@@ -109,7 +109,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
 
       if (error is HTError) {
         error.message = '${error.message}\nCall stack:\n$callStack';
-        if (error.type == ErrorType.COMPILE_TIME_ERROR) {
+        if (error.type == ErrorType.compileError) {
           error.moduleFullName = parser.curModuleFullName;
           error.line = parser.curLine;
           error.column = parser.curColumn;
@@ -120,7 +120,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
         }
         errorHandler.handle(error);
       } else {
-        final hetuError = HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+        final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
             message: '$error\nCall stack:\n$callStack',
             moduleFullName: _curModuleFullName,
             line: _curLine,
@@ -498,26 +498,17 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
 
   @override
   dynamic visitAssignExpr(AssignExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    var value = visitASTNode(expr.value);
-    var distance = _distances[expr];
-    if (distance != null) {
-      // 尝试设置当前环境中的本地变量
-      _curNamespace.assignAt(expr.variable.lexeme, value, distance);
-    } else {
-      global.memberSet(expr.variable.lexeme, value);
-    }
+    // var value = visitASTNode(expr.value);
+    // var distance = _distances[expr];
+    // if (distance != null) {
+    //   // 尝试设置当前环境中的本地变量
+    //   _curNamespace.assignAt(expr.variable.lexeme, value, distance);
+    // } else {
+    //   global.memberSet(expr.variable.lexeme, value);
+    // }
 
-    // 返回右值
-    return value;
-  }
-
-  @override
-  dynamic visitThisExpr(ThisExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    return _getValue(HTLexicon.THIS, expr);
+    // // 返回右值
+    // return value;
   }
 
   @override
@@ -744,13 +735,13 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     _curColumn = stmt.column;
     HTClass? superClass;
     if (stmt.id.lexeme != HTLexicon.object) {
-      if (stmt.superClass == null) {
-        superClass = global.fetch(HTLexicon.object);
-      } else {
-        HTClass existSuperClass =
-            _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
-        superClass = existSuperClass;
-      }
+      // if (stmt.superClass == null) {
+      //   superClass = global.fetch(HTLexicon.object);
+      // } else {
+      //   HTClass existSuperClass =
+      //       _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
+      //   superClass = existSuperClass;
+      // }
     }
 
     final klass =

@@ -1,16 +1,16 @@
-import '../common/constants.dart';
 import '../binding/external_function.dart';
 import '../implementation/namespace.dart';
 import '../implementation/type.dart';
 import '../implementation/function.dart';
-import '../implementation/errors.dart';
 import '../implementation/variable.dart';
 import '../implementation/lexicon.dart';
 import '../implementation/class.dart';
 import '../implementation/instance.dart';
+import '../common/errors.dart';
+import '../common/constants.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode_variable.dart';
-import 'bytecode.dart' show GotoInfo;
+import 'bytecode_source.dart' show GotoInfo;
 
 class HTBytecodeFunctionReferConstructor {
   /// id of super class's constructor

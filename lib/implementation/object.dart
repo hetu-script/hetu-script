@@ -1,5 +1,5 @@
+import '../common/errors.dart';
 import 'type.dart';
-import 'errors.dart';
 import 'lexicon.dart';
 
 class _HTNull with HTObject {

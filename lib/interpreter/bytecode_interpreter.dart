@@ -2,14 +2,12 @@ import 'dart:typed_data';
 
 import 'package:pub_semver/pub_semver.dart';
 
-import '../common/constants.dart';
 import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../binding/external_function.dart';
 import '../implementation/interpreter.dart';
 import '../implementation/type.dart';
 import '../implementation/lexicon.dart';
-import '../implementation/errors.dart';
 import '../implementation/namespace.dart';
 import '../implementation/class.dart';
 import '../implementation/object.dart';
@@ -17,6 +15,8 @@ import '../implementation/enum.dart';
 import '../implementation/function.dart';
 import '../implementation/cast.dart';
 import '../implementation/parser.dart';
+import '../common/constants.dart';
+import '../common/errors.dart';
 import 'compiler.dart';
 import 'opcode.dart';
 import 'bytecode.dart';
@@ -48,7 +48,7 @@ class Hetu extends Interpreter {
 
   late HTCompiler _curCompiler;
 
-  final _modules = <String, HTBytecodeSource>{};
+  final _sources = HTBytecodeCompilation();
 
   var _curLine = 0;
 
@@ -147,13 +147,17 @@ class Hetu extends Interpreter {
       final compilation = await _curCompiler
           .compile(content, moduleHandler, fullName, config: config);
 
-      _modules.addAll(compilation.modules);
+      _sources.addAll(compilation);
 
-      _curCode = _modules[fullName]!;
+      var result;
+      for (final source in compilation.sources) {
+        _curCode = source;
+        _curModuleFullName = source.fullName;
+        result = execute(
+            namespace:
+                _curModuleFullName == moduleFullName ? namespace : global);
+      }
 
-      _curModuleFullName = fullName;
-
-      var result = execute(namespace: namespace ?? global);
       if (config.codeType == CodeType.module && invokeFunc != null) {
         result = invoke(invokeFunc,
             positionalArgs: positionalArgs,
@@ -273,7 +277,7 @@ class Hetu extends Interpreter {
 
     if (error is HTError) {
       error.message = '${error.message}\nCall stack:\n$callStack';
-      if (error.type == ErrorType.COMPILE_TIME_ERROR) {
+      if (error.type == ErrorType.compileError) {
         error.moduleFullName = _curCompiler.curModuleFullName;
         error.line = _curCompiler.curLine;
         error.column = _curCompiler.curColumn;
@@ -284,7 +288,7 @@ class Hetu extends Interpreter {
       }
       errorHandler.handle(error);
     } else {
-      final hetuError = HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+      final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
           message: '$error\nCall stack:\n$callStack',
           moduleFullName: _curModuleFullName,
           line: _curLine,
@@ -297,7 +301,7 @@ class Hetu extends Interpreter {
   Future<HTBytecodeCompilation> compile(String content, String moduleName,
       {ParserConfig config = const ParserConfig(),
       bool errorHandled = false}) async {
-    throw HTError(ErrorCode.extern, ErrorType.EXTERNAL_ERROR,
+    throw HTError(ErrorCode.extern, ErrorType.externalError,
         message: 'compile is currently unusable');
   }
 
@@ -333,7 +337,7 @@ class Hetu extends Interpreter {
     // var regIndexMoved = moveRegIndex;
     if (moduleFullName != null && (curModuleFullName != moduleFullName)) {
       _curModuleFullName = moduleFullName;
-      _curCode = _modules[moduleFullName]!;
+      _curCode = _sources.fetch(moduleFullName);
       codeChanged = true;
       ipChanged = true;
       // regIndexMoved = true;
@@ -360,7 +364,7 @@ class Hetu extends Interpreter {
 
     if (codeChanged) {
       _curModuleFullName = savedModuleFullName;
-      _curCode = _modules[_curModuleFullName]!;
+      _curCode = _sources.fetch(savedModuleFullName);
     }
 
     if (ipChanged) {

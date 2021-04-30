@@ -1,8 +1,8 @@
 import '../implementation/type.dart';
 import '../common/constants.dart';
+import '../common/errors.dart';
 import 'token.dart';
 import 'lexicon.dart';
-import 'errors.dart';
 import 'lexer.dart';
 
 class _ParseTypeResult {

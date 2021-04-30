@@ -1,4 +1,4 @@
-import 'errors.dart';
+import '../common/errors.dart';
 import 'namespace.dart';
 import 'declaration.dart';
 

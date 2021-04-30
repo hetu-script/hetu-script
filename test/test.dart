@@ -4,6 +4,12 @@ void main() async {
   var hetu = Hetu();
   await hetu.init();
   await hetu.eval(r'''
-    print('hi' + 2)
-  ''', config: ParserConfig(codeType: CodeType.script));
+    import 'script/tool/beauty.ht'
+
+    fun importTest {
+      print(getBeauty(75, 50, 100))
+    }
+  ''',
+      config: ParserConfig(codeType: CodeType.module),
+      invokeFunc: 'importTest');
 }

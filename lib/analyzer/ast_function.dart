@@ -1,11 +1,11 @@
 import '../implementation/instance.dart';
 import '../implementation/namespace.dart';
-import '../implementation/errors.dart';
 import '../implementation/type.dart';
 import '../implementation/lexicon.dart';
 import '../implementation/variable.dart';
 import '../implementation/function.dart';
 import '../implementation/object.dart';
+import '../common/errors.dart';
 import 'ast.dart';
 import 'ast_analyzer.dart';
 

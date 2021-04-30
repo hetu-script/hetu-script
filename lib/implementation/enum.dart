@@ -1,9 +1,9 @@
 import 'type.dart';
 import 'object.dart';
 import 'lexicon.dart';
-import 'errors.dart';
 import 'interpreter.dart';
 import 'declaration.dart';
+import '../common/errors.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
 class HTEnum with HTDeclaration, HTObject, InterpreterRef {

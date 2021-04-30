@@ -1,4 +1,4 @@
-import 'lexicon.dart';
+import '../implementation/lexicon.dart';
 
 enum ErrorCode {
   unexpected,
@@ -65,19 +65,19 @@ enum ErrorCode {
 class ErrorSeverity implements Comparable<ErrorSeverity> {
   /// The severity representing a non-error. This is never used for any error
   /// code, but is useful for clients.
-  static const NONE = ErrorSeverity('NONE', 0, 'none');
+  static const none = ErrorSeverity('NONE', 0, 'none');
 
   /// The severity representing an informational level analysis issue.
-  static const INFO = ErrorSeverity('INFO', 1, 'info');
+  static const info = ErrorSeverity('INFO', 1, 'info');
 
   /// The severity representing a warning. Warnings can become errors if the
   /// `-Werror` command line flag is specified.
-  static const WARNING = ErrorSeverity('WARNING', 2, 'warning');
+  static const warning = ErrorSeverity('WARNING', 2, 'warning');
 
   /// The severity representing an error.
-  static const ERROR = ErrorSeverity('ERROR', 3, 'error');
+  static const error = ErrorSeverity('ERROR', 3, 'error');
 
-  static const List<ErrorSeverity> values = [NONE, INFO, WARNING, ERROR];
+  static const List<ErrorSeverity> values = [none, info, warning, error];
 
   /// The name of this error code.
   final String name;
@@ -108,51 +108,49 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
 /// The type of an [HTError].
 class ErrorType implements Comparable<ErrorType> {
   /// Task (todo) comments in user code.
-  static const TODO = ErrorType('TODO', 0, ErrorSeverity.INFO);
+  static const todo = ErrorType('TODO', 0, ErrorSeverity.info);
 
   /// Extra analysis run over the code to follow best practices, which are not in
   /// the Dart Language Specification.
-  static const HINT = ErrorType('HINT', 1, ErrorSeverity.INFO);
+  static const hint = ErrorType('HINT', 1, ErrorSeverity.info);
 
   /// Lint warnings describe style and best practice recommendations that can be
   /// used to formalize a project's style guidelines.
-  static const LINT = ErrorType('LINT', 2, ErrorSeverity.INFO);
+  static const lint = ErrorType('LINT', 2, ErrorSeverity.info);
 
   /// Static warnings are those warnings reported by the static checker.
   /// They have no effect on execution. Static warnings must be
   /// provided by compilers used during development.
-  static const STATIC_WARNING =
-      ErrorType('STATIC_WARNING', 3, ErrorSeverity.WARNING);
+  static const staticWarning =
+      ErrorType('STATIC_WARNING', 3, ErrorSeverity.warning);
 
   /// Syntactic errors are errors produced as a result of input that does not
   /// conform to the grammar.
-  static const SYNTACTIC_ERROR =
-      ErrorType('SYNTACTIC_ERROR', 5, ErrorSeverity.ERROR);
+  static const syntacticError =
+      ErrorType('SYNTACTIC_ERROR', 5, ErrorSeverity.error);
 
   /// Compile-time errors are errors that preclude execution. A compile time
   /// error must be reported by a compiler before the erroneous code is
   /// executed.
-  static const COMPILE_TIME_ERROR =
-      ErrorType('COMPILE_TIME_ERROR', 6, ErrorSeverity.ERROR);
+  static const compileError = ErrorType('compileError', 6, ErrorSeverity.error);
 
   /// Run-time errors are errors that occurred during execution. A run time
   /// error is reported by the interpreter.
-  static const RUN_TIME_ERROR =
-      ErrorType('RUN_TIME_ERROR', 7, ErrorSeverity.ERROR);
+  static const runtimeError = ErrorType('runtimeError', 7, ErrorSeverity.error);
 
   /// External errors are errors reported by the dart side.
-  static const EXTERNAL_ERROR =
-      ErrorType('NATIVE_ERROR', 7, ErrorSeverity.ERROR);
+  static const externalError =
+      ErrorType('NATIVE_ERROR', 7, ErrorSeverity.error);
 
   static const values = [
-    TODO,
-    HINT,
-    LINT,
-    STATIC_WARNING,
-    SYNTACTIC_ERROR,
-    COMPILE_TIME_ERROR,
-    RUN_TIME_ERROR,
-    EXTERNAL_ERROR
+    todo,
+    hint,
+    lint,
+    staticWarning,
+    syntacticError,
+    compileError,
+    runtimeError,
+    externalError
   ];
 
   /// The name of this error type.
@@ -190,7 +188,7 @@ class HTError {
   ErrorSeverity get severity => type.severity;
 
   /// Error message.
-  late final String message;
+  late String message;
 
   /// moduleFullName when error occured.
   String? moduleFullName;
@@ -213,137 +211,137 @@ class HTError {
       this.line,
       this.column}) {
     for (var i = 0; i < interpolations.length; ++i) {
-      message.replaceAll('{$i}', interpolations[i]);
+      message = message.replaceAll('{$i}', interpolations[i]);
     }
     this.message = message;
   }
 
   /// Error: Expected a token while met another.
   HTError.unexpected(String expected, String met)
-      : this(ErrorCode.unexpected, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.unexpected, ErrorType.compileError,
             message: HTLexicon.errorUnexpected,
             interpolations: [expected, met]);
 
   /// Error: Const variable in a class must be static.
   HTError.constMustBeStatic(String id)
-      : this(ErrorCode.constMustBeStatic, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.constMustBeStatic, ErrorType.compileError,
             message: HTLexicon.errorConstMustBeStatic, interpolations: [id]);
 
   /// Error: Const variable must be initialized.
   HTError.constMustInit(String id)
-      : this(ErrorCode.constMustInit, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.constMustInit, ErrorType.compileError,
             message: HTLexicon.errorConstMustInit, interpolations: [id]);
 
   /// Error: A same name declaration is already existed.
   HTError.definedParser(String id)
-      : this(ErrorCode.defined, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.defined, ErrorType.compileError,
             message: HTLexicon.errorDefined);
 
   /// Error: Illegal value appeared on left of assignment.
   HTError.invalidLeftValue()
-      : this(ErrorCode.invalidLeftValue, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.invalidLeftValue, ErrorType.compileError,
             message: HTLexicon.errorInvalidLeftValue);
 
   /// Error: Return appeared outside of a function.
   HTError.outsideReturn()
-      : this(ErrorCode.outsideReturn, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.outsideReturn, ErrorType.compileError,
             message: HTLexicon.errorOutsideReturn);
 
   /// Error: This appeared outside of a function.
   HTError.outsideThis()
-      : this(ErrorCode.outsideThis, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.outsideThis, ErrorType.compileError,
             message: HTLexicon.errorOutsideThis);
 
   /// Error: Illegal setter declaration.
   HTError.setterArity()
-      : this(ErrorCode.setterArity, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.setterArity, ErrorType.compileError,
             message: HTLexicon.errorSetterArity);
 
   /// Error: Illegal external member.
   HTError.externMember()
-      : this(ErrorCode.externMember, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.externMember, ErrorType.compileError,
             message: HTLexicon.errorExternMember);
 
   /// Error: Type arguments is emtpy brackets.
   HTError.emptyTypeArgs()
-      : this(ErrorCode.emptyTypeArgs, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.emptyTypeArgs, ErrorType.compileError,
             message: HTLexicon.errorEmptyTypeArgs);
 
   /// Error: Symbol is not a class member.
   HTError.notMember(String id, String className)
-      : this(ErrorCode.notMember, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.notMember, ErrorType.compileError,
             message: HTLexicon.errorNotMember, interpolations: [id, className]);
 
   /// Error: Symbol is not a class name.
   HTError.notClass(String id)
-      : this(ErrorCode.notClass, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.notClass, ErrorType.compileError,
             message: HTLexicon.errorNotClass, interpolations: [id]);
 
   /// Error: Symbol is not a class name.
   HTError.extendsSelf()
-      : this(ErrorCode.extendsSelf, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.extendsSelf, ErrorType.compileError,
             message: HTLexicon.errorExtendsSelf);
 
   /// Error: Not a super class of this instance.
   HTError.ctorReturn()
-      : this(ErrorCode.ctorReturn, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.ctorReturn, ErrorType.compileError,
             message: HTLexicon.errorCtorReturn);
 
   /// Error: Not a super class of this instance.
   HTError.abstracted()
-      : this(ErrorCode.abstracted, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.abstracted, ErrorType.compileError,
             message: HTLexicon.errorAbstracted);
 
   /// Error: Not a super class of this instance.
   HTError.abstractCtor()
-      : this(ErrorCode.abstractCtor, ErrorType.COMPILE_TIME_ERROR,
+      : this(ErrorCode.abstractCtor, ErrorType.compileError,
             message: HTLexicon.errorAbstractCtor);
 
   /// Error: Access private member.
   HTError.unknownOpCode(int opcode)
-      : this(ErrorCode.unknownOpCode, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
             message: HTLexicon.errorUnknownOpCode,
             interpolations: [opcode.toString()]);
 
   /// Error: Access private member.
   HTError.privateMember(String id)
-      : this(ErrorCode.privateMember, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.privateMember, ErrorType.runtimeError,
             message: HTLexicon.errorPrivateMember, interpolations: [id]);
 
   /// Error: Access private declaration.
   HTError.privateDecl(String id)
-      : this(ErrorCode.privateDecl, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.privateDecl, ErrorType.runtimeError,
             message: HTLexicon.errorPrivateDecl, interpolations: [id]);
 
   /// Error: Try to use a variable before its initialization.
   HTError.notInitialized(String id)
-      : this(ErrorCode.notInitialized, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.notInitialized, ErrorType.runtimeError,
             message: HTLexicon.errorNotInitialized, interpolations: [id]);
 
   /// Error: Try to use a undefined variable.
   HTError.undefined(String id)
-      : this(ErrorCode.undefined, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.undefined, ErrorType.runtimeError,
             message: HTLexicon.errorUndefined, interpolations: [id]);
 
   /// Error: Try to use a external variable without its binding.
   HTError.undefinedExtern(String id)
-      : this(ErrorCode.undefinedExtern, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.undefinedExtern, ErrorType.runtimeError,
             message: HTLexicon.errorUndefinedExtern, interpolations: [id]);
 
   /// Error: Try to operate unkown type object.
   HTError.unknownTypeName(String id)
-      : this(ErrorCode.unknownTypeName, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.unknownTypeName, ErrorType.runtimeError,
             message: HTLexicon.errorUnknownTypeName, interpolations: [id]);
 
   /// Error: Unknown operator.
   HTError.undefinedOperator(String id, String op)
-      : this(ErrorCode.undefinedOperator, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.undefinedOperator, ErrorType.runtimeError,
             message: HTLexicon.errorUndefinedOperator,
             interpolations: [id, op]);
 
   /// Error: A same name declaration is already existed.
   HTError.definedRuntime(String id)
-      : this(ErrorCode.defined, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.defined, ErrorType.runtimeError,
             message: HTLexicon.errorDefined, interpolations: [id]);
 
 // HTError.range(int length) { message = '${HTError.errorRange} [$length]';type = HTErrorType.interpreter;
@@ -351,53 +349,53 @@ class HTError {
 
   /// Error: Object is not callable.
   HTError.notCallable(String id)
-      : this(ErrorCode.notCallable, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.notCallable, ErrorType.runtimeError,
             message: HTLexicon.errorNotCallable, interpolations: [id]);
 
   /// Error: Undefined member of a class/enum.
   HTError.undefinedMember(String id)
-      : this(ErrorCode.undefinedMember, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.undefinedMember, ErrorType.runtimeError,
             message: HTLexicon.errorUndefinedMember, interpolations: [id]);
 
   /// Error: if/while condition expression must be boolean type.
   HTError.condition()
-      : this(ErrorCode.condition, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.condition, ErrorType.runtimeError,
             message: HTLexicon.errorCondition);
 
   /// Error: Try to use sub get operator on a non-list object.
   HTError.notList(String id)
-      : this(ErrorCode.notList, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.notList, ErrorType.runtimeError,
             message: HTLexicon.errorNotList, interpolations: [id]);
 
   /// Error: Calling method on null object.
   HTError.nullObject(String id)
-      : this(ErrorCode.nullObject, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.nullObject, ErrorType.runtimeError,
             message: HTLexicon.errorNullObject, interpolations: [id]);
 
   /// Error: Type is assign a unnullable varialbe with null.
   HTError.nullable(String id)
-      : this(ErrorCode.nullable, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.nullable, ErrorType.runtimeError,
             message: HTLexicon.errorNullable, interpolations: [id]);
 
   /// Error: Type check failed.
   HTError.type(String id, String valueType, String declValue)
-      : this(ErrorCode.type, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.type, ErrorType.runtimeError,
             message: HTLexicon.errorType,
             interpolations: [id, valueType, declValue]);
 
   /// Error: Try to assign a immutable variable.
   HTError.immutable(String id)
-      : this(ErrorCode.immutable, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.immutable, ErrorType.runtimeError,
             message: HTLexicon.errorImmutable, interpolations: [id]);
 
   /// Error: Symbol is not a type.
   HTError.notType(String id)
-      : this(ErrorCode.notType, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.notType, ErrorType.runtimeError,
             message: HTLexicon.errorNotType, interpolations: [id]);
 
   /// Error: Arguments type check failed.
   HTError.argType(String id, String assignType, String declValue)
-      : this(ErrorCode.argType, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.argType, ErrorType.runtimeError,
             message: HTLexicon.errorArgType,
             interpolations: [id, assignType, declValue]);
 
@@ -406,112 +404,112 @@ class HTError {
     String returnedType,
     String funcName,
     String declReturnType,
-  ) : this(ErrorCode.returnType, ErrorType.RUN_TIME_ERROR,
+  ) : this(ErrorCode.returnType, ErrorType.runtimeError,
             message: HTLexicon.errorReturnType,
             interpolations: [returnedType, funcName, declReturnType]);
 
   /// Error: Try to call a function without definition.
   HTError.missingFuncBody(String id)
-      : this(ErrorCode.missingFuncBody, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.missingFuncBody, ErrorType.runtimeError,
             message: HTLexicon.errorMissingFuncBody, interpolations: [id]);
 
   /// Error: Function arity check failed.
   HTError.arity(String id, int argsCount, int paramsCount)
-      : this(ErrorCode.arity, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.arity, ErrorType.runtimeError,
             message: HTLexicon.errorArity,
             interpolations: [id, argsCount.toString(), paramsCount.toString()]);
 
   /// Error: Missing binding extension on dart object.
   HTError.binding(String id)
-      : this(ErrorCode.binding, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.binding, ErrorType.runtimeError,
             message: HTLexicon.errorBinding, interpolations: [id]);
 
   /// Error: Can not declare a external variable in global namespace.
   HTError.externalVar()
-      : this(ErrorCode.externalVar, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.externalVar, ErrorType.runtimeError,
             message: HTLexicon.errorExternalVar);
 
   /// Error: Bytecode signature check failed.
   HTError.bytesSig()
-      : this(ErrorCode.bytesSig, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.bytesSig, ErrorType.runtimeError,
             message: HTLexicon.errorBytesSig);
 
   /// Error: Variable's initialization relies on itself.
   HTError.circleInit(String id)
-      : this(ErrorCode.circleInit, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.circleInit, ErrorType.runtimeError,
             message: HTLexicon.errorCircleInit, interpolations: [id]);
 
   /// Error: Missing variable initializer.
   HTError.initialize()
-      : this(ErrorCode.initialize, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.initialize, ErrorType.runtimeError,
             message: HTLexicon.errorInitialize);
 
   /// Error: Named arguments does not exist.
   HTError.namedArg(String id)
-      : this(ErrorCode.namedArg, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.namedArg, ErrorType.runtimeError,
             message: HTLexicon.errorNamedArg, interpolations: [id]);
 
   /// Error: Object is not iterable.
   HTError.iterable(String id)
-      : this(ErrorCode.iterable, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.iterable, ErrorType.runtimeError,
             message: HTLexicon.errorIterable, interpolations: [id]);
 
   /// Error: Unknown value type code
   HTError.unkownValueType(int valType)
-      : this(ErrorCode.unkownValueType, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.unkownValueType, ErrorType.runtimeError,
             message: HTLexicon.errorUnkownValueType,
             interpolations: [valType.toString()]);
 
   /// Error: Illegal empty string.
   HTError.emptyString([String? message])
-      : this(ErrorCode.emptyString, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.emptyString, ErrorType.runtimeError,
             message: HTLexicon.errorEmptyString,
             interpolations: message != null ? [message] : []);
 
   /// Error: Illegal type cast.
   HTError.typeCast(String object, String type)
-      : this(ErrorCode.typeCast, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.typeCast, ErrorType.runtimeError,
             message: HTLexicon.errorTypeCast, interpolations: [object, type]);
 
   /// Error: Illegal castee.
   HTError.castee(String varName)
-      : this(ErrorCode.castee, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.castee, ErrorType.runtimeError,
             message: HTLexicon.errorCastee, interpolations: [varName]);
 
   /// Error: Illegal clone.
   HTError.clone(String varName)
-      : this(ErrorCode.clone, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.clone, ErrorType.runtimeError,
             message: HTLexicon.errorClone, interpolations: [varName]);
 
   /// Error: Not a super class of this instance.
   HTError.notSuper(String classId, String id)
-      : this(ErrorCode.notSuper, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.notSuper, ErrorType.runtimeError,
             message: HTLexicon.errorNotSuper, interpolations: [classId, id]);
 
   HTError.missingExternalFuncDef(String id)
-      : this(ErrorCode.missingExternalFuncDef, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.missingExternalFuncDef, ErrorType.runtimeError,
             message: HTLexicon.errorMissingExternalFuncDef,
             interpolations: [id]);
 
   HTError.internalFuncWithExternalTypeDef()
-      : this(ErrorCode.missingExternalFuncDef, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.missingExternalFuncDef, ErrorType.runtimeError,
             message: HTLexicon.errorInternalFuncWithExternalTypeDef);
 
   HTError.externalCtorWithReferCtor()
-      : this(ErrorCode.externalCtorWithReferCtor, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.externalCtorWithReferCtor, ErrorType.runtimeError,
             message: HTLexicon.errorExternalCtorWithReferCtor);
 
   HTError.nonCotrWithReferCtor()
-      : this(ErrorCode.nonCotrWithReferCtor, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.nonCotrWithReferCtor, ErrorType.runtimeError,
             message: HTLexicon.errorNonCotrWithReferCtor);
 
   /// Error: Module import error
   HTError.moduleImport(String id)
-      : this(ErrorCode.moduleImport, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.moduleImport, ErrorType.runtimeError,
             message: HTLexicon.errorModuleImport, interpolations: [id]);
 
   /// Error: Try to define a class on a instance.
   HTError.classOnInstance()
-      : this(ErrorCode.classOnInstance, ErrorType.RUN_TIME_ERROR,
+      : this(ErrorCode.classOnInstance, ErrorType.runtimeError,
             message: HTLexicon.errorClassOnInstance);
 }

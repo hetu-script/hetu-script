@@ -1,4 +1,3 @@
-import '../implementation/errors.dart';
 import '../implementation/lexicon.dart';
 import '../implementation/type.dart';
 import '../implementation/parser.dart';
@@ -6,16 +5,10 @@ import '../implementation/lexer.dart';
 import '../implementation/token.dart';
 import '../implementation/class.dart';
 import '../common/constants.dart';
+import '../common/errors.dart';
 import 'ast.dart';
 import 'ast_analyzer.dart';
-
-class AstParseResult {
-  String content;
-
-  AstNode root;
-
-  AstParseResult(this.content, this.root);
-}
+import 'ast_source.dart';
 
 class HTAstParser extends Parser with AnalyzerRef {
   late String _curModuleName;
@@ -30,7 +23,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     this.interpreter = interpreter;
   }
 
-  Future<AstParseResult> parse(String content, String moduleName,
+  Future<HTAstSource> parse(String content, String moduleName,
       [ParserConfig config = const ParserConfig()]) async {
     var lexer = Lexer();
     addTokens(lexer.lex(content, _curModuleName));
@@ -47,7 +40,7 @@ class HTAstParser extends Parser with AnalyzerRef {
       statements.add(stmt);
     }
 
-    return AstParseResult(content, AstModule(statements, moduleName, 0, 0));
+    return HTAstSource(AstModule(statements, moduleName, 0, 0), content);
   }
 
   AstNode _parseStmt({CodeType codeType = CodeType.module}) {

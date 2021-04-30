@@ -1,8 +1,8 @@
 import '../implementation/variable.dart';
 import '../implementation/type.dart';
-import '../implementation/errors.dart';
 import '../implementation/class.dart';
 import '../implementation/lexicon.dart';
+import '../common/errors.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode.dart' show GotoInfo;
 

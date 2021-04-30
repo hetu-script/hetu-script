@@ -1,8 +1,8 @@
-import 'errors.dart';
 import 'variable.dart';
 import 'function.dart';
 import 'interpreter.dart';
 import '../common/constants.dart';
+import '../common/errors.dart';
 
 /// A [HTDeclaration] could be a [HTVariable], a [HTClass] or a [HTFunction]
 abstract class HTDeclaration {

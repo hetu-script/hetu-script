@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import '../implementation/type.dart';
 import '../implementation/lexicon.dart';
-import '../implementation/errors.dart';
+import '../common/errors.dart';
 import '../binding/external_class.dart';
 import 'core_instance.dart';
 

@@ -1,6 +1,6 @@
 import '../implementation/variable.dart';
 import '../implementation/type.dart';
-import '../implementation/errors.dart';
+import '../common/errors.dart';
 import 'ast.dart';
 import 'ast_analyzer.dart';
 

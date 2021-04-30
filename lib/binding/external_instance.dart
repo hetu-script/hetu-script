@@ -2,9 +2,9 @@ import '../implementation/interpreter.dart';
 import '../implementation/object.dart';
 import '../implementation/type.dart';
 import '../implementation/lexicon.dart';
-import '../implementation/errors.dart';
 import '../implementation/class.dart';
 import '../implementation/function.dart';
+import '../common/errors.dart';
 import 'external_class.dart';
 
 /// Class for external object.

@@ -1,7 +1,6 @@
 import 'lexicon.dart';
 import 'namespace.dart';
 import 'function.dart';
-import 'errors.dart';
 import 'type.dart';
 import 'interpreter.dart';
 import 'variable.dart';
@@ -9,6 +8,7 @@ import 'declaration.dart';
 import 'instance.dart';
 import 'enum.dart';
 import 'object.dart';
+import '../common/errors.dart';
 
 class ClassInfo with HTDeclaration {
   final bool isExtern;

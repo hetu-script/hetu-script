@@ -1,4 +1,4 @@
-import '../implementation/errors.dart';
+import '../common/errors.dart';
 // import '../class.dart' show HTInheritable;
 import '../implementation/type.dart';
 import '../implementation/object.dart';
