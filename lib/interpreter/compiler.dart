@@ -1774,8 +1774,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       bool isImmutable = false,
       bool isStatic = false,
       bool lateInitialize = true,
-      bool endOfStatement = false,
-      Uint8List? initializer}) {
+      Uint8List? initializer,
+      bool endOfStatement = false}) {
     advance(1);
     var id = match(HTLexicon.identifier).lexeme;
 

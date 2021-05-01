@@ -45,57 +45,10 @@ class HTAstParser extends Parser with AnalyzerRef {
 
   AstNode _parseStmt({CodeType codeType = CodeType.module}) {
     switch (codeType) {
-      case CodeType.module:
-        switch (curTok.type) {
-          case HTLexicon.EXTERNAL:
-            advance(1);
-            switch (curTok.type) {
-              case HTLexicon.CLASS:
-                return _parseClassDeclStmt(isExtern: true);
-              case HTLexicon.ENUM:
-                return _parseEnumDeclStmt(isExtern: true);
-              case HTLexicon.VAR:
-                return _parseVarStmt(isExtern: true, isDynamic: true);
-              case HTLexicon.LET:
-                return _parseVarStmt(isExtern: true);
-              case HTLexicon.CONST:
-                return _parseVarStmt(isExtern: true, isImmutable: true);
-              case HTLexicon.FUNCTION:
-                return _parseFuncDeclaration(isExtern: true);
-              default:
-                throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
-            }
-          // case HTLexicon.ABSTRACT:
-          //   match(HTLexicon.CLASS);
-          //   return _parseClassDeclStmt(classType: ClassType.abstracted);
-          // case HTLexicon.INTERFACE:
-          //   match(HTLexicon.CLASS);
-          //   return _parseClassDeclStmt(classType: ClassType.interface);
-          // case HTLexicon.MIXIN:
-          //   match(HTLexicon.CLASS);
-          //   return _parseClassDeclStmt(classType: ClassType.mixIn);
-          case HTLexicon.CLASS:
-            return _parseClassDeclStmt();
-          case HTLexicon.IMPORT:
-            return _parseImportStmt();
-          case HTLexicon.VAR:
-            return _parseVarStmt(isDynamic: true);
-          case HTLexicon.LET:
-            return _parseVarStmt();
-          case HTLexicon.CONST:
-            return _parseVarStmt(isImmutable: true);
-          case HTLexicon.FUNCTION:
-            return _parseFuncDeclaration();
-          default:
-            throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
-        }
-      case CodeType.expression:
-      case CodeType.function:
       case CodeType.script:
-        // 函数块中不能出现extern或者static关键字的声明
         // var变量声明
         if (expect([HTLexicon.VAR])) {
-          return _parseVarStmt(isDynamic: true);
+          return _parseVarStmt(typeInferrence: true);
         } // let
         else if (expect([HTLexicon.LET])) {
           return _parseVarStmt();
@@ -131,6 +84,52 @@ class HTAstParser extends Parser with AnalyzerRef {
         else {
           return _parseExprStmt();
         }
+      case CodeType.module:
+        switch (curTok.type) {
+          case HTLexicon.EXTERNAL:
+            advance(1);
+            switch (curTok.type) {
+              case HTLexicon.CLASS:
+                return _parseClassDeclStmt(isExtern: true);
+              case HTLexicon.ENUM:
+                return _parseEnumDeclStmt(isExtern: true);
+              case HTLexicon.VAR:
+                return _parseVarStmt(isExtern: true, typeInferrence: true);
+              case HTLexicon.LET:
+                return _parseVarStmt(isExtern: true);
+              case HTLexicon.CONST:
+                return _parseVarStmt(isExtern: true, isImmutable: true);
+              case HTLexicon.FUNCTION:
+                return _parseFuncDeclaration(isExtern: true);
+              default:
+                throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
+            }
+          // case HTLexicon.ABSTRACT:
+          //   match(HTLexicon.CLASS);
+          //   return _parseClassDeclStmt(classType: ClassType.abstracted);
+          // case HTLexicon.INTERFACE:
+          //   match(HTLexicon.CLASS);
+          //   return _parseClassDeclStmt(classType: ClassType.interface);
+          // case HTLexicon.MIXIN:
+          //   match(HTLexicon.CLASS);
+          //   return _parseClassDeclStmt(classType: ClassType.mixIn);
+          case HTLexicon.CLASS:
+            return _parseClassDeclStmt();
+          case HTLexicon.IMPORT:
+            return _parseImportStmt();
+          case HTLexicon.VAR:
+            return _parseVarStmt(typeInferrence: true);
+          case HTLexicon.LET:
+            return _parseVarStmt();
+          case HTLexicon.CONST:
+            return _parseVarStmt(isImmutable: true);
+          case HTLexicon.FUNCTION:
+            return _parseFuncDeclaration();
+          default:
+            throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
+        }
+      case CodeType.expression:
+      case CodeType.function:
       case CodeType.klass:
         final isExtern = expect([HTLexicon.EXTERNAL], consume: true);
         final isStatic = expect([HTLexicon.STATIC], consume: true);
@@ -142,14 +141,14 @@ class HTAstParser extends Parser with AnalyzerRef {
         } // let
         else if (expect([HTLexicon.LET])) {
           return _parseVarStmt(
-              isDynamic: true,
+              typeInferrence: true,
               isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: isStatic);
         } // const
         else if (expect([HTLexicon.CONST])) {
           if (!isStatic) throw HTError.constMustBeStatic(curTok.lexeme);
           return _parseVarStmt(
-              isDynamic: true,
+              typeInferrence: true,
               isExtern: isExtern || (_curClass?.isExtern ?? false),
               isStatic: true,
               isImmutable: true);
@@ -596,12 +595,15 @@ class HTAstParser extends Parser with AnalyzerRef {
 
   /// 变量声明语句
   VarDeclStmt _parseVarStmt(
-      {bool isDynamic = false,
+      {String? declId,
+      bool typeInferrence = false,
       bool isExtern = false,
+      bool isImmutable = false,
       bool isStatic = false,
-      bool isImmutable = false}) {
+      bool lateInitialize = true,
+      AstNode? initializer}) {
     advance(1);
-    final var_name = match(HTLexicon.identifier);
+    final id = match(HTLexicon.identifier);
 
     // if (_declarations.containsKey(var_name)) throw HTErrorDefined(var_name.lexeme, fileName, curTok.line, curTok.column);
 
@@ -616,10 +618,10 @@ class HTAstParser extends Parser with AnalyzerRef {
     }
     // 语句结尾
     expect([HTLexicon.semicolon], consume: true);
-    var stmt = VarDeclStmt(var_name,
+    var stmt = VarDeclStmt(id,
         declType: decl_type,
         initializer: initializer,
-        isDynamic: isDynamic,
+        isDynamic: typeInferrence,
         isExtern: isExtern,
         isImmutable: isImmutable,
         isStatic: isStatic);

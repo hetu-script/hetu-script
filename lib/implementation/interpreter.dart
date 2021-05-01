@@ -1,4 +1,3 @@
-import 'package:hetu_script/implementation/parser.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../plugin/moduleHandler.dart';
@@ -9,7 +8,9 @@ import '../binding/external_instance.dart';
 import '../core/core_class.dart';
 import '../core/core_function.dart';
 import '../common/errors.dart';
+import '../common/constants.dart';
 
+import 'parser.dart';
 import 'namespace.dart';
 import 'type.dart';
 import 'hetu_lib.dart';
@@ -22,13 +23,22 @@ mixin InterpreterRef {
   late final Interpreter interpreter;
 }
 
-class InterpreterConfig {
-  final bool compileWithLineInfo;
-  final bool reportHetuStackTrace;
-  final bool reportDartStackTrace;
+class InterpreterConfig extends ParserConfig {
+  final bool scriptStackTrace;
+  final bool externalStackTrace;
 
-  InterpreterConfig(this.compileWithLineInfo, this.reportHetuStackTrace,
-      this.reportDartStackTrace);
+  const InterpreterConfig(
+      {CodeType codeType = CodeType.module,
+      bool reload = false,
+      bool bundle = false,
+      bool lineInfo = true,
+      this.scriptStackTrace = true,
+      this.externalStackTrace = true})
+      : super(
+            codeType: codeType,
+            reload: reload,
+            bundle: bundle,
+            lineInfo: lineInfo);
 }
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.
@@ -97,7 +107,7 @@ abstract class Interpreter {
   Future<dynamic> eval(String content,
       {String? moduleFullName,
       HTNamespace? namespace,
-      ParserConfig config = const ParserConfig(),
+      InterpreterConfig config = const InterpreterConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -108,7 +118,7 @@ abstract class Interpreter {
   Future<dynamic> import(String key,
       {String? curModuleFullName,
       String? moduleName,
-      ParserConfig config = const ParserConfig(),
+      InterpreterConfig config = const InterpreterConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -201,14 +211,15 @@ abstract class Interpreter {
   }
 
   final _externClasses = <String, HTExternalClass>{};
+  final _externTypeReflection = <HTExternalTypeReflection>[];
   final _externFuncs = <String, Function>{};
   final _externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
-  final _externTypeReflection = <HTExternalTypeReflection>[];
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
-  /// 注册外部类，以访问外部类的构造函数和static成员
-  /// 在脚本中需要存在对应的extern class声明
+  /// Register a external class into scrfipt
+  /// for acessing static members and constructors of this class
+  /// there must be a declaraction also in script for using this
   void bindExternalClass(HTExternalClass externalClass) {
     if (_externClasses.containsKey(externalClass.objectType)) {
       throw HTError.definedRuntime(externalClass.objectType.toString());
@@ -216,6 +227,7 @@ abstract class Interpreter {
     _externClasses[externalClass.id] = externalClass;
   }
 
+  /// Fetch a external class instance
   HTExternalClass fetchExternalClass(String id) {
     if (!_externClasses.containsKey(id)) {
       throw HTError.undefinedExtern(id);
@@ -223,6 +235,13 @@ abstract class Interpreter {
     return _externClasses[id]!;
   }
 
+  /// Bind a external class name to a abstract class name for interpreter get dart class name by reflection
+  void bindExternalReflection(HTExternalTypeReflection reflection) {
+    _externTypeReflection.add(reflection);
+  }
+
+  /// Register a external function into scrfipt
+  /// there must be a declaraction also in script for using this
   void bindExternalFunction(String id, Function function) {
     if (_externFuncs.containsKey(id)) {
       throw HTError.definedRuntime(id);
@@ -230,6 +249,7 @@ abstract class Interpreter {
     _externFuncs[id] = function;
   }
 
+  /// Fetch a external function
   Function fetchExternalFunction(String id) {
     if (!_externFuncs.containsKey(id)) {
       throw HTError.undefinedExtern(id);
@@ -237,6 +257,7 @@ abstract class Interpreter {
     return _externFuncs[id]!;
   }
 
+  /// Register a external function typedef into scrfipt
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function) {
     if (_externFuncTypeUnwrappers.containsKey(id)) {
       throw HTError.definedRuntime(id);
@@ -244,16 +265,12 @@ abstract class Interpreter {
     _externFuncTypeUnwrappers[id] = function;
   }
 
+  /// Using unwrapper to turn a script function into a external function
   Function unwrapExternalFunctionType(String id, HTFunction function) {
     if (!_externFuncTypeUnwrappers.containsKey(id)) {
       throw HTError.undefinedExtern(id);
     }
     final unwrapFunc = _externFuncTypeUnwrappers[id]!;
     return unwrapFunc(function);
-  }
-
-  /// Bind a external class name to a abstract class name for interpreter get dart class name by reflection
-  void bindExternalReflection(HTExternalTypeReflection reflection) {
-    _externTypeReflection.add(reflection);
   }
 }

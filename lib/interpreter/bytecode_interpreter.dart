@@ -19,7 +19,7 @@ import '../common/constants.dart';
 import '../common/errors.dart';
 import 'compiler.dart';
 import 'opcode.dart';
-import 'bytecode.dart';
+import 'bytecode_source.dart';
 import 'bytecode_variable.dart';
 import 'bytecode_funciton.dart';
 
@@ -129,7 +129,7 @@ class Hetu extends Interpreter {
   Future<dynamic> eval(String content,
       {String? moduleFullName,
       HTNamespace? namespace,
-      ParserConfig config = const ParserConfig(),
+      InterpreterConfig config = const InterpreterConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -188,7 +188,7 @@ class Hetu extends Interpreter {
   Future<dynamic> import(String key,
       {String? curModuleFullName,
       String? moduleName,
-      ParserConfig config = const ParserConfig(),
+      InterpreterConfig config = const InterpreterConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
