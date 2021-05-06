@@ -41,8 +41,6 @@ abstract class AstNodeVisitor {
 
   dynamic visitCallExpr(CallExpr expr);
 
-  dynamic visitImportStmt(ImportStmt stmt);
-
   dynamic visitExprStmt(ExprStmt stmt);
 
   dynamic visitBlockStmt(BlockStmt stmt);
@@ -66,9 +64,6 @@ abstract class AstNodeVisitor {
   dynamic visitClassDeclStmt(ClassDeclStmt stmt);
 
   dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
-
-  /// Parse result of a single script file, root for analyze
-  dynamic visitAstModule(AstModule module);
 }
 
 abstract class AstNode {
@@ -397,24 +392,6 @@ class CallExpr extends AstNode {
   }
 }
 
-class ImportStmt extends AstNode {
-  @override
-  dynamic accept(AstNodeVisitor visitor) => visitor.visitImportStmt(this);
-
-  final Token keyword;
-
-  final String key;
-
-  final String? namespace;
-
-  ImportStmt(this.keyword, this.key, [this.namespace])
-      : super(SemanticType.importStmt, keyword.fileName, keyword.line,
-            keyword.column);
-
-  @override
-  AstNode clone() => ImportStmt(keyword, key, namespace);
-}
-
 class ExprStmt extends AstNode {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitExprStmt(this);
@@ -492,12 +469,15 @@ class WhileStmt extends AstNode {
 
   final AstNode? loop;
 
-  WhileStmt(this.condition, this.loop)
+  final bool isDoStmt;
+
+  WhileStmt(this.condition, this.loop, {this.isDoStmt = false})
       : super(SemanticType.whileStmt, condition.moduleFullName, condition.line,
             condition.column);
 
   @override
-  AstNode clone() => WhileStmt(condition.clone(), loop?.clone());
+  AstNode clone() =>
+      WhileStmt(condition.clone(), loop?.clone(), isDoStmt: isDoStmt);
 }
 
 class BreakStmt extends AstNode {
@@ -532,7 +512,7 @@ class VarDeclStmt extends AstNode {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitVarDeclStmt(this);
 
-  final Token id;
+  final String id;
 
   final HTType? declType;
 
@@ -547,17 +527,17 @@ class VarDeclStmt extends AstNode {
 
   final bool isStatic;
 
-  VarDeclStmt(this.id,
+  VarDeclStmt(this.id, String moduleFullName, int line, int column,
       {this.declType,
       this.initializer,
       this.isDynamic = false,
       this.isExtern = false,
       this.isImmutable = false,
       this.isStatic = false})
-      : super(SemanticType.varDeclStmt, id.fileName, id.line, id.column);
+      : super(SemanticType.varDeclStmt, moduleFullName, line, column);
 
   @override
-  AstNode clone() => VarDeclStmt(id,
+  AstNode clone() => VarDeclStmt(id, moduleFullName, line, column,
       declType: declType,
       initializer: initializer,
       isExtern: isExtern,
@@ -759,23 +739,4 @@ class EnumDeclStmt extends AstNode {
 
   @override
   AstNode clone() => EnumDeclStmt(id, enumerations, isExtern: isExtern);
-}
-
-class AstModule extends AstNode {
-  @override
-  dynamic accept(AstNodeVisitor visitor) => visitor.visitAstModule(this);
-
-  final List<AstNode> statements;
-
-  AstModule(this.statements, String fileName, int line, int column)
-      : super(SemanticType.blockStmt, fileName, line, column);
-
-  @override
-  AstNode clone() {
-    var new_list = <AstNode>[];
-    for (final expr in statements) {
-      new_list.add(expr.clone());
-    }
-    return AstModule(new_list, moduleFullName, line, column);
-  }
 }

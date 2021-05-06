@@ -25,14 +25,14 @@ enum TypeType {
 
 /// Code module types
 enum CodeType {
-  /// Expression can only have a single expression statement
+  /// A bare expression.
   expression,
 
-  /// Module can have declarations (variables, functions, classes, enums)
-  /// and import & export statement
+  /// Module can only have declarations (variables, functions, classes, enums),
+  /// import & export statement.
   module,
 
-  /// Class can only have declarations (variables, functions)
+  /// Class can only have declarations (variables, functions).
   klass,
 
   /// Function & block can have declarations (variables, functions),

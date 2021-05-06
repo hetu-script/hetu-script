@@ -87,6 +87,8 @@ abstract class Parser {
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
+
+  /// The module current processing, used in error message.
   String? get curModuleFullName;
 
   var tokPos = 0;
@@ -146,4 +148,15 @@ abstract class Parser {
 
   /// 获得当前Token
   Token get curTok => peek(0);
+}
+
+abstract class DeclarationBlock {
+  bool contains(String id);
+}
+
+class ImportInfo {
+  final String key;
+  final String? name;
+  final List<String> showList;
+  ImportInfo(this.key, {this.name, this.showList = const []});
 }

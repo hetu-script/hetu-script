@@ -10,7 +10,6 @@ import '../implementation/object.dart';
 import '../implementation/interpreter.dart';
 import '../implementation/enum.dart';
 import '../implementation/const_table.dart';
-import '../implementation/parser.dart';
 import '../common/errors.dart';
 import '../common/constants.dart';
 import 'ast.dart';
@@ -82,9 +81,12 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
 
     var parser = HTAstParser(this);
     try {
-      final result = await parser.parse(content, _curModuleFullName, config);
+      final parseResult =
+          await parser.parse(content, _curModuleFullName, config);
 
-      _curStmtValue = visitASTNode(result.root);
+      for (final stmt in parseResult.nodes) {
+        _curStmtValue = visitASTNode(stmt);
+      }
 
       _curModuleFullName = _savedModuleName;
       _curNamespace = _savedNamespace;
@@ -817,14 +819,5 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
         HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
 
     _curNamespace.define(enumClass);
-  }
-
-  @override
-  dynamic visitAstModule(AstModule module) {
-    var result;
-    for (final stmt in module.statements) {
-      result = visitASTNode(stmt);
-    }
-    return result;
   }
 }

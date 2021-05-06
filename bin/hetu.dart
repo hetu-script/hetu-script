@@ -27,10 +27,10 @@ void main(List<String> args) async {
         print(cli_help);
       } else if (args.length == 1) {
         result = await hetu.import(args.first,
-            config: ParserConfig(codeType: CodeType.script));
+            config: InterpreterConfig(codeType: CodeType.script));
       } else {
         result = await hetu.import(args.first,
-            config: ParserConfig(codeType: CodeType.module),
+            config: InterpreterConfig(codeType: CodeType.module),
             invokeFunc: args[1]);
       }
       if (result != null) print(result);
@@ -51,7 +51,7 @@ void main(List<String> args) async {
 
           try {
             result = await hetu.eval(input,
-                config: ParserConfig(codeType: CodeType.script));
+                config: InterpreterConfig(codeType: CodeType.script));
             print(result);
           } catch (e) {
             print(e);

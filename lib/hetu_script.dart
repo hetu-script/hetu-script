@@ -13,6 +13,7 @@ export 'implementation/object.dart';
 export 'implementation/type.dart';
 export 'implementation/namespace.dart' show HTNamespace;
 export 'implementation/class.dart' show HTClass;
+export 'implementation/interpreter.dart' show InterpreterConfig;
 export 'analyzer/ast.dart';
 export 'interpreter/bytecode_interpreter.dart';
 export 'binding/external_class.dart';

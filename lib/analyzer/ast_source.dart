@@ -3,12 +3,12 @@ import 'ast.dart';
 
 class HTAstSource extends HTSource {
   /// The bytecode, stores as uint8 list
-  late final AstModule module;
+  late final List<AstNode> nodes;
 
   String content;
 
   /// Create a ast module
-  HTAstSource(this.module, this.content) : super(module.moduleFullName);
+  HTAstSource(String fullName, this.nodes, this.content) : super(fullName);
 }
 
 class HTAstCompilation implements HTCompilation {

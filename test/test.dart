@@ -10,6 +10,6 @@ void main() async {
       print(getBeauty(75, 50, 100))
     }
   ''',
-      config: ParserConfig(codeType: CodeType.module),
+      config: InterpreterConfig(codeType: CodeType.module),
       invokeFunc: 'importTest');
 }
