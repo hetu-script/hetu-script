@@ -591,7 +591,7 @@ class Hetu extends Interpreter {
           final typeArgsLength = _curCode.read();
           final typeArgs = <HTType>[];
           for (var i = 0; i < typeArgsLength; ++i) {
-            final arg = _getType();
+            final arg = _handleTypeExpr();
             typeArgs.add(arg);
           }
           _curTypeArgs = typeArgs;
@@ -640,7 +640,7 @@ class Hetu extends Interpreter {
         var returnType = HTType.ANY;
         final hasType = _curCode.readBool();
         if (hasType) {
-          returnType = _getType();
+          returnType = _handleTypeExpr();
         }
 
         int? line, column, definitionIp;
@@ -682,7 +682,7 @@ class Hetu extends Interpreter {
 
         break;
       case HTValueTypeCode.type:
-        _curValue = _getType();
+        _curValue = _handleTypeExpr();
         break;
       default:
         throw HTError.unkownValueType(valueType);
@@ -861,7 +861,7 @@ class Hetu extends Interpreter {
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTType type = _curValue;
-        final HTClass klass = global.fetch(type.typeName);
+        final HTClass klass = global.fetch(type.id);
         _curValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
@@ -946,7 +946,7 @@ class Hetu extends Interpreter {
         throw HTError.abstracted();
       }
 
-      if (!callee.isExtern) {
+      if (!callee.isExternal) {
         final constructor =
             callee.memberGet(HTLexicon.constructor) as HTFunction;
         _curValue = constructor.call(
@@ -1015,7 +1015,7 @@ class Hetu extends Interpreter {
     }
   }
 
-  HTType _getType() {
+  HTType _handleTypeExpr() {
     final index = _curCode.read();
     final typeType = TypeType.values.elementAt(index);
 
@@ -1025,7 +1025,7 @@ class Hetu extends Interpreter {
         final typeArgsLength = _curCode.read();
         final typeArgs = <HTType>[];
         for (var i = 0; i < typeArgsLength; ++i) {
-          typeArgs.add(_getType());
+          typeArgs.add(_handleTypeExpr());
         }
         final isNullable = _curCode.read() == 0 ? false : true;
         return HTType(typeName, typeArgs: typeArgs, isNullable: isNullable);
@@ -1034,7 +1034,7 @@ class Hetu extends Interpreter {
         final length = _curCode.read();
         final typeArgs = <HTType>[];
         for (var i = 0; i < length; ++i) {
-          typeArgs.add(_getType());
+          typeArgs.add(_handleTypeExpr());
         }
         final isNullable = _curCode.read() == 0 ? false : true;
         final isOptional = _curCode.read() == 0 ? false : true;
@@ -1051,11 +1051,11 @@ class Hetu extends Interpreter {
         final paramsLength = _curCode.read();
         final parameterTypes = <String, HTParameterType>{};
         for (var i = 0; i < paramsLength; ++i) {
-          final paramType = _getType() as HTParameterType;
-          parameterTypes[paramType.typeName] = paramType;
+          final paramType = _handleTypeExpr() as HTParameterType;
+          parameterTypes[paramType.id] = paramType;
         }
         final minArity = _curCode.read();
-        final returnType = _getType();
+        final returnType = _handleTypeExpr();
         return HTFunctionType(
             parameterTypes: parameterTypes,
             minArity: minArity,
@@ -1075,7 +1075,7 @@ class Hetu extends Interpreter {
     }
 
     final typeInferrence = _curCode.readBool();
-    final isExtern = _curCode.readBool();
+    final isExternal = _curCode.readBool();
     final isImmutable = _curCode.readBool();
     final isStatic = _curCode.readBool();
     final lateInitialize = _curCode.readBool();
@@ -1083,33 +1083,50 @@ class Hetu extends Interpreter {
     HTType? declType;
     final hasType = _curCode.readBool();
     if (hasType) {
-      declType = _getType();
+      declType = _handleTypeExpr();
     }
 
-    int? line, column, definitionIp;
+    late final HTBytecodeVariable decl;
+
     final hasInitializer = _curCode.readBool();
     if (hasInitializer) {
-      line = _curCode.readUint16();
-      column = _curCode.readUint16();
-      final length = _curCode.readUint16();
-      definitionIp = _curCode.ip;
-      _curCode.skip(length);
-    }
+      if (lateInitialize) {
+        final definitionLine = _curCode.readUint16();
+        final definitionColumn = _curCode.readUint16();
+        final length = _curCode.readUint16();
+        final definitionIp = _curCode.ip;
+        _curCode.skip(length);
 
-    final decl = HTBytecodeVariable(id, this, curModuleFullName,
-        classId: classId,
-        declType: declType,
-        definitionIp: definitionIp,
-        definitionLine: line,
-        definitionColumn: column,
-        typeInferrence: typeInferrence,
-        isExtern: isExtern,
-        isImmutable: isImmutable,
-        isStatic: isStatic);
+        decl = HTBytecodeVariable(id, this, curModuleFullName,
+            classId: classId,
+            declType: declType,
+            definitionIp: definitionIp,
+            definitionLine: definitionLine,
+            definitionColumn: definitionColumn,
+            typeInferrence: typeInferrence,
+            isExternal: isExternal,
+            isImmutable: isImmutable,
+            isStatic: isStatic);
+      } else {
+        final initValue = execute();
 
-    // TODO: should eval before create HTBytecodeVariable instance
-    if (!lateInitialize) {
-      decl.initialize();
+        decl = HTBytecodeVariable(id, this, curModuleFullName,
+            classId: classId,
+            value: initValue,
+            declType: declType,
+            typeInferrence: typeInferrence,
+            isExternal: isExternal,
+            isImmutable: isImmutable,
+            isStatic: isStatic);
+      }
+    } else {
+      decl = HTBytecodeVariable(id, this, curModuleFullName,
+          classId: classId,
+          declType: declType,
+          typeInferrence: typeInferrence,
+          isExternal: isExternal,
+          isImmutable: isImmutable,
+          isStatic: isStatic);
     }
 
     if (!hasClassId || isStatic) {
@@ -1131,7 +1148,7 @@ class Hetu extends Interpreter {
       var declType = HTType.ANY;
       final hasType = _curCode.readBool();
       if (hasType) {
-        declType = _getType();
+        declType = _handleTypeExpr();
       }
 
       int? definitionIp;
@@ -1164,7 +1181,7 @@ class Hetu extends Interpreter {
     }
 
     final funcType = FunctionType.values[_curCode.read()];
-    final isExtern = _curCode.readBool();
+    final isExternal = _curCode.readBool();
     final isStatic = _curCode.readBool();
     final isConst = _curCode.readBool();
 
@@ -1184,7 +1201,7 @@ class Hetu extends Interpreter {
     final returnTypeEnum =
         FunctionAppendixType.values.elementAt(_curCode.read());
     if (returnTypeEnum == FunctionAppendixType.type) {
-      returnType = _getType();
+      returnType = _handleTypeExpr();
     } else if (returnTypeEnum == FunctionAppendixType.referConstructor) {
       final hasSuperCtorid = _curCode.readBool();
       if (hasSuperCtorid) {
@@ -1223,7 +1240,7 @@ class Hetu extends Interpreter {
         declId: declId,
         klass: _curClass,
         funcType: funcType,
-        isExtern: isExtern,
+        isExternal: isExternal,
         externalTypedef: externalTypedef,
         hasParameterDeclarations: hasParameterDeclarations,
         parameterDeclarations: parameterDeclarations,
@@ -1259,7 +1276,7 @@ class Hetu extends Interpreter {
   void _handleClassDecl() {
     final id = _curCode.readShortUtf8String();
 
-    final isExtern = _curCode.readBool();
+    final isExternal = _curCode.readBool();
     final isAbstract = _curCode.readBool();
 
     // final classType = ClassType.values[_curCode.read()];
@@ -1268,11 +1285,11 @@ class Hetu extends Interpreter {
     HTType? extendedType;
     final hasSuperClass = _curCode.readBool();
     if (hasSuperClass) {
-      extendedType = _getType();
-      superClass = _curNamespace.fetch(extendedType.typeName,
-          from: _curNamespace.fullName);
+      extendedType = _handleTypeExpr();
+      superClass =
+          _curNamespace.fetch(extendedType.id, from: _curNamespace.fullName);
     } else {
-      if (!isExtern && (id != HTLexicon.object)) {
+      if (!isExternal && (id != HTLexicon.object)) {
         extendedType = HTType.object;
         superClass = global.fetch(HTLexicon.object);
       }
@@ -1281,7 +1298,7 @@ class Hetu extends Interpreter {
     final klass = HTClass(id, this, _curModuleFullName, _curNamespace,
         superClass: superClass,
         extendedType: extendedType,
-        isExtern: isExtern,
+        isExternal: isExternal,
         isAbstract: isAbstract);
     _curNamespace.define(klass);
 
@@ -1294,7 +1311,7 @@ class Hetu extends Interpreter {
 
     // Add default constructor if non-exist.
     if (!isAbstract) {
-      if (!isExtern) {
+      if (!isExternal) {
         if (!klass.namespace.contains(HTLexicon.constructor)) {
           klass.namespace.define(HTBytecodeFunction(
               HTLexicon.constructor, this, curModuleFullName,
@@ -1318,7 +1335,7 @@ class Hetu extends Interpreter {
 
   void _handleEnumDecl() {
     final id = _curCode.readShortUtf8String();
-    final isExtern = _curCode.readBool();
+    final isExternal = _curCode.readBool();
     final length = _curCode.readUint16();
 
     var defs = <String, HTEnumItem>{};
@@ -1327,7 +1344,7 @@ class Hetu extends Interpreter {
       defs[enumId] = HTEnumItem<int>(i, enumId, HTType(id));
     }
 
-    final enumClass = HTEnum(id, defs, this, isExtern: isExtern);
+    final enumClass = HTEnum(id, defs, this, isExternal: isExternal);
 
     _curNamespace.define(enumClass);
   }

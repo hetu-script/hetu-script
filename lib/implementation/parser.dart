@@ -1,16 +1,14 @@
-import '../implementation/type.dart';
 import '../common/constants.dart';
 import '../common/errors.dart';
 import 'token.dart';
 import 'lexicon.dart';
-import 'lexer.dart';
 
-class _ParseTypeResult {
-  HTType parsedType;
-  int pos;
+// class _ParseTypeResult {
+//   HTType parsedType;
+//   int pos;
 
-  _ParseTypeResult(this.parsedType, this.pos);
-}
+//   _ParseTypeResult(this.parsedType, this.pos);
+// }
 
 /// Configuration of [Parser]
 class ParserConfig {
@@ -31,55 +29,55 @@ class ParserConfig {
 abstract class Parser {
   static var anonymousFuncIndex = 0;
 
-  static _ParseTypeResult _parseTypeFromTokens(List<Token> tokens) {
-    final typeName = tokens.first.lexeme;
-    var pos = 1;
-    var type_args = <HTType>[];
+  // static _ParseTypeResult _parseTypeFromTokens(List<Token> tokens) {
+  //   final typeName = tokens.first.lexeme;
+  //   var pos = 1;
+  //   var type_args = <HTType>[];
 
-    while (pos < tokens.length) {
-      if (tokens[pos].type == HTLexicon.angleLeft) {
-        pos++;
-        while (
-            (pos < tokens.length) && tokens[pos].type != HTLexicon.angleRight) {
-          final result = _parseTypeFromTokens(tokens.sublist(pos));
-          type_args.add(result.parsedType);
-          pos = result.pos;
-          if (tokens[pos].type != HTLexicon.angleRight) {
-            if (tokens[pos].type == HTLexicon.comma) {
-              ++pos;
-            } else {
-              throw HTError.unexpected(HTLexicon.comma, tokens[pos].lexeme);
-            }
-          }
-        }
-        if (tokens[pos].type != HTLexicon.angleRight) {
-          throw HTError.unexpected(HTLexicon.angleRight, tokens[pos].lexeme);
-        } else {
-          break;
-        }
-      } else {
-        throw HTError.unexpected(HTLexicon.angleLeft, tokens[pos].lexeme);
-      }
-    }
+  //   while (pos < tokens.length) {
+  //     if (tokens[pos].type == HTLexicon.angleLeft) {
+  //       pos++;
+  //       while (
+  //           (pos < tokens.length) && tokens[pos].type != HTLexicon.angleRight) {
+  //         final result = _parseTypeFromTokens(tokens.sublist(pos));
+  //         type_args.add(result.parsedType);
+  //         pos = result.pos;
+  //         if (tokens[pos].type != HTLexicon.angleRight) {
+  //           if (tokens[pos].type == HTLexicon.comma) {
+  //             ++pos;
+  //           } else {
+  //             throw HTError.unexpected(HTLexicon.comma, tokens[pos].lexeme);
+  //           }
+  //         }
+  //       }
+  //       if (tokens[pos].type != HTLexicon.angleRight) {
+  //         throw HTError.unexpected(HTLexicon.angleRight, tokens[pos].lexeme);
+  //       } else {
+  //         break;
+  //       }
+  //     } else {
+  //       throw HTError.unexpected(HTLexicon.angleLeft, tokens[pos].lexeme);
+  //     }
+  //   }
 
-    final parsedType = HTType(typeName, typeArgs: type_args);
-    return _ParseTypeResult(parsedType, pos);
-  }
+  //   final parsedType = HTType(typeName, interpreter, typeArgs: type_args);
+  //   return _ParseTypeResult(parsedType, pos);
+  // }
 
-  static HTType parseType(String typeString) {
-    final tokens = Lexer().lex(typeString, SemanticType.typeExpression);
-    if (tokens.isEmpty) {
-      throw HTError.emptyString(SemanticType.typeExpression);
-    }
+  // static HTType parseType(String typeString) {
+  //   final tokens = Lexer().lex(typeString, SemanticType.typeExpression);
+  //   if (tokens.isEmpty) {
+  //     throw HTError.emptyString(SemanticType.typeExpression);
+  //   }
 
-    if (tokens.first.type != HTLexicon.identifier) {
-      throw HTError.unexpected(HTLexicon.identifier, tokens.first.lexeme);
-    }
+  //   if (tokens.first.type != HTLexicon.identifier) {
+  //     throw HTError.unexpected(HTLexicon.identifier, tokens.first.lexeme);
+  //   }
 
-    final parseResult = _parseTypeFromTokens(tokens);
+  //   final parseResult = _parseTypeFromTokens(tokens);
 
-    return parseResult.parsedType;
-  }
+  //   return parseResult.parsedType;
+  // }
 
   late ParserConfig config;
 

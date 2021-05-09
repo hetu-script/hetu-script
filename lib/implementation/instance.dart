@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import '../common/errors.dart';
+import '../common/constants.dart';
 import 'object.dart';
 import 'interpreter.dart';
 import 'class.dart';
@@ -8,10 +10,7 @@ import 'lexicon.dart';
 import 'function.dart';
 import 'namespace.dart';
 import 'cast.dart';
-import 'declaration.dart';
 import 'variable.dart';
-import '../common/errors.dart';
-import '../common/constants.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
@@ -22,7 +21,7 @@ class HTInstance with HTObject, InterpreterRef {
   @override
   late final HTObjectType objectType;
 
-  String get classId => objectType.typeName;
+  String get classId => objectType.id;
 
   /// A [HTInstance] has all members inherited from all super classes,
   /// Key is the id of a super class.
@@ -63,7 +62,7 @@ class HTInstance with HTObject, InterpreterRef {
             jsonObject.containsKey(clone.id) &&
             (clone is HTVariable)) {
           final value = jsonObject[clone.id];
-          clone.assign(value);
+          clone.value = value;
         }
       }
 
@@ -108,7 +107,7 @@ class HTInstance with HTObject, InterpreterRef {
         if (decl is! HTVariable || jsonObject.containsKey(decl.id)) {
           continue;
         }
-        jsonObject[decl.id] = HTDeclaration.fetch(decl, interpreter);
+        jsonObject[decl.id] = decl.value;
       }
       curNamespace = curNamespace.next;
     }
@@ -146,7 +145,7 @@ class HTInstance with HTObject, InterpreterRef {
           }
 
           var decl = space.declarations[varName]!;
-          return HTDeclaration.fetch(decl, interpreter);
+          return decl.value;
         } else if (space.declarations.containsKey(getter)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
@@ -170,7 +169,7 @@ class HTInstance with HTObject, InterpreterRef {
         }
 
         var decl = space.declarations[varName]!;
-        return HTDeclaration.fetch(decl, interpreter);
+        return decl.value;
       } else if (space.declarations.containsKey(getter)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
@@ -214,7 +213,7 @@ class HTInstance with HTObject, InterpreterRef {
           }
 
           var decl = space.declarations[varName]!;
-          HTDeclaration.assign(decl, varValue);
+          decl.value = varValue;
           return;
         } else if (space.declarations.containsKey(setter)) {
           if (varName.startsWith(HTLexicon.underscore) &&
@@ -240,7 +239,7 @@ class HTInstance with HTObject, InterpreterRef {
         }
 
         var decl = space.declarations[varName]!;
-        HTDeclaration.assign(decl, varValue);
+        decl.value = varValue;
         return;
       } else if (space.declarations.containsKey(setter)) {
         if (varName.startsWith(HTLexicon.underscore) &&

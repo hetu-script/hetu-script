@@ -4,7 +4,10 @@ import '../common/errors.dart';
 import 'ast.dart';
 import 'ast_analyzer.dart';
 
-class HTAstVariable extends HTVariable with AnalyzerRef {
+class HTAstVariable extends HTVariable {
+  @override
+  final HTAnalyzer interpreter;
+
   final bool isDynamic;
 
   @override
@@ -17,7 +20,7 @@ class HTAstVariable extends HTVariable with AnalyzerRef {
 
   AstNode? initializer;
 
-  HTAstVariable(String id, HTAnalyzer interpreter,
+  HTAstVariable(String id, this.interpreter,
       {String? classId,
       dynamic value,
       HTType? declType,
@@ -25,18 +28,17 @@ class HTAstVariable extends HTVariable with AnalyzerRef {
       Function? getter,
       Function? setter,
       this.isDynamic = false,
-      bool isExtern = false,
+      bool isExternal = false,
       this.isImmutable = false,
       bool isMember = false,
       bool isStatic = false})
-      : super(id,
+      : super(id, interpreter,
             classId: classId,
             value: value,
             getter: getter,
             setter: setter,
-            isExtern: isExtern,
+            isExternal: isExternal,
             isStatic: isStatic) {
-    this.interpreter = interpreter;
     if (initializer == null && declType == null) {
       _declType = HTType.ANY;
     }
@@ -50,18 +52,18 @@ class HTAstVariable extends HTVariable with AnalyzerRef {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.visitASTNode(initializer!);
-        assign(initVal);
+        value = initVal;
         _isInitializing = false;
       } else {
         throw HTError.circleInit(id);
       }
     } else {
-      assign(null); // null 也要 assign 一下，因为需要类型检查
+      value = null; // null 也要 assign 一下，因为需要类型检查
     }
   }
 
   @override
-  void assign(dynamic value) {
+  set value(dynamic value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
       final valueType = encapsulation.objectType;
@@ -76,7 +78,7 @@ class HTAstVariable extends HTVariable with AnalyzerRef {
       }
     }
 
-    super.assign(value);
+    super.value = value;
   }
 
   @override
@@ -87,6 +89,6 @@ class HTAstVariable extends HTVariable with AnalyzerRef {
       getter: getter,
       setter: setter,
       declType: declType,
-      isExtern: isExtern,
+      isExternal: isExternal,
       isImmutable: isImmutable);
 }

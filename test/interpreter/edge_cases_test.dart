@@ -6,15 +6,13 @@ void main() async {
   await hetu.init();
 
   group('edge cases -', () {
-    group('import handler -', () {
-      test('import', () async {
-        final result = await hetu.import('script/import_test.ht',
-            invokeFunc: 'importTest');
-        expect(
-          result,
-          87.5,
-        );
-      });
+    test('import', () async {
+      final result =
+          await hetu.import('script/import_test.ht', invokeFunc: 'importTest');
+      expect(
+        result,
+        87.5,
+      );
     });
     test('automatic semicolon insertion', () async {
       final result = await hetu.eval(r'''

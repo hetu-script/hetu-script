@@ -12,6 +12,8 @@ class TypeResolveResult {
   TypeResolveResult(this.type, this.klass);
 }
 
+class HTTypeName {}
+
 class HTType with HTObject {
   static const TYPE = HTType(HTLexicon.TYPE);
   static const ANY = HTType(HTLexicon.ANY);
@@ -19,7 +21,7 @@ class HTType with HTObject {
   static const VOID = HTType(HTLexicon.VOID);
   static const ENUM = HTType(HTLexicon.ENUM);
   static const NAMESPACE = HTType(HTLexicon.NAMESPACE);
-  static final FUNCTION = HTType(HTLexicon.FUNCTION);
+  static const FUNCTION = HTType(HTLexicon.FUNCTION);
   static const object = HTType(HTLexicon.object);
   static const number = HTType(HTLexicon.number);
   static const boolean = HTType(HTLexicon.boolean);
@@ -49,13 +51,13 @@ class HTType with HTObject {
     HTClass? typeClass;
     if (type is HTFunctionType ||
         type is HTObjectType ||
-        HTLexicon.primitiveType.contains(type.typeName)) {
+        HTLexicon.primitiveType.contains(type.id)) {
       typeResult = type;
     } else {
       final typeDef = interpreter.curNamespace
-          .fetch(type.typeName, from: interpreter.curNamespace.fullName);
+          .fetch(type.id, from: interpreter.curNamespace.fullName);
       if (typeDef is HTClass) {
-        if (!typeDef.isExtern) {
+        if (!typeDef.isExternal) {
           typeClass = typeDef;
         }
         typeResult = HTObjectType.fromClass(typeDef,
@@ -73,37 +75,37 @@ class HTType with HTObject {
   @override
   HTType get objectType => HTType.TYPE;
 
-  final String typeName;
+  final String id;
   final List<HTType> typeArgs;
   final bool isNullable;
 
-  const HTType(this.typeName,
+  const HTType(this.id,
       {this.typeArgs = const <HTType>[], this.isNullable = false});
 
   @override
   String toString() {
-    var typename = StringBuffer();
-    typename.write(typeName);
+    var typeString = StringBuffer();
+    typeString.write(id);
     if (typeArgs.isNotEmpty) {
-      typename.write(HTLexicon.angleLeft);
+      typeString.write(HTLexicon.angleLeft);
       for (var i = 0; i < typeArgs.length; ++i) {
-        typename.write(typeArgs[i]);
+        typeString.write(typeArgs[i]);
         if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
-          typename.write('${HTLexicon.comma} ');
+          typeString.write('${HTLexicon.comma} ');
         }
       }
-      typename.write(HTLexicon.angleRight);
+      typeString.write(HTLexicon.angleRight);
     }
     if (isNullable) {
-      typename.write(HTLexicon.nullable);
+      typeString.write(HTLexicon.nullable);
     }
-    return typename.toString();
+    return typeString.toString();
   }
 
   @override
   int get hashCode {
     final hashList = <int>[];
-    hashList.add(typeName.hashCode);
+    hashList.add(id.hashCode);
     hashList.add(isNullable.hashCode);
     for (final typeArg in typeArgs) {
       hashList.add(typeArg.hashCode);
@@ -131,7 +133,7 @@ class HTType with HTObject {
         //   return false;
         // }
         return true;
-      } else if (typeName != other.typeName) {
+      } else if (id != other.id) {
         return false;
       } else if (typeArgs.length != other.typeArgs.length) {
         return false;
@@ -182,18 +184,18 @@ class HTObjectType extends HTType {
     }
   }
 
-  HTObjectType(String typeName,
+  HTObjectType(String id,
       {List<HTType> typeArgs = const [],
       this.extended = const [],
       // this.implemented = const [],
       // this.mixined = const [],
       bool isNullable = false})
-      : super(typeName, typeArgs: typeArgs, isNullable: isNullable);
+      : super(id, typeArgs: typeArgs, isNullable: isNullable);
 
   @override
   int get hashCode {
     final hashList = <int>[];
-    hashList.add(typeName.hashCode);
+    hashList.add(id.hashCode);
     hashList.add(isNullable.hashCode);
     for (final typeArg in typeArgs) {
       hashList.add(typeArg.hashCode);
@@ -252,18 +254,18 @@ class HTParameterType extends HTType {
   /// Wether this is a variadic parameter.
   final bool isVariadic;
 
-  HTParameterType(String typeName,
+  HTParameterType(String id,
       {List<HTType> typeArgs = const [],
       isNullable = false,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(typeName, typeArgs: typeArgs, isNullable: isNullable);
+      : super(id, typeArgs: typeArgs, isNullable: isNullable);
 
   @override
   bool isA(Object other) {
     if (other is HTParameterType) {
-      if (isNamed && (typeName != other.typeName)) {
+      if (isNamed && (id != other.id)) {
         return false;
       } else if ((isOptional != other.isOptional) ||
           (isNamed != other.isNamed) ||
@@ -343,7 +345,7 @@ class HTFunctionType extends HTObjectType {
   @override
   int get hashCode {
     final hashList = <int>[];
-    hashList.add(typeName.hashCode);
+    hashList.add(id.hashCode);
     hashList.add(isNullable.hashCode);
     for (final typeArg in typeArgs) {
       hashList.add(typeArg.hashCode);

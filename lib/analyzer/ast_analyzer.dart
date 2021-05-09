@@ -81,11 +81,13 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
 
     var parser = HTAstParser(this);
     try {
-      final parseResult =
-          await parser.parse(content, _curModuleFullName, config);
+      final parseResult = await parser.parse(
+          content, moduleHandler, _curModuleFullName, config);
 
-      for (final stmt in parseResult.nodes) {
-        _curStmtValue = visitASTNode(stmt);
+      for (final source in parseResult.sources) {
+        for (final stmt in source.nodes) {
+          _curStmtValue = visitASTNode(stmt);
+        }
       }
 
       _curModuleFullName = _savedModuleName;
@@ -307,7 +309,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     _curColumn = expr.column;
     var left = visitASTNode(expr.left);
     var right;
-    if (expr.op.type == HTLexicon.logicalAnd) {
+    if (expr.op == HTLexicon.logicalAnd) {
       if (left is bool) {
         // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
         if (!left) {
@@ -327,7 +329,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       right = visitASTNode(expr.right);
 
       // 操作符重载??
-      if (expr.op.type == HTLexicon.logicalOr) {
+      if (expr.op == HTLexicon.logicalOr) {
         if (left is bool) {
           if (right is bool) {
             return left || right;
@@ -337,41 +339,43 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
         } else {
           throw HTError.condition();
         }
-      } else if (expr.op.type == HTLexicon.equal) {
+      } else if (expr.op == HTLexicon.equal) {
         return left == right;
-      } else if (expr.op.type == HTLexicon.notEqual) {
+      } else if (expr.op == HTLexicon.notEqual) {
         return left != right;
-      } else if (expr.op.type == HTLexicon.add ||
-          expr.op.type == HTLexicon.subtract) {
-        if (expr.op.lexeme == HTLexicon.add) {
+      } else if (expr.op == HTLexicon.add || expr.op == HTLexicon.subtract) {
+        if (expr.op == HTLexicon.add) {
           return left + right;
-        } else if (expr.op.lexeme == HTLexicon.subtract) {
+        } else if (expr.op == HTLexicon.subtract) {
           return left - right;
         }
-      } else if (expr.op.type == HTLexicon.IS) {
+      } else if (expr.op == HTLexicon.IS) {
         if (right is HTType) {
           final encapsulation = encapsulate(left);
           return encapsulation.objectType.isA(right);
         } else {
           throw HTError.notType(right.toString());
         }
-      } else if (expr.op.type == HTLexicon.multiply) {
+      } else if (expr.op == HTLexicon.multiply) {
         return left * right;
-      } else if (expr.op.type == HTLexicon.devide) {
+      } else if (expr.op == HTLexicon.devide) {
         return left / right;
-      } else if (expr.op.type == HTLexicon.modulo) {
+      } else if (expr.op == HTLexicon.modulo) {
         return left % right;
-      } else if (expr.op.type == HTLexicon.greater) {
+      } else if (expr.op == HTLexicon.greater) {
         return left > right;
-      } else if (expr.op.type == HTLexicon.greaterOrEqual) {
+      } else if (expr.op == HTLexicon.greaterOrEqual) {
         return left >= right;
-      } else if (expr.op.type == HTLexicon.lesser) {
+      } else if (expr.op == HTLexicon.lesser) {
         return left < right;
-      } else if (expr.op.type == HTLexicon.lesserOrEqual) {
+      } else if (expr.op == HTLexicon.lesserOrEqual) {
         return left <= right;
       }
     }
   }
+
+  @override
+  dynamic visitTernaryExpr(TernaryExpr expr) {}
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
@@ -391,7 +395,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     final typeArgs = <HTType>[];
 
     if (callee is HTFunction) {
-      // if (!callee.isExtern) {
+      // if (!callee.isExternal) {
       // 普通函数
       // if (callee.funcType != FunctionType.constructor) {
       return callee.call(
@@ -402,7 +406,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       //   final className = callee.classId!;
       //   final klass = global.fetch(className);
       //   if (klass is HTClass) {
-      //     if (!klass.isExtern) {
+      //     if (!klass.isExternal) {
       //       // 命名构造函数
       //       return klass.createInstance(
       //           constructorName: callee.id,
@@ -457,7 +461,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
           namedArgs: namedArgs,
           typeArgs: typeArgs);
 
-      // if (!callee.isExtern) {
+      // if (!callee.isExternal) {
       //   // 默认构造函数
       //   return callee.createInstance(
       //       positionalArgs: positionalArgs,
@@ -498,20 +502,20 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     }
   }
 
-  @override
-  dynamic visitAssignExpr(AssignExpr expr) {
-    // var value = visitASTNode(expr.value);
-    // var distance = _distances[expr];
-    // if (distance != null) {
-    //   // 尝试设置当前环境中的本地变量
-    //   _curNamespace.assignAt(expr.variable.lexeme, value, distance);
-    // } else {
-    //   global.memberSet(expr.variable.lexeme, value);
-    // }
+  // @override
+  // dynamic visitAssignExpr(AssignExpr expr) {
+  // var value = visitASTNode(expr.value);
+  // var distance = _distances[expr];
+  // if (distance != null) {
+  //   // 尝试设置当前环境中的本地变量
+  //   _curNamespace.assignAt(expr.variable.lexeme, value, distance);
+  // } else {
+  //   global.memberSet(expr.variable.lexeme, value);
+  // }
 
-    // // 返回右值
-    // return value;
-  }
+  // // 返回右值
+  // return value;
+  // }
 
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
@@ -526,20 +530,20 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     throw HTError.notList(collection.toString());
   }
 
-  @override
-  dynamic visitSubSetExpr(SubSetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    var collection = visitASTNode(expr.collection);
-    var key = visitASTNode(expr.key);
-    var value = visitASTNode(expr.value);
-    if ((collection is List) || (collection is Map)) {
-      collection[key] = value;
-      return value;
-    }
+  // @override
+  // dynamic visitSubSetExpr(SubSetExpr expr) {
+  //   _curLine = expr.line;
+  //   _curColumn = expr.column;
+  //   var collection = visitASTNode(expr.collection);
+  //   var key = visitASTNode(expr.key);
+  //   var value = visitASTNode(expr.value);
+  //   if ((collection is List) || (collection is Map)) {
+  //     collection[key] = value;
+  //     return value;
+  //   }
 
-    throw HTError.notList(collection.toString());
-  }
+  //   throw HTError.notList(collection.toString());
+  // }
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
@@ -571,44 +575,44 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     }
   }
 
-  @override
-  dynamic visitMemberSetExpr(MemberSetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    dynamic object = visitASTNode(expr.collection);
+  // @override
+  // dynamic visitMemberSetExpr(MemberSetExpr expr) {
+  //   _curLine = expr.line;
+  //   _curColumn = expr.column;
+  //   dynamic object = visitASTNode(expr.collection);
 
-    // if (object is num) {
-    //   object = HTNumber(object);
-    // } else if (object is bool) {
-    //   object = HTBoolean(object);
-    // } else if (object is String) {
-    //   object = HTString(object);
-    // } else if (object is List) {
-    //   object = HTList(object);
-    // } else if (object is Map) {
-    //   object = HTMap(object);
-    // }
+  // if (object is num) {
+  //   object = HTNumber(object);
+  // } else if (object is bool) {
+  //   object = HTBoolean(object);
+  // } else if (object is String) {
+  //   object = HTString(object);
+  // } else if (object is List) {
+  //   object = HTList(object);
+  // } else if (object is Map) {
+  //   object = HTMap(object);
+  // }
 
-    var value = visitASTNode(expr.value);
-    if (object is HTObject) {
-      object.memberSet(expr.key.lexeme, value, from: _curNamespace.fullName);
-      return value;
-    }
-    //如果是Dart对象
-    else {
-      var typeString = object.runtimeType.toString();
-      final id = HTType.parseBaseType(typeString);
-      var externClass = fetchExternalClass(id);
-      externClass.instanceMemberSet(object, expr.key.lexeme, value);
-      return value;
-    }
-  }
+  //   var value = visitASTNode(expr.value);
+  //   if (object is HTObject) {
+  //     object.memberSet(expr.key.lexeme, value, from: _curNamespace.fullName);
+  //     return value;
+  //   }
+  //   //如果是Dart对象
+  //   else {
+  //     var typeString = object.runtimeType.toString();
+  //     final id = HTType.parseBaseType(typeString);
+  //     var externClass = fetchExternalClass(id);
+  //     externClass.instanceMemberSet(object, expr.key.lexeme, value);
+  //     return value;
+  //   }
+  // }
 
-  @override
-  dynamic visitImportStmt(ImportStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-  }
+  // @override
+  // dynamic visitImportStmt(ImportStmt stmt) {
+  //   _curLine = stmt.line;
+  //   _curColumn = stmt.column;
+  // }
 
   @override
   dynamic visitExprStmt(ExprStmt stmt) {
@@ -702,12 +706,12 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     // }
 
     _curNamespace.define(HTAstVariable(
-      stmt.id.lexeme,
+      stmt.id,
       this,
       declType: stmt.declType,
       initializer: stmt.initializer,
       isDynamic: stmt.isDynamic,
-      isExtern: stmt.isExtern,
+      isExternal: stmt.isExternal,
       isImmutable: stmt.isImmutable,
     ));
 
@@ -750,7 +754,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
         HTClass(stmt.id.lexeme, this, _curModuleFullName, _curNamespace,
             superClass: superClass,
             extendedType: null, // TODO: 这里需要修改
-            isExtern: stmt.isExtern,
+            isExternal: stmt.isExternal,
             isAbstract: stmt.isAbstract);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
@@ -760,7 +764,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     _curNamespace = klass.namespace;
 
     for (final variable in stmt.variables) {
-      if (stmt.isExtern && variable.isExtern) {
+      if (stmt.isExternal && variable.isExternal) {
         throw HTError.externalVar();
       }
       // dynamic value;
@@ -768,10 +772,10 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       //   value = visitASTNode(variable.initializer!);
       // }
 
-      final decl = HTAstVariable(variable.id.lexeme, this,
+      final decl = HTAstVariable(variable.id, this,
           declType: variable.declType,
           isDynamic: variable.isDynamic,
-          isExtern: variable.isExtern,
+          isExternal: variable.isExternal,
           isImmutable: variable.isImmutable,
           isMember: true,
           isStatic: variable.isStatic);
@@ -816,7 +820,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     }
 
     final enumClass =
-        HTEnum(stmt.id.lexeme, defs, this, isExtern: stmt.isExtern);
+        HTEnum(stmt.id.lexeme, defs, this, isExternal: stmt.isExternal);
 
     _curNamespace.define(enumClass);
   }

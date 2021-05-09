@@ -10,14 +10,13 @@ import 'enum.dart';
 import 'object.dart';
 import '../common/errors.dart';
 
-class ClassInfo with HTDeclaration {
-  final bool isExtern;
+class ClassInfo extends HTDeclaration {
+  final bool isExternal;
 
   final bool isAbstract;
 
-  ClassInfo(String id, {this.isExtern = false, this.isAbstract = false}) {
-    this.id = id;
-  }
+  ClassInfo(String id, {this.isExternal = false, this.isAbstract = false})
+      : super(id);
 }
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
@@ -65,14 +64,14 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
   /// Create a default [HTClass] instance.
   HTClass(String id, Interpreter interpreter, this.moduleFullName,
       HTNamespace closure,
-      {bool isExtern = false,
+      {bool isExternal = false,
       bool isAbstract = false,
       this.superClass,
       this.extendedType,
       this.typeParameters = const [],
       this.implementedClass = const [],
       this.mixinedClass = const []})
-      : super(id, isExtern: isExtern, isAbstract: isAbstract) {
+      : super(id, isExternal: isExternal, isAbstract: isAbstract) {
     this.interpreter = interpreter;
 
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
@@ -105,7 +104,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
     final getter = '${HTLexicon.getter}$varName';
     final constructor = '${HTLexicon.constructor}$varName';
 
-    if (isExtern) {
+    if (isExternal) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -121,7 +120,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
       }
 
       if (decl != null) {
-        return HTDeclaration.fetch(decl, interpreter);
+        return decl.value;
       }
     } else if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
@@ -129,7 +128,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[varName]!;
-      return HTDeclaration.fetch(decl, interpreter);
+      return decl.value;
     } else if (namespace.declarations.containsKey(getter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
@@ -164,7 +163,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
       {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
 
-    if (isExtern) {
+    if (isExternal) {
       final externClass = interpreter.fetchExternalClass(id);
       externClass.memberSet('$id.$varName', varValue);
       return;
@@ -175,7 +174,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
       }
       final decl = namespace.declarations[varName]!;
       if (decl is HTVariable) {
-        decl.assign(varValue);
+        decl.value = varValue;
         return;
       } else {
         throw HTError.immutable(varName);

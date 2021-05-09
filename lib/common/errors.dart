@@ -235,7 +235,7 @@ class HTError {
   /// Error: A same name declaration is already existed.
   HTError.definedParser(String id)
       : this(ErrorCode.defined, ErrorType.compileError,
-            message: HTLexicon.errorDefined);
+            message: HTLexicon.errorDefined, interpolations: [id]);
 
   /// Error: Illegal value appeared on left of assignment.
   HTError.invalidLeftValue()

@@ -7,7 +7,10 @@ import 'bytecode_interpreter.dart';
 import 'bytecode_source.dart' show GotoInfo;
 
 /// Bytecode implementation of [HTVariable].
-class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
+class HTBytecodeVariable extends HTVariable with GotoInfo {
+  @override
+  final Hetu interpreter;
+
   final bool typeInferrence;
 
   /// Whether this variable is immutable.
@@ -31,7 +34,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   ///
   /// A [HTVariable] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be used within a script.
-  HTBytecodeVariable(String id, Hetu interpreter, String moduleFullName,
+  HTBytecodeVariable(String id, this.interpreter, String moduleFullName,
       {String? classId,
       dynamic value,
       HTType? declType,
@@ -40,18 +43,17 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       int? definitionColumn,
       Function? getter,
       Function? setter,
-      bool isExtern = false,
+      bool isExternal = false,
       this.typeInferrence = false,
       this.isImmutable = false,
       bool isStatic = false})
-      : super(id,
+      : super(id, interpreter,
             classId: classId,
             value: value,
             getter: getter,
             setter: setter,
-            isExtern: isExtern,
+            isExternal: isExternal,
             isStatic: isStatic) {
-    this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -62,7 +64,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
 
       if (_declType is HTFunctionType ||
           _declType is HTObjectType ||
-          (HTLexicon.primitiveType.contains(declType.typeName))) {
+          (HTLexicon.primitiveType.contains(declType.id))) {
         _isTypeInitialized = true;
       }
     } else {
@@ -97,14 +99,14 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
             line: definitionLine,
             column: definitionColumn);
 
-        assign(initVal);
+        value = initVal;
 
         _isInitializing = false;
       } else {
         throw HTError.circleInit(id);
       }
     } else {
-      assign(null); // null 也要 assign 一下，因为需要类型检查
+      value = null; // null 也要 assign 一下，因为需要类型检查
     }
   }
 
@@ -118,7 +120,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
     } else {
       // basically doing a type erasure here.
       if ((value is List) &&
-          (type.typeName == HTLexicon.list) &&
+          (type.id == HTLexicon.list) &&
           (type.typeArgs.isNotEmpty)) {
         final computedValueList = [];
         for (final item in value) {
@@ -127,7 +129,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
         }
         return computedValueList;
       } else if ((value is Map) &&
-          (type.typeName == HTLexicon.map) &&
+          (type.id == HTLexicon.map) &&
           (type.typeArgs.length >= 2)) {
         final mapValueTypeResolveResult =
             HTType.resolve(type.typeArgs[1], interpreter);
@@ -143,8 +145,8 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       } else {
         final encapsulation = interpreter.encapsulate(value);
         final valueType = encapsulation.objectType;
-        if (valueType.isNotA(_declType!)) {
-          throw HTError.type(id, valueType.toString(), _declType.toString());
+        if (valueType.isNotA(type)) {
+          throw HTError.type(id, valueType.toString(), type.toString());
         }
         return value;
       }
@@ -154,7 +156,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
   /// Assign a new value to this variable,
   /// will perform [HTType] check during this process.
   @override
-  void assign(dynamic value) {
+  set value(dynamic value) {
     if (_declType != null) {
       if (!_isTypeInitialized) {
         _initializeType();
@@ -166,7 +168,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
       }
     }
 
-    super.assign(_computeValue(value, _declType!, _declClass));
+    super.value = _computeValue(value, _declType ?? HTType.ANY, _declClass);
   }
 
   /// Create a copy of this variable declaration,
@@ -183,7 +185,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo, HetuRef {
           getter: getter,
           setter: setter,
           typeInferrence: typeInferrence,
-          isExtern: isExtern,
+          isExternal: isExternal,
           isImmutable: isImmutable,
           isStatic: isStatic);
 }
@@ -211,7 +213,7 @@ class HTBytecodeParameter extends HTBytecodeVariable {
             typeInferrence: false,
             isImmutable: false) {
     final paramDeclType = declType ?? HTType.ANY;
-    paramType = HTParameterType(paramDeclType.typeName,
+    paramType = HTParameterType(paramDeclType.id,
         typeArgs: paramDeclType.typeArgs,
         isNullable: paramDeclType.isNullable,
         isOptional: isOptional,

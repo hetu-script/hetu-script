@@ -9,24 +9,27 @@ import '../common/errors.dart';
 import 'ast.dart';
 import 'ast_analyzer.dart';
 
-class HTAstFunction extends HTFunction with AnalyzerRef {
+class HTAstFunction extends HTFunction {
+  @override
+  final HTAnalyzer interpreter;
+
   final FuncDeclStmt funcStmt;
 
-  HTAstFunction(this.funcStmt, HTAnalyzer interpreter,
+  HTAstFunction(this.funcStmt, this.interpreter,
       {String? externalTypedef, HTNamespace? context})
       : super(
           funcStmt.internalName,
           funcStmt.id?.lexeme ?? '',
           // classId: funcStmt.classId,
+          interpreter,
           funcType: funcStmt.funcType,
-          isExtern: false,
+          isExternal: false,
           externalTypedef: externalTypedef,
           // type:
           isConst: funcStmt.isConst,
           isVariadic: funcStmt.isVariadic,
           minArity: funcStmt.arity,
         ) {
-    this.interpreter = interpreter;
     this.context = context;
 
     // TODO: 参数改成声明，这里才能创建类型
@@ -57,7 +60,7 @@ class HTAstFunction extends HTFunction with AnalyzerRef {
       if (param.isVariadic) {
         result.write(HTLexicon.varargs + ' ');
       }
-      result.write(param.id.lexeme + ': ' + (param.declType.toString()));
+      result.write(param.id + ': ' + (param.declType.toString()));
       //if (param.initializer != null)
       if (funcStmt.params.length > 1) result.write(', ');
     }
@@ -86,7 +89,8 @@ class HTAstFunction extends HTFunction with AnalyzerRef {
         // 函数每次在调用时，临时生成一个新的作用域
         final closure = HTNamespace(interpreter, closure: context);
         if (context is HTInstance) {
-          closure.define(HTVariable(HTLexicon.THIS, value: context));
+          closure
+              .define(HTVariable(HTLexicon.THIS, interpreter, value: context));
         }
 
         // TODO: 参数也改成Declaration而不是DeclStmt？
@@ -99,9 +103,9 @@ class HTAstFunction extends HTFunction with AnalyzerRef {
             positionalArgs
                 .add(interpreter.visitASTNode(funcStmt.params[i].initializer!));
           } else if (funcStmt.params[i].isNamed &&
-              (namedArgs[funcStmt.params[i].id.lexeme] == null) &&
+              (namedArgs[funcStmt.params[i].id] == null) &&
               (funcStmt.params[i].initializer != null)) {
-            namedArgs[funcStmt.params[i].id.lexeme] =
+            namedArgs[funcStmt.params[i].id] =
                 interpreter.visitASTNode(funcStmt.params[i].initializer!);
           }
 
@@ -109,7 +113,7 @@ class HTAstFunction extends HTFunction with AnalyzerRef {
           if (!param.isNamed) {
             arg = positionalArgs[i];
           } else {
-            arg = namedArgs[param.id.lexeme];
+            arg = namedArgs[param.id];
           }
           final argTypeid = param.declType ?? HTType.ANY;
 
@@ -120,7 +124,7 @@ class HTAstFunction extends HTFunction with AnalyzerRef {
               throw HTError.argType(
                   arg.toString(), arg_type.toString(), argTypeid.toString());
             }
-            closure.define(HTVariable(param.id.lexeme, value: arg));
+            closure.define(HTVariable(param.id, interpreter, value: arg));
           } else {
             var varargs = [];
             for (var j = i; j < positionalArgs.length; ++j) {
@@ -133,7 +137,7 @@ class HTAstFunction extends HTFunction with AnalyzerRef {
               }
               varargs.add(arg);
             }
-            closure.define(HTVariable(param.id.lexeme, value: varargs));
+            closure.define(HTVariable(param.id, interpreter, value: varargs));
             break;
           }
         }

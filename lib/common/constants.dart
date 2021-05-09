@@ -58,6 +58,7 @@ abstract class SemanticType {
   static const symbolExpr = 'symbol_expression';
   static const unaryExpr = 'unary_expression';
   static const binaryExpr = 'binary_expression';
+  static const ternaryExpr = 'ternary_expression';
   static const callExpr = 'call_expression';
   static const thisExpr = 'this_expression';
   static const assignExpr = 'assign_expression';

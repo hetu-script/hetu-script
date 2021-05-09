@@ -1,63 +1,69 @@
-import '../common/errors.dart';
 import 'namespace.dart';
 import 'declaration.dart';
+import 'interpreter.dart';
 
-/// 一个变量，包含了类型等额外信息。
+/// 一个变量声明，包含了类型等额外信息。
 /// 在编译后的代码中，被提前到整个代码块最前面。
-class HTVariable with HTDeclaration {
+class HTVariable extends HTDeclaration with InterpreterRef {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
-  dynamic value;
+  dynamic _value;
 
   final Function? getter;
   final Function? setter;
 
-  final bool isExtern;
-  bool get isImmutable => true;
+  final bool isExternal;
   final bool isStatic;
-
-  var _isInitialized = false;
-  bool get isInitialized => _isInitialized;
 
   final HTNamespace? closure;
 
+  var _isInitialized = false;
+  @override
+  bool get isInitialized => _isInitialized;
+
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
-  HTVariable(String id,
+  HTVariable(String id, Interpreter interpreter,
       {String? classId,
       dynamic value,
       this.getter,
       this.setter,
-      this.isExtern = false,
+      this.isExternal = false,
       this.isStatic = false,
-      this.closure}) {
-    this.id = id;
-    this.classId = classId;
-    if (value != null) assign(value);
-  }
-
-  /// 调用这个接口来初始化这个变量，继承类需要
-  /// override 这个接口来实现自己的初始化过程
-  void initialize() {}
-
-  /// 调用这个接口来赋值这个变量，继承类可以
-  /// override 这个接口来实现自己的赋值过程
-  void assign(dynamic value) {
-    if (isImmutable && _isInitialized) {
-      throw HTError.immutable(id);
-    }
-
-    this.value = value;
-
-    if (!_isInitialized) {
+      this.closure})
+      : super(id, classId: classId) {
+    this.interpreter = interpreter;
+    if (value != null) {
+      this.value = value;
       _isInitialized = true;
     }
   }
 
   @override
-  HTVariable clone() => HTVariable(id,
+  set value(dynamic value) {
+    super.value = value;
+
+    _value = value;
+    _isInitialized = true;
+  }
+
+  @override
+  dynamic get value {
+    if (!isExternal) {
+      if (!isInitialized) {
+        initialize();
+      }
+      return _value;
+    } else {
+      final externClass = interpreter.fetchExternalClass(classId!);
+      return externClass.memberGet(id);
+    }
+  }
+
+  @override
+  HTVariable clone() => HTVariable(id, interpreter,
       classId: classId,
       value: value,
       getter: getter,
       setter: setter,
-      isExtern: isExtern);
+      isExternal: isExternal);
 }

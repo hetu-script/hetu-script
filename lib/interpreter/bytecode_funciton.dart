@@ -35,7 +35,10 @@ class HTBytecodeFunctionReferConstructor {
 }
 
 /// Bytecode implementation of [HTFunction].
-class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
+class HTBytecodeFunction extends HTFunction with GotoInfo {
+  @override
+  final Hetu interpreter;
+
   final bool hasParameterDeclarations;
 
   /// Holds declarations of all parameters.
@@ -49,12 +52,12 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
   /// before it can be called within a script.
   HTBytecodeFunction(
     String id,
-    Hetu interpreter,
+    this.interpreter,
     String moduleFullName, {
     String declId = '',
     HTClass? klass,
     FunctionType funcType = FunctionType.normal,
-    bool isExtern = false,
+    bool isExternal = false,
     Function? externalFuncDef,
     String? externalTypedef,
     this.hasParameterDeclarations = true,
@@ -70,10 +73,10 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
     int maxArity = 0,
     HTNamespace? context,
     this.referConstructor,
-  }) : super(id, declId,
+  }) : super(id, declId, interpreter,
             klass: klass,
             funcType: funcType,
-            isExtern: isExtern,
+            isExternal: isExternal,
             externalFuncDef: externalFuncDef,
             externalTypedef: externalTypedef,
             isStatic: isStatic,
@@ -82,7 +85,6 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
             minArity: minArity,
             maxArity: maxArity,
             context: context) {
-    this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -177,7 +179,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
 
       dynamic result;
       // 如果是脚本函数
-      if (!isExtern) {
+      if (!isExternal) {
         if (positionalArgs.length < minArity ||
             (positionalArgs.length > maxArity && !isVariadic)) {
           throw HTError.arity(id, positionalArgs.length, minArity);
@@ -202,11 +204,12 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
         if (context is HTInstanceNamespace) {
           final instanceNamespace = context as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
-            closure.define(
-                HTVariable(HTLexicon.SUPER, value: instanceNamespace.next));
+            closure.define(HTVariable(HTLexicon.SUPER, interpreter,
+                value: instanceNamespace.next));
           }
 
-          closure.define(HTVariable(HTLexicon.THIS, value: instanceNamespace));
+          closure.define(HTVariable(HTLexicon.THIS, interpreter,
+              value: instanceNamespace));
         }
 
         if (funcType == FunctionType.constructor && referConstructor != null) {
@@ -252,13 +255,13 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
           } else {
             if (i < maxArity) {
               if (i < positionalArgs.length) {
-                decl.assign(positionalArgs[i]);
+                decl.value = positionalArgs[i];
               } else {
                 decl.initialize();
               }
             } else {
               if (namedArgs.containsKey(decl.id)) {
-                decl.assign(namedArgs[decl.id]);
+                decl.value = namedArgs[decl.id];
               } else {
                 decl.initialize();
               }
@@ -271,7 +274,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
           for (var i = variadicStart; i < positionalArgs.length; ++i) {
             variadicArg.add(positionalArgs[i]);
           }
-          variadicParam!.assign(variadicArg);
+          variadicParam!.value = variadicArg;
         }
 
         if (funcType != FunctionType.constructor) {
@@ -323,7 +326,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
             } else {
               if (i < maxArity) {
                 if (i < positionalArgs.length) {
-                  decl.assign(positionalArgs[i]);
+                  decl.value = positionalArgs[i];
                   finalPosArgs.add(decl.value);
                 } else {
                   decl.initialize();
@@ -331,7 +334,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
                 }
               } else {
                 if (namedArgs.containsKey(decl.id)) {
-                  decl.assign(namedArgs[decl.id]);
+                  decl.value = namedArgs[decl.id];
                   finalNamedArgs[decl.id] = decl.value;
                 } else {
                   decl.initialize();
@@ -359,7 +362,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
         // standalone binding external function
         // either a normal external function or
         // a external static method in a non-external class
-        if (!(klass?.isExtern ?? false)) {
+        if (!(klass?.isExternal ?? false)) {
           externalFuncDef ??= interpreter.fetchExternalFunction(id);
 
           if (externalFuncDef is HTExternalFunction) {
@@ -440,7 +443,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo, HetuRef {
         declId: declId,
         klass: klass,
         funcType: funcType,
-        isExtern: isExtern,
+        isExternal: isExternal,
         externalFuncDef: externalFuncDef,
         externalTypedef: externalTypedef,
         parameterDeclarations: parameterDeclarations,

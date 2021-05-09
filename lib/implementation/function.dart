@@ -4,10 +4,11 @@ import 'type.dart';
 import 'declaration.dart';
 import 'object.dart';
 import 'class.dart';
+import 'interpreter.dart';
 
 /// [HTFunction] is the base class of
 /// [HTAstFunction] and [HTBytecodeFunction] in Hetu.
-abstract class HTFunction with HTDeclaration, HTObject {
+abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
   static final callStack = <String>[];
 
   final String declId;
@@ -15,7 +16,7 @@ abstract class HTFunction with HTDeclaration, HTObject {
 
   final FunctionType funcType;
 
-  final bool isExtern;
+  final bool isExternal;
 
   Function? externalFuncDef;
 
@@ -39,10 +40,10 @@ abstract class HTFunction with HTDeclaration, HTObject {
 
   HTNamespace? context;
 
-  HTFunction(String id, this.declId,
+  HTFunction(String id, this.declId, Interpreter interpreter,
       {this.klass,
       this.funcType = FunctionType.normal,
-      this.isExtern = false,
+      this.isExternal = false,
       this.externalFuncDef,
       this.externalTypedef,
       this.isStatic = false,
@@ -50,15 +51,28 @@ abstract class HTFunction with HTDeclaration, HTObject {
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0,
-      HTNamespace? context}) {
-    this.id = id;
-    classId = klass?.id;
+      HTNamespace? context})
+      : super(id, classId: klass?.id) {
+    this.interpreter = interpreter;
     this.context = context;
   }
 
   /// Sub-classes of [HTFunction] must define [toString] method.
   @override
   String toString();
+
+  @override
+  dynamic get value {
+    if (externalTypedef != null) {
+      final externalFunc =
+          interpreter.unwrapExternalFunctionType(externalTypedef!, this);
+      return externalFunc;
+    } else if (funcType == FunctionType.getter) {
+      return call();
+    } else {
+      return this;
+    }
+  }
 
   /// Sub-classes of [HTFunction] must define [call] method.
   dynamic call(
