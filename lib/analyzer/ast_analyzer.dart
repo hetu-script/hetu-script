@@ -378,6 +378,12 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   dynamic visitTernaryExpr(TernaryExpr expr) {}
 
   @override
+  dynamic visitTypeExpr(TypeExpr expr) {}
+
+  @override
+  dynamic visitFunctionTypeExpr(TypeExpr expr) {}
+
+  @override
   dynamic visitCallExpr(CallExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;

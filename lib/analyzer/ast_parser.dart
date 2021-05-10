@@ -504,11 +504,11 @@ class HTAstParser extends Parser with AnalyzerRef {
       _leftValueLegality = false;
       final op = advance(1).type;
       late final AstNode right;
-      if (HTLexicon.logicalRelationals.contains(curTok.type)) {
-        right = _parseAdditiveExpr();
-      } else {
-        right = _parseTypeExpr();
-      }
+      // if (HTLexicon.logicalRelationals.contains(curTok.type)) {
+      right = _parseAdditiveExpr();
+      // } else {
+      //   right = _parseTypeExpr();
+      // }
       left = BinaryExpr(left, op, right);
     }
     return left;
@@ -667,22 +667,23 @@ class HTAstParser extends Parser with AnalyzerRef {
     }
   }
 
-  TypeExpr _parseTypeExpr() {
-    final type_name = advance(1);
-    var type_args = <TypeExpr>[];
-    if (expect([HTLexicon.angleLeft], consume: true)) {
-      while ((curTok.type != HTLexicon.angleRight) &&
-          (curTok.type != HTLexicon.endOfFile)) {
-        type_args.add(_parseTypeExpr());
-        if (curTok.type != HTLexicon.angleRight) {
-          match(HTLexicon.comma);
-        }
-      }
-      match(HTLexicon.angleRight);
-    }
+  HTType _parseTypeExpr() {
+    // final type_name = advance(1);
+    // var type_args = <TypeExpr>[];
+    // if (expect([HTLexicon.angleLeft], consume: true)) {
+    //   while ((curTok.type != HTLexicon.angleRight) &&
+    //       (curTok.type != HTLexicon.endOfFile)) {
+    //     type_args.add(_parseTypeExpr());
+    //     if (curTok.type != HTLexicon.angleRight) {
+    //       match(HTLexicon.comma);
+    //     }
+    //   }
+    //   match(HTLexicon.angleRight);
+    // }
 
-    return TypeExpr(type_name.lexeme, type_args, type_name.moduleFullName,
-        type_name.line, type_name.column);
+    // return TypeExpr(type_name.lexeme, type_args, type_name.moduleFullName,
+    //     type_name.line, type_name.column);
+    return HTType.ANY;
   }
 
   List<AstNode> _parseBlock({CodeType codeType = CodeType.module}) {
@@ -777,75 +778,76 @@ class HTAstParser extends Parser with AnalyzerRef {
 
   /// For语句其实会在解析时转换为While语句
   BlockStmt _parseForStmt() {
-    var list_stmt = <AstNode>[];
-    expect([HTLexicon.FOR, HTLexicon.roundLeft], consume: true);
-    // 递增变量
-    final i = HTLexicon.increment;
-    list_stmt.add(VarDeclStmt(i, curModuleFullName, curTok.line, curTok.column,
-        declType: HTType.number,
-        initializer: ConstIntExpr(interpreter.addInt(0), curModuleFullName,
-            curTok.line, curTok.column)));
-    // 指针
-    var varname = match(HTLexicon.identifier).lexeme;
-    var type = HTType.ANY;
-    if (expect([HTLexicon.colon], consume: true)) {
-      type = _parseTypeExpr();
-    }
-    list_stmt.add(VarDeclStmt(
-        varname, curTok.moduleFullName, curTok.line, curTok.column,
-        declType: type));
-    match(HTLexicon.IN);
-    var list_obj = _parseExpr();
-    // 条件语句
-    var get_length = MemberGetExpr(
-        list_obj,
-        TokenIdentifier(
-            HTLexicon.length, curModuleFullName, curTok.line, curTok.column));
-    var condition = BinaryExpr(
-        SymbolExpr(
-            TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)),
-        HTLexicon.lesser,
-        get_length);
-    // 在循环体之前手动插入递增语句和指针语句
-    // 按下标取数组元素
-    var loop_body = <AstNode>[];
-    // 这里一定要复制一个list_obj的表达式, 否则在resolve的时候会因为是相同的对象出错, 覆盖掉上面那个表达式的位置
-    var sub_get_value = SubGetExpr(
-        list_obj.clone(),
-        SymbolExpr(
-            TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)));
-    var assign_stmt = ExprStmt(BinaryExpr(
-        SymbolExpr(TokenIdentifier(
-            varname, curModuleFullName, curTok.line, curTok.column)),
-        HTLexicon.assign,
-        sub_get_value));
-    loop_body.add(assign_stmt);
-    // 递增下标变量
-    var increment_expr = BinaryExpr(
-        SymbolExpr(
-            TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)),
-        HTLexicon.add,
-        ConstIntExpr(interpreter.addInt(1), curModuleFullName, curTok.line,
-            curTok.column));
-    var increment_stmt = ExprStmt(BinaryExpr(
-        SymbolExpr(
-            TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)),
-        HTLexicon.assign,
-        increment_expr));
-    loop_body.add(increment_stmt);
-    // 循环体
-    match(HTLexicon.roundRight);
-    if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop_body.addAll(_parseBlock(codeType: CodeType.function));
-    } else {
-      final stmt = _parseStmt(codeType: CodeType.function);
-      if (stmt != null) {
-        loop_body.add(stmt);
-      }
-    }
-    list_stmt.add(WhileStmt(condition,
-        BlockStmt(loop_body, curModuleFullName, curTok.line, curTok.column)));
-    return BlockStmt(list_stmt, curModuleFullName, curTok.line, curTok.column);
+    // var list_stmt = <AstNode>[];
+    // expect([HTLexicon.FOR, HTLexicon.roundLeft], consume: true);
+    // // 递增变量
+    // final i = HTLexicon.increment;
+    // list_stmt.add(VarDeclStmt(i, curModuleFullName, curTok.line, curTok.column,
+    //     declType: HTType.number,
+    //     initializer: ConstIntExpr(interpreter.addInt(0), curModuleFullName,
+    //         curTok.line, curTok.column)));
+    // // 指针
+    // var varname = match(HTLexicon.identifier).lexeme;
+    // TypeExpr? type;
+    // if (expect([HTLexicon.colon], consume: true)) {
+    //   type = _parseTypeExpr();
+    // }
+    // list_stmt.add(VarDeclStmt(
+    //     varname, curTok.moduleFullName, curTok.line, curTok.column,
+    //     declType: type));
+    // match(HTLexicon.IN);
+    // var list_obj = _parseExpr();
+    // // 条件语句
+    // var get_length = MemberGetExpr(
+    //     list_obj,
+    //     TokenIdentifier(
+    //         HTLexicon.length, curModuleFullName, curTok.line, curTok.column));
+    // var condition = BinaryExpr(
+    //     SymbolExpr(
+    //         TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)),
+    //     HTLexicon.lesser,
+    //     get_length);
+    // // 在循环体之前手动插入递增语句和指针语句
+    // // 按下标取数组元素
+    // var loop_body = <AstNode>[];
+    // // 这里一定要复制一个list_obj的表达式, 否则在resolve的时候会因为是相同的对象出错, 覆盖掉上面那个表达式的位置
+    // var sub_get_value = SubGetExpr(
+    //     list_obj.clone(),
+    //     SymbolExpr(
+    //         TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)));
+    // var assign_stmt = ExprStmt(BinaryExpr(
+    //     SymbolExpr(TokenIdentifier(
+    //         varname, curModuleFullName, curTok.line, curTok.column)),
+    //     HTLexicon.assign,
+    //     sub_get_value));
+    // loop_body.add(assign_stmt);
+    // // 递增下标变量
+    // var increment_expr = BinaryExpr(
+    //     SymbolExpr(
+    //         TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)),
+    //     HTLexicon.add,
+    //     ConstIntExpr(interpreter.addInt(1), curModuleFullName, curTok.line,
+    //         curTok.column));
+    // var increment_stmt = ExprStmt(BinaryExpr(
+    //     SymbolExpr(
+    //         TokenIdentifier(i, curModuleFullName, curTok.line, curTok.column)),
+    //     HTLexicon.assign,
+    //     increment_expr));
+    // loop_body.add(increment_stmt);
+    // // 循环体
+    // match(HTLexicon.roundRight);
+    // if (expect([HTLexicon.curlyLeft], consume: true)) {
+    //   loop_body.addAll(_parseBlock(codeType: CodeType.function));
+    // } else {
+    //   final stmt = _parseStmt(codeType: CodeType.function);
+    //   if (stmt != null) {
+    //     loop_body.add(stmt);
+    //   }
+    // }
+    // list_stmt.add(WhileStmt(condition,
+    //     BlockStmt(loop_body, curModuleFullName, curTok.line, curTok.column)));
+    // return BlockStmt(list_stmt, curModuleFullName, curTok.line, curTok.column);
+    return BlockStmt([], curModuleFullName, curTok.line, curTok.column);
   }
 
   // BlockStmt _parseWhenStmt() {}

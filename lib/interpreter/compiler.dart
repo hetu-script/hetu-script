@@ -382,13 +382,20 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       case CodeType.function:
         switch (curTok.type) {
           case HTLexicon.VAR:
-            _parseVarDeclStmt();
+            final decl = _parseVarDeclStmt(forwardDeclaration: false);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
-            _parseVarDeclStmt(typeInferrence: true);
+            final decl = _parseVarDeclStmt(
+                typeInferrence: true, forwardDeclaration: false);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
-            _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
+            final decl = _parseVarDeclStmt(
+                typeInferrence: true,
+                isImmutable: true,
+                forwardDeclaration: false);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
             if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
@@ -1503,7 +1510,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
           typeInferrence: curTok.type != HTLexicon.VAR,
           isImmutable: curTok.type == HTLexicon.CONST,
           initializer: iterInit,
-          addToBlock: false);
+          forwardDeclaration: false);
 
       final increId = HTLexicon.increment;
       final increInit = _assembleLocalConstInt(0, endOfExec: true);
@@ -1572,7 +1579,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             typeInferrence: curTok.type != HTLexicon.VAR,
             isImmutable: curTok.type == HTLexicon.CONST,
             endOfStatement: true,
-            addToBlock: false);
+            forwardDeclaration: false);
 
         final increId = HTLexicon.increment;
         final increInit = _assembleLocalSymbol(initDeclId, endOfExec: true);
@@ -1726,7 +1733,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       bool lateInitialize = false,
       Uint8List? initializer,
       bool endOfStatement = false,
-      bool addToBlock = true}) {
+      bool forwardDeclaration = true}) {
     advance(1);
     var id = match(HTLexicon.identifier).lexeme;
 
@@ -1799,7 +1806,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     }
 
     final bytes = bytesBuilder.toBytes();
-    if (addToBlock) {
+    if (forwardDeclaration) {
       _curBlock.varDecls[id] = bytes;
     }
     return bytes;
