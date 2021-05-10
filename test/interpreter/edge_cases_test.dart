@@ -94,5 +94,33 @@ void main() async {
         5,
       );
     });
+    test('forward declaration 1', () async {
+      final result = await hetu.eval(r'''
+      fun forwardDecl1 {
+        var i = 42
+        var j = i
+        i = 4
+        return j
+      }
+  ''', invokeFunc: 'forwardDecl1');
+      expect(
+        result,
+        42,
+      );
+    });
+    test('forward declaration 2', () async {
+      final result = await hetu.eval(r'''
+      fun forwardDecl2 {
+        var i = 42
+        i = 4
+        var j = i
+        return j
+      }
+  ''', invokeFunc: 'forwardDecl2');
+      expect(
+        result,
+        4,
+      );
+    });
   });
 }
