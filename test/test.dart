@@ -5,10 +5,12 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     var i = 42
-    fun forwardDecl {
+    fun forwardDecl() {
+      i = 41
+      print('i: ${i}')
       var j = i
-      i = 1
-      print(j)
+      print('j: ${j}')
+
     }
   ''',
       config: InterpreterConfig(codeType: CodeType.module),

@@ -244,13 +244,14 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             _parseClassDeclStmt();
             break;
           case HTLexicon.VAR:
-            _parseVarDeclStmt();
+            _parseVarDeclStmt(lateInitialize: true);
             break;
           case HTLexicon.LET:
-            _parseVarDeclStmt(typeInferrence: true);
+            _parseVarDeclStmt(typeInferrence: true, lateInitialize: true);
             break;
           case HTLexicon.CONST:
-            _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
+            _parseVarDeclStmt(
+                typeInferrence: true, isImmutable: true, lateInitialize: true);
             break;
           case HTLexicon.FUNCTION:
             if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
