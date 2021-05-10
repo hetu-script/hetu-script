@@ -49,9 +49,7 @@ class HTType with HTObject {
   static TypeResolveResult resolve(HTType type, Interpreter interpreter) {
     late HTType typeResult;
     HTClass? typeClass;
-    if (type is HTFunctionType ||
-        type is HTObjectType ||
-        HTLexicon.primitiveType.contains(type.id)) {
+    if (type.isResolved) {
       typeResult = type;
     } else {
       final typeDef = interpreter.curNamespace
@@ -78,6 +76,11 @@ class HTType with HTObject {
   final String id;
   final List<HTType> typeArgs;
   final bool isNullable;
+
+  bool get isResolved =>
+      this is HTFunctionType ||
+      this is HTObjectType ||
+      HTLexicon.primitiveType.contains(id);
 
   const HTType(this.id,
       {this.typeArgs = const <HTType>[], this.isNullable = false});
@@ -160,10 +163,11 @@ class HTType with HTObject {
 class HTUnknownType extends HTType {
   final String typeString;
 
-  HTUnknownType(this.typeString) : super(HTLexicon.unknownType);
+  HTUnknownType(this.typeString) : super(HTLexicon.unknown);
 
   @override
-  String toString() => '${HTLexicon.unknownType}${HTLexicon.colon} $typeString';
+  String toString() =>
+      '${HTLexicon.unknown} ${HTLexicon.TYPE}${HTLexicon.colon} $typeString';
 }
 
 class HTObjectType extends HTType {

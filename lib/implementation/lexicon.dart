@@ -73,7 +73,7 @@ abstract class HTLexicon {
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';
-  static const unknownType = 'unknown type';
+  static const unknown = 'unknown';
   static const instance = '\$_instance_';
   static const constructor = '\$_constructor_';
   static const getter = '\$_getter_';
@@ -118,7 +118,7 @@ abstract class HTLexicon {
     ENUM,
     NAMESPACE,
     FUNCTION,
-    unknownType,
+    unknown,
     object,
   };
 
@@ -272,8 +272,17 @@ abstract class HTLexicon {
     lesser,
     lesserOrEqual,
     AS,
-    IS,
+    IS
   };
+
+  static const Set<String> logicalRelationals = {
+    greater,
+    greaterOrEqual,
+    lesser,
+    lesserOrEqual
+  };
+
+  static const Set<String> typeRelationals = {AS, IS};
 
   static const equal = '==';
   static const notEqual = '!=';

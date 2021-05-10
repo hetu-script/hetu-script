@@ -82,7 +82,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     }
 
     final decls = <AstNode>[];
-    // 将变量表前置，总是按照：枚举、函数、类、变量这个顺序
+    // 将变量表前置, 总是按照：枚举、函数、类、变量这个顺序
     for (final decl in _mainBlock.enumDecls.values) {
       decls.add(decl);
     }
@@ -114,24 +114,17 @@ class HTAstParser extends Parser with AnalyzerRef {
               case HTLexicon.ABSTRACT:
                 advance(1);
                 if (curTok.type == HTLexicon.CLASS) {
-                  final id = peek(1).lexeme;
-                  final decl =
-                      _parseClassDeclStmt(isAbstract: true, isExternal: true);
-                  _curBlock.classDecls[id] = decl;
+                  _parseClassDeclStmt(isAbstract: true, isExternal: true);
                 } else {
                   throw HTError.unexpected(
                       SemanticType.classDeclStmt, curTok.lexeme);
                 }
                 break;
               case HTLexicon.CLASS:
-                final id = peek(1).lexeme;
-                final decl = _parseClassDeclStmt(isExternal: true);
-                _curBlock.classDecls[id] = decl;
+                _parseClassDeclStmt(isExternal: true);
                 break;
               case HTLexicon.ENUM:
-                final id = peek(1).lexeme;
-                final decl = _parseEnumDeclStmt(isExternal: true);
-                _curBlock.enumDecls[id] = decl;
+                _parseEnumDeclStmt(isExternal: true);
                 break;
               case HTLexicon.VAR:
               case HTLexicon.LET:
@@ -139,9 +132,7 @@ class HTAstParser extends Parser with AnalyzerRef {
                 throw HTError.externalVar();
               case HTLexicon.FUNCTION:
                 if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-                  final id = peek(1).lexeme;
-                  final func = _parseFuncDeclaration();
-                  _curBlock.funcDecls[id] = func;
+                  _parseFuncDeclaration(isExternal: true);
                 } else {
                   throw HTError.unexpected(
                       SemanticType.funcDeclStmt, peek(1).lexeme);
@@ -154,45 +145,37 @@ class HTAstParser extends Parser with AnalyzerRef {
           case HTLexicon.ABSTRACT:
             advance(1);
             if (curTok.type == HTLexicon.CLASS) {
-              final id = peek(1).lexeme;
-              final decl = _parseClassDeclStmt(isAbstract: true);
-              _curBlock.classDecls[id] = decl;
+              _parseClassDeclStmt(isAbstract: true);
             } else {
               throw HTError.unexpected(
                   SemanticType.classDeclStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
-            final id = peek(1).lexeme;
-            final decl = _parseEnumDeclStmt();
-            _curBlock.enumDecls[id] = decl;
+            _parseEnumDeclStmt();
             break;
           case HTLexicon.CLASS:
-            final id = peek(1).lexeme;
-            final decl = _parseClassDeclStmt();
-            _curBlock.classDecls[id] = decl;
+            _parseClassDeclStmt();
             break;
           case HTLexicon.VAR:
-            return _parseVarDeclStmt();
+            _parseVarDeclStmt();
+            break;
           case HTLexicon.LET:
-            return _parseVarDeclStmt(typeInferrence: true);
+            _parseVarDeclStmt(typeInferrence: true);
+            break;
           case HTLexicon.CONST:
-            return _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
+            _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
+            break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-              final id = peek(1).lexeme;
-              final func = _parseFuncDeclaration();
-              _curBlock.funcDecls[id] = func;
-            } else if (expect([
-              HTLexicon.FUNCTION,
-              HTLexicon.squareLeft,
-              HTLexicon.identifier,
-              HTLexicon.squareRight,
-              HTLexicon.identifier
-            ])) {
-              final id = peek(4).lexeme;
-              final func = _parseFuncDeclaration();
-              _curBlock.funcDecls[id] = func;
+            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
+                expect([
+                  HTLexicon.FUNCTION,
+                  HTLexicon.squareLeft,
+                  HTLexicon.identifier,
+                  HTLexicon.squareRight,
+                  HTLexicon.identifier
+                ])) {
+              _parseFuncDeclaration();
             } else {
               return _parseExprStmt();
             }
@@ -222,9 +205,7 @@ class HTAstParser extends Parser with AnalyzerRef {
           case HTLexicon.ABSTRACT:
             advance(1);
             if (curTok.type == HTLexicon.CLASS) {
-              final id = peek(1).lexeme;
-              final decl = _parseClassDeclStmt(isAbstract: true);
-              _curBlock.classDecls[id] = decl;
+              _parseClassDeclStmt(isAbstract: true);
             } else {
               throw HTError.unexpected(
                   SemanticType.classDeclStmt, curTok.lexeme);
@@ -236,30 +217,21 @@ class HTAstParser extends Parser with AnalyzerRef {
               case HTLexicon.ABSTRACT:
                 advance(1);
                 if (curTok.type == HTLexicon.CLASS) {
-                  final id = peek(1).lexeme;
-                  final decl =
-                      _parseClassDeclStmt(isAbstract: true, isExternal: true);
-                  _curBlock.classDecls[id] = decl;
+                  _parseClassDeclStmt(isAbstract: true, isExternal: true);
                 } else {
                   throw HTError.unexpected(
                       SemanticType.classDeclStmt, curTok.lexeme);
                 }
                 break;
               case HTLexicon.CLASS:
-                final id = peek(1).lexeme;
-                final decl = _parseClassDeclStmt(isExternal: true);
-                _curBlock.classDecls[id] = decl;
+                _parseClassDeclStmt(isExternal: true);
                 break;
               case HTLexicon.ENUM:
-                final id = peek(1).lexeme;
-                final decl = _parseEnumDeclStmt(isExternal: true);
-                _curBlock.enumDecls[id] = decl;
+                _parseEnumDeclStmt(isExternal: true);
                 break;
               case HTLexicon.FUNCTION:
                 if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-                  final id = peek(1).lexeme;
-                  final func = _parseFuncDeclaration();
-                  _curBlock.funcDecls[id] = func;
+                  _parseFuncDeclaration();
                 } else {
                   throw HTError.unexpected(
                       SemanticType.funcDeclStmt, peek(1).lexeme);
@@ -274,47 +246,31 @@ class HTAstParser extends Parser with AnalyzerRef {
             }
             break;
           case HTLexicon.ENUM:
-            final id = peek(1).lexeme;
-            final decl = _parseEnumDeclStmt();
-            _curBlock.enumDecls[id] = decl;
+            _parseEnumDeclStmt();
             break;
           case HTLexicon.CLASS:
-            final id = peek(1).lexeme;
-            final decl = _parseClassDeclStmt();
-            _curBlock.classDecls[id] = decl;
+            _parseClassDeclStmt();
             break;
           case HTLexicon.VAR:
-            final id = peek(1).lexeme;
-            final decl = _parseVarDeclStmt(lateInitialize: true);
-            _curBlock.varDecls[id] = decl;
+            _parseVarDeclStmt(lateInitialize: true);
             break;
           case HTLexicon.LET:
-            final id = peek(1).lexeme;
-            final decl =
-                _parseVarDeclStmt(typeInferrence: true, lateInitialize: true);
-            _curBlock.varDecls[id] = decl;
+            _parseVarDeclStmt(typeInferrence: true, lateInitialize: true);
             break;
           case HTLexicon.CONST:
-            final id = peek(1).lexeme;
-            final decl = _parseVarDeclStmt(
+            _parseVarDeclStmt(
                 typeInferrence: true, isImmutable: true, lateInitialize: true);
-            _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-              final id = peek(1).lexeme;
-              final func = _parseFuncDeclaration();
-              _curBlock.funcDecls[id] = func;
-            } else if (expect([
-              HTLexicon.FUNCTION,
-              HTLexicon.squareLeft,
-              HTLexicon.identifier,
-              HTLexicon.squareRight,
-              HTLexicon.identifier
-            ])) {
-              final id = peek(4).lexeme;
-              final func = _parseFuncDeclaration();
-              _curBlock.funcDecls[id] = func;
+            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
+                expect([
+                  HTLexicon.FUNCTION,
+                  HTLexicon.squareLeft,
+                  HTLexicon.identifier,
+                  HTLexicon.squareRight,
+                  HTLexicon.identifier
+                ])) {
+              _parseFuncDeclaration();
             } else {
               throw HTError.unexpected(
                   SemanticType.funcDeclStmt, peek(1).lexeme);
@@ -327,36 +283,24 @@ class HTAstParser extends Parser with AnalyzerRef {
       case CodeType.function:
         switch (curTok.type) {
           case HTLexicon.VAR:
-            final id = peek(1).lexeme;
-            final decl = _parseVarDeclStmt();
-            _curBlock.varDecls[id] = decl;
+            _parseVarDeclStmt();
             break;
           case HTLexicon.LET:
-            final id = peek(1).lexeme;
-            final decl = _parseVarDeclStmt(typeInferrence: true);
-            _curBlock.varDecls[id] = decl;
+            _parseVarDeclStmt(typeInferrence: true);
             break;
           case HTLexicon.CONST:
-            final id = peek(1).lexeme;
-            final decl =
-                _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
-            _curBlock.varDecls[id] = decl;
+            _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-              final id = peek(1).lexeme;
-              final func = _parseFuncDeclaration();
-              _curBlock.funcDecls[id] = func;
-            } else if (expect([
-              HTLexicon.FUNCTION,
-              HTLexicon.squareLeft,
-              HTLexicon.identifier,
-              HTLexicon.squareRight,
-              HTLexicon.identifier
-            ])) {
-              final id = peek(4).lexeme;
-              final func = _parseFuncDeclaration();
-              _curBlock.funcDecls[id] = func;
+            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
+                expect([
+                  HTLexicon.FUNCTION,
+                  HTLexicon.squareLeft,
+                  HTLexicon.identifier,
+                  HTLexicon.squareRight,
+                  HTLexicon.identifier
+                ])) {
+              _parseFuncDeclaration();
             } else {
               return _parseFuncDeclaration(funcType: FunctionType.literal);
             }
@@ -394,54 +338,31 @@ class HTAstParser extends Parser with AnalyzerRef {
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         switch (curTok.type) {
           case HTLexicon.VAR:
-            final id = peek(1).lexeme;
-            final decl = _parseVarDeclStmt(
+            _parseVarDeclStmt(
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic,
                 lateInitialize: true);
-            _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.LET:
-            final id = peek(1).lexeme;
-            final decl = _parseVarDeclStmt(
+            _parseVarDeclStmt(
                 typeInferrence: true,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic,
                 lateInitialize: true);
-            _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.CONST:
-            final id = peek(1).lexeme;
-            final decl = _parseVarDeclStmt(
+            _parseVarDeclStmt(
                 typeInferrence: true,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isImmutable: true,
                 isStatic: isStatic,
                 lateInitialize: true);
-            _curBlock.varDecls[id] = decl;
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-              final id = peek(1).lexeme;
-              final func = _parseFuncDeclaration(
-                  isExternal: isExternal, isStatic: isStatic);
-              _curBlock.funcDecls[id] = func;
-            } else if (isStatic &&
-                expect([
-                  HTLexicon.FUNCTION,
-                  HTLexicon.squareLeft,
-                  HTLexicon.identifier,
-                  HTLexicon.squareRight,
-                  HTLexicon.identifier
-                ])) {
-              final id = peek(4).lexeme;
-              final func = _parseFuncDeclaration(
-                  isExternal: isExternal, isStatic: isStatic);
-              _curBlock.funcDecls[id] = func;
-            } else {
-              throw HTError.unexpected(
-                  SemanticType.funcDeclStmt, peek(1).lexeme);
-            }
+            _parseFuncDeclaration(
+                funcType: FunctionType.method,
+                isExternal: isExternal || (_curClass?.isExternal ?? false),
+                isStatic: isStatic);
             break;
           case HTLexicon.CONSTRUCT:
             if (_curClass!.isAbstract) {
@@ -450,28 +371,22 @@ class HTAstParser extends Parser with AnalyzerRef {
             if (isStatic) {
               throw HTError.unexpected(HTLexicon.declStmt, HTLexicon.CONSTRUCT);
             }
-            final id = peek(1).lexeme;
-            final decl = _parseFuncDeclaration(
+            _parseFuncDeclaration(
               funcType: FunctionType.constructor,
               isExternal: isExternal || (_curClass?.isExternal ?? false),
             );
-            _curBlock.funcDecls[id] = decl;
             break;
           case HTLexicon.GET:
-            final id = peek(1).lexeme;
-            final decl = _parseFuncDeclaration(
+            _parseFuncDeclaration(
                 funcType: FunctionType.getter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
-            _curBlock.funcDecls[id] = decl;
             break;
           case HTLexicon.SET:
-            final id = peek(1).lexeme;
-            final decl = _parseFuncDeclaration(
+            _parseFuncDeclaration(
                 funcType: FunctionType.setter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
-            _curBlock.funcDecls[id] = decl;
             break;
           default:
             throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
@@ -511,9 +426,9 @@ class HTAstParser extends Parser with AnalyzerRef {
     _importedModules.add(ImportInfo(key, name: alias, showList: showList));
   }
 
-  /// 使用递归向下的方法生成表达式，不断调用更底层的，优先级更高的子Parser
+  /// 使用递归向下的方法生成表达式, 不断调用更底层的, 优先级更高的子Parser
   ///
-  /// 赋值 = ，优先级 1，右合并
+  /// 赋值 = , 优先级 1, 右合并
   ///
   /// 需要判断嵌套赋值、取属性、取下标的叠加
   AstNode _parseExpr() {
@@ -542,7 +457,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     return condition;
   }
 
-  /// 逻辑或 or ，优先级 5，左合并
+  /// 逻辑或 or , 优先级 5, 左合并
   AstNode _parseLogicalOrExpr() {
     var left = _parseLogicalAndExpr();
     if (curTok.type == HTLexicon.logicalOr) {
@@ -556,7 +471,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     return left;
   }
 
-  /// 逻辑和 and ，优先级 6，左合并
+  /// 逻辑和 and , 优先级 6, 左合并
   AstNode _parseLogicalAndExpr() {
     var left = _parseEqualityExpr();
     if (curTok.type == HTLexicon.logicalAnd) {
@@ -570,7 +485,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     return left;
   }
 
-  /// 逻辑相等 ==, !=，优先级 7，不合并
+  /// 逻辑相等 ==, !=, 优先级 7, 不合并
   AstNode _parseEqualityExpr() {
     var left = _parseRelationalExpr();
     if (HTLexicon.equalitys.contains(curTok.type)) {
@@ -582,19 +497,24 @@ class HTAstParser extends Parser with AnalyzerRef {
     return left;
   }
 
-  /// 逻辑比较 <, >, <=, >=，优先级 8，不合并
+  /// 逻辑比较 <, >, <=, >=, as, is, is! 优先级 8, 不合并
   AstNode _parseRelationalExpr() {
     var left = _parseAdditiveExpr();
     if (HTLexicon.relationals.contains(curTok.type)) {
       _leftValueLegality = false;
       final op = advance(1).type;
-      final right = _parseAdditiveExpr();
+      late final AstNode right;
+      if (HTLexicon.logicalRelationals.contains(curTok.type)) {
+        right = _parseAdditiveExpr();
+      } else {
+        right = _parseTypeExpr();
+      }
       left = BinaryExpr(left, op, right);
     }
     return left;
   }
 
-  /// 加法 +, -，优先级 13，左合并
+  /// 加法 +, -, 优先级 13, 左合并
   AstNode _parseAdditiveExpr() {
     var expr = _parseMultiplicativeExpr();
     while (HTLexicon.additives.contains(curTok.type)) {
@@ -605,7 +525,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     return expr;
   }
 
-  /// 乘法 *, /, %，优先级 14，左合并
+  /// 乘法 *, /, %, 优先级 14, 左合并
   AstNode _parseMultiplicativeExpr() {
     var expr = _parseUnaryPrefixExpr();
     while (HTLexicon.multiplicatives.contains(curTok.type)) {
@@ -616,7 +536,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     return expr;
   }
 
-  /// 前缀 -e, !e，优先级 15，不合并
+  /// 前缀 -e, !e, 优先级 15, 不合并
   AstNode _parseUnaryPrefixExpr() {
     // 因为是前缀所以不能像别的表达式那样先进行下一级的分析
     AstNode expr;
@@ -630,7 +550,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     return expr;
   }
 
-  /// 后缀 e., e[], e()，优先级 16，右合并
+  /// 后缀 e., e[], e(), 优先级 16, 右合并
   AstNode _parseUnaryPostfixExpr() {
     var expr = _parsePrimaryExpr();
     while (true) {
@@ -747,9 +667,9 @@ class HTAstParser extends Parser with AnalyzerRef {
     }
   }
 
-  HTType _parseTypeExpr() {
-    final type_name = advance(1).lexeme;
-    var type_args = <HTType>[];
+  TypeExpr _parseTypeExpr() {
+    final type_name = advance(1);
+    var type_args = <TypeExpr>[];
     if (expect([HTLexicon.angleLeft], consume: true)) {
       while ((curTok.type != HTLexicon.angleRight) &&
           (curTok.type != HTLexicon.endOfFile)) {
@@ -761,7 +681,8 @@ class HTAstParser extends Parser with AnalyzerRef {
       match(HTLexicon.angleRight);
     }
 
-    return HTType(type_name, typeArgs: type_args);
+    return TypeExpr(type_name.lexeme, type_args, type_name.moduleFullName,
+        type_name.line, type_name.column);
   }
 
   List<AstNode> _parseBlock({CodeType codeType = CodeType.module}) {
@@ -785,8 +706,8 @@ class HTAstParser extends Parser with AnalyzerRef {
     return BlockStmt(stmts, curModuleFullName, line, column);
   }
 
-  /// 为了避免涉及复杂的左值右值问题，赋值语句在河图中不作为表达式处理
-  /// 而是分成直接赋值，取值后复制和取属性后复制
+  /// 为了避免涉及复杂的左值右值问题, 赋值语句在河图中不作为表达式处理
+  /// 而是分成直接赋值, 取值后复制和取属性后复制
   // ExprStmt _parseAssignStmt() {
   //   // 之前已经校验过等于号了所以这里直接跳过
   //   var name = advance(1);
@@ -888,7 +809,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     // 在循环体之前手动插入递增语句和指针语句
     // 按下标取数组元素
     var loop_body = <AstNode>[];
-    // 这里一定要复制一个list_obj的表达式，否则在resolve的时候会因为是相同的对象出错，覆盖掉上面那个表达式的位置
+    // 这里一定要复制一个list_obj的表达式, 否则在resolve的时候会因为是相同的对象出错, 覆盖掉上面那个表达式的位置
     var sub_get_value = SubGetExpr(
         list_obj.clone(),
         SymbolExpr(
@@ -982,11 +903,11 @@ class HTAstParser extends Parser with AnalyzerRef {
         (curTok.type != HTLexicon.squareRight) &&
         (curTok.type != HTLexicon.curlyRight) &&
         (curTok.type != HTLexicon.endOfFile)) {
-      // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加参数数量arity要求
+      // 可选参数, 根据是否有方括号判断, 一旦开始了可选参数, 则不再增加参数数量arity要求
       if (!isOptional) {
         isOptional = expect([HTLexicon.squareLeft], consume: true);
         if (!isOptional && !isNamed) {
-          //检查命名参数，根据是否有花括号判断
+          //检查命名参数, 根据是否有花括号判断
           isNamed = expect([HTLexicon.curlyLeft], consume: true);
         }
       }
@@ -1084,7 +1005,7 @@ class HTAstParser extends Parser with AnalyzerRef {
           ++arity;
         }
 
-        // setter只能有一个参数，就是赋值语句的右值，但此处并不需要判断类型
+        // setter只能有一个参数, 就是赋值语句的右值, 但此处并不需要判断类型
         if ((funcType == FunctionType.setter) && (arity != 1)) {
           throw HTError.setterArity();
         }

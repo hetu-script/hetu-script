@@ -27,7 +27,9 @@ abstract class AstNodeVisitor {
 
   dynamic visitTernaryExpr(TernaryExpr expr);
 
-  // dynamic visitTypeExpr(TypeExpr expr);
+  dynamic visitTypeExpr(TypeExpr expr);
+
+  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
 
   dynamic visitSymbolExpr(SymbolExpr expr);
 
@@ -253,20 +255,33 @@ class TernaryExpr extends AstNode {
   AstNode clone() => TernaryExpr(condition, thenBranch, elseBranch);
 }
 
-// class TypeExpr extends AstNode {
-//   @override
-//   dynamic accept(AstNodeVisitor visitor) => visitor.visitTypeExpr(this);
+class TypeExpr extends AstNode {
+  @override
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitTypeExpr(this);
 
-//   final Token id;
+  final String id;
 
-//   final List<TypeExpr> arguments;
+  final List<TypeExpr> arguments;
 
-//   TypeExpr(this.id, this.arguments)
-//       : super(SemanticType.typeExpr, id.moduleFullName, id.line, id.column);
+  TypeExpr(this.id, this.arguments, String moduleFullName, int line, int column)
+      : super(SemanticType.typeExpr, moduleFullName, line, column);
 
-//   @override
-//   AstNode clone() => TypeExpr(id, arguments);
-// }
+  @override
+  AstNode clone() => TypeExpr(id, arguments, moduleFullName, line, column);
+}
+
+class FunctionTypeExpr extends TypeExpr {
+  @override
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitFunctionTypeExpr(this);
+
+  FunctionTypeExpr(String id, List<TypeExpr> arguments, String moduleFullName,
+      int line, int column)
+      : super(id, arguments, moduleFullName, line, column);
+
+  @override
+  AstNode clone() =>
+      FunctionTypeExpr(id, arguments, moduleFullName, line, column);
+}
 
 class SymbolExpr extends AstNode {
   @override

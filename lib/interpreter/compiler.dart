@@ -253,15 +253,14 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-              _parseFuncDeclaration();
-            } else if (expect([
-              HTLexicon.FUNCTION,
-              HTLexicon.squareLeft,
-              HTLexicon.identifier,
-              HTLexicon.squareRight,
-              HTLexicon.identifier
-            ])) {
+            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
+                expect([
+                  HTLexicon.FUNCTION,
+                  HTLexicon.squareLeft,
+                  HTLexicon.identifier,
+                  HTLexicon.squareRight,
+                  HTLexicon.identifier
+                ])) {
               _parseFuncDeclaration();
             } else {
               final func = _parseExprStmt();
@@ -362,15 +361,14 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                 typeInferrence: true, isImmutable: true, lateInitialize: true);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
-              _parseFuncDeclaration();
-            } else if (expect([
-              HTLexicon.FUNCTION,
-              HTLexicon.squareLeft,
-              HTLexicon.identifier,
-              HTLexicon.squareRight,
-              HTLexicon.identifier
-            ])) {
+            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
+                expect([
+                  HTLexicon.FUNCTION,
+                  HTLexicon.squareLeft,
+                  HTLexicon.identifier,
+                  HTLexicon.squareRight,
+                  HTLexicon.identifier
+                ])) {
               _parseFuncDeclaration();
             } else {
               throw HTError.unexpected(
