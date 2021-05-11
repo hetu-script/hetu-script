@@ -1,6 +1,6 @@
 import '../common/errors.dart';
-import 'lexicon.dart';
-import 'type.dart';
+import '../common/lexicon.dart';
+import '../type_system/type.dart';
 import 'interpreter.dart';
 import 'variable.dart';
 import 'function.dart';
@@ -27,7 +27,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
   @override
-  final valueType = HTType.NAMESPACE;
+  HTType get valueType => HTType.NAMESPACE;
 
   /// The full closure path of this namespace
   late final String fullName;

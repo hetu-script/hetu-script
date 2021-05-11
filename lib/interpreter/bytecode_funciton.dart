@@ -1,13 +1,14 @@
 import '../binding/external_function.dart';
 import '../implementation/namespace.dart';
-import '../implementation/type.dart';
 import '../implementation/function.dart';
 import '../implementation/variable.dart';
-import '../implementation/lexicon.dart';
 import '../implementation/class.dart';
 import '../implementation/instance.dart';
 import '../common/errors.dart';
 import '../common/constants.dart';
+import '../common/lexicon.dart';
+import '../type_system/type.dart';
+import '../type_system/function_type.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode_variable.dart';
 import 'bytecode_source.dart' show GotoInfo;
@@ -27,8 +28,8 @@ class HTBytecodeFunctionReferConstructor {
 
   HTBytecodeFunctionReferConstructor(String? id,
       {this.isSuper = false,
-      this.positionalArgsIp = const <int>[],
-      this.namedArgsIp = const <String, int>{}}) {
+      this.positionalArgsIp = const [],
+      this.namedArgsIp = const {}}) {
     this.id =
         id == null ? HTLexicon.constructor : '${HTLexicon.constructor}$id';
   }
@@ -61,7 +62,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     Function? externalFuncDef,
     String? externalTypedef,
     this.hasParameterDeclarations = true,
-    this.parameterDeclarations = const <String, HTBytecodeParameter>{},
+    this.parameterDeclarations = const {},
     HTType returnType = HTType.ANY,
     int? definitionIp,
     int? definitionLine,
@@ -90,7 +91,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
 
-    valueType = HTFunctionValueType(
+    declType = HTFunctionType(
         parameterTypes: parameterDeclarations
             .map((key, value) => MapEntry(key, value.paramType)),
         returnType: returnType);
@@ -169,7 +170,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTValueType> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool createInstance = true,
       bool errorHandled = true}) {
     try {

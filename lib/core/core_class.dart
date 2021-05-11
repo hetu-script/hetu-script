@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import '../implementation/type.dart';
-import '../implementation/lexicon.dart';
+import '../type_system/type.dart';
+import '../common/lexicon.dart';
 import '../common/errors.dart';
 import '../binding/external_class.dart';
 import 'core_instance.dart';

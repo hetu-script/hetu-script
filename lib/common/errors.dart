@@ -1,4 +1,4 @@
-import '../implementation/lexicon.dart';
+import '../common/lexicon.dart';
 
 enum ErrorCode {
   unexpected,
@@ -211,7 +211,7 @@ class HTError {
   /// [HTError] can not be created by default constructor.
   HTError(this.code, this.type,
       {String message = '',
-      List<String> interpolations = const <String>[],
+      List<String> interpolations = const [],
       this.moduleFullName,
       this.line,
       this.column}) {

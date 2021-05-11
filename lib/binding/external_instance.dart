@@ -1,9 +1,11 @@
 import '../implementation/interpreter.dart';
 import '../implementation/object.dart';
-import '../implementation/type.dart';
-import '../implementation/lexicon.dart';
 import '../implementation/class.dart';
 import '../implementation/function.dart';
+import '../type_system/type.dart';
+import '../type_system/value_type.dart';
+import '../type_system/nominal_type.dart';
+import '../common/lexicon.dart';
 import '../common/errors.dart';
 import 'external_class.dart';
 

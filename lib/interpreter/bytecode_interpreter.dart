@@ -6,8 +6,6 @@ import '../plugin/moduleHandler.dart';
 import '../plugin/errorHandler.dart';
 import '../binding/external_function.dart';
 import '../implementation/interpreter.dart';
-import '../implementation/type.dart';
-import '../implementation/lexicon.dart';
 import '../implementation/namespace.dart';
 import '../implementation/class.dart';
 import '../implementation/object.dart';
@@ -15,6 +13,9 @@ import '../implementation/enum.dart';
 import '../implementation/function.dart';
 import '../implementation/cast.dart';
 import '../implementation/parser.dart';
+import '../type_system/type.dart';
+import '../type_system/function_type.dart';
+import '../common/lexicon.dart';
 import '../common/constants.dart';
 import '../common/errors.dart';
 import 'compiler.dart';
@@ -97,7 +98,7 @@ class Hetu extends Interpreter {
   set _curTypeArgs(List<HTType> value) =>
       _registers[_getRegIndex(HTRegIdx.typeArgs)] = value;
   List<HTType> get _curTypeArgs =>
-      _registers[_getRegIndex(HTRegIdx.typeArgs)] ?? const <HTType>[];
+      _registers[_getRegIndex(HTRegIdx.typeArgs)] ?? const [];
   set _curLoopCount(int value) =>
       _registers[_getRegIndex(HTRegIdx.loopCount)] = value;
   int get _curLoopCount => _registers[_getRegIndex(HTRegIdx.loopCount)] ?? 0;
@@ -673,10 +674,9 @@ class Hetu extends Interpreter {
             _curValue = externalFunc;
           }
         } else {
-          _curValue = HTFunctionDeclarationType(
+          _curValue = HTFunctionType(
               parameterTypes: paramDecls
                   .map((key, value) => MapEntry(key, value.paramType)),
-              minArity: minArity,
               returnType: returnType);
         }
 
@@ -1028,8 +1028,7 @@ class Hetu extends Interpreter {
           typeArgs.add(_handleTypeExpr());
         }
         final isNullable = _curCode.read() == 0 ? false : true;
-        return HTDeclarationType(typeName,
-            typeArgs: typeArgs, isNullable: isNullable);
+        return HTType(typeName, typeArgs: typeArgs, isNullable: isNullable);
       case TypeType.parameter:
         final typeName = _curCode.readShortUtf8String();
         final length = _curCode.read();
@@ -1055,15 +1054,12 @@ class Hetu extends Interpreter {
           final paramType = _handleTypeExpr() as HTParameterType;
           parameterTypes[paramType.id] = paramType;
         }
-        final minArity = _curCode.read();
         final returnType = _handleTypeExpr();
-        return HTFunctionDeclarationType(
-            parameterTypes: parameterTypes,
-            minArity: minArity,
-            returnType: returnType);
+        return HTFunctionType(
+            parameterTypes: parameterTypes, returnType: returnType);
       case TypeType.struct:
       case TypeType.union:
-        return HTDeclarationType(_curCode.readShortUtf8String());
+        return HTType(_curCode.readShortUtf8String());
     }
   }
 
@@ -1283,23 +1279,22 @@ class Hetu extends Interpreter {
     // final classType = ClassType.values[_curCode.read()];
 
     HTClass? superClass;
-    HTType? extendedType;
+    HTType? superType;
     final hasSuperClass = _curCode.readBool();
     if (hasSuperClass) {
-      extendedType = _handleTypeExpr();
+      superType = _handleTypeExpr();
       superClass =
-          _curNamespace.fetch(extendedType.id, from: _curNamespace.fullName);
+          _curNamespace.fetch(superType.id, from: _curNamespace.fullName);
+    } else {
+      if (!isExternal && (id != HTLexicon.object)) {
+        superType = HTType.object;
+        superClass = global.fetch(HTLexicon.object);
+      }
     }
-    // else {
-    //   if (!isExternal && (id != HTLexicon.object)) {
-    //     extendedType = HTType.object;
-    //     superClass = global.fetch(HTLexicon.object);
-    //   }
-    // }
 
     final klass = HTClass(id, this, _curModuleFullName, _curNamespace,
         superClass: superClass,
-        extendedType: extendedType,
+        superType: superType,
         isExternal: isExternal,
         isAbstract: isAbstract);
     _curNamespace.define(klass);

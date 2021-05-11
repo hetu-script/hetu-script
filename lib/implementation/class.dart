@@ -1,14 +1,15 @@
-import 'lexicon.dart';
+import '../common/lexicon.dart';
+import '../common/errors.dart';
+import '../type_system/type.dart';
+import '../type_system/value_type.dart';
 import 'namespace.dart';
 import 'function.dart';
-import 'type.dart';
 import 'interpreter.dart';
 import 'variable.dart';
 import 'declaration.dart';
 import 'instance.dart';
 import 'enum.dart';
 import 'object.dart';
-import '../common/errors.dart';
 
 class ClassInfo with HTDeclaration {
   final bool isExternal;
@@ -33,7 +34,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
   final String moduleFullName;
 
   @override
-  final HTValueType valueType = HTType.CLASS;
+  HTType get valueType => HTType.CLASS;
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.
@@ -45,34 +46,38 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
   HTClass? superClass;
-
-  // HTType? extendedType;
+  HTType? superType;
 
   /// Implemented classes of this class.
   /// Implements only inherits methods declaration,
   /// and the child must re-define all implements methods,
   /// and the re-definition must be of the same function signature.
-  final Iterable<HTClass> implementedClass;
+  // final Iterable<HTClass> implementedClass;
+  // final Iterable<HTType> implementedType;
 
   /// Mixined class of this class.
   /// Those mixined class can not have any constructors.
-  final Iterable<HTClass> mixinedClass;
+  // final Iterable<HTClass> mixinedClass;
+  // final Iterable<HTType> mixinedType;
 
   /// The instance member variables defined in class definition.
   final instanceMembers = <String, HTDeclaration>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(String id, Interpreter interpreter, this.moduleFullName,
-      HTNamespace closure,
-      {bool isExternal = false,
-      bool isAbstract = false,
-      this.superClass,
-      // this.extendedType,
-      this.typeParameters = const [],
-      this.implementedClass = const [],
-      this.mixinedClass = const []})
-      : super(id, isExternal: isExternal, isAbstract: isAbstract) {
+  HTClass(
+    String id,
+    Interpreter interpreter,
+    this.moduleFullName,
+    HTNamespace closure, {
+    bool isExternal = false,
+    bool isAbstract = false,
+    this.superClass,
+    this.superType,
+    this.typeParameters = const [],
+    // this.implementedClass = const [],
+    // this.mixinedClass = const []
+  }) : super(id, isExternal: isExternal, isAbstract: isAbstract) {
     this.interpreter = interpreter;
 
     namespace = HTClassNamespace(id, id, interpreter, closure: closure);
@@ -151,7 +156,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
       case 'fromJson':
         return ({positionalArgs, namedArgs, typeArgs}) {
           return createInstanceFromJson(positionalArgs.first,
-              typeArgs: typeArgs ?? const <HTType>[]);
+              typeArgs: typeArgs ?? const []);
         };
       default:
         throw HTError.undefined(varName);

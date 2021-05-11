@@ -1,6 +1,9 @@
-abstract class Object {
+abstract class object {
 
-  get valueType -> Type
+}
+
+abstract class function {
+
 }
 
 // return the declaration type of a symbol

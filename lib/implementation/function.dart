@@ -1,6 +1,7 @@
 import '../common/constants.dart';
+import '../type_system/type.dart';
+import '../type_system/function_type.dart';
 import 'namespace.dart';
-import 'type.dart';
 import 'declaration.dart';
 import 'object.dart';
 import 'class.dart';
@@ -23,9 +24,13 @@ abstract class HTFunction with HTDeclaration, HTObject, InterpreterRef {
   final String? externalTypedef;
 
   @override
-  late final HTFunctionValueType valueType;
+  late final HTFunctionType declType;
 
-  HTType get returnType => valueType.returnType;
+  HTType get returnType => declType.returnType;
+
+  @override
+  HTType get valueType => declType;
+  // HTType get valueType => HTType.function;
 
   final bool isStatic;
 
@@ -79,7 +84,7 @@ abstract class HTFunction with HTDeclaration, HTObject, InterpreterRef {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTValueType> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool createInstance = true,
       bool errorHandled = true});
 

@@ -1,16 +1,19 @@
 import '../common/errors.dart';
+import '../type_system/type.dart';
 import 'variable.dart';
 import 'function.dart';
-import 'type.dart';
 
 /// A [HTDeclaration] could be a [HTVariable], a [HTClass] or a [HTFunction]
+/// it is basically a binding between a symbol and a value
 abstract class HTDeclaration {
   late final String id;
   late final String? classId;
 
-  /// The [HTType] of this variable, will be used to
-  /// determine wether an assignment is legal.
-  late final HTDeclarationType? declType;
+  /// The [HTType] of this symbol, will be used to
+  /// determine wether an value binding (assignment) is legal.
+  /// this is not same with the property [valueType] on [HTObject]
+  /// the declaration type can be resolved to a value type
+  HTType? get declType => null;
 
   bool get isMember => classId != null;
 

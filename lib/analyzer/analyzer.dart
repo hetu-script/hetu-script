@@ -1,15 +1,15 @@
 import '../plugin/errorHandler.dart';
 import '../plugin/moduleHandler.dart';
 import '../binding/external_function.dart';
-import '../implementation/type.dart';
+import '../type_system/type.dart';
 import '../implementation/namespace.dart';
 import '../implementation/class.dart';
 import '../implementation/function.dart';
-import '../implementation/lexicon.dart';
 import '../implementation/object.dart';
 import '../implementation/interpreter.dart';
 import '../implementation/enum.dart';
 import '../implementation/const_table.dart';
+import '../common/lexicon.dart';
 import '../common/errors.dart';
 import '../common/constants.dart';
 import 'ast.dart';
@@ -703,7 +703,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   }
 
   @override
-  dynamic visitVarDeclStmt(VarDeclStmt stmt) {
+  dynamic visitVarDeclStmt(VarDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
     // dynamic value;
@@ -725,13 +725,13 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   }
 
   @override
-  dynamic visitParamDeclStmt(ParamDeclStmt stmt) {
+  dynamic visitParamDeclStmt(ParamDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
   }
 
   @override
-  dynamic visitFuncDeclStmt(FuncDeclStmt stmt) {
+  dynamic visitFuncDeclStmt(FuncDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
     final func = HTAstFunction(stmt, this, context: _curNamespace);
@@ -742,7 +742,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   }
 
   @override
-  dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
+  dynamic visitClassDeclStmt(ClassDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
     HTClass? superClass;
@@ -756,12 +756,11 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       // }
     }
 
-    final klass =
-        HTClass(stmt.id.lexeme, this, _curModuleFullName, _curNamespace,
-            superClass: superClass,
-            extendedType: null, // TODO: 这里需要修改
-            isExternal: stmt.isExternal,
-            isAbstract: stmt.isAbstract);
+    final klass = HTClass(
+        stmt.id.lexeme, this, _curModuleFullName, _curNamespace,
+        superClass: superClass,
+        isExternal: stmt.isExternal,
+        isAbstract: stmt.isAbstract);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     _curNamespace.define(klass);
@@ -815,7 +814,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   }
 
   @override
-  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
+  dynamic visitEnumDeclStmt(EnumDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
 

@@ -1,7 +1,6 @@
 import 'namespace.dart';
 import 'declaration.dart';
 import 'interpreter.dart';
-import 'type.dart' show HTDeclarationType;
 
 /// 一个变量声明，包含了类型等额外信息。
 /// 在编译后的代码中，被提前到整个代码块最前面。
@@ -26,7 +25,6 @@ class HTVariable with HTDeclaration, InterpreterRef {
   HTVariable(String id, Interpreter interpreter,
       {String? classId,
       dynamic value,
-      HTDeclarationType? declType,
       this.getter,
       this.setter,
       this.isExternal = false,
@@ -35,7 +33,6 @@ class HTVariable with HTDeclaration, InterpreterRef {
     this.id = id;
     this.classId = classId;
     this.interpreter = interpreter;
-    this.declType = declType;
     if (value != null) {
       this.value = value;
       _isInitialized = true;

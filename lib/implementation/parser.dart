@@ -1,7 +1,7 @@
 import '../common/constants.dart';
 import '../common/errors.dart';
+import '../common/lexicon.dart';
 import 'token.dart';
-import 'lexicon.dart';
 
 // class _ParseTypeResult {
 //   HTType parsedType;

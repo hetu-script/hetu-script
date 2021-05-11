@@ -1,4 +1,4 @@
-import '../implementation/type.dart' show HTType;
+import '../type_system/type.dart';
 import '../implementation/function.dart' show HTFunction;
 
 /// typedef of external function for binding.

@@ -1,6 +1,6 @@
 import '../common/errors.dart';
-import 'type.dart';
-import 'lexicon.dart';
+import '../common/lexicon.dart';
+import '../type_system/type.dart';
 
 class _HTNull with HTObject {
   const _HTNull();
@@ -9,7 +9,7 @@ class _HTNull with HTObject {
   String toString() => HTLexicon.NULL;
 
   @override
-  HTValueType get valueType => HTType.NULL;
+  HTType get valueType => HTType.NULL;
 }
 
 /// Almost everything within Hetu is a [HTObject].
@@ -20,10 +20,8 @@ mixin HTObject {
   /// Hence every null is the same.
   static const NULL = _HTNull();
 
-  /// The [HTType] of this [HTObject],
-  /// this is the runtime value type,
-  /// not necessarily the declaration type
-  HTValueType get valueType;
+  /// The [HTType] of this [HTObject]
+  HTType get valueType;
 
   /// Wether this object contains a member with a name by [varName].
   bool contains(String varName) => throw HTError.undefined(varName);

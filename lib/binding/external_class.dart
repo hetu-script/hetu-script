@@ -1,6 +1,6 @@
 import '../common/errors.dart';
 // import '../class.dart' show HTInheritable;
-import '../implementation/type.dart';
+import '../type_system/type.dart';
 import '../implementation/object.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
@@ -9,7 +9,7 @@ abstract class HTExternalClass with HTObject {
   // final HTExternalClass? superClass;
 
   @override
-  final HTValueType valueType = HTType.CLASS;
+  HTType get valueType => HTType.CLASS;
 
   // @override
   final String id;

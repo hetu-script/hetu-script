@@ -1,6 +1,6 @@
 import '../implementation/token.dart';
-import '../implementation/lexicon.dart';
-import '../implementation/type.dart';
+import '../type_system/type.dart';
+import '../common/lexicon.dart';
 import '../common/constants.dart';
 
 /// Visitor interface for a abstract syntactic tree node
@@ -59,15 +59,15 @@ abstract class AstNodeVisitor {
 
   dynamic visitContinueStmt(ContinueStmt stmt);
 
-  dynamic visitVarDeclStmt(VarDeclStmt stmt);
+  dynamic visitVarDeclStmt(VarDecl stmt);
 
-  dynamic visitParamDeclStmt(ParamDeclStmt stmt);
+  dynamic visitParamDeclStmt(ParamDecl stmt);
 
-  dynamic visitFuncDeclStmt(FuncDeclStmt stmt);
+  dynamic visitFuncDeclStmt(FuncDecl stmt);
 
-  dynamic visitClassDeclStmt(ClassDeclStmt stmt);
+  dynamic visitClassDeclStmt(ClassDecl stmt);
 
-  dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
+  dynamic visitEnumDeclStmt(EnumDecl stmt);
 }
 
 abstract class AstNode {
@@ -263,11 +263,35 @@ class TypeExpr extends AstNode {
 
   final Iterable<TypeExpr> arguments;
 
-  TypeExpr(this.id, this.arguments, String moduleFullName, int line, int column)
+  final bool isNullable;
+
+  TypeExpr(this.id, String moduleFullName, int line, int column,
+      {this.arguments = const [], this.isNullable = false})
       : super(SemanticType.typeExpr, moduleFullName, line, column);
 
   @override
-  AstNode clone() => TypeExpr(id, arguments, moduleFullName, line, column);
+  AstNode clone() => TypeExpr(id, moduleFullName, line, column,
+      arguments: arguments, isNullable: isNullable);
+}
+
+class ParameterTypeExpr extends TypeExpr {
+  /// Wether this is an optional parameter.
+  final bool isOptional;
+
+  /// Wether this is a named parameter.
+  final bool isNamed;
+
+  /// Wether this is a variadic parameter.
+  final bool isVariadic;
+
+  ParameterTypeExpr(String id, String moduleFullName, int line, int column,
+      {Iterable<TypeExpr> arguments = const [],
+      bool isNullable = false,
+      this.isOptional = false,
+      this.isNamed = false,
+      this.isVariadic = false})
+      : super(id, moduleFullName, line, column,
+            arguments: arguments, isNullable: isNullable);
 }
 
 // class FunctionTypeExpr extends TypeExpr {
@@ -522,7 +546,7 @@ class ContinueStmt extends AstNode {
   AstNode clone() => ContinueStmt(keyword);
 }
 
-class VarDeclStmt extends AstNode {
+class VarDecl extends AstNode {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitVarDeclStmt(this);
 
@@ -541,17 +565,17 @@ class VarDeclStmt extends AstNode {
 
   final bool isStatic;
 
-  VarDeclStmt(this.id, String moduleFullName, int line, int column,
+  VarDecl(this.id, String moduleFullName, int line, int column,
       {this.declType,
       this.initializer,
       this.isDynamic = false,
       this.isExternal = false,
       this.isImmutable = false,
       this.isStatic = false})
-      : super(SemanticType.varDeclStmt, moduleFullName, line, column);
+      : super(SemanticType.varDecl, moduleFullName, line, column);
 
   @override
-  AstNode clone() => VarDeclStmt(id, moduleFullName, line, column,
+  AstNode clone() => VarDecl(id, moduleFullName, line, column,
       declType: declType,
       initializer: initializer,
       isExternal: isExternal,
@@ -559,10 +583,7 @@ class VarDeclStmt extends AstNode {
       isStatic: isStatic);
 }
 
-class ParamDeclStmt extends VarDeclStmt {
-  @override
-  final type = SemanticType.paramStmt;
-
+class ParamDecl extends VarDecl {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitParamDeclStmt(this);
 
@@ -572,7 +593,7 @@ class ParamDeclStmt extends VarDeclStmt {
 
   final bool isNamed;
 
-  ParamDeclStmt(String id, String moduleFullName, int line, int column,
+  ParamDecl(String id, String moduleFullName, int line, int column,
       {HTType? declType,
       AstNode? initializer,
       bool isImmutable = false,
@@ -585,7 +606,7 @@ class ParamDeclStmt extends VarDeclStmt {
             isImmutable: isImmutable);
 
   @override
-  AstNode clone() => ParamDeclStmt(id, moduleFullName, line, column,
+  AstNode clone() => ParamDecl(id, moduleFullName, line, column,
       declType: declType,
       initializer: initializer,
       isImmutable: isImmutable,
@@ -594,7 +615,7 @@ class ParamDeclStmt extends VarDeclStmt {
       isNamed: isNamed);
 }
 
-class FuncDeclStmt extends AstNode {
+class FuncDecl extends AstNode {
   static int functionIndex = 0;
 
   @override
@@ -612,7 +633,7 @@ class FuncDeclStmt extends AstNode {
   final String? classId;
   // final HTType? classType;
 
-  final Iterable<ParamDeclStmt> params;
+  final List<ParamDecl> params;
 
   final int arity;
 
@@ -628,7 +649,7 @@ class FuncDeclStmt extends AstNode {
 
   final FunctionCategory category;
 
-  FuncDeclStmt(
+  FuncDecl(
       this.returnType, this.params, String moduleFullName, int line, int column,
       {this.id,
       this.classId,
@@ -640,7 +661,7 @@ class FuncDeclStmt extends AstNode {
       this.isConst = false,
       this.isVariadic = false,
       this.category = FunctionCategory.normal})
-      : super(SemanticType.funcDeclStmt, moduleFullName, line, column) {
+      : super(SemanticType.funcDecl, moduleFullName, line, column) {
     var func_name = id?.lexeme ??
         HTLexicon.anonymousFunction + (functionIndex++).toString();
 
@@ -659,9 +680,9 @@ class FuncDeclStmt extends AstNode {
 
   @override
   AstNode clone() {
-    var new_params = <ParamDeclStmt>[];
+    var new_params = <ParamDecl>[];
     for (final expr in params) {
-      new_params.add(expr.clone() as ParamDeclStmt);
+      new_params.add(expr.clone() as ParamDecl);
     }
 
     var new_body;
@@ -672,7 +693,7 @@ class FuncDeclStmt extends AstNode {
       }
     }
 
-    return FuncDeclStmt(returnType, new_params, moduleFullName, line, column,
+    return FuncDecl(returnType, new_params, moduleFullName, line, column,
         id: id,
         classId: classId,
         typeParameters: typeParameters,
@@ -685,7 +706,7 @@ class FuncDeclStmt extends AstNode {
   }
 }
 
-class ClassDeclStmt extends AstNode {
+class ClassDecl extends AstNode {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitClassDeclStmt(this);
 
@@ -695,41 +716,40 @@ class ClassDeclStmt extends AstNode {
 
   final bool isAbstract;
 
-  final Iterable<VarDeclStmt> variables;
+  final Iterable<VarDecl> variables;
 
-  final Iterable<FuncDeclStmt> methods;
+  final Iterable<FuncDecl> methods;
 
   final Iterable<String> typeParameters;
 
   final SymbolExpr? superClass;
 
-  final ClassDeclStmt? superClassDeclStmt;
+  final ClassDecl? superClassDeclStmt;
 
   final HTType? superClassTypeArgs;
 
-  ClassDeclStmt(this.id, this.variables, this.methods,
+  ClassDecl(this.id, this.variables, this.methods,
       {this.isExternal = false,
       this.isAbstract = false,
       this.typeParameters = const [],
       this.superClass,
       this.superClassDeclStmt,
       this.superClassTypeArgs})
-      : super(
-            SemanticType.classDeclStmt, id.moduleFullName, id.line, id.column);
+      : super(SemanticType.classDecl, id.moduleFullName, id.line, id.column);
 
   @override
   AstNode clone() {
-    var new_vars = <VarDeclStmt>[];
+    var new_vars = <VarDecl>[];
     for (final expr in variables) {
-      new_vars.add(expr.clone() as VarDeclStmt);
+      new_vars.add(expr.clone() as VarDecl);
     }
 
-    var new_methods = <FuncDeclStmt>[];
+    var new_methods = <FuncDecl>[];
     for (final expr in methods) {
-      new_methods.add(expr.clone() as FuncDeclStmt);
+      new_methods.add(expr.clone() as FuncDecl);
     }
 
-    return ClassDeclStmt(id, new_vars, new_methods,
+    return ClassDecl(id, new_vars, new_methods,
         isExternal: isExternal,
         isAbstract: isAbstract,
         typeParameters: typeParameters,
@@ -739,7 +759,7 @@ class ClassDeclStmt extends AstNode {
   }
 }
 
-class EnumDeclStmt extends AstNode {
+class EnumDecl extends AstNode {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitEnumDeclStmt(this);
 
@@ -749,9 +769,9 @@ class EnumDeclStmt extends AstNode {
 
   final bool isExternal;
 
-  EnumDeclStmt(this.id, this.enumerations, {this.isExternal = false})
-      : super(SemanticType.enumDeclStmt, id.moduleFullName, id.line, id.column);
+  EnumDecl(this.id, this.enumerations, {this.isExternal = false})
+      : super(SemanticType.enumDecl, id.moduleFullName, id.line, id.column);
 
   @override
-  AstNode clone() => EnumDeclStmt(id, enumerations, isExternal: isExternal);
+  AstNode clone() => EnumDecl(id, enumerations, isExternal: isExternal);
 }

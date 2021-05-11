@@ -67,9 +67,13 @@ abstract class SemanticType {
   static const memberGetExpr = 'member_get_expression';
   static const memberSetExpr = 'member_set_expression';
 
+  static const varDecl = 'variable_declaration';
+  static const paramDecl = 'parameter_declaration';
+  static const classDecl = 'class_declaration';
+  static const enumDecl = 'enum_declaration';
+  static const funcDecl = 'function_declaration';
+
   static const importStmt = 'import_statement';
-  static const varDeclStmt = 'variable_declaration_statement';
-  static const paramStmt = 'parameter_declaration_statement';
   static const exprStmt = 'expression_statement';
   static const blockStmt = 'block_statement';
   static const returnStmt = 'return_statement';
@@ -81,9 +85,6 @@ abstract class SemanticType {
   static const forStmtInit = 'for_statement_init';
   static const forStmt = 'for_statement';
   static const whenStmt = 'when_statement';
-  static const classDeclStmt = 'class_declaration_statement';
-  static const enumDeclStmt = 'enum_declaration_statement';
-  static const funcDeclStmt = 'function_declaration_statement';
 
   static const module = 'module';
   static const library = 'library';

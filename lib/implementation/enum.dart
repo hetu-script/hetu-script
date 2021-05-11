@@ -1,15 +1,15 @@
-import 'package:hetu_script/implementation/interpreter.dart';
-
-import 'type.dart';
-import 'object.dart';
-import 'lexicon.dart';
-import 'declaration.dart';
 import '../common/errors.dart';
+import '../common/lexicon.dart';
+import '../implementation/interpreter.dart';
+import '../type_system/type.dart';
+import '../type_system/value_type.dart';
+import 'object.dart';
+import 'declaration.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
 class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   @override
-  final HTValueType valueType = HTType.ENUM;
+  HTType get valueType => HTType.ENUM;
 
   /// The enumeration item of this [HTEnum].
   final Map<String, HTEnumItem> enums;

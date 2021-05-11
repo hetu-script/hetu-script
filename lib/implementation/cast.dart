@@ -1,9 +1,10 @@
 import '../common/errors.dart';
+import '../common/lexicon.dart';
+import '../type_system/type.dart';
+import '../type_system/nominal_type.dart';
 import 'object.dart';
 import 'interpreter.dart';
 import 'class.dart';
-import 'type.dart';
-import 'lexicon.dart';
 import 'instance.dart';
 
 /// The implementation of a certain type cast of a object
@@ -19,13 +20,13 @@ class HTCast with HTObject, InterpreterRef {
   String toString() => object.toString();
 
   HTCast(HTObject object, this.klass, Interpreter interpreter,
-      {List<HTDeclarationType> typeArgs = const []}) {
+      {List<HTType> typeArgs = const []}) {
     this.interpreter = interpreter;
 
     // final extended = <HTType>[];
 
     // HTClass? curSuper = klass;
-    // var superClassType = HTDeclarationType(klass.id, typeArgs: typeArgs);
+    // var superClassType = HTType(klass.id, typeArgs: typeArgs);
     // while (curSuper != null) {
     // extended.add(superClassType);
     // curSuper = curSuper.superClass;
@@ -34,8 +35,7 @@ class HTCast with HTObject, InterpreterRef {
     // }
     // }
 
-    valueType = HTNominalType(klass,
-        typeArgs: typeArgs.map((type) => type.resolve(interpreter)));
+    valueType = HTNominalType(klass, typeArgs: typeArgs);
 
     if (object.valueType.isNotA(valueType)) {
       throw HTError.typeCast(object.toString(), valueType.toString());

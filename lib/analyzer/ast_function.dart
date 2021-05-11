@@ -1,19 +1,19 @@
 import '../implementation/instance.dart';
 import '../implementation/namespace.dart';
-import '../implementation/type.dart';
-import '../implementation/lexicon.dart';
 import '../implementation/variable.dart';
 import '../implementation/function.dart';
 import '../implementation/object.dart';
 import '../common/errors.dart';
+import '../common/lexicon.dart';
+import '../type_system/type.dart';
 import 'ast.dart';
-import 'ast_analyzer.dart';
+import 'analyzer.dart';
 
 class HTAstFunction extends HTFunction {
   @override
   final HTAnalyzer interpreter;
 
-  final FuncDeclStmt funcStmt;
+  final FuncDecl funcStmt;
 
   HTAstFunction(this.funcStmt, this.interpreter,
       {String? externalTypedef, HTNamespace? context})

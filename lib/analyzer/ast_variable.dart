@@ -1,22 +1,24 @@
 import '../implementation/variable.dart';
-import '../implementation/type.dart';
+import '../type_system/type.dart';
 import '../common/errors.dart';
 import 'ast.dart';
-import 'ast_analyzer.dart';
+import 'analyzer.dart';
 
 class HTAstVariable extends HTVariable {
   @override
   final HTAnalyzer interpreter;
 
-  final bool isDynamic;
-
   @override
   final bool isImmutable;
 
-  var _isInitializing = false;
-
   HTType? _declType;
-  HTType get declType => _declType!;
+
+  @override
+  HTType get declType => _declType ?? HTType.ANY;
+
+  final bool isDynamic;
+
+  var _isInitializing = false;
 
   AstNode? initializer;
 
@@ -39,9 +41,7 @@ class HTAstVariable extends HTVariable {
             setter: setter,
             isExternal: isExternal,
             isStatic: isStatic) {
-    if (initializer == null && declType == null) {
-      _declType = HTType.ANY;
-    }
+    _declType = declType;
   }
 
   @override
@@ -67,8 +67,8 @@ class HTAstVariable extends HTVariable {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
       final valueType = encapsulation.valueType;
-      if (valueType.isNotA(_declType!)) {
-        throw HTError.type(id, valueType.toString(), _declType.toString());
+      if (valueType.isNotA(_declType)) {
+        throw HTError.type(id, valueType.toString(), declType.toString());
       }
     } else {
       if (!isDynamic && value != null) {

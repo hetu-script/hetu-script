@@ -1,6 +1,6 @@
-import '../implementation/type.dart';
+import '../type_system/type.dart';
 import '../implementation/interpreter.dart';
-import '../implementation/lexicon.dart';
+import '../common/lexicon.dart';
 import '../common/errors.dart';
 import '../binding/external_instance.dart';
 

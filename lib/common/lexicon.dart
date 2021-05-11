@@ -31,7 +31,8 @@ abstract class HTLexicon {
   static const tokenGroupInt = 7;
   static const tokenGroupString = 8;
 
-  static const object = 'Object';
+  static const object = 'object';
+  static const function = 'function';
   static const boolean = 'bool';
   static const number = 'num';
   static const integer = 'int';
@@ -108,6 +109,7 @@ abstract class HTLexicon {
   static const VOID = 'void';
   // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
   static const ANY = 'any';
+  static const unionType = 'union_type';
 
   static const Set<String> primitiveType = {
     TYPE,
@@ -117,9 +119,9 @@ abstract class HTLexicon {
     CLASS,
     ENUM,
     NAMESPACE,
-    FUNCTION,
     unknown,
     object,
+    function,
   };
 
   static const CONSTRUCT = 'construct';
@@ -421,7 +423,8 @@ abstract class HTLexicon {
   static const errorNotList = '[{0}] is not a List or Map.';
   static const errorNullObject = 'Calling method on null object: [{0}]';
   static const errorNullable = '[{0}] is not nullable.';
-  static const errorType = 'Variable [{0}] can\'t be assigned with type [{1}].';
+  static const errorType =
+      'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}].';
   static const errorImmutable = '[{0}] is immutable.';
   static const errorNotType = '[{0}] is not a type.';
   static const errorArgType =

@@ -2,11 +2,12 @@ import 'dart:collection';
 
 import '../common/errors.dart';
 import '../common/constants.dart';
+import '../common/lexicon.dart';
+import '../type_system/type.dart';
+import '../type_system/nominal_type.dart';
 import 'object.dart';
 import 'interpreter.dart';
 import 'class.dart';
-import 'type.dart';
-import 'lexicon.dart';
 import 'function.dart';
 import 'namespace.dart';
 import 'cast.dart';
@@ -39,8 +40,7 @@ class HTInstance with HTObject, InterpreterRef {
 
   /// Create a default [HTInstance] instance.
   HTInstance(HTClass klass, Interpreter interpreter,
-      {List<HTValueType> typeArgs = const [],
-      Map<String, dynamic>? jsonObject}) {
+      {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject}) {
     id = '${HTLexicon.instance}${klass.instanceIndex}';
     this.interpreter = interpreter;
 
@@ -261,7 +261,7 @@ class HTInstance with HTObject, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTValueType> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
       HTFunction func = memberGet(funcName, from: namespace.fullName);

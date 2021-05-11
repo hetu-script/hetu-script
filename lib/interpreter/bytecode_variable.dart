@@ -1,7 +1,9 @@
 import '../implementation/variable.dart';
-import '../implementation/type.dart';
 import '../implementation/class.dart';
-import '../implementation/lexicon.dart';
+import '../type_system/type.dart';
+import '../type_system/function_type.dart';
+import '../type_system/nominal_type.dart';
+import '../common/lexicon.dart';
 import '../common/errors.dart';
 import 'bytecode_interpreter.dart';
 import 'bytecode_source.dart' show GotoInfo;
@@ -11,15 +13,19 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   @override
   final Hetu interpreter;
 
-  final bool typeInferrence;
-
   /// Whether this variable is immutable.
   @override
   final bool isImmutable;
 
+  final bool typeInferrence;
+
+  HTType? _declType;
+
+  @override
+  HTType get declType => _declType ?? HTType.ANY;
+
   var _isInitializing = false;
 
-  HTValueType? _resolvedDeclType;
   // var _isTypeInitialized = false;
 
   /// Create a standard [HTBytecodeVariable].
@@ -29,7 +35,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   HTBytecodeVariable(String id, this.interpreter, String moduleFullName,
       {String? classId,
       dynamic value,
-      HTDeclarationType? declType,
+      HTType? declType,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
@@ -42,7 +48,6 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
       : super(id, interpreter,
             classId: classId,
             value: value,
-            declType: declType,
             getter: getter,
             setter: setter,
             isExternal: isExternal,
@@ -51,7 +56,10 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
-    this.declType = declType;
+
+    if (declType != null) {
+      _declType = declType;
+    }
 
     // if (declType != null) {
     //   _declType = declType;
@@ -93,6 +101,10 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
             line: definitionLine,
             column: definitionColumn);
 
+        if ((_declType == null) && typeInferrence && (initVal != null)) {
+          _declType = interpreter.encapsulate(initVal).valueType;
+        }
+
         value = initVal;
 
         _isInitializing = false;
@@ -104,9 +116,9 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
     }
   }
 
-  dynamic _computeValue(dynamic value, HTValueType type) {
-    if (type.klass != null) {
-      return type.klass!.createInstanceFromJson(value);
+  dynamic _computeValue(dynamic value, HTType type) {
+    if (type is HTNominalType) {
+      return type.klass.createInstanceFromJson(value);
     } else {
       // basically doing a type erasure here.
       if ((value is List) &&
@@ -122,10 +134,10 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
           (type.id == HTLexicon.map) &&
           (type.typeArgs.length >= 2)) {
         final mapValueTypeResolveResult = type.typeArgs[1].resolve(interpreter);
-        if (mapValueTypeResolveResult.klass != null) {
+        if (mapValueTypeResolveResult is HTNominalType) {
           final computedValueMap = {};
           for (final entry in value.entries) {
-            final computedValue = mapValueTypeResolveResult.klass!
+            final computedValue = mapValueTypeResolveResult.klass
                 .createInstanceFromJson(entry.value);
             computedValueMap[entry.key] = computedValue;
           }
@@ -146,17 +158,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   /// will perform [HTType] check during this process.
   @override
   set value(dynamic value) {
-    if (declType != null) {
-      _resolvedDeclType ??= declType!.resolve(interpreter);
-    } else {
-      if (typeInferrence && (value != null)) {
-        _resolvedDeclType = interpreter.encapsulate(value).valueType;
-      } else {
-        _resolvedDeclType = HTType.ANY;
-      }
-    }
-
-    super.value = _computeValue(value, _declType ?? HTType.ANY, _declClass);
+    super.value = _computeValue(value, _declType ?? HTType.ANY);
   }
 
   /// Create a copy of this variable declaration,

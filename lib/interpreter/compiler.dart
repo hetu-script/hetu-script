@@ -2,12 +2,12 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../implementation/parser.dart';
-import '../implementation/lexicon.dart';
 import '../implementation/const_table.dart';
 import '../implementation/class.dart';
 import '../implementation/lexer.dart';
 import '../common/constants.dart';
 import '../common/errors.dart';
+import '../common/lexicon.dart';
 import '../plugin/moduleHandler.dart';
 import 'opcode.dart';
 import 'bytecode_interpreter.dart';
@@ -203,7 +203,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   _parseClassDeclStmt(isAbstract: true, isExternal: true);
                 } else {
                   throw HTError.unexpected(
-                      SemanticType.classDeclStmt, curTok.lexeme);
+                      SemanticType.classDecl, curTok.lexeme);
                 }
                 break;
               case HTLexicon.CLASS:
@@ -221,7 +221,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   _parseFuncDeclaration(isExternal: true);
                 } else {
                   throw HTError.unexpected(
-                      SemanticType.funcDeclStmt, peek(1).lexeme);
+                      SemanticType.funcDecl, peek(1).lexeme);
                 }
                 break;
               default:
@@ -233,8 +233,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             if (curTok.type == HTLexicon.CLASS) {
               _parseClassDeclStmt(isAbstract: true);
             } else {
-              throw HTError.unexpected(
-                  SemanticType.classDeclStmt, curTok.lexeme);
+              throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
@@ -307,8 +306,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             if (curTok.type == HTLexicon.CLASS) {
               _parseClassDeclStmt(isAbstract: true);
             } else {
-              throw HTError.unexpected(
-                  SemanticType.classDeclStmt, curTok.lexeme);
+              throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
             }
             break;
           case HTLexicon.EXTERNAL:
@@ -320,7 +318,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   _parseClassDeclStmt(isAbstract: true, isExternal: true);
                 } else {
                   throw HTError.unexpected(
-                      SemanticType.classDeclStmt, curTok.lexeme);
+                      SemanticType.classDecl, curTok.lexeme);
                 }
                 break;
               case HTLexicon.CLASS:
@@ -334,7 +332,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                   _parseFuncDeclaration(isExternal: true);
                 } else {
                   throw HTError.unexpected(
-                      SemanticType.funcDeclStmt, peek(1).lexeme);
+                      SemanticType.funcDecl, peek(1).lexeme);
                 }
                 break;
               case HTLexicon.VAR:
@@ -372,8 +370,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
                 ])) {
               _parseFuncDeclaration();
             } else {
-              throw HTError.unexpected(
-                  SemanticType.funcDeclStmt, peek(1).lexeme);
+              throw HTError.unexpected(SemanticType.funcDecl, peek(1).lexeme);
             }
             break;
           default:
@@ -1096,9 +1093,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.addByte(HTValueTypeCode.type);
     }
     // normal type
-    if (curTok.type == HTLexicon.identifier ||
-        (curTok.type == HTLexicon.FUNCTION &&
-            peek(1).type != HTLexicon.roundLeft)) {
+    if (curTok.type == HTLexicon.identifier) {
       bytesBuilder.addByte(isParam
           ? TypeType.parameter.index
           : TypeType.normal.index); // enum: normal type
@@ -1492,7 +1487,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     Uint8List? increment;
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-        throw HTError.unexpected(SemanticType.varDeclStmt, curTok.type);
+        throw HTError.unexpected(SemanticType.varDecl, curTok.type);
       }
       final declPos = tokPos;
       // jump over keywrod
@@ -1571,7 +1566,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     else {
       if (curTok.type != HTLexicon.semicolon) {
         if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-          throw HTError.unexpected(SemanticType.varDeclStmt, curTok.type);
+          throw HTError.unexpected(SemanticType.varDecl, curTok.type);
         }
 
         final initDeclId = peek(1).lexeme;
