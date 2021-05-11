@@ -10,11 +10,11 @@ import 'external_class.dart';
 /// Class for external object.
 class HTExternalInstance<T> with HTObject, InterpreterRef {
   @override
-  late final HTType objectType;
+  late final HTValueType valueType;
 
   /// the external object.
   final T externalObject;
-  final typeString;
+  final String typeString;
   late final HTExternalClass? externalClass;
 
   final functions = <String, HTFunction>{};
@@ -33,7 +33,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     if (interpreter.global.contains(id)) {
       HTClass klass = interpreter.global.fetch(id);
       HTClass? curKlass = klass;
-      final extended = <HTType>[];
+      // final extended = <HTType>[];
       while (curKlass != null) {
         // 继承类成员，所有超类的成员都会分别保存
         for (final decl in curKlass.instanceMembers.values) {
@@ -43,22 +43,22 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
             }
           }
         }
-        if (curKlass.extendedType != null) {
-          extended.add(curKlass.extendedType!);
-        }
+        // if (curKlass.extendedType != null) {
+        //   extended.add(curKlass.extendedType!);
+        // }
         curKlass = curKlass.superClass;
       }
-      objectType = HTObjectType(klass.id, extended: extended);
+      valueType = HTNominalType(klass);
     } else {
-      objectType = HTUnknownType(typeString);
+      valueType = HTExternalType(typeString);
     }
   }
 
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     switch (varName) {
-      case 'objectType':
-        return objectType;
+      case 'valueType':
+        return valueType;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             externalObject.toString();

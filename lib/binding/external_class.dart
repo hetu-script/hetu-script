@@ -9,7 +9,7 @@ abstract class HTExternalClass with HTObject {
   // final HTExternalClass? superClass;
 
   @override
-  final HTType objectType = HTType.CLASS;
+  final HTValueType valueType = HTType.CLASS;
 
   // @override
   final String id;

@@ -31,8 +31,6 @@ class CountryEnumBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic object, String varName) {
     switch (varName) {
-      case 'objectType':
-        return const HTType('Country');
       case 'index':
         var i = object as Country;
         return i.index;
@@ -67,14 +65,14 @@ void main() async {
         print(Race.values)
         let race: Race = Race.african
         print(race)
-        print(race.objectType)
+        print(race.valueType)
         print(race.index)
         print(race.toString())
         print(race)
         
         print(Country.values)
         let country: Country = Country.Japan // 可以进行类型检查
-        print(country.objectType)
+        print(country.valueType)
         print(country.index)
         print(country.toString())
         print(country)

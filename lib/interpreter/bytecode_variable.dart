@@ -19,16 +19,8 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
 
   var _isInitializing = false;
 
-  var _isTypeInitialized = false;
-
-  HTType? _declType;
-
-  // The class decl, if this is a internal class
-  HTClass? _declClass;
-
-  /// The [HTType] of this variable, will be used to
-  /// determine wether an assignment is legal.
-  HTType? get declType => _declType;
+  HTValueType? _resolvedDeclType;
+  // var _isTypeInitialized = false;
 
   /// Create a standard [HTBytecodeVariable].
   ///
@@ -37,7 +29,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   HTBytecodeVariable(String id, this.interpreter, String moduleFullName,
       {String? classId,
       dynamic value,
-      HTType? declType,
+      HTDeclarationType? declType,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
@@ -50,6 +42,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
       : super(id, interpreter,
             classId: classId,
             value: value,
+            declType: declType,
             getter: getter,
             setter: setter,
             isExternal: isExternal,
@@ -58,31 +51,32 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
+    this.declType = declType;
 
-    if (declType != null) {
-      _declType = declType;
+    // if (declType != null) {
+    //   _declType = declType;
 
-      if (_declType is HTFunctionType ||
-          _declType is HTObjectType ||
-          (HTLexicon.primitiveType.contains(declType.id))) {
-        _isTypeInitialized = true;
-      }
-    } else {
-      if (!typeInferrence || (definitionIp == null)) {
-        _declType = HTType.ANY;
-        _isTypeInitialized = true;
-      }
-    }
+    //   if (_declType is HTFunctionDeclarationType ||
+    //       _declType is HTObjectType ||
+    //       (HTLexicon.primitiveType.contains(declType.id))) {
+    //     _isTypeInitialized = true;
+    //   }
+    // } else {
+    //   if (!typeInferrence || (definitionIp == null)) {
+    //     _declType = HTType.ANY;
+    //     _isTypeInitialized = true;
+    //   }
+    // }
   }
 
   /// initialize the declared type if it's a class name.
   /// only return the [HTClass] when its a non-external class
-  void _initializeType() {
-    final resolvedType = HTType.resolve(_declType!, interpreter);
-    _declType = resolvedType.type;
-    _declClass = resolvedType.klass;
-    _isTypeInitialized = true;
-  }
+  // void _initializeType() {
+  //   final resolvedType = HTType.resolve(_declType!, interpreter);
+  //   _declType = resolvedType.type;
+  //   _declClass = resolvedType.klass;
+  //   _isTypeInitialized = true;
+  // }
 
   /// Initialize this variable with its declared initializer bytecode
   @override
@@ -110,13 +104,9 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
     }
   }
 
-  dynamic _computeValue(dynamic value, HTType type, [HTClass? klass]) {
-    if (klass == null) {
-      final resolveResult = HTType.resolve(type, interpreter);
-      klass = resolveResult.klass;
-    }
-    if (klass != null) {
-      return klass.createInstanceFromJson(value);
+  dynamic _computeValue(dynamic value, HTValueType type) {
+    if (type.klass != null) {
+      return type.klass!.createInstanceFromJson(value);
     } else {
       // basically doing a type erasure here.
       if ((value is List) &&
@@ -131,8 +121,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
       } else if ((value is Map) &&
           (type.id == HTLexicon.map) &&
           (type.typeArgs.length >= 2)) {
-        final mapValueTypeResolveResult =
-            HTType.resolve(type.typeArgs[1], interpreter);
+        final mapValueTypeResolveResult = type.typeArgs[1].resolve(interpreter);
         if (mapValueTypeResolveResult.klass != null) {
           final computedValueMap = {};
           for (final entry in value.entries) {
@@ -144,7 +133,7 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
         }
       } else {
         final encapsulation = interpreter.encapsulate(value);
-        final valueType = encapsulation.objectType;
+        final valueType = encapsulation.valueType;
         if (valueType.isNotA(type)) {
           throw HTError.type(id, valueType.toString(), type.toString());
         }
@@ -157,14 +146,13 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   /// will perform [HTType] check during this process.
   @override
   set value(dynamic value) {
-    if (_declType != null) {
-      if (!_isTypeInitialized) {
-        _initializeType();
-      }
+    if (declType != null) {
+      _resolvedDeclType ??= declType!.resolve(interpreter);
     } else {
-      if ((_declType == null) && typeInferrence && (value != null)) {
-        _declType = interpreter.encapsulate(value).objectType;
-        _isTypeInitialized = true;
+      if (typeInferrence && (value != null)) {
+        _resolvedDeclType = interpreter.encapsulate(value).valueType;
+      } else {
+        _resolvedDeclType = HTType.ANY;
       }
     }
 

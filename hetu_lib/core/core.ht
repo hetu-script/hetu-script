@@ -1,6 +1,6 @@
 abstract class Object {
 
-  get objectType -> Type
+  get valueType -> Type
 }
 
 // return the declaration type of a symbol

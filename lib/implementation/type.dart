@@ -4,35 +4,23 @@ import 'lexicon.dart';
 import 'object.dart';
 import 'class.dart';
 import 'interpreter.dart';
+import 'declaration.dart';
 
-class TypeResolveResult {
-  HTType type;
-  HTClass? klass;
+abstract class HTType with HTObject {
+  static const TYPE = _PrimitiveType(HTLexicon.TYPE);
+  static const ANY = _PrimitiveType(HTLexicon.ANY);
+  static const NULL = _PrimitiveType(HTLexicon.NULL);
+  static const VOID = _PrimitiveType(HTLexicon.VOID);
+  static const ENUM = _PrimitiveType(HTLexicon.ENUM);
+  static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
+  static final CLASS = _PrimitiveType(HTLexicon.CLASS);
+  static const FUNCTION = _PrimitiveType(HTLexicon.FUNCTION);
+  static const unknown = _PrimitiveType(HTLexicon.unknown);
 
-  TypeResolveResult(this.type, this.klass);
-}
+  // static final integer =
+  //     HTObjectType(HTLexicon.integer, extended: [HTType.number]);
 
-class HTTypeName {}
-
-class HTType with HTObject {
-  static const TYPE = HTType(HTLexicon.TYPE);
-  static const ANY = HTType(HTLexicon.ANY);
-  static const NULL = HTType(HTLexicon.NULL);
-  static const VOID = HTType(HTLexicon.VOID);
-  static const ENUM = HTType(HTLexicon.ENUM);
-  static const NAMESPACE = HTType(HTLexicon.NAMESPACE);
-  static const FUNCTION = HTType(HTLexicon.FUNCTION);
-  static const object = HTType(HTLexicon.object);
-  static const number = HTType(HTLexicon.number);
-  static const boolean = HTType(HTLexicon.boolean);
-  static const string = HTType(HTLexicon.string);
-
-  static final CLASS = HTObjectType(HTLexicon.CLASS, extended: [HTType.TYPE]);
-
-  static final integer =
-      HTObjectType(HTLexicon.integer, extended: [HTType.number]);
-
-  static final float = HTObjectType(HTLexicon.float, extended: [HTType.number]);
+  // static final float = HTObjectType(HTLexicon.float, extended: [HTType.number]);
 
   static String parseBaseType(String typeString) {
     final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
@@ -44,64 +32,35 @@ class HTType with HTObject {
     }
   }
 
-  /// initialize the declared type if it's a class name.
-  /// only return the [HTClass] when its a non-external class
-  static TypeResolveResult resolve(HTType type, Interpreter interpreter) {
-    late HTType typeResult;
-    HTClass? typeClass;
-    if (type.isResolved) {
-      typeResult = type;
-    } else {
-      final typeDef = interpreter.curNamespace
-          .fetch(type.id, from: interpreter.curNamespace.fullName);
-      if (typeDef is HTClass) {
-        if (!typeDef.isExternal) {
-          typeClass = typeDef;
-        }
-        typeResult = HTObjectType.fromClass(typeDef,
-            typeArgs: type.typeArgs, isNullable: type.isNullable);
-      } else {
-        // typeDef is a function type
-        typeResult = typeDef;
-      }
-    }
-
-    return TypeResolveResult(typeResult, typeClass);
-  }
-
   /// A [HTType]'s type is itself.
   @override
-  HTType get objectType => HTType.TYPE;
+  HTValueType get valueType => HTType.TYPE;
 
   final String id;
-  final List<HTType> typeArgs;
-  final bool isNullable;
 
-  bool get isResolved =>
-      this is HTFunctionType ||
-      this is HTObjectType ||
-      HTLexicon.primitiveType.contains(id);
+  bool get isPrimitive => false;
+  bool get isResolved => false;
 
-  const HTType(this.id,
-      {this.typeArgs = const <HTType>[], this.isNullable = false});
+  const HTType(this.id);
+  // {this.typeArgs = const <HTType>[], this.isNullable = false});
 
   @override
   String toString() {
     var typeString = StringBuffer();
     typeString.write(id);
-    if (typeArgs.isNotEmpty) {
-      typeString.write(HTLexicon.angleLeft);
-      for (var i = 0; i < typeArgs.length; ++i) {
-        typeString.write(typeArgs[i]);
-        if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
-          typeString.write('${HTLexicon.comma} ');
-        }
-      }
-      typeString.write(HTLexicon.angleRight);
-    }
-    if (isNullable) {
-      typeString.write(HTLexicon.nullable);
-    }
+    // if (typeArgs.isNotEmpty) {
+    //   typeString.write(HTLexicon.angleLeft);
+    //   for (var i = 0; i < typeArgs.length; ++i) {
+    //     typeString.write(typeArgs[i]);
+    //     if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
+    //       typeString.write('${HTLexicon.comma} ');
+    //     }
+    //   }
+    //   typeString.write(HTLexicon.angleRight);
+    // }
+    // if (isNullable) {
+    //   typeString.write(HTLexicon.nullable);
+    // }
     return typeString.toString();
   }
 
@@ -109,18 +68,18 @@ class HTType with HTObject {
   int get hashCode {
     final hashList = <int>[];
     hashList.add(id.hashCode);
-    hashList.add(isNullable.hashCode);
-    for (final typeArg in typeArgs) {
-      hashList.add(typeArg.hashCode);
-    }
+    // hashList.add(isNullable.hashCode);
+    // for (final typeArg in typeArgs) {
+    //   hashList.add(typeArg.hashCode);
+    // }
     final hash = hashObjects(hashList);
     return hash;
   }
 
   /// Wether object of this [HTType] can be assigned to other [HTType]
   bool isA(Object other) {
-    if (this is HTUnknownType) {
-      if (other == HTType.ANY || other is HTUnknownType) {
+    if (this == HTType.unknown) {
+      if (other == HTType.ANY || other == HTType.unknown) {
         return true;
       } else {
         return false;
@@ -138,14 +97,16 @@ class HTType with HTObject {
         return true;
       } else if (id != other.id) {
         return false;
-      } else if (typeArgs.length != other.typeArgs.length) {
-        return false;
-      } else {
-        for (var i = 0; i < typeArgs.length; ++i) {
-          if (!typeArgs[i].isA(typeArgs[i])) {
-            return false;
-          }
-        }
+      }
+      // else if (typeArgs.length != other.typeArgs.length) {
+      //   return false;
+      // }
+      else {
+        // for (var i = 0; i < typeArgs.length; ++i) {
+        //   if (!typeArgs[i].isA(typeArgs[i])) {
+        //     return false;
+        //   }
+        // }
         return true;
       }
     } else {
@@ -160,53 +121,87 @@ class HTType with HTObject {
   bool operator ==(Object other) => hashCode == other.hashCode;
 }
 
-class HTUnknownType extends HTType {
-  final String typeString;
+class HTDeclarationType extends HTType with HTDeclaration {
+  final bool isNullable;
+  final Iterable<HTDeclarationType> typeArgs;
 
-  HTUnknownType(this.typeString) : super(HTLexicon.unknown);
-
-  @override
-  String toString() =>
-      '${HTLexicon.unknown} ${HTLexicon.TYPE}${HTLexicon.colon} $typeString';
-}
-
-class HTObjectType extends HTType {
-  late final List<HTType> extended;
-  // late final List<HTType> implemented;
-  // late final List<HTType> mixined;
-
-  HTObjectType.fromClass(HTClass klass,
-      {List<HTType> typeArgs = const [], bool isNullable = false})
-      : super(klass.id, typeArgs: typeArgs, isNullable: isNullable) {
-    HTClass? curKlass = klass;
-    extended = <HTType>[];
-    while (curKlass != null) {
-      if (curKlass.extendedType != null) {
-        extended.add(curKlass.extendedType!);
-      }
-      curKlass = curKlass.superClass;
-    }
+  HTDeclarationType(String id,
+      {this.typeArgs = const <HTDeclarationType>[], this.isNullable = false})
+      : super(id) {
+    this.id = id;
   }
 
-  HTObjectType(String id,
-      {List<HTType> typeArgs = const [],
-      this.extended = const [],
-      // this.implemented = const [],
-      // this.mixined = const [],
-      bool isNullable = false})
-      : super(id, typeArgs: typeArgs, isNullable: isNullable);
+  /// initialize the declared type if it's a class name.
+  /// only return the [HTClass] when its a non-external class
+  HTValueType resolve(Interpreter interpreter) {
+    final typeDef = interpreter.curNamespace
+        .fetch(id, from: interpreter.curNamespace.fullName);
+    if (typeDef is HTClass) {
+      return HTNominalType(typeDef,
+          typeArgs: typeArgs.map((type) => type.resolve(interpreter)));
+    } else {
+      // if (typeDef is HTFunctionObjectType)
+      return typeDef;
+    }
+  }
+}
+
+abstract class HTValueType extends HTType {
+  const HTValueType(String id) : super(id);
+}
+
+class _PrimitiveType extends HTValueType {
+  @override
+  bool get isPrimitive => true;
+
+  @override
+  bool get isResolved => true;
+
+  const _PrimitiveType(String id) : super(id);
+}
+
+class HTExternalType extends HTValueType {
+  const HTExternalType(String id) : super(id);
+}
+
+class HTNominalType extends HTValueType {
+  final HTClass klass;
+  final Iterable<HTValueType> typeArgs;
+  // late final Iterable<HTType> implemented;
+  // late final Iterable<HTType> mixined;
+
+  HTNominalType(this.klass, {this.typeArgs = const <HTValueType>[]})
+      : super(klass.id);
+
+  // HTNominalType.fromClass(HTClass klass,
+  //     {Iterable<HTValueType> typeArgs = const <HTValueType>[],
+  //     bool isNullable = false})
+  //     : this(klass.id);
+  // {
+  // HTClass? curKlass = klass;
+  // extended = <HTType>[];
+  // while (curKlass != null) {
+  //   if (curKlass.extendedType != null) {
+  //     extended.add(curKlass.extendedType!);
+  //   }
+  //   curKlass = curKlass.superClass;
+  // }
+  // }
 
   @override
   int get hashCode {
     final hashList = <int>[];
     hashList.add(id.hashCode);
-    hashList.add(isNullable.hashCode);
+    // hashList.add(isNullable.hashCode);
     for (final typeArg in typeArgs) {
       hashList.add(typeArg.hashCode);
     }
-    for (final type in extended) {
-      hashList.add(type.hashCode);
-    }
+    // if (superType != null) {
+    //   hashList.add(superType.hashCode);
+    // }
+    // for (final type in extended) {
+    //   hashList.add(type.hashCode);
+    // }
     // for (final type in implemented) {
     //   hashList.add(type.hashCode);
     // }
@@ -225,11 +220,11 @@ class HTObjectType extends HTType {
       } else if (this == other) {
         return true;
       } else {
-        for (var i = 0; i < extended.length; ++i) {
-          if (extended[i].isA(other)) {
-            return true;
-          }
-        }
+        // for (final type in extended) {
+        //   if (type.isA(other)) {
+        //     return true;
+        //   }
+        // }
         // for (var i = 0; i < implemented.length; ++i) {
         //   if (implemented[i].isA(other)) {
         //     return true;
@@ -248,7 +243,11 @@ class HTObjectType extends HTType {
   }
 }
 
-class HTParameterType extends HTType {
+class HTParameterType {
+  final String id;
+
+  final HTDeclarationType? declType;
+
   /// Wether this is an optional parameter.
   final bool isOptional;
 
@@ -258,15 +257,12 @@ class HTParameterType extends HTType {
   /// Wether this is a variadic parameter.
   final bool isVariadic;
 
-  HTParameterType(String id,
-      {List<HTType> typeArgs = const [],
-      isNullable = false,
+  HTParameterType(this.id,
+      {this.declType,
       this.isOptional = false,
       this.isNamed = false,
-      this.isVariadic = false})
-      : super(id, typeArgs: typeArgs, isNullable: isNullable);
+      this.isVariadic = false});
 
-  @override
   bool isA(Object other) {
     if (other is HTParameterType) {
       if (isNamed && (id != other.id)) {
@@ -282,36 +278,42 @@ class HTParameterType extends HTType {
       return false;
     }
   }
+
+  bool isNotA(Object other) => !isA(other);
 }
 
-/// [HTFunctionType] is equivalent to Dart's function typedef,
-class HTFunctionType extends HTObjectType {
-  final List<String> typeParameters;
+class HTFunctionDeclarationType extends HTDeclarationType {
+  final Iterable<String> genericTypeParameters;
   final Map<String, HTParameterType> parameterTypes;
-  final int minArity;
   final HTType returnType;
 
-  HTFunctionType(
-      {this.typeParameters = const [],
-      this.parameterTypes = const {},
-      this.minArity = 0,
-      this.returnType = HTType.ANY})
-      : super(HTLexicon.FUNCTION, extended: [HTType.TYPE]);
+  HTFunctionDeclarationType(
+      {this.parameterTypes = const {}, this.returnType = HTType.ANY})
+      : super(HTLexicon.FUNCTION);
+}
+
+class HTFunctionValueType extends HTValueType {
+  final Map<String, HTParameterType> parameterTypes;
+  final HTType returnType;
+
+  HTFunctionValueType(
+      {this.parameterTypes = const {}, this.returnType = HTType.ANY})
+      : super(HTLexicon.FUNCTION);
 
   @override
   String toString() {
     var result = StringBuffer();
     result.write(HTLexicon.FUNCTION);
-    if (objectType.typeArgs.isNotEmpty) {
-      result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < objectType.typeArgs.length; ++i) {
-        result.write(objectType.typeArgs[i]);
-        if (i < objectType.typeArgs.length - 1) {
-          result.write('${HTLexicon.comma} ');
-        }
-      }
-      result.write(HTLexicon.angleRight);
-    }
+    // if (valueType.typeArgs.isNotEmpty) {
+    //   result.write(HTLexicon.angleLeft);
+    //   for (var i = 0; i < valueType.typeArgs.length; ++i) {
+    //     result.write(valueType.typeArgs[i]);
+    //     if (i < valueType.typeArgs.length - 1) {
+    //       result.write('${HTLexicon.comma} ');
+    //     }
+    //   }
+    //   result.write(HTLexicon.angleRight);
+    // }
 
     result.write(HTLexicon.roundLeft);
 
@@ -350,11 +352,11 @@ class HTFunctionType extends HTObjectType {
   int get hashCode {
     final hashList = <int>[];
     hashList.add(id.hashCode);
-    hashList.add(isNullable.hashCode);
-    for (final typeArg in typeArgs) {
-      hashList.add(typeArg.hashCode);
-    }
-    hashList.add(typeParameters.length.hashCode);
+    // hashList.add(isNullable.hashCode);
+    // for (final typeArg in typeArgs) {
+    //   hashList.add(typeArg.hashCode);
+    // }
+    hashList.add(genericTypeParameters.length.hashCode);
     for (final paramType in parameterTypes.keys) {
       hashList.add(paramType.hashCode);
       hashList.add(parameterTypes[paramType].hashCode);
@@ -368,12 +370,10 @@ class HTFunctionType extends HTObjectType {
   bool isA(Object other) {
     if (other == HTType.ANY) {
       return true;
-    } else if (other is HTFunctionType) {
-      if (typeParameters.length != other.typeParameters.length) {
+    } else if (other is HTFunctionValueType) {
+      if (genericTypeParameters.length != other.genericTypeParameters.length) {
         return false;
       } else if (returnType.isNotA(other.returnType)) {
-        return false;
-      } else if (minArity != other.minArity) {
         return false;
       } else {
         var i = 0;

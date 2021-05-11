@@ -19,9 +19,9 @@ class HTInstance with HTObject, InterpreterRef {
   late final String id;
 
   @override
-  late final HTObjectType objectType;
+  late final HTNominalType valueType;
 
-  String get classId => objectType.id;
+  String get classId => valueType.id;
 
   /// A [HTInstance] has all members inherited from all super classes,
   /// Key is the id of a super class.
@@ -39,12 +39,13 @@ class HTInstance with HTObject, InterpreterRef {
 
   /// Create a default [HTInstance] instance.
   HTInstance(HTClass klass, Interpreter interpreter,
-      {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject}) {
+      {List<HTValueType> typeArgs = const [],
+      Map<String, dynamic>? jsonObject}) {
     id = '${HTLexicon.instance}${klass.instanceIndex}';
     this.interpreter = interpreter;
 
     HTClass? curKlass = klass;
-    final extended = <HTType>[];
+    // final extended = <HTValueType>[];
     HTInstanceNamespace? curNamespace = HTInstanceNamespace(
         id, curKlass.id, this, interpreter,
         closure: klass.namespace);
@@ -52,7 +53,7 @@ class HTInstance with HTObject, InterpreterRef {
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
         final clone = decl.clone();
-        if (clone is HTFunction && clone.funcType != FunctionType.literal) {
+        if (clone is HTFunction && clone.category != FunctionCategory.literal) {
           clone.context = curNamespace;
         }
         // TODO: check if override, and if so, check the type wether fits super's type.
@@ -68,9 +69,9 @@ class HTInstance with HTObject, InterpreterRef {
 
       _namespaces[curKlass.id] = curNamespace;
 
-      if (curKlass.extendedType != null) {
-        extended.add(curKlass.extendedType!);
-      }
+      // if (curKlass.extendedType != null) {
+      //   extended.add(curKlass.extendedType!);
+      // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
         curNamespace.next = HTInstanceNamespace(
@@ -83,7 +84,7 @@ class HTInstance with HTObject, InterpreterRef {
       curNamespace = curNamespace.next;
     }
 
-    objectType = HTObjectType(klass.id, typeArgs: typeArgs, extended: extended);
+    valueType = HTNominalType(klass, typeArgs: typeArgs);
   }
 
   @override
@@ -183,11 +184,11 @@ class HTInstance with HTObject, InterpreterRef {
 
     // TODO: this part should be declared in the hetu script codes
     switch (varName) {
-      case 'objectType':
-        return objectType;
+      case 'valueType':
+        return valueType;
       case 'toString':
         return ({positionalArgs, namedArgs, typeArgs}) =>
-            '${HTLexicon.instanceOf} $objectType';
+            '${HTLexicon.instanceOf} $valueType';
       case 'toJson':
         return ({positionalArgs, namedArgs, typeArgs}) => toJson();
       default:
@@ -260,7 +261,7 @@ class HTInstance with HTObject, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
+      List<HTValueType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
       HTFunction func = memberGet(funcName, from: namespace.fullName);

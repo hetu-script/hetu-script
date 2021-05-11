@@ -142,7 +142,7 @@ abstract class Interpreter {
       return HTObject.NULL;
     }
 
-    String? typeString;
+    late String typeString;
 
     if (object is bool) {
       typeString = HTLexicon.boolean;
@@ -156,9 +156,9 @@ abstract class Interpreter {
       typeString = HTLexicon.list;
       // var valueType = HTType.ANY;
       // if (object.isNotEmpty) {
-      //   valueType = encapsulate(object.first).objectType;
+      //   valueType = encapsulate(object.first).valueType;
       //   for (final item in object) {
-      //     final value = encapsulate(item).objectType;
+      //     final value = encapsulate(item).valueType;
       //     if (value.isNotA(valueType)) {
       //       valueType = HTType.ANY;
       //       break;
@@ -171,9 +171,9 @@ abstract class Interpreter {
       // var keyType = HTType.ANY;
       // var valueType = HTType.ANY;
       // if (object.keys.isNotEmpty) {
-      //   keyType = encapsulate(object.keys.first).objectType;
+      //   keyType = encapsulate(object.keys.first).valueType;
       //   for (final item in object.keys) {
-      //     final value = encapsulate(item).objectType;
+      //     final value = encapsulate(item).valueType;
       //     if (value.isNotA(keyType)) {
       //       keyType = HTType.ANY;
       //       break;
@@ -181,9 +181,9 @@ abstract class Interpreter {
       //   }
       // }
       // if (object.values.isNotEmpty) {
-      //   valueType = encapsulate(object.values.first).objectType;
+      //   valueType = encapsulate(object.values.first).valueType;
       //   for (final item in object.values) {
-      //     final value = encapsulate(item).objectType;
+      //     final value = encapsulate(item).valueType;
       //     if (value.isNotA(valueType)) {
       //       valueType = HTType.ANY;
       //       break;
@@ -221,8 +221,8 @@ abstract class Interpreter {
   /// for acessing static members and constructors of this class
   /// there must be a declaraction also in script for using this
   void bindExternalClass(HTExternalClass externalClass) {
-    if (_externClasses.containsKey(externalClass.objectType)) {
-      throw HTError.definedRuntime(externalClass.objectType.toString());
+    if (_externClasses.containsKey(externalClass.valueType)) {
+      throw HTError.definedRuntime(externalClass.valueType.toString());
     }
     _externClasses[externalClass.id] = externalClass;
   }

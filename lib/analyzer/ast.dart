@@ -29,7 +29,7 @@ abstract class AstNodeVisitor {
 
   dynamic visitTypeExpr(TypeExpr expr);
 
-  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
+  // dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
 
   dynamic visitSymbolExpr(SymbolExpr expr);
 
@@ -152,7 +152,7 @@ class LiteralVectorExpr extends AstNode {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitLiteralListExpr(this);
 
-  final List<AstNode> vector;
+  final Iterable<AstNode> vector;
 
   LiteralVectorExpr(String moduleFullName, int line, int column,
       [this.vector = const []])
@@ -261,7 +261,7 @@ class TypeExpr extends AstNode {
 
   final String id;
 
-  final List<TypeExpr> arguments;
+  final Iterable<TypeExpr> arguments;
 
   TypeExpr(this.id, this.arguments, String moduleFullName, int line, int column)
       : super(SemanticType.typeExpr, moduleFullName, line, column);
@@ -270,18 +270,18 @@ class TypeExpr extends AstNode {
   AstNode clone() => TypeExpr(id, arguments, moduleFullName, line, column);
 }
 
-class FunctionTypeExpr extends TypeExpr {
-  @override
-  dynamic accept(AstNodeVisitor visitor) => visitor.visitFunctionTypeExpr(this);
+// class FunctionTypeExpr extends TypeExpr {
+//   @override
+//   dynamic accept(AstNodeVisitor visitor) => visitor.visitFunctionTypeExpr(this);
 
-  FunctionTypeExpr(String id, List<TypeExpr> arguments, String moduleFullName,
-      int line, int column)
-      : super(id, arguments, moduleFullName, line, column);
+//   FunctionTypeExpr(String id, List<TypeExpr> arguments, String moduleFullName,
+//       int line, int column)
+//       : super(id, arguments, moduleFullName, line, column);
 
-  @override
-  AstNode clone() =>
-      FunctionTypeExpr(id, arguments, moduleFullName, line, column);
-}
+//   @override
+//   AstNode clone() =>
+//       FunctionTypeExpr(id, arguments, moduleFullName, line, column);
+// }
 
 class SymbolExpr extends AstNode {
   @override
@@ -425,7 +425,7 @@ class BlockStmt extends AstNode {
   @override
   dynamic accept(AstNodeVisitor visitor) => visitor.visitBlockStmt(this);
 
-  final List<AstNode> statements;
+  final Iterable<AstNode> statements;
 
   BlockStmt(this.statements, String moduleFullName, int line, int column)
       : super(SemanticType.blockStmt, moduleFullName, line, column);
@@ -602,7 +602,7 @@ class FuncDeclStmt extends AstNode {
 
   final Token? id;
 
-  final List<String> typeParameters;
+  final Iterable<String> typeParameters;
 
   final HTType returnType;
 
@@ -612,11 +612,11 @@ class FuncDeclStmt extends AstNode {
   final String? classId;
   // final HTType? classType;
 
-  final List<ParamDeclStmt> params;
+  final Iterable<ParamDeclStmt> params;
 
   final int arity;
 
-  final List<AstNode>? definition;
+  final Iterable<AstNode>? definition;
 
   final bool isExternal;
 
@@ -626,7 +626,7 @@ class FuncDeclStmt extends AstNode {
 
   final bool isVariadic;
 
-  final FunctionType funcType;
+  final FunctionCategory category;
 
   FuncDeclStmt(
       this.returnType, this.params, String moduleFullName, int line, int column,
@@ -639,18 +639,18 @@ class FuncDeclStmt extends AstNode {
       this.isStatic = false,
       this.isConst = false,
       this.isVariadic = false,
-      this.funcType = FunctionType.normal})
+      this.category = FunctionCategory.normal})
       : super(SemanticType.funcDeclStmt, moduleFullName, line, column) {
     var func_name = id?.lexeme ??
         HTLexicon.anonymousFunction + (functionIndex++).toString();
 
-    if (funcType == FunctionType.constructor) {
+    if (category == FunctionCategory.constructor) {
       (id != null)
           ? _internalName = '$classId.$func_name'
           : _internalName = '$classId';
-    } else if (funcType == FunctionType.getter) {
+    } else if (category == FunctionCategory.getter) {
       _internalName = HTLexicon.getter + func_name;
-    } else if (funcType == FunctionType.setter) {
+    } else if (category == FunctionCategory.setter) {
       _internalName = HTLexicon.setter + func_name;
     } else {
       _internalName = func_name;
@@ -681,7 +681,7 @@ class FuncDeclStmt extends AstNode {
         isExternal: isExternal,
         isStatic: isStatic,
         isConst: isConst,
-        funcType: funcType);
+        category: category);
   }
 }
 
@@ -695,11 +695,11 @@ class ClassDeclStmt extends AstNode {
 
   final bool isAbstract;
 
-  final List<VarDeclStmt> variables;
+  final Iterable<VarDeclStmt> variables;
 
-  final List<FuncDeclStmt> methods;
+  final Iterable<FuncDeclStmt> methods;
 
-  final List<String> typeParameters;
+  final Iterable<String> typeParameters;
 
   final SymbolExpr? superClass;
 
@@ -745,7 +745,7 @@ class EnumDeclStmt extends AstNode {
 
   final Token id;
 
-  final List<String> enumerations;
+  final Iterable<String> enumerations;
 
   final bool isExternal;
 

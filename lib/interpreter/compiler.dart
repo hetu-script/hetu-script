@@ -67,7 +67,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
   String get curModuleFullName => _curModuleFullName;
 
   ClassInfo? _curClass;
-  FunctionType? _curFuncType;
+  FunctionCategory? _curFuncType;
 
   var _leftValueLegality = false;
 
@@ -410,7 +410,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
               _parseFuncDeclaration();
             } else {
               final func =
-                  _parseFuncDeclaration(funcType: FunctionType.literal);
+                  _parseFuncDeclaration(category: FunctionCategory.literal);
               bytesBuilder.add(func);
             }
             break;
@@ -443,7 +443,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             bytesBuilder.addByte(HTOpCode.continueLoop);
             break;
           case HTLexicon.RETURN:
-            if (_curFuncType != FunctionType.constructor) {
+            if (_curFuncType != FunctionCategory.constructor) {
               final returnStmt = _parseReturnStmt();
               bytesBuilder.add(returnStmt);
             } else {
@@ -489,7 +489,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
             break;
           case HTLexicon.FUNCTION:
             _parseFuncDeclaration(
-                funcType: FunctionType.method,
+                category: FunctionCategory.method,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
             break;
@@ -501,19 +501,19 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
               throw HTError.unexpected(HTLexicon.declStmt, HTLexicon.CONSTRUCT);
             }
             _parseFuncDeclaration(
-              funcType: FunctionType.constructor,
+              category: FunctionCategory.constructor,
               isExternal: isExternal || (_curClass?.isExternal ?? false),
             );
             break;
           case HTLexicon.GET:
             _parseFuncDeclaration(
-                funcType: FunctionType.getter,
+                category: FunctionCategory.getter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
             break;
           case HTLexicon.SET:
             _parseFuncDeclaration(
-                funcType: FunctionType.setter,
+                category: FunctionCategory.setter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
             break;
@@ -1083,7 +1083,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         match(HTLexicon.curlyRight);
         return _localMap(exprMap);
       case HTLexicon.FUNCTION:
-        return _parseFuncDeclaration(funcType: FunctionType.literal);
+        return _parseFuncDeclaration(category: FunctionCategory.literal);
       default:
         throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
     }
@@ -1814,20 +1814,20 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
   }
 
   Uint8List _parseFuncDeclaration(
-      {FunctionType funcType = FunctionType.normal,
+      {FunctionCategory category = FunctionCategory.normal,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false}) {
     final savedCurFuncType = _curFuncType;
-    _curFuncType = funcType;
+    _curFuncType = category;
 
     advance(1);
 
     String? externalTypedef;
     if (!isExternal &&
         (isStatic ||
-            funcType == FunctionType.normal ||
-            funcType == FunctionType.literal)) {
+            category == FunctionCategory.normal ||
+            category == FunctionCategory.literal)) {
       if (expect([HTLexicon.squareLeft], consume: true)) {
         if (isExternal) {
           throw HTError.internalFuncWithExternalTypeDef();
@@ -1840,8 +1840,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     var declId = '';
     late String id;
 
-    if (funcType != FunctionType.literal) {
-      if (funcType == FunctionType.constructor) {
+    if (category != FunctionCategory.literal) {
+      if (category == FunctionCategory.constructor) {
         if (curTok.type == HTLexicon.identifier) {
           declId = advance(1).lexeme;
         }
@@ -1851,8 +1851,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     }
 
     // if (!isExternal) {
-    switch (funcType) {
-      case FunctionType.constructor:
+    switch (category) {
+      case FunctionCategory.constructor:
         id = (declId.isEmpty)
             ? HTLexicon.constructor
             : '${HTLexicon.constructor}$declId';
@@ -1860,19 +1860,19 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         //   throw HTError.definedParser(declId);
         // }
         break;
-      case FunctionType.getter:
+      case FunctionCategory.getter:
         id = HTLexicon.getter + declId;
         // if (_curBlock.contains(id)) {
         //   throw HTError.definedParser(declId);
         // }
         break;
-      case FunctionType.setter:
+      case FunctionCategory.setter:
         id = HTLexicon.setter + declId;
         // if (_curBlock.contains(id)) {
         //   throw HTError.definedParser(declId);
         // }
         break;
-      case FunctionType.literal:
+      case FunctionCategory.literal:
         id = HTLexicon.anonymousFunction +
             (Parser.anonymousFuncIndex++).toString();
         break;
@@ -1884,7 +1884,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     //     if (!(_curClass!.isExternal) && !isStatic) {
     //       throw HTError.externalMember();
     //     }
-    //     if (isStatic || (funcType == FunctionType.constructor)) {
+    //     if (isStatic || (category == FunctionType.constructor)) {
     //       id = (declId.isEmpty) ? _curClass!.id : '${_curClass!.id}.$declId';
     //     } else {
     //       id = declId;
@@ -1895,7 +1895,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     // }
 
     final bytesBuilder = BytesBuilder();
-    if (funcType != FunctionType.literal) {
+    if (category != FunctionCategory.literal) {
       bytesBuilder.addByte(HTOpCode.funcDecl);
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
       bytesBuilder.add(_shortUtf8String(id));
@@ -1914,7 +1914,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         bytesBuilder.addByte(0);
       }
 
-      bytesBuilder.addByte(funcType.index);
+      bytesBuilder.addByte(category.index);
       bytesBuilder.addByte(isExternal ? 1 : 0);
       bytesBuilder.addByte(isStatic ? 1 : 0);
       bytesBuilder.addByte(isConst ? 1 : 0);
@@ -1936,7 +1936,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     var maxArity = 0;
     var paramDecls = <Uint8List>[];
 
-    if (funcType != FunctionType.getter &&
+    if (category != FunctionCategory.getter &&
         expect([HTLexicon.roundLeft], consume: true)) {
       bytesBuilder.addByte(1); // bool: has parameter declarations
       var isOptional = false;
@@ -2017,7 +2017,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       match(HTLexicon.roundRight);
 
       // setter can only have one parameter
-      if ((funcType == FunctionType.setter) && (minArity != 1)) {
+      if ((category == FunctionCategory.setter) && (minArity != 1)) {
         throw HTError.setterArity();
       }
     } else {
@@ -2035,7 +2035,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
     // the return value type declaration
     if (expect([HTLexicon.arrow], consume: true)) {
-      if (funcType == FunctionType.constructor) {
+      if (category == FunctionCategory.constructor) {
         throw HTError.ctorReturn();
       }
       bytesBuilder.addByte(FunctionAppendixType
@@ -2044,7 +2044,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     }
     // referring to another constructor
     else if (expect([HTLexicon.colon], consume: true)) {
-      if (funcType != FunctionType.constructor) {
+      if (category != FunctionCategory.constructor) {
         throw HTError.nonCotrWithReferCtor();
       }
       if (isExternal) {
@@ -2081,8 +2081,8 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.add(body);
       bytesBuilder.addByte(HTOpCode.endOfFunc);
     } else {
-      if (funcType != FunctionType.constructor &&
-          funcType != FunctionType.literal &&
+      if (category != FunctionCategory.constructor &&
+          category != FunctionCategory.literal &&
           !isExternal &&
           !(_curClass?.isAbstract ?? false)) {
         throw HTError.missingFuncBody(id);
@@ -2094,7 +2094,7 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     _curFuncType = savedCurFuncType;
 
     final bytes = bytesBuilder.toBytes();
-    if (funcType != FunctionType.literal) {
+    if (category != FunctionCategory.literal) {
       _curBlock.funcDecls[id] = bytes;
     }
     return bytes;
@@ -2120,11 +2120,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
     final savedClass = _curClass;
 
     _curClass = ClassInfo(id, isExternal: isExternal, isAbstract: isAbstract);
-
-    // final savedClassName = _curClassName;
-    // _curClassName = id;
-    // final savedClassType = _curClassType;
-    // _curClassType = classType;
 
     bytesBuilder.addByte(isExternal ? 1 : 0);
     bytesBuilder.addByte(isAbstract ? 1 : 0);
@@ -2164,8 +2159,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
 
     _curClass = savedClass;
 
-    // _curClassName = savedClassName;
-    // _curClassType = savedClassType;
     _curBlock.classDecls[id] = bytesBuilder.toBytes();
   }
 

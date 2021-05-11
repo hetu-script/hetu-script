@@ -18,6 +18,7 @@ enum ErrorCode {
   abstracted,
   abstractCtor,
 
+  intern,
   extern,
   unknownOpCode,
   privateMember,
@@ -127,20 +128,24 @@ class ErrorType implements Comparable<ErrorType> {
   /// Syntactic errors are errors produced as a result of input that does not
   /// conform to the grammar.
   static const syntacticError =
-      ErrorType('SYNTACTIC_ERROR', 5, ErrorSeverity.error);
+      ErrorType('SYNTACTIC_ERROR', 4, ErrorSeverity.error);
 
   /// Compile-time errors are errors that preclude execution. A compile time
   /// error must be reported by a compiler before the erroneous code is
   /// executed.
-  static const compileError = ErrorType('compileError', 6, ErrorSeverity.error);
+  static const compileError = ErrorType('compileError', 5, ErrorSeverity.error);
 
   /// Run-time errors are errors that occurred during execution. A run time
   /// error is reported by the interpreter.
-  static const runtimeError = ErrorType('runtimeError', 7, ErrorSeverity.error);
+  static const runtimeError = ErrorType('runtimeError', 6, ErrorSeverity.error);
+
+  /// Internal errors are errors reported by source code of the script.
+  static const internalError =
+      ErrorType('internalError', 7, ErrorSeverity.error);
 
   /// External errors are errors reported by the dart side.
   static const externalError =
-      ErrorType('NATIVE_ERROR', 7, ErrorSeverity.error);
+      ErrorType('NATIVE_ERROR', 8, ErrorSeverity.error);
 
   static const values = [
     todo,

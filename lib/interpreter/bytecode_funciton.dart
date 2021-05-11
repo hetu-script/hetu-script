@@ -56,7 +56,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     String moduleFullName, {
     String declId = '',
     HTClass? klass,
-    FunctionType funcType = FunctionType.normal,
+    FunctionCategory category = FunctionCategory.normal,
     bool isExternal = false,
     Function? externalFuncDef,
     String? externalTypedef,
@@ -75,7 +75,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     this.referConstructor,
   }) : super(id, declId, interpreter,
             klass: klass,
-            funcType: funcType,
+            category: category,
             isExternal: isExternal,
             externalFuncDef: externalFuncDef,
             externalTypedef: externalTypedef,
@@ -90,10 +90,9 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
 
-    objectType = HTFunctionType(
+    valueType = HTFunctionValueType(
         parameterTypes: parameterDeclarations
             .map((key, value) => MapEntry(key, value.paramType)),
-        minArity: minArity,
         returnType: returnType);
   }
 
@@ -103,16 +102,16 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     var result = StringBuffer();
     result.write(HTLexicon.FUNCTION);
     result.write(' $id');
-    if (objectType.typeArgs.isNotEmpty) {
-      result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < objectType.typeArgs.length; ++i) {
-        result.write(objectType.typeArgs[i]);
-        if (i < objectType.typeArgs.length - 1) {
-          result.write('${HTLexicon.comma} ');
-        }
-      }
-      result.write(HTLexicon.angleRight);
-    }
+    // if (valueType.typeArgs.isNotEmpty) {
+    //   result.write(HTLexicon.angleLeft);
+    //   for (var i = 0; i < valueType.typeArgs.length; ++i) {
+    //     result.write(valueType.typeArgs[i]);
+    //     if (i < valueType.typeArgs.length - 1) {
+    //       result.write('${HTLexicon.comma} ');
+    //     }
+    //   }
+    //   result.write(HTLexicon.angleRight);
+    // }
 
     result.write(HTLexicon.roundLeft);
 
@@ -170,7 +169,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
+      List<HTValueType> typeArgs = const [],
       bool createInstance = true,
       bool errorHandled = true}) {
     try {
@@ -191,7 +190,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
           }
         }
 
-        if (funcType == FunctionType.constructor && createInstance) {
+        if (category == FunctionCategory.constructor && createInstance) {
           result = HTInstance(klass!, interpreter, typeArgs: typeArgs);
           context = result.namespace;
         }
@@ -212,7 +211,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
               value: instanceNamespace));
         }
 
-        if (funcType == FunctionType.constructor && referConstructor != null) {
+        if (category == FunctionCategory.constructor &&
+            referConstructor != null) {
           final superClass = klass!.superClass!;
           final superCtorId = referConstructor!.id;
           final constructor =
@@ -277,7 +277,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
           variadicParam!.value = variadicArg;
         }
 
-        if (funcType != FunctionType.constructor) {
+        if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
               moduleFullName: moduleFullName,
               ip: definitionIp!,
@@ -380,9 +380,9 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         }
         // external class method
         else {
-          if (funcType != FunctionType.getter) {
+          if (category != FunctionCategory.getter) {
             if (externalFuncDef == null) {
-              if (isStatic || (funcType == FunctionType.constructor)) {
+              if (isStatic || (category == FunctionCategory.constructor)) {
                 final externClass = interpreter.fetchExternalClass(classId!);
                 final funcName =
                     (declId.isEmpty) ? classId! : '${classId!}.$declId';
@@ -413,12 +413,12 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         }
       }
 
-      if (funcType != FunctionType.constructor) {
+      if (category != FunctionCategory.constructor) {
         if (returnType != HTType.ANY) {
           final encapsulation = interpreter.encapsulate(result);
-          if (encapsulation.objectType.isNotA(returnType)) {
+          if (encapsulation.valueType.isNotA(returnType)) {
             throw HTError.returnType(
-                encapsulation.objectType.toString(), id, returnType.toString());
+                encapsulation.valueType.toString(), id, returnType.toString());
           }
         }
       }
@@ -442,7 +442,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     return HTBytecodeFunction(id, interpreter, moduleFullName,
         declId: declId,
         klass: klass,
-        funcType: funcType,
+        category: category,
         isExternal: isExternal,
         externalFuncDef: externalFuncDef,
         externalTypedef: externalTypedef,

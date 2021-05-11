@@ -42,7 +42,7 @@ abstract class HTLexicon {
   static const list = 'List';
   static const map = 'Map';
   static const jsonObject = 'JsonObject';
-  static const objectType = 'objectType';
+  static const valueType = 'valueType';
   static const interfaceType = 'interfaceType';
   static const keys = 'keys';
   static const values = 'values';

@@ -155,6 +155,6 @@ abstract class DeclarationBlock {
 class ImportInfo {
   final String key;
   final String? name;
-  final List<String> showList;
+  final Iterable<String> showList;
   ImportInfo(this.key, {this.name, this.showList = const []});
 }

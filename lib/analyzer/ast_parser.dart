@@ -36,7 +36,7 @@ class HTAstParser extends Parser with AnalyzerRef {
   String get curModuleFullName => _curModuleName;
 
   ClassInfo? _curClass;
-  FunctionType? _curFuncType;
+  FunctionCategory? _curFuncType;
 
   var _leftValueLegality = false;
 
@@ -302,7 +302,7 @@ class HTAstParser extends Parser with AnalyzerRef {
                 ])) {
               _parseFuncDeclaration();
             } else {
-              return _parseFuncDeclaration(funcType: FunctionType.literal);
+              return _parseFuncDeclaration(category: FunctionCategory.literal);
             }
             break;
           case HTLexicon.IF:
@@ -321,7 +321,7 @@ class HTAstParser extends Parser with AnalyzerRef {
             return ContinueStmt(advance(1));
           case HTLexicon.RETURN:
             if (_curFuncType != null &&
-                _curFuncType != FunctionType.constructor) {
+                _curFuncType != FunctionCategory.constructor) {
               return _parseReturnStmt();
             } else {
               throw HTError.outsideReturn();
@@ -360,7 +360,7 @@ class HTAstParser extends Parser with AnalyzerRef {
             break;
           case HTLexicon.FUNCTION:
             _parseFuncDeclaration(
-                funcType: FunctionType.method,
+                category: FunctionCategory.method,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
             break;
@@ -372,19 +372,19 @@ class HTAstParser extends Parser with AnalyzerRef {
               throw HTError.unexpected(HTLexicon.declStmt, HTLexicon.CONSTRUCT);
             }
             _parseFuncDeclaration(
-              funcType: FunctionType.constructor,
+              category: FunctionCategory.constructor,
               isExternal: isExternal || (_curClass?.isExternal ?? false),
             );
             break;
           case HTLexicon.GET:
             _parseFuncDeclaration(
-                funcType: FunctionType.getter,
+                category: FunctionCategory.getter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
             break;
           case HTLexicon.SET:
             _parseFuncDeclaration(
-                funcType: FunctionType.setter,
+                category: FunctionCategory.setter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
             break;
@@ -660,7 +660,7 @@ class HTAstParser extends Parser with AnalyzerRef {
         return LiteralDictExpr(_curModuleName, line, column, map_expr);
 
       case HTLexicon.FUNCTION:
-        return _parseFuncDeclaration(funcType: FunctionType.literal);
+        return _parseFuncDeclaration(category: FunctionCategory.literal);
 
       default:
         throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
@@ -668,21 +668,107 @@ class HTAstParser extends Parser with AnalyzerRef {
   }
 
   HTType _parseTypeExpr() {
-    // final type_name = advance(1);
-    // var type_args = <TypeExpr>[];
-    // if (expect([HTLexicon.angleLeft], consume: true)) {
-    //   while ((curTok.type != HTLexicon.angleRight) &&
-    //       (curTok.type != HTLexicon.endOfFile)) {
-    //     type_args.add(_parseTypeExpr());
-    //     if (curTok.type != HTLexicon.angleRight) {
+    // // normal type
+    // if (curTok.type == HTLexicon.identifier ||
+    //     (curTok.type == HTLexicon.FUNCTION &&
+    //         peek(1).type != HTLexicon.roundLeft)) {
+    //   bytesBuilder.addByte(isParam
+    //       ? TypeType.parameter.index
+    //       : TypeType.normal.index); // enum: normal type
+    //   final id = advance(1).lexeme;
+
+    //   bytesBuilder.add(_shortUtf8String(id));
+
+    //   final typeArgs = <Uint8List>[];
+    //   if (expect([HTLexicon.angleLeft], consume: true)) {
+    //     if (curTok.type == HTLexicon.angleRight) {
+    //       throw HTError.emptyTypeArgs();
+    //     }
+    //     while ((curTok.type != HTLexicon.angleRight) &&
+    //         (curTok.type != HTLexicon.endOfFile)) {
+    //       typeArgs.add(_parseTypeExpr());
+    //       expect([HTLexicon.comma], consume: true);
+    //     }
+    //     match(HTLexicon.angleRight);
+    //   }
+
+    //   bytesBuilder.addByte(typeArgs.length); // max 255
+    //   for (final arg in typeArgs) {
+    //     bytesBuilder.add(arg);
+    //   }
+
+    //   final isNullable = expect([HTLexicon.nullable], consume: true);
+    //   bytesBuilder.addByte(isNullable ? 1 : 0); // bool isNullable
+
+    // } else if (curTok.type == HTLexicon.FUNCTION) {
+    //   advance(1);
+    //   bytesBuilder.addByte(TypeType.function.index); // enum: normal type
+
+    //   // TODO: typeParameters 泛型参数
+
+    //   final paramTypes = <Uint8List>[];
+    //   match(HTLexicon.roundLeft);
+
+    //   var minArity = 0;
+    //   var isOptional = false;
+    //   var isNamed = false;
+    //   var isVariadic = false;
+    //   final paramBytesBuilder = BytesBuilder();
+
+    //   while (curTok.type != HTLexicon.roundRight &&
+    //       curTok.type != HTLexicon.endOfFile) {
+    //     if (!isOptional) {
+    //       isOptional = expect([HTLexicon.squareLeft], consume: true);
+    //       if (!isOptional && !isNamed) {
+    //         isNamed = expect([HTLexicon.curlyLeft], consume: true);
+    //       }
+    //     }
+
+    //     if (!isNamed) {
+    //       isVariadic = expect([HTLexicon.varargs], consume: true);
+    //     }
+
+    //     if (!isNamed && !isVariadic && !isOptional) {
+    //       ++minArity;
+    //     }
+
+    //     final paramType = _parseTypeExpr(isParam: true);
+    //     paramBytesBuilder.add(paramType);
+    //     paramBytesBuilder.addByte(isOptional ? 1 : 0);
+    //     paramBytesBuilder.addByte(isNamed ? 1 : 0);
+    //     paramBytesBuilder.addByte(isVariadic ? 1 : 0);
+
+    //     paramTypes.add(paramBytesBuilder.toBytes());
+    //     if (curTok.type != HTLexicon.roundRight) {
     //       match(HTLexicon.comma);
     //     }
-    //   }
-    //   match(HTLexicon.angleRight);
-    // }
 
-    // return TypeExpr(type_name.lexeme, type_args, type_name.moduleFullName,
-    //     type_name.line, type_name.column);
+    //     if (curTok.type != HTLexicon.squareRight &&
+    //         curTok.type != HTLexicon.curlyRight &&
+    //         curTok.type != HTLexicon.roundRight) {
+    //       match(HTLexicon.comma);
+    //     }
+
+    //     if (isVariadic) {
+    //       break;
+    //     }
+    //   }
+    //   match(HTLexicon.roundRight);
+
+    //   bytesBuilder.addByte(paramTypes.length); // uint8: length of param types
+    //   for (final paramType in paramTypes) {
+    //     bytesBuilder.add(paramType);
+    //   }
+
+    //   bytesBuilder.addByte(minArity);
+
+    //   match(HTLexicon.arrow);
+
+    //   final returnType = _parseTypeExpr();
+    //   bytesBuilder.add(returnType);
+    // } else {
+    //   throw HTError.unexpected(SemanticType.typeExpr, curTok.type);
+    // }
     return HTType.ANY;
   }
 
@@ -776,7 +862,7 @@ class HTAstParser extends Parser with AnalyzerRef {
 
   // WhileStmt _parseDoStmt() {}
 
-  /// For语句其实会在解析时转换为While语句
+  // For语句其实会在解析时转换为While语句
   BlockStmt _parseForStmt() {
     // var list_stmt = <AstNode>[];
     // expect([HTLexicon.FOR, HTLexicon.roundLeft], consume: true);
@@ -852,7 +938,7 @@ class HTAstParser extends Parser with AnalyzerRef {
 
   // BlockStmt _parseWhenStmt() {}
 
-  /// 变量声明语句
+  // 变量声明语句
   VarDeclStmt _parseVarDeclStmt(
       {String? declId,
       bool typeInferrence = false,
@@ -963,7 +1049,7 @@ class HTAstParser extends Parser with AnalyzerRef {
   }
 
   FuncDeclStmt _parseFuncDeclaration(
-      {FunctionType funcType = FunctionType.normal,
+      {FunctionCategory category = FunctionCategory.normal,
       bool isExternal = false,
       bool isStatic = false}) {
     final keyword = advance(1);
@@ -992,7 +1078,7 @@ class HTAstParser extends Parser with AnalyzerRef {
     var isVariadic = false;
     var params = <ParamDeclStmt>[];
 
-    if (funcType != FunctionType.getter) {
+    if (category != FunctionCategory.getter) {
       // 之前还没有校验过左括号
       if (expect([HTLexicon.roundLeft], consume: true)) {
         params = _parseParameters();
@@ -1008,16 +1094,16 @@ class HTAstParser extends Parser with AnalyzerRef {
         }
 
         // setter只能有一个参数, 就是赋值语句的右值, 但此处并不需要判断类型
-        if ((funcType == FunctionType.setter) && (arity != 1)) {
+        if ((category == FunctionCategory.setter) && (arity != 1)) {
           throw HTError.setterArity();
         }
       }
     }
 
     var return_type = HTType.ANY;
-    if ((funcType != FunctionType.constructor) &&
+    if ((category != FunctionCategory.constructor) &&
         (expect([HTLexicon.colon], consume: true))) {
-      return_type = _parseTypeExpr();
+      // return_type = _parseTypeExpr();
     }
 
     var body = <AstNode>[];
@@ -1037,7 +1123,7 @@ class HTAstParser extends Parser with AnalyzerRef {
         isExternal: isExternal,
         isStatic: isStatic,
         isVariadic: isVariadic,
-        funcType: funcType);
+        category: category);
 
     // _declarations[stmt.id] = stmt;
 

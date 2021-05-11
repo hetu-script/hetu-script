@@ -22,7 +22,7 @@ class HTAstFunction extends HTFunction {
           funcStmt.id?.lexeme ?? '',
           // classId: funcStmt.classId,
           interpreter,
-          funcType: funcStmt.funcType,
+          category: funcStmt.category,
           isExternal: false,
           externalTypedef: externalTypedef,
           // type:
@@ -42,12 +42,12 @@ class HTAstFunction extends HTFunction {
     var result = StringBuffer();
     result.write('${HTLexicon.FUNCTION}');
     result.write(' $id');
-    if (objectType.typeArgs.isNotEmpty) {
+    if (valueType.typeArgs.isNotEmpty) {
       result.write('<');
-      for (var i = 0; i < objectType.typeArgs.length; ++i) {
-        result.write(objectType.typeArgs[i]);
-        if ((objectType.typeArgs.length > 1) &&
-            (i != objectType.typeArgs.length - 1)) {
+      for (var i = 0; i < valueType.typeArgs.length; ++i) {
+        result.write(valueType.typeArgs[i]);
+        if ((valueType.typeArgs.length > 1) &&
+            (i != valueType.typeArgs.length - 1)) {
           result.write(', ');
         }
       }
@@ -119,8 +119,8 @@ class HTAstFunction extends HTFunction {
 
           if (!param.isVariadic) {
             final argEncapsulation = interpreter.encapsulate(arg);
-            if (argEncapsulation.objectType.isNotA(argTypeid)) {
-              final arg_type = interpreter.encapsulate(arg).objectType;
+            if (argEncapsulation.valueType.isNotA(argTypeid)) {
+              final arg_type = interpreter.encapsulate(arg).valueType;
               throw HTError.argType(
                   arg.toString(), arg_type.toString(), argTypeid.toString());
             }
@@ -130,8 +130,8 @@ class HTAstFunction extends HTFunction {
             for (var j = i; j < positionalArgs.length; ++j) {
               arg = positionalArgs[j];
               final argEncapsulation = interpreter.encapsulate(arg);
-              if (argEncapsulation.objectType.isNotA(argTypeid)) {
-                final arg_type = interpreter.encapsulate(arg).objectType;
+              if (argEncapsulation.valueType.isNotA(argTypeid)) {
+                final arg_type = interpreter.encapsulate(arg).valueType;
                 throw HTError.argType(
                     arg.toString(), arg_type.toString(), argTypeid.toString());
               }
@@ -154,9 +154,9 @@ class HTAstFunction extends HTFunction {
       }
 
       final encapsulation = interpreter.encapsulate(result);
-      if (encapsulation.objectType.isNotA(returnType)) {
+      if (encapsulation.valueType.isNotA(returnType)) {
         throw HTError.returnType(
-            encapsulation.objectType.toString(), id, returnType.toString());
+            encapsulation.valueType.toString(), id, returnType.toString());
       }
 
       if (returnValue is! NullThrownError && returnValue != HTObject.NULL) {

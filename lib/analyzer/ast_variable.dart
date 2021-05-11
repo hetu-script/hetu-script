@@ -66,13 +66,13 @@ class HTAstVariable extends HTVariable {
   set value(dynamic value) {
     if (_declType != null) {
       final encapsulation = interpreter.encapsulate(value);
-      final valueType = encapsulation.objectType;
+      final valueType = encapsulation.valueType;
       if (valueType.isNotA(_declType!)) {
         throw HTError.type(id, valueType.toString(), _declType.toString());
       }
     } else {
       if (!isDynamic && value != null) {
-        _declType = interpreter.encapsulate(value).objectType;
+        _declType = interpreter.encapsulate(value).valueType;
       } else {
         _declType = HTType.ANY;
       }

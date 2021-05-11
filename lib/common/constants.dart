@@ -1,5 +1,5 @@
 /// Function types
-enum FunctionType {
+enum FunctionCategory {
   normal,
   method,
   constructor,

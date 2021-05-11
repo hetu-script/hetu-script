@@ -190,7 +190,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   //   return global.fetch(name);
   // }
 
-  dynamic executeBlock(List<AstNode> statements, HTNamespace environment) {
+  dynamic executeBlock(Iterable<AstNode> statements, HTNamespace environment) {
     var saved_context = _curNamespace;
 
     try {
@@ -352,7 +352,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       } else if (expr.op == HTLexicon.IS) {
         if (right is HTType) {
           final encapsulation = encapsulate(left);
-          return encapsulation.objectType.isA(right);
+          return encapsulation.valueType.isA(right);
         } else {
           throw HTError.notType(right.toString());
         }
@@ -403,7 +403,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     if (callee is HTFunction) {
       // if (!callee.isExternal) {
       // 普通函数
-      // if (callee.funcType != FunctionType.constructor) {
+      // if (callee.category != FunctionType.constructor) {
       return callee.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
@@ -800,7 +800,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       if (method.isStatic) {
         func = HTAstFunction(method, this, context: klass.namespace);
         klass.namespace.define(func, override: true);
-      } else if (method.funcType == FunctionType.constructor) {
+      } else if (method.category == FunctionCategory.constructor) {
         func = HTAstFunction(method, this);
         klass.namespace.define(func, override: true);
       } else {
@@ -821,8 +821,8 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
 
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < stmt.enumerations.length; i++) {
-      final id = stmt.enumerations[i];
-      defs[id] = HTEnumItem(i, id, HTType(stmt.id.lexeme));
+      // final id = stmt.enumerations[i];
+      // defs[id] = HTEnumItem(i, id, HTType(stmt.id.lexeme));
     }
 
     final enumClass =

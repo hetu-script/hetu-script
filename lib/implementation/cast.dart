@@ -9,7 +9,7 @@ import 'instance.dart';
 /// The implementation of a certain type cast of a object
 class HTCast with HTObject, InterpreterRef {
   @override
-  late final HTObjectType objectType;
+  late final HTNominalType valueType;
 
   final HTClass klass;
 
@@ -19,25 +19,26 @@ class HTCast with HTObject, InterpreterRef {
   String toString() => object.toString();
 
   HTCast(HTObject object, this.klass, Interpreter interpreter,
-      {List<HTType> typeArgs = const []}) {
+      {List<HTDeclarationType> typeArgs = const []}) {
     this.interpreter = interpreter;
 
-    final extended = <HTType>[];
+    // final extended = <HTType>[];
 
-    HTClass? curSuper = klass;
-    var superClassType = HTType(klass.id, typeArgs: typeArgs);
-    while (curSuper != null) {
-      extended.add(superClassType);
-      curSuper = curSuper.superClass;
-      if (curSuper?.extendedType != null) {
-        extended.add(curSuper!.extendedType!);
-      }
-    }
+    // HTClass? curSuper = klass;
+    // var superClassType = HTDeclarationType(klass.id, typeArgs: typeArgs);
+    // while (curSuper != null) {
+    // extended.add(superClassType);
+    // curSuper = curSuper.superClass;
+    // if (curSuper?.extendedType != null) {
+    //   extended.add(curSuper!.extendedType!);
+    // }
+    // }
 
-    objectType = HTObjectType(klass.id, typeArgs: typeArgs, extended: extended);
+    valueType = HTNominalType(klass,
+        typeArgs: typeArgs.map((type) => type.resolve(interpreter)));
 
-    if (object.objectType.isNotA(objectType)) {
-      throw HTError.typeCast(object.toString(), objectType.toString());
+    if (object.valueType.isNotA(valueType)) {
+      throw HTError.typeCast(object.toString(), valueType.toString());
     }
 
     if (object is HTInstance) {

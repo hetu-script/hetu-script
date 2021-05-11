@@ -24,10 +24,6 @@ class Person {
 extension PersonBinding on Person {
   dynamic htFetch(String varName) {
     switch (varName) {
-      case 'objectType':
-        return HTType('Person');
-      case 'toString':
-        return toString;
       case 'name':
         return name;
       case 'race':
@@ -135,7 +131,7 @@ void main() async {
       fun main {
         let p1: Person = Person()
         p1.greeting('jimmy')
-        print(p1.objectType)
+        print(p1.valueType)
         print(p1.name)
         print(p1.child)
         print('My race is', p1.race)

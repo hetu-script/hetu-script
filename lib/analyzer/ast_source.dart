@@ -3,7 +3,7 @@ import 'ast.dart';
 
 class HTAstSource extends HTSource {
   /// The bytecode, stores as uint8 list
-  late final List<AstNode> nodes;
+  late final Iterable<AstNode> nodes;
 
   String content;
 

@@ -8,13 +8,13 @@ import 'interpreter.dart';
 
 /// [HTFunction] is the base class of
 /// [HTAstFunction] and [HTBytecodeFunction] in Hetu.
-abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
+abstract class HTFunction with HTDeclaration, HTObject, InterpreterRef {
   static final callStack = <String>[];
 
   final String declId;
   final HTClass? klass;
 
-  final FunctionType funcType;
+  final FunctionCategory category;
 
   final bool isExternal;
 
@@ -23,9 +23,9 @@ abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
   final String? externalTypedef;
 
   @override
-  late final HTFunctionType objectType;
+  late final HTFunctionValueType valueType;
 
-  HTType get returnType => objectType.returnType;
+  HTType get returnType => valueType.returnType;
 
   final bool isStatic;
 
@@ -42,7 +42,7 @@ abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
 
   HTFunction(String id, this.declId, Interpreter interpreter,
       {this.klass,
-      this.funcType = FunctionType.normal,
+      this.category = FunctionCategory.normal,
       this.isExternal = false,
       this.externalFuncDef,
       this.externalTypedef,
@@ -51,8 +51,9 @@ abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0,
-      HTNamespace? context})
-      : super(id, classId: klass?.id) {
+      HTNamespace? context}) {
+    this.id = id;
+    classId = klass?.id;
     this.interpreter = interpreter;
     this.context = context;
   }
@@ -67,7 +68,7 @@ abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
       final externalFunc =
           interpreter.unwrapExternalFunctionType(externalTypedef!, this);
       return externalFunc;
-    } else if (funcType == FunctionType.getter) {
+    } else if (category == FunctionCategory.getter) {
       return call();
     } else {
       return this;
@@ -78,7 +79,7 @@ abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
+      List<HTValueType> typeArgs = const [],
       bool createInstance = true,
       bool errorHandled = true});
 

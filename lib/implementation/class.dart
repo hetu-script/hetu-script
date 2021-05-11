@@ -10,13 +10,14 @@ import 'enum.dart';
 import 'object.dart';
 import '../common/errors.dart';
 
-class ClassInfo extends HTDeclaration {
+class ClassInfo with HTDeclaration {
   final bool isExternal;
 
   final bool isAbstract;
 
-  ClassInfo(String id, {this.isExternal = false, this.isAbstract = false})
-      : super(id);
+  ClassInfo(String id, {this.isExternal = false, this.isAbstract = false}) {
+    this.id = id;
+  }
 }
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
@@ -32,30 +33,30 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
   final String moduleFullName;
 
   @override
-  final HTType objectType = HTType.CLASS;
+  final HTValueType valueType = HTType.CLASS;
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.
   late final HTClassNamespace namespace;
 
   /// The type parameters of the class.
-  final List<String> typeParameters;
+  final Iterable<String> typeParameters;
 
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
   HTClass? superClass;
 
-  HTType? extendedType;
+  // HTType? extendedType;
 
   /// Implemented classes of this class.
   /// Implements only inherits methods declaration,
   /// and the child must re-define all implements methods,
   /// and the re-definition must be of the same function signature.
-  final List<HTClass> implementedClass;
+  final Iterable<HTClass> implementedClass;
 
   /// Mixined class of this class.
   /// Those mixined class can not have any constructors.
-  final List<HTClass> mixinedClass;
+  final Iterable<HTClass> mixinedClass;
 
   /// The instance member variables defined in class definition.
   final instanceMembers = <String, HTDeclaration>{};
@@ -67,7 +68,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
       {bool isExternal = false,
       bool isAbstract = false,
       this.superClass,
-      this.extendedType,
+      // this.extendedType,
       this.typeParameters = const [],
       this.implementedClass = const [],
       this.mixinedClass = const []})
@@ -79,12 +80,12 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
 
   /// Create a [HTInstance] of this [HTClass],
   /// will not call constructors
-  HTInstance createInstance({List<HTType> typeArgs = const []}) {
+  HTInstance createInstance({List<HTValueType> typeArgs = const []}) {
     return HTInstance(this, interpreter, typeArgs: typeArgs);
   }
 
   HTInstance createInstanceFromJson(Map<dynamic, dynamic> jsonObject,
-      {List<HTType> typeArgs = const []}) {
+      {List<HTValueType> typeArgs = const []}) {
     return HTInstance(this, interpreter,
         typeArgs: typeArgs,
         jsonObject:
@@ -145,8 +146,8 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
     }
 
     switch (varName) {
-      case 'objectType':
-        return objectType;
+      case 'valueType':
+        return valueType;
       case 'fromJson':
         return ({positionalArgs, namedArgs, typeArgs}) {
           return createInstanceFromJson(positionalArgs.first,
@@ -196,7 +197,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
+      List<HTValueType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
       final func = memberGet(funcName, from: namespace.fullName);
