@@ -1,10 +1,11 @@
 import 'package:quiver/core.dart';
 
 import '../common/lexicon.dart';
+import '../common/errors.dart';
 import '../implementation/object.dart';
 import '../implementation/class.dart';
 import '../implementation/interpreter.dart';
-import 'value_type.dart';
+import 'function_type.dart';
 import 'nominal_type.dart';
 
 class HTType with HTObject {
@@ -14,10 +15,23 @@ class HTType with HTObject {
   static const VOID = _PrimitiveType(HTLexicon.VOID);
   static const ENUM = _PrimitiveType(HTLexicon.ENUM);
   static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
-  static final CLASS = _PrimitiveType(HTLexicon.CLASS);
+  static const CLASS = _PrimitiveType(HTLexicon.CLASS);
   static const unknown = _PrimitiveType(HTLexicon.unknown);
   static const object = _PrimitiveType(HTLexicon.object);
   static const function = _PrimitiveType(HTLexicon.function);
+
+  static const Map<String, HTType> primitiveTypes = {
+    HTLexicon.TYPE: TYPE,
+    HTLexicon.ANY: ANY,
+    HTLexicon.NULL: NULL,
+    HTLexicon.VOID: VOID,
+    HTLexicon.ENUM: ENUM,
+    HTLexicon.NAMESPACE: NAMESPACE,
+    HTLexicon.CLASS: CLASS,
+    HTLexicon.unknown: unknown,
+    HTLexicon.object: object,
+    HTLexicon.function: function,
+  };
 
   static String parseBaseType(String typeString) {
     final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
@@ -36,7 +50,7 @@ class HTType with HTObject {
   final List<HTType> typeArgs;
   final bool isNullable;
 
-  bool get isPrimitive => false;
+  bool get isResolved => false;
 
   const HTType(this.id, {this.typeArgs = const [], this.isNullable = false});
 
@@ -112,14 +126,21 @@ class HTType with HTObject {
 
   /// initialize the declared type if it's a class name.
   /// only return the [HTClass] when its a non-external class
-  HTValueType resolve(Interpreter interpreter) {
-    final typeDef = interpreter.curNamespace
-        .fetch(id, from: interpreter.curNamespace.fullName);
-    if (typeDef is HTClass) {
-      return HTNominalType(typeDef, typeArgs: typeArgs);
+  HTType resolve(Interpreter interpreter) {
+    if (isResolved) {
+      return this;
+    } else if (primitiveTypes.containsKey(id)) {
+      return primitiveTypes[id]!;
     } else {
-      // if (typeDef is HTFunctionObjectType)
-      return typeDef;
+      final typeDef = interpreter.curNamespace
+          .fetch(id, from: interpreter.curNamespace.fullName);
+      if (typeDef is HTClass) {
+        return HTNominalType(typeDef, typeArgs: typeArgs);
+      } else if (typeDef is HTFunctionType) {
+        return typeDef;
+      } else {
+        throw HTError.notType(id);
+      }
     }
   }
 
@@ -132,7 +153,7 @@ class HTType with HTObject {
 
 class _PrimitiveType extends HTType {
   @override
-  bool get isPrimitive => true;
+  bool get isResolved => true;
 
   const _PrimitiveType(String id) : super(id);
 }

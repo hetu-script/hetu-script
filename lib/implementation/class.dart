@@ -85,12 +85,12 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
 
   /// Create a [HTInstance] of this [HTClass],
   /// will not call constructors
-  HTInstance createInstance({List<HTValueType> typeArgs = const []}) {
+  HTInstance createInstance({List<HTType> typeArgs = const []}) {
     return HTInstance(this, interpreter, typeArgs: typeArgs);
   }
 
   HTInstance createInstanceFromJson(Map<dynamic, dynamic> jsonObject,
-      {List<HTValueType> typeArgs = const []}) {
+      {List<HTType> typeArgs = const []}) {
     return HTInstance(this, interpreter,
         typeArgs: typeArgs,
         jsonObject:
@@ -202,7 +202,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTValueType> typeArgs = const [],
+      List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
       final func = memberGet(funcName, from: namespace.fullName);

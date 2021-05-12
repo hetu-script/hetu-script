@@ -20,6 +20,7 @@ enum TypeType {
   parameter,
   function, // HTFunctionTypeid
   struct,
+  interface,
   union,
 }
 

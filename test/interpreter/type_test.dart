@@ -30,32 +30,32 @@ void main() async {
           fun convert(n) -> num {
             return num.parse(n)
           }
-          const a: fun(num) -> num = convert
+          const a: function(num) -> num = convert
           return a.valueType.toString()
         }
       ''', invokeFunc: 'functionAssign1');
       expect(
         result,
-        'fun(any) -> num',
+        'function(any) -> num',
       );
     });
     test('return type', () async {
       final result = await hetu.eval('''
         fun functionAssign2 {
-          var a: fun(any) -> any = fun(n: num) -> num { return n + 1 }
+          var a: function(num) -> num = fun(n: any) -> num { return n }
           return a.valueType.toString()
         }
       ''', invokeFunc: 'functionAssign2');
       expect(
         result,
-        'fun(num) -> num',
+        'function(any) -> num',
       );
     });
     test('function type', () async {
       final result = await hetu.eval('''
         fun functionType {
-          var funcTypedef: type = fun(str) -> num
-          var numparse: funcTypedef = fun(value: str) -> num { return num.parse(value) }
+          var funcTypedef: type = function (str) -> num
+          var numparse: funcTypedef = fun (value: str) -> num { return num.parse(value) }
           var getType = fun { return numparse.valueType }
           var funcTypedef2 = getType()
           var strlength: funcTypedef2 = fun(value: str) -> num { return value.length }

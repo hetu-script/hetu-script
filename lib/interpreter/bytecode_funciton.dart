@@ -92,8 +92,9 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     this.definitionColumn = definitionColumn;
 
     declType = HTFunctionType(
-        parameterTypes: parameterDeclarations
-            .map((key, value) => MapEntry(key, value.paramType)),
+        parameterTypes: parameterDeclarations.values
+            .map((param) => param.paramType)
+            .toList(),
         returnType: returnType);
   }
 

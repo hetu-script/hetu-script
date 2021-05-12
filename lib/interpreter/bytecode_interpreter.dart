@@ -653,6 +653,7 @@ class Hetu extends Interpreter {
           final length = _curCode.readUint16();
           definitionIp = _curCode.ip;
           _curCode.skip(length);
+
           final func = HTBytecodeFunction(id, this, curModuleFullName,
               category: category,
               externalTypedef: externalTypedef,
@@ -666,6 +667,7 @@ class Hetu extends Interpreter {
               minArity: minArity,
               maxArity: maxArity,
               context: _curNamespace);
+
           if (!hasExternalTypedef) {
             _curValue = func;
           } else {
@@ -675,8 +677,8 @@ class Hetu extends Interpreter {
           }
         } else {
           _curValue = HTFunctionType(
-              parameterTypes: paramDecls
-                  .map((key, value) => MapEntry(key, value.paramType)),
+              parameterTypes:
+                  paramDecls.values.map((param) => param.paramType).toList(),
               returnType: returnType);
         }
 
@@ -1039,8 +1041,13 @@ class Hetu extends Interpreter {
         final isNullable = _curCode.read() == 0 ? false : true;
         final isOptional = _curCode.read() == 0 ? false : true;
         final isNamed = _curCode.read() == 0 ? false : true;
+        String? paramName;
+        if (isNamed) {
+          paramName = _curCode.readShortUtf8String();
+        }
         final isVariadic = _curCode.read() == 0 ? false : true;
         return HTParameterType(typeName,
+            paramId: paramName ?? '',
             typeArgs: typeArgs,
             isNullable: isNullable,
             isOptional: isOptional,
@@ -1049,15 +1056,16 @@ class Hetu extends Interpreter {
 
       case TypeType.function:
         final paramsLength = _curCode.read();
-        final parameterTypes = <String, HTParameterType>{};
+        final parameterTypes = <HTParameterType>[];
         for (var i = 0; i < paramsLength; ++i) {
           final paramType = _handleTypeExpr() as HTParameterType;
-          parameterTypes[paramType.id] = paramType;
+          parameterTypes.add(paramType);
         }
         final returnType = _handleTypeExpr();
         return HTFunctionType(
             parameterTypes: parameterTypes, returnType: returnType);
       case TypeType.struct:
+      case TypeType.interface:
       case TypeType.union:
         return HTType(_curCode.readShortUtf8String());
     }

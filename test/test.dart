@@ -5,8 +5,8 @@ void main() async {
   await hetu.init();
   await hetu.eval(
     r'''
-      var func: function = fun (n: num) { return n + 1 }
-      print(func.valueType)
+      var a: function(num) -> num = fun(n: any) -> any { return any }
+      print(a.valueType)
   ''',
     config: InterpreterConfig(codeType: CodeType.script),
     // invokeFunc: 'forwardDecl',

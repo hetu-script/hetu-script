@@ -1038,9 +1038,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         var index = addConstString(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.utf8String);
-      case HTLexicon.identifier:
-        _leftValueLegality = true;
-        return _localSymbol();
       case HTLexicon.THIS:
         _leftValueLegality = false;
         advance(1);
@@ -1079,8 +1076,20 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
         }
         match(HTLexicon.curlyRight);
         return _localMap(exprMap);
+      // literal function
       case HTLexicon.FUNCTION:
+        _leftValueLegality = false;
         return _parseFuncDeclaration(category: FunctionCategory.literal);
+      case HTLexicon.identifier:
+        // literal function type
+        if (curTok.lexeme == HTLexicon.function) {
+          return _parseTypeExpr(localValue: true);
+        }
+        // TODO: literal interface type
+        else {
+          _leftValueLegality = true;
+          return _localSymbol();
+        }
       default:
         throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
     }
@@ -1092,12 +1101,81 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       bytesBuilder.addByte(HTOpCode.local);
       bytesBuilder.addByte(HTValueTypeCode.type);
     }
-    // normal type
-    if (curTok.type == HTLexicon.identifier) {
+    // function type
+    if (curTok.lexeme == HTLexicon.function) {
+      advance(1);
+      bytesBuilder.addByte(TypeType.function.index); // enum: normal type
+
+      // TODO: genericTypeParameters 泛型参数
+
+      final paramTypes = <Uint8List>[];
+      match(HTLexicon.roundLeft);
+
+      var isOptional = false;
+      var isNamed = false;
+      var isVariadic = false;
+
+      while (curTok.type != HTLexicon.roundRight &&
+          curTok.type != HTLexicon.endOfFile) {
+        final paramBytesBuilder = BytesBuilder();
+        if (!isOptional) {
+          isOptional = expect([HTLexicon.squareLeft], consume: true);
+          if (!isOptional && !isNamed) {
+            isNamed = expect([HTLexicon.curlyLeft], consume: true);
+          }
+        }
+
+        late final paramType;
+        String? paramName;
+        if (!isNamed) {
+          isVariadic = expect([HTLexicon.varargs], consume: true);
+        } else {
+          paramName = match(HTLexicon.identifier).lexeme;
+          match(HTLexicon.colon);
+        }
+
+        paramType = _parseTypeExpr(isParam: true);
+
+        paramBytesBuilder.add(paramType);
+        paramBytesBuilder.addByte(isOptional ? 1 : 0);
+        paramBytesBuilder.addByte(isNamed ? 1 : 0);
+        if (paramName != null) {
+          paramBytesBuilder.add(_shortUtf8String(paramName));
+        }
+        paramBytesBuilder.addByte(isVariadic ? 1 : 0);
+
+        paramTypes.add(paramBytesBuilder.toBytes());
+
+        if (isOptional && expect([HTLexicon.squareRight], consume: true)) {
+          break;
+        } else if (isNamed && expect([HTLexicon.curlyRight], consume: true)) {
+          break;
+        } else if (curTok.type != HTLexicon.roundRight) {
+          match(HTLexicon.comma);
+        }
+
+        if (isVariadic) {
+          break;
+        }
+      }
+      match(HTLexicon.roundRight);
+
+      bytesBuilder.addByte(paramTypes.length); // uint8: length of param types
+      for (final paramType in paramTypes) {
+        bytesBuilder.add(paramType);
+      }
+
+      match(HTLexicon.arrow);
+
+      final returnType = _parseTypeExpr();
+      bytesBuilder.add(returnType);
+    }
+    // TODO: interface type
+    else {
       bytesBuilder.addByte(isParam
           ? TypeType.parameter.index
           : TypeType.normal.index); // enum: normal type
-      final id = advance(1).lexeme;
+      final id = match(HTLexicon.identifier).lexeme;
 
       bytesBuilder.add(_shortUtf8String(id));
 
@@ -1122,74 +1200,6 @@ class HTCompiler extends Parser with ConstTable, HetuRef {
       final isNullable = expect([HTLexicon.nullable], consume: true);
       bytesBuilder.addByte(isNullable ? 1 : 0); // bool isNullable
 
-    } else if (curTok.type == HTLexicon.FUNCTION) {
-      advance(1);
-      bytesBuilder.addByte(TypeType.function.index); // enum: normal type
-
-      // TODO: typeParameters 泛型参数
-
-      final paramTypes = <Uint8List>[];
-      match(HTLexicon.roundLeft);
-
-      var minArity = 0;
-      var isOptional = false;
-      var isNamed = false;
-      var isVariadic = false;
-      final paramBytesBuilder = BytesBuilder();
-
-      while (curTok.type != HTLexicon.roundRight &&
-          curTok.type != HTLexicon.endOfFile) {
-        if (!isOptional) {
-          isOptional = expect([HTLexicon.squareLeft], consume: true);
-          if (!isOptional && !isNamed) {
-            isNamed = expect([HTLexicon.curlyLeft], consume: true);
-          }
-        }
-
-        if (!isNamed) {
-          isVariadic = expect([HTLexicon.varargs], consume: true);
-        }
-
-        if (!isNamed && !isVariadic && !isOptional) {
-          ++minArity;
-        }
-
-        final paramType = _parseTypeExpr(isParam: true);
-        paramBytesBuilder.add(paramType);
-        paramBytesBuilder.addByte(isOptional ? 1 : 0);
-        paramBytesBuilder.addByte(isNamed ? 1 : 0);
-        paramBytesBuilder.addByte(isVariadic ? 1 : 0);
-
-        paramTypes.add(paramBytesBuilder.toBytes());
-        if (curTok.type != HTLexicon.roundRight) {
-          match(HTLexicon.comma);
-        }
-
-        if (curTok.type != HTLexicon.squareRight &&
-            curTok.type != HTLexicon.curlyRight &&
-            curTok.type != HTLexicon.roundRight) {
-          match(HTLexicon.comma);
-        }
-
-        if (isVariadic) {
-          break;
-        }
-      }
-      match(HTLexicon.roundRight);
-
-      bytesBuilder.addByte(paramTypes.length); // uint8: length of param types
-      for (final paramType in paramTypes) {
-        bytesBuilder.add(paramType);
-      }
-
-      bytesBuilder.addByte(minArity);
-
-      match(HTLexicon.arrow);
-
-      final returnType = _parseTypeExpr();
-      bytesBuilder.add(returnType);
-    } else {
-      throw HTError.unexpected(SemanticType.typeExpr, curTok.type);
     }
 
     return bytesBuilder.toBytes();

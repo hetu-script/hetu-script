@@ -4,6 +4,8 @@ import '../common/lexicon.dart';
 import 'type.dart';
 
 class HTParameterType extends HTType {
+  final String paramId;
+
   /// Wether this is an optional parameter.
   final bool isOptional;
 
@@ -13,18 +15,48 @@ class HTParameterType extends HTType {
   /// Wether this is a variadic parameter.
   final bool isVariadic;
 
-  HTParameterType(String id,
-      {List<HTType> typeArgs = const [],
+  HTParameterType(String typeid,
+      {this.paramId = '',
+      List<HTType> typeArgs = const [],
       bool isNullable = false,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id, typeArgs: typeArgs, isNullable: isNullable);
+      : super(typeid, typeArgs: typeArgs, isNullable: isNullable);
+
+  @override
+  String toString() {
+    var typeString = StringBuffer();
+    if (isNamed) {
+      typeString.write('$paramId: ');
+    }
+    typeString.write(super.toString());
+    return typeString.toString();
+  }
+
+  @override
+  int get hashCode {
+    final hashList = <int>[];
+    hashList.add(super.hashCode);
+    hashList.add(isOptional.hashCode);
+    hashList.add(isNamed.hashCode);
+    hashList.add(isVariadic.hashCode);
+    final hash = hashObjects(hashList);
+    return hash;
+  }
 
   @override
   bool isA(dynamic other) {
     if (other == HTType.ANY) {
       return true;
+    } else if (other.id == HTLexicon.ANY) {
+      if ((isOptional == other.isOptional) ||
+          (isNamed == other.isNamed) ||
+          (isVariadic == other.isVariadic)) {
+        return true;
+      } else {
+        return false;
+      }
     } else if (other is HTParameterType) {
       if (isNamed && (id != other.id)) {
         return false;
@@ -32,7 +64,9 @@ class HTParameterType extends HTType {
           (isNamed != other.isNamed) ||
           (isVariadic != other.isVariadic)) {
         return false;
-      } else if (super.isNotA(other)) {
+      }
+      // ignore: unnecessary_cast
+      else if (!super.isA(other)) {
         return false;
       } else {
         return true;
@@ -44,20 +78,23 @@ class HTParameterType extends HTType {
 }
 
 class HTFunctionType extends HTType {
+  @override
+  bool get isResolved => true;
+
   final Iterable<String> genericTypeParameters;
-  final Map<String, HTParameterType> parameterTypes;
+  final List<HTParameterType> parameterTypes;
   final HTType returnType;
 
   HTFunctionType(
       {this.genericTypeParameters = const [],
-      this.parameterTypes = const {},
+      this.parameterTypes = const [],
       this.returnType = HTType.ANY})
       : super(HTLexicon.FUNCTION);
 
   @override
   String toString() {
     var result = StringBuffer();
-    result.write(HTLexicon.FUNCTION);
+    result.write(HTLexicon.function);
     // if (valueType.typeArgs.isNotEmpty) {
     //   result.write(HTLexicon.angleLeft);
     //   for (var i = 0; i < valueType.typeArgs.length; ++i) {
@@ -74,7 +111,7 @@ class HTFunctionType extends HTType {
     var i = 0;
     var optionalStarted = false;
     var namedStarted = false;
-    for (final param in parameterTypes.values) {
+    for (final param in parameterTypes) {
       if (param.isVariadic) {
         result.write(HTLexicon.varargs + ' ');
       }
@@ -110,9 +147,8 @@ class HTFunctionType extends HTType {
     //   hashList.add(typeArg.hashCode);
     // }
     hashList.add(genericTypeParameters.length.hashCode);
-    for (final paramType in parameterTypes.keys) {
+    for (final paramType in parameterTypes) {
       hashList.add(paramType.hashCode);
-      hashList.add(parameterTypes[paramType].hashCode);
     }
     hashList.add(returnType.hashCode);
     final hash = hashObjects(hashList);
@@ -129,19 +165,17 @@ class HTFunctionType extends HTType {
       } else if (returnType.isNotA(other.returnType)) {
         return false;
       } else {
-        var i = 0;
-        for (final paramKey in parameterTypes.keys) {
-          final param = parameterTypes[paramKey]!;
+        for (var i = 0; i < parameterTypes.length; ++i) {
+          final param = parameterTypes[i];
           HTParameterType? otherParam;
           if (other.parameterTypes.length > i) {
-            otherParam = other.parameterTypes[paramKey];
+            otherParam = other.parameterTypes[i];
           }
           if (!param.isOptional && !param.isVariadic) {
-            if (otherParam == null || param.isNotA(otherParam)) {
+            if (otherParam == null || otherParam.isNotA(param)) {
               return false;
             }
           }
-          ++i;
         }
         return true;
       }

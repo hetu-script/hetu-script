@@ -21,6 +21,8 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
 
   HTType? _declType;
 
+  HTType? _resolvedDeclType;
+
   @override
   HTType get declType => _declType ?? HTType.ANY;
 
@@ -47,7 +49,6 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
       bool isStatic = false})
       : super(id, interpreter,
             classId: classId,
-            value: value,
             getter: getter,
             setter: setter,
             isExternal: isExternal,
@@ -59,6 +60,11 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
 
     if (declType != null) {
       _declType = declType;
+    }
+
+    if (value != null) {
+      _resolvedDeclType = _declType?.resolve(interpreter);
+      this.value = value;
     }
 
     // if (declType != null) {
@@ -101,9 +107,11 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
             line: definitionLine,
             column: definitionColumn);
 
-        if ((_declType == null) && typeInferrence && (initVal != null)) {
+        if (_declType == null && typeInferrence && (initVal != null)) {
           _declType = interpreter.encapsulate(initVal).valueType;
         }
+
+        _resolvedDeclType = _declType?.resolve(interpreter);
 
         value = initVal;
 
@@ -117,40 +125,42 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   }
 
   dynamic _computeValue(dynamic value, HTType type) {
-    if (type is HTNominalType) {
-      return type.klass.createInstanceFromJson(value);
-    } else {
-      // basically doing a type erasure here.
-      if ((value is List) &&
-          (type.id == HTLexicon.list) &&
-          (type.typeArgs.isNotEmpty)) {
-        final computedValueList = [];
-        for (final item in value) {
-          final computedValue = _computeValue(item, type.typeArgs.first);
-          computedValueList.add(computedValue);
-        }
-        return computedValueList;
-      } else if ((value is Map) &&
-          (type.id == HTLexicon.map) &&
-          (type.typeArgs.length >= 2)) {
-        final mapValueTypeResolveResult = type.typeArgs[1].resolve(interpreter);
-        if (mapValueTypeResolveResult is HTNominalType) {
-          final computedValueMap = {};
-          for (final entry in value.entries) {
-            final computedValue = mapValueTypeResolveResult.klass
-                .createInstanceFromJson(entry.value);
-            computedValueMap[entry.key] = computedValue;
-          }
-          return computedValueMap;
-        }
-      } else {
-        final encapsulation = interpreter.encapsulate(value);
-        final valueType = encapsulation.valueType;
-        if (valueType.isNotA(type)) {
-          throw HTError.type(id, valueType.toString(), type.toString());
-        }
-        return value;
+    final resolvedType = type.isResolved ? type : type.resolve(interpreter);
+
+    if (resolvedType is HTNominalType && value is Map) {
+      return resolvedType.klass.createInstanceFromJson(value);
+    }
+
+    // basically doing a type erasure here.
+    if ((value is List) &&
+        (type.id == HTLexicon.list) &&
+        (type.typeArgs.isNotEmpty)) {
+      final computedValueList = [];
+      for (final item in value) {
+        final computedValue = _computeValue(item, type.typeArgs.first);
+        computedValueList.add(computedValue);
       }
+      return computedValueList;
+    } else if ((value is Map) &&
+        (type.id == HTLexicon.map) &&
+        (type.typeArgs.length >= 2)) {
+      final mapValueTypeResolveResult = type.typeArgs[1].resolve(interpreter);
+      if (mapValueTypeResolveResult is HTNominalType) {
+        final computedValueMap = {};
+        for (final entry in value.entries) {
+          final computedValue = mapValueTypeResolveResult.klass
+              .createInstanceFromJson(entry.value);
+          computedValueMap[entry.key] = computedValue;
+        }
+        return computedValueMap;
+      }
+    } else {
+      final encapsulation = interpreter.encapsulate(value);
+      final valueType = encapsulation.valueType;
+      if (valueType.isNotA(resolvedType)) {
+        throw HTError.type(id, valueType.toString(), type.toString());
+      }
+      return value;
     }
   }
 
@@ -158,7 +168,11 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   /// will perform [HTType] check during this process.
   @override
   set value(dynamic value) {
-    super.value = _computeValue(value, _declType ?? HTType.ANY);
+    if (!isInitialized) {
+      _resolvedDeclType = _declType?.resolve(interpreter);
+    }
+
+    super.value = _computeValue(value, _resolvedDeclType ?? HTType.ANY);
   }
 
   /// Create a copy of this variable declaration,
@@ -204,6 +218,7 @@ class HTBytecodeParameter extends HTBytecodeVariable {
             isImmutable: false) {
     final paramDeclType = declType ?? HTType.ANY;
     paramType = HTParameterType(paramDeclType.id,
+        paramId: id,
         typeArgs: paramDeclType.typeArgs,
         isNullable: paramDeclType.isNullable,
         isOptional: isOptional,
