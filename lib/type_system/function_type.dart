@@ -81,7 +81,7 @@ class HTFunctionType extends HTType {
   @override
   bool get isResolved => true;
 
-  final Iterable<String> genericTypeParameters;
+  final Iterable<HTType> genericTypeParameters;
   final List<HTParameterType> parameterTypes;
   final HTType returnType;
 

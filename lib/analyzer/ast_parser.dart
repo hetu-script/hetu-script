@@ -501,11 +501,11 @@ class HTAstParser extends Parser with AnalyzerRef {
       _leftValueLegality = false;
       final op = advance(1).type;
       late final AstNode right;
-      // if (HTLexicon.logicalRelationals.contains(curTok.type)) {
-      right = _parseAdditiveExpr();
-      // } else {
-      //   right = _parseTypeExpr();
-      // }
+      if (HTLexicon.logicalRelationals.contains(curTok.type)) {
+        right = _parseAdditiveExpr();
+      } else {
+        right = _parseTypeExpr();
+      }
       left = BinaryExpr(left, op, right);
     }
     return left;
@@ -664,109 +664,92 @@ class HTAstParser extends Parser with AnalyzerRef {
     }
   }
 
-  HTType _parseTypeExpr() {
-    // // normal type
-    // if (curTok.type == HTLexicon.identifier ||
-    //     (curTok.type == HTLexicon.FUNCTION &&
-    //         peek(1).type != HTLexicon.roundLeft)) {
-    //   bytesBuilder.addByte(isParam
-    //       ? TypeType.parameter.index
-    //       : TypeType.normal.index); // enum: normal type
-    //   final id = advance(1).lexeme;
+  TypeExpr _parseTypeExpr() {
+    // function type
+    if (curTok.lexeme == HTLexicon.function) {
+      final keyword = advance(1);
 
-    //   bytesBuilder.add(_shortUtf8String(id));
+      // TODO: genericTypeParameters 泛型参数
 
-    //   final typeArgs = <Uint8List>[];
-    //   if (expect([HTLexicon.angleLeft], consume: true)) {
-    //     if (curTok.type == HTLexicon.angleRight) {
-    //       throw HTError.emptyTypeArgs();
-    //     }
-    //     while ((curTok.type != HTLexicon.angleRight) &&
-    //         (curTok.type != HTLexicon.endOfFile)) {
-    //       typeArgs.add(_parseTypeExpr());
-    //       expect([HTLexicon.comma], consume: true);
-    //     }
-    //     match(HTLexicon.angleRight);
-    //   }
+      final paramTypes = <ParamTypeExpr>[];
+      match(HTLexicon.roundLeft);
 
-    //   bytesBuilder.addByte(typeArgs.length); // max 255
-    //   for (final arg in typeArgs) {
-    //     bytesBuilder.add(arg);
-    //   }
+      var isOptional = false;
+      var isNamed = false;
+      var isVariadic = false;
 
-    //   final isNullable = expect([HTLexicon.nullable], consume: true);
-    //   bytesBuilder.addByte(isNullable ? 1 : 0); // bool isNullable
+      while (curTok.type != HTLexicon.roundRight &&
+          curTok.type != HTLexicon.endOfFile) {
+        if (!isOptional) {
+          isOptional = expect([HTLexicon.squareLeft], consume: true);
+          if (!isOptional && !isNamed) {
+            isNamed = expect([HTLexicon.curlyLeft], consume: true);
+          }
+        }
 
-    // } else if (curTok.type == HTLexicon.FUNCTION) {
-    //   advance(1);
-    //   bytesBuilder.addByte(TypeType.function.index); // enum: normal type
+        late final paramType;
+        var paramId = '';
+        if (!isNamed) {
+          isVariadic = expect([HTLexicon.varargs], consume: true);
+        } else {
+          paramId = match(HTLexicon.identifier).lexeme;
+          match(HTLexicon.colon);
+        }
 
-    //   // TODO: typeParameters 泛型参数
+        paramType = _parseTypeExpr();
 
-    //   final paramTypes = <Uint8List>[];
-    //   match(HTLexicon.roundLeft);
+        final param = ParamTypeExpr(paramType, paramType.moduleFullName,
+            paramType.line, paramType.column,
+            paramId: paramId,
+            isOptional: isOptional,
+            isNamed: isNamed,
+            isVariadic: isVariadic);
+        paramTypes.add(param);
 
-    //   var minArity = 0;
-    //   var isOptional = false;
-    //   var isNamed = false;
-    //   var isVariadic = false;
-    //   final paramBytesBuilder = BytesBuilder();
+        if (isOptional && expect([HTLexicon.squareRight], consume: true)) {
+          break;
+        } else if (isNamed && expect([HTLexicon.curlyRight], consume: true)) {
+          break;
+        } else if (curTok.type != HTLexicon.roundRight) {
+          match(HTLexicon.comma);
+        }
 
-    //   while (curTok.type != HTLexicon.roundRight &&
-    //       curTok.type != HTLexicon.endOfFile) {
-    //     if (!isOptional) {
-    //       isOptional = expect([HTLexicon.squareLeft], consume: true);
-    //       if (!isOptional && !isNamed) {
-    //         isNamed = expect([HTLexicon.curlyLeft], consume: true);
-    //       }
-    //     }
+        if (isVariadic) {
+          break;
+        }
+      }
+      match(HTLexicon.roundRight);
 
-    //     if (!isNamed) {
-    //       isVariadic = expect([HTLexicon.varargs], consume: true);
-    //     }
+      match(HTLexicon.arrow);
 
-    //     if (!isNamed && !isVariadic && !isOptional) {
-    //       ++minArity;
-    //     }
+      final returnType = _parseTypeExpr();
 
-    //     final paramType = _parseTypeExpr(isParam: true);
-    //     paramBytesBuilder.add(paramType);
-    //     paramBytesBuilder.addByte(isOptional ? 1 : 0);
-    //     paramBytesBuilder.addByte(isNamed ? 1 : 0);
-    //     paramBytesBuilder.addByte(isVariadic ? 1 : 0);
+      return FunctionTypeExpr(
+          returnType, keyword.moduleFullName, keyword.line, keyword.column,
+          parameterTypes: paramTypes);
+    }
+    // TODO: interface type
+    else {
+      final id = match(HTLexicon.identifier);
 
-    //     paramTypes.add(paramBytesBuilder.toBytes());
-    //     if (curTok.type != HTLexicon.roundRight) {
-    //       match(HTLexicon.comma);
-    //     }
+      final typeArgs = <TypeExpr>[];
+      if (expect([HTLexicon.angleLeft], consume: true)) {
+        if (curTok.type == HTLexicon.angleRight) {
+          throw HTError.emptyTypeArgs();
+        }
+        while ((curTok.type != HTLexicon.angleRight) &&
+            (curTok.type != HTLexicon.endOfFile)) {
+          typeArgs.add(_parseTypeExpr());
+          expect([HTLexicon.comma], consume: true);
+        }
+        match(HTLexicon.angleRight);
+      }
 
-    //     if (curTok.type != HTLexicon.squareRight &&
-    //         curTok.type != HTLexicon.curlyRight &&
-    //         curTok.type != HTLexicon.roundRight) {
-    //       match(HTLexicon.comma);
-    //     }
+      final isNullable = expect([HTLexicon.nullable], consume: true);
 
-    //     if (isVariadic) {
-    //       break;
-    //     }
-    //   }
-    //   match(HTLexicon.roundRight);
-
-    //   bytesBuilder.addByte(paramTypes.length); // uint8: length of param types
-    //   for (final paramType in paramTypes) {
-    //     bytesBuilder.add(paramType);
-    //   }
-
-    //   bytesBuilder.addByte(minArity);
-
-    //   match(HTLexicon.arrow);
-
-    //   final returnType = _parseTypeExpr();
-    //   bytesBuilder.add(returnType);
-    // } else {
-    //   throw HTError.unexpected(SemanticType.typeExpr, curTok.type);
-    // }
-    return HTType.ANY;
+      return TypeExpr(id.lexeme, id.moduleFullName, id.line, id.column,
+          arguments: typeArgs, isNullable: isNullable);
+    }
   }
 
   List<AstNode> _parseBlock({CodeType codeType = CodeType.module}) {
@@ -1003,7 +986,7 @@ class HTAstParser extends Parser with AnalyzerRef {
       }
 
       var name = match(HTLexicon.identifier);
-      HTType? declType;
+      TypeExpr? declType;
       if (expect([HTLexicon.colon], consume: true)) {
         declType = _parseTypeExpr();
       }

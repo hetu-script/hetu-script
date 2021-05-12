@@ -52,9 +52,10 @@ abstract class SemanticType {
   static const literalStringExpr = 'literal_string_expression';
   static const literalFunctionExpr = 'literal_function_expression';
   static const typeExpr = 'type_expression';
+  static const paramTypeExpr = 'parameter_type_expression';
+  static const funcTypeExpr = 'function_type_expression';
   static const groupExpr = 'group_expression';
   static const literalVectorExpr = 'vector_expression';
-  static const typeExpression = 'type_expression';
   static const blockExpr = 'block_expression';
   static const symbolExpr = 'symbol_expression';
   static const unaryExpr = 'unary_expression';

@@ -29,7 +29,9 @@ abstract class AstNodeVisitor {
 
   dynamic visitTypeExpr(TypeExpr expr);
 
-  // dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
+  dynamic visitParameterTypeExpr(ParamTypeExpr expr);
+
+  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
 
   dynamic visitSymbolExpr(SymbolExpr expr);
 
@@ -261,7 +263,7 @@ class TypeExpr extends AstNode {
 
   final String id;
 
-  final Iterable<TypeExpr> arguments;
+  final List<TypeExpr> arguments;
 
   final bool isNullable;
 
@@ -274,7 +276,15 @@ class TypeExpr extends AstNode {
       arguments: arguments, isNullable: isNullable);
 }
 
-class ParameterTypeExpr extends TypeExpr {
+class ParamTypeExpr extends AstNode {
+  @override
+  dynamic accept(AstNodeVisitor visitor) =>
+      visitor.visitParameterTypeExpr(this);
+
+  final TypeExpr paramType;
+
+  final String paramId;
+
   /// Wether this is an optional parameter.
   final bool isOptional;
 
@@ -284,28 +294,38 @@ class ParameterTypeExpr extends TypeExpr {
   /// Wether this is a variadic parameter.
   final bool isVariadic;
 
-  ParameterTypeExpr(String id, String moduleFullName, int line, int column,
-      {Iterable<TypeExpr> arguments = const [],
-      bool isNullable = false,
+  ParamTypeExpr(this.paramType, String moduleFullName, int line, int column,
+      {this.paramId = '',
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id, moduleFullName, line, column,
-            arguments: arguments, isNullable: isNullable);
+      : super(SemanticType.paramTypeExpr, moduleFullName, line, column);
+
+  @override
+  AstNode clone() => ParamTypeExpr(paramType, moduleFullName, line, column,
+      paramId: paramId,
+      isOptional: isOptional,
+      isNamed: isNamed,
+      isVariadic: isVariadic);
 }
 
-// class FunctionTypeExpr extends TypeExpr {
-//   @override
-//   dynamic accept(AstNodeVisitor visitor) => visitor.visitFunctionTypeExpr(this);
+class FunctionTypeExpr extends TypeExpr {
+  final List<TypeExpr> genericTypeParameters;
+  final List<ParamTypeExpr> parameterTypes;
+  final TypeExpr returnType;
 
-//   FunctionTypeExpr(String id, List<TypeExpr> arguments, String moduleFullName,
-//       int line, int column)
-//       : super(id, arguments, moduleFullName, line, column);
+  @override
+  dynamic accept(AstNodeVisitor visitor) => visitor.visitFunctionTypeExpr(this);
 
-//   @override
-//   AstNode clone() =>
-//       FunctionTypeExpr(id, arguments, moduleFullName, line, column);
-// }
+  FunctionTypeExpr(this.returnType, String moduleFullName, int line, int column,
+      {this.genericTypeParameters = const [], this.parameterTypes = const []})
+      : super(HTLexicon.function, moduleFullName, line, column);
+
+  @override
+  AstNode clone() => FunctionTypeExpr(returnType, moduleFullName, line, column,
+      genericTypeParameters: genericTypeParameters,
+      parameterTypes: parameterTypes);
+}
 
 class SymbolExpr extends AstNode {
   @override
@@ -594,7 +614,7 @@ class ParamDecl extends VarDecl {
   final bool isNamed;
 
   ParamDecl(String id, String moduleFullName, int line, int column,
-      {HTType? declType,
+      {TypeExpr? declType,
       AstNode? initializer,
       bool isImmutable = false,
       this.isVariadic = false,
