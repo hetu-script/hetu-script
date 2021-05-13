@@ -93,6 +93,16 @@ abstract class HTLexicon {
   static const FINAL = 'final';
   static const CONST = 'const';
 
+  /// 变量声明
+  static const Set<String> varDeclKeywords = {
+    VAR,
+    LET,
+    FINAL,
+    CONST,
+  };
+
+  static const DEF = 'def';
+
   static const ANY = 'any';
   static const VOID = 'void';
   static const unknown = 'unknown';
@@ -110,14 +120,6 @@ abstract class HTLexicon {
     type,
     object,
     function,
-  };
-
-  /// 变量声明
-  static const Set<String> varDeclKeywords = {
-    VAR,
-    LET,
-    FINAL,
-    CONST,
   };
 
   static const TYPEOF = 'typeof';
@@ -169,6 +171,7 @@ abstract class HTLexicon {
     LET,
     FINAL,
     CONST,
+    DEF,
     IMPORT,
     CLASS,
     ENUM,
