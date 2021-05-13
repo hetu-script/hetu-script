@@ -14,8 +14,6 @@ abstract class AstNode {
   dynamic accept(AbstractAstVisitor visitor);
 
   AstNode(this.type, this.line, this.column);
-
-  AstNode clone();
 }
 
 class NullExpr extends AstNode {
@@ -24,9 +22,6 @@ class NullExpr extends AstNode {
 
   NullExpr(int line, int column)
       : super(SemanticType.literalNullExpr, line, column);
-
-  @override
-  AstNode clone() => NullExpr(line, column);
 }
 
 class BooleanExpr extends AstNode {
@@ -37,9 +32,6 @@ class BooleanExpr extends AstNode {
 
   BooleanExpr(this.value, int line, int column)
       : super(SemanticType.literalBooleanExpr, line, column);
-
-  @override
-  AstNode clone() => BooleanExpr(value, line, column);
 }
 
 class ConstIntExpr extends AstNode {
@@ -50,9 +42,6 @@ class ConstIntExpr extends AstNode {
 
   ConstIntExpr(this.constIndex, int line, int column)
       : super(SemanticType.literalIntExpr, line, column);
-
-  @override
-  AstNode clone() => ConstIntExpr(constIndex, line, column);
 }
 
 class ConstFloatExpr extends AstNode {
@@ -64,9 +53,6 @@ class ConstFloatExpr extends AstNode {
 
   ConstFloatExpr(this.constIndex, int line, int column)
       : super(SemanticType.literalFloatExpr, line, column);
-
-  @override
-  AstNode clone() => ConstFloatExpr(constIndex, line, column);
 }
 
 class ConstStringExpr extends AstNode {
@@ -78,9 +64,6 @@ class ConstStringExpr extends AstNode {
 
   ConstStringExpr(this.constIndex, int line, int column)
       : super(SemanticType.literalStringExpr, line, column);
-
-  @override
-  AstNode clone() => ConstStringExpr(constIndex, line, column);
 }
 
 class LiteralListExpr extends AstNode {
@@ -92,15 +75,6 @@ class LiteralListExpr extends AstNode {
 
   LiteralListExpr(int line, int column, [this.vector = const []])
       : super(SemanticType.literalVectorExpr, line, column);
-
-  @override
-  AstNode clone() {
-    var newList = <AstNode>[];
-    for (final expr in vector) {
-      newList.add(expr.clone());
-    }
-    return LiteralListExpr(line, column, newList);
-  }
 }
 
 class LiteralMapExpr extends AstNode {
@@ -112,15 +86,6 @@ class LiteralMapExpr extends AstNode {
 
   LiteralMapExpr(int line, int column, [this.map = const {}])
       : super(SemanticType.blockExpr, line, column);
-
-  @override
-  AstNode clone() {
-    var new_map = <AstNode, AstNode>{};
-    for (final expr in map.keys) {
-      new_map[expr.clone()] = map[expr]!.clone();
-    }
-    return LiteralMapExpr(line, column, new_map);
-  }
 }
 
 class GroupExpr extends AstNode {
@@ -131,9 +96,6 @@ class GroupExpr extends AstNode {
 
   GroupExpr(this.inner)
       : super(SemanticType.groupExpr, inner.line, inner.column);
-
-  @override
-  AstNode clone() => GroupExpr(inner.clone());
 }
 
 class UnaryExpr extends AstNode {
@@ -148,9 +110,6 @@ class UnaryExpr extends AstNode {
 
   UnaryExpr(this.op, this.value)
       : super(SemanticType.unaryExpr, op.line, op.column);
-
-  @override
-  AstNode clone() => UnaryExpr(op, value.clone());
 }
 
 class BinaryExpr extends AstNode {
@@ -165,9 +124,6 @@ class BinaryExpr extends AstNode {
 
   BinaryExpr(this.left, this.op, this.right)
       : super(SemanticType.binaryExpr, left.line, left.column);
-
-  @override
-  AstNode clone() => BinaryExpr(left, op, right);
 }
 
 class TernaryExpr extends AstNode {
@@ -182,9 +138,6 @@ class TernaryExpr extends AstNode {
 
   TernaryExpr(this.condition, this.thenBranch, this.elseBranch)
       : super(SemanticType.binaryExpr, condition.line, condition.column);
-
-  @override
-  AstNode clone() => TernaryExpr(condition, thenBranch, elseBranch);
 }
 
 class TypeExpr extends AstNode {
@@ -200,10 +153,6 @@ class TypeExpr extends AstNode {
   TypeExpr(this.id, int line, int column,
       {this.arguments = const [], this.isNullable = false})
       : super(SemanticType.typeExpr, line, column);
-
-  @override
-  AstNode clone() =>
-      TypeExpr(id, line, column, arguments: arguments, isNullable: isNullable);
 }
 
 class ParamTypeExpr extends AstNode {
@@ -230,13 +179,6 @@ class ParamTypeExpr extends AstNode {
       this.isNamed = false,
       this.isVariadic = false})
       : super(SemanticType.paramTypeExpr, line, column);
-
-  @override
-  AstNode clone() => ParamTypeExpr(paramType, line, column,
-      paramId: paramId,
-      isOptional: isOptional,
-      isNamed: isNamed,
-      isVariadic: isVariadic);
 }
 
 class FunctionTypeExpr extends TypeExpr {
@@ -251,11 +193,6 @@ class FunctionTypeExpr extends TypeExpr {
   FunctionTypeExpr(this.returnType, int line, int column,
       {this.genericTypeParameters = const [], this.parameterTypes = const []})
       : super(HTLexicon.function, line, column);
-
-  @override
-  AstNode clone() => FunctionTypeExpr(returnType, line, column,
-      genericTypeParameters: genericTypeParameters,
-      parameterTypes: parameterTypes);
 }
 
 class SymbolExpr extends AstNode {
@@ -265,9 +202,6 @@ class SymbolExpr extends AstNode {
   final Token id;
 
   SymbolExpr(this.id) : super(SemanticType.symbolExpr, id.line, id.column);
-
-  @override
-  AstNode clone() => SymbolExpr(id);
 }
 
 class MemberGetExpr extends AstNode {
@@ -283,31 +217,7 @@ class MemberGetExpr extends AstNode {
 
   MemberGetExpr(this.collection, this.key)
       : super(SemanticType.memberGetExpr, collection.line, collection.column);
-
-  @override
-  AstNode clone() => MemberGetExpr(collection, key);
 }
-
-// class MemberSetExpr extends AstNode {
-//   @override
-//   dynamic accept(AstNodeVisitor visitor) => visitor.visitMemberSetExpr(this);
-
-//   /// 集合
-//   final AstNode collection;
-
-//   /// 属性
-//   final Token key;
-
-//   /// 值
-//   final AstNode value;
-
-//   MemberSetExpr(this.collection, this.key, this.value)
-//       : super(SemanticType.memberSetExpr, collection.
-//             collection.line, collection.column);
-
-//   @override
-//   AstNode clone() => MemberSetExpr(collection, key, value);
-// }
 
 class SubGetExpr extends AstNode {
   @override
@@ -321,31 +231,7 @@ class SubGetExpr extends AstNode {
 
   SubGetExpr(this.collection, this.key)
       : super(SemanticType.subGetExpr, collection.line, collection.column);
-
-  @override
-  AstNode clone() => SubGetExpr(collection, key);
 }
-
-// class SubSetExpr extends AstNode {
-//   @override
-//   dynamic accept(AstNodeVisitor visitor) => visitor.visitSubSetExpr(this);
-
-//   /// 数组
-//   final AstNode collection;
-
-//   /// 索引
-//   final AstNode key;
-
-//   /// 值
-//   final AstNode value;
-
-//   SubSetExpr(this.collection, this.key, this.value)
-//       : super(SemanticType.subSetExpr, collection.
-//             collection.line, collection.column);
-
-//   @override
-//   AstNode clone() => SubSetExpr(collection, key, value);
-// }
 
 class CallExpr extends AstNode {
   @override
@@ -361,21 +247,6 @@ class CallExpr extends AstNode {
 
   CallExpr(this.callee, this.positionalArgs, this.namedArgs)
       : super(SemanticType.callExpr, callee.line, callee.column);
-
-  @override
-  AstNode clone() {
-    var new_args = <AstNode>[];
-    for (final expr in positionalArgs) {
-      new_args.add(expr.clone());
-    }
-
-    var new_named_args = <String, AstNode>{};
-    for (final name in namedArgs.keys) {
-      new_named_args[name] = namedArgs[name]!.clone();
-    }
-
-    return CallExpr(callee.clone(), new_args, new_named_args);
-  }
 }
 
 class UnaryPostfixExpr extends AstNode {
@@ -389,9 +260,6 @@ class UnaryPostfixExpr extends AstNode {
 
   UnaryPostfixExpr(this.value, this.op)
       : super(SemanticType.unaryExpr, op.line, op.column);
-
-  @override
-  AstNode clone() => UnaryPostfixExpr(value.clone(), op);
 }
 
 class ExprStmt extends AstNode {
@@ -402,9 +270,6 @@ class ExprStmt extends AstNode {
   final AstNode expr;
 
   ExprStmt(this.expr) : super(SemanticType.exprStmt, expr.line, expr.column);
-
-  @override
-  AstNode clone() => ExprStmt(expr.clone());
 }
 
 class BlockStmt extends AstNode {
@@ -420,15 +285,6 @@ class BlockStmt extends AstNode {
   BlockStmt(this.id, this.statements, int line, int column,
       {this.createNamespace = true})
       : super(SemanticType.blockStmt, line, column);
-
-  @override
-  AstNode clone() {
-    var newList = <AstNode>[];
-    for (final expr in statements) {
-      newList.add(expr.clone());
-    }
-    return BlockStmt(id, newList, line, column);
-  }
 }
 
 class ReturnStmt extends AstNode {
@@ -441,9 +297,6 @@ class ReturnStmt extends AstNode {
 
   ReturnStmt(this.keyword, this.value)
       : super(SemanticType.returnStmt, keyword.line, keyword.column);
-
-  @override
-  AstNode clone() => ReturnStmt(keyword, value?.clone());
 }
 
 class IfStmt extends AstNode {
@@ -458,10 +311,6 @@ class IfStmt extends AstNode {
 
   IfStmt(this.condition, this.thenBranch, this.elseBranch)
       : super(SemanticType.ifStmt, condition.line, condition.column);
-
-  @override
-  AstNode clone() =>
-      IfStmt(condition.clone(), thenBranch?.clone(), elseBranch?.clone());
 }
 
 class WhileStmt extends AstNode {
@@ -472,14 +321,20 @@ class WhileStmt extends AstNode {
 
   final AstNode? loop;
 
-  final bool isDoStmt;
-
-  WhileStmt(this.condition, this.loop, {this.isDoStmt = false})
+  WhileStmt(this.condition, this.loop)
       : super(SemanticType.whileStmt, condition.line, condition.column);
+}
 
+class DoStmt extends AstNode {
   @override
-  AstNode clone() =>
-      WhileStmt(condition.clone(), loop?.clone(), isDoStmt: isDoStmt);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitDoStmt(this);
+
+  final AstNode loop;
+
+  final AstNode? condition;
+
+  DoStmt(this.loop, this.condition)
+      : super(SemanticType.doStmt, loop.line, loop.column);
 }
 
 class BreakStmt extends AstNode {
@@ -490,9 +345,6 @@ class BreakStmt extends AstNode {
 
   BreakStmt(this.keyword)
       : super(SemanticType.breakStmt, keyword.line, keyword.column);
-
-  @override
-  AstNode clone() => BreakStmt(keyword);
 }
 
 class ContinueStmt extends AstNode {
@@ -503,9 +355,6 @@ class ContinueStmt extends AstNode {
 
   ContinueStmt(this.keyword)
       : super(SemanticType.continueStmt, keyword.line, keyword.column);
-
-  @override
-  AstNode clone() => ContinueStmt(keyword);
 }
 
 class VarDecl extends AstNode {
@@ -535,14 +384,6 @@ class VarDecl extends AstNode {
       this.isImmutable = false,
       this.isStatic = false})
       : super(SemanticType.varDecl, line, column);
-
-  @override
-  AstNode clone() => VarDecl(id, line, column,
-      declType: declType,
-      initializer: initializer,
-      isExternal: isExternal,
-      isImmutable: isImmutable,
-      isStatic: isStatic);
 }
 
 class ParamDecl extends VarDecl {
@@ -567,15 +408,6 @@ class ParamDecl extends VarDecl {
             declType: declType,
             initializer: initializer,
             isImmutable: isImmutable);
-
-  @override
-  AstNode clone() => ParamDecl(id, line, column,
-      declType: declType,
-      initializer: initializer,
-      isImmutable: isImmutable,
-      isVariadic: isVariadic,
-      isOptional: isOptional,
-      isNamed: isNamed);
 }
 
 class FuncDecl extends AstNode {
@@ -640,34 +472,6 @@ class FuncDecl extends AstNode {
       _internalName = func_name;
     }
   }
-
-  @override
-  AstNode clone() {
-    var newParams = <ParamDecl>[];
-    for (final expr in params) {
-      newParams.add(expr.clone() as ParamDecl);
-    }
-
-    var newBody;
-    if (definition != null) {
-      newBody = <AstNode>[];
-      for (final expr in definition!.statements) {
-        newBody.add(expr.clone());
-      }
-    }
-
-    return FuncDecl(newParams, line, column,
-        id: id,
-        classId: classId,
-        returnType: returnType,
-        typeParameters: typeParameters,
-        arity: arity,
-        definition: newBody,
-        isExternal: isExternal,
-        isStatic: isStatic,
-        isConst: isConst,
-        category: category);
-  }
 }
 
 class ClassDecl extends AstNode {
@@ -701,27 +505,6 @@ class ClassDecl extends AstNode {
       this.superClassDeclStmt,
       this.superClassTypeArgs})
       : super(SemanticType.classDecl, id.line, id.column);
-
-  @override
-  AstNode clone() {
-    var new_vars = <VarDecl>[];
-    for (final expr in variables) {
-      new_vars.add(expr.clone() as VarDecl);
-    }
-
-    var new_methods = <FuncDecl>[];
-    for (final expr in methods) {
-      new_methods.add(expr.clone() as FuncDecl);
-    }
-
-    return ClassDecl(id, new_vars, new_methods,
-        isExternal: isExternal,
-        isAbstract: isAbstract,
-        typeParameters: typeParameters,
-        superClass: superClass,
-        superClassDeclStmt: superClassDeclStmt,
-        superClassTypeArgs: superClassTypeArgs);
-  }
 }
 
 class EnumDecl extends AstNode {
@@ -736,7 +519,4 @@ class EnumDecl extends AstNode {
 
   EnumDecl(this.id, this.enumerations, {this.isExternal = false})
       : super(SemanticType.enumDecl, id.line, id.column);
-
-  @override
-  AstNode clone() => EnumDecl(id, enumerations, isExternal: isExternal);
 }

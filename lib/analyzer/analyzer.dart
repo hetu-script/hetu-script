@@ -705,6 +705,9 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
+  dynamic visitDoStmt(DoStmt stmt) {}
+
+  @override
   dynamic visitBreakStmt(BreakStmt stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;

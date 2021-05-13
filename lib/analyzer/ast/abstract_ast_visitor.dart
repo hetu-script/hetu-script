@@ -56,6 +56,8 @@ abstract class AbstractAstVisitor {
 
   dynamic visitWhileStmt(WhileStmt stmt);
 
+  dynamic visitDoStmt(DoStmt stmt);
+
   dynamic visitBreakStmt(BreakStmt stmt);
 
   dynamic visitContinueStmt(ContinueStmt stmt);

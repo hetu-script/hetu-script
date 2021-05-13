@@ -185,7 +185,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           case HTLexicon.WHILE:
             return _parseWhileStmt();
           case HTLexicon.DO:
-          // return _parseDoStmt();
+            return _parseDoStmt();
           case HTLexicon.FOR:
             return _parseForStmt();
           case HTLexicon.WHEN:
@@ -308,7 +308,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           case HTLexicon.WHILE:
             return _parseWhileStmt();
           case HTLexicon.DO:
-          // return _parseDoStmt();
+            return _parseDoStmt();
           case HTLexicon.FOR:
             return _parseForStmt();
           case HTLexicon.WHEN:
@@ -789,13 +789,12 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       String? id,
       List<VarDecl> additionalVarDecl = const [],
       List<AstNode> additionalStatements = const [],
-      bool createNamespace = true,
-      bool endOfExec = false}) {
+      bool createNamespace = true}) {
     final savedDeclBlock = _curBlock;
     _curBlock = AstDeclarationBlock();
-    match(HTLexicon.curlyLeft);
+    final token = match(HTLexicon.curlyLeft);
     id ??= HTLexicon.anonymousBlock;
-    final decls = <AstNode>[];
+    final forwardStmts = <AstNode>[];
     final statements = <AstNode>[];
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != HTLexicon.endOfFile) {
@@ -807,47 +806,29 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     match(HTLexicon.curlyRight);
     // 添加前置变量表，总是按照：枚举、函数、类、变量这个顺序
     for (final decl in _curBlock.enumDecls.values) {
-      declsBytesBuilder.add(decl);
+      forwardStmts.add(decl);
     }
     for (final decl in _curBlock.funcDecls.values) {
-      declsBytesBuilder.add(decl);
+      forwardStmts.add(decl);
     }
     for (final decl in _curBlock.classDecls.values) {
-      declsBytesBuilder.add(decl);
+      forwardStmts.add(decl);
     }
     for (final decl in additionalVarDecl) {
-      declsBytesBuilder.add(decl);
+      forwardStmts.add(decl);
     }
     for (final decl in _curBlock.varDecls.values) {
-      declsBytesBuilder.add(decl);
+      forwardStmts.add(decl);
     }
-    bytesBuilder.add(declsBytesBuilder.toBytes());
     for (final stmt in additionalStatements) {
-      bytesBuilder.add(stmt);
+      forwardStmts.add(stmt);
     }
-    bytesBuilder.add(blockBytesBuilder.toBytes());
     _curBlock = savedDeclBlock;
-    if (createNamespace) {
-      bytesBuilder.addByte(HTOpCode.endOfBlock);
-    }
-    if (endOfExec) {
-      bytesBuilder.addByte(HTOpCode.endOfExec);
-    }
-    return bytesBuilder.toBytes();
-  }
 
-  /// 为了避免涉及复杂的左值右值问题, 赋值语句在河图中不作为表达式处理
-  /// 而是分成直接赋值, 取值后复制和取属性后复制
-  // ExprStmt _parseAssignStmt() {
-  //   // 之前已经校验过等于号了所以这里直接跳过
-  //   var name = advance(1);
-  //   var token = advance(1);
-  //   var value = _parseExpr();
-  //   // 语句结尾
-  //   expect([HTLexicon.semicolon], consume: true);
-  //   var expr = AssignExpr(name, token, value);
-  //   return ExprStmt(expr);
-  // }
+    return BlockStmt(
+        id, [...forwardStmts, ...statements], token.line, token.column,
+        createNamespace: createNamespace);
+  }
 
   ExprStmt _parseExprStmt() {
     var stmt = ExprStmt(_parseExpr());
@@ -859,10 +840,11 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance(1);
     AstNode? expr;
-    if (!expect([HTLexicon.semicolon], consume: true)) {
+    if (curTok.type != HTLexicon.curlyRight &&
+        curTok.type != HTLexicon.semicolon &&
+        curTok.type != HTLexicon.endOfFile) {
       expr = _parseExpr();
     }
-    expect([HTLexicon.semicolon], consume: true);
     return ReturnStmt(keyword, expr);
   }
 
@@ -872,15 +854,15 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     var condition = _parseExpr();
     match(HTLexicon.roundRight);
     AstNode? thenBranch;
-    if (expect([HTLexicon.curlyLeft], consume: true)) {
-      thenBranch = _parseBlockStmt(sourceType: SourceType.function);
+    if (curTok.type == HTLexicon.curlyLeft) {
+      thenBranch = _parseBlockStmt(id: HTLexicon.thenBranch);
     } else {
       thenBranch = _parseStmt(sourceType: SourceType.function);
     }
     AstNode? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
-      if (expect([HTLexicon.curlyLeft], consume: true)) {
-        elseBranch = _parseBlockStmt(sourceType: SourceType.function);
+      if (curTok.type == HTLexicon.curlyLeft) {
+        elseBranch = _parseBlockStmt(id: HTLexicon.elseBranch);
       } else {
         elseBranch = _parseStmt(sourceType: SourceType.function);
       }
@@ -895,19 +877,34 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     var condition = _parseExpr();
     match(HTLexicon.roundRight);
     AstNode? loop;
-    if (expect([HTLexicon.curlyLeft], consume: true)) {
-      loop = _parseBlockStmt(sourceType: SourceType.function);
+    if (curTok.type == HTLexicon.curlyLeft) {
+      loop = _parseBlockStmt(id: SemanticType.whileStmt);
     } else {
       loop = _parseStmt(sourceType: SourceType.function);
     }
     return WhileStmt(condition, loop);
   }
 
-  // WhileStmt _parseDoStmt() {}
+  DoStmt _parseDoStmt() {
+    advance(1);
+    late AstNode loop;
+    if (curTok.type == HTLexicon.curlyLeft) {
+      loop = _parseBlockStmt(id: SemanticType.whileStmt);
+    } else {
+      loop = _parseStmt(sourceType: SourceType.function)!;
+    }
+    AstNode? condition;
+    if (expect([HTLexicon.WHILE], consume: true)) {
+      match(HTLexicon.roundLeft);
+      condition = _parseExpr();
+      match(HTLexicon.roundRight);
+    }
+    return DoStmt(loop, condition);
+  }
 
   // For语句其实会在解析时转换为While语句
   BlockStmt _parseForStmt() {
-    // var list_stmt = <AstNode>[];
+    var statements = <AstNode>[];
     // expect([HTLexicon.FOR, HTLexicon.roundLeft], consume: true);
     // // 递增变量
     // final i = HTLexicon.increment;
@@ -976,7 +973,8 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     // list_stmt.add(WhileStmt(condition,
     //     BlockStmt(loop_body, curModuleFullName, curTok.line, curTok.column)));
     // return BlockStmt(list_stmt, curModuleFullName, curTok.line, curTok.column);
-    return BlockStmt([], curTok.line, curTok.column);
+    return BlockStmt(
+        SemanticType.forStmt, statements, curTok.line, curTok.column);
   }
 
   // BlockStmt _parseWhenStmt() {}

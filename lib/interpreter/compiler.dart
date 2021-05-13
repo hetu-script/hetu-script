@@ -1229,6 +1229,9 @@ class HTCompiler extends AbstractParser with HetuRef {
     final blockBytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != HTLexicon.endOfFile) {
+      // Function sourceType will not forwarding declaration
+      // Module sourceType will late initialize
+      // Class sourceType will use both technique
       blockBytesBuilder.add(_parseStmt(sourceType: sourceType));
     }
     match(HTLexicon.curlyRight);
@@ -1407,15 +1410,19 @@ class HTCompiler extends AbstractParser with HetuRef {
     } else {
       loopBody = _parseStmt(sourceType: SourceType.function);
     }
-    match(HTLexicon.WHILE);
-    match(HTLexicon.roundLeft);
-    final condition = _parseExpr();
-    match(HTLexicon.roundRight);
-    final loopLength = loopBody.length + condition.length + 1;
+    Uint8List? condition;
+    if (expect([HTLexicon.WHILE], consume: true)) {
+      match(HTLexicon.roundLeft);
+      condition = _parseExpr();
+      match(HTLexicon.roundRight);
+    }
+    final loopLength = loopBody.length + (condition?.length ?? 0) + 1;
     bytesBuilder.add(_uint16(0)); // while loop continue ip
     bytesBuilder.add(_uint16(loopLength)); // while loop break ip
     bytesBuilder.add(loopBody);
-    bytesBuilder.add(condition);
+    if (condition != null) {
+      bytesBuilder.add(condition);
+    }
     bytesBuilder.addByte(HTOpCode.doStmt);
     return bytesBuilder.toBytes();
   }
