@@ -12,7 +12,7 @@ import '../source/source.dart';
 import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
 
-import 'parser.dart';
+import 'abstract_parser.dart';
 import 'namespace/namespace.dart';
 import 'hetu_lib.dart';
 import 'function/abstract_function.dart';

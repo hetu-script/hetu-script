@@ -12,9 +12,9 @@ import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
-import 'ast.dart';
-import 'ast_function.dart';
-import 'ast_parser.dart';
+import 'ast/ast.dart';
+import 'element/ast_function.dart';
+import 'parser.dart';
 import 'ast_source.dart';
 
 mixin AnalyzerRef {
@@ -26,7 +26,7 @@ class HTBreak {}
 class HTContinue {}
 
 /// 负责对语句列表进行最终解释执行
-class HTAnalyzer extends HTInterpreter implements AstNodeVisitor {
+class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   late HTAstParser _curParser;
   final _sources = HTAstCompilation();
 

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../core/parser.dart';
+import '../core/abstract_parser.dart';
 import '../core/lexer.dart';
 import '../core/const_table.dart';
 import '../core/class/class.dart';
@@ -50,7 +50,7 @@ class BytecodeDeclarationBlock implements DeclarationBlock {
 }
 
 /// Utility class that parse a string content into a uint8 list
-class HTCompiler extends Parser with HetuRef {
+class HTCompiler extends AbstractParser with HetuRef {
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
 
@@ -1206,7 +1206,7 @@ class HTCompiler extends Parser with HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _parseBlock(
+  Uint8List _parseBlockStmt(
       {SourceType sourceType = SourceType.function,
       String? id,
       List<Uint8List> additionalVarDecl = const [],
@@ -1339,14 +1339,14 @@ class HTCompiler extends Parser with HetuRef {
     bytesBuilder.addByte(HTOpCode.ifStmt);
     Uint8List thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
-      thenBranch = _parseBlock(id: HTLexicon.thenBranch);
+      thenBranch = _parseBlockStmt(id: HTLexicon.thenBranch);
     } else {
       thenBranch = _parseStmt(sourceType: SourceType.function);
     }
     Uint8List? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (curTok.type == HTLexicon.curlyLeft) {
-        elseBranch = _parseBlock(id: HTLexicon.elseBranch);
+        elseBranch = _parseBlockStmt(id: HTLexicon.elseBranch);
       } else {
         elseBranch = _parseStmt(sourceType: SourceType.function);
       }
@@ -1376,7 +1376,7 @@ class HTCompiler extends Parser with HetuRef {
     }
     Uint8List loopBody;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loopBody = _parseBlock(id: SemanticType.whileStmt);
+      loopBody = _parseBlockStmt(id: SemanticType.whileStmt);
     } else {
       loopBody = _parseStmt(sourceType: SourceType.function);
     }
@@ -1403,7 +1403,7 @@ class HTCompiler extends Parser with HetuRef {
     bytesBuilder.addByte(HTOpCode.loopPoint);
     Uint8List loopBody;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loopBody = _parseBlock(id: SemanticType.whileStmt);
+      loopBody = _parseBlockStmt(id: SemanticType.whileStmt);
     } else {
       loopBody = _parseStmt(sourceType: SourceType.function);
     }
@@ -1632,8 +1632,8 @@ class HTCompiler extends Parser with HetuRef {
     }
 
     bytesBuilder.addByte(HTOpCode.loopPoint);
-    final loop =
-        _parseBlock(id: SemanticType.forStmt, additionalVarDecl: shadowDecls);
+    final loop = _parseBlockStmt(
+        id: SemanticType.forStmt, additionalVarDecl: shadowDecls);
     final continueLength =
         (condition?.length ?? 0) + (assign?.length ?? 0) + loop.length + 2;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
@@ -1670,7 +1670,7 @@ class HTCompiler extends Parser with HetuRef {
         advance(1);
         match(HTLexicon.arrow);
         if (curTok.type == HTLexicon.curlyLeft) {
-          elseBranch = _parseBlock(id: SemanticType.whenStmt);
+          elseBranch = _parseBlockStmt(id: SemanticType.whenStmt);
         } else {
           elseBranch = _parseStmt(sourceType: SourceType.function);
         }
@@ -1680,7 +1680,7 @@ class HTCompiler extends Parser with HetuRef {
         match(HTLexicon.arrow);
         late final caseBranch;
         if (curTok.type == HTLexicon.curlyLeft) {
-          caseBranch = _parseBlock(id: SemanticType.whenStmt);
+          caseBranch = _parseBlockStmt(id: SemanticType.whenStmt);
         } else {
           caseBranch = _parseStmt(sourceType: SourceType.function);
         }
@@ -1886,7 +1886,7 @@ class HTCompiler extends Parser with HetuRef {
         break;
       case FunctionCategory.literal:
         id = HTLexicon.anonymousFunction +
-            (Parser.anonymousFuncIndex++).toString();
+            (AbstractParser.anonymousFuncIndex++).toString();
         break;
       default:
         id = declId;
@@ -2088,7 +2088,7 @@ class HTCompiler extends Parser with HetuRef {
       bytesBuilder.addByte(1); // bool: has definition
       bytesBuilder.add(_uint16(curTok.line));
       bytesBuilder.add(_uint16(curTok.column));
-      final body = _parseBlock(id: HTLexicon.functionCall);
+      final body = _parseBlockStmt(id: HTLexicon.functionCall);
       bytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
       bytesBuilder.add(body);
       bytesBuilder.addByte(HTOpCode.endOfFunc);
@@ -2160,7 +2160,7 @@ class HTCompiler extends Parser with HetuRef {
 
     if (curTok.type == HTLexicon.curlyLeft) {
       bytesBuilder.addByte(1); // bool: has body
-      final classDefinition = _parseBlock(
+      final classDefinition = _parseBlockStmt(
           id: id, sourceType: SourceType.klass, createNamespace: false);
 
       bytesBuilder.add(classDefinition);

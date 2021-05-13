@@ -10,7 +10,7 @@ import '../core/object.dart';
 import '../core/class/enum.dart';
 import '../core/function/abstract_function.dart';
 import '../core/class/cast.dart';
-import '../core/parser.dart';
+import '../core/abstract_parser.dart';
 import '../type_system/type.dart';
 import '../type_system/function_type.dart';
 import '../grammar/lexicon.dart';

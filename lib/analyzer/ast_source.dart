@@ -1,6 +1,6 @@
 import '../source/source.dart';
 import '../core/const_table.dart';
-import 'ast.dart';
+import 'ast/ast.dart';
 
 class HTAstModule extends HTModule {
   /// The bytecode, stores as uint8 list

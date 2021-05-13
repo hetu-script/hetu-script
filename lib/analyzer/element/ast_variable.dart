@@ -1,8 +1,8 @@
-import '../core/variable.dart';
-import '../type_system/type.dart';
-import '../error/errors.dart';
-import 'ast.dart';
-import 'analyzer.dart';
+import '../../core/variable.dart';
+import '../../type_system/type.dart';
+import '../../error/errors.dart';
+import '../ast/ast.dart';
+import '../analyzer.dart';
 
 class HTAstVariable extends HTVariable {
   @override

@@ -1,6 +1,6 @@
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
-import '../core/parser.dart';
+import '../core/abstract_parser.dart';
 import '../core/lexer.dart';
 import '../core/token.dart';
 import '../core/const_table.dart';
@@ -8,7 +8,7 @@ import '../core/class/class.dart';
 import '../grammar/semantic.dart';
 import '../error/errors.dart';
 import '../source/source_provider.dart';
-import 'ast.dart';
+import 'ast/ast.dart';
 import 'analyzer.dart';
 import 'ast_source.dart';
 
@@ -26,7 +26,7 @@ class AstDeclarationBlock implements DeclarationBlock {
       varDecls.containsKey(id);
 }
 
-class HTAstParser extends Parser with AnalyzerRef {
+class HTAstParser extends AbstractParser with AnalyzerRef {
   late AstDeclarationBlock _mainBlock;
   late AstDeclarationBlock _curBlock;
   late HTAstCompilation _curCompilation;
@@ -784,25 +784,56 @@ class HTAstParser extends Parser with AnalyzerRef {
     }
   }
 
-  List<AstNode> _parseBlock({SourceType sourceType = SourceType.module}) {
-    var stmts = <AstNode>[];
-    while ((curTok.type != HTLexicon.curlyRight) &&
-        (curTok.type != HTLexicon.endOfFile)) {
+  BlockStmt _parseBlockStmt(
+      {SourceType sourceType = SourceType.function,
+      String? id,
+      List<VarDecl> additionalVarDecl = const [],
+      List<AstNode> additionalStatements = const [],
+      bool createNamespace = true,
+      bool endOfExec = false}) {
+    final savedDeclBlock = _curBlock;
+    _curBlock = AstDeclarationBlock();
+    match(HTLexicon.curlyLeft);
+    id ??= HTLexicon.anonymousBlock;
+    final decls = <AstNode>[];
+    final statements = <AstNode>[];
+    while (curTok.type != HTLexicon.curlyRight &&
+        curTok.type != HTLexicon.endOfFile) {
       final stmt = _parseStmt(sourceType: sourceType);
       if (stmt != null) {
-        stmts.add(stmt);
+        statements.add(stmt);
       }
     }
     match(HTLexicon.curlyRight);
-    return stmts;
-  }
-
-  BlockStmt _parseBlockStmt({SourceType sourceType = SourceType.module}) {
-    var line = curTok.line;
-    var column = curTok.column;
-    final stmts = _parseBlock(sourceType: sourceType);
-    match(HTLexicon.curlyRight);
-    return BlockStmt(stmts, line, column);
+    // 添加前置变量表，总是按照：枚举、函数、类、变量这个顺序
+    for (final decl in _curBlock.enumDecls.values) {
+      declsBytesBuilder.add(decl);
+    }
+    for (final decl in _curBlock.funcDecls.values) {
+      declsBytesBuilder.add(decl);
+    }
+    for (final decl in _curBlock.classDecls.values) {
+      declsBytesBuilder.add(decl);
+    }
+    for (final decl in additionalVarDecl) {
+      declsBytesBuilder.add(decl);
+    }
+    for (final decl in _curBlock.varDecls.values) {
+      declsBytesBuilder.add(decl);
+    }
+    bytesBuilder.add(declsBytesBuilder.toBytes());
+    for (final stmt in additionalStatements) {
+      bytesBuilder.add(stmt);
+    }
+    bytesBuilder.add(blockBytesBuilder.toBytes());
+    _curBlock = savedDeclBlock;
+    if (createNamespace) {
+      bytesBuilder.addByte(HTOpCode.endOfBlock);
+    }
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
+    return bytesBuilder.toBytes();
   }
 
   /// 为了避免涉及复杂的左值右值问题, 赋值语句在河图中不作为表达式处理
@@ -1117,10 +1148,10 @@ class HTAstParser extends Parser with AnalyzerRef {
       returnType = _parseTypeExpr();
     }
 
-    var body = <AstNode>[];
+    BlockStmt? definition;
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       // 处理函数定义部分的语句块
-      body = _parseBlock(sourceType: SourceType.function);
+      definition = _parseBlockStmt(sourceType: SourceType.function);
     }
     expect([HTLexicon.semicolon], consume: true);
 
@@ -1129,7 +1160,7 @@ class HTAstParser extends Parser with AnalyzerRef {
         typeParameters: typeParameters,
         returnType: returnType,
         arity: arity,
-        definition: body,
+        definition: definition,
         classId: _curClass?.id,
         isExternal: isExternal,
         isStatic: isStatic,

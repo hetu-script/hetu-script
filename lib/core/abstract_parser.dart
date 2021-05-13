@@ -14,7 +14,7 @@ class ImportInfo {
   ImportInfo(this.key, {this.name, this.showList = const []});
 }
 
-/// Configuration of [Parser]
+/// Configuration of [AbstractParser]
 class ParserConfig {
   final SourceType sourceType;
   final bool reload;
@@ -30,7 +30,7 @@ class ParserConfig {
 
 /// Parse a token list and generate source code,
 /// [HTAstParser] and [HTCompiler] implements this class
-abstract class Parser {
+abstract class AbstractParser {
   static var anonymousFuncIndex = 0;
 
   // static _ParseTypeResult _parseTypeFromTokens(List<Token> tokens) {

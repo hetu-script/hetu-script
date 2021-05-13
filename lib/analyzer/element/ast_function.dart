@@ -1,13 +1,13 @@
-import '../core/namespace/namespace.dart';
-import '../core/variable.dart';
-import '../core/function/abstract_function.dart';
-import '../core/object.dart';
-import '../core/class/instance.dart';
-import '../error/errors.dart';
-import '../grammar/lexicon.dart';
-import '../type_system/type.dart';
-import 'ast.dart';
-import 'analyzer.dart';
+import '../../core/namespace/namespace.dart';
+import '../../core/variable.dart';
+import '../../core/function/abstract_function.dart';
+import '../../core/object.dart';
+import '../../core/class/instance.dart';
+import '../../error/errors.dart';
+import '../../grammar/lexicon.dart';
+import '../../type_system/type.dart';
+import '../ast/ast.dart';
+import '../analyzer.dart';
 
 class HTAstFunction extends HTFunction {
   @override
@@ -142,7 +142,8 @@ class HTAstFunction extends HTFunction {
           }
         }
 
-        result = interpreter.executeBlock(funcStmt.definition!, closure);
+        result =
+            interpreter.executeBlock(funcStmt.definition!.statements, closure);
       } else {
         throw HTError.missingFuncBody(id);
       }

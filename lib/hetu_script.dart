@@ -4,7 +4,7 @@
 
 library hetu_script;
 
-export 'core/parser.dart' show ParserConfig;
+export 'core/abstract_parser.dart' show ParserConfig;
 export 'core/function/abstract_function.dart';
 export 'core/class/class.dart' show HTClass;
 export 'core/class/instance.dart';
@@ -12,7 +12,7 @@ export 'core/object.dart';
 export 'core/namespace/namespace.dart' show HTNamespace;
 export 'core/abstract_interpreter.dart' show InterpreterConfig;
 export 'type_system/type.dart';
-export 'analyzer/ast.dart';
+export 'analyzer/ast/ast.dart';
 export 'analyzer/analyzer.dart';
 export 'interpreter/interpreter.dart';
 export 'binding/external_class.dart';
