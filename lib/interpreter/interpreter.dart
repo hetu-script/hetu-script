@@ -2,27 +2,29 @@ import 'dart:typed_data';
 
 import 'package:pub_semver/pub_semver.dart';
 
-import '../plugin/moduleHandler.dart';
-import '../plugin/errorHandler.dart';
 import '../binding/external_function.dart';
-import '../implementation/interpreter.dart';
-import '../implementation/namespace.dart';
-import '../implementation/class.dart';
-import '../implementation/object.dart';
-import '../implementation/enum.dart';
-import '../implementation/function.dart';
-import '../implementation/cast.dart';
-import '../implementation/parser.dart';
+import '../core/abstract_interpreter.dart';
+import '../core/namespace/namespace.dart';
+import '../core/class/class.dart';
+import '../core/object.dart';
+import '../core/class/enum.dart';
+import '../core/function/abstract_function.dart';
+import '../core/class/cast.dart';
+import '../core/parser.dart';
 import '../type_system/type.dart';
 import '../type_system/function_type.dart';
-import '../common/lexicon.dart';
-import '../common/constants.dart';
-import '../common/errors.dart';
+import '../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
+import '../source/source.dart';
+import '../source/source_provider.dart';
+import '../error/errors.dart';
+import '../error/error_handler.dart';
 import 'compiler.dart';
 import 'opcode.dart';
 import 'bytecode_source.dart';
 import 'bytecode_variable.dart';
 import 'bytecode_funciton.dart';
+import 'bytecode_parameter.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -44,30 +46,24 @@ class _LoopInfo {
 }
 
 /// A bytecode implementation of a Hetu script interpreter
-class Hetu extends Interpreter {
-  static var _anonymousScriptIndex = 0;
-
+class Hetu extends HTInterpreter {
   late HTCompiler _curCompiler;
-
   final _sources = HTBytecodeCompilation();
+
+  late HTBytecodeModule _curCode;
 
   var _curLine = 0;
 
-  /// Current line number of execution.
   @override
   int get curLine => _curLine;
-  var _curColumn = 0;
 
-  /// Current column number of execution.
+  var _curColumn = 0;
   @override
   int get curColumn => _curColumn;
-  late String _curModuleFullName;
 
-  /// Current module's full name.
+  late String _curModuleFullName;
   @override
   String get curModuleFullName => _curModuleFullName;
-
-  late HTBytecodeSource _curCode;
 
   HTClass? _curClass;
 
@@ -116,8 +112,8 @@ class Hetu extends Interpreter {
 
   /// Create a bytecode interpreter.
   /// Each interpreter has a independent global [HTNamespace].
-  Hetu({HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler})
-      : super(errorHandler: errorHandler, moduleHandler: moduleHandler) {
+  Hetu({HTErrorHandler? errorHandler, SourceProvider? sourceProvider})
+      : super(errorHandler: errorHandler, sourceProvider: sourceProvider) {
     _curNamespace = global = HTNamespace(this, id: HTLexicon.global);
   }
 
@@ -141,12 +137,13 @@ class Hetu extends Interpreter {
     _curCompiler = HTCompiler();
 
     final fullName = moduleFullName ??
-        (HTLexicon.anonymousScript + (_anonymousScriptIndex++).toString());
+        (HTLexicon.anonymousScript +
+            (HTInterpreter.anonymousScriptIndex++).toString());
     _curModuleFullName = fullName;
 
     try {
       final compilation = await _curCompiler
-          .compile(content, moduleHandler, fullName, config: config);
+          .compile(content, sourceProvider, fullName, config: config);
 
       _sources.addAll(compilation);
 
@@ -159,7 +156,7 @@ class Hetu extends Interpreter {
                 _curModuleFullName == moduleFullName ? namespace : global);
       }
 
-      if (config.codeType == CodeType.module && invokeFunc != null) {
+      if (config.sourceType == SourceType.module && invokeFunc != null) {
         result = invoke(invokeFunc,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
@@ -196,10 +193,10 @@ class Hetu extends Interpreter {
       List<HTType> typeArgs = const []}) async {
     dynamic result;
 
-    final fullName = moduleHandler.resolveFullName(key);
+    final fullName = sourceProvider.resolveFullName(key);
 
-    if (config.reload || !moduleHandler.hasModule(fullName)) {
-      final module = await moduleHandler.getContent(key,
+    if (config.reload || !sourceProvider.hasModule(fullName)) {
+      final module = await sourceProvider.getSource(key,
           curModuleFullName: curModuleFullName);
 
       final savedNamespace = _curNamespace;
@@ -314,7 +311,7 @@ class Hetu extends Interpreter {
   /// Interpret a loaded module with the key of [moduleFullName]
   /// Starting from the instruction pointer of [ip]
   /// This function will return current value when encountered [OpCode.endOfExec] or [OpCode.endOfFunc].
-  /// If [moduleFullName] != null, will return to original [HTBytecodeSource] module.
+  /// If [moduleFullName] != null, will return to original [HTBytecodeModule] module.
   /// If [ip] != null, will return to original [_curCode.ip].
   /// If [namespace] != null, will return to original [HTNamespace]
   ///
@@ -466,11 +463,11 @@ class Hetu extends Interpreter {
           }
           final float64Length = _curCode.readUint16();
           for (var i = 0; i < float64Length; ++i) {
-            _curCode.addConstFloat(_curCode.readFloat64());
+            _curCode.constTable.addFloat(_curCode.readFloat64());
           }
           final utf8StringLength = _curCode.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
-            _curCode.addConstString(_curCode.readUtf8String());
+            _curCode.constTable.addString(_curCode.readUtf8String());
           }
           break;
         case HTOpCode.enumDecl:
@@ -567,15 +564,15 @@ class Hetu extends Interpreter {
         break;
       case HTValueTypeCode.int64:
         final index = _curCode.readUint16();
-        _curValue = _curCode.getInt64(index);
+        _curValue = _curCode.constTable.getInt64(index);
         break;
       case HTValueTypeCode.float64:
         final index = _curCode.readUint16();
-        _curValue = _curCode.getFloat64(index);
+        _curValue = _curCode.constTable.getFloat64(index);
         break;
       case HTValueTypeCode.utf8String:
         final index = _curCode.readUint16();
-        _curValue = _curCode.getUtf8String(index);
+        _curValue = _curCode.constTable.getUtf8String(index);
         break;
       case HTValueTypeCode.symbol:
         final symbol = _curSymbol = _curCode.readShortUtf8String();
@@ -678,7 +675,7 @@ class Hetu extends Interpreter {
         } else {
           _curValue = HTFunctionType(
               parameterTypes:
-                  paramDecls.values.map((param) => param.paramType).toList(),
+                  paramDecls.values.map((param) => param.declType).toList(),
               returnType: returnType);
         }
 
@@ -1032,7 +1029,7 @@ class Hetu extends Interpreter {
         final isNullable = _curCode.read() == 0 ? false : true;
         return HTType(typeName, typeArgs: typeArgs, isNullable: isNullable);
       case TypeType.parameter:
-        final typeName = _curCode.readShortUtf8String();
+        final typeId = _curCode.readShortUtf8String();
         final length = _curCode.read();
         final typeArgs = <HTType>[];
         for (var i = 0; i < length; ++i) {
@@ -1041,13 +1038,13 @@ class Hetu extends Interpreter {
         final isNullable = _curCode.read() == 0 ? false : true;
         final isOptional = _curCode.read() == 0 ? false : true;
         final isNamed = _curCode.read() == 0 ? false : true;
-        String? paramName;
+        String? paramId;
         if (isNamed) {
-          paramName = _curCode.readShortUtf8String();
+          paramId = _curCode.readShortUtf8String();
         }
         final isVariadic = _curCode.read() == 0 ? false : true;
-        return HTParameterType(typeName,
-            paramId: paramName ?? '',
+        return HTParameterType(typeId,
+            paramId: paramId ?? '',
             typeArgs: typeArgs,
             isNullable: isNullable,
             isOptional: isOptional,
@@ -1150,7 +1147,7 @@ class Hetu extends Interpreter {
       final isNamed = _curCode.readBool();
       final isVariadic = _curCode.readBool();
 
-      HTType declType = HTType.ANY;
+      HTType? declType;
       final hasType = _curCode.readBool();
       if (hasType) {
         declType = _handleTypeExpr();

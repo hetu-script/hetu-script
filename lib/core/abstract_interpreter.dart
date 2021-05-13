@@ -1,52 +1,62 @@
 import 'package:pub_semver/pub_semver.dart';
 
-import '../plugin/moduleHandler.dart';
-import '../plugin/errorHandler.dart';
+import '../source/source_provider.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../binding/external_instance.dart';
-import '../core/core_class.dart';
-import '../core/core_function.dart';
-import '../common/errors.dart';
-import '../common/constants.dart';
-import '../common/lexicon.dart';
+import '../buildin/buildin_class.dart';
+import '../buildin/buildin_function.dart';
+import '../error/errors.dart';
+import '../error/error_handler.dart';
+import '../source/source.dart';
+import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
 
 import 'parser.dart';
-import 'namespace.dart';
+import 'namespace/namespace.dart';
 import 'hetu_lib.dart';
-import 'function.dart';
+import 'function/abstract_function.dart';
 import 'object.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
-  late final Interpreter interpreter;
+  late final HTInterpreter interpreter;
 }
 
 class InterpreterConfig extends ParserConfig {
   final bool scriptStackTrace;
+  final int scriptStackTraceMaxline;
   final bool externalStackTrace;
+  final int externalStackTraceMaxline;
 
   const InterpreterConfig(
-      {CodeType codeType = CodeType.module,
+      {SourceType sourceType = SourceType.module,
       bool reload = false,
       bool bundle = false,
       bool lineInfo = true,
       this.scriptStackTrace = true,
-      this.externalStackTrace = true})
+      this.scriptStackTraceMaxline = 10,
+      this.externalStackTrace = true,
+      this.externalStackTraceMaxline = 10})
       : super(
-            codeType: codeType,
+            sourceType: sourceType,
             reload: reload,
             bundle: bundle,
             lineInfo: lineInfo);
 }
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.
-abstract class Interpreter {
+abstract class HTInterpreter {
+  static var anonymousScriptIndex = 0;
+
   final version = Version(0, 1, 0);
 
+  /// Current line number of execution.
   int get curLine;
+
+  /// Current column number of execution.
   int get curColumn;
+
   String? get curModuleFullName;
 
   String? get curSymbol;
@@ -55,14 +65,15 @@ abstract class Interpreter {
   HTNamespace get curNamespace;
 
   late HTErrorHandler errorHandler;
-  late HTModuleHandler moduleHandler;
+  late SourceProvider sourceProvider;
 
   /// 全局命名空间
   late HTNamespace global;
 
-  Interpreter({HTErrorHandler? errorHandler, HTModuleHandler? moduleHandler}) {
+  HTInterpreter(
+      {HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
-    this.moduleHandler = moduleHandler ?? DefaultModuleHandler();
+    this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
   }
 
   Future<void> init(

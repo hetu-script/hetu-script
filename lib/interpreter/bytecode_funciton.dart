@@ -1,16 +1,18 @@
 import '../binding/external_function.dart';
-import '../implementation/namespace.dart';
-import '../implementation/function.dart';
-import '../implementation/variable.dart';
-import '../implementation/class.dart';
-import '../implementation/instance.dart';
-import '../common/errors.dart';
-import '../common/constants.dart';
-import '../common/lexicon.dart';
+import '../core/namespace/namespace.dart';
+import '../core/namespace/instance_namespace.dart';
+import '../core/function/abstract_function.dart';
+import '../core/variable.dart';
+import '../core/class/class.dart';
+import '../core/class/instance.dart';
+import '../error/errors.dart';
+import '../grammar/semantic.dart';
+import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
 import '../type_system/function_type.dart';
-import 'bytecode_interpreter.dart';
+import 'interpreter.dart';
 import 'bytecode_variable.dart';
+import 'bytecode_parameter.dart';
 import 'bytecode_source.dart' show GotoInfo;
 
 class HTBytecodeFunctionReferConstructor {
@@ -93,7 +95,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
 
     declType = HTFunctionType(
         parameterTypes: parameterDeclarations.values
-            .map((param) => param.paramType)
+            .map((param) => param.declType)
             .toList(),
         returnType: returnType);
   }
@@ -121,13 +123,13 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     var optionalStarted = false;
     var namedStarted = false;
     for (final param in parameterDeclarations.values) {
-      if (param.paramType.isVariadic) {
+      if (param.isVariadic) {
         result.write(HTLexicon.varargs + ' ');
       }
-      if (param.paramType.isOptional && !optionalStarted) {
+      if (param.isOptional && !optionalStarted) {
         optionalStarted = true;
         result.write(HTLexicon.squareLeft);
-      } else if (param.paramType.isNamed && !namedStarted) {
+      } else if (param.isNamed && !namedStarted) {
         namedStarted = true;
         result.write(HTLexicon.curlyLeft);
       }
@@ -250,7 +252,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
           var decl = parameterDeclarations.values.elementAt(i).clone();
           closure.define(decl);
 
-          if (decl.paramType.isVariadic) {
+          if (decl.isVariadic) {
             variadicStart = i;
             variadicParam = decl;
             break;
@@ -321,7 +323,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
           for (var param in parameterDeclarations.values) {
             var decl = param.clone();
 
-            if (decl.paramType.isVariadic) {
+            if (decl.isVariadic) {
               variadicStart = i;
               // variadicParam = decl;
               break;

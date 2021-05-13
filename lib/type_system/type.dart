@@ -1,27 +1,27 @@
 import 'package:quiver/core.dart';
 
-import '../common/lexicon.dart';
-import '../common/errors.dart';
-import '../implementation/object.dart';
-import '../implementation/class.dart';
-import '../implementation/interpreter.dart';
+import '../grammar/lexicon.dart';
+import '../error/errors.dart';
+import '../core/object.dart';
+import '../core/abstract_interpreter.dart';
+import '../core/class/class.dart';
 import 'function_type.dart';
 import 'nominal_type.dart';
 
 class HTType with HTObject {
-  static const TYPE = _PrimitiveType(HTLexicon.TYPE);
   static const ANY = _PrimitiveType(HTLexicon.ANY);
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
   static const ENUM = _PrimitiveType(HTLexicon.ENUM);
   static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
   static const CLASS = _PrimitiveType(HTLexicon.CLASS);
+  static const TYPE = _PrimitiveType(HTLexicon.type);
   static const unknown = _PrimitiveType(HTLexicon.unknown);
   static const object = _PrimitiveType(HTLexicon.object);
   static const function = _PrimitiveType(HTLexicon.function);
 
   static const Map<String, HTType> primitiveTypes = {
-    HTLexicon.TYPE: TYPE,
+    HTLexicon.type: TYPE,
     HTLexicon.ANY: ANY,
     HTLexicon.NULL: NULL,
     HTLexicon.VOID: VOID,
@@ -126,7 +126,7 @@ class HTType with HTObject {
 
   /// initialize the declared type if it's a class name.
   /// only return the [HTClass] when its a non-external class
-  HTType resolve(Interpreter interpreter) {
+  HTType resolve(HTInterpreter interpreter) {
     if (isResolved) {
       return this;
     } else if (primitiveTypes.containsKey(id)) {

@@ -2,44 +2,33 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import '../common/errors.dart';
-
-/// Result of module handler's import function
-class ModuleContent {
-  /// To tell a duplicated module
-  final String fullName;
-
-  /// The string content of the module
-  final String content;
-
-  ModuleContent(this.fullName, this.content);
-}
+import '../error/errors.dart';
+import 'source.dart';
 
 /// Abstract module import handler class
-abstract class HTModuleHandler {
+abstract class SourceProvider {
   bool hasModule(String path);
 
   String resolveFullName(String key, [String? currentModuleFullName]);
 
-  Future<ModuleContent> getContent(String key,
+  Future<HTSource> getSource(String key,
       {String? curModuleFullName, bool reload = true});
 
-  ModuleContent getContentSync(String key,
-      {String? curFilePath, bool reload = true});
+  HTSource getSourceSync(String key, {String? curFilePath, bool reload = true});
 }
 
 /// Default module import handler implementation
-class DefaultModuleHandler implements HTModuleHandler {
+class DefaultSourceProvider implements SourceProvider {
   /// Absolute path used when no relative path exists
   late final String workingDirectory;
 
   /// Saved module name list
   final _importedFiles = <String, String>{};
 
-  /// Create a DefaultModuleHandler with a certain [workingDirectory],
+  /// Create a [DefaultSourceProvider] with a certain [workingDirectory],
   /// which is used to determin a module's absolute path
   /// when no relative path exists
-  DefaultModuleHandler({String? workingDirectory}) {
+  DefaultSourceProvider({String? workingDirectory}) {
     if (workingDirectory != null) {
       final dir = Directory(workingDirectory);
       this.workingDirectory = dir.absolute.path;
@@ -70,7 +59,7 @@ class DefaultModuleHandler implements HTModuleHandler {
   ///
   /// Otherwise, a absolute path is calculated from [workingDirectory]
   @override
-  Future<ModuleContent> getContent(String key,
+  Future<HTSource> getSource(String key,
       {String? curModuleFullName, bool reload = true}) async {
     try {
       var fullName = resolveFullName(key, curModuleFullName);
@@ -81,12 +70,12 @@ class DefaultModuleHandler implements HTModuleHandler {
         if (content.isNotEmpty) {
           _importedFiles[fullName] = content;
           if (content.isEmpty) throw HTError.emptyString(fullName);
-          return ModuleContent(fullName, content);
+          return HTSource(fullName, content);
         } else {
           throw HTError.emptyString(fullName);
         }
       } else {
-        return ModuleContent(fullName, _importedFiles[fullName]!);
+        return HTSource(fullName, _importedFiles[fullName]!);
       }
     } catch (e) {
       if (e is HTError) {
@@ -100,7 +89,7 @@ class DefaultModuleHandler implements HTModuleHandler {
 
   /// Synchronized version of [import].
   @override
-  ModuleContent getContentSync(String key,
+  HTSource getSourceSync(String key,
       {String? curFilePath, bool reload = true}) {
     throw HTError(ErrorCode.extern, ErrorType.externalError,
         message: 'getContentSync is currently unusable');

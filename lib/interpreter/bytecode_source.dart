@@ -1,15 +1,15 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../common/source.dart';
-import '../implementation/const_table.dart';
+import '../source/source.dart';
+import '../core/const_table.dart';
 import 'opcode.dart';
 
 /// Code module class, represent a trunk of bytecode.
 /// Every bytecode file has its own const tables
-class HTBytecodeSource extends HTSource with ConstTable {
+class HTBytecodeModule extends HTModule with ConstTable {
   /// The bytecode, stores as uint8 list
-  late final Uint8List bytes;
+  final Uint8List bytes;
 
   /// final symbols = <String, int>{};
 
@@ -17,7 +17,8 @@ class HTBytecodeSource extends HTSource with ConstTable {
   var ip = 0;
 
   /// Create a bytecode module from an uint8 list
-  HTBytecodeSource(String fullName, this.bytes) : super(fullName);
+  HTBytecodeModule(String fullName, String content, this.bytes)
+      : super(fullName, content);
 
   /// Skip forward [distance] of bytes
   void skip(int distance) {
@@ -115,20 +116,20 @@ mixin GotoInfo {
   int? definitionColumn;
 }
 
-class HTBytecodeCompilation implements HTCompilation {
-  final _modules = <String, HTBytecodeSource>{};
+class HTBytecodeCompilation extends HTCompilation {
+  final _modules = <String, HTBytecodeModule>{};
 
   @override
   Iterable<String> get keys => _modules.keys;
 
   @override
-  Iterable<HTBytecodeSource> get sources => _modules.values;
+  Iterable<HTBytecodeModule> get sources => _modules.values;
 
   @override
   bool contains(String fullName) => _modules.containsKey(fullName);
 
   @override
-  HTBytecodeSource fetch(String fullName) {
+  HTBytecodeModule fetch(String fullName) {
     if (_modules.containsKey(fullName)) {
       return _modules[fullName]!;
     } else {
@@ -136,7 +137,7 @@ class HTBytecodeCompilation implements HTCompilation {
     }
   }
 
-  void add(HTBytecodeSource source) => _modules[source.fullName] = source;
+  void add(HTBytecodeModule source) => _modules[source.fullName] = source;
 
   void addAll(HTBytecodeCompilation other) {
     _modules.addAll(other._modules);

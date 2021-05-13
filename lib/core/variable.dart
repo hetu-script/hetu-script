@@ -1,6 +1,6 @@
-import 'namespace.dart';
+import 'namespace/namespace.dart';
 import 'declaration.dart';
-import 'interpreter.dart';
+import 'abstract_interpreter.dart';
 
 /// 一个变量声明，包含了类型等额外信息。
 /// 在编译后的代码中，被提前到整个代码块最前面。
@@ -22,7 +22,7 @@ class HTVariable with HTDeclaration, InterpreterRef {
 
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
-  HTVariable(String id, Interpreter interpreter,
+  HTVariable(String id, HTInterpreter interpreter,
       {String? classId,
       dynamic value,
       this.getter,

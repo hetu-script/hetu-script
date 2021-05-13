@@ -1,18 +1,20 @@
 import 'package:quiver/core.dart';
 
-import '../common/lexicon.dart';
+import '../core/function/abstract_parameter.dart';
+import '../grammar/lexicon.dart';
 import 'type.dart';
 
-class HTParameterType extends HTType {
+class HTParameterType extends HTType implements HTParameterInterface {
+  @override
   final String paramId;
 
-  /// Wether this is an optional parameter.
+  @override
   final bool isOptional;
 
-  /// Wether this is a named parameter.
+  @override
   final bool isNamed;
 
-  /// Wether this is a variadic parameter.
+  @override
   final bool isVariadic;
 
   HTParameterType(String typeid,
@@ -23,6 +25,19 @@ class HTParameterType extends HTType {
       this.isNamed = false,
       this.isVariadic = false})
       : super(typeid, typeArgs: typeArgs, isNullable: isNullable);
+
+  HTParameterType.fromType(String paramId,
+      {HTType? paramType,
+      bool isOptional = false,
+      bool isNamed = false,
+      bool isVariadic = false})
+      : this(paramType?.id ?? HTLexicon.ANY,
+            paramId: paramId,
+            typeArgs: paramType?.typeArgs ?? const [],
+            isNullable: paramType?.isNullable ?? false,
+            isOptional: isOptional,
+            isNamed: isNamed,
+            isVariadic: isVariadic);
 
   @override
   String toString() {

@@ -1,10 +1,10 @@
-import '../common/errors.dart';
-import '../common/lexicon.dart';
-import '../implementation/interpreter.dart';
-import '../type_system/type.dart';
-import '../type_system/value_type.dart';
-import 'object.dart';
-import 'declaration.dart';
+import '../../error/errors.dart';
+import '../../grammar/lexicon.dart';
+import '../abstract_interpreter.dart';
+import '../../type_system/type.dart';
+import '../../type_system/value_type.dart';
+import '../object.dart';
+import '../declaration.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
 class HTEnum with HTDeclaration, HTObject, InterpreterRef {
@@ -18,7 +18,7 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
   final bool isExternal;
 
   /// Create a default [HTEnum] class.
-  HTEnum(String id, this.enums, Interpreter interpreter,
+  HTEnum(String id, this.enums, HTInterpreter interpreter,
       {this.isExternal = false}) {
     this.id = id;
     this.interpreter = interpreter;

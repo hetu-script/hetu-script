@@ -24,26 +24,6 @@ enum TypeType {
   union,
 }
 
-/// Code module types
-enum CodeType {
-  /// A bare expression.
-  expression,
-
-  /// Module can only have declarations (variables, functions, classes, enums),
-  /// import & export statement.
-  module,
-
-  /// Class can only have declarations (variables, functions).
-  klass,
-
-  /// Function & block can have declarations (variables, functions),
-  /// expression & control statements.
-  function,
-
-  /// A script can have all statements.
-  script,
-}
-
 abstract class SemanticType {
   static const literalNullExpr = 'literal_null_expression';
   static const literalBooleanExpr = 'literal_boolean_expression';
@@ -52,6 +32,7 @@ abstract class SemanticType {
   static const literalStringExpr = 'literal_string_expression';
   static const literalFunctionExpr = 'literal_function_expression';
   static const typeExpr = 'type_expression';
+  static const unionTypeExpr = 'union_type_expression';
   static const paramTypeExpr = 'parameter_type_expression';
   static const funcTypeExpr = 'function_type_expression';
   static const groupExpr = 'group_expression';

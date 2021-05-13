@@ -1,4 +1,4 @@
-import '../common/errors.dart';
+import 'errors.dart';
 
 /// Abstract error handler class
 abstract class HTErrorHandler {

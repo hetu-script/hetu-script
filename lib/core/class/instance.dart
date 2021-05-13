@@ -1,26 +1,27 @@
 import 'dart:collection';
 
-import '../common/errors.dart';
-import '../common/constants.dart';
-import '../common/lexicon.dart';
-import '../type_system/type.dart';
-import '../type_system/nominal_type.dart';
-import 'object.dart';
-import 'interpreter.dart';
+import '../../error/errors.dart';
+import '../../grammar/semantic.dart';
+import '../../grammar/lexicon.dart';
+import '../../type_system/type.dart';
+import '../../type_system/nominal_type.dart';
+import '../object.dart';
+import '../abstract_interpreter.dart';
+import '../function/abstract_function.dart';
+import '../namespace/namespace.dart';
+import '../namespace/instance_namespace.dart';
+import '../variable.dart';
 import 'class.dart';
-import 'function.dart';
-import 'namespace.dart';
 import 'cast.dart';
-import 'variable.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
 class HTInstance with HTObject, InterpreterRef {
-  late final String id;
+  final String id;
 
   @override
-  late final HTNominalType valueType;
+  final HTNominalType valueType;
 
   String get classId => valueType.id;
 
@@ -39,9 +40,10 @@ class HTInstance with HTObject, InterpreterRef {
   HTInstanceNamespace get namespace => _namespaces[classId]!;
 
   /// Create a default [HTInstance] instance.
-  HTInstance(HTClass klass, Interpreter interpreter,
-      {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject}) {
-    id = '${HTLexicon.instance}${klass.instanceIndex}';
+  HTInstance(HTClass klass, HTInterpreter interpreter,
+      {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject})
+      : id = '${HTLexicon.instance}${klass.instanceIndex}',
+        valueType = HTNominalType(klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
 
     HTClass? curKlass = klass;
@@ -83,8 +85,6 @@ class HTInstance with HTObject, InterpreterRef {
 
       curNamespace = curNamespace.next;
     }
-
-    valueType = HTNominalType(klass, typeArgs: typeArgs);
   }
 
   @override

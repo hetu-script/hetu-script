@@ -1,8 +1,8 @@
 /// Helper mixin to store consts,
 /// used in [Compiler] and [HTBytecode]
-mixin ConstTable {
+class ConstTable {
   /// Const int table.
-  late final intTable = <int>[];
+  final intTable = <int>[];
 
   /// Add a int to the const int table.
   int addInt(int value) {
@@ -19,10 +19,10 @@ mixin ConstTable {
   int getInt64(int index) => intTable[index];
 
   /// Const float table.
-  late final floatTable = <double>[];
+  final floatTable = <double>[];
 
   /// Add a float to the const float table.
-  int addConstFloat(double value) {
+  int addFloat(double value) {
     final index = floatTable.indexOf(value);
     if (index == -1) {
       floatTable.add(value);
@@ -36,10 +36,10 @@ mixin ConstTable {
   double getFloat64(int index) => floatTable[index];
 
   /// Const string table.
-  late final stringTable = <String>[];
+  final stringTable = <String>[];
 
   /// Add a string to the const string table.
-  int addConstString(String value) {
+  int addString(String value) {
     final index = stringTable.indexOf(value);
     if (index == -1) {
       stringTable.add(value);

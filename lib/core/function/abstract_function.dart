@@ -1,11 +1,11 @@
-import '../common/constants.dart';
-import '../type_system/type.dart';
-import '../type_system/function_type.dart';
-import 'namespace.dart';
-import 'declaration.dart';
-import 'object.dart';
-import 'class.dart';
-import 'interpreter.dart';
+import '../../grammar/semantic.dart';
+import '../../type_system/type.dart';
+import '../../type_system/function_type.dart';
+import '../namespace/namespace.dart';
+import '../declaration.dart';
+import '../object.dart';
+import '../abstract_interpreter.dart';
+import '../class/class.dart';
 
 /// [HTFunction] is the base class of
 /// [HTAstFunction] and [HTBytecodeFunction] in Hetu.
@@ -45,7 +45,7 @@ abstract class HTFunction with HTDeclaration, HTObject, InterpreterRef {
 
   HTNamespace? context;
 
-  HTFunction(String id, this.declId, Interpreter interpreter,
+  HTFunction(String id, this.declId, HTInterpreter interpreter,
       {this.klass,
       this.category = FunctionCategory.normal,
       this.isExternal = false,

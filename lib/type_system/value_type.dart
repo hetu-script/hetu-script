@@ -1,4 +1,4 @@
-import '../implementation/object.dart';
+import '../core/object.dart';
 import 'type.dart';
 
 abstract class HTValueType extends HTType with HTObject {

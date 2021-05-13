@@ -26,5 +26,6 @@ void main() async {
       print(j.name) // Will use overrided toString function in user's class
     }
   ''',
-      config: InterpreterConfig(codeType: CodeType.module), invokeFunc: 'main');
+      config: InterpreterConfig(sourceType: SourceType.module),
+      invokeFunc: 'main');
 }

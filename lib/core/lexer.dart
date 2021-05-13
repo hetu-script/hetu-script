@@ -1,4 +1,4 @@
-import '../common/lexicon.dart';
+import '../grammar/lexicon.dart';
 import 'token.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表

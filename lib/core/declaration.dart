@@ -1,7 +1,7 @@
-import '../common/errors.dart';
+import '../error/errors.dart';
 import '../type_system/type.dart';
 import 'variable.dart';
-import 'function.dart';
+import 'function/abstract_function.dart';
 
 /// A [HTDeclaration] could be a [HTVariable], a [HTClass] or a [HTFunction]
 /// it is basically a binding between a symbol and a value

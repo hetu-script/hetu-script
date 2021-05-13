@@ -1,24 +1,28 @@
-import '../common/constants.dart';
-import '../common/errors.dart';
-import '../common/lexicon.dart';
+import '../source/source.dart';
+import '../error/errors.dart';
+import '../grammar/lexicon.dart';
 import 'token.dart';
 
-// class _ParseTypeResult {
-//   HTType parsedType;
-//   int pos;
+abstract class DeclarationBlock {
+  bool contains(String id);
+}
 
-//   _ParseTypeResult(this.parsedType, this.pos);
-// }
+class ImportInfo {
+  final String key;
+  final String? name;
+  final Iterable<String> showList;
+  ImportInfo(this.key, {this.name, this.showList = const []});
+}
 
 /// Configuration of [Parser]
 class ParserConfig {
-  final CodeType codeType;
+  final SourceType sourceType;
   final bool reload;
   final bool bundle;
   final bool lineInfo;
 
   const ParserConfig(
-      {this.codeType = CodeType.module,
+      {this.sourceType = SourceType.module,
       this.reload = false,
       this.bundle = false,
       this.lineInfo = true});
@@ -146,15 +150,4 @@ abstract class Parser {
 
   /// 获得当前Token
   Token get curTok => peek(0);
-}
-
-abstract class DeclarationBlock {
-  bool contains(String id);
-}
-
-class ImportInfo {
-  final String key;
-  final String? name;
-  final Iterable<String> showList;
-  ImportInfo(this.key, {this.name, this.showList = const []});
 }

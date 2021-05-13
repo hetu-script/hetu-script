@@ -1,6 +1,6 @@
-import '../implementation/variable.dart';
+import '../core/variable.dart';
 import '../type_system/type.dart';
-import '../common/errors.dart';
+import '../error/errors.dart';
 import 'ast.dart';
 import 'analyzer.dart';
 

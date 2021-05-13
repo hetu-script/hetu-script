@@ -1,16 +1,16 @@
-import '../common/errors.dart';
-import '../common/lexicon.dart';
-import '../type_system/type.dart';
-import '../type_system/nominal_type.dart';
-import 'object.dart';
-import 'interpreter.dart';
+import '../../error/errors.dart';
+import '../../grammar/lexicon.dart';
+import '../../type_system/type.dart';
+import '../../type_system/nominal_type.dart';
+import '../object.dart';
+import '../abstract_interpreter.dart';
 import 'class.dart';
 import 'instance.dart';
 
 /// The implementation of a certain type cast of a object
 class HTCast with HTObject, InterpreterRef {
   @override
-  late final HTNominalType valueType;
+  final HTNominalType valueType;
 
   final HTClass klass;
 
@@ -19,8 +19,9 @@ class HTCast with HTObject, InterpreterRef {
   @override
   String toString() => object.toString();
 
-  HTCast(HTObject object, this.klass, Interpreter interpreter,
-      {List<HTType> typeArgs = const []}) {
+  HTCast(HTObject object, this.klass, HTInterpreter interpreter,
+      {List<HTType> typeArgs = const []})
+      : valueType = HTNominalType(klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
 
     // final extended = <HTType>[];
@@ -34,8 +35,6 @@ class HTCast with HTObject, InterpreterRef {
     //   extended.add(curSuper!.extendedType!);
     // }
     // }
-
-    valueType = HTNominalType(klass, typeArgs: typeArgs);
 
     if (object.valueType.isNotA(valueType)) {
       throw HTError.typeCast(object.toString(), valueType.toString());

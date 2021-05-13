@@ -1,15 +1,15 @@
-import '../common/lexicon.dart';
-import '../common/errors.dart';
-import '../type_system/type.dart';
-import '../type_system/value_type.dart';
-import 'namespace.dart';
-import 'function.dart';
-import 'interpreter.dart';
-import 'variable.dart';
-import 'declaration.dart';
-import 'instance.dart';
+import '../../grammar/lexicon.dart';
+import '../../error/errors.dart';
+import '../../type_system/type.dart';
+import '../namespace/namespace.dart';
+import '../namespace/class_namespace.dart';
+import '../function/abstract_function.dart';
+import '../abstract_interpreter.dart';
+import '../variable.dart';
+import '../declaration.dart';
 import 'enum.dart';
-import 'object.dart';
+import '../object.dart';
+import 'instance.dart';
 
 class ClassInfo with HTDeclaration {
   final bool isExternal;
@@ -38,7 +38,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.
-  late final HTClassNamespace namespace;
+  final HTClassNamespace namespace;
 
   /// The type parameters of the class.
   final Iterable<String> typeParameters;
@@ -67,7 +67,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
   /// Create a default [HTClass] instance.
   HTClass(
     String id,
-    Interpreter interpreter,
+    HTInterpreter interpreter,
     this.moduleFullName,
     HTNamespace closure, {
     bool isExternal = false,
@@ -77,10 +77,9 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
     this.typeParameters = const [],
     // this.implementedClass = const [],
     // this.mixinedClass = const []
-  }) : super(id, isExternal: isExternal, isAbstract: isAbstract) {
+  })  : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
+        super(id, isExternal: isExternal, isAbstract: isAbstract) {
     this.interpreter = interpreter;
-
-    namespace = HTClassNamespace(id, id, interpreter, closure: closure);
   }
 
   /// Create a [HTInstance] of this [HTClass],

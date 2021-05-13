@@ -1,11 +1,10 @@
-import '../implementation/variable.dart';
-import '../implementation/class.dart';
+import '../core/variable.dart';
+import '../core/class/class.dart';
 import '../type_system/type.dart';
-import '../type_system/function_type.dart';
 import '../type_system/nominal_type.dart';
-import '../common/lexicon.dart';
-import '../common/errors.dart';
-import 'bytecode_interpreter.dart';
+import '../grammar/lexicon.dart';
+import '../error/errors.dart';
+import 'interpreter.dart';
 import 'bytecode_source.dart' show GotoInfo;
 
 /// Bytecode implementation of [HTVariable].
@@ -192,50 +191,4 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
           isExternal: isExternal,
           isImmutable: isImmutable,
           isStatic: isStatic);
-}
-
-/// An implementation of [HTVariable] for function parameter declaration.
-class HTBytecodeParameter extends HTBytecodeVariable {
-  late final HTParameterType paramType;
-
-  /// Create a standard [HTBytecodeParameter].
-  HTBytecodeParameter(String id, Hetu interpreter, String moduleFullName,
-      {dynamic value,
-      HTType? declType,
-      int? definitionIp,
-      int? definitionLine,
-      int? definitionColumn,
-      bool isOptional = false,
-      bool isNamed = false,
-      bool isVariadic = false})
-      : super(id, interpreter, moduleFullName,
-            value: value,
-            declType: declType,
-            definitionIp: definitionIp,
-            definitionLine: definitionLine,
-            definitionColumn: definitionColumn,
-            typeInferrence: false,
-            isImmutable: false) {
-    final paramDeclType = declType ?? HTType.ANY;
-    paramType = HTParameterType(paramDeclType.id,
-        paramId: id,
-        typeArgs: paramDeclType.typeArgs,
-        isNullable: paramDeclType.isNullable,
-        isOptional: isOptional,
-        isNamed: isNamed,
-        isVariadic: isVariadic);
-  }
-
-  @override
-  HTBytecodeParameter clone() {
-    return HTBytecodeParameter(id, interpreter, moduleFullName,
-        value: value,
-        declType: declType,
-        definitionIp: definitionIp,
-        definitionLine: definitionLine,
-        definitionColumn: definitionColumn,
-        isOptional: paramType.isOptional,
-        isNamed: paramType.isNamed,
-        isVariadic: paramType.isVariadic);
-  }
 }

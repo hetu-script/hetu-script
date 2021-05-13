@@ -1,21 +1,21 @@
-import '../plugin/errorHandler.dart';
-import '../plugin/moduleHandler.dart';
+import '../source/source_provider.dart';
 import '../binding/external_function.dart';
 import '../type_system/type.dart';
-import '../implementation/namespace.dart';
-import '../implementation/class.dart';
-import '../implementation/function.dart';
-import '../implementation/object.dart';
-import '../implementation/interpreter.dart';
-import '../implementation/enum.dart';
-import '../implementation/const_table.dart';
-import '../common/lexicon.dart';
-import '../common/errors.dart';
-import '../common/constants.dart';
+import '../core/namespace/namespace.dart';
+import '../core/function/abstract_function.dart';
+import '../core/object.dart';
+import '../core/abstract_interpreter.dart';
+import '../core/class/enum.dart';
+import '../core/class/class.dart';
+import '../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
+import '../source/source.dart';
+import '../error/errors.dart';
+import '../error/error_handler.dart';
 import 'ast.dart';
 import 'ast_function.dart';
 import 'ast_parser.dart';
-import 'ast_variable.dart';
+import 'ast_source.dart';
 
 mixin AnalyzerRef {
   late final HTAnalyzer interpreter;
@@ -26,7 +26,12 @@ class HTBreak {}
 class HTContinue {}
 
 /// 负责对语句列表进行最终解释执行
-class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
+class HTAnalyzer extends HTInterpreter implements AstNodeVisitor {
+  late HTAstParser _curParser;
+  final _sources = HTAstCompilation();
+
+  late HTAstModule _curCode;
+
   var _curLine = 0;
   @override
   int get curLine => _curLine;
@@ -60,8 +65,8 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   HTAnalyzer(
       {bool debugMode = false,
       HTErrorHandler? errorHandler,
-      HTModuleHandler? moduleHandler})
-      : super(errorHandler: errorHandler, moduleHandler: moduleHandler);
+      SourceProvider? sourceProvider})
+      : super(errorHandler: errorHandler, sourceProvider: sourceProvider);
 
   @override
   Future<dynamic> eval(String content,
@@ -76,15 +81,20 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     _savedModuleName = _curModuleFullName;
     _savedNamespace = _curNamespace;
 
+    _curParser = HTAstParser(this);
+
     _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curNamespace = namespace ?? global;
 
-    var parser = HTAstParser(this);
     try {
-      final parseResult = await parser.parse(
-          content, moduleHandler, _curModuleFullName, config);
+      final compilation = await _curParser.parse(
+          content, sourceProvider, _curModuleFullName, config);
 
-      for (final source in parseResult.sources) {
+      _sources.addAll(compilation);
+
+      for (final source in compilation.sources) {
+        _curCode = source;
+        _curModuleFullName = source.fullName;
         for (final stmt in source.nodes) {
           _curStmtValue = visitASTNode(stmt);
         }
@@ -94,7 +104,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       _curNamespace = _savedNamespace;
 
       if (invokeFunc != null) {
-        if (config.codeType == CodeType.module) {
+        if (config.sourceType == SourceType.module) {
           return invoke(invokeFunc,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
@@ -114,9 +124,9 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       if (error is HTError) {
         error.message = '${error.message}\nCall stack:\n$callStack';
         if (error.type == ErrorType.compileError) {
-          error.moduleFullName = parser.curModuleFullName;
-          error.line = parser.curLine;
-          error.column = parser.curColumn;
+          error.moduleFullName = _curParser.curModuleFullName;
+          error.line = _curParser.curLine;
+          error.column = _curParser.curColumn;
         } else {
           error.moduleFullName = _curModuleFullName;
           error.line = _curLine;
@@ -146,7 +156,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       List<HTType> typeArgs = const []}) async {
     dynamic result;
 
-    final module = await moduleHandler.getContent(key,
+    final module = await sourceProvider.getSource(key,
         curModuleFullName: curModuleFullName != HTLexicon.anonymousScript
             ? curModuleFullName
             : null);
@@ -225,21 +235,21 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   dynamic visitConstIntExpr(ConstIntExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    return getInt64(expr.constIndex);
+    return _curCode.constTable.getInt64(expr.constIndex);
   }
 
   @override
   dynamic visitConstFloatExpr(ConstFloatExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    return getFloat64(expr.constIndex);
+    return _curCode.constTable.getFloat64(expr.constIndex);
   }
 
   @override
   dynamic visitConstStringExpr(ConstStringExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
-    return getUtf8String(expr.constIndex);
+    return _curCode.constTable.getUtf8String(expr.constIndex);
   }
 
   @override
@@ -250,7 +260,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   }
 
   @override
-  dynamic visitLiteralListExpr(LiteralVectorExpr expr) {
+  dynamic visitLiteralListExpr(LiteralListExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
     var list = [];
@@ -261,7 +271,7 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
   }
 
   @override
-  dynamic visitLiteralMapExpr(LiteralDictExpr expr) {
+  dynamic visitLiteralMapExpr(LiteralMapExpr expr) {
     _curLine = expr.line;
     _curColumn = expr.column;
     var map = {};
@@ -379,6 +389,9 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
 
   @override
   dynamic visitTypeExpr(TypeExpr expr) {}
+
+  @override
+  dynamic visitParamTypeExpr(ParamTypeExpr expr) {}
 
   @override
   dynamic visitFunctionTypeExpr(TypeExpr expr) {}
@@ -507,6 +520,9 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       throw HTError.notCallable(callee.toString());
     }
   }
+
+  @override
+  dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
 
   // @override
   // dynamic visitAssignExpr(AssignExpr expr) {
@@ -711,15 +727,15 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
     //   value = visitASTNode(stmt.initializer!);
     // }
 
-    _curNamespace.define(HTAstVariable(
-      stmt.id,
-      this,
-      declType: stmt.declType,
-      initializer: stmt.initializer,
-      isDynamic: stmt.isDynamic,
-      isExternal: stmt.isExternal,
-      isImmutable: stmt.isImmutable,
-    ));
+    // _curNamespace.define(HTAstVariable(
+    //   stmt.id,
+    //   this,
+    //   declType: stmt.declType,
+    //   initializer: stmt.initializer,
+    //   isDynamic: stmt.isDynamic,
+    //   isExternal: stmt.isExternal,
+    //   isImmutable: stmt.isImmutable,
+    // ));
 
     // return value;
   }
@@ -777,19 +793,19 @@ class HTAnalyzer extends Interpreter with ConstTable implements AstNodeVisitor {
       //   value = visitASTNode(variable.initializer!);
       // }
 
-      final decl = HTAstVariable(variable.id, this,
-          declType: variable.declType,
-          isDynamic: variable.isDynamic,
-          isExternal: variable.isExternal,
-          isImmutable: variable.isImmutable,
-          isMember: true,
-          isStatic: variable.isStatic);
+      // final decl = HTAstVariable(variable.id, this,
+      //     declType: variable.declType,
+      //     isDynamic: variable.isDynamic,
+      //     isExternal: variable.isExternal,
+      //     isImmutable: variable.isImmutable,
+      //     isMember: true,
+      //     isStatic: variable.isStatic);
 
-      if (variable.isStatic) {
-        klass.namespace.define(decl);
-      } else {
-        klass.defineInstanceMember(decl);
-      }
+      // if (variable.isStatic) {
+      //   klass.namespace.define(decl);
+      // } else {
+      //   klass.defineInstanceMember(decl);
+      // }
     }
 
     _curNamespace = save;

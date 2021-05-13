@@ -1,12 +1,12 @@
-import '../implementation/interpreter.dart';
-import '../implementation/object.dart';
-import '../implementation/class.dart';
-import '../implementation/function.dart';
+import '../core/abstract_interpreter.dart';
+import '../core/object.dart';
+import '../core/function/abstract_function.dart';
+import '../core/class/class.dart';
 import '../type_system/type.dart';
 import '../type_system/value_type.dart';
 import '../type_system/nominal_type.dart';
-import '../common/lexicon.dart';
-import '../common/errors.dart';
+import '../grammar/lexicon.dart';
+import '../error/errors.dart';
 import 'external_class.dart';
 
 /// Class for external object.
@@ -23,7 +23,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
 
   /// Create a external class object.
   HTExternalInstance(
-      this.externalObject, Interpreter interpreter, this.typeString) {
+      this.externalObject, HTInterpreter interpreter, this.typeString) {
     this.interpreter = interpreter;
     final id = HTType.parseBaseType(typeString);
     if (interpreter.containsExternalClass(id)) {

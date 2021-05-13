@@ -1,6 +1,6 @@
 import 'package:quiver/core.dart';
 
-import '../implementation/class.dart';
+import '../core/class/class.dart';
 import 'type.dart';
 import 'value_type.dart';
 

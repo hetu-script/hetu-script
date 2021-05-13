@@ -1,4 +1,4 @@
-import '../common/lexicon.dart';
+import '../grammar/lexicon.dart';
 
 class Token {
   final String lexeme;

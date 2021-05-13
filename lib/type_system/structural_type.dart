@@ -1,5 +1,5 @@
-import '../implementation/object.dart';
-import '../common/lexicon.dart';
+import '../core/object.dart';
+import '../grammar/lexicon.dart';
 import 'type.dart';
 
 abstract class HTStructuralType extends HTType with HTObject {

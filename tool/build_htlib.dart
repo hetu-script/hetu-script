@@ -19,7 +19,7 @@ void main() {
 /// Automatically generated based on files in \'hetu_lib\' folder.
 final Map<String, String> coreModules = const {
       ''';
-  final output = File('lib/implementation/hetu_lib.dart');
+  final output = File('lib/core/hetu_lib.dart');
   for (final file in coreModules.keys) {
     final data = File(coreModules[file]!).readAsStringSync();
     // TODO: 脚本中的引号需要以反义字符替换

@@ -31,8 +31,8 @@ abstract class HTLexicon {
   static const tokenGroupInt = 7;
   static const tokenGroupString = 8;
 
-  static const object = 'object';
-  static const function = 'function';
+  static const identifier = 'identifier';
+  static const punctuation = 'punctuation';
   static const boolean = 'bool';
   static const number = 'num';
   static const integer = 'int';
@@ -74,23 +74,43 @@ abstract class HTLexicon {
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';
-  static const unknown = 'unknown';
   static const instance = '\$_instance_';
   static const constructor = '\$_constructor_';
   static const getter = '\$_getter_';
   static const setter = '\$_setter_';
-
   static const instanceOf = 'instance of';
-  static const identifier = 'identifier';
+  static const typesBracketLeft = '<';
+  static const typesBracketRight = '>';
+  static const arrow = '->';
+  static const bigarrow = '=>';
 
+  static const NULL = 'null';
   static const TRUE = 'true';
   static const FALSE = 'false';
-  static const NULL = 'null';
 
   static const VAR = 'var';
   static const LET = 'let';
   static const FINAL = 'final';
   static const CONST = 'const';
+
+  static const ANY = 'any';
+  static const VOID = 'void';
+  static const unknown = 'unknown';
+  static const type = 'type';
+  static const object = 'object';
+  static const function = 'function';
+
+  static const Set<String> primitiveType = {
+    ANY,
+    VOID,
+    CLASS,
+    ENUM,
+    NAMESPACE,
+    unknown,
+    type,
+    object,
+    function,
+  };
 
   /// 变量声明
   static const Set<String> varDeclKeywords = {
@@ -100,100 +120,81 @@ abstract class HTLexicon {
     CONST,
   };
 
-  static const typesBracketLeft = '<';
-  static const typesBracketRight = '>';
-  static const arrow = '->';
-  static const bigarrow = '=>';
-
-  static const TYPE = 'type';
-  static const VOID = 'void';
-  // any并不是一个类型，而是一个向解释器表示放弃类型检查的关键字
-  static const ANY = 'any';
-  static const unionType = 'union_type';
-
-  static const Set<String> primitiveType = {
-    TYPE,
-    ANY,
-    NULL,
-    VOID,
-    CLASS,
-    ENUM,
-    NAMESPACE,
-    unknown,
-    object,
-    function,
-  };
-
-  static const CONSTRUCT = 'construct';
-  static const GET = 'get';
-  static const SET = 'set';
-
-  static const STATIC = 'static';
+  static const TYPEOF = 'typeof';
+  static const IMPORT = 'import';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
   static const SHOW = 'show';
   static const CLASS = 'class';
   static const ENUM = 'enum';
-  static const STRUCT = 'struct';
   static const FUNCTION = 'fun';
-  static const ASYNC = 'async';
+  static const STRUCT = 'struct';
+  static const INTERFACE = 'inteface';
   static const THIS = 'this';
   static const SUPER = 'super';
   static const ABSTRACT = 'abstract';
+  static const EXTERNAL = 'external';
+  static const STATIC = 'static';
   static const EXTENDS = 'extends';
   static const IMPLEMENTS = 'implements';
-  static const EXTERNAL = 'external';
-  static const IMPORT = 'import';
-
   static const MIXIN = 'mixin';
+
+  static const CONSTRUCT = 'construct';
+  static const GET = 'get';
+  static const SET = 'set';
+  static const ASYNC = 'async';
 
   static const AWAIT = 'await';
   static const ASSERT = 'assert';
   static const BREAK = 'break';
   static const CONTINUE = 'continue';
+  static const RETURN = 'return';
   static const FOR = 'for';
   static const IN = 'in';
   static const OF = 'of';
   static const IF = 'if';
   static const ELSE = 'else';
-  static const RETURN = 'return';
   static const WHILE = 'while';
   static const DO = 'do';
   static const WHEN = 'when';
-
   static const IS = 'is';
+  static const ISNOT = 'is!';
 
   /// 保留字，不能用于变量名字
   static const Set<String> reservedKeywords = {
     NULL,
-    IMPORT,
-    EXTERNAL,
-    ABSTRACT,
-    STATIC,
+    TRUE,
+    FALSE,
     VAR,
     LET,
     FINAL,
     CONST,
+    IMPORT,
     CLASS,
     ENUM,
-    STRUCT,
-    CONSTRUCT,
-    GET,
-    SET,
     FUNCTION,
-    ASYNC, // TODO: async单独可以用作函数声明关键字
-    AWAIT,
-    VOID,
+    STRUCT,
+    INTERFACE,
+    THIS,
+    SUPER,
+    ABSTRACT,
+    EXTERNAL,
+    STATIC,
     EXTENDS,
     IMPLEMENTS,
     MIXIN,
-    THIS,
-    SUPER,
+    CONSTRUCT,
+    GET,
+    SET,
+    ASYNC, // TODO: async单独可以用作函数声明关键字
+    AWAIT,
+    ASSERT,
     BREAK,
     CONTINUE,
     RETURN,
     FOR,
     IN,
+    OF,
     IF,
     ELSE,
     WHILE,

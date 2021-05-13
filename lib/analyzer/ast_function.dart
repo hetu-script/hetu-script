@@ -1,10 +1,10 @@
-import '../implementation/instance.dart';
-import '../implementation/namespace.dart';
-import '../implementation/variable.dart';
-import '../implementation/function.dart';
-import '../implementation/object.dart';
-import '../common/errors.dart';
-import '../common/lexicon.dart';
+import '../core/namespace/namespace.dart';
+import '../core/variable.dart';
+import '../core/function/abstract_function.dart';
+import '../core/object.dart';
+import '../core/class/instance.dart';
+import '../error/errors.dart';
+import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
 import 'ast.dart';
 import 'analyzer.dart';
