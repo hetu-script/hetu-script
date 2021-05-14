@@ -9,7 +9,7 @@ import '../object.dart';
 
 /// A implementation of [HTNamespace].
 /// For interpreter searching for symbols from a certain block or module.
-class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
+class HTNamespace extends HTDeclaration with HTObject, InterpreterRef {
   static int _spaceIndex = 0;
 
   static String _getFullName(String id, HTNamespace? space) {
@@ -44,9 +44,7 @@ class HTNamespace with HTDeclaration, HTObject, InterpreterRef {
     String? id,
     String? classId,
     this.closure,
-  }) {
-    this.id = id ?? '${HTLexicon.anonymousNamespace}${_spaceIndex++}';
-    this.classId = classId;
+  }) : super(id ?? '${HTLexicon.anonymousNamespace}${_spaceIndex++}', classId) {
     this.interpreter = interpreter;
     fullName = _getFullName(this.id, closure);
   }

@@ -7,7 +7,7 @@ import '../object.dart';
 import '../declaration.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
-class HTEnum with HTDeclaration, HTObject, InterpreterRef {
+class HTEnum extends HTDeclaration with HTObject, InterpreterRef {
   @override
   HTType get valueType => HTType.ENUM;
 
@@ -19,8 +19,8 @@ class HTEnum with HTDeclaration, HTObject, InterpreterRef {
 
   /// Create a default [HTEnum] class.
   HTEnum(String id, this.enums, HTInterpreter interpreter,
-      {this.isExternal = false}) {
-    this.id = id;
+      {String? classId, this.isExternal = false})
+      : super(id, classId) {
     this.interpreter = interpreter;
   }
 

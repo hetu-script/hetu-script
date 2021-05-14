@@ -4,7 +4,7 @@ import 'abstract_interpreter.dart';
 
 /// 一个变量声明，包含了类型等额外信息。
 /// 在编译后的代码中，被提前到整个代码块最前面。
-class HTVariable with HTDeclaration, InterpreterRef {
+class HTVariable extends HTDeclaration with InterpreterRef {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 
@@ -29,9 +29,8 @@ class HTVariable with HTDeclaration, InterpreterRef {
       this.setter,
       this.isExternal = false,
       this.isStatic = false,
-      this.closure}) {
-    this.id = id;
-    this.classId = classId;
+      this.closure})
+      : super(id, classId) {
     this.interpreter = interpreter;
     if (value != null) {
       this.value = value;

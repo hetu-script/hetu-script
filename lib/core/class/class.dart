@@ -11,14 +11,14 @@ import 'enum.dart';
 import '../object.dart';
 import 'instance.dart';
 
-class ClassInfo with HTDeclaration {
+class ClassInfo extends HTDeclaration {
   final bool isExternal;
 
   final bool isAbstract;
 
-  ClassInfo(String id, {this.isExternal = false, this.isAbstract = false}) {
-    this.id = id;
-  }
+  ClassInfo(String id,
+      {String? classId, this.isExternal = false, this.isAbstract = false})
+      : super(id, classId);
 }
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
@@ -70,6 +70,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
     HTInterpreter interpreter,
     this.moduleFullName,
     HTNamespace closure, {
+    String? classId,
     bool isExternal = false,
     bool isAbstract = false,
     this.superClass,
@@ -78,7 +79,8 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
     // this.implementedClass = const [],
     // this.mixinedClass = const []
   })  : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
-        super(id, isExternal: isExternal, isAbstract: isAbstract) {
+        super(id,
+            classId: classId, isExternal: isExternal, isAbstract: isAbstract) {
     this.interpreter = interpreter;
   }
 

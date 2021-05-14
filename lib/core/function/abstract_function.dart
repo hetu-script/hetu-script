@@ -9,7 +9,7 @@ import '../class/class.dart';
 
 /// [HTFunction] is the base class of
 /// [HTAstFunction] and [HTBytecodeFunction] in Hetu.
-abstract class HTFunction with HTDeclaration, HTObject, InterpreterRef {
+abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
   static final callStack = <String>[];
 
   final String declId;
@@ -56,9 +56,8 @@ abstract class HTFunction with HTDeclaration, HTObject, InterpreterRef {
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0,
-      HTNamespace? context}) {
-    this.id = id;
-    classId = klass?.id;
+      HTNamespace? context})
+      : super(id, klass?.id) {
     this.interpreter = interpreter;
     this.context = context;
   }
