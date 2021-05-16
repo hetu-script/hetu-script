@@ -1,4 +1,5 @@
 import '../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
 
 class Token {
   final String lexeme;
@@ -18,7 +19,7 @@ class Token {
 
 class TokenIdentifier extends Token {
   @override
-  String get type => HTLexicon.identifier;
+  String get type => SemanticType.identifier;
 
   TokenIdentifier(String lexeme, String moduleFullName, int line, int column)
       : super(lexeme, moduleFullName, line, column);
@@ -77,8 +78,22 @@ class TokenStringLiteral extends Token {
   final String literal;
 
   @override
-  String get type => HTLexicon.string;
+  String get type => SemanticType.literalString;
 
   TokenStringLiteral(this.literal, String moduleFullName, int line, int column)
+      : super(literal, moduleFullName, line, column);
+}
+
+class TokenComment extends Token {
+  @override
+  final String literal;
+
+  final bool multiline;
+
+  @override
+  String get type => SemanticType.comment;
+
+  TokenComment(this.literal, String moduleFullName, int line, int column,
+      {this.multiline = false})
       : super(literal, moduleFullName, line, column);
 }

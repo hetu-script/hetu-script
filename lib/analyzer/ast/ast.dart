@@ -10,10 +10,15 @@ abstract class AstNode {
   final int line;
   final int column;
 
+  final List<TokenComment>? preComments;
+
+  final TokenComment? inlineComment;
+
   /// 取表达式右值，返回值本身
   dynamic accept(AbstractAstVisitor visitor);
 
-  AstNode(this.type, this.line, this.column);
+  AstNode(this.type, this.line, this.column,
+      {this.preComments, this.inlineComment});
 }
 
 class NullExpr extends AstNode {
@@ -21,7 +26,7 @@ class NullExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitNullExpr(this);
 
   NullExpr(int line, int column)
-      : super(SemanticType.literalNullExpr, line, column);
+      : super(SemanticType.literalNull, line, column);
 }
 
 class BooleanExpr extends AstNode {
@@ -31,7 +36,7 @@ class BooleanExpr extends AstNode {
   final bool value;
 
   BooleanExpr(this.value, int line, int column)
-      : super(SemanticType.literalBooleanExpr, line, column);
+      : super(SemanticType.literalBoolean, line, column);
 }
 
 class ConstIntExpr extends AstNode {
@@ -41,7 +46,7 @@ class ConstIntExpr extends AstNode {
   final int constIndex;
 
   ConstIntExpr(this.constIndex, int line, int column)
-      : super(SemanticType.literalIntExpr, line, column);
+      : super(SemanticType.literalInt, line, column);
 }
 
 class ConstFloatExpr extends AstNode {
@@ -52,7 +57,7 @@ class ConstFloatExpr extends AstNode {
   final int constIndex;
 
   ConstFloatExpr(this.constIndex, int line, int column)
-      : super(SemanticType.literalFloatExpr, line, column);
+      : super(SemanticType.literalFloat, line, column);
 }
 
 class ConstStringExpr extends AstNode {
@@ -63,7 +68,7 @@ class ConstStringExpr extends AstNode {
   final int constIndex;
 
   ConstStringExpr(this.constIndex, int line, int column)
-      : super(SemanticType.literalStringExpr, line, column);
+      : super(SemanticType.literalString, line, column);
 }
 
 class LiteralListExpr extends AstNode {

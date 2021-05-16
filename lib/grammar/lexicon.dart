@@ -23,7 +23,8 @@ abstract class HTLexicon {
     RETURN,
   };
 
-  static const tokenGroupComment = 1;
+  static const tokenGroupSingleComment = 2;
+  static const tokenGroupBlockComment = 3;
   static const tokenGroupIdentifier = 4;
   static const tokenGroupPunctuation = 5;
   static const tokenGroupNumber = 6;
@@ -31,7 +32,6 @@ abstract class HTLexicon {
   static const tokenGroupInt = 7;
   static const tokenGroupString = 8;
 
-  static const identifier = 'identifier';
   static const punctuation = 'punctuation';
   static const boolean = 'bool';
   static const number = 'num';

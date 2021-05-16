@@ -74,8 +74,8 @@ abstract class AbstractParser {
   //     throw HTError.emptyString(SemanticType.typeExpression);
   //   }
 
-  //   if (tokens.first.type != HTLexicon.identifier) {
-  //     throw HTError.unexpected(HTLexicon.identifier, tokens.first.lexeme);
+  //   if (tokens.first.type != SemanticType.identifier) {
+  //     throw HTError.unexpected(SemanticType.identifier, tokens.first.lexeme);
   //   }
 
   //   final parseResult = _parseTypeFromTokens(tokens);

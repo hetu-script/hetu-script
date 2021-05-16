@@ -25,6 +25,9 @@ enum TypeType {
 }
 
 abstract class SemanticType {
+  static const comment = 'comment';
+  static const identifier = 'identifier';
+
   static const expression = 'expression';
   static const statement = 'statement';
   static const declStmt = 'declaration_statement';
@@ -33,12 +36,12 @@ abstract class SemanticType {
 
   static const ctorCallExpr = 'constructor_call_expression';
 
-  static const literalNullExpr = 'literal_null_expression';
-  static const literalBooleanExpr = 'literal_boolean_expression';
-  static const literalIntExpr = 'literal_integer_expression';
-  static const literalFloatExpr = 'literal_float_expression';
-  static const literalStringExpr = 'literal_string_expression';
-  static const literalFunctionExpr = 'literal_function_expression';
+  static const literalNull = 'literal_null';
+  static const literalBoolean = 'literal_boolean';
+  static const literalInt = 'literal_integer';
+  static const literalFloat = 'literal_float';
+  static const literalString = 'literal_string';
+  static const literalFunction = 'literal_function_expression';
   static const typeExpr = 'type_expression';
   static const unionTypeExpr = 'union_type_expression';
   static const paramTypeExpr = 'parameter_type_expression';

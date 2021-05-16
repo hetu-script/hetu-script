@@ -107,7 +107,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
               case HTLexicon.CONST:
                 throw HTError.externalVar();
               case HTLexicon.FUNCTION:
-                if (expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
+                if (expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
                   return _parseFuncDeclaration(isExternal: true);
                 } else {
                   throw HTError.unexpected(
@@ -134,13 +134,13 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           case HTLexicon.CONST:
             return _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
+            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
                 expect([
                   HTLexicon.FUNCTION,
                   HTLexicon.squareLeft,
-                  HTLexicon.identifier,
+                  SemanticType.identifier,
                   HTLexicon.squareRight,
-                  HTLexicon.identifier
+                  SemanticType.identifier
                 ])) {
               return _parseFuncDeclaration();
             } else {
@@ -184,7 +184,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
               case HTLexicon.ENUM:
                 return _parseEnumDeclStmt(isExternal: true);
               case HTLexicon.FUNCTION:
-                if (!expect([HTLexicon.FUNCTION, HTLexicon.identifier])) {
+                if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
                   throw HTError.unexpected(
                       SemanticType.funcDecl, peek(1).lexeme);
                 }
@@ -223,13 +223,13 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           case HTLexicon.CONST:
             return _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
+            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
                 expect([
                   HTLexicon.FUNCTION,
                   HTLexicon.squareLeft,
-                  HTLexicon.identifier,
+                  SemanticType.identifier,
                   HTLexicon.squareRight,
-                  HTLexicon.identifier
+                  SemanticType.identifier
                 ])) {
               return _parseFuncDeclaration();
             } else {
@@ -321,7 +321,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     String key = match(HTLexicon.string).literal;
     String? alias;
     if (expect([HTLexicon.AS], consume: true)) {
-      alias = match(HTLexicon.identifier).lexeme;
+      alias = match(SemanticType.identifier).lexeme;
 
       if (alias.isEmpty) {
         throw HTError.emptyString();
@@ -331,7 +331,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     final showList = <String>[];
     if (curTok.lexeme == HTLexicon.SHOW) {
       advance(1);
-      while (curTok.type == HTLexicon.identifier) {
+      while (curTok.type == SemanticType.identifier) {
         showList.add(advance(1).lexeme);
         if (curTok.type != HTLexicon.comma) {
           break;
@@ -487,7 +487,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       switch (op.type) {
         case HTLexicon.memberGet:
           _leftValueLegality = true;
-          final name = match(HTLexicon.identifier).lexeme;
+          final name = match(SemanticType.identifier).lexeme;
           expr = MemberGetExpr(expr, name);
           break;
         case HTLexicon.subGet:
@@ -592,7 +592,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
       case HTLexicon.FUNCTION:
         return _parseFuncDeclaration(category: FunctionCategory.literal);
-      case HTLexicon.identifier:
+      case SemanticType.identifier:
         // literal function type
         if (curTok.lexeme == HTLexicon.function) {
           _leftValueLegality = false;
@@ -636,7 +636,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         if (!isNamed) {
           isVariadic = expect([HTLexicon.variadicArgs], consume: true);
         } else {
-          paramId = match(HTLexicon.identifier).lexeme;
+          paramId = match(SemanticType.identifier).lexeme;
           match(HTLexicon.colon);
         }
 
@@ -672,7 +672,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     }
     // TODO: interface type
     else {
-      final id = match(HTLexicon.identifier);
+      final id = match(SemanticType.identifier);
 
       final typeArgs = <TypeExpr>[];
       if (expect([HTLexicon.angleLeft], consume: true)) {
@@ -715,11 +715,11 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     while ((curTok.type != HTLexicon.roundRight) &&
         (curTok.type != HTLexicon.endOfFile)) {
       if ((!isNamed &&
-              expect([HTLexicon.identifier, HTLexicon.colon],
+              expect([SemanticType.identifier, HTLexicon.colon],
                   consume: false)) ||
           isNamed) {
         isNamed = true;
-        final name = match(HTLexicon.identifier).lexeme;
+        final name = match(SemanticType.identifier).lexeme;
         match(HTLexicon.colon);
         final value = _parseExpr();
         namedArgs[name] = value;
@@ -929,7 +929,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       AstNode? additionalInitializer,
       bool endOfStatement = false}) {
     advance(1);
-    var idTok = match(HTLexicon.identifier);
+    var idTok = match(SemanticType.identifier);
     var id = idTok.lexeme;
 
     if (isMember && isExternal) {
@@ -989,7 +989,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         if (isExternal) {
           throw HTError.internalFuncWithExternalTypeDef();
         }
-        externalTypedef = match(HTLexicon.identifier).lexeme;
+        externalTypedef = match(SemanticType.identifier).lexeme;
         match(HTLexicon.squareRight);
       }
     }
@@ -999,11 +999,11 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
     if (category != FunctionCategory.literal) {
       if (category == FunctionCategory.constructor) {
-        if (curTok.type == HTLexicon.identifier) {
+        if (curTok.type == SemanticType.identifier) {
           declId = advance(1).lexeme;
         }
       } else {
-        declId = match(HTLexicon.identifier).lexeme;
+        declId = match(SemanticType.identifier).lexeme;
       }
     }
 
@@ -1093,7 +1093,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           }
         }
 
-        var paramId = match(HTLexicon.identifier);
+        var paramId = match(SemanticType.identifier);
         TypeExpr? paramDeclType;
 
         if (expect([HTLexicon.colon], consume: true)) {
@@ -1169,7 +1169,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
       late ReferConstructorExpr referCtorExpr;
       if (expect([HTLexicon.memberGet], consume: true)) {
-        final ctorCallName = match(HTLexicon.identifier).lexeme;
+        final ctorCallName = match(SemanticType.identifier).lexeme;
         match(HTLexicon.roundLeft);
         referCtorExpr = ReferConstructorExpr(
           ctorToken.lexeme == HTLexicon.SUPER,
@@ -1229,7 +1229,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     // 已经判断过了所以直接跳过关键字
     final keyword = advance(1);
 
-    final id = match(HTLexicon.identifier);
+    final id = match(SemanticType.identifier);
 
     final typeParameters = <TypeExpr>[];
 
@@ -1294,7 +1294,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     // 已经判断过了所以直接跳过关键字
     final keyword = advance(1);
 
-    final id = match(HTLexicon.identifier);
+    final id = match(SemanticType.identifier);
 
     // if (_mainBlock.contains(class_name.lexeme)) {
     //   throw HTError.definedParser(class_name.lexeme);
@@ -1304,7 +1304,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       while (curTok.type != HTLexicon.curlyRight &&
           curTok.type != HTLexicon.endOfFile) {
-        enumerations.add(match(HTLexicon.identifier).lexeme);
+        enumerations.add(match(SemanticType.identifier).lexeme);
         if (curTok.type != HTLexicon.curlyRight) {
           match(HTLexicon.comma);
         }

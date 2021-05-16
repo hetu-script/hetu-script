@@ -28,93 +28,98 @@ class Lexer {
       for (final match in matches) {
         final matchString = match.group(0)!;
         curColumn = column + match.start + 1;
-        if (match.group(HTLexicon.tokenGroupComment) == null) {
-          // 标识符
-          if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
-            if (HTLexicon.reservedKeywords.contains(matchString)) {
-              toksOfLine.add(Token(matchString, fileName, curLine, curColumn));
-            } else if (matchString == HTLexicon.TRUE) {
-              toksOfLine.add(TokenBoolLiteral(
-                  matchString, true, fileName, curLine, curColumn));
-            } else if (matchString == HTLexicon.FALSE) {
-              toksOfLine.add(TokenBoolLiteral(
-                  matchString, false, fileName, curLine, curColumn));
-            } else {
-              toksOfLine.add(
-                  TokenIdentifier(matchString, fileName, curLine, curColumn));
-            }
-          }
-          // 标点符号和运算符号
-          else if (match.group(HTLexicon.tokenGroupPunctuation) != null) {
+        if (match.group(HTLexicon.tokenGroupSingleComment) != null) {
+          toksOfLine.add(TokenComment(matchString, fileName, curLine, curColumn,
+              multiline: false));
+        } else if (match.group(HTLexicon.tokenGroupBlockComment) != null) {
+          toksOfLine.add(TokenComment(matchString, fileName, curLine, curColumn,
+              multiline: true));
+        }
+        // 标识符
+        else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
+          if (HTLexicon.reservedKeywords.contains(matchString)) {
             toksOfLine.add(Token(matchString, fileName, curLine, curColumn));
+          } else if (matchString == HTLexicon.TRUE) {
+            toksOfLine.add(TokenBoolLiteral(
+                matchString, true, fileName, curLine, curColumn));
+          } else if (matchString == HTLexicon.FALSE) {
+            toksOfLine.add(TokenBoolLiteral(
+                matchString, false, fileName, curLine, curColumn));
+          } else {
+            toksOfLine.add(
+                TokenIdentifier(matchString, fileName, curLine, curColumn));
           }
-          // 数字字面量
-          else if (match.group(HTLexicon.tokenGroupNumber) != null) {
-            if (matchString.contains(HTLexicon.memberGet)) {
-              toksOfLine.add(TokenFloatLiteral(matchString,
-                  double.parse(matchString), fileName, curLine, curColumn));
-            } else {
-              toksOfLine.add(TokenIntLiteral(matchString,
-                  int.parse(matchString), fileName, curLine, curColumn));
-            }
+        }
+        // 标点符号和运算符号
+        else if (match.group(HTLexicon.tokenGroupPunctuation) != null) {
+          toksOfLine.add(Token(matchString, fileName, curLine, curColumn));
+        }
+        // 数字字面量
+        else if (match.group(HTLexicon.tokenGroupNumber) != null) {
+          if (matchString.contains(HTLexicon.memberGet)) {
+            toksOfLine.add(TokenFloatLiteral(matchString,
+                double.parse(matchString), fileName, curLine, curColumn));
+          } else {
+            toksOfLine.add(TokenIntLiteral(matchString, int.parse(matchString),
+                fileName, curLine, curColumn));
           }
-          // 字符串字面量
-          else if (match.group(HTLexicon.tokenGroupString) != null) {
-            final stringTokens = <Token>[];
+        }
+        // 字符串字面量
+        else if (match.group(HTLexicon.tokenGroupString) != null) {
+          final stringTokens = <Token>[];
 
-            final literal = matchString.substring(1, matchString.length - 1);
+          final literal = matchString.substring(1, matchString.length - 1);
 
-            final pattern = RegExp(r'(\${([^\${}]+)})');
-            final matches = pattern.allMatches(literal);
-            var start = 0;
-            if (matches.isNotEmpty) {
-              for (final match in matches) {
-                if (match.group(1) != null) {
-                  if (match.start > 0) {
-                    final preString = literal.substring(start, match.start);
-                    final processed = escapeString(preString);
-                    stringTokens.add(TokenStringLiteral(
-                        processed, fileName, curLine, curColumn));
-                    stringTokens.add(
-                        Token(HTLexicon.add, fileName, curLine, curColumn + 1));
-                  }
-                  start += match.end - start;
-
-                  final matchString = match.group(1)!;
-                  final expresstion =
-                      matchString.substring(2, matchString.length - 1);
-                  stringTokens.add(TokenIdentifier(
-                      HTLexicon.string, fileName, curLine, curColumn));
-                  stringTokens.add(Token(
-                      HTLexicon.memberGet, fileName, curLine, match.start));
-                  stringTokens.add(TokenIdentifier(
-                      HTLexicon.parse, fileName, curLine, curColumn));
-                  stringTokens.add(Token(
-                      HTLexicon.roundLeft, fileName, curLine, match.start));
-                  stringTokens.addAll(lex(expresstion, fileName,
-                      line: curLine, column: match.start));
-                  stringTokens.add(Token(
-                      HTLexicon.roundRight, fileName, curLine, match.end));
-                  stringTokens
-                      .add(Token(HTLexicon.add, fileName, curLine, match.end));
+          final pattern = RegExp(r'(\${([^\${}]+)})');
+          final matches = pattern.allMatches(literal);
+          var start = 0;
+          if (matches.isNotEmpty) {
+            for (final match in matches) {
+              if (match.group(1) != null) {
+                if (match.start > 0) {
+                  final preString = literal.substring(start, match.start);
+                  final processed = escapeString(preString);
+                  stringTokens.add(TokenStringLiteral(
+                      processed, fileName, curLine, curColumn));
+                  stringTokens.add(
+                      Token(HTLexicon.add, fileName, curLine, curColumn + 1));
                 }
+                start += match.end - start;
+
+                final matchString = match.group(1)!;
+                final expresstion =
+                    matchString.substring(2, matchString.length - 1);
+                stringTokens.add(TokenIdentifier(
+                    HTLexicon.string, fileName, curLine, curColumn));
+                stringTokens.add(
+                    Token(HTLexicon.memberGet, fileName, curLine, match.start));
+                stringTokens.add(TokenIdentifier(
+                    HTLexicon.parse, fileName, curLine, curColumn));
+                stringTokens.add(
+                    Token(HTLexicon.roundLeft, fileName, curLine, match.start));
+                stringTokens.addAll(lex(expresstion, fileName,
+                    line: curLine, column: match.start));
+                stringTokens.add(
+                    Token(HTLexicon.roundRight, fileName, curLine, match.end));
+                stringTokens
+                    .add(Token(HTLexicon.add, fileName, curLine, match.end));
               }
-              if (start < literal.length) {
-                final restString = literal.substring(start);
-                final processed = escapeString(restString);
-                stringTokens.add(TokenStringLiteral(
-                    processed, fileName, curLine, curColumn));
-              } else {
-                stringTokens.removeLast();
-              }
-            } else {
-              final processed = escapeString(literal);
+            }
+            if (start < literal.length) {
+              final restString = literal.substring(start);
+              final processed = escapeString(restString);
               stringTokens.add(
                   TokenStringLiteral(processed, fileName, curLine, curColumn));
+            } else {
+              stringTokens.removeLast();
             }
-
-            toksOfLine.addAll(stringTokens);
+          } else {
+            final processed = escapeString(literal);
+            stringTokens.add(
+                TokenStringLiteral(processed, fileName, curLine, curColumn));
           }
+
+          toksOfLine.addAll(stringTokens);
         }
       }
 
