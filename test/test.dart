@@ -5,8 +5,7 @@ void main() async {
   await hetu.init();
   await hetu.eval(
     r'''
-      var a: function(num) -> num = fun(n: any) -> any { return any }
-      print(a.valueType)
+    print(1 is! num)
   ''',
     config: InterpreterConfig(sourceType: SourceType.script),
     // invokeFunc: 'forwardDecl',

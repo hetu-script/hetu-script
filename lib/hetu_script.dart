@@ -14,6 +14,7 @@ export 'core/abstract_interpreter.dart' show InterpreterConfig;
 export 'type_system/type.dart';
 export 'analyzer/ast/ast.dart';
 export 'analyzer/analyzer.dart';
+export 'analyzer/formatter.dart';
 export 'interpreter/interpreter.dart';
 export 'binding/external_class.dart';
 export 'binding/external_instance.dart';

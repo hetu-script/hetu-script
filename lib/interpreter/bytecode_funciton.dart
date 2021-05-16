@@ -57,7 +57,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     String id,
     this.interpreter,
     String moduleFullName, {
-    String declId = '',
+    String? declId,
     HTClass? klass,
     FunctionCategory category = FunctionCategory.normal,
     bool isExternal = false,
@@ -76,7 +76,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     int maxArity = 0,
     HTNamespace? context,
     this.referConstructor,
-  }) : super(id, declId, interpreter,
+  }) : super(id, interpreter,
+            declId: declId,
             klass: klass,
             category: category,
             isExternal: isExternal,
@@ -124,7 +125,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     var namedStarted = false;
     for (final param in parameterDeclarations.values) {
       if (param.isVariadic) {
-        result.write(HTLexicon.varargs + ' ');
+        result.write(HTLexicon.variadicArgs + ' ');
       }
       if (param.isOptional && !optionalStarted) {
         optionalStarted = true;
@@ -146,8 +147,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
       }
       ++i;
     }
-    result.write(
-        '${HTLexicon.roundRight}${HTLexicon.arrow} ' + returnType.toString());
+    result.write('${HTLexicon.roundRight}${HTLexicon.singleArrow} ' +
+        returnType.toString());
     return result.toString();
   }
 
@@ -389,7 +390,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
               if (isStatic || (category == FunctionCategory.constructor)) {
                 final externClass = interpreter.fetchExternalClass(classId!);
                 final funcName =
-                    (declId.isEmpty) ? classId! : '${classId!}.$declId';
+                    (declId == null) ? classId! : '${classId!}.$declId';
                 externalFuncDef = externClass.memberGet(funcName);
               } else {
                 throw HTError.missingExternalFuncDef(id);
@@ -411,7 +412,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
             }
           } else {
             final externClass = interpreter.fetchExternalClass(classId!);
-            final funcName = isStatic ? '${classId!}.$declId' : declId;
+            final funcName = isStatic ? '${classId!}.${declId!}' : declId!;
             result = externClass.memberGet(funcName);
           }
         }

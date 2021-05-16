@@ -1,7 +1,7 @@
 import '../type_system/type.dart';
 import '../core/abstract_interpreter.dart';
 import '../grammar/lexicon.dart';
-import '../exception/errors.dart';
+import '../error/errors.dart';
 import '../binding/external_instance.dart';
 
 extension IntBinding on int {

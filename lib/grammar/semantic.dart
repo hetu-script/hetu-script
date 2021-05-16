@@ -25,6 +25,14 @@ enum TypeType {
 }
 
 abstract class SemanticType {
+  static const expression = 'expression';
+  static const statement = 'statement';
+  static const declStmt = 'declaration_statement';
+  static const thenBranch = 'then_branch';
+  static const elseBranch = 'else_branch';
+
+  static const ctorCallExpr = 'constructor_call_expression';
+
   static const literalNullExpr = 'literal_null_expression';
   static const literalBooleanExpr = 'literal_boolean_expression';
   static const literalIntExpr = 'literal_integer_expression';
@@ -54,6 +62,7 @@ abstract class SemanticType {
   static const paramDecl = 'parameter_declaration';
   static const classDecl = 'class_declaration';
   static const enumDecl = 'enum_declaration';
+  static const referCtorExpr = 'refer_constructor_expression';
   static const funcDecl = 'function_declaration';
 
   static const importStmt = 'import_statement';
@@ -67,6 +76,7 @@ abstract class SemanticType {
   static const whileStmt = 'while_statement';
   static const forStmtInit = 'for_statement_init';
   static const forStmt = 'for_statement';
+  static const forInStmt = 'for_in_statement';
   static const whenStmt = 'when_statement';
 
   static const module = 'module';

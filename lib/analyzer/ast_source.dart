@@ -7,8 +7,8 @@ class HTAstModule extends HTModule {
   final Iterable<AstNode> nodes;
 
   /// Create a ast module
-  HTAstModule(String fullName, String content, this.nodes,
-      [ConstTable? constTable])
+  HTAstModule(
+      String fullName, String content, this.nodes, ConstTable constTable)
       : super(fullName, content, constTable);
 }
 

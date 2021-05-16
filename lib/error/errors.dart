@@ -38,6 +38,7 @@ enum ErrorCode {
   immutable,
   notType,
   argType,
+  argInit,
   returnType,
   missingFuncBody,
   arity,
@@ -205,8 +206,18 @@ class HTError {
   int? column;
 
   @override
-  String toString() =>
-      '[$code]\n[$type}]\n[File: $moduleFullName]\n[Line: $line, Column: $column]\n$message';
+  String toString() {
+    final output = StringBuffer();
+    output.write('[$code]\n[$type}]\n');
+    if (moduleFullName != null) {
+      output.write('[File: $moduleFullName]\n');
+    }
+    if (line != null && column != null) {
+      output.write('[Line: $line, Column: $column]\n');
+    }
+    output.write('$message\n');
+    return output.toString();
+  }
 
   /// [HTError] can not be created by default constructor.
   HTError(this.code, this.type,
@@ -403,6 +414,11 @@ class HTError {
       : this(ErrorCode.argType, ErrorType.runtimeError,
             message: HTLexicon.errorArgType,
             interpolations: [id, assignType, declValue]);
+
+  /// Error: Only optional or named arguments can have initializer.
+  HTError.argInit()
+      : this(ErrorCode.argInit, ErrorType.compileError,
+            message: HTLexicon.errorArgInit);
 
   /// Error: Return value type check failed.
   HTError.returnType(

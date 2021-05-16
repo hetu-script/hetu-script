@@ -81,7 +81,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     _savedModuleName = _curModuleFullName;
     _savedNamespace = _curNamespace;
 
-    _curParser = HTAstParser(this);
+    _curParser = HTAstParser();
 
     _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curNamespace = namespace ?? global;
@@ -219,52 +219,38 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitNullExpr(NullExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     return null;
   }
 
   @override
   dynamic visitBooleanExpr(BooleanExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     return expr.value;
   }
 
   @override
   dynamic visitConstIntExpr(ConstIntExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     return _curCode.constTable.getInt64(expr.constIndex);
   }
 
   @override
   dynamic visitConstFloatExpr(ConstFloatExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     return _curCode.constTable.getFloat64(expr.constIndex);
   }
 
   @override
   dynamic visitConstStringExpr(ConstStringExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     return _curCode.constTable.getUtf8String(expr.constIndex);
   }
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     return visitASTNode(expr.inner);
   }
 
   @override
   dynamic visitLiteralListExpr(LiteralListExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     var list = [];
-    for (final item in expr.vector) {
+    for (final item in expr.list) {
       list.add(visitASTNode(item));
     }
     return list;
@@ -272,8 +258,6 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitLiteralMapExpr(LiteralMapExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     var map = {};
     for (final key_expr in expr.map.keys) {
       var key = visitASTNode(key_expr);
@@ -285,15 +269,11 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitSymbolExpr(SymbolExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    return _curNamespace.fetch(expr.id.lexeme);
+    return _curNamespace.fetch(expr.id);
   }
 
   @override
-  dynamic visitUnaryExpr(UnaryExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
+  dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     var value = visitASTNode(expr.value);
 
     if (expr.op.lexeme == HTLexicon.subtract) {
@@ -315,8 +295,6 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
     var left = visitASTNode(expr.left);
     var right;
     if (expr.op == HTLexicon.logicalAnd) {
@@ -391,10 +369,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   dynamic visitTypeExpr(TypeExpr expr) {}
 
   @override
-  dynamic visitParamTypeExpr(ParamTypeExpr expr) {}
-
-  @override
-  dynamic visitFunctionTypeExpr(TypeExpr expr) {}
+  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr) {}
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
@@ -586,14 +561,14 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     // }
 
     if ((object is HTObject)) {
-      return object.memberGet(expr.key.lexeme, from: _curNamespace.fullName);
+      return object.memberGet(expr.key, from: _curNamespace.fullName);
     }
     //如果是Dart对象
     else {
       var typeString = object.runtimeType.toString();
       final id = HTType.parseBaseType(typeString);
       var externClass = fetchExternalClass(id);
-      return externClass.instanceMemberGet(object, expr.key.lexeme);
+      return externClass.instanceMemberGet(object, expr.key);
     }
   }
 
@@ -630,31 +605,24 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   //   }
   // }
 
-  // @override
-  // dynamic visitImportStmt(ImportStmt stmt) {
-  //   _curLine = stmt.line;
-  //   _curColumn = stmt.column;
-  // }
+  @override
+  dynamic visitImportStmt(ImportStmt stmt) {}
 
   @override
   dynamic visitExprStmt(ExprStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-    return visitASTNode(stmt.expr);
+    if (stmt.expr != null) {
+      return visitASTNode(stmt.expr!);
+    }
   }
 
   @override
-  dynamic visitBlockStmt(BlockStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+  dynamic visitBlockStmt(BlockStmt block) {
     return executeBlock(
-        stmt.statements, HTNamespace(this, closure: _curNamespace));
+        block.statements, HTNamespace(this, closure: _curNamespace));
   }
 
   @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     if (stmt.value != null) {
       var returnValue = visitASTNode(stmt.value!);
       (returnValue != null) ? throw returnValue : throw HTObject.NULL;
@@ -663,15 +631,13 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitIfStmt(IfStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-    var value = visitASTNode(stmt.condition);
+  dynamic visitIfStmt(IfStmt ifStmt) {
+    var value = visitASTNode(ifStmt.condition);
     if (value is bool) {
       if (value) {
-        _curStmtValue = visitASTNode(stmt.thenBranch!);
-      } else if (stmt.elseBranch != null) {
-        _curStmtValue = visitASTNode(stmt.elseBranch!);
+        _curStmtValue = visitASTNode(ifStmt.thenBranch);
+      } else if (ifStmt.elseBranch != null) {
+        _curStmtValue = visitASTNode(ifStmt.elseBranch!);
       }
       return _curStmtValue;
     } else {
@@ -680,51 +646,52 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitWhileStmt(WhileStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-    var value = visitASTNode(stmt.condition);
-    if (value is bool) {
-      while ((value is bool) && (value)) {
-        try {
-          _curStmtValue = visitASTNode(stmt.loop!);
-          value = visitASTNode(stmt.condition);
-        } catch (error) {
-          if (error is HTBreak) {
-            return _curStmtValue;
-          } else if (error is HTContinue) {
-            continue;
-          } else {
-            rethrow;
-          }
-        }
-      }
-    } else {
-      throw HTError.condition();
-    }
+  dynamic visitWhileStmt(WhileStmt whileStmt) {
+    // var value = visitASTNode(whileStmt.condition);
+    // if (value is bool) {
+    //   while ((value is bool) && (value)) {
+    //     try {
+    //       _curStmtValue = visitASTNode(whileStmt.loop);
+    //       value = visitASTNode(whileStmt.condition);
+    //     } catch (error) {
+    //       if (error is HTBreak) {
+    //         return _curStmtValue;
+    //       } else if (error is HTContinue) {
+    //         continue;
+    //       } else {
+    //         rethrow;
+    //       }
+    //     }
+    //   }
+    // } else {
+    //   throw HTError.condition();
+    // }
   }
 
   @override
-  dynamic visitDoStmt(DoStmt stmt) {}
+  dynamic visitDoStmt(DoStmt doStmt) {}
+
+  @override
+  dynamic visitForInStmt(ForInStmt forInStmt) {}
+
+  @override
+  dynamic visitForStmt(ForStmt forStmt) {}
+
+  @override
+  dynamic visitWhenStmt(WhenStmt stmt) {}
 
   @override
   dynamic visitBreakStmt(BreakStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     throw HTBreak();
   }
 
   @override
   dynamic visitContinueStmt(ContinueStmt stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     throw HTContinue();
   }
 
   @override
   dynamic visitVarDeclStmt(VarDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     // dynamic value;
     // if (stmt.initializer != null) {
     //   value = visitASTNode(stmt.initializer!);
@@ -744,28 +711,24 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitParamDeclStmt(ParamDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-  }
+  dynamic visitParamDeclStmt(ParamDecl stmt) {}
+
+  @override
+  dynamic visitReferConstructorExpr(ReferConstructorExpr stmt) {}
 
   @override
   dynamic visitFuncDeclStmt(FuncDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     final func = HTAstFunction(stmt, this, context: _curNamespace);
-    if (stmt.id != null) {
-      _curNamespace.define(func);
-    }
+    // if (stmt.id != null) {
+    //   _curNamespace.define(func);
+    // }
     return func;
   }
 
   @override
   dynamic visitClassDeclStmt(ClassDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     HTClass? superClass;
-    if (stmt.id.lexeme != HTLexicon.object) {
+    if (stmt.id != HTLexicon.object) {
       // if (stmt.superClass == null) {
       //   superClass = global.fetch(HTLexicon.object);
       // } else {
@@ -775,8 +738,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
       // }
     }
 
-    final klass = HTClass(
-        stmt.id.lexeme, this, _curModuleFullName, _curNamespace,
+    final klass = HTClass(stmt.id, this, _curModuleFullName, _curNamespace,
         superClass: superClass,
         isExternal: stmt.isExternal,
         isAbstract: stmt.isAbstract);
@@ -787,45 +749,45 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     var save = _curNamespace;
     _curNamespace = klass.namespace;
 
-    for (final variable in stmt.variables) {
-      if (stmt.isExternal && variable.isExternal) {
-        throw HTError.externalVar();
-      }
-      // dynamic value;
-      // if (variable.initializer != null) {
-      //   value = visitASTNode(variable.initializer!);
-      // }
+    // for (final variable in stmt.variables) {
+    //   if (stmt.isExternal && variable.isExternal) {
+    //     throw HTError.externalVar();
+    //   }
+    // dynamic value;
+    // if (variable.initializer != null) {
+    //   value = visitASTNode(variable.initializer!);
+    // }
 
-      // final decl = HTAstVariable(variable.id, this,
-      //     declType: variable.declType,
-      //     isDynamic: variable.isDynamic,
-      //     isExternal: variable.isExternal,
-      //     isImmutable: variable.isImmutable,
-      //     isMember: true,
-      //     isStatic: variable.isStatic);
+    // final decl = HTAstVariable(variable.id, this,
+    //     declType: variable.declType,
+    //     isDynamic: variable.isDynamic,
+    //     isExternal: variable.isExternal,
+    //     isImmutable: variable.isImmutable,
+    //     isMember: true,
+    //     isStatic: variable.isStatic);
 
-      // if (variable.isStatic) {
-      //   klass.namespace.define(decl);
-      // } else {
-      //   klass.defineInstanceMember(decl);
-      // }
-    }
+    // if (variable.isStatic) {
+    //   klass.namespace.define(decl);
+    // } else {
+    //   klass.defineInstanceMember(decl);
+    // }
+    // }
 
-    _curNamespace = save;
+    // _curNamespace = save;
 
-    for (final method in stmt.methods) {
-      HTFunction func;
-      if (method.isStatic) {
-        func = HTAstFunction(method, this, context: klass.namespace);
-        klass.namespace.define(func, override: true);
-      } else if (method.category == FunctionCategory.constructor) {
-        func = HTAstFunction(method, this);
-        klass.namespace.define(func, override: true);
-      } else {
-        func = HTAstFunction(method, this);
-        klass.defineInstanceMember(func);
-      }
-    }
+    // for (final method in stmt.methods) {
+    //   HTFunction func;
+    //   if (method.isStatic) {
+    //     func = HTAstFunction(method, this, context: klass.namespace);
+    //     klass.namespace.define(func, override: true);
+    //   } else if (method.category == FunctionCategory.constructor) {
+    //     func = HTAstFunction(method, this);
+    //     klass.namespace.define(func, override: true);
+    //   } else {
+    //     func = HTAstFunction(method, this);
+    //     klass.defineInstanceMember(func);
+    //   }
+    // }
 
     // klass.inherit(superClass);
 
@@ -834,17 +796,13 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitEnumDeclStmt(EnumDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
-
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < stmt.enumerations.length; i++) {
       // final id = stmt.enumerations[i];
       // defs[id] = HTEnumItem(i, id, HTType(stmt.id.lexeme));
     }
 
-    final enumClass =
-        HTEnum(stmt.id.lexeme, defs, this, isExternal: stmt.isExternal);
+    final enumClass = HTEnum(stmt.id, defs, this, isExternal: stmt.isExternal);
 
     _curNamespace.define(enumClass);
   }

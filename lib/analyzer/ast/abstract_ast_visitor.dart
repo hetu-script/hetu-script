@@ -18,15 +18,13 @@ abstract class AbstractAstVisitor {
 
   dynamic visitGroupExpr(GroupExpr expr);
 
-  dynamic visitUnaryExpr(UnaryExpr expr);
+  dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr);
 
   dynamic visitBinaryExpr(BinaryExpr expr);
 
   dynamic visitTernaryExpr(TernaryExpr expr);
 
   dynamic visitTypeExpr(TypeExpr expr);
-
-  dynamic visitParamTypeExpr(ParamTypeExpr expr);
 
   dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
 
@@ -46,17 +44,25 @@ abstract class AbstractAstVisitor {
 
   dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr);
 
-  dynamic visitExprStmt(ExprStmt stmt);
+  dynamic visitBlockStmt(BlockStmt block);
 
-  dynamic visitBlockStmt(BlockStmt stmt);
+  dynamic visitImportStmt(ImportStmt stmt);
+
+  dynamic visitExprStmt(ExprStmt stmt);
 
   dynamic visitReturnStmt(ReturnStmt stmt);
 
-  dynamic visitIfStmt(IfStmt stmt);
+  dynamic visitIfStmt(IfStmt ifStmt);
 
-  dynamic visitWhileStmt(WhileStmt stmt);
+  dynamic visitWhileStmt(WhileStmt whileStmt);
 
-  dynamic visitDoStmt(DoStmt stmt);
+  dynamic visitDoStmt(DoStmt doStmt);
+
+  dynamic visitForStmt(ForStmt forStmt);
+
+  dynamic visitForInStmt(ForInStmt forInStmt);
+
+  dynamic visitWhenStmt(WhenStmt stmt);
 
   dynamic visitBreakStmt(BreakStmt stmt);
 
@@ -65,6 +71,8 @@ abstract class AbstractAstVisitor {
   dynamic visitVarDeclStmt(VarDecl stmt);
 
   dynamic visitParamDeclStmt(ParamDecl stmt);
+
+  dynamic visitReferConstructorExpr(ReferConstructorExpr stmt);
 
   dynamic visitFuncDeclStmt(FuncDecl stmt);
 

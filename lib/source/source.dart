@@ -26,7 +26,7 @@ enum SourceType {
 class HTSource {
   final String fullName;
 
-  final String content;
+  String content;
 
   HTSource(this.fullName, this.content);
 }

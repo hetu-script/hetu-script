@@ -62,27 +62,30 @@ abstract class HTLexicon {
   };
 
   static const endOfFile = 'end_of_file'; // 文件末尾
-  static const multiline = '\\';
-  static const varargs = '...'; // variadic arguments
+  static const multiLine = r'\';
+  static const newLine = '\n';
+  static const variadicArgs = '...'; // variadic arguments
   static const singleQuotation = "'";
   static const doubleQuotation = '"';
-  static const anonymousScript = '\$_anonymousScript_';
-  static const anonymousFunction = '\$_anonymousFunction_';
-  static const anonymousNamespace = '\$_anonymousNamespace_';
-  static const anonymousBlock = '\$_anonymousBlock_';
-  static const increment = '\$_increment_';
+  static const internalMarker = r'$';
+  static const anonymousScript = r'$_anonymousScript_';
+  static const anonymousFunction = r'$_anonymousFunction_';
+  static const anonymousNamespace = r'$_anonymousNamespace_';
+  static const anonymousBlock = r'$_anonymousBlock_';
+  static const increment = r'$_increment_';
   static const functionCall = 'call';
   static const underscore = '_';
   static const global = 'global';
-  static const instance = '\$_instance_';
-  static const constructor = '\$_constructor_';
-  static const getter = '\$_getter_';
-  static const setter = '\$_setter_';
+  static const instance = r'$_instance_';
+  static const constructor = r'$_constructor_';
+  static const getter = r'$_getter_';
+  static const setter = r'$_setter_';
   static const instanceOf = 'instance of';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
-  static const arrow = '->';
-  static const bigarrow = '=>';
+  static const singleArrow = '->';
+  static const doubleArrow = '=>';
+  static const indentSpace = '  ';
 
   static const NULL = 'null';
   static const TRUE = 'true';
@@ -101,7 +104,7 @@ abstract class HTLexicon {
     CONST,
   };
 
-  static const DEF = 'def';
+  static const FUNTYPE = 'funtype';
 
   static const ANY = 'any';
   static const VOID = 'void';
@@ -134,6 +137,9 @@ abstract class HTLexicon {
   static const INTERFACE = 'inteface';
   static const THIS = 'this';
   static const SUPER = 'super';
+
+  static const Set<String> constructorCall = {THIS, SUPER};
+
   static const ABSTRACT = 'abstract';
   static const EXTERNAL = 'external';
   static const STATIC = 'static';
@@ -171,7 +177,7 @@ abstract class HTLexicon {
     LET,
     FINAL,
     CONST,
-    DEF,
+    FUNTYPE,
     IMPORT,
     CLASS,
     ENUM,
@@ -209,13 +215,6 @@ abstract class HTLexicon {
 
   /// 可以用作变量名字的关键字
   static const Set<String> otherKeywords = {};
-
-  /// 函数调用表达式
-  static const expression = 'expression';
-  static const statement = 'statement';
-  static const declStmt = 'declaration_statement';
-  static const thenBranch = 'then_branch';
-  static const elseBranch = 'else_branch';
 
   static const memberGet = '.';
   static const subGet = '[';
@@ -302,6 +301,7 @@ abstract class HTLexicon {
   static const logicalAnd = '&&';
   static const logicalOr = '||';
   static const condition = '?';
+  static const elseBranch = ':';
 
   static const assign = '=';
   static const assignMultiply = '*=';
@@ -433,6 +433,8 @@ abstract class HTLexicon {
   static const errorNotType = '[{0}] is not a type.';
   static const errorArgType =
       'Argument [{0}] of type [{1}] doesn\'t match parameter type [{2}].';
+  static const errorArgInit =
+      'Only optional or named arguments can have initializer.';
   static const errorReturnType =
       '[{0}] can\'t be returned from function [{1}] with return type [{2}].';
   static const errorMissingFuncBody = 'Missing function definition of [{0}].';

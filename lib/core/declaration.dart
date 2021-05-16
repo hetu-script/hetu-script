@@ -21,7 +21,7 @@ class HTDeclaration {
 
   bool get isInitialized => true;
 
-  HTDeclaration(this.id, this.classId);
+  HTDeclaration(this.id, [this.classId]);
 
   dynamic get value => this;
 

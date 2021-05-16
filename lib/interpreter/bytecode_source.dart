@@ -2,12 +2,11 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../source/source.dart';
-import '../core/const_table.dart';
 import 'opcode.dart';
 
 /// Code module class, represent a trunk of bytecode.
 /// Every bytecode file has its own const tables
-class HTBytecodeModule extends HTModule with ConstTable {
+class HTBytecodeModule extends HTModule {
   /// The bytecode, stores as uint8 list
   final Uint8List bytes;
 

@@ -12,7 +12,7 @@ import '../class/class.dart';
 abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
   static final callStack = <String>[];
 
-  final String declId;
+  final String? declId;
   final HTClass? klass;
 
   final FunctionCategory category;
@@ -45,8 +45,9 @@ abstract class HTFunction extends HTDeclaration with HTObject, InterpreterRef {
 
   HTNamespace? context;
 
-  HTFunction(String id, this.declId, HTInterpreter interpreter,
-      {this.klass,
+  HTFunction(String id, HTInterpreter interpreter,
+      {this.declId,
+      this.klass,
       this.category = FunctionCategory.normal,
       this.isExternal = false,
       this.externalFuncDef,

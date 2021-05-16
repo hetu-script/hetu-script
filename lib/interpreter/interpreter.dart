@@ -459,7 +459,7 @@ class Hetu extends HTInterpreter {
         case HTOpCode.constTable:
           final int64Length = _curCode.readUint16();
           for (var i = 0; i < int64Length; ++i) {
-            _curCode.addInt(_curCode.readInt64());
+            _curCode.constTable.addInt(_curCode.readInt64());
           }
           final float64Length = _curCode.readUint16();
           for (var i = 0; i < float64Length; ++i) {
@@ -650,34 +650,35 @@ class Hetu extends HTInterpreter {
           final length = _curCode.readUint16();
           definitionIp = _curCode.ip;
           _curCode.skip(length);
-
-          final func = HTBytecodeFunction(id, this, curModuleFullName,
-              category: category,
-              externalTypedef: externalTypedef,
-              hasParameterDeclarations: hasParameterDeclarations,
-              parameterDeclarations: paramDecls,
-              returnType: returnType,
-              definitionIp: definitionIp,
-              definitionLine: line,
-              definitionColumn: column,
-              isVariadic: isVariadic,
-              minArity: minArity,
-              maxArity: maxArity,
-              context: _curNamespace);
-
-          if (!hasExternalTypedef) {
-            _curValue = func;
-          } else {
-            final externalFunc =
-                unwrapExternalFunctionType(externalTypedef!, func);
-            _curValue = externalFunc;
-          }
-        } else {
-          _curValue = HTFunctionType(
-              parameterTypes:
-                  paramDecls.values.map((param) => param.declType).toList(),
-              returnType: returnType);
         }
+
+        final func = HTBytecodeFunction(id, this, curModuleFullName,
+            category: category,
+            externalTypedef: externalTypedef,
+            hasParameterDeclarations: hasParameterDeclarations,
+            parameterDeclarations: paramDecls,
+            returnType: returnType,
+            definitionIp: definitionIp,
+            definitionLine: line,
+            definitionColumn: column,
+            isVariadic: isVariadic,
+            minArity: minArity,
+            maxArity: maxArity,
+            context: _curNamespace);
+
+        if (!hasExternalTypedef) {
+          _curValue = func;
+        } else {
+          final externalFunc =
+              unwrapExternalFunctionType(externalTypedef!, func);
+          _curValue = externalFunc;
+        }
+        // } else {
+        //   _curValue = HTFunctionType(
+        //       parameterTypes:
+        //           paramDecls.values.map((param) => param.declType).toList(),
+        //       returnType: returnType);
+        // }
 
         break;
       case HTValueTypeCode.type:

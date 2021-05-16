@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+import 'package:args/args.dart';
+import 'package:hetu_script/analyzer/parser.dart';
+
 import 'package:hetu_script/hetu_script.dart';
 
 const cli_help = r'''
@@ -16,25 +20,14 @@ Version: 0.1.0
 Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
-void main(List<String> args) async {
+final hetu = Hetu();
+
+void main(List<String> arguments) async {
   try {
-    final hetu = Hetu();
     await hetu.init();
 
     dynamic result;
-    if (args.isNotEmpty) {
-      if ((args.first == '--help') || (args.first == '-h')) {
-        print(cli_help);
-      } else if (args.length == 1) {
-        result = await hetu.import(args.first,
-            config: InterpreterConfig(sourceType: SourceType.script));
-      } else {
-        result = await hetu.import(args.first,
-            config: InterpreterConfig(sourceType: SourceType.module),
-            invokeFunc: args[1]);
-      }
-      if (result != null) print(result);
-    } else {
+    if (arguments.isEmpty) {
       print(repl_info);
       var exit = false;
 
@@ -49,17 +42,110 @@ void main(List<String> args) async {
             input += '\n' + stdin.readLineSync()!;
           }
 
-          try {
-            result = await hetu.eval(input,
-                config: InterpreterConfig(sourceType: SourceType.script));
-            print(result);
-          } catch (e) {
-            print(e);
-          }
+          result = await hetu.eval(input,
+              config: InterpreterConfig(sourceType: SourceType.script));
+          print(result);
         }
       }
+    } else {
+      final results = parseArg(arguments);
+      if (results['help']) {
+        print(cli_help);
+      } else if (results.command != null) {
+        final cmdResults = results.command!;
+        final cmdArgs = cmdResults.arguments;
+
+        final targetPath = cmdArgs.first;
+        if (path.extension(targetPath) != '.ht') {
+          throw 'Error: target file extension is not \'.ht\'';
+        }
+
+        final sourceType =
+            cmdResults['script'] ? SourceType.script : SourceType.module;
+
+        switch (cmdResults.name) {
+          case 'fmt':
+            var outPath = cmdResults['out'];
+
+            final parser = HTAstParser();
+            final formatter = HTFormatter();
+            final sourceProvider = DefaultSourceProvider();
+            final source = await sourceProvider.getSource(cmdArgs.first);
+
+            try {
+              final printResult = cmdResults['print'];
+
+              final config = ParserConfig(sourceType: sourceType);
+              final compilation = await parser.parse(
+                  source.content, sourceProvider, source.fullName, config);
+
+              final module = compilation.fetch(source.fullName);
+
+              await formatter.format(module);
+
+              if (printResult) {
+                print(module.content);
+              }
+
+              if (outPath != null) {
+                if (!path.isAbsolute(outPath)) {
+                  final curPath = path.dirname(source.fullName);
+                  final name = path.basenameWithoutExtension(outPath);
+                  outPath = path.join(curPath, '$name.ht');
+                }
+
+                final outFile = File(outPath);
+                outFile.writeAsStringSync(module.content);
+
+                print(outPath);
+              }
+            } catch (e) {
+              if (e is HTError && e.type == ErrorType.compileError) {
+                e.moduleFullName = parser.curModuleFullName;
+                e.line = parser.curLine;
+                e.column = parser.curColumn;
+              }
+              rethrow;
+            }
+
+            break;
+          case 'run':
+            await run(cmdArgs);
+            break;
+        }
+      } else {
+        await run(arguments);
+      }
     }
-  } catch (e) {
+  } catch (e, stack) {
     print(e);
+    print(stack);
   }
+}
+
+Future<void> run(List<String> args,
+    [SourceType sourceType = SourceType.script]) async {
+  dynamic result;
+  final config = InterpreterConfig(sourceType: sourceType);
+  if (args.length == 1) {
+    result = await hetu.import(args.first, config: config);
+  } else {
+    result = await hetu.import(args.first, config: config, invokeFunc: args[1]);
+  }
+  print('Execution result:');
+  print(result);
+}
+
+ArgResults parseArg(List<String> args) {
+  final parser = ArgParser();
+  parser.addFlag('help', abbr: 'h', negatable: false);
+  final runCmd = parser.addCommand('run');
+  runCmd.addFlag('script', abbr: 's');
+  final fmtCmd = parser.addCommand('fmt');
+  fmtCmd.addFlag('script');
+  fmtCmd.addFlag('save', abbr: 's');
+  fmtCmd.addFlag('print', abbr: 'p');
+  fmtCmd.addOption('out', abbr: 'o');
+
+  return parser.parse(args);
 }

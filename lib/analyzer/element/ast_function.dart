@@ -15,21 +15,18 @@ class HTAstFunction extends HTFunction {
 
   final FuncDecl funcStmt;
 
-  HTAstFunction(this.funcStmt, this.interpreter,
-      {String? externalTypedef, HTNamespace? context})
-      : super(
-          funcStmt.internalName,
-          funcStmt.id?.lexeme ?? '',
-          // classId: funcStmt.classId,
-          interpreter,
-          category: funcStmt.category,
-          isExternal: false,
-          externalTypedef: externalTypedef,
-          // type:
-          isConst: funcStmt.isConst,
-          isVariadic: funcStmt.isVariadic,
-          minArity: funcStmt.arity,
-        ) {
+  HTAstFunction(this.funcStmt, this.interpreter, {HTNamespace? context})
+      : super(funcStmt.id, interpreter,
+            // klass: ,
+            declId: funcStmt.declId,
+            category: funcStmt.category,
+            isExternal: false,
+            externalTypedef: funcStmt.externalTypedef,
+            isStatic: funcStmt.isStatic,
+            isConst: funcStmt.isConst,
+            isVariadic: funcStmt.isVariadic,
+            minArity: funcStmt.minArity,
+            maxArity: funcStmt.maxArity) {
     this.context = context;
 
     // TODO: 参数改成声明，这里才能创建类型
@@ -58,7 +55,7 @@ class HTAstFunction extends HTFunction {
 
     for (final param in funcStmt.params) {
       if (param.isVariadic) {
-        result.write(HTLexicon.varargs + ' ');
+        result.write(HTLexicon.variadicArgs + ' ');
       }
       result.write(param.id + ': ' + (param.declType.toString()));
       //if (param.initializer != null)
@@ -77,10 +74,10 @@ class HTAstFunction extends HTFunction {
       bool errorHandled = true}) {
     HTFunction.callStack.add(id);
 
-    if (positionalArgs.length < funcStmt.arity ||
+    if (positionalArgs.length < funcStmt.minArity ||
         (positionalArgs.length > funcStmt.params.length &&
             !funcStmt.isVariadic)) {
-      throw HTError.arity(id, positionalArgs.length, funcStmt.arity);
+      throw HTError.arity(id, positionalArgs.length, funcStmt.minArity);
     }
 
     dynamic result;
@@ -174,6 +171,6 @@ class HTAstFunction extends HTFunction {
   }
 
   @override
-  HTAstFunction clone() => HTAstFunction(funcStmt, interpreter,
-      externalTypedef: externalTypedef, context: context);
+  HTAstFunction clone() =>
+      HTAstFunction(funcStmt, interpreter, context: context);
 }

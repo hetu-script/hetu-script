@@ -104,7 +104,7 @@ class HTFunctionType extends HTType {
       {this.genericTypeParameters = const [],
       this.parameterTypes = const [],
       this.returnType = HTType.ANY})
-      : super(HTLexicon.FUNCTION);
+      : super(HTLexicon.function);
 
   @override
   String toString() {
@@ -128,7 +128,7 @@ class HTFunctionType extends HTType {
     var namedStarted = false;
     for (final param in parameterTypes) {
       if (param.isVariadic) {
-        result.write(HTLexicon.varargs + ' ');
+        result.write(HTLexicon.variadicArgs + ' ');
       }
       if (param.isOptional && !optionalStarted) {
         optionalStarted = true;
@@ -149,8 +149,8 @@ class HTFunctionType extends HTType {
       }
       ++i;
     }
-    result.write(
-        '${HTLexicon.roundRight} ${HTLexicon.arrow} ' + returnType.toString());
+    result.write('${HTLexicon.roundRight} ${HTLexicon.singleArrow} ' +
+        returnType.toString());
     return result.toString();
   }
 

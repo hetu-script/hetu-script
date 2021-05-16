@@ -19,6 +19,7 @@ import 'cast.dart';
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
 class HTInstance with HTObject, InterpreterRef {
   final String id;
+  final int index;
 
   @override
   final HTNominalType valueType;
@@ -42,7 +43,8 @@ class HTInstance with HTObject, InterpreterRef {
   /// Create a default [HTInstance] instance.
   HTInstance(HTClass klass, HTInterpreter interpreter,
       {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject})
-      : id = '${HTLexicon.instance}${klass.instanceIndex}',
+      : id = HTLexicon.instance,
+        index = klass.instanceIndex,
         valueType = HTNominalType(klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
 

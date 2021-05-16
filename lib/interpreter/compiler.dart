@@ -70,6 +70,7 @@ class HTCompiler extends AbstractParser with HetuRef {
   FunctionCategory? _curFuncType;
 
   var _leftValueLegality = false;
+  final List<Map<String, String>> _markedSymbolsList = [];
 
   /// Compiles a Token list.
   Future<HTBytecodeCompilation> compile(
@@ -187,7 +188,7 @@ class HTCompiler extends AbstractParser with HetuRef {
   }
 
   Uint8List _parseStmt(
-      {SourceType sourceType = SourceType.module, bool endOfExec = false}) {
+      {SourceType sourceType = SourceType.function, bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
     switch (sourceType) {
       case SourceType.script:
@@ -226,7 +227,7 @@ class HTCompiler extends AbstractParser with HetuRef {
                 }
                 break;
               default:
-                throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
+                throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ABSTRACT:
@@ -244,14 +245,20 @@ class HTCompiler extends AbstractParser with HetuRef {
             _parseClassDeclStmt();
             break;
           case HTLexicon.VAR:
-            _parseVarDeclStmt(lateInitialize: true);
+            final decl = _parseVarDeclStmt(forwardDeclaration: false);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
-            _parseVarDeclStmt(typeInferrence: true, lateInitialize: true);
+            final decl = _parseVarDeclStmt(
+                typeInferrence: true, forwardDeclaration: false);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
-            _parseVarDeclStmt(
-                typeInferrence: true, isImmutable: true, lateInitialize: true);
+            final decl = _parseVarDeclStmt(
+                typeInferrence: true,
+                isImmutable: true,
+                forwardDeclaration: false);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
             if (expect([HTLexicon.FUNCTION, HTLexicon.identifier]) ||
@@ -341,7 +348,7 @@ class HTCompiler extends AbstractParser with HetuRef {
               case HTLexicon.CONST:
                 throw HTError.externalVar();
               default:
-                throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
+                throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
@@ -375,7 +382,7 @@ class HTCompiler extends AbstractParser with HetuRef {
             }
             break;
           default:
-            throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
+            throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
         }
         break;
       case SourceType.function:
@@ -492,11 +499,9 @@ class HTCompiler extends AbstractParser with HetuRef {
                 isStatic: isStatic);
             break;
           case HTLexicon.CONSTRUCT:
-            if (_curClass!.isAbstract) {
-              throw HTError.abstractCtor();
-            }
             if (isStatic) {
-              throw HTError.unexpected(HTLexicon.declStmt, HTLexicon.CONSTRUCT);
+              throw HTError.unexpected(
+                  SemanticType.declStmt, HTLexicon.CONSTRUCT);
             }
             _parseFuncDeclaration(
               category: FunctionCategory.constructor,
@@ -516,7 +521,7 @@ class HTCompiler extends AbstractParser with HetuRef {
                 isStatic: isStatic);
             break;
           default:
-            throw HTError.unexpected(HTLexicon.declStmt, curTok.lexeme);
+            throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
         }
         break;
       case SourceType.expression:
@@ -544,7 +549,8 @@ class HTCompiler extends AbstractParser with HetuRef {
     }
 
     final showList = <String>[];
-    if (expect([HTLexicon.SHOW], consume: true)) {
+    if (curTok.lexeme == HTLexicon.SHOW) {
+      advance(1);
       while (curTok.type == HTLexicon.identifier) {
         showList.add(advance(1).lexeme);
         if (curTok.type != HTLexicon.comma) {
@@ -605,7 +611,17 @@ class HTCompiler extends AbstractParser with HetuRef {
   }
 
   Uint8List _localSymbol({String? id, bool isGetKey = false}) {
-    final symbolId = id ?? match(HTLexicon.identifier).lexeme;
+    var symbolId = id ?? match(HTLexicon.identifier).lexeme;
+    if (_markedSymbolsList.isNotEmpty) {
+      final map = _markedSymbolsList.last;
+      for (final symbol in map.keys) {
+        if (symbolId == symbol) {
+          symbolId = map[symbol]!;
+          break;
+        }
+      }
+    }
+
     final bytesBuilder = BytesBuilder();
     if (config.lineInfo) {
       bytesBuilder.add(_debugInfo());
@@ -863,9 +879,9 @@ class HTCompiler extends AbstractParser with HetuRef {
           bytesBuilder.addByte(HTOpCode.typeAs);
           break;
         case HTLexicon.IS:
+          final isNot = expect([HTLexicon.logicalNot], consume: true);
           final right = _parseTypeExpr(localValue: true);
           bytesBuilder.add(right);
-          final isNot = (peek(1).type == HTLexicon.logicalNot) ? true : false;
           bytesBuilder.addByte(isNot ? HTOpCode.typeIsNot : HTOpCode.typeIs);
           break;
       }
@@ -990,7 +1006,7 @@ class HTCompiler extends AbstractParser with HetuRef {
         case HTLexicon.call:
           _leftValueLegality = false;
           bytesBuilder.addByte(HTOpCode.call);
-          final callArgs = _parseArguments();
+          final callArgs = _parseCallArguments();
           bytesBuilder.add(callArgs);
           break;
         case HTLexicon.postIncrement:
@@ -1084,18 +1100,19 @@ class HTCompiler extends AbstractParser with HetuRef {
         _leftValueLegality = false;
         return _parseFuncDeclaration(category: FunctionCategory.literal);
       // literal function type
-      case HTLexicon.DEF:
-        _leftValueLegality = false;
-        return _parseFunctionTypeExpr(localValue: true);
+      // case HTLexicon.FUNTYPE:
+      //   _leftValueLegality = false;
+      //   return _parseFunctionTypeExpr(localValue: true);
       case HTLexicon.identifier:
         _leftValueLegality = true;
         return _localSymbol();
       default:
-        throw HTError.unexpected(HTLexicon.expression, curTok.lexeme);
+        throw HTError.unexpected(SemanticType.expression, curTok.lexeme);
     }
   }
 
   Uint8List _parseFunctionTypeExpr({bool localValue = false}) {
+    advance(1);
     final bytesBuilder = BytesBuilder();
     if (localValue) {
       bytesBuilder.addByte(HTOpCode.local);
@@ -1104,6 +1121,8 @@ class HTCompiler extends AbstractParser with HetuRef {
     bytesBuilder.addByte(TypeType.function.index); // enum: type type
 
     // TODO: genericTypeParameters 泛型参数
+
+    match(HTLexicon.roundLeft);
 
     final paramTypes = <Uint8List>[];
 
@@ -1124,7 +1143,7 @@ class HTCompiler extends AbstractParser with HetuRef {
       late final paramType;
       String? paramName;
       if (!isNamed) {
-        isVariadic = expect([HTLexicon.varargs], consume: true);
+        isVariadic = expect([HTLexicon.variadicArgs], consume: true);
       } else {
         paramName = match(HTLexicon.identifier).lexeme;
         match(HTLexicon.colon);
@@ -1161,7 +1180,7 @@ class HTCompiler extends AbstractParser with HetuRef {
       bytesBuilder.add(paramType);
     }
 
-    match(HTLexicon.arrow);
+    match(HTLexicon.singleArrow);
     final returnType = _parseTypeExpr();
     bytesBuilder.add(returnType);
 
@@ -1170,40 +1189,44 @@ class HTCompiler extends AbstractParser with HetuRef {
 
   // TODO: interface type
   Uint8List _parseTypeExpr({bool localValue = false, bool isParam = false}) {
-    final bytesBuilder = BytesBuilder();
-    if (localValue) {
-      bytesBuilder.addByte(HTOpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.type);
-    }
-    bytesBuilder.addByte(isParam
-        ? TypeType.parameter.index
-        : TypeType.normal.index); // enum: normal type
-    final id = match(HTLexicon.identifier).lexeme;
-
-    bytesBuilder.add(_shortUtf8String(id));
-
-    final typeArgs = <Uint8List>[];
-    if (expect([HTLexicon.angleLeft], consume: true)) {
-      if (curTok.type == HTLexicon.angleRight) {
-        throw HTError.emptyTypeArgs();
+    if (curTok.type != HTLexicon.FUNCTION) {
+      final bytesBuilder = BytesBuilder();
+      if (localValue) {
+        bytesBuilder.addByte(HTOpCode.local);
+        bytesBuilder.addByte(HTValueTypeCode.type);
       }
-      while ((curTok.type != HTLexicon.angleRight) &&
-          (curTok.type != HTLexicon.endOfFile)) {
-        typeArgs.add(_parseTypeExpr());
-        expect([HTLexicon.comma], consume: true);
+      bytesBuilder.addByte(isParam
+          ? TypeType.parameter.index
+          : TypeType.normal.index); // enum: normal type
+      final id = match(HTLexicon.identifier).lexeme;
+
+      bytesBuilder.add(_shortUtf8String(id));
+
+      final typeArgs = <Uint8List>[];
+      if (expect([HTLexicon.angleLeft], consume: true)) {
+        if (curTok.type == HTLexicon.angleRight) {
+          throw HTError.emptyTypeArgs();
+        }
+        while ((curTok.type != HTLexicon.angleRight) &&
+            (curTok.type != HTLexicon.endOfFile)) {
+          typeArgs.add(_parseTypeExpr());
+          expect([HTLexicon.comma], consume: true);
+        }
+        match(HTLexicon.angleRight);
       }
-      match(HTLexicon.angleRight);
+
+      bytesBuilder.addByte(typeArgs.length); // max 255
+      for (final arg in typeArgs) {
+        bytesBuilder.add(arg);
+      }
+
+      final isNullable = expect([HTLexicon.nullable], consume: true);
+      bytesBuilder.addByte(isNullable ? 1 : 0); // bool isNullable
+
+      return bytesBuilder.toBytes();
+    } else {
+      return _parseFunctionTypeExpr();
     }
-
-    bytesBuilder.addByte(typeArgs.length); // max 255
-    for (final arg in typeArgs) {
-      bytesBuilder.add(arg);
-    }
-
-    final isNullable = expect([HTLexicon.nullable], consume: true);
-    bytesBuilder.addByte(isNullable ? 1 : 0); // bool isNullable
-
-    return bytesBuilder.toBytes();
   }
 
   Uint8List _parseBlockStmt(
@@ -1266,7 +1289,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _parseArguments({bool hasLength = false}) {
+  Uint8List _parseCallArguments({bool hasLength = false}) {
     // 这里不判断左括号，已经跳过了
     final bytesBuilder = BytesBuilder();
     final positionalArgs = <Uint8List>[];
@@ -1342,16 +1365,16 @@ class HTCompiler extends AbstractParser with HetuRef {
     bytesBuilder.addByte(HTOpCode.ifStmt);
     Uint8List thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
-      thenBranch = _parseBlockStmt(id: HTLexicon.thenBranch);
+      thenBranch = _parseBlockStmt(id: SemanticType.thenBranch);
     } else {
-      thenBranch = _parseStmt(sourceType: SourceType.function);
+      thenBranch = _parseStmt();
     }
     Uint8List? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (curTok.type == HTLexicon.curlyLeft) {
         elseBranch = _parseBlockStmt(id: HTLexicon.elseBranch);
       } else {
-        elseBranch = _parseStmt(sourceType: SourceType.function);
+        elseBranch = _parseStmt();
       }
     }
     final thenBranchLength = thenBranch.length + 3;
@@ -1381,7 +1404,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     if (curTok.type == HTLexicon.curlyLeft) {
       loopBody = _parseBlockStmt(id: SemanticType.whileStmt);
     } else {
-      loopBody = _parseStmt(sourceType: SourceType.function);
+      loopBody = _parseStmt();
     }
     final loopLength = (condition?.length ?? 0) + loopBody.length + 5;
     bytesBuilder.add(_uint16(0)); // while loop continue ip
@@ -1408,7 +1431,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     if (curTok.type == HTLexicon.curlyLeft) {
       loopBody = _parseBlockStmt(id: SemanticType.whileStmt);
     } else {
-      loopBody = _parseStmt(sourceType: SourceType.function);
+      loopBody = _parseStmt();
     }
     Uint8List? condition;
     if (expect([HTLexicon.WHILE], consume: true)) {
@@ -1506,38 +1529,24 @@ class HTCompiler extends AbstractParser with HetuRef {
     match(HTLexicon.roundLeft);
     final forStmtType = peek(2).lexeme;
     Uint8List? condition;
-    Uint8List? assign;
-    final shadowDecls = <Uint8List>[];
     Uint8List? increment;
+    final additionalVarDecls = <Uint8List>[];
+    final newSymbolMap = <String, String>{};
+    _markedSymbolsList.add(newSymbolMap);
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
         throw HTError.unexpected(SemanticType.varDecl, curTok.type);
       }
       final declPos = tokPos;
       // jump over keywrod
-      advance(1);
+      advance(3);
       // get id of var decl and jump over in/of
-      final id = advance(2).lexeme;
       final object = _parseExpr();
-      // the intializer of the var is a member get expression: object.length
-      final iterInit =
-          _assembleMemberGet(object, HTLexicon.first, endOfExec: true);
-      match(HTLexicon.roundRight);
       final blockStartPos = tokPos;
-      // go back to var declaration
-      tokPos = declPos;
-      final iterDecl = _parseVarDeclStmt(
-          typeInferrence: curTok.type != HTLexicon.VAR,
-          isImmutable: curTok.type == HTLexicon.CONST,
-          initializer: iterInit,
-          forwardDeclaration: false);
 
       final increId = HTLexicon.increment;
       final increInit = _assembleLocalConstInt(0, endOfExec: true);
       final increDecl = _assembleVarDeclStmt(increId, initializer: increInit);
-
-      // 添加变量声明
-      bytesBuilder.add(iterDecl);
       bytesBuilder.add(increDecl);
 
       final conditionBytesBuilder = BytesBuilder();
@@ -1570,12 +1579,17 @@ class HTCompiler extends AbstractParser with HetuRef {
       assignBytesBuilder.add(getElemFuncCallArg);
       assignBytesBuilder.addByte(HTOpCode.endOfExec);
       assignBytesBuilder.addByte(0); // length of namedArgs
-      assignBytesBuilder.addByte(HTOpCode.register);
-      assignBytesBuilder.addByte(HTRegIdx.assign);
-      final assignLeftExpr = _assembleLocalSymbol(id);
-      assignBytesBuilder.add(assignLeftExpr);
-      assignBytesBuilder.addByte(HTOpCode.assign);
-      assign = assignBytesBuilder.toBytes();
+      assignBytesBuilder.addByte(HTOpCode.endOfExec);
+      final iterInitializer = assignBytesBuilder.toBytes();
+      tokPos = declPos;
+      // go back to var declaration
+      final iterDecl = _parseVarDeclStmt(
+          typeInferrence: curTok.type != HTLexicon.VAR,
+          isImmutable: curTok.type == HTLexicon.CONST,
+          additionalInitializer: iterInitializer,
+          forwardDeclaration: false);
+      tokPos = blockStartPos;
+      additionalVarDecls.add(iterDecl);
 
       final incrementBytesBuilder = BytesBuilder();
       final preIncreExpr = _assembleLocalSymbol(increId);
@@ -1583,56 +1597,55 @@ class HTCompiler extends AbstractParser with HetuRef {
       incrementBytesBuilder.addByte(HTOpCode.preIncrement);
       increment = incrementBytesBuilder.toBytes();
 
-      // go back to block start
-      tokPos = blockStartPos;
+      match(HTLexicon.roundRight);
     }
     // for (var i = 0; i < length; ++i)
     else {
-      if (curTok.type != HTLexicon.semicolon) {
-        if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-          throw HTError.unexpected(SemanticType.varDecl, curTok.type);
-        }
-
+      if (!expect([HTLexicon.semicolon], consume: false)) {
+        // TODO: 如果有多个变量同时声明?
         final initDeclId = peek(1).lexeme;
+        final markedId = '${HTLexicon.internalMarker}$initDeclId';
+        newSymbolMap[initDeclId] = markedId;
         final initDecl = _parseVarDeclStmt(
-            declId: initDeclId,
+            declId: markedId,
             typeInferrence: curTok.type != HTLexicon.VAR,
             isImmutable: curTok.type == HTLexicon.CONST,
             endOfStatement: true,
             forwardDeclaration: false);
 
-        final increId = HTLexicon.increment;
-        final increInit = _assembleLocalSymbol(initDeclId, endOfExec: true);
-        final increDecl = _assembleVarDeclStmt(increId, initializer: increInit);
+        // final increId = HTLexicon.increment;
+        // final increInit = _assembleLocalSymbol(initDeclId, endOfExec: true);
+        // final increDecl = _assembleVarDeclStmt(increId, initializer: increInit);
 
         // 添加声明
         bytesBuilder.add(initDecl);
-        bytesBuilder.add(increDecl);
+        // bytesBuilder.add(increDecl);
 
-        final shadowInit = _assembleLocalSymbol(increId, endOfExec: true);
-        final shadowDecl = _assembleVarDeclStmt(initDeclId,
-            initializer: shadowInit, lateInitialize: false);
-        shadowDecls.add(shadowDecl);
+        // TODO: 这里是为了实现闭包效果，之后应该改成真正的闭包
+        final capturedInit = _assembleLocalSymbol(markedId, endOfExec: true);
+        final capturedDecl = _assembleVarDeclStmt(initDeclId,
+            initializer: capturedInit, lateInitialize: false);
+        additionalVarDecls.add(capturedDecl);
 
-        final assignBytesBuilder = BytesBuilder();
-        final assignRightExpr = _assembleLocalSymbol(initDeclId);
-        assignBytesBuilder.add(assignRightExpr);
-        assignBytesBuilder.addByte(HTOpCode.register);
-        assignBytesBuilder.addByte(HTRegIdx.assign);
-        final assignLeftExpr = _assembleLocalSymbol(increId);
-        assignBytesBuilder.add(assignLeftExpr);
-        assignBytesBuilder.addByte(HTOpCode.assign);
-        assign = assignBytesBuilder.toBytes();
+        // final assignBytesBuilder = BytesBuilder();
+        // final assignRightExpr = _assembleLocalSymbol(initDeclId);
+        // assignBytesBuilder.add(assignRightExpr);
+        // assignBytesBuilder.addByte(HTOpCode.register);
+        // assignBytesBuilder.addByte(HTRegIdx.assign);
+        // final assignLeftExpr = _assembleLocalSymbol(increId);
+        // assignBytesBuilder.add(assignLeftExpr);
+        // assignBytesBuilder.addByte(HTOpCode.assign);
+        // assign = assignBytesBuilder.toBytes();
       } else {
-        advance(1);
+        match(HTLexicon.semicolon);
       }
 
-      if (curTok.type != HTLexicon.semicolon) {
+      if (!expect([HTLexicon.semicolon], consume: false)) {
         condition = _parseExpr();
       }
       match(HTLexicon.semicolon);
 
-      if (curTok.type != HTLexicon.roundRight) {
+      if (!expect([HTLexicon.roundRight], consume: false)) {
         increment = _parseExpr();
       }
       match(HTLexicon.roundRight);
@@ -1640,20 +1653,20 @@ class HTCompiler extends AbstractParser with HetuRef {
 
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final loop = _parseBlockStmt(
-        id: SemanticType.forStmt, additionalVarDecl: shadowDecls);
-    final continueLength =
-        (condition?.length ?? 0) + (assign?.length ?? 0) + loop.length + 2;
+        id: SemanticType.forStmt, additionalVarDecl: additionalVarDecls);
+    final continueLength = (condition?.length ?? 0) + loop.length + 2;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
     bytesBuilder.add(_uint16(continueLength));
     bytesBuilder.add(_uint16(breakLength));
     if (condition != null) bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.whileStmt);
     bytesBuilder.addByte((condition != null) ? 1 : 0); // bool: has condition
-    if (assign != null) bytesBuilder.add(assign);
     bytesBuilder.add(loop);
     if (increment != null) bytesBuilder.add(increment);
     bytesBuilder.addByte(HTOpCode.skip);
     bytesBuilder.add(_int16(-breakLength));
+
+    _markedSymbolsList.removeLast();
 
     bytesBuilder.addByte(HTOpCode.endOfBlock);
     return bytesBuilder.toBytes();
@@ -1675,21 +1688,21 @@ class HTCompiler extends AbstractParser with HetuRef {
         curTok.type != HTLexicon.endOfFile) {
       if (curTok.lexeme == HTLexicon.ELSE) {
         advance(1);
-        match(HTLexicon.arrow);
+        match(HTLexicon.singleArrow);
         if (curTok.type == HTLexicon.curlyLeft) {
           elseBranch = _parseBlockStmt(id: SemanticType.whenStmt);
         } else {
-          elseBranch = _parseStmt(sourceType: SourceType.function);
+          elseBranch = _parseStmt();
         }
       } else {
         final caseExpr = _parseExpr(endOfExec: true);
         cases.add(caseExpr);
-        match(HTLexicon.arrow);
+        match(HTLexicon.singleArrow);
         late final caseBranch;
         if (curTok.type == HTLexicon.curlyLeft) {
           caseBranch = _parseBlockStmt(id: SemanticType.whenStmt);
         } else {
-          caseBranch = _parseStmt(sourceType: SourceType.function);
+          caseBranch = _parseStmt();
         }
         branches.add(caseBranch);
       }
@@ -1751,7 +1764,7 @@ class HTCompiler extends AbstractParser with HetuRef {
       bool isImmutable = false,
       bool isStatic = false,
       bool lateInitialize = false,
-      Uint8List? initializer,
+      Uint8List? additionalInitializer,
       bool endOfStatement = false,
       bool forwardDeclaration = true}) {
     advance(1);
@@ -1794,16 +1807,12 @@ class HTCompiler extends AbstractParser with HetuRef {
       bytesBuilder.addByte(0); // bool: has type
     }
 
+    var initializer = additionalInitializer;
     if (expect([HTLexicon.assign], consume: true)) {
-      final initializer = _parseExpr(endOfExec: true);
-      bytesBuilder.addByte(1); // bool: has initializer
-      if (lateInitialize) {
-        bytesBuilder.add(_uint16(curTok.line));
-        bytesBuilder.add(_uint16(curTok.column));
-        bytesBuilder.add(_uint16(initializer.length));
-      }
-      bytesBuilder.add(initializer);
-    } else if (initializer != null) {
+      initializer = _parseExpr(endOfExec: true);
+    }
+
+    if (initializer != null) {
       bytesBuilder.addByte(1); // bool: has initializer
       if (lateInitialize) {
         bytesBuilder.add(_uint16(curTok.line));
@@ -1818,6 +1827,7 @@ class HTCompiler extends AbstractParser with HetuRef {
 
       bytesBuilder.addByte(0); // bool: has initializer
     }
+
     // 语句结尾
     if (endOfStatement) {
       match(HTLexicon.semicolon);
@@ -1829,6 +1839,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     if (forwardDeclaration) {
       _curBlock.varDecls[id] = bytes;
     }
+
     return bytes;
   }
 
@@ -1975,7 +1986,7 @@ class HTCompiler extends AbstractParser with HetuRef {
         }
 
         if (!isNamed) {
-          isVariadic = expect([HTLexicon.varargs], consume: true);
+          isVariadic = expect([HTLexicon.variadicArgs], consume: true);
         }
 
         if (!isNamed && !isVariadic) {
@@ -2004,12 +2015,15 @@ class HTCompiler extends AbstractParser with HetuRef {
 
         Uint8List? initializer;
         // 参数默认值
-        if ((isOptional || isNamed) &&
-            (expect([HTLexicon.assign], consume: true))) {
-          initializer = _parseExpr(endOfExec: true);
-          paramBytesBuilder.addByte(1); // bool，表示有初始化表达式
-          paramBytesBuilder.add(_uint16(initializer.length));
-          paramBytesBuilder.add(initializer);
+        if (expect([HTLexicon.assign], consume: true)) {
+          if (isOptional || isNamed) {
+            initializer = _parseExpr(endOfExec: true);
+            paramBytesBuilder.addByte(1); // bool，表示有初始化表达式
+            paramBytesBuilder.add(_uint16(initializer.length));
+            paramBytesBuilder.add(initializer);
+          } else {
+            throw HTError.argInit();
+          }
         } else {
           paramBytesBuilder.addByte(0);
         }
@@ -2053,7 +2067,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     }
 
     // the return value type declaration
-    if (expect([HTLexicon.arrow], consume: true)) {
+    if (expect([HTLexicon.singleArrow], consume: true)) {
       if (category == FunctionCategory.constructor) {
         throw HTError.ctorReturn();
       }
@@ -2070,21 +2084,25 @@ class HTCompiler extends AbstractParser with HetuRef {
         throw HTError.externalCtorWithReferCtor();
       }
 
+      final ctorId = advance(1).lexeme;
+      if (!HTLexicon.constructorCall.contains(ctorId)) {
+        throw HTError.unexpected(SemanticType.ctorCallExpr, curTok.lexeme);
+      }
+
       bytesBuilder.addByte(FunctionAppendixType
           .referConstructor.index); // enum: return type or super constructor
-      if (advance(1).lexeme != HTLexicon.SUPER) {
-        throw HTError.unexpected(HTLexicon.SUPER, curTok.lexeme);
-      }
-      final tokLexem = advance(1).type;
-      if (tokLexem == HTLexicon.memberGet) {
+
+      if (expect([HTLexicon.memberGet], consume: true)) {
         bytesBuilder.addByte(1); // bool: has super constructor name
         final superCtorId = match(HTLexicon.identifier).lexeme;
         bytesBuilder.add(_shortUtf8String(superCtorId));
         match(HTLexicon.roundLeft);
-      } else if (tokLexem == HTLexicon.roundLeft) {
+      } else {
+        match(HTLexicon.roundLeft);
         bytesBuilder.addByte(0); // bool: has super constructor name
       }
-      final callArgs = _parseArguments(hasLength: true);
+
+      final callArgs = _parseCallArguments(hasLength: true);
       bytesBuilder.add(callArgs);
     } else {
       bytesBuilder.addByte(FunctionAppendixType.none.index);
@@ -2145,6 +2163,10 @@ class HTCompiler extends AbstractParser with HetuRef {
 
     Uint8List? superClassType;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
+      if (curTok.lexeme == id) {
+        throw HTError.extendsSelf();
+      }
+
       superClassType = _parseTypeExpr();
 
       // else if (!_curBlock.classDecls.containsKey(id)) {
