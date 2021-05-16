@@ -93,12 +93,15 @@ void main(List<String> arguments) async {
                   final name = path.basenameWithoutExtension(outPath);
                   outPath = path.join(curPath, '$name.ht');
                 }
-
-                final outFile = File(outPath);
-                outFile.writeAsStringSync(module.content);
-
-                print(outPath);
+              } else {
+                outPath = module.fullName;
               }
+
+              final outFile = File(outPath);
+              outFile.writeAsStringSync(module.content);
+
+              print('Saved formatted file to:');
+              print(outPath);
             } catch (e) {
               if (e is HTError && e.type == ErrorType.compileError) {
                 e.moduleFullName = parser.curModuleFullName;

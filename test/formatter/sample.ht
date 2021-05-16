@@ -1,73 +1,68 @@
-import    'utility.ht' 
-  as util 
-    show isEqual
+import 'utility.ht' as util show isEqual
 
 external abstract class Animal {
-  static var race: str;
-
-  construct (race: str) {
-    this.race = race;
+  external static var Animal.race: str
+  external construct(race: str) {
+    this.race = race
   }
 }
 
 class Converser {
-  fun talk    (other: 
-    Converser) {}
+  fun talk(other: Converser)  {}
 }
 
 class Profile {
-  var name: str;
+  var name: str
 }
 
-class Person extends Animal   {
+class Person extends Animal {
   var name: str
-  construct (name: str):  super(name) {
+  construct(name: str) : super(name) {
     this.name = name
   }
-  fun greeting {
-    print   ('Hi! I\'m'  ,   name)
+  fun greeting() {
+    print('Hi! I\'m', name)
   }
 }
 
-// This is where the script starts executing.
-fun main {
-  fun nested ([arg: str = 'catchya'])  ->void { const cc = arg return cc;  } 
-
-  if (nested() == -1) 
-    main();
-      else return 1 + 1;;;;;
-
-  (fun (num) { return num * num   
-  }) ();
-
-  for (var i = 0; i< max ; i *= 5) {
-        expect  (value: true);
+fun main() {
+  fun nested([arg: str = 'catchya') -> void {
+    const cc = arg
+    return cc
   }
-
+  if (nested() == -1) {
+    main()
+  } else {
+    return 1 + 1
+  }
+  (fun(num) {
+    return num * num
+  })()
+  for (var i = 0; i < max; i *= 5) {
+    expect(value: true)
+  }
   while {
     i++
-            break
-    do    {
+    break
+    do{
       continue
-
     } while (value is! bool)
   }
-
   when (true) {
-    1 ->   '1'
-    2 -> {
-      return [
-        1,
-        2,
-        3
-      ]
+    1 -> {
+      '1'
     }
-    else -> print(  { "name": "Kevin",
-    
-    
-    "age": 16}, 7> 2 ? true : cal(42))
+    2 -> {
+      return [1, 2, 3]
+    }
+    else -> {
+      print({
+        'name': 'Kevin', 
+        'age': 16
+      }, 7 > 2 ? true : cal(42))
+    }
   }
-
   var ht = Person('Hetu')
   ht.greeting()
 }
+
