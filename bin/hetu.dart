@@ -10,9 +10,14 @@ const cli_help = r'''
 Hetu Script Command-line Tool
 Version: 0.1.0
 Usage:
-hetu [option] [file_name] [invoke_func]
-If only [file_name] is provided, evaluate the file in function mode.
-If [file_name] and [invoke_func] is both provided, will interpret code as a program.''';
+hetu [command/option] [command_args]
+  command:
+    fmt [path] (--script(-s)) (--print(-p)) (--out(-o) [outpath])
+      to format a script file.
+    run [path] --script(-s)
+      to run a script file.
+  option: --help(-h)
+''';
 
 const repl_info = r'''
 Hetu Script Read-Evaluate-Print-Loop Tool
@@ -146,7 +151,6 @@ ArgResults parseArg(List<String> args) {
   runCmd.addFlag('script', abbr: 's');
   final fmtCmd = parser.addCommand('fmt');
   fmtCmd.addFlag('script');
-  fmtCmd.addFlag('save', abbr: 's');
   fmtCmd.addFlag('print', abbr: 'p');
   fmtCmd.addOption('out', abbr: 'o');
 
