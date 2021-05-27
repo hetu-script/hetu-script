@@ -10,15 +10,34 @@ abstract class AstNode {
   final int line;
   final int column;
 
-  final List<TokenComment>? preComments;
-
-  final TokenComment? inlineComment;
+  final AstNode? previous;
+  late final AstNode? next;
 
   /// 取表达式右值，返回值本身
   dynamic accept(AbstractAstVisitor visitor);
 
-  AstNode(this.type, this.line, this.column,
-      {this.preComments, this.inlineComment});
+  AstNode(this.type, this.line, this.column, {this.previous});
+}
+
+class CommentExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitCommentExpr(this);
+
+  final String content;
+
+  CommentExpr(this.content, int line, int column)
+      : super(SemanticType.literalNull, line, column);
+}
+
+class BlockCommentStmt extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitBlockCommentStmt(this);
+
+  final String content;
+
+  BlockCommentStmt(this.content, int line, int column)
+      : super(SemanticType.literalNull, line, column);
 }
 
 class NullExpr extends AstNode {
@@ -46,7 +65,7 @@ class ConstIntExpr extends AstNode {
   final int constIndex;
 
   ConstIntExpr(this.constIndex, int line, int column)
-      : super(SemanticType.literalInt, line, column);
+      : super(SemanticType.literalInteger, line, column);
 }
 
 class ConstFloatExpr extends AstNode {
@@ -78,7 +97,7 @@ class LiteralListExpr extends AstNode {
 
   final List<AstNode> list;
 
-  LiteralListExpr(int line, int column, [this.list = const []])
+  LiteralListExpr(int line, int column, {this.list = const []})
       : super(SemanticType.literalVectorExpr, line, column);
 }
 
@@ -89,7 +108,7 @@ class LiteralMapExpr extends AstNode {
 
   final Map<AstNode, AstNode> map;
 
-  LiteralMapExpr(int line, int column, [this.map = const {}])
+  LiteralMapExpr(int line, int column, {this.map = const {}})
       : super(SemanticType.blockExpr, line, column);
 }
 
@@ -474,7 +493,7 @@ class ReferConstructorExpr extends AstNode {
 
   final String? name;
 
-  ReferConstructorExpr(this.isSuper, int line, int column, [this.name])
+  ReferConstructorExpr(this.isSuper, int line, int column, {this.name})
       : super(SemanticType.referCtorExpr, line, column);
 }
 

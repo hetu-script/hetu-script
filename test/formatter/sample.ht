@@ -1,9 +1,12 @@
+// Document information
+
 import    'utility.ht' 
   as util 
     show isEqual
 
+// docs of class
 external abstract class Animal {
-  static var race: str;
+  static var race: str; // trailing comment
 
   construct (race: str) {
     this.race = race;
@@ -11,6 +14,8 @@ external abstract class Animal {
 }
 
 class Converser {
+
+  // docs of method
   fun talk    (other: 
     Converser) {}
 }
@@ -31,7 +36,7 @@ class Person extends Animal   {
 
 // This is where the script starts executing.
 fun main {
-  fun nested ([arg: str = 'catchya'])  ->void { const cc = arg return cc;  } 
+  fun nested ([arg: str = 'catchya'])  ->void { const cc = arg return cc;// comment in block  } 
 
   if (nested() == -1) 
     main();
@@ -43,6 +48,8 @@ fun main {
   for (var i = 0; i< max ; i *= 5) {
         expect  (value: true);
   }
+
+// comment in block
 
   while {
     i++

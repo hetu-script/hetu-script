@@ -25,9 +25,12 @@ enum TypeType {
 }
 
 abstract class SemanticType {
-  static const comment = 'comment';
-  static const identifier = 'identifier';
+  static const emptyLine = 'empty_line';
+  static const singleLineComment = 'single_line_comment';
+  static const multiLineComment = 'multi_line_comment';
 
+  static const identifier = 'identifier';
+  static const punctuation = 'punctuation';
   static const expression = 'expression';
   static const statement = 'statement';
   static const declStmt = 'declaration_statement';
@@ -38,7 +41,7 @@ abstract class SemanticType {
 
   static const literalNull = 'literal_null';
   static const literalBoolean = 'literal_boolean';
-  static const literalInt = 'literal_integer';
+  static const literalInteger = 'literal_integer';
   static const literalFloat = 'literal_float';
   static const literalString = 'literal_string';
   static const literalFunction = 'literal_function_expression';

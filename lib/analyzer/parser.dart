@@ -205,7 +205,6 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           case HTLexicon.LET:
             return _parseVarDeclStmt(
                 typeInferrence: true, lateInitialize: true);
-
           case HTLexicon.CONST:
             return _parseVarDeclStmt(
                 typeInferrence: true, isImmutable: true, lateInitialize: true);
@@ -223,17 +222,17 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           case HTLexicon.CONST:
             return _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
-                expect([
+            if (!expect([HTLexicon.FUNCTION, SemanticType.identifier]) &&
+                !expect([
                   HTLexicon.FUNCTION,
                   HTLexicon.squareLeft,
                   SemanticType.identifier,
                   HTLexicon.squareRight,
                   SemanticType.identifier
                 ])) {
-              return _parseFuncDeclaration();
-            } else {
               return _parseFuncDeclaration(category: FunctionCategory.literal);
+            } else {
+              return _parseFuncDeclaration();
             }
           case HTLexicon.IF:
             return _parseIfStmt();
@@ -521,31 +520,27 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     switch (curTok.type) {
       case HTLexicon.NULL:
         _leftValueLegality = false;
-        advance(1);
-        return NullExpr(peek(-1).line, peek(-1).column);
-      case HTLexicon.TRUE:
+        final word = advance(1);
+        return NullExpr(word.line, word.column);
+      case HTLexicon.boolean:
         _leftValueLegality = false;
-        advance(1);
-        return BooleanExpr(true, peek(-1).line, peek(-1).column);
-      case HTLexicon.FALSE:
-        _leftValueLegality = false;
-        advance(1);
-        return BooleanExpr(false, peek(-1).line, peek(-1).column);
+        final word = advance(1);
+        return BooleanExpr(word.literal, word.line, word.column);
       case HTLexicon.integer:
         _leftValueLegality = false;
-        var index = _curConstTable.addInt(curTok.literal);
-        advance(1);
-        return ConstIntExpr(index, peek(-1).line, peek(-1).column);
+        final word = advance(1);
+        var index = _curConstTable.addInt(word.literal);
+        return ConstIntExpr(index, word.line, word.column);
       case HTLexicon.float:
         _leftValueLegality = false;
-        var index = _curConstTable.addFloat(curTok.literal);
-        advance(1);
-        return ConstFloatExpr(index, peek(-1).line, peek(-1).column);
+        final word = advance(1);
+        var index = _curConstTable.addFloat(word.literal);
+        return ConstFloatExpr(index, word.line, word.column);
       case HTLexicon.string:
         _leftValueLegality = false;
-        var index = _curConstTable.addString(curTok.literal);
-        advance(1);
-        return ConstStringExpr(index, peek(-1).line, peek(-1).column);
+        final word = advance(1);
+        var index = _curConstTable.addString(word.literal);
+        return ConstStringExpr(index, word.line, word.column);
       case HTLexicon.THIS:
         _leftValueLegality = false;
         final keyword = advance(1);
@@ -572,7 +567,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           }
         }
         match(HTLexicon.squareRight);
-        return LiteralListExpr(line, column, listExpr);
+        return LiteralListExpr(line, column, list: listExpr);
       case HTLexicon.curlyLeft:
         _leftValueLegality = false;
         final line = curTok.line;
@@ -588,7 +583,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           }
         }
         match(HTLexicon.curlyRight);
-        return LiteralMapExpr(line, column, mapExpr);
+        return LiteralMapExpr(line, column, map: mapExpr);
 
       case HTLexicon.FUNCTION:
         return _parseFuncDeclaration(category: FunctionCategory.literal);
@@ -1175,7 +1170,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           ctorToken.lexeme == HTLexicon.SUPER,
           ctorToken.line,
           ctorToken.column,
-          ctorCallName,
+          name: ctorCallName,
         );
       } else {
         match(HTLexicon.roundLeft);

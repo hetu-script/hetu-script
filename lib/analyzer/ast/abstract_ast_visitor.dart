@@ -2,6 +2,10 @@ part of 'ast.dart';
 
 /// Visitor interface for a abstract syntactic tree node
 abstract class AbstractAstVisitor {
+  dynamic visitCommentExpr(CommentExpr expr);
+
+  dynamic visitBlockCommentStmt(BlockCommentStmt stmt);
+
   dynamic visitNullExpr(NullExpr expr);
 
   dynamic visitBooleanExpr(BooleanExpr expr);

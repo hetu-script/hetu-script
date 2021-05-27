@@ -1,10 +1,8 @@
-import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 
 class Token {
   final String lexeme;
 
-  final String moduleFullName;
   final int line;
   final int column;
 
@@ -14,15 +12,22 @@ class Token {
   @override
   String toString() => lexeme;
 
-  Token(this.lexeme, this.moduleFullName, this.line, this.column);
+  Token(this.lexeme, this.line, this.column);
+}
+
+class TokenEmptyLine extends Token {
+  @override
+  String get type => SemanticType.emptyLine;
+
+  TokenEmptyLine(int line, int column) : super('', line, column);
 }
 
 class TokenIdentifier extends Token {
   @override
   String get type => SemanticType.identifier;
 
-  TokenIdentifier(String lexeme, String moduleFullName, int line, int column)
-      : super(lexeme, moduleFullName, line, column);
+  TokenIdentifier(String lexeme, int line, int column)
+      : super(lexeme, line, column);
 }
 
 class TokenBoolLiteral extends Token {
@@ -30,23 +35,10 @@ class TokenBoolLiteral extends Token {
   final bool literal;
 
   @override
-  String get type => lexeme;
+  String get type => SemanticType.literalBoolean;
 
-  TokenBoolLiteral(
-      String lexeme, this.literal, String moduleFullName, int line, int column)
-      : super(lexeme, moduleFullName, line, column);
-}
-
-class TokenNumberLiteral extends Token {
-  @override
-  final num literal;
-
-  @override
-  String get type => HTLexicon.number;
-
-  TokenNumberLiteral(
-      String lexeme, this.literal, String moduleFullName, int line, int column)
-      : super(lexeme, moduleFullName, line, column);
+  TokenBoolLiteral(String lexeme, this.literal, int line, int column)
+      : super(lexeme, line, column);
 }
 
 class TokenIntLiteral extends Token {
@@ -54,11 +46,10 @@ class TokenIntLiteral extends Token {
   final int literal;
 
   @override
-  String get type => HTLexicon.integer;
+  String get type => SemanticType.literalInteger;
 
-  TokenIntLiteral(
-      String lexeme, this.literal, String moduleFullName, int line, int column)
-      : super(lexeme, moduleFullName, line, column);
+  TokenIntLiteral(String lexeme, this.literal, int line, int column)
+      : super(lexeme, line, column);
 }
 
 class TokenFloatLiteral extends Token {
@@ -66,11 +57,10 @@ class TokenFloatLiteral extends Token {
   final double literal;
 
   @override
-  String get type => HTLexicon.float;
+  String get type => SemanticType.literalFloat;
 
-  TokenFloatLiteral(
-      String lexeme, this.literal, String moduleFullName, int line, int column)
-      : super(lexeme, moduleFullName, line, column);
+  TokenFloatLiteral(String lexeme, this.literal, int line, int column)
+      : super(lexeme, line, column);
 }
 
 class TokenStringLiteral extends Token {
@@ -80,20 +70,28 @@ class TokenStringLiteral extends Token {
   @override
   String get type => SemanticType.literalString;
 
-  TokenStringLiteral(this.literal, String moduleFullName, int line, int column)
-      : super(literal, moduleFullName, line, column);
+  TokenStringLiteral(this.literal, int line, int column)
+      : super(literal, line, column);
 }
 
-class TokenComment extends Token {
+class TokenSingleLineComment extends Token {
   @override
   final String literal;
 
-  final bool multiline;
+  @override
+  String get type => SemanticType.singleLineComment;
+
+  TokenSingleLineComment(this.literal, int line, int column)
+      : super(literal, line, column);
+}
+
+class TokenMultiLineComment extends Token {
+  @override
+  final String literal;
 
   @override
-  String get type => SemanticType.comment;
+  String get type => SemanticType.multiLineComment;
 
-  TokenComment(this.literal, String moduleFullName, int line, int column,
-      {this.multiline = false})
-      : super(literal, moduleFullName, line, column);
+  TokenMultiLineComment(this.literal, int line, int column)
+      : super(literal, line, column);
 }

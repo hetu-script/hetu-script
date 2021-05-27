@@ -48,6 +48,16 @@ class HTFormatter implements AbstractAstVisitor {
   String visitAstNode(AstNode ast) => ast.accept(this);
 
   @override
+  dynamic visitCommentExpr(CommentExpr expr) {
+    return expr.content;
+  }
+
+  @override
+  dynamic visitBlockCommentStmt(BlockCommentStmt stmt) {
+    return stmt.content;
+  }
+
+  @override
   String visitNullExpr(NullExpr expr) {
     return HTLexicon.NULL;
   }

@@ -22,7 +22,11 @@ abstract class HTOpCode {
   static const goto = 6;
 
   /// uint16 line & column
-  static const debugInfo = 10;
+  static const debugInfo = 8;
+
+  static const singleComment = 9;
+
+  static const multilineComment = 10;
 
   static const objectSymbol = 11;
 

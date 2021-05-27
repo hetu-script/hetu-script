@@ -8,7 +8,6 @@ import '../core/abstract_interpreter.dart';
 import '../core/class/enum.dart';
 import '../core/class/class.dart';
 import '../grammar/lexicon.dart';
-import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
@@ -216,6 +215,12 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   dynamic visitASTNode(AstNode ast) => ast.accept(this);
+
+  @override
+  dynamic visitCommentExpr(CommentExpr expr) {}
+
+  @override
+  dynamic visitBlockCommentStmt(BlockCommentStmt stmt) {}
 
   @override
   dynamic visitNullExpr(NullExpr expr) {
@@ -773,7 +778,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     // }
     // }
 
-    // _curNamespace = save;
+    _curNamespace = save;
 
     // for (final method in stmt.methods) {
     //   HTFunction func;

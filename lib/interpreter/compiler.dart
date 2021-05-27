@@ -58,8 +58,8 @@ class HTCompiler extends AbstractParser with HetuRef {
   /// used to determine compatibility.
   static const hetuVersionData = [0, 1, 0, 0];
 
-  late BytecodeDeclarationBlock _mainBlock;
-  late BytecodeDeclarationBlock _curBlock;
+  // late BytecodeDeclarationBlock _mainBlock;
+  // late BytecodeDeclarationBlock _curBlock;
   late HTBytecodeCompilation _curCompilation;
   late List<ImportInfo> _curImports;
   late ConstTable _curConstTable;
@@ -78,7 +78,7 @@ class HTCompiler extends AbstractParser with HetuRef {
       {ParserConfig config = const ParserConfig()}) async {
     this.config = config;
     _curModuleFullName = fullName;
-    _curBlock = _mainBlock = BytecodeDeclarationBlock();
+    // _curBlock = _mainBlock = BytecodeDeclarationBlock();
     _curClass = null;
     _curFuncType = null;
     _curCompilation = HTBytecodeCompilation();
@@ -132,18 +132,18 @@ class HTCompiler extends AbstractParser with HetuRef {
       mainBuilder.add(_utf8String(value));
     }
     // 将变量表前置，总是按照：枚举、函数、类、变量这个顺序
-    for (final decl in _mainBlock.enumDecls.values) {
-      mainBuilder.add(decl);
-    }
-    for (final decl in _mainBlock.funcDecls.values) {
-      mainBuilder.add(decl);
-    }
-    for (final decl in _mainBlock.classDecls.values) {
-      mainBuilder.add(decl);
-    }
-    for (final decl in _mainBlock.varDecls.values) {
-      mainBuilder.add(decl);
-    }
+    // for (final decl in _mainBlock.enumDecls.values) {
+    //   mainBuilder.add(decl);
+    // }
+    // for (final decl in _mainBlock.funcDecls.values) {
+    //   mainBuilder.add(decl);
+    // }
+    // for (final decl in _mainBlock.classDecls.values) {
+    //   mainBuilder.add(decl);
+    // }
+    // for (final decl in _mainBlock.varDecls.values) {
+    //   mainBuilder.add(decl);
+    // }
     // 添加程序本体代码
     mainBuilder.add(code);
 
@@ -193,6 +193,11 @@ class HTCompiler extends AbstractParser with HetuRef {
     switch (sourceType) {
       case SourceType.script:
         switch (curTok.type) {
+          // 忽略掉注释
+          case SemanticType.singleLineComment:
+          case SemanticType.multiLineComment:
+            advance(1);
+            break;
           case HTLexicon.IMPORT:
             _parseImportStmt();
             break;
@@ -245,19 +250,18 @@ class HTCompiler extends AbstractParser with HetuRef {
             _parseClassDeclStmt();
             break;
           case HTLexicon.VAR:
-            final decl = _parseVarDeclStmt(forwardDeclaration: false);
+            final decl = _parseVarDeclStmt(); // forwardDeclaration: false);
             bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
             final decl = _parseVarDeclStmt(
-                typeInferrence: true, forwardDeclaration: false);
+                typeInferrence: true); //, forwardDeclaration: false);
             bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
             final decl = _parseVarDeclStmt(
                 typeInferrence: true,
-                isImmutable: true,
-                forwardDeclaration: false);
+                isImmutable: true); //, forwardDeclaration: false);
             bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
@@ -306,6 +310,11 @@ class HTCompiler extends AbstractParser with HetuRef {
         break;
       case SourceType.module:
         switch (curTok.type) {
+          // 忽略掉注释
+          case SemanticType.singleLineComment:
+          case SemanticType.multiLineComment:
+            advance(1);
+            break;
           case HTLexicon.IMPORT:
             _parseImportStmt();
             break;
@@ -387,20 +396,24 @@ class HTCompiler extends AbstractParser with HetuRef {
         break;
       case SourceType.function:
         switch (curTok.type) {
+          // 忽略掉注释
+          case SemanticType.singleLineComment:
+          case SemanticType.multiLineComment:
+            advance(1);
+            break;
           case HTLexicon.VAR:
-            final decl = _parseVarDeclStmt(forwardDeclaration: false);
+            final decl = _parseVarDeclStmt(); // forwardDeclaration: false);
             bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
             final decl = _parseVarDeclStmt(
-                typeInferrence: true, forwardDeclaration: false);
+                typeInferrence: true); //, forwardDeclaration: false);
             bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
             final decl = _parseVarDeclStmt(
                 typeInferrence: true,
-                isImmutable: true,
-                forwardDeclaration: false);
+                isImmutable: true); //, forwardDeclaration: false);
             bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
@@ -468,6 +481,11 @@ class HTCompiler extends AbstractParser with HetuRef {
         final isExternal = expect([HTLexicon.EXTERNAL], consume: true);
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         switch (curTok.type) {
+          // 忽略掉注释
+          case SemanticType.singleLineComment:
+          case SemanticType.multiLineComment:
+            advance(1);
+            break;
           case HTLexicon.VAR:
             _parseVarDeclStmt(
                 isMember: true,
@@ -1035,27 +1053,22 @@ class HTCompiler extends AbstractParser with HetuRef {
         _leftValueLegality = false;
         advance(1);
         return _localNull();
-      case HTLexicon.TRUE:
+      case SemanticType.literalBoolean:
         _leftValueLegality = false;
-        advance(1);
-        return _localBool(true);
-      case HTLexicon.FALSE:
-        _leftValueLegality = false;
-        advance(1);
-        return _localBool(false);
-      case HTLexicon.integer:
+        return _localBool(advance(1).literal);
+      case SemanticType.literalInteger:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addInt(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.int64);
-      case HTLexicon.float:
+      case SemanticType.literalFloat:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addFloat(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.float64);
-      case HTLexicon.string:
+      case SemanticType.literalString:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addString(value);
@@ -1241,8 +1254,8 @@ class HTCompiler extends AbstractParser with HetuRef {
       bool createNamespace = true,
       bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
-    final savedDeclBlock = _curBlock;
-    _curBlock = BytecodeDeclarationBlock();
+    // final savedDeclBlock = _curBlock;
+    // _curBlock = BytecodeDeclarationBlock();
     match(HTLexicon.curlyLeft);
     if (createNamespace) {
       bytesBuilder.addByte(HTOpCode.block);
@@ -1263,27 +1276,27 @@ class HTCompiler extends AbstractParser with HetuRef {
     }
     match(HTLexicon.curlyRight);
     // 添加前置变量表，总是按照：枚举、函数、类、变量这个顺序
-    for (final decl in _curBlock.enumDecls.values) {
-      declsBytesBuilder.add(decl);
-    }
-    for (final decl in _curBlock.funcDecls.values) {
-      declsBytesBuilder.add(decl);
-    }
-    for (final decl in _curBlock.classDecls.values) {
-      declsBytesBuilder.add(decl);
-    }
-    for (final decl in additionalVarDecl) {
-      declsBytesBuilder.add(decl);
-    }
-    for (final decl in _curBlock.varDecls.values) {
-      declsBytesBuilder.add(decl);
-    }
+    // for (final decl in _curBlock.enumDecls.values) {
+    //   declsBytesBuilder.add(decl);
+    // }
+    // for (final decl in _curBlock.funcDecls.values) {
+    //   declsBytesBuilder.add(decl);
+    // }
+    // for (final decl in _curBlock.classDecls.values) {
+    //   declsBytesBuilder.add(decl);
+    // }
+    // for (final decl in additionalVarDecl) {
+    //   declsBytesBuilder.add(decl);
+    // }
+    // for (final decl in _curBlock.varDecls.values) {
+    //   declsBytesBuilder.add(decl);
+    // }
     bytesBuilder.add(declsBytesBuilder.toBytes());
     for (final stmt in additionalStatements) {
       bytesBuilder.add(stmt);
     }
     bytesBuilder.add(blockBytesBuilder.toBytes());
-    _curBlock = savedDeclBlock;
+    // _curBlock = savedDeclBlock;
     if (createNamespace) {
       bytesBuilder.addByte(HTOpCode.endOfBlock);
     }
@@ -1590,8 +1603,8 @@ class HTCompiler extends AbstractParser with HetuRef {
       final iterDecl = _parseVarDeclStmt(
           typeInferrence: curTok.type != HTLexicon.VAR,
           isImmutable: curTok.type == HTLexicon.CONST,
-          additionalInitializer: iterInitializer,
-          forwardDeclaration: false);
+          additionalInitializer:
+              iterInitializer); //, forwardDeclaration: false);
       tokPos = blockStartPos;
       additionalVarDecls.add(iterDecl);
 
@@ -1614,8 +1627,7 @@ class HTCompiler extends AbstractParser with HetuRef {
             declId: markedId,
             typeInferrence: curTok.type != HTLexicon.VAR,
             isImmutable: curTok.type == HTLexicon.CONST,
-            endOfStatement: true,
-            forwardDeclaration: false);
+            endOfStatement: true); //, forwardDeclaration: false);
 
         // final increId = HTLexicon.increment;
         // final increInit = _assembleLocalSymbol(initDeclId, endOfExec: true);
@@ -1769,8 +1781,9 @@ class HTCompiler extends AbstractParser with HetuRef {
       bool isStatic = false,
       bool lateInitialize = false,
       Uint8List? additionalInitializer,
-      bool endOfStatement = false,
-      bool forwardDeclaration = true}) {
+      bool endOfStatement = false
+      // , bool forwardDeclaration = true
+      }) {
     advance(1);
     var id = match(SemanticType.identifier).lexeme;
 
@@ -1840,9 +1853,9 @@ class HTCompiler extends AbstractParser with HetuRef {
     }
 
     final bytes = bytesBuilder.toBytes();
-    if (forwardDeclaration) {
-      _curBlock.varDecls[id] = bytes;
-    }
+    // if (forwardDeclaration) {
+    //   _curBlock.varDecls[id] = bytes;
+    // }
 
     return bytes;
   }
@@ -2135,13 +2148,14 @@ class HTCompiler extends AbstractParser with HetuRef {
     _curFuncType = savedCurFuncType;
 
     final bytes = bytesBuilder.toBytes();
-    if (category != FunctionCategory.literal) {
-      _curBlock.funcDecls[id] = bytes;
-    }
+    // if (category != FunctionCategory.literal) {
+    //   _curBlock.funcDecls[id] = bytes;
+    // }
     return bytes;
   }
 
-  void _parseClassDeclStmt({bool isExternal = false, bool isAbstract = false}) {
+  Uint8List _parseClassDeclStmt(
+      {bool isExternal = false, bool isAbstract = false}) {
     advance(1); // keyword
     final bytesBuilder = BytesBuilder();
     final id = match(SemanticType.identifier).lexeme;
@@ -2204,10 +2218,12 @@ class HTCompiler extends AbstractParser with HetuRef {
 
     _curClass = savedClass;
 
-    _curBlock.classDecls[id] = bytesBuilder.toBytes();
+    // _curBlock.classDecls[id] = bytesBuilder.toBytes();
+
+    return bytesBuilder.toBytes();
   }
 
-  void _parseEnumDeclStmt({bool isExternal = false}) {
+  Uint8List _parseEnumDeclStmt({bool isExternal = false}) {
     advance(1);
     final bytesBuilder = BytesBuilder();
     final id = match(SemanticType.identifier).lexeme;
@@ -2239,6 +2255,8 @@ class HTCompiler extends AbstractParser with HetuRef {
       bytesBuilder.add(_shortUtf8String(id));
     }
 
-    _curBlock.enumDecls[id] = bytesBuilder.toBytes();
+    // _curBlock.enumDecls[id] = bytesBuilder.toBytes();
+
+    return bytesBuilder.toBytes();
   }
 }

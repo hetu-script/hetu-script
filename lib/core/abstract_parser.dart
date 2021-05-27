@@ -144,7 +144,7 @@ abstract class AbstractParser {
     if ((tokPos + pos) < _tokens.length) {
       return _tokens[tokPos + pos];
     } else {
-      return Token(HTLexicon.endOfFile, curModuleFullName!, -1, -1);
+      return Token(HTLexicon.endOfFile, -1, -1);
     }
   }
 
