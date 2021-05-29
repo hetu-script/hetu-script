@@ -206,30 +206,33 @@ class HTCompiler extends AbstractParser with HetuRef {
             switch (curTok.type) {
               case HTLexicon.ABSTRACT:
                 advance(1);
-                if (curTok.type == HTLexicon.CLASS) {
-                  _parseClassDeclStmt(isAbstract: true, isExternal: true);
-                } else {
+                if (curTok.type != HTLexicon.CLASS) {
                   throw HTError.unexpected(
                       SemanticType.classDecl, curTok.lexeme);
                 }
+                final decl =
+                    _parseClassDeclStmt(isAbstract: true, isExternal: true);
+                bytesBuilder.add(decl);
                 break;
               case HTLexicon.CLASS:
-                _parseClassDeclStmt(isExternal: true);
+                final decl = _parseClassDeclStmt(isExternal: true);
+                bytesBuilder.add(decl);
                 break;
               case HTLexicon.ENUM:
-                _parseEnumDeclStmt(isExternal: true);
+                final decl = _parseEnumDeclStmt(isExternal: true);
+                bytesBuilder.add(decl);
                 break;
               case HTLexicon.VAR:
               case HTLexicon.LET:
               case HTLexicon.CONST:
                 throw HTError.externalVar();
               case HTLexicon.FUNCTION:
-                if (expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
-                  _parseFuncDeclaration(isExternal: true);
-                } else {
+                if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
                   throw HTError.unexpected(
                       SemanticType.funcDecl, peek(1).lexeme);
                 }
+                final decl = _parseFuncDeclaration(isExternal: true);
+                bytesBuilder.add(decl);
                 break;
               default:
                 throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
@@ -237,17 +240,19 @@ class HTCompiler extends AbstractParser with HetuRef {
             break;
           case HTLexicon.ABSTRACT:
             advance(1);
-            if (curTok.type == HTLexicon.CLASS) {
-              _parseClassDeclStmt(isAbstract: true);
-            } else {
+            if (curTok.type != HTLexicon.CLASS) {
               throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
             }
+            final decl = _parseClassDeclStmt(isAbstract: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.ENUM:
-            _parseEnumDeclStmt();
+            final decl = _parseEnumDeclStmt();
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CLASS:
-            _parseClassDeclStmt();
+            final decl = _parseClassDeclStmt();
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.VAR:
             final decl = _parseVarDeclStmt(); // forwardDeclaration: false);
@@ -265,19 +270,8 @@ class HTCompiler extends AbstractParser with HetuRef {
             bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
-                expect([
-                  HTLexicon.FUNCTION,
-                  HTLexicon.squareLeft,
-                  SemanticType.identifier,
-                  HTLexicon.squareRight,
-                  SemanticType.identifier
-                ])) {
-              _parseFuncDeclaration();
-            } else {
-              final func = _parseExprStmt();
-              bytesBuilder.add(func);
-            }
+            final decl = _parseFuncDeclaration();
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.IF:
             final ifStmt = _parseIfStmt();
@@ -320,37 +314,40 @@ class HTCompiler extends AbstractParser with HetuRef {
             break;
           case HTLexicon.ABSTRACT:
             advance(1);
-            if (curTok.type == HTLexicon.CLASS) {
-              _parseClassDeclStmt(isAbstract: true);
-            } else {
+            if (curTok.type != HTLexicon.CLASS) {
               throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
             }
+            final decl = _parseClassDeclStmt(isAbstract: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.EXTERNAL:
             advance(1);
             switch (curTok.type) {
               case HTLexicon.ABSTRACT:
                 advance(1);
-                if (curTok.type == HTLexicon.CLASS) {
-                  _parseClassDeclStmt(isAbstract: true, isExternal: true);
-                } else {
+                if (curTok.type != HTLexicon.CLASS) {
                   throw HTError.unexpected(
                       SemanticType.classDecl, curTok.lexeme);
                 }
+                final decl =
+                    _parseClassDeclStmt(isAbstract: true, isExternal: true);
+                bytesBuilder.add(decl);
                 break;
               case HTLexicon.CLASS:
-                _parseClassDeclStmt(isExternal: true);
+                final decl = _parseClassDeclStmt(isExternal: true);
+                bytesBuilder.add(decl);
                 break;
               case HTLexicon.ENUM:
-                _parseEnumDeclStmt(isExternal: true);
+                final decl = _parseEnumDeclStmt(isExternal: true);
+                bytesBuilder.add(decl);
                 break;
               case HTLexicon.FUNCTION:
-                if (expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
-                  _parseFuncDeclaration(isExternal: true);
-                } else {
+                if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
                   throw HTError.unexpected(
                       SemanticType.funcDecl, peek(1).lexeme);
                 }
+                final func = _parseFuncDeclaration(isExternal: true);
+                bytesBuilder.add(func);
                 break;
               case HTLexicon.VAR:
               case HTLexicon.LET:
@@ -361,34 +358,40 @@ class HTCompiler extends AbstractParser with HetuRef {
             }
             break;
           case HTLexicon.ENUM:
-            _parseEnumDeclStmt();
+            final decl = _parseEnumDeclStmt();
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CLASS:
-            _parseClassDeclStmt();
+            final decl = _parseClassDeclStmt();
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.VAR:
-            _parseVarDeclStmt(lateInitialize: true);
+            final decl = _parseVarDeclStmt(lateInitialize: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
-            _parseVarDeclStmt(typeInferrence: true, lateInitialize: true);
+            final decl =
+                _parseVarDeclStmt(typeInferrence: true, lateInitialize: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
-            _parseVarDeclStmt(
+            final decl = _parseVarDeclStmt(
                 typeInferrence: true, isImmutable: true, lateInitialize: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
-                expect([
+            if (!expect([HTLexicon.FUNCTION, SemanticType.identifier]) &&
+                !expect([
                   HTLexicon.FUNCTION,
                   HTLexicon.squareLeft,
                   SemanticType.identifier,
                   HTLexicon.squareRight,
                   SemanticType.identifier
                 ])) {
-              _parseFuncDeclaration();
-            } else {
               throw HTError.unexpected(SemanticType.funcDecl, peek(1).lexeme);
             }
+            final func = _parseFuncDeclaration();
+            bytesBuilder.add(func);
             break;
           default:
             throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
@@ -417,20 +420,8 @@ class HTCompiler extends AbstractParser with HetuRef {
             bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
-                expect([
-                  HTLexicon.FUNCTION,
-                  HTLexicon.squareLeft,
-                  SemanticType.identifier,
-                  HTLexicon.squareRight,
-                  SemanticType.identifier
-                ])) {
-              _parseFuncDeclaration();
-            } else {
-              final func =
-                  _parseFuncDeclaration(category: FunctionCategory.literal);
-              bytesBuilder.add(func);
-            }
+            final func = _parseFuncDeclaration();
+            bytesBuilder.add(func);
             break;
           case HTLexicon.IF:
             final ifStmt = _parseIfStmt();
@@ -461,12 +452,11 @@ class HTCompiler extends AbstractParser with HetuRef {
             bytesBuilder.addByte(HTOpCode.continueLoop);
             break;
           case HTLexicon.RETURN:
-            if (_curFuncType != FunctionCategory.constructor) {
-              final returnStmt = _parseReturnStmt();
-              bytesBuilder.add(returnStmt);
-            } else {
+            if (_curFuncType == FunctionCategory.constructor) {
               throw HTError.outsideReturn();
             }
+            final returnStmt = _parseReturnStmt();
+            bytesBuilder.add(returnStmt);
             break;
           case HTLexicon.semicolon:
             advance(1);
@@ -487,56 +477,63 @@ class HTCompiler extends AbstractParser with HetuRef {
             advance(1);
             break;
           case HTLexicon.VAR:
-            _parseVarDeclStmt(
+            final decl = _parseVarDeclStmt(
                 isMember: true,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic,
                 lateInitialize: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.LET:
-            _parseVarDeclStmt(
+            final decl = _parseVarDeclStmt(
                 isMember: true,
                 typeInferrence: true,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic,
                 lateInitialize: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CONST:
-            _parseVarDeclStmt(
+            final decl = _parseVarDeclStmt(
                 isMember: true,
                 typeInferrence: true,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isImmutable: true,
                 isStatic: isStatic,
                 lateInitialize: true);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
-            _parseFuncDeclaration(
+            final decl = _parseFuncDeclaration(
                 category: FunctionCategory.method,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.CONSTRUCT:
             if (isStatic) {
               throw HTError.unexpected(
                   SemanticType.declStmt, HTLexicon.CONSTRUCT);
             }
-            _parseFuncDeclaration(
+            final decl = _parseFuncDeclaration(
               category: FunctionCategory.constructor,
               isExternal: isExternal || (_curClass?.isExternal ?? false),
             );
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.GET:
-            _parseFuncDeclaration(
+            final decl = _parseFuncDeclaration(
                 category: FunctionCategory.getter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
+            bytesBuilder.add(decl);
             break;
           case HTLexicon.SET:
-            _parseFuncDeclaration(
+            final decl = _parseFuncDeclaration(
                 category: FunctionCategory.setter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
+            bytesBuilder.add(decl);
             break;
           default:
             throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
@@ -554,9 +551,9 @@ class HTCompiler extends AbstractParser with HetuRef {
     return bytesBuilder.toBytes();
   }
 
-  void _parseImportStmt() async {
+  void _parseImportStmt() {
     advance(1);
-    String key = match(HTLexicon.string).literal;
+    String key = match(SemanticType.literalString).literal;
     String? alias;
     if (expect([HTLexicon.AS], consume: true)) {
       alias = match(SemanticType.identifier).lexeme;
@@ -1265,14 +1262,15 @@ class HTCompiler extends AbstractParser with HetuRef {
         bytesBuilder.add(_shortUtf8String(id));
       }
     }
-    final declsBytesBuilder = BytesBuilder();
+    // final declsBytesBuilder = BytesBuilder();
     final blockBytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != HTLexicon.endOfFile) {
       // Function sourceType will not forwarding declaration
       // Module sourceType will late initialize
       // Class sourceType will use both technique
-      blockBytesBuilder.add(_parseStmt(sourceType: sourceType));
+      final stmt = _parseStmt(sourceType: sourceType);
+      blockBytesBuilder.add(stmt);
     }
     match(HTLexicon.curlyRight);
     // 添加前置变量表，总是按照：枚举、函数、类、变量这个顺序
@@ -1285,13 +1283,13 @@ class HTCompiler extends AbstractParser with HetuRef {
     // for (final decl in _curBlock.classDecls.values) {
     //   declsBytesBuilder.add(decl);
     // }
-    // for (final decl in additionalVarDecl) {
-    //   declsBytesBuilder.add(decl);
-    // }
+    for (final decl in additionalVarDecl) {
+      bytesBuilder.add(decl);
+    }
     // for (final decl in _curBlock.varDecls.values) {
     //   declsBytesBuilder.add(decl);
     // }
-    bytesBuilder.add(declsBytesBuilder.toBytes());
+    // bytesBuilder.add(declsBytesBuilder.toBytes());
     for (final stmt in additionalStatements) {
       bytesBuilder.add(stmt);
     }
@@ -1585,19 +1583,19 @@ class HTCompiler extends AbstractParser with HetuRef {
       conditionBytesBuilder.addByte(HTOpCode.endOfExec);
       condition = conditionBytesBuilder.toBytes();
 
-      final assignBytesBuilder = BytesBuilder();
+      final initBytesBuilder = BytesBuilder();
       final getElemFunc = _assembleMemberGet(object, HTLexicon.elementAt);
-      assignBytesBuilder.add(getElemFunc);
-      assignBytesBuilder.addByte(HTOpCode.register);
-      assignBytesBuilder.addByte(HTRegIdx.postfixObject);
-      assignBytesBuilder.addByte(HTOpCode.call);
-      assignBytesBuilder.addByte(1); // length of positionalArgs
+      initBytesBuilder.add(getElemFunc);
+      initBytesBuilder.addByte(HTOpCode.register);
+      initBytesBuilder.addByte(HTRegIdx.postfixObject);
+      initBytesBuilder.addByte(HTOpCode.call);
+      initBytesBuilder.addByte(1); // length of positionalArgs
       final getElemFuncCallArg = _assembleLocalSymbol(increId);
-      assignBytesBuilder.add(getElemFuncCallArg);
-      assignBytesBuilder.addByte(HTOpCode.endOfExec);
-      assignBytesBuilder.addByte(0); // length of namedArgs
-      assignBytesBuilder.addByte(HTOpCode.endOfExec);
-      final iterInitializer = assignBytesBuilder.toBytes();
+      initBytesBuilder.add(getElemFuncCallArg);
+      initBytesBuilder.addByte(HTOpCode.endOfExec);
+      initBytesBuilder.addByte(0); // length of namedArgs
+      initBytesBuilder.addByte(HTOpCode.endOfExec);
+      final iterInitializer = initBytesBuilder.toBytes();
       tokPos = declPos;
       // go back to var declaration
       final iterDecl = _parseVarDeclStmt(

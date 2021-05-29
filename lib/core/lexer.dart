@@ -37,18 +37,16 @@ class Lexer {
         }
         // 标识符
         else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
-          if (HTLexicon.reservedKeywords.contains(matchString)) {
-            toksOfLine.add(Token(matchString, curLine, curColumn));
-          } else if (matchString == HTLexicon.TRUE) {
+          if (matchString == HTLexicon.TRUE) {
             toksOfLine
                 .add(TokenBoolLiteral(matchString, true, curLine, curColumn));
           } else if (matchString == HTLexicon.FALSE) {
             toksOfLine
                 .add(TokenBoolLiteral(matchString, false, curLine, curColumn));
+          } else if (HTLexicon.reservedKeywords.contains(matchString)) {
+            toksOfLine.add(Token(matchString, curLine, curColumn));
           } else {
             toksOfLine.add(TokenIdentifier(matchString, curLine, curColumn));
-
-            1 + 3;
           }
         }
         // 标点符号和运算符号

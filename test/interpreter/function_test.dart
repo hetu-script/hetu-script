@@ -10,7 +10,7 @@ void main() async {
       final result = await hetu.eval('''
             fun literalFunction(func) {
               var i = 42
-              fun nested () {
+              fun nested() {
                 i = i + 1
                 return (func(i))
               }
