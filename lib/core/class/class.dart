@@ -114,18 +114,17 @@ class HTClass extends AbstractClass with HTObject, InterpreterRef {
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      HTDeclaration? decl;
       if (namespace.declarations.containsKey(varName)) {
-        decl = namespace.declarations[varName];
+        final decl = namespace.declarations[varName]!;
+        return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
-        decl = namespace.declarations[getter];
+        AbstractFunction func = namespace.declarations[getter]!.value;
+        return func.call();
       } else if ((varName == id) &&
           namespace.declarations.containsKey(HTLexicon.constructor)) {
-        decl = namespace.declarations[HTLexicon.constructor];
-      }
-
-      if (decl != null) {
-        return decl.value;
+        AbstractFunction func =
+            namespace.declarations[HTLexicon.constructor]!.value;
+        return func;
       }
     } else if (namespace.declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
