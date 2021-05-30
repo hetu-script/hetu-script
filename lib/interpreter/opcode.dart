@@ -28,7 +28,7 @@ abstract class HTOpCode {
 
   static const multilineComment = 10;
 
-  static const objectSymbol = 11;
+  static const leftValue = 11;
 
   static const loopPoint = 12;
 

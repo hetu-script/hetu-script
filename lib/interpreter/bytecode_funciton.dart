@@ -2,7 +2,7 @@ import '../binding/external_function.dart';
 import '../core/namespace/namespace.dart';
 import '../core/namespace/instance_namespace.dart';
 import '../core/function/abstract_function.dart';
-import '../core/variable.dart';
+import '../core/declaration.dart';
 import '../core/class/class.dart';
 import '../core/class/instance.dart';
 import '../error/errors.dart';
@@ -11,7 +11,7 @@ import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
 import '../type_system/function_type.dart';
 import 'interpreter.dart';
-import 'bytecode_variable.dart';
+import 'bytecode_declaration.dart';
 import 'bytecode_parameter.dart';
 import 'bytecode_source.dart' show GotoInfo;
 
@@ -37,8 +37,8 @@ class HTBytecodeFunctionReferConstructor {
   }
 }
 
-/// Bytecode implementation of [HTFunction].
-class HTBytecodeFunction extends HTFunction with GotoInfo {
+/// Bytecode implementation of [AbstractFunction].
+class HTBytecodeFunction extends AbstractFunction with GotoInfo {
   @override
   final Hetu interpreter;
 
@@ -51,7 +51,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
 
   /// Create a standard [HTBytecodeFunction].
   ///
-  /// A [HTFunction] has to be defined in a [HTNamespace] of an [Interpreter]
+  /// A [AbstractFunction] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
   HTBytecodeFunction(
     String id,
@@ -61,8 +61,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     HTClass? klass,
     FunctionCategory category = FunctionCategory.normal,
     bool isExternal = false,
-    Function? externalFuncDef,
-    String? externalTypedef,
+    Function? externalFunc,
+    String? externalId,
     this.hasParameterDeclarations = true,
     this.parameterDeclarations = const {},
     HTType returnType = HTType.ANY,
@@ -81,8 +81,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
             klass: klass,
             category: category,
             isExternal: isExternal,
-            externalFuncDef: externalFuncDef,
-            externalTypedef: externalTypedef,
+            externalFunc: externalFunc,
+            externalId: externalId,
             isStatic: isStatic,
             isConst: isConst,
             isVariadic: isVariadic,
@@ -94,7 +94,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
 
-    declType = HTFunctionType(
+    valueType = HTFunctionType(
         parameterTypes: parameterDeclarations.values
             .map((param) => param.declType)
             .toList(),
@@ -178,8 +178,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
       bool createInstance = true,
       bool errorHandled = true}) {
     try {
-      HTFunction.callStack.add(
-          '#${HTFunction.callStack.length} $id - (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
+      AbstractFunction.callStack.add(
+          '#${AbstractFunction.callStack.length} $id - (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数
@@ -208,11 +208,11 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         if (context is HTInstanceNamespace) {
           final instanceNamespace = context as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
-            closure.define(HTVariable(HTLexicon.SUPER, interpreter,
+            closure.define(HTDeclaration(HTLexicon.SUPER, interpreter,
                 value: instanceNamespace.next));
           }
 
-          closure.define(HTVariable(HTLexicon.THIS, interpreter,
+          closure.define(HTDeclaration(HTLexicon.THIS, interpreter,
               value: instanceNamespace));
         }
 
@@ -221,7 +221,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
           final superClass = klass!.superClass!;
           final superCtorId = referConstructor!.id;
           final constructor =
-              superClass.namespace.declarations[superCtorId] as HTFunction;
+              superClass.namespace.declarations[superCtorId]!.value;
           // constructor's context is on this newly created instance
           final instanceNamespace = context as HTInstanceNamespace;
           constructor.context = instanceNamespace.next!;
@@ -248,7 +248,7 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         }
 
         var variadicStart = -1;
-        HTBytecodeVariable? variadicParam;
+        HTBytecodeDeclaration? variadicParam;
         for (var i = 0; i < parameterDeclarations.length; ++i) {
           var decl = parameterDeclarations.values.elementAt(i).clone();
           closure.define(decl);
@@ -300,8 +300,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
       }
       // 如果是外部函数
       else {
-        late final finalPosArgs;
-        late final finalNamedArgs;
+        late final List<dynamic> finalPosArgs;
+        late final Map<String, dynamic> finalNamedArgs;
 
         if (hasParameterDeclarations) {
           if (positionalArgs.length < minArity ||
@@ -315,8 +315,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
             }
           }
 
-          finalPosArgs = <dynamic>[];
-          finalNamedArgs = <String, dynamic>{};
+          finalPosArgs = [];
+          finalNamedArgs = {};
 
           var variadicStart = -1;
           // HTBytecodeVariable? variadicParam; // 这里没有对variadic param做类型检查
@@ -368,16 +368,16 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         // either a normal external function or
         // a external static method in a non-external class
         if (!(klass?.isExternal ?? false)) {
-          externalFuncDef ??= interpreter.fetchExternalFunction(id);
+          externalFunc ??= interpreter.fetchExternalFunction(id);
 
-          if (externalFuncDef is HTExternalFunction) {
-            result = externalFuncDef!(
+          if (externalFunc is HTExternalFunction) {
+            result = externalFunc!(
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);
           } else {
             result = Function.apply(
-                externalFuncDef!,
+                externalFunc!,
                 finalPosArgs,
                 finalNamedArgs.map<Symbol, dynamic>(
                     (key, value) => MapEntry(Symbol(key), value)));
@@ -386,33 +386,35 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         // external class method
         else {
           if (category != FunctionCategory.getter) {
-            if (externalFuncDef == null) {
+            if (externalFunc == null) {
               if (isStatic || (category == FunctionCategory.constructor)) {
-                final externClass = interpreter.fetchExternalClass(classId!);
+                final classId = klass!.id;
+                final externClass = interpreter.fetchExternalClass(classId);
                 final funcName =
-                    (declId == null) ? classId! : '${classId!}.$declId';
-                externalFuncDef = externClass.memberGet(funcName);
+                    (declId == null) ? classId : '$classId.$declId';
+                externalFunc = externClass.memberGet(funcName);
               } else {
-                throw HTError.missingExternalFuncDef(id);
+                throw HTError.missingExternalFunc(id);
               }
             }
 
-            if (externalFuncDef is HTExternalFunction) {
-              result = externalFuncDef!(
+            if (externalFunc is HTExternalFunction) {
+              result = externalFunc!(
                   positionalArgs: finalPosArgs,
                   namedArgs: finalNamedArgs,
                   typeArgs: typeArgs);
             } else {
               // Use Function.apply will lose type args information.
               result = Function.apply(
-                  externalFuncDef!,
+                  externalFunc!,
                   finalPosArgs,
                   finalNamedArgs.map<Symbol, dynamic>(
                       (key, value) => MapEntry(Symbol(key), value)));
             }
           } else {
-            final externClass = interpreter.fetchExternalClass(classId!);
-            final funcName = isStatic ? '${classId!}.${declId!}' : declId!;
+            final classId = klass!.id;
+            final externClass = interpreter.fetchExternalClass(classId);
+            final funcName = isStatic ? '$classId.${declId!}' : declId!;
             result = externClass.memberGet(funcName);
           }
         }
@@ -428,8 +430,8 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         }
       }
 
-      if (HTFunction.callStack.isNotEmpty) {
-        HTFunction.callStack.removeLast();
+      if (AbstractFunction.callStack.isNotEmpty) {
+        AbstractFunction.callStack.removeLast();
       }
 
       return result;
@@ -440,28 +442,5 @@ class HTBytecodeFunction extends HTFunction with GotoInfo {
         interpreter.handleError(error, stack);
       }
     }
-  }
-
-  @override
-  HTBytecodeFunction clone() {
-    return HTBytecodeFunction(id, interpreter, moduleFullName,
-        declId: declId,
-        klass: klass,
-        category: category,
-        isExternal: isExternal,
-        externalFuncDef: externalFuncDef,
-        externalTypedef: externalTypedef,
-        parameterDeclarations: parameterDeclarations,
-        returnType: returnType,
-        definitionIp: definitionIp,
-        definitionLine: definitionLine,
-        definitionColumn: definitionColumn,
-        isStatic: isStatic,
-        isConst: isConst,
-        isVariadic: isVariadic,
-        minArity: minArity,
-        maxArity: maxArity,
-        context: context,
-        referConstructor: referConstructor);
   }
 }

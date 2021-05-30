@@ -10,13 +10,19 @@ const cli_help = r'''
 Hetu Script Command-line Tool
 Version: 0.1.0
 Usage:
-hetu [command/option] [command_args]
+hetu [command] [command_args]
   command:
-    fmt [path] (--script(-s)) (--print(-p)) (--out(-o) [outpath])
+    fmt [path]
       to format a script file.
-    run [path] --script(-s)
+      --script(-s)
+      --print(-p)
+      --out(-o) [outpath]
+    run [path]
       to run a script file.
-  option: --help(-h)
+      --script(-s)
+hetu [option]
+  option:
+    --help(-h)
 ''';
 
 const repl_info = r'''
@@ -57,8 +63,8 @@ void main(List<String> arguments) async {
       if (results['help']) {
         print(cli_help);
       } else if (results.command != null) {
-        final cmdResults = results.command!;
-        final cmdArgs = cmdResults.arguments;
+        final cmd = results.command!;
+        final cmdArgs = cmd.arguments;
 
         final targetPath = cmdArgs.first;
         if (path.extension(targetPath) != '.ht') {
@@ -66,59 +72,14 @@ void main(List<String> arguments) async {
         }
 
         final sourceType =
-            cmdResults['script'] ? SourceType.script : SourceType.module;
+            cmd['script'] ? SourceType.script : SourceType.module;
 
-        switch (cmdResults.name) {
-          case 'fmt':
-            var outPath = cmdResults['out'];
-
-            final parser = HTAstParser();
-            final formatter = HTFormatter();
-            final sourceProvider = DefaultSourceProvider();
-            final source = await sourceProvider.getSource(cmdArgs.first);
-
-            try {
-              final printResult = cmdResults['print'];
-
-              final config = ParserConfig(sourceType: sourceType);
-              final compilation = await parser.parse(
-                  source.content, sourceProvider, source.fullName, config);
-
-              final module = compilation.fetch(source.fullName);
-
-              await formatter.format(module);
-
-              if (printResult) {
-                print(module.content);
-              }
-
-              if (outPath != null) {
-                if (!path.isAbsolute(outPath)) {
-                  final curPath = path.dirname(source.fullName);
-                  final name = path.basenameWithoutExtension(outPath);
-                  outPath = path.join(curPath, '$name.ht');
-                }
-              } else {
-                outPath = module.fullName;
-              }
-
-              final outFile = File(outPath);
-              outFile.writeAsStringSync(module.content);
-
-              print('Saved formatted file to:');
-              print(outPath);
-            } catch (e) {
-              if (e is HTError && e.type == ErrorType.compileError) {
-                e.moduleFullName = parser.curModuleFullName;
-                e.line = parser.curLine;
-                e.column = parser.curColumn;
-              }
-              rethrow;
-            }
-
-            break;
+        switch (cmd.name) {
           case 'run':
-            await run(cmdArgs);
+            await run(cmdArgs, sourceType);
+            break;
+          case 'fmt':
+            await format(cmdArgs, cmd['out'], cmd['print']);
             break;
         }
       } else {
@@ -142,6 +103,51 @@ Future<void> run(List<String> args,
   }
   print('Execution result:');
   print(result);
+}
+
+Future<void> format(List<String> args,
+    [String? outPath, bool printResult = true]) async {
+  final parser = HTAstParser();
+  final formatter = HTFormatter();
+  final sourceProvider = DefaultSourceProvider();
+  final source = await sourceProvider.getSource(args.first);
+
+  try {
+    // final config = ParserConfig(sourceType: sourceType);
+    final compilation = await parser.parse(
+        source.content, sourceProvider, source.fullName); //, config);
+
+    final module = compilation.getModule(source.fullName);
+
+    await formatter.format(module);
+
+    if (printResult) {
+      print(module.content);
+    }
+
+    if (outPath != null) {
+      if (!path.isAbsolute(outPath)) {
+        final curPath = path.dirname(source.fullName);
+        final name = path.basenameWithoutExtension(outPath);
+        outPath = path.join(curPath, '$name.ht');
+      }
+    } else {
+      outPath = module.fullName;
+    }
+
+    final outFile = File(outPath);
+    outFile.writeAsStringSync(module.content);
+
+    print('Saved formatted file to:');
+    print(outPath);
+  } catch (e) {
+    if (e is HTError && e.type == ErrorType.compileError) {
+      e.moduleFullName = parser.curModuleFullName;
+      e.line = parser.curLine;
+      e.column = parser.curColumn;
+    }
+    rethrow;
+  }
 }
 
 ArgResults parseArg(List<String> args) {

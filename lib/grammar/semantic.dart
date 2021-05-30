@@ -46,6 +46,7 @@ abstract class SemanticType {
   static const literalString = 'literal_string';
   static const literalFunction = 'literal_function_expression';
   static const typeExpr = 'type_expression';
+  static const literalTypeExpr = 'literal_type_expression';
   static const unionTypeExpr = 'union_type_expression';
   static const paramTypeExpr = 'parameter_type_expression';
   static const funcTypeExpr = 'function_type_expression';

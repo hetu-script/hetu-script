@@ -7,6 +7,7 @@ import '../core/abstract_interpreter.dart';
 import '../core/class/class.dart';
 import 'function_type.dart';
 import 'nominal_type.dart';
+import '../analyzer/ast/ast.dart' show TypeExpr;
 
 class HTType with HTObject {
   static const ANY = _PrimitiveType(HTLexicon.ANY);
@@ -54,6 +55,16 @@ class HTType with HTObject {
 
   const HTType(this.id, {this.typeArgs = const [], this.isNullable = false});
 
+  factory HTType.fromAst(TypeExpr? ast) {
+    if (ast != null) {
+      return HTType(ast.id,
+          typeArgs: ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
+          isNullable: ast.isNullable);
+    } else {
+      return HTType.ANY;
+    }
+  }
+
   @override
   String toString() {
     var typeString = StringBuffer();
@@ -87,8 +98,10 @@ class HTType with HTObject {
   }
 
   /// Wether object of this [HTType] can be assigned to other [HTType]
-  bool isA(dynamic other) {
-    if (this == HTType.unknown) {
+  bool isA(HTType? other) {
+    if (other == null) {
+      return true;
+    } else if (this == HTType.unknown) {
       if (other == HTType.ANY || other == HTType.unknown) {
         return true;
       } else {
@@ -96,7 +109,7 @@ class HTType with HTObject {
       }
     } else if (other == HTType.ANY) {
       return true;
-    } else if (other is HTType) {
+    } else {
       if (this == HTType.NULL) {
         // TODO: 这里是 nullable 功能的开关
         // if (other.isNullable) {
@@ -119,10 +132,11 @@ class HTType with HTObject {
         // }
         return true;
       }
-    } else {
-      return false;
     }
   }
+
+  /// Wether object of this [HTType] cannot be assigned to other [HTType]
+  bool isNotA(HTType? other) => !isA(other);
 
   /// initialize the declared type if it's a class name.
   /// only return the [HTClass] when its a non-external class
@@ -143,9 +157,6 @@ class HTType with HTObject {
       }
     }
   }
-
-  /// Wether object of this [HTType] cannot be assigned to other [HTType]
-  bool isNotA(dynamic other) => !isA(other);
 
   @override
   bool operator ==(Object other) => hashCode == other.hashCode;

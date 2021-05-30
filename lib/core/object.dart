@@ -15,7 +15,7 @@ class _HTNull with HTObject {
 /// Almost everything within Hetu is a [HTObject].
 /// Includes [HTTypeid], [HTNamespace], [HTClass], [HTInstance],
 /// [HTEnum], [HTExternalClass], [HTFunction].
-mixin HTObject {
+abstract class HTObject {
   /// The [null] in Hetu is a static const variable of [HTObject].
   /// Hence every null is the same.
   static const NULL = _HTNull();

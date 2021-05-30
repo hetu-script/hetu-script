@@ -1,5 +1,5 @@
 import '../type_system/type.dart';
-import '../core/function/abstract_function.dart' show HTFunction;
+import '../core/function/abstract_function.dart' show AbstractFunction;
 
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
@@ -12,7 +12,8 @@ typedef HTExternalFunction = dynamic Function(
 /// write a function in script. and want to pass it to a
 /// external dart function where it accepts only a pure Dart
 /// native function as parameter.
-typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
+typedef HTExternalFunctionTypedef = Function Function(
+    AbstractFunction hetuFunction);
 
 class DaobjectTypeReflectResult {
   final bool success;

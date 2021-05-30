@@ -411,6 +411,7 @@ abstract class HTLexicon {
   static const errorAbstractCtor =
       'Cannot create contructor for abstract class.';
 
+  static const errorUnsupported = 'Unsupported method [{0}]';
   static const errorUnknownOpCode = 'Unknown opcode [{0}]';
   static const errorPrivateMember = 'Could not acess private member [{0}].';
   static const errorPrivateDecl = 'Could not acess private declaration [{0}].';
@@ -425,6 +426,7 @@ abstract class HTLexicon {
   static const errorCondition =
       'Condition expression must evaluate to type [bool]';
   static const errorNotList = '[{0}] is not a List or Map.';
+  static const errorNullInit = 'Initializer evaluated to null.';
   static const errorNullObject = 'Calling method on null object: [{0}]';
   static const errorNullable = '[{0}] is not nullable.';
   static const errorType =
@@ -454,7 +456,7 @@ abstract class HTLexicon {
   static const errorCastee = 'Illegal cast target [{0}].';
   static const errorClone = 'Illegal clone on [{0}].';
   static const errorNotSuper = '[{0}] is not a super class of [{1}].';
-  static const errorMissingExternalFuncDef =
+  static const errorMissingExternalFunc =
       'Missing external function definition of [{0}].';
   static const errorInternalFuncWithExternalTypeDef =
       'Unexpected external typedef on internal function.';

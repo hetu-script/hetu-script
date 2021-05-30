@@ -18,6 +18,7 @@ enum ErrorCode {
   abstracted,
   abstractCtor,
 
+  unsupported,
   intern,
   extern,
   unknownOpCode,
@@ -32,6 +33,7 @@ enum ErrorCode {
   undefinedMember,
   condition,
   notList,
+  nullInit,
   nullObject,
   nullable,
   type,
@@ -55,7 +57,7 @@ enum ErrorCode {
   castee,
   clone,
   notSuper,
-  missingExternalFuncDef,
+  missingExternalFunc,
   externalCtorWithReferCtor,
   nonCotrWithReferCtor,
   internalFuncWithExternalTypeDef,
@@ -313,6 +315,11 @@ class HTError {
       : this(ErrorCode.abstractCtor, ErrorType.compileError,
             message: HTLexicon.errorAbstractCtor);
 
+  /// Error: unsupported method
+  HTError.unsupported(String name)
+      : this(ErrorCode.unsupported, ErrorType.runtimeError,
+            message: HTLexicon.errorUnsupported, interpolations: [name]);
+
   /// Error: Access private member.
   HTError.unknownOpCode(int opcode)
       : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
@@ -382,6 +389,11 @@ class HTError {
   HTError.notList(String id)
       : this(ErrorCode.notList, ErrorType.runtimeError,
             message: HTLexicon.errorNotList, interpolations: [id]);
+
+  /// Error: Calling method on null object.
+  HTError.errorNullInit()
+      : this(ErrorCode.nullInit, ErrorType.runtimeError,
+            message: HTLexicon.errorNullInit);
 
   /// Error: Calling method on null object.
   HTError.nullObject(String id)
@@ -507,13 +519,12 @@ class HTError {
       : this(ErrorCode.notSuper, ErrorType.runtimeError,
             message: HTLexicon.errorNotSuper, interpolations: [classId, id]);
 
-  HTError.missingExternalFuncDef(String id)
-      : this(ErrorCode.missingExternalFuncDef, ErrorType.runtimeError,
-            message: HTLexicon.errorMissingExternalFuncDef,
-            interpolations: [id]);
+  HTError.missingExternalFunc(String id)
+      : this(ErrorCode.missingExternalFunc, ErrorType.runtimeError,
+            message: HTLexicon.errorMissingExternalFunc, interpolations: [id]);
 
   HTError.internalFuncWithExternalTypeDef()
-      : this(ErrorCode.missingExternalFuncDef, ErrorType.runtimeError,
+      : this(ErrorCode.missingExternalFunc, ErrorType.runtimeError,
             message: HTLexicon.errorInternalFuncWithExternalTypeDef);
 
   HTError.externalCtorWithReferCtor()

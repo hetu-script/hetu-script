@@ -47,9 +47,9 @@ class InterpreterConfig extends ParserConfig {
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.
 abstract class HTInterpreter {
-  static var anonymousScriptIndex = 0;
-
   final version = Version(0, 1, 0);
+
+  AbstractParser get curParser;
 
   /// Current line number of execution.
   int get curLine;
@@ -60,7 +60,7 @@ abstract class HTInterpreter {
   String? get curModuleFullName;
 
   String? get curSymbol;
-  String? get curObjectSymbol;
+  // String? get curLeftValue;
 
   HTNamespace get curNamespace;
 
@@ -68,12 +68,14 @@ abstract class HTInterpreter {
   late SourceProvider sourceProvider;
 
   /// 全局命名空间
-  late HTNamespace global;
+  late final HTNamespace global;
 
   HTInterpreter(
       {HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
+
+    global = HTNamespace(this, id: HTLexicon.global);
   }
 
   Future<void> init(
@@ -144,7 +146,36 @@ abstract class HTInterpreter {
       List<HTType> typeArgs = const [],
       bool errorHandled = false});
 
-  void handleError(Object error, [StackTrace? stack]);
+  /// Handle a error thrown by other funcion in Hetu.
+  void handleError(Object error, [StackTrace? stack]) {
+    var sb = StringBuffer();
+    for (var funcName in AbstractFunction.callStack) {
+      sb.writeln('  $funcName');
+    }
+    sb.writeln('\n$stack');
+    var callStack = sb.toString();
+
+    if (error is HTError) {
+      error.message = '${error.message}\nCall stack:\n$callStack';
+      if (error.type == ErrorType.compileError) {
+        error.moduleFullName = curParser.curModuleFullName;
+        error.line = curParser.curLine;
+        error.column = curParser.curColumn;
+      } else {
+        error.moduleFullName = curModuleFullName;
+        error.line = curLine;
+        error.column = curColumn;
+      }
+      errorHandler.handle(error);
+    } else {
+      final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
+          message: '$error\nCall stack:\n$callStack',
+          moduleFullName: curModuleFullName,
+          line: curLine,
+          column: curColumn);
+      errorHandler.handle(hetuError);
+    }
+  }
 
   HTObject encapsulate(dynamic object) {
     if (object is HTObject) {
@@ -277,11 +308,11 @@ abstract class HTInterpreter {
   }
 
   /// Using unwrapper to turn a script function into a external function
-  Function unwrapExternalFunctionType(String id, HTFunction function) {
-    if (!_externFuncTypeUnwrappers.containsKey(id)) {
-      throw HTError.undefinedExtern(id);
+  Function unwrapExternalFunctionType(AbstractFunction func) {
+    if (!_externFuncTypeUnwrappers.containsKey(func.externalId)) {
+      throw HTError.undefinedExtern(func.externalId!);
     }
-    final unwrapFunc = _externFuncTypeUnwrappers[id]!;
-    return unwrapFunc(function);
+    final unwrapFunc = _externFuncTypeUnwrappers[func.externalId]!;
+    return unwrapFunc(func);
   }
 }

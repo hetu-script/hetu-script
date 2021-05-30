@@ -2,10 +2,10 @@ import '../type_system/type.dart';
 import '../type_system/function_type.dart' show HTParameterType;
 import '../core/function/abstract_parameter.dart';
 import 'interpreter.dart';
-import 'bytecode_variable.dart';
+import 'bytecode_declaration.dart';
 
 /// An implementation of [HTVariable] for function parameter declaration.
-class HTBytecodeParameter extends HTBytecodeVariable
+class HTBytecodeParameter extends HTBytecodeDeclaration
     implements HTParameterInterface {
   @override
   late final HTParameterType declType;

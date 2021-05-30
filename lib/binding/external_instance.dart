@@ -1,3 +1,6 @@
+import 'package:hetu_script/core/declaration.dart';
+import 'package:hetu_script/grammar/semantic.dart';
+
 import '../core/abstract_interpreter.dart';
 import '../core/object.dart';
 import '../core/function/abstract_function.dart';
@@ -19,7 +22,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   final String typeString;
   late final HTExternalClass? externalClass;
 
-  final functions = <String, HTFunction>{};
+  final functions = <String, HTDeclaration>{};
 
   /// Create a external class object.
   HTExternalInstance(
@@ -39,10 +42,9 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       while (curKlass != null) {
         // 继承类成员，所有超类的成员都会分别保存
         for (final decl in curKlass.instanceMembers.values) {
-          if (decl is HTFunction) {
-            if (!functions.containsKey(decl.id)) {
-              functions[decl.id] = decl;
-            }
+          if (decl.declType != null &&
+              decl.declType!.id == HTLexicon.function) {
+            functions[decl.id] = decl;
           }
         }
         // if (curKlass.extendedType != null) {
@@ -69,9 +71,9 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
           final member =
               externalClass!.instanceMemberGet(externalObject, varName);
           if (member is Function) {
-            final funcDecl = functions[varName]!;
-            funcDecl.externalFuncDef = member;
-            return funcDecl;
+            AbstractFunction func = functions[varName]!.value;
+            func.externalFunc = member;
+            return func;
           }
           return member;
         } else {

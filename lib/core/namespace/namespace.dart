@@ -2,16 +2,13 @@ import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../type_system/type.dart';
 import '../abstract_interpreter.dart';
-import '../variable.dart';
-import '../function/abstract_function.dart';
 import '../declaration.dart';
+import '../function/abstract_function.dart';
 import '../object.dart';
 
 /// A implementation of [HTNamespace].
 /// For interpreter searching for symbols from a certain block or module.
-class HTNamespace extends HTDeclaration with HTObject, InterpreterRef {
-  static int _spaceIndex = 0;
-
+class HTNamespace with HTObject, InterpreterRef {
   static String _getFullName(String id, HTNamespace? space) {
     var fullName = id;
     var curSpace = space;
@@ -21,6 +18,8 @@ class HTNamespace extends HTDeclaration with HTObject, InterpreterRef {
     }
     return fullName;
   }
+
+  late final String id;
 
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
@@ -32,21 +31,27 @@ class HTNamespace extends HTDeclaration with HTObject, InterpreterRef {
   late final String fullName;
 
   /// [HTDeclaration]s in this [HTNamespace],
-  /// could be [HTVariable], [HTFunction], [HTEnum] or [HTClass]
+  /// could be [HTDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
   final declarations = <String, HTDeclaration>{};
 
   /// [HTDeclaration]s in this [HTNamespace],
-  /// could be [HTVariable], [HTFunction], [HTEnum] or [HTClass]
-  final HTNamespace? closure;
+  /// could be [HTDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
+  late final HTNamespace? closure;
 
   HTNamespace(
     HTInterpreter interpreter, {
     String? id,
-    String? classId,
-    this.closure,
-  }) : super(id ?? '${HTLexicon.anonymousNamespace}${_spaceIndex++}', classId) {
+    HTNamespace? closure,
+  }) : super() {
+    this.id = id ?? HTLexicon.anonymousNamespace;
     this.interpreter = interpreter;
     fullName = _getFullName(this.id, closure);
+
+    if (id != HTLexicon.global && closure == null) {
+      this.closure = interpreter.global;
+    } else {
+      this.closure = closure;
+    }
   }
 
   /// Search for a variable by the exact name and do not search recursively.
@@ -80,19 +85,7 @@ class HTNamespace extends HTDeclaration with HTObject, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
-      if (decl is HTFunction) {
-        if (decl.externalTypedef != null) {
-          final externalFunc = interpreter.unwrapExternalFunctionType(
-              decl.externalTypedef!, decl);
-          return externalFunc;
-        }
-      } else if (decl is HTVariable) {
-        if (!decl.isInitialized) {
-          decl.initialize();
-        }
-        return decl.value;
-      }
-      return decl;
+      return decl.value;
     }
 
     if (closure != null) {
@@ -118,12 +111,8 @@ class HTNamespace extends HTDeclaration with HTObject, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
-      if (decl is HTVariable) {
-        decl.value = varValue;
-        return;
-      } else {
-        throw HTError.immutable(varName);
-      }
+      decl.value = varValue;
+      return;
     }
 
     if (closure != null) {

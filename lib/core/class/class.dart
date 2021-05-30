@@ -5,26 +5,25 @@ import '../namespace/namespace.dart';
 import '../namespace/class_namespace.dart';
 import '../function/abstract_function.dart';
 import '../abstract_interpreter.dart';
-import '../variable.dart';
 import '../declaration.dart';
 import 'enum.dart';
 import '../object.dart';
 import 'instance.dart';
 
-class ClassInfo extends HTDeclaration {
+class AbstractClass {
+  final String id;
+
   final bool isExternal;
 
   final bool isAbstract;
 
-  ClassInfo(String id,
-      {String? classId, this.isExternal = false, this.isAbstract = false})
-      : super(id, classId);
+  AbstractClass(this.id, {this.isExternal = false, this.isAbstract = false});
 }
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass extends ClassInfo with HTObject, InterpreterRef {
+class HTClass extends AbstractClass with HTObject, InterpreterRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -79,8 +78,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
     // this.implementedClass = const [],
     // this.mixinedClass = const []
   })  : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
-        super(id,
-            classId: classId, isExternal: isExternal, isAbstract: isAbstract) {
+        super(id, isExternal: isExternal, isAbstract: isAbstract) {
     this.interpreter = interpreter;
   }
 
@@ -141,14 +139,14 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      final func = namespace.declarations[getter] as HTFunction;
+      AbstractFunction func = namespace.declarations[getter]!.value;
       return func.call();
     } else if (namespace.declarations.containsKey(constructor)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      return namespace.declarations[constructor] as HTFunction;
+      return namespace.declarations[constructor]!.value as AbstractFunction;
     }
 
     switch (varName) {
@@ -180,7 +178,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
         throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[varName]!;
-      if (decl is HTVariable) {
+      if (decl is HTDeclaration) {
         decl.value = varValue;
         return;
       } else {
@@ -191,7 +189,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      final setterFunc = namespace.declarations[setter] as HTFunction;
+      final setterFunc = namespace.declarations[setter] as AbstractFunction;
       setterFunc.call(positionalArgs: [varValue]);
       return;
     }
@@ -208,7 +206,7 @@ class HTClass extends ClassInfo with HTObject, InterpreterRef {
     try {
       final func = memberGet(funcName, from: namespace.fullName);
 
-      if (func is HTFunction) {
+      if (func is AbstractFunction) {
         return func.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,

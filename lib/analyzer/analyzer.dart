@@ -8,11 +8,11 @@ import '../core/abstract_interpreter.dart';
 import '../core/class/enum.dart';
 import '../core/class/class.dart';
 import '../grammar/lexicon.dart';
-import '../source/source.dart';
+// import '../source/source.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
 import 'ast/ast.dart';
-import 'element/ast_function.dart';
+import 'ast_function.dart';
 import 'parser.dart';
 import 'ast_source.dart';
 
@@ -24,9 +24,10 @@ class HTBreak {}
 
 class HTContinue {}
 
-/// 负责对语句列表进行最终解释执行
 class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
-  late HTAstParser _curParser;
+  @override
+  late HTAstParser curParser;
+
   final _sources = HTAstCompilation();
 
   late HTAstModule _curCode;
@@ -34,9 +35,11 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   var _curLine = 0;
   @override
   int get curLine => _curLine;
+
   var _curColumn = 0;
   @override
   int get curColumn => _curColumn;
+
   late String _curModuleFullName;
   @override
   String get curModuleFullName => _curModuleFullName;
@@ -44,15 +47,15 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   String? _curSymbol;
   @override
   String? get curSymbol => _curSymbol;
-  String? _curObjectSymbol;
-  @override
-  String? get curObjectSymbol => _curObjectSymbol;
+  // String? _curObjectSymbol;
+  // @override
+  // String? get curLeftValue => _curObjectSymbol;
 
   /// 本地变量表，不同语句块和环境的变量可能会有重名。
   /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
   // final _distances = <AstNode, int>{};
 
-  dynamic _curStmtValue;
+  HTType? _curExprType;
 
   late String _savedModuleName;
   late HTNamespace _savedNamespace;
@@ -68,7 +71,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
       : super(errorHandler: errorHandler, sourceProvider: sourceProvider);
 
   @override
-  Future<dynamic> eval(String content,
+  Future<void> eval(String content,
       {String? moduleFullName,
       HTNamespace? namespace,
       InterpreterConfig config = const InterpreterConfig(),
@@ -80,72 +83,39 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     _savedModuleName = _curModuleFullName;
     _savedNamespace = _curNamespace;
 
-    _curParser = HTAstParser();
+    curParser = HTAstParser();
 
     _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curNamespace = namespace ?? global;
 
     try {
-      final compilation = await _curParser.parse(
+      final compilation = await curParser.parse(
           content, sourceProvider, _curModuleFullName, config);
 
       _sources.addAll(compilation);
 
-      for (final source in compilation.sources) {
+      for (final source in compilation.modules) {
         _curCode = source;
         _curModuleFullName = source.fullName;
         for (final stmt in source.nodes) {
-          _curStmtValue = visitASTNode(stmt);
+          analyze(stmt);
         }
       }
 
       _curModuleFullName = _savedModuleName;
       _curNamespace = _savedNamespace;
-
-      if (invokeFunc != null) {
-        if (config.sourceType == SourceType.module) {
-          return invoke(invokeFunc,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        }
-      } else {
-        return _curStmtValue;
-      }
     } catch (error, stack) {
-      var sb = StringBuffer();
-      for (var funcName in HTFunction.callStack) {
-        sb.writeln('  $funcName');
-      }
-      sb.writeln('\n$stack');
-      var callStack = sb.toString();
-
-      if (error is HTError) {
-        error.message = '${error.message}\nCall stack:\n$callStack';
-        if (error.type == ErrorType.compileError) {
-          error.moduleFullName = _curParser.curModuleFullName;
-          error.line = _curParser.curLine;
-          error.column = _curParser.curColumn;
-        } else {
-          error.moduleFullName = _curModuleFullName;
-          error.line = _curLine;
-          error.column = _curColumn;
-        }
-        errorHandler.handle(error);
+      if (errorHandled) {
+        rethrow;
       } else {
-        final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
-            message: '$error\nCall stack:\n$callStack',
-            moduleFullName: _curModuleFullName,
-            line: _curLine,
-            column: _curColumn);
-        errorHandler.handle(hetuError);
+        handleError(error, stack);
       }
     }
   }
 
   /// 解析文件
   @override
-  Future<dynamic> import(String key,
+  Future<void> import(String key,
       {String? curModuleFullName,
       String? moduleName,
       InterpreterConfig config = const InterpreterConfig(),
@@ -153,30 +123,29 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) async {
-    dynamic result;
+    final fullName = sourceProvider.resolveFullName(key);
 
-    final module = await sourceProvider.getSource(key,
-        curModuleFullName: curModuleFullName != HTLexicon.anonymousScript
-            ? curModuleFullName
-            : null);
-    curModuleFullName = module.fullName;
+    if (config.reload || !sourceProvider.hasModule(fullName)) {
+      final module = await sourceProvider.getSource(key,
+          curModuleFullName: curModuleFullName);
 
-    HTNamespace? namespace;
-    if ((moduleName != null) && (moduleName != HTLexicon.global)) {
-      namespace = HTNamespace(this, id: moduleName, closure: global);
-      global.define(namespace);
+      final savedNamespace = _curNamespace;
+      if ((moduleName != null) && (moduleName != HTLexicon.global)) {
+        _curNamespace = HTNamespace(this, id: moduleName, closure: global);
+        // global.define(HTDeclaration(_curNamespace));
+      }
+
+      await eval(module.content,
+          moduleFullName: module.fullName,
+          namespace: _curNamespace,
+          config: config,
+          invokeFunc: invokeFunc,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs);
+
+      _curNamespace = savedNamespace;
     }
-
-    result = eval(module.content,
-        moduleFullName: curModuleFullName,
-        namespace: namespace,
-        config: config,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
-
-    return result;
   }
 
   @override
@@ -185,10 +154,9 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {}
-
-  @override
-  void handleError(Object error, [StackTrace? stack]) {}
+      bool errorHandled = false}) {
+    throw HTError.unsupported('invoke on analyzer');
+  }
 
   // dynamic _getValue(String name, AstNode expr) {
   //   var distance = _distances[expr];
@@ -199,22 +167,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   //   return global.fetch(name);
   // }
 
-  dynamic executeBlock(Iterable<AstNode> statements, HTNamespace environment) {
-    var saved_context = _curNamespace;
-
-    try {
-      _curNamespace = environment;
-      for (final stmt in statements) {
-        _curStmtValue = visitASTNode(stmt);
-      }
-    } finally {
-      _curNamespace = saved_context;
-    }
-
-    return _curStmtValue;
-  }
-
-  dynamic visitASTNode(AstNode ast) => ast.accept(this);
+  dynamic analyze(AstNode ast) => ast.accept(this);
 
   @override
   dynamic visitCommentExpr(CommentExpr expr) {}
@@ -223,53 +176,38 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   dynamic visitBlockCommentStmt(BlockCommentStmt stmt) {}
 
   @override
-  dynamic visitNullExpr(NullExpr expr) {
-    return null;
-  }
+  dynamic visitNullExpr(NullExpr expr) {}
 
   @override
-  dynamic visitBooleanExpr(BooleanExpr expr) {
-    return expr.value;
-  }
+  dynamic visitBooleanExpr(BooleanExpr expr) {}
 
   @override
-  dynamic visitConstIntExpr(ConstIntExpr expr) {
-    return _curCode.constTable.getInt64(expr.constIndex);
-  }
+  dynamic visitConstIntExpr(ConstIntExpr expr) {}
 
   @override
-  dynamic visitConstFloatExpr(ConstFloatExpr expr) {
-    return _curCode.constTable.getFloat64(expr.constIndex);
-  }
+  dynamic visitConstFloatExpr(ConstFloatExpr expr) {}
 
   @override
-  dynamic visitConstStringExpr(ConstStringExpr expr) {
-    return _curCode.constTable.getUtf8String(expr.constIndex);
-  }
+  dynamic visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
   dynamic visitGroupExpr(GroupExpr expr) {
-    return visitASTNode(expr.inner);
+    analyze(expr.inner);
   }
 
   @override
   dynamic visitLiteralListExpr(LiteralListExpr expr) {
-    var list = [];
     for (final item in expr.list) {
-      list.add(visitASTNode(item));
+      analyze(item);
     }
-    return list;
   }
 
   @override
   dynamic visitLiteralMapExpr(LiteralMapExpr expr) {
-    var map = {};
     for (final key_expr in expr.map.keys) {
-      var key = visitASTNode(key_expr);
-      var value = visitASTNode(expr.map[key_expr]!);
-      map[key] = value;
+      analyze(key_expr);
+      analyze(expr.map[key_expr]!);
     }
-    return map;
   }
 
   @override
@@ -279,96 +217,21 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
-    var value = visitASTNode(expr.value);
-
-    if (expr.op.lexeme == HTLexicon.subtract) {
-      if (value is num) {
-        return -value;
-      } else {
-        throw HTError.undefinedOperator(value.toString(), expr.op.lexeme);
-      }
-    } else if (expr.op.lexeme == HTLexicon.logicalNot) {
-      if (value is bool) {
-        return !value;
-      } else {
-        throw HTError.undefinedOperator(value.toString(), expr.op.lexeme);
-      }
-    } else {
-      throw HTError.undefinedOperator(value.toString(), expr.op.lexeme);
-    }
+    analyze(expr.value);
   }
 
   @override
   dynamic visitBinaryExpr(BinaryExpr expr) {
-    var left = visitASTNode(expr.left);
-    var right;
-    if (expr.op == HTLexicon.logicalAnd) {
-      if (left is bool) {
-        // 如果逻辑和操作的左操作数是假，则直接返回，不再判断后面的值
-        if (!left) {
-          return false;
-        } else {
-          right = visitASTNode(expr.right);
-          if (right is bool) {
-            return left && right;
-          } else {
-            throw HTError.condition();
-          }
-        }
-      } else {
-        throw HTError.condition();
-      }
-    } else {
-      right = visitASTNode(expr.right);
-
-      // 操作符重载??
-      if (expr.op == HTLexicon.logicalOr) {
-        if (left is bool) {
-          if (right is bool) {
-            return left || right;
-          } else {
-            throw HTError.condition();
-          }
-        } else {
-          throw HTError.condition();
-        }
-      } else if (expr.op == HTLexicon.equal) {
-        return left == right;
-      } else if (expr.op == HTLexicon.notEqual) {
-        return left != right;
-      } else if (expr.op == HTLexicon.add || expr.op == HTLexicon.subtract) {
-        if (expr.op == HTLexicon.add) {
-          return left + right;
-        } else if (expr.op == HTLexicon.subtract) {
-          return left - right;
-        }
-      } else if (expr.op == HTLexicon.IS) {
-        if (right is HTType) {
-          final encapsulation = encapsulate(left);
-          return encapsulation.valueType.isA(right);
-        } else {
-          throw HTError.notType(right.toString());
-        }
-      } else if (expr.op == HTLexicon.multiply) {
-        return left * right;
-      } else if (expr.op == HTLexicon.devide) {
-        return left / right;
-      } else if (expr.op == HTLexicon.modulo) {
-        return left % right;
-      } else if (expr.op == HTLexicon.greater) {
-        return left > right;
-      } else if (expr.op == HTLexicon.greaterOrEqual) {
-        return left >= right;
-      } else if (expr.op == HTLexicon.lesser) {
-        return left < right;
-      } else if (expr.op == HTLexicon.lesserOrEqual) {
-        return left <= right;
-      }
-    }
+    analyze(expr.left);
+    analyze(expr.right);
   }
 
   @override
-  dynamic visitTernaryExpr(TernaryExpr expr) {}
+  dynamic visitTernaryExpr(TernaryExpr expr) {
+    analyze(expr.condition);
+    analyze(expr.elseBranch);
+    analyze(expr.thenBranch);
+  }
 
   @override
   dynamic visitTypeExpr(TypeExpr expr) {}
@@ -378,237 +241,29 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitCallExpr(CallExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    final callee = visitASTNode(expr.callee);
-    final positionalArgs = [];
+    analyze(expr.callee);
     for (var i = 0; i < expr.positionalArgs.length; ++i) {
-      positionalArgs.add(visitASTNode(expr.positionalArgs[i]));
+      analyze(expr.positionalArgs[i]);
     }
-
-    final namedArgs = <String, dynamic>{};
     for (var name in expr.namedArgs.keys) {
-      namedArgs[name] = visitASTNode(expr.namedArgs[name]!);
-    }
-
-    final typeArgs = <HTType>[];
-
-    if (callee is HTFunction) {
-      // if (!callee.isExternal) {
-      // 普通函数
-      // if (callee.category != FunctionType.constructor) {
-      return callee.call(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
-      // } else {
-      //   final className = callee.classId!;
-      //   final klass = global.fetch(className);
-      //   if (klass is HTClass) {
-      //     if (!klass.isExternal) {
-      //       // 命名构造函数
-      //       return klass.createInstance(
-      //           constructorName: callee.id,
-      //           positionalArgs: positionalArgs,
-      //           namedArgs: namedArgs,
-      //           typeArgs: typeArgs);
-      //     } else {
-      //       // 外部命名构造函数
-      //       final externClass = fetchExternalClass(klass.id);
-      //       final constructor = externClass.memberGet(callee.id);
-      //       if (constructor is HTExternalFunction) {
-      //         return constructor(
-      //             positionalArgs: positionalArgs,
-      //             namedArgs: namedArgs,
-      //             typeArgs: typeArgs);
-      //       } else {
-      //         return Function.apply(
-      //             constructor,
-      //             positionalArgs,
-      //             namedArgs
-      //                 .map<Symbol, dynamic>((key, value) => MapEntry(Symbol(key), value)));
-      //         // throw HTErrorExternFunc(constructor.toString());
-      //       }
-      //     }
-      //   } else {
-      //     throw HTError.callable(callee.toString());
-      //   }
-      // }
-      // } else {
-      //   final externalFuncDef = fetchExternalFunction(callee.id);
-      //   if (externalFuncDef is HTExternalFunction) {
-      //     return externalFuncDef(
-      //         positionalArgs: positionalArgs,
-      //         namedArgs: namedArgs,
-      //         typeArgs: typeArgs);
-      //   } else {
-      //     return Function.apply(externalFuncDef, positionalArgs,
-      //         namedArgs.map<Symbol, dynamic>((key, value) => MapEntry(Symbol(key), value)));
-      //     // throw HTErrorExternFunc(constructor.toString());
-      //   }
-      // }
-    } else if (callee is HTClass) {
-      if (callee.isAbstract) {
-        throw HTError.abstracted();
-      }
-
-      final constructor = callee.memberGet(HTLexicon.constructor) as HTFunction;
-      // constructor's context is on this newly created instance
-      // constructor.context = instance.namespace;
-      constructor.call(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
-
-      // if (!callee.isExternal) {
-      //   // 默认构造函数
-      //   return callee.createInstance(
-      //       positionalArgs: positionalArgs,
-      //       namedArgs: namedArgs,
-      //       typeArgs: typeArgs);
-      // } else {
-      //   // 外部默认构造函数
-      //   final externClass = fetchExternalClass(callee.id);
-      //   final constructor = externClass.memberGet(callee.id);
-      //   if (constructor is HTExternalFunction) {
-      //     return constructor(
-      //         positionalArgs: positionalArgs,
-      //         namedArgs: namedArgs,
-      //         typeArgs: typeArgs);
-      //   } else {
-      //     return Function.apply(constructor, positionalArgs,
-      //         namedArgs.map<Symbol, dynamic>((key, value) => MapEntry(Symbol(key), value)));
-      //     // throw HTErrorExternFunc(constructor.toString());
-      //   }
-      // }
-    } // 外部函数
-    else if (callee is Function) {
-      if (callee is HTExternalFunction) {
-        return callee(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      } else {
-        return Function.apply(
-            callee,
-            positionalArgs,
-            namedArgs.map<Symbol, dynamic>(
-                (key, value) => MapEntry(Symbol(key), value)));
-        // throw HTErrorExternFunc(callee.toString());
-      }
-    } else {
-      throw HTError.notCallable(callee.toString());
+      analyze(expr.namedArgs[name]!);
     }
   }
 
   @override
   dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
 
-  // @override
-  // dynamic visitAssignExpr(AssignExpr expr) {
-  // var value = visitASTNode(expr.value);
-  // var distance = _distances[expr];
-  // if (distance != null) {
-  //   // 尝试设置当前环境中的本地变量
-  //   _curNamespace.assignAt(expr.variable.lexeme, value, distance);
-  // } else {
-  //   global.memberSet(expr.variable.lexeme, value);
-  // }
-
-  // // 返回右值
-  // return value;
-  // }
-
   @override
   dynamic visitSubGetExpr(SubGetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    var collection = visitASTNode(expr.collection);
-    var key = visitASTNode(expr.key);
-    if (collection is List || collection is Map) {
-      return collection[key];
-    }
-
-    throw HTError.notList(collection.toString());
+    analyze(expr.collection);
+    analyze(expr.key);
   }
-
-  // @override
-  // dynamic visitSubSetExpr(SubSetExpr expr) {
-  //   _curLine = expr.line;
-  //   _curColumn = expr.column;
-  //   var collection = visitASTNode(expr.collection);
-  //   var key = visitASTNode(expr.key);
-  //   var value = visitASTNode(expr.value);
-  //   if ((collection is List) || (collection is Map)) {
-  //     collection[key] = value;
-  //     return value;
-  //   }
-
-  //   throw HTError.notList(collection.toString());
-  // }
 
   @override
   dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    _curLine = expr.line;
-    _curColumn = expr.column;
-    var object = visitASTNode(expr.collection);
-
-    // if (object is num) {
-    //   object = HTNumber(object);
-    // } else if (object is bool) {
-    //   object = HTBoolean(object);
-    // } else if (object is String) {
-    //   object = HTString(object);
-    // } else if (object is List) {
-    //   object = HTList(object);
-    // } else if (object is Map) {
-    //   object = HTMap(object);
-    // }
-
-    if ((object is HTObject)) {
-      return object.memberGet(expr.key, from: _curNamespace.fullName);
-    }
-    //如果是Dart对象
-    else {
-      var typeString = object.runtimeType.toString();
-      final id = HTType.parseBaseType(typeString);
-      var externClass = fetchExternalClass(id);
-      return externClass.instanceMemberGet(object, expr.key);
-    }
+    analyze(expr.collection);
+    // analyze(expr.key);
   }
-
-  // @override
-  // dynamic visitMemberSetExpr(MemberSetExpr expr) {
-  //   _curLine = expr.line;
-  //   _curColumn = expr.column;
-  //   dynamic object = visitASTNode(expr.collection);
-
-  // if (object is num) {
-  //   object = HTNumber(object);
-  // } else if (object is bool) {
-  //   object = HTBoolean(object);
-  // } else if (object is String) {
-  //   object = HTString(object);
-  // } else if (object is List) {
-  //   object = HTList(object);
-  // } else if (object is Map) {
-  //   object = HTMap(object);
-  // }
-
-  //   var value = visitASTNode(expr.value);
-  //   if (object is HTObject) {
-  //     object.memberSet(expr.key.lexeme, value, from: _curNamespace.fullName);
-  //     return value;
-  //   }
-  //   //如果是Dart对象
-  //   else {
-  //     var typeString = object.runtimeType.toString();
-  //     final id = HTType.parseBaseType(typeString);
-  //     var externClass = fetchExternalClass(id);
-  //     externClass.instanceMemberSet(object, expr.key.lexeme, value);
-  //     return value;
-  //   }
-  // }
 
   @override
   dynamic visitImportStmt(ImportStmt stmt) {}
@@ -616,74 +271,79 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   @override
   dynamic visitExprStmt(ExprStmt stmt) {
     if (stmt.expr != null) {
-      return visitASTNode(stmt.expr!);
+      analyze(stmt.expr!);
     }
   }
 
   @override
   dynamic visitBlockStmt(BlockStmt block) {
-    return executeBlock(
-        block.statements, HTNamespace(this, closure: _curNamespace));
+    var saved_context = _curNamespace;
+    _curNamespace = HTNamespace(this, closure: _curNamespace);
+    for (final stmt in block.statements) {
+      analyze(stmt);
+    }
+    _curNamespace = saved_context;
   }
 
   @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
     if (stmt.value != null) {
-      var returnValue = visitASTNode(stmt.value!);
-      (returnValue != null) ? throw returnValue : throw HTObject.NULL;
-    }
-    throw HTObject.NULL;
-  }
-
-  @override
-  dynamic visitIfStmt(IfStmt ifStmt) {
-    var value = visitASTNode(ifStmt.condition);
-    if (value is bool) {
-      if (value) {
-        _curStmtValue = visitASTNode(ifStmt.thenBranch);
-      } else if (ifStmt.elseBranch != null) {
-        _curStmtValue = visitASTNode(ifStmt.elseBranch!);
-      }
-      return _curStmtValue;
-    } else {
-      throw HTError.condition();
+      analyze(stmt.value!);
     }
   }
 
   @override
-  dynamic visitWhileStmt(WhileStmt whileStmt) {
-    // var value = visitASTNode(whileStmt.condition);
-    // if (value is bool) {
-    //   while ((value is bool) && (value)) {
-    //     try {
-    //       _curStmtValue = visitASTNode(whileStmt.loop);
-    //       value = visitASTNode(whileStmt.condition);
-    //     } catch (error) {
-    //       if (error is HTBreak) {
-    //         return _curStmtValue;
-    //       } else if (error is HTContinue) {
-    //         continue;
-    //       } else {
-    //         rethrow;
-    //       }
-    //     }
-    //   }
-    // } else {
-    //   throw HTError.condition();
-    // }
+  dynamic visitIfStmt(IfStmt stmt) {
+    analyze(stmt.condition);
+    analyze(stmt.thenBranch);
+    if (stmt.elseBranch != null) {
+      analyze(stmt.elseBranch!);
+    }
   }
 
   @override
-  dynamic visitDoStmt(DoStmt doStmt) {}
+  dynamic visitWhileStmt(WhileStmt stmt) {
+    if (stmt.condition != null) {
+      analyze(stmt.condition!);
+    }
+    analyze(stmt.loop);
+  }
 
   @override
-  dynamic visitForInStmt(ForInStmt forInStmt) {}
+  dynamic visitDoStmt(DoStmt stmt) {
+    analyze(stmt.loop);
+    if (stmt.condition != null) {
+      analyze(stmt.condition!);
+    }
+  }
 
   @override
-  dynamic visitForStmt(ForStmt forStmt) {}
+  dynamic visitForInStmt(ForInStmt stmt) {
+    analyze(stmt.declaration);
+    analyze(stmt.collection);
+    analyze(stmt.loop);
+  }
 
   @override
-  dynamic visitWhenStmt(WhenStmt stmt) {}
+  dynamic visitForStmt(ForStmt stmt) {
+    if (stmt.declaration != null) {
+      analyze(stmt.declaration!);
+    }
+    if (stmt.condition != null) {
+      analyze(stmt.condition!);
+    }
+    if (stmt.increment != null) {
+      analyze(stmt.increment!);
+    }
+    analyze(stmt.loop);
+  }
+
+  @override
+  dynamic visitWhenStmt(WhenStmt stmt) {
+    if (stmt.condition != null) {
+      analyze(stmt.condition!);
+    }
+  }
 
   @override
   dynamic visitBreakStmt(BreakStmt stmt) {
@@ -699,7 +359,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   dynamic visitVarDeclStmt(VarDecl stmt) {
     // dynamic value;
     // if (stmt.initializer != null) {
-    //   value = visitASTNode(stmt.initializer!);
+    //   value = analyze(stmt.initializer!);
     // }
 
     // _curNamespace.define(HTAstVariable(
@@ -749,7 +409,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
         isAbstract: stmt.isAbstract);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    _curNamespace.define(klass);
+    // _curNamespace.define(klass);
 
     var save = _curNamespace;
     _curNamespace = klass.namespace;
@@ -760,7 +420,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     //   }
     // dynamic value;
     // if (variable.initializer != null) {
-    //   value = visitASTNode(variable.initializer!);
+    //   value = analyze(variable.initializer!);
     // }
 
     // final decl = HTAstVariable(variable.id, this,
@@ -809,6 +469,6 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
     final enumClass = HTEnum(stmt.id, defs, this, isExternal: stmt.isExternal);
 
-    _curNamespace.define(enumClass);
+    // _curNamespace.define(enumClass);
   }
 }

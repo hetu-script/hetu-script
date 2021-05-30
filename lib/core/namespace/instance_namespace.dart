@@ -9,14 +9,15 @@ import 'namespace.dart';
 /// [HTInstanceNamespace] is a singly linked list node,
 /// it holds its super classes' [HTInstanceNamespace]'s referrences.
 class HTInstanceNamespace extends HTNamespace {
+  final String? classId;
+
   final HTInstance instance;
 
   late final HTInstanceNamespace? next;
 
-  HTInstanceNamespace(
-      String id, String? classId, this.instance, HTInterpreter interpreter,
-      {HTNamespace? closure})
-      : super(interpreter, id: id, classId: classId, closure: closure);
+  HTInstanceNamespace(String id, this.instance, HTInterpreter interpreter,
+      {this.classId, HTNamespace? closure})
+      : super(interpreter, id: id, closure: closure);
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [fetch],
   /// with a new named parameter [recursive].

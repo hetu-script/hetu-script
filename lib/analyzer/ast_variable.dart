@@ -1,10 +1,10 @@
-import '../../core/variable.dart';
-import '../../type_system/type.dart';
-import '../../error/errors.dart';
-import '../ast/ast.dart';
-import '../analyzer.dart';
+import '../core/declaration.dart';
+import '../type_system/type.dart';
+import '../error/errors.dart';
+import 'ast/ast.dart';
+import 'analyzer.dart';
 
-class HTAstVariable extends HTVariable {
+class HTAstVariable extends HTDeclaration {
   @override
   final HTAnalyzer interpreter;
 
@@ -37,8 +37,6 @@ class HTAstVariable extends HTVariable {
       : super(id, interpreter,
             classId: classId,
             value: value,
-            getter: getter,
-            setter: setter,
             isExternal: isExternal,
             isStatic: isStatic) {
     _declType = declType;
@@ -46,20 +44,20 @@ class HTAstVariable extends HTVariable {
 
   @override
   void initialize() {
-    if (isInitialized) return;
+    // if (isInitialized) return;
 
-    if (initializer != null) {
-      if (!_isInitializing) {
-        _isInitializing = true;
-        final initVal = interpreter.visitASTNode(initializer!);
-        value = initVal;
-        _isInitializing = false;
-      } else {
-        throw HTError.circleInit(id);
-      }
-    } else {
-      value = null; // null 也要 assign 一下，因为需要类型检查
-    }
+    // if (initializer != null) {
+    //   if (!_isInitializing) {
+    //     _isInitializing = true;
+    //     final initVal = interpreter.visitASTNode(initializer!);
+    //     value = initVal;
+    //     _isInitializing = false;
+    //   } else {
+    //     throw HTError.circleInit(id);
+    //   }
+    // } else {
+    //   value = null; // null 也要 assign 一下，因为需要类型检查
+    // }
   }
 
   @override
@@ -86,8 +84,6 @@ class HTAstVariable extends HTVariable {
       classId: classId,
       value: value,
       initializer: initializer,
-      getter: getter,
-      setter: setter,
       declType: declType,
       isExternal: isExternal,
       isImmutable: isImmutable);

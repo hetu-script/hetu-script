@@ -36,8 +36,6 @@ abstract class HTModule extends HTSource {
 
   final Uri uri;
 
-  bool evaluated = false;
-
   late final ConstTable constTable;
 
   String get name => path.basename(fullName);
@@ -49,11 +47,15 @@ abstract class HTModule extends HTSource {
 }
 
 abstract class HTCompilation {
-  Iterable<String> get keys;
+  Iterable<String> get moduleKeys;
 
-  Iterable<HTModule> get sources;
+  Iterable<HTModule> get modules;
 
-  bool contains(String fullName);
+  bool containsModule(String fullName);
 
-  HTModule fetch(String fullName);
+  HTModule getModule(String fullName);
+
+  Iterable<String> get symbols;
+
+  bool containsSymbol(String id);
 }

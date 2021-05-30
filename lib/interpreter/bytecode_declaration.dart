@@ -1,4 +1,4 @@
-import '../core/variable.dart';
+import '../core/declaration.dart';
 import '../core/class/class.dart';
 import '../type_system/type.dart';
 import '../type_system/nominal_type.dart';
@@ -7,20 +7,14 @@ import '../error/errors.dart';
 import 'interpreter.dart';
 import 'bytecode_source.dart' show GotoInfo;
 
-/// Bytecode implementation of [HTVariable].
-class HTBytecodeVariable extends HTVariable with GotoInfo {
+/// Bytecode implementation of [HTDeclaration].
+class HTBytecodeDeclaration extends HTDeclaration with GotoInfo {
   @override
   final Hetu interpreter;
-
-  /// Whether this variable is immutable.
-  @override
-  final bool isImmutable;
 
   final bool typeInferrence;
 
   HTType? _declType;
-
-  HTType? _resolvedDeclType;
 
   @override
   HTType get declType => _declType ?? HTType.ANY;
@@ -29,11 +23,11 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
 
   // var _isTypeInitialized = false;
 
-  /// Create a standard [HTBytecodeVariable].
+  /// Create a standard [HTBytecodeDeclaration].
   ///
-  /// A [HTVariable] has to be defined in a [HTNamespace] of an [Interpreter]
+  /// A [HTDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be used within a script.
-  HTBytecodeVariable(String id, this.interpreter, String moduleFullName,
+  HTBytecodeDeclaration(String id, this.interpreter, String moduleFullName,
       {String? classId,
       dynamic value,
       HTType? declType,
@@ -43,15 +37,14 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
       Function? getter,
       Function? setter,
       bool isExternal = false,
-      this.typeInferrence = false,
-      this.isImmutable = false,
-      bool isStatic = false})
+      this.typeInferrence = true,
+      bool isStatic = false,
+      bool isImmutable = false})
       : super(id, interpreter,
             classId: classId,
-            getter: getter,
-            setter: setter,
             isExternal: isExternal,
-            isStatic: isStatic) {
+            isStatic: isStatic,
+            isImmutable: isImmutable) {
     this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -62,7 +55,10 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
     }
 
     if (value != null) {
-      _resolvedDeclType = _declType?.resolve(interpreter);
+      if (_declType == null && typeInferrence) {
+        final encap = interpreter.encapsulate(value);
+        _declType = encap.valueType;
+      }
       this.value = value;
     }
 
@@ -106,11 +102,15 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
             line: definitionLine,
             column: definitionColumn);
 
-        if (_declType == null && typeInferrence && (initVal != null)) {
-          _declType = interpreter.encapsulate(initVal).valueType;
+        if (_declType == null) {
+          if (typeInferrence) {
+            if (initVal != null) {
+              _declType = interpreter.encapsulate(initVal).valueType;
+            } else {
+              throw HTError.errorNullInit();
+            }
+          }
         }
-
-        _resolvedDeclType = _declType?.resolve(interpreter);
 
         value = initVal;
 
@@ -167,26 +167,18 @@ class HTBytecodeVariable extends HTVariable with GotoInfo {
   /// will perform [HTType] check during this process.
   @override
   set value(dynamic value) {
-    if (!isInitialized) {
-      _resolvedDeclType = _declType?.resolve(interpreter);
-    }
-
-    super.value = _computeValue(value, _resolvedDeclType ?? HTType.ANY);
+    super.value = _computeValue(value, _declType ?? HTType.ANY);
   }
 
-  /// Create a copy of this variable declaration,
-  /// mainly used on class member inheritance and function arguments passing.
   @override
-  HTBytecodeVariable clone() =>
-      HTBytecodeVariable(id, interpreter, moduleFullName,
+  HTBytecodeDeclaration clone() =>
+      HTBytecodeDeclaration(id, interpreter, moduleFullName,
           classId: classId,
           value: value,
           declType: declType,
           definitionIp: definitionIp,
           definitionLine: definitionLine,
           definitionColumn: definitionColumn,
-          getter: getter,
-          setter: setter,
           typeInferrence: typeInferrence,
           isExternal: isExternal,
           isImmutable: isImmutable,

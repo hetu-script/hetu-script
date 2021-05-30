@@ -13,19 +13,27 @@ class HTAstModule extends HTModule {
 }
 
 class HTAstCompilation extends HTCompilation {
+  final _symbols = <String, AstNode>{};
+
+  @override
+  Iterable<String> get symbols => _symbols.keys;
+
+  @override
+  bool containsSymbol(String id) => _symbols.containsKey(id);
+
   final _modules = <String, HTAstModule>{};
 
   @override
-  Iterable<String> get keys => _modules.keys;
+  Iterable<String> get moduleKeys => _modules.keys;
 
   @override
-  Iterable<HTAstModule> get sources => _modules.values;
+  Iterable<HTAstModule> get modules => _modules.values;
 
   @override
-  bool contains(String fullName) => _modules.containsKey(fullName);
+  bool containsModule(String fullName) => _modules.containsKey(fullName);
 
   @override
-  HTAstModule fetch(String fullName) {
+  HTAstModule getModule(String fullName) {
     if (_modules.containsKey(fullName)) {
       return _modules[fullName]!;
     } else {

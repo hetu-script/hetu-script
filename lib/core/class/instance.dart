@@ -1,16 +1,17 @@
 import 'dart:collection';
 
+import 'package:hetu_script/hetu_script.dart';
+
 import '../../error/errors.dart';
-import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../type_system/type.dart';
 import '../../type_system/nominal_type.dart';
-import '../object.dart';
-import '../abstract_interpreter.dart';
 import '../function/abstract_function.dart';
 import '../namespace/namespace.dart';
 import '../namespace/instance_namespace.dart';
-import '../variable.dart';
+import '../abstract_interpreter.dart';
+import '../declaration.dart';
+import '../object.dart';
 import 'class.dart';
 import 'cast.dart';
 
@@ -51,21 +52,16 @@ class HTInstance with HTObject, InterpreterRef {
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
     HTInstanceNamespace? curNamespace = HTInstanceNamespace(
-        id, curKlass.id, this, interpreter,
-        closure: klass.namespace);
+        id, this, interpreter,
+        classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
-        final clone = decl.clone();
-        if (clone is HTFunction && clone.category != FunctionCategory.literal) {
-          clone.context = curNamespace;
-        }
         // TODO: check if override, and if so, check the type wether fits super's type.
+        final clone = decl.clone();
         curNamespace.define(clone);
 
-        if (jsonObject != null &&
-            jsonObject.containsKey(clone.id) &&
-            (clone is HTVariable)) {
+        if (jsonObject != null && jsonObject.containsKey(clone.id)) {
           final value = jsonObject[clone.id];
           clone.value = value;
         }
@@ -78,9 +74,8 @@ class HTInstance with HTObject, InterpreterRef {
       // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
-        curNamespace.next = HTInstanceNamespace(
-            id, curKlass.id, this, interpreter,
-            closure: curKlass.namespace);
+        curNamespace.next = HTInstanceNamespace(id, this, interpreter,
+            classId: curKlass.id, closure: curKlass.namespace);
       } else {
         curNamespace.next = null;
       }
@@ -92,7 +87,7 @@ class HTInstance with HTObject, InterpreterRef {
   @override
   String toString() {
     final func = memberGet('toString');
-    if (func is HTFunction) {
+    if (func is AbstractFunction) {
       return func.call();
     } else if (func is Function) {
       return func();
@@ -107,7 +102,7 @@ class HTInstance with HTObject, InterpreterRef {
     HTInstanceNamespace? curNamespace = namespace;
     while (curNamespace != null) {
       for (final decl in curNamespace.declarations.values) {
-        if (decl is! HTVariable || jsonObject.containsKey(decl.id)) {
+        if (decl is! HTDeclaration || jsonObject.containsKey(decl.id)) {
           continue;
         }
         jsonObject[decl.id] = decl.value;
@@ -147,23 +142,24 @@ class HTInstance with HTObject, InterpreterRef {
             throw HTError.privateMember(varName);
           }
 
-          var decl = space.declarations[varName]!;
-          return decl.value;
+          final value = space.declarations[varName]!.value;
+          if (value is AbstractFunction &&
+              value.category != FunctionCategory.literal) {
+            value.context = namespace;
+          }
+          return value;
         } else if (space.declarations.containsKey(getter)) {
           if (varName.startsWith(HTLexicon.underscore) &&
               !from.startsWith(space.fullName)) {
             throw HTError.privateMember(varName);
           }
 
-          var method = space.declarations[getter]! as HTFunction;
-          return method.call();
+          AbstractFunction func = space.declarations[getter]!.value;
+          func.context = namespace;
+          return func.call();
         }
       }
     } else {
-      if (!_namespaces.containsKey(classId)) {
-        throw HTError.notSuper(classId, interpreter.curSymbol!);
-      }
-
       final space = _namespaces[classId]!;
       if (space.declarations.containsKey(varName)) {
         if (varName.startsWith(HTLexicon.underscore) &&
@@ -171,16 +167,21 @@ class HTInstance with HTObject, InterpreterRef {
           throw HTError.privateMember(varName);
         }
 
-        var decl = space.declarations[varName]!;
-        return decl.value;
+        final value = space.declarations[varName]!.value;
+        if (value is AbstractFunction &&
+            value.category != FunctionCategory.literal) {
+          value.context = _namespaces[classId];
+        }
+        return value;
       } else if (space.declarations.containsKey(getter)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(space.fullName)) {
           throw HTError.privateMember(varName);
         }
 
-        var method = space.declarations[getter]! as HTFunction;
-        return method.call();
+        AbstractFunction func = space.declarations[getter]!.value;
+        func.context = _namespaces[classId];
+        return func.call();
       }
     }
 
@@ -224,7 +225,8 @@ class HTInstance with HTObject, InterpreterRef {
             throw HTError.privateMember(varName);
           }
 
-          var method = space.declarations[setter]! as HTFunction;
+          AbstractFunction method = space.declarations[setter]!.value;
+          method.context = namespace;
           method.call(positionalArgs: [varValue]);
           return;
         }
@@ -250,7 +252,8 @@ class HTInstance with HTObject, InterpreterRef {
           throw HTError.privateMember(varName);
         }
 
-        var method = space.declarations[setter]! as HTFunction;
+        var method = space.declarations[setter]! as AbstractFunction;
+        method.context = _namespaces[classId];
         method.call(positionalArgs: [varValue]);
         return;
       }
@@ -266,7 +269,7 @@ class HTInstance with HTObject, InterpreterRef {
       List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
-      HTFunction func = memberGet(funcName, from: namespace.fullName);
+      AbstractFunction func = memberGet(funcName, from: namespace.fullName);
       return func.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,

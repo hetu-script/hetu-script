@@ -3,6 +3,7 @@ import 'package:quiver/core.dart';
 import '../core/function/abstract_parameter.dart';
 import '../grammar/lexicon.dart';
 import 'type.dart';
+import '../analyzer/ast/ast.dart' show ParamDecl;
 
 class HTParameterType extends HTType implements HTParameterInterface {
   @override
@@ -17,7 +18,7 @@ class HTParameterType extends HTType implements HTParameterInterface {
   @override
   final bool isVariadic;
 
-  HTParameterType(String typeid,
+  const HTParameterType(String typeid,
       {this.paramId = '',
       List<HTType> typeArgs = const [],
       bool isNullable = false,
@@ -38,6 +39,13 @@ class HTParameterType extends HTType implements HTParameterInterface {
             isOptional: isOptional,
             isNamed: isNamed,
             isVariadic: isVariadic);
+
+  HTParameterType.fromAst(ParamDecl ast)
+      : this.fromType(ast.id,
+            paramType: HTType.fromAst(ast.declType),
+            isOptional: ast.isOptional,
+            isNamed: ast.isNamed,
+            isVariadic: ast.isVariadic);
 
   @override
   String toString() {
