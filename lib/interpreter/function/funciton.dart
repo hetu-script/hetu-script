@@ -1,21 +1,20 @@
-import '../binding/external_function.dart';
-import '../core/namespace/namespace.dart';
-import '../core/namespace/instance_namespace.dart';
-import '../core/function/abstract_function.dart';
-import '../core/declaration.dart';
-import '../core/class/class.dart';
-import '../core/class/instance.dart';
-import '../error/errors.dart';
-import '../grammar/semantic.dart';
-import '../grammar/lexicon.dart';
-import '../type_system/type.dart';
-import '../type_system/function_type.dart';
-import 'interpreter.dart';
-import 'bytecode_declaration.dart';
-import 'bytecode_parameter.dart';
-import 'bytecode_source.dart' show GotoInfo;
+import '../../binding/external_function.dart';
+import '../../core/namespace/namespace.dart';
+import '../class/instance_namespace.dart';
+import '../class/class.dart';
+import '../class/instance.dart';
+import '../../error/errors.dart';
+import '../../grammar/semantic.dart';
+import '../../grammar/lexicon.dart';
+import '../../type_system/type.dart';
+import '../../type_system/function_type.dart';
+import '../interpreter.dart';
+import '../variable.dart';
+import '../bytecode_parameter.dart';
+import '../bytecode/bytecode_source.dart' show GotoInfo;
+import '../../core/declaration/abstract_function.dart';
 
-class HTBytecodeFunctionReferConstructor {
+class ReferConstructor {
   /// id of super class's constructor
   late final String id;
 
@@ -28,7 +27,7 @@ class HTBytecodeFunctionReferConstructor {
   /// Holds ips of super class's constructor's named argumnets
   final Map<String, int> namedArgsIp;
 
-  HTBytecodeFunctionReferConstructor(String? id,
+  ReferConstructor(String? id,
       {this.isSuper = false,
       this.positionalArgsIp = const [],
       this.namedArgsIp = const {}}) {
@@ -38,27 +37,28 @@ class HTBytecodeFunctionReferConstructor {
 }
 
 /// Bytecode implementation of [AbstractFunction].
-class HTBytecodeFunction extends AbstractFunction with GotoInfo {
-  @override
-  final Hetu interpreter;
+class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
+  final HTClass? klass;
+
+  static final callStack = <String>[];
 
   final bool hasParameterDeclarations;
 
   /// Holds declarations of all parameters.
-  final Map<String, HTBytecodeParameter> parameterDeclarations;
+  final Map<String, HTParameter> parameterDeclarations;
 
-  final HTBytecodeFunctionReferConstructor? referConstructor;
+  final ReferConstructor? referConstructor;
 
-  /// Create a standard [HTBytecodeFunction].
+  /// Create a standard [HTFunction].
   ///
   /// A [AbstractFunction] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTBytecodeFunction(
+  HTFunction(
     String id,
-    this.interpreter,
+    Hetu interpreter,
     String moduleFullName, {
     String? declId,
-    HTClass? klass,
+    this.klass,
     FunctionCategory category = FunctionCategory.normal,
     bool isExternal = false,
     Function? externalFunc,
@@ -78,7 +78,7 @@ class HTBytecodeFunction extends AbstractFunction with GotoInfo {
     this.referConstructor,
   }) : super(id, interpreter,
             declId: declId,
-            klass: klass,
+            classId: klass?.id,
             category: category,
             isExternal: isExternal,
             externalFunc: externalFunc,
@@ -89,6 +89,7 @@ class HTBytecodeFunction extends AbstractFunction with GotoInfo {
             minArity: minArity,
             maxArity: maxArity,
             context: context) {
+    this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -178,8 +179,8 @@ class HTBytecodeFunction extends AbstractFunction with GotoInfo {
       bool createInstance = true,
       bool errorHandled = true}) {
     try {
-      AbstractFunction.callStack.add(
-          '#${AbstractFunction.callStack.length} $id - (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
+      callStack.add(
+          '#${callStack.length} $id - (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数
@@ -208,11 +209,12 @@ class HTBytecodeFunction extends AbstractFunction with GotoInfo {
         if (context is HTInstanceNamespace) {
           final instanceNamespace = context as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
-            closure.define(HTDeclaration(HTLexicon.SUPER, interpreter,
+            closure.define(HTVariable(
+                HTLexicon.SUPER, interpreter, moduleFullName,
                 value: instanceNamespace.next));
           }
 
-          closure.define(HTDeclaration(HTLexicon.THIS, interpreter,
+          closure.define(HTVariable(HTLexicon.THIS, interpreter, moduleFullName,
               value: instanceNamespace));
         }
 
@@ -248,7 +250,7 @@ class HTBytecodeFunction extends AbstractFunction with GotoInfo {
         }
 
         var variadicStart = -1;
-        HTBytecodeDeclaration? variadicParam;
+        HTVariable? variadicParam;
         for (var i = 0; i < parameterDeclarations.length; ++i) {
           var decl = parameterDeclarations.values.elementAt(i).clone();
           closure.define(decl);

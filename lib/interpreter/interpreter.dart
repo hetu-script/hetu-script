@@ -1,16 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:hetu_script/core/declaration.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../binding/external_function.dart';
 import '../core/abstract_interpreter.dart';
 import '../core/namespace/namespace.dart';
-import '../core/class/class.dart';
 import '../core/object.dart';
-import '../core/class/enum.dart';
-import '../core/function/abstract_function.dart';
-import '../core/class/cast.dart';
+import '../core/declaration/abstract_function.dart';
 import '../core/abstract_parser.dart';
 import '../type_system/type.dart';
 import '../type_system/function_type.dart';
@@ -20,11 +16,14 @@ import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
+import 'class/class.dart';
+import 'class/enum.dart';
+import 'class/cast.dart';
 import 'compiler.dart';
 import 'opcode.dart';
-import 'bytecode_source.dart';
-import 'bytecode_declaration.dart';
-import 'bytecode_funciton.dart';
+import 'bytecode/bytecode_source.dart';
+import 'variable.dart';
+import 'function/funciton.dart';
 import 'bytecode_parameter.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
@@ -194,8 +193,8 @@ class Hetu extends HTInterpreter {
       final savedNamespace = _curNamespace;
       if ((moduleName != null) && (moduleName != HTLexicon.global)) {
         _curNamespace = HTNamespace(this, id: moduleName, closure: global);
-        final decl = HTBytecodeDeclaration(moduleName, this, module.fullName,
-            value: _curNamespace);
+        final decl =
+            HTVariable(moduleName, this, module.fullName, value: _curNamespace);
         global.define(decl);
       }
 
@@ -615,7 +614,7 @@ class Hetu extends HTInterpreter {
           _curModule.skip(length);
         }
 
-        final func = HTBytecodeFunction(id, this, curModuleFullName,
+        final func = HTFunction(id, this, curModuleFullName,
             category: category,
             externalId: externalTypedef,
             hasParameterDeclarations: hasParameterDeclarations,
@@ -1051,7 +1050,7 @@ class Hetu extends HTInterpreter {
       declType = _handleTypeExpr();
     }
 
-    late final HTBytecodeDeclaration decl;
+    late final HTVariable decl;
 
     final hasInitializer = _curModule.readBool();
     if (hasInitializer) {
@@ -1062,36 +1061,25 @@ class Hetu extends HTInterpreter {
         final definitionIp = _curModule.ip;
         _curModule.skip(length);
 
-        decl = HTBytecodeDeclaration(id, this, curModuleFullName,
+        decl = HTVariable(id, this, curModuleFullName,
             classId: classId,
             declType: declType,
+            isExternal: isExternal,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
-            definitionColumn: definitionColumn,
-            typeInferrence: typeInferrence,
-            isExternal: isExternal,
-            isImmutable: isImmutable,
-            isStatic: isStatic);
+            definitionColumn: definitionColumn);
       } else {
         final initValue = execute();
 
-        decl = HTBytecodeDeclaration(id, this, curModuleFullName,
+        decl = HTVariable(id, this, curModuleFullName,
             classId: classId,
             value: initValue,
             declType: declType,
-            typeInferrence: typeInferrence,
-            isExternal: isExternal,
-            isImmutable: isImmutable,
-            isStatic: isStatic);
+            isExternal: isExternal);
       }
     } else {
-      decl = HTBytecodeDeclaration(id, this, curModuleFullName,
-          classId: classId,
-          declType: declType,
-          typeInferrence: typeInferrence,
-          isExternal: isExternal,
-          isImmutable: isImmutable,
-          isStatic: isStatic);
+      decl = HTVariable(id, this, curModuleFullName,
+          classId: classId, declType: declType, isExternal: isExternal);
     }
 
     if (!hasClassId || isStatic) {
@@ -1101,8 +1089,8 @@ class Hetu extends HTInterpreter {
     }
   }
 
-  Map<String, HTBytecodeParameter> _getParams(int paramDeclsLength) {
-    final paramDecls = <String, HTBytecodeParameter>{};
+  Map<String, HTParameter> _getParams(int paramDeclsLength) {
+    final paramDecls = <String, HTParameter>{};
 
     for (var i = 0; i < paramDeclsLength; ++i) {
       final id = _curModule.readShortUtf8String();
@@ -1124,7 +1112,7 @@ class Hetu extends HTInterpreter {
         _curModule.skip(length);
       }
 
-      paramDecls[id] = HTBytecodeParameter(id, this, curModuleFullName,
+      paramDecls[id] = HTParameter(id, this, curModuleFullName,
           declType: declType,
           definitionIp: definitionIp,
           isOptional: isOptional,
@@ -1159,7 +1147,7 @@ class Hetu extends HTInterpreter {
     final parameterDeclarations = _getParams(_curModule.read());
 
     HTType returnType = HTType.ANY;
-    HTBytecodeFunctionReferConstructor? referConstructor;
+    ReferConstructor? referConstructor;
     String? superCtorId;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
@@ -1187,7 +1175,7 @@ class Hetu extends HTInterpreter {
         namedArgIps[argName] = _curModule.ip;
         _curModule.skip(argLength);
       }
-      referConstructor = HTBytecodeFunctionReferConstructor(superCtorId,
+      referConstructor = ReferConstructor(superCtorId,
           positionalArgsIp: positionalArgIps, namedArgsIp: namedArgIps);
     }
 
@@ -1201,7 +1189,7 @@ class Hetu extends HTInterpreter {
       _curModule.skip(length);
     }
 
-    final func = HTBytecodeFunction(id, this, curModuleFullName,
+    final func = HTFunction(id, this, curModuleFullName,
         declId: declId,
         klass: _curClass,
         category: category,
@@ -1224,8 +1212,7 @@ class Hetu extends HTInterpreter {
         (category == FunctionCategory.method ||
             category == FunctionCategory.getter ||
             category == FunctionCategory.setter)) {
-      final decl =
-          HTBytecodeDeclaration(id, this, _curModuleFullName, value: func);
+      final decl = HTVariable(id, this, _curModuleFullName, value: func);
       _curClass!.defineInstanceMember(decl);
     } else {
       // constructor are defined in class's namespace,
@@ -1234,8 +1221,7 @@ class Hetu extends HTInterpreter {
         func.context = _curNamespace;
       }
       // static methods are defined in class's namespace,
-      final decl =
-          HTBytecodeDeclaration(id, this, _curModuleFullName, value: func);
+      final decl = HTVariable(id, this, _curModuleFullName, value: func);
       _curNamespace.define(decl);
     }
   }
@@ -1267,8 +1253,7 @@ class Hetu extends HTInterpreter {
         superType: superType,
         isExternal: isExternal,
         isAbstract: isAbstract);
-    final decl =
-        HTBytecodeDeclaration(id, this, _curModuleFullName, value: klass);
+    final decl = HTVariable(id, this, _curModuleFullName, value: klass);
     _curNamespace.define(decl);
 
     _curClass = klass;
@@ -1282,11 +1267,11 @@ class Hetu extends HTInterpreter {
     if (!isAbstract) {
       if (!isExternal) {
         if (!klass.namespace.contains(HTLexicon.constructor)) {
-          final ctor = HTBytecodeFunction(
+          final ctor = HTFunction(
               HTLexicon.constructor, this, curModuleFullName,
               klass: klass, category: FunctionCategory.constructor);
-          final decl = HTBytecodeDeclaration(ctor.id, this, _curModuleFullName,
-              value: ctor);
+          final decl =
+              HTVariable(ctor.id, this, _curModuleFullName, value: ctor);
           klass.namespace.define(decl);
         }
       }
@@ -1317,8 +1302,7 @@ class Hetu extends HTInterpreter {
     }
 
     final enumClass = HTEnum(id, defs, this, isExternal: isExternal);
-    final decl =
-        HTBytecodeDeclaration(id, this, _curModuleFullName, value: enumClass);
+    final decl = HTVariable(id, this, _curModuleFullName, value: enumClass);
     _curNamespace.define(decl);
   }
 }

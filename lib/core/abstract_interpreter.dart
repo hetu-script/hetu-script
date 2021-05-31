@@ -12,10 +12,10 @@ import '../source/source.dart';
 import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
 
-import 'abstract_parser.dart';
+import 'declaration/abstract_function.dart';
 import 'namespace/namespace.dart';
+import 'abstract_parser.dart';
 import 'hetu_lib.dart';
-import 'function/abstract_function.dart';
 import 'object.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.

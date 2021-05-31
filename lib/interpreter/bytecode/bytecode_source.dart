@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import '../source/source.dart';
+import '../../source/source.dart';
 import 'bytecode_reader.dart';
 
 /// Code module class, represent a trunk of bytecode.

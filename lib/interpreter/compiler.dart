@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../core/abstract_parser.dart';
 import '../core/lexer.dart';
 import '../core/const_table.dart';
-import '../core/class/class.dart';
+import '../core/declaration/abstract_class.dart';
 import '../grammar/semantic.dart';
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
@@ -12,7 +12,7 @@ import '../error/errors.dart';
 import '../source/source_provider.dart';
 import 'opcode.dart';
 import 'interpreter.dart';
-import 'bytecode_source.dart';
+import 'bytecode/bytecode_source.dart';
 
 class HTRegIdx {
   static const value = 0;

@@ -1,18 +1,18 @@
 import '../source/source_provider.dart';
-import '../binding/external_function.dart';
+// import '../binding/external_function.dart';
 import '../type_system/type.dart';
 import '../core/namespace/namespace.dart';
-import '../core/function/abstract_function.dart';
-import '../core/object.dart';
+// import '../core/function/abstract_function.dart';
+// import '../core/object.dart';
 import '../core/abstract_interpreter.dart';
-import '../core/class/enum.dart';
-import '../core/class/class.dart';
+// import '../core/class/enum.dart';
+// import '../core/class/class.dart';
 import '../grammar/lexicon.dart';
 // import '../source/source.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
 import 'ast/ast.dart';
-import 'ast_function.dart';
+// import 'ast_function.dart';
 import 'parser.dart';
 import 'ast_source.dart';
 
@@ -383,16 +383,16 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitFuncDeclStmt(FuncDecl stmt) {
-    final func = HTAstFunction(stmt, this, context: _curNamespace);
+    // final func = HTAstFunction(stmt, this, context: _curNamespace);
     // if (stmt.id != null) {
     //   _curNamespace.define(func);
     // }
-    return func;
+    // return func;
   }
 
   @override
   dynamic visitClassDeclStmt(ClassDecl stmt) {
-    HTClass? superClass;
+    // HTClass? superClass;
     if (stmt.id != HTLexicon.object) {
       // if (stmt.superClass == null) {
       //   superClass = global.fetch(HTLexicon.object);
@@ -403,16 +403,16 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
       // }
     }
 
-    final klass = HTClass(stmt.id, this, _curModuleFullName, _curNamespace,
-        superClass: superClass,
-        isExternal: stmt.isExternal,
-        isAbstract: stmt.isAbstract);
+    // final klass = HTClass(stmt.id, this, _curModuleFullName, _curNamespace,
+    //     superClass: superClass,
+    //     isExternal: stmt.isExternal,
+    //     isAbstract: stmt.isAbstract);
 
     // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
     // _curNamespace.define(klass);
 
     var save = _curNamespace;
-    _curNamespace = klass.namespace;
+    // _curNamespace = klass.namespace;
 
     // for (final variable in stmt.variables) {
     //   if (stmt.isExternal && variable.isExternal) {
@@ -456,18 +456,18 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
     // klass.inherit(superClass);
 
-    return klass;
+    // return klass;
   }
 
   @override
   dynamic visitEnumDeclStmt(EnumDecl stmt) {
-    var defs = <String, HTEnumItem>{};
+    // var defs = <String, HTEnumItem>{};
     for (var i = 0; i < stmt.enumerations.length; i++) {
       // final id = stmt.enumerations[i];
       // defs[id] = HTEnumItem(i, id, HTType(stmt.id.lexeme));
     }
 
-    final enumClass = HTEnum(stmt.id, defs, this, isExternal: stmt.isExternal);
+    // final enumClass = HTEnum(stmt.id, defs, this, isExternal: stmt.isExternal);
 
     // _curNamespace.define(enumClass);
   }

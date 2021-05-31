@@ -2,13 +2,13 @@ import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../type_system/type.dart';
 import '../../type_system/nominal_type.dart';
-import '../object.dart';
-import '../abstract_interpreter.dart';
+import '../../core/object.dart';
+import '../interpreter.dart';
 import 'class.dart';
 import 'instance.dart';
 
 /// The implementation of a certain type cast of a object
-class HTCast with HTObject, InterpreterRef {
+class HTCast with HTObject, HetuRef {
   @override
   final HTNominalType valueType;
 
@@ -19,11 +19,10 @@ class HTCast with HTObject, InterpreterRef {
   @override
   String toString() => object.toString();
 
-  HTCast(HTObject object, this.klass, HTInterpreter interpreter,
+  HTCast(HTObject object, this.klass, Hetu interpreter,
       {List<HTType> typeArgs = const []})
       : valueType = HTNominalType(klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
-
     // final extended = <HTType>[];
 
     // HTClass? curSuper = klass;

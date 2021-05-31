@@ -1,11 +1,11 @@
-import 'package:hetu_script/core/declaration.dart';
+import 'package:hetu_script/analyzer/declaration/variable_declaration.dart';
 
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
-import '../abstract_interpreter.dart';
-import '../declaration.dart';
-import '../function/abstract_function.dart';
-import 'namespace.dart';
+import '../../core/abstract_interpreter.dart';
+import '../../analyzer/declaration/variable_declaration.dart';
+import '../function/funciton.dart';
+import '../../core/namespace/namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
@@ -70,7 +70,7 @@ class HTClassNamespace extends HTNamespace {
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
-      final setterFunc = declarations[setter] as AbstractFunction;
+      final setterFunc = declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
       return;
     }

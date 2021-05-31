@@ -1,8 +1,8 @@
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
-import '../abstract_interpreter.dart';
-import '../class/instance.dart';
-import 'namespace.dart';
+import '../../core/abstract_interpreter.dart';
+import '../../core/namespace/namespace.dart';
+import 'instance.dart';
 
 /// A implementation of [HTNamespace] for [HTInstance].
 /// For interpreter searching for symbols within instance methods.

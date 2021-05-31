@@ -1,14 +1,15 @@
+import 'package:hetu_script/core/declaration/abstract_declaration.dart';
+
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../type_system/type.dart';
 import '../abstract_interpreter.dart';
-import '../declaration.dart';
-import '../function/abstract_function.dart';
+import '../../analyzer/declaration/variable_declaration.dart';
 import '../object.dart';
 
 /// A implementation of [HTNamespace].
 /// For interpreter searching for symbols from a certain block or module.
-class HTNamespace with HTObject, InterpreterRef {
+class HTNamespace with HTObject {
   static String _getFullName(String id, HTNamespace? space) {
     var fullName = id;
     var curSpace = space;
@@ -32,7 +33,7 @@ class HTNamespace with HTObject, InterpreterRef {
 
   /// [HTDeclaration]s in this [HTNamespace],
   /// could be [HTDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
-  final declarations = <String, HTDeclaration>{};
+  final declarations = <String, AbstractDeclaration>{};
 
   /// [HTDeclaration]s in this [HTNamespace],
   /// could be [HTDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
@@ -41,17 +42,10 @@ class HTNamespace with HTObject, InterpreterRef {
   HTNamespace(
     HTInterpreter interpreter, {
     String? id,
-    HTNamespace? closure,
+    this.closure,
   }) : super() {
     this.id = id ?? HTLexicon.anonymousNamespace;
-    this.interpreter = interpreter;
     fullName = _getFullName(this.id, closure);
-
-    if (id != HTLexicon.global && closure == null) {
-      this.closure = interpreter.global;
-    } else {
-      this.closure = closure;
-    }
   }
 
   /// Search for a variable by the exact name and do not search recursively.
@@ -68,7 +62,7 @@ class HTNamespace with HTObject, InterpreterRef {
   }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(HTDeclaration decl, {bool override = false}) {
+  void define(AbstractDeclaration decl, {bool override = false}) {
     if (!declarations.containsKey(decl.id) || override) {
       declarations[decl.id] = decl;
     } else {

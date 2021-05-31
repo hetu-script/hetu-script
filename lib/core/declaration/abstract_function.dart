@@ -4,18 +4,18 @@ import '../../type_system/function_type.dart';
 import '../namespace/namespace.dart';
 import '../object.dart';
 import '../abstract_interpreter.dart';
-import '../class/class.dart';
 
 /// [AbstractFunction] is the base class of
 /// [HTAstFunction] and [HTBytecodeFunction] in Hetu.
-abstract class AbstractFunction with HTObject, InterpreterRef {
+abstract class AbstractFunction with HTObject {
   static final callStack = <String>[];
 
   final String id;
   // final String? classId;
 
   final String? declId;
-  final HTClass? klass;
+
+  final String? classId;
 
   final FunctionCategory category;
 
@@ -44,7 +44,7 @@ abstract class AbstractFunction with HTObject, InterpreterRef {
 
   AbstractFunction(this.id, HTInterpreter interpreter,
       {this.declId,
-      this.klass,
+      this.classId,
       this.category = FunctionCategory.normal,
       this.isExternal = false,
       this.externalFunc,
@@ -54,9 +54,7 @@ abstract class AbstractFunction with HTObject, InterpreterRef {
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0,
-      this.context}) {
-    this.interpreter = interpreter;
-  }
+      this.context});
 
   /// Sub-classes of [AbstractFunction] must define [toString] method.
   @override

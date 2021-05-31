@@ -3,7 +3,7 @@ import '../source/source.dart';
 import '../core/abstract_parser.dart';
 import '../core/lexer.dart';
 import '../core/const_table.dart';
-import '../core/class/class.dart';
+import '../core/declaration/abstract_class.dart';
 import '../grammar/semantic.dart';
 import '../error/errors.dart';
 import '../source/source_provider.dart';

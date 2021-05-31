@@ -1,13 +1,11 @@
 import '../type_system/type.dart';
 import '../type_system/function_type.dart' show HTParameterType;
-import '../core/function/abstract_parameter.dart';
+import '../core/declaration/abstract_parameter.dart';
 import 'interpreter.dart';
-import 'bytecode_declaration.dart';
+import 'variable.dart';
 
 /// An implementation of [HTVariable] for function parameter declaration.
-class HTBytecodeParameter extends HTBytecodeDeclaration
-    implements HTParameterInterface {
-  @override
+class HTParameter extends HTVariable implements AbstractParameter {
   late final HTParameterType declType;
 
   @override
@@ -22,8 +20,8 @@ class HTBytecodeParameter extends HTBytecodeDeclaration
   @override
   bool get isVariadic => declType.isVariadic;
 
-  /// Create a standard [HTBytecodeParameter].
-  HTBytecodeParameter(String id, Hetu interpreter, String moduleFullName,
+  /// Create a standard [HTParameter].
+  HTParameter(String id, Hetu interpreter, String moduleFullName,
       {dynamic value,
       HTType? declType,
       int? definitionIp,
@@ -42,13 +40,11 @@ class HTBytecodeParameter extends HTBytecodeDeclaration
             declType: declType,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
-            definitionColumn: definitionColumn,
-            typeInferrence: false,
-            isImmutable: false);
+            definitionColumn: definitionColumn);
 
   @override
-  HTBytecodeParameter clone() {
-    return HTBytecodeParameter(id, interpreter, moduleFullName,
+  HTParameter clone() {
+    return HTParameter(id, interpreter, moduleFullName,
         value: value,
         definitionIp: definitionIp,
         definitionLine: definitionLine,

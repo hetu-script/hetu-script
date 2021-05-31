@@ -1,4 +1,4 @@
-abstract class HTParameterInterface {
+abstract class AbstractParameter {
   String get paramId;
 
   /// Wether this is an optional parameter.

@@ -1,11 +1,11 @@
 import 'package:quiver/core.dart';
 
-import '../core/function/abstract_parameter.dart';
+import '../core/declaration/abstract_parameter.dart';
 import '../grammar/lexicon.dart';
 import 'type.dart';
 import '../analyzer/ast/ast.dart' show ParamDecl;
 
-class HTParameterType extends HTType implements HTParameterInterface {
+class HTParameterType extends HTType implements AbstractParameter {
   @override
   final String paramId;
 

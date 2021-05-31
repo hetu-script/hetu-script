@@ -1,29 +1,20 @@
 import '../../grammar/lexicon.dart';
 import '../../error/errors.dart';
 import '../../type_system/type.dart';
-import '../namespace/namespace.dart';
-import '../namespace/class_namespace.dart';
-import '../function/abstract_function.dart';
-import '../abstract_interpreter.dart';
-import '../declaration.dart';
-import 'enum.dart';
-import '../object.dart';
+import '../../core/namespace/namespace.dart';
+import '../../core/declaration/abstract_function.dart';
+import '../../analyzer/declaration/variable_declaration.dart';
+import '../../core/object.dart';
 import 'instance.dart';
-
-class AbstractClass {
-  final String id;
-
-  final bool isExternal;
-
-  final bool isAbstract;
-
-  AbstractClass(this.id, {this.isExternal = false, this.isAbstract = false});
-}
+import '../../core/declaration/abstract_class.dart';
+import 'class_namespace.dart';
+import '../interpreter.dart';
+import '../variable.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass extends AbstractClass with HTObject, InterpreterRef {
+class HTClass extends AbstractClass with HTObject, HetuRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -60,13 +51,13 @@ class HTClass extends AbstractClass with HTObject, InterpreterRef {
   // final Iterable<HTType> mixinedType;
 
   /// The instance member variables defined in class definition.
-  final instanceMembers = <String, HTDeclaration>{};
+  final instanceMembers = <String, HTVariable>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
   HTClass(
     String id,
-    HTInterpreter interpreter,
+    Hetu interpreter,
     this.moduleFullName,
     HTNamespace closure, {
     String? classId,
@@ -223,15 +214,12 @@ class HTClass extends AbstractClass with HTObject, InterpreterRef {
   }
 
   /// Add a instance member declaration to this [HTClass].
-  void defineInstanceMember(HTDeclaration decl,
+  void defineInstanceMember(HTVariable variable,
       {bool override = false, bool error = true}) {
-    if (decl is HTClass || decl is HTEnum) {
-      throw HTError.classOnInstance();
-    }
-    if ((!instanceMembers.containsKey(decl.id)) || override) {
-      instanceMembers[decl.id] = decl;
+    if ((!instanceMembers.containsKey(variable.id)) || override) {
+      instanceMembers[variable.id] = variable;
     } else {
-      if (error) throw HTError.definedRuntime(decl.id);
+      if (error) throw HTError.definedRuntime(variable.id);
     }
   }
 }

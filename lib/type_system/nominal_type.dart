@@ -1,11 +1,11 @@
 import 'package:quiver/core.dart';
 
-import '../core/class/class.dart';
+import '../core/declaration/abstract_class.dart';
 import 'type.dart';
 import 'value_type.dart';
 
 class HTNominalType extends HTValueType {
-  final HTClass klass;
+  final AbstractClass klass;
   // late final Iterable<HTType> implemented;
   // late final Iterable<HTType> mixined;
 
@@ -59,15 +59,15 @@ class HTNominalType extends HTValueType {
       } else if (this == other) {
         return true;
       } else {
-        var curSuperType = klass.superType;
-        var curSuperClass = klass.superClass;
-        while (curSuperClass != null) {
-          if (curSuperType!.isA(other)) {
-            return true;
-          }
-          curSuperType = curSuperClass.superType;
-          curSuperClass = curSuperClass.superClass;
-        }
+        // var curSuperType = klass.superType;
+        // var curSuperClass = klass.superClass;
+        // while (curSuperClass != null) {
+        //   if (curSuperType!.isA(other)) {
+        //     return true;
+        //   }
+        //   curSuperType = curSuperClass.superType;
+        //   curSuperClass = curSuperClass.superClass;
+        // }
         return false;
       }
     } else {

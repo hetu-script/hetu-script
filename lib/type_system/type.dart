@@ -4,7 +4,7 @@ import '../grammar/lexicon.dart';
 import '../error/errors.dart';
 import '../core/object.dart';
 import '../core/abstract_interpreter.dart';
-import '../core/class/class.dart';
+import '../core/declaration/abstract_class.dart';
 import 'function_type.dart';
 import 'nominal_type.dart';
 import '../analyzer/ast/ast.dart' show TypeExpr;
@@ -148,7 +148,7 @@ class HTType with HTObject {
     } else {
       final typeDef = interpreter.curNamespace
           .fetch(id, from: interpreter.curNamespace.fullName);
-      if (typeDef is HTClass) {
+      if (typeDef is AbstractClass) {
         return HTNominalType(typeDef, typeArgs: typeArgs);
       } else if (typeDef is HTFunctionType) {
         return typeDef;
