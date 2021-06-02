@@ -36,13 +36,17 @@ abstract class AbstractAstVisitor {
 
   // dynamic visitAssignExpr(AssignExpr expr);
 
-  dynamic visitSubGetExpr(SubGetExpr expr);
+  dynamic visitMemberExpr(MemberExpr expr);
 
-  // dynamic visitSubSetExpr(SubSetExpr expr);
+  dynamic visitMemberAssignExpr(MemberAssignExpr expr);
 
-  dynamic visitMemberGetExpr(MemberGetExpr expr);
+  // dynamic visitMemberCallExpr(MemberCallExpr expr);
 
-  // dynamic visitMemberSetExpr(MemberSetExpr expr);
+  dynamic visitSubExpr(SubGetExpr expr);
+
+  dynamic visitSubAssignExpr(SubAssignExpr expr);
+
+  // dynamic visitSubCallExpr(SubCallExpr expr);
 
   dynamic visitCallExpr(CallExpr expr);
 

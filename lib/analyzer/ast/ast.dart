@@ -219,43 +219,26 @@ class SymbolExpr extends AstNode {
       : super(SemanticType.symbolExpr, line, column);
 }
 
-class MemberGetExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitMemberGetExpr(this);
+// class AssignExpr extends AstNode {
+//   @override
+//   dynamic accept(AbstractAstVisitor visitor) => visitor.visitAssignExpr(this);
 
-  /// 集合
-  final AstNode collection;
+//   final String id;
 
-  /// 属性
-  final String key;
+//   final String op;
 
-  const MemberGetExpr(this.collection, this.key, int line, int column)
-      : super(SemanticType.memberGetExpr, line, column);
-}
+//   final AstNode value;
 
-class SubGetExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubGetExpr(this);
-
-  /// 数组
-  final AstNode collection;
-
-  /// 索引
-  final AstNode key;
-
-  const SubGetExpr(this.collection, this.key, int line, int column)
-      : super(SemanticType.subGetExpr, line, column);
-}
+//   const AssignExpr(this.id, this.op, this.value, int line, int column)
+//       : super(SemanticType.assignExpr, line, column);
+// }
 
 class CallExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitCallExpr(this);
 
-  /// 可能是单独的变量名，也可能是一个表达式作为函数使用
   final AstNode callee;
 
-  /// 函数声明的参数是parameter，调用时传入的变量叫argument
   final List<AstNode> positionalArgs;
 
   final Map<String, AstNode> namedArgs;
@@ -264,6 +247,87 @@ class CallExpr extends AstNode {
       this.callee, this.positionalArgs, this.namedArgs, int line, int column)
       : super(SemanticType.callExpr, line, column);
 }
+
+class MemberExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitMemberExpr(this);
+
+  final AstNode collection;
+
+  final String key;
+
+  const MemberExpr(this.collection, this.key, int line, int column)
+      : super(SemanticType.memberGetExpr, line, column);
+}
+
+class MemberAssignExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitMemberAssignExpr(this);
+
+  final AstNode collection;
+
+  final String key;
+
+  final AstNode value;
+
+  const MemberAssignExpr(
+      this.collection, this.key, this.value, int line, int column)
+      : super(SemanticType.memberSetExpr, line, column);
+}
+
+// class MemberCallExpr extends AstNode {
+//   @override
+//   dynamic accept(AbstractAstVisitor visitor) =>
+//       visitor.visitMemberCallExpr(this);
+
+//   final AstNode collection;
+
+//   final String key;
+
+//   const MemberCallExpr(this.collection, this.key, int line, int column)
+//       : super(SemanticType.memberGetExpr, line, column);
+// }
+
+class SubGetExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubExpr(this);
+
+  final AstNode collection;
+
+  final AstNode key;
+
+  const SubGetExpr(this.collection, this.key, int line, int column)
+      : super(SemanticType.subGetExpr, line, column);
+}
+
+class SubAssignExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitSubAssignExpr(this);
+
+  final AstNode collection;
+
+  final AstNode key;
+
+  final AstNode value;
+
+  const SubAssignExpr(
+      this.collection, this.key, this.value, int line, int column)
+      : super(SemanticType.subSetExpr, line, column);
+}
+
+// class SubCallExpr extends AstNode {
+//   @override
+//   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubCallExpr(this);
+
+//   final AstNode collection;
+
+//   final AstNode key;
+
+//   const SubCallExpr(this.collection, this.key, int line, int column)
+//       : super(SemanticType.subGetExpr, line, column);
+// }
 
 class UnaryPostfixExpr extends AstNode {
   @override

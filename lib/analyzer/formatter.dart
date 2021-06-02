@@ -256,16 +256,31 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitSubGetExpr(SubGetExpr expr) {
+  String visitMemberExpr(MemberExpr expr) {
+    final collectionString = visitAstNode(expr.collection);
+    return '$collectionString${HTLexicon.memberGet}${expr.key}';
+  }
+
+  @override
+  String visitMemberAssignExpr(MemberAssignExpr expr) {
+    final collectionString = visitAstNode(expr.collection);
+    //TODO: member assign
+    return '$collectionString${HTLexicon.memberGet}${expr.key}';
+  }
+
+  @override
+  String visitSubExpr(SubGetExpr expr) {
     final collectionString = visitAstNode(expr.collection);
     final keyString = visitAstNode(expr.key);
     return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight}';
   }
 
   @override
-  String visitMemberGetExpr(MemberGetExpr expr) {
+  String visitSubAssignExpr(SubAssignExpr expr) {
     final collectionString = visitAstNode(expr.collection);
-    return '$collectionString${HTLexicon.memberGet}${expr.key}';
+    final keyString = visitAstNode(expr.key);
+    //TODO: sub assign
+    return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight} ';
   }
 
   @override

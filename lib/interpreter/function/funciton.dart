@@ -10,7 +10,7 @@ import '../../type_system/type.dart';
 import '../../type_system/function_type.dart';
 import '../interpreter.dart';
 import '../variable.dart';
-import '../bytecode_parameter.dart';
+import 'parameter.dart';
 import '../bytecode/bytecode_source.dart' show GotoInfo;
 import '../../core/declaration/abstract_function.dart';
 
@@ -422,15 +422,15 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
         }
       }
 
-      if (category != FunctionCategory.constructor) {
-        if (returnType != HTType.ANY) {
-          final encapsulation = interpreter.encapsulate(result);
-          if (encapsulation.valueType.isNotA(returnType)) {
-            throw HTError.returnType(
-                encapsulation.valueType.toString(), id, returnType.toString());
-          }
-        }
-      }
+      // if (category != FunctionCategory.constructor) {
+      //   if (returnType != HTType.ANY) {
+      //     final encapsulation = interpreter.encapsulate(result);
+      //     if (encapsulation.valueType.isNotA(returnType)) {
+      //       throw HTError.returnType(
+      //           encapsulation.valueType.toString(), id, returnType.toString());
+      //     }
+      //   }
+      // }
 
       if (AbstractFunction.callStack.isNotEmpty) {
         AbstractFunction.callStack.removeLast();

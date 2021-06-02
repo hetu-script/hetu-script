@@ -4,7 +4,7 @@ import 'ast/ast.dart';
 
 class HTAstModule extends HTModule {
   /// The bytecode, stores as uint8 list
-  final Iterable<AstNode> nodes;
+  final List<AstNode> nodes;
 
   /// Create a ast module
   HTAstModule(

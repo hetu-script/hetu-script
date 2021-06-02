@@ -24,7 +24,7 @@ import 'opcode.dart';
 import 'bytecode/bytecode_source.dart';
 import 'variable.dart';
 import 'function/funciton.dart';
-import 'bytecode_parameter.dart';
+import 'function/parameter.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -50,9 +50,9 @@ class Hetu extends HTInterpreter {
   @override
   late HTCompiler curParser;
 
-  final _sources = HTBytecodeCompilation();
+  // final _sources = HTBytecodeCompilation();
 
-  late HTBytecodeModule _curModule;
+  // late HTBytecodeModule _curModule;
 
   var _curLine = 0;
   @override
@@ -468,11 +468,9 @@ class Hetu extends HTInterpreter {
           _handleWhenStmt();
           break;
         case HTOpCode.assign:
-        case HTOpCode.assignMultiply:
-        case HTOpCode.assignDevide:
-        case HTOpCode.assignAdd:
-        case HTOpCode.assignSubtract:
-          _handleAssignOp(instruction);
+          final value = _getRegVal(HTRegIdx.assign);
+          _assignCurRef(value);
+          _curValue = value;
           break;
         case HTOpCode.logicalOr:
         case HTOpCode.logicalAnd:
@@ -740,40 +738,6 @@ class Hetu extends HTInterpreter {
           _curModule.skip(endIp);
         }
       }
-    }
-  }
-
-  void _handleAssignOp(int opcode) {
-    switch (opcode) {
-      case HTOpCode.assign:
-        final value = _getRegVal(HTRegIdx.assign);
-        _assignCurRef(value);
-        _curValue = value;
-        break;
-      case HTOpCode.assignMultiply:
-        final leftValue = _curValue;
-        final value = leftValue * _getRegVal(HTRegIdx.assign);
-        _assignCurRef(value);
-        _curValue = value;
-        break;
-      case HTOpCode.assignDevide:
-        final leftValue = _curValue;
-        final value = leftValue / _getRegVal(HTRegIdx.assign);
-        _assignCurRef(value);
-        _curValue = value;
-        break;
-      case HTOpCode.assignAdd:
-        final leftValue = _curValue;
-        final value = leftValue + _getRegVal(HTRegIdx.assign);
-        _assignCurRef(value);
-        _curValue = value;
-        break;
-      case HTOpCode.assignSubtract:
-        final leftValue = _curValue;
-        final value = leftValue - _getRegVal(HTRegIdx.assign);
-        _assignCurRef(value);
-        _curValue = value;
-        break;
     }
   }
 

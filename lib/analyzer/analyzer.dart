@@ -254,16 +254,22 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
 
   @override
-  dynamic visitSubGetExpr(SubGetExpr expr) {
+  dynamic visitMemberExpr(MemberExpr expr) {
+    analyze(expr.collection);
+    // analyze(expr.key);
+  }
+
+  @override
+  dynamic visitMemberAssignExpr(MemberAssignExpr expr) {}
+
+  @override
+  dynamic visitSubExpr(SubGetExpr expr) {
     analyze(expr.collection);
     analyze(expr.key);
   }
 
   @override
-  dynamic visitMemberGetExpr(MemberGetExpr expr) {
-    analyze(expr.collection);
-    // analyze(expr.key);
-  }
+  dynamic visitSubAssignExpr(SubAssignExpr expr) {}
 
   @override
   dynamic visitImportStmt(ImportStmt stmt) {}

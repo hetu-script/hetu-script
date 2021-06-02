@@ -12,7 +12,6 @@ import '../error/errors.dart';
 import '../source/source_provider.dart';
 import 'opcode.dart';
 import 'interpreter.dart';
-import 'bytecode/bytecode_source.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -60,7 +59,7 @@ class HTCompiler extends AbstractParser with HetuRef {
 
   // late BytecodeDeclarationBlock _mainBlock;
   // late BytecodeDeclarationBlock _curBlock;
-  late HTBytecodeCompilation _curCompilation;
+  // late HTBytecodeCompilation _curCompilation;
   late List<ImportInfo> _curImports;
   late ConstTable _curConstTable;
   late String _curModuleFullName;
@@ -73,7 +72,7 @@ class HTCompiler extends AbstractParser with HetuRef {
   final List<Map<String, String>> _markedSymbolsList = [];
 
   /// Compiles a Token list.
-  Future<HTBytecodeCompilation> compile(
+  Future<Uint8List> compile(
       String content, SourceProvider sourceProvider, String fullName,
       {ParserConfig config = const ParserConfig()}) async {
     this.config = config;
@@ -81,7 +80,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     // _curBlock = _mainBlock = BytecodeDeclarationBlock();
     _curClass = null;
     _curFuncType = null;
-    _curCompilation = HTBytecodeCompilation();
+    // _curCompilation = HTBytecodeCompilation();
     _curImports = <ImportInfo>[];
     _curConstTable = ConstTable();
 
@@ -106,7 +105,7 @@ class HTCompiler extends AbstractParser with HetuRef {
         final compilation2 = await compiler2.compile(
             importedContent.content, sourceProvider, importedFullName);
 
-        _curCompilation.join(compilation2);
+        // _curCompilation.join(compilation2);
       }
     }
 
@@ -147,10 +146,11 @@ class HTCompiler extends AbstractParser with HetuRef {
     // 添加程序本体代码
     mainBuilder.add(code);
 
-    _curCompilation
-        .addModule(HTBytecodeModule(fullName, content, mainBuilder.toBytes()));
+    // _curCompilation
+    //     .addModule(HTBytecodeModule(fullName, content, mainBuilder.toBytes()));
 
-    return _curCompilation;
+    // return _curCompilation;
+    return mainBuilder.toBytes();
   }
 
   /// -32768 to 32767
@@ -744,27 +744,43 @@ class HTCompiler extends AbstractParser with HetuRef {
       }
       final op = advance(1).type;
       final right = _parseExpr(); // 右合并：先计算右边
-      bytesBuilder.add(right);
+      switch (op) {
+        case HTLexicon.assign:
+          bytesBuilder.add(right);
+          break;
+        case HTLexicon.assignAdd:
+          bytesBuilder.add(left);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIdx.addLeft);
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.add);
+          break;
+        case HTLexicon.assignSubtract:
+          bytesBuilder.add(left);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIdx.addLeft);
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.subtract);
+          break;
+        case HTLexicon.assignMultiply:
+          bytesBuilder.add(left);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIdx.multiplyLeft);
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.multiply);
+          break;
+        case HTLexicon.assignDevide:
+          bytesBuilder.add(left);
+          bytesBuilder.addByte(HTOpCode.register);
+          bytesBuilder.addByte(HTRegIdx.multiplyLeft);
+          bytesBuilder.add(right);
+          bytesBuilder.addByte(HTOpCode.devide);
+          break;
+      }
       bytesBuilder.addByte(HTOpCode.register);
       bytesBuilder.addByte(HTRegIdx.assign);
       bytesBuilder.add(left);
-      switch (op) {
-        case HTLexicon.assign:
-          bytesBuilder.addByte(HTOpCode.assign);
-          break;
-        case HTLexicon.assignMultiply:
-          bytesBuilder.addByte(HTOpCode.assignMultiply);
-          break;
-        case HTLexicon.assignDevide:
-          bytesBuilder.addByte(HTOpCode.assignDevide);
-          break;
-        case HTLexicon.assignAdd:
-          bytesBuilder.addByte(HTOpCode.assignAdd);
-          break;
-        case HTLexicon.assignSubtract:
-          bytesBuilder.addByte(HTOpCode.assignSubtract);
-          break;
-      }
+      bytesBuilder.addByte(HTOpCode.assign);
     } else {
       bytesBuilder.add(left);
     }

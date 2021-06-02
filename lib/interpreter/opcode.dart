@@ -66,13 +66,13 @@ abstract class HTOpCode {
 
   static const assign = 30; // 1 byte right value
 
-  static const assignMultiply = 31;
+  // static const assignMultiply = 31;
 
-  static const assignDevide = 32;
+  // static const assignDevide = 32;
 
-  static const assignAdd = 33;
+  // static const assignAdd = 33;
 
-  static const assignSubtract = 34;
+  // static const assignSubtract = 34;
 
   static const logicalOr = 42;
 

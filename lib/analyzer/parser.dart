@@ -490,7 +490,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         case HTLexicon.memberGet:
           _leftValueLegality = true;
           final name = match(SemanticType.identifier).lexeme;
-          expr = MemberGetExpr(expr, name, op.line, op.column);
+          expr = MemberExpr(expr, name, op.line, op.column);
           break;
         case HTLexicon.subGet:
           var indexExpr = _parseExpr();

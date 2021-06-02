@@ -6,6 +6,7 @@ import '../type_system/nominal_type.dart';
 import '../grammar/lexicon.dart';
 import '../error/errors.dart';
 import '../interpreter/function/funciton.dart';
+import '../core/declaration/abstract_function.dart';
 import '../interpreter/class/class.dart';
 import 'external_class.dart';
 
@@ -19,7 +20,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   final String typeString;
   late final HTExternalClass? externalClass;
 
-  final functions = <String, HTFunction>{};
+  late final HTClass? klass;
 
   /// Create a external class object.
   HTExternalInstance(
@@ -33,24 +34,10 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     }
 
     if (interpreter.global.contains(id)) {
-      HTClass klass = interpreter.global.fetch(id);
-      HTClass? curKlass = klass;
-      // final extended = <HTType>[];
-      while (curKlass != null) {
-        // 继承类成员，所有超类的成员都会分别保存
-        for (final decl in curKlass.instanceMembers.values) {
-          final value = decl.value;
-          if (value is HTFunction) {
-            functions[decl.id] = value;
-          }
-        }
-        // if (curKlass.extendedType != null) {
-        //   extended.add(curKlass.extendedType!);
-        // }
-        curKlass = curKlass.superClass;
-      }
-      valueType = HTNominalType(klass);
+      klass = interpreter.global.fetch(id);
+      valueType = HTNominalType(klass!);
     } else {
+      klass = null;
       valueType = HTExternalType(typeString);
     }
   }
@@ -68,7 +55,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
           final member =
               externalClass!.instanceMemberGet(externalObject, varName);
           if (member is Function) {
-            final func = functions[varName]!;
+            AbstractFunction func = klass!.instanceMembers[member]!.value;
             func.externalFunc = member;
             return func;
           }

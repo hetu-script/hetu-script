@@ -178,11 +178,11 @@ external class List {
 
 	fun join(separator: str) -> str
 
-	var first
+	get first
 
-	var last
+	get last
 
-	var length
+	get length
 
 	fun add(value)
 

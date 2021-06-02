@@ -3,7 +3,6 @@ import '../../error/errors.dart';
 import '../../type_system/type.dart';
 import '../../core/namespace/namespace.dart';
 import '../../core/declaration/abstract_function.dart';
-import '../../analyzer/declaration/variable_declaration.dart';
 import '../../core/object.dart';
 import 'instance.dart';
 import '../../core/declaration/abstract_class.dart';
@@ -117,26 +116,28 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
             namespace.declarations[HTLexicon.constructor]!.value;
         return func;
       }
-    } else if (namespace.declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+    } else {
+      if (namespace.declarations.containsKey(varName)) {
+        if (varName.startsWith(HTLexicon.underscore) &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
+        final decl = namespace.declarations[varName]!;
+        return decl.value;
+      } else if (namespace.declarations.containsKey(getter)) {
+        if (varName.startsWith(HTLexicon.underscore) &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
+        AbstractFunction func = namespace.declarations[getter]!.value;
+        return func.call();
+      } else if (namespace.declarations.containsKey(constructor)) {
+        if (varName.startsWith(HTLexicon.underscore) &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
+        return namespace.declarations[constructor]!.value as AbstractFunction;
       }
-      final decl = namespace.declarations[varName]!;
-      return decl.value;
-    } else if (namespace.declarations.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      AbstractFunction func = namespace.declarations[getter]!.value;
-      return func.call();
-    } else if (namespace.declarations.containsKey(constructor)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      return namespace.declarations[constructor]!.value as AbstractFunction;
     }
 
     switch (varName) {
@@ -168,12 +169,8 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
         throw HTError.privateMember(varName);
       }
       final decl = namespace.declarations[varName]!;
-      if (decl is HTDeclaration) {
-        decl.value = varValue;
-        return;
-      } else {
-        throw HTError.immutable(varName);
-      }
+      decl.value = varValue;
+      return;
     } else if (namespace.declarations.containsKey(setter)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(namespace.fullName)) {
