@@ -7,6 +7,8 @@ abstract class HTErrorHandler {
 
 /// Default error handler implementation
 class DefaultErrorHandler implements HTErrorHandler {
+  const DefaultErrorHandler();
+
   @override
   void handle(HTError error) {
     throw (error);

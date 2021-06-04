@@ -495,7 +495,7 @@ class ContinueStmt extends AstNode {
       : super(SemanticType.continueStmt, line, column);
 }
 
-class VarDecl extends AstNode {
+class VarDeclStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitVarDeclStmt(this);
 
@@ -516,7 +516,7 @@ class VarDecl extends AstNode {
 
   final bool lateInitialize;
 
-  const VarDecl(this.id, int line, int column,
+  const VarDeclStmt(this.id, int line, int column,
       {this.declType,
       this.initializer,
       this.typeInferrence = false,
@@ -527,7 +527,7 @@ class VarDecl extends AstNode {
       : super(SemanticType.varDecl, line, column);
 }
 
-class ParamDecl extends VarDecl {
+class ParamDeclExpr extends VarDeclStmt {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitParamDeclStmt(this);
@@ -538,7 +538,7 @@ class ParamDecl extends VarDecl {
 
   final bool isNamed;
 
-  const ParamDecl(String id, int line, int column,
+  const ParamDeclExpr(String id, int line, int column,
       {TypeExpr? declType,
       AstNode? initializer,
       bool isImmutable = false,
@@ -564,7 +564,7 @@ class ReferConstructorExpr extends AstNode {
       : super(SemanticType.referCtorExpr, line, column);
 }
 
-class FuncDecl extends AstNode {
+class FuncDeclExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitFuncDeclStmt(this);
 
@@ -582,7 +582,7 @@ class FuncDecl extends AstNode {
 
   final String? classId;
 
-  final List<ParamDecl> params;
+  final List<ParamDeclExpr> params;
 
   final int minArity;
 
@@ -602,7 +602,7 @@ class FuncDecl extends AstNode {
 
   bool get isLiteral => category == FunctionCategory.literal;
 
-  const FuncDecl(this.id, this.declId, this.params, int line, int column,
+  const FuncDeclExpr(this.id, this.declId, this.params, int line, int column,
       {this.classId,
       this.typeParameters = const [],
       this.externalTypedef,
@@ -619,7 +619,7 @@ class FuncDecl extends AstNode {
       : super(SemanticType.funcDecl, line, column);
 }
 
-class ClassDecl extends AstNode {
+class ClassDeclStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitClassDeclStmt(this);
@@ -636,7 +636,7 @@ class ClassDecl extends AstNode {
 
   final BlockStmt definition;
 
-  const ClassDecl(this.id, this.definition, int line, int column,
+  const ClassDeclStmt(this.id, this.definition, int line, int column,
       {this.typeParameters = const [],
       this.superClassType,
       this.isExternal = false,
@@ -644,7 +644,7 @@ class ClassDecl extends AstNode {
       : super(SemanticType.classDecl, line, column);
 }
 
-class EnumDecl extends AstNode {
+class EnumDeclStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitEnumDeclStmt(this);
 
@@ -654,7 +654,7 @@ class EnumDecl extends AstNode {
 
   final bool isExternal;
 
-  const EnumDecl(this.id, this.enumerations, int line, int column,
+  const EnumDeclStmt(this.id, this.enumerations, int line, int column,
       {this.isExternal = false})
       : super(SemanticType.enumDecl, line, column);
 }

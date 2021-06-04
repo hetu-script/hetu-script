@@ -76,15 +76,15 @@ abstract class AbstractAstVisitor {
 
   dynamic visitContinueStmt(ContinueStmt stmt);
 
-  dynamic visitVarDeclStmt(VarDecl stmt);
+  dynamic visitVarDeclStmt(VarDeclStmt stmt);
 
-  dynamic visitParamDeclStmt(ParamDecl stmt);
+  dynamic visitParamDeclStmt(ParamDeclExpr stmt);
 
   dynamic visitReferConstructorExpr(ReferConstructorExpr stmt);
 
-  dynamic visitFuncDeclStmt(FuncDecl stmt);
+  dynamic visitFuncDeclStmt(FuncDeclExpr stmt);
 
-  dynamic visitClassDeclStmt(ClassDecl stmt);
+  dynamic visitClassDeclStmt(ClassDeclStmt stmt);
 
-  dynamic visitEnumDeclStmt(EnumDecl stmt);
+  dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
 }

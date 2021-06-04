@@ -47,7 +47,7 @@ class InterpreterConfig extends ParserConfig {
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.
 abstract class HTInterpreter {
-  final version = Version(0, 1, 0);
+  static final version = Version(0, 1, 0);
 
   AbstractParser get curParser;
 

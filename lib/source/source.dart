@@ -1,4 +1,3 @@
-import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../core/const_table.dart';
@@ -29,33 +28,4 @@ class HTSource {
   String content;
 
   HTSource(this.fullName, this.content);
-}
-
-abstract class HTModule extends HTSource {
-  Version? version;
-
-  final Uri uri;
-
-  late final ConstTable constTable;
-
-  String get name => path.basename(fullName);
-
-  HTModule(String fullName, String content, [ConstTable? constTable])
-      : uri = Uri(path: fullName),
-        constTable = constTable ?? ConstTable(),
-        super(fullName, content);
-}
-
-abstract class HTCompilation {
-  Iterable<String> get moduleKeys;
-
-  Iterable<HTModule> get modules;
-
-  bool containsModule(String fullName);
-
-  HTModule getModule(String fullName);
-
-  Iterable<String> get symbols;
-
-  bool containsSymbol(String id);
 }

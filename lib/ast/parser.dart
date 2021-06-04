@@ -7,8 +7,8 @@ import '../core/declaration/abstract_class.dart';
 import '../grammar/semantic.dart';
 import '../error/errors.dart';
 import '../source/source_provider.dart';
-import 'ast/ast.dart';
-import 'analyzer.dart';
+import 'ast.dart';
+import '../analyzer/analyzer.dart';
 import 'ast_source.dart';
 
 class HTAstParser extends AbstractParser with AnalyzerRef {
@@ -918,7 +918,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
   }
 
   // 变量声明语句
-  VarDecl _parseVarDeclStmt(
+  VarDeclStmt _parseVarDeclStmt(
       {String? declId,
       bool isMember = false,
       bool typeInferrence = false,
@@ -960,7 +960,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       expect([HTLexicon.semicolon], consume: true);
     }
 
-    return VarDecl(id, idTok.line, idTok.column,
+    return VarDeclStmt(id, idTok.line, idTok.column,
         declType: declType,
         initializer: initializer,
         typeInferrence: typeInferrence,
@@ -970,7 +970,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         lateInitialize: lateInitialize);
   }
 
-  FuncDecl _parseFuncDeclaration(
+  FuncDeclExpr _parseFuncDeclaration(
       {FunctionCategory category = FunctionCategory.normal,
       bool isExternal = false,
       bool isStatic = false,
@@ -1060,7 +1060,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     var isFuncVariadic = false;
     var minArity = 0;
     var maxArity = 0;
-    var paramDecls = <ParamDecl>[];
+    var paramDecls = <ParamDeclExpr>[];
 
     if (category != FunctionCategory.getter &&
         expect([HTLexicon.roundLeft], consume: true)) {
@@ -1109,7 +1109,8 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           }
         }
 
-        final param = ParamDecl(paramId.lexeme, paramId.line, paramId.column,
+        final param = ParamDeclExpr(
+            paramId.lexeme, paramId.line, paramId.column,
             declType: paramDeclType,
             initializer: initializer,
             isVariadic: isVariadic,
@@ -1209,7 +1210,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
     _curFuncType = savedCurFuncType;
 
-    return FuncDecl(id, declId, paramDecls, keyword.line, keyword.column,
+    return FuncDeclExpr(id, declId, paramDecls, keyword.line, keyword.column,
         classId: _curClass?.id,
         typeParameters: typeParameters,
         externalTypedef: externalTypedef,
@@ -1225,7 +1226,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         category: category);
   }
 
-  ClassDecl _parseClassDeclStmt(
+  ClassDeclStmt _parseClassDeclStmt(
       {bool isExternal = false, bool isAbstract = false}) {
     // 已经判断过了所以直接跳过关键字
     final keyword = advance(1);
@@ -1284,14 +1285,14 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
     _curClass = savedClass;
 
-    return ClassDecl(id.lexeme, definition, keyword.line, keyword.column,
+    return ClassDeclStmt(id.lexeme, definition, keyword.line, keyword.column,
         typeParameters: typeParameters,
         superClassType: superClassType,
         isExternal: isExternal,
         isAbstract: isAbstract);
   }
 
-  EnumDecl _parseEnumDeclStmt({bool isExternal = false}) {
+  EnumDeclStmt _parseEnumDeclStmt({bool isExternal = false}) {
     // 已经判断过了所以直接跳过关键字
     final keyword = advance(1);
 
@@ -1315,7 +1316,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       expect([HTLexicon.semicolon], consume: true);
     }
 
-    return EnumDecl(id.lexeme, enumerations, keyword.line, keyword.column,
+    return EnumDeclStmt(id.lexeme, enumerations, keyword.line, keyword.column,
         isExternal: isExternal);
     // _curBlock.enumDecls[class_name.lexeme] = stmt;
   }

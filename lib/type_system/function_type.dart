@@ -3,7 +3,7 @@ import 'package:quiver/core.dart';
 import '../core/declaration/abstract_parameter.dart';
 import '../grammar/lexicon.dart';
 import 'type.dart';
-import '../analyzer/ast/ast.dart' show ParamDecl;
+import '../ast/ast.dart' show ParamDeclExpr;
 
 class HTParameterType extends HTType implements AbstractParameter {
   @override
@@ -40,7 +40,7 @@ class HTParameterType extends HTType implements AbstractParameter {
             isNamed: isNamed,
             isVariadic: isVariadic);
 
-  HTParameterType.fromAst(ParamDecl ast)
+  HTParameterType.fromAst(ParamDeclExpr ast)
       : this.fromType(ast.id,
             paramType: HTType.fromAst(ast.declType),
             isOptional: ast.isOptional,

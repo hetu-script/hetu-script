@@ -11,10 +11,10 @@ import '../grammar/lexicon.dart';
 // import '../source/source.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
-import 'ast/ast.dart';
+import '../ast/ast.dart';
 // import 'ast_function.dart';
-import 'parser.dart';
-import 'ast_source.dart';
+import '../ast/parser.dart';
+import '../ast/ast_source.dart';
 
 mixin AnalyzerRef {
   late final HTAnalyzer interpreter;
@@ -362,7 +362,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitVarDeclStmt(VarDecl stmt) {
+  dynamic visitVarDeclStmt(VarDeclStmt stmt) {
     // dynamic value;
     // if (stmt.initializer != null) {
     //   value = analyze(stmt.initializer!);
@@ -382,13 +382,13 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitParamDeclStmt(ParamDecl stmt) {}
+  dynamic visitParamDeclStmt(ParamDeclExpr stmt) {}
 
   @override
   dynamic visitReferConstructorExpr(ReferConstructorExpr stmt) {}
 
   @override
-  dynamic visitFuncDeclStmt(FuncDecl stmt) {
+  dynamic visitFuncDeclStmt(FuncDeclExpr stmt) {
     // final func = HTAstFunction(stmt, this, context: _curNamespace);
     // if (stmt.id != null) {
     //   _curNamespace.define(func);
@@ -397,7 +397,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitClassDeclStmt(ClassDecl stmt) {
+  dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
     // HTClass? superClass;
     if (stmt.id != HTLexicon.object) {
       // if (stmt.superClass == null) {
@@ -466,7 +466,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitEnumDeclStmt(EnumDecl stmt) {
+  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
     // var defs = <String, HTEnumItem>{};
     for (var i = 0; i < stmt.enumerations.length; i++) {
       // final id = stmt.enumerations[i];

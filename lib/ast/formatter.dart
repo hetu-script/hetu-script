@@ -1,6 +1,6 @@
 import 'package:hetu_script/grammar/semantic.dart';
 
-import 'ast/ast.dart';
+import 'ast.dart';
 import '../grammar/lexicon.dart';
 import 'ast_source.dart';
 
@@ -32,10 +32,10 @@ class HTFormatter implements AbstractAstVisitor {
           output.writeln('');
         }
         output.writeln(stmtString);
-        if (stmt is FuncDecl ||
-            stmt is ClassDecl ||
-            stmt is EnumDecl ||
-            stmt is VarDecl) {
+        if (stmt is FuncDeclExpr ||
+            stmt is ClassDeclStmt ||
+            stmt is EnumDeclStmt ||
+            stmt is VarDeclStmt) {
           output.writeln('');
         }
       }
@@ -473,7 +473,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitVarDeclStmt(VarDecl stmt) {
+  String visitVarDeclStmt(VarDeclStmt stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');
@@ -501,7 +501,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitParamDeclStmt(ParamDecl stmt) {
+  String visitParamDeclStmt(ParamDeclExpr stmt) {
     final output = StringBuffer();
     output.write('${stmt.id}');
     if (stmt.declType != null) {
@@ -526,7 +526,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitFuncDeclStmt(FuncDecl stmt) {
+  String visitFuncDeclStmt(FuncDeclExpr stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');
@@ -607,7 +607,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitClassDeclStmt(ClassDecl stmt) {
+  String visitClassDeclStmt(ClassDeclStmt stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');
@@ -626,7 +626,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitEnumDeclStmt(EnumDecl stmt) {
+  String visitEnumDeclStmt(EnumDeclStmt stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');

@@ -19,7 +19,7 @@ import '../error/error_handler.dart';
 import 'class/class.dart';
 import 'class/enum.dart';
 import 'class/cast.dart';
-import 'compiler.dart';
+import 'old_compiler.dart';
 import 'opcode.dart';
 import 'bytecode/bytecode_source.dart';
 import 'variable.dart';
