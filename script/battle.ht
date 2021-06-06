@@ -38,7 +38,7 @@ fun start(player_dex: num, enemy_dex: num) {
       next_char_name = player.name
     }
 
-    for (char in charList) {
+    for (var char in charList) {
       print(
           '角色：' + char.name + '，生命：' + char.vitality.toStringAsFixed(2) + '，先机：' + char.initiative.toStringAsFixed(2))
     }
@@ -72,7 +72,7 @@ fun start(player_dex: num, enemy_dex: num) {
     Console.getln('按回车继续...')
     Console.eraseLine()
 
-    for (char in charList) {
+    for (var char in charList) {
       if (char.vitality <= 0) {
         char.ko = true
         break

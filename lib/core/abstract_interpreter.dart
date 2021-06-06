@@ -11,10 +11,12 @@ import '../error/error_handler.dart';
 import '../source/source.dart';
 import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
+import '../ast/parser.dart';
+import '../interpreter/compiler.dart';
+import '../interpreter/function/funciton.dart';
 
-import 'declaration/abstract_function.dart';
+import 'abstract_parser.dart' show ParserConfig;
 import 'namespace/namespace.dart';
-import 'abstract_parser.dart';
 import 'hetu_lib.dart';
 import 'object.dart';
 
@@ -32,24 +34,20 @@ class InterpreterConfig extends ParserConfig {
   const InterpreterConfig(
       {SourceType sourceType = SourceType.module,
       bool reload = false,
-      bool bundle = false,
       bool lineInfo = true,
       this.scriptStackTrace = true,
       this.scriptStackTraceMaxline = 10,
       this.externalStackTrace = true,
       this.externalStackTraceMaxline = 10})
-      : super(
-            sourceType: sourceType,
-            reload: reload,
-            bundle: bundle,
-            lineInfo: lineInfo);
+      : super(sourceType: sourceType, reload: reload, lineInfo: lineInfo);
 }
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.
 abstract class HTInterpreter {
   static final version = Version(0, 1, 0);
 
-  AbstractParser get curParser;
+  final parser = HTAstParser();
+  final compiler = HTCompiler();
 
   /// Current line number of execution.
   int get curLine;
@@ -62,20 +60,19 @@ abstract class HTInterpreter {
   String? get curSymbol;
   // String? get curLeftValue;
 
+  late final HTNamespace coreNamepace;
+
   HTNamespace get curNamespace;
 
   late HTErrorHandler errorHandler;
   late SourceProvider sourceProvider;
-
-  /// 全局命名空间
-  late final HTNamespace global;
 
   HTInterpreter(
       {HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
-    global = HTNamespace(this, id: HTLexicon.global);
+    coreNamepace = HTNamespace(this, id: HTLexicon.coreSpace);
   }
 
   Future<void> init(
@@ -84,36 +81,41 @@ abstract class HTInterpreter {
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) async {
-    // load classes and functions in core library.
-    if (coreModule) {
-      for (final file in coreModules.keys) {
-        await eval(coreModules[file]!, moduleFullName: file);
+    try {
+      // load classes and functions in core library.
+      if (coreModule) {
+        for (final file in coreModules.keys) {
+          await eval(coreModules[file]!,
+              moduleFullName: file, namespace: coreNamepace);
+        }
+        for (var key in coreFunctions.keys) {
+          bindExternalFunction(key, coreFunctions[key]!);
+        }
+        bindExternalClass(HTNumberClass());
+        bindExternalClass(HTIntegerClass());
+        bindExternalClass(HTFloatClass());
+        bindExternalClass(HTBooleanClass());
+        bindExternalClass(HTStringClass());
+        bindExternalClass(HTListClass());
+        bindExternalClass(HTMapClass());
+        bindExternalClass(HTMathClass());
+        bindExternalClass(HTSystemClass());
+        bindExternalClass(HTConsoleClass());
       }
-      for (var key in coreFunctions.keys) {
-        bindExternalFunction(key, coreFunctions[key]!);
+
+      for (var key in externalFunctions.keys) {
+        bindExternalFunction(key, externalFunctions[key]!);
       }
-      bindExternalClass(HTNumberClass());
-      bindExternalClass(HTIntegerClass());
-      bindExternalClass(HTFloatClass());
-      bindExternalClass(HTBooleanClass());
-      bindExternalClass(HTStringClass());
-      bindExternalClass(HTListClass());
-      bindExternalClass(HTMapClass());
-      bindExternalClass(HTMathClass());
-      bindExternalClass(HTSystemClass());
-      bindExternalClass(HTConsoleClass());
-    }
 
-    for (var key in externalFunctions.keys) {
-      bindExternalFunction(key, externalFunctions[key]!);
-    }
+      for (var key in externalFunctionTypedef.keys) {
+        bindExternalFunctionType(key, externalFunctionTypedef[key]!);
+      }
 
-    for (var key in externalFunctionTypedef.keys) {
-      bindExternalFunctionType(key, externalFunctionTypedef[key]!);
-    }
-
-    for (var value in externalClasses) {
-      bindExternalClass(value);
+      for (var value in externalClasses) {
+        bindExternalClass(value);
+      }
+    } catch (error, stack) {
+      handleError(error, stack);
     }
   }
 
@@ -130,7 +132,7 @@ abstract class HTInterpreter {
   /// 解析文件
   Future<dynamic> import(String key,
       {String? curModuleFullName,
-      String? moduleName,
+      String? moduleAliasName,
       InterpreterConfig config = const InterpreterConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -138,7 +140,6 @@ abstract class HTInterpreter {
       List<HTType> typeArgs = const []});
 
   /// 调用一个全局函数或者类、对象上的函数
-  // TODO: 调用构造函数
   dynamic invoke(String funcName,
       {String? className,
       List<dynamic> positionalArgs = const [],
@@ -149,7 +150,7 @@ abstract class HTInterpreter {
   /// Handle a error thrown by other funcion in Hetu.
   void handleError(Object error, [StackTrace? stack]) {
     var sb = StringBuffer();
-    for (var funcName in AbstractFunction.callStack) {
+    for (var funcName in HTFunction.callStack) {
       sb.writeln('  $funcName');
     }
     sb.writeln('\n$stack');
@@ -157,10 +158,14 @@ abstract class HTInterpreter {
 
     if (error is HTError) {
       error.message = '${error.message}\nCall stack:\n$callStack';
-      if (error.type == ErrorType.compileError) {
-        error.moduleFullName = curParser.curModuleFullName;
-        error.line = curParser.curLine;
-        error.column = curParser.curColumn;
+      if (error.type == ErrorType.syntacticError) {
+        error.moduleFullName = parser.curModuleFullName;
+        error.line = parser.curLine;
+        error.column = parser.curColumn;
+      } else if (error.type == ErrorType.compileError) {
+        error.moduleFullName = compiler.curModuleFullName;
+        error.line = compiler.curLine;
+        error.column = compiler.curColumn;
       } else {
         error.moduleFullName = curModuleFullName;
         error.line = curLine;
@@ -308,11 +313,11 @@ abstract class HTInterpreter {
   }
 
   /// Using unwrapper to turn a script function into a external function
-  Function unwrapExternalFunctionType(AbstractFunction func) {
-    if (!_externFuncTypeUnwrappers.containsKey(func.externalId)) {
-      throw HTError.undefinedExtern(func.externalId!);
+  Function unwrapExternalFunctionType(HTFunction func) {
+    if (!_externFuncTypeUnwrappers.containsKey(func.externalTypeId)) {
+      throw HTError.undefinedExtern(func.externalTypeId!);
     }
-    final unwrapFunc = _externFuncTypeUnwrappers[func.externalId]!;
+    final unwrapFunc = _externFuncTypeUnwrappers[func.externalTypeId]!;
     return unwrapFunc(func);
   }
 }

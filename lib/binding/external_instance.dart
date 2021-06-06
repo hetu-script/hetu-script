@@ -5,8 +5,7 @@ import '../type_system/value_type.dart';
 import '../type_system/nominal_type.dart';
 import '../grammar/lexicon.dart';
 import '../error/errors.dart';
-import '../interpreter/function/funciton.dart';
-import '../core/declaration/abstract_function.dart';
+import '../core/declaration/function_declaration.dart';
 import '../interpreter/class/class.dart';
 import 'external_class.dart';
 
@@ -33,8 +32,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       externalClass = null;
     }
 
-    if (interpreter.global.contains(id)) {
-      klass = interpreter.global.fetch(id);
+    if (interpreter.coreNamepace.contains(id)) {
+      klass = interpreter.coreNamepace.memberGet(id);
       valueType = HTNominalType(klass!);
     } else {
       klass = null;
@@ -55,9 +54,16 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
           final member =
               externalClass!.instanceMemberGet(externalObject, varName);
           if (member is Function) {
-            AbstractFunction func = klass!.instanceMembers[member]!.value;
-            func.externalFunc = member;
-            return func;
+            final getter = '${HTLexicon.getter}$varName';
+            if (klass!.instanceMembers.containsKey(varName)) {
+              FunctionDeclaration func = klass!.instanceMembers[varName]!.value;
+              func.externalFunc = member;
+              return func;
+            } else if (klass!.instanceMembers.containsKey(getter)) {
+              FunctionDeclaration func = klass!.instanceMembers[getter]!.value;
+              func.externalFunc = member;
+              return func;
+            }
           }
           return member;
         } else {

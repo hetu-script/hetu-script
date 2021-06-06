@@ -30,14 +30,14 @@ class TokenIdentifier extends Token {
       : super(lexeme, line, column);
 }
 
-class TokenBoolLiteral extends Token {
+class TokenBooleanLiteral extends Token {
   @override
   final bool literal;
 
   @override
   String get type => SemanticType.literalBoolean;
 
-  TokenBoolLiteral(String lexeme, this.literal, int line, int column)
+  TokenBooleanLiteral(String lexeme, this.literal, int line, int column)
       : super(lexeme, line, column);
 }
 

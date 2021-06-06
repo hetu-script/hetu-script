@@ -3,85 +3,20 @@ import '../error/errors.dart';
 import '../grammar/lexicon.dart';
 import 'token.dart';
 
-abstract class DeclarationBlock {
-  bool contains(String id);
-}
-
-class ImportInfo {
-  final String key;
-  final String? name;
-  final Iterable<String> showList;
-  ImportInfo(this.key, {this.name, this.showList = const []});
-}
-
 /// Configuration of [AbstractParser]
 class ParserConfig {
   final SourceType sourceType;
   final bool reload;
-  final bool bundle;
   final bool lineInfo;
 
   const ParserConfig(
       {this.sourceType = SourceType.module,
       this.reload = false,
-      this.bundle = false,
       this.lineInfo = true});
 }
 
-/// Parse a token list and generate source code,
-/// [HTAstParser] and [HTCompiler] implements this class
 abstract class AbstractParser {
   static var anonymousFuncIndex = 0;
-
-  // static _ParseTypeResult _parseTypeFromTokens(List<Token> tokens) {
-  //   final typeName = tokens.first.lexeme;
-  //   var pos = 1;
-  //   var type_args = <HTType>[];
-
-  //   while (pos < tokens.length) {
-  //     if (tokens[pos].type == HTLexicon.angleLeft) {
-  //       pos++;
-  //       while (
-  //           (pos < tokens.length) && tokens[pos].type != HTLexicon.angleRight) {
-  //         final result = _parseTypeFromTokens(tokens.sublist(pos));
-  //         type_args.add(result.parsedType);
-  //         pos = result.pos;
-  //         if (tokens[pos].type != HTLexicon.angleRight) {
-  //           if (tokens[pos].type == HTLexicon.comma) {
-  //             ++pos;
-  //           } else {
-  //             throw HTError.unexpected(HTLexicon.comma, tokens[pos].lexeme);
-  //           }
-  //         }
-  //       }
-  //       if (tokens[pos].type != HTLexicon.angleRight) {
-  //         throw HTError.unexpected(HTLexicon.angleRight, tokens[pos].lexeme);
-  //       } else {
-  //         break;
-  //       }
-  //     } else {
-  //       throw HTError.unexpected(HTLexicon.angleLeft, tokens[pos].lexeme);
-  //     }
-  //   }
-
-  //   final parsedType = HTType(typeName, interpreter, typeArgs: type_args);
-  //   return _ParseTypeResult(parsedType, pos);
-  // }
-
-  // static HTType parseType(String typeString) {
-  //   final tokens = Lexer().lex(typeString, SemanticType.typeExpression);
-  //   if (tokens.isEmpty) {
-  //     throw HTError.emptyString(SemanticType.typeExpression);
-  //   }
-
-  //   if (tokens.first.type != SemanticType.identifier) {
-  //     throw HTError.unexpected(SemanticType.identifier, tokens.first.lexeme);
-  //   }
-
-  //   final parseResult = _parseTypeFromTokens(tokens);
-
-  //   return parseResult.parsedType;
-  // }
 
   late ParserConfig config;
 
@@ -91,7 +26,9 @@ abstract class AbstractParser {
   int get curColumn => _curColumn;
 
   /// The module current processing, used in error message.
-  String? get curModuleFullName;
+  String get curModuleFullName;
+
+  String get curLibraryName;
 
   var tokPos = 0;
 

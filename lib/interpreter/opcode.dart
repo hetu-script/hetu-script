@@ -21,8 +21,10 @@ abstract class HTOpCode {
   /// ip = pos, distance could be negative
   static const goto = 6;
 
+  static const module = 7;
+
   /// uint16 line & column
-  static const debugInfo = 8;
+  static const lineInfo = 8;
 
   static const singleComment = 9;
 
@@ -56,80 +58,68 @@ abstract class HTOpCode {
 
   static const varDecl = 24;
 
-  static const ifStmt = 26;
+  static const ifStmt = 30;
 
-  static const whileStmt = 27;
+  static const whileStmt = 31;
 
-  static const doStmt = 28;
+  static const doStmt = 32;
 
-  static const whenStmt = 29;
+  static const whenStmt = 33;
 
-  static const assign = 30; // 1 byte right value
+  static const assign = 40; // 1 byte right value
 
-  // static const assignMultiply = 31;
+  static const memberAssign = 41;
 
-  // static const assignDevide = 32;
+  static const subAssign = 42;
 
-  // static const assignAdd = 33;
+  static const logicalOr = 43;
 
-  // static const assignSubtract = 34;
+  static const logicalAnd = 44;
 
-  static const logicalOr = 42;
+  static const equal = 45;
 
-  static const logicalAnd = 43;
+  static const notEqual = 46;
 
-  static const equal = 44;
+  static const lesser = 47;
 
-  static const notEqual = 45;
+  static const greater = 48;
 
-  static const lesser = 46;
+  static const lesserOrEqual = 49;
 
-  static const greater = 47;
+  static const greaterOrEqual = 50;
 
-  static const lesserOrEqual = 48;
+  static const typeAs = 51;
 
-  static const greaterOrEqual = 49;
+  static const typeIs = 52;
 
-  static const typeAs = 50;
-
-  static const typeIs = 51;
-
-  static const typeIsNot = 52;
+  static const typeIsNot = 53;
 
   /// add left right store => reg[store] = reg[left] + reg[right]
-  static const add = 59;
+  static const add = 54;
 
   /// subtract left right store => reg[store] = reg[left] + reg[right]
-  static const subtract = 60;
+  static const subtract = 55;
 
   /// multiply left right store => reg[store] = reg[left] * reg[right]
-  static const multiply = 61;
+  static const multiply = 56;
 
   /// devide left right store => reg[store] = reg[left] / reg[right]
-  static const devide = 62;
+  static const devide = 57;
 
   /// modulo left right store => reg[store] = reg[left] % reg[right]
-  static const modulo = 64;
+  static const modulo = 58;
 
   /// modulo value store => reg[store] = -reg[valueOf]
-  static const negative = 65;
+  static const negative = 60;
 
   /// modulo value store => reg[store] = !reg[valueOf]
-  static const logicalNot = 66;
+  static const logicalNot = 61;
 
-  static const preIncrement = 68;
+  static const member = 65;
 
-  static const preDecrement = 69;
+  static const subscript = 66;
 
-  static const memberGet = 71;
-
-  static const subGet = 72;
-
-  static const call = 73;
-
-  static const postIncrement = 74;
-
-  static const postDecrement = 75;
+  static const call = 67;
 
   /// 4 bytes
   static const signature = 200;
@@ -148,9 +138,9 @@ abstract class HTOpCode {
 abstract class HTValueTypeCode {
   static const NULL = 0;
   static const boolean = 1;
-  static const int64 = 2;
-  static const float64 = 3;
-  static const utf8String = 4;
+  static const constInt = 2;
+  static const constFloat = 3;
+  static const constString = 4;
   static const symbol = 5;
   static const subValue = 6;
   static const group = 7;
@@ -158,6 +148,7 @@ abstract class HTValueTypeCode {
   static const map = 9;
   static const function = 10;
   static const type = 11;
+  static const funcType = 11;
 }
 
 /// Function type code.
@@ -177,7 +168,6 @@ abstract class HTFunctionTypeCode {
 //   static const abstracted = 2;
 //   static const interface = 3;
 //   static const mix_in = 4;
-//   static const extern = 5;
 // }
 
 /// Current symbol type.

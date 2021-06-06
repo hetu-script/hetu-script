@@ -1,116 +1,119 @@
 import 'package:quiver/core.dart';
 
-import '../core/declaration/abstract_parameter.dart';
+import '../core/declaration/typed_parameter_declaration.dart';
 import '../grammar/lexicon.dart';
 import 'type.dart';
-import '../ast/ast.dart' show ParamDeclExpr;
+// import '../ast/ast.dart' show ParamDeclExpr;
 
-class HTParameterType extends HTType implements AbstractParameter {
-  @override
-  final String paramId;
+// class HTParameterType extends HTType implements ParameterDeclaration {
+//   @override
+//   HTType get declType => this;
 
-  @override
-  final bool isOptional;
+//   @override
+//   final String id;
 
-  @override
-  final bool isNamed;
+//   @override
+//   final bool isOptional;
 
-  @override
-  final bool isVariadic;
+//   @override
+//   final bool isNamed;
 
-  const HTParameterType(String typeid,
-      {this.paramId = '',
-      List<HTType> typeArgs = const [],
-      bool isNullable = false,
-      this.isOptional = false,
-      this.isNamed = false,
-      this.isVariadic = false})
-      : super(typeid, typeArgs: typeArgs, isNullable: isNullable);
+//   @override
+//   final bool isVariadic;
 
-  HTParameterType.fromType(String paramId,
-      {HTType? paramType,
-      bool isOptional = false,
-      bool isNamed = false,
-      bool isVariadic = false})
-      : this(paramType?.id ?? HTLexicon.ANY,
-            paramId: paramId,
-            typeArgs: paramType?.typeArgs ?? const [],
-            isNullable: paramType?.isNullable ?? false,
-            isOptional: isOptional,
-            isNamed: isNamed,
-            isVariadic: isVariadic);
+//   const HTParameterType(String typeid,
+//       {this.id = '',
+//       List<HTType> typeArgs = const [],
+//       bool isNullable = false,
+//       this.isOptional = false,
+//       this.isNamed = false,
+//       this.isVariadic = false})
+//       : super(typeid, typeArgs: typeArgs, isNullable: isNullable);
 
-  HTParameterType.fromAst(ParamDeclExpr ast)
-      : this.fromType(ast.id,
-            paramType: HTType.fromAst(ast.declType),
-            isOptional: ast.isOptional,
-            isNamed: ast.isNamed,
-            isVariadic: ast.isVariadic);
+//   HTParameterType.fromType(String paramId,
+//       {HTType? paramType,
+//       bool isOptional = false,
+//       bool isNamed = false,
+//       bool isVariadic = false})
+//       : this(paramType?.id ?? HTLexicon.ANY,
+//             id: paramId,
+//             typeArgs: paramType?.typeArgs ?? const [],
+//             isNullable: paramType?.isNullable ?? false,
+//             isOptional: isOptional,
+//             isNamed: isNamed,
+//             isVariadic: isVariadic);
 
-  @override
-  String toString() {
-    var typeString = StringBuffer();
-    if (isNamed) {
-      typeString.write('$paramId: ');
-    }
-    typeString.write(super.toString());
-    return typeString.toString();
-  }
+//   HTParameterType.fromAst(ParamDeclExpr ast)
+//       : this.fromType(ast.id,
+//             paramType: HTType.fromAst(ast.declType),
+//             isOptional: ast.isOptional,
+//             isNamed: ast.isNamed,
+//             isVariadic: ast.isVariadic);
 
-  @override
-  int get hashCode {
-    final hashList = <int>[];
-    hashList.add(super.hashCode);
-    hashList.add(isOptional.hashCode);
-    hashList.add(isNamed.hashCode);
-    hashList.add(isVariadic.hashCode);
-    final hash = hashObjects(hashList);
-    return hash;
-  }
+//   @override
+//   String toString() {
+//     var typeString = StringBuffer();
+//     if (isNamed) {
+//       typeString.write('$id: ');
+//     }
+//     typeString.write(super.toString());
+//     return typeString.toString();
+//   }
 
-  @override
-  bool isA(dynamic other) {
-    if (other == HTType.ANY) {
-      return true;
-    } else if (other.id == HTLexicon.ANY) {
-      if ((isOptional == other.isOptional) ||
-          (isNamed == other.isNamed) ||
-          (isVariadic == other.isVariadic)) {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (other is HTParameterType) {
-      if (isNamed && (id != other.id)) {
-        return false;
-      } else if ((isOptional != other.isOptional) ||
-          (isNamed != other.isNamed) ||
-          (isVariadic != other.isVariadic)) {
-        return false;
-      }
-      // ignore: unnecessary_cast
-      else if (!super.isA(other)) {
-        return false;
-      } else {
-        return true;
-      }
-    } else {
-      return false;
-    }
-  }
-}
+//   @override
+//   int get hashCode {
+//     final hashList = <int>[];
+//     hashList.add(super.hashCode);
+//     hashList.add(isOptional.hashCode);
+//     hashList.add(isNamed.hashCode);
+//     hashList.add(isVariadic.hashCode);
+//     final hash = hashObjects(hashList);
+//     return hash;
+//   }
+
+//   @override
+//   bool isA(dynamic other) {
+//     if (other == HTType.ANY) {
+//       return true;
+//     } else if (other.id == HTLexicon.ANY) {
+//       if ((isOptional == other.isOptional) ||
+//           (isNamed == other.isNamed) ||
+//           (isVariadic == other.isVariadic)) {
+//         return true;
+//       } else {
+//         return false;
+//       }
+//     } else if (other is HTParameterType) {
+//       if (isNamed && (id != other.id)) {
+//         return false;
+//       } else if ((isOptional != other.isOptional) ||
+//           (isNamed != other.isNamed) ||
+//           (isVariadic != other.isVariadic)) {
+//         return false;
+//       }
+//       // ignore: unnecessary_cast
+//       else if (!super.isA(other)) {
+//         return false;
+//       } else {
+//         return true;
+//       }
+//     } else {
+//       return false;
+//     }
+//   }
+// }
 
 class HTFunctionType extends HTType {
   @override
   bool get isResolved => true;
 
   final Iterable<HTType> genericTypeParameters;
-  final List<HTParameterType> parameterTypes;
+  final List<TypedParameterDeclaration> parameterDeclarations;
   final HTType returnType;
 
   HTFunctionType(
       {this.genericTypeParameters = const [],
-      this.parameterTypes = const [],
+      this.parameterDeclarations = const [],
       this.returnType = HTType.ANY})
       : super(HTLexicon.function);
 
@@ -134,7 +137,7 @@ class HTFunctionType extends HTType {
     var i = 0;
     var optionalStarted = false;
     var namedStarted = false;
-    for (final param in parameterTypes) {
+    for (final param in parameterDeclarations) {
       if (param.isVariadic) {
         result.write(HTLexicon.variadicArgs + ' ');
       }
@@ -146,7 +149,7 @@ class HTFunctionType extends HTType {
         result.write(HTLexicon.curlyLeft);
       }
       result.write(param.toString());
-      if (i < parameterTypes.length - 1) {
+      if (i < parameterDeclarations.length - 1) {
         result.write('${HTLexicon.comma} ');
       }
       if (optionalStarted) {
@@ -170,7 +173,7 @@ class HTFunctionType extends HTType {
     //   hashList.add(typeArg.hashCode);
     // }
     hashList.add(genericTypeParameters.length.hashCode);
-    for (final paramType in parameterTypes) {
+    for (final paramType in parameterDeclarations) {
       hashList.add(paramType.hashCode);
     }
     hashList.add(returnType.hashCode);
@@ -188,14 +191,18 @@ class HTFunctionType extends HTType {
       } else if (returnType.isNotA(other.returnType)) {
         return false;
       } else {
-        for (var i = 0; i < parameterTypes.length; ++i) {
-          final param = parameterTypes[i];
-          HTParameterType? otherParam;
-          if (other.parameterTypes.length > i) {
-            otherParam = other.parameterTypes[i];
+        for (var i = 0; i < parameterDeclarations.length; ++i) {
+          final param = parameterDeclarations[i];
+          TypedParameterDeclaration? otherParam;
+          if (other.parameterDeclarations.length > i) {
+            otherParam = other.parameterDeclarations[i];
           }
           if (!param.isOptional && !param.isVariadic) {
-            if (otherParam == null || otherParam.isNotA(param)) {
+            if (otherParam == null ||
+                otherParam.isOptional != param.isOptional ||
+                otherParam.isVariadic != param.isVariadic ||
+                otherParam.isNamed != param.isNamed ||
+                otherParam.declType.isNotA(param.declType)) {
               return false;
             }
           }

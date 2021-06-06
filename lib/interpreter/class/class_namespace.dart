@@ -1,9 +1,9 @@
-import 'package:hetu_script/analyzer/declaration/variable_declaration.dart';
+import 'package:hetu_script/core/declaration/typed_variable_declaration.dart';
 
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../core/abstract_interpreter.dart';
-import '../../analyzer/declaration/variable_declaration.dart';
+import '../../core/declaration/typed_variable_declaration.dart';
 import '../function/funciton.dart';
 import '../../core/namespace/namespace.dart';
 
@@ -15,7 +15,7 @@ class HTClassNamespace extends HTNamespace {
       : super(interpreter, id: id, closure: closure);
 
   @override
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     final getter = '${HTLexicon.getter}$varName';
     final externalStatic = '$id.$varName';
 
@@ -43,14 +43,14 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (closure != null) {
-      return closure!.fetch(varName, from: from);
+      return closure!.memberGet(varName, from: from);
     }
 
     throw HTError.undefined(varName);
   }
 
   @override
-  void assign(String varName, dynamic varValue,
+  void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
     if (declarations.containsKey(varName)) {
@@ -59,7 +59,7 @@ class HTClassNamespace extends HTNamespace {
         throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
-      if (decl is HTDeclaration) {
+      if (decl is TypedVariableDeclaration) {
         decl.value = varValue;
         return;
       } else {
@@ -76,7 +76,7 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (closure != null) {
-      closure!.assign(varName, varValue, from: from);
+      closure!.memberSet(varName, varValue, from: from);
       return;
     }
 

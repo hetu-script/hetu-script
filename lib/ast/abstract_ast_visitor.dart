@@ -4,8 +4,6 @@ part of 'ast.dart';
 abstract class AbstractAstVisitor {
   dynamic visitCommentExpr(CommentExpr expr);
 
-  dynamic visitBlockCommentStmt(BlockCommentStmt stmt);
-
   dynamic visitNullExpr(NullExpr expr);
 
   dynamic visitBooleanExpr(BooleanExpr expr);
@@ -22,41 +20,37 @@ abstract class AbstractAstVisitor {
 
   dynamic visitGroupExpr(GroupExpr expr);
 
+  dynamic visitSymbolExpr(SymbolExpr expr);
+
+  dynamic visitTypeExpr(TypeExpr expr);
+
+  dynamic visitParamTypeExpr(ParamTypeExpr expr);
+
+  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
+
   dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr);
 
   dynamic visitBinaryExpr(BinaryExpr expr);
 
   dynamic visitTernaryExpr(TernaryExpr expr);
 
-  dynamic visitTypeExpr(TypeExpr expr);
-
-  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
-
-  dynamic visitSymbolExpr(SymbolExpr expr);
-
-  // dynamic visitAssignExpr(AssignExpr expr);
+  dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr);
 
   dynamic visitMemberExpr(MemberExpr expr);
 
   dynamic visitMemberAssignExpr(MemberAssignExpr expr);
 
-  // dynamic visitMemberCallExpr(MemberCallExpr expr);
-
   dynamic visitSubExpr(SubGetExpr expr);
 
   dynamic visitSubAssignExpr(SubAssignExpr expr);
 
-  // dynamic visitSubCallExpr(SubCallExpr expr);
-
   dynamic visitCallExpr(CallExpr expr);
 
-  dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr);
+  dynamic visitExprStmt(ExprStmt stmt);
 
   dynamic visitBlockStmt(BlockStmt block);
 
   dynamic visitImportStmt(ImportStmt stmt);
-
-  dynamic visitExprStmt(ExprStmt stmt);
 
   dynamic visitReturnStmt(ReturnStmt stmt);
 

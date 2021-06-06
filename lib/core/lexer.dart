@@ -38,11 +38,11 @@ class Lexer {
         // 标识符
         else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
           if (matchString == HTLexicon.TRUE) {
-            toksOfLine
-                .add(TokenBoolLiteral(matchString, true, curLine, curColumn));
+            toksOfLine.add(
+                TokenBooleanLiteral(matchString, true, curLine, curColumn));
           } else if (matchString == HTLexicon.FALSE) {
-            toksOfLine
-                .add(TokenBoolLiteral(matchString, false, curLine, curColumn));
+            toksOfLine.add(
+                TokenBooleanLiteral(matchString, false, curLine, curColumn));
           } else if (HTLexicon.reservedKeywords.contains(matchString)) {
             toksOfLine.add(Token(matchString, curLine, curColumn));
           } else {

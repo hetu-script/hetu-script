@@ -2,25 +2,23 @@ import '../../grammar/lexicon.dart';
 import '../../error/errors.dart';
 import '../../type_system/type.dart';
 import '../../core/namespace/namespace.dart';
-import '../../core/declaration/abstract_function.dart';
 import '../../core/object.dart';
 import 'instance.dart';
-import '../../core/declaration/abstract_class.dart';
+import '../../core/declaration/class_declaration.dart';
 import 'class_namespace.dart';
 import '../interpreter.dart';
 import '../variable.dart';
+import '../function/funciton.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass extends AbstractClass with HTObject, HetuRef {
+class HTClass extends ClassDeclaration with HTObject, HetuRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
-
-  final String moduleFullName;
 
   @override
   HTType get valueType => HTType.CLASS;
@@ -56,8 +54,9 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
   /// Create a default [HTClass] instance.
   HTClass(
     String id,
+    String moduleFullName,
+    String libraryName,
     Hetu interpreter,
-    this.moduleFullName,
     HTNamespace closure, {
     String? classId,
     bool isExternal = false,
@@ -68,7 +67,8 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
     // this.implementedClass = const [],
     // this.mixinedClass = const []
   })  : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
-        super(id, isExternal: isExternal, isAbstract: isAbstract) {
+        super(id, moduleFullName, libraryName,
+            isExternal: isExternal, isAbstract: isAbstract) {
     this.interpreter = interpreter;
   }
 
@@ -108,12 +108,11 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
         final decl = namespace.declarations[varName]!;
         return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
-        AbstractFunction func = namespace.declarations[getter]!.value;
+        HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
       } else if ((varName == id) &&
           namespace.declarations.containsKey(HTLexicon.constructor)) {
-        AbstractFunction func =
-            namespace.declarations[HTLexicon.constructor]!.value;
+        HTFunction func = namespace.declarations[HTLexicon.constructor]!.value;
         return func;
       }
     } else {
@@ -129,14 +128,14 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
-        AbstractFunction func = namespace.declarations[getter]!.value;
+        HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
       } else if (namespace.declarations.containsKey(constructor)) {
         if (varName.startsWith(HTLexicon.underscore) &&
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
-        return namespace.declarations[constructor]!.value as AbstractFunction;
+        return namespace.declarations[constructor]!.value as HTFunction;
       }
     }
 
@@ -176,7 +175,7 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      final setterFunc = namespace.declarations[setter] as AbstractFunction;
+      final setterFunc = namespace.declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
       return;
     }
@@ -193,7 +192,7 @@ class HTClass extends AbstractClass with HTObject, HetuRef {
     try {
       final func = memberGet(funcName, from: namespace.fullName);
 
-      if (func is AbstractFunction) {
+      if (func is HTFunction) {
         return func.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,

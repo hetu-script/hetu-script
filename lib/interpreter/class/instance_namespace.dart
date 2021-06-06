@@ -19,12 +19,12 @@ class HTInstanceNamespace extends HTNamespace {
       {this.classId, HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 
-  /// [HTInstanceNamespace] overrided [HTNamespace]'s [fetch],
+  /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberGet],
   /// with a new named parameter [recursive].
   /// If [recursive] is false, then it won't continue to
   /// try fetching variable from enclosed namespace.
   @override
-  dynamic fetch(String varName,
+  dynamic memberGet(String varName,
       {String from = HTLexicon.global, bool recursive = true}) {
     final getter = '${HTLexicon.getter}$varName';
 
@@ -40,18 +40,18 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      return closure!.fetch(varName, from: from);
+      return closure!.memberGet(varName, from: from);
     }
 
     throw HTError.undefined(varName);
   }
 
-  /// [HTInstanceNamespace] overrided [HTNamespace]'s [assign],
+  /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberSet],
   /// with a new named parameter [recursive].
   /// If [recursive] is false, then it won't continue to
   /// try assigning variable from enclosed namespace.
   @override
-  void assign(String varName, dynamic varValue,
+  void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global, bool recursive = true}) {
     final setter = '${HTLexicon.getter}$varName';
 
@@ -68,19 +68,10 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      closure!.assign(varName, varValue, from: from);
+      closure!.memberSet(varName, varValue, from: from);
       return;
     }
 
     throw HTError.undefined(varName);
   }
-
-  @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
-      fetch(varName, from: from, recursive: false);
-
-  @override
-  void memberSet(String varName, dynamic varValue,
-          {String from = HTLexicon.global}) =>
-      assign(varName, varValue, from: from, recursive: false);
 }

@@ -1,45 +1,29 @@
 // import '../../error/errors.dart';
 import '../../type_system/type.dart';
-import '../../core/declaration/abstract_declaration.dart';
+import 'variable_declaration.dart';
 // import '../../core/abstract_interpreter.dart';
 // import '../../core/function/abstract_function.dart';
 
-/// A [HTDeclaration] is basically a binding between a symbol and a value
-class HTDeclaration extends AbstractDeclaration {
-  @override
-  dynamic get value => null;
-
-  @override
-  set value(dynamic newVal) {}
-
-  HTType? _declType;
-
-  final bool typeInferrence;
-
+/// A [TypedVariableDeclaration] is basically a binding between a symbol and a value
+class TypedVariableDeclaration extends VariableDeclaration {
   /// The declared [HTType] of this symbol, will be used to
   /// compare with the value type to
   /// determine wether an value binding (assignment) is legal.
-  HTType get declType => _declType ?? HTType.ANY;
+  final HTType declType;
 
-  final bool isStatic;
-
-  /// Whether this variable is immutable.
-  final bool isImmutable;
+  final bool typeInferrence;
 
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
-  HTDeclaration(String id,
+  TypedVariableDeclaration(String id, String moduleFullName, String libraryName,
       {String? classId,
-      HTType? declType,
+      this.declType = HTType.ANY,
       this.typeInferrence = false,
-      this.isStatic = false,
-      this.isImmutable = true,
-      bool isExternal = false})
-      : super(id, classId: classId, isExternal: isExternal) {
-    if (declType != null) {
-      _declType = declType;
-    }
-  }
+      bool isExternal = false,
+      bool isMutable = false,
+      bool isStatic = false})
+      : super(id, moduleFullName, libraryName,
+            classId: classId, isMutable: isMutable, isExternal: isExternal);
 
   // dynamic _computeValue(dynamic value, HTType type) {
   //   final resolvedType = type.isResolved ? type : type.resolve(interpreter);
@@ -83,11 +67,12 @@ class HTDeclaration extends AbstractDeclaration {
 
   /// Create a copy of this variable declaration,
   /// mainly used on class member inheritance and function arguments passing.
-  HTDeclaration clone() => HTDeclaration(id,
-      classId: classId,
-      declType: declType,
-      typeInferrence: typeInferrence,
-      isStatic: isStatic,
-      isImmutable: isImmutable,
-      isExternal: isExternal);
+  TypedVariableDeclaration clone() =>
+      TypedVariableDeclaration(id, moduleFullName, libraryName,
+          classId: classId,
+          declType: declType,
+          typeInferrence: typeInferrence,
+          isStatic: isStatic,
+          isMutable: isMutable,
+          isExternal: isExternal);
 }

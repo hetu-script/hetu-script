@@ -17,7 +17,7 @@ void main() async {
       return hetuAdd(positionalArgs.first);
     },
   }, externalFunctionTypedef: {
-    'DartFunction': (AbstractFunction function) {
+    'DartFunction': (HTFunction function) {
       return (int a, int b) {
         // must convert the return type here to let dart know its return value type.
         return function.call(positionalArgs: [a, b]) as int;

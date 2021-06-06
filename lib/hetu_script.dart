@@ -5,9 +5,9 @@
 library hetu_script;
 
 export 'core/abstract_parser.dart' show ParserConfig;
-export 'core/declaration/abstract_declaration.dart';
-export 'core/declaration/abstract_function.dart';
-export 'core/declaration/abstract_class.dart';
+export 'core/declaration/variable_declaration.dart';
+export 'core/declaration/typed_function_declaration.dart';
+export 'core/declaration/class_declaration.dart';
 export 'core/object.dart';
 export 'core/namespace/namespace.dart' show HTNamespace;
 export 'core/abstract_interpreter.dart' show InterpreterConfig;

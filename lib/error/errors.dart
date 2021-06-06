@@ -62,7 +62,8 @@ enum ErrorCode {
   nonCotrWithReferCtor,
   internalFuncWithExternalTypeDef,
   moduleImport,
-  classOnInstance
+  classOnInstance,
+  version
 }
 
 /// The severity of an [ErrorCode].
@@ -122,33 +123,32 @@ class ErrorType implements Comparable<ErrorType> {
   /// used to formalize a project's style guidelines.
   static const lint = ErrorType('LINT', 2, ErrorSeverity.info);
 
-  /// Static warnings are those warnings reported by the static checker.
-  /// They have no effect on execution. Static warnings must be
-  /// provided by compilers used during development.
-  static const staticWarning =
-      ErrorType('STATIC_WARNING', 3, ErrorSeverity.warning);
-
   /// Syntactic errors are errors produced as a result of input that does not
   /// conform to the grammar.
+  /// Reported by parser.
   static const syntacticError =
-      ErrorType('SYNTACTIC_ERROR', 4, ErrorSeverity.error);
+      ErrorType('SYNTACTIC_ERROR', 3, ErrorSeverity.error);
+
+  /// Static warnings are those warnings reported by the static checker.
+  /// They have no effect on execution.
+  /// Reported by analyzer.
+  static const staticWarning =
+      ErrorType('STATIC_WARNING', 4, ErrorSeverity.warning);
 
   /// Compile-time errors are errors that preclude execution. A compile time
   /// error must be reported by a compiler before the erroneous code is
   /// executed.
-  static const compileError = ErrorType('compileError', 5, ErrorSeverity.error);
+  static const compileError =
+      ErrorType('COMPILE_ERROR', 5, ErrorSeverity.error);
 
   /// Run-time errors are errors that occurred during execution. A run time
   /// error is reported by the interpreter.
-  static const runtimeError = ErrorType('runtimeError', 6, ErrorSeverity.error);
-
-  /// Internal errors are errors reported by source code of the script.
-  static const internalError =
-      ErrorType('internalError', 7, ErrorSeverity.error);
+  static const runtimeError =
+      ErrorType('RUNTIME_ERROR', 6, ErrorSeverity.error);
 
   /// External errors are errors reported by the dart side.
   static const externalError =
-      ErrorType('NATIVE_ERROR', 8, ErrorSeverity.error);
+      ErrorType('NATIVE_ERROR', 7, ErrorSeverity.error);
 
   static const values = [
     todo,
@@ -236,7 +236,7 @@ class HTError {
 
   /// Error: Expected a token while met another.
   HTError.unexpected(String expected, String met)
-      : this(ErrorCode.unexpected, ErrorType.compileError,
+      : this(ErrorCode.unexpected, ErrorType.syntacticError,
             message: HTLexicon.errorUnexpected,
             interpolations: [expected, met]);
 
@@ -262,7 +262,7 @@ class HTError {
 
   /// Error: Return appeared outside of a function.
   HTError.outsideReturn()
-      : this(ErrorCode.outsideReturn, ErrorType.compileError,
+      : this(ErrorCode.outsideReturn, ErrorType.syntacticError,
             message: HTLexicon.errorOutsideReturn);
 
   /// Error: This appeared outside of a function.
@@ -272,17 +272,17 @@ class HTError {
 
   /// Error: Illegal setter declaration.
   HTError.setterArity()
-      : this(ErrorCode.setterArity, ErrorType.compileError,
+      : this(ErrorCode.setterArity, ErrorType.syntacticError,
             message: HTLexicon.errorSetterArity);
 
   /// Error: Illegal external member.
   HTError.externMember()
-      : this(ErrorCode.externMember, ErrorType.compileError,
+      : this(ErrorCode.externMember, ErrorType.syntacticError,
             message: HTLexicon.errorExternMember);
 
   /// Error: Type arguments is emtpy brackets.
   HTError.emptyTypeArgs()
-      : this(ErrorCode.emptyTypeArgs, ErrorType.compileError,
+      : this(ErrorCode.emptyTypeArgs, ErrorType.syntacticError,
             message: HTLexicon.errorEmptyTypeArgs);
 
   /// Error: Symbol is not a class member.
@@ -297,12 +297,12 @@ class HTError {
 
   /// Error: Symbol is not a class name.
   HTError.extendsSelf()
-      : this(ErrorCode.extendsSelf, ErrorType.compileError,
+      : this(ErrorCode.extendsSelf, ErrorType.syntacticError,
             message: HTLexicon.errorExtendsSelf);
 
   /// Error: Not a super class of this instance.
   HTError.ctorReturn()
-      : this(ErrorCode.ctorReturn, ErrorType.compileError,
+      : this(ErrorCode.ctorReturn, ErrorType.syntacticError,
             message: HTLexicon.errorCtorReturn);
 
   /// Error: Not a super class of this instance.
@@ -429,7 +429,7 @@ class HTError {
 
   /// Error: Only optional or named arguments can have initializer.
   HTError.argInit()
-      : this(ErrorCode.argInit, ErrorType.compileError,
+      : this(ErrorCode.argInit, ErrorType.syntacticError,
             message: HTLexicon.errorArgInit);
 
   /// Error: Return value type check failed.
@@ -443,7 +443,7 @@ class HTError {
 
   /// Error: Try to call a function without definition.
   HTError.missingFuncBody(String id)
-      : this(ErrorCode.missingFuncBody, ErrorType.runtimeError,
+      : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
             message: HTLexicon.errorMissingFuncBody, interpolations: [id]);
 
   /// Error: Function arity check failed.
@@ -459,7 +459,7 @@ class HTError {
 
   /// Error: Can not declare a external variable in global namespace.
   HTError.externalVar()
-      : this(ErrorCode.externalVar, ErrorType.runtimeError,
+      : this(ErrorCode.externalVar, ErrorType.syntacticError,
             message: HTLexicon.errorExternalVar);
 
   /// Error: Bytecode signature check failed.
@@ -524,15 +524,15 @@ class HTError {
             message: HTLexicon.errorMissingExternalFunc, interpolations: [id]);
 
   HTError.internalFuncWithExternalTypeDef()
-      : this(ErrorCode.missingExternalFunc, ErrorType.runtimeError,
+      : this(ErrorCode.missingExternalFunc, ErrorType.syntacticError,
             message: HTLexicon.errorInternalFuncWithExternalTypeDef);
 
   HTError.externalCtorWithReferCtor()
-      : this(ErrorCode.externalCtorWithReferCtor, ErrorType.runtimeError,
+      : this(ErrorCode.externalCtorWithReferCtor, ErrorType.syntacticError,
             message: HTLexicon.errorExternalCtorWithReferCtor);
 
   HTError.nonCotrWithReferCtor()
-      : this(ErrorCode.nonCotrWithReferCtor, ErrorType.runtimeError,
+      : this(ErrorCode.nonCotrWithReferCtor, ErrorType.syntacticError,
             message: HTLexicon.errorNonCotrWithReferCtor);
 
   /// Error: Module import error
@@ -544,4 +544,9 @@ class HTError {
   HTError.classOnInstance()
       : this(ErrorCode.classOnInstance, ErrorType.runtimeError,
             message: HTLexicon.errorClassOnInstance);
+
+  /// Error: Incompatible bytecode version.
+  HTError.version(String codeVer, String itpVer)
+      : this(ErrorCode.version, ErrorType.runtimeError,
+            message: HTLexicon.errorVersion, interpolations: [codeVer, itpVer]);
 }

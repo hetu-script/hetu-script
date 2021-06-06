@@ -1,27 +1,22 @@
-import 'package:path/path.dart' as path;
-
-import '../source/source.dart';
-import '../core/const_table.dart';
-import 'ast.dart';
+import '../source/source.dart' show HTSource;
+import 'ast.dart' show AstNode;
 
 class HTAstModule extends HTSource {
-  final Uri uri;
-
-  late final ConstTable constTable;
-
-  String get name => path.basename(fullName);
-
   /// The bytecode, stores as uint8 list
   final List<AstNode> nodes;
 
+  final bool createNamespace;
+
   HTAstModule(String fullName, String content, this.nodes,
-      [ConstTable? constTable])
-      : uri = Uri(path: fullName),
-        constTable = constTable ?? ConstTable(),
-        super(fullName, content);
+      {this.createNamespace = true})
+      : super(fullName, content);
 }
 
-class HTAstCompilation {
+class HTAstLibrary {
+  final String name;
+
+  HTAstLibrary(this.name);
+
   final _symbols = <String, AstNode>{};
 
   Iterable<String> get symbols => _symbols.keys;
@@ -30,7 +25,7 @@ class HTAstCompilation {
 
   final _modules = <String, HTAstModule>{};
 
-  Iterable<String> get moduleKeys => _modules.keys;
+  Iterable<String> get keys => _modules.keys;
 
   Iterable<HTAstModule> get modules => _modules.values;
 
@@ -40,13 +35,13 @@ class HTAstCompilation {
     if (_modules.containsKey(fullName)) {
       return _modules[fullName]!;
     } else {
-      throw 'Unknown source: $fullName';
+      throw 'Unknown module: $fullName';
     }
   }
 
-  void add(HTAstModule source) => _modules[source.fullName] = source;
+  void add(HTAstModule module) => _modules[module.fullName] = module;
 
-  void addAll(HTAstCompilation other) {
-    _modules.addAll(other._modules);
+  void join(HTAstLibrary bundle2) {
+    _modules.addAll(bundle2._modules);
   }
 }

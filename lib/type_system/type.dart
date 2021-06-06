@@ -4,10 +4,10 @@ import '../grammar/lexicon.dart';
 import '../error/errors.dart';
 import '../core/object.dart';
 import '../core/abstract_interpreter.dart';
-import '../core/declaration/abstract_class.dart';
+import '../core/declaration/class_declaration.dart';
+import '../ast/ast.dart' show TypeExpr;
 import 'function_type.dart';
 import 'nominal_type.dart';
-import '../analyzer/ast/ast.dart' show TypeExpr;
 
 class HTType with HTObject {
   static const ANY = _PrimitiveType(HTLexicon.ANY);
@@ -147,8 +147,8 @@ class HTType with HTObject {
       return primitiveTypes[id]!;
     } else {
       final typeDef = interpreter.curNamespace
-          .fetch(id, from: interpreter.curNamespace.fullName);
-      if (typeDef is AbstractClass) {
+          .memberGet(id, from: interpreter.curNamespace.fullName);
+      if (typeDef is ClassDeclaration) {
         return HTNominalType(typeDef, typeArgs: typeArgs);
       } else if (typeDef is HTFunctionType) {
         return typeDef;

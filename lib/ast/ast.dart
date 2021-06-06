@@ -1,6 +1,7 @@
 import '../../core/token.dart';
-import '../../grammar/lexicon.dart';
+// import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
+// import '../source/source.dart' show SourceType;
 
 part 'abstract_ast_visitor.dart';
 
@@ -22,18 +23,9 @@ class CommentExpr extends AstNode {
 
   final String content;
 
-  const CommentExpr(this.content, int line, int column)
-      : super(SemanticType.literalNull, line, column);
-}
+  final bool isMultiline;
 
-class BlockCommentStmt extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitBlockCommentStmt(this);
-
-  final String content;
-
-  const BlockCommentStmt(this.content, int line, int column)
+  const CommentExpr(this.content, this.isMultiline, int line, int column)
       : super(SemanticType.literalNull, line, column);
 }
 
@@ -59,9 +51,9 @@ class ConstIntExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitConstIntExpr(this);
 
-  final int constIndex;
+  final int value;
 
-  const ConstIntExpr(this.constIndex, int line, int column)
+  const ConstIntExpr(this.value, int line, int column)
       : super(SemanticType.literalInteger, line, column);
 }
 
@@ -70,9 +62,9 @@ class ConstFloatExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitConstFloatExpr(this);
 
-  final int constIndex;
+  final double value;
 
-  const ConstFloatExpr(this.constIndex, int line, int column)
+  const ConstFloatExpr(this.value, int line, int column)
       : super(SemanticType.literalFloat, line, column);
 }
 
@@ -81,9 +73,9 @@ class ConstStringExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitConstStringExpr(this);
 
-  final int constIndex;
+  final String value;
 
-  const ConstStringExpr(this.constIndex, int line, int column)
+  const ConstStringExpr(this.value, int line, int column)
       : super(SemanticType.literalString, line, column);
 }
 
@@ -94,7 +86,7 @@ class LiteralListExpr extends AstNode {
 
   final List<AstNode> list;
 
-  const LiteralListExpr(int line, int column, {this.list = const []})
+  const LiteralListExpr(this.list, int line, int column)
       : super(SemanticType.literalVectorExpr, line, column);
 }
 
@@ -171,12 +163,20 @@ class TypeExpr extends AstNode {
 
   final bool isNullable;
 
+  final bool isLocal;
+
   const TypeExpr(this.id, int line, int column,
-      {this.arguments = const [], this.isNullable = false})
+      {this.arguments = const [],
+      this.isNullable = false,
+      this.isLocal = false})
       : super(SemanticType.typeExpr, line, column);
 }
 
-class ParamType {
+class ParamTypeExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitParamTypeExpr(this);
+
   /// Wether this is an optional parameter.
   final bool isOptional;
 
@@ -186,27 +186,33 @@ class ParamType {
   /// Wether this is a named parameter.
   final String? id;
 
-  final TypeExpr? paramType;
+  final TypeExpr declType;
 
-  const ParamType(
-      {this.isOptional = false,
-      this.isVariadic = false,
-      this.id,
-      this.paramType});
+  const ParamTypeExpr(this.declType, int line, int column,
+      {this.id, this.isOptional = false, this.isVariadic = false})
+      : super(SemanticType.paramTypeExpr, line, column);
 }
 
-class FunctionTypeExpr extends TypeExpr {
-  final List<TypeExpr> genericTypeParameters;
-  final List<ParamType> paramTypes;
+class FunctionTypeExpr extends AstNode {
   final TypeExpr returnType;
+
+  // final List<TypeExpr> genericTypeParameters;
+
+  final List<ParamTypeExpr> paramTypes;
+
+  final bool hasOptionalParam;
+
+  final bool hasNamedParam;
 
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitFunctionTypeExpr(this);
 
   const FunctionTypeExpr(this.returnType, int line, int column,
-      {this.genericTypeParameters = const [], this.paramTypes = const []})
-      : super(HTLexicon.function, line, column);
+      {this.paramTypes = const [],
+      this.hasOptionalParam = false,
+      this.hasNamedParam = false})
+      : super(SemanticType.funcTypeExpr, line, column);
 }
 
 class SymbolExpr extends AstNode {
@@ -215,7 +221,12 @@ class SymbolExpr extends AstNode {
 
   final String id;
 
-  const SymbolExpr(this.id, int line, int column)
+  final bool isLocal;
+
+  final List<TypeExpr> typeArgs;
+
+  const SymbolExpr(this.id, int line, int column,
+      {this.isLocal = true, this.typeArgs = const []})
       : super(SemanticType.symbolExpr, line, column);
 }
 
@@ -233,30 +244,15 @@ class SymbolExpr extends AstNode {
 //       : super(SemanticType.assignExpr, line, column);
 // }
 
-class CallExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitCallExpr(this);
-
-  final AstNode callee;
-
-  final List<AstNode> positionalArgs;
-
-  final Map<String, AstNode> namedArgs;
-
-  const CallExpr(
-      this.callee, this.positionalArgs, this.namedArgs, int line, int column)
-      : super(SemanticType.callExpr, line, column);
-}
-
 class MemberExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitMemberExpr(this);
 
-  final AstNode collection;
+  final AstNode object;
 
-  final String key;
+  final SymbolExpr key;
 
-  const MemberExpr(this.collection, this.key, int line, int column)
+  const MemberExpr(this.object, this.key, int line, int column)
       : super(SemanticType.memberGetExpr, line, column);
 }
 
@@ -265,14 +261,14 @@ class MemberAssignExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitMemberAssignExpr(this);
 
-  final AstNode collection;
+  final AstNode object;
 
-  final String key;
+  final SymbolExpr key;
 
   final AstNode value;
 
   const MemberAssignExpr(
-      this.collection, this.key, this.value, int line, int column)
+      this.object, this.key, this.value, int line, int column)
       : super(SemanticType.memberSetExpr, line, column);
 }
 
@@ -293,11 +289,11 @@ class SubGetExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubExpr(this);
 
-  final AstNode collection;
+  final AstNode array;
 
   final AstNode key;
 
-  const SubGetExpr(this.collection, this.key, int line, int column)
+  const SubGetExpr(this.array, this.key, int line, int column)
       : super(SemanticType.subGetExpr, line, column);
 }
 
@@ -306,14 +302,13 @@ class SubAssignExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitSubAssignExpr(this);
 
-  final AstNode collection;
+  final AstNode array;
 
   final AstNode key;
 
   final AstNode value;
 
-  const SubAssignExpr(
-      this.collection, this.key, this.value, int line, int column)
+  const SubAssignExpr(this.array, this.key, this.value, int line, int column)
       : super(SemanticType.subSetExpr, line, column);
 }
 
@@ -328,6 +323,21 @@ class SubAssignExpr extends AstNode {
 //   const SubCallExpr(this.collection, this.key, int line, int column)
 //       : super(SemanticType.subGetExpr, line, column);
 // }
+
+class CallExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitCallExpr(this);
+
+  final AstNode callee;
+
+  final List<AstNode> positionalArgs;
+
+  final Map<String, AstNode> namedArgs;
+
+  const CallExpr(
+      this.callee, this.positionalArgs, this.namedArgs, int line, int column)
+      : super(SemanticType.callExpr, line, column);
+}
 
 class UnaryPostfixExpr extends AstNode {
   @override
@@ -352,7 +362,7 @@ class ImportStmt extends AstNode {
 
   final List<String>? showList;
 
-  const ImportStmt(this.key, this.alias, this.showList, line, column)
+  const ImportStmt(this.key, line, column, {this.alias, this.showList})
       : super(SemanticType.importStmt, line, column);
 }
 
@@ -371,9 +381,14 @@ class BlockStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitBlockStmt(this);
 
-  final Iterable<AstNode> statements;
+  final List<AstNode> statements;
 
-  const BlockStmt(this.statements, int line, int column)
+  final bool createNamespace;
+
+  final String? id;
+
+  const BlockStmt(this.statements, int line, int column,
+      {this.createNamespace = true, this.id})
       : super(SemanticType.blockStmt, line, column);
 }
 
@@ -397,7 +412,7 @@ class IfStmt extends AstNode {
 
   final BlockStmt thenBranch;
 
-  final AstNode? elseBranch;
+  final BlockStmt? elseBranch;
 
   const IfStmt(
       this.condition, this.thenBranch, this.elseBranch, int line, int column)
@@ -432,7 +447,7 @@ class ForStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitForStmt(this);
 
-  final AstNode? declaration;
+  final VarDeclStmt? declaration;
 
   final AstNode? condition;
 
@@ -449,7 +464,7 @@ class ForInStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitForInStmt(this);
 
-  final AstNode declaration;
+  final VarDeclStmt declaration;
 
   final AstNode collection;
 
@@ -466,12 +481,12 @@ class WhenStmt extends AstNode {
 
   final AstNode? condition;
 
-  final Map<AstNode, AstNode> options;
+  final Map<AstNode, AstNode> cases;
 
   final BlockStmt? elseBranch;
 
   const WhenStmt(
-      this.options, this.elseBranch, this.condition, int line, int column)
+      this.cases, this.elseBranch, this.condition, int line, int column)
       : super(SemanticType.whenStmt, line, column);
 }
 
@@ -510,9 +525,13 @@ class VarDeclStmt extends AstNode {
   // 仅用于整个class都为external的情况
   final bool isExternal;
 
-  final bool isImmutable;
-
   final bool isStatic;
+
+  final bool isMutable;
+
+  final bool isConst;
+
+  final bool isExported;
 
   final bool lateInitialize;
 
@@ -521,10 +540,12 @@ class VarDeclStmt extends AstNode {
       this.initializer,
       this.typeInferrence = false,
       this.isExternal = false,
-      this.isImmutable = false,
       this.isStatic = false,
+      this.isMutable = false,
+      this.isConst = false,
+      this.isExported = false,
       this.lateInitialize = false})
-      : super(SemanticType.varDecl, line, column);
+      : super(SemanticType.variableDeclaration, line, column);
 }
 
 class ParamDeclExpr extends VarDeclStmt {
@@ -541,14 +562,12 @@ class ParamDeclExpr extends VarDeclStmt {
   const ParamDeclExpr(String id, int line, int column,
       {TypeExpr? declType,
       AstNode? initializer,
-      bool isImmutable = false,
+      bool isMutable = false,
       this.isVariadic = false,
       this.isOptional = false,
       this.isNamed = false})
       : super(id, line, column,
-            declType: declType,
-            initializer: initializer,
-            isImmutable: isImmutable);
+            declType: declType, initializer: initializer, isMutable: isMutable);
 }
 
 class ReferConstructorExpr extends AstNode {
@@ -556,12 +575,17 @@ class ReferConstructorExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitReferConstructorExpr(this);
 
-  final bool isSuper;
+  final String callee;
 
-  final String? name;
+  final String? key;
 
-  const ReferConstructorExpr(this.isSuper, int line, int column, {this.name})
-      : super(SemanticType.referCtorExpr, line, column);
+  final List<AstNode> positionalArgs;
+
+  final Map<String, AstNode> namedArgs;
+
+  const ReferConstructorExpr(this.callee, this.key, this.positionalArgs,
+      this.namedArgs, int line, int column)
+      : super(SemanticType.referConstructorExpression, line, column);
 }
 
 class FuncDeclExpr extends AstNode {
@@ -574,13 +598,15 @@ class FuncDeclExpr extends AstNode {
 
   final Iterable<TypeExpr> typeParameters;
 
-  final String? externalTypedef;
+  final String? externalTypeId;
 
   final TypeExpr? returnType;
 
-  final CallExpr? referCtor;
+  final ReferConstructorExpr? referConstructor;
 
   final String? classId;
+
+  final bool hasParamDecls;
 
   final List<ParamDeclExpr> params;
 
@@ -598,6 +624,8 @@ class FuncDeclExpr extends AstNode {
 
   final bool isVariadic;
 
+  final bool isExported;
+
   final FunctionCategory category;
 
   bool get isLiteral => category == FunctionCategory.literal;
@@ -605,9 +633,10 @@ class FuncDeclExpr extends AstNode {
   const FuncDeclExpr(this.id, this.declId, this.params, int line, int column,
       {this.classId,
       this.typeParameters = const [],
-      this.externalTypedef,
+      this.externalTypeId,
       this.returnType,
-      this.referCtor,
+      this.referConstructor,
+      this.hasParamDecls = true,
       this.minArity = 0,
       this.maxArity = 0,
       this.definition,
@@ -615,8 +644,9 @@ class FuncDeclExpr extends AstNode {
       this.isStatic = false,
       this.isConst = false,
       this.isVariadic = false,
+      this.isExported = false,
       this.category = FunctionCategory.normal})
-      : super(SemanticType.funcDecl, line, column);
+      : super(SemanticType.functionDeclaration, line, column);
 }
 
 class ClassDeclStmt extends AstNode {
@@ -628,20 +658,24 @@ class ClassDeclStmt extends AstNode {
 
   final Iterable<TypeExpr> typeParameters;
 
-  final TypeExpr? superClassType;
+  final TypeExpr? superType;
 
   final bool isExternal;
 
   final bool isAbstract;
 
-  final BlockStmt definition;
+  final bool isExported;
 
-  const ClassDeclStmt(this.id, this.definition, int line, int column,
+  final BlockStmt? definition;
+
+  const ClassDeclStmt(this.id, int line, int column,
       {this.typeParameters = const [],
-      this.superClassType,
+      this.superType,
       this.isExternal = false,
-      this.isAbstract = false})
-      : super(SemanticType.classDecl, line, column);
+      this.isAbstract = false,
+      this.isExported = true,
+      this.definition})
+      : super(SemanticType.classDeclaration, line, column);
 }
 
 class EnumDeclStmt extends AstNode {
@@ -654,7 +688,9 @@ class EnumDeclStmt extends AstNode {
 
   final bool isExternal;
 
+  final bool isExported;
+
   const EnumDeclStmt(this.id, this.enumerations, int line, int column,
-      {this.isExternal = false})
+      {this.isExternal = false, this.isExported = true})
       : super(SemanticType.enumDecl, line, column);
 }

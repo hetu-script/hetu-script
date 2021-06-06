@@ -1,11 +1,11 @@
 import 'package:quiver/core.dart';
 
-import '../core/declaration/abstract_class.dart';
+import '../core/declaration/class_declaration.dart';
 import 'type.dart';
 import 'value_type.dart';
 
 class HTNominalType extends HTValueType {
-  final AbstractClass klass;
+  final ClassDeclaration klass;
   // late final Iterable<HTType> implemented;
   // late final Iterable<HTType> mixined;
 

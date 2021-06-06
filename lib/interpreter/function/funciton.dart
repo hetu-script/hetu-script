@@ -1,3 +1,5 @@
+import 'package:hetu_script/core/object.dart';
+
 import '../../binding/external_function.dart';
 import '../../core/namespace/namespace.dart';
 import '../class/instance_namespace.dart';
@@ -7,19 +9,17 @@ import '../../error/errors.dart';
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../type_system/type.dart';
-import '../../type_system/function_type.dart';
 import '../interpreter.dart';
 import '../variable.dart';
 import 'parameter.dart';
-import '../bytecode/bytecode_source.dart' show GotoInfo;
-import '../../core/declaration/abstract_function.dart';
+import '../../core/declaration/function_declaration.dart';
+import '../compiler.dart' show GotoInfo;
 
 class ReferConstructor {
   /// id of super class's constructor
-  late final String id;
+  final String callee;
 
-  /// If is referring to a super constructor
-  final bool isSuper;
+  final String? key;
 
   /// Holds ips of super class's constructor's positional argumnets
   final List<int> positionalArgsIp;
@@ -27,130 +27,93 @@ class ReferConstructor {
   /// Holds ips of super class's constructor's named argumnets
   final Map<String, int> namedArgsIp;
 
-  ReferConstructor(String? id,
-      {this.isSuper = false,
+  ReferConstructor(this.callee,
+      {this.key,
       this.positionalArgsIp = const [],
-      this.namedArgsIp = const {}}) {
-    this.id =
-        id == null ? HTLexicon.constructor : '${HTLexicon.constructor}$id';
-  }
+      this.namedArgsIp = const {}});
 }
 
-/// Bytecode implementation of [AbstractFunction].
-class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
-  final HTClass? klass;
-
+/// Bytecode implementation of [TypedFunctionDeclaration].
+class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
   static final callStack = <String>[];
 
-  final bool hasParameterDeclarations;
+  final HTClass? klass;
+
+  /// Wether to check params when called
+  /// A function like:
+  ///   ```
+  ///     fun { return 42 }
+  ///   ```
+  /// will accept any params, while a function:
+  ///   ```
+  ///     fun () { return 42 }
+  ///   ```
+  /// will accept 0 params
+  final bool hasParamDecls;
 
   /// Holds declarations of all parameters.
-  final Map<String, HTParameter> parameterDeclarations;
+  final Map<String, HTParameter> paramDecls;
 
   final ReferConstructor? referConstructor;
 
+  HTNamespace? context;
+
+  @override
+  HTType get valueType => HTType.function;
+
   /// Create a standard [HTFunction].
   ///
-  /// A [AbstractFunction] has to be defined in a [HTNamespace] of an [Interpreter]
+  /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
   HTFunction(
     String id,
-    Hetu interpreter,
-    String moduleFullName, {
+    String moduleFullName,
+    String libraryName,
+    Hetu interpreter, {
     String? declId,
     this.klass,
-    FunctionCategory category = FunctionCategory.normal,
-    bool isExternal = false,
-    Function? externalFunc,
-    String? externalId,
-    this.hasParameterDeclarations = true,
-    this.parameterDeclarations = const {},
-    HTType returnType = HTType.ANY,
     int? definitionIp,
     int? definitionLine,
     int? definitionColumn,
+    FunctionCategory category = FunctionCategory.normal,
+    bool isExternal = false,
+    Function? externalFunc,
+    String? externalTypeId,
+    this.hasParamDecls = true,
+    this.paramDecls = const <String, HTParameter>{},
     bool isStatic = false,
     bool isConst = false,
     bool isVariadic = false,
     int minArity = 0,
     int maxArity = 0,
-    HTNamespace? context,
+    this.context,
     this.referConstructor,
-  }) : super(id, interpreter,
+  }) : super(id, moduleFullName, libraryName,
             declId: declId,
             classId: klass?.id,
             category: category,
             isExternal: isExternal,
             externalFunc: externalFunc,
-            externalId: externalId,
+            externalTypeId: externalTypeId,
             isStatic: isStatic,
             isConst: isConst,
             isVariadic: isVariadic,
             minArity: minArity,
-            maxArity: maxArity,
-            context: context) {
+            maxArity: maxArity) {
     this.interpreter = interpreter;
-    this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
-
-    valueType = HTFunctionType(
-        parameterTypes: parameterDeclarations.values
-            .map((param) => param.declType)
-            .toList(),
-        returnType: returnType);
   }
 
-  /// Print function signature to String with function [id] and parameter [id].
   @override
-  String toString() {
-    var result = StringBuffer();
-    result.write(HTLexicon.FUNCTION);
-    result.write(' $id');
-    // if (valueType.typeArgs.isNotEmpty) {
-    //   result.write(HTLexicon.angleLeft);
-    //   for (var i = 0; i < valueType.typeArgs.length; ++i) {
-    //     result.write(valueType.typeArgs[i]);
-    //     if (i < valueType.typeArgs.length - 1) {
-    //       result.write('${HTLexicon.comma} ');
-    //     }
-    //   }
-    //   result.write(HTLexicon.angleRight);
-    // }
-
-    result.write(HTLexicon.roundLeft);
-
-    var i = 0;
-    var optionalStarted = false;
-    var namedStarted = false;
-    for (final param in parameterDeclarations.values) {
-      if (param.isVariadic) {
-        result.write(HTLexicon.variadicArgs + ' ');
-      }
-      if (param.isOptional && !optionalStarted) {
-        optionalStarted = true;
-        result.write(HTLexicon.squareLeft);
-      } else if (param.isNamed && !namedStarted) {
-        namedStarted = true;
-        result.write(HTLexicon.curlyLeft);
-      }
-      result.write(
-          param.id + '${HTLexicon.colon} ' + (param.declType.toString()));
-      if (i < parameterDeclarations.length - 1) {
-        result.write('${HTLexicon.comma} ');
-      }
-      if (optionalStarted) {
-        result.write(HTLexicon.squareRight);
-      } else if (namedStarted) {
-        namedStarted = true;
-        result.write(HTLexicon.curlyRight);
-      }
-      ++i;
+  dynamic get value {
+    if (externalTypeId != null) {
+      final externalFunc = interpreter.unwrapExternalFunctionType(this);
+      return externalFunc;
+    } else {
+      return this;
     }
-    result.write('${HTLexicon.roundRight}${HTLexicon.singleArrow} ' +
-        returnType.toString());
-    return result.toString();
   }
 
   /// Call this function with specific arguments.
@@ -171,7 +134,6 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
   /// ```
   /// namedArgs['args'] = [posArg1, posArg2...];
   /// ```
-  @override
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -191,7 +153,7 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
         }
 
         for (final name in namedArgs.keys) {
-          if (!parameterDeclarations.containsKey(name)) {
+          if (!paramDecls.containsKey(name)) {
             throw HTError.namedArg(name);
           }
         }
@@ -210,49 +172,58 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
           final instanceNamespace = context as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
             closure.define(HTVariable(
-                HTLexicon.SUPER, interpreter, moduleFullName,
+                HTLexicon.SUPER, moduleFullName, libraryName, interpreter,
                 value: instanceNamespace.next));
           }
 
-          closure.define(HTVariable(HTLexicon.THIS, interpreter, moduleFullName,
+          closure.define(HTVariable(
+              HTLexicon.THIS, moduleFullName, libraryName, interpreter,
               value: instanceNamespace));
         }
 
         if (category == FunctionCategory.constructor &&
             referConstructor != null) {
           final superClass = klass!.superClass!;
-          final superCtorId = referConstructor!.id;
+          final superCtorId = referConstructor!.callee;
           final constructor =
               superClass.namespace.declarations[superCtorId]!.value;
           // constructor's context is on this newly created instance
           final instanceNamespace = context as HTInstanceNamespace;
           constructor.context = instanceNamespace.next!;
 
-          final superCtorPosArgs = [];
-          final superCtorPosArgIps = referConstructor!.positionalArgsIp;
-          for (var i = 0; i < superCtorPosArgIps.length; ++i) {
-            final arg = interpreter.execute(ip: superCtorPosArgIps[i]);
-            superCtorPosArgs.add(arg);
+          final referCtorPosArgs = [];
+          final referCtorPosArgIps = referConstructor!.positionalArgsIp;
+          for (var i = 0; i < referCtorPosArgIps.length; ++i) {
+            final arg = interpreter.execute(
+                moduleFullName: moduleFullName,
+                libraryName: libraryName,
+                ip: referCtorPosArgIps[i],
+                namespace: closure);
+            referCtorPosArgs.add(arg);
           }
 
-          final superCtorNamedArgs = <String, dynamic>{};
-          final superCtorNamedArgIps = referConstructor!.namedArgsIp;
-          for (final name in superCtorNamedArgIps.keys) {
-            final namedArgIp = superCtorNamedArgIps[name]!;
-            final arg = interpreter.execute(ip: namedArgIp);
-            superCtorNamedArgs[name] = arg;
+          final referCtorNamedArgs = <String, dynamic>{};
+          final referCtorNamedArgIps = referConstructor!.namedArgsIp;
+          for (final name in referCtorNamedArgIps.keys) {
+            final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
+            final arg = interpreter.execute(
+                moduleFullName: moduleFullName,
+                libraryName: libraryName,
+                ip: referCtorNamedArgIp,
+                namespace: closure);
+            referCtorNamedArgs[name] = arg;
           }
 
           constructor.call(
-              positionalArgs: superCtorPosArgs,
-              namedArgs: superCtorNamedArgs,
+              positionalArgs: referCtorPosArgs,
+              namedArgs: referCtorNamedArgs,
               createInstance: false);
         }
 
         var variadicStart = -1;
         HTVariable? variadicParam;
-        for (var i = 0; i < parameterDeclarations.length; ++i) {
-          var decl = parameterDeclarations.values.elementAt(i).clone();
+        for (var i = 0; i < paramDecls.length; ++i) {
+          var decl = paramDecls.values.elementAt(i).clone();
           closure.define(decl);
 
           if (decl.isVariadic) {
@@ -287,14 +258,16 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
               moduleFullName: moduleFullName,
-              ip: definitionIp!,
+              libraryName: libraryName,
+              ip: definitionIp,
               namespace: closure,
               line: definitionLine,
               column: definitionColumn);
         } else {
           interpreter.execute(
               moduleFullName: moduleFullName,
-              ip: definitionIp!,
+              libraryName: libraryName,
+              ip: definitionIp,
               namespace: closure,
               line: definitionLine,
               column: definitionColumn);
@@ -305,14 +278,14 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
         late final List<dynamic> finalPosArgs;
         late final Map<String, dynamic> finalNamedArgs;
 
-        if (hasParameterDeclarations) {
+        if (hasParamDecls) {
           if (positionalArgs.length < minArity ||
               (positionalArgs.length > maxArity && !isVariadic)) {
             throw HTError.arity(id, positionalArgs.length, minArity);
           }
 
           for (final name in namedArgs.keys) {
-            if (!parameterDeclarations.containsKey(name)) {
+            if (!paramDecls.containsKey(name)) {
               throw HTError.namedArg(name);
             }
           }
@@ -321,9 +294,9 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
           finalNamedArgs = {};
 
           var variadicStart = -1;
-          // HTBytecodeVariable? variadicParam; // 这里没有对variadic param做类型检查
+          // HTBytecodeVariable? variadicParam;
           var i = 0;
-          for (var param in parameterDeclarations.values) {
+          for (var param in paramDecls.values) {
             var decl = param.clone();
 
             if (decl.isVariadic) {
@@ -432,8 +405,8 @@ class HTFunction extends AbstractFunction with HetuRef, GotoInfo {
       //   }
       // }
 
-      if (AbstractFunction.callStack.isNotEmpty) {
-        AbstractFunction.callStack.removeLast();
+      if (HTFunction.callStack.isNotEmpty) {
+        HTFunction.callStack.removeLast();
       }
 
       return result;

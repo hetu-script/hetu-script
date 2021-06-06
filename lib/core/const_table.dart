@@ -1,5 +1,4 @@
 /// Helper mixin to store consts,
-/// used in [Compiler] and [HTBytecode]
 class ConstTable {
   /// Const int table.
   final intTable = <int>[];

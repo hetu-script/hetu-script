@@ -24,7 +24,16 @@ abstract class HTObject {
   HTType get valueType;
 
   /// Wether this object contains a member with a name by [varName].
-  bool contains(String varName) => throw HTError.undefined(varName);
+  bool contains(String varName) {
+    switch (varName) {
+      case 'valueType':
+        return true;
+      case 'toString':
+        return true;
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
 
   /// Fetch a member by the [varName], in the form of
   /// ```
@@ -50,8 +59,16 @@ abstract class HTObject {
   /// object.varName = value
   /// ```
   void memberSet(String varName, dynamic varValue,
-          {String from = HTLexicon.global}) =>
-      throw HTError.undefined(varName);
+      {String from = HTLexicon.global}) {
+    switch (varName) {
+      case 'valueType':
+        throw HTError.immutable('valueType');
+      case 'toString':
+        throw HTError.immutable('toString');
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
 
   /// Fetch a member by the [key], in the form of
   /// ```

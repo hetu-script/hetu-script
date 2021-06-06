@@ -16,19 +16,15 @@ import '../ast/ast.dart';
 import '../ast/parser.dart';
 import '../ast/ast_source.dart';
 
-mixin AnalyzerRef {
-  late final HTAnalyzer interpreter;
-}
-
 class HTBreak {}
 
 class HTContinue {}
 
 class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   @override
-  late HTAstParser curParser;
+  late HTAstParser parser;
 
-  final _sources = HTAstCompilation();
+  final _sources = HTAstLibrary('');
 
   late HTAstModule _curCode;
 
@@ -68,11 +64,14 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
       {bool debugMode = false,
       HTErrorHandler? errorHandler,
       SourceProvider? sourceProvider})
-      : super(errorHandler: errorHandler, sourceProvider: sourceProvider);
+      : super(errorHandler: errorHandler, sourceProvider: sourceProvider) {
+    _curNamespace = HTNamespace(this);
+  }
 
   @override
   Future<void> eval(String content,
       {String? moduleFullName,
+      bool createNamespace = true,
       HTNamespace? namespace,
       InterpreterConfig config = const InterpreterConfig(),
       String? invokeFunc,
@@ -83,22 +82,24 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     _savedModuleName = _curModuleFullName;
     _savedNamespace = _curNamespace;
 
-    curParser = HTAstParser();
+    parser = HTAstParser();
 
     _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
-    _curNamespace = namespace ?? global;
+    _curNamespace = namespace ?? HTNamespace(this, id: _curModuleFullName);
 
     try {
-      final compilation = await curParser.parse(
-          content, sourceProvider, _curModuleFullName, config);
+      final compilation = await parser.parse(content,
+          moduleFullName: _curModuleFullName,
+          sourceProvider: sourceProvider,
+          config: config);
 
-      _sources.addAll(compilation);
+      _sources.join(compilation);
 
       for (final source in compilation.modules) {
         _curCode = source;
         _curModuleFullName = source.fullName;
         for (final stmt in source.nodes) {
-          analyze(stmt);
+          visitAstNode(stmt);
         }
       }
 
@@ -117,7 +118,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   @override
   Future<void> import(String key,
       {String? curModuleFullName,
-      String? moduleName,
+      String? moduleAliasName,
       InterpreterConfig config = const InterpreterConfig(),
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -130,10 +131,8 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
           curModuleFullName: curModuleFullName);
 
       final savedNamespace = _curNamespace;
-      if ((moduleName != null) && (moduleName != HTLexicon.global)) {
-        _curNamespace = HTNamespace(this, id: moduleName, closure: global);
-        // global.define(HTDeclaration(_curNamespace));
-      }
+      final moduleName = moduleAliasName ?? module.fullName;
+      _curNamespace = HTNamespace(this, id: moduleName);
 
       await eval(module.content,
           moduleFullName: module.fullName,
@@ -167,13 +166,10 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   //   return global.fetch(name);
   // }
 
-  dynamic analyze(AstNode ast) => ast.accept(this);
+  dynamic visitAstNode(AstNode ast) => ast.accept(this);
 
   @override
   dynamic visitCommentExpr(CommentExpr expr) {}
-
-  @override
-  dynamic visitBlockCommentStmt(BlockCommentStmt stmt) {}
 
   @override
   dynamic visitNullExpr(NullExpr expr) {}
@@ -191,63 +187,55 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   dynamic visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
-  dynamic visitGroupExpr(GroupExpr expr) {
-    analyze(expr.inner);
-  }
-
-  @override
   dynamic visitLiteralListExpr(LiteralListExpr expr) {
     for (final item in expr.list) {
-      analyze(item);
+      visitAstNode(item);
     }
   }
 
   @override
   dynamic visitLiteralMapExpr(LiteralMapExpr expr) {
     for (final key_expr in expr.map.keys) {
-      analyze(key_expr);
-      analyze(expr.map[key_expr]!);
+      visitAstNode(key_expr);
+      visitAstNode(expr.map[key_expr]!);
     }
   }
 
   @override
+  dynamic visitGroupExpr(GroupExpr expr) {
+    visitAstNode(expr.inner);
+  }
+
+  @override
   dynamic visitSymbolExpr(SymbolExpr expr) {
-    return _curNamespace.fetch(expr.id);
-  }
-
-  @override
-  dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
-    analyze(expr.value);
-  }
-
-  @override
-  dynamic visitBinaryExpr(BinaryExpr expr) {
-    analyze(expr.left);
-    analyze(expr.right);
-  }
-
-  @override
-  dynamic visitTernaryExpr(TernaryExpr expr) {
-    analyze(expr.condition);
-    analyze(expr.elseBranch);
-    analyze(expr.thenBranch);
+    return _curNamespace.memberGet(expr.id);
   }
 
   @override
   dynamic visitTypeExpr(TypeExpr expr) {}
 
   @override
+  dynamic visitParamTypeExpr(ParamTypeExpr expr) {}
+
+  @override
   dynamic visitFunctionTypeExpr(FunctionTypeExpr expr) {}
 
   @override
-  dynamic visitCallExpr(CallExpr expr) {
-    analyze(expr.callee);
-    for (var i = 0; i < expr.positionalArgs.length; ++i) {
-      analyze(expr.positionalArgs[i]);
-    }
-    for (var name in expr.namedArgs.keys) {
-      analyze(expr.namedArgs[name]!);
-    }
+  dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
+    visitAstNode(expr.value);
+  }
+
+  @override
+  dynamic visitBinaryExpr(BinaryExpr expr) {
+    visitAstNode(expr.left);
+    visitAstNode(expr.right);
+  }
+
+  @override
+  dynamic visitTernaryExpr(TernaryExpr expr) {
+    visitAstNode(expr.condition);
+    visitAstNode(expr.elseBranch);
+    visitAstNode(expr.thenBranch);
   }
 
   @override
@@ -255,8 +243,8 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitMemberExpr(MemberExpr expr) {
-    analyze(expr.collection);
-    // analyze(expr.key);
+    visitAstNode(expr.object);
+    // visitAstNode(expr.key);
   }
 
   @override
@@ -264,20 +252,28 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitSubExpr(SubGetExpr expr) {
-    analyze(expr.collection);
-    analyze(expr.key);
+    visitAstNode(expr.array);
+    visitAstNode(expr.key);
   }
 
   @override
   dynamic visitSubAssignExpr(SubAssignExpr expr) {}
 
   @override
-  dynamic visitImportStmt(ImportStmt stmt) {}
+  dynamic visitCallExpr(CallExpr expr) {
+    visitAstNode(expr.callee);
+    for (var i = 0; i < expr.positionalArgs.length; ++i) {
+      visitAstNode(expr.positionalArgs[i]);
+    }
+    for (var name in expr.namedArgs.keys) {
+      visitAstNode(expr.namedArgs[name]!);
+    }
+  }
 
   @override
   dynamic visitExprStmt(ExprStmt stmt) {
     if (stmt.expr != null) {
-      analyze(stmt.expr!);
+      visitAstNode(stmt.expr!);
     }
   }
 
@@ -286,68 +282,71 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     var saved_context = _curNamespace;
     _curNamespace = HTNamespace(this, closure: _curNamespace);
     for (final stmt in block.statements) {
-      analyze(stmt);
+      visitAstNode(stmt);
     }
     _curNamespace = saved_context;
   }
 
   @override
+  dynamic visitImportStmt(ImportStmt stmt) {}
+
+  @override
   dynamic visitReturnStmt(ReturnStmt stmt) {
     if (stmt.value != null) {
-      analyze(stmt.value!);
+      visitAstNode(stmt.value!);
     }
   }
 
   @override
   dynamic visitIfStmt(IfStmt stmt) {
-    analyze(stmt.condition);
-    analyze(stmt.thenBranch);
+    visitAstNode(stmt.condition);
+    visitAstNode(stmt.thenBranch);
     if (stmt.elseBranch != null) {
-      analyze(stmt.elseBranch!);
+      visitAstNode(stmt.elseBranch!);
     }
   }
 
   @override
   dynamic visitWhileStmt(WhileStmt stmt) {
     if (stmt.condition != null) {
-      analyze(stmt.condition!);
+      visitAstNode(stmt.condition!);
     }
-    analyze(stmt.loop);
+    visitAstNode(stmt.loop);
   }
 
   @override
   dynamic visitDoStmt(DoStmt stmt) {
-    analyze(stmt.loop);
+    visitAstNode(stmt.loop);
     if (stmt.condition != null) {
-      analyze(stmt.condition!);
+      visitAstNode(stmt.condition!);
     }
   }
 
   @override
   dynamic visitForInStmt(ForInStmt stmt) {
-    analyze(stmt.declaration);
-    analyze(stmt.collection);
-    analyze(stmt.loop);
+    visitAstNode(stmt.declaration);
+    visitAstNode(stmt.collection);
+    visitAstNode(stmt.loop);
   }
 
   @override
   dynamic visitForStmt(ForStmt stmt) {
     if (stmt.declaration != null) {
-      analyze(stmt.declaration!);
+      visitAstNode(stmt.declaration!);
     }
     if (stmt.condition != null) {
-      analyze(stmt.condition!);
+      visitAstNode(stmt.condition!);
     }
     if (stmt.increment != null) {
-      analyze(stmt.increment!);
+      visitAstNode(stmt.increment!);
     }
-    analyze(stmt.loop);
+    visitAstNode(stmt.loop);
   }
 
   @override
   dynamic visitWhenStmt(WhenStmt stmt) {
     if (stmt.condition != null) {
-      analyze(stmt.condition!);
+      visitAstNode(stmt.condition!);
     }
   }
 
@@ -365,7 +364,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   dynamic visitVarDeclStmt(VarDeclStmt stmt) {
     // dynamic value;
     // if (stmt.initializer != null) {
-    //   value = analyze(stmt.initializer!);
+    //   value = visitAstNode(stmt.initializer!);
     // }
 
     // _curNamespace.define(HTAstVariable(
@@ -426,7 +425,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     //   }
     // dynamic value;
     // if (variable.initializer != null) {
-    //   value = analyze(variable.initializer!);
+    //   value = visitAstNode(variable.initializer!);
     // }
 
     // final decl = HTAstVariable(variable.id, this,

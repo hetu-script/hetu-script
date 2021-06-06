@@ -1,10 +1,10 @@
-import 'package:hetu_script/core/declaration/abstract_declaration.dart';
+import 'package:hetu_script/core/declaration/variable_declaration.dart';
 
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../type_system/type.dart';
 import '../abstract_interpreter.dart';
-import '../../analyzer/declaration/variable_declaration.dart';
+import '../declaration/typed_variable_declaration.dart';
 import '../object.dart';
 
 /// A implementation of [HTNamespace].
@@ -31,12 +31,12 @@ class HTNamespace with HTObject {
   /// The full closure path of this namespace
   late final String fullName;
 
-  /// [HTDeclaration]s in this [HTNamespace],
-  /// could be [HTDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
-  final declarations = <String, AbstractDeclaration>{};
+  /// [TypedVariableDeclaration]s in this [HTNamespace],
+  /// could be [TypedVariableDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
+  final declarations = <String, VariableDeclaration>{};
 
-  /// [HTDeclaration]s in this [HTNamespace],
-  /// could be [HTDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
+  /// [TypedVariableDeclaration]s in this [HTNamespace],
+  /// could be [TypedVariableDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
   late final HTNamespace? closure;
 
   HTNamespace(
@@ -62,7 +62,7 @@ class HTNamespace with HTObject {
   }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(AbstractDeclaration decl, {bool override = false}) {
+  void define(VariableDeclaration decl, {bool override = false}) {
     if (!declarations.containsKey(decl.id) || override) {
       declarations[decl.id] = decl;
     } else {
@@ -72,7 +72,8 @@ class HTNamespace with HTObject {
 
   /// 从当前命名空间，以及超空间，递归获取一个变量
   /// 注意和memberGet只是从对象本身取值不同
-  dynamic fetch(String varName, {String from = HTLexicon.global}) {
+  @override
+  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
           !from.startsWith(fullName)) {
@@ -83,21 +84,22 @@ class HTNamespace with HTObject {
     }
 
     if (closure != null) {
-      return closure!.fetch(varName, from: from);
+      return closure!.memberGet(varName, from: from);
     }
 
     throw HTError.undefined(varName);
   }
 
-  dynamic fetchAt(String varName, int distance,
+  dynamic memberGetAt(String varName, int distance,
       {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    return space.fetch(varName, from: from);
+    return space.memberGet(varName, from: from);
   }
 
   /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
   /// 注意和memberSet只是对对象本身的成员赋值不同
-  void assign(String varName, dynamic varValue,
+  @override
+  void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global}) {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.underscore) &&
@@ -110,16 +112,16 @@ class HTNamespace with HTObject {
     }
 
     if (closure != null) {
-      closure!.assign(varName, varValue, from: from);
+      closure!.memberSet(varName, varValue, from: from);
       return;
     }
 
     throw HTError.undefined(varName);
   }
 
-  void assignAt(String varName, dynamic varValue, int distance,
+  void memberSetAt(String varName, dynamic varValue, int distance,
       {String from = HTLexicon.global}) {
     var space = closureAt(distance);
-    space.assign(varName, varValue, from: from);
+    space.memberSet(varName, varValue, from: from);
   }
 }

@@ -1,15 +1,11 @@
-import '../analyzer/declaration/variable_declaration.dart';
 import './class/class.dart';
 import '../core/namespace/namespace.dart';
-import '../core/declaration/abstract_declaration.dart';
-import '../core/declaration/abstract_function.dart';
-import '../type_system/type.dart';
+import '../core/declaration/variable_declaration.dart';
 import '../error/errors.dart';
 import 'interpreter.dart';
-import 'bytecode/bytecode_source.dart' show GotoInfo;
+import 'compiler.dart' show GotoInfo;
 
-/// Bytecode implementation of [HTDeclaration].
-class HTVariable extends AbstractDeclaration with HetuRef, GotoInfo {
+class HTVariable extends VariableDeclaration with HetuRef, GotoInfo {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 
@@ -25,18 +21,25 @@ class HTVariable extends AbstractDeclaration with HetuRef, GotoInfo {
   /// Create a standard [HTVariable].
   /// has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
-  HTVariable(String id, Hetu interpreter, String moduleFullName,
+  HTVariable(
+      String id, String moduleFullName, String libraryName, Hetu interpreter,
       {String? classId,
       dynamic value,
-      HTType? declType,
       bool isExternal = false,
+      bool isStatic = false,
+      bool isMutable = false,
+      bool isConst = false,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
       this.closure})
-      : super(id, classId: classId, isExternal: isExternal) {
+      : super(id, moduleFullName, libraryName,
+            classId: classId,
+            isExternal: isExternal,
+            isStatic: isStatic,
+            isMutable: isMutable,
+            isConst: isConst) {
     this.interpreter = interpreter;
-    this.moduleFullName = moduleFullName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
@@ -80,6 +83,7 @@ class HTVariable extends AbstractDeclaration with HetuRef, GotoInfo {
         _isInitializing = true;
         final initVal = interpreter.execute(
             moduleFullName: moduleFullName,
+            libraryName: libraryName,
             ip: definitionIp!,
             namespace: closure,
             line: definitionLine,
@@ -109,10 +113,6 @@ class HTVariable extends AbstractDeclaration with HetuRef, GotoInfo {
       if (!isInitialized) {
         initialize();
       }
-      if ((_value is AbstractFunction) && (_value.externalId != null)) {
-        final externalFunc = interpreter.unwrapExternalFunctionType(_value);
-        return externalFunc;
-      }
       return _value;
     } else {
       final externClass = interpreter.fetchExternalClass(classId!);
@@ -120,7 +120,7 @@ class HTVariable extends AbstractDeclaration with HetuRef, GotoInfo {
     }
   }
 
-  HTVariable clone() => HTVariable(id, interpreter, moduleFullName,
+  HTVariable clone() => HTVariable(id, moduleFullName, libraryName, interpreter,
       classId: classId,
       value: value,
       definitionIp: definitionIp,

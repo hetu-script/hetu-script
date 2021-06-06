@@ -114,8 +114,9 @@ Future<void> format(List<String> args,
 
   try {
     // final config = ParserConfig(sourceType: sourceType);
-    final compilation = await parser.parse(
-        source.content, sourceProvider, source.fullName); //, config);
+    final compilation = await parser.parse(source.content,
+        moduleFullName: source.fullName,
+        sourceProvider: sourceProvider); //, config);
 
     final module = compilation.getModule(source.fullName);
 

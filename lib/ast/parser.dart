@@ -1,43 +1,59 @@
+import 'package:hetu_script/core/token.dart';
+
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import '../core/abstract_parser.dart';
 import '../core/lexer.dart';
-import '../core/const_table.dart';
-import '../core/declaration/abstract_class.dart';
+import '../core/declaration/class_declaration.dart';
 import '../grammar/semantic.dart';
 import '../error/errors.dart';
 import '../source/source_provider.dart';
 import 'ast.dart';
-import '../analyzer/analyzer.dart';
 import 'ast_source.dart';
 
-class HTAstParser extends AbstractParser with AnalyzerRef {
-  late HTAstCompilation _curCompilation;
-  late List<ImportInfo> _curImports;
-  late ConstTable _curConstTable;
+class HTAstParser extends AbstractParser {
+  late List<ImportStmt> _curModuleImports;
   late String _curModuleFullName;
   @override
   String get curModuleFullName => _curModuleFullName;
 
-  AbstractClass? _curClass;
+  late String _curLibraryName;
+  @override
+  String get curLibraryName => _curLibraryName;
+
+  ClassDeclaration? _curClass;
   FunctionCategory? _curFuncType;
 
   var _leftValueLegality = false;
   final List<Map<String, String>> _markedSymbolsList = [];
 
-  Future<HTAstCompilation> parse(
-      String content, SourceProvider sourceProvider, String fullName,
-      [ParserConfig config = const ParserConfig()]) async {
+  Future<HTAstLibrary> parseFile(String path, SourceProvider sourceProvider,
+      {ParserConfig config = const ParserConfig()}) async {
+    final module = await sourceProvider.getSource(path);
+
+    return await parse(module.content,
+        moduleFullName: module.fullName,
+        sourceProvider: sourceProvider,
+        config: config);
+  }
+
+  Future<HTAstLibrary> parse(String content,
+      {bool createNamespace = true,
+      String? libraryName,
+      String? moduleFullName,
+      SourceProvider? sourceProvider,
+      ParserConfig config = const ParserConfig()}) async {
     this.config = config;
+    final fullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curModuleFullName = fullName;
-    // _curBlock = _mainBlock = AstDeclarationBlock();
+    _curLibraryName = libraryName ?? fullName;
     _curClass = null;
     _curFuncType = null;
-    _curCompilation = HTAstCompilation();
-    _curImports = <ImportInfo>[];
-    _curConstTable = ConstTable();
+    _curModuleImports = <ImportStmt>[];
 
-    final tokens = Lexer().lex(content, fullName);
+    final bundle = HTAstLibrary(_curLibraryName);
+
+    final tokens = Lexer().lex(content, _curModuleFullName);
     addTokens(tokens);
     final code = <AstNode>[];
     while (curTok.type != HTLexicon.endOfFile) {
@@ -45,45 +61,35 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       code.add(stmt);
     }
 
-    // for (final importInfo in _curImports) {
-    //   final importedFullName = sourceProvider.resolveFullName(importInfo.key);
-    //   if (!sourceProvider.hasModule(importedFullName)) {
-    //     _curModuleFullName = importedFullName;
-    //     final importedContent = await sourceProvider.getSource(importedFullName,
-    //         curModuleFullName: _curModuleFullName);
-    //     final parser2 = HTAstParser(interpreter);
-    //     final compilation2 = await parser2.parse(
-    //         importedContent.content, sourceProvider, importedFullName);
+    final srcPrvdr = sourceProvider ?? DefaultSourceProvider();
+    for (final stmt in _curModuleImports) {
+      final importedFullName =
+          srcPrvdr.resolveFullName(stmt.key, _curModuleFullName);
+      if (!srcPrvdr.hasModule(importedFullName)) {
+        final importedContent = await srcPrvdr.getSource(importedFullName,
+            curModuleFullName: _curModuleFullName);
+        final bundle2 = await parse(importedContent.content,
+            moduleFullName: importedFullName, sourceProvider: sourceProvider);
+        _curModuleFullName = fullName;
+        bundle.join(bundle2);
+      }
+    }
 
-    //     _curCompilation.addAll(compilation2);
-    //   }
-    // }
+    final module =
+        HTAstModule(fullName, content, code, createNamespace: createNamespace);
 
-    // final decls = <AstNode>[];
-    // // 将变量表前置, 总是按照：枚举、函数、类、变量这个顺序
-    // for (final decl in _mainBlock.enumDecls.values) {
-    //   decls.add(decl);
-    // }
-    // for (final decl in _mainBlock.funcDecls.values) {
-    //   decls.add(decl);
-    // }
-    // for (final decl in _mainBlock.classDecls.values) {
-    //   decls.add(decl);
-    // }
-    // for (final decl in _mainBlock.varDecls.values) {
-    //   decls.add(decl);
-    // }
+    bundle.add(module);
 
-    _curCompilation
-        .add(HTAstModule(fullName, content, [...code], _curConstTable));
-
-    return _curCompilation;
+    return bundle;
   }
 
   AstNode _parseStmt({SourceType sourceType = SourceType.function}) {
     switch (sourceType) {
       case SourceType.script:
         switch (curTok.type) {
+          case SemanticType.singleLineComment:
+          case SemanticType.multiLineComment:
+            return _parseExprStmt();
           case HTLexicon.IMPORT:
             return _parseImportStmt();
           case HTLexicon.EXTERNAL:
@@ -91,44 +97,33 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
             switch (curTok.type) {
               case HTLexicon.ABSTRACT:
                 advance(1);
-                if (curTok.type != HTLexicon.CLASS) {
-                  throw HTError.unexpected(
-                      SemanticType.classDecl, curTok.lexeme);
-                }
-                return _parseClassDeclStmt(isAbstract: true, isExternal: true);
+                return _parseClassDecl(isAbstract: true, isExternal: true);
               case HTLexicon.CLASS:
-                return _parseClassDeclStmt(isExternal: true);
+                return _parseClassDecl(isExternal: true);
               case HTLexicon.ENUM:
-                return _parseEnumDeclStmt(isExternal: true);
+                return _parseEnumDecl(isExternal: true);
               case HTLexicon.VAR:
               case HTLexicon.LET:
               case HTLexicon.CONST:
                 throw HTError.externalVar();
               case HTLexicon.FUNCTION:
-                if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
-                  throw HTError.unexpected(
-                      SemanticType.funcDecl, peek(1).lexeme);
-                }
-                return _parseFuncDeclaration(isExternal: true);
+                return _parseFuncDecl(isExternal: true);
               default:
                 throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
             }
           case HTLexicon.ABSTRACT:
             advance(1);
-            if (curTok.type != HTLexicon.CLASS) {
-              throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
-            }
-            return _parseClassDeclStmt(isAbstract: true);
+            return _parseClassDecl(isAbstract: true);
           case HTLexicon.ENUM:
-            return _parseEnumDeclStmt();
+            return _parseEnumDecl();
           case HTLexicon.CLASS:
-            return _parseClassDeclStmt();
+            return _parseClassDecl();
           case HTLexicon.VAR:
-            return _parseVarDeclStmt();
+            return _parseVarDecl(isMutable: true);
           case HTLexicon.LET:
-            return _parseVarDeclStmt(typeInferrence: true);
+            return _parseVarDecl(typeInferrence: true, isMutable: true);
           case HTLexicon.CONST:
-            return _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
+            return _parseVarDecl(typeInferrence: true);
           case HTLexicon.FUNCTION:
             if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
                 expect([
@@ -138,9 +133,9 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
                   HTLexicon.squareRight,
                   SemanticType.identifier
                 ])) {
-              return _parseFuncDeclaration();
+              return _parseFuncDecl();
             } else {
-              return _parseExprStmt();
+              return _parseFuncDecl(category: FunctionCategory.literal);
             }
           case HTLexicon.IF:
             return _parseIfStmt();
@@ -157,14 +152,18 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         }
       case SourceType.module:
         switch (curTok.type) {
+          case SemanticType.singleLineComment:
+          case SemanticType.multiLineComment:
+            return _parseExprStmt();
           case HTLexicon.IMPORT:
             return _parseImportStmt();
           case HTLexicon.ABSTRACT:
             advance(1);
             if (curTok.type != HTLexicon.CLASS) {
-              throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
+              throw HTError.unexpected(
+                  SemanticType.classDeclaration, curTok.lexeme);
             }
-            return _parseClassDeclStmt(isAbstract: true);
+            return _parseClassDecl(isAbstract: true);
           case HTLexicon.EXTERNAL:
             advance(1);
             switch (curTok.type) {
@@ -172,19 +171,19 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
                 advance(1);
                 if (curTok.type != HTLexicon.CLASS) {
                   throw HTError.unexpected(
-                      SemanticType.classDecl, curTok.lexeme);
+                      SemanticType.classDeclaration, curTok.lexeme);
                 }
-                return _parseClassDeclStmt(isAbstract: true, isExternal: true);
+                return _parseClassDecl(isAbstract: true, isExternal: true);
               case HTLexicon.CLASS:
-                return _parseClassDeclStmt(isExternal: true);
+                return _parseClassDecl(isExternal: true);
               case HTLexicon.ENUM:
-                return _parseEnumDeclStmt(isExternal: true);
+                return _parseEnumDecl(isExternal: true);
               case HTLexicon.FUNCTION:
                 if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
                   throw HTError.unexpected(
-                      SemanticType.funcDecl, peek(1).lexeme);
+                      SemanticType.functionDeclaration, peek(1).lexeme);
                 }
-                return _parseFuncDeclaration();
+                return _parseFuncDecl(isExternal: true);
               case HTLexicon.VAR:
               case HTLexicon.LET:
               case HTLexicon.CONST:
@@ -193,30 +192,34 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
                 throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
             }
           case HTLexicon.ENUM:
-            return _parseEnumDeclStmt();
+            return _parseEnumDecl(isExported: true);
           case HTLexicon.CLASS:
-            return _parseClassDeclStmt();
+            return _parseClassDecl(isExported: true);
           case HTLexicon.VAR:
-            return _parseVarDeclStmt(lateInitialize: true);
+            return _parseVarDecl(
+                isMutable: true, isExported: true, lateInitialize: true);
           case HTLexicon.LET:
-            return _parseVarDeclStmt(
-                typeInferrence: true, lateInitialize: true);
+            return _parseVarDecl(
+                typeInferrence: true,
+                isMutable: true,
+                isExported: true,
+                lateInitialize: true);
           case HTLexicon.CONST:
-            return _parseVarDeclStmt(
-                typeInferrence: true, isImmutable: true, lateInitialize: true);
+            return _parseVarDecl(
+                typeInferrence: true, isExported: true, lateInitialize: true);
           case HTLexicon.FUNCTION:
-            return _parseFuncDeclaration();
+            return _parseFuncDecl(isExported: true);
           default:
             throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
         }
       case SourceType.function:
         switch (curTok.type) {
           case HTLexicon.VAR:
-            return _parseVarDeclStmt();
+            return _parseVarDecl(isMutable: true);
           case HTLexicon.LET:
-            return _parseVarDeclStmt(typeInferrence: true);
+            return _parseVarDecl(typeInferrence: true, isMutable: true);
           case HTLexicon.CONST:
-            return _parseVarDeclStmt(typeInferrence: true, isImmutable: true);
+            return _parseVarDecl(typeInferrence: true);
           case HTLexicon.FUNCTION:
             if (!expect([HTLexicon.FUNCTION, SemanticType.identifier]) &&
                 !expect([
@@ -226,7 +229,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
                   HTLexicon.squareRight,
                   SemanticType.identifier
                 ])) {
-              return _parseFuncDeclaration(category: FunctionCategory.literal);
+              return _parseFuncDecl(category: FunctionCategory.literal);
             } else {
               return _parseExprStmt();
             }
@@ -260,29 +263,33 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         final isExternal = expect([HTLexicon.EXTERNAL], consume: true);
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         switch (curTok.type) {
+          case SemanticType.singleLineComment:
+          case SemanticType.multiLineComment:
+            return _parseExprStmt();
           case HTLexicon.VAR:
-            return _parseVarDeclStmt(
-                isMember: true,
+            return _parseVarDecl(
+                classId: _curClass?.id,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
+                isMutable: true,
                 isStatic: isStatic,
                 lateInitialize: true);
           case HTLexicon.LET:
-            return _parseVarDeclStmt(
-                isMember: true,
+            return _parseVarDecl(
+                classId: _curClass?.id,
                 typeInferrence: true,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
+                isMutable: true,
                 isStatic: isStatic,
                 lateInitialize: true);
           case HTLexicon.CONST:
-            return _parseVarDeclStmt(
-                isMember: true,
+            return _parseVarDecl(
+                classId: _curClass?.id,
                 typeInferrence: true,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
-                isImmutable: true,
                 isStatic: isStatic,
                 lateInitialize: true);
           case HTLexicon.FUNCTION:
-            return _parseFuncDeclaration(
+            return _parseFuncDecl(
                 category: FunctionCategory.method,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
@@ -291,17 +298,17 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
               throw HTError.unexpected(
                   SemanticType.declStmt, HTLexicon.CONSTRUCT);
             }
-            return _parseFuncDeclaration(
+            return _parseFuncDecl(
               category: FunctionCategory.constructor,
               isExternal: isExternal || (_curClass?.isExternal ?? false),
             );
           case HTLexicon.GET:
-            return _parseFuncDeclaration(
+            return _parseFuncDecl(
                 category: FunctionCategory.getter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
           case HTLexicon.SET:
-            return _parseFuncDeclaration(
+            return _parseFuncDecl(
                 category: FunctionCategory.setter,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
@@ -319,10 +326,6 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     String? alias;
     if (expect([HTLexicon.AS], consume: true)) {
       alias = match(SemanticType.identifier).lexeme;
-
-      if (alias.isEmpty) {
-        throw HTError.emptyString();
-      }
     }
 
     final showList = <String>[];
@@ -340,9 +343,12 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
     expect([HTLexicon.semicolon], consume: true);
 
-    _curImports.add(ImportInfo(key, name: alias, showList: showList));
+    final stmt = ImportStmt(key, keyword.line, keyword.column,
+        alias: alias, showList: showList);
 
-    return ImportStmt(key, alias, showList, keyword.line, keyword.column);
+    _curModuleImports.add(stmt);
+
+    return stmt;
   }
 
   /// 使用递归向下的方法生成表达式, 不断调用更底层的, 优先级更高的子Parser
@@ -351,17 +357,33 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
   ///
   /// 需要判断嵌套赋值、取属性、取下标的叠加
   AstNode _parseExpr() {
-    var left = _parserTernaryExpr();
-    if (HTLexicon.assignments.contains(curTok.type)) {
-      if (!_leftValueLegality) {
-        throw HTError.invalidLeftValue();
+    if (curTok.type == SemanticType.singleLineComment) {
+      final comment = advance(1);
+      return CommentExpr(comment.literal, false, comment.line, comment.column);
+    } else if (curTok.type == SemanticType.multiLineComment) {
+      final comment = advance(1);
+      return CommentExpr(comment.literal, true, comment.line, comment.column);
+    } else {
+      final left = _parserTernaryExpr();
+      if (HTLexicon.assignments.contains(curTok.type)) {
+        if (!_leftValueLegality) {
+          throw HTError.invalidLeftValue();
+        }
+        final op = advance(1);
+        final right = _parseExpr();
+        if (left is MemberExpr) {
+          return MemberAssignExpr(
+              left.object, left.key, right, left.line, left.column);
+        } else if (left is SubGetExpr) {
+          return SubAssignExpr(
+              left.array, left.key, right, left.line, left.column);
+        } else {
+          return BinaryExpr(left, op.lexeme, right, op.line, op.column);
+        }
+      } else {
+        return left;
       }
-      final op = advance(1);
-      // right combination: recursively use this same function on next expr
-      final right = _parseExpr();
-      left = BinaryExpr(left, op.lexeme, right, op.line, op.column);
     }
-    return left;
   }
 
   AstNode _parserTernaryExpr() {
@@ -489,8 +511,10 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       switch (op.type) {
         case HTLexicon.memberGet:
           _leftValueLegality = true;
-          final name = match(SemanticType.identifier).lexeme;
-          expr = MemberExpr(expr, name, op.line, op.column);
+          final name = match(SemanticType.identifier);
+          final key =
+              SymbolExpr(name.lexeme, name.line, name.column, isLocal: false);
+          expr = MemberExpr(expr, key, op.line, op.column);
           break;
         case HTLexicon.subGet:
           var indexExpr = _parseExpr();
@@ -525,25 +549,22 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         _leftValueLegality = false;
         final word = advance(1);
         return NullExpr(word.line, word.column);
-      case HTLexicon.boolean:
+      case SemanticType.literalBoolean:
         _leftValueLegality = false;
-        final word = advance(1);
+        final word = advance(1) as TokenBooleanLiteral;
         return BooleanExpr(word.literal, word.line, word.column);
-      case HTLexicon.integer:
+      case SemanticType.literalInteger:
         _leftValueLegality = false;
-        final word = advance(1);
-        var index = _curConstTable.addInt(word.literal);
-        return ConstIntExpr(index, word.line, word.column);
-      case HTLexicon.float:
+        final word = advance(1) as TokenIntLiteral;
+        return ConstIntExpr(word.literal, word.line, word.column);
+      case SemanticType.literalFloat:
         _leftValueLegality = false;
-        final word = advance(1);
-        var index = _curConstTable.addFloat(word.literal);
-        return ConstFloatExpr(index, word.line, word.column);
-      case HTLexicon.string:
+        final word = advance(1) as TokenFloatLiteral;
+        return ConstFloatExpr(word.literal, word.line, word.column);
+      case SemanticType.literalString:
         _leftValueLegality = false;
-        final word = advance(1);
-        var index = _curConstTable.addString(word.literal);
-        return ConstStringExpr(index, word.line, word.column);
+        final word = advance(1) as TokenStringLiteral;
+        return ConstStringExpr(word.literal, word.line, word.column);
       case HTLexicon.THIS:
         _leftValueLegality = false;
         final keyword = advance(1);
@@ -570,7 +591,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
           }
         }
         match(HTLexicon.squareRight);
-        return LiteralListExpr(line, column, list: listExpr);
+        return LiteralListExpr(listExpr, line, column);
       case HTLexicon.curlyLeft:
         _leftValueLegality = false;
         final line = curTok.line;
@@ -587,9 +608,8 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         }
         match(HTLexicon.curlyRight);
         return LiteralMapExpr(line, column, map: mapExpr);
-
       case HTLexicon.FUNCTION:
-        return _parseFuncDeclaration(category: FunctionCategory.literal);
+        return _parseFuncDecl(category: FunctionCategory.literal);
       case SemanticType.identifier:
         // literal function type
         if (curTok.lexeme == HTLexicon.function) {
@@ -600,6 +620,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         else {
           _leftValueLegality = true;
           final symbol = advance(1);
+          // TODO: type arguments
           return SymbolExpr(symbol.lexeme, symbol.line, symbol.column);
         }
       default:
@@ -607,14 +628,36 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     }
   }
 
-  TypeExpr _parseTypeExpr() {
+  AstNode _parseTypeExpr({bool isLocal = false}) {
     // function type
-    if (expect([HTLexicon.function, HTLexicon.roundLeft], consume: true)) {
-      final keyword = peek(-2);
+    if (curTok.lexeme != HTLexicon.FUNCTION) {
+      final id = match(SemanticType.identifier);
+
+      final typeArgs = <TypeExpr>[];
+      if (expect([HTLexicon.angleLeft], consume: true)) {
+        if (curTok.type == HTLexicon.angleRight) {
+          throw HTError.emptyTypeArgs();
+        }
+        while ((curTok.type != HTLexicon.angleRight) &&
+            (curTok.type != HTLexicon.endOfFile)) {
+          typeArgs.add(_parseTypeExpr() as TypeExpr);
+          expect([HTLexicon.comma], consume: true);
+        }
+        match(HTLexicon.angleRight);
+      }
+
+      final isNullable = expect([HTLexicon.nullable], consume: true);
+
+      return TypeExpr(id.lexeme, id.line, id.column,
+          arguments: typeArgs, isNullable: isNullable, isLocal: isLocal);
+    }
+    // TODO: interface type
+    else {
+      final keyword = peek(-1);
 
       // TODO: genericTypeParameters 泛型参数
 
-      final paramTypes = <ParamType>[];
+      final parameters = <ParamTypeExpr>[];
 
       var isOptional = false;
       var isNamed = false;
@@ -622,6 +665,8 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
       while (curTok.type != HTLexicon.roundRight &&
           curTok.type != HTLexicon.endOfFile) {
+        final line = curTok.line;
+        final column = curTok.column;
         if (!isOptional) {
           isOptional = expect([HTLexicon.squareLeft], consume: true);
           if (!isOptional && !isNamed) {
@@ -640,12 +685,9 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
         paramType = _parseTypeExpr();
 
-        final param = ParamType(
-            isOptional: isOptional,
-            isVariadic: isVariadic,
-            id: paramId,
-            paramType: paramType);
-        paramTypes.add(param);
+        final param = ParamTypeExpr(paramType, line, column,
+            isOptional: isOptional, isVariadic: isVariadic, id: paramId);
+        parameters.add(param);
 
         if (isOptional && expect([HTLexicon.squareRight], consume: true)) {
           break;
@@ -663,38 +705,19 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
       match(HTLexicon.singleArrow);
 
-      final returnType = _parseTypeExpr();
+      final returnType = _parseTypeExpr() as TypeExpr;
 
       return FunctionTypeExpr(returnType, keyword.line, keyword.column,
-          paramTypes: paramTypes);
-    }
-    // TODO: interface type
-    else {
-      final id = match(SemanticType.identifier);
-
-      final typeArgs = <TypeExpr>[];
-      if (expect([HTLexicon.angleLeft], consume: true)) {
-        if (curTok.type == HTLexicon.angleRight) {
-          throw HTError.emptyTypeArgs();
-        }
-        while ((curTok.type != HTLexicon.angleRight) &&
-            (curTok.type != HTLexicon.endOfFile)) {
-          typeArgs.add(_parseTypeExpr());
-          expect([HTLexicon.comma], consume: true);
-        }
-        match(HTLexicon.angleRight);
-      }
-
-      final isNullable = expect([HTLexicon.nullable], consume: true);
-
-      return TypeExpr(id.lexeme, id.line, id.column,
-          arguments: typeArgs, isNullable: isNullable);
+          paramTypes: parameters,
+          hasOptionalParam: isOptional,
+          hasNamedParam: isNamed);
     }
   }
 
-  BlockStmt _parseBlockStmt({SourceType sourceType = SourceType.function}) {
-    // final savedDeclBlock = _curBlock;
-    // _curBlock = AstDeclarationBlock();
+  BlockStmt _parseBlockStmt(
+      {String? id,
+      SourceType sourceType = SourceType.function,
+      bool createNamespace = true}) {
     final token = match(HTLexicon.curlyLeft);
     final statements = <AstNode>[];
     while (curTok.type != HTLexicon.curlyRight &&
@@ -703,8 +726,8 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       statements.add(stmt);
     }
     match(HTLexicon.curlyRight);
-    // _curBlock = savedDeclBlock;
-    return BlockStmt(statements, token.line, token.column);
+    return BlockStmt(statements, token.line, token.column,
+        id: id, createNamespace: createNamespace);
   }
 
   void _handleCallArguments(
@@ -760,17 +783,20 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     match(HTLexicon.roundRight);
     late BlockStmt thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
-      thenBranch = _parseBlockStmt();
+      thenBranch = _parseBlockStmt(id: SemanticType.thenBranch);
     } else {
       final stmt = _parseStmt();
-      thenBranch = BlockStmt([stmt], stmt.line, stmt.column);
+      thenBranch = BlockStmt([stmt], stmt.line, stmt.column,
+          id: SemanticType.thenBranch);
     }
-    AstNode? elseBranch;
+    BlockStmt? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (curTok.type == HTLexicon.curlyLeft) {
-        elseBranch = _parseBlockStmt();
+        elseBranch = _parseBlockStmt(id: SemanticType.elseBranch);
       } else {
-        elseBranch = _parseStmt();
+        final stmt = _parseStmt();
+        elseBranch = BlockStmt([stmt], stmt.line, stmt.column,
+            id: SemanticType.elseBranch);
       }
     }
     return IfStmt(
@@ -786,10 +812,11 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     }
     late BlockStmt loop;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loop = _parseBlockStmt();
+      loop = _parseBlockStmt(id: SemanticType.whileLoop);
     } else {
       final stmt = _parseStmt();
-      loop = BlockStmt([stmt], stmt.line, stmt.column);
+      loop =
+          BlockStmt([stmt], stmt.line, stmt.column, id: SemanticType.whileLoop);
     }
     return WhileStmt(condition, loop, keyword.line, keyword.column);
   }
@@ -798,10 +825,10 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     final keyword = advance(1);
     late BlockStmt loop;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loop = _parseBlockStmt();
+      loop = _parseBlockStmt(id: SemanticType.doLoop);
     } else {
       final stmt = _parseStmt();
-      loop = BlockStmt([stmt], stmt.line, stmt.column);
+      loop = BlockStmt([stmt], stmt.line, stmt.column, id: SemanticType.doLoop);
     }
     AstNode? condition;
     if (expect([HTLexicon.WHILE], consume: true)) {
@@ -812,23 +839,22 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     return DoStmt(loop, condition, keyword.line, keyword.column);
   }
 
-  // For语句其实会在解析时转换为While语句
   AstNode _parseForStmt() {
     final keyword = advance(1);
     match(HTLexicon.roundLeft);
     final forStmtType = peek(2).lexeme;
-    AstNode? declaration;
+    VarDeclStmt? declaration;
     AstNode? condition;
     AstNode? increment;
     final newSymbolMap = <String, String>{};
     _markedSymbolsList.add(newSymbolMap);
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-        throw HTError.unexpected(SemanticType.varDecl, curTok.type);
+        throw HTError.unexpected(SemanticType.variableDeclaration, curTok.type);
       }
-      declaration = _parseVarDeclStmt(
+      declaration = _parseVarDecl(
           typeInferrence: curTok.type != HTLexicon.VAR,
-          isImmutable: curTok.type == HTLexicon.CONST);
+          isMutable: curTok.type != HTLexicon.CONST);
 
       advance(1);
 
@@ -836,27 +862,16 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
       match(HTLexicon.roundRight);
 
-      final loop = _parseBlockStmt();
+      final loop = _parseBlockStmt(id: SemanticType.forLoop);
 
       return ForInStmt(
           declaration, collection, loop, keyword.line, keyword.column);
     } else {
       if (!expect([HTLexicon.semicolon], consume: false)) {
-        // final declId = peek(1);
-        // final markedId = '${HTLexicon.internalMarker}$declId';
-        // newSymbolMap[declId.lexeme] = markedId;
-        declaration = _parseVarDeclStmt(
-            // declId: markedId,
+        declaration = _parseVarDecl(
             typeInferrence: curTok.type != HTLexicon.VAR,
-            isImmutable: curTok.type == HTLexicon.CONST,
+            isMutable: curTok.type != HTLexicon.CONST,
             endOfStatement: true);
-
-        // statements.add(declaration);
-        // // TODO: 这里是为了实现闭包效果，之后应该改成真正的闭包
-        // final capturedInit = SymbolExpr(markedId, declId.line, declId.column);
-        // final capturedDecl = VarDecl(markedId, declId.line, declId.column,
-        //     initializer: capturedInit, lateInitialize: false);
-        // additionalVarDecls.add(capturedDecl);
       } else {
         match(HTLexicon.semicolon);
       }
@@ -871,7 +886,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       }
       match(HTLexicon.roundRight);
 
-      final loop = _parseBlockStmt();
+      final loop = _parseBlockStmt(id: SemanticType.forLoop);
 
       return ForStmt(declaration, condition, increment, loop, keyword.line,
           keyword.column);
@@ -894,20 +909,22 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         advance(1);
         match(HTLexicon.singleArrow);
         if (curTok.type == HTLexicon.curlyLeft) {
-          elseBranch = _parseBlockStmt();
+          elseBranch = _parseBlockStmt(id: SemanticType.elseBranch);
         } else {
           final stmt = _parseStmt();
-          elseBranch = BlockStmt([stmt], stmt.line, stmt.column);
+          elseBranch = BlockStmt([stmt], stmt.line, stmt.column,
+              id: SemanticType.elseBranch);
         }
       } else {
         final caseExpr = _parseExpr();
         match(HTLexicon.singleArrow);
         late final caseBranch;
         if (curTok.type == HTLexicon.curlyLeft) {
-          caseBranch = _parseBlockStmt();
+          caseBranch = _parseBlockStmt(id: SemanticType.whenBranch);
         } else {
           final stmt = _parseStmt();
-          caseBranch = BlockStmt([stmt], stmt.line, stmt.column);
+          caseBranch = BlockStmt([stmt], stmt.line, stmt.column,
+              id: SemanticType.whenBranch);
         }
         options[caseExpr] = caseBranch;
       }
@@ -918,13 +935,15 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
   }
 
   // 变量声明语句
-  VarDeclStmt _parseVarDeclStmt(
+  VarDeclStmt _parseVarDecl(
       {String? declId,
-      bool isMember = false,
+      String? classId,
       bool typeInferrence = false,
       bool isExternal = false,
-      bool isImmutable = false,
+      bool isMutable = false,
       bool isStatic = false,
+      bool isConst = false,
+      bool isExported = false,
       bool lateInitialize = false,
       AstNode? additionalInitializer,
       bool endOfStatement = false}) {
@@ -932,11 +951,11 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     var idTok = match(SemanticType.identifier);
     var id = idTok.lexeme;
 
-    if (isMember && isExternal) {
+    if (classId != null && isExternal) {
       if (!(_curClass!.isExternal) && !isStatic) {
         throw HTError.externMember();
       }
-      id = '${_curClass!.id}.$id';
+      id = '$classId.$id';
     }
 
     if (declId != null) {
@@ -953,7 +972,6 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       initializer = _parseExpr();
     }
 
-    // 语句结尾
     if (endOfStatement) {
       match(HTLexicon.semicolon);
     } else {
@@ -965,16 +983,19 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         initializer: initializer,
         typeInferrence: typeInferrence,
         isExternal: isExternal,
-        isImmutable: isImmutable,
         isStatic: isStatic,
+        isMutable: isMutable,
+        isConst: isConst,
+        isExported: isExported,
         lateInitialize: lateInitialize);
   }
 
-  FuncDeclExpr _parseFuncDeclaration(
+  FuncDeclExpr _parseFuncDecl(
       {FunctionCategory category = FunctionCategory.normal,
       bool isExternal = false,
       bool isStatic = false,
-      bool isConst = false}) {
+      bool isConst = false,
+      bool isExported = false}) {
     final savedCurFuncType = _curFuncType;
     _curFuncType = category;
 
@@ -1007,27 +1028,17 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       }
     }
 
-    // if (!isExternal) {
     switch (category) {
       case FunctionCategory.constructor:
         id = (declId.isEmpty)
             ? HTLexicon.constructor
             : '${HTLexicon.constructor}$declId';
-        // if (_curBlock.contains(id)) {
-        //   throw HTError.definedParser(declId);
-        // }
         break;
       case FunctionCategory.getter:
         id = HTLexicon.getter + declId;
-        // if (_curBlock.contains(id)) {
-        //   throw HTError.definedParser(declId);
-        // }
         break;
       case FunctionCategory.setter:
         id = HTLexicon.setter + declId;
-        // if (_curBlock.contains(id)) {
-        //   throw HTError.definedParser(declId);
-        // }
         break;
       case FunctionCategory.literal:
         id = HTLexicon.anonymousFunction +
@@ -1036,24 +1047,6 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       default:
         id = declId;
     }
-    // } else {
-    //   if (_curClass != null) {
-    //     if (!(_curClass!.isExternal) && !isStatic) {
-    //       throw HTError.externalMember();
-    //     }
-    //     if (isStatic || (category == FunctionType.constructor)) {
-    //       id = (declId.isEmpty) ? _curClass!.id : '${_curClass!.id}.$declId';
-    //     } else {
-    //       id = declId;
-    //     }
-    //   } else {
-    //     id = declId;
-    //   }
-    // }
-
-    // if (functype == FuncStmtType.normal) {
-    //   if (_declarations.containsKey(func_name)) throw HTErrorDefined(func_name, fileName, curTok.line, curTok.column);
-    // }
 
     final typeParameters = <TypeExpr>[];
 
@@ -1062,8 +1055,10 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     var maxArity = 0;
     var paramDecls = <ParamDeclExpr>[];
 
+    var hasParamDecls = false;
     if (category != FunctionCategory.getter &&
         expect([HTLexicon.roundLeft], consume: true)) {
+      hasParamDecls = true;
       var isOptional = false;
       var isNamed = false;
       var isVariadic = false;
@@ -1097,7 +1092,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         TypeExpr? paramDeclType;
 
         if (expect([HTLexicon.colon], consume: true)) {
-          paramDeclType = _parseTypeExpr();
+          paramDeclType = _parseTypeExpr() as TypeExpr;
         }
 
         AstNode? initializer;
@@ -1139,20 +1134,20 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
 
       match(HTLexicon.roundRight);
 
-      // setter只能有一个参数, 就是赋值语句的右值, 但此处并不需要判断类型
+      // setter只能有一个参数, 就是赋值语句的右值
       if ((category == FunctionCategory.setter) && (minArity != 1)) {
         throw HTError.setterArity();
       }
     }
 
     TypeExpr? returnType;
-    CallExpr? referCtor;
+    ReferConstructorExpr? referCtor;
     // the return value type declaration
     if (expect([HTLexicon.singleArrow], consume: true)) {
       if (category == FunctionCategory.constructor) {
         throw HTError.ctorReturn();
       }
-      returnType = _parseTypeExpr();
+      returnType = _parseTypeExpr() as TypeExpr;
     }
     // referring to another constructor
     else if (expect([HTLexicon.colon], consume: true)) {
@@ -1162,42 +1157,35 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
       if (isExternal) {
         throw HTError.externalCtorWithReferCtor();
       }
-
-      final ctorToken = advance(1);
-      if (!HTLexicon.constructorCall.contains(ctorToken.lexeme)) {
+      final ctorCallee = advance(1);
+      if (!HTLexicon.constructorCall.contains(ctorCallee.lexeme)) {
         throw HTError.unexpected(SemanticType.ctorCallExpr, curTok.lexeme);
       }
-
-      late ReferConstructorExpr referCtorExpr;
+      String? ctorKey;
       if (expect([HTLexicon.memberGet], consume: true)) {
-        final ctorCallName = match(SemanticType.identifier).lexeme;
+        ctorKey = match(SemanticType.identifier).lexeme;
         match(HTLexicon.roundLeft);
-        referCtorExpr = ReferConstructorExpr(
-          ctorToken.lexeme == HTLexicon.SUPER,
-          ctorToken.line,
-          ctorToken.column,
-          name: ctorCallName,
-        );
       } else {
         match(HTLexicon.roundLeft);
-        referCtorExpr = ReferConstructorExpr(
-            ctorToken.lexeme == HTLexicon.SUPER,
-            ctorToken.line,
-            ctorToken.column);
       }
 
       var positionalArgs = <AstNode>[];
       var namedArgs = <String, AstNode>{};
       _handleCallArguments(positionalArgs, namedArgs);
 
-      referCtor = CallExpr(referCtorExpr, positionalArgs, namedArgs,
-          ctorToken.line, ctorToken.column);
+      referCtor = ReferConstructorExpr(
+        ctorCallee.lexeme,
+        ctorKey,
+        positionalArgs,
+        namedArgs,
+        ctorCallee.line,
+        ctorCallee.column,
+      );
     }
 
     BlockStmt? definition;
     if (curTok.type == HTLexicon.curlyLeft) {
-      // 处理函数定义部分的语句块
-      definition = _parseBlockStmt();
+      definition = _parseBlockStmt(id: SemanticType.functionCall);
     } else {
       if (category != FunctionCategory.constructor &&
           category != FunctionCategory.literal &&
@@ -1213,9 +1201,10 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     return FuncDeclExpr(id, declId, paramDecls, keyword.line, keyword.column,
         classId: _curClass?.id,
         typeParameters: typeParameters,
-        externalTypedef: externalTypedef,
+        externalTypeId: externalTypedef,
         returnType: returnType,
-        referCtor: referCtor,
+        referConstructor: referCtor,
+        hasParamDecls: hasParamDecls,
         minArity: minArity,
         maxArity: maxArity,
         definition: definition,
@@ -1223,32 +1212,23 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
         isStatic: isStatic,
         isConst: isConst,
         isVariadic: isFuncVariadic,
+        isExported: isExported,
         category: category);
   }
 
-  ClassDeclStmt _parseClassDeclStmt(
-      {bool isExternal = false, bool isAbstract = false}) {
-    // 已经判断过了所以直接跳过关键字
-    final keyword = advance(1);
+  ClassDeclStmt _parseClassDecl(
+      {bool isExternal = false,
+      bool isAbstract = false,
+      bool isExported = true}) {
+    final keyword = match(HTLexicon.CLASS);
 
     final id = match(SemanticType.identifier);
 
     final typeParameters = <TypeExpr>[];
 
-    // if (_mainBlock.contains(className.lexeme)) {
-    //   throw HTError.definedParser(className.lexeme);
-    // }
-
     final savedClass = _curClass;
 
-    // final savedClassId = _curClassId;
-    // final savedClassType = _curClassType;
-    // final savedClassType = _curClassType;
-    // _curClassId = className.lexeme;
-    // _curClassType = classType;
-    // _curClassType = HTType(className.lexeme);
-
-    _curClass = AbstractClass(id.lexeme,
+    _curClass = ClassDeclaration(id.lexeme, _curModuleFullName, _curLibraryName,
         isExternal: isExternal, isAbstract: isAbstract);
 
     // generic type参数
@@ -1264,43 +1244,40 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     //   match(HTLexicon.angleRight);
     // }
 
-    // 继承父类
+    // 父类
     TypeExpr? superClassType;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
       if (curTok.lexeme == id.lexeme) {
         throw HTError.extendsSelf();
       }
 
-      superClassType = _parseTypeExpr();
-
-      // else if (!_mainBlock.contains(curTok.lexeme)) {
-      //   throw HTError.notClass(curTok.lexeme);
-      // }
+      superClassType = _parseTypeExpr() as TypeExpr;
     }
 
     // 类的定义体
-    final definition = _parseBlockStmt(sourceType: SourceType.klass);
+    final definition = _parseBlockStmt(
+        sourceType: SourceType.klass,
+        createNamespace: false,
+        id: SemanticType.classDefinition);
 
     // _curBlock.classDecls[className.lexeme] = stmt;
 
     _curClass = savedClass;
 
-    return ClassDeclStmt(id.lexeme, definition, keyword.line, keyword.column,
+    return ClassDeclStmt(id.lexeme, keyword.line, keyword.column,
         typeParameters: typeParameters,
-        superClassType: superClassType,
+        superType: superClassType,
         isExternal: isExternal,
-        isAbstract: isAbstract);
+        isAbstract: isAbstract,
+        isExported: isExported,
+        definition: definition);
   }
 
-  EnumDeclStmt _parseEnumDeclStmt({bool isExternal = false}) {
-    // 已经判断过了所以直接跳过关键字
-    final keyword = advance(1);
+  EnumDeclStmt _parseEnumDecl(
+      {bool isExternal = false, bool isExported = true}) {
+    final keyword = match(HTLexicon.ENUM);
 
     final id = match(SemanticType.identifier);
-
-    // if (_mainBlock.contains(class_name.lexeme)) {
-    //   throw HTError.definedParser(class_name.lexeme);
-    // }
 
     var enumerations = <String>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
@@ -1317,7 +1294,7 @@ class HTAstParser extends AbstractParser with AnalyzerRef {
     }
 
     return EnumDeclStmt(id.lexeme, enumerations, keyword.line, keyword.column,
-        isExternal: isExternal);
+        isExternal: isExternal, isExported: isExported);
     // _curBlock.enumDecls[class_name.lexeme] = stmt;
   }
 }

@@ -1,6 +1,4 @@
-import 'package:pub_semver/pub_semver.dart';
-
-import '../core/const_table.dart';
+import 'package:path/path.dart' as path;
 
 /// Code module types
 enum SourceType {
@@ -24,6 +22,8 @@ enum SourceType {
 
 class HTSource {
   final String fullName;
+
+  String get name => path.basename(fullName);
 
   String content;
 

@@ -17,7 +17,6 @@ enum FunctionAppendixType {
 
 enum TypeType {
   normal, // HTTypeid
-  parameter,
   function, // HTFunctionTypeid
   struct,
   interface,
@@ -36,10 +35,17 @@ abstract class SemanticType {
   static const declStmt = 'declaration_statement';
   static const thenBranch = 'then_branch';
   static const elseBranch = 'else_branch';
+  static const whileLoop = 'while_loop';
+  static const doLoop = 'do_loop';
+  static const forLoop = 'for_loop';
+  static const whenBranch = 'when_loop';
+  static const functionCall = 'function_call';
+  static const classDefinition = 'class_definition';
 
   static const ctorCallExpr = 'constructor_call_expression';
 
   static const literalNull = 'literal_null';
+  static const literalValue = 'literal_value';
   static const literalBoolean = 'literal_boolean';
   static const literalInteger = 'literal_integer';
   static const literalFloat = 'literal_float';
@@ -65,12 +71,12 @@ abstract class SemanticType {
   static const memberGetExpr = 'member_get_expression';
   static const memberSetExpr = 'member_set_expression';
 
-  static const varDecl = 'variable_declaration';
-  static const paramDecl = 'parameter_declaration';
-  static const classDecl = 'class_declaration';
+  static const variableDeclaration = 'variable_declaration';
+  static const parameterDeclaration = 'parameter_declaration';
+  static const classDeclaration = 'class_declaration';
   static const enumDecl = 'enum_declaration';
-  static const referCtorExpr = 'refer_constructor_expression';
-  static const funcDecl = 'function_declaration';
+  static const referConstructorExpression = 'refer_constructor_expression';
+  static const functionDeclaration = 'function_declaration';
 
   static const importStmt = 'import_statement';
   static const exprStmt = 'expression_statement';
@@ -85,7 +91,4 @@ abstract class SemanticType {
   static const forStmt = 'for_statement';
   static const forInStmt = 'for_in_statement';
   static const whenStmt = 'when_statement';
-
-  static const module = 'module';
-  static const library = 'library';
 }

@@ -1,6 +1,7 @@
 /// All lexicons used by hetu
 abstract class HTLexicon {
-  static const defaultProgramMainFunc = 'main';
+  static const programEntry = 'main';
+  static const coreSpace = 'core';
 
   static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
@@ -104,7 +105,7 @@ abstract class HTLexicon {
     CONST,
   };
 
-  static const FUNTYPE = 'funtype';
+  static const FUNTYPE = 'def';
 
   static const ANY = 'any';
   static const VOID = 'void';
@@ -383,6 +384,9 @@ abstract class HTLexicon {
     semicolon,
   };
 
+  static const module = 'module';
+  static const library = 'library';
+
   static const math = 'Math';
   static const system = 'System';
   static const console = 'Console';
@@ -466,4 +470,6 @@ abstract class HTLexicon {
       'Unexpected refer constructor on normal function.';
   static const errorModuleImport = 'Module import handler error on file: [{0}]';
   static const errorClassOnInstance = 'Try to define a class on instance.';
+  static const errorVersion =
+      'Incompatible version - bytecode: [{0}], interpreter: [{1}]';
 }

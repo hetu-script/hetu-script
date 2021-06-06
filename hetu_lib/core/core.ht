@@ -2,10 +2,6 @@ abstract class object {
 
 }
 
-abstract class function {
-
-}
-
 // return the declaration type of a symbol
 // external fun decltypeof(value) -> str
 

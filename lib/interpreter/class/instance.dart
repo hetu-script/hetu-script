@@ -6,7 +6,7 @@ import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../type_system/type.dart';
 import '../../type_system/nominal_type.dart';
-import '../../analyzer/declaration/variable_declaration.dart';
+import '../../core/declaration/typed_variable_declaration.dart';
 import '../../core/object.dart';
 import '../../core/namespace/namespace.dart';
 import '../interpreter.dart';
@@ -86,7 +86,7 @@ class HTInstance with HTObject, HetuRef {
   @override
   String toString() {
     final func = memberGet('toString');
-    if (func is AbstractFunction) {
+    if (func is HTFunction) {
       return func.call();
     } else if (func is Function) {
       return func();
@@ -101,7 +101,8 @@ class HTInstance with HTObject, HetuRef {
     HTInstanceNamespace? curNamespace = namespace;
     while (curNamespace != null) {
       for (final decl in curNamespace.declarations.values) {
-        if (decl is! HTDeclaration || jsonObject.containsKey(decl.id)) {
+        if (decl is! TypedVariableDeclaration ||
+            jsonObject.containsKey(decl.id)) {
           continue;
         }
         jsonObject[decl.id] = decl.value;
@@ -142,7 +143,7 @@ class HTInstance with HTObject, HetuRef {
           }
 
           final value = space.declarations[varName]!.value;
-          if (value is AbstractFunction &&
+          if (value is HTFunction &&
               value.category != FunctionCategory.literal) {
             value.context = namespace;
           }
@@ -153,7 +154,7 @@ class HTInstance with HTObject, HetuRef {
             throw HTError.privateMember(varName);
           }
 
-          AbstractFunction func = space.declarations[getter]!.value;
+          HTFunction func = space.declarations[getter]!.value;
           func.context = namespace;
           return func.call();
         }
@@ -167,8 +168,7 @@ class HTInstance with HTObject, HetuRef {
         }
 
         final value = space.declarations[varName]!.value;
-        if (value is AbstractFunction &&
-            value.category != FunctionCategory.literal) {
+        if (value is HTFunction && value.category != FunctionCategory.literal) {
           value.context = _namespaces[classId];
         }
         return value;
@@ -178,7 +178,7 @@ class HTInstance with HTObject, HetuRef {
           throw HTError.privateMember(varName);
         }
 
-        AbstractFunction func = space.declarations[getter]!.value;
+        HTFunction func = space.declarations[getter]!.value;
         func.context = _namespaces[classId];
         return func.call();
       }
@@ -224,7 +224,7 @@ class HTInstance with HTObject, HetuRef {
             throw HTError.privateMember(varName);
           }
 
-          AbstractFunction method = space.declarations[setter]!.value;
+          HTFunction method = space.declarations[setter]!.value;
           method.context = namespace;
           method.call(positionalArgs: [varValue]);
           return;
@@ -251,7 +251,7 @@ class HTInstance with HTObject, HetuRef {
           throw HTError.privateMember(varName);
         }
 
-        var method = space.declarations[setter]! as AbstractFunction;
+        final method = space.declarations[setter]! as HTFunction;
         method.context = _namespaces[classId];
         method.call(positionalArgs: [varValue]);
         return;
@@ -268,7 +268,7 @@ class HTInstance with HTObject, HetuRef {
       List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
-      AbstractFunction func = memberGet(funcName, from: namespace.fullName);
+      HTFunction func = memberGet(funcName, from: namespace.fullName);
       return func.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,

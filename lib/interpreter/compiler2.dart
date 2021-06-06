@@ -4,14 +4,14 @@ import 'dart:convert';
 import '../core/abstract_parser.dart';
 import '../core/lexer.dart';
 import '../core/const_table.dart';
-import '../core/declaration/abstract_class.dart';
+import '../core/declaration/class_declaration.dart';
 import '../grammar/semantic.dart';
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import '../error/errors.dart';
 import '../source/source_provider.dart';
 import 'opcode.dart';
-import 'interpreter.dart';
+import '../ast/ast.dart' show ImportStmt;
 
 class HTRegIdx {
   static const value = 0;
@@ -34,13 +34,12 @@ class HTRegIdx {
   static const length = 16;
 }
 
-class BytecodeDeclarationBlock implements DeclarationBlock {
+class BytecodeDeclarationBlock {
   final enumDecls = <String, Uint8List>{};
   final funcDecls = <String, Uint8List>{};
   final classDecls = <String, Uint8List>{};
   final varDecls = <String, Uint8List>{};
 
-  @override
   bool contains(String id) =>
       enumDecls.containsKey(id) ||
       funcDecls.containsKey(id) ||
@@ -49,7 +48,7 @@ class BytecodeDeclarationBlock implements DeclarationBlock {
 }
 
 /// Utility class that parse a string content into a uint8 list
-class HTCompiler extends AbstractParser with HetuRef {
+class HTCompiler extends AbstractParser {
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
 
@@ -60,12 +59,17 @@ class HTCompiler extends AbstractParser with HetuRef {
   // late BytecodeDeclarationBlock _mainBlock;
   // late BytecodeDeclarationBlock _curBlock;
   // late HTBytecodeCompilation _curCompilation;
-  late List<ImportInfo> _curImports;
+  late List<ImportStmt> _curImports;
   late ConstTable _curConstTable;
   late String _curModuleFullName;
   @override
   String get curModuleFullName => _curModuleFullName;
-  AbstractClass? _curClass;
+
+  late String _curLibraryName;
+  @override
+  String get curLibraryName => _curLibraryName;
+
+  ClassDeclaration? _curClass;
   FunctionCategory? _curFuncType;
 
   var _leftValueLegality = false;
@@ -81,7 +85,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     _curClass = null;
     _curFuncType = null;
     // _curCompilation = HTBytecodeCompilation();
-    _curImports = <ImportInfo>[];
+    _curImports = <ImportStmt>[];
     _curConstTable = ConstTable();
 
     final tokens = Lexer().lex(content, fullName);
@@ -208,7 +212,7 @@ class HTCompiler extends AbstractParser with HetuRef {
                 advance(1);
                 if (curTok.type != HTLexicon.CLASS) {
                   throw HTError.unexpected(
-                      SemanticType.classDecl, curTok.lexeme);
+                      SemanticType.classDeclaration, curTok.lexeme);
                 }
                 final decl =
                     _parseClassDeclStmt(isAbstract: true, isExternal: true);
@@ -229,7 +233,7 @@ class HTCompiler extends AbstractParser with HetuRef {
               case HTLexicon.FUNCTION:
                 if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
                   throw HTError.unexpected(
-                      SemanticType.funcDecl, peek(1).lexeme);
+                      SemanticType.functionDeclaration, peek(1).lexeme);
                 }
                 final decl = _parseFuncDeclaration(isExternal: true);
                 bytesBuilder.add(decl);
@@ -241,7 +245,8 @@ class HTCompiler extends AbstractParser with HetuRef {
           case HTLexicon.ABSTRACT:
             advance(1);
             if (curTok.type != HTLexicon.CLASS) {
-              throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
+              throw HTError.unexpected(
+                  SemanticType.classDeclaration, curTok.lexeme);
             }
             final decl = _parseClassDeclStmt(isAbstract: true);
             bytesBuilder.add(decl);
@@ -327,7 +332,8 @@ class HTCompiler extends AbstractParser with HetuRef {
           case HTLexicon.ABSTRACT:
             advance(1);
             if (curTok.type != HTLexicon.CLASS) {
-              throw HTError.unexpected(SemanticType.classDecl, curTok.lexeme);
+              throw HTError.unexpected(
+                  SemanticType.classDeclaration, curTok.lexeme);
             }
             final decl = _parseClassDeclStmt(isAbstract: true);
             bytesBuilder.add(decl);
@@ -339,7 +345,7 @@ class HTCompiler extends AbstractParser with HetuRef {
                 advance(1);
                 if (curTok.type != HTLexicon.CLASS) {
                   throw HTError.unexpected(
-                      SemanticType.classDecl, curTok.lexeme);
+                      SemanticType.classDeclaration, curTok.lexeme);
                 }
                 final decl =
                     _parseClassDeclStmt(isAbstract: true, isExternal: true);
@@ -562,7 +568,7 @@ class HTCompiler extends AbstractParser with HetuRef {
   }
 
   void _parseImportStmt() {
-    advance(1);
+    final keyword = advance(1);
     String key = match(SemanticType.literalString).literal;
     String? alias;
     if (expect([HTLexicon.AS], consume: true)) {
@@ -588,12 +594,15 @@ class HTCompiler extends AbstractParser with HetuRef {
 
     expect([HTLexicon.semicolon], consume: true);
 
-    _curImports.add(ImportInfo(key, name: alias, showList: showList));
+    final stmt = ImportStmt(key, keyword.line, keyword.column,
+        alias: alias, showList: showList);
+
+    _curImports.add(stmt);
   }
 
   Uint8List _debugInfo() {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.debugInfo);
+    bytesBuilder.addByte(HTOpCode.lineInfo);
     final line = Uint8List(2)
       ..buffer.asByteData().setUint16(0, curTok.line, Endian.big);
     bytesBuilder.add(line);
@@ -1005,12 +1014,6 @@ class HTCompiler extends AbstractParser with HetuRef {
         case HTLexicon.logicalNot:
           bytesBuilder.addByte(HTOpCode.logicalNot);
           break;
-        case HTLexicon.preIncrement:
-          bytesBuilder.addByte(HTOpCode.preIncrement);
-          break;
-        case HTLexicon.preDecrement:
-          bytesBuilder.addByte(HTOpCode.preDecrement);
-          break;
       }
     } else {
       final value = _parseUnaryPostfixExpr();
@@ -1037,13 +1040,13 @@ class HTCompiler extends AbstractParser with HetuRef {
           bytesBuilder.add(key);
           bytesBuilder.addByte(HTOpCode.register);
           bytesBuilder.addByte(HTRegIdx.postfixKey);
-          bytesBuilder.addByte(HTOpCode.memberGet);
+          bytesBuilder.addByte(HTOpCode.member);
           break;
         case HTLexicon.subGet:
           final key = _parseExpr(endOfExec: true);
           _leftValueLegality = true;
           match(HTLexicon.squareRight);
-          bytesBuilder.addByte(HTOpCode.subGet);
+          bytesBuilder.addByte(HTOpCode.subscript);
           // sub get key is after opcode
           // it has to be exec with 'move reg index'
           bytesBuilder.add(key);
@@ -1053,14 +1056,6 @@ class HTCompiler extends AbstractParser with HetuRef {
           bytesBuilder.addByte(HTOpCode.call);
           final callArgs = _parseCallArguments();
           bytesBuilder.add(callArgs);
-          break;
-        case HTLexicon.postIncrement:
-          _leftValueLegality = false;
-          bytesBuilder.addByte(HTOpCode.postIncrement);
-          break;
-        case HTLexicon.postDecrement:
-          _leftValueLegality = false;
-          bytesBuilder.addByte(HTOpCode.postDecrement);
           break;
         default:
           break;
@@ -1084,19 +1079,19 @@ class HTCompiler extends AbstractParser with HetuRef {
         final value = curTok.literal;
         var index = _curConstTable.addInt(value);
         advance(1);
-        return _localConst(index, HTValueTypeCode.int64);
+        return _localConst(index, HTValueTypeCode.constInt);
       case SemanticType.literalFloat:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addFloat(value);
         advance(1);
-        return _localConst(index, HTValueTypeCode.float64);
+        return _localConst(index, HTValueTypeCode.constFloat);
       case SemanticType.literalString:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addString(value);
         advance(1);
-        return _localConst(index, HTValueTypeCode.utf8String);
+        return _localConst(index, HTValueTypeCode.constString);
       case HTLexicon.THIS:
         _leftValueLegality = false;
         advance(1);
@@ -1189,7 +1184,7 @@ class HTCompiler extends AbstractParser with HetuRef {
         match(HTLexicon.colon);
       }
 
-      paramType = _parseTypeExpr(isParam: true);
+      paramType = _parseTypeExpr();
 
       paramBytesBuilder.add(paramType);
       paramBytesBuilder.addByte(isOptional ? 1 : 0);
@@ -1228,16 +1223,13 @@ class HTCompiler extends AbstractParser with HetuRef {
   }
 
   // TODO: interface type
-  Uint8List _parseTypeExpr({bool localValue = false, bool isParam = false}) {
+  Uint8List _parseTypeExpr({bool localValue = false}) {
     if (curTok.type != HTLexicon.FUNCTION) {
       final bytesBuilder = BytesBuilder();
       if (localValue) {
         bytesBuilder.addByte(HTOpCode.local);
         bytesBuilder.addByte(HTValueTypeCode.type);
       }
-      bytesBuilder.addByte(isParam
-          ? TypeType.parameter.index
-          : TypeType.normal.index); // enum: normal type
       final id = match(SemanticType.identifier).lexeme;
 
       bytesBuilder.add(_shortUtf8String(id));
@@ -1428,7 +1420,6 @@ class HTCompiler extends AbstractParser with HetuRef {
     if (elseBranch != null) {
       bytesBuilder.add(elseBranch);
     }
-
     return bytesBuilder.toBytes();
   }
 
@@ -1496,7 +1487,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     final bytesBuilder = BytesBuilder();
 
     final index = _curConstTable.addInt(0);
-    final constExpr = _localConst(index, HTValueTypeCode.int64);
+    final constExpr = _localConst(index, HTValueTypeCode.constInt);
     bytesBuilder.add(constExpr);
     if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
@@ -1527,7 +1518,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     bytesBuilder.add(keySymbol);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
-    bytesBuilder.addByte(HTOpCode.memberGet);
+    bytesBuilder.addByte(HTOpCode.member);
     if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
@@ -1575,7 +1566,7 @@ class HTCompiler extends AbstractParser with HetuRef {
     _markedSymbolsList.add(newSymbolMap);
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-        throw HTError.unexpected(SemanticType.varDecl, curTok.type);
+        throw HTError.unexpected(SemanticType.variableDeclaration, curTok.type);
       }
       final declPos = tokPos;
       // jump over keywrod
@@ -1634,7 +1625,7 @@ class HTCompiler extends AbstractParser with HetuRef {
       final incrementBytesBuilder = BytesBuilder();
       final preIncreExpr = _assembleLocalSymbol(increId);
       incrementBytesBuilder.add(preIncreExpr);
-      incrementBytesBuilder.addByte(HTOpCode.preIncrement);
+      // incrementBytesBuilder.addByte(HTOpCode.preIncrement);
       increment = incrementBytesBuilder.toBytes();
 
       match(HTLexicon.roundRight);
@@ -1893,7 +1884,7 @@ class HTCompiler extends AbstractParser with HetuRef {
 
     advance(1);
 
-    String? externalId;
+    String? externalTypeId;
     if (!isExternal &&
         (isStatic ||
             category == FunctionCategory.normal ||
@@ -1902,7 +1893,7 @@ class HTCompiler extends AbstractParser with HetuRef {
         if (isExternal) {
           throw HTError.internalFuncWithExternalTypeDef();
         }
-        externalId = match(SemanticType.identifier).lexeme;
+        externalTypeId = match(SemanticType.identifier).lexeme;
         match(HTLexicon.squareRight);
       }
     }
@@ -1977,9 +1968,9 @@ class HTCompiler extends AbstractParser with HetuRef {
       //   match(HTLexicon.angleRight);
       // }
 
-      if (externalId != null) {
+      if (externalTypeId != null) {
         bytesBuilder.addByte(1);
-        bytesBuilder.add(_shortUtf8String(externalId));
+        bytesBuilder.add(_shortUtf8String(externalTypeId));
       } else {
         bytesBuilder.addByte(0);
       }
@@ -1993,9 +1984,9 @@ class HTCompiler extends AbstractParser with HetuRef {
       bytesBuilder.addByte(HTValueTypeCode.function);
       bytesBuilder.add(_shortUtf8String(id));
 
-      if (externalId != null) {
+      if (externalTypeId != null) {
         bytesBuilder.addByte(1);
-        bytesBuilder.add(_shortUtf8String(externalId));
+        bytesBuilder.add(_shortUtf8String(externalTypeId));
       } else {
         bytesBuilder.addByte(0);
       }
@@ -2058,11 +2049,11 @@ class HTCompiler extends AbstractParser with HetuRef {
         if (expect([HTLexicon.assign], consume: true)) {
           if (isOptional || isNamed) {
             initializer = _parseExpr(endOfExec: true);
-            paramBytesBuilder.addByte(1); // bool，表示有初始化表达式
+            paramBytesBuilder.addByte(1); // bool，hasInitializer
             paramBytesBuilder.add(_uint16(initializer.length));
             paramBytesBuilder.add(initializer);
           } else {
-            throw HTError.argInit();
+            throw HTError.argInit(); // bool，hasInitializer
           }
         } else {
           paramBytesBuilder.addByte(0);
@@ -2131,7 +2122,6 @@ class HTCompiler extends AbstractParser with HetuRef {
 
       bytesBuilder.addByte(FunctionAppendixType
           .referConstructor.index); // enum: return type or super constructor
-
       if (expect([HTLexicon.memberGet], consume: true)) {
         bytesBuilder.addByte(1); // bool: has super constructor name
         final superCtorId = match(SemanticType.identifier).lexeme;
@@ -2170,11 +2160,7 @@ class HTCompiler extends AbstractParser with HetuRef {
 
     _curFuncType = savedCurFuncType;
 
-    final bytes = bytesBuilder.toBytes();
-    // if (category != FunctionCategory.literal) {
-    //   _curBlock.funcDecls[id] = bytes;
-    // }
-    return bytes;
+    return bytesBuilder.toBytes();
   }
 
   Uint8List _parseClassDeclStmt(
@@ -2197,8 +2183,8 @@ class HTCompiler extends AbstractParser with HetuRef {
 
     final savedClass = _curClass;
 
-    _curClass =
-        AbstractClass(id, isExternal: isExternal, isAbstract: isAbstract);
+    _curClass = ClassDeclaration(id, _curModuleFullName, _curLibraryName,
+        isExternal: isExternal, isAbstract: isAbstract);
 
     bytesBuilder.addByte(isExternal ? 1 : 0);
     bytesBuilder.addByte(isAbstract ? 1 : 0);

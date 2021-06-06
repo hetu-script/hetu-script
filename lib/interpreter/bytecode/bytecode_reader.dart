@@ -5,7 +5,11 @@ import '../opcode.dart';
 
 class BytecodeReader {
   /// The bytecode, stores as uint8 list
-  late final Uint8List bytes;
+  Uint8List bytes;
+
+  BytecodeReader(this.bytes);
+
+  void changeCode(Uint8List newBytes) => bytes = newBytes;
 
   /// Instruction pointer
   var ip = 0;
