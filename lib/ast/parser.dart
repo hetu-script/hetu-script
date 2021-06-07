@@ -908,7 +908,7 @@ class HTAstParser extends AbstractParser {
       }
       match(HTLexicon.semicolon);
 
-      if (!expect([HTLexicon.semicolon], consume: false)) {
+      if (!expect([HTLexicon.roundRight], consume: false)) {
         increment = _parseExpr();
       }
       match(HTLexicon.roundRight);

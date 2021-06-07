@@ -196,16 +196,14 @@ class HTCompiler implements AbstractAstVisitor {
     final namedArgs = <String, Uint8List>{};
     for (final ast in posArgsNodes) {
       final argBytesBuilder = BytesBuilder();
-      final bytes = visitAstNode(ast);
+      final bytes = visitAstNode(ast, endOfExec: true);
       argBytesBuilder.add(bytes);
-      argBytesBuilder.addByte(HTOpCode.endOfExec);
       positionalArgs.add(argBytesBuilder.toBytes());
     }
     for (final name in namedArgs.keys) {
       final argBytesBuilder = BytesBuilder();
-      final bytes = visitAstNode(namedArgsNodes[name]!);
+      final bytes = visitAstNode(namedArgsNodes[name]!, endOfExec: true);
       argBytesBuilder.add(bytes);
-      argBytesBuilder.addByte(HTOpCode.endOfExec);
       namedArgs[name] = argBytesBuilder.toBytes();
     }
     bytesBuilder.addByte(positionalArgs.length);
@@ -236,7 +234,9 @@ class HTCompiler implements AbstractAstVisitor {
     final constExpr =
         _localConst(index, HTValueTypeCode.constInt, line, column);
     bytesBuilder.add(constExpr);
-    if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -296,7 +296,15 @@ class HTCompiler implements AbstractAstVisitor {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List visitAstNode(AstNode ast) => ast.accept(this);
+  Uint8List visitAstNode(AstNode ast, {bool endOfExec = false}) {
+    final bytesBuilder = BytesBuilder();
+    final bytes = ast.accept(this);
+    bytesBuilder.add(bytes);
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
+    return bytesBuilder.toBytes();
+  }
 
   @override
   Uint8List visitCommentExpr(CommentExpr expr) {
@@ -356,9 +364,8 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTValueTypeCode.list);
     bytesBuilder.add(_uint16(expr.list.length));
     for (final item in expr.list) {
-      final bytes = visitAstNode(item);
+      final bytes = visitAstNode(item, endOfExec: true);
       bytesBuilder.add(bytes);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
     }
     return bytesBuilder.toBytes();
   }
@@ -372,13 +379,11 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.map);
     bytesBuilder.add(_uint16(expr.map.length));
-    for (final ast in expr.map.values) {
-      final key = visitAstNode(ast);
+    for (final ast in expr.map.keys) {
+      final key = visitAstNode(ast, endOfExec: true);
       bytesBuilder.add(key);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
-      final value = visitAstNode(expr.map[ast]!);
+      final value = visitAstNode(expr.map[ast]!, endOfExec: true);
       bytesBuilder.add(value);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
     }
     return bytesBuilder.toBytes();
   }
@@ -388,9 +393,8 @@ class HTCompiler implements AbstractAstVisitor {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.group);
-    final innerExpr = visitAstNode(expr.inner);
+    final innerExpr = visitAstNode(expr.inner, endOfExec: true);
     bytesBuilder.add(innerExpr);
-    bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
 
@@ -415,7 +419,8 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.add(_shortUtf8String(symbolId));
     bytesBuilder.addByte(expr.isLocal ? 1 : 0);
     if (expr.typeArgs.isNotEmpty) {
-      bytesBuilder.addByte(1); // bool: has type args
+      bytesBuilder.addByte(1);
+      bytesBuilder.addByte(expr.typeArgs.length); // bool: has type args
       for (final ast in expr.typeArgs) {
         final bytes = visitTypeExpr(ast);
         bytesBuilder.add(bytes);
@@ -834,7 +839,6 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = visitSymbolExpr(expr.key);
     bytesBuilder.add(key);
-    bytesBuilder.addByte(1); // bool: isMember
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
     final value = visitAstNode(expr.value);
@@ -850,12 +854,11 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.add(array);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
-    final key = visitAstNode(expr.key);
+    final key = visitAstNode(expr.key, endOfExec: true);
     bytesBuilder.addByte(HTOpCode.subscript);
     // sub get key is after opcode
     // it has to be exec with 'move reg index'
     bytesBuilder.add(key);
-    bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
 
@@ -869,12 +872,10 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTOpCode.subAssign);
     // sub get key is after opcode
     // it has to be exec with 'move reg index'
-    final key = visitAstNode(expr.key);
+    final key = visitAstNode(expr.key, endOfExec: true);
     bytesBuilder.add(key);
-    bytesBuilder.addByte(HTOpCode.endOfExec);
-    final value = visitAstNode(expr.value);
+    final value = visitAstNode(expr.value, endOfExec: true);
     bytesBuilder.add(value);
-    bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
 
@@ -1019,7 +1020,7 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.add(_shortUtf8String(SemanticType.forStmtInit));
     Uint8List? condition;
     Uint8List? increment;
-    late AstNode capturedDecl;
+    AstNode? capturedDecl;
     final newSymbolMap = <String, String>{};
     _markedSymbolsList.add(newSymbolMap);
     if (stmt.declaration != null) {
@@ -1027,13 +1028,13 @@ class HTCompiler implements AbstractAstVisitor {
       final userDecl = stmt.declaration as VarDeclStmt;
       final markedId = '${HTLexicon.internalMarker}${userDecl.id}';
       newSymbolMap[userDecl.id] = markedId;
-      Uint8List? initBytes;
+      Uint8List? initializer;
       if (userDecl.initializer != null) {
-        initBytes = visitAstNode(userDecl.initializer!);
+        initializer = visitAstNode(userDecl.initializer!, endOfExec: true);
       }
       final initDecl = _assembleVarDeclStmt(
           markedId, userDecl.line, userDecl.column,
-          initializer: initBytes, isMutable: userDecl.isMutable);
+          initializer: initializer, isMutable: userDecl.isMutable);
       bytesBuilder.add(initDecl);
       // 这里是为了实现将变量声明移动到for循环语句块内部的效果
       final capturedInit = SymbolExpr(markedId, userDecl.line, userDecl.column);
@@ -1044,20 +1045,26 @@ class HTCompiler implements AbstractAstVisitor {
       condition = visitAstNode(stmt.condition!);
     }
     if (stmt.increment != null) {
-      condition = visitAstNode(stmt.increment!);
+      increment = visitAstNode(stmt.increment!);
     }
-    bytesBuilder.addByte(HTOpCode.loopPoint);
-    stmt.loop.statements.insert(0, capturedDecl);
+    if (capturedDecl != null) {
+      stmt.loop.statements.insert(0, capturedDecl);
+    }
     final loop = visitBlockStmt(stmt.loop);
     final continueLength = (condition?.length ?? 0) + loop.length + 2;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
+    bytesBuilder.addByte(HTOpCode.loopPoint);
     bytesBuilder.add(_uint16(continueLength));
     bytesBuilder.add(_uint16(breakLength));
-    if (condition != null) bytesBuilder.add(condition);
+    if (condition != null) {
+      bytesBuilder.add(condition);
+    }
     bytesBuilder.addByte(HTOpCode.whileStmt);
     bytesBuilder.addByte((condition != null) ? 1 : 0); // bool: has condition
     bytesBuilder.add(loop);
-    if (increment != null) bytesBuilder.add(increment);
+    if (increment != null) {
+      bytesBuilder.add(increment);
+    }
     bytesBuilder.addByte(HTOpCode.skip);
     bytesBuilder.add(_int16(-breakLength));
     _markedSymbolsList.removeLast();
@@ -1072,7 +1079,6 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.add(_shortUtf8String(SemanticType.forStmtInit));
     Uint8List? condition;
     Uint8List? increment;
-    late AstNode capturedDecl;
     // declare the increment variable
     final increId = HTLexicon.increment;
     final increInit = _assembleLocalConstInt(
@@ -1116,7 +1122,7 @@ class HTCompiler implements AbstractAstVisitor {
         stmt.collection.line,
         stmt.collection.column);
     // declared the captured variable
-    capturedDecl = VarDeclStmt(
+    final capturedDecl = VarDeclStmt(
         stmt.declaration.id, stmt.declaration.line, stmt.declaration.column,
         initializer: capturedDeclInit, isMutable: stmt.declaration.isMutable);
     final incrementBytesBuilder = BytesBuilder();
@@ -1135,8 +1141,8 @@ class HTCompiler implements AbstractAstVisitor {
     incrementBytesBuilder.add(preIncreExpr);
     incrementBytesBuilder.addByte(HTOpCode.assign);
     incrementBytesBuilder.addByte(HTOpCode.endOfExec);
-
     increment = incrementBytesBuilder.toBytes();
+
     bytesBuilder.addByte(HTOpCode.loopPoint);
     stmt.loop.statements.insert(0, capturedDecl);
     final loop = visitBlockStmt(stmt.loop);
@@ -1168,8 +1174,8 @@ class HTCompiler implements AbstractAstVisitor {
     if (stmt.elseBranch != null) {
       elseBranch = visitBlockStmt(stmt.elseBranch!);
     }
-    for (final ast in stmt.cases.values) {
-      final caseBytes = visitAstNode(ast);
+    for (final ast in stmt.cases.keys) {
+      final caseBytes = visitAstNode(ast, endOfExec: true);
       cases.add(caseBytes);
       final branchBytes = visitAstNode(stmt.cases[ast]!);
       branches.add(branchBytes);
@@ -1242,17 +1248,16 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
     Uint8List? initializer;
     if (stmt.initializer != null) {
-      initializer = visitAstNode(stmt.initializer!);
+      initializer = visitAstNode(stmt.initializer!, endOfExec: true);
     }
     if (initializer != null) {
       bytesBuilder.addByte(1); // bool: has initializer
       if (stmt.lateInitialize) {
         bytesBuilder.add(_uint16(stmt.initializer!.line));
         bytesBuilder.add(_uint16(stmt.initializer!.column));
-        bytesBuilder.add(_uint16(initializer.length + 1));
+        bytesBuilder.add(_uint16(initializer.length));
       }
       bytesBuilder.add(initializer);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
     } else {
       bytesBuilder.addByte(0); // bool: has initializer
     }
@@ -1269,11 +1274,10 @@ class HTCompiler implements AbstractAstVisitor {
     Uint8List? initializer;
     // 参数默认值
     if (stmt.initializer != null) {
-      initializer = visitAstNode(stmt.initializer!);
+      initializer = visitAstNode(stmt.initializer!, endOfExec: true);
       bytesBuilder.addByte(1); // bool, hasInitializer
-      bytesBuilder.add(_uint16(initializer.length + 1));
+      bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
     } else {
       bytesBuilder.addByte(0); // bool，hasInitializer
     }
@@ -1350,7 +1354,7 @@ class HTCompiler implements AbstractAstVisitor {
       bytesBuilder.addByte(1); // bool: has definition
       bytesBuilder.add(_uint16(stmt.definition!.line));
       bytesBuilder.add(_uint16(stmt.definition!.column));
-      final body = visitBlockStmt(stmt.definition!);
+      final body = visitAstNode(stmt.definition!);
       bytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
       bytesBuilder.add(body);
       bytesBuilder.addByte(HTOpCode.endOfFunc);
@@ -1384,9 +1388,8 @@ class HTCompiler implements AbstractAstVisitor {
     // TODO: deal with implements and mixins
     if (stmt.definition != null) {
       bytesBuilder.addByte(1); // bool: hasDefinition
-      final classDefinition = visitBlockStmt(stmt.definition!);
+      final classDefinition = visitAstNode(stmt.definition!, endOfExec: true);
       bytesBuilder.add(classDefinition);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
     } else {
       bytesBuilder.addByte(0); // bool: hasDefinition
     }

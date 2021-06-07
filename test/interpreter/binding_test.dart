@@ -145,7 +145,7 @@ void main() async {
     static get profile -> Profile
     static set profile(p: Profile)
   }
-  ''');
+  ''', namespace: hetu.coreNamespace);
 
   group('binding -', () {
     test('get & set', () async {
