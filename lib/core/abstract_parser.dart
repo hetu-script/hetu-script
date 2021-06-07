@@ -3,7 +3,6 @@ import '../error/errors.dart';
 import '../grammar/lexicon.dart';
 import 'token.dart';
 
-/// Configuration of [AbstractParser]
 class ParserConfig {
   final SourceType sourceType;
   final bool reload;

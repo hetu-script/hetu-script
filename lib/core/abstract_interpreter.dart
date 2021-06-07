@@ -46,8 +46,8 @@ class InterpreterConfig extends ParserConfig {
 abstract class HTInterpreter {
   static final version = Version(0, 1, 0);
 
-  final parser = HTAstParser();
-  final compiler = HTCompiler();
+  HTAstParser parser = HTAstParser();
+  HTCompiler compiler = HTCompiler();
 
   /// Current line number of execution.
   int get curLine;
@@ -55,12 +55,12 @@ abstract class HTInterpreter {
   /// Current column number of execution.
   int get curColumn;
 
-  String? get curModuleFullName;
+  String get curModuleFullName;
 
   String? get curSymbol;
   // String? get curLeftValue;
 
-  late final HTNamespace coreNamepace;
+  late final HTNamespace coreNamespace;
 
   HTNamespace get curNamespace;
 
@@ -72,7 +72,7 @@ abstract class HTInterpreter {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
-    coreNamepace = HTNamespace(this, id: HTLexicon.coreSpace);
+    coreNamespace = HTNamespace(this, id: HTLexicon.coreSpace);
   }
 
   Future<void> init(
@@ -86,7 +86,7 @@ abstract class HTInterpreter {
       if (coreModule) {
         for (final file in coreModules.keys) {
           await eval(coreModules[file]!,
-              moduleFullName: file, namespace: coreNamepace);
+              moduleFullName: file, namespace: coreNamespace);
         }
         for (var key in coreFunctions.keys) {
           bindExternalFunction(key, coreFunctions[key]!);

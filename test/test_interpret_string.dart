@@ -5,8 +5,9 @@ void main() async {
   await hetu.init();
   final result = await hetu.eval(r'''
     var i = 0
-    print(i++)
-    print(i)
+    var list = [1,2,3]
+    print(list[0]--)
+    print(list)
   ''',
       config: InterpreterConfig(sourceType: SourceType.script),
       invokeFunc: 'main');

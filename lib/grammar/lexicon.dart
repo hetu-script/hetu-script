@@ -179,7 +179,6 @@ abstract class HTLexicon {
     FINAL,
     CONST,
     FUNTYPE,
-    IMPORT,
     CLASS,
     ENUM,
     FUNCTION,
@@ -472,4 +471,5 @@ abstract class HTLexicon {
   static const errorClassOnInstance = 'Try to define a class on instance.';
   static const errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}]';
+  static const errorSourceType = 'config.sourcetype must be script or module.';
 }

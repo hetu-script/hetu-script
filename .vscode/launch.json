@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "test/test_itp.dart",
+      "program": "test/test_interpret_file.dart",
       "request": "launch",
       "type": "dart"
     }

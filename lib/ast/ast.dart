@@ -285,7 +285,7 @@ class MemberAssignExpr extends AstNode {
 //       : super(SemanticType.memberGetExpr, line, column);
 // }
 
-class SubGetExpr extends AstNode {
+class SubExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubExpr(this);
 
@@ -293,7 +293,7 @@ class SubGetExpr extends AstNode {
 
   final AstNode key;
 
-  const SubGetExpr(this.array, this.key, int line, int column)
+  const SubExpr(this.array, this.key, int line, int column)
       : super(SemanticType.subGetExpr, line, column);
 }
 
@@ -352,6 +352,14 @@ class UnaryPostfixExpr extends AstNode {
       : super(SemanticType.unaryExpr, line, column);
 }
 
+class LibraryStmt extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitLibraryStmt(this);
+
+  const LibraryStmt(int line, int column)
+      : super(SemanticType.libraryStmt, line, column);
+}
+
 class ImportStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitImportStmt(this);
@@ -362,7 +370,7 @@ class ImportStmt extends AstNode {
 
   final List<String>? showList;
 
-  const ImportStmt(this.key, line, column, {this.alias, this.showList})
+  const ImportStmt(this.key, int line, int column, {this.alias, this.showList})
       : super(SemanticType.importStmt, line, column);
 }
 

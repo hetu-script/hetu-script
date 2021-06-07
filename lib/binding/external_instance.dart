@@ -32,8 +32,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       externalClass = null;
     }
 
-    if (interpreter.coreNamepace.contains(id)) {
-      klass = interpreter.coreNamepace.memberGet(id);
+    if (interpreter.coreNamespace.contains(id)) {
+      klass = interpreter.coreNamespace.memberGet(id);
       valueType = HTNominalType(klass!);
     } else {
       klass = null;

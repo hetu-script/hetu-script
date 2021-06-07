@@ -7,6 +7,8 @@ import 'source.dart';
 
 /// Abstract module import handler class
 abstract class SourceProvider {
+  String get workingDirectory;
+
   bool hasModule(String path);
 
   String resolveFullName(String key, [String? currentModuleFullName]);
@@ -20,6 +22,7 @@ abstract class SourceProvider {
 /// Default module import handler implementation
 class DefaultSourceProvider implements SourceProvider {
   /// Absolute path used when no relative path exists
+  @override
   late final String workingDirectory;
 
   /// Saved module name list

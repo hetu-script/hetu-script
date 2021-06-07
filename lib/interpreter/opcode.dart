@@ -48,15 +48,17 @@ abstract class HTOpCode {
 
   static const endOfFunc = 19;
 
-  static const constTable = 20;
+  static const endOfModule = 20;
 
-  static const enumDecl = 21;
+  static const constTable = 21;
 
-  static const funcDecl = 22;
+  static const enumDecl = 22;
 
-  static const classDecl = 23;
+  static const funcDecl = 23;
 
-  static const varDecl = 24;
+  static const classDecl = 24;
+
+  static const varDecl = 25;
 
   static const ifStmt = 30;
 

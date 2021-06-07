@@ -63,7 +63,8 @@ enum ErrorCode {
   internalFuncWithExternalTypeDef,
   moduleImport,
   classOnInstance,
-  version
+  version,
+  sourceType
 }
 
 /// The severity of an [ErrorCode].
@@ -549,4 +550,9 @@ class HTError {
   HTError.version(String codeVer, String itpVer)
       : this(ErrorCode.version, ErrorType.runtimeError,
             message: HTLexicon.errorVersion, interpolations: [codeVer, itpVer]);
+
+  /// Error: Unevalable source type.
+  HTError.sourceType()
+      : this(ErrorCode.sourceType, ErrorType.runtimeError,
+            message: HTLexicon.errorSourceType);
 }

@@ -78,6 +78,7 @@ abstract class SemanticType {
   static const referConstructorExpression = 'refer_constructor_expression';
   static const functionDeclaration = 'function_declaration';
 
+  static const libraryStmt = 'library_statement';
   static const importStmt = 'import_statement';
   static const exprStmt = 'expression_statement';
   static const blockStmt = 'block_statement';

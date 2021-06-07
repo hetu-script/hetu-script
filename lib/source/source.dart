@@ -9,15 +9,18 @@ enum SourceType {
   /// import & export statement.
   module,
 
-  /// Class can only have declarations (variables, functions).
-  klass,
-
   /// Function & block can have declarations (variables, functions),
   /// expression & control statements.
   function,
 
   /// A script can have all statements.
   script,
+
+  /// Class can only have declarations (variables, functions).
+  klass,
+
+  /// Literal struct definition (fields).
+  struct,
 }
 
 class HTSource {

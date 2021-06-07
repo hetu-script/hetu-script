@@ -111,6 +111,7 @@ class HTCompiler implements AbstractAstVisitor {
         final bytes = visitAstNode(node);
         bytesBuilder.add(bytes);
       }
+      bytesBuilder.addByte(HTOpCode.endOfModule);
     }
     final code = bytesBuilder.toBytes();
 
@@ -268,14 +269,16 @@ class HTCompiler implements AbstractAstVisitor {
   }
 
   Uint8List _assembleVarDeclStmt(String id, int line, int column,
-      {Uint8List? initializer, bool lateInitialize = false}) {
+      {Uint8List? initializer,
+      bool isMutable = true,
+      bool lateInitialize = false}) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.add(_shortUtf8String(id));
     bytesBuilder.addByte(0); // bool: hasClassId
     bytesBuilder.addByte(0); // bool: isExternal
     bytesBuilder.addByte(0); // bool: isStatic
-    bytesBuilder.addByte(1); // bool: isMutable
+    bytesBuilder.addByte(isMutable ? 1 : 0); // bool: isMutable
     bytesBuilder.addByte(0); // bool: isConst
     bytesBuilder.addByte(0); // bool: isExported
     bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
@@ -488,34 +491,54 @@ class HTCompiler implements AbstractAstVisitor {
         bytesBuilder.addByte(HTOpCode.logicalNot);
         break;
       case HTLexicon.preIncrement:
-        bytesBuilder.addByte(HTOpCode.local);
-        bytesBuilder.addByte(HTValueTypeCode.group);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        final right = _assembleLocalConstInt(1, expr.line, expr.column);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.add);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.assign);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
+        final constOne = ConstIntExpr(1, expr.line, expr.column);
+        late final AstNode value;
+        if (expr.value is MemberExpr) {
+          final memberExpr = expr.value as MemberExpr;
+          final add = BinaryExpr(memberExpr, HTLexicon.add, constOne,
+              memberExpr.line, memberExpr.column);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, add,
+              memberExpr.line, memberExpr.column);
+        } else if (expr.value is SubExpr) {
+          final subExpr = expr.value as SubExpr;
+          final add = BinaryExpr(
+              subExpr, HTLexicon.add, constOne, subExpr.line, subExpr.column);
+          value = SubAssignExpr(
+              subExpr.array, subExpr.key, add, subExpr.line, subExpr.column);
+        } else {
+          final add = BinaryExpr(expr.value, HTLexicon.add, constOne,
+              expr.value.line, expr.value.column);
+          value = BinaryExpr(expr.value, HTLexicon.assign, add, expr.value.line,
+              expr.value.column);
+        }
+        final group = GroupExpr(value, value.line, value.column);
+        final bytes = visitAstNode(group);
+        bytesBuilder.add(bytes);
         break;
       case HTLexicon.preDecrement:
-        bytesBuilder.addByte(HTOpCode.local);
-        bytesBuilder.addByte(HTValueTypeCode.group);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        final right = _assembleLocalConstInt(1, expr.line, expr.column);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.subtract);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.assign);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
+        final constOne = ConstIntExpr(1, expr.line, expr.column);
+        late final AstNode value;
+        if (expr.value is MemberExpr) {
+          final memberExpr = expr.value as MemberExpr;
+          final subtract = BinaryExpr(memberExpr, HTLexicon.subtract, constOne,
+              memberExpr.line, memberExpr.column);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, subtract,
+              memberExpr.line, memberExpr.column);
+        } else if (expr.value is SubExpr) {
+          final subExpr = expr.value as SubExpr;
+          final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne,
+              subExpr.line, subExpr.column);
+          value = SubAssignExpr(subExpr.array, subExpr.key, subtract,
+              subExpr.line, subExpr.column);
+        } else {
+          final subtract = BinaryExpr(expr.value, HTLexicon.subtract, constOne,
+              expr.value.line, expr.value.column);
+          value = BinaryExpr(expr.value, HTLexicon.assign, subtract,
+              expr.value.line, expr.value.column);
+        }
+        final group = GroupExpr(value, value.line, value.column);
+        final bytes = visitAstNode(group);
+        bytesBuilder.add(bytes);
         break;
     }
     return bytesBuilder.toBytes();
@@ -728,50 +751,60 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     switch (expr.op) {
       case HTLexicon.postIncrement:
-        bytesBuilder.addByte(HTOpCode.local);
-        bytesBuilder.addByte(HTValueTypeCode.group);
-        bytesBuilder.addByte(HTOpCode.local);
-        bytesBuilder.addByte(HTValueTypeCode.group);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        final right = _assembleLocalConstInt(1, expr.line, expr.column);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.add);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.assign);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        final right2 = _assembleLocalConstInt(1, expr.line, expr.column);
-        bytesBuilder.add(right2);
-        bytesBuilder.addByte(HTOpCode.subtract);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
+        final constOne = ConstIntExpr(1, expr.line, expr.column);
+        late final AstNode value;
+        if (expr.value is MemberExpr) {
+          final memberExpr = expr.value as MemberExpr;
+          final add = BinaryExpr(memberExpr, HTLexicon.add, constOne,
+              memberExpr.line, memberExpr.column);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, add,
+              memberExpr.line, memberExpr.column);
+        } else if (expr.value is SubExpr) {
+          final subExpr = expr.value as SubExpr;
+          final add = BinaryExpr(
+              subExpr, HTLexicon.add, constOne, subExpr.line, subExpr.column);
+          value = SubAssignExpr(
+              subExpr.array, subExpr.key, add, subExpr.line, subExpr.column);
+        } else {
+          final add = BinaryExpr(expr.value, HTLexicon.add, constOne,
+              expr.value.line, expr.value.column);
+          value = BinaryExpr(expr.value, HTLexicon.assign, add, expr.value.line,
+              expr.value.column);
+        }
+        final group = GroupExpr(value, value.line, value.column);
+        final subtract = BinaryExpr(
+            group, HTLexicon.subtract, constOne, group.line, group.column);
+        final group2 = GroupExpr(subtract, subtract.line, subtract.column);
+        final bytes = visitAstNode(group2);
+        bytesBuilder.add(bytes);
         break;
       case HTLexicon.postDecrement:
-        bytesBuilder.addByte(HTOpCode.local);
-        bytesBuilder.addByte(HTValueTypeCode.group);
-        bytesBuilder.addByte(HTOpCode.local);
-        bytesBuilder.addByte(HTValueTypeCode.group);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        final right = _assembleLocalConstInt(1, expr.line, expr.column);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.subtract);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.assign);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        final right2 = _assembleLocalConstInt(1, expr.line, expr.column);
-        bytesBuilder.add(right2);
-        bytesBuilder.addByte(HTOpCode.add);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
+        final constOne = ConstIntExpr(1, expr.line, expr.column);
+        late final AstNode value;
+        if (expr.value is MemberExpr) {
+          final memberExpr = expr.value as MemberExpr;
+          final subtract = BinaryExpr(memberExpr, HTLexicon.subtract, constOne,
+              memberExpr.line, memberExpr.column);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, subtract,
+              memberExpr.line, memberExpr.column);
+        } else if (expr.value is SubExpr) {
+          final subExpr = expr.value as SubExpr;
+          final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne,
+              subExpr.line, subExpr.column);
+          value = SubAssignExpr(subExpr.array, subExpr.key, subtract,
+              subExpr.line, subExpr.column);
+        } else {
+          final subtract = BinaryExpr(expr.value, HTLexicon.subtract, constOne,
+              expr.value.line, expr.value.column);
+          value = BinaryExpr(expr.value, HTLexicon.assign, subtract,
+              expr.value.line, expr.value.column);
+        }
+        final group = GroupExpr(value, value.line, value.column);
+        final add = BinaryExpr(
+            group, HTLexicon.add, constOne, group.line, group.column);
+        final group2 = GroupExpr(add, add.line, add.column);
+        final bytes = visitAstNode(group2);
+        bytesBuilder.add(bytes);
         break;
     }
     return bytesBuilder.toBytes();
@@ -811,7 +844,7 @@ class HTCompiler implements AbstractAstVisitor {
   }
 
   @override
-  Uint8List visitSubExpr(SubGetExpr expr) {
+  Uint8List visitSubExpr(SubExpr expr) {
     final bytesBuilder = BytesBuilder();
     final array = visitAstNode(expr.array);
     bytesBuilder.add(array);
@@ -887,6 +920,11 @@ class HTCompiler implements AbstractAstVisitor {
       bytesBuilder.addByte(HTOpCode.endOfBlock);
     }
     return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitLibraryStmt(LibraryStmt stmt) {
+    return Uint8List(0);
   }
 
   @override
@@ -989,12 +1027,14 @@ class HTCompiler implements AbstractAstVisitor {
       final userDecl = stmt.declaration as VarDeclStmt;
       final markedId = '${HTLexicon.internalMarker}${userDecl.id}';
       newSymbolMap[userDecl.id] = markedId;
-      final initDecl = VarDeclStmt(markedId, userDecl.line, userDecl.column,
-          declType: userDecl.declType,
-          initializer: userDecl.initializer,
-          isMutable: userDecl.isMutable);
-      final initDeclBytes = visitAstNode(initDecl);
-      bytesBuilder.add(initDeclBytes);
+      Uint8List? initBytes;
+      if (userDecl.initializer != null) {
+        initBytes = visitAstNode(userDecl.initializer!);
+      }
+      final initDecl = _assembleVarDeclStmt(
+          markedId, userDecl.line, userDecl.column,
+          initializer: initBytes, isMutable: userDecl.isMutable);
+      bytesBuilder.add(initDecl);
       // 这里是为了实现将变量声明移动到for循环语句块内部的效果
       final capturedInit = SymbolExpr(markedId, userDecl.line, userDecl.column);
       capturedDecl = VarDeclStmt(userDecl.id, userDecl.line, userDecl.column,

@@ -40,7 +40,7 @@ abstract class AbstractAstVisitor {
 
   dynamic visitMemberAssignExpr(MemberAssignExpr expr);
 
-  dynamic visitSubExpr(SubGetExpr expr);
+  dynamic visitSubExpr(SubExpr expr);
 
   dynamic visitSubAssignExpr(SubAssignExpr expr);
 
@@ -49,6 +49,8 @@ abstract class AbstractAstVisitor {
   dynamic visitExprStmt(ExprStmt stmt);
 
   dynamic visitBlockStmt(BlockStmt block);
+
+  dynamic visitLibraryStmt(LibraryStmt stmt);
 
   dynamic visitImportStmt(ImportStmt stmt);
 

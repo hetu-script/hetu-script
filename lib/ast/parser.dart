@@ -27,6 +27,9 @@ class HTAstParser extends AbstractParser {
   var _leftValueLegality = false;
   final List<Map<String, String>> _markedSymbolsList = [];
 
+  bool _isLibrary = false;
+  late String _libraryName;
+
   Future<HTAstLibrary> parseFile(String path, SourceProvider sourceProvider,
       {ParserConfig config = const ParserConfig()}) async {
     final module = await sourceProvider.getSource(path);
@@ -62,7 +65,9 @@ class HTAstParser extends AbstractParser {
     }
 
     final srcPrvdr = sourceProvider ?? DefaultSourceProvider();
-    for (final stmt in _curModuleImports) {
+    final imports = _curModuleImports;
+    final importInfos = <ImportInfo>[];
+    for (final stmt in imports) {
       final importedFullName =
           srcPrvdr.resolveFullName(stmt.key, _curModuleFullName);
       if (!srcPrvdr.hasModule(importedFullName)) {
@@ -73,10 +78,11 @@ class HTAstParser extends AbstractParser {
         _curModuleFullName = fullName;
         bundle.join(bundle2);
       }
+      importInfos.add(ImportInfo.fromAst(stmt, importedFullName));
     }
 
-    final module =
-        HTAstModule(fullName, content, code, createNamespace: createNamespace);
+    final module = HTAstModule(fullName, content, code, importInfos,
+        createNamespace: createNamespace, isLibrary: _isLibrary);
 
     bundle.add(module);
 
@@ -86,131 +92,139 @@ class HTAstParser extends AbstractParser {
   AstNode _parseStmt({SourceType sourceType = SourceType.function}) {
     switch (sourceType) {
       case SourceType.script:
-        switch (curTok.type) {
-          case SemanticType.singleLineComment:
-          case SemanticType.multiLineComment:
-            return _parseExprStmt();
-          case HTLexicon.IMPORT:
-            return _parseImportStmt();
-          case HTLexicon.EXTERNAL:
-            advance(1);
-            switch (curTok.type) {
-              case HTLexicon.ABSTRACT:
-                advance(1);
-                return _parseClassDecl(isAbstract: true, isExternal: true);
-              case HTLexicon.CLASS:
-                return _parseClassDecl(isExternal: true);
-              case HTLexicon.ENUM:
-                return _parseEnumDecl(isExternal: true);
-              case HTLexicon.VAR:
-              case HTLexicon.LET:
-              case HTLexicon.CONST:
-                throw HTError.externalVar();
-              case HTLexicon.FUNCTION:
-                return _parseFuncDecl(isExternal: true);
-              default:
-                throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
-            }
-          case HTLexicon.ABSTRACT:
-            advance(1);
-            return _parseClassDecl(isAbstract: true);
-          case HTLexicon.ENUM:
-            return _parseEnumDecl();
-          case HTLexicon.CLASS:
-            return _parseClassDecl();
-          case HTLexicon.VAR:
-            return _parseVarDecl(isMutable: true);
-          case HTLexicon.LET:
-            return _parseVarDecl(typeInferrence: true, isMutable: true);
-          case HTLexicon.CONST:
-            return _parseVarDecl(typeInferrence: true);
-          case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
-                expect([
-                  HTLexicon.FUNCTION,
-                  HTLexicon.squareLeft,
-                  SemanticType.identifier,
-                  HTLexicon.squareRight,
-                  SemanticType.identifier
-                ])) {
-              return _parseFuncDecl();
-            } else {
-              return _parseFuncDecl(category: FunctionCategory.literal);
-            }
-          case HTLexicon.IF:
-            return _parseIfStmt();
-          case HTLexicon.WHILE:
-            return _parseWhileStmt();
-          case HTLexicon.DO:
-            return _parseDoStmt();
-          case HTLexicon.FOR:
-            return _parseForStmt();
-          case HTLexicon.WHEN:
-            return _parseWhenStmt();
-          default:
-            return _parseExprStmt();
+        if (curTok.lexeme == HTLexicon.IMPORT) {
+          return _parseImportStmt();
+        } else {
+          switch (curTok.type) {
+            case SemanticType.singleLineComment:
+            case SemanticType.multiLineComment:
+              return _parseExprStmt();
+            case HTLexicon.EXTERNAL:
+              advance(1);
+              switch (curTok.type) {
+                case HTLexicon.ABSTRACT:
+                  advance(1);
+                  return _parseClassDecl(isAbstract: true, isExternal: true);
+                case HTLexicon.CLASS:
+                  return _parseClassDecl(isExternal: true);
+                case HTLexicon.ENUM:
+                  return _parseEnumDecl(isExternal: true);
+                case HTLexicon.VAR:
+                case HTLexicon.LET:
+                case HTLexicon.CONST:
+                  throw HTError.externalVar();
+                case HTLexicon.FUNCTION:
+                  return _parseFuncDecl(isExternal: true);
+                default:
+                  throw HTError.unexpected(
+                      SemanticType.declStmt, curTok.lexeme);
+              }
+            case HTLexicon.ABSTRACT:
+              advance(1);
+              return _parseClassDecl(isAbstract: true);
+            case HTLexicon.ENUM:
+              return _parseEnumDecl();
+            case HTLexicon.CLASS:
+              return _parseClassDecl();
+            case HTLexicon.VAR:
+              return _parseVarDecl(isMutable: true);
+            case HTLexicon.LET:
+              return _parseVarDecl(typeInferrence: true, isMutable: true);
+            case HTLexicon.CONST:
+              return _parseVarDecl(typeInferrence: true);
+            case HTLexicon.FUNCTION:
+              if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
+                  expect([
+                    HTLexicon.FUNCTION,
+                    HTLexicon.squareLeft,
+                    SemanticType.identifier,
+                    HTLexicon.squareRight,
+                    SemanticType.identifier
+                  ])) {
+                return _parseFuncDecl();
+              } else {
+                return _parseFuncDecl(category: FunctionCategory.literal);
+              }
+            case HTLexicon.IF:
+              return _parseIfStmt();
+            case HTLexicon.WHILE:
+              return _parseWhileStmt();
+            case HTLexicon.DO:
+              return _parseDoStmt();
+            case HTLexicon.FOR:
+              return _parseForStmt();
+            case HTLexicon.WHEN:
+              return _parseWhenStmt();
+            default:
+              return _parseExprStmt();
+          }
         }
       case SourceType.module:
-        switch (curTok.type) {
-          case SemanticType.singleLineComment:
-          case SemanticType.multiLineComment:
-            return _parseExprStmt();
-          case HTLexicon.IMPORT:
-            return _parseImportStmt();
-          case HTLexicon.ABSTRACT:
-            advance(1);
-            if (curTok.type != HTLexicon.CLASS) {
-              throw HTError.unexpected(
-                  SemanticType.classDeclaration, curTok.lexeme);
-            }
-            return _parseClassDecl(isAbstract: true);
-          case HTLexicon.EXTERNAL:
-            advance(1);
-            switch (curTok.type) {
-              case HTLexicon.ABSTRACT:
-                advance(1);
-                if (curTok.type != HTLexicon.CLASS) {
+        if (curTok.lexeme == HTLexicon.library) {
+          return _parseLibraryStmt();
+        } else if (curTok.lexeme == HTLexicon.IMPORT) {
+          return _parseImportStmt();
+        } else {
+          switch (curTok.type) {
+            case SemanticType.singleLineComment:
+            case SemanticType.multiLineComment:
+              return _parseExprStmt();
+            case HTLexicon.ABSTRACT:
+              advance(1);
+              if (curTok.type != HTLexicon.CLASS) {
+                throw HTError.unexpected(
+                    SemanticType.classDeclaration, curTok.lexeme);
+              }
+              return _parseClassDecl(isAbstract: true);
+            case HTLexicon.EXTERNAL:
+              advance(1);
+              switch (curTok.type) {
+                case HTLexicon.ABSTRACT:
+                  advance(1);
+                  if (curTok.type != HTLexicon.CLASS) {
+                    throw HTError.unexpected(
+                        SemanticType.classDeclaration, curTok.lexeme);
+                  }
+                  return _parseClassDecl(isAbstract: true, isExternal: true);
+                case HTLexicon.CLASS:
+                  return _parseClassDecl(isExternal: true);
+                case HTLexicon.ENUM:
+                  return _parseEnumDecl(isExternal: true);
+                case HTLexicon.FUNCTION:
+                  if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
+                    throw HTError.unexpected(
+                        SemanticType.functionDeclaration, peek(1).lexeme);
+                  }
+                  return _parseFuncDecl(isExternal: true);
+                case HTLexicon.VAR:
+                case HTLexicon.LET:
+                case HTLexicon.CONST:
+                  throw HTError.externalVar();
+                default:
                   throw HTError.unexpected(
-                      SemanticType.classDeclaration, curTok.lexeme);
-                }
-                return _parseClassDecl(isAbstract: true, isExternal: true);
-              case HTLexicon.CLASS:
-                return _parseClassDecl(isExternal: true);
-              case HTLexicon.ENUM:
-                return _parseEnumDecl(isExternal: true);
-              case HTLexicon.FUNCTION:
-                if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
-                  throw HTError.unexpected(
-                      SemanticType.functionDeclaration, peek(1).lexeme);
-                }
-                return _parseFuncDecl(isExternal: true);
-              case HTLexicon.VAR:
-              case HTLexicon.LET:
-              case HTLexicon.CONST:
-                throw HTError.externalVar();
-              default:
-                throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
-            }
-          case HTLexicon.ENUM:
-            return _parseEnumDecl(isExported: true);
-          case HTLexicon.CLASS:
-            return _parseClassDecl(isExported: true);
-          case HTLexicon.VAR:
-            return _parseVarDecl(
-                isMutable: true, isExported: true, lateInitialize: true);
-          case HTLexicon.LET:
-            return _parseVarDecl(
-                typeInferrence: true,
-                isMutable: true,
-                isExported: true,
-                lateInitialize: true);
-          case HTLexicon.CONST:
-            return _parseVarDecl(
-                typeInferrence: true, isExported: true, lateInitialize: true);
-          case HTLexicon.FUNCTION:
-            return _parseFuncDecl(isExported: true);
-          default:
-            throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
+                      SemanticType.declStmt, curTok.lexeme);
+              }
+            case HTLexicon.ENUM:
+              return _parseEnumDecl(isExported: true);
+            case HTLexicon.CLASS:
+              return _parseClassDecl(isExported: true);
+            case HTLexicon.VAR:
+              return _parseVarDecl(
+                  isMutable: true, isExported: true, lateInitialize: true);
+            case HTLexicon.LET:
+              return _parseVarDecl(
+                  typeInferrence: true,
+                  isMutable: true,
+                  isExported: true,
+                  lateInitialize: true);
+            case HTLexicon.CONST:
+              return _parseVarDecl(
+                  typeInferrence: true, isExported: true, lateInitialize: true);
+            case HTLexicon.FUNCTION:
+              return _parseFuncDecl(isExported: true);
+            default:
+              throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
+          }
         }
       case SourceType.function:
         switch (curTok.type) {
@@ -315,14 +329,27 @@ class HTAstParser extends AbstractParser {
           default:
             throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
         }
+      case SourceType.struct:
       case SourceType.expression:
         return _parseExpr();
     }
   }
 
+  LibraryStmt _parseLibraryStmt() {
+    final keyword = advance(1);
+
+    _isLibrary = true;
+
+    expect([HTLexicon.semicolon], consume: true);
+
+    final stmt = LibraryStmt(keyword.line, keyword.column);
+
+    return stmt;
+  }
+
   ImportStmt _parseImportStmt() {
     final keyword = advance(1);
-    String key = match(HTLexicon.string).literal;
+    String key = match(SemanticType.literalString).literal;
     String? alias;
     if (expect([HTLexicon.AS], consume: true)) {
       alias = match(SemanticType.identifier).lexeme;
@@ -374,7 +401,7 @@ class HTAstParser extends AbstractParser {
         if (left is MemberExpr) {
           return MemberAssignExpr(
               left.object, left.key, right, left.line, left.column);
-        } else if (left is SubGetExpr) {
+        } else if (left is SubExpr) {
           return SubAssignExpr(
               left.array, left.key, right, left.line, left.column);
         } else {
@@ -520,7 +547,7 @@ class HTAstParser extends AbstractParser {
           var indexExpr = _parseExpr();
           _leftValueLegality = true;
           match(HTLexicon.squareRight);
-          expr = SubGetExpr(expr, indexExpr, op.line, op.column);
+          expr = SubExpr(expr, indexExpr, op.line, op.column);
           break;
         case HTLexicon.call:
           // TODO: typeArgs: typeArgs

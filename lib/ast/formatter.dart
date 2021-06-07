@@ -273,7 +273,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitSubExpr(SubGetExpr expr) {
+  String visitSubExpr(SubExpr expr) {
     final collectionString = visitAstNode(expr.array);
     final keyString = visitAstNode(expr.key);
     return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight}';
@@ -285,6 +285,13 @@ class HTFormatter implements AbstractAstVisitor {
     final keyString = visitAstNode(expr.key);
     //TODO: sub assign
     return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight} ';
+  }
+
+  @override
+  String visitLibraryStmt(LibraryStmt stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.library} ');
+    return output.toString();
   }
 
   @override

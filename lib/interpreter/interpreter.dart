@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../binding/external_function.dart';
+import '../binding/external_class.dart';
 import '../core/abstract_interpreter.dart';
 import '../core/namespace/namespace.dart';
 import '../core/object.dart';
@@ -30,12 +31,6 @@ mixin HetuRef {
   late final Hetu interpreter;
 }
 
-enum _RefType {
-  normal,
-  member,
-  sub,
-}
-
 class _LoopInfo {
   final int startIp;
   final int continueIp;
@@ -44,13 +39,21 @@ class _LoopInfo {
   _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
+class _Library {
+  final Map<String, HTNamespace> namespaces;
+
+  final Uint8List bytes;
+
+  _Library(this.namespaces, this.bytes);
+}
+
 /// A bytecode implementation of a Hetu script interpreter
 class Hetu extends HTInterpreter {
   static const verMajor = 0;
   static const verMinor = 1;
   static const verPatch = 0;
 
-  final _libs = <String, Uint8List>{};
+  final _libs = <String, _Library>{};
 
   late BytecodeReader _code;
 
@@ -91,10 +94,10 @@ class Hetu extends HTInterpreter {
       _registers[_getRegIndex(HTRegIdx.leftValue)] = value;
   dynamic get curLeftValue =>
       _registers[_getRegIndex(HTRegIdx.leftValue)] ?? _curNamespace;
-  set _curRefType(_RefType value) =>
-      _registers[_getRegIndex(HTRegIdx.refType)] = value;
-  _RefType get _curRefType =>
-      _registers[_getRegIndex(HTRegIdx.refType)] ?? _RefType.normal;
+  // set _curRefType(_RefType value) =>
+  //     _registers[_getRegIndex(HTRegIdx.refType)] = value;
+  // _RefType get _curRefType =>
+  //     _registers[_getRegIndex(HTRegIdx.refType)] ?? _RefType.normal;
   set _curTypeArgs(List<HTType> value) =>
       _registers[_getRegIndex(HTRegIdx.typeArgs)] = value;
   List<HTType> get _curTypeArgs =>
@@ -118,7 +121,24 @@ class Hetu extends HTInterpreter {
   /// Each interpreter has a independent global [HTNamespace].
   Hetu({HTErrorHandler? errorHandler, SourceProvider? sourceProvider})
       : super(errorHandler: errorHandler, sourceProvider: sourceProvider) {
-    _curNamespace = coreNamepace;
+    _curNamespace = coreNamespace;
+  }
+
+  @override
+  Future<void> init(
+      {bool coreModule = true,
+      List<HTExternalClass> externalClasses = const [],
+      Map<String, Function> externalFunctions = const {},
+      Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
+          const {}}) async {
+    await super.init(
+        coreModule: coreModule,
+        externalClasses: externalClasses,
+        externalFunctions: externalFunctions,
+        externalFunctionTypedef: externalFunctionTypedef);
+
+    // a postfix for correct path resolve
+    _curModuleFullName = sourceProvider.workingDirectory + '/script';
   }
 
   /// Evaluate a string content.
@@ -143,29 +163,53 @@ class Hetu extends HTInterpreter {
 
     _curLibraryName = libraryName ??= moduleFullName;
 
+    final createNamespace = namespace != coreNamespace;
     try {
       final compilation = await parser.parse(content,
-          createNamespace: namespace != coreNamepace,
-          libraryName: libraryName,
+          createNamespace: createNamespace,
+          libraryName:
+              libraryName, // TODO: should set in parser, and should read from script if exist
           moduleFullName: moduleFullName,
           sourceProvider: sourceProvider,
           config: config);
 
       final bytes = await compiler.compile(compilation);
 
-      _libs[libraryName] = bytes;
-
       _code = BytecodeReader(bytes);
 
-      var result = execute(namespace: namespace ?? coreNamepace);
-      if (config.sourceType == SourceType.module && invokeFunc != null) {
-        result = invoke(invokeFunc,
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            errorHandled: true);
-      }
+      if (config.sourceType == SourceType.script) {
+        final result = execute(namespace: namespace ?? coreNamespace);
+        return result;
+      } else if (config.sourceType == SourceType.module) {
+        final namespaces = <String, HTNamespace>{};
+        while (_code.ip < _code.bytes.length) {
+          final HTNamespace namespace = execute();
+          namespaces[namespace.id] = namespace;
+        }
+        final lib = _Library(namespaces, bytes);
+        _libs[_curLibraryName] = lib;
 
-      return result;
+        if (createNamespace) {
+          for (final module in compilation.modules) {
+            final closure = lib.namespaces[module.fullName]!;
+            for (final info in module.imports) {
+              // TODO: alias, showList
+              final importNamespace = lib.namespaces[info.fullName]!;
+              closure.import(importNamespace);
+            }
+          }
+        }
+
+        if (config.sourceType == SourceType.module && invokeFunc != null) {
+          final result = invoke(invokeFunc,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              errorHandled: true);
+          return result;
+        }
+      } else {
+        throw HTError.sourceType();
+      }
     } catch (error, stack) {
       if (errorHandled) {
         rethrow;
@@ -302,8 +346,8 @@ class Hetu extends HTInterpreter {
     var namespaceChanged = false;
     if (libraryName != null && (_curLibraryName != libraryName)) {
       _curLibraryName = libraryName;
-      final bytes = _libs[libraryName]!;
-      _code.changeCode(bytes);
+      final module = _libs[libraryName]!;
+      _code.changeCode(module.bytes);
       codeChanged = true;
       ipChanged = true;
     }
@@ -330,16 +374,15 @@ class Hetu extends HTInterpreter {
 
     if (codeChanged) {
       _curLibraryName = savedLibraryName;
-      final bytes = _libs[libraryName]!;
-      _code.changeCode(bytes);
+      final module = _libs[libraryName]!;
+      _code.changeCode(module.bytes);
     }
-
-    _curModuleFullName = savedModuleFullName;
-
+    if (namespaceChanged) {
+      _curModuleFullName = savedModuleFullName;
+    }
     if (ipChanged) {
       _code.ip = savedIp;
     }
-
     if (namespaceChanged) {
       _curNamespace = savedNamespace;
     }
@@ -388,7 +431,8 @@ class Hetu extends HTInterpreter {
           break;
         case HTOpCode.module:
           final id = _code.readShortUtf8String();
-          _curNamespace = HTNamespace(this, id: id, closure: coreNamepace);
+          _curModuleFullName = id;
+          _curNamespace = HTNamespace(this, id: id, closure: coreNamespace);
           break;
         case HTOpCode.lineInfo:
           _curLine = _code.readUint16();
@@ -431,6 +475,8 @@ class Hetu extends HTInterpreter {
             _loops.removeLast();
           }
           return _curValue;
+        case HTOpCode.endOfModule:
+          return _curNamespace;
         case HTOpCode.constTable:
           final int64Length = _code.readUint16();
           for (var i = 0; i < int64Length; ++i) {
@@ -773,7 +819,7 @@ class Hetu extends HTInterpreter {
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTType type = _curValue;
-        final HTClass klass = coreNamepace.memberGet(type.id);
+        final HTClass klass = coreNamespace.memberGet(type.id);
         _curValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
@@ -903,7 +949,7 @@ class Hetu extends HTInterpreter {
         } else {
           _curValue = object[key];
         }
-        _curRefType = _RefType.sub;
+        // _curRefType = _RefType.sub;
         break;
       case HTOpCode.call:
         _handleCallExpr();

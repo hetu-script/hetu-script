@@ -555,6 +555,7 @@ class HTCompiler extends AbstractParser {
             throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
         }
         break;
+      case SourceType.struct:
       case SourceType.expression:
         final expr = _parseExpr();
         bytesBuilder.add(expr);

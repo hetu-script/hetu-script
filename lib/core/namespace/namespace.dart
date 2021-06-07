@@ -124,4 +124,10 @@ class HTNamespace with HTObject {
     var space = closureAt(distance);
     space.memberSet(varName, varValue, from: from);
   }
+
+  void import(HTNamespace other) {
+    for (final decl in other.declarations.values) {
+      define(decl);
+    }
+  }
 }

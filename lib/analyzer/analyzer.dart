@@ -251,7 +251,7 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
   dynamic visitMemberAssignExpr(MemberAssignExpr expr) {}
 
   @override
-  dynamic visitSubExpr(SubGetExpr expr) {
+  dynamic visitSubExpr(SubExpr expr) {
     visitAstNode(expr.array);
     visitAstNode(expr.key);
   }
@@ -286,6 +286,9 @@ class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
     }
     _curNamespace = saved_context;
   }
+
+  @override
+  dynamic visitLibraryStmt(LibraryStmt stmt) {}
 
   @override
   dynamic visitImportStmt(ImportStmt stmt) {}
