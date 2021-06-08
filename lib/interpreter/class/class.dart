@@ -1,5 +1,3 @@
-import 'package:hetu_script/core/abstract_interpreter.dart';
-
 import '../../grammar/lexicon.dart';
 import '../../error/errors.dart';
 import '../../type_system/type.dart';
@@ -11,6 +9,7 @@ import 'class_namespace.dart';
 import '../interpreter.dart';
 import '../variable.dart';
 import '../function/function.dart';
+import '../../core/abstract_interpreter.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
