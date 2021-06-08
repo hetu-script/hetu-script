@@ -20,7 +20,7 @@ class HTBreak {}
 
 class HTContinue {}
 
-class HTAnalyzer extends HTInterpreter implements AbstractAstVisitor {
+class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   @override
   late HTAstParser parser;
 

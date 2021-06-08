@@ -1,3 +1,6 @@
+import 'package:meta/meta.dart';
+
+import '../abstract_interpreter.dart';
 import '../../error/errors.dart';
 
 class VariableDeclaration {
@@ -26,6 +29,9 @@ class VariableDeclaration {
       throw HTError.immutable(id);
     }
   }
+
+  @mustCallSuper
+  void resolve(AbstractInterpreter interpreter) {}
 
   VariableDeclaration(this.id, this.moduleFullName, this.libraryName,
       {this.classId,

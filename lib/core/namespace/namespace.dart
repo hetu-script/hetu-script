@@ -40,7 +40,7 @@ class HTNamespace with HTObject {
   late final HTNamespace? closure;
 
   HTNamespace(
-    HTInterpreter interpreter, {
+    AbstractInterpreter interpreter, {
     String? id,
     this.closure,
   }) : super() {

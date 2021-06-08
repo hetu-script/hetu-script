@@ -4,13 +4,13 @@ import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../core/abstract_interpreter.dart';
 import '../../core/declaration/typed_variable_declaration.dart';
-import '../function/funciton.dart';
+import '../function/function.dart';
 import '../../core/namespace/namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
-  HTClassNamespace(String id, String classId, HTInterpreter interpreter,
+  HTClassNamespace(String id, String classId, AbstractInterpreter interpreter,
       {HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 

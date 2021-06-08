@@ -70,9 +70,9 @@ abstract class HTOpCode {
 
   static const assign = 40; // 1 byte right value
 
-  static const memberAssign = 41;
+  static const memberSet = 41;
 
-  static const subAssign = 42;
+  static const subSet = 42;
 
   static const logicalOr = 43;
 
@@ -117,9 +117,9 @@ abstract class HTOpCode {
   /// modulo value store => reg[store] = !reg[valueOf]
   static const logicalNot = 61;
 
-  static const member = 65;
+  static const memberGet = 65;
 
-  static const subscript = 66;
+  static const subGet = 66;
 
   static const call = 67;
 

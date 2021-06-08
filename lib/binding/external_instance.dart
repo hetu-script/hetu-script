@@ -23,7 +23,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
 
   /// Create a external class object.
   HTExternalInstance(
-      this.externalObject, HTInterpreter interpreter, this.typeString) {
+      this.externalObject, AbstractInterpreter interpreter, this.typeString) {
     this.interpreter = interpreter;
     final id = HTType.parseBaseType(typeString);
     if (interpreter.containsExternalClass(id)) {

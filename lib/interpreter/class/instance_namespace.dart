@@ -15,7 +15,7 @@ class HTInstanceNamespace extends HTNamespace {
 
   late final HTInstanceNamespace? next;
 
-  HTInstanceNamespace(String id, this.instance, HTInterpreter interpreter,
+  HTInstanceNamespace(String id, this.instance, AbstractInterpreter interpreter,
       {this.classId, HTNamespace? closure})
       : super(interpreter, id: id, closure: closure);
 

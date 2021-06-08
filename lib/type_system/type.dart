@@ -140,7 +140,7 @@ class HTType with HTObject {
 
   /// initialize the declared type if it's a class name.
   /// only return the [HTClass] when its a non-external class
-  HTType resolve(HTInterpreter interpreter) {
+  HTType resolve(AbstractInterpreter interpreter) {
     if (isResolved) {
       return this;
     } else if (primitiveTypes.containsKey(id)) {

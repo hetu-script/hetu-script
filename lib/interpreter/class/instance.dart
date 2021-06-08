@@ -1,15 +1,15 @@
 import 'dart:collection';
 
-import 'package:hetu_script/hetu_script.dart';
-
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
+import '../../grammar/semantic.dart' show FunctionCategory;
 import '../../type_system/type.dart';
 import '../../type_system/nominal_type.dart';
 import '../../core/declaration/typed_variable_declaration.dart';
 import '../../core/object.dart';
 import '../../core/namespace/namespace.dart';
-import '../interpreter.dart';
+import '../../core/abstract_interpreter.dart';
+import '../function/function.dart';
 import 'instance_namespace.dart';
 import 'class.dart';
 import 'cast.dart';
@@ -17,7 +17,7 @@ import 'cast.dart';
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
-class HTInstance with HTObject, HetuRef {
+class HTInstance with HTObject, InterpreterRef {
   final String id;
   final int index;
 
@@ -41,7 +41,7 @@ class HTInstance with HTObject, HetuRef {
   HTInstanceNamespace get namespace => _namespaces[classId]!;
 
   /// Create a default [HTInstance] instance.
-  HTInstance(HTClass klass, Hetu interpreter,
+  HTInstance(HTClass klass, AbstractInterpreter interpreter,
       {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject})
       : id = HTLexicon.instance,
         index = klass.instanceIndex,

@@ -1041,13 +1041,13 @@ class HTCompiler extends AbstractParser {
           bytesBuilder.add(key);
           bytesBuilder.addByte(HTOpCode.register);
           bytesBuilder.addByte(HTRegIdx.postfixKey);
-          bytesBuilder.addByte(HTOpCode.member);
+          bytesBuilder.addByte(HTOpCode.memberGet);
           break;
         case HTLexicon.subGet:
           final key = _parseExpr(endOfExec: true);
           _leftValueLegality = true;
           match(HTLexicon.squareRight);
-          bytesBuilder.addByte(HTOpCode.subscript);
+          bytesBuilder.addByte(HTOpCode.subGet);
           // sub get key is after opcode
           // it has to be exec with 'move reg index'
           bytesBuilder.add(key);
@@ -1519,7 +1519,7 @@ class HTCompiler extends AbstractParser {
     bytesBuilder.add(keySymbol);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
-    bytesBuilder.addByte(HTOpCode.member);
+    bytesBuilder.addByte(HTOpCode.memberGet);
     if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }

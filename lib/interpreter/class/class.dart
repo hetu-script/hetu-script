@@ -1,3 +1,5 @@
+import 'package:hetu_script/core/abstract_interpreter.dart';
+
 import '../../grammar/lexicon.dart';
 import '../../error/errors.dart';
 import '../../type_system/type.dart';
@@ -8,7 +10,7 @@ import '../../core/declaration/class_declaration.dart';
 import 'class_namespace.dart';
 import '../interpreter.dart';
 import '../variable.dart';
-import '../function/funciton.dart';
+import '../function/function.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
@@ -27,13 +29,14 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
   /// for searching for static variables.
   final HTClassNamespace namespace;
 
-  /// The type parameters of the class.
-  final Iterable<String> typeParameters;
-
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
   HTClass? superClass;
-  HTType? superType;
+
+  /// Mixined class of this class.
+  /// Those mixined class can not have any constructors.
+  // final Iterable<HTClass> mixinedClass;
+  // final Iterable<HTType> mixinedType;
 
   /// Implemented classes of this class.
   /// Implements only inherits methods declaration,
@@ -41,11 +44,6 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
   /// and the re-definition must be of the same function signature.
   // final Iterable<HTClass> implementedClass;
   // final Iterable<HTType> implementedType;
-
-  /// Mixined class of this class.
-  /// Those mixined class can not have any constructors.
-  // final Iterable<HTClass> mixinedClass;
-  // final Iterable<HTType> mixinedType;
 
   /// The instance member variables defined in class definition.
   final instanceMembers = <String, HTVariable>{};
@@ -61,15 +59,29 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
     String? classId,
     bool isExternal = false,
     bool isAbstract = false,
+    Iterable<HTType> genericParameters = const [],
+    HTType? superType,
+    Iterable<HTType> withTypes = const [],
+    Iterable<HTType> implementsTypes = const [],
     this.superClass,
-    this.superType,
-    this.typeParameters = const [],
-    // this.implementedClass = const [],
-    // this.mixinedClass = const []
   })  : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
         super(id, moduleFullName, libraryName,
-            isExternal: isExternal, isAbstract: isAbstract) {
+            genericParameters: genericParameters,
+            superType: superType,
+            withTypes: withTypes,
+            implementsTypes: implementsTypes,
+            isExternal: isExternal,
+            isAbstract: isAbstract) {
     this.interpreter = interpreter;
+  }
+
+  @override
+  void resolve(AbstractInterpreter interpreter) {
+    super.resolve(interpreter);
+
+    if (superType != null) {
+      superClass = interpreter.curNamespace.memberGet(superType!.id);
+    }
   }
 
   /// Create a [HTInstance] of this [HTClass],

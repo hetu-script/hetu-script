@@ -18,7 +18,7 @@ export 'ast/formatter.dart';
 export 'interpreter/interpreter.dart';
 export 'interpreter/class/class.dart';
 export 'interpreter/class/instance.dart';
-export 'interpreter/function/funciton.dart';
+export 'interpreter/function/function.dart';
 export 'binding/external_class.dart';
 export 'binding/external_instance.dart';
 export 'binding/external_function.dart';

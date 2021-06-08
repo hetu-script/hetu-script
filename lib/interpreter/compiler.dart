@@ -263,7 +263,7 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.add(keySymbol);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
-    bytesBuilder.addByte(HTOpCode.member);
+    bytesBuilder.addByte(HTOpCode.memberGet);
     if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
@@ -826,7 +826,7 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.add(key);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
-    bytesBuilder.addByte(HTOpCode.member);
+    bytesBuilder.addByte(HTOpCode.memberGet);
     return bytesBuilder.toBytes();
   }
 
@@ -839,11 +839,11 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = visitSymbolExpr(expr.key);
     bytesBuilder.add(key);
-    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(HTOpCode.memberSet);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
     final value = visitAstNode(expr.value);
     bytesBuilder.add(value);
-    bytesBuilder.addByte(HTOpCode.memberAssign);
+    bytesBuilder.addByte(HTOpCode.memberSet);
     return bytesBuilder.toBytes();
   }
 
@@ -855,7 +855,7 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = visitAstNode(expr.key, endOfExec: true);
-    bytesBuilder.addByte(HTOpCode.subscript);
+    bytesBuilder.addByte(HTOpCode.subGet);
     // sub get key is after opcode
     // it has to be exec with 'move reg index'
     bytesBuilder.add(key);
@@ -869,7 +869,7 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.add(array);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
-    bytesBuilder.addByte(HTOpCode.subAssign);
+    bytesBuilder.addByte(HTOpCode.subSet);
     // sub get key is after opcode
     // it has to be exec with 'move reg index'
     final key = visitAstNode(expr.key, endOfExec: true);

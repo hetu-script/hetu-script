@@ -1,4 +1,5 @@
 import 'package:pub_semver/pub_semver.dart';
+import 'package:meta/meta.dart';
 
 import '../source/source_provider.dart';
 import '../binding/external_class.dart';
@@ -13,7 +14,7 @@ import '../grammar/lexicon.dart';
 import '../type_system/type.dart';
 import '../ast/parser.dart';
 import '../interpreter/compiler.dart';
-import '../interpreter/function/funciton.dart';
+import '../interpreter/function/function.dart';
 
 import 'abstract_parser.dart' show ParserConfig;
 import 'namespace/namespace.dart';
@@ -22,7 +23,7 @@ import 'object.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
-  late final HTInterpreter interpreter;
+  late final AbstractInterpreter interpreter;
 }
 
 class InterpreterConfig extends ParserConfig {
@@ -43,7 +44,7 @@ class InterpreterConfig extends ParserConfig {
 }
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.
-abstract class HTInterpreter {
+abstract class AbstractInterpreter {
   static final version = Version(0, 1, 0);
 
   HTAstParser parser = HTAstParser();
@@ -67,7 +68,7 @@ abstract class HTInterpreter {
   late HTErrorHandler errorHandler;
   late SourceProvider sourceProvider;
 
-  HTInterpreter(
+  AbstractInterpreter(
       {HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
@@ -75,6 +76,7 @@ abstract class HTInterpreter {
     coreNamespace = HTNamespace(this, id: HTLexicon.coreSpace);
   }
 
+  @mustCallSuper
   Future<void> init(
       {bool coreModule = true,
       List<HTExternalClass> externalClasses = const [],

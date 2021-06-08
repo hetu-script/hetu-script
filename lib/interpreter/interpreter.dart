@@ -22,7 +22,7 @@ import 'class/cast.dart';
 import 'compiler.dart';
 import 'opcode.dart';
 import 'variable.dart';
-import 'function/funciton.dart';
+import 'function/function.dart';
 import 'function/parameter.dart';
 import 'bytecode/bytecode_reader.dart';
 
@@ -48,7 +48,7 @@ class _Library {
 }
 
 /// A bytecode implementation of a Hetu script interpreter
-class Hetu extends HTInterpreter {
+class Hetu extends AbstractInterpreter {
   static const verMajor = 0;
   static const verMinor = 1;
   static const verPatch = 0;
@@ -187,6 +187,11 @@ class Hetu extends HTInterpreter {
           namespaces[namespace.id] = namespace;
         }
         final lib = _Library(namespaces, bytes);
+        for (final namespace in lib.namespaces.values) {
+          for (final decl in namespace.declarations.values) {
+            decl.resolve(this);
+          }
+        }
         _libs[_curLibraryName] = lib;
 
         if (createNamespace) {
@@ -532,13 +537,13 @@ class Hetu extends HTInterpreter {
               from: _curNamespace.fullName);
           _curValue = value;
           break;
-        case HTOpCode.memberAssign:
+        case HTOpCode.memberSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final key = _getRegVal(HTRegIdx.postfixKey);
           final encap = encapsulate(object);
           encap.memberSet(key, _curValue, from: _curNamespace.fullName);
           break;
-        case HTOpCode.subAssign:
+        case HTOpCode.subSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final key = execute();
           final value = execute();
@@ -585,8 +590,8 @@ class Hetu extends HTInterpreter {
         case HTOpCode.logicalNot:
           _handleUnaryPrefixOp(instruction);
           break;
-        case HTOpCode.member:
-        case HTOpCode.subscript:
+        case HTOpCode.memberGet:
+        case HTOpCode.subGet:
         case HTOpCode.call:
           _handleUnaryPostfixOp(instruction);
           break;
@@ -931,14 +936,14 @@ class Hetu extends HTInterpreter {
 
   void _handleUnaryPostfixOp(int op) {
     switch (op) {
-      case HTOpCode.member:
+      case HTOpCode.memberGet:
         final object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
         final encap = encapsulate(object);
         _curLeftValue = encap;
         _curValue = encap.memberGet(key, from: _curNamespace.fullName);
         break;
-      case HTOpCode.subscript:
+      case HTOpCode.subGet:
         final object = _getRegVal(HTRegIdx.postfixObject);
         _curLeftValue = object;
         final key = execute();

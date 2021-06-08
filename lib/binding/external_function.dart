@@ -1,5 +1,5 @@
 import '../type_system/type.dart';
-import '../interpreter/function/funciton.dart';
+import '../interpreter/function/function.dart';
 
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
