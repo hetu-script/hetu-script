@@ -1,6 +1,6 @@
 import '../error/errors.dart';
 import '../grammar/lexicon.dart';
-import '../type_system/type.dart';
+import '../type/type.dart';
 
 class _HTNull with HTObject {
   const _HTNull();

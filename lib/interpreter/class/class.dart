@@ -1,6 +1,6 @@
 import '../../grammar/lexicon.dart';
 import '../../error/errors.dart';
-import '../../type_system/type.dart';
+import '../../type/type.dart';
 import '../../core/namespace/namespace.dart';
 import '../../core/object.dart';
 import 'instance.dart';

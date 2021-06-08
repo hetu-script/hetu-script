@@ -1,7 +1,7 @@
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import '../../type_system/type.dart';
-import '../../type_system/function_type.dart';
+import '../../type/type.dart';
+import '../../type/function_type.dart';
 import 'typed_parameter_declaration.dart';
 import 'function_declaration.dart';
 

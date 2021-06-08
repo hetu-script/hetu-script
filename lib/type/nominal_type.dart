@@ -59,15 +59,14 @@ class HTNominalType extends HTValueType {
       } else if (this == other) {
         return true;
       } else {
-        // var curSuperType = klass.superType;
-        // var curSuperClass = klass.superClass;
-        // while (curSuperClass != null) {
-        //   if (curSuperType!.isA(other)) {
-        //     return true;
-        //   }
-        //   curSuperType = curSuperClass.superType;
-        //   curSuperClass = curSuperClass.superClass;
-        // }
+        var curSuperType = klass.superType;
+        while (curSuperType != null) {
+          var curSuperClass = (curSuperType as HTNominalType).klass;
+          if (curSuperType.isA(other)) {
+            return true;
+          }
+          curSuperType = curSuperClass.superType;
+        }
         return false;
       }
     } else {

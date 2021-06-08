@@ -8,8 +8,8 @@ import '../core/object.dart';
 import '../core/abstract_parser.dart';
 import '../core/const_table.dart';
 import '../core/declaration/typed_parameter_declaration.dart';
-import '../type_system/type.dart';
-import '../type_system/function_type.dart';
+import '../type/type.dart';
+import '../type/function_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
@@ -680,7 +680,6 @@ class Hetu extends AbstractInterpreter {
         }
 
         final hasParamDecls = _code.readBool();
-
         final isVariadic = _code.readBool();
         final minArity = _code.read();
         final maxArity = _code.read();
@@ -824,7 +823,7 @@ class Hetu extends AbstractInterpreter {
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final HTType type = _curValue;
-        final HTClass klass = coreNamespace.memberGet(type.id);
+        final HTClass klass = curNamespace.memberGet(type.id);
         _curValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
@@ -1123,31 +1122,34 @@ class Hetu extends AbstractInterpreter {
     ReferConstructor? referConstructor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
-    final hasRefCtor = _code.readBool();
-    if (hasRefCtor) {
-      final callee = _code.readShortUtf8String();
-      final hasCtorName = _code.readBool();
-      String? key;
-      if (hasCtorName) {
-        key = _code.readShortUtf8String();
+    if (category == FunctionCategory.constructor) {
+      final hasRefCtor = _code.readBool();
+      if (hasRefCtor) {
+        final isSuper = _code.readBool();
+        final hasCtorName = _code.readBool();
+        String? name;
+        if (hasCtorName) {
+          name = _code.readShortUtf8String();
+        }
+        final positionalArgIpsLength = _code.read();
+        for (var i = 0; i < positionalArgIpsLength; ++i) {
+          final argLength = _code.readUint16();
+          positionalArgIps.add(_code.ip);
+          _code.skip(argLength);
+        }
+        final namedArgsLength = _code.read();
+        for (var i = 0; i < namedArgsLength; ++i) {
+          final argName = _code.readShortUtf8String();
+          final argLength = _code.readUint16();
+          namedArgIps[argName] = _code.ip;
+          _code.skip(argLength);
+        }
+        referConstructor = ReferConstructor(
+            isSuper: isSuper,
+            name: name,
+            positionalArgsIp: positionalArgIps,
+            namedArgsIp: namedArgIps);
       }
-      final positionalArgIpsLength = _code.read();
-      for (var i = 0; i < positionalArgIpsLength; ++i) {
-        final argLength = _code.readUint16();
-        positionalArgIps.add(_code.ip);
-        _code.skip(argLength);
-      }
-      final namedArgsLength = _code.read();
-      for (var i = 0; i < namedArgsLength; ++i) {
-        final argName = _code.readShortUtf8String();
-        final argLength = _code.readUint16();
-        namedArgIps[argName] = _code.ip;
-        _code.skip(argLength);
-      }
-      referConstructor = ReferConstructor(callee,
-          key: key,
-          positionalArgsIp: positionalArgIps,
-          namedArgsIp: namedArgIps);
     }
 
     int? line, column, definitionIp;

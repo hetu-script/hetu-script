@@ -8,7 +8,7 @@ import '../class/instance.dart';
 import '../../error/errors.dart';
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import '../../type_system/type.dart';
+import '../../type/type.dart';
 import '../interpreter.dart';
 import '../variable.dart';
 import 'parameter.dart';
@@ -17,9 +17,10 @@ import '../compiler.dart' show GotoInfo;
 
 class ReferConstructor {
   /// id of super class's constructor
-  final String callee;
+  // final String callee;
+  final bool isSuper;
 
-  final String? key;
+  final String? name;
 
   /// Holds ips of super class's constructor's positional argumnets
   final List<int> positionalArgsIp;
@@ -27,8 +28,9 @@ class ReferConstructor {
   /// Holds ips of super class's constructor's named argumnets
   final Map<String, int> namedArgsIp;
 
-  ReferConstructor(this.callee,
-      {this.key,
+  ReferConstructor(
+      {this.isSuper = false,
+      this.name,
       this.positionalArgsIp = const [],
       this.namedArgsIp = const {}});
 }
@@ -183,10 +185,29 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
 
         if (category == FunctionCategory.constructor &&
             referConstructor != null) {
-          final superClass = klass!.superClass!;
-          final superCtorId = referConstructor!.callee;
-          final constructor =
-              superClass.namespace.declarations[superCtorId]!.value;
+          late final HTFunction constructor;
+          final name = referConstructor!.name;
+          if (referConstructor!.isSuper) {
+            final superClass = klass!.superClass!;
+            if (name == null) {
+              constructor = superClass
+                  .namespace.declarations[HTLexicon.constructor]!.value;
+            } else {
+              constructor = superClass.namespace
+                  .declarations['${HTLexicon.constructor}$name']!.value;
+            }
+          }
+          // (callee == HTLexicon.THIS)
+          else {
+            if (name == null) {
+              constructor =
+                  klass!.namespace.declarations[HTLexicon.constructor]!.value;
+            } else {
+              constructor = klass!.namespace
+                  .declarations['${HTLexicon.constructor}$name']!.value;
+            }
+          }
+
           // constructor's context is on this newly created instance
           final instanceNamespace = context as HTInstanceNamespace;
           constructor.context = instanceNamespace.next!;

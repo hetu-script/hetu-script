@@ -11,7 +11,7 @@ export 'core/declaration/class_declaration.dart';
 export 'core/object.dart';
 export 'core/namespace/namespace.dart' show HTNamespace;
 export 'core/abstract_interpreter.dart' show InterpreterConfig;
-export 'type_system/type.dart';
+export 'type/type.dart';
 export 'ast/ast.dart';
 export 'analyzer/analyzer.dart';
 export 'ast/formatter.dart';

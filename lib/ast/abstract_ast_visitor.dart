@@ -26,7 +26,7 @@ abstract class AbstractAstVisitor {
 
   dynamic visitParamTypeExpr(ParamTypeExpr expr);
 
-  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr);
+  dynamic visitFunctionTypeExpr(FuncTypeExpr expr);
 
   dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr);
 

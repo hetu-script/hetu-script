@@ -1,5 +1,5 @@
 // import '../../error/errors.dart';
-import '../../type_system/type.dart';
+import '../../type/type.dart';
 import 'variable_declaration.dart';
 // import '../../core/abstract_interpreter.dart';
 // import '../../core/function/abstract_function.dart';

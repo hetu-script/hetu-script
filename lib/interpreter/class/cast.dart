@@ -1,7 +1,7 @@
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
-import '../../type_system/type.dart';
-import '../../type_system/nominal_type.dart';
+import '../../type/type.dart';
+import '../../type/nominal_type.dart';
 import '../../core/object.dart';
 import '../interpreter.dart';
 import 'class.dart';

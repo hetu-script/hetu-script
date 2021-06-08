@@ -162,7 +162,7 @@ class HTFormatter implements AbstractAstVisitor {
   @override
   String visitTypeExpr(TypeExpr expr) {
     final output = StringBuffer();
-    if (expr is FunctionTypeExpr) {
+    if (expr is FuncTypeExpr) {
     } else {
       output.write(expr.id);
       if (expr.arguments.isNotEmpty) {
@@ -202,7 +202,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitFunctionTypeExpr(FunctionTypeExpr expr) {
+  String visitFunctionTypeExpr(FuncTypeExpr expr) {
     final output = StringBuffer();
     output.write('${HTLexicon.FUNCTION} ${HTLexicon.roundLeft}');
     for (var i = 0; i < expr.paramTypes.length; ++i) {
@@ -529,7 +529,7 @@ class HTFormatter implements AbstractAstVisitor {
   @override
   String visitReferConstructorExpr(ReferConstructorExpr stmt) {
     final output = StringBuffer();
-    output.write(stmt.callee);
+    output.write(stmt.isSuper ? HTLexicon.SUPER : HTLexicon.THIS);
     if (stmt.key != null) {
       output.write('${HTLexicon.memberGet}${stmt.key}');
     }

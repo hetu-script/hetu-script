@@ -1,8 +1,8 @@
 import '../core/abstract_interpreter.dart';
 import '../core/object.dart';
-import '../type_system/type.dart';
-import '../type_system/value_type.dart';
-import '../type_system/nominal_type.dart';
+import '../type/type.dart';
+import '../type/value_type.dart';
+import '../type/nominal_type.dart';
 import '../grammar/lexicon.dart';
 import '../error/errors.dart';
 import '../core/declaration/function_declaration.dart';

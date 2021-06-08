@@ -1,8 +1,8 @@
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../interpreter.dart';
-import '../../type_system/type.dart';
-import '../../type_system/value_type.dart';
+import '../../type/type.dart';
+import '../../type/value_type.dart';
 import '../../core/object.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.

@@ -1,6 +1,6 @@
 import '../source/source_provider.dart';
 // import '../binding/external_function.dart';
-import '../type_system/type.dart';
+import '../type/type.dart';
 import '../core/namespace/namespace.dart';
 // import '../core/function/abstract_function.dart';
 // import '../core/object.dart';
@@ -218,7 +218,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   dynamic visitParamTypeExpr(ParamTypeExpr expr) {}
 
   @override
-  dynamic visitFunctionTypeExpr(FunctionTypeExpr expr) {}
+  dynamic visitFunctionTypeExpr(FuncTypeExpr expr) {}
 
   @override
   dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr) {

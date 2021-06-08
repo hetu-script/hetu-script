@@ -1,4 +1,4 @@
-import '../../type_system/type.dart';
+import '../../type/type.dart';
 import 'variable_declaration.dart';
 import '../abstract_interpreter.dart';
 
@@ -39,7 +39,7 @@ class ClassDeclaration extends VariableDeclaration {
   void resolve(AbstractInterpreter interpreter) {
     super.resolve(interpreter);
 
-    if (_superType != null) {
+    if ((_superType != null) && !_superType!.isResolved) {
       _superType = _superType!.resolve(interpreter);
     }
   }

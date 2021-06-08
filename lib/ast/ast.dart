@@ -193,7 +193,7 @@ class ParamTypeExpr extends AstNode {
       : super(SemanticType.paramTypeExpr, line, column);
 }
 
-class FunctionTypeExpr extends AstNode {
+class FuncTypeExpr extends TypeExpr {
   final TypeExpr returnType;
 
   // final List<TypeExpr> genericTypeParameters;
@@ -208,7 +208,7 @@ class FunctionTypeExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitFunctionTypeExpr(this);
 
-  const FunctionTypeExpr(this.returnType, int line, int column,
+  const FuncTypeExpr(this.returnType, int line, int column,
       {this.paramTypes = const [],
       this.hasOptionalParam = false,
       this.hasNamedParam = false})
@@ -583,7 +583,7 @@ class ReferConstructorExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitReferConstructorExpr(this);
 
-  final String callee;
+  final bool isSuper;
 
   final String? key;
 
@@ -591,7 +591,7 @@ class ReferConstructorExpr extends AstNode {
 
   final Map<String, AstNode> namedArgs;
 
-  const ReferConstructorExpr(this.callee, this.key, this.positionalArgs,
+  const ReferConstructorExpr(this.isSuper, this.key, this.positionalArgs,
       this.namedArgs, int line, int column)
       : super(SemanticType.referConstructorExpression, line, column);
 }

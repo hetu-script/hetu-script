@@ -485,7 +485,7 @@ class HTAstParser extends AbstractParser {
       } else {
         op = opTok.lexeme;
       }
-      final right = _parseTypeExpr();
+      final right = _parseTypeExpr(isLocal: true);
       left = BinaryExpr(left, op, right, opTok.line, opTok.column);
     }
     return left;
@@ -680,7 +680,7 @@ class HTAstParser extends AbstractParser {
     }
     // TODO: interface type
     else {
-      final keyword = peek(-1);
+      final keyword = advance(1);
 
       // TODO: genericTypeParameters 泛型参数
 
@@ -690,6 +690,7 @@ class HTAstParser extends AbstractParser {
       var isNamed = false;
       var isVariadic = false;
 
+      match(HTLexicon.roundLeft);
       while (curTok.type != HTLexicon.roundRight &&
           curTok.type != HTLexicon.endOfFile) {
         final line = curTok.line;
@@ -734,7 +735,7 @@ class HTAstParser extends AbstractParser {
 
       final returnType = _parseTypeExpr() as TypeExpr;
 
-      return FunctionTypeExpr(returnType, keyword.line, keyword.column,
+      return FuncTypeExpr(returnType, keyword.line, keyword.column,
           paramTypes: parameters,
           hasOptionalParam: isOptional,
           hasNamedParam: isNamed);
@@ -1201,7 +1202,7 @@ class HTAstParser extends AbstractParser {
       _handleCallArguments(positionalArgs, namedArgs);
 
       referCtor = ReferConstructorExpr(
-        ctorCallee.lexeme,
+        ctorCallee.lexeme == HTLexicon.SUPER,
         ctorKey,
         positionalArgs,
         namedArgs,

@@ -466,7 +466,7 @@ class HTCompiler implements AbstractAstVisitor {
   }
 
   @override
-  Uint8List visitFunctionTypeExpr(FunctionTypeExpr expr) {
+  Uint8List visitFunctionTypeExpr(FuncTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.type);
@@ -839,7 +839,7 @@ class HTCompiler implements AbstractAstVisitor {
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = visitSymbolExpr(expr.key);
     bytesBuilder.add(key);
-    bytesBuilder.addByte(HTOpCode.memberSet);
+    bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
     final value = visitAstNode(expr.value);
     bytesBuilder.add(value);
@@ -1287,7 +1287,7 @@ class HTCompiler implements AbstractAstVisitor {
   @override
   Uint8List visitReferConstructorExpr(ReferConstructorExpr stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(_shortUtf8String(stmt.callee));
+    bytesBuilder.addByte(stmt.isSuper ? 1 : 0);
     if (stmt.key != null) {
       bytesBuilder.addByte(1); // bool: has constructor name
       bytesBuilder.add(_shortUtf8String(stmt.key!));
@@ -1341,13 +1341,15 @@ class HTCompiler implements AbstractAstVisitor {
       final bytes = visitParamDeclStmt(param);
       bytesBuilder.add(bytes);
     }
-    // referring to another constructor
-    if (stmt.referConstructor != null) {
-      bytesBuilder.addByte(1); // bool: hasRefCtor
-      final bytes = visitReferConstructorExpr(stmt.referConstructor!);
-      bytesBuilder.add(bytes);
-    } else {
-      bytesBuilder.addByte(0); // bool: hasRefCtor
+    if (stmt.category == FunctionCategory.constructor) {
+      // referring to another constructor
+      if (stmt.referConstructor != null) {
+        bytesBuilder.addByte(1); // bool: hasRefCtor
+        final bytes = visitReferConstructorExpr(stmt.referConstructor!);
+        bytesBuilder.add(bytes);
+      } else {
+        bytesBuilder.addByte(0); // bool: hasRefCtor
+      }
     }
     // 处理函数定义部分的语句块
     if (stmt.definition != null) {

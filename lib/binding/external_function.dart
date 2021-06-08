@@ -1,4 +1,4 @@
-import '../type_system/type.dart';
+import '../type/type.dart';
 import '../interpreter/function/function.dart';
 
 /// typedef of external function for binding.

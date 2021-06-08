@@ -11,7 +11,7 @@ import '../error/errors.dart';
 import '../error/error_handler.dart';
 import '../source/source.dart';
 import '../grammar/lexicon.dart';
-import '../type_system/type.dart';
+import '../type/type.dart';
 import '../ast/parser.dart';
 import '../interpreter/compiler.dart';
 import '../interpreter/function/function.dart';
