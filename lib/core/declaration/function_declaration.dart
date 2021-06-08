@@ -17,11 +17,11 @@ class FunctionDeclaration extends VariableDeclaration {
   final int maxArity;
 
   FunctionDeclaration(String id, String moduleFullName, String libraryName,
-      {String? classId,
+      {this.declId,
+      String? classId,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
-      this.declId,
       this.category = FunctionCategory.normal,
       this.externalFunc,
       this.externalTypeId,
@@ -33,4 +33,19 @@ class FunctionDeclaration extends VariableDeclaration {
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst);
+
+  @override
+  FunctionDeclaration clone() =>
+      FunctionDeclaration(id, moduleFullName, libraryName,
+          declId: declId,
+          classId: classId,
+          isExternal: isExternal,
+          isStatic: isStatic,
+          isConst: isConst,
+          category: category,
+          externalFunc: externalFunc,
+          externalTypeId: externalTypeId,
+          isVariadic: isVariadic,
+          minArity: minArity,
+          maxArity: maxArity);
 }

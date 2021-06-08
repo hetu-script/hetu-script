@@ -3,7 +3,9 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   final hetu = Hetu();
   await hetu.init();
-  await hetu.import('script/import_test2.ht',
+  final result = await hetu.import('script/import_test.ht',
       config: InterpreterConfig(sourceType: SourceType.module),
-      invokeFunc: 'main');
+      invokeFunc: 'importTest');
+
+  print(result);
 }

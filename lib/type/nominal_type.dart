@@ -10,7 +10,8 @@ class HTNominalType extends HTValueType {
   // late final Iterable<HTType> mixined;
 
   HTNominalType(this.klass, {List<HTType> typeArgs = const []})
-      : super(klass.id, typeArgs: typeArgs);
+      : super(klass.id, klass.moduleFullName, klass.libraryName,
+            typeArgs: typeArgs);
 
   // HTNominalType.fromClass(HTClass klass,
   //     {Iterable<HTValueType> typeArgs = const [],

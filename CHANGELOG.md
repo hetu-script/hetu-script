@@ -2,8 +2,7 @@
 
 - Added Analyzer and Formatter utility classes.
 - Added Type expression and related assignment operations.
-- Feature: Added default implementation of 'fromJson' to on class
-  and 'toJson' on instances.
+- Feature: Added default implementation of 'toJson' on instances.
 
 ## 0.1.1
 

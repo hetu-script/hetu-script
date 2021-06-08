@@ -15,7 +15,8 @@ class TypedVariableDeclaration extends VariableDeclaration {
 
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
-  TypedVariableDeclaration(String id, String moduleFullName, String libraryName,
+  const TypedVariableDeclaration(
+      String id, String moduleFullName, String libraryName,
       {String? classId,
       this.declType = HTType.ANY,
       this.typeInferrence = false,
@@ -67,6 +68,7 @@ class TypedVariableDeclaration extends VariableDeclaration {
 
   /// Create a copy of this variable declaration,
   /// mainly used on class member inheritance and function arguments passing.
+  @override
   TypedVariableDeclaration clone() =>
       TypedVariableDeclaration(id, moduleFullName, libraryName,
           classId: classId,

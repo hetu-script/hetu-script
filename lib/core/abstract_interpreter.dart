@@ -58,6 +58,8 @@ abstract class AbstractInterpreter {
 
   String get curModuleFullName;
 
+  String get curLibraryName;
+
   String? get curSymbol;
   // String? get curLeftValue;
 

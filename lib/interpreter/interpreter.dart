@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:path/path.dart' as path;
+
 import '../binding/external_function.dart';
 import '../binding/external_class.dart';
 import '../core/abstract_interpreter.dart';
@@ -72,6 +74,8 @@ class Hetu extends AbstractInterpreter {
   String get curModuleFullName => _curModuleFullName;
 
   late String _curLibraryName;
+  @override
+  String get curLibraryName => _curLibraryName;
 
   HTClass? _curClass;
 
@@ -138,7 +142,10 @@ class Hetu extends AbstractInterpreter {
         externalFunctionTypedef: externalFunctionTypedef);
 
     // a postfix for correct path resolve
-    _curModuleFullName = sourceProvider.workingDirectory + '/script';
+    _curModuleFullName =
+        Uri.file(path.join(sourceProvider.workingDirectory, 'script'))
+            .path
+            .substring(1);
   }
 
   /// Evaluate a string content.
@@ -187,21 +194,22 @@ class Hetu extends AbstractInterpreter {
           namespaces[namespace.id] = namespace;
         }
         final lib = _Library(namespaces, bytes);
-        for (final namespace in lib.namespaces.values) {
-          for (final decl in namespace.declarations.values) {
-            decl.resolve(this);
-          }
-        }
         _libs[_curLibraryName] = lib;
 
         if (createNamespace) {
           for (final module in compilation.modules) {
-            final closure = lib.namespaces[module.fullName]!;
+            final nsp = lib.namespaces[module.fullName]!;
             for (final info in module.imports) {
               // TODO: alias, showList
               final importNamespace = lib.namespaces[info.fullName]!;
-              closure.import(importNamespace);
+              nsp.import(importNamespace);
             }
+          }
+        }
+
+        for (final namespace in lib.namespaces.values) {
+          for (final decl in namespace.declarations.values) {
+            decl.resolve(namespace);
           }
         }
 
@@ -248,9 +256,8 @@ class Hetu extends AbstractInterpreter {
       final module = await sourceProvider.getSource(key,
           curModuleFullName: _curModuleFullName);
 
-      // final savedNamespace = _curNamespace;
       final moduleName = moduleAliasName ?? module.fullName;
-      _curNamespace = HTNamespace(this, id: moduleName);
+      _curNamespace = HTNamespace(this, id: moduleName, closure: coreNamespace);
 
       final result = await eval(module.content,
           moduleFullName: module.fullName,
@@ -260,8 +267,6 @@ class Hetu extends AbstractInterpreter {
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
           typeArgs: typeArgs);
-
-      // _curNamespace = savedNamespace;
 
       return result;
     }
@@ -974,7 +979,8 @@ class Hetu extends AbstractInterpreter {
           typeArgs.add(_handleTypeExpr());
         }
         final isNullable = (_code.read() == 0) ? false : true;
-        return HTType(typeName, typeArgs: typeArgs, isNullable: isNullable);
+        return HTType(typeName, _curModuleFullName, _curLibraryName,
+            typeArgs: typeArgs, isNullable: isNullable);
       case TypeType.function:
         final paramsLength = _code.read();
         final parameterTypes = <TypedParameterDeclaration>[];
@@ -995,20 +1001,24 @@ class Hetu extends AbstractInterpreter {
           final isVariadic = _code.read() == 0 ? false : true;
           final decl = TypedParameterDeclaration(
               paramId ?? '', _curModuleFullName, _curLibraryName,
-              declType:
-                  HTType(typeId, typeArgs: typeArgs, isNullable: isNullable),
+              declType: HTType(typeId, _curModuleFullName, _curLibraryName,
+                  typeArgs: typeArgs, isNullable: isNullable),
               isOptional: isOptional,
               isNamed: isNamed,
               isVariadic: isVariadic);
           parameterTypes.add(decl);
         }
         final returnType = _handleTypeExpr();
-        return HTFunctionType(
+        return HTFunctionType(_curModuleFullName, _curLibraryName,
             parameterDeclarations: parameterTypes, returnType: returnType);
       case TypeType.struct:
       case TypeType.interface:
       case TypeType.union:
-        return HTType(_code.readShortUtf8String());
+        return HTType(
+          _code.readShortUtf8String(),
+          _curModuleFullName,
+          _curLibraryName,
+        );
     }
   }
 
@@ -1102,8 +1112,13 @@ class Hetu extends AbstractInterpreter {
   void _handleFuncDecl() {
     final id = _code.readShortUtf8String();
     final declId = _code.readShortUtf8String();
-    final hasExternalTypedef = _code.readBool();
+    String? classId;
+    final hasClassId = _code.readBool();
+    if (hasClassId) {
+      classId = _code.readShortUtf8String();
+    }
     String? externalTypeId;
+    final hasExternalTypedef = _code.readBool();
     if (hasExternalTypedef) {
       externalTypeId = _code.readShortUtf8String();
     }
@@ -1164,7 +1179,7 @@ class Hetu extends AbstractInterpreter {
 
     final func = HTFunction(id, _curModuleFullName, _curLibraryName, this,
         declId: declId,
-        klass: _curClass,
+        classId: classId,
         definitionIp: definitionIp,
         definitionLine: line,
         definitionColumn: column,
@@ -1184,9 +1199,9 @@ class Hetu extends AbstractInterpreter {
         (category == FunctionCategory.method ||
             category == FunctionCategory.getter ||
             category == FunctionCategory.setter)) {
-      final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
-          value: func);
-      _curClass!.defineInstanceMember(decl);
+      // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
+      //     value: func);
+      _curClass!.defineInstanceMember(func);
     } else {
       // constructor are defined in class's namespace,
       // however its context is on instance.
@@ -1194,9 +1209,9 @@ class Hetu extends AbstractInterpreter {
         func.context = _curNamespace;
       }
       // static methods are defined in class's namespace,
-      final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
-          value: func);
-      _curNamespace.define(decl);
+      // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
+      //     value: func);
+      _curNamespace.define(func);
     }
   }
 
@@ -1229,11 +1244,11 @@ class Hetu extends AbstractInterpreter {
         if (!klass.namespace.contains(HTLexicon.constructor)) {
           final ctor = HTFunction(
               HTLexicon.constructor, _curModuleFullName, _curLibraryName, this,
-              klass: klass, category: FunctionCategory.constructor);
-          final decl = HTVariable(
-              ctor.id, _curModuleFullName, _curLibraryName, this,
-              value: ctor);
-          klass.namespace.define(decl);
+              classId: klass.id, category: FunctionCategory.constructor);
+          // final decl = HTVariable(
+          //     ctor.id, _curModuleFullName, _curLibraryName, this,
+          //     value: ctor);
+          klass.namespace.define(ctor);
         }
       }
       // else {
@@ -1247,20 +1262,29 @@ class Hetu extends AbstractInterpreter {
     _curClass = null;
   }
 
-  void _handleEnumDecl() {
+  void _handleEnumDecl({String? classId}) {
     final id = _code.readShortUtf8String();
     final isExternal = _code.readBool();
     final length = _code.readUint16();
 
     var defs = <String, HTEnumItem>{};
     for (var i = 0; i < length; i++) {
-      // final enumId = _curCode.readShortUtf8String();
-      // defs[enumId] = HTEnumItem<int>(i, enumId, HTType(id));
+      final enumId = _code.readShortUtf8String();
+      defs[enumId] = HTEnumItem<int>(
+          i,
+          enumId,
+          HTType(
+            id,
+            _curModuleFullName,
+            _curLibraryName,
+          ));
     }
 
-    final enumClass = HTEnum(id, defs, this, isExternal: isExternal);
-    final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
-        value: enumClass);
-    _curNamespace.define(decl);
+    final enumClass = HTEnum(
+        id, defs, _curModuleFullName, _curLibraryName, this,
+        classId: classId, isExternal: isExternal);
+    // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
+    //     value: enumClass);
+    _curNamespace.define(enumClass);
   }
 }

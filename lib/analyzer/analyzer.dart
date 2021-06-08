@@ -40,6 +40,10 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   @override
   String get curModuleFullName => _curModuleFullName;
 
+  late String _curLibraryName;
+  @override
+  String get curLibraryName => _curLibraryName;
+
   String? _curSymbol;
   @override
   String? get curSymbol => _curSymbol;

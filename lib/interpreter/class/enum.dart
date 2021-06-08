@@ -2,24 +2,22 @@ import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../interpreter.dart';
 import '../../type/type.dart';
-import '../../type/value_type.dart';
 import '../../core/object.dart';
+import '../../core/declaration/variable_declaration.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
-class HTEnum with HTObject, HetuRef {
-  final String id;
-
+class HTEnum extends VariableDeclaration with HTObject, HetuRef {
   @override
   HTType get valueType => HTType.ENUM;
 
   /// The enumeration item of this [HTEnum].
   final Map<String, HTEnumItem> enums;
 
-  /// Wether this is a external enum, which is declared in Dart codes.
-  final bool isExternal;
-
   /// Create a default [HTEnum] class.
-  HTEnum(this.id, this.enums, Hetu interpreter, {this.isExternal = false}) {
+  HTEnum(String id, this.enums, String moduleFullName, String libraryName,
+      Hetu interpreter, {String? classId, bool isExternal = false})
+      : super(id, moduleFullName, libraryName,
+            classId: classId, isExternal: isExternal) {
     this.interpreter = interpreter;
   }
 
@@ -57,7 +55,7 @@ class HTEnum with HTObject, HetuRef {
 /// The Dart implementation of the enum item in Hetu.
 class HTEnumItem<T> with HTObject {
   @override
-  final HTValueType valueType;
+  final HTType valueType;
 
   /// The value of this enum item.
   final T value;

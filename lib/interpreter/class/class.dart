@@ -7,9 +7,8 @@ import 'instance.dart';
 import '../../core/declaration/class_declaration.dart';
 import 'class_namespace.dart';
 import '../interpreter.dart';
-import '../variable.dart';
 import '../function/function.dart';
-import '../../core/abstract_interpreter.dart';
+import '../../core/declaration/variable_declaration.dart';
 
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
@@ -45,25 +44,21 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
   // final Iterable<HTType> implementedType;
 
   /// The instance member variables defined in class definition.
-  final instanceMembers = <String, HTVariable>{};
+  final instanceMembers = <String, VariableDeclaration>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
-  HTClass(
-    String id,
-    String moduleFullName,
-    String libraryName,
-    Hetu interpreter,
-    HTNamespace closure, {
-    String? classId,
-    bool isExternal = false,
-    bool isAbstract = false,
-    Iterable<HTType> genericParameters = const [],
-    HTType? superType,
-    Iterable<HTType> withTypes = const [],
-    Iterable<HTType> implementsTypes = const [],
-    this.superClass,
-  })  : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
+  HTClass(String id, String moduleFullName, String libraryName,
+      Hetu interpreter, HTNamespace closure,
+      {String? classId,
+      Iterable<HTType> genericParameters = const [],
+      HTType? superType,
+      Iterable<HTType> withTypes = const [],
+      Iterable<HTType> implementsTypes = const [],
+      bool isExternal = false,
+      bool isAbstract = false,
+      this.superClass})
+      : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
         super(id, moduleFullName, libraryName,
             genericParameters: genericParameters,
             superType: superType,
@@ -75,13 +70,33 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
   }
 
   @override
-  void resolve(AbstractInterpreter interpreter) {
-    super.resolve(interpreter);
+  void resolve(HTNamespace namespace) {
+    super.resolve(namespace);
 
     if (superType != null) {
-      superClass = interpreter.curNamespace.memberGet(superType!.id);
+      superClass = namespace.memberGet(superType!.id, from: namespace.fullName);
+    }
+
+    for (final decl in this.namespace.declarations.values) {
+      decl.resolve(namespace);
+    }
+
+    for (final decl in instanceMembers.values) {
+      decl.resolve(namespace);
     }
   }
+
+  @override
+  HTClass clone() =>
+      HTClass(id, moduleFullName, libraryName, interpreter, namespace.closure!,
+          classId: classId,
+          genericParameters: genericParameters,
+          superType: superType,
+          withTypes: withTypes,
+          implementsTypes: implementsTypes,
+          isExternal: isExternal,
+          isAbstract: isAbstract,
+          superClass: superClass);
 
   /// Create a [HTInstance] of this [HTClass],
   /// will not call constructors
@@ -153,11 +168,11 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
     switch (varName) {
       case 'valueType':
         return valueType;
-      case 'fromJson':
-        return ({positionalArgs, namedArgs, typeArgs}) {
-          return createInstanceFromJson(positionalArgs.first,
-              typeArgs: typeArgs ?? const []);
-        };
+      // case 'fromJson':
+      //   return ({positionalArgs, namedArgs, typeArgs}) {
+      //     return createInstanceFromJson(positionalArgs.first,
+      //         typeArgs: typeArgs ?? const []);
+      //   };
       default:
         throw HTError.undefined(varName);
     }
@@ -221,7 +236,7 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
   }
 
   /// Add a instance member declaration to this [HTClass].
-  void defineInstanceMember(HTVariable variable,
+  void defineInstanceMember(VariableDeclaration variable,
       {bool override = false, bool error = true}) {
     if ((!instanceMembers.containsKey(variable.id)) || override) {
       instanceMembers[variable.id] = variable;

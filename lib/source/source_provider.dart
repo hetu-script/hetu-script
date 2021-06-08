@@ -32,13 +32,13 @@ class DefaultSourceProvider implements SourceProvider {
   /// which is used to determin a module's absolute path
   /// when no relative path exists
   DefaultSourceProvider({String? workingDirectory}) {
+    late final String dir;
     if (workingDirectory != null) {
-      final dir = Directory(workingDirectory);
-      this.workingDirectory = dir.absolute.path;
+      dir = Directory(workingDirectory).absolute.path;
     } else {
-      final dir = Directory.current;
-      this.workingDirectory = dir.absolute.path;
+      dir = Directory.current.absolute.path;
     }
+    this.workingDirectory = Uri.file(dir).path.substring(1);
   }
 
   @override
@@ -53,7 +53,7 @@ class DefaultSourceProvider implements SourceProvider {
       fullName = workingDirectory;
     }
 
-    return path.join(fullName, key);
+    return Uri.file(path.join(fullName, key)).path.substring(1);
   }
 
   /// Import a script module with a certain [key], ignore those already imported

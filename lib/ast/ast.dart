@@ -524,6 +524,8 @@ class VarDeclStmt extends AstNode {
 
   final String id;
 
+  final String? classId;
+
   final TypeExpr? declType;
 
   final AstNode? initializer;
@@ -544,7 +546,8 @@ class VarDeclStmt extends AstNode {
   final bool lateInitialize;
 
   const VarDeclStmt(this.id, int line, int column,
-      {this.declType,
+      {this.classId,
+      this.declType,
       this.initializer,
       this.typeInferrence = false,
       this.isExternal = false,
@@ -604,6 +607,8 @@ class FuncDeclExpr extends AstNode {
 
   final String declId;
 
+  final String? classId;
+
   final Iterable<TypeExpr> typeParameters;
 
   final String? externalTypeId;
@@ -611,8 +616,6 @@ class FuncDeclExpr extends AstNode {
   final TypeExpr? returnType;
 
   final ReferConstructorExpr? referConstructor;
-
-  final String? classId;
 
   final bool hasParamDecls;
 

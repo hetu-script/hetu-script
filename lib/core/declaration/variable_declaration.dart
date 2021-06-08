@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-import '../abstract_interpreter.dart';
+import '../../core/namespace/namespace.dart';
 import '../../error/errors.dart';
 
 class VariableDeclaration {
@@ -22,6 +22,13 @@ class VariableDeclaration {
 
   final bool isConst;
 
+  const VariableDeclaration(this.id, this.moduleFullName, this.libraryName,
+      {this.classId,
+      this.isExternal = false,
+      this.isStatic = false,
+      this.isMutable = false,
+      this.isConst = false});
+
   dynamic get value => this;
 
   set value(dynamic newVal) {
@@ -31,12 +38,13 @@ class VariableDeclaration {
   }
 
   @mustCallSuper
-  void resolve(AbstractInterpreter interpreter) {}
+  void resolve(HTNamespace namespace) {}
 
-  VariableDeclaration(this.id, this.moduleFullName, this.libraryName,
-      {this.classId,
-      this.isExternal = false,
-      this.isStatic = false,
-      this.isMutable = false,
-      this.isConst = false});
+  VariableDeclaration clone() =>
+      VariableDeclaration(id, moduleFullName, libraryName,
+          classId: classId,
+          isExternal: isExternal,
+          isStatic: isStatic,
+          isMutable: isMutable,
+          isConst: isConst);
 }

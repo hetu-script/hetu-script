@@ -9,7 +9,7 @@ class TypedParameterDeclaration extends TypedVariableDeclaration {
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  TypedParameterDeclaration(
+  const TypedParameterDeclaration(
       String id, String moduleFullName, String libraryName,
       {HTType? declType,
       this.isOptional = false,

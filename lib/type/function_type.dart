@@ -111,11 +111,11 @@ class HTFunctionType extends HTType {
   final List<TypedParameterDeclaration> parameterDeclarations;
   final HTType returnType;
 
-  HTFunctionType(
+  HTFunctionType(String moduleFullName, String libraryName,
       {this.genericTypeParameters = const [],
       this.parameterDeclarations = const [],
       this.returnType = HTType.ANY})
-      : super(HTLexicon.function);
+      : super(HTLexicon.function, moduleFullName, libraryName);
 
   @override
   String toString() {

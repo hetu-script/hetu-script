@@ -1,6 +1,6 @@
 import '../../type/type.dart';
 import 'variable_declaration.dart';
-import '../abstract_interpreter.dart';
+import '../../core/namespace/namespace.dart';
 
 class ClassDeclaration extends VariableDeclaration {
   /// The type parameters of the class.
@@ -23,11 +23,11 @@ class ClassDeclaration extends VariableDeclaration {
   final bool isAbstract;
 
   ClassDeclaration(String id, String moduleFullName, String libraryName,
-      {this.genericParameters = const [],
+      {String? classId,
+      this.genericParameters = const [],
       HTType? superType,
       this.withTypes = const [],
       this.implementsTypes = const [],
-      String? classId,
       bool isExternal = false,
       this.isAbstract = false})
       : super(id, moduleFullName, libraryName,
@@ -36,11 +36,21 @@ class ClassDeclaration extends VariableDeclaration {
   }
 
   @override
-  void resolve(AbstractInterpreter interpreter) {
-    super.resolve(interpreter);
+  void resolve(HTNamespace namespace) {
+    super.resolve(namespace);
 
     if ((_superType != null) && !_superType!.isResolved) {
-      _superType = _superType!.resolve(interpreter);
+      _superType = _superType!.resolve(namespace);
     }
   }
+
+  @override
+  ClassDeclaration clone() => ClassDeclaration(id, moduleFullName, libraryName,
+      classId: classId,
+      genericParameters: genericParameters,
+      superType: superType,
+      withTypes: withTypes,
+      implementsTypes: implementsTypes,
+      isExternal: isExternal,
+      isAbstract: isAbstract);
 }

@@ -1,5 +1,6 @@
 import 'tool/person.ht'
 import 'tool/beauty.ht'
+import 'tool/class_decl.ht'
 
 class Jimmy extends Person {
   var age = 17

@@ -1,5 +1,3 @@
-import 'package:hetu_script/core/object.dart';
-
 import '../../binding/external_function.dart';
 import '../../core/namespace/namespace.dart';
 import '../class/instance_namespace.dart';
@@ -14,6 +12,7 @@ import '../variable.dart';
 import 'parameter.dart';
 import '../../core/declaration/function_declaration.dart';
 import '../compiler.dart' show GotoInfo;
+import '../../core/object.dart';
 
 class ReferConstructor {
   /// id of super class's constructor
@@ -39,7 +38,7 @@ class ReferConstructor {
 class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
   static final callStack = <String>[];
 
-  final HTClass? klass;
+  HTClass? klass;
 
   /// Wether to check params when called
   /// A function like:
@@ -68,37 +67,35 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
   HTFunction(
-    String id,
-    String moduleFullName,
-    String libraryName,
-    Hetu interpreter, {
-    String? declId,
-    this.klass,
-    int? definitionIp,
-    int? definitionLine,
-    int? definitionColumn,
-    FunctionCategory category = FunctionCategory.normal,
-    bool isExternal = false,
-    Function? externalFunc,
-    String? externalTypeId,
-    this.hasParamDecls = true,
-    this.paramDecls = const <String, HTParameter>{},
-    bool isStatic = false,
-    bool isConst = false,
-    bool isVariadic = false,
-    int minArity = 0,
-    int maxArity = 0,
-    this.context,
-    this.referConstructor,
-  }) : super(id, moduleFullName, libraryName,
+      String id, String moduleFullName, String libraryName, Hetu interpreter,
+      {String? declId,
+      String? classId,
+      bool isExternal = false,
+      bool isStatic = false,
+      bool isConst = false,
+      int? definitionIp,
+      int? definitionLine,
+      int? definitionColumn,
+      FunctionCategory category = FunctionCategory.normal,
+      Function? externalFunc,
+      String? externalTypeId,
+      bool isVariadic = false,
+      this.hasParamDecls = true,
+      this.paramDecls = const <String, HTParameter>{},
+      int minArity = 0,
+      int maxArity = 0,
+      this.context,
+      this.referConstructor,
+      this.klass})
+      : super(id, moduleFullName, libraryName,
             declId: declId,
-            classId: klass?.id,
-            category: category,
+            classId: classId,
             isExternal: isExternal,
-            externalFunc: externalFunc,
-            externalTypeId: externalTypeId,
             isStatic: isStatic,
             isConst: isConst,
+            category: category,
+            externalFunc: externalFunc,
+            externalTypeId: externalTypeId,
             isVariadic: isVariadic,
             minArity: minArity,
             maxArity: maxArity) {
@@ -117,6 +114,37 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
       return this;
     }
   }
+
+  @override
+  void resolve(HTNamespace namespace) {
+    super.resolve(namespace);
+
+    if (classId != null) {
+      klass = namespace.memberGet(classId!, from: namespace.fullName);
+    }
+  }
+
+  @override
+  HTFunction clone() => HTFunction(id, moduleFullName, libraryName, interpreter,
+      declId: declId,
+      classId: classId,
+      isExternal: isExternal,
+      isStatic: isStatic,
+      isConst: isConst,
+      definitionIp: definitionIp,
+      definitionLine: definitionLine,
+      definitionColumn: definitionColumn,
+      category: category,
+      externalFunc: externalFunc,
+      externalTypeId: externalTypeId,
+      isVariadic: isVariadic,
+      hasParamDecls: hasParamDecls,
+      paramDecls: paramDecls,
+      minArity: minArity,
+      maxArity: maxArity,
+      context: context,
+      referConstructor: referConstructor,
+      klass: klass);
 
   /// Call this function with specific arguments.
   /// ```

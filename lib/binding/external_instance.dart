@@ -37,7 +37,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       valueType = HTNominalType(klass!);
     } else {
       klass = null;
-      valueType = HTExternalType(typeString);
+      valueType = HTExternalType(typeString, interpreter.curModuleFullName,
+          interpreter.curLibraryName);
     }
   }
 

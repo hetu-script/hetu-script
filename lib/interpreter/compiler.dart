@@ -1234,9 +1234,9 @@ class HTCompiler implements AbstractAstVisitor {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
-    if (_curClass != null) {
+    if (stmt.classId != null) {
       bytesBuilder.addByte(1); // bool: has class id
-      bytesBuilder.add(_shortUtf8String(_curClass!.id));
+      bytesBuilder.add(_shortUtf8String(stmt.classId!));
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
@@ -1310,6 +1310,12 @@ class HTCompiler implements AbstractAstVisitor {
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
       bytesBuilder.add(_shortUtf8String(stmt.id));
       bytesBuilder.add(_shortUtf8String(stmt.declId));
+      if (stmt.classId != null) {
+        bytesBuilder.addByte(1); // bool: hasClassId
+        bytesBuilder.add(_shortUtf8String(stmt.classId!));
+      } else {
+        bytesBuilder.addByte(0); // bool: hasClassId
+      }
       if (stmt.externalTypeId != null) {
         bytesBuilder.addByte(1); // bool: hasExternalTypedef
         bytesBuilder.add(_shortUtf8String(stmt.externalTypeId!));

@@ -5,11 +5,13 @@ import '../error/errors.dart';
 import '../core/object.dart';
 import '../core/abstract_interpreter.dart';
 import '../core/declaration/class_declaration.dart';
-import '../ast/ast.dart' show TypeExpr;
+import '../core/declaration/variable_declaration.dart';
+import '../core/namespace/namespace.dart';
+// import '../ast/ast.dart' show TypeExpr;
 import 'function_type.dart';
 import 'nominal_type.dart';
 
-class HTType with HTObject {
+class HTType extends VariableDeclaration with HTObject {
   static const ANY = _PrimitiveType(HTLexicon.ANY);
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
@@ -47,23 +49,27 @@ class HTType with HTObject {
   @override
   HTType get valueType => HTType.TYPE;
 
-  final String id;
   final List<HTType> typeArgs;
   final bool isNullable;
 
   bool get isResolved => false;
 
-  const HTType(this.id, {this.typeArgs = const [], this.isNullable = false});
+  const HTType(String id, String moduleFullName, String librayName,
+      {String? classId, this.typeArgs = const [], this.isNullable = false})
+      : super(id, moduleFullName, librayName, classId: classId);
 
-  factory HTType.fromAst(TypeExpr? ast) {
-    if (ast != null) {
-      return HTType(ast.id,
-          typeArgs: ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
-          isNullable: ast.isNullable);
-    } else {
-      return HTType.ANY;
-    }
-  }
+  // factory HTType.fromAst(
+  //     TypeExpr? ast, String moduleFullName, String libraryName) {
+  //   if (ast != null) {
+  //     return HTType(ast.id, moduleFullName, libraryName,
+  //         typeArgs: ast.arguments
+  //             .map((expr) => HTType.fromAst(expr, moduleFullName, libraryName))
+  //             .toList(),
+  //         isNullable: ast.isNullable);
+  //   } else {
+  //     return HTType.ANY;
+  //   }
+  // }
 
   @override
   String toString() {
@@ -140,14 +146,16 @@ class HTType with HTObject {
 
   /// initialize the declared type if it's a class name.
   /// only return the [HTClass] when its a non-external class
-  HTType resolve(AbstractInterpreter interpreter) {
+  @override
+  HTType resolve(HTNamespace namespace) {
+    super.resolve(namespace);
+
     if (isResolved) {
       return this;
     } else if (primitiveTypes.containsKey(id)) {
       return primitiveTypes[id]!;
     } else {
-      final typeDef = interpreter.curNamespace
-          .memberGet(id, from: interpreter.curNamespace.fullName);
+      final typeDef = namespace.memberGet(id, from: namespace.fullName);
       if (typeDef is ClassDeclaration) {
         return HTNominalType(typeDef, typeArgs: typeArgs);
       } else if (typeDef is HTFunctionType) {
@@ -166,5 +174,6 @@ class _PrimitiveType extends HTType {
   @override
   bool get isResolved => true;
 
-  const _PrimitiveType(String id) : super(id);
+  const _PrimitiveType(String id)
+      : super(id, HTLexicon.coreSpace, HTLexicon.coreSpace);
 }

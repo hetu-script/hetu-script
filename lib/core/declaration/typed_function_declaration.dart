@@ -14,27 +14,27 @@ class TypedFunctionDeclaration extends FunctionDeclaration {
   final HTFunctionType type;
 
   TypedFunctionDeclaration(String id, String moduleFullName, String libraryName,
-      {String? classId,
+      {String? declId,
+      String? classId,
       bool isExternal = false,
       bool isStatic = false,
-      String? declId,
+      bool isConst = false,
       FunctionCategory category = FunctionCategory.normal,
       Function? externalFunc,
       String? externalTypeId,
-      bool isConst = false,
       bool isVariadic = false,
       int minArity = 0,
       int maxArity = 0,
       this.parameterDeclarations = const {},
       HTType? returnType})
-      : type = HTFunctionType(
+      : type = HTFunctionType(moduleFullName, libraryName,
             parameterDeclarations: parameterDeclarations.values.toList(),
             returnType: returnType ?? HTType.ANY),
         super(id, moduleFullName, libraryName,
+            declId: declId,
             classId: classId,
             isExternal: isExternal,
             isStatic: isStatic,
-            declId: declId,
             category: category,
             externalFunc: externalFunc,
             externalTypeId: externalTypeId,
@@ -91,4 +91,21 @@ class TypedFunctionDeclaration extends FunctionDeclaration {
         returnType.toString());
     return result.toString();
   }
+
+  @override
+  TypedFunctionDeclaration clone() =>
+      TypedFunctionDeclaration(id, moduleFullName, libraryName,
+          declId: declId,
+          classId: classId,
+          isExternal: isExternal,
+          isStatic: isStatic,
+          isConst: isConst,
+          category: category,
+          externalFunc: externalFunc,
+          externalTypeId: externalTypeId,
+          isVariadic: isVariadic,
+          minArity: minArity,
+          maxArity: maxArity,
+          parameterDeclarations: parameterDeclarations,
+          returnType: returnType);
 }

@@ -24,33 +24,33 @@ void main() async {
         true,
       );
     });
-    test('arguments', () async {
-      final result = await hetu.eval('''
-        fun functionAssign1 {
-          fun convert(n) -> num {
-            return num.parse(n)
-          }
-          const a: fun (num) -> num = convert
-          return a.valueType.toString()
-        }
-      ''', invokeFunc: 'functionAssign1');
-      expect(
-        result,
-        'function(any) -> num',
-      );
-    });
-    test('return type', () async {
-      final result = await hetu.eval('''
-        fun functionAssign2 {
-          var a: fun (num) -> num = fun (n: any) -> num { return n }
-          return a.valueType.toString()
-        }
-      ''', invokeFunc: 'functionAssign2');
-      expect(
-        result,
-        'function(any) -> num',
-      );
-    });
+    // test('arguments', () async {
+    //   final result = await hetu.eval('''
+    //     fun functionAssign1 {
+    //       fun convert(n) -> num {
+    //         return num.parse(n)
+    //       }
+    //       const a: fun (num) -> num = convert
+    //       return a.valueType.toString()
+    //     }
+    //   ''', invokeFunc: 'functionAssign1');
+    //   expect(
+    //     result,
+    //     'function(any) -> num',
+    //   );
+    // });
+    // test('return type', () async {
+    //   final result = await hetu.eval('''
+    //     fun functionAssign2 {
+    //       var a: fun (num) -> num = fun (n: any) -> num { return n }
+    //       return a.valueType.toString()
+    //     }
+    //   ''', invokeFunc: 'functionAssign2');
+    //   expect(
+    //     result,
+    //     'function(any) -> num',
+    //   );
+    // });
     test('function type', () async {
       final result = await hetu.eval('''
         fun functionType {

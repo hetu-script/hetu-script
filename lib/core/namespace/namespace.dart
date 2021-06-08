@@ -62,11 +62,14 @@ class HTNamespace with HTObject {
   }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(VariableDeclaration decl, {bool override = false}) {
+  void define(VariableDeclaration decl,
+      {bool override = false, bool error = true}) {
     if (!declarations.containsKey(decl.id) || override) {
       declarations[decl.id] = decl;
     } else {
-      throw HTError.definedRuntime(decl.id);
+      if (error) {
+        throw HTError.definedRuntime(decl.id);
+      }
     }
   }
 
@@ -127,7 +130,7 @@ class HTNamespace with HTObject {
 
   void import(HTNamespace other) {
     for (final decl in other.declarations.values) {
-      define(decl);
+      define(decl, error: false);
     }
   }
 }

@@ -235,17 +235,17 @@ class HTAstParser extends AbstractParser {
           case HTLexicon.CONST:
             return _parseVarDecl(typeInferrence: true);
           case HTLexicon.FUNCTION:
-            if (!expect([HTLexicon.FUNCTION, SemanticType.identifier]) &&
-                !expect([
+            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
+                expect([
                   HTLexicon.FUNCTION,
                   HTLexicon.squareLeft,
                   SemanticType.identifier,
                   HTLexicon.squareRight,
                   SemanticType.identifier
                 ])) {
-              return _parseFuncDecl(category: FunctionCategory.literal);
+              return _parseFuncDecl();
             } else {
-              return _parseExprStmt();
+              return _parseFuncDecl(category: FunctionCategory.literal);
             }
           case HTLexicon.IF:
             return _parseIfStmt();
@@ -305,6 +305,7 @@ class HTAstParser extends AbstractParser {
           case HTLexicon.FUNCTION:
             return _parseFuncDecl(
                 category: FunctionCategory.method,
+                classId: _curClass?.id,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
           case HTLexicon.CONSTRUCT:
@@ -314,16 +315,19 @@ class HTAstParser extends AbstractParser {
             }
             return _parseFuncDecl(
               category: FunctionCategory.constructor,
+              classId: _curClass?.id,
               isExternal: isExternal || (_curClass?.isExternal ?? false),
             );
           case HTLexicon.GET:
             return _parseFuncDecl(
                 category: FunctionCategory.getter,
+                classId: _curClass?.id,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
           case HTLexicon.SET:
             return _parseFuncDecl(
                 category: FunctionCategory.setter,
+                classId: _curClass?.id,
                 isExternal: isExternal || (_curClass?.isExternal ?? false),
                 isStatic: isStatic);
           default:
@@ -1007,6 +1011,7 @@ class HTAstParser extends AbstractParser {
     }
 
     return VarDeclStmt(id, idTok.line, idTok.column,
+        classId: classId,
         declType: declType,
         initializer: initializer,
         typeInferrence: typeInferrence,
@@ -1020,6 +1025,7 @@ class HTAstParser extends AbstractParser {
 
   FuncDeclExpr _parseFuncDecl(
       {FunctionCategory category = FunctionCategory.normal,
+      String? classId,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
@@ -1227,7 +1233,7 @@ class HTAstParser extends AbstractParser {
     _curFuncType = savedCurFuncType;
 
     return FuncDeclExpr(id, declId, paramDecls, keyword.line, keyword.column,
-        classId: _curClass?.id,
+        classId: classId,
         typeParameters: typeParameters,
         externalTypeId: externalTypedef,
         returnType: returnType,
