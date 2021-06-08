@@ -5,6 +5,15 @@ import 'package:path/path.dart' as path;
 import '../error/errors.dart';
 import 'source.dart';
 
+extension TrimStartingSlash on String {
+  String trimStartingSlash() {
+    if (startsWith('/')) {
+      return substring(1);
+    }
+    return this;
+  }
+}
+
 /// Abstract module import handler class
 abstract class SourceProvider {
   String get workingDirectory;
@@ -38,10 +47,7 @@ class DefaultSourceProvider implements SourceProvider {
     } else {
       dir = Directory.current.absolute.path;
     }
-    var result = Uri.file(dir).path;
-    if (result.startsWith('/')) {
-      result = result.substring(1);
-    }
+    var result = Uri.file(dir, windows: true).path.trimStartingSlash();
     this.workingDirectory = result;
   }
 
@@ -57,11 +63,8 @@ class DefaultSourceProvider implements SourceProvider {
       fullName = workingDirectory;
     }
 
-    var result = Uri.file(path.join(fullName, key)).path;
-    if (result.startsWith('/')) {
-      result = result.substring(1);
-    }
-
+    var joined = path.join(fullName, key);
+    var result = Uri.file(joined, windows: true).path.trimStartingSlash();
     return result;
   }
 
