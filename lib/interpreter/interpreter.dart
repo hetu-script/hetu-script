@@ -484,6 +484,7 @@ class Hetu extends AbstractInterpreter {
           for (var i = 0; i < loopCount; ++i) {
             _loops.removeLast();
           }
+          _curLoopCount = 0;
           return _curValue;
         case HTOpCode.endOfModule:
           return _curNamespace;
