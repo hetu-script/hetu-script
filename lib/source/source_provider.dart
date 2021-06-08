@@ -5,9 +5,9 @@ import 'package:path/path.dart' as path;
 import '../error/errors.dart';
 import 'source.dart';
 
-extension TrimStartingSlash on String {
-  String trimStartingSlash() {
-    if (startsWith('/')) {
+extension TrimPath on String {
+  String trimPath() {
+    if (Platform.isWindows && startsWith('/')) {
       return substring(1);
     }
     return this;
@@ -47,7 +47,7 @@ class DefaultSourceProvider implements SourceProvider {
     } else {
       dir = Directory.current.absolute.path;
     }
-    var result = Uri.file(dir, windows: true).path.trimStartingSlash();
+    var result = Uri.file(dir).path.trimPath();
     this.workingDirectory = result;
   }
 
@@ -64,7 +64,7 @@ class DefaultSourceProvider implements SourceProvider {
     }
 
     var joined = path.join(fullName, key);
-    var result = Uri.file(joined, windows: true).path.trimStartingSlash();
+    var result = Uri.file(joined).path.trimPath();
     return result;
   }
 

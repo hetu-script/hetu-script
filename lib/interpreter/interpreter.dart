@@ -143,8 +143,7 @@ class Hetu extends AbstractInterpreter {
 
     // a postfix for correct path resolve
     var joined = path.join(sourceProvider.workingDirectory, 'script');
-    final workingPath =
-        Uri.file(joined, windows: true).path.trimStartingSlash();
+    final workingPath = Uri.file(joined).path.trimPath();
     _curModuleFullName = workingPath;
   }
 
