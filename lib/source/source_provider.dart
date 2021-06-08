@@ -38,7 +38,11 @@ class DefaultSourceProvider implements SourceProvider {
     } else {
       dir = Directory.current.absolute.path;
     }
-    this.workingDirectory = Uri.file(dir).path.substring(1);
+    var result = Uri.file(dir).path;
+    if (result.startsWith('/')) {
+      result = result.substring(1);
+    }
+    this.workingDirectory = result;
   }
 
   @override
@@ -53,7 +57,12 @@ class DefaultSourceProvider implements SourceProvider {
       fullName = workingDirectory;
     }
 
-    return Uri.file(path.join(fullName, key)).path.substring(1);
+    var result = Uri.file(path.join(fullName, key)).path;
+    if (result.startsWith('/')) {
+      result = result.substring(1);
+    }
+
+    return result;
   }
 
   /// Import a script module with a certain [key], ignore those already imported
