@@ -3,7 +3,6 @@ import 'package:quiver/core.dart';
 import '../grammar/lexicon.dart';
 import '../error/errors.dart';
 import '../core/object.dart';
-import '../core/abstract_interpreter.dart';
 import '../core/declaration/class_declaration.dart';
 import '../core/declaration/variable_declaration.dart';
 import '../core/namespace/namespace.dart';
@@ -18,13 +17,13 @@ class HTType extends VariableDeclaration with HTObject {
   static const ENUM = _PrimitiveType(HTLexicon.ENUM);
   static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
   static const CLASS = _PrimitiveType(HTLexicon.CLASS);
-  static const TYPE = _PrimitiveType(HTLexicon.type);
+  static const TYPE = _PrimitiveType(HTLexicon.TYPE);
   static const unknown = _PrimitiveType(HTLexicon.unknown);
   static const object = _PrimitiveType(HTLexicon.object);
   static const function = _PrimitiveType(HTLexicon.function);
 
   static const Map<String, HTType> primitiveTypes = {
-    HTLexicon.type: TYPE,
+    HTLexicon.TYPE: TYPE,
     HTLexicon.ANY: ANY,
     HTLexicon.NULL: NULL,
     HTLexicon.VOID: VOID,

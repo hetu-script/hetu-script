@@ -11,10 +11,17 @@ import '../grammar/lexicon.dart';
 // import '../source/source.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
+import '../error/error_processor.dart';
 import '../ast/ast.dart';
 // import 'ast_function.dart';
 import '../ast/parser.dart';
 import '../ast/ast_source.dart';
+
+class AnalyzerConfig {
+  final List<ErrorProcessor> errorProcessors;
+
+  const AnalyzerConfig(this.errorProcessors);
+}
 
 class HTBreak {}
 
@@ -92,10 +99,8 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
     _curNamespace = namespace ?? HTNamespace(this, id: _curModuleFullName);
 
     try {
-      final compilation = await parser.parse(content,
-          moduleFullName: _curModuleFullName,
-          sourceProvider: sourceProvider,
-          config: config);
+      final compilation = await parser.parseAll(content, sourceProvider,
+          moduleFullName: _curModuleFullName, config: config);
 
       _sources.join(compilation);
 
@@ -483,4 +488,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
 
     // _curNamespace.define(enumClass);
   }
+
+  @override
+  dynamic visitTypeAliasStmt(TypeAliasDeclStmt stmt) {}
 }

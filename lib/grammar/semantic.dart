@@ -3,6 +3,7 @@ enum FunctionCategory {
   normal,
   method,
   constructor,
+  factory,
   getter,
   setter,
   literal, // function expression with no function name
@@ -25,6 +26,7 @@ enum TypeType {
 
 abstract class SemanticType {
   static const emptyLine = 'empty_line';
+  static const comment = 'comment';
   static const singleLineComment = 'single_line_comment';
   static const multiLineComment = 'multi_line_comment';
 
@@ -41,7 +43,6 @@ abstract class SemanticType {
   static const whenBranch = 'when_loop';
   static const functionCall = 'function_call';
   static const classDefinition = 'class_definition';
-
   static const ctorCallExpr = 'constructor_call_expression';
 
   static const literalNull = 'literal_null';
@@ -51,6 +52,7 @@ abstract class SemanticType {
   static const literalFloat = 'literal_float';
   static const literalString = 'literal_string';
   static const literalFunction = 'literal_function_expression';
+
   static const typeExpr = 'type_expression';
   static const literalTypeExpr = 'literal_type_expression';
   static const unionTypeExpr = 'union_type_expression';
@@ -74,7 +76,8 @@ abstract class SemanticType {
   static const variableDeclaration = 'variable_declaration';
   static const parameterDeclaration = 'parameter_declaration';
   static const classDeclaration = 'class_declaration';
-  static const enumDecl = 'enum_declaration';
+  static const enumDeclaration = 'enum_declaration';
+  static const typeAliasDeclaration = 'type_alias_declaration';
   static const referConstructorExpression = 'refer_constructor_expression';
   static const functionDeclaration = 'function_declaration';
 

@@ -114,16 +114,15 @@ Future<void> format(List<String> args,
 
   try {
     // final config = ParserConfig(sourceType: sourceType);
-    final compilation = await parser.parse(source.content,
-        moduleFullName: source.fullName,
-        sourceProvider: sourceProvider); //, config);
+    final compilation = await parser.parseAll(source.content, sourceProvider,
+        moduleFullName: source.fullName); //, config);
 
     final module = compilation.getModule(source.fullName);
 
-    await formatter.format(module);
+    final fmtResult = formatter.format(module);
 
     if (printResult) {
-      print(module.content);
+      print(fmtResult);
     }
 
     if (outPath != null) {
@@ -137,7 +136,7 @@ Future<void> format(List<String> args,
     }
 
     final outFile = File(outPath);
-    outFile.writeAsStringSync(module.content);
+    outFile.writeAsStringSync(fmtResult);
 
     print('Saved formatted file to:');
     print(outPath);

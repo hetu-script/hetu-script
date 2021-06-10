@@ -126,7 +126,7 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
     final constructor = '${HTLexicon.constructor}$varName';
 
     if (isExternal) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
@@ -143,21 +143,21 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
       }
     } else {
       if (namespace.declarations.containsKey(varName)) {
-        if (varName.startsWith(HTLexicon.underscore) &&
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
         final decl = namespace.declarations[varName]!;
         return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
-        if (varName.startsWith(HTLexicon.underscore) &&
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
         HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
       } else if (namespace.declarations.containsKey(constructor)) {
-        if (varName.startsWith(HTLexicon.underscore) &&
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
@@ -189,7 +189,7 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
       externClass.memberSet('$id.$varName', varValue);
       return;
     } else if (namespace.declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
@@ -197,7 +197,7 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
       decl.value = varValue;
       return;
     } else if (namespace.declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }

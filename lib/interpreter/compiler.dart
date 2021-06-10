@@ -1419,4 +1419,11 @@ class HTCompiler implements AbstractAstVisitor {
     }
     return bytesBuilder.toBytes();
   }
+
+  @override
+  Uint8List visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+
+    return bytesBuilder.toBytes();
+  }
 }

@@ -20,21 +20,21 @@ class HTClassNamespace extends HTNamespace {
     final externalStatic = '$id.$varName';
 
     if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
       return decl.value;
     } else if (declarations.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       final decl = declarations[getter]!;
       return decl.value;
     } else if (declarations.containsKey(externalStatic)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
@@ -54,7 +54,7 @@ class HTClassNamespace extends HTNamespace {
       {String from = HTLexicon.global}) {
     final setter = '${HTLexicon.setter}$varName';
     if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
@@ -66,7 +66,7 @@ class HTClassNamespace extends HTNamespace {
         throw HTError.immutable(varName);
       }
     } else if (declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }

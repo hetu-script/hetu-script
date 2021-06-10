@@ -171,12 +171,11 @@ class Hetu extends AbstractInterpreter {
 
     final createNamespace = namespace != coreNamespace;
     try {
-      final compilation = await parser.parse(content,
+      final compilation = await parser.parseAll(content, sourceProvider,
           createNamespace: createNamespace,
           libraryName:
               libraryName, // TODO: should set in parser, and should read from script if exist
           moduleFullName: moduleFullName,
-          sourceProvider: sourceProvider,
           config: config);
 
       final bytes = await compiler.compile(compilation);
@@ -199,8 +198,10 @@ class Hetu extends AbstractInterpreter {
           for (final module in compilation.modules) {
             final nsp = lib.namespaces[module.fullName]!;
             for (final info in module.imports) {
+              final importFullName =
+                  sourceProvider.resolveFullName(info.key, module.fullName);
               // TODO: alias, showList
-              final importNamespace = lib.namespaces[info.fullName]!;
+              final importNamespace = lib.namespaces[importFullName]!;
               nsp.import(importNamespace);
             }
           }

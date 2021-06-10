@@ -137,7 +137,7 @@ class HTInstance with HTObject, InterpreterRef {
     if (classId == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(varName)) {
-          if (varName.startsWith(HTLexicon.underscore) &&
+          if (varName.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
             throw HTError.privateMember(varName);
           }
@@ -149,7 +149,7 @@ class HTInstance with HTObject, InterpreterRef {
           }
           return value;
         } else if (space.declarations.containsKey(getter)) {
-          if (varName.startsWith(HTLexicon.underscore) &&
+          if (varName.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
             throw HTError.privateMember(varName);
           }
@@ -162,7 +162,7 @@ class HTInstance with HTObject, InterpreterRef {
     } else {
       final space = _namespaces[classId]!;
       if (space.declarations.containsKey(varName)) {
-        if (varName.startsWith(HTLexicon.underscore) &&
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
           throw HTError.privateMember(varName);
         }
@@ -173,7 +173,7 @@ class HTInstance with HTObject, InterpreterRef {
         }
         return value;
       } else if (space.declarations.containsKey(getter)) {
-        if (varName.startsWith(HTLexicon.underscore) &&
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
           throw HTError.privateMember(varName);
         }
@@ -210,7 +210,7 @@ class HTInstance with HTObject, InterpreterRef {
     if (classId == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(varName)) {
-          if (varName.startsWith(HTLexicon.underscore) &&
+          if (varName.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
             throw HTError.privateMember(varName);
           }
@@ -219,7 +219,7 @@ class HTInstance with HTObject, InterpreterRef {
           decl.value = varValue;
           return;
         } else if (space.declarations.containsKey(setter)) {
-          if (varName.startsWith(HTLexicon.underscore) &&
+          if (varName.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
             throw HTError.privateMember(varName);
           }
@@ -237,7 +237,7 @@ class HTInstance with HTObject, InterpreterRef {
 
       final space = _namespaces[classId]!;
       if (space.declarations.containsKey(varName)) {
-        if (varName.startsWith(HTLexicon.underscore) &&
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
           throw HTError.privateMember(varName);
         }
@@ -246,7 +246,7 @@ class HTInstance with HTObject, InterpreterRef {
         decl.value = varValue;
         return;
       } else if (space.declarations.containsKey(setter)) {
-        if (varName.startsWith(HTLexicon.underscore) &&
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
           throw HTError.privateMember(varName);
         }

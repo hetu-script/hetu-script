@@ -75,7 +75,7 @@ abstract class HTLexicon {
   static const anonymousBlock = r'$_anonymousBlock_';
   static const increment = r'$_increment_';
   static const functionCall = 'call';
-  static const underscore = '_';
+  static const privatePrefix = '_';
   static const global = 'global';
   static const instance = r'$_instance_';
   static const constructor = r'$_constructor_';
@@ -110,7 +110,6 @@ abstract class HTLexicon {
   static const ANY = 'any';
   static const VOID = 'void';
   static const unknown = 'unknown';
-  static const type = 'type';
   static const object = 'object';
   static const function = 'function';
 
@@ -121,11 +120,12 @@ abstract class HTLexicon {
     ENUM,
     NAMESPACE,
     unknown,
-    type,
+    TYPE,
     object,
     function,
   };
 
+  static const TYPE = 'type';
   static const TYPEOF = 'typeof';
   static const IMPORT = 'import';
   static const NAMESPACE = 'namespace';
@@ -142,6 +142,7 @@ abstract class HTLexicon {
   static const Set<String> constructorCall = {THIS, SUPER};
 
   static const ABSTRACT = 'abstract';
+  static const EXPORT = 'export';
   static const EXTERNAL = 'external';
   static const STATIC = 'static';
   static const EXTENDS = 'extends';
@@ -149,6 +150,7 @@ abstract class HTLexicon {
   static const MIXIN = 'mixin';
 
   static const CONSTRUCT = 'construct';
+  static const FACTORY = 'factory';
   static const GET = 'get';
   static const SET = 'set';
   static const ASYNC = 'async';
@@ -193,6 +195,7 @@ abstract class HTLexicon {
     IMPLEMENTS,
     MIXIN,
     CONSTRUCT,
+    FACTORY,
     GET,
     SET,
     ASYNC, // TODO: async单独可以用作函数声明关键字

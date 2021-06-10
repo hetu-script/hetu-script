@@ -1,5 +1,5 @@
 import '../../core/token.dart';
-// import '../../grammar/lexicon.dart';
+import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 // import '../source/source.dart' show SourceType;
 
@@ -26,7 +26,7 @@ class CommentExpr extends AstNode {
   final bool isMultiline;
 
   const CommentExpr(this.content, this.isMultiline, int line, int column)
-      : super(SemanticType.literalNull, line, column);
+      : super(SemanticType.comment, line, column);
 }
 
 class NullExpr extends AstNode {
@@ -196,7 +196,7 @@ class ParamTypeExpr extends AstNode {
 class FuncTypeExpr extends TypeExpr {
   final TypeExpr returnType;
 
-  // final List<TypeExpr> genericTypeParameters;
+  // final List<TypeExpr> genericParameters;
 
   final List<ParamTypeExpr> paramTypes;
 
@@ -210,6 +210,7 @@ class FuncTypeExpr extends TypeExpr {
 
   const FuncTypeExpr(this.returnType, int line, int column,
       {this.paramTypes = const [],
+      // this.genericParameters = const[],
       this.hasOptionalParam = false,
       this.hasNamedParam = false})
       : super(SemanticType.funcTypeExpr, line, column);
@@ -532,7 +533,10 @@ class VarDeclStmt extends AstNode {
 
   final bool typeInferrence;
 
-  // 仅用于整个class都为external的情况
+  bool get isMember => classId != null;
+
+  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
+
   final bool isExternal;
 
   final bool isStatic;
@@ -542,6 +546,8 @@ class VarDeclStmt extends AstNode {
   final bool isConst;
 
   final bool isExported;
+
+  final bool isTopLevel;
 
   final bool lateInitialize;
 
@@ -555,6 +561,7 @@ class VarDeclStmt extends AstNode {
       this.isMutable = false,
       this.isConst = false,
       this.isExported = false,
+      this.isTopLevel = false,
       this.lateInitialize = false})
       : super(SemanticType.variableDeclaration, line, column);
 }
@@ -609,7 +616,7 @@ class FuncDeclExpr extends AstNode {
 
   final String? classId;
 
-  final Iterable<TypeExpr> typeParameters;
+  final List<TypeExpr> genericParameters;
 
   final String? externalTypeId;
 
@@ -627,6 +634,12 @@ class FuncDeclExpr extends AstNode {
 
   final BlockStmt? definition;
 
+  bool get isMember => classId != null;
+
+  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
+
+  bool get isAbstract => definition != null;
+
   final bool isExternal;
 
   final bool isStatic;
@@ -637,13 +650,15 @@ class FuncDeclExpr extends AstNode {
 
   final bool isExported;
 
+  final bool isTopLevel;
+
   final FunctionCategory category;
 
   bool get isLiteral => category == FunctionCategory.literal;
 
   const FuncDeclExpr(this.id, this.declId, this.params, int line, int column,
       {this.classId,
-      this.typeParameters = const [],
+      this.genericParameters = const [],
       this.externalTypeId,
       this.returnType,
       this.referConstructor,
@@ -656,6 +671,7 @@ class FuncDeclExpr extends AstNode {
       this.isConst = false,
       this.isVariadic = false,
       this.isExported = false,
+      this.isTopLevel = false,
       this.category = FunctionCategory.normal})
       : super(SemanticType.functionDeclaration, line, column);
 }
@@ -667,9 +683,15 @@ class ClassDeclStmt extends AstNode {
 
   final String id;
 
-  final Iterable<TypeExpr> typeParameters;
+  final String? classId;
+
+  final List<TypeExpr> genericParameters;
 
   final TypeExpr? superType;
+
+  bool get isMember => classId != null;
+
+  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
 
   final bool isExternal;
 
@@ -677,14 +699,18 @@ class ClassDeclStmt extends AstNode {
 
   final bool isExported;
 
+  final bool isTopLevel;
+
   final BlockStmt? definition;
 
   const ClassDeclStmt(this.id, int line, int column,
-      {this.typeParameters = const [],
+      {this.classId,
+      this.genericParameters = const [],
       this.superType,
       this.isExternal = false,
       this.isAbstract = false,
       this.isExported = true,
+      this.isTopLevel = false,
       this.definition})
       : super(SemanticType.classDeclaration, line, column);
 }
@@ -695,13 +721,57 @@ class EnumDeclStmt extends AstNode {
 
   final String id;
 
+  final String? classId;
+
   final List<String> enumerations;
+
+  bool get isMember => classId != null;
+
+  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
 
   final bool isExternal;
 
   final bool isExported;
 
-  const EnumDeclStmt(this.id, this.enumerations, int line, int column,
-      {this.isExternal = false, this.isExported = true})
-      : super(SemanticType.enumDecl, line, column);
+  final bool isTopLevel;
+
+  const EnumDeclStmt(
+    this.id,
+    this.enumerations,
+    int line,
+    int column, {
+    this.classId,
+    this.isExternal = false,
+    this.isExported = true,
+    this.isTopLevel = false,
+  }) : super(SemanticType.enumDeclaration, line, column);
+}
+
+class TypeAliasDeclStmt extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitTypeAliasStmt(this);
+
+  final String id;
+
+  final String? classId;
+
+  final List<TypeExpr> genericParameters;
+
+  final TypeExpr value;
+
+  bool get isMember => classId != null;
+
+  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
+
+  final bool isExported;
+
+  final bool isTopLevel;
+
+  const TypeAliasDeclStmt(this.id, this.value, int line, int column,
+      {this.classId,
+      this.genericParameters = const [],
+      this.isExported = false,
+      this.isTopLevel = false})
+      : super(SemanticType.typeAliasDeclaration, line, column);
 }

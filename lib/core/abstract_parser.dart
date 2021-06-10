@@ -1,17 +1,20 @@
 import '../source/source.dart';
 import '../error/errors.dart';
 import '../grammar/lexicon.dart';
+import '../error/error_handler.dart';
 import 'token.dart';
 
 class ParserConfig {
   final SourceType sourceType;
   final bool reload;
   final bool lineInfo;
+  final ErrorHanldeApproach errorHandleApproach;
 
   const ParserConfig(
       {this.sourceType = SourceType.module,
       this.reload = false,
-      this.lineInfo = true});
+      this.lineInfo = true,
+      this.errorHandleApproach = ErrorHanldeApproach.THROW});
 }
 
 abstract class AbstractParser {

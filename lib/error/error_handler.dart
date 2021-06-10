@@ -1,5 +1,11 @@
 import 'errors.dart';
 
+enum ErrorHanldeApproach {
+  IGNORE,
+  THROW,
+  LOG,
+}
+
 /// Abstract error handler class
 abstract class HTErrorHandler {
   void handle(HTError error);

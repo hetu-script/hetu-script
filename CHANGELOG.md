@@ -1,6 +1,6 @@
 ## 0.1.2
 
-- Added Analyzer and Formatter utility classes.
+- Added Analyzer and Formatter utility classes (WIP).
 - Added Type expression and related assignment operations.
 - Feature: Added default implementation of 'toJson' on instances.
 

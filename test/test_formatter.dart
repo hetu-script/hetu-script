@@ -4,11 +4,11 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   final srcPrdr = DefaultSourceProvider();
   final parser = HTAstParser();
-  final bundle = await parser.parseFile('script\\battle.ht', srcPrdr);
+  final bundle = await parser.parseFileAsLibrary('script\\battle.ht', srcPrdr);
 
   final formatter = HTFormatter();
 
-  await formatter.formatAll(bundle);
+  formatter.formatLibrary(bundle);
 
   for (final module in bundle.modules) {
     print('========[${module.fullName}]========');

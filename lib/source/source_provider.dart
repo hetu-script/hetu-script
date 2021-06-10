@@ -75,13 +75,15 @@ class DefaultSourceProvider implements SourceProvider {
   /// Otherwise, a absolute path is calculated from [workingDirectory]
   @override
   Future<HTSource> getSource(String key,
-      {String? curModuleFullName, bool reload = true}) async {
+      {bool isFullName = false,
+      String? curModuleFullName,
+      bool reload = true}) async {
     try {
-      var fullName = resolveFullName(key, curModuleFullName);
+      final fullName =
+          isFullName ? key : resolveFullName(key, curModuleFullName);
 
-      var content = '';
       if (!hasModule(fullName) || reload) {
-        content = await File(fullName).readAsString();
+        final content = await File(fullName).readAsString();
         if (content.isNotEmpty) {
           _importedFiles[fullName] = content;
           if (content.isEmpty) throw HTError.emptyString(fullName);

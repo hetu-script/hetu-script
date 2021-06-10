@@ -126,37 +126,38 @@ class ErrorType implements Comparable<ErrorType> {
 
   /// Syntactic errors are errors produced as a result of input that does not
   /// conform to the grammar.
-  /// Reported by parser.
   static const syntacticError =
       ErrorType('SYNTACTIC_ERROR', 3, ErrorSeverity.error);
 
-  /// Static warnings are those warnings reported by the static checker.
-  /// They have no effect on execution.
+  static const analysisWarning =
+      ErrorType('ANALYSIS_WARNING', 4, ErrorSeverity.warning);
+
   /// Reported by analyzer.
-  static const staticWarning =
-      ErrorType('STATIC_WARNING', 4, ErrorSeverity.warning);
+  static const analysisError =
+      ErrorType('ANALYSIS_ERROR', 5, ErrorSeverity.error);
 
   /// Compile-time errors are errors that preclude execution. A compile time
   /// error must be reported by a compiler before the erroneous code is
   /// executed.
   static const compileError =
-      ErrorType('COMPILE_ERROR', 5, ErrorSeverity.error);
+      ErrorType('COMPILE_ERROR', 6, ErrorSeverity.error);
 
   /// Run-time errors are errors that occurred during execution. A run time
   /// error is reported by the interpreter.
   static const runtimeError =
-      ErrorType('RUNTIME_ERROR', 6, ErrorSeverity.error);
+      ErrorType('RUNTIME_ERROR', 7, ErrorSeverity.error);
 
   /// External errors are errors reported by the dart side.
   static const externalError =
-      ErrorType('NATIVE_ERROR', 7, ErrorSeverity.error);
+      ErrorType('NATIVE_ERROR', 8, ErrorSeverity.error);
 
   static const values = [
     todo,
     hint,
     lint,
-    staticWarning,
     syntacticError,
+    analysisWarning,
+    analysisError,
     compileError,
     runtimeError,
     externalError

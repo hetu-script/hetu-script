@@ -2,32 +2,32 @@ import '../source/source.dart' show HTSource;
 import 'ast.dart' show AstNode, ImportStmt;
 
 class ImportInfo {
-  final String key;
-
   final String fullName;
 
   final String? alias;
 
   final List<String>? showList;
 
-  ImportInfo(this.key, this.fullName, [this.alias, this.showList]);
+  ImportInfo(this.fullName, [this.alias, this.showList]);
 
   ImportInfo.fromAst(ImportStmt stmt, String fullName)
-      : this(stmt.key, fullName, stmt.alias, stmt.showList);
+      : this(fullName, stmt.alias, stmt.showList);
 }
 
 class HTAstModule extends HTSource {
   /// The bytecode, stores as uint8 list
   final List<AstNode> nodes;
 
-  final List<ImportInfo> imports;
+  final List<ImportStmt> imports;
 
   final bool createNamespace;
 
   final bool isLibrary;
 
-  HTAstModule(String fullName, String content, this.nodes, this.imports,
-      {this.createNamespace = true, this.isLibrary = false})
+  HTAstModule(String fullName, String content, this.nodes,
+      {this.imports = const [],
+      this.createNamespace = true,
+      this.isLibrary = false})
       : super(fullName, content);
 }
 

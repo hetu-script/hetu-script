@@ -83,4 +83,6 @@ abstract class AbstractAstVisitor {
   dynamic visitClassDeclStmt(ClassDeclStmt stmt);
 
   dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
+
+  dynamic visitTypeAliasStmt(TypeAliasDeclStmt stmt);
 }

@@ -78,7 +78,7 @@ class HTNamespace with HTObject {
   @override
   dynamic memberGet(String varName, {String from = HTLexicon.global}) {
     if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
@@ -105,7 +105,7 @@ class HTNamespace with HTObject {
   void memberSet(String varName, dynamic varValue,
       {String from = HTLexicon.global}) {
     if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.underscore) &&
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
