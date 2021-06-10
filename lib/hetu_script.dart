@@ -1,6 +1,6 @@
-/// HETU SCRIPT 0.0.1
+/// HETU SCRIPT
 ///
-/// A lightweight script language written in Dart, for embedded in Dart app.
+/// A lightweight script language for embedding in Flutter apps.
 
 library hetu_script;
 
