@@ -1261,6 +1261,7 @@ class HTCompiler implements AbstractAstVisitor {
     } else {
       bytesBuilder.addByte(0); // bool: has initializer
     }
+    bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
 
@@ -1370,6 +1371,9 @@ class HTCompiler implements AbstractAstVisitor {
       bytesBuilder.addByte(0); // bool: has no definition
     }
     _curFunc = savedCurFunc;
+    if (!stmt.isLiteral) {
+      bytesBuilder.addByte(HTOpCode.endOfStmt);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1401,6 +1405,7 @@ class HTCompiler implements AbstractAstVisitor {
     } else {
       bytesBuilder.addByte(0); // bool: hasDefinition
     }
+    bytesBuilder.addByte(HTOpCode.endOfStmt);
     _curClass = savedClass;
     return bytesBuilder.toBytes();
   }
@@ -1417,6 +1422,7 @@ class HTCompiler implements AbstractAstVisitor {
     for (final id in stmt.enumerations) {
       bytesBuilder.add(_shortUtf8String(id));
     }
+    bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
 

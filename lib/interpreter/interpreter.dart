@@ -59,6 +59,11 @@ class Hetu extends AbstractInterpreter {
 
   late BytecodeReader _code;
 
+  late InterpreterConfig _config;
+
+  @override
+  InterpreterConfig get config => _config;
+
   final _constTable = ConstTable();
 
   var _curLine = 0;
@@ -168,6 +173,8 @@ class Hetu extends AbstractInterpreter {
     _curModuleFullName = moduleFullName ??= HTLexicon.anonymousScript;
 
     _curLibraryName = libraryName ??= moduleFullName;
+
+    _config = config;
 
     final createNamespace = namespace != coreNamespace;
     try {
@@ -475,7 +482,10 @@ class Hetu extends AbstractInterpreter {
           break;
         // 语句结束
         case HTOpCode.endOfStmt:
+          _curValue = null;
           _curSymbol = null;
+          _curLeftValue = null;
+          _curTypeArgs = [];
           break;
         case HTOpCode.endOfExec:
           return _curValue;
@@ -487,7 +497,11 @@ class Hetu extends AbstractInterpreter {
           _curLoopCount = 0;
           return _curValue;
         case HTOpCode.endOfModule:
-          return _curNamespace;
+          if (_config.sourceType == SourceType.module) {
+            return _curNamespace;
+          } else {
+            return _curValue;
+          }
         case HTOpCode.constTable:
           final int64Length = _code.readUint16();
           for (var i = 0; i < int64Length; ++i) {
@@ -557,16 +571,11 @@ class Hetu extends AbstractInterpreter {
             // TODO: object symbol?
             throw HTError.nullObject(object);
           }
-          // 如果是 buildin 集合
           if ((object is List) || (object is Map)) {
             object[key] = value;
-          }
-          // 如果是 Hetu 对象
-          else if (object is HTObject) {
+          } else if (object is HTObject) {
             object.subSet(key, value);
-          }
-          // 如果是 Dart 对象
-          else {
+          } else {
             final typeString = object.runtimeType.toString();
             final id = HTType.parseBaseType(typeString);
             final externClass = fetchExternalClass(id);
@@ -655,7 +664,6 @@ class Hetu extends AbstractInterpreter {
         break;
       case HTValueTypeCode.group:
         _curValue = execute();
-        // _curValue = execute(moveRegIndex: true);
         break;
       case HTValueTypeCode.list:
         final list = [];
@@ -1260,6 +1268,7 @@ class Hetu extends AbstractInterpreter {
       //   }
       // }
     }
+
     _curClass = null;
   }
 

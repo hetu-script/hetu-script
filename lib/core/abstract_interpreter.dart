@@ -50,6 +50,8 @@ abstract class AbstractInterpreter {
   HTAstParser parser = HTAstParser();
   HTCompiler compiler = HTCompiler();
 
+  InterpreterConfig get config;
+
   /// Current line number of execution.
   int get curLine;
 
@@ -152,16 +154,20 @@ abstract class AbstractInterpreter {
       bool errorHandled = false});
 
   /// Handle a error thrown by other funcion in Hetu.
-  void handleError(Object error, [StackTrace? stack]) {
-    var sb = StringBuffer();
-    for (var funcName in HTFunction.callStack) {
-      sb.writeln('  $funcName');
+  void handleError(Object error, [StackTrace? dartStack]) {
+    final sb = StringBuffer();
+    if (config.scriptStackTrace) {
+      for (var funcName in HTFunction.callStack) {
+        sb.writeln('  $funcName');
+      }
+      sb.writeln('Dart call stack:\n$dartStack');
     }
-    sb.writeln('\n$stack');
-    var callStack = sb.toString();
+    final callStack = sb.toString();
 
     if (error is HTError) {
-      error.message = '${error.message}\nCall stack:\n$callStack';
+      if (config.scriptStackTrace) {
+        error.message = '${error.message}\nCall stack:\n$callStack';
+      }
       if (error.type == ErrorType.syntacticError) {
         error.moduleFullName = parser.curModuleFullName;
         error.line = parser.curLine;
@@ -177,8 +183,12 @@ abstract class AbstractInterpreter {
       }
       errorHandler.handle(error);
     } else {
+      var message = error.toString();
+      if (config.scriptStackTrace) {
+        message = '$message\nCall stack:\n$callStack';
+      }
       final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
-          message: '$error\nCall stack:\n$callStack',
+          message: message,
           moduleFullName: curModuleFullName,
           line: curLine,
           column: curColumn);

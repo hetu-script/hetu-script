@@ -37,7 +37,6 @@ void main(List<String> arguments) async {
   try {
     await hetu.init();
 
-    dynamic result;
     if (arguments.isEmpty) {
       print(repl_info);
       var exit = false;
@@ -53,8 +52,10 @@ void main(List<String> arguments) async {
             input += '\n' + stdin.readLineSync()!;
           }
 
-          result = await hetu.eval(input,
-              config: InterpreterConfig(sourceType: SourceType.script));
+          final result = await hetu.eval(input,
+              namespace: hetu.coreNamespace,
+              config: InterpreterConfig(
+                  sourceType: SourceType.script, scriptStackTrace: false));
           print(result);
         }
       }

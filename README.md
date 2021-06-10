@@ -98,19 +98,13 @@ Hetu has a command line REPL tool for testing. You can activate by the following
 dart pub global activate hetu_script
 ```
 
-Then you can use the following command in any directory on your computer. (If you are facing any problems, please check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global))
+Then you can use command line tool 'hetu' in any directory on your computer. (If you are facing any problems, please check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global))
 
-```
+Currently there are two command: [run] for evaluate a script file and [fmt] for format the scrip file.
 
-hetu [file_name] [invoke_func]
+More information can be found by enter [hetu -h].
 
-```
-
-If [file_name] is provided, evaluate the file in [function] mode.
-
-If [invoke_func] is provided, evaluate the file in [module] mode and call a certain function with given name.
-
-If no option is provided, enter REPL mode.
+If no command and option is provided, enter REPL mode.
 
 In REPL mode, every exrepssion you entered will be evaluated and print out immediately.
 
@@ -136,6 +130,6 @@ function hello() -> any // repl print
 
 ## Apps that embedded Hetu:
 
-| Name                     | Author                                        | Description |    Download    | Source |
-| :----------------------- | :-------------------------------------------- | :---------- | :------------: | :----- |
-| Monster Hunter Companion | [rockingdice](https://github.com/rockingdice) |             | Android<br>iOS |        |
+| Name                       | Author                                        | Description                                                       |                     Download                      | Source        |
+| :------------------------- | :-------------------------------------------- | :---------------------------------------------------------------- | :-----------------------------------------------: | :------------ |
+| Monster Hunter Otomo: Rise | [rockingdice](https://github.com/rockingdice) | A unofficial game companion app for Capcom's Monster Hunter: Rise | [iOS](https://apps.apple.com/cn/app/id1561983275) | Closed Source |

@@ -35,6 +35,11 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
 
   late HTAstModule _curCode;
 
+  late InterpreterConfig _config;
+
+  @override
+  InterpreterConfig get config => _config;
+
   var _curLine = 0;
   @override
   int get curLine => _curLine;

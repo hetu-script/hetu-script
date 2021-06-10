@@ -262,23 +262,17 @@ class HTAstParser extends AbstractParser {
               advance(1);
               return _parseClassDecl(isAbstract: true);
             case HTLexicon.ENUM:
-              return _parseEnumDecl(isExported: true);
+              return _parseEnumDecl();
             case HTLexicon.CLASS:
-              return _parseClassDecl(isExported: true);
+              return _parseClassDecl();
             case HTLexicon.VAR:
-              return _parseVarDecl(
-                  isMutable: true, isExported: true, lateInitialize: true);
+              return _parseVarDecl(isMutable: true, lateInitialize: true);
             case HTLexicon.LET:
-              return _parseVarDecl(
-                  typeInferrence: true,
-                  isMutable: true,
-                  isExported: true,
-                  lateInitialize: true);
+              return _parseVarDecl(typeInferrence: true, lateInitialize: true);
             case HTLexicon.CONST:
-              return _parseVarDecl(
-                  typeInferrence: true, isExported: true, lateInitialize: true);
+              return _parseVarDecl(typeInferrence: true, lateInitialize: true);
             case HTLexicon.FUNCTION:
-              return _parseFuncDecl(isExported: true);
+              return _parseFuncDecl();
             default:
               throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
           }
@@ -1109,14 +1103,8 @@ class HTAstParser extends AbstractParser {
     var declId = '';
     late String id;
 
-    if (category != FunctionCategory.literal) {
-      if (category == FunctionCategory.constructor) {
-        if (curTok.type == SemanticType.identifier) {
-          declId = advance(1).lexeme;
-        }
-      } else {
-        declId = match(SemanticType.identifier).lexeme;
-      }
+    if (curTok.type == SemanticType.identifier) {
+      declId = advance(1).lexeme;
     }
 
     switch (category) {
