@@ -52,11 +52,19 @@ void main(List<String> arguments) async {
             input += '\n' + stdin.readLineSync()!;
           }
 
-          final result = await hetu.eval(input,
-              namespace: hetu.coreNamespace,
-              config: InterpreterConfig(
-                  sourceType: SourceType.script, scriptStackTrace: false));
-          print(result);
+          try {
+            final result = await hetu.eval(input,
+                namespace: hetu.coreNamespace,
+                config: InterpreterConfig(
+                    sourceType: SourceType.script, scriptStackTrace: false));
+            print(result);
+          } catch (e) {
+            if (e is HTError) {
+              print(e.message);
+            } else {
+              print(e);
+            }
+          }
         }
       }
     } else {
@@ -87,9 +95,8 @@ void main(List<String> arguments) async {
         await run(arguments);
       }
     }
-  } catch (e, stack) {
+  } catch (e) {
     print(e);
-    print(stack);
   }
 }
 

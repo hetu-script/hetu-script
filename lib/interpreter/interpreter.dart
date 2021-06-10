@@ -190,6 +190,8 @@ class Hetu extends AbstractInterpreter {
       _code = BytecodeReader(bytes);
 
       if (config.sourceType == SourceType.script) {
+        // TODO: 现在这样写是错误的，应该用一个函数包裹起来这个脚本，然后立即执行这个函数
+        // 但这样的话，就需要把import改成一个命令，可以在函数内使用
         final result = execute(namespace: namespace ?? coreNamespace);
         return result;
       } else if (config.sourceType == SourceType.module) {

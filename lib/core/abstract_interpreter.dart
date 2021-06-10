@@ -27,6 +27,7 @@ mixin InterpreterRef {
 }
 
 class InterpreterConfig extends ParserConfig {
+  final bool errorDetail;
   final bool scriptStackTrace;
   final int scriptStackTraceMaxline;
   final bool externalStackTrace;
@@ -36,6 +37,7 @@ class InterpreterConfig extends ParserConfig {
       {SourceType sourceType = SourceType.module,
       bool reload = false,
       bool lineInfo = true,
+      this.errorDetail = true,
       this.scriptStackTrace = true,
       this.scriptStackTraceMaxline = 10,
       this.externalStackTrace = true,

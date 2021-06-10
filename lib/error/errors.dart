@@ -452,7 +452,7 @@ class HTError {
   HTError.arity(String id, int argsCount, int paramsCount)
       : this(ErrorCode.arity, ErrorType.runtimeError,
             message: HTLexicon.errorArity,
-            interpolations: [id, argsCount.toString(), paramsCount.toString()]);
+            interpolations: [argsCount.toString(), id, paramsCount.toString()]);
 
   /// Error: Missing binding extension on dart object.
   HTError.binding(String id)
