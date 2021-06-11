@@ -23,6 +23,10 @@ class HTFormatter implements AbstractAstVisitor {
 
   AstNode? _lastStmt;
 
+  FormatterConfig config;
+
+  HTFormatter({this.config = const FormatterConfig()});
+
   String get curIndent {
     final output = StringBuffer();
     var i = _curIndentCount;
@@ -33,8 +37,7 @@ class HTFormatter implements AbstractAstVisitor {
     return output.toString();
   }
 
-  String format(HTAstModule module,
-      {FormatterConfig config = const FormatterConfig()}) {
+  String format(HTAstModule module) {
     final output = StringBuffer();
     for (var i = 0; i < module.nodes.length; ++i) {
       final stmt = module.nodes[i];

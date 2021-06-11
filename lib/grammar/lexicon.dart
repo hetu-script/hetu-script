@@ -475,4 +475,5 @@ abstract class HTLexicon {
   static const errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}]';
   static const errorSourceType = 'config.sourcetype must be script or module.';
+  static const errorUnknownModule = 'Unkown module name: [{0}]';
 }

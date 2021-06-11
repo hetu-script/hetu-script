@@ -59,11 +59,6 @@ class Hetu extends AbstractInterpreter {
 
   late BytecodeReader _code;
 
-  late InterpreterConfig _config;
-
-  @override
-  InterpreterConfig get config => _config;
-
   final _constTable = ConstTable();
 
   var _curLine = 0;
@@ -128,8 +123,12 @@ class Hetu extends AbstractInterpreter {
 
   /// Create a bytecode interpreter.
   /// Each interpreter has a independent global [HTNamespace].
-  Hetu({HTErrorHandler? errorHandler, SourceProvider? sourceProvider})
-      : super(errorHandler: errorHandler, sourceProvider: sourceProvider) {
+  Hetu(
+      {HTErrorHandler? errorHandler,
+      SourceProvider? sourceProvider,
+      InterpreterConfig config = const InterpreterConfig()})
+      : super(config,
+            errorHandler: errorHandler, sourceProvider: sourceProvider) {
     _curNamespace = coreNamespace;
   }
 
@@ -162,7 +161,7 @@ class Hetu extends AbstractInterpreter {
       {String? moduleFullName,
       String? libraryName,
       HTNamespace? namespace,
-      InterpreterConfig config = const InterpreterConfig(),
+      InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -170,11 +169,15 @@ class Hetu extends AbstractInterpreter {
       bool errorHandled = false}) async {
     if (content.isEmpty) throw HTError.emptyString();
 
-    _curModuleFullName = moduleFullName ??= HTLexicon.anonymousScript;
+    final savedConfig = this.config;
+    if (config != null) {
+      this.config = config;
+    }
+
+    _curModuleFullName = moduleFullName ??= HTLexicon.anonymousScript +
+        (AbstractInterpreter.anonymousScriptIndex++).toString();
 
     _curLibraryName = libraryName ??= moduleFullName;
-
-    _config = config;
 
     final createNamespace = namespace != coreNamespace;
     try {
@@ -183,22 +186,28 @@ class Hetu extends AbstractInterpreter {
           libraryName:
               libraryName, // TODO: should set in parser, and should read from script if exist
           moduleFullName: moduleFullName,
-          config: config);
+          config: this.config);
 
       final bytes = await compiler.compile(compilation);
 
       _code = BytecodeReader(bytes);
 
-      if (config.sourceType == SourceType.script) {
+      var result;
+      final namespaces = <String, HTNamespace>{};
+      if (this.config.sourceType == SourceType.script) {
         // TODO: 现在这样写是错误的，应该用一个函数包裹起来这个脚本，然后立即执行这个函数
         // 但这样的话，就需要把import改成一个命令，可以在函数内使用
-        final result = execute(namespace: namespace ?? coreNamespace);
-        return result;
-      } else if (config.sourceType == SourceType.module) {
-        final namespaces = <String, HTNamespace>{};
+        final nsp = execute(namespace: namespace ?? coreNamespace);
+        namespaces[nsp.id] = nsp;
+        final lib = _Library(namespaces, bytes);
+        _libs[_curLibraryName] = lib;
+        coreNamespace.import(nsp);
+
+        result = _registers.first;
+      } else if (this.config.sourceType == SourceType.module) {
         while (_code.ip < _code.bytes.length) {
-          final HTNamespace namespace = execute();
-          namespaces[namespace.id] = namespace;
+          final HTNamespace nsp = execute();
+          namespaces[nsp.id] = nsp;
         }
         final lib = _Library(namespaces, bytes);
         _libs[_curLibraryName] = lib;
@@ -222,16 +231,18 @@ class Hetu extends AbstractInterpreter {
           }
         }
 
-        if (config.sourceType == SourceType.module && invokeFunc != null) {
-          final result = invoke(invokeFunc,
+        if (this.config.sourceType == SourceType.module && invokeFunc != null) {
+          result = invoke(invokeFunc,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
               errorHandled: true);
-          return result;
         }
       } else {
         throw HTError.sourceType();
       }
+
+      this.config = savedConfig;
+      return result;
     } catch (error, stack) {
       if (errorHandled) {
         rethrow;
@@ -251,69 +262,70 @@ class Hetu extends AbstractInterpreter {
   /// If [invokeFunc] is provided, will immediately
   /// call the function after evaluation completed.
   @override
-  Future<dynamic> import(String key,
-      {String? curModuleFullName,
-      String? moduleAliasName,
-      InterpreterConfig config = const InterpreterConfig(),
+  Future<dynamic> evalFile(String key,
+      {bool reload = false,
+      String? moduleFullName,
+      String? libraryName,
+      HTNamespace? namespace,
+      InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) async {
-    final fullName = sourceProvider.resolveFullName(key);
+      List<HTType> typeArgs = const [],
+      bool errorHandled = false}) async {
+    try {
+      final fullName = sourceProvider.resolveFullName(key);
 
-    if (config.reload || !sourceProvider.hasModule(fullName)) {
-      final module = await sourceProvider.getSource(key,
-          curModuleFullName: _curModuleFullName);
+      if (reload || !sourceProvider.hasModule(fullName)) {
+        final module = await sourceProvider.getSource(key,
+            curModuleFullName: _curModuleFullName);
 
-      final moduleName = moduleAliasName ?? module.fullName;
-      _curNamespace = HTNamespace(this, id: moduleName, closure: coreNamespace);
+        final result = await eval(module.content,
+            moduleFullName: module.fullName,
+            libraryName: libraryName,
+            namespace: namespace,
+            config: config,
+            invokeFunc: invokeFunc,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs,
+            errorHandled: true);
 
-      final result = await eval(module.content,
-          moduleFullName: module.fullName,
-          namespace: _curNamespace,
-          config: config,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
-
-      return result;
+        return result;
+      }
+    } catch (error, stack) {
+      if (errorHandled) {
+        rethrow;
+      } else {
+        handleError(error, stack);
+      }
     }
   }
 
   /// Call a function within current [HTNamespace].
   @override
   dynamic invoke(String funcName,
-      {String? className,
+      {String? moduleFullName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
-      var func;
-      if (className != null) {
-        // 类的静态函数
-        HTClass klass = _curNamespace.memberGet(className);
-        final func = klass.memberGet(funcName);
-
-        if (func is HTFunction) {
-          return func.call(
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          throw HTError.notCallable(funcName);
-        }
+      HTFunction func;
+      if (moduleFullName != null) {
+        final lib = _libs[_curLibraryName]!;
+        final namespace = lib.namespaces[moduleFullName]!;
+        func = namespace.memberGet(funcName);
       } else {
         func = _curNamespace.memberGet(funcName);
-        if (func is HTFunction) {
-          return func.call(
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          HTError.notCallable(funcName);
-        }
+      }
+      if (func is HTFunction) {
+        return func.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
+      } else {
+        HTError.notCallable(funcName);
       }
     } catch (error, stack) {
       if (errorHandled) {
@@ -351,11 +363,12 @@ class Hetu extends AbstractInterpreter {
   dynamic execute(
       {String? libraryName,
       String? moduleFullName,
-      int? ip,
       HTNamespace? namespace,
+      int? ip,
       int? line,
       int? column}) {
     final savedLibraryName = _curLibraryName;
+    final savedBytes = _code.bytes;
     final savedModuleFullName = _curModuleFullName;
     final savedIp = _code.ip;
     final savedNamespace = _curNamespace;
@@ -365,8 +378,8 @@ class Hetu extends AbstractInterpreter {
     var namespaceChanged = false;
     if (libraryName != null && (_curLibraryName != libraryName)) {
       _curLibraryName = libraryName;
-      final module = _libs[libraryName]!;
-      _code.changeCode(module.bytes);
+      final lib = _libs[_curLibraryName]!;
+      _code.changeCode(lib.bytes);
       codeChanged = true;
       ipChanged = true;
     }
@@ -393,8 +406,7 @@ class Hetu extends AbstractInterpreter {
 
     if (codeChanged) {
       _curLibraryName = savedLibraryName;
-      final module = _libs[libraryName]!;
-      _code.changeCode(module.bytes);
+      _code.changeCode(savedBytes);
     }
     if (namespaceChanged) {
       _curModuleFullName = savedModuleFullName;
@@ -499,11 +511,7 @@ class Hetu extends AbstractInterpreter {
           _curLoopCount = 0;
           return _curValue;
         case HTOpCode.endOfModule:
-          if (_config.sourceType == SourceType.module) {
-            return _curNamespace;
-          } else {
-            return _curValue;
-          }
+          return _curNamespace;
         case HTOpCode.constTable:
           final int64Length = _code.readUint16();
           for (var i = 0; i < int64Length; ++i) {

@@ -8,7 +8,6 @@ import '../core/abstract_interpreter.dart';
 // import '../core/class/enum.dart';
 // import '../core/class/class.dart';
 import '../grammar/lexicon.dart';
-// import '../source/source.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
 import '../error/error_processor.dart';
@@ -77,19 +76,20 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   HTNamespace get curNamespace => _curNamespace;
 
   HTAnalyzer(
-      {bool debugMode = false,
-      HTErrorHandler? errorHandler,
-      SourceProvider? sourceProvider})
-      : super(errorHandler: errorHandler, sourceProvider: sourceProvider) {
-    _curNamespace = HTNamespace(this);
+      {HTErrorHandler? errorHandler,
+      SourceProvider? sourceProvider,
+      InterpreterConfig config = const InterpreterConfig()})
+      : super(config,
+            errorHandler: errorHandler, sourceProvider: sourceProvider) {
+    _curNamespace = coreNamespace;
   }
 
   @override
   Future<void> eval(String content,
       {String? moduleFullName,
-      bool createNamespace = true,
+      String? libraryName,
       HTNamespace? namespace,
-      InterpreterConfig config = const InterpreterConfig(),
+      InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -105,7 +105,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
 
     try {
       final compilation = await parser.parseAll(content, sourceProvider,
-          moduleFullName: _curModuleFullName, config: config);
+          moduleFullName: _curModuleFullName, config: config ?? this.config);
 
       _sources.join(compilation);
 
@@ -130,40 +130,20 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
 
   /// 解析文件
   @override
-  Future<void> import(String key,
-      {String? curModuleFullName,
-      String? moduleAliasName,
-      InterpreterConfig config = const InterpreterConfig(),
+  Future<void> evalFile(String key,
+      {String? moduleFullName,
+      String? libraryName,
+      HTNamespace? namespace,
+      InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) async {
-    final fullName = sourceProvider.resolveFullName(key);
-
-    if (config.reload || !sourceProvider.hasModule(fullName)) {
-      final module = await sourceProvider.getSource(key,
-          curModuleFullName: curModuleFullName);
-
-      final savedNamespace = _curNamespace;
-      final moduleName = moduleAliasName ?? module.fullName;
-      _curNamespace = HTNamespace(this, id: moduleName);
-
-      await eval(module.content,
-          moduleFullName: module.fullName,
-          namespace: _curNamespace,
-          config: config,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
-
-      _curNamespace = savedNamespace;
-    }
-  }
+      List<HTType> typeArgs = const [],
+      bool errorHandled = false}) async {}
 
   @override
   dynamic invoke(String funcName,
-      {String? className,
+      {String? moduleFullName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],

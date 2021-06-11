@@ -31,7 +31,9 @@ Version: 0.1.0
 Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
-final hetu = Hetu();
+final hetu = Hetu(
+    config: InterpreterConfig(
+        sourceType: SourceType.script, scriptStackTrace: false));
 
 void main(List<String> arguments) async {
   try {
@@ -51,12 +53,9 @@ void main(List<String> arguments) async {
           if (input!.endsWith('\\')) {
             input += '\n' + stdin.readLineSync()!;
           }
-
           try {
-            final result = await hetu.eval(input,
-                namespace: hetu.coreNamespace,
-                config: InterpreterConfig(
-                    sourceType: SourceType.script, scriptStackTrace: false));
+            final result =
+                await hetu.eval(input, namespace: hetu.coreNamespace);
             print(result);
           } catch (e) {
             if (e is HTError) {
@@ -104,10 +103,11 @@ Future<void> run(List<String> args,
     [SourceType sourceType = SourceType.script]) async {
   dynamic result;
   final config = InterpreterConfig(sourceType: sourceType);
+  hetu.config = config;
   if (args.length == 1) {
-    result = await hetu.import(args.first, config: config);
+    result = await hetu.evalFile(args.first);
   } else {
-    result = await hetu.import(args.first, config: config, invokeFunc: args[1]);
+    result = await hetu.evalFile(args.first, invokeFunc: args[1]);
   }
   print('Execution result:');
   print(result);

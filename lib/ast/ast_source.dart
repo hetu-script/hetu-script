@@ -1,4 +1,5 @@
 import '../source/source.dart' show HTSource;
+import '../error/errors.dart';
 import 'ast.dart' show AstNode, ImportStmt;
 
 class ImportInfo {
@@ -24,10 +25,13 @@ class HTAstModule extends HTSource {
 
   final bool isLibrary;
 
+  final List<HTError> errors;
+
   HTAstModule(String fullName, String content, this.nodes,
       {this.imports = const [],
       this.createNamespace = true,
-      this.isLibrary = false})
+      this.isLibrary = false,
+      this.errors = const []})
       : super(fullName, content);
 }
 
@@ -44,11 +48,12 @@ class HTAstLibrary {
 
   bool containsModule(String fullName) => _modules.containsKey(fullName);
 
-  HTAstModule getModule(String fullName) {
+  HTAstModule getModule(String fullName,
+      [ErrorType errorType = ErrorType.runtimeError]) {
     if (_modules.containsKey(fullName)) {
       return _modules[fullName]!;
     } else {
-      throw 'Unknown module: $fullName';
+      throw HTError.unknownModule(fullName, errorType);
     }
   }
 

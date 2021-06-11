@@ -6,7 +6,6 @@ import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../ast/ast_source.dart';
 import '../core/const_table.dart';
-import '../core/abstract_parser.dart' show ParserConfig;
 import '../core/declaration/class_declaration.dart';
 import '../core/declaration/function_declaration.dart';
 import '../grammar/lexicon.dart';
@@ -51,6 +50,12 @@ mixin GotoInfo {
   late final int? definitionColumn;
 }
 
+class CompilerConfig {
+  final bool lineInfo;
+
+  const CompilerConfig({this.lineInfo = true});
+}
+
 class HTCompiler implements AbstractAstVisitor {
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
@@ -59,10 +64,9 @@ class HTCompiler implements AbstractAstVisitor {
   /// used to determine compatibility.
   static const hetuVersionData = [0, 1, 0, 0];
 
-  late final HTErrorHandler errorHandler;
-  late final SourceProvider sourceProvider;
-
-  late ParserConfig _curConfig;
+  late HTErrorHandler errorHandler;
+  late SourceProvider sourceProvider;
+  late CompilerConfig config;
 
   final _curConstTable = ConstTable();
 
@@ -82,14 +86,15 @@ class HTCompiler implements AbstractAstVisitor {
 
   final List<Map<String, String>> _markedSymbolsList = [];
 
-  HTCompiler({HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
+  HTCompiler(
+      {HTErrorHandler? errorHandler,
+      SourceProvider? sourceProvider,
+      this.config = const CompilerConfig()}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
   }
 
-  Future<Uint8List> compile(HTAstLibrary library,
-      {ParserConfig? config}) async {
-    _curConfig = config ?? const ParserConfig();
+  Future<Uint8List> compile(HTAstLibrary library) async {
     _curLibraryName = library.name;
 
     final mainBytesBuilder = BytesBuilder();
@@ -195,16 +200,12 @@ class HTCompiler implements AbstractAstVisitor {
     final positionalArgs = <Uint8List>[];
     final namedArgs = <String, Uint8List>{};
     for (final ast in posArgsNodes) {
-      final argBytesBuilder = BytesBuilder();
       final bytes = visitAstNode(ast, endOfExec: true);
-      argBytesBuilder.add(bytes);
-      positionalArgs.add(argBytesBuilder.toBytes());
+      positionalArgs.add(bytes);
     }
     for (final name in namedArgs.keys) {
-      final argBytesBuilder = BytesBuilder();
       final bytes = visitAstNode(namedArgsNodes[name]!, endOfExec: true);
-      argBytesBuilder.add(bytes);
-      namedArgs[name] = argBytesBuilder.toBytes();
+      namedArgs[name] = bytes;
     }
     bytesBuilder.addByte(positionalArgs.length);
     for (var i = 0; i < positionalArgs.length; ++i) {
@@ -314,7 +315,7 @@ class HTCompiler implements AbstractAstVisitor {
   @override
   Uint8List visitNullExpr(NullExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (_curConfig.lineInfo) {
+    if (config.lineInfo) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -325,7 +326,7 @@ class HTCompiler implements AbstractAstVisitor {
   @override
   Uint8List visitBooleanExpr(BooleanExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (_curConfig.lineInfo) {
+    if (config.lineInfo) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -357,7 +358,7 @@ class HTCompiler implements AbstractAstVisitor {
   @override
   Uint8List visitLiteralListExpr(LiteralListExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (_curConfig.lineInfo) {
+    if (config.lineInfo) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -373,7 +374,7 @@ class HTCompiler implements AbstractAstVisitor {
   @override
   Uint8List visitLiteralMapExpr(LiteralMapExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (_curConfig.lineInfo) {
+    if (config.lineInfo) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -411,7 +412,7 @@ class HTCompiler implements AbstractAstVisitor {
         }
       }
     }
-    if (_curConfig.lineInfo) {
+    if (config.lineInfo) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);

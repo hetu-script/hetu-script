@@ -47,6 +47,12 @@ class BytecodeDeclarationBlock {
       varDecls.containsKey(id);
 }
 
+class CompilerConfig {
+  final bool lineInfo;
+
+  const CompilerConfig({this.lineInfo = true});
+}
+
 /// Utility class that parse a string content into a uint8 list
 class HTCompiler extends AbstractParser {
   /// Hetu script bytecode's bytecode signature
@@ -55,6 +61,8 @@ class HTCompiler extends AbstractParser {
   /// The version of the compiled bytecode,
   /// used to determine compatibility.
   static const hetuVersionData = [0, 1, 0, 0];
+
+  CompilerConfig compilerConfig;
 
   // late BytecodeDeclarationBlock _mainBlock;
   // late BytecodeDeclarationBlock _curBlock;
@@ -74,6 +82,9 @@ class HTCompiler extends AbstractParser {
 
   var _leftValueLegality = false;
   final List<Map<String, String>> _markedSymbolsList = [];
+
+  HTCompiler({this.compilerConfig = const CompilerConfig()})
+      : super(const ParserConfig());
 
   /// Compiles a Token list.
   Future<Uint8List> compile(
@@ -615,7 +626,7 @@ class HTCompiler extends AbstractParser {
 
   Uint8List _localNull() {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (compilerConfig.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -625,7 +636,7 @@ class HTCompiler extends AbstractParser {
 
   Uint8List _localBool(bool value) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (compilerConfig.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -636,7 +647,7 @@ class HTCompiler extends AbstractParser {
 
   Uint8List _localConst(int constIndex, int type) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (compilerConfig.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -658,7 +669,7 @@ class HTCompiler extends AbstractParser {
     }
 
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (compilerConfig.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -698,7 +709,7 @@ class HTCompiler extends AbstractParser {
 
   Uint8List _localList(List<Uint8List> exprList) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (compilerConfig.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -712,7 +723,7 @@ class HTCompiler extends AbstractParser {
 
   Uint8List _localMap(Map<Uint8List, Uint8List> exprMap) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (compilerConfig.lineInfo) {
       bytesBuilder.add(_debugInfo());
     }
     bytesBuilder.addByte(HTOpCode.local);

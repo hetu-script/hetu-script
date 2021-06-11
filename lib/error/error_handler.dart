@@ -1,9 +1,10 @@
 import 'errors.dart';
 
 enum ErrorHanldeApproach {
-  IGNORE,
-  THROW,
-  LOG,
+  ingore,
+  stdout,
+  exception,
+  list,
 }
 
 /// Abstract error handler class
@@ -13,10 +14,22 @@ abstract class HTErrorHandler {
 
 /// Default error handler implementation
 class DefaultErrorHandler implements HTErrorHandler {
-  const DefaultErrorHandler();
+  final ErrorHanldeApproach approach;
+
+  const DefaultErrorHandler({this.approach = ErrorHanldeApproach.exception});
 
   @override
-  void handle(HTError error) {
-    throw (error);
+  void handle(HTError error, [List<HTError>? errorList]) {
+    switch (approach) {
+      case ErrorHanldeApproach.ingore:
+        break;
+      case ErrorHanldeApproach.stdout:
+        print(error);
+        break;
+      case ErrorHanldeApproach.exception:
+        throw (error);
+      case ErrorHanldeApproach.list:
+        errorList!.add(error);
+    }
   }
 }

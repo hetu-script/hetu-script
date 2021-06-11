@@ -7,8 +7,8 @@ void main() async {
 
   group('edge cases -', () {
     test('import', () async {
-      final result =
-          await hetu.import('script/import_test.ht', invokeFunc: 'importTest');
+      final result = await hetu.evalFile('script/import_test.ht',
+          invokeFunc: 'importTest');
       expect(
         result,
         87.5,

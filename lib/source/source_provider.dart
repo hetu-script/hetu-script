@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import '../error/errors.dart';
+import '../grammar/lexicon.dart';
 import 'source.dart';
 
 extension TrimPath on String {
@@ -23,7 +24,10 @@ abstract class SourceProvider {
   String resolveFullName(String key, [String? currentModuleFullName]);
 
   Future<HTSource> getSource(String key,
-      {String? curModuleFullName, bool reload = true});
+      {bool isFullName = false,
+      String? curModuleFullName,
+      bool reload = true,
+      ErrorType errorType = ErrorType.runtimeError});
 
   HTSource getSourceSync(String key, {String? curFilePath, bool reload = true});
 }
@@ -57,7 +61,8 @@ class DefaultSourceProvider implements SourceProvider {
   @override
   String resolveFullName(String key, [String? curModuleFullName]) {
     late final String fullName;
-    if (curModuleFullName != null) {
+    if ((curModuleFullName != null) &&
+        !curModuleFullName.startsWith(HTLexicon.anonymousScript)) {
       fullName = path.dirname(curModuleFullName);
     } else {
       fullName = workingDirectory;
@@ -77,7 +82,8 @@ class DefaultSourceProvider implements SourceProvider {
   Future<HTSource> getSource(String key,
       {bool isFullName = false,
       String? curModuleFullName,
-      bool reload = true}) async {
+      bool reload = true,
+      ErrorType errorType = ErrorType.runtimeError}) async {
     try {
       final fullName =
           isFullName ? key : resolveFullName(key, curModuleFullName);
@@ -98,13 +104,12 @@ class DefaultSourceProvider implements SourceProvider {
       if (e is HTError) {
         rethrow;
       } else {
-        throw HTError(ErrorCode.extern, ErrorType.externalError,
-            message: e.toString());
+        throw HTError.unknownModule(key, errorType);
       }
     }
   }
 
-  /// Synchronized version of [import].
+  /// Synchronized version of [evalFile].
   @override
   HTSource getSourceSync(String key,
       {String? curFilePath, bool reload = true}) {

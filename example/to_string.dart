@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  final hetu = Hetu();
+  final hetu = Hetu(config: InterpreterConfig(sourceType: SourceType.module));
 
   await hetu.init();
 
@@ -25,7 +25,5 @@ void main() async {
       j.name.familyName = i = 'Luke'
       print(j.name) // Will use overrided toString function in user's class
     }
-  ''',
-      config: InterpreterConfig(sourceType: SourceType.module),
-      invokeFunc: 'main');
+  ''', invokeFunc: 'main');
 }

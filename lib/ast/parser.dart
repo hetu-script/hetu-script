@@ -30,21 +30,27 @@ class HTAstParser extends AbstractParser {
   bool _isLibrary = false;
   late String _libraryName;
 
+  HTAstParser({ParserConfig config = const ParserConfig()}) : super(config);
+
   HTAstModule parse(String content,
       {bool createNamespace = true,
       String? moduleFullName,
-      ParserConfig config = const ParserConfig()}) {
-    this.config = config;
+      ParserConfig? config}) {
     _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curClass = null;
     _curFuncType = null;
+
+    final savedConfig = this.config;
+    if (config != null) {
+      this.config = config;
+    }
 
     final tokens = Lexer().lex(content, _curModuleFullName);
     addTokens(tokens);
     final code = <AstNode>[];
     final imports = <ImportStmt>[];
     while (curTok.type != HTLexicon.endOfFile) {
-      final stmt = _parseStmt(sourceType: config.sourceType);
+      final stmt = _parseStmt(sourceType: this.config.sourceType);
       if (stmt is ImportStmt) {
         imports.add(stmt);
       }
@@ -56,12 +62,14 @@ class HTAstParser extends AbstractParser {
         createNamespace: createNamespace,
         isLibrary: _isLibrary);
 
+    this.config = savedConfig;
+
     return module;
   }
 
   Future<HTAstLibrary> parseFileAsLibrary(
       String path, SourceProvider sourceProvider,
-      {ParserConfig config = const ParserConfig()}) async {
+      {ParserConfig? config}) async {
     final module = await sourceProvider.getSource(path);
 
     return await parseAll(module.content, sourceProvider,
@@ -74,7 +82,7 @@ class HTAstParser extends AbstractParser {
       {bool createNamespace = true,
       String? moduleFullName,
       String? libraryName,
-      ParserConfig config = const ParserConfig()}) async {
+      ParserConfig? config}) async {
     final fullName = moduleFullName ?? HTLexicon.anonymousScript;
     _curLibraryName = libraryName ?? fullName;
 
@@ -91,7 +99,8 @@ class HTAstParser extends AbstractParser {
         final importedContent = await sourceProvider.getSource(stmt.key,
             curModuleFullName: _curModuleFullName);
         final bundle2 = await parseAll(importedContent.content, sourceProvider,
-            moduleFullName: importedContent.fullName);
+            moduleFullName: importedContent.fullName,
+            config: ParserConfig(sourceType: SourceType.module));
         _curModuleFullName = fullName;
         bundle.join(bundle2);
       }
@@ -722,7 +731,7 @@ class HTAstParser extends AbstractParser {
         }
         while ((curTok.type != HTLexicon.angleRight) &&
             (curTok.type != HTLexicon.endOfFile)) {
-          typeArgs.add(_parseTypeExpr() as TypeExpr);
+          typeArgs.add(_parseTypeExpr());
           expect([HTLexicon.comma], consume: true);
         }
         match(HTLexicon.angleRight);
@@ -1171,7 +1180,7 @@ class HTAstParser extends AbstractParser {
         TypeExpr? paramDeclType;
 
         if (expect([HTLexicon.colon], consume: true)) {
-          paramDeclType = _parseTypeExpr() as TypeExpr;
+          paramDeclType = _parseTypeExpr();
         }
 
         AstNode? initializer;
@@ -1226,7 +1235,7 @@ class HTAstParser extends AbstractParser {
       if (category == FunctionCategory.constructor) {
         throw HTError.ctorReturn();
       }
-      returnType = _parseTypeExpr() as TypeExpr;
+      returnType = _parseTypeExpr();
     }
     // referring to another constructor
     else if (expect([HTLexicon.colon], consume: true)) {

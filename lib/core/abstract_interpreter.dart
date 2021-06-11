@@ -36,23 +36,24 @@ class InterpreterConfig extends ParserConfig {
   const InterpreterConfig(
       {SourceType sourceType = SourceType.module,
       bool reload = false,
-      bool lineInfo = true,
       this.errorDetail = true,
       this.scriptStackTrace = true,
       this.scriptStackTraceMaxline = 10,
       this.externalStackTrace = true,
       this.externalStackTraceMaxline = 10})
-      : super(sourceType: sourceType, reload: reload, lineInfo: lineInfo);
+      : super(sourceType: sourceType, reload: reload);
 }
 
 /// Shared interface for a ast or bytecode interpreter of Hetu.
 abstract class AbstractInterpreter {
+  static var anonymousScriptIndex = 0;
+
   static final version = Version(0, 1, 0);
 
   HTAstParser parser = HTAstParser();
   HTCompiler compiler = HTCompiler();
 
-  InterpreterConfig get config;
+  InterpreterConfig config;
 
   /// Current line number of execution.
   int get curLine;
@@ -67,14 +68,14 @@ abstract class AbstractInterpreter {
   String? get curSymbol;
   // String? get curLeftValue;
 
-  late final HTNamespace coreNamespace;
-
   HTNamespace get curNamespace;
 
   late HTErrorHandler errorHandler;
   late SourceProvider sourceProvider;
 
-  AbstractInterpreter(
+  late final HTNamespace coreNamespace;
+
+  AbstractInterpreter(this.config,
       {HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
@@ -94,7 +95,9 @@ abstract class AbstractInterpreter {
       if (coreModule) {
         for (final file in coreModules.keys) {
           await eval(coreModules[file]!,
-              moduleFullName: file, namespace: coreNamespace);
+              moduleFullName: file,
+              namespace: coreNamespace,
+              config: InterpreterConfig(sourceType: SourceType.module));
         }
         for (var key in coreFunctions.keys) {
           bindExternalFunction(key, coreFunctions[key]!);
@@ -129,8 +132,9 @@ abstract class AbstractInterpreter {
 
   Future<dynamic> eval(String content,
       {String? moduleFullName,
+      String? libraryName,
       HTNamespace? namespace,
-      InterpreterConfig config = const InterpreterConfig(),
+      InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -138,18 +142,20 @@ abstract class AbstractInterpreter {
       bool errorHandled = false});
 
   /// 解析文件
-  Future<dynamic> import(String key,
-      {String? curModuleFullName,
-      String? moduleAliasName,
-      InterpreterConfig config = const InterpreterConfig(),
+  Future<dynamic> evalFile(String key,
+      {String? moduleFullName,
+      String? libraryName,
+      HTNamespace? namespace,
+      InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []});
+      List<HTType> typeArgs = const [],
+      bool errorHandled = false});
 
   /// 调用一个全局函数或者类、对象上的函数
   dynamic invoke(String funcName,
-      {String? className,
+      {String? moduleFullName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],

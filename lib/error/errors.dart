@@ -64,7 +64,8 @@ enum ErrorCode {
   moduleImport,
   classOnInstance,
   version,
-  sourceType
+  sourceType,
+  unknownModule
 }
 
 /// The severity of an [ErrorCode].
@@ -556,4 +557,8 @@ class HTError {
   HTError.sourceType()
       : this(ErrorCode.sourceType, ErrorType.runtimeError,
             message: HTLexicon.errorSourceType);
+
+  HTError.unknownModule(String key, ErrorType type)
+      : this(ErrorCode.unknownModule, type,
+            message: HTLexicon.errorUnknownModule, interpolations: [key]);
 }
