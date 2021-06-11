@@ -157,9 +157,8 @@ class Hetu extends AbstractInterpreter {
   /// If [invokeFunc] is provided, will immediately
   /// call the function after evaluation completed.
   @override
-  Future<dynamic> eval(String content,
-      {String? moduleFullName,
-      String? libraryName,
+  Future<dynamic> evalSource(HTSource source,
+      {String? libraryName,
       HTNamespace? namespace,
       InterpreterConfig? config,
       String? invokeFunc,
@@ -167,25 +166,23 @@ class Hetu extends AbstractInterpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
-    if (content.isEmpty) throw HTError.emptyString();
+    if (source.content.isEmpty) throw HTError.emptyString();
 
     final savedConfig = this.config;
     if (config != null) {
       this.config = config;
     }
 
-    _curModuleFullName = moduleFullName ??= HTLexicon.anonymousScript +
-        (AbstractInterpreter.anonymousScriptIndex++).toString();
+    _curModuleFullName = source.fullName;
 
-    _curLibraryName = libraryName ??= moduleFullName;
+    _curLibraryName = libraryName ?? _curModuleFullName;
 
     final createNamespace = namespace != coreNamespace;
     try {
-      final compilation = await parser.parseAll(content, sourceProvider,
+      final compilation = await parser.parseAll(source, sourceProvider,
           createNamespace: createNamespace,
           libraryName:
               libraryName, // TODO: should set in parser, and should read from script if exist
-          moduleFullName: moduleFullName,
           config: this.config);
 
       final bytes = await compiler.compile(compilation);

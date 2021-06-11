@@ -130,6 +130,16 @@ abstract class AbstractInterpreter {
     }
   }
 
+  Future<dynamic> evalSource(HTSource source,
+      {String? libraryName,
+      HTNamespace? namespace,
+      InterpreterConfig? config,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const [],
+      bool errorHandled = false});
+
   Future<dynamic> eval(String content,
       {String? moduleFullName,
       String? libraryName,
@@ -139,7 +149,20 @@ abstract class AbstractInterpreter {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false});
+      bool errorHandled = false}) async {
+    final source =
+        HTSource(moduleFullName ?? HTLexicon.anonymousScript, content);
+
+    return await evalSource(source,
+        libraryName: libraryName,
+        namespace: namespace,
+        config: config,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs,
+        errorHandled: errorHandled);
+  }
 
   /// 解析文件
   Future<dynamic> evalFile(String key,

@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../source/source_provider.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
-import '../ast/ast_source.dart';
+import '../ast/ast_compilation.dart';
 import '../core/const_table.dart';
 import '../core/declaration/class_declaration.dart';
 import '../core/declaration/function_declaration.dart';
@@ -94,7 +94,7 @@ class HTCompiler implements AbstractAstVisitor {
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
   }
 
-  Future<Uint8List> compile(HTAstLibrary library) async {
+  Future<Uint8List> compile(HTAstCompilation library) async {
     _curLibraryName = library.name;
 
     final mainBytesBuilder = BytesBuilder();

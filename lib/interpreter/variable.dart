@@ -120,6 +120,7 @@ class HTVariable extends VariableDeclaration with HetuRef, GotoInfo {
     }
   }
 
+  @override
   HTVariable clone() => HTVariable(id, moduleFullName, libraryName, interpreter,
       classId: classId,
       value: value,

@@ -1,3 +1,4 @@
+import '../source/source.dart';
 import '../source/source_provider.dart';
 // import '../binding/external_function.dart';
 import '../type/type.dart';
@@ -14,7 +15,7 @@ import '../error/error_processor.dart';
 import '../ast/ast.dart';
 // import 'ast_function.dart';
 import '../ast/parser.dart';
-import '../ast/ast_source.dart';
+import '../ast/ast_compilation.dart';
 
 class AnalyzerConfig {
   final List<ErrorProcessor> errorProcessors;
@@ -30,7 +31,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   @override
   late HTAstParser parser;
 
-  final _sources = HTAstLibrary('');
+  final _sources = HTAstCompilation('');
 
   late HTAstModule _curCode;
 
@@ -85,7 +86,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   }
 
   @override
-  Future<void> eval(String content,
+  Future<void> evalSource(HTSource source,
       {String? moduleFullName,
       String? libraryName,
       HTNamespace? namespace,
@@ -95,37 +96,37 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
-    _savedModuleName = _curModuleFullName;
-    _savedNamespace = _curNamespace;
+    // _savedModuleName = _curModuleFullName;
+    // _savedNamespace = _curNamespace;
 
-    parser = HTAstParser();
+    // parser = HTAstParser();
 
-    _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
-    _curNamespace = namespace ?? HTNamespace(this, id: _curModuleFullName);
+    // _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
+    // _curNamespace = namespace ?? HTNamespace(this, id: _curModuleFullName);
 
-    try {
-      final compilation = await parser.parseAll(content, sourceProvider,
-          moduleFullName: _curModuleFullName, config: config ?? this.config);
+    // try {
+    //   final compilation = await parser.parseAll(content, sourceProvider,
+    //       moduleFullName: _curModuleFullName, config: config ?? this.config);
 
-      _sources.join(compilation);
+    //   _sources.join(compilation);
 
-      for (final source in compilation.modules) {
-        _curCode = source;
-        _curModuleFullName = source.fullName;
-        for (final stmt in source.nodes) {
-          visitAstNode(stmt);
-        }
-      }
+    //   for (final module in compilation.modules) {
+    //     _curCode = module;
+    //     _curModuleFullName = module.fullName;
+    //     for (final stmt in module.nodes) {
+    //       visitAstNode(stmt);
+    //     }
+    //   }
 
-      _curModuleFullName = _savedModuleName;
-      _curNamespace = _savedNamespace;
-    } catch (error, stack) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        handleError(error, stack);
-      }
-    }
+    //   _curModuleFullName = _savedModuleName;
+    //   _curNamespace = _savedNamespace;
+    // } catch (error, stack) {
+    //   if (errorHandled) {
+    //     rethrow;
+    //   } else {
+    //     handleError(error, stack);
+    //   }
+    // }
   }
 
   /// 解析文件

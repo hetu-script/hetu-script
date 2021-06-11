@@ -2,7 +2,7 @@ import 'package:hetu_script/grammar/semantic.dart';
 
 import 'ast.dart';
 import '../grammar/lexicon.dart';
-import 'ast_source.dart';
+import 'ast_compilation.dart';
 
 class FormatterConfig {
   final int pageWidth;
@@ -63,10 +63,10 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   void formatModule(HTAstModule module) {
-    module.content = format(module);
+    module.source.content = format(module);
   }
 
-  void formatLibrary(HTAstLibrary bundle) {
+  void formatLibrary(HTAstCompilation bundle) {
     for (final module in bundle.modules) {
       formatModule(module);
     }

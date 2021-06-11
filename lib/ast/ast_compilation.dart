@@ -1,7 +1,8 @@
-import '../source/source.dart' show HTSource;
+import '../source/source.dart';
 import '../error/errors.dart';
 import 'ast.dart' show AstNode, ImportStmt;
 
+/// Contains the resolved fullname of a import statement
 class ImportInfo {
   final String fullName;
 
@@ -15,9 +16,16 @@ class ImportInfo {
       : this(fullName, stmt.alias, stmt.showList);
 }
 
-class HTAstModule extends HTSource {
+/// The parse result of a single file
+class HTAstModule {
+  final HTSource source;
+
+  String get fullName => source.fullName;
+
   /// The bytecode, stores as uint8 list
   final List<AstNode> nodes;
+
+  final SourceType sourceType;
 
   final List<ImportStmt> imports;
 
@@ -27,18 +35,17 @@ class HTAstModule extends HTSource {
 
   final List<HTError> errors;
 
-  HTAstModule(String fullName, String content, this.nodes,
+  HTAstModule(this.source, this.nodes, this.sourceType,
       {this.imports = const [],
       this.createNamespace = true,
       this.isLibrary = false,
-      this.errors = const []})
-      : super(fullName, content);
+      this.errors = const []});
 }
 
-class HTAstLibrary {
+class HTAstCompilation {
   final String name;
 
-  HTAstLibrary(this.name);
+  HTAstCompilation(this.name);
 
   final _modules = <String, HTAstModule>{};
 
@@ -59,7 +66,7 @@ class HTAstLibrary {
 
   void add(HTAstModule module) => _modules[module.fullName] = module;
 
-  void join(HTAstLibrary bundle2) {
+  void join(HTAstCompilation bundle2) {
     _modules.addAll(bundle2._modules);
   }
 }

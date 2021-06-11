@@ -9,7 +9,7 @@ import '../grammar/semantic.dart';
 import '../error/errors.dart';
 import '../source/source_provider.dart';
 import 'ast.dart';
-import 'ast_source.dart';
+import 'ast_compilation.dart';
 
 class HTAstParser extends AbstractParser {
   // late List<ImportStmt> _curModuleImports;
@@ -30,34 +30,36 @@ class HTAstParser extends AbstractParser {
   bool _isLibrary = false;
   late String _libraryName;
 
+  late HTSource _curSource;
+
   HTAstParser({ParserConfig config = const ParserConfig()}) : super(config);
 
-  HTAstModule parse(String content,
-      {bool createNamespace = true,
-      String? moduleFullName,
-      ParserConfig? config}) {
-    _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
+  HTAstModule parse(HTSource source,
+      {bool createNamespace = true, ParserConfig? config}) {
+    _curModuleFullName = source.fullName;
     _curClass = null;
     _curFuncType = null;
+
+    _curSource = source;
 
     final savedConfig = this.config;
     if (config != null) {
       this.config = config;
     }
 
-    final tokens = Lexer().lex(content, _curModuleFullName);
+    final tokens = Lexer().lex(source.content, _curModuleFullName);
     addTokens(tokens);
-    final code = <AstNode>[];
+    final nodes = <AstNode>[];
     final imports = <ImportStmt>[];
     while (curTok.type != HTLexicon.endOfFile) {
       final stmt = _parseStmt(sourceType: this.config.sourceType);
       if (stmt is ImportStmt) {
         imports.add(stmt);
       }
-      code.add(stmt);
+      nodes.add(stmt);
     }
 
-    final module = HTAstModule(_curModuleFullName, content, code,
+    final module = HTAstModule(source, nodes, this.config.sourceType,
         imports: imports,
         createNamespace: createNamespace,
         isLibrary: _isLibrary);
@@ -67,39 +69,35 @@ class HTAstParser extends AbstractParser {
     return module;
   }
 
-  Future<HTAstLibrary> parseFileAsLibrary(
+  Future<HTAstCompilation> parseFileAsLibrary(
       String path, SourceProvider sourceProvider,
       {ParserConfig? config}) async {
     final module = await sourceProvider.getSource(path);
 
-    return await parseAll(module.content, sourceProvider,
-        moduleFullName: module.fullName, config: config);
+    return await parseAll(module, sourceProvider, config: config);
   }
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  Future<HTAstLibrary> parseAll(String content, SourceProvider sourceProvider,
+  Future<HTAstCompilation> parseAll(
+      HTSource source, SourceProvider sourceProvider,
       {bool createNamespace = true,
-      String? moduleFullName,
       String? libraryName,
       ParserConfig? config}) async {
-    final fullName = moduleFullName ?? HTLexicon.anonymousScript;
+    final fullName = source.fullName;
     _curLibraryName = libraryName ?? fullName;
 
-    final module = parse(content,
-        createNamespace: createNamespace,
-        moduleFullName: moduleFullName,
-        config: config);
+    final module =
+        parse(source, createNamespace: createNamespace, config: config);
 
-    final bundle = HTAstLibrary(_curLibraryName);
+    final bundle = HTAstCompilation(_curLibraryName);
     for (final stmt in module.imports) {
       final importFullName =
           sourceProvider.resolveFullName(stmt.key, _curModuleFullName);
       if (!sourceProvider.hasModule(importFullName)) {
-        final importedContent = await sourceProvider.getSource(stmt.key,
+        final source2 = await sourceProvider.getSource(stmt.key,
             curModuleFullName: _curModuleFullName);
-        final bundle2 = await parseAll(importedContent.content, sourceProvider,
-            moduleFullName: importedContent.fullName,
+        final bundle2 = await parseAll(source2, sourceProvider,
             config: ParserConfig(sourceType: SourceType.module));
         _curModuleFullName = fullName;
         bundle.join(bundle2);
@@ -319,10 +317,11 @@ class HTAstParser extends AbstractParser {
             return _parseWhenStmt();
           case HTLexicon.BREAK:
             final keyword = advance(1);
-            return BreakStmt(keyword, keyword.line, keyword.column);
+            return BreakStmt(keyword, keyword.line, keyword.column, _curSource);
           case HTLexicon.CONTINUE:
             final keyword = advance(1);
-            return ContinueStmt(keyword, keyword.line, keyword.column);
+            return ContinueStmt(
+                keyword, keyword.line, keyword.column, _curSource);
           case HTLexicon.RETURN:
             if (_curFuncType != null &&
                 _curFuncType != FunctionCategory.constructor) {
@@ -406,7 +405,7 @@ class HTAstParser extends AbstractParser {
 
     expect([HTLexicon.semicolon], consume: true);
 
-    final stmt = LibraryStmt(keyword.line, keyword.column);
+    final stmt = LibraryStmt(keyword.line, keyword.column, _curSource);
 
     return stmt;
   }
@@ -434,7 +433,7 @@ class HTAstParser extends AbstractParser {
 
     expect([HTLexicon.semicolon], consume: true);
 
-    final stmt = ImportStmt(key, keyword.line, keyword.column,
+    final stmt = ImportStmt(key, keyword.line, keyword.column, _curSource,
         alias: alias, showList: showList);
 
     // _curModuleImports.add(stmt);
@@ -450,10 +449,12 @@ class HTAstParser extends AbstractParser {
   AstNode _parseExpr() {
     if (curTok.type == SemanticType.singleLineComment) {
       final comment = advance(1);
-      return CommentExpr(comment.literal, false, comment.line, comment.column);
+      return CommentExpr(
+          comment.literal, false, comment.line, comment.column, _curSource);
     } else if (curTok.type == SemanticType.multiLineComment) {
       final comment = advance(1);
-      return CommentExpr(comment.literal, true, comment.line, comment.column);
+      return CommentExpr(
+          comment.literal, true, comment.line, comment.column, _curSource);
     } else {
       final left = _parserTernaryExpr();
       if (HTLexicon.assignments.contains(curTok.type)) {
@@ -464,12 +465,13 @@ class HTAstParser extends AbstractParser {
         final right = _parseExpr();
         if (left is MemberExpr) {
           return MemberAssignExpr(
-              left.object, left.key, right, left.line, left.column);
+              left.object, left.key, right, left.line, left.column, _curSource);
         } else if (left is SubExpr) {
           return SubAssignExpr(
-              left.array, left.key, right, left.line, left.column);
+              left.array, left.key, right, left.line, left.column, _curSource);
         } else {
-          return BinaryExpr(left, op.lexeme, right, op.line, op.column);
+          return BinaryExpr(
+              left, op.lexeme, right, op.line, op.column, _curSource);
         }
       } else {
         return left;
@@ -484,8 +486,8 @@ class HTAstParser extends AbstractParser {
       final thenBranch = _parserTernaryExpr();
       match(HTLexicon.colon);
       final elseBranch = _parserTernaryExpr();
-      condition = TernaryExpr(
-          condition, thenBranch, elseBranch, condition.line, condition.column);
+      condition = TernaryExpr(condition, thenBranch, elseBranch, condition.line,
+          condition.column, _curSource);
     }
     return condition;
   }
@@ -498,7 +500,8 @@ class HTAstParser extends AbstractParser {
       while (curTok.type == HTLexicon.logicalOr) {
         final op = advance(1); // and operator
         final right = _parseLogicalAndExpr();
-        left = BinaryExpr(left, op.lexeme, right, op.line, op.column);
+        left =
+            BinaryExpr(left, op.lexeme, right, op.line, op.column, _curSource);
       }
     }
     return left;
@@ -512,7 +515,8 @@ class HTAstParser extends AbstractParser {
       while (curTok.type == HTLexicon.logicalAnd) {
         final op = advance(1); // and operator
         final right = _parseEqualityExpr();
-        left = BinaryExpr(left, op.lexeme, right, op.line, op.column);
+        left =
+            BinaryExpr(left, op.lexeme, right, op.line, op.column, _curSource);
       }
     }
     return left;
@@ -525,7 +529,7 @@ class HTAstParser extends AbstractParser {
       _leftValueLegality = false;
       final op = advance(1);
       final right = _parseRelationalExpr();
-      left = BinaryExpr(left, op.lexeme, right, op.line, op.column);
+      left = BinaryExpr(left, op.lexeme, right, op.line, op.column, _curSource);
     }
     return left;
   }
@@ -537,7 +541,7 @@ class HTAstParser extends AbstractParser {
       _leftValueLegality = false;
       final op = advance(1);
       final right = _parseAdditiveExpr();
-      left = BinaryExpr(left, op.lexeme, right, op.line, op.column);
+      left = BinaryExpr(left, op.lexeme, right, op.line, op.column, _curSource);
     } else if (HTLexicon.typeRelationals.contains(curTok.type)) {
       _leftValueLegality = false;
       final opTok = advance(1);
@@ -550,7 +554,7 @@ class HTAstParser extends AbstractParser {
         op = opTok.lexeme;
       }
       final right = _parseTypeExpr(isLocal: true);
-      left = BinaryExpr(left, op, right, opTok.line, opTok.column);
+      left = BinaryExpr(left, op, right, opTok.line, opTok.column, _curSource);
     }
     return left;
   }
@@ -563,7 +567,8 @@ class HTAstParser extends AbstractParser {
       while (HTLexicon.additives.contains(curTok.type)) {
         final op = advance(1);
         final right = _parseMultiplicativeExpr();
-        left = BinaryExpr(left, op.lexeme, right, op.line, op.column);
+        left =
+            BinaryExpr(left, op.lexeme, right, op.line, op.column, _curSource);
       }
     }
     return left;
@@ -577,7 +582,8 @@ class HTAstParser extends AbstractParser {
       while (HTLexicon.multiplicatives.contains(curTok.type)) {
         final op = advance(1);
         final right = _parseUnaryPrefixExpr();
-        left = BinaryExpr(left, op.lexeme, right, op.line, op.column);
+        left =
+            BinaryExpr(left, op.lexeme, right, op.line, op.column, _curSource);
       }
     }
     return left;
@@ -590,7 +596,7 @@ class HTAstParser extends AbstractParser {
     } else {
       final op = advance(1);
       final value = _parseUnaryPostfixExpr();
-      return UnaryPrefixExpr(op.lexeme, value, op.line, op.column);
+      return UnaryPrefixExpr(op.lexeme, value, op.line, op.column, _curSource);
     }
   }
 
@@ -603,15 +609,16 @@ class HTAstParser extends AbstractParser {
         case HTLexicon.memberGet:
           _leftValueLegality = true;
           final name = match(SemanticType.identifier);
-          final key =
-              SymbolExpr(name.lexeme, name.line, name.column, isLocal: false);
-          expr = MemberExpr(expr, key, op.line, op.column);
+          final key = SymbolExpr(
+              name.lexeme, name.line, name.column, _curSource,
+              isLocal: false);
+          expr = MemberExpr(expr, key, op.line, op.column, _curSource);
           break;
         case HTLexicon.subGet:
           var indexExpr = _parseExpr();
           _leftValueLegality = true;
           match(HTLexicon.squareRight);
-          expr = SubExpr(expr, indexExpr, op.line, op.column);
+          expr = SubExpr(expr, indexExpr, op.line, op.column, _curSource);
           break;
         case HTLexicon.call:
           // TODO: typeArgs: typeArgs
@@ -619,12 +626,14 @@ class HTAstParser extends AbstractParser {
           var positionalArgs = <AstNode>[];
           var namedArgs = <String, AstNode>{};
           _handleCallArguments(positionalArgs, namedArgs);
-          expr = CallExpr(expr, positionalArgs, namedArgs, op.line, op.column);
+          expr = CallExpr(
+              expr, positionalArgs, namedArgs, op.line, op.column, _curSource);
           break;
         case HTLexicon.postIncrement:
         case HTLexicon.postDecrement:
           _leftValueLegality = false;
-          expr = UnaryPostfixExpr(expr, op.lexeme, op.line, op.column);
+          expr =
+              UnaryPostfixExpr(expr, op.lexeme, op.line, op.column, _curSource);
           break;
         default:
           break;
@@ -639,37 +648,40 @@ class HTAstParser extends AbstractParser {
       case HTLexicon.NULL:
         _leftValueLegality = false;
         final word = advance(1);
-        return NullExpr(word.line, word.column);
+        return NullExpr(word.line, word.column, _curSource);
       case SemanticType.literalBoolean:
         _leftValueLegality = false;
         final word = advance(1) as TokenBooleanLiteral;
-        return BooleanExpr(word.literal, word.line, word.column);
+        return BooleanExpr(word.literal, word.line, word.column, _curSource);
       case SemanticType.literalInteger:
         _leftValueLegality = false;
         final word = advance(1) as TokenIntLiteral;
-        return ConstIntExpr(word.literal, word.line, word.column);
+        return ConstIntExpr(word.literal, word.line, word.column, _curSource);
       case SemanticType.literalFloat:
         _leftValueLegality = false;
         final word = advance(1) as TokenFloatLiteral;
-        return ConstFloatExpr(word.literal, word.line, word.column);
+        return ConstFloatExpr(word.literal, word.line, word.column, _curSource);
       case SemanticType.literalString:
         _leftValueLegality = false;
         final word = advance(1) as TokenStringLiteral;
-        return ConstStringExpr(word.literal, word.line, word.column);
+        return ConstStringExpr(
+            word.literal, word.line, word.column, _curSource);
       case HTLexicon.THIS:
         _leftValueLegality = false;
         final keyword = advance(1);
-        return SymbolExpr(keyword.lexeme, keyword.line, keyword.column);
+        return SymbolExpr(
+            keyword.lexeme, keyword.line, keyword.column, _curSource);
       case HTLexicon.SUPER:
         _leftValueLegality = false;
         final keyword = advance(1);
-        return SymbolExpr(keyword.lexeme, keyword.line, keyword.column);
+        return SymbolExpr(
+            keyword.lexeme, keyword.line, keyword.column, _curSource);
       case HTLexicon.roundLeft:
         _leftValueLegality = false;
         final punc = advance(1);
         final innerExpr = _parseExpr();
         match(HTLexicon.roundRight);
-        return GroupExpr(innerExpr, punc.line, punc.column);
+        return GroupExpr(innerExpr, punc.line, punc.column, _curSource);
       case HTLexicon.squareLeft:
         _leftValueLegality = false;
         final line = curTok.line;
@@ -682,7 +694,7 @@ class HTAstParser extends AbstractParser {
           }
         }
         match(HTLexicon.squareRight);
-        return LiteralListExpr(listExpr, line, column);
+        return LiteralListExpr(listExpr, line, column, _curSource);
       case HTLexicon.curlyLeft:
         _leftValueLegality = false;
         final line = curTok.line;
@@ -698,7 +710,7 @@ class HTAstParser extends AbstractParser {
           }
         }
         match(HTLexicon.curlyRight);
-        return LiteralMapExpr(line, column, map: mapExpr);
+        return LiteralMapExpr(line, column, _curSource, map: mapExpr);
       case HTLexicon.FUNCTION:
         return _parseFuncDecl(category: FunctionCategory.literal);
       case SemanticType.identifier:
@@ -712,7 +724,8 @@ class HTAstParser extends AbstractParser {
           _leftValueLegality = true;
           final symbol = advance(1);
           // TODO: type arguments
-          return SymbolExpr(symbol.lexeme, symbol.line, symbol.column);
+          return SymbolExpr(
+              symbol.lexeme, symbol.line, symbol.column, _curSource);
         }
       default:
         throw HTError.unexpected(SemanticType.expression, curTok.lexeme);
@@ -739,7 +752,7 @@ class HTAstParser extends AbstractParser {
 
       final isNullable = expect([HTLexicon.nullable], consume: true);
 
-      return TypeExpr(id.lexeme, id.line, id.column,
+      return TypeExpr(id.lexeme, id.line, id.column, _curSource,
           arguments: typeArgs, isNullable: isNullable, isLocal: isLocal);
     }
     // TODO: interface type
@@ -777,7 +790,7 @@ class HTAstParser extends AbstractParser {
 
         paramType = _parseTypeExpr();
 
-        final param = ParamTypeExpr(paramType, line, column,
+        final param = ParamTypeExpr(paramType, line, column, _curSource,
             isOptional: isOptional, isVariadic: isVariadic, id: paramId);
         parameters.add(param);
 
@@ -799,7 +812,7 @@ class HTAstParser extends AbstractParser {
 
       final returnType = _parseTypeExpr();
 
-      return FuncTypeExpr(returnType, keyword.line, keyword.column,
+      return FuncTypeExpr(returnType, keyword.line, keyword.column, _curSource,
           paramTypes: parameters,
           hasOptionalParam: isOptional,
           hasNamedParam: isNamed);
@@ -818,7 +831,7 @@ class HTAstParser extends AbstractParser {
       statements.add(stmt);
     }
     match(HTLexicon.curlyRight);
-    return BlockStmt(statements, token.line, token.column,
+    return BlockStmt(statements, token.line, token.column, _curSource,
         id: id, createNamespace: createNamespace);
   }
 
@@ -853,7 +866,7 @@ class HTAstParser extends AbstractParser {
     }
     // 语句结尾
     expect([HTLexicon.semicolon], consume: true);
-    return ExprStmt(expr, curTok.line, curTok.column);
+    return ExprStmt(expr, curTok.line, curTok.column, _curSource);
   }
 
   ReturnStmt _parseReturnStmt() {
@@ -865,7 +878,7 @@ class HTAstParser extends AbstractParser {
       expr = _parseExpr();
     }
     expect([HTLexicon.semicolon], consume: true);
-    return ReturnStmt(keyword, expr, keyword.line, keyword.column);
+    return ReturnStmt(keyword, expr, keyword.line, keyword.column, _curSource);
   }
 
   IfStmt _parseIfStmt() {
@@ -878,7 +891,7 @@ class HTAstParser extends AbstractParser {
       thenBranch = _parseBlockStmt(id: SemanticType.thenBranch);
     } else {
       final stmt = _parseStmt();
-      thenBranch = BlockStmt([stmt], stmt.line, stmt.column,
+      thenBranch = BlockStmt([stmt], stmt.line, stmt.column, _curSource,
           id: SemanticType.thenBranch);
     }
     BlockStmt? elseBranch;
@@ -887,12 +900,12 @@ class HTAstParser extends AbstractParser {
         elseBranch = _parseBlockStmt(id: SemanticType.elseBranch);
       } else {
         final stmt = _parseStmt();
-        elseBranch = BlockStmt([stmt], stmt.line, stmt.column,
+        elseBranch = BlockStmt([stmt], stmt.line, stmt.column, _curSource,
             id: SemanticType.elseBranch);
       }
     }
-    return IfStmt(
-        condition, thenBranch, elseBranch, keyword.line, keyword.column);
+    return IfStmt(condition, thenBranch, elseBranch, keyword.line,
+        keyword.column, _curSource);
   }
 
   WhileStmt _parseWhileStmt() {
@@ -907,10 +920,10 @@ class HTAstParser extends AbstractParser {
       loop = _parseBlockStmt(id: SemanticType.whileLoop);
     } else {
       final stmt = _parseStmt();
-      loop =
-          BlockStmt([stmt], stmt.line, stmt.column, id: SemanticType.whileLoop);
+      loop = BlockStmt([stmt], stmt.line, stmt.column, _curSource,
+          id: SemanticType.whileLoop);
     }
-    return WhileStmt(condition, loop, keyword.line, keyword.column);
+    return WhileStmt(condition, loop, keyword.line, keyword.column, _curSource);
   }
 
   DoStmt _parseDoStmt() {
@@ -920,7 +933,8 @@ class HTAstParser extends AbstractParser {
       loop = _parseBlockStmt(id: SemanticType.doLoop);
     } else {
       final stmt = _parseStmt();
-      loop = BlockStmt([stmt], stmt.line, stmt.column, id: SemanticType.doLoop);
+      loop = BlockStmt([stmt], stmt.line, stmt.column, _curSource,
+          id: SemanticType.doLoop);
     }
     AstNode? condition;
     if (expect([HTLexicon.WHILE], consume: true)) {
@@ -928,7 +942,7 @@ class HTAstParser extends AbstractParser {
       condition = _parseExpr();
       match(HTLexicon.roundRight);
     }
-    return DoStmt(loop, condition, keyword.line, keyword.column);
+    return DoStmt(loop, condition, keyword.line, keyword.column, _curSource);
   }
 
   AstNode _parseForStmt() {
@@ -956,8 +970,8 @@ class HTAstParser extends AbstractParser {
 
       final loop = _parseBlockStmt(id: SemanticType.forLoop);
 
-      return ForInStmt(
-          declaration, collection, loop, keyword.line, keyword.column);
+      return ForInStmt(declaration, collection, loop, keyword.line,
+          keyword.column, _curSource);
     } else {
       if (!expect([HTLexicon.semicolon], consume: false)) {
         declaration = _parseVarDecl(
@@ -981,7 +995,7 @@ class HTAstParser extends AbstractParser {
       final loop = _parseBlockStmt(id: SemanticType.forLoop);
 
       return ForStmt(declaration, condition, increment, loop, keyword.line,
-          keyword.column);
+          keyword.column, _curSource);
     }
   }
 
@@ -1004,7 +1018,7 @@ class HTAstParser extends AbstractParser {
           elseBranch = _parseBlockStmt(id: SemanticType.elseBranch);
         } else {
           final stmt = _parseStmt();
-          elseBranch = BlockStmt([stmt], stmt.line, stmt.column,
+          elseBranch = BlockStmt([stmt], stmt.line, stmt.column, _curSource,
               id: SemanticType.elseBranch);
         }
       } else {
@@ -1015,15 +1029,15 @@ class HTAstParser extends AbstractParser {
           caseBranch = _parseBlockStmt(id: SemanticType.whenBranch);
         } else {
           final stmt = _parseStmt();
-          caseBranch = BlockStmt([stmt], stmt.line, stmt.column,
+          caseBranch = BlockStmt([stmt], stmt.line, stmt.column, _curSource,
               id: SemanticType.whenBranch);
         }
         options[caseExpr] = caseBranch;
       }
     }
     match(HTLexicon.curlyRight);
-    return WhenStmt(
-        options, elseBranch, condition, keyword.line, keyword.column);
+    return WhenStmt(options, elseBranch, condition, keyword.line,
+        keyword.column, _curSource);
   }
 
   // 变量声明语句
@@ -1070,7 +1084,7 @@ class HTAstParser extends AbstractParser {
       expect([HTLexicon.semicolon], consume: true);
     }
 
-    return VarDeclStmt(id, idTok.line, idTok.column,
+    return VarDeclStmt(id, idTok.line, idTok.column, _curSource,
         classId: classId,
         declType: declType,
         initializer: initializer,
@@ -1193,7 +1207,7 @@ class HTAstParser extends AbstractParser {
         }
 
         final param = ParamDeclExpr(
-            paramId.lexeme, paramId.line, paramId.column,
+            paramId.lexeme, paramId.line, paramId.column, _curSource,
             declType: paramDeclType,
             initializer: initializer,
             isVariadic: isVariadic,
@@ -1268,6 +1282,7 @@ class HTAstParser extends AbstractParser {
         namedArgs,
         ctorCallee.line,
         ctorCallee.column,
+        _curSource,
       );
     }
 
@@ -1286,7 +1301,8 @@ class HTAstParser extends AbstractParser {
 
     _curFuncType = savedCurFuncType;
 
-    return FuncDeclExpr(id, declId, paramDecls, keyword.line, keyword.column,
+    return FuncDeclExpr(
+        id, declId, paramDecls, keyword.line, keyword.column, _curSource,
         classId: classId,
         genericParameters: typeParameters,
         externalTypeId: externalTypedef,
@@ -1350,7 +1366,7 @@ class HTAstParser extends AbstractParser {
 
     _curClass = savedClass;
 
-    return ClassDeclStmt(id.lexeme, keyword.line, keyword.column,
+    return ClassDeclStmt(id.lexeme, keyword.line, keyword.column, _curSource,
         // genericParameters: genericParameters,
         superType: superClassType,
         isExternal: isExternal,
@@ -1379,7 +1395,8 @@ class HTAstParser extends AbstractParser {
       expect([HTLexicon.semicolon], consume: true);
     }
 
-    return EnumDeclStmt(id.lexeme, enumerations, keyword.line, keyword.column,
+    return EnumDeclStmt(
+        id.lexeme, enumerations, keyword.line, keyword.column, _curSource,
         isExternal: isExternal, isExported: isExported);
     // _curBlock.enumDecls[class_name.lexeme] = stmt;
   }
@@ -1388,6 +1405,7 @@ class HTAstParser extends AbstractParser {
     final keyword = advance(1);
     final id = match(SemanticType.identifier).lexeme;
     final value = _parseTypeExpr();
-    return TypeAliasDeclStmt(id, value, keyword.line, keyword.column);
+    return TypeAliasDeclStmt(
+        id, value, keyword.line, keyword.column, _curSource);
   }
 }

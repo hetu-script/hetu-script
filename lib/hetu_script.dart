@@ -15,6 +15,7 @@ export 'type/type.dart';
 export 'ast/ast.dart';
 export 'ast/formatter.dart';
 export 'ast/parser.dart';
+export 'ast/ast_compilation.dart';
 export 'analyzer/analyzer.dart';
 export 'interpreter/interpreter.dart';
 export 'interpreter/class/class.dart';

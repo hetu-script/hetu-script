@@ -12,7 +12,7 @@ void main() async {
 
   for (final module in bundle.modules) {
     print('========[${module.fullName}]========');
-    print(module.content);
+    print(module.source.content);
     print('================');
   }
 }
