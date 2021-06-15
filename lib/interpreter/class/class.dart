@@ -121,24 +121,34 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
 
   /// Get a value of a static member from this [HTClass].
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     final getter = '${HTLexicon.getter}$varName';
-    final constructor = '${HTLexicon.constructor}$varName';
+    final constructor = varName != id
+        ? '${HTLexicon.constructor}$varName'
+        : HTLexicon.constructor;
 
     if (isExternal) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
-      }
       if (namespace.declarations.containsKey(varName)) {
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
         final decl = namespace.declarations[varName]!;
         return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
         HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
-      } else if ((varName == id) &&
-          namespace.declarations.containsKey(HTLexicon.constructor)) {
-        HTFunction func = namespace.declarations[HTLexicon.constructor]!.value;
+      } else if (namespace.declarations.containsKey(constructor)) {
+        if (varName.startsWith(HTLexicon.privatePrefix) &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
+        HTFunction func = namespace.declarations[constructor]!.value;
         return func;
       }
     } else {
@@ -174,7 +184,9 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
       //         typeArgs: typeArgs ?? const []);
       //   };
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 

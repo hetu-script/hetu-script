@@ -15,7 +15,8 @@ class HTClassNamespace extends HTNamespace {
       : super(interpreter, id: id, closure: closure);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     final getter = '${HTLexicon.getter}$varName';
     final externalStatic = '$id.$varName';
 
@@ -46,12 +47,14 @@ class HTClassNamespace extends HTNamespace {
       return closure!.memberGet(varName, from: from);
     }
 
-    throw HTError.undefined(varName);
+    if (error) {
+      throw HTError.undefined(varName);
+    }
   }
 
   @override
   void memberSet(String varName, dynamic varValue,
-      {String from = HTLexicon.global}) {
+      {String from = HTLexicon.global, bool error = true}) {
     final setter = '${HTLexicon.setter}$varName';
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
@@ -80,6 +83,8 @@ class HTClassNamespace extends HTNamespace {
       return;
     }
 
-    throw HTError.undefined(varName);
+    if (error) {
+      throw HTError.undefined(varName);
+    }
   }
 }

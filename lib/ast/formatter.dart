@@ -1,7 +1,6 @@
-import 'package:hetu_script/grammar/semantic.dart';
-
 import 'ast.dart';
 import '../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
 import 'ast_compilation.dart';
 
 class FormatterConfig {

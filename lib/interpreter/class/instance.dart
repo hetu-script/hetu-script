@@ -131,7 +131,7 @@ class HTInstance with HTObject, InterpreterRef {
   /// only search that [classId]'s corresponed [HTInstanceNamespace].
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, String? classId}) {
+      {String from = HTLexicon.global, String? classId, bool error = true}) {
     final getter = '${HTLexicon.getter}$varName';
 
     if (classId == null) {
@@ -194,7 +194,9 @@ class HTInstance with HTObject, InterpreterRef {
       case 'toJson':
         return ({positionalArgs, namedArgs, typeArgs}) => toJson();
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 

@@ -2,7 +2,7 @@ import '../../grammar/semantic.dart';
 import 'variable_declaration.dart';
 
 class FunctionDeclaration extends VariableDeclaration {
-  final String? declId;
+  final String declId;
 
   final FunctionCategory category;
 
@@ -17,7 +17,7 @@ class FunctionDeclaration extends VariableDeclaration {
   final int maxArity;
 
   FunctionDeclaration(String id, String moduleFullName, String libraryName,
-      {this.declId,
+      {this.declId = '',
       String? classId,
       bool isExternal = false,
       bool isStatic = false,

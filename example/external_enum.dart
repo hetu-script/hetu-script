@@ -11,7 +11,8 @@ class CountryEnumBinding extends HTExternalClass {
   CountryEnumBinding() : super('Country');
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'values':
         return Country.values;
@@ -24,7 +25,9 @@ class CountryEnumBinding extends HTExternalClass {
       case 'Ukraine':
         return Country.Ukraine;
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 

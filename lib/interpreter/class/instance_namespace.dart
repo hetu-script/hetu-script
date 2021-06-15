@@ -25,7 +25,9 @@ class HTInstanceNamespace extends HTNamespace {
   /// try fetching variable from enclosed namespace.
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool recursive = true}) {
+      {String from = HTLexicon.global,
+      bool error = true,
+      bool recursive = true}) {
     final getter = '${HTLexicon.getter}$varName';
 
     HTInstanceNamespace? curNamespace = this;
@@ -43,7 +45,9 @@ class HTInstanceNamespace extends HTNamespace {
       return closure!.memberGet(varName, from: from);
     }
 
-    throw HTError.undefined(varName);
+    if (error) {
+      throw HTError.undefined(varName);
+    }
   }
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberSet],

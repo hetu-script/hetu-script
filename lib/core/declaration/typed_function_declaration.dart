@@ -14,7 +14,7 @@ class TypedFunctionDeclaration extends FunctionDeclaration {
   final HTFunctionType type;
 
   TypedFunctionDeclaration(String id, String moduleFullName, String libraryName,
-      {String? declId,
+      {String declId = '',
       String? classId,
       bool isExternal = false,
       bool isStatic = false,

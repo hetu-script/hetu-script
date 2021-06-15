@@ -76,7 +76,8 @@ class HTNamespace with HTObject {
   /// 从当前命名空间，以及超空间，递归获取一个变量
   /// 注意和memberGet只是从对象本身取值不同
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
@@ -90,13 +91,9 @@ class HTNamespace with HTObject {
       return closure!.memberGet(varName, from: from);
     }
 
-    throw HTError.undefined(varName);
-  }
-
-  dynamic memberGetAt(String varName, int distance,
-      {String from = HTLexicon.global}) {
-    var space = closureAt(distance);
-    return space.memberGet(varName, from: from);
+    if (error) {
+      throw HTError.undefined(varName);
+    }
   }
 
   /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
@@ -120,12 +117,6 @@ class HTNamespace with HTObject {
     }
 
     throw HTError.undefined(varName);
-  }
-
-  void memberSetAt(String varName, dynamic varValue, int distance,
-      {String from = HTLexicon.global}) {
-    var space = closureAt(distance);
-    space.memberSet(varName, varValue, from: from);
   }
 
   void import(HTNamespace other) {

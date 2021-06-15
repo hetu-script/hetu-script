@@ -68,7 +68,7 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
   /// before it can be called within a script.
   HTFunction(
       String id, String moduleFullName, String libraryName, Hetu interpreter,
-      {String? declId,
+      {String declId = '',
       String? classId,
       bool isExternal = false,
       bool isStatic = false,
@@ -414,8 +414,7 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
               if (isStatic || (category == FunctionCategory.constructor)) {
                 final classId = klass!.id;
                 final externClass = interpreter.fetchExternalClass(classId);
-                final funcName =
-                    (declId == null) ? classId : '$classId.$declId';
+                final funcName = declId.isEmpty ? classId : '$classId.$declId';
                 externalFunc = externClass.memberGet(funcName);
               } else {
                 throw HTError.missingExternalFunc(id);
@@ -438,7 +437,7 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
           } else {
             final classId = klass!.id;
             final externClass = interpreter.fetchExternalClass(classId);
-            final funcName = isStatic ? '$classId.${declId!}' : declId!;
+            final funcName = isStatic ? '$classId.$declId' : declId;
             result = externClass.memberGet(funcName);
           }
         }

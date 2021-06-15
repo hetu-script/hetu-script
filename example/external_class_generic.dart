@@ -31,7 +31,8 @@ class GenericClassBinding extends HTExternalClass {
   GenericClassBinding() : super('Generic');
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'Generic':
         return (
@@ -53,7 +54,9 @@ class GenericClassBinding extends HTExternalClass {
           }
         };
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 

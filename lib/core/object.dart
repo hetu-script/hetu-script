@@ -39,7 +39,8 @@ abstract class HTObject {
   /// ```
   /// object.varName
   /// ```
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'valueType':
         return valueType;
@@ -50,7 +51,9 @@ abstract class HTObject {
                 List<HTType> typeArgs = const []}) =>
             toString();
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 

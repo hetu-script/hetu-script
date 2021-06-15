@@ -606,10 +606,10 @@ class HTCompiler extends AbstractParser {
 
     expect([HTLexicon.semicolon], consume: true);
 
-    final stmt = ImportStmt(key, keyword.line, keyword.column,
-        alias: alias, showList: showList);
+    // final stmt = ImportStmt(key, keyword.line, keyword.column, stmt.source,
+    //     alias: alias, showList: showList);
 
-    _curImports.add(stmt);
+    // _curImports.add(stmt);
   }
 
   Uint8List _debugInfo() {

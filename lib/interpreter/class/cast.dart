@@ -49,11 +49,12 @@ class HTCast with HTObject, HetuRef {
   }
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) =>
+  dynamic memberGet(String varName,
+          {String from = HTLexicon.global, bool error = true}) =>
       object.memberGet(varName, from: from, classId: klass.id);
 
   @override
   void memberSet(String varName, dynamic varValue,
-          {String from = HTLexicon.global}) =>
+          {String from = HTLexicon.global, bool error = true}) =>
       object.memberSet(varName, varValue, from: from, classId: klass.id);
 }

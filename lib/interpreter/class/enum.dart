@@ -25,7 +25,8 @@ class HTEnum extends VariableDeclaration with HTObject, HetuRef {
   bool contains(String varName) => enums.containsKey(varName);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     if (!isExternal) {
       if (enums.containsKey(varName)) {
         return enums[varName]!;
@@ -39,7 +40,9 @@ class HTEnum extends VariableDeclaration with HTObject, HetuRef {
 
     // TODO: elementAt() 方法
 
-    throw HTError.undefined(varName);
+    if (error) {
+      throw HTError.undefined(varName);
+    }
   }
 
   @override
@@ -70,7 +73,8 @@ class HTEnumItem<T> with HTObject {
   HTEnumItem(this.value, this.id, this.valueType);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'valueType':
         return valueType;
@@ -87,7 +91,9 @@ class HTEnumItem<T> with HTObject {
                 List<HTType> typeArgs = const []}) =>
             toString();
       default:
-        throw HTError.undefinedMember(varName);
+        if (error) {
+          throw HTError.undefinedMember(varName);
+        }
     }
   }
 }

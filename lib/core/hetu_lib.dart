@@ -2,7 +2,7 @@
 ///
 /// Automatically generated based on files in 'hetu_lib' folder.
 final Map<String, String> coreModules = const {
-      'core.ht': r'''abstract class object {
+  'core.ht': r'''abstract class object {
 
 }
 
@@ -15,7 +15,7 @@ abstract class function {
 
 // print values of any type into lines
 external fun print(... args)''',
-'value.ht': r'''/// The apis here are named based on Dart SDK's
+  'value.ht': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
 
 external class num {
@@ -252,7 +252,7 @@ external class Map {
 
   fun putIfAbsent(key, value) -> any
 }''',
-'system.ht': r'''external class System {
+  'system.ht': r'''external class System {
 
   static get now -> num
 
@@ -260,7 +260,7 @@ external class Map {
 
   // static fun tok()
 }''',
-'console.ht': r'''external class Console {
+  'console.ht': r'''external class Console {
 
 	// write a line without return
 	static fun write(line: str)
@@ -276,7 +276,7 @@ external class Map {
 	
 	static fun cls()
 }''',
-'math.ht': r'''
+  'math.ht': r'''
 external class Math {
   static const e: num = 2.718281828459045;
   
@@ -326,5 +326,5 @@ external class Math {
 
 }
 ''',
-'help.ht': r'''external fun help(value) -> str''',
+  'help.ht': r'''external fun help(value) -> str''',
 };

@@ -11,7 +11,8 @@ class HTNumberClass extends HTExternalClass {
   HTNumberClass() : super(HTLexicon.number);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'num.parse':
         return (
@@ -20,7 +21,9 @@ class HTNumberClass extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             num.tryParse(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 }
@@ -29,7 +32,8 @@ class HTIntegerClass extends HTExternalClass {
   HTIntegerClass() : super(HTLexicon.integer);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'int.fromEnvironment':
         return (
@@ -45,7 +49,9 @@ class HTIntegerClass extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 
@@ -58,7 +64,8 @@ class HTFloatClass extends HTExternalClass {
   HTFloatClass() : super(HTLexicon.float);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'float.nan':
         return double.nan;
@@ -71,7 +78,9 @@ class HTFloatClass extends HTExternalClass {
       case 'float.maxFinite':
         return double.maxFinite;
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 
@@ -84,7 +93,8 @@ class HTBooleanClass extends HTExternalClass {
   HTBooleanClass() : super(HTLexicon.boolean);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'bool.parse':
         return (
@@ -94,7 +104,9 @@ class HTBooleanClass extends HTExternalClass {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 }
@@ -103,7 +115,8 @@ class HTStringClass extends HTExternalClass {
   HTStringClass() : super(HTLexicon.string);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'str.parse':
         return (
@@ -113,7 +126,9 @@ class HTStringClass extends HTExternalClass {
           return positionalArgs.first.toString();
         };
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 
@@ -126,10 +141,13 @@ class HTListClass extends HTExternalClass {
   HTListClass() : super(HTLexicon.list);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 
@@ -142,10 +160,13 @@ class HTMapClass extends HTExternalClass {
   HTMapClass() : super(HTLexicon.map);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 
@@ -158,7 +179,8 @@ class HTMathClass extends HTExternalClass {
   HTMathClass() : super(HTLexicon.math);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'Math.e':
         return (
@@ -304,7 +326,9 @@ class HTMathClass extends HTExternalClass {
             (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
 
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 }
@@ -313,12 +337,15 @@ class HTSystemClass extends HTExternalClass {
   HTSystemClass() : super(HTLexicon.system);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'System.now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 }
@@ -327,7 +354,8 @@ class HTConsoleClass extends HTExternalClass {
   HTConsoleClass() : super(HTLexicon.console);
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'Console.write':
         return (
@@ -372,7 +400,9 @@ class HTConsoleClass extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             stdout.write('\x1B[2J\x1B[0;0H');
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 }

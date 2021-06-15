@@ -74,7 +74,8 @@ class ProfileClassBinding extends HTExternalClass {
   ProfileClassBinding() : super('Profile');
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'Profile':
         return (
@@ -83,7 +84,9 @@ class ProfileClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             Profile(positionalArgs[0], positionalArgs[1]);
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 
@@ -100,12 +103,15 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'Person.profile':
         return Person.profile;
       default:
-        throw HTError.undefined(varName);
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 

@@ -19,7 +19,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   final String typeString;
   late final HTExternalClass? externalClass;
 
-  late final HTClass? klass;
+  HTClass? klass;
 
   /// Create a external class object.
   HTExternalInstance(
@@ -32,18 +32,21 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       externalClass = null;
     }
 
-    if (interpreter.coreNamespace.contains(id)) {
-      klass = interpreter.coreNamespace.memberGet(id);
-      valueType = HTNominalType(klass!);
-    } else {
-      klass = null;
-      valueType = HTExternalType(typeString, interpreter.curModuleFullName,
-          interpreter.curLibraryName);
+    try {
+      klass = interpreter.curNamespace.memberGet(id);
+    } finally {
+      if (klass != null) {
+        valueType = HTNominalType(klass!);
+      } else {
+        valueType = HTExternalType(typeString, interpreter.curModuleFullName,
+            interpreter.curLibraryName);
+      }
     }
   }
 
   @override
-  dynamic memberGet(String varName, {String from = HTLexicon.global}) {
+  dynamic memberGet(String varName,
+      {String from = HTLexicon.global, bool error = true}) {
     switch (varName) {
       case 'valueType':
         return valueType;
@@ -68,7 +71,9 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
           }
           return member;
         } else {
-          throw HTError.undefined(varName);
+          if (error) {
+            throw HTError.undefined(varName);
+          }
         }
     }
   }

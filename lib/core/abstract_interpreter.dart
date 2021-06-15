@@ -150,8 +150,11 @@ abstract class AbstractInterpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
-    final source =
-        HTSource(moduleFullName ?? HTLexicon.anonymousScript, content);
+    final source = HTSource(
+        moduleFullName ??
+            (HTLexicon.anonymousScript +
+                (AbstractInterpreter.anonymousScriptIndex++).toString()),
+        content);
 
     return await evalSource(source,
         libraryName: libraryName,
