@@ -1,5 +1,3 @@
-import 'package:hetu_script/core/token.dart';
-
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import '../core/abstract_parser.dart';
@@ -10,6 +8,7 @@ import '../error/errors.dart';
 import '../source/source_provider.dart';
 import 'ast.dart';
 import 'ast_compilation.dart';
+import '../core/token.dart';
 
 class HTAstParser extends AbstractParser {
   // late List<ImportStmt> _curModuleImports;

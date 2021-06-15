@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
-import 'package:hetu_script/ast/parser.dart';
 
 import 'package:hetu_script/hetu_script.dart';
 

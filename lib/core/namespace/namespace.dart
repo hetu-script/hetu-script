@@ -1,9 +1,8 @@
-import 'package:hetu_script/core/declaration/variable_declaration.dart';
-
 import '../../error/errors.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../abstract_interpreter.dart';
+import '../declaration/variable_declaration.dart';
 import '../declaration/typed_variable_declaration.dart';
 import '../object.dart';
 

@@ -1,4 +1,3 @@
-import 'package:hetu_script/ast/parser.dart';
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
