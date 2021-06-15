@@ -628,7 +628,7 @@ class HTFormatter implements AbstractAstVisitor {
       case FunctionCategory.constructor:
         output.write(HTLexicon.FACTORY);
         break;
-      case FunctionCategory.factory:
+      case FunctionCategory.factoryConstructor:
         output.write(HTLexicon.FACTORY);
         break;
       case FunctionCategory.getter:

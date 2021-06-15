@@ -3,7 +3,7 @@ enum FunctionCategory {
   normal,
   method,
   constructor,
-  factory,
+  factoryConstructor,
   getter,
   setter,
   literal, // function expression with no function name
