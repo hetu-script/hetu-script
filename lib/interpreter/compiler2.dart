@@ -2114,40 +2114,42 @@ class HTCompiler extends AbstractParser {
       if (category == FunctionCategory.constructor) {
         throw HTError.ctorReturn();
       }
-      bytesBuilder.addByte(FunctionAppendixType
-          .type.index); // enum: return type or super constructor
+      bytesBuilder.addByte(1); // bool: has return type
       bytesBuilder.add(_parseTypeExpr());
     }
     // referring to another constructor
-    else if (expect([HTLexicon.colon], consume: true)) {
-      if (category != FunctionCategory.constructor) {
-        throw HTError.nonCotrWithReferCtor();
-      }
-      if (isExternal) {
-        throw HTError.externalCtorWithReferCtor();
-      }
+    else {
+      bytesBuilder.addByte(0); // bool: has return type
 
-      final ctorId = advance(1).lexeme;
-      if (!HTLexicon.constructorCall.contains(ctorId)) {
-        throw HTError.unexpected(SemanticType.ctorCallExpr, curTok.lexeme);
-      }
+      if (expect([HTLexicon.colon], consume: true)) {
+        if (category != FunctionCategory.constructor) {
+          throw HTError.nonCotrWithReferCtor();
+        }
+        if (isExternal) {
+          throw HTError.externalCtorWithReferCtor();
+        }
 
-      bytesBuilder.addByte(FunctionAppendixType
-          .referConstructor.index); // enum: return type or super constructor
-      if (expect([HTLexicon.memberGet], consume: true)) {
-        bytesBuilder.addByte(1); // bool: has super constructor name
-        final superCtorId = match(SemanticType.identifier).lexeme;
-        bytesBuilder.add(_shortUtf8String(superCtorId));
-        match(HTLexicon.roundLeft);
+        final ctorId = advance(1).lexeme;
+        if (!HTLexicon.constructorCall.contains(ctorId)) {
+          throw HTError.unexpected(SemanticType.ctorCallExpr, curTok.lexeme);
+        }
+
+        bytesBuilder.addByte(1); // bool: has refer constructor
+        if (expect([HTLexicon.memberGet], consume: true)) {
+          bytesBuilder.addByte(1); // bool: has super constructor name
+          final superCtorId = match(SemanticType.identifier).lexeme;
+          bytesBuilder.add(_shortUtf8String(superCtorId));
+          match(HTLexicon.roundLeft);
+        } else {
+          match(HTLexicon.roundLeft);
+          bytesBuilder.addByte(0); // bool: has super constructor name
+        }
+
+        final callArgs = _parseCallArguments(hasLength: true);
+        bytesBuilder.add(callArgs);
       } else {
-        match(HTLexicon.roundLeft);
-        bytesBuilder.addByte(0); // bool: has super constructor name
+        bytesBuilder.addByte(0); // bool: has refer constructor
       }
-
-      final callArgs = _parseCallArguments(hasLength: true);
-      bytesBuilder.add(callArgs);
-    } else {
-      bytesBuilder.addByte(FunctionAppendixType.none.index);
     }
 
     // 处理函数定义部分的语句块

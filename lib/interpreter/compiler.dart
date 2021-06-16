@@ -1366,7 +1366,7 @@ class HTCompiler implements AbstractAstVisitor {
         bytesBuilder.addByte(0); // bool: hasRefCtor
       }
     }
-    // 处理函数定义部分的语句块
+    // definition body
     if (stmt.definition != null) {
       bytesBuilder.addByte(1); // bool: has definition
       bytesBuilder.add(_uint16(stmt.definition!.line));

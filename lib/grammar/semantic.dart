@@ -10,12 +10,6 @@ enum FunctionCategory {
   nested, // function within function, may with name
 }
 
-enum FunctionAppendixType {
-  none, // void
-  type, // HTTypeid
-  referConstructor, // constructor
-}
-
 enum TypeType {
   normal, // HTTypeid
   function, // HTFunctionTypeid
