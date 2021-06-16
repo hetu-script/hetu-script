@@ -108,13 +108,16 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
+  dynamic visitStringInterpolationExpr(StringInterpolationExpr expr) {}
+
+  @override
   String visitGroupExpr(GroupExpr expr) {
     final inner = printAst(expr.inner);
     return '${HTLexicon.roundLeft}$inner${HTLexicon.roundRight}';
   }
 
   @override
-  String visitLiteralListExpr(LiteralListExpr expr) {
+  String visitListExpr(ListExpr expr) {
     final output = StringBuffer();
     output.write(HTLexicon.squareLeft);
     for (var i = 0; i < expr.list.length; ++i) {
@@ -129,7 +132,7 @@ class HTFormatter implements AbstractAstVisitor {
   }
 
   @override
-  String visitLiteralMapExpr(LiteralMapExpr expr) {
+  String visitMapExpr(MapExpr expr) {
     final output = StringBuffer();
     output.write(HTLexicon.curlyLeft);
     if (expr.map.keys.isNotEmpty) {
@@ -320,16 +323,15 @@ class HTFormatter implements AbstractAstVisitor {
     final output = StringBuffer();
     output.write('${HTLexicon.IMPORT} ');
     output.write(
-        '${HTLexicon.singleQuotation}${stmt.key}${HTLexicon.singleQuotation}');
+        '${HTLexicon.singleQuotationLeft}${stmt.key}${HTLexicon.singleQuotationRight}');
     if (stmt.alias != null) {
       output.write(' ${HTLexicon.AS} ${stmt.alias}');
     }
-    if (stmt.showList != null && stmt.showList!.isNotEmpty) {
-      final showList = stmt.showList!;
+    if (stmt.showList.isNotEmpty) {
       output.write(' ${HTLexicon.SHOW} ');
-      for (var i = 0; i < showList.length; ++i) {
-        output.write(showList[i]);
-        if (i < showList.length - 1) {
+      for (var i = 0; i < stmt.showList.length; ++i) {
+        output.write(stmt.showList[i]);
+        if (i < stmt.showList.length - 1) {
           output.write('${HTLexicon.comma} ');
         }
       }

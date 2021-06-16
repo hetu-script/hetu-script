@@ -182,14 +182,17 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   dynamic visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
-  dynamic visitLiteralListExpr(LiteralListExpr expr) {
+  dynamic visitStringInterpolationExpr(StringInterpolationExpr expr) {}
+
+  @override
+  dynamic visitListExpr(ListExpr expr) {
     for (final item in expr.list) {
       visitAstNode(item);
     }
   }
 
   @override
-  dynamic visitLiteralMapExpr(LiteralMapExpr expr) {
+  dynamic visitMapExpr(MapExpr expr) {
     for (final key_expr in expr.map.keys) {
       visitAstNode(key_expr);
       visitAstNode(expr.map[key_expr]!);

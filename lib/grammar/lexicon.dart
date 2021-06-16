@@ -3,14 +3,24 @@ abstract class HTLexicon {
   static const programEntry = 'main';
   static const coreSpace = 'core';
 
-  static const scriptPattern = r'((/\*[\s\S]*?\*/)|(//.*))|' // 注释 group(1)
-      r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // 标识符 group(4)
-      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // 标点符号和运算符号 group(5)
-      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // 数字字面量 group(6)
-      // r'(\d+\.\d+)|' // 浮点数字面量 group(6)
-      // r'((?<![\d.])[0-9]+(?![\d.]))|' // 整数字面量 group(7)
-      r"(('(\\'|[^'])*')|" // 字符串字面量 group(8)
-      r'("(\\"|[^"])*"))';
+  static const tokenPattern = r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(1)
+      r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // unicode identifier group(4)
+      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(5)
+      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(6)
+      r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(8)
+      r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(12)
+      r"('(\\'|[^'])*')|" // string with single quotation mark group(16)
+      r'("(\\"|[^"])*")'; // string with double quotation mark group(18)
+
+  static const stringInterpolation = r'\${([^\${}]*)}';
+
+  static const stringReplaces = <String, String>{
+    r'\\': '\\',
+    r"\'": '\'',
+    r'\"': '\"',
+    r'\n': '\n',
+    r'\t': '\t',
+  };
 
   /// Add semicolon before a line starting with one of '++, --, (, ['
   static const Set<String> ASIStart = {
@@ -29,9 +39,10 @@ abstract class HTLexicon {
   static const tokenGroupIdentifier = 4;
   static const tokenGroupPunctuation = 5;
   static const tokenGroupNumber = 6;
-  static const tokenGroupFloat = 6;
-  static const tokenGroupInt = 7;
-  static const tokenGroupString = 8;
+  static const tokenGroupStringInterpolationSingleMark = 8;
+  static const tokenGroupStringInterpolationDoubleMark = 12;
+  static const tokenGroupStringSingleQuotation = 16;
+  static const tokenGroupStringDoubleQuotation = 18;
 
   static const punctuation = 'punctuation';
   static const boolean = 'bool';
@@ -66,8 +77,6 @@ abstract class HTLexicon {
   static const multiLine = r'\';
   static const newLine = '\n';
   static const variadicArgs = '...'; // variadic arguments
-  static const singleQuotation = "'";
-  static const doubleQuotation = '"';
   static const internalMarker = r'$';
   static const anonymousScript = r'$_anonymousScript_';
   static const anonymousFunction = r'$_anonymousFunction_';
@@ -87,6 +96,7 @@ abstract class HTLexicon {
   static const singleArrow = '->';
   static const doubleArrow = '=>';
   static const indentSpace = '  ';
+  static const decimalPoint = '.';
 
   static const NULL = 'null';
   static const TRUE = 'true';
@@ -324,6 +334,10 @@ abstract class HTLexicon {
   static const comma = ',';
   static const colon = ':';
   static const semicolon = ';';
+  static const singleQuotationLeft = "'";
+  static const singleQuotationRight = "'";
+  static const doubleQuotationLeft = '"';
+  static const doubleQuotationRight = '"';
   static const roundLeft = '(';
   static const roundRight = ')';
   static const curlyLeft = '{';
@@ -446,6 +460,8 @@ abstract class HTLexicon {
   static const errorReturnType =
       '[{0}] can\'t be returned from function [{1}] with return type [{2}].';
   static const errorMissingFuncBody = 'Missing function definition of [{0}].';
+  static const errorStringInterpolation =
+      'String interpolation has to be a single expression.';
   static const errorArity =
       'Number of arguments [{0}] doesn\'t match function [{1}]\'s parameter requirement [{2}].';
   static const errorBinding = 'Missing binding extension on dart object';
@@ -457,7 +473,7 @@ abstract class HTLexicon {
   static const errorNamedArg = 'Undefined named parameter: [{0}]';
   static const errorIterable = '[{0}] is not Iterable.';
   static const errorUnkownValueType = 'Unkown OpCode value type: [{0}].';
-  static const errorEmptyString = 'Unexpected empty string content. {0}';
+  static const errorEmptyString = 'Unexpected empty content. {0}';
   static const errorTypeCast = '[{0}]\'s type cannot be cast into [{1}].';
   static const errorCastee = 'Illegal cast target [{0}].';
   static const errorClone = 'Illegal clone on [{0}].';

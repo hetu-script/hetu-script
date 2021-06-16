@@ -356,7 +356,21 @@ class HTCompiler implements AbstractAstVisitor {
   }
 
   @override
-  Uint8List visitLiteralListExpr(LiteralListExpr expr) {
+  Uint8List visitStringInterpolationExpr(StringInterpolationExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.local);
+    bytesBuilder.addByte(HTValueTypeCode.stringInterpolation);
+    bytesBuilder.add(_utf8String(expr.value));
+    bytesBuilder.addByte(expr.interpolation.length);
+    for (final node in expr.interpolation) {
+      final bytes = visitAstNode(node, endOfExec: true);
+      bytesBuilder.add(bytes);
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitListExpr(ListExpr expr) {
     final bytesBuilder = BytesBuilder();
     if (config.lineInfo) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
@@ -372,7 +386,7 @@ class HTCompiler implements AbstractAstVisitor {
   }
 
   @override
-  Uint8List visitLiteralMapExpr(LiteralMapExpr expr) {
+  Uint8List visitMapExpr(MapExpr expr) {
     final bytesBuilder = BytesBuilder();
     if (config.lineInfo) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));

@@ -1,6 +1,5 @@
-import 'hello.ht'
+import 'hello.ht' as h
 
 fun main {
-  hello()
-  print('11')
+  return h.hello()
 }

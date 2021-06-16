@@ -11,7 +11,8 @@ import 'ast_compilation.dart';
 import '../core/token.dart';
 
 class HTAstParser extends AbstractParser {
-  // late List<ImportStmt> _curModuleImports;
+  final _curModuleImports = <ImportStmt>[];
+
   late String _curModuleFullName;
   @override
   String get curModuleFullName => _curModuleFullName;
@@ -33,12 +34,8 @@ class HTAstParser extends AbstractParser {
 
   HTAstParser({ParserConfig config = const ParserConfig()}) : super(config);
 
-  HTAstModule parse(HTSource source,
-      {bool createNamespace = true, ParserConfig? config}) {
-    _curModuleFullName = source.fullName;
-    _curClass = null;
-    _curFuncType = null;
-
+  List<AstNode> parse(List<Token> tokens, HTSource source,
+      {ParserConfig? config}) {
     _curSource = source;
 
     final savedConfig = this.config;
@@ -46,39 +43,47 @@ class HTAstParser extends AbstractParser {
       this.config = config;
     }
 
-    final tokens = Lexer().lex(source.content, _curModuleFullName);
     addTokens(tokens);
     final nodes = <AstNode>[];
-    final imports = <ImportStmt>[];
     while (curTok.type != HTLexicon.endOfFile) {
       final stmt = _parseStmt(sourceType: this.config.sourceType);
-      if (stmt is ImportStmt) {
-        imports.add(stmt);
-      }
       nodes.add(stmt);
     }
 
+    this.config = savedConfig;
+
+    return nodes;
+  }
+
+  HTAstModule parseSource(HTSource source,
+      {bool createNamespace = true, ParserConfig? config}) {
+    _curModuleFullName = source.fullName;
+    _curClass = null;
+    _curFuncType = null;
+
+    final savedConfig = this.config;
+    if (config != null) {
+      this.config = config;
+    }
+
+    final tokens = Lexer().lex(source.content, _curModuleFullName);
+    final nodes = parse(tokens, source);
+
     final module = HTAstModule(source, nodes, this.config.sourceType,
-        imports: imports,
+        imports: _curModuleImports.toList(), // copy the list
         createNamespace: createNamespace,
         isLibrary: _isLibrary);
+
+    _curModuleImports.clear();
 
     this.config = savedConfig;
 
     return module;
   }
 
-  Future<HTAstCompilation> parseFileAsLibrary(
-      String path, SourceProvider sourceProvider,
-      {ParserConfig? config}) async {
-    final module = await sourceProvider.getSource(path);
-
-    return await parseAll(module, sourceProvider, config: config);
-  }
-
   /// Parse a string content and generate a library,
   /// will import other files.
-  Future<HTAstCompilation> parseAll(
+  Future<HTAstCompilation> parseToCompilation(
       HTSource source, SourceProvider sourceProvider,
       {bool createNamespace = true,
       String? libraryName,
@@ -87,25 +92,25 @@ class HTAstParser extends AbstractParser {
     _curLibraryName = libraryName ?? fullName;
 
     final module =
-        parse(source, createNamespace: createNamespace, config: config);
+        parseSource(source, createNamespace: createNamespace, config: config);
 
-    final bundle = HTAstCompilation(_curLibraryName);
+    final compilation = HTAstCompilation(_curLibraryName);
     for (final stmt in module.imports) {
       final importFullName =
-          sourceProvider.resolveFullName(stmt.key, _curModuleFullName);
+          sourceProvider.resolveFullName(stmt.key, module.fullName);
       if (!sourceProvider.hasModule(importFullName)) {
-        final source2 = await sourceProvider.getSource(stmt.key,
+        final source2 = await sourceProvider.getSource(importFullName,
             curModuleFullName: _curModuleFullName);
-        final bundle2 = await parseAll(source2, sourceProvider,
+        final compilation2 = await parseToCompilation(source2, sourceProvider,
             config: ParserConfig(sourceType: SourceType.module));
         _curModuleFullName = fullName;
-        bundle.join(bundle2);
+        compilation.join(compilation2);
       }
     }
 
-    bundle.add(module);
+    compilation.add(module);
 
-    return bundle;
+    return compilation;
   }
 
   AstNode _parseStmt({SourceType sourceType = SourceType.function}) {
@@ -435,7 +440,7 @@ class HTAstParser extends AbstractParser {
     final stmt = ImportStmt(key, keyword.line, keyword.column, _curSource,
         alias: alias, showList: showList);
 
-    // _curModuleImports.add(stmt);
+    _curModuleImports.add(stmt);
 
     return stmt;
   }
@@ -646,25 +651,51 @@ class HTAstParser extends AbstractParser {
     switch (curTok.type) {
       case HTLexicon.NULL:
         _leftValueLegality = false;
-        final word = advance(1);
-        return NullExpr(word.line, word.column, _curSource);
+        final token = advance(1);
+        return NullExpr(token.line, token.column, _curSource);
       case SemanticType.literalBoolean:
         _leftValueLegality = false;
-        final word = advance(1) as TokenBooleanLiteral;
-        return BooleanExpr(word.literal, word.line, word.column, _curSource);
+        final token = advance(1) as TokenBooleanLiteral;
+        return BooleanExpr(token.literal, token.line, token.column, _curSource);
       case SemanticType.literalInteger:
         _leftValueLegality = false;
-        final word = advance(1) as TokenIntLiteral;
-        return ConstIntExpr(word.literal, word.line, word.column, _curSource);
+        final token = advance(1) as TokenIntLiteral;
+        return ConstIntExpr(
+            token.literal, token.line, token.column, _curSource);
       case SemanticType.literalFloat:
         _leftValueLegality = false;
-        final word = advance(1) as TokenFloatLiteral;
-        return ConstFloatExpr(word.literal, word.line, word.column, _curSource);
+        final token = advance(1) as TokenFloatLiteral;
+        return ConstFloatExpr(
+            token.literal, token.line, token.column, _curSource);
       case SemanticType.literalString:
         _leftValueLegality = false;
-        final word = advance(1) as TokenStringLiteral;
-        return ConstStringExpr(
-            word.literal, word.line, word.column, _curSource);
+        final token = advance(1) as TokenStringLiteral;
+        return ConstStringExpr.fromToken(token, _curSource);
+      case SemanticType.stringInterpolation:
+        _leftValueLegality = false;
+        final token = advance(1) as TokenStringInterpolation;
+        final interpolation = <AstNode>[];
+        for (final tokens in token.interpolations) {
+          final exprParser = HTAstParser(
+              config: ParserConfig(sourceType: SourceType.expression));
+          final nodes = exprParser.parse(tokens, _curSource);
+          if (nodes.length > 1) {
+            throw HTError.stringInterpolation();
+          }
+          interpolation.add(nodes.first);
+        }
+        var i = 0;
+        final value = token.literal.replaceAllMapped(
+            RegExp(HTLexicon.stringInterpolation),
+            (Match m) => '${HTLexicon.curlyLeft}${i++}${HTLexicon.curlyRight}');
+        return StringInterpolationExpr(
+            value,
+            token.quotationLeft,
+            token.quotationRight,
+            interpolation,
+            token.line,
+            token.column,
+            _curSource);
       case HTLexicon.THIS:
         _leftValueLegality = false;
         final keyword = advance(1);
@@ -693,7 +724,7 @@ class HTAstParser extends AbstractParser {
           }
         }
         match(HTLexicon.squareRight);
-        return LiteralListExpr(listExpr, line, column, _curSource);
+        return ListExpr(listExpr, line, column, _curSource);
       case HTLexicon.curlyLeft:
         _leftValueLegality = false;
         final line = curTok.line;
@@ -709,7 +740,7 @@ class HTAstParser extends AbstractParser {
           }
         }
         match(HTLexicon.curlyRight);
-        return LiteralMapExpr(line, column, _curSource, map: mapExpr);
+        return MapExpr(line, column, _curSource, map: mapExpr);
       case HTLexicon.FUNCTION:
         return _parseFuncDecl(category: FunctionCategory.literal);
       case SemanticType.identifier:

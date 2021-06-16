@@ -45,6 +45,7 @@ abstract class SemanticType {
   static const literalInteger = 'literal_integer';
   static const literalFloat = 'literal_float';
   static const literalString = 'literal_string';
+  static const stringInterpolation = 'string_interpolation';
   static const literalFunction = 'literal_function_expression';
 
   static const typeExpr = 'type_expression';

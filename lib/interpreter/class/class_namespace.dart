@@ -14,7 +14,9 @@ class HTClassNamespace extends HTNamespace {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = HTLexicon.global,
+      bool recursive = true,
+      bool error = true}) {
     final getter = '${HTLexicon.getter}$varName';
     final externalStatic = '$id.$varName';
 
@@ -41,7 +43,7 @@ class HTClassNamespace extends HTNamespace {
       return decl.value;
     }
 
-    if (closure != null) {
+    if (recursive && (closure != null)) {
       return closure!.memberGet(varName, from: from);
     }
 

@@ -9,6 +9,7 @@ import '../core/namespace/namespace.dart';
 import '../core/object.dart';
 import '../core/abstract_parser.dart';
 import '../core/const_table.dart';
+import '../core/declaration/variable_declaration.dart';
 import '../core/declaration/typed_parameter_declaration.dart';
 import '../type/type.dart';
 import '../type/function_type.dart';
@@ -18,6 +19,7 @@ import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
+import 'bytecode/bytecode_reader.dart';
 import 'class/class.dart';
 import 'class/enum.dart';
 import 'class/cast.dart';
@@ -26,7 +28,7 @@ import 'opcode.dart';
 import 'variable.dart';
 import 'function/function.dart';
 import 'function/parameter.dart';
-import 'bytecode/bytecode_reader.dart';
+import 'variable.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -145,10 +147,7 @@ class Hetu extends AbstractInterpreter {
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef);
 
-    // a postfix for correct path resolve
-    var joined = path.join(sourceProvider.workingDirectory, 'script');
-    final workingPath = Uri.file(joined).path.trimPath();
-    _curModuleFullName = workingPath;
+    _curModuleFullName = sourceProvider.workingDirectory;
   }
 
   /// Evaluate a string content.
@@ -179,7 +178,8 @@ class Hetu extends AbstractInterpreter {
 
     final createNamespace = namespace != coreNamespace;
     try {
-      final compilation = await parser.parseAll(source, sourceProvider,
+      final compilation = await parser.parseToCompilation(
+          source, sourceProvider,
           createNamespace: createNamespace,
           libraryName:
               libraryName, // TODO: should set in parser, and should read from script if exist
@@ -215,9 +215,40 @@ class Hetu extends AbstractInterpreter {
             for (final info in module.imports) {
               final importFullName =
                   sourceProvider.resolveFullName(info.key, module.fullName);
-              // TODO: alias, showList
               final importNamespace = lib.namespaces[importFullName]!;
-              nsp.import(importNamespace);
+              if (info.alias == null) {
+                if (info.showList.isEmpty) {
+                  nsp.import(importNamespace);
+                } else {
+                  for (final id in info.showList) {
+                    VariableDeclaration decl =
+                        importNamespace.memberGet(id, recursive: false);
+                    nsp.define(decl);
+                  }
+                }
+              } else {
+                if (info.showList.isEmpty) {
+                  final aliasNamespace = HTNamespace(this,
+                      id: info.alias!, closure: coreNamespace);
+                  aliasNamespace.import(importNamespace);
+                  final nspDef = HTVariable(
+                      info.alias!, module.fullName, _curLibraryName, this,
+                      value: aliasNamespace);
+                  nsp.define(nspDef);
+                } else {
+                  final aliasNamespace = HTNamespace(this,
+                      id: info.alias!, closure: coreNamespace);
+                  for (final id in info.showList) {
+                    VariableDeclaration decl =
+                        importNamespace.memberGet(id, recursive: false);
+                    aliasNamespace.define(decl);
+                  }
+                  final nspDef = HTVariable(
+                      info.alias!, module.fullName, _curLibraryName, this,
+                      value: aliasNamespace);
+                  nsp.define(nspDef);
+                }
+              }
             }
           }
         }
@@ -260,7 +291,8 @@ class Hetu extends AbstractInterpreter {
   /// call the function after evaluation completed.
   @override
   Future<dynamic> evalFile(String key,
-      {bool reload = false,
+      {bool useLastModuleFullName = false,
+      bool reload = false,
       String? moduleFullName,
       String? libraryName,
       HTNamespace? namespace,
@@ -275,7 +307,9 @@ class Hetu extends AbstractInterpreter {
 
       if (reload || !sourceProvider.hasModule(fullName)) {
         final module = await sourceProvider.getSource(key,
-            curModuleFullName: _curModuleFullName);
+            curModuleFullName: useLastModuleFullName
+                ? _curModuleFullName
+                : sourceProvider.workingDirectory);
 
         final result = await eval(module.content,
             moduleFullName: module.fullName,
@@ -647,6 +681,15 @@ class Hetu extends AbstractInterpreter {
       case HTValueTypeCode.constString:
         final index = _code.readUint16();
         _curValue = _constTable.getUtf8String(index);
+        break;
+      case HTValueTypeCode.stringInterpolation:
+        var literal = _code.readUtf8String();
+        final interpolationLength = _code.read();
+        for (var i = 0; i < interpolationLength; ++i) {
+          final value = execute();
+          literal = literal.replaceAll('{$i}', value.toString());
+        }
+        _curValue = literal;
         break;
       case HTValueTypeCode.symbol:
         final symbol = _curSymbol = _code.readShortUtf8String();

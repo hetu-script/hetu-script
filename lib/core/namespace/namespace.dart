@@ -19,7 +19,7 @@ class HTNamespace with HTObject {
     return fullName;
   }
 
-  late final String id;
+  final String id;
 
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
@@ -40,10 +40,9 @@ class HTNamespace with HTObject {
 
   HTNamespace(
     AbstractInterpreter interpreter, {
-    String? id,
+    this.id = HTLexicon.anonymousNamespace,
     this.closure,
-  }) : super() {
-    this.id = id ?? HTLexicon.anonymousNamespace;
+  }) {
     fullName = _getFullName(this.id, closure);
   }
 
@@ -76,7 +75,9 @@ class HTNamespace with HTObject {
   /// 注意和memberGet只是从对象本身取值不同
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = HTLexicon.global,
+      bool recursive = true,
+      bool error = true}) {
     if (declarations.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
@@ -86,7 +87,7 @@ class HTNamespace with HTObject {
       return decl.value;
     }
 
-    if (closure != null) {
+    if (recursive && (closure != null)) {
       return closure!.memberGet(varName, from: from);
     }
 

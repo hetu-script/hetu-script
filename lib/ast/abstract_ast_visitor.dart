@@ -14,9 +14,11 @@ abstract class AbstractAstVisitor {
 
   dynamic visitConstStringExpr(ConstStringExpr expr);
 
-  dynamic visitLiteralListExpr(LiteralListExpr expr);
+  dynamic visitStringInterpolationExpr(StringInterpolationExpr expr);
 
-  dynamic visitLiteralMapExpr(LiteralMapExpr expr);
+  dynamic visitListExpr(ListExpr expr);
+
+  dynamic visitMapExpr(MapExpr expr);
 
   dynamic visitGroupExpr(GroupExpr expr);
 

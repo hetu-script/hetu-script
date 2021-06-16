@@ -78,30 +78,60 @@ class ConstStringExpr extends AstNode {
 
   final String value;
 
-  const ConstStringExpr(this.value, int line, int column, HTSource source)
+  final String quotationLeft;
+
+  final String quotationRight;
+
+  const ConstStringExpr(this.value, this.quotationLeft, this.quotationRight,
+      int line, int column, HTSource source)
       : super(SemanticType.literalString, line, column, source);
+
+  ConstStringExpr.fromToken(TokenStringLiteral token, HTSource source)
+      : this(token.literal, token.quotationLeft, token.quotationRight,
+            token.line, token.column, source);
 }
 
-class LiteralListExpr extends AstNode {
+class StringInterpolationExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitLiteralListExpr(this);
+      visitor.visitStringInterpolationExpr(this);
+
+  final String value;
+
+  final String quotationLeft;
+
+  final String quotationRight;
+
+  final List<AstNode> interpolation;
+
+  const StringInterpolationExpr(
+      this.value,
+      this.quotationLeft,
+      this.quotationRight,
+      this.interpolation,
+      int line,
+      int column,
+      HTSource source)
+      : super(SemanticType.stringInterpolation, line, column, source);
+}
+
+class ListExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitListExpr(this);
 
   final List<AstNode> list;
 
-  const LiteralListExpr(this.list, int line, int column, HTSource source)
+  const ListExpr(this.list, int line, int column, HTSource source)
       : super(SemanticType.literalVectorExpr, line, column, source);
 }
 
-class LiteralMapExpr extends AstNode {
+class MapExpr extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitLiteralMapExpr(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitMapExpr(this);
 
   final Map<AstNode, AstNode> map;
 
-  const LiteralMapExpr(int line, int column, HTSource source,
-      {this.map = const {}})
+  const MapExpr(int line, int column, HTSource source, {this.map = const {}})
       : super(SemanticType.blockExpr, line, column, source);
 }
 
@@ -377,10 +407,10 @@ class ImportStmt extends AstNode {
 
   final String? alias;
 
-  final List<String>? showList;
+  final List<String> showList;
 
   const ImportStmt(this.key, int line, int column, HTSource source,
-      {this.alias, this.showList})
+      {this.alias, this.showList = const []})
       : super(SemanticType.importStmt, line, column, source);
 }
 

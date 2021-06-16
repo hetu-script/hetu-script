@@ -43,6 +43,7 @@ enum ErrorCode {
   argInit,
   returnType,
   missingFuncBody,
+  stringInterpolation,
   arity,
   binding,
   externalVar,
@@ -448,6 +449,11 @@ class HTError {
   HTError.missingFuncBody(String id)
       : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
             message: HTLexicon.errorMissingFuncBody, interpolations: [id]);
+
+  /// Error: String interpolation has to be a single expression.
+  HTError.stringInterpolation()
+      : this(ErrorCode.stringInterpolation, ErrorType.syntacticError,
+            message: HTLexicon.errorStringInterpolation);
 
   /// Error: Function arity check failed.
   HTError.arity(String id, int argsCount, int paramsCount)

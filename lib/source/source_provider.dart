@@ -51,8 +51,9 @@ class DefaultSourceProvider implements SourceProvider {
     } else {
       dir = Directory.current.absolute.path;
     }
-    var result = Uri.file(dir).path.trimPath();
-    this.workingDirectory = result;
+    var joined = path.join(dir, 'script');
+    final workingPath = Uri.file(joined).path.trimPath();
+    this.workingDirectory = workingPath;
   }
 
   @override

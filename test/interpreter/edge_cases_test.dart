@@ -6,14 +6,6 @@ void main() async {
   await hetu.init();
 
   group('edge cases -', () {
-    test('import', () async {
-      final result = await hetu.evalFile('script/import_test.ht',
-          invokeFunc: 'importTest');
-      expect(
-        result,
-        87.5,
-      );
-    });
     test('automatic semicolon insertion', () async {
       final result = await hetu.eval(r'''
         fun asi {
