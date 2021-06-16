@@ -99,7 +99,7 @@ class HTCompiler extends AbstractParser {
     _curImports = <ImportStmt>[];
     _curConstTable = ConstTable();
 
-    final tokens = Lexer().lex(content, fullName);
+    final tokens = HTLexer().lex(content);
     addTokens(tokens);
     final bytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.endOfFile) {

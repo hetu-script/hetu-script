@@ -36,17 +36,22 @@ class HTFormatter implements AbstractAstVisitor {
     return output.toString();
   }
 
-  String format(HTAstModule module) {
+  String format(List<AstNode> nodes, {FormatterConfig? config}) {
+    final savedConfig = this.config;
+    if (config != null) {
+      this.config = config;
+    }
+
     final output = StringBuffer();
-    for (var i = 0; i < module.nodes.length; ++i) {
-      final stmt = module.nodes[i];
+    for (var i = 0; i < nodes.length; ++i) {
+      final stmt = nodes[i];
       final stmtString = printAst(stmt);
       if (stmtString.isNotEmpty) {
         if (_lastStmt is ImportStmt && stmt is! ImportStmt) {
           output.writeln('');
         }
         output.writeln(stmtString);
-        if ((i < module.nodes.length - 1) &&
+        if ((i < nodes.length - 1) &&
             (stmt is FuncDeclExpr ||
                 stmt is ClassDeclStmt ||
                 stmt is EnumDeclStmt ||
@@ -57,12 +62,15 @@ class HTFormatter implements AbstractAstVisitor {
       _lastStmt = stmt;
     }
 
+    this.config = savedConfig;
+
     final result = output.toString();
+
     return result;
   }
 
   void formatModule(HTAstModule module) {
-    module.source.content = format(module);
+    module.source.content = format(module.nodes);
   }
 
   void formatLibrary(HTAstCompilation bundle) {

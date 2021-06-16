@@ -1,4 +1,9 @@
 import '../grammar/lexicon.dart';
+import '../utils/utilities.dart' as utils;
+import '../analyzer/analyzer.dart' show AnalyzerConfig;
+import '../source/source.dart';
+
+part 'error_processor.dart';
 
 enum ErrorCode {
   unexpected,
@@ -190,25 +195,19 @@ class ErrorType implements Comparable<ErrorType> {
   String toString() => name;
 }
 
-/// Contains error messages.
 class HTError {
   final ErrorCode code;
 
-  /// Error type.
   final ErrorType type;
 
   ErrorSeverity get severity => type.severity;
 
-  /// Error message.
   late String message;
 
-  /// moduleFullName when error occured.
   String? moduleFullName;
 
-  /// Line number when error occured.
   int? line;
 
-  /// Column number when error occured.
   int? column;
 
   @override

@@ -11,16 +11,34 @@ import '../core/abstract_interpreter.dart';
 import '../grammar/lexicon.dart';
 import '../error/errors.dart';
 import '../error/error_handler.dart';
-import '../error/error_processor.dart';
 import '../ast/ast.dart';
 // import 'ast_function.dart';
 import '../ast/parser.dart';
 import '../ast/ast_compilation.dart';
+import 'analysis_error.dart';
 
-class AnalyzerConfig {
+part 'result.dart';
+
+class AnalyzerConfig extends InterpreterConfig {
   final List<ErrorProcessor> errorProcessors;
 
-  const AnalyzerConfig(this.errorProcessors);
+  const AnalyzerConfig(
+      {SourceType sourceType = SourceType.module,
+      bool reload = false,
+      bool errorDetail = true,
+      bool scriptStackTrace = true,
+      int scriptStackTraceMaxline = 10,
+      bool externalStackTrace = true,
+      int externalStackTraceMaxline = 10,
+      this.errorProcessors = const []})
+      : super(
+            sourceType: sourceType,
+            reload: reload,
+            errorDetail: errorDetail,
+            scriptStackTrace: scriptStackTrace,
+            scriptStackTraceMaxline: scriptStackTraceMaxline,
+            externalStackTrace: externalStackTrace,
+            externalStackTraceMaxline: externalStackTraceMaxline);
 }
 
 class HTBreak {}
@@ -35,10 +53,10 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
 
   late HTAstModule _curCode;
 
-  late InterpreterConfig _config;
+  late AnalyzerConfig _config;
 
   @override
-  InterpreterConfig get config => _config;
+  AnalyzerConfig get config => _config;
 
   var _curLine = 0;
   @override
@@ -79,7 +97,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   HTAnalyzer(
       {HTErrorHandler? errorHandler,
       SourceProvider? sourceProvider,
-      InterpreterConfig config = const InterpreterConfig()})
+      AnalyzerConfig config = const AnalyzerConfig()})
       : super(config,
             errorHandler: errorHandler, sourceProvider: sourceProvider) {
     _curNamespace = coreNamespace;
@@ -87,8 +105,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
 
   @override
   Future<void> evalSource(HTSource source,
-      {String? moduleFullName,
-      String? libraryName,
+      {String? libraryName,
       HTNamespace? namespace,
       InterpreterConfig? config,
       String? invokeFunc,
@@ -132,7 +149,9 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   /// 解析文件
   @override
   Future<void> evalFile(String key,
-      {String? moduleFullName,
+      {bool useLastModuleFullName = false,
+      bool reload = false,
+      String? moduleFullName,
       String? libraryName,
       HTNamespace? namespace,
       InterpreterConfig? config,

@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../utils/utilities.dart' as utils;
-import '../analyzer/analyzer.dart' show AnalyzerConfig;
-
-import 'errors.dart';
+part of 'errors.dart';
 
 /// String identifiers mapped to associated severities.
 const Map<String, ErrorSeverity> severityMap = {

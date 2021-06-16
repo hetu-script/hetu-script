@@ -141,10 +141,11 @@ abstract class AbstractInterpreter {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
     final source = HTSource(
-        moduleFullName ??
-            (HTLexicon.anonymousScript +
-                (AbstractInterpreter.anonymousScriptIndex++).toString()),
-        content);
+      content,
+      moduleFullName ??
+          (HTLexicon.anonymousScript +
+              (AbstractInterpreter.anonymousScriptIndex++).toString()),
+    );
 
     return await evalSource(source,
         libraryName: libraryName,

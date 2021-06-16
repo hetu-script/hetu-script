@@ -3,11 +3,8 @@ import '../error/errors.dart';
 import 'token.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
-class Lexer {
-  // Lexer();
-
-  List<Token> lex(String content, String fileName,
-      {int line = 0, int column = 0}) {
+class HTLexer {
+  List<Token> lex(String content, {int line = 0, int column = 0}) {
     var curLine = line;
     var curColumn = 0;
     final tokens = <Token>[];
@@ -75,7 +72,6 @@ class Lexer {
               matchString,
               HTLexicon.singleQuotationLeft,
               HTLexicon.singleQuotationRight,
-              fileName,
               curLine,
               curColumn);
           toksOfLine.add(token);
@@ -86,7 +82,6 @@ class Lexer {
               matchString,
               HTLexicon.doubleQuotationLeft,
               HTLexicon.doubleQuotationRight,
-              fileName,
               curLine,
               curColumn);
           toksOfLine.add(token);
@@ -124,7 +119,7 @@ class Lexer {
   }
 
   Token _hanldeStringInterpolation(String matchString, String quotationLeft,
-      String quotationRight, String fileName, int line, int column) {
+      String quotationRight, int line, int column) {
     final interpolations = <List<Token>>[];
     final literal = matchString.substring(1, matchString.length - 1);
     final pattern = RegExp(HTLexicon.stringInterpolation);
@@ -134,7 +129,7 @@ class Lexer {
       if (matchString == null) {
         throw HTError.emptyString();
       }
-      final tokens = lex(matchString, fileName, line: line, column: column);
+      final tokens = lex(matchString, line: line, column: column);
       interpolations.add(tokens);
     }
     return TokenStringInterpolation(

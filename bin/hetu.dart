@@ -126,7 +126,7 @@ Future<void> format(List<String> args,
 
     final module = compilation.getModule(source.fullName);
 
-    final fmtResult = formatter.format(module);
+    final fmtResult = formatter.format(module.nodes);
 
     if (printResult) {
       print(fmtResult);
