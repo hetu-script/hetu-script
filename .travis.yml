@@ -1,4 +1,5 @@
 language: dart
-
-script:
-  - pub run test
+dart_task:
+  - dartfmt
+  - dartanalyzer: lib
+  - test
