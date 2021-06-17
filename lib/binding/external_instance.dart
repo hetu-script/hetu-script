@@ -1,11 +1,11 @@
 import '../interpreter/abstract_interpreter.dart';
-import '../declaration/object.dart';
-import '../declaration/type/type.dart';
-import '../declaration/type/nominal_type.dart';
+import '../element/object.dart';
+import '../type/type.dart';
+import '../type/nominal_type.dart';
 import '../grammar/semantic.dart';
 import '../error/error.dart';
-import '../declaration/function_declaration.dart';
-import '../declaration/class/class.dart';
+import '../element/function_declaration.dart';
+import '../element/class/class.dart';
 import 'external_class.dart';
 
 /// Class for external object.

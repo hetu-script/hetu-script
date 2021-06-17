@@ -4,7 +4,7 @@ void main() async {
   final srcPrdr = DefaultSourceProvider();
   final source = HTSource(SemanticNames.anonymousScript, r'''
     var i = 42
-    var j = 'hi, your number is ${ '#' + i.toString()   }.'
+    var j = 'hi, your number is ${ '#' +     i.toString()   }.'
   ''');
   final parser = HTAstParser();
   // final bundle = await parser.parseFileAsLibrary('script\\battle.ht', srcPrdr);

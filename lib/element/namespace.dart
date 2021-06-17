@@ -1,7 +1,7 @@
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../declaration/type/type.dart';
+import '../type/type.dart';
 import '../interpreter/abstract_interpreter.dart';
 import 'declaration.dart';
 import 'typed_variable_declaration.dart';

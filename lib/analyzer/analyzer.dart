@@ -1,8 +1,8 @@
 import '../source/source.dart';
 import '../source/source_provider.dart';
 // import '../binding/external_function.dart';
-import '../declaration/type/type.dart';
-import '../declaration/namespace.dart';
+import '../type/type.dart';
+import '../element/namespace.dart';
 // import '../core/function/abstract_function.dart';
 // import '../object/object.dart';
 import '../interpreter/abstract_interpreter.dart';

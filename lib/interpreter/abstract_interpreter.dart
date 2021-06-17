@@ -12,14 +12,14 @@ import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../declaration/type/type.dart';
+import '../type/type.dart';
 import '../parser/parser.dart';
 import 'compiler.dart';
-import '../declaration/function/function.dart';
-import '../declaration/namespace.dart';
+import '../element/function/function.dart';
+import '../element/namespace.dart';
 import '../parser/abstract_parser.dart' show ParserConfig;
 import '../buildin/hetu_lib.dart';
-import '../declaration/object.dart';
+import '../element/object.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -253,7 +253,7 @@ abstract class AbstractInterpreter {
       if (config.scriptStackTrace) {
         message = '$message\nCall stack:\n$callStack';
       }
-      final hetuError = HTError(ErrorCode.external, ErrorType.externalError,
+      final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
           message: message,
           moduleFullName: curModuleFullName,
           line: curLine,

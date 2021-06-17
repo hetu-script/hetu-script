@@ -1,4 +1,4 @@
-import '../type/type.dart';
+import '../../type/type.dart';
 import '../declaration.dart';
 import '../namespace.dart';
 
@@ -20,6 +20,8 @@ class ClassDeclaration extends Declaration {
   /// and the re-definition must be of the same function signature.
   final Iterable<HTType> implementsTypes;
 
+  final bool isNested;
+
   final bool isAbstract;
 
   ClassDeclaration(String id, String moduleFullName, String libraryName,
@@ -28,6 +30,7 @@ class ClassDeclaration extends Declaration {
       HTType? superType,
       this.withTypes = const [],
       this.implementsTypes = const [],
+      this.isNested = false,
       bool isExternal = false,
       this.isAbstract = false})
       : super(id, moduleFullName, libraryName,
@@ -51,6 +54,7 @@ class ClassDeclaration extends Declaration {
       superType: superType,
       withTypes: withTypes,
       implementsTypes: implementsTypes,
+      isNested: isNested,
       isExternal: isExternal,
       isAbstract: isAbstract);
 }

@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../parser/abstract_parser.dart';
 import '../grammar/lexer.dart';
 import 'const_table.dart';
-import '../declaration/class/class_declaration.dart';
+import '../element/class/class_declaration.dart';
 import '../grammar/semantic.dart';
 import '../grammar/lexicon.dart';
 import '../source/source.dart';

@@ -54,6 +54,7 @@ abstract class SemanticNames {
   static const doLoop = 'do_loop';
   static const forLoop = 'for_loop';
   static const whenBranch = 'when_loop';
+  static const function = 'function';
   static const functionCall = 'function_call';
   static const classDefinition = 'class_definition';
   static const ctorCallExpr = 'constructor_call_expression';

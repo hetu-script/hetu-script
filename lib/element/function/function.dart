@@ -2,16 +2,16 @@ import '../../binding/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import '../../declaration/function_declaration.dart';
+import '../../element/function_declaration.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
+import '../../type/type.dart';
+import '../instance/instance_namespace.dart';
+import '../class/class.dart';
+import '../instance/instance.dart';
 import '../object.dart';
-import '../type/type.dart';
 import '../variable.dart';
 import '../namespace.dart';
-import '../class/instance_namespace.dart';
-import '../class/class.dart';
-import '../class/instance.dart';
 import 'parameter.dart';
 
 class ReferConstructor {
@@ -310,6 +310,7 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
               libraryName: libraryName,
               ip: definitionIp,
               namespace: closure,
+              function: this,
               line: definitionLine,
               column: definitionColumn);
         } else {
@@ -318,6 +319,7 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
               libraryName: libraryName,
               ip: definitionIp,
               namespace: closure,
+              function: this,
               line: definitionLine,
               column: definitionColumn);
         }
@@ -464,6 +466,22 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
       } else {
         interpreter.handleError(error, stack);
       }
+    }
+  }
+
+  @override
+  dynamic memberGet(String varName,
+      {String from = SemanticNames.global, bool error = true}) {
+    switch (varName) {
+      case 'valueType':
+        return valueType;
+      case 'toString':
+        return ({positionalArgs, namedArgs, typeArgs}) =>
+            '${SemanticNames.function} $id';
+      default:
+        if (error) {
+          throw HTError.undefined(varName);
+        }
     }
   }
 }

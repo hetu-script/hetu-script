@@ -6,8 +6,8 @@ import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../ast/ast_compilation.dart';
 import 'const_table.dart';
-import '../declaration/class/class_declaration.dart';
-import '../declaration/function_declaration.dart';
+import '../element/class/class_declaration.dart';
+import '../element/function_declaration.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import 'opcode.dart';
@@ -475,8 +475,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitParamTypeExpr(ParamTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
-    final declType = visitTypeExpr(expr.declType);
-    bytesBuilder.add(declType);
+    bytesBuilder.add(_shortUtf8String(expr.declType.id));
+    bytesBuilder.addByte(expr.declType.arguments.length); // max 255
+    for (final expr in expr.declType.arguments) {
+      final typeArg = visitTypeExpr(expr);
+      bytesBuilder.add(typeArg);
+    }
+    bytesBuilder.addByte(expr.declType.isNullable ? 1 : 0); // bool isNullable
     bytesBuilder.addByte(expr.isOptional ? 1 : 0);
     if (expr.id != null) {
       bytesBuilder.addByte(1); // bool: isNamed
@@ -491,8 +496,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitFunctionTypeExpr(FuncTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.type);
+    if (expr.isLocal) {
+      bytesBuilder.addByte(HTOpCode.local);
+      bytesBuilder.addByte(HTValueTypeCode.type);
+    }
     bytesBuilder.addByte(TypeType.function.index); // enum: type type
     bytesBuilder
         .addByte(expr.paramTypes.length); // uint8: length of param types
@@ -1297,6 +1304,24 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.typeAliasDecl);
+    bytesBuilder.add(_shortUtf8String(stmt.id));
+    if (stmt.classId != null) {
+      bytesBuilder.addByte(1); // bool: has class id
+      bytesBuilder.add(_shortUtf8String(stmt.classId!));
+    } else {
+      bytesBuilder.addByte(0); // bool: has class id
+    }
+    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
+    // do not use visitTypeExpr here because the value could be a function type
+    final bytes = visitAstNode(stmt.value);
+    bytesBuilder.add(bytes);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitVarDeclStmt(VarDeclStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.varDecl);
@@ -1490,13 +1515,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.add(_shortUtf8String(id));
     }
     bytesBuilder.addByte(HTOpCode.endOfStmt);
-    return bytesBuilder.toBytes();
-  }
-
-  @override
-  Uint8List visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
-    final bytesBuilder = BytesBuilder();
-
     return bytesBuilder.toBytes();
   }
 }

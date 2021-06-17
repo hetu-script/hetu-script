@@ -54,8 +54,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
         if ((i < nodes.length - 1) &&
             (stmt is FuncDeclExpr ||
                 stmt is ClassDeclStmt ||
-                stmt is EnumDeclStmt ||
-                stmt is VarDeclStmt)) {
+                stmt is EnumDeclStmt)) {
           output.writeln('');
         }
       }
@@ -108,18 +107,27 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitConstStringExpr(ConstStringExpr expr) {
-    var str = expr.value;
-    if (str.contains("'")) {
-      str = str.replaceAll(r"'", r"\'");
+    var output = expr.value;
+    if (output.contains("'")) {
+      output = output.replaceAll(r"'", r"\'");
     }
-    return "\'$str\'";
+    return "\'$output\'";
   }
 
   @override
   String visitStringInterpolationExpr(StringInterpolationExpr expr) {
-    final output = StringBuffer();
-    // TODO: string interpolation
-    return output.toString();
+    final interpolation = <String>[];
+    for (final node in expr.interpolation) {
+      final nodeString = printAst(node);
+      interpolation.add(nodeString);
+    }
+    var output = expr.value;
+    for (var i = 0; i < interpolation.length; ++i) {
+      output = output.replaceAll(
+          '${HTLexicon.curlyLeft}$i${HTLexicon.curlyRight}',
+          '${HTLexicon.stringInterpolationStart}${interpolation[i]}${HTLexicon.stringInterpolationEnd}');
+    }
+    return "\'$output\'";
   }
 
   @override
@@ -298,7 +306,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitMemberExpr(MemberExpr expr) {
     final collectionString = printAst(expr.object);
-    return '$collectionString${HTLexicon.memberGet}${expr.key}';
+    final keyString = printAst(expr.key);
+    return '$collectionString${HTLexicon.memberGet}$keyString';
   }
 
   @override
@@ -366,7 +375,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitBlockStmt(BlockStmt block) {
     final output = StringBuffer();
     if (block.statements.isNotEmpty) {
-      output.writeln(HTLexicon.curlyLeft);
+      output.writeln(' ${HTLexicon.curlyLeft}');
       ++_curIndentCount;
       for (final stmt in block.statements) {
         final stmtString = printAst(stmt);
@@ -676,7 +685,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     }
 
     if (stmt.definition != null) {
-      final blockString = visitBlockStmt(stmt.definition!);
+      final blockString = printAst(stmt.definition!);
       output.write(blockString);
     }
     return output.toString();

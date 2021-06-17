@@ -1,6 +1,6 @@
 import 'package:quiver/core.dart';
 
-import '../typed_parameter_declaration.dart';
+import '../element/typed_parameter_declaration.dart';
 import '../../grammar/lexicon.dart';
 import 'type.dart';
 // import '../ast/ast.dart' show ParamDeclExpr;

@@ -2,7 +2,7 @@ import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../interpreter/abstract_interpreter.dart';
-import '../../declaration/typed_variable_declaration.dart';
+import '../../element/typed_variable_declaration.dart';
 import '../function/function.dart';
 import '../namespace.dart';
 

@@ -1,13 +1,15 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  final hetu = Hetu(config: InterpreterConfig(sourceType: SourceType.script));
+  var hetu = Hetu(config: InterpreterConfig(sourceType: SourceType.script));
   await hetu.init();
-  final result = await hetu.eval(r'''
-    var i = 0
-    var list = [1,2,3]
-    print(list[0]--)
-    print(list)
-  ''', invokeFunc: 'main');
-  print(result);
+  await hetu.eval(r'''
+    var i = 42
+  ''');
+  await hetu.eval(r'''
+    var j = 'hello, guest no.${i}, next guest is no.${i+1}!'
+  ''');
+  await hetu.eval(r'''
+    print(j)
+  ''');
 }

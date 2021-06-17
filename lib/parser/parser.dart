@@ -2,7 +2,7 @@ import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import 'abstract_parser.dart';
 import '../grammar/lexer.dart';
-import '../declaration/class/class_declaration.dart';
+import '../element/class/class_declaration.dart';
 import '../grammar/semantic.dart';
 import '../error/error.dart';
 import '../source/source_provider.dart';
@@ -296,6 +296,13 @@ class HTAstParser extends AbstractParser {
           return _parseTypeAliasDecl();
         } else {
           switch (curTok.type) {
+            case HTLexicon.ABSTRACT:
+              advance(1);
+              return _parseClassDecl(isAbstract: true);
+            case HTLexicon.ENUM:
+              return _parseEnumDecl();
+            case HTLexicon.CLASS:
+              return _parseClassDecl();
             case HTLexicon.VAR:
               return _parseVarDecl(isMutable: true);
             case HTLexicon.LET:
@@ -699,9 +706,10 @@ class HTAstParser extends AbstractParser {
         final token = advance(1) as TokenStringInterpolation;
         final interpolation = <AstNode>[];
         for (final tokens in token.interpolations) {
-          final exprParser = HTAstParser(
+          final exprParser = HTAstParser();
+          final nodes = exprParser.parse(tokens,
+              source: _curSource,
               config: ParserConfig(sourceType: SourceType.expression));
-          final nodes = exprParser.parse(tokens, source: _curSource);
           if (nodes.length > 1) {
             throw HTError.stringInterpolation();
           }
@@ -709,7 +717,7 @@ class HTAstParser extends AbstractParser {
         }
         var i = 0;
         final value = token.literal.replaceAllMapped(
-            RegExp(HTLexicon.stringInterpolation),
+            RegExp(HTLexicon.stringInterpolationPattern),
             (Match m) => '${HTLexicon.curlyLeft}${i++}${HTLexicon.curlyRight}');
         return StringInterpolationExpr(value, token.quotationLeft,
             token.quotationRight, interpolation, token.line, token.column,
@@ -1103,16 +1111,30 @@ class HTAstParser extends AbstractParser {
         source: _curSource);
   }
 
-  // 变量声明语句
+  TypeAliasDeclStmt _parseTypeAliasDecl(
+      {String? classId, bool isExported = false, bool isTopLevel = false}) {
+    final keyword = advance(1);
+    final id = match(SemanticNames.identifier).lexeme;
+    final genericParameters = <TypeExpr>[];
+    match(HTLexicon.assign);
+    final value = _parseTypeExpr();
+    return TypeAliasDeclStmt(id, value, keyword.line, keyword.column,
+        source: _curSource,
+        classId: classId,
+        genericParameters: genericParameters,
+        isExported: isExported,
+        isTopLevel: isTopLevel);
+  }
+
   VarDeclStmt _parseVarDecl(
-      {String? declId,
-      String? classId,
+      {String? classId,
       bool typeInferrence = false,
       bool isExternal = false,
       bool isMutable = false,
       bool isStatic = false,
       bool isConst = false,
       bool isExported = false,
+      bool isTopLevel = false,
       bool lateInitialize = false,
       AstNode? additionalInitializer,
       bool endOfStatement = false}) {
@@ -1125,10 +1147,6 @@ class HTAstParser extends AbstractParser {
         throw HTError.externalMember();
       }
       id = '$classId.$id';
-    }
-
-    if (declId != null) {
-      id = declId;
     }
 
     var declType;
@@ -1158,6 +1176,7 @@ class HTAstParser extends AbstractParser {
         isMutable: isMutable,
         isConst: isConst,
         isExported: isExported,
+        isTopLevel: isTopLevel,
         lateInitialize: lateInitialize);
   }
 
@@ -1167,7 +1186,8 @@ class HTAstParser extends AbstractParser {
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
-      bool isExported = false}) {
+      bool isExported = false,
+      bool isTopLevel = false}) {
     final savedCurFuncType = _curFuncType;
     _curFuncType = category;
 
@@ -1214,7 +1234,7 @@ class HTAstParser extends AbstractParser {
         id = declId;
     }
 
-    final typeParameters = <TypeExpr>[];
+    final genericParameters = <TypeExpr>[];
 
     var isFuncVariadic = false;
     var minArity = 0;
@@ -1301,7 +1321,7 @@ class HTAstParser extends AbstractParser {
 
       match(HTLexicon.roundRight);
 
-      // setter只能有一个参数, 就是赋值语句的右值
+      // setter can only have one parameter
       if ((category == FunctionCategory.setter) && (minArity != 1)) {
         throw HTError.setterArity();
       }
@@ -1351,9 +1371,11 @@ class HTAstParser extends AbstractParser {
       );
     }
 
-    BlockStmt? definition;
+    AstNode? definition;
     if (curTok.type == HTLexicon.curlyLeft) {
       definition = _parseBlockStmt(id: SemanticNames.functionCall);
+    } else if (expect([HTLexicon.assign], consume: true)) {
+      definition = _parseExprStmt();
     } else {
       if (category != FunctionCategory.constructor &&
           category != FunctionCategory.literal &&
@@ -1369,7 +1391,7 @@ class HTAstParser extends AbstractParser {
     return FuncDeclExpr(id, declId, paramDecls, keyword.line, keyword.column,
         source: _curSource,
         classId: classId,
-        genericParameters: typeParameters,
+        genericParameters: genericParameters,
         externalTypeId: externalTypedef,
         returnType: returnType,
         referConstructor: referCtor,
@@ -1382,19 +1404,25 @@ class HTAstParser extends AbstractParser {
         isConst: isConst,
         isVariadic: isFuncVariadic,
         isExported: isExported,
+        isTopLevel: isTopLevel,
         category: category);
   }
 
   ClassDeclStmt _parseClassDecl(
-      {bool isExternal = false,
+      {bool isNested = false,
+      bool isExternal = false,
       bool isAbstract = false,
-      bool isExported = true}) {
+      bool isExported = false,
+      bool isTopLevel = false}) {
+    if (_curClass != null && _curClass!.isNested) {
+      throw HTError.nestedClass();
+    }
+
     final keyword = match(HTLexicon.CLASS);
 
     final id = match(SemanticNames.identifier);
 
-    // generic type参数
-    // final genericParameters = <TypeExpr>[];
+    final genericParameters = <TypeExpr>[];
     // if (expect([HTLexicon.angleLeft], consume: true)) {
     //   while ((curTok.type != HTLexicon.angleRight) &&
     //       (curTok.type != HTLexicon.endOfFile)) {
@@ -1406,7 +1434,6 @@ class HTAstParser extends AbstractParser {
     //   match(HTLexicon.angleRight);
     // }
 
-    // 父类
     TypeExpr? superClassType;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
       if (curTok.lexeme == id.lexeme) {
@@ -1419,30 +1446,31 @@ class HTAstParser extends AbstractParser {
     final savedClass = _curClass;
 
     _curClass = ClassDeclaration(id.lexeme, _curModuleFullName, _curLibraryName,
-        isExternal: isExternal, isAbstract: isAbstract);
+        isNested: isNested, isExternal: isExternal, isAbstract: isAbstract);
 
-    // 类的定义体
     final definition = _parseBlockStmt(
         sourceType: SourceType.klass,
         createNamespace: false,
         id: SemanticNames.classDefinition);
 
-    // _curBlock.classDecls[className.lexeme] = stmt;
-
     _curClass = savedClass;
 
     return ClassDeclStmt(id.lexeme, keyword.line, keyword.column,
         source: _curSource,
-        // genericParameters: genericParameters,
+        genericParameters: genericParameters,
         superType: superClassType,
+        isNested: isNested,
         isExternal: isExternal,
         isAbstract: isAbstract,
         isExported: isExported,
+        isTopLevel: isTopLevel,
         definition: definition);
   }
 
   EnumDeclStmt _parseEnumDecl(
-      {bool isExternal = false, bool isExported = true}) {
+      {bool isExternal = false,
+      bool isExported = true,
+      bool isTopLevel = false}) {
     final keyword = match(HTLexicon.ENUM);
 
     final id = match(SemanticNames.identifier);
@@ -1462,15 +1490,9 @@ class HTAstParser extends AbstractParser {
     }
 
     return EnumDeclStmt(id.lexeme, enumerations, keyword.line, keyword.column,
-        source: _curSource, isExternal: isExternal, isExported: isExported);
-    // _curBlock.enumDecls[class_name.lexeme] = stmt;
-  }
-
-  TypeAliasDeclStmt _parseTypeAliasDecl() {
-    final keyword = advance(1);
-    final id = match(SemanticNames.identifier).lexeme;
-    final value = _parseTypeExpr();
-    return TypeAliasDeclStmt(id, value, keyword.line, keyword.column,
-        source: _curSource);
+        source: _curSource,
+        isExternal: isExternal,
+        isExported: isExported,
+        isTopLevel: isTopLevel);
   }
 }

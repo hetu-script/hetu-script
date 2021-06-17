@@ -1,4 +1,4 @@
-import 'type/type.dart';
+import '../type/type.dart';
 import 'typed_variable_declaration.dart';
 
 class TypedParameterDeclaration extends TypedVariableDeclaration {

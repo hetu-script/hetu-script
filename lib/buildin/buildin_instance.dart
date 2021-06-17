@@ -1,4 +1,4 @@
-import '../declaration/type/type.dart';
+import '../type/type.dart';
 import '../error/error.dart';
 
 extension IntBinding on int {

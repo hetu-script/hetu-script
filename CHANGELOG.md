@@ -1,3 +1,9 @@
+## 0.1.3
+
+- Named constructor can refer to default constructor: construct name(): this()
+- Feature: Single expression function: fun add(a, b) = a + b
+- Feature: Type alias: type MyFuncType = fun (num, num) -> num
+
 ## 0.1.2
 
 - Added Analyzer and Formatter utility classes (WIP).
@@ -11,13 +17,14 @@
 - Feature: 'as' & 'is' operator, with super class checking & casting.
 - Feature: Full funtion type check with parameters and return type.
 
-## 0.1.0+1
+## 0.1.0
 
 - Refactor: Changed default interpreter into bytecode machine.
 - Feature: String interpolation.
 - Feature: Now fully support nested function and literal function.
 - Feature: Added ++, -- post and pre operators, and +=, -=, \*=, /= operators.
-- Feature: Full support on While, Do loops, classic for(init;condition;increment), for...in/of, when statement (works like switch).
+- Feature: Full support on While, Do loops, classic for(init;condition;increment),
+  for...in, when statement (works like switch).
 - Feature: Ternary operator: 'conditon ? true : false'.
 - Feature: Interpreter function for bind Dart Function Typedef.
 

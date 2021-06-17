@@ -66,5 +66,37 @@ void main() async {
         11,
       );
     });
+    test('type alias class', () async {
+      final result = await hetu.eval('''
+        fun typeAlias1 {
+          class A {
+            var name: str
+            construct (name: str) {
+              this.name = name
+            }
+          }
+          type Alias = A
+          var aa = Alias('jimmy')
+          return aa.name
+        }
+      ''', invokeFunc: 'typeAlias1');
+      expect(
+        result,
+        'jimmy',
+      );
+    });
+    test('type alias function', () async {
+      final result = await hetu.eval('''
+        fun typeAlias2 {
+          type MyFuncType = fun (num, num) -> num
+          var func: MyFuncType = fun add(a: num, b: num) -> num = a + b
+          return func(6, 7)
+        }
+      ''', invokeFunc: 'typeAlias2');
+      expect(
+        result,
+        13,
+      );
+    });
   });
 }

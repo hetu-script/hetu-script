@@ -122,7 +122,7 @@ class HTLexer {
       String quotationRight, int line, int column) {
     final interpolations = <List<Token>>[];
     final literal = matchString.substring(1, matchString.length - 1);
-    final pattern = RegExp(HTLexicon.stringInterpolation);
+    final pattern = RegExp(HTLexicon.stringInterpolationPattern);
     final matches = pattern.allMatches(literal);
     for (final match in matches) {
       final matchString = match.group(1);

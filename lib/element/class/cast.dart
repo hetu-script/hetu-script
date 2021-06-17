@@ -1,11 +1,11 @@
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
-import '../object.dart';
 import '../../interpreter/interpreter.dart';
-import '../type/type.dart';
-import '../type/nominal_type.dart';
+import '../../type/type.dart';
+import '../../type/nominal_type.dart';
+import '../instance/instance.dart';
+import '../object.dart';
 import 'class.dart';
-import 'instance.dart';
 
 /// The implementation of a certain type cast of a object
 class HTCast with HTObject, HetuRef {

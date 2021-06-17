@@ -6,6 +6,7 @@ part 'error_processor.dart';
 enum ErrorCode {
   unexpected,
   externalType,
+  nestedClass,
   constMustBeStatic,
   constMustInit,
   defined,
@@ -23,7 +24,7 @@ enum ErrorCode {
   abstractCtor,
 
   unsupported,
-  external,
+  extern,
   unknownOpCode,
   privateMember,
   privateDecl,
@@ -220,7 +221,7 @@ class HTError {
   @override
   String toString() {
     final output = StringBuffer();
-    output.write('[$type: $name]\n');
+    output.write('\n[$type: $name]\n');
     if (moduleFullName != null) {
       output.write('[File: $moduleFullName]\n');
     }
@@ -257,6 +258,11 @@ class HTError {
   HTError.externalType()
       : this(ErrorCode.externalType, ErrorType.syntacticError,
             message: HTLexicon.errorExternalType);
+
+  /// Error: Nested class within another nested class.
+  HTError.nestedClass()
+      : this(ErrorCode.nestedClass, ErrorType.syntacticError,
+            message: HTLexicon.errorNestedClass);
 
   /// Error: Const variable in a class must be static.
   HTError.constMustBeStatic(String id)

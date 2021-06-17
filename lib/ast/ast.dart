@@ -690,7 +690,7 @@ class FuncDeclExpr extends AstNode {
 
   final int maxArity;
 
-  final BlockStmt? definition;
+  final AstNode? definition;
 
   bool get isMember => classId != null;
 
@@ -752,6 +752,8 @@ class ClassDeclStmt extends AstNode {
 
   bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
 
+  final bool isNested;
+
   final bool isExternal;
 
   final bool isAbstract;
@@ -767,6 +769,7 @@ class ClassDeclStmt extends AstNode {
       this.classId,
       this.genericParameters = const [],
       this.superType,
+      this.isNested = false,
       this.isExternal = false,
       this.isAbstract = false,
       this.isExported = true,

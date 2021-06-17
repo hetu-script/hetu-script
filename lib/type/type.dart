@@ -2,15 +2,14 @@ import 'package:quiver/core.dart';
 
 import '../../grammar/lexicon.dart';
 import '../../error/error.dart';
-import '../object.dart';
-import '../class/class_declaration.dart';
-import '../declaration.dart';
-import '../namespace.dart';
+import '../element/object.dart';
+import '../element/class/class_declaration.dart';
+import '../element/namespace.dart';
 // import '../ast/ast.dart' show TypeExpr;
 import 'function_type.dart';
 import 'nominal_type.dart';
 
-class HTType extends Declaration with HTObject {
+class HTType with HTObject {
   static const ANY = _PrimitiveType(HTLexicon.ANY);
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
@@ -48,14 +47,14 @@ class HTType extends Declaration with HTObject {
   @override
   HTType get valueType => HTType.TYPE;
 
+  final String id;
   final List<HTType> typeArgs;
   final bool isNullable;
 
   bool get isResolved => false;
 
-  const HTType(String id, String moduleFullName, String librayName,
-      {String? classId, this.typeArgs = const [], this.isNullable = false})
-      : super(id, moduleFullName, librayName, classId: classId);
+  const HTType(this.id, String moduleFullName, String librayName,
+      {String? classId, this.typeArgs = const [], this.isNullable = false});
 
   // factory HTType.fromAst(
   //     TypeExpr? ast, String moduleFullName, String libraryName) {
@@ -143,12 +142,9 @@ class HTType extends Declaration with HTObject {
   /// Wether object of this [HTType] cannot be assigned to other [HTType]
   bool isNotA(HTType? other) => !isA(other);
 
-  /// initialize the declared type if it's a class name.
+  /// Return a resolved type if it's a class name.
   /// only return the [HTClass] when its a non-external class
-  @override
   HTType resolve(HTNamespace namespace) {
-    super.resolve(namespace);
-
     if (isResolved) {
       return this;
     } else if (primitiveTypes.containsKey(id)) {

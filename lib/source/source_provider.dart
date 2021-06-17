@@ -114,7 +114,7 @@ class DefaultSourceProvider implements SourceProvider {
   @override
   HTSource getSourceSync(String key,
       {String? curFilePath, bool reload = true}) {
-    throw HTError(ErrorCode.external, ErrorType.externalError,
+    throw HTError(ErrorCode.extern, ErrorType.externalError,
         message: 'getContentSync is currently unusable');
   }
 }

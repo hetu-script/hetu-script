@@ -1,16 +1,18 @@
 import 'dart:typed_data';
 
+import 'package:hetu_script/type/nominal_type.dart';
+
 import '../binding/external_function.dart';
 import '../binding/external_class.dart';
 import 'abstract_interpreter.dart';
-import '../declaration/namespace.dart';
-import '../declaration/object.dart';
+import '../element/namespace.dart';
+import '../element/object.dart';
 import '../parser/abstract_parser.dart';
 import 'const_table.dart';
-import '../declaration/declaration.dart';
-import '../declaration/typed_parameter_declaration.dart';
-import '../declaration/type/type.dart';
-import '../declaration/type/function_type.dart';
+import '../element/declaration.dart';
+import '../element/typed_parameter_declaration.dart';
+import '../type/type.dart';
+import '../type/function_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
@@ -18,14 +20,14 @@ import '../source/source_provider.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import 'bytecode_reader.dart';
-import '../declaration/class/class.dart';
-import '../declaration/class/enum.dart';
-import '../declaration/class/cast.dart';
+import '../element/class/class.dart';
+import '../element/class/enum.dart';
+import '../element/class/cast.dart';
 import 'compiler.dart';
 import 'opcode.dart';
-import '../declaration/variable.dart';
-import '../declaration/function/function.dart';
-import '../declaration/function/parameter.dart';
+import '../element/variable.dart';
+import '../element/function/function.dart';
+import '../element/function/parameter.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -77,6 +79,7 @@ class Hetu extends AbstractInterpreter {
   String get curLibraryName => _curLibraryName;
 
   HTClass? _curClass;
+  HTFunction? _curFunction;
 
   var _regIndex = -1;
   final _registers =
@@ -314,7 +317,7 @@ class Hetu extends AbstractInterpreter {
   /// Compile a script content into bytecode for later use.
   Future<Uint8List> compile(String content,
       {ParserConfig config = const ParserConfig()}) async {
-    throw HTError(ErrorCode.external, ErrorType.externalError,
+    throw HTError(ErrorCode.extern, ErrorType.externalError,
         message: 'compile is currently unusable');
   }
 
@@ -339,6 +342,7 @@ class Hetu extends AbstractInterpreter {
       {String? libraryName,
       String? moduleFullName,
       HTNamespace? namespace,
+      HTFunction? function,
       int? ip,
       int? line,
       int? column}) {
@@ -347,10 +351,12 @@ class Hetu extends AbstractInterpreter {
     final savedModuleFullName = _curModuleFullName;
     final savedIp = _code.ip;
     final savedNamespace = _curNamespace;
+    final savedFunction = _curFunction;
 
     var codeChanged = false;
     var ipChanged = false;
     var namespaceChanged = false;
+    var functionChanged = false;
     if (libraryName != null && (_curLibraryName != libraryName)) {
       _curLibraryName = libraryName;
       final lib = _libs[_curLibraryName]!;
@@ -368,6 +374,10 @@ class Hetu extends AbstractInterpreter {
     if (namespace != null && _curNamespace != namespace) {
       _curNamespace = namespace;
       namespaceChanged = true;
+    }
+    if (function != null && _curFunction != function) {
+      _curFunction = function;
+      functionChanged = true;
     }
 
     ++_regIndex;
@@ -391,6 +401,9 @@ class Hetu extends AbstractInterpreter {
     }
     if (namespaceChanged) {
       _curNamespace = savedNamespace;
+    }
+    if (functionChanged) {
+      _curFunction = savedFunction;
     }
 
     --_regIndex;
@@ -500,6 +513,9 @@ class Hetu extends AbstractInterpreter {
           for (var i = 0; i < utf8StringLength; ++i) {
             _constTable.addString(_code.readUtf8String());
           }
+          break;
+        case HTOpCode.typeAliasDecl:
+          _handleTypeAliasDecl();
           break;
         case HTOpCode.enumDecl:
           _handleEnumDecl();
@@ -877,7 +893,7 @@ class Hetu extends AbstractInterpreter {
   }
 
   void _handleCallExpr() {
-    final callee = _getRegVal(HTRegIdx.postfixObject);
+    var callee = _getRegVal(HTRegIdx.postfixObject);
 
     final positionalArgs = [];
     final positionalArgsLength = _code.read();
@@ -903,26 +919,8 @@ class Hetu extends AbstractInterpreter {
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
           typeArgs: typeArgs);
-    } else if (callee is HTClass) {
-      if (callee.isAbstract) {
-        throw HTError.abstracted();
-      }
-
-      if (!callee.isExternal) {
-        final constructor =
-            callee.memberGet(SemanticNames.constructor) as HTFunction;
-        _curValue = constructor.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      } else {
-        final constructor = callee.memberGet(callee.id) as HTFunction;
-        _curValue = constructor.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      }
-    } // 外部函数
+    }
+    // calle is a dart function
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
         _curValue = callee(
@@ -935,6 +933,36 @@ class Hetu extends AbstractInterpreter {
             positionalArgs,
             namedArgs.map<Symbol, dynamic>(
                 (key, value) => MapEntry(Symbol(key), value)));
+      }
+    } else if ((callee is HTClass) || (callee is HTType)) {
+      late HTClass klass;
+      if (callee is HTType) {
+        final resolvedType = callee.resolve(_curNamespace);
+        if (resolvedType is! HTNominalType) {
+          throw HTError.notCallable(callee.toString());
+        }
+        klass = resolvedType.klass as HTClass;
+      } else {
+        klass = callee;
+      }
+
+      if (klass.isAbstract) {
+        throw HTError.abstracted();
+      }
+
+      if (!klass.isExternal) {
+        final constructor =
+            klass.memberGet(SemanticNames.constructor) as HTFunction;
+        _curValue = constructor.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
+      } else {
+        final constructor = klass.memberGet(callee.id) as HTFunction;
+        _curValue = constructor.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
       }
     } else {
       throw HTError.notCallable(callee.toString());
@@ -989,9 +1017,9 @@ class Hetu extends AbstractInterpreter {
         final parameterTypes = <TypedParameterDeclaration>[];
         for (var i = 0; i < paramsLength; ++i) {
           final typeId = _code.readShortUtf8String();
-          final length = _code.read();
+          final typeArgLength = _code.read();
           final typeArgs = <HTType>[];
-          for (var i = 0; i < length; ++i) {
+          for (var i = 0; i < typeArgLength; ++i) {
             typeArgs.add(_handleTypeExpr());
           }
           final isNullable = _code.read() == 0 ? false : true;
@@ -1023,6 +1051,22 @@ class Hetu extends AbstractInterpreter {
           _curLibraryName,
         );
     }
+  }
+
+  void _handleTypeAliasDecl() {
+    final id = _code.readShortUtf8String();
+    String? classId;
+    final hasClassId = _code.readBool();
+    if (hasClassId) {
+      classId = _code.readShortUtf8String();
+    }
+    final isExported = _code.readBool();
+    final value = _handleTypeExpr();
+
+    final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
+        classId: classId, value: value);
+
+    _curNamespace.define(decl);
   }
 
   void _handleVarDecl() {
@@ -1236,6 +1280,7 @@ class Hetu extends AbstractInterpreter {
         id, _curModuleFullName, _curLibraryName, this, _curNamespace,
         superType: superType, isExternal: isExternal, isAbstract: isAbstract);
     _curNamespace.define(klass);
+    final savedClass = _curClass;
     _curClass = klass;
     final hasDefinition = _code.readBool();
     if (hasDefinition) {
@@ -1262,8 +1307,11 @@ class Hetu extends AbstractInterpreter {
       //   }
       // }
     }
+    if (config.sourceType == SourceType.script || _curFunction != null) {
+      klass.resolve(_curNamespace);
+    }
 
-    _curClass = null;
+    _curClass = savedClass;
   }
 
   void _handleEnumDecl({String? classId}) {

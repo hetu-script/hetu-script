@@ -12,7 +12,11 @@ abstract class HTLexicon {
       r"('(\\'|[^'])*')|" // string with single quotation mark group(16)
       r'("(\\"|[^"])*")'; // string with double quotation mark group(18)
 
-  static const stringInterpolation = r'\${([^\${}]*)}';
+  static const stringInterpolationPattern = r'\${([^\${}]*)}';
+
+  static const stringInterpolationStart = r'${';
+
+  static const stringInterpolationEnd = r'}';
 
   static const stringReplaces = <String, String>{
     r'\\': '\\',
@@ -388,6 +392,7 @@ abstract class HTLexicon {
 
   static const errorUnexpected = '[{0}] expected, met [{1}].';
   static const errorExternalType = 'External type is not allowed.';
+  static const errorNestedClass = 'Nested class within another nested class.';
   static const errorConstMustBeStatic =
       'Constant class member [{0}] must also be declared as static.';
   static const errorConstMustInit =

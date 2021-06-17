@@ -1,13 +1,13 @@
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../error/error.dart';
-import '../object.dart';
-import '../../declaration/declaration.dart';
+import '../../element/declaration.dart';
 import '../../interpreter/interpreter.dart';
+import '../../type/type.dart';
+import '../object.dart';
 import '../namespace.dart';
-import '../type/type.dart';
 import '../function/function.dart';
-import 'instance.dart';
+import '../instance/instance.dart';
 import 'class_declaration.dart';
 import 'class_namespace.dart';
 

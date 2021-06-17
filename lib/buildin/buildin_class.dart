@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import '../declaration/type/type.dart';
+import '../type/type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../error/error.dart';

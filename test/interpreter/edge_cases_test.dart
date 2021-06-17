@@ -114,5 +114,18 @@ void main() async {
         4,
       );
     });
+    test('subget as left value', () async {
+      final result = await hetu.eval(r'''
+      fun subGetAsLeftValue {
+        var list = [1,2,3]
+        list[0]--
+        return list[0]
+      }
+  ''', invokeFunc: 'subGetAsLeftValue');
+      expect(
+        result,
+        0,
+      );
+    });
   });
 }
