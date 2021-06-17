@@ -73,24 +73,8 @@ abstract class HTLexicon {
     string,
   };
 
-  static const endOfFile = 'end_of_file'; // 文件末尾
-  static const multiLine = r'\';
-  static const newLine = '\n';
-  static const variadicArgs = '...'; // variadic arguments
-  static const internalMarker = r'$';
-  static const anonymousScript = r'$_anonymousScript_';
-  static const anonymousFunction = r'$_anonymousFunction_';
-  static const anonymousNamespace = r'$_anonymousNamespace_';
-  static const anonymousBlock = r'$_anonymousBlock_';
-  static const increment = r'$_increment_';
-  static const functionCall = 'call';
+  static const variadicArgs = '...';
   static const privatePrefix = '_';
-  static const global = 'global';
-  static const instance = r'$_instance_';
-  static const constructor = r'$_constructor_';
-  static const getter = r'$_getter_';
-  static const setter = r'$_setter_';
-  static const instanceOf = 'instance of';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
   static const singleArrow = '->';
@@ -115,8 +99,6 @@ abstract class HTLexicon {
     CONST,
   };
 
-  static const FUNTYPE = 'def';
-
   static const ANY = 'any';
   static const VOID = 'void';
   static const unknown = 'unknown';
@@ -135,6 +117,7 @@ abstract class HTLexicon {
     function,
   };
 
+  static const LIBRARY = 'library';
   static const TYPE = 'type';
   static const TYPEOF = 'typeof';
   static const IMPORT = 'import';
@@ -190,7 +173,6 @@ abstract class HTLexicon {
     LET,
     FINAL,
     CONST,
-    FUNTYPE,
     CLASS,
     ENUM,
     FUNCTION,
@@ -400,14 +382,12 @@ abstract class HTLexicon {
     semicolon,
   };
 
-  static const module = 'module';
-  static const library = 'library';
-
   static const math = 'Math';
   static const system = 'System';
   static const console = 'Console';
 
   static const errorUnexpected = '[{0}] expected, met [{1}].';
+  static const errorExternalType = 'External type is not allowed.';
   static const errorConstMustBeStatic =
       'Constant class member [{0}] must also be declared as static.';
   static const errorConstMustInit =
@@ -437,7 +417,7 @@ abstract class HTLexicon {
   static const errorPrivateDecl = 'Could not acess private declaration [{0}].';
   static const errorNotInitialized = '[{0}] has not yet been initialized.';
   static const errorUndefined = 'Undefined identifier [{0}].';
-  static const errorUndefinedExtern = 'Undefined external identifier [{0}].';
+  static const errorUndefinedExternal = 'Undefined external identifier [{0}].';
   static const errorUnknownTypeName = 'Unknown type name: [{0}].';
   static const errorUndefinedOperator = 'Undefined operator: [{0}].';
   // static const errorRange = 'Index out of range, should be less than';

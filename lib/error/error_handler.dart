@@ -1,4 +1,4 @@
-import 'errors.dart';
+import 'error.dart';
 
 enum ErrorHanldeApproach {
   ingore,

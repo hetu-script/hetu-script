@@ -1,90 +1,90 @@
 part of 'ast.dart';
 
 /// Visitor interface for a abstract syntactic tree node
-abstract class AbstractAstVisitor {
-  dynamic visitCommentExpr(CommentExpr expr);
+abstract class AbstractAstVisitor<T> {
+  T visitCommentExpr(CommentExpr expr);
 
-  dynamic visitNullExpr(NullExpr expr);
+  T visitNullExpr(NullExpr expr);
 
-  dynamic visitBooleanExpr(BooleanExpr expr);
+  T visitBooleanExpr(BooleanExpr expr);
 
-  dynamic visitConstIntExpr(ConstIntExpr expr);
+  T visitConstIntExpr(ConstIntExpr expr);
 
-  dynamic visitConstFloatExpr(ConstFloatExpr expr);
+  T visitConstFloatExpr(ConstFloatExpr expr);
 
-  dynamic visitConstStringExpr(ConstStringExpr expr);
+  T visitConstStringExpr(ConstStringExpr expr);
 
-  dynamic visitStringInterpolationExpr(StringInterpolationExpr expr);
+  T visitStringInterpolationExpr(StringInterpolationExpr expr);
 
-  dynamic visitListExpr(ListExpr expr);
+  T visitListExpr(ListExpr expr);
 
-  dynamic visitMapExpr(MapExpr expr);
+  T visitMapExpr(MapExpr expr);
 
-  dynamic visitGroupExpr(GroupExpr expr);
+  T visitGroupExpr(GroupExpr expr);
 
-  dynamic visitSymbolExpr(SymbolExpr expr);
+  T visitSymbolExpr(SymbolExpr expr);
 
-  dynamic visitTypeExpr(TypeExpr expr);
+  T visitTypeExpr(TypeExpr expr);
 
-  dynamic visitParamTypeExpr(ParamTypeExpr expr);
+  T visitParamTypeExpr(ParamTypeExpr expr);
 
-  dynamic visitFunctionTypeExpr(FuncTypeExpr expr);
+  T visitFunctionTypeExpr(FuncTypeExpr expr);
 
-  dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr);
+  T visitUnaryPrefixExpr(UnaryPrefixExpr expr);
 
-  dynamic visitBinaryExpr(BinaryExpr expr);
+  T visitBinaryExpr(BinaryExpr expr);
 
-  dynamic visitTernaryExpr(TernaryExpr expr);
+  T visitTernaryExpr(TernaryExpr expr);
 
-  dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr);
+  T visitUnaryPostfixExpr(UnaryPostfixExpr expr);
 
-  dynamic visitMemberExpr(MemberExpr expr);
+  T visitMemberExpr(MemberExpr expr);
 
-  dynamic visitMemberAssignExpr(MemberAssignExpr expr);
+  T visitMemberAssignExpr(MemberAssignExpr expr);
 
-  dynamic visitSubExpr(SubExpr expr);
+  T visitSubExpr(SubExpr expr);
 
-  dynamic visitSubAssignExpr(SubAssignExpr expr);
+  T visitSubAssignExpr(SubAssignExpr expr);
 
-  dynamic visitCallExpr(CallExpr expr);
+  T visitCallExpr(CallExpr expr);
 
-  dynamic visitExprStmt(ExprStmt stmt);
+  T visitExprStmt(ExprStmt stmt);
 
-  dynamic visitBlockStmt(BlockStmt block);
+  T visitBlockStmt(BlockStmt block);
 
-  dynamic visitLibraryStmt(LibraryStmt stmt);
+  T visitLibraryStmt(LibraryStmt stmt);
 
-  dynamic visitImportStmt(ImportStmt stmt);
+  T visitImportStmt(ImportStmt stmt);
 
-  dynamic visitReturnStmt(ReturnStmt stmt);
+  T visitReturnStmt(ReturnStmt stmt);
 
-  dynamic visitIfStmt(IfStmt ifStmt);
+  T visitIfStmt(IfStmt ifStmt);
 
-  dynamic visitWhileStmt(WhileStmt whileStmt);
+  T visitWhileStmt(WhileStmt whileStmt);
 
-  dynamic visitDoStmt(DoStmt doStmt);
+  T visitDoStmt(DoStmt doStmt);
 
-  dynamic visitForStmt(ForStmt forStmt);
+  T visitForStmt(ForStmt forStmt);
 
-  dynamic visitForInStmt(ForInStmt forInStmt);
+  T visitForInStmt(ForInStmt forInStmt);
 
-  dynamic visitWhenStmt(WhenStmt stmt);
+  T visitWhenStmt(WhenStmt stmt);
 
-  dynamic visitBreakStmt(BreakStmt stmt);
+  T visitBreakStmt(BreakStmt stmt);
 
-  dynamic visitContinueStmt(ContinueStmt stmt);
+  T visitContinueStmt(ContinueStmt stmt);
 
-  dynamic visitVarDeclStmt(VarDeclStmt stmt);
+  T visitVarDeclStmt(VarDeclStmt stmt);
 
-  dynamic visitParamDeclStmt(ParamDeclExpr stmt);
+  T visitParamDeclStmt(ParamDeclExpr stmt);
 
-  dynamic visitReferConstructorExpr(ReferConstructorExpr stmt);
+  T visitReferConstructorExpr(ReferConstructorExpr stmt);
 
-  dynamic visitFuncDeclStmt(FuncDeclExpr stmt);
+  T visitFuncDeclStmt(FuncDeclExpr stmt);
 
-  dynamic visitClassDeclStmt(ClassDeclStmt stmt);
+  T visitClassDeclStmt(ClassDeclStmt stmt);
 
-  dynamic visitEnumDeclStmt(EnumDeclStmt stmt);
+  T visitEnumDeclStmt(EnumDeclStmt stmt);
 
-  dynamic visitTypeAliasStmt(TypeAliasDeclStmt stmt);
+  T visitTypeAliasStmt(TypeAliasDeclStmt stmt);
 }

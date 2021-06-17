@@ -1,4 +1,4 @@
-import '../utils/utilities.dart' as utils;
+import '../util/util.dart' as util;
 
 /// The location of a character represented as a line and column pair.
 class CharacterLocation {
@@ -37,7 +37,7 @@ class LineInfo {
   /// Initialize a newly created set of line information corresponding to the
   /// given file [content].
   factory LineInfo.fromContent(String content) =>
-      LineInfo(utils.computeLineStarts(content));
+      LineInfo(util.computeLineStarts(content));
 
   /// The number of lines.
   int get lineCount => lineStarts.length;

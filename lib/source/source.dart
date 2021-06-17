@@ -1,5 +1,7 @@
 import 'package:path/path.dart' as path;
 
+import 'line_info.dart';
+
 /// Code module types
 enum SourceType {
   /// A bare expression.
@@ -28,7 +30,20 @@ class HTSource {
 
   String get name => path.basename(fullName);
 
-  String content;
+  String _content;
 
-  HTSource(this.fullName, this.content);
+  String get content => _content;
+
+  set content(String value) {
+    _content = value;
+    _lineInfo = LineInfo.fromContent(content);
+  }
+
+  LineInfo _lineInfo;
+
+  LineInfo get lineInfo => _lineInfo;
+
+  HTSource(this.fullName, String content)
+      : _content = content,
+        _lineInfo = LineInfo.fromContent(content);
 }

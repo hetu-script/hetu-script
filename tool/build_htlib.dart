@@ -13,20 +13,22 @@ final Map<String, String> optionalModules = const {};
 
 void main() {
   stdout.write('Converting files in \'hetu_lib\' folder into Dart strings...');
-  var content = '''
-/// The pre-packaged modules of Hetu scripting language.
-///
-/// Automatically generated based on files in \'hetu_lib\' folder.
+  final output = StringBuffer();
+  output.write('''
+/// This file has been automatically generated 
+/// from files in [hetu_lib] folder.
+/// Please do not edit manually.
+/// 
+/// The pre-included modules of Hetu scripting language.
 final Map<String, String> coreModules = const {
-      ''';
-  final output = File('lib/core/hetu_lib.dart');
-  for (final file in coreModules.keys) {
-    final data = File(coreModules[file]!).readAsStringSync();
-    // TODO: 脚本中的引号需要以反义字符替换
-    content += "'$file': r'''" + data + "''',\n";
+''');
+  final file = File('lib/buildin/hetu_lib.dart');
+  for (final key in coreModules.keys) {
+    final data = File(coreModules[key]!).readAsStringSync();
+    output.writeln("  '$key': r'''" + data + "''',");
   }
-  content += '};\n';
-
-  output.writeAsStringSync(content);
-  print('done.');
+  output.writeln('};');
+  final content = output.toString();
+  file.writeAsStringSync(content);
+  stdout.writeln(' done!');
 }

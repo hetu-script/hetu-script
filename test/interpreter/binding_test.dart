@@ -75,7 +75,7 @@ class ProfileClassBinding extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'Profile':
         return (
@@ -104,7 +104,7 @@ class PersonClassBinding extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'Person.profile':
         return Person.profile;
@@ -117,7 +117,7 @@ class PersonClassBinding extends HTExternalClass {
 
   @override
   dynamic memberSet(String varName, dynamic value,
-      {String from = HTLexicon.global}) {
+      {String from = SemanticNames.global}) {
     switch (varName) {
       case 'Person.profile':
         return Person.profile = value;

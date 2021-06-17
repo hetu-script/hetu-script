@@ -1,1 +1,0 @@
-dart compile exe bin/hetu.dart -o bin/hetu

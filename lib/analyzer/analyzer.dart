@@ -1,23 +1,23 @@
 import '../source/source.dart';
 import '../source/source_provider.dart';
 // import '../binding/external_function.dart';
-import '../type/type.dart';
-import '../core/namespace/namespace.dart';
+import '../declaration/type/type.dart';
+import '../declaration/namespace.dart';
 // import '../core/function/abstract_function.dart';
-// import '../core/object.dart';
-import '../core/abstract_interpreter.dart';
+// import '../object/object.dart';
+import '../interpreter/abstract_interpreter.dart';
 // import '../core/class/enum.dart';
 // import '../core/class/class.dart';
 import '../grammar/lexicon.dart';
-import '../error/errors.dart';
+import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
 // import 'ast_function.dart';
-import '../ast/parser.dart';
+import '../parser/parser.dart';
 import '../ast/ast_compilation.dart';
 import 'analysis_error.dart';
 
-part 'result.dart';
+part 'analysis_result.dart';
 
 class AnalyzerConfig extends InterpreterConfig {
   final List<ErrorProcessor> errorProcessors;

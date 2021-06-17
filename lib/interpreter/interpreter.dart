@@ -1,34 +1,31 @@
 import 'dart:typed_data';
 
-import 'package:path/path.dart' as path;
-
 import '../binding/external_function.dart';
 import '../binding/external_class.dart';
-import '../core/abstract_interpreter.dart';
-import '../core/namespace/namespace.dart';
-import '../core/object.dart';
-import '../core/abstract_parser.dart';
-import '../core/const_table.dart';
-import '../core/declaration/variable_declaration.dart';
-import '../core/declaration/typed_parameter_declaration.dart';
-import '../type/type.dart';
-import '../type/function_type.dart';
+import 'abstract_interpreter.dart';
+import '../declaration/namespace.dart';
+import '../declaration/object.dart';
+import '../parser/abstract_parser.dart';
+import 'const_table.dart';
+import '../declaration/declaration.dart';
+import '../declaration/typed_parameter_declaration.dart';
+import '../declaration/type/type.dart';
+import '../declaration/type/function_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../source/source_provider.dart';
-import '../error/errors.dart';
+import '../error/error.dart';
 import '../error/error_handler.dart';
-import 'bytecode/bytecode_reader.dart';
-import 'class/class.dart';
-import 'class/enum.dart';
-import 'class/cast.dart';
+import 'bytecode_reader.dart';
+import '../declaration/class/class.dart';
+import '../declaration/class/enum.dart';
+import '../declaration/class/cast.dart';
 import 'compiler.dart';
 import 'opcode.dart';
-import 'variable.dart';
-import 'function/function.dart';
-import 'function/parameter.dart';
-import 'variable.dart';
+import '../declaration/variable.dart';
+import '../declaration/function/function.dart';
+import '../declaration/function/parameter.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -221,7 +218,7 @@ class Hetu extends AbstractInterpreter {
                   nsp.import(importNamespace);
                 } else {
                   for (final id in info.showList) {
-                    VariableDeclaration decl =
+                    Declaration decl =
                         importNamespace.memberGet(id, recursive: false);
                     nsp.define(decl);
                   }
@@ -239,7 +236,7 @@ class Hetu extends AbstractInterpreter {
                   final aliasNamespace = HTNamespace(this,
                       id: info.alias!, closure: coreNamespace);
                   for (final id in info.showList) {
-                    VariableDeclaration decl =
+                    Declaration decl =
                         importNamespace.memberGet(id, recursive: false);
                     aliasNamespace.define(decl);
                   }
@@ -370,7 +367,7 @@ class Hetu extends AbstractInterpreter {
   /// Compile a script content into bytecode for later use.
   Future<Uint8List> compile(String content,
       {ParserConfig config = const ParserConfig()}) async {
-    throw HTError(ErrorCode.extern, ErrorType.externalError,
+    throw HTError(ErrorCode.external, ErrorType.externalError,
         message: 'compile is currently unusable');
   }
 
@@ -966,7 +963,7 @@ class Hetu extends AbstractInterpreter {
 
       if (!callee.isExternal) {
         final constructor =
-            callee.memberGet(HTLexicon.constructor) as HTFunction;
+            callee.memberGet(SemanticNames.constructor) as HTFunction;
         _curValue = constructor.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
@@ -1300,9 +1297,9 @@ class Hetu extends AbstractInterpreter {
     // Add default constructor if non-exist.
     if (!isAbstract) {
       if (!isExternal) {
-        if (!klass.namespace.contains(HTLexicon.constructor)) {
-          final ctor = HTFunction(
-              HTLexicon.constructor, _curModuleFullName, _curLibraryName, this,
+        if (!klass.namespace.contains(SemanticNames.constructor)) {
+          final ctor = HTFunction(SemanticNames.constructor, _curModuleFullName,
+              _curLibraryName, this,
               classId: klass.id, category: FunctionCategory.constructor);
           // final decl = HTVariable(
           //     ctor.id, _curModuleFullName, _curLibraryName, this,

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'errors.dart';
+part of 'error.dart';
 
 /// String identifiers mapped to associated severities.
 const Map<String, ErrorSeverity> severityMap = {
@@ -47,7 +47,7 @@ class ErrorConfig {
 /// Process errors by filtering or changing associated [ErrorSeverity].
 class ErrorProcessor {
   /// The code name of the associated error.
-  final String code;
+  final String name;
 
   /// The desired severity of the processed error.
   ///
@@ -58,13 +58,13 @@ class ErrorProcessor {
   /// given [severity].
   ///
   /// If [severity] is `null`, matching errors will be filtered.
-  const ErrorProcessor(this.code, [this.severity]);
+  const ErrorProcessor(this.name, [this.severity]);
 
   /// The string that unique describes the processor.
-  String get description => '$code -> ${severity?.name}';
+  String get description => '$name -> ${severity?.name}';
 
   /// Check if this processor applies to the given [error].
-  bool appliesTo(HTError error) => code == utils.getEnumString(error.code);
+  bool appliesTo(HTError error) => name == error.name;
 
   /// Return an error processor associated in the [analysisOptions] for the
   /// given [error], or `null` if none is found.

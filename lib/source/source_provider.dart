@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import '../error/errors.dart';
-import '../grammar/lexicon.dart';
+import '../error/error.dart';
+import '../grammar/semantic.dart';
 import 'source.dart';
 
 extension TrimPath on String {
@@ -63,7 +63,7 @@ class DefaultSourceProvider implements SourceProvider {
   String resolveFullName(String key, [String? curModuleFullName]) {
     late final String fullName;
     if ((curModuleFullName != null) &&
-        !curModuleFullName.startsWith(HTLexicon.anonymousScript)) {
+        !curModuleFullName.startsWith(SemanticNames.anonymousScript)) {
       fullName = path.dirname(curModuleFullName);
     } else {
       fullName = workingDirectory;
@@ -114,7 +114,7 @@ class DefaultSourceProvider implements SourceProvider {
   @override
   HTSource getSourceSync(String key,
       {String? curFilePath, bool reload = true}) {
-    throw HTError(ErrorCode.extern, ErrorType.externalError,
+    throw HTError(ErrorCode.external, ErrorType.externalError,
         message: 'getContentSync is currently unusable');
   }
 }

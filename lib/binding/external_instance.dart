@@ -1,18 +1,17 @@
-import '../core/abstract_interpreter.dart';
-import '../core/object.dart';
-import '../type/type.dart';
-import '../type/value_type.dart';
-import '../type/nominal_type.dart';
-import '../grammar/lexicon.dart';
-import '../error/errors.dart';
-import '../core/declaration/function_declaration.dart';
-import '../interpreter/class/class.dart';
+import '../interpreter/abstract_interpreter.dart';
+import '../declaration/object.dart';
+import '../declaration/type/type.dart';
+import '../declaration/type/nominal_type.dart';
+import '../grammar/semantic.dart';
+import '../error/error.dart';
+import '../declaration/function_declaration.dart';
+import '../declaration/class/class.dart';
 import 'external_class.dart';
 
 /// Class for external object.
 class HTExternalInstance<T> with HTObject, InterpreterRef {
   @override
-  late final HTValueType valueType;
+  late final HTType valueType;
 
   /// the external object.
   final T externalObject;
@@ -38,7 +37,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       if (klass != null) {
         valueType = HTNominalType(klass!);
       } else {
-        valueType = HTExternalType(typeString, interpreter.curModuleFullName,
+        valueType = HTType(typeString, interpreter.curModuleFullName,
             interpreter.curLibraryName);
       }
     }
@@ -46,7 +45,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'valueType':
         return valueType;
@@ -58,7 +57,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
           final member =
               externalClass!.instanceMemberGet(externalObject, varName);
           if (member is Function) {
-            final getter = '${HTLexicon.getter}$varName';
+            final getter = '${SemanticNames.getter}$varName';
             if (klass!.instanceMembers.containsKey(varName)) {
               FunctionDeclaration func = klass!.instanceMembers[varName]!.value;
               func.externalFunc = member;
@@ -80,7 +79,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
 
   @override
   void memberSet(String varName, dynamic varValue,
-      {String from = HTLexicon.global}) {
+      {String from = SemanticNames.global}) {
     if (externalClass != null) {
       externalClass!.instanceMemberSet(externalObject, varName, varValue);
     } else {

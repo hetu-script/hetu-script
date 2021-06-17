@@ -32,7 +32,7 @@ class GenericClassBinding extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'Generic':
         return (

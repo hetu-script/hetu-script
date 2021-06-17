@@ -1,5 +1,5 @@
 import '../source/source.dart';
-import '../error/errors.dart';
+import '../error/error.dart';
 import 'ast.dart' show AstNode, ImportStmt;
 
 /// Contains the resolved fullname of a import statement

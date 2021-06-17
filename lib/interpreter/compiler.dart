@@ -5,9 +5,9 @@ import '../source/source_provider.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../ast/ast_compilation.dart';
-import '../core/const_table.dart';
-import '../core/declaration/class_declaration.dart';
-import '../core/declaration/function_declaration.dart';
+import 'const_table.dart';
+import '../declaration/class/class_declaration.dart';
+import '../declaration/function_declaration.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import 'opcode.dart';
@@ -56,7 +56,7 @@ class CompilerConfig {
   const CompilerConfig({this.lineInfo = true});
 }
 
-class HTCompiler implements AbstractAstVisitor {
+class HTCompiler implements AbstractAstVisitor<Uint8List> {
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
 
@@ -473,7 +473,7 @@ class HTCompiler implements AbstractAstVisitor {
   }
 
   @override
-  dynamic visitParamTypeExpr(ParamTypeExpr expr) {
+  Uint8List visitParamTypeExpr(ParamTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
     final declType = visitTypeExpr(expr.declType);
     bytesBuilder.add(declType);
@@ -969,7 +969,7 @@ class HTCompiler implements AbstractAstVisitor {
       if (block.id != null) {
         bytesBuilder.add(_shortUtf8String(block.id!));
       } else {
-        bytesBuilder.add(_shortUtf8String(HTLexicon.anonymousBlock));
+        bytesBuilder.add(_shortUtf8String(SemanticNames.anonymousBlock));
       }
     }
     for (final stmt in block.statements) {
@@ -1076,7 +1076,7 @@ class HTCompiler implements AbstractAstVisitor {
   Uint8List visitForStmt(ForStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
-    bytesBuilder.add(_shortUtf8String(SemanticType.forStmtInit));
+    bytesBuilder.add(_shortUtf8String(SemanticNames.forStmtInit));
     Uint8List? condition;
     Uint8List? increment;
     AstNode? capturedDecl;
@@ -1085,7 +1085,7 @@ class HTCompiler implements AbstractAstVisitor {
     if (stmt.declaration != null) {
       // TODO: 如果有多个变量同时声明?
       final userDecl = stmt.declaration as VarDeclStmt;
-      final markedId = '${HTLexicon.internalMarker}${userDecl.id}';
+      final markedId = '${SemanticNames.internalMarker}${userDecl.id}';
       newSymbolMap[userDecl.id] = markedId;
       Uint8List? initializer;
       if (userDecl.initializer != null) {
@@ -1136,11 +1136,11 @@ class HTCompiler implements AbstractAstVisitor {
   Uint8List visitForInStmt(ForInStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
-    bytesBuilder.add(_shortUtf8String(SemanticType.forStmtInit));
+    bytesBuilder.add(_shortUtf8String(SemanticNames.forStmtInit));
     Uint8List? condition;
     Uint8List? increment;
     // declare the increment variable
-    final increId = HTLexicon.increment;
+    final increId = SemanticNames.increment;
     final increInit = _assembleLocalConstInt(
         0, stmt.declaration.line, stmt.declaration.column,
         endOfExec: true);

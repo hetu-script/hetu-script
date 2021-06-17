@@ -1,5 +1,5 @@
-import '../type/type.dart';
-import '../error/errors.dart';
+import '../declaration/type/type.dart';
+import '../error/error.dart';
 
 extension IntBinding on int {
   dynamic htFetch(String varName) {

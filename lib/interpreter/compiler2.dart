@@ -1,14 +1,14 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../core/abstract_parser.dart';
-import '../core/lexer.dart';
-import '../core/const_table.dart';
-import '../core/declaration/class_declaration.dart';
+import '../parser/abstract_parser.dart';
+import '../grammar/lexer.dart';
+import 'const_table.dart';
+import '../declaration/class/class_declaration.dart';
 import '../grammar/semantic.dart';
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
-import '../error/errors.dart';
+import '../error/error.dart';
 import '../source/source_provider.dart';
 import 'opcode.dart';
 import '../ast/ast.dart' show ImportStmt;
@@ -102,7 +102,7 @@ class HTCompiler extends AbstractParser {
     final tokens = HTLexer().lex(content);
     addTokens(tokens);
     final bytesBuilder = BytesBuilder();
-    while (curTok.type != HTLexicon.endOfFile) {
+    while (curTok.type != SemanticNames.endOfFile) {
       final exprStmts = _parseStmt(sourceType: config.sourceType);
       bytesBuilder.add(exprStmts);
     }
@@ -110,7 +110,7 @@ class HTCompiler extends AbstractParser {
 
     for (final importInfo in _curImports) {
       final importedFullName = sourceProvider.resolveFullName(importInfo.key,
-          fullName.startsWith(HTLexicon.anonymousScript) ? null : fullName);
+          fullName.startsWith(SemanticNames.anonymousScript) ? null : fullName);
       if (!sourceProvider.hasModule(importedFullName)) {
         _curModuleFullName = importedFullName;
         final importedContent = await sourceProvider.getSource(importedFullName,
@@ -209,8 +209,8 @@ class HTCompiler extends AbstractParser {
       case SourceType.script:
         switch (curTok.type) {
           // 忽略掉注释
-          case SemanticType.singleLineComment:
-          case SemanticType.multiLineComment:
+          case SemanticNames.singleLineComment:
+          case SemanticNames.multiLineComment:
             advance(1);
             break;
           case HTLexicon.IMPORT:
@@ -223,7 +223,7 @@ class HTCompiler extends AbstractParser {
                 advance(1);
                 if (curTok.type != HTLexicon.CLASS) {
                   throw HTError.unexpected(
-                      SemanticType.classDeclaration, curTok.lexeme);
+                      SemanticNames.classDeclaration, curTok.lexeme);
                 }
                 final decl =
                     _parseClassDeclStmt(isAbstract: true, isExternal: true);
@@ -242,22 +242,22 @@ class HTCompiler extends AbstractParser {
               case HTLexicon.CONST:
                 throw HTError.externalVar();
               case HTLexicon.FUNCTION:
-                if (!expect([HTLexicon.FUNCTION, SemanticType.identifier])) {
+                if (!expect([HTLexicon.FUNCTION, SemanticNames.identifier])) {
                   throw HTError.unexpected(
-                      SemanticType.functionDeclaration, peek(1).lexeme);
+                      SemanticNames.functionDeclaration, peek(1).lexeme);
                 }
                 final decl = _parseFuncDeclaration(isExternal: true);
                 bytesBuilder.add(decl);
                 break;
               default:
-                throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
+                throw HTError.unexpected(SemanticNames.declStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ABSTRACT:
             advance(1);
             if (curTok.type != HTLexicon.CLASS) {
               throw HTError.unexpected(
-                  SemanticType.classDeclaration, curTok.lexeme);
+                  SemanticNames.classDeclaration, curTok.lexeme);
             }
             final decl = _parseClassDeclStmt(isAbstract: true);
             bytesBuilder.add(decl);
@@ -286,13 +286,13 @@ class HTCompiler extends AbstractParser {
             bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
+            if (expect([HTLexicon.FUNCTION, SemanticNames.identifier]) ||
                 expect([
                   HTLexicon.FUNCTION,
                   HTLexicon.squareLeft,
-                  SemanticType.identifier,
+                  SemanticNames.identifier,
                   HTLexicon.squareRight,
-                  SemanticType.identifier
+                  SemanticNames.identifier
                 ])) {
               final decl = _parseFuncDeclaration();
               bytesBuilder.add(decl);
@@ -333,8 +333,8 @@ class HTCompiler extends AbstractParser {
       case SourceType.module:
         switch (curTok.type) {
           // 忽略掉注释
-          case SemanticType.singleLineComment:
-          case SemanticType.multiLineComment:
+          case SemanticNames.singleLineComment:
+          case SemanticNames.multiLineComment:
             advance(1);
             break;
           case HTLexicon.IMPORT:
@@ -344,7 +344,7 @@ class HTCompiler extends AbstractParser {
             advance(1);
             if (curTok.type != HTLexicon.CLASS) {
               throw HTError.unexpected(
-                  SemanticType.classDeclaration, curTok.lexeme);
+                  SemanticNames.classDeclaration, curTok.lexeme);
             }
             final decl = _parseClassDeclStmt(isAbstract: true);
             bytesBuilder.add(decl);
@@ -356,7 +356,7 @@ class HTCompiler extends AbstractParser {
                 advance(1);
                 if (curTok.type != HTLexicon.CLASS) {
                   throw HTError.unexpected(
-                      SemanticType.classDeclaration, curTok.lexeme);
+                      SemanticNames.classDeclaration, curTok.lexeme);
                 }
                 final decl =
                     _parseClassDeclStmt(isAbstract: true, isExternal: true);
@@ -379,7 +379,7 @@ class HTCompiler extends AbstractParser {
               case HTLexicon.CONST:
                 throw HTError.externalVar();
               default:
-                throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
+                throw HTError.unexpected(SemanticNames.declStmt, curTok.lexeme);
             }
             break;
           case HTLexicon.ENUM:
@@ -409,14 +409,14 @@ class HTCompiler extends AbstractParser {
             bytesBuilder.add(func);
             break;
           default:
-            throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
+            throw HTError.unexpected(SemanticNames.declStmt, curTok.lexeme);
         }
         break;
       case SourceType.function:
         switch (curTok.type) {
           // 忽略掉注释
-          case SemanticType.singleLineComment:
-          case SemanticType.multiLineComment:
+          case SemanticNames.singleLineComment:
+          case SemanticNames.multiLineComment:
             advance(1);
             break;
           case HTLexicon.VAR:
@@ -435,13 +435,13 @@ class HTCompiler extends AbstractParser {
             bytesBuilder.add(decl);
             break;
           case HTLexicon.FUNCTION:
-            if (expect([HTLexicon.FUNCTION, SemanticType.identifier]) ||
+            if (expect([HTLexicon.FUNCTION, SemanticNames.identifier]) ||
                 expect([
                   HTLexicon.FUNCTION,
                   HTLexicon.squareLeft,
-                  SemanticType.identifier,
+                  SemanticNames.identifier,
                   HTLexicon.squareRight,
-                  SemanticType.identifier
+                  SemanticNames.identifier
                 ])) {
               final decl = _parseFuncDeclaration();
               bytesBuilder.add(decl);
@@ -499,8 +499,8 @@ class HTCompiler extends AbstractParser {
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         switch (curTok.type) {
           // 忽略掉注释
-          case SemanticType.singleLineComment:
-          case SemanticType.multiLineComment:
+          case SemanticNames.singleLineComment:
+          case SemanticNames.multiLineComment:
             advance(1);
             break;
           case HTLexicon.VAR:
@@ -540,7 +540,7 @@ class HTCompiler extends AbstractParser {
           case HTLexicon.CONSTRUCT:
             if (isStatic) {
               throw HTError.unexpected(
-                  SemanticType.declStmt, HTLexicon.CONSTRUCT);
+                  SemanticNames.declStmt, HTLexicon.CONSTRUCT);
             }
             final decl = _parseFuncDeclaration(
               category: FunctionCategory.constructor,
@@ -563,7 +563,7 @@ class HTCompiler extends AbstractParser {
             bytesBuilder.add(decl);
             break;
           default:
-            throw HTError.unexpected(SemanticType.declStmt, curTok.lexeme);
+            throw HTError.unexpected(SemanticNames.declStmt, curTok.lexeme);
         }
         break;
       case SourceType.struct:
@@ -581,10 +581,10 @@ class HTCompiler extends AbstractParser {
 
   void _parseImportStmt() {
     final keyword = advance(1);
-    String key = match(SemanticType.literalString).literal;
+    String key = match(SemanticNames.literalString).literal;
     String? alias;
     if (expect([HTLexicon.AS], consume: true)) {
-      alias = match(SemanticType.identifier).lexeme;
+      alias = match(SemanticNames.identifier).lexeme;
 
       if (alias.isEmpty) {
         throw HTError.emptyString();
@@ -594,7 +594,7 @@ class HTCompiler extends AbstractParser {
     final showList = <String>[];
     if (curTok.lexeme == HTLexicon.SHOW) {
       advance(1);
-      while (curTok.type == SemanticType.identifier) {
+      while (curTok.type == SemanticNames.identifier) {
         showList.add(advance(1).lexeme);
         if (curTok.type != HTLexicon.comma) {
           break;
@@ -657,7 +657,7 @@ class HTCompiler extends AbstractParser {
   }
 
   Uint8List _localSymbol({String? id, bool isGetKey = false}) {
-    var symbolId = id ?? match(SemanticType.identifier).lexeme;
+    var symbolId = id ?? match(SemanticNames.identifier).lexeme;
     if (_markedSymbolsList.isNotEmpty) {
       final map = _markedSymbolsList.last;
       for (final symbol in map.keys) {
@@ -678,21 +678,21 @@ class HTCompiler extends AbstractParser {
     bytesBuilder.addByte(isGetKey ? 1 : 0);
     if (expect([
           HTLexicon.angleLeft,
-          SemanticType.identifier,
+          SemanticNames.identifier,
           HTLexicon.angleRight
         ]) ||
         expect([
           HTLexicon.angleLeft,
-          SemanticType.identifier,
+          SemanticNames.identifier,
           HTLexicon.angleLeft
         ]) ||
         expect(
-            [HTLexicon.angleLeft, SemanticType.identifier, HTLexicon.comma])) {
+            [HTLexicon.angleLeft, SemanticNames.identifier, HTLexicon.comma])) {
       bytesBuilder.addByte(1); // bool: has type args
       advance(1);
       final typeArgs = <Uint8List>[];
       while (curTok.type != HTLexicon.angleRight &&
-          curTok.type != HTLexicon.endOfFile) {
+          curTok.type != SemanticNames.endOfFile) {
         final typeArg = _parseTypeExpr();
         typeArgs.add(typeArg);
       }
@@ -1083,22 +1083,22 @@ class HTCompiler extends AbstractParser {
         _leftValueLegality = false;
         advance(1);
         return _localNull();
-      case SemanticType.literalBoolean:
+      case SemanticNames.literalBoolean:
         _leftValueLegality = false;
         return _localBool(advance(1).literal);
-      case SemanticType.literalInteger:
+      case SemanticNames.literalInteger:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addInt(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.constInt);
-      case SemanticType.literalFloat:
+      case SemanticNames.literalFloat:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addFloat(value);
         advance(1);
         return _localConst(index, HTValueTypeCode.constFloat);
-      case SemanticType.literalString:
+      case SemanticNames.literalString:
         _leftValueLegality = false;
         final value = curTok.literal;
         var index = _curConstTable.addString(value);
@@ -1150,11 +1150,11 @@ class HTCompiler extends AbstractParser {
       // case HTLexicon.FUNTYPE:
       //   _leftValueLegality = false;
       //   return _parseFunctionTypeExpr(localValue: true);
-      case SemanticType.identifier:
+      case SemanticNames.identifier:
         _leftValueLegality = true;
         return _localSymbol();
       default:
-        throw HTError.unexpected(SemanticType.expression, curTok.lexeme);
+        throw HTError.unexpected(SemanticNames.expression, curTok.lexeme);
     }
   }
 
@@ -1178,7 +1178,7 @@ class HTCompiler extends AbstractParser {
     var isVariadic = false;
 
     while (curTok.type != HTLexicon.roundRight &&
-        curTok.type != HTLexicon.endOfFile) {
+        curTok.type != SemanticNames.endOfFile) {
       final paramBytesBuilder = BytesBuilder();
       if (!isOptional) {
         isOptional = expect([HTLexicon.squareLeft], consume: true);
@@ -1192,7 +1192,7 @@ class HTCompiler extends AbstractParser {
       if (!isNamed) {
         isVariadic = expect([HTLexicon.variadicArgs], consume: true);
       } else {
-        paramName = match(SemanticType.identifier).lexeme;
+        paramName = match(SemanticNames.identifier).lexeme;
         match(HTLexicon.colon);
       }
 
@@ -1242,7 +1242,7 @@ class HTCompiler extends AbstractParser {
         bytesBuilder.addByte(HTOpCode.local);
         bytesBuilder.addByte(HTValueTypeCode.type);
       }
-      final id = match(SemanticType.identifier).lexeme;
+      final id = match(SemanticNames.identifier).lexeme;
 
       bytesBuilder.add(_shortUtf8String(id));
 
@@ -1252,7 +1252,7 @@ class HTCompiler extends AbstractParser {
           throw HTError.emptyTypeArgs();
         }
         while ((curTok.type != HTLexicon.angleRight) &&
-            (curTok.type != HTLexicon.endOfFile)) {
+            (curTok.type != SemanticNames.endOfFile)) {
           typeArgs.add(_parseTypeExpr());
           expect([HTLexicon.comma], consume: true);
         }
@@ -1287,7 +1287,7 @@ class HTCompiler extends AbstractParser {
     if (createNamespace) {
       bytesBuilder.addByte(HTOpCode.block);
       if (id == null) {
-        bytesBuilder.add(_shortUtf8String(HTLexicon.anonymousBlock));
+        bytesBuilder.add(_shortUtf8String(SemanticNames.anonymousBlock));
       } else {
         bytesBuilder.add(_shortUtf8String(id));
       }
@@ -1295,7 +1295,7 @@ class HTCompiler extends AbstractParser {
     // final declsBytesBuilder = BytesBuilder();
     final blockBytesBuilder = BytesBuilder();
     while (curTok.type != HTLexicon.curlyRight &&
-        curTok.type != HTLexicon.endOfFile) {
+        curTok.type != SemanticNames.endOfFile) {
       // Function sourceType will not forwarding declaration
       // Module sourceType will late initialize
       // Class sourceType will use both technique
@@ -1341,13 +1341,13 @@ class HTCompiler extends AbstractParser {
     final namedArgs = <String, Uint8List>{};
     var isNamed = false;
     while ((curTok.type != HTLexicon.roundRight) &&
-        (curTok.type != HTLexicon.endOfFile)) {
+        (curTok.type != SemanticNames.endOfFile)) {
       if ((!isNamed &&
-              expect([SemanticType.identifier, HTLexicon.colon],
+              expect([SemanticNames.identifier, HTLexicon.colon],
                   consume: false)) ||
           isNamed) {
         isNamed = true;
-        final name = match(SemanticType.identifier).lexeme;
+        final name = match(SemanticNames.identifier).lexeme;
         match(HTLexicon.colon);
         namedArgs[name] = _parseExpr(endOfExec: true);
       } else {
@@ -1392,7 +1392,7 @@ class HTCompiler extends AbstractParser {
     final bytesBuilder = BytesBuilder();
     if (curTok.type != HTLexicon.curlyRight &&
         curTok.type != HTLexicon.semicolon &&
-        curTok.type != HTLexicon.endOfFile) {
+        curTok.type != SemanticNames.endOfFile) {
       bytesBuilder.add(_parseExpr());
     }
     bytesBuilder.addByte(HTOpCode.endOfFunc);
@@ -1410,7 +1410,7 @@ class HTCompiler extends AbstractParser {
     bytesBuilder.addByte(HTOpCode.ifStmt);
     Uint8List thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
-      thenBranch = _parseBlockStmt(id: SemanticType.thenBranch);
+      thenBranch = _parseBlockStmt(id: SemanticNames.thenBranch);
     } else {
       thenBranch = _parseStmt();
     }
@@ -1446,7 +1446,7 @@ class HTCompiler extends AbstractParser {
     }
     Uint8List loopBody;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loopBody = _parseBlockStmt(id: SemanticType.whileStmt);
+      loopBody = _parseBlockStmt(id: SemanticNames.whileStmt);
     } else {
       loopBody = _parseStmt();
     }
@@ -1473,7 +1473,7 @@ class HTCompiler extends AbstractParser {
     bytesBuilder.addByte(HTOpCode.loopPoint);
     Uint8List loopBody;
     if (curTok.type == HTLexicon.curlyLeft) {
-      loopBody = _parseBlockStmt(id: SemanticType.whileStmt);
+      loopBody = _parseBlockStmt(id: SemanticNames.whileStmt);
     } else {
       loopBody = _parseStmt();
     }
@@ -1568,7 +1568,7 @@ class HTCompiler extends AbstractParser {
     advance(1);
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
-    bytesBuilder.add(_shortUtf8String(SemanticType.forStmtInit));
+    bytesBuilder.add(_shortUtf8String(SemanticNames.forStmtInit));
     match(HTLexicon.roundLeft);
     final forStmtType = peek(2).lexeme;
     Uint8List? condition;
@@ -1578,7 +1578,8 @@ class HTCompiler extends AbstractParser {
     _markedSymbolsList.add(newSymbolMap);
     if (forStmtType == HTLexicon.IN) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
-        throw HTError.unexpected(SemanticType.variableDeclaration, curTok.type);
+        throw HTError.unexpected(
+            SemanticNames.variableDeclaration, curTok.type);
       }
       final declPos = tokPos;
       // jump over keywrod
@@ -1587,7 +1588,7 @@ class HTCompiler extends AbstractParser {
       final object = _parseExpr();
       final blockStartPos = tokPos;
 
-      final increId = HTLexicon.increment;
+      final increId = SemanticNames.increment;
       final increInit = _assembleLocalConstInt(0, endOfExec: true);
       final increDecl = _assembleVarDeclStmt(increId, initializer: increInit);
       bytesBuilder.add(increDecl);
@@ -1647,7 +1648,7 @@ class HTCompiler extends AbstractParser {
       if (!expect([HTLexicon.semicolon], consume: false)) {
         // TODO: 如果有多个变量同时声明?
         final initDeclId = peek(1).lexeme;
-        final markedId = '${HTLexicon.internalMarker}$initDeclId';
+        final markedId = '${SemanticNames.internalMarker}$initDeclId';
         newSymbolMap[initDeclId] = markedId;
         final initDecl = _parseVarDeclStmt(
             declId: markedId,
@@ -1695,7 +1696,7 @@ class HTCompiler extends AbstractParser {
 
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final loop = _parseBlockStmt(
-        id: SemanticType.forStmt, additionalVarDecl: additionalVarDecls);
+        id: SemanticNames.forStmt, additionalVarDecl: additionalVarDecls);
     final continueLength = (condition?.length ?? 0) + loop.length + 2;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
     bytesBuilder.add(_uint16(continueLength));
@@ -1727,12 +1728,12 @@ class HTCompiler extends AbstractParser {
     Uint8List? elseBranch;
     match(HTLexicon.curlyLeft);
     while (curTok.type != HTLexicon.curlyRight &&
-        curTok.type != HTLexicon.endOfFile) {
+        curTok.type != SemanticNames.endOfFile) {
       if (curTok.lexeme == HTLexicon.ELSE) {
         advance(1);
         match(HTLexicon.singleArrow);
         if (curTok.type == HTLexicon.curlyLeft) {
-          elseBranch = _parseBlockStmt(id: SemanticType.whenStmt);
+          elseBranch = _parseBlockStmt(id: SemanticNames.whenStmt);
         } else {
           elseBranch = _parseStmt();
         }
@@ -1742,7 +1743,7 @@ class HTCompiler extends AbstractParser {
         match(HTLexicon.singleArrow);
         late final caseBranch;
         if (curTok.type == HTLexicon.curlyLeft) {
-          caseBranch = _parseBlockStmt(id: SemanticType.whenStmt);
+          caseBranch = _parseBlockStmt(id: SemanticNames.whenStmt);
         } else {
           caseBranch = _parseStmt();
         }
@@ -1811,11 +1812,11 @@ class HTCompiler extends AbstractParser {
       // , bool forwardDeclaration = true
       }) {
     advance(1);
-    var id = match(SemanticType.identifier).lexeme;
+    var id = match(SemanticNames.identifier).lexeme;
 
     if (isMember && isExternal) {
       if (!(_curClass!.isExternal) && !isStatic) {
-        throw HTError.externMember();
+        throw HTError.externalMember();
       }
       id = '${_curClass!.id}.$id';
     }
@@ -1905,7 +1906,7 @@ class HTCompiler extends AbstractParser {
         if (isExternal) {
           throw HTError.internalFuncWithExternalTypeDef();
         }
-        externalTypeId = match(SemanticType.identifier).lexeme;
+        externalTypeId = match(SemanticNames.identifier).lexeme;
         match(HTLexicon.squareRight);
       }
     }
@@ -1915,11 +1916,11 @@ class HTCompiler extends AbstractParser {
 
     if (category != FunctionCategory.literal) {
       if (category == FunctionCategory.constructor) {
-        if (curTok.type == SemanticType.identifier) {
+        if (curTok.type == SemanticNames.identifier) {
           declId = advance(1).lexeme;
         }
       } else {
-        declId = match(SemanticType.identifier).lexeme;
+        declId = match(SemanticNames.identifier).lexeme;
       }
     }
 
@@ -1927,26 +1928,26 @@ class HTCompiler extends AbstractParser {
     switch (category) {
       case FunctionCategory.constructor:
         id = (declId.isEmpty)
-            ? HTLexicon.constructor
-            : '${HTLexicon.constructor}$declId';
+            ? SemanticNames.constructor
+            : '${SemanticNames.constructor}$declId';
         // if (_curBlock.contains(id)) {
         //   throw HTError.definedParser(declId);
         // }
         break;
       case FunctionCategory.getter:
-        id = HTLexicon.getter + declId;
+        id = SemanticNames.getter + declId;
         // if (_curBlock.contains(id)) {
         //   throw HTError.definedParser(declId);
         // }
         break;
       case FunctionCategory.setter:
-        id = HTLexicon.setter + declId;
+        id = SemanticNames.setter + declId;
         // if (_curBlock.contains(id)) {
         //   throw HTError.definedParser(declId);
         // }
         break;
       case FunctionCategory.literal:
-        id = HTLexicon.anonymousFunction +
+        id = SemanticNames.anonymousFunction +
             (AbstractParser.anonymousFuncIndex++).toString();
         break;
       default:
@@ -2018,7 +2019,7 @@ class HTCompiler extends AbstractParser {
       while ((curTok.type != HTLexicon.roundRight) &&
           (curTok.type != HTLexicon.squareRight) &&
           (curTok.type != HTLexicon.curlyRight) &&
-          (curTok.type != HTLexicon.endOfFile)) {
+          (curTok.type != SemanticNames.endOfFile)) {
         // 可选参数，根据是否有方括号判断，一旦开始了可选参数，则不再增加 minArity
         if (!isOptional) {
           isOptional = expect([HTLexicon.squareLeft], consume: true);
@@ -2042,7 +2043,7 @@ class HTCompiler extends AbstractParser {
         }
 
         final paramBytesBuilder = BytesBuilder();
-        var paramId = match(SemanticType.identifier).lexeme;
+        var paramId = match(SemanticNames.identifier).lexeme;
         paramBytesBuilder.add(_shortUtf8String(paramId));
         paramBytesBuilder.addByte(isOptional ? 1 : 0);
         paramBytesBuilder.addByte(isNamed ? 1 : 0);
@@ -2131,13 +2132,13 @@ class HTCompiler extends AbstractParser {
 
         final ctorId = advance(1).lexeme;
         if (!HTLexicon.constructorCall.contains(ctorId)) {
-          throw HTError.unexpected(SemanticType.ctorCallExpr, curTok.lexeme);
+          throw HTError.unexpected(SemanticNames.ctorCallExpr, curTok.lexeme);
         }
 
         bytesBuilder.addByte(1); // bool: has refer constructor
         if (expect([HTLexicon.memberGet], consume: true)) {
           bytesBuilder.addByte(1); // bool: has super constructor name
-          final superCtorId = match(SemanticType.identifier).lexeme;
+          final superCtorId = match(SemanticNames.identifier).lexeme;
           bytesBuilder.add(_shortUtf8String(superCtorId));
           match(HTLexicon.roundLeft);
         } else {
@@ -2157,7 +2158,7 @@ class HTCompiler extends AbstractParser {
       bytesBuilder.addByte(1); // bool: has definition
       bytesBuilder.add(_uint16(curTok.line));
       bytesBuilder.add(_uint16(curTok.column));
-      final body = _parseBlockStmt(id: HTLexicon.functionCall);
+      final body = _parseBlockStmt(id: SemanticNames.functionCall);
       bytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
       bytesBuilder.add(body);
       bytesBuilder.addByte(HTOpCode.endOfFunc);
@@ -2181,7 +2182,7 @@ class HTCompiler extends AbstractParser {
       {bool isExternal = false, bool isAbstract = false}) {
     advance(1); // keyword
     final bytesBuilder = BytesBuilder();
-    final id = match(SemanticType.identifier).lexeme;
+    final id = match(SemanticNames.identifier).lexeme;
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_shortUtf8String(id));
 
@@ -2250,7 +2251,7 @@ class HTCompiler extends AbstractParser {
   Uint8List _parseEnumDeclStmt({bool isExternal = false}) {
     advance(1);
     final bytesBuilder = BytesBuilder();
-    final id = match(SemanticType.identifier).lexeme;
+    final id = match(SemanticNames.identifier).lexeme;
     bytesBuilder.addByte(HTOpCode.enumDecl);
     bytesBuilder.add(_shortUtf8String(id));
 
@@ -2263,8 +2264,8 @@ class HTCompiler extends AbstractParser {
     var enumerations = <String>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       while (curTok.type != HTLexicon.curlyRight &&
-          curTok.type != HTLexicon.endOfFile) {
-        enumerations.add(match(SemanticType.identifier).lexeme);
+          curTok.type != SemanticNames.endOfFile) {
+        enumerations.add(match(SemanticNames.identifier).lexeme);
         if (curTok.type != HTLexicon.curlyRight) {
           match(HTLexicon.comma);
         }

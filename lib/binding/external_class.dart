@@ -1,7 +1,7 @@
-import '../error/errors.dart';
+import '../error/error.dart';
 // import '../class.dart' show HTInheritable;
-import '../type/type.dart';
-import '../core/object.dart';
+import '../declaration/type/type.dart';
+import '../declaration/object.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
 abstract class HTExternalClass with HTObject {

@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import '../type/type.dart';
+import '../declaration/type/type.dart';
 import '../grammar/lexicon.dart';
-import '../error/errors.dart';
+import '../grammar/semantic.dart';
+import '../error/error.dart';
 import '../binding/external_class.dart';
 import 'buildin_instance.dart';
 
@@ -12,7 +13,7 @@ class HTNumberClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'num.parse':
         return (
@@ -33,7 +34,7 @@ class HTIntegerClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'int.fromEnvironment':
         return (
@@ -65,7 +66,7 @@ class HTFloatClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'float.nan':
         return double.nan;
@@ -94,7 +95,7 @@ class HTBooleanClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'bool.parse':
         return (
@@ -116,7 +117,7 @@ class HTStringClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'str.parse':
         return (
@@ -142,7 +143,7 @@ class HTListClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       default:
         if (error) {
@@ -161,7 +162,7 @@ class HTMapClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       default:
         if (error) {
@@ -180,7 +181,7 @@ class HTMathClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'Math.e':
         return (
@@ -338,7 +339,7 @@ class HTSystemClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'System.now':
         return DateTime.now().millisecondsSinceEpoch;
@@ -355,7 +356,7 @@ class HTConsoleClass extends HTExternalClass {
 
   @override
   dynamic memberGet(String varName,
-      {String from = HTLexicon.global, bool error = true}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (varName) {
       case 'Console.write':
         return (

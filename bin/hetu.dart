@@ -148,7 +148,7 @@ Future<void> format(List<String> args,
     print('Saved formatted file to:');
     print(outPath);
   } catch (e) {
-    if (e is HTError && e.type == ErrorType.compileError) {
+    if (e is HTError && e.type == ErrorType.compileTimeError) {
       e.moduleFullName = parser.curModuleFullName;
       e.line = parser.curLine;
       e.column = parser.curColumn;
