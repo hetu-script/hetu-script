@@ -277,59 +277,6 @@ class Hetu extends AbstractInterpreter {
     }
   }
 
-  /// Import a module by a key,
-  /// will use module handler plug-in to resolve
-  /// the full name from the key and [curModuleFullName]
-  /// user provided to find the correct module.
-  /// Module with the same full name will be ignored.
-  /// During this process, all declarations will
-  /// be defined to current [HTNamespace].
-  /// If [invokeFunc] is provided, will immediately
-  /// call the function after evaluation completed.
-  @override
-  Future<dynamic> evalFile(String key,
-      {bool useLastModuleFullName = false,
-      bool reload = false,
-      String? moduleFullName,
-      String? libraryName,
-      HTNamespace? namespace,
-      InterpreterConfig? config,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) async {
-    try {
-      final fullName = sourceProvider.resolveFullName(key);
-
-      if (reload || !sourceProvider.hasModule(fullName)) {
-        final module = await sourceProvider.getSource(key,
-            curModuleFullName: useLastModuleFullName
-                ? _curModuleFullName
-                : sourceProvider.workingDirectory);
-
-        final result = await eval(module.content,
-            moduleFullName: module.fullName,
-            libraryName: libraryName,
-            namespace: namespace,
-            config: config,
-            invokeFunc: invokeFunc,
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs,
-            errorHandled: true);
-
-        return result;
-      }
-    } catch (error, stack) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        handleError(error, stack);
-      }
-    }
-  }
-
   /// Call a function within current [HTNamespace].
   @override
   dynamic invoke(String funcName,

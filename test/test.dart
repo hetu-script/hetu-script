@@ -5,11 +5,11 @@ void main() async {
   await hetu.init();
   await hetu.eval(r'''
     var i = 42
-  ''', namespace: hetu.coreNamespace);
+  ''');
   await hetu.eval(r'''
     var j = 'hello, guest no.${i}, next guest is no.${i+1}!'
-  ''', namespace: hetu.coreNamespace);
+  ''');
   await hetu.eval(r'''
     print(j)
-  ''', namespace: hetu.coreNamespace);
+  ''');
 }

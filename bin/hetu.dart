@@ -53,8 +53,7 @@ void main(List<String> arguments) async {
             input += '\n' + stdin.readLineSync()!;
           }
           try {
-            final result =
-                await hetu.eval(input, namespace: hetu.coreNamespace);
+            final result = await hetu.eval(input);
             print(result);
           } catch (e) {
             if (e is HTError) {

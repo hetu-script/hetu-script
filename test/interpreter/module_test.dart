@@ -5,7 +5,7 @@ void main() async {
   final hetu = Hetu();
   await hetu.init();
 
-  group('edge cases -', () {
+  group('module -', () {
     test('import 1', () async {
       final result = await hetu.evalFile('script/import_test.ht',
           invokeFunc: 'importTest');

@@ -130,6 +130,16 @@ abstract class AbstractInterpreter {
     }
   }
 
+  Future<dynamic> evalSource(HTSource source,
+      {String? libraryName,
+      HTNamespace? namespace,
+      InterpreterConfig? config,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const [],
+      bool errorHandled = false});
+
   Future<dynamic> eval(String content,
       {String? moduleFullName,
       String? libraryName,
@@ -141,15 +151,15 @@ abstract class AbstractInterpreter {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
     final source = HTSource(
-      content,
-      moduleFullName ??
-          (SemanticNames.anonymousScript +
-              (AbstractInterpreter.anonymousScriptIndex++).toString()),
-    );
+        moduleFullName ??
+            (SemanticNames.anonymousScript +
+                (AbstractInterpreter.anonymousScriptIndex++).toString()),
+        content);
 
     return await evalSource(source,
         libraryName: libraryName,
-        namespace: namespace,
+        // when eval string, use current namespace by default
+        namespace: namespace ?? curNamespace,
         config: config,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
@@ -157,16 +167,6 @@ abstract class AbstractInterpreter {
         typeArgs: typeArgs,
         errorHandled: errorHandled);
   }
-
-  Future<dynamic> evalSource(HTSource source,
-      {String? libraryName,
-      HTNamespace? namespace,
-      InterpreterConfig? config,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false});
 
   /// 解析文件
   Future<dynamic> evalFile(String key,
@@ -180,7 +180,36 @@ abstract class AbstractInterpreter {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false});
+      bool errorHandled = false}) async {
+    try {
+      final fullName = sourceProvider.resolveFullName(key);
+
+      if (reload || !sourceProvider.hasModule(fullName)) {
+        final module = await sourceProvider.getSource(key,
+            curModuleFullName: useLastModuleFullName
+                ? curModuleFullName
+                : sourceProvider.workingDirectory);
+
+        final result = await evalSource(module,
+            libraryName: libraryName,
+            namespace: namespace,
+            config: config,
+            invokeFunc: invokeFunc,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs,
+            errorHandled: true);
+
+        return result;
+      }
+    } catch (error, stack) {
+      if (errorHandled) {
+        rethrow;
+      } else {
+        handleError(error, stack);
+      }
+    }
+  }
 
   /// 调用一个全局函数或者类、对象上的函数
   dynamic invoke(String funcName,
