@@ -1,10 +1,9 @@
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../error/error.dart';
-import '../../element/declaration.dart';
+import '../element.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
-import '../object.dart';
 import '../namespace.dart';
 import '../function/function.dart';
 import '../instance/instance.dart';
@@ -14,7 +13,7 @@ import 'class_namespace.dart';
 /// [HTClass] is the Dart implementation of the class declaration in Hetu.
 /// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
 /// instance members of this class created by [createInstance] are stored in [instanceMembers].
-class HTClass extends ClassDeclaration with HTObject, HetuRef {
+class HTClass extends HTClassDeclaration with HetuRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -23,10 +22,6 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
 
   @override
   HTType get valueType => HTType.CLASS;
-
-  /// The [HTNamespace] for this class,
-  /// for searching for static variables.
-  final HTClassNamespace namespace;
 
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
@@ -45,7 +40,7 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
   // final Iterable<HTType> implementedType;
 
   /// The instance member variables defined in class definition.
-  final instanceMembers = <String, Declaration>{};
+  final instanceMembers = <String, HTElement>{};
   // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
@@ -56,17 +51,20 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
       HTType? superType,
       Iterable<HTType> withTypes = const [],
       Iterable<HTType> implementsTypes = const [],
+      bool isNested = false,
       bool isExternal = false,
       bool isAbstract = false,
       this.superClass})
-      : namespace = HTClassNamespace(id, id, interpreter, closure: closure),
-        super(id, moduleFullName, libraryName,
+      : super(id, moduleFullName, libraryName,
+            classId: classId,
             genericParameters: genericParameters,
             superType: superType,
             withTypes: withTypes,
             implementsTypes: implementsTypes,
+            isNested: isNested,
             isExternal: isExternal,
-            isAbstract: isAbstract) {
+            isAbstract: isAbstract,
+            closure: closure) {
     this.interpreter = interpreter;
   }
 
@@ -78,18 +76,14 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
       superClass = namespace.memberGet(superType!.id, from: namespace.fullName);
     }
 
-    for (final decl in this.namespace.declarations.values) {
-      decl.resolve(namespace);
-    }
-
-    for (final decl in instanceMembers.values) {
+    for (final decl in declarations.values) {
       decl.resolve(namespace);
     }
   }
 
   @override
   HTClass clone() =>
-      HTClass(id, moduleFullName, libraryName, interpreter, namespace.closure!,
+      HTClass(id, moduleFullName, libraryName, interpreter, closure!,
           classId: classId,
           genericParameters: genericParameters,
           superType: superType,
@@ -112,13 +106,6 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
         jsonObject:
             jsonObject.map((key, value) => MapEntry(key.toString(), value)));
   }
-
-  /// Wether there's a member in this [HTClass] by the [varName].
-  @override
-  bool contains(String varName) =>
-      namespace.declarations.containsKey(varName) ||
-      namespace.declarations.containsKey('${SemanticNames.getter}$varName') ||
-      namespace.declarations.containsKey('$id.$varName');
 
   /// Get a value of a static member from this [HTClass].
   @override
@@ -249,7 +236,7 @@ class HTClass extends ClassDeclaration with HTObject, HetuRef {
   }
 
   /// Add a instance member declaration to this [HTClass].
-  void defineInstanceMember(Declaration variable,
+  void defineInstanceMember(HTElement variable,
       {bool override = false, bool error = true}) {
     if ((!instanceMembers.containsKey(variable.id)) || override) {
       instanceMembers[variable.id] = variable;

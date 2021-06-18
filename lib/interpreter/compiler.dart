@@ -7,7 +7,7 @@ import '../ast/ast.dart';
 import '../ast/ast_compilation.dart';
 import 'const_table.dart';
 import '../element/class/class_declaration.dart';
-import '../element/function_declaration.dart';
+import '../element/function/function_declaration.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import 'opcode.dart';
@@ -81,8 +81,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   late String _curLibraryName;
   String get curLibraryName => _curLibraryName;
 
-  ClassDeclaration? _curClass;
-  FunctionDeclaration? _curFunc;
+  HTClassDeclaration? _curClass;
+  HTFunctionDeclaration? _curFunc;
 
   final List<Map<String, String>> _markedSymbolsList = [];
 
@@ -1155,16 +1155,29 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         increId, stmt.declaration.line, stmt.declaration.column,
         initializer: increInit);
     bytesBuilder.add(increDecl);
+
+    final collectionId = SemanticNames.iterable;
+    final collectionInit = visitAstNode(stmt.collection, endOfExec: true);
+    final collectionDecl = _assembleVarDeclStmt(
+        collectionId, stmt.collection.line, stmt.collection.column,
+        initializer: collectionInit);
+    bytesBuilder.add(collectionDecl);
+    final collectionSymbol = SymbolExpr(
+        collectionId, stmt.collection.line, stmt.collection.column,
+        source: stmt.source);
+    final collectionSymbolBytes = visitSymbolExpr(collectionSymbol);
+
     // assemble the condition expression
     final conditionBytesBuilder = BytesBuilder();
-    final object = visitAstNode(stmt.collection);
-    final isNotEmptyExpr = _assembleMemberGet(object, HTLexicon.isNotEmpty);
+    final isNotEmptyExpr =
+        _assembleMemberGet(collectionSymbolBytes, HTLexicon.isNotEmpty);
     conditionBytesBuilder.add(isNotEmptyExpr);
     conditionBytesBuilder.addByte(HTOpCode.register);
     conditionBytesBuilder.addByte(HTRegIdx.andLeft);
     conditionBytesBuilder.addByte(HTOpCode.logicalAnd);
     final lesserLeftExpr = _assembleLocalSymbol(increId);
-    final iterableLengthExpr = _assembleMemberGet(object, HTLexicon.length);
+    final iterableLengthExpr =
+        _assembleMemberGet(collectionSymbolBytes, HTLexicon.length);
     final logicalAndRightLength =
         lesserLeftExpr.length + iterableLengthExpr.length + 4;
     conditionBytesBuilder.add(_uint16(logicalAndRightLength));
@@ -1175,6 +1188,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     conditionBytesBuilder.addByte(HTOpCode.lesser);
     conditionBytesBuilder.addByte(HTOpCode.endOfExec);
     condition = conditionBytesBuilder.toBytes();
+
     // assemble the initializer of the captured variable
     final capturedDeclInit = CallExpr(
         MemberExpr(
@@ -1476,7 +1490,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
     // TODO: 泛型param
-    _curClass = ClassDeclaration(stmt.id, _curModuleFullName, _curLibraryName,
+    _curClass = HTClassDeclaration(stmt.id, _curModuleFullName, _curLibraryName,
         isExternal: stmt.isExternal, isAbstract: stmt.isAbstract);
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isAbstract ? 1 : 0);

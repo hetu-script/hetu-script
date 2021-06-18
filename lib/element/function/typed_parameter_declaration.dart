@@ -1,7 +1,7 @@
-import '../type/type.dart';
-import 'typed_variable_declaration.dart';
+import '../../type/type.dart';
+import '../variable/typed_variable_declaration.dart';
 
-class TypedParameterDeclaration extends TypedVariableDeclaration {
+class HTTypedParameterDeclaration extends HTTypedVariableDeclaration {
   final bool isOptional;
 
   final bool isNamed;
@@ -9,7 +9,7 @@ class TypedParameterDeclaration extends TypedVariableDeclaration {
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  const TypedParameterDeclaration(
+  const HTTypedParameterDeclaration(
       String id, String moduleFullName, String libraryName,
       {HTType? declType,
       this.isOptional = false,
@@ -19,8 +19,8 @@ class TypedParameterDeclaration extends TypedVariableDeclaration {
             declType: declType ?? HTType.ANY, isMutable: true);
 
   @override
-  TypedParameterDeclaration clone() {
-    return TypedParameterDeclaration(id, moduleFullName, libraryName,
+  HTTypedParameterDeclaration clone() {
+    return HTTypedParameterDeclaration(id, moduleFullName, libraryName,
         isOptional: isOptional, isNamed: isNamed, isVariadic: isVariadic);
   }
 }

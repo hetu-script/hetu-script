@@ -1,19 +1,20 @@
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import '../type/type.dart';
-import '../type/function_type.dart';
+import '../../type/type.dart';
+import '../../type/function_type.dart';
 import 'typed_parameter_declaration.dart';
 import 'function_declaration.dart';
 
-class TypedFunctionDeclaration extends FunctionDeclaration {
+class HTTypedFunctionDeclaration extends HTFunctionDeclaration {
   /// Holds declarations of all parameters.
-  final Map<String, TypedParameterDeclaration> parameterDeclarations;
+  final Map<String, HTTypedParameterDeclaration> parameterDeclarations;
 
   HTType get returnType => type.returnType;
 
   final HTFunctionType type;
 
-  TypedFunctionDeclaration(String id, String moduleFullName, String libraryName,
+  HTTypedFunctionDeclaration(
+      String id, String moduleFullName, String libraryName,
       {String declId = '',
       String? classId,
       bool isExternal = false,
@@ -93,8 +94,8 @@ class TypedFunctionDeclaration extends FunctionDeclaration {
   }
 
   @override
-  TypedFunctionDeclaration clone() =>
-      TypedFunctionDeclaration(id, moduleFullName, libraryName,
+  HTTypedFunctionDeclaration clone() =>
+      HTTypedFunctionDeclaration(id, moduleFullName, libraryName,
           declId: declId,
           classId: classId,
           isExternal: isExternal,

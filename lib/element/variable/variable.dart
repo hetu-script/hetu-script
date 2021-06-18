@@ -1,11 +1,11 @@
-import '../error/error.dart';
-import '../interpreter/interpreter.dart';
-import '../interpreter/compiler.dart' show GotoInfo;
-import 'class/class.dart';
-import 'namespace.dart';
-import 'declaration.dart';
+import '../../error/error.dart';
+import '../../interpreter/interpreter.dart';
+import '../../interpreter/compiler.dart' show GotoInfo;
+import '../class/class.dart';
+import '../namespace.dart';
+import '../element.dart';
 
-class HTVariable extends Declaration with HetuRef, GotoInfo {
+class HTVariable extends HTElement with HetuRef, GotoInfo {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 

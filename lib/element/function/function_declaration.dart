@@ -1,7 +1,7 @@
-import '../../grammar/semantic.dart';
-import 'declaration.dart';
+import '../../../grammar/semantic.dart';
+import '../element.dart';
 
-class FunctionDeclaration extends Declaration {
+class HTFunctionDeclaration extends HTElement {
   final String declId;
 
   final FunctionCategory category;
@@ -16,7 +16,7 @@ class FunctionDeclaration extends Declaration {
 
   final int maxArity;
 
-  FunctionDeclaration(String id, String moduleFullName, String libraryName,
+  HTFunctionDeclaration(String id, String moduleFullName, String libraryName,
       {this.declId = '',
       String? classId,
       bool isExternal = false,
@@ -35,8 +35,8 @@ class FunctionDeclaration extends Declaration {
             isConst: isConst);
 
   @override
-  FunctionDeclaration clone() =>
-      FunctionDeclaration(id, moduleFullName, libraryName,
+  HTFunctionDeclaration clone() =>
+      HTFunctionDeclaration(id, moduleFullName, libraryName,
           declId: declId,
           classId: classId,
           isExternal: isExternal,

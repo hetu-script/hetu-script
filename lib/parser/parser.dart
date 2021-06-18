@@ -1,14 +1,14 @@
 import '../grammar/lexicon.dart';
-import '../source/source.dart';
-import 'abstract_parser.dart';
-import '../grammar/lexer.dart';
-import '../element/class/class_declaration.dart';
+import '../grammar/token.dart';
 import '../grammar/semantic.dart';
-import '../error/error.dart';
 import '../source/source_provider.dart';
+import '../source/source.dart';
+import '../element/class/class_declaration.dart';
+import '../error/error.dart';
 import '../ast/ast.dart';
 import '../ast/ast_compilation.dart';
-import '../grammar/token.dart';
+import 'abstract_parser.dart';
+import 'lexer.dart';
 
 class HTAstParser extends AbstractParser {
   final _curModuleImports = <ImportStmt>[];
@@ -21,7 +21,7 @@ class HTAstParser extends AbstractParser {
   @override
   String get curLibraryName => _curLibraryName;
 
-  ClassDeclaration? _curClass;
+  HTClassDeclaration? _curClass;
   FunctionCategory? _curFuncType;
 
   var _leftValueLegality = false;
@@ -130,20 +130,31 @@ class HTAstParser extends AbstractParser {
                 case HTLexicon.ABSTRACT:
                   advance(1);
                   return _parseClassDecl(
-                      isAbstract: true, isExternal: true, isExported: true);
+                      isAbstract: true,
+                      isExternal: true,
+                      isExported: true,
+                      isTopLevel: true);
                 case HTLexicon.CLASS:
-                  return _parseClassDecl(isExternal: true, isExported: true);
+                  return _parseClassDecl(
+                      isExternal: true, isExported: true, isTopLevel: true);
                 case HTLexicon.ENUM:
-                  return _parseEnumDecl(isExternal: true, isExported: true);
+                  return _parseEnumDecl(
+                      isExternal: true, isExported: true, isTopLevel: true);
                 case HTLexicon.VAR:
-                  return _parseVarDecl(isMutable: true, isExported: true);
+                  return _parseVarDecl(
+                      isMutable: true, isExported: true, isTopLevel: true);
                 case HTLexicon.LET:
                   return _parseVarDecl(
-                      typeInferrence: true, isMutable: true, isExported: true);
+                      typeInferrence: true,
+                      isMutable: true,
+                      isExported: true,
+                      isTopLevel: true);
                 case HTLexicon.CONST:
-                  return _parseVarDecl(typeInferrence: true, isExported: true);
+                  return _parseVarDecl(
+                      typeInferrence: true, isExported: true, isTopLevel: true);
                 case HTLexicon.FUNCTION:
-                  return _parseFuncDecl(isExternal: true, isExported: true);
+                  return _parseFuncDecl(
+                      isExternal: true, isExported: true, isTopLevel: true);
                 default:
                   throw HTError.unexpected(
                       SemanticNames.declStmt, curTok.lexeme);
@@ -153,34 +164,36 @@ class HTAstParser extends AbstractParser {
               switch (curTok.type) {
                 case HTLexicon.ABSTRACT:
                   advance(1);
-                  return _parseClassDecl(isAbstract: true, isExternal: true);
+                  return _parseClassDecl(
+                      isAbstract: true, isExternal: true, isTopLevel: true);
                 case HTLexicon.CLASS:
-                  return _parseClassDecl(isExternal: true);
+                  return _parseClassDecl(isExternal: true, isTopLevel: true);
                 case HTLexicon.ENUM:
-                  return _parseEnumDecl(isExternal: true);
+                  return _parseEnumDecl(isExternal: true, isTopLevel: true);
                 case HTLexicon.VAR:
                 case HTLexicon.LET:
                 case HTLexicon.CONST:
                   throw HTError.externalVar();
                 case HTLexicon.FUNCTION:
-                  return _parseFuncDecl(isExternal: true);
+                  return _parseFuncDecl(isExternal: true, isTopLevel: true);
                 default:
                   throw HTError.unexpected(
                       SemanticNames.declStmt, curTok.lexeme);
               }
             case HTLexicon.ABSTRACT:
               advance(1);
-              return _parseClassDecl(isAbstract: true);
+              return _parseClassDecl(isAbstract: true, isTopLevel: true);
             case HTLexicon.ENUM:
-              return _parseEnumDecl();
+              return _parseEnumDecl(isTopLevel: true);
             case HTLexicon.CLASS:
-              return _parseClassDecl();
+              return _parseClassDecl(isTopLevel: true);
             case HTLexicon.VAR:
-              return _parseVarDecl(isMutable: true);
+              return _parseVarDecl(isMutable: true, isTopLevel: true);
             case HTLexicon.LET:
-              return _parseVarDecl(typeInferrence: true, isMutable: true);
+              return _parseVarDecl(
+                  typeInferrence: true, isMutable: true, isTopLevel: true);
             case HTLexicon.CONST:
-              return _parseVarDecl(typeInferrence: true);
+              return _parseVarDecl(typeInferrence: true, isTopLevel: true);
             case HTLexicon.FUNCTION:
               if (expect([HTLexicon.FUNCTION, SemanticNames.identifier]) ||
                   expect([
@@ -190,9 +203,10 @@ class HTAstParser extends AbstractParser {
                     HTLexicon.squareRight,
                     SemanticNames.identifier
                   ])) {
-                return _parseFuncDecl();
+                return _parseFuncDecl(isTopLevel: true);
               } else {
-                return _parseFuncDecl(category: FunctionCategory.literal);
+                return _parseFuncDecl(
+                    category: FunctionCategory.literal, isTopLevel: true);
               }
             case HTLexicon.IF:
               return _parseIfStmt();
@@ -947,9 +961,7 @@ class HTAstParser extends AbstractParser {
 
   IfStmt _parseIfStmt() {
     final keyword = advance(1);
-    match(HTLexicon.roundLeft);
     var condition = _parseExpr();
-    match(HTLexicon.roundRight);
     late BlockStmt thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
       thenBranch = _parseBlockStmt(id: SemanticNames.thenBranch);
@@ -1445,7 +1457,8 @@ class HTAstParser extends AbstractParser {
 
     final savedClass = _curClass;
 
-    _curClass = ClassDeclaration(id.lexeme, _curModuleFullName, _curLibraryName,
+    _curClass = HTClassDeclaration(
+        id.lexeme, _curModuleFullName, _curLibraryName,
         isNested: isNested, isExternal: isExternal, isAbstract: isAbstract);
 
     final definition = _parseBlockStmt(

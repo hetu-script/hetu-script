@@ -2,7 +2,7 @@ import '../../binding/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import '../../element/function_declaration.dart';
+import 'function_declaration.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
@@ -10,7 +10,7 @@ import '../instance/instance_namespace.dart';
 import '../class/class.dart';
 import '../instance/instance.dart';
 import '../object.dart';
-import '../variable.dart';
+import '../variable/variable.dart';
 import '../namespace.dart';
 import 'parameter.dart';
 
@@ -35,7 +35,8 @@ class ReferConstructor {
 }
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
-class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
+class HTFunction extends HTFunctionDeclaration
+    with HTObject, HetuRef, GotoInfo {
   static final callStack = <String>[];
 
   HTClass? klass;
@@ -197,18 +198,23 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
           return result;
         }
         // 函数每次在调用时，临时生成一个新的作用域
-        final closure = HTNamespace(interpreter, id: id, closure: context);
+        final closure =
+            HTNamespace(moduleFullName, libraryName, id: id, closure: context);
         if (context is HTInstanceNamespace) {
           final instanceNamespace = context as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
-            closure.define(HTVariable(
-                HTLexicon.SUPER, moduleFullName, libraryName, interpreter,
-                value: instanceNamespace.next));
+            closure.define(
+                HTLexicon.SUPER,
+                HTVariable(
+                    HTLexicon.SUPER, moduleFullName, libraryName, interpreter,
+                    value: instanceNamespace.next));
           }
 
-          closure.define(HTVariable(
-              HTLexicon.THIS, moduleFullName, libraryName, interpreter,
-              value: instanceNamespace));
+          closure.define(
+              HTLexicon.THIS,
+              HTVariable(
+                  HTLexicon.THIS, moduleFullName, libraryName, interpreter,
+                  value: instanceNamespace));
         }
 
         if (category == FunctionCategory.constructor &&
@@ -218,20 +224,20 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
           if (referConstructor!.isSuper) {
             final superClass = klass!.superClass!;
             if (name == null) {
-              constructor = superClass
-                  .namespace.declarations[SemanticNames.constructor]!.value;
+              constructor =
+                  superClass.declarations[SemanticNames.constructor]!.value;
             } else {
-              constructor = superClass.namespace
+              constructor = superClass
                   .declarations['${SemanticNames.constructor}$name']!.value;
             }
           }
           // (callee == HTLexicon.THIS)
           else {
             if (name == null) {
-              constructor = klass!
-                  .namespace.declarations[SemanticNames.constructor]!.value;
+              constructor =
+                  klass!.declarations[SemanticNames.constructor]!.value;
             } else {
-              constructor = klass!.namespace
+              constructor = klass!
                   .declarations['${SemanticNames.constructor}$name']!.value;
             }
           }
@@ -273,7 +279,7 @@ class HTFunction extends FunctionDeclaration with HTObject, HetuRef, GotoInfo {
         HTVariable? variadicParam;
         for (var i = 0; i < paramDecls.length; ++i) {
           var decl = paramDecls.values.elementAt(i).clone();
-          closure.define(decl);
+          closure.define(decl.id, decl);
 
           if (decl.isVariadic) {
             variadicStart = i;

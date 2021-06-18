@@ -4,15 +4,23 @@ import 'namespace.dart';
 import '../../error/error.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
+import '../type/type.dart';
+import 'object.dart';
 
-class Declaration {
+/// Element is a semantic entity in the program that
+/// represents things that are declared with a name
+/// and hence can be referenced elsewhere in the code.
+class HTElement with HTObject {
   final String id;
 
   final String? classId;
 
-  final String libraryName;
+  @override
+  HTType get valueType => HTType.DECLARATION;
 
   final String moduleFullName;
+
+  final String libraryName;
 
   final HTSource? source;
 
@@ -28,14 +36,19 @@ class Declaration {
 
   final bool isConst;
 
-  const Declaration(this.id, this.moduleFullName, this.libraryName,
+  /// Elements defined within this class, namespace, block etc.
+  /// Element could be registerd with a key different from its id.
+  final Map<String, HTElement> declarations;
+
+  const HTElement(this.id, this.moduleFullName, this.libraryName,
       {this.source,
       this.idRange = SourceRange.EMPTY,
       this.classId,
       this.isExternal = false,
       this.isStatic = false,
       this.isMutable = false,
-      this.isConst = false});
+      this.isConst = false,
+      this.declarations = const {}});
 
   dynamic get value => this;
 
@@ -48,7 +61,7 @@ class Declaration {
   @mustCallSuper
   void resolve(HTNamespace namespace) {}
 
-  Declaration clone() => Declaration(id, moduleFullName, libraryName,
+  HTElement clone() => HTElement(id, moduleFullName, libraryName,
       classId: classId,
       isExternal: isExternal,
       isStatic: isStatic,

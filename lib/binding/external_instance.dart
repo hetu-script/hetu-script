@@ -4,7 +4,7 @@ import '../type/type.dart';
 import '../type/nominal_type.dart';
 import '../grammar/semantic.dart';
 import '../error/error.dart';
-import '../element/function_declaration.dart';
+import '../element/function/function_declaration.dart';
 import '../element/class/class.dart';
 import 'external_class.dart';
 
@@ -59,11 +59,13 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
           if (member is Function) {
             final getter = '${SemanticNames.getter}$varName';
             if (klass!.instanceMembers.containsKey(varName)) {
-              FunctionDeclaration func = klass!.instanceMembers[varName]!.value;
+              HTFunctionDeclaration func =
+                  klass!.instanceMembers[varName]!.value;
               func.externalFunc = member;
               return func;
             } else if (klass!.instanceMembers.containsKey(getter)) {
-              FunctionDeclaration func = klass!.instanceMembers[getter]!.value;
+              HTFunctionDeclaration func =
+                  klass!.instanceMembers[getter]!.value;
               func.externalFunc = member;
               return func;
             }

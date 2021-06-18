@@ -1,11 +1,11 @@
 // import '../../error/errors.dart';
-import '../type/type.dart';
-import 'declaration.dart';
+import '../../type/type.dart';
+import '../element.dart';
 // import '../../core/abstract_interpreter.dart';
 // import '../../core/function/abstract_function.dart';
 
-/// A [TypedVariableDeclaration] is basically a binding between a symbol and a value
-class TypedVariableDeclaration extends Declaration {
+/// A [HTTypedVariableDeclaration] is basically a binding between a symbol and a value
+class HTTypedVariableDeclaration extends HTElement {
   /// The declared [HTType] of this symbol, will be used to
   /// compare with the value type to
   /// determine wether an value binding (assignment) is legal.
@@ -15,7 +15,7 @@ class TypedVariableDeclaration extends Declaration {
 
   /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
   /// 这些工作都是在继承类中各自实现的
-  const TypedVariableDeclaration(
+  const HTTypedVariableDeclaration(
       String id, String moduleFullName, String libraryName,
       {String? classId,
       this.declType = HTType.ANY,
@@ -69,8 +69,8 @@ class TypedVariableDeclaration extends Declaration {
   /// Create a copy of this variable declaration,
   /// mainly used on class member inheritance and function arguments passing.
   @override
-  TypedVariableDeclaration clone() =>
-      TypedVariableDeclaration(id, moduleFullName, libraryName,
+  HTTypedVariableDeclaration clone() =>
+      HTTypedVariableDeclaration(id, moduleFullName, libraryName,
           classId: classId,
           declType: declType,
           typeInferrence: typeInferrence,

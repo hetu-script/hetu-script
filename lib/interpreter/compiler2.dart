@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../parser/abstract_parser.dart';
-import '../grammar/lexer.dart';
+import '../parser/lexer.dart';
 import 'const_table.dart';
 import '../element/class/class_declaration.dart';
 import '../grammar/semantic.dart';
@@ -77,7 +77,7 @@ class HTCompiler extends AbstractParser {
   @override
   String get curLibraryName => _curLibraryName;
 
-  ClassDeclaration? _curClass;
+  HTClassDeclaration? _curClass;
   FunctionCategory? _curFuncType;
 
   var _leftValueLegality = false;
@@ -2198,7 +2198,7 @@ class HTCompiler extends AbstractParser {
 
     final savedClass = _curClass;
 
-    _curClass = ClassDeclaration(id, _curModuleFullName, _curLibraryName,
+    _curClass = HTClassDeclaration(id, _curModuleFullName, _curLibraryName,
         isExternal: isExternal, isAbstract: isAbstract);
 
     bytesBuilder.addByte(isExternal ? 1 : 0);

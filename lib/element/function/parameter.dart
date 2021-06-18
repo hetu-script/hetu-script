@@ -1,5 +1,5 @@
 import '../../interpreter/interpreter.dart';
-import '../variable.dart';
+import '../variable/variable.dart';
 
 /// An implementation of [HTVariable] for function parameter declaration.
 class HTParameter extends HTVariable {

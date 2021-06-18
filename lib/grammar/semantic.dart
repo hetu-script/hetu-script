@@ -31,6 +31,7 @@ abstract class SemanticNames {
   static const anonymousNamespace = r'$_anonymousNamespace_';
   static const anonymousBlock = r'$_anonymousBlock_';
   static const increment = r'$_increment_';
+  static const iterable = r'$_iterable_';
   static const instance = r'$_instance_';
   static const constructor = r'$_constructor_';
   static const getter = r'$_getter_';

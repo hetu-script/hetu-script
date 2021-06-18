@@ -3,13 +3,13 @@ import 'dart:collection';
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
-import '../../element/typed_variable_declaration.dart';
 import '../../interpreter/abstract_interpreter.dart';
 import '../../type/type.dart';
 import '../../type/nominal_type.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import '../class/cast.dart';
+import '../variable/typed_variable_declaration.dart';
 import '../namespace.dart';
 import '../object.dart';
 import 'instance_namespace.dart';
@@ -51,14 +51,19 @@ class HTInstance with HTObject, InterpreterRef {
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
     HTInstanceNamespace? curNamespace = HTInstanceNamespace(
-        id, this, interpreter,
-        classId: curKlass.id, closure: klass.namespace);
+        id,
+        interpreter.curModuleFullName,
+        interpreter.curLibraryName,
+        this,
+        interpreter,
+        classId: curKlass.id,
+        closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
         // TODO: check if override, and if so, check the type wether fits super's type.
         final clone = decl.clone();
-        curNamespace.define(clone);
+        curNamespace.define(clone.id, clone);
 
         if (jsonObject != null && jsonObject.containsKey(clone.id)) {
           final value = jsonObject[clone.id];
@@ -73,8 +78,14 @@ class HTInstance with HTObject, InterpreterRef {
       // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
-        curNamespace.next = HTInstanceNamespace(id, this, interpreter,
-            classId: curKlass.id, closure: curKlass.namespace);
+        curNamespace.next = HTInstanceNamespace(
+            id,
+            interpreter.curModuleFullName,
+            interpreter.curLibraryName,
+            this,
+            interpreter,
+            classId: curKlass.id,
+            closure: curKlass.namespace);
       } else {
         curNamespace.next = null;
       }
@@ -101,7 +112,7 @@ class HTInstance with HTObject, InterpreterRef {
     HTInstanceNamespace? curNamespace = namespace;
     while (curNamespace != null) {
       for (final decl in curNamespace.declarations.values) {
-        if (decl is! TypedVariableDeclaration ||
+        if (decl is! HTTypedVariableDeclaration ||
             jsonObject.containsKey(decl.id)) {
           continue;
         }

@@ -297,7 +297,8 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
   @override
   dynamic visitBlockStmt(BlockStmt block) {
     var saved_context = _curNamespace;
-    _curNamespace = HTNamespace(this, closure: _curNamespace);
+    _curNamespace =
+        HTNamespace(curModuleFullName, curLibraryName, closure: _curNamespace);
     for (final stmt in block.statements) {
       visitAstNode(stmt);
     }

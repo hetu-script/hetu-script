@@ -4,7 +4,7 @@ import '../element/class/class_declaration.dart';
 import 'type.dart';
 
 class HTNominalType extends HTType {
-  final ClassDeclaration klass;
+  final HTClassDeclaration klass;
   // late final Iterable<HTType> implemented;
   // late final Iterable<HTType> mixined;
 

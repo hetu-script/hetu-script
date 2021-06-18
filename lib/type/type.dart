@@ -14,6 +14,7 @@ class HTType with HTObject {
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
   static const ENUM = _PrimitiveType(HTLexicon.ENUM);
+  static const DECLARATION = _PrimitiveType(HTLexicon.DECLARATION);
   static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
   static const CLASS = _PrimitiveType(HTLexicon.CLASS);
   static const TYPE = _PrimitiveType(HTLexicon.TYPE);
@@ -151,7 +152,7 @@ class HTType with HTObject {
       return primitiveTypes[id]!;
     } else {
       final typeDef = namespace.memberGet(id, from: namespace.fullName);
-      if (typeDef is ClassDeclaration) {
+      if (typeDef is HTClassDeclaration) {
         return HTNominalType(typeDef, typeArgs: typeArgs);
       } else if (typeDef is HTFunctionType) {
         return typeDef;

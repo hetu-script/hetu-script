@@ -15,9 +15,11 @@ class HTInstanceNamespace extends HTNamespace {
 
   late final HTInstanceNamespace? next;
 
-  HTInstanceNamespace(String id, this.instance, AbstractInterpreter interpreter,
+  HTInstanceNamespace(String id, String moduleFullName, String libraryName,
+      this.instance, AbstractInterpreter interpreter,
       {this.classId, HTNamespace? closure})
-      : super(interpreter, id: id, closure: closure);
+      : super(moduleFullName, libraryName, interpreter,
+            id: id, closure: closure);
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberGet],
   /// with a new named parameter [recursive].

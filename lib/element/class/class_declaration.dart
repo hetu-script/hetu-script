@@ -1,8 +1,7 @@
 import '../../type/type.dart';
-import '../declaration.dart';
 import '../namespace.dart';
 
-class ClassDeclaration extends Declaration {
+class HTClassDeclaration extends HTNamespace {
   /// The type parameters of the class.
   final Iterable<HTType> genericParameters;
 
@@ -24,7 +23,7 @@ class ClassDeclaration extends Declaration {
 
   final bool isAbstract;
 
-  ClassDeclaration(String id, String moduleFullName, String libraryName,
+  HTClassDeclaration(String id, String moduleFullName, String libraryName,
       {String? classId,
       this.genericParameters = const [],
       HTType? superType,
@@ -32,9 +31,13 @@ class ClassDeclaration extends Declaration {
       this.implementsTypes = const [],
       this.isNested = false,
       bool isExternal = false,
-      this.isAbstract = false})
-      : super(id, moduleFullName, libraryName,
-            classId: classId, isExternal: isExternal) {
+      this.isAbstract = false,
+      HTNamespace? closure})
+      : super(moduleFullName, libraryName,
+            id: id,
+            classId: classId,
+            isExternal: isExternal,
+            closure: closure) {
     _superType = superType;
   }
 
@@ -48,13 +51,15 @@ class ClassDeclaration extends Declaration {
   }
 
   @override
-  ClassDeclaration clone() => ClassDeclaration(id, moduleFullName, libraryName,
-      classId: classId,
-      genericParameters: genericParameters,
-      superType: superType,
-      withTypes: withTypes,
-      implementsTypes: implementsTypes,
-      isNested: isNested,
-      isExternal: isExternal,
-      isAbstract: isAbstract);
+  HTClassDeclaration clone() =>
+      HTClassDeclaration(id, moduleFullName, libraryName,
+          classId: classId,
+          genericParameters: genericParameters,
+          superType: superType,
+          withTypes: withTypes,
+          implementsTypes: implementsTypes,
+          isNested: isNested,
+          isExternal: isExternal,
+          isAbstract: isAbstract,
+          closure: closure);
 }

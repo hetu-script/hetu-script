@@ -4,13 +4,17 @@ import 'package:hetu_script/type/nominal_type.dart';
 
 import '../binding/external_function.dart';
 import '../binding/external_class.dart';
-import 'abstract_interpreter.dart';
 import '../element/namespace.dart';
 import '../element/object.dart';
+import '../element/element.dart';
+import '../element/class/class.dart';
+import '../element/class/enum.dart';
+import '../element/class/cast.dart';
+import '../element/function/typed_parameter_declaration.dart';
+import '../element/function/function.dart';
+import '../element/function/parameter.dart';
+import '../element/variable/variable.dart';
 import '../parser/abstract_parser.dart';
-import 'const_table.dart';
-import '../element/declaration.dart';
-import '../element/typed_parameter_declaration.dart';
 import '../type/type.dart';
 import '../type/function_type.dart';
 import '../grammar/lexicon.dart';
@@ -19,15 +23,11 @@ import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
+import 'abstract_interpreter.dart';
+import 'const_table.dart';
 import 'bytecode_reader.dart';
-import '../element/class/class.dart';
-import '../element/class/enum.dart';
-import '../element/class/cast.dart';
 import 'compiler.dart';
 import 'opcode.dart';
-import '../element/variable.dart';
-import '../element/function/function.dart';
-import '../element/function/parameter.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -221,32 +221,32 @@ class Hetu extends AbstractInterpreter {
                   nsp.import(importNamespace);
                 } else {
                   for (final id in info.showList) {
-                    Declaration decl =
+                    HTElement decl =
                         importNamespace.memberGet(id, recursive: false);
-                    nsp.define(decl);
+                    nsp.define(decl.id, decl);
                   }
                 }
               } else {
                 if (info.showList.isEmpty) {
-                  final aliasNamespace = HTNamespace(this,
-                      id: info.alias!, closure: coreNamespace);
+                  final aliasNamespace = HTNamespace(
+                      importNamespace.moduleFullName,
+                      importNamespace.libraryName,
+                      id: info.alias!,
+                      closure: coreNamespace);
                   aliasNamespace.import(importNamespace);
-                  final nspDef = HTVariable(
-                      info.alias!, module.fullName, _curLibraryName, this,
-                      value: aliasNamespace);
-                  nsp.define(nspDef);
+                  nsp.define(info.alias!, aliasNamespace);
                 } else {
-                  final aliasNamespace = HTNamespace(this,
-                      id: info.alias!, closure: coreNamespace);
+                  final aliasNamespace = HTNamespace(
+                      importNamespace.moduleFullName,
+                      importNamespace.libraryName,
+                      id: info.alias!,
+                      closure: coreNamespace);
                   for (final id in info.showList) {
-                    Declaration decl =
+                    HTElement decl =
                         importNamespace.memberGet(id, recursive: false);
-                    aliasNamespace.define(decl);
+                    aliasNamespace.define(decl.id, decl);
                   }
-                  final nspDef = HTVariable(
-                      info.alias!, module.fullName, _curLibraryName, this,
-                      value: aliasNamespace);
-                  nsp.define(nspDef);
+                  nsp.define(info.alias!, aliasNamespace);
                 }
               }
             }
@@ -451,7 +451,8 @@ class Hetu extends AbstractInterpreter {
         case HTOpCode.module:
           final id = _code.readShortUtf8String();
           _curModuleFullName = id;
-          _curNamespace = HTNamespace(this, id: id, closure: coreNamespace);
+          _curNamespace = HTNamespace(curModuleFullName, curLibraryName,
+              id: id, closure: coreNamespace);
           break;
         case HTOpCode.lineInfo:
           _curLine = _code.readUint16();
@@ -477,7 +478,8 @@ class Hetu extends AbstractInterpreter {
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
           final id = _code.readShortUtf8String();
-          _curNamespace = HTNamespace(this, id: id, closure: _curNamespace);
+          _curNamespace = HTNamespace(curModuleFullName, curLibraryName,
+              id: id, closure: _curNamespace);
           break;
         case HTOpCode.endOfBlock:
           _curNamespace = _curNamespace.closure!;
@@ -1014,7 +1016,7 @@ class Hetu extends AbstractInterpreter {
             typeArgs: typeArgs, isNullable: isNullable);
       case TypeType.function:
         final paramsLength = _code.read();
-        final parameterTypes = <TypedParameterDeclaration>[];
+        final parameterTypes = <HTTypedParameterDeclaration>[];
         for (var i = 0; i < paramsLength; ++i) {
           final typeId = _code.readShortUtf8String();
           final typeArgLength = _code.read();
@@ -1030,7 +1032,7 @@ class Hetu extends AbstractInterpreter {
             paramId = _code.readShortUtf8String();
           }
           final isVariadic = _code.read() == 0 ? false : true;
-          final decl = TypedParameterDeclaration(
+          final decl = HTTypedParameterDeclaration(
               paramId ?? '', _curModuleFullName, _curLibraryName,
               declType: HTType(typeId, _curModuleFullName, _curLibraryName,
                   typeArgs: typeArgs, isNullable: isNullable),
@@ -1066,7 +1068,7 @@ class Hetu extends AbstractInterpreter {
     final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
         classId: classId, value: value);
 
-    _curNamespace.define(decl);
+    _curNamespace.define(decl.id, decl);
   }
 
   void _handleVarDecl() {
@@ -1123,7 +1125,7 @@ class Hetu extends AbstractInterpreter {
     }
 
     if (!hasClassId || isStatic) {
-      _curNamespace.define(decl);
+      _curNamespace.define(decl.id, decl);
     } else {
       _curClass!.defineInstanceMember(decl);
     }
@@ -1258,7 +1260,7 @@ class Hetu extends AbstractInterpreter {
       // static methods are defined in class's namespace,
       // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
       //     value: func);
-      _curNamespace.define(func);
+      _curNamespace.define(func.id, func);
     }
   }
 
@@ -1279,24 +1281,24 @@ class Hetu extends AbstractInterpreter {
     final klass = HTClass(
         id, _curModuleFullName, _curLibraryName, this, _curNamespace,
         superType: superType, isExternal: isExternal, isAbstract: isAbstract);
-    _curNamespace.define(klass);
+    _curNamespace.define(klass.id, klass);
     final savedClass = _curClass;
     _curClass = klass;
     final hasDefinition = _code.readBool();
     if (hasDefinition) {
-      execute(namespace: klass.namespace);
+      execute(namespace: klass);
     }
     // Add default constructor if non-exist.
     if (!isAbstract) {
       if (!isExternal) {
-        if (!klass.namespace.contains(SemanticNames.constructor)) {
+        if (!klass.contains(SemanticNames.constructor)) {
           final ctor = HTFunction(SemanticNames.constructor, _curModuleFullName,
               _curLibraryName, this,
               classId: klass.id, category: FunctionCategory.constructor);
           // final decl = HTVariable(
           //     ctor.id, _curModuleFullName, _curLibraryName, this,
           //     value: ctor);
-          klass.namespace.define(ctor);
+          klass.define(ctor.id, ctor);
         }
       }
       // else {
@@ -1337,6 +1339,6 @@ class Hetu extends AbstractInterpreter {
         classId: classId, isExternal: isExternal);
     // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
     //     value: enumClass);
-    _curNamespace.define(enumClass);
+    _curNamespace.define(enumClass.id, enumClass);
   }
 }

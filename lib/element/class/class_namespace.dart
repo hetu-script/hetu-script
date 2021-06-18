@@ -2,16 +2,17 @@ import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../interpreter/abstract_interpreter.dart';
-import '../../element/typed_variable_declaration.dart';
+import '../variable/typed_variable_declaration.dart';
 import '../function/function.dart';
 import '../namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
-  HTClassNamespace(String id, String classId, AbstractInterpreter interpreter,
+  HTClassNamespace(String id, String classId, String moduleFullName,
+      String libraryName, AbstractInterpreter interpreter,
       {HTNamespace? closure})
-      : super(interpreter, id: id, closure: closure);
+      : super(moduleFullName, libraryName, id: id, closure: closure);
 
   @override
   dynamic memberGet(String varName,
@@ -63,7 +64,7 @@ class HTClassNamespace extends HTNamespace {
         throw HTError.privateMember(varName);
       }
       final decl = declarations[varName]!;
-      if (decl is TypedVariableDeclaration) {
+      if (decl is HTTypedVariableDeclaration) {
         decl.value = varValue;
         return;
       } else {

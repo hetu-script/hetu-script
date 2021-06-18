@@ -2,53 +2,47 @@ import '../error/error.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../type/type.dart';
-import '../interpreter/abstract_interpreter.dart';
-import 'declaration.dart';
-import 'typed_variable_declaration.dart';
-import 'object.dart';
+import 'variable/typed_variable_declaration.dart';
+import 'element.dart';
 
 /// For interpreter searching for symbols
 /// from a certain block or module.
-class HTNamespace with HTObject {
-  static String _getFullName(String id, HTNamespace? space) {
-    var fullName = id;
-    var curSpace = space;
-    while (curSpace != null) {
-      fullName = curSpace.id + HTLexicon.memberGet + fullName;
-      curSpace = curSpace.closure;
-    }
-    return fullName;
-  }
-
-  final String id;
-
+class HTNamespace extends HTElement {
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
   @override
   HTType get valueType => HTType.NAMESPACE;
 
+  late String _fullName;
+
   /// The full closure path of this namespace
-  late final String fullName;
+  String get fullName => _fullName;
 
-  /// [Declaration]s in this [HTNamespace],
-  final declarations = <String, Declaration>{};
+  @override
+  final declarations = <String, HTElement>{};
 
-  /// [TypedVariableDeclaration]s in this [HTNamespace],
-  /// could be [TypedVariableDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
+  /// [HTTypedVariableDeclaration]s in this [HTNamespace],
+  /// could be [HTTypedVariableDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
   late final HTNamespace? closure;
 
   HTNamespace(
-    AbstractInterpreter interpreter, {
-    this.id = SemanticNames.anonymousNamespace,
+    String moduleFullName,
+    String libraryName, {
+    String id = SemanticNames.anonymousNamespace,
+    String? classId,
+    bool isExternal = false,
     this.closure,
-  }) {
-    fullName = _getFullName(id, closure);
+  }) : super(id, moduleFullName, libraryName,
+            classId: classId, isExternal: isExternal) {
+    // calculate the full name of this namespace
+    _fullName = id;
+    var curSpace = closure;
+    while (curSpace != null) {
+      _fullName = curSpace.id + HTLexicon.memberGet + fullName;
+      curSpace = curSpace.closure;
+    }
   }
-
-  /// Search for a variable by the exact name and do not search recursively.
-  @override
-  bool contains(String varName) => declarations.containsKey(varName);
 
   HTNamespace closureAt(int distance) {
     var namespace = this;
@@ -60,9 +54,10 @@ class HTNamespace with HTObject {
   }
 
   /// 在当前命名空间定义一个变量的类型
-  void define(Declaration decl, {bool override = false, bool error = true}) {
-    if (!declarations.containsKey(decl.id) || override) {
-      declarations[decl.id] = decl;
+  void define(String id, HTElement decl,
+      {bool override = false, bool error = true}) {
+    if (!declarations.containsKey(id) || override) {
+      declarations[id] = decl;
     } else {
       if (error) {
         throw HTError.definedRuntime(decl.id);
@@ -120,7 +115,7 @@ class HTNamespace with HTObject {
 
   void import(HTNamespace other) {
     for (final decl in other.declarations.values) {
-      define(decl, error: false);
+      define(decl.id, decl, error: false);
     }
   }
 }

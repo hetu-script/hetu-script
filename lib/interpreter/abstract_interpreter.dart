@@ -80,7 +80,8 @@ abstract class AbstractInterpreter {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
-    coreNamespace = HTNamespace(this, id: HTLexicon.coreSpace);
+    coreNamespace = HTNamespace(HTLexicon.coreSpace, HTLexicon.coreSpace,
+        id: HTLexicon.coreSpace);
   }
 
   @mustCallSuper

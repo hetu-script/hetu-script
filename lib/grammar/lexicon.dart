@@ -125,6 +125,7 @@ abstract class HTLexicon {
   static const TYPE = 'type';
   static const TYPEOF = 'typeof';
   static const IMPORT = 'import';
+  static const DECLARATION = 'declaration';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
   static const SHOW = 'show';
