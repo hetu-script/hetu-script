@@ -49,12 +49,12 @@ class HTCast with HTObject, HetuRef {
   }
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
           {String from = SemanticNames.global, bool error = true}) =>
-      object.memberGet(varName, from: from, classId: klass.id);
+      object.memberGet(field, from: from, classId: klass.id);
 
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
           {String from = SemanticNames.global, bool error = true}) =>
-      object.memberSet(varName, varValue, from: from, classId: klass.id);
+      object.memberSet(field, varValue, from: from, classId: klass.id);
 }

@@ -1,6 +1,7 @@
 import 'package:quiver/core.dart';
 
 import '../../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
 import '../../error/error.dart';
 import '../element/object.dart';
 import '../element/class/class_declaration.dart';
@@ -171,5 +172,5 @@ class _PrimitiveType extends HTType {
   bool get isResolved => true;
 
   const _PrimitiveType(String id)
-      : super(id, HTLexicon.coreSpace, HTLexicon.coreSpace);
+      : super(id, SemanticNames.global, SemanticNames.global);
 }

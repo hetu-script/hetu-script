@@ -11,9 +11,9 @@ class CountryEnumBinding extends HTExternalClass {
   CountryEnumBinding() : super('Country');
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'values':
         return Country.values;
       case 'UnitedStates':
@@ -26,14 +26,14 @@ class CountryEnumBinding extends HTExternalClass {
         return Country.Ukraine;
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) {
-    switch (varName) {
+  dynamic instanceMemberGet(dynamic object, String field) {
+    switch (field) {
       case 'index':
         var i = object as Country;
         return i.index;
@@ -45,7 +45,7 @@ class CountryEnumBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             i.toString();
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(field);
     }
   }
 }

@@ -2,8 +2,8 @@ import '../type/type.dart';
 import '../error/error.dart';
 
 extension IntBinding on int {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String field) {
+    switch (field) {
       case 'remainder':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             remainder(positionalArgs[0]);
@@ -76,14 +76,14 @@ extension IntBinding on int {
         return ({positionalArgs, namedArgs, typeArgs}) =>
             toRadixString(positionalArgs[0]);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(field);
     }
   }
 }
 
 extension DoubleBinding on double {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String field) {
+    switch (field) {
       case 'remainder':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             remainder(positionalArgs[0]);
@@ -132,14 +132,14 @@ extension DoubleBinding on double {
       case 'truncateToDouble':
         return ({positionalArgs, namedArgs, typeArgs}) => truncateToDouble();
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(field);
     }
   }
 }
 
 extension StringBinding on String {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String field) {
+    switch (field) {
       case 'compareTo':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             compareTo(positionalArgs[0]);
@@ -199,15 +199,15 @@ extension StringBinding on String {
       case 'toUpperCase':
         return ({positionalArgs, namedArgs, typeArgs}) => toUpperCase();
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(field);
     }
   }
 }
 
 /// Binding object for dart list.
 extension ListBinding on List {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String field) {
+    switch (field) {
       case 'isEmpty':
         return isEmpty;
       case 'isNotEmpty':
@@ -311,15 +311,15 @@ extension ListBinding on List {
                 List<HTType> typeArgs = const []}) =>
             asMap();
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(field);
     }
   }
 }
 
 /// Binding object for dart map.
 extension MapBinding on Map {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String field) {
+    switch (field) {
       case 'length':
         return length;
       case 'isEmpty':
@@ -361,7 +361,7 @@ extension MapBinding on Map {
                 List<HTType> typeArgs = const []}) =>
             remove(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(field);
     }
   }
 }

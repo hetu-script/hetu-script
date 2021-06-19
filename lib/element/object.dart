@@ -13,36 +13,37 @@ class _HTNull with HTObject {
   HTType get valueType => HTType.NULL;
 }
 
-/// Almost everything within Hetu is a [HTObject].
-/// Includes [HTTypeid], [HTNamespace], [HTClass], [HTInstance],
-/// [HTEnum], [HTExternalClass], [HTFunction].
+/// Object is a runtime entity in the program that
+/// represents a value that have accessable member fields
 abstract class HTObject {
   /// The [null] in Hetu is a static const variable of [HTObject].
   /// Hence every null is the same.
   static const NULL = _HTNull();
 
   /// The [HTType] of this [HTObject]
-  HTType get valueType;
+  HTType get valueType => HTType.object;
 
-  /// Wether this object contains a member with a name by [varName].
-  bool contains(String varName) {
-    switch (varName) {
+  /// Wether this object contains a member with a name by [field].
+  bool contains(String field) {
+    switch (field) {
       case 'valueType':
         return true;
       case 'toString':
         return true;
       default:
-        throw HTError.undefined(varName);
+        return false;
     }
   }
 
-  /// Fetch a member by the [varName], in the form of
+  void delete(String field) {}
+
+  /// Fetch a member by the [field], in the form of
   /// ```
-  /// object.varName
+  /// object.field
   /// ```
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'valueType':
         return valueType;
       case 'toString':
@@ -53,24 +54,24 @@ abstract class HTObject {
             toString();
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
-  /// Assign a value to a member by the [varName], in the form of
+  /// Assign a value to a member by the [field], in the form of
   /// ```
-  /// object.varName = value
+  /// object.field = value
   /// ```
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
       {String from = SemanticNames.global}) {
-    switch (varName) {
+    switch (field) {
       case 'valueType':
         throw HTError.immutable('valueType');
       case 'toString':
         throw HTError.immutable('toString');
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(field);
     }
   }
 
@@ -78,7 +79,7 @@ abstract class HTObject {
   /// ```
   /// object[key]
   /// ```
-  dynamic subGet(dynamic key) => throw HTError.undefined(key);
+  dynamic subGet(dynamic key) => null;
 
   /// Assign a value to a member by the [key], in the form of
   /// ```

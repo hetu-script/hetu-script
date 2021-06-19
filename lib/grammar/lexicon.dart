@@ -1,8 +1,5 @@
 /// All lexicons used by hetu
 abstract class HTLexicon {
-  static const programEntry = 'main';
-  static const coreSpace = 'core';
-
   static const tokenPattern = r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(1)
       r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // unicode identifier group(4)
       r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(5)

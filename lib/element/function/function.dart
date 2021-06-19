@@ -2,7 +2,7 @@ import '../../binding/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import 'function_declaration.dart';
+import 'typed_function_declaration.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
@@ -35,7 +35,7 @@ class ReferConstructor {
 }
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
-class HTFunction extends HTFunctionDeclaration
+class HTFunction extends HTTypedFunctionDeclaration
     with HTObject, HetuRef, GotoInfo {
   static final callStack = <String>[];
 
@@ -117,11 +117,11 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  void resolve(HTNamespace namespace) {
-    super.resolve(namespace);
+  void resolve() {
+    super.resolve();
 
-    if (classId != null) {
-      klass = namespace.memberGet(classId!, from: namespace.fullName);
+    if ((closure != null) && (classId != null) && (klass == null)) {
+      klass = closure!.memberGet(classId!, from: closure!.fullName);
     }
   }
 
@@ -476,9 +476,9 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'valueType':
         return valueType;
       case 'toString':
@@ -486,7 +486,7 @@ class HTFunction extends HTFunctionDeclaration
             '${SemanticNames.function} $id';
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }

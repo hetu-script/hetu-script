@@ -34,19 +34,16 @@ class HTClassDeclaration extends HTNamespace {
       this.isAbstract = false,
       HTNamespace? closure})
       : super(moduleFullName, libraryName,
-            id: id,
-            classId: classId,
-            isExternal: isExternal,
-            closure: closure) {
+            id: id, classId: classId, closure: closure) {
     _superType = superType;
   }
 
   @override
-  void resolve(HTNamespace namespace) {
-    super.resolve(namespace);
+  void resolve() {
+    super.resolve();
 
-    if ((_superType != null) && !_superType!.isResolved) {
-      _superType = _superType!.resolve(namespace);
+    if ((closure != null) && (_superType != null) && !_superType!.isResolved) {
+      _superType = _superType!.resolve(closure!);
     }
   }
 

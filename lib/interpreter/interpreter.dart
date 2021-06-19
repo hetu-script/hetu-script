@@ -131,7 +131,7 @@ class Hetu extends AbstractInterpreter {
       InterpreterConfig config = const InterpreterConfig()})
       : super(config,
             errorHandler: errorHandler, sourceProvider: sourceProvider) {
-    _curNamespace = coreNamespace;
+    _curNamespace = global;
   }
 
   @override
@@ -176,7 +176,7 @@ class Hetu extends AbstractInterpreter {
 
     _curLibraryName = libraryName ?? _curModuleFullName;
 
-    final createNamespace = namespace != coreNamespace;
+    final createNamespace = namespace != global;
     try {
       final compilation = await parser.parseToCompilation(
           source, sourceProvider,
@@ -194,11 +194,11 @@ class Hetu extends AbstractInterpreter {
       if (this.config.sourceType == SourceType.script) {
         // TODO: 现在这样写是错误的，应该用一个函数包裹起来这个脚本，然后立即执行这个函数
         // 但这样的话，就需要把import改成一个命令，可以在函数内使用
-        final nsp = execute(namespace: namespace ?? coreNamespace);
+        final nsp = execute(namespace: namespace ?? global);
         namespaces[nsp.id] = nsp;
         final lib = _Library(namespaces, bytes);
         _libs[_curLibraryName] = lib;
-        coreNamespace.import(nsp);
+        global.import(nsp);
 
         result = _registers.first;
       } else if (this.config.sourceType == SourceType.module) {
@@ -232,7 +232,7 @@ class Hetu extends AbstractInterpreter {
                       importNamespace.moduleFullName,
                       importNamespace.libraryName,
                       id: info.alias!,
-                      closure: coreNamespace);
+                      closure: global);
                   aliasNamespace.import(importNamespace);
                   nsp.define(info.alias!, aliasNamespace);
                 } else {
@@ -240,7 +240,7 @@ class Hetu extends AbstractInterpreter {
                       importNamespace.moduleFullName,
                       importNamespace.libraryName,
                       id: info.alias!,
-                      closure: coreNamespace);
+                      closure: global);
                   for (final id in info.showList) {
                     HTElement decl =
                         importNamespace.memberGet(id, recursive: false);
@@ -255,7 +255,7 @@ class Hetu extends AbstractInterpreter {
 
         for (final namespace in lib.namespaces.values) {
           for (final decl in namespace.declarations.values) {
-            decl.resolve(namespace);
+            decl.resolve();
           }
         }
 
@@ -452,7 +452,7 @@ class Hetu extends AbstractInterpreter {
           final id = _code.readShortUtf8String();
           _curModuleFullName = id;
           _curNamespace = HTNamespace(curModuleFullName, curLibraryName,
-              id: id, closure: coreNamespace);
+              id: id, closure: global);
           break;
         case HTOpCode.lineInfo:
           _curLine = _code.readUint16();
@@ -1080,8 +1080,8 @@ class Hetu extends AbstractInterpreter {
     }
     final isExternal = _code.readBool();
     final isStatic = _code.readBool();
-    final isMutable = _code.readBool();
     final isConst = _code.readBool();
+    final isMutable = _code.readBool();
     final isExported = _code.readBool();
     final lateInitialize = _code.readBool();
 
@@ -1099,8 +1099,8 @@ class Hetu extends AbstractInterpreter {
             classId: classId,
             isExternal: isExternal,
             isStatic: isStatic,
-            isMutable: isMutable,
             isConst: isConst,
+            isMutable: isMutable,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
@@ -1112,16 +1112,16 @@ class Hetu extends AbstractInterpreter {
             value: initValue,
             isExternal: isExternal,
             isStatic: isStatic,
-            isMutable: isMutable,
-            isConst: isConst);
+            isConst: isConst,
+            isMutable: isMutable);
       }
     } else {
       decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
           classId: classId,
           isExternal: isExternal,
           isStatic: isStatic,
-          isMutable: isMutable,
-          isConst: isConst);
+          isConst: isConst,
+          isMutable: isMutable);
     }
 
     if (!hasClassId || isStatic) {
@@ -1310,7 +1310,7 @@ class Hetu extends AbstractInterpreter {
       // }
     }
     if (config.sourceType == SourceType.script || _curFunction != null) {
-      klass.resolve(_curNamespace);
+      klass.resolve();
     }
 
     _curClass = savedClass;

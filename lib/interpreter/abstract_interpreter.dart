@@ -73,15 +73,14 @@ abstract class AbstractInterpreter {
   late HTErrorHandler errorHandler;
   late SourceProvider sourceProvider;
 
-  late final HTNamespace coreNamespace;
+  final HTNamespace global = HTNamespace(
+      SemanticNames.global, SemanticNames.global,
+      id: SemanticNames.global);
 
   AbstractInterpreter(this.config,
       {HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
     this.errorHandler = errorHandler ?? DefaultErrorHandler();
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
-
-    coreNamespace = HTNamespace(HTLexicon.coreSpace, HTLexicon.coreSpace,
-        id: HTLexicon.coreSpace);
   }
 
   @mustCallSuper
@@ -97,7 +96,7 @@ abstract class AbstractInterpreter {
         for (final file in coreModules.keys) {
           await eval(coreModules[file]!,
               moduleFullName: file,
-              namespace: coreNamespace,
+              namespace: global,
               config: InterpreterConfig(sourceType: SourceType.module));
         }
         for (var key in coreFunctions.keys) {

@@ -611,8 +611,8 @@ class VarDeclStmt extends AstNode {
       this.typeInferrence = false,
       this.isExternal = false,
       this.isStatic = false,
-      this.isMutable = false,
       this.isConst = false,
+      this.isMutable = false,
       this.isExported = false,
       this.isTopLevel = false,
       this.lateInitialize = false})
@@ -634,6 +634,7 @@ class ParamDeclExpr extends VarDeclStmt {
       {HTSource? source,
       TypeExpr? declType,
       AstNode? initializer,
+      bool isConst = false,
       bool isMutable = false,
       this.isVariadic = false,
       this.isOptional = false,
@@ -642,6 +643,7 @@ class ParamDeclExpr extends VarDeclStmt {
             source: source,
             declType: declType,
             initializer: initializer,
+            isConst: isConst,
             isMutable: isMutable);
 }
 

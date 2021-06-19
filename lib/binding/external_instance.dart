@@ -4,7 +4,7 @@ import '../type/type.dart';
 import '../type/nominal_type.dart';
 import '../grammar/semantic.dart';
 import '../error/error.dart';
-import '../element/function/function_declaration.dart';
+import '../element/function/typed_function_declaration.dart';
 import '../element/class/class.dart';
 import 'external_class.dart';
 
@@ -44,9 +44,9 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'valueType':
         return valueType;
       case 'toString':
@@ -55,16 +55,16 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       default:
         if (externalClass != null) {
           final member =
-              externalClass!.instanceMemberGet(externalObject, varName);
+              externalClass!.instanceMemberGet(externalObject, field);
           if (member is Function) {
-            final getter = '${SemanticNames.getter}$varName';
-            if (klass!.instanceMembers.containsKey(varName)) {
-              HTFunctionDeclaration func =
-                  klass!.instanceMembers[varName]!.value;
+            final getter = '${SemanticNames.getter}$field';
+            if (klass!.instanceMembers.containsKey(field)) {
+              HTTypedFunctionDeclaration func =
+                  klass!.instanceMembers[field]!.value;
               func.externalFunc = member;
               return func;
             } else if (klass!.instanceMembers.containsKey(getter)) {
-              HTFunctionDeclaration func =
+              HTTypedFunctionDeclaration func =
                   klass!.instanceMembers[getter]!.value;
               func.externalFunc = member;
               return func;
@@ -73,17 +73,17 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
           return member;
         } else {
           if (error) {
-            throw HTError.undefined(varName);
+            throw HTError.undefined(field);
           }
         }
     }
   }
 
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
       {String from = SemanticNames.global}) {
     if (externalClass != null) {
-      externalClass!.instanceMemberSet(externalObject, varName, varValue);
+      externalClass!.instanceMemberSet(externalObject, field, varValue);
     } else {
       throw HTError.unknownTypeName(typeString);
     }

@@ -1,8 +1,8 @@
 
 external class Math {
-  static const e: num = 2.718281828459045;
+  static final e: num = 2.718281828459045;
   
-  static const pi: num = 3.1415926535897932;
+  static final pi: num = 3.1415926535897932;
 
   static fun min(a, b)
 

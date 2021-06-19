@@ -26,17 +26,17 @@ class HTInstanceNamespace extends HTNamespace {
   /// If [recursive] is false, then it won't continue to
   /// try fetching variable from enclosed namespace.
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global,
       bool error = true,
       bool recursive = true}) {
-    final getter = '${SemanticNames.getter}$varName';
+    final getter = '${SemanticNames.getter}$field';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
-      if (curNamespace.declarations.containsKey(varName) ||
+      if (curNamespace.declarations.containsKey(field) ||
           curNamespace.declarations.containsKey(getter)) {
-        return instance.memberGet(varName,
+        return instance.memberGet(field,
             from: from, classId: curNamespace.classId);
       } else {
         curNamespace = curNamespace.next;
@@ -44,11 +44,11 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      return closure!.memberGet(varName, from: from);
+      return closure!.memberGet(field, from: from);
     }
 
     if (error) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(field);
     }
   }
 
@@ -57,15 +57,15 @@ class HTInstanceNamespace extends HTNamespace {
   /// If [recursive] is false, then it won't continue to
   /// try assigning variable from enclosed namespace.
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
       {String from = SemanticNames.global, bool recursive = true}) {
-    final setter = '${SemanticNames.getter}$varName';
+    final setter = '${SemanticNames.getter}$field';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
-      if (curNamespace.declarations.containsKey(varName) ||
+      if (curNamespace.declarations.containsKey(field) ||
           curNamespace.declarations.containsKey(setter)) {
-        instance.memberSet(varName, varValue,
+        instance.memberSet(field, varValue,
             from: from, classId: curNamespace.classId);
         return;
       } else {
@@ -74,10 +74,10 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      closure!.memberSet(varName, varValue, from: from);
+      closure!.memberSet(field, varValue, from: from);
       return;
     }
 
-    throw HTError.undefined(varName);
+    throw HTError.undefined(field);
   }
 }

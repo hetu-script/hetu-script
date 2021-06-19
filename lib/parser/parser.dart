@@ -149,7 +149,7 @@ class HTAstParser extends AbstractParser {
                       isMutable: true,
                       isExported: true,
                       isTopLevel: true);
-                case HTLexicon.CONST:
+                case HTLexicon.FINAL:
                   return _parseVarDecl(
                       typeInferrence: true, isExported: true, isTopLevel: true);
                 case HTLexicon.FUNCTION:
@@ -172,7 +172,7 @@ class HTAstParser extends AbstractParser {
                   return _parseEnumDecl(isExternal: true, isTopLevel: true);
                 case HTLexicon.VAR:
                 case HTLexicon.LET:
-                case HTLexicon.CONST:
+                case HTLexicon.FINAL:
                   throw HTError.externalVar();
                 case HTLexicon.FUNCTION:
                   return _parseFuncDecl(isExternal: true, isTopLevel: true);
@@ -192,7 +192,7 @@ class HTAstParser extends AbstractParser {
             case HTLexicon.LET:
               return _parseVarDecl(
                   typeInferrence: true, isMutable: true, isTopLevel: true);
-            case HTLexicon.CONST:
+            case HTLexicon.FINAL:
               return _parseVarDecl(typeInferrence: true, isTopLevel: true);
             case HTLexicon.FUNCTION:
               if (expect([HTLexicon.FUNCTION, SemanticNames.identifier]) ||
@@ -250,7 +250,7 @@ class HTAstParser extends AbstractParser {
                 case HTLexicon.LET:
                   return _parseVarDecl(
                       typeInferrence: true, isMutable: true, isExported: true);
-                case HTLexicon.CONST:
+                case HTLexicon.FINAL:
                   return _parseVarDecl(typeInferrence: true, isExported: true);
                 case HTLexicon.FUNCTION:
                   return _parseFuncDecl(isExternal: true, isExported: true);
@@ -280,7 +280,7 @@ class HTAstParser extends AbstractParser {
                   return _parseFuncDecl(isExternal: true);
                 case HTLexicon.VAR:
                 case HTLexicon.LET:
-                case HTLexicon.CONST:
+                case HTLexicon.FINAL:
                   throw HTError.externalVar();
                 default:
                   throw HTError.unexpected(
@@ -297,7 +297,7 @@ class HTAstParser extends AbstractParser {
               return _parseVarDecl(isMutable: true, lateInitialize: true);
             case HTLexicon.LET:
               return _parseVarDecl(typeInferrence: true, lateInitialize: true);
-            case HTLexicon.CONST:
+            case HTLexicon.FINAL:
               return _parseVarDecl(typeInferrence: true, lateInitialize: true);
             case HTLexicon.FUNCTION:
               return _parseFuncDecl();
@@ -321,7 +321,7 @@ class HTAstParser extends AbstractParser {
               return _parseVarDecl(isMutable: true);
             case HTLexicon.LET:
               return _parseVarDecl(typeInferrence: true, isMutable: true);
-            case HTLexicon.CONST:
+            case HTLexicon.FINAL:
               return _parseVarDecl(typeInferrence: true);
             case HTLexicon.FUNCTION:
               if (expect([HTLexicon.FUNCTION, SemanticNames.identifier]) ||
@@ -393,7 +393,7 @@ class HTAstParser extends AbstractParser {
                   isMutable: true,
                   isStatic: isStatic,
                   lateInitialize: true);
-            case HTLexicon.CONST:
+            case HTLexicon.FINAL:
               return _parseVarDecl(
                   classId: _curClass?.id,
                   typeInferrence: true,
@@ -1040,7 +1040,7 @@ class HTAstParser extends AbstractParser {
       }
       declaration = _parseVarDecl(
           typeInferrence: curTok.type != HTLexicon.VAR,
-          isMutable: curTok.type != HTLexicon.CONST);
+          isMutable: curTok.type != HTLexicon.FINAL);
 
       advance(1);
 
@@ -1057,7 +1057,7 @@ class HTAstParser extends AbstractParser {
       if (!expect([HTLexicon.semicolon], consume: false)) {
         declaration = _parseVarDecl(
             typeInferrence: curTok.type != HTLexicon.VAR,
-            isMutable: curTok.type != HTLexicon.CONST,
+            isMutable: curTok.type != HTLexicon.FINAL,
             endOfStatement: true);
       } else {
         match(HTLexicon.semicolon);
@@ -1142,9 +1142,9 @@ class HTAstParser extends AbstractParser {
       {String? classId,
       bool typeInferrence = false,
       bool isExternal = false,
-      bool isMutable = false,
       bool isStatic = false,
       bool isConst = false,
+      bool isMutable = false,
       bool isExported = false,
       bool isTopLevel = false,
       bool lateInitialize = false,
@@ -1185,8 +1185,8 @@ class HTAstParser extends AbstractParser {
         typeInferrence: typeInferrence,
         isExternal: isExternal,
         isStatic: isStatic,
-        isMutable: isMutable,
         isConst: isConst,
+        isMutable: isMutable,
         isExported: isExported,
         isTopLevel: isTopLevel,
         lateInitialize: lateInitialize);

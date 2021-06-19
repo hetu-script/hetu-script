@@ -9,7 +9,7 @@ import '../../type/nominal_type.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import '../class/cast.dart';
-import '../variable/typed_variable_declaration.dart';
+// import '../variable/typed_variable_declaration.dart';
 import '../namespace.dart';
 import '../object.dart';
 import 'instance_namespace.dart';
@@ -125,11 +125,11 @@ class HTInstance with HTObject, InterpreterRef {
   }
 
   @override
-  bool contains(String varName) {
+  bool contains(String field) {
     for (final space in _namespaces.values) {
-      if (space.declarations.containsKey(varName) ||
-          space.declarations.containsKey('${SemanticNames.getter}$varName') ||
-          space.declarations.containsKey('${SemanticNames.setter}$varName')) {
+      if (space.declarations.containsKey(field) ||
+          space.declarations.containsKey('${SemanticNames.getter}$field') ||
+          space.declarations.containsKey('${SemanticNames.setter}$field')) {
         return true;
       }
     }
@@ -141,30 +141,30 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [classId] is provided, then the instance will
   /// only search that [classId]'s corresponed [HTInstanceNamespace].
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global,
       String? classId,
       bool error = true}) {
-    final getter = '${SemanticNames.getter}$varName';
+    final getter = '${SemanticNames.getter}$field';
 
     if (classId == null) {
       for (final space in _namespaces.values) {
-        if (space.declarations.containsKey(varName)) {
-          if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (space.declarations.containsKey(field)) {
+          if (field.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(field);
           }
 
-          final value = space.declarations[varName]!.value;
+          final value = space.declarations[field]!.value;
           if (value is HTFunction &&
               value.category != FunctionCategory.literal) {
             value.context = namespace;
           }
           return value;
         } else if (space.declarations.containsKey(getter)) {
-          if (varName.startsWith(HTLexicon.privatePrefix) &&
+          if (field.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(field);
           }
 
           HTFunction func = space.declarations[getter]!.value;
@@ -174,21 +174,21 @@ class HTInstance with HTObject, InterpreterRef {
       }
     } else {
       final space = _namespaces[classId]!;
-      if (space.declarations.containsKey(varName)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (space.declarations.containsKey(field)) {
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
 
-        final value = space.declarations[varName]!.value;
+        final value = space.declarations[field]!.value;
         if (value is HTFunction && value.category != FunctionCategory.literal) {
           value.context = _namespaces[classId];
         }
         return value;
       } else if (space.declarations.containsKey(getter)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
 
         HTFunction func = space.declarations[getter]!.value;
@@ -198,7 +198,7 @@ class HTInstance with HTObject, InterpreterRef {
     }
 
     // TODO: this part should be declared in the hetu script codes
-    switch (varName) {
+    switch (field) {
       case 'valueType':
         return valueType;
       case 'toString':
@@ -208,7 +208,7 @@ class HTInstance with HTObject, InterpreterRef {
         return ({positionalArgs, namedArgs, typeArgs}) => toJson();
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
@@ -218,25 +218,25 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [classId] is provided, then the instance will
   /// only search that [classId]'s corresponed [HTInstanceNamespace].
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
       {String from = SemanticNames.global, String? classId}) {
-    final setter = '${SemanticNames.setter}$varName';
+    final setter = '${SemanticNames.setter}$field';
 
     if (classId == null) {
       for (final space in _namespaces.values) {
-        if (space.declarations.containsKey(varName)) {
-          if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (space.declarations.containsKey(field)) {
+          if (field.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(field);
           }
 
-          var decl = space.declarations[varName]!;
+          var decl = space.declarations[field]!;
           decl.value = varValue;
           return;
         } else if (space.declarations.containsKey(setter)) {
-          if (varName.startsWith(HTLexicon.privatePrefix) &&
+          if (field.startsWith(HTLexicon.privatePrefix) &&
               !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(field);
           }
 
           HTFunction method = space.declarations[setter]!.value;
@@ -251,19 +251,19 @@ class HTInstance with HTObject, InterpreterRef {
       }
 
       final space = _namespaces[classId]!;
-      if (space.declarations.containsKey(varName)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (space.declarations.containsKey(field)) {
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
 
-        var decl = space.declarations[varName]!;
+        var decl = space.declarations[field]!;
         decl.value = varValue;
         return;
       } else if (space.declarations.containsKey(setter)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
 
         final method = space.declarations[setter]! as HTFunction;
@@ -273,7 +273,7 @@ class HTInstance with HTObject, InterpreterRef {
       }
     }
 
-    throw HTError.undefined(varName);
+    throw HTError.undefined(field);
   }
 
   /// Call a member function of this [HTInstance].

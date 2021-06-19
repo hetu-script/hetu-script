@@ -100,7 +100,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
       AnalyzerConfig config = const AnalyzerConfig()})
       : super(config,
             errorHandler: errorHandler, sourceProvider: sourceProvider) {
-    _curNamespace = coreNamespace;
+    _curNamespace = global;
   }
 
   @override

@@ -4,19 +4,18 @@ import 'namespace.dart';
 import '../../error/error.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
-import '../type/type.dart';
-import 'object.dart';
+// import '../type/type.dart';
+// import 'object.dart';
 
 /// Element is a semantic entity in the program that
 /// represents things that are declared with a name
 /// and hence can be referenced elsewhere in the code.
-class HTElement with HTObject {
+abstract class HTElement {
   final String id;
 
   final String? classId;
 
-  @override
-  HTType get valueType => HTType.DECLARATION;
+  final HTNamespace? closure;
 
   final String moduleFullName;
 
@@ -32,22 +31,23 @@ class HTElement with HTObject {
 
   final bool isStatic;
 
-  final bool isMutable;
-
   final bool isConst;
+
+  final bool isMutable;
 
   /// Elements defined within this class, namespace, block etc.
   /// Element could be registerd with a key different from its id.
   final Map<String, HTElement> declarations;
 
   const HTElement(this.id, this.moduleFullName, this.libraryName,
-      {this.source,
+      {this.closure,
+      this.source,
       this.idRange = SourceRange.EMPTY,
       this.classId,
       this.isExternal = false,
       this.isStatic = false,
-      this.isMutable = false,
       this.isConst = false,
+      this.isMutable = false,
       this.declarations = const {}});
 
   dynamic get value => this;
@@ -59,12 +59,7 @@ class HTElement with HTObject {
   }
 
   @mustCallSuper
-  void resolve(HTNamespace namespace) {}
+  void resolve() {}
 
-  HTElement clone() => HTElement(id, moduleFullName, libraryName,
-      classId: classId,
-      isExternal: isExternal,
-      isStatic: isStatic,
-      isMutable: isMutable,
-      isConst: isConst);
+  HTElement clone();
 }

@@ -12,9 +12,9 @@ class HTNumberClass extends HTExternalClass {
   HTNumberClass() : super(HTLexicon.number);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'num.parse':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -23,7 +23,7 @@ class HTNumberClass extends HTExternalClass {
             num.tryParse(positionalArgs.first);
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
@@ -33,9 +33,9 @@ class HTIntegerClass extends HTExternalClass {
   HTIntegerClass() : super(HTLexicon.integer);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'int.fromEnvironment':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -51,23 +51,23 @@ class HTIntegerClass extends HTExternalClass {
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as int).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String field) =>
+      (object as int).htFetch(field);
 }
 
 class HTFloatClass extends HTExternalClass {
   HTFloatClass() : super(HTLexicon.float);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'float.nan':
         return double.nan;
       case 'float.infinity':
@@ -80,23 +80,23 @@ class HTFloatClass extends HTExternalClass {
         return double.maxFinite;
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as double).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String field) =>
+      (object as double).htFetch(field);
 }
 
 class HTBooleanClass extends HTExternalClass {
   HTBooleanClass() : super(HTLexicon.boolean);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'bool.parse':
         return (
             {List<dynamic> positionalArgs = const [],
@@ -106,7 +106,7 @@ class HTBooleanClass extends HTExternalClass {
         };
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
@@ -116,9 +116,9 @@ class HTStringClass extends HTExternalClass {
   HTStringClass() : super(HTLexicon.string);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'str.parse':
         return (
             {List<dynamic> positionalArgs = const [],
@@ -128,61 +128,61 @@ class HTStringClass extends HTExternalClass {
         };
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as String).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String field) =>
+      (object as String).htFetch(field);
 }
 
 class HTListClass extends HTExternalClass {
   HTListClass() : super(HTLexicon.list);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as List).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String field) =>
+      (object as List).htFetch(field);
 }
 
 class HTMapClass extends HTExternalClass {
   HTMapClass() : super(HTLexicon.map);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as Map).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String field) =>
+      (object as Map).htFetch(field);
 }
 
 class HTMathClass extends HTExternalClass {
   HTMathClass() : super(HTLexicon.math);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'Math.e':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -328,7 +328,7 @@ class HTMathClass extends HTExternalClass {
 
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
@@ -338,14 +338,14 @@ class HTSystemClass extends HTExternalClass {
   HTSystemClass() : super(HTLexicon.system);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'System.now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
@@ -355,9 +355,9 @@ class HTConsoleClass extends HTExternalClass {
   HTConsoleClass() : super(HTLexicon.console);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'Console.write':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -402,7 +402,7 @@ class HTConsoleClass extends HTExternalClass {
             stdout.write('\x1B[2J\x1B[0;0H');
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }

@@ -1,15 +1,15 @@
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
-import '../class/class.dart';
+import '../../type/type.dart';
 import '../namespace.dart';
-import '../element.dart';
+// import '../element.dart';
+import 'typed_variable_declaration.dart';
 
-class HTVariable extends HTElement with HetuRef, GotoInfo {
+/// Variable is a binding between an element and a value
+class HTVariable extends HTTypedVariableDeclaration with HetuRef, GotoInfo {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
-
-  final HTNamespace? closure;
 
   var _isInitializing = false;
 
@@ -23,22 +23,24 @@ class HTVariable extends HTElement with HetuRef, GotoInfo {
   /// before it can be acessed within a script.
   HTVariable(
       String id, String moduleFullName, String libraryName, Hetu interpreter,
-      {String? classId,
+      {HTNamespace? closure,
+      String? classId,
+      HTType? declType,
       dynamic value,
       bool isExternal = false,
       bool isStatic = false,
-      bool isMutable = false,
       bool isConst = false,
+      bool isMutable = false,
       int? definitionIp,
       int? definitionLine,
-      int? definitionColumn,
-      this.closure})
+      int? definitionColumn})
       : super(id, moduleFullName, libraryName,
+            closure: closure,
             classId: classId,
             isExternal: isExternal,
             isStatic: isStatic,
-            isMutable: isMutable,
-            isConst: isConst) {
+            isConst: isConst,
+            isMutable: isMutable) {
     this.interpreter = interpreter;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -64,15 +66,6 @@ class HTVariable extends HTElement with HetuRef, GotoInfo {
     //   }
     // }
   }
-
-  /// initialize the declared type if it's a class name.
-  /// only return the [HTClass] when its a non-external class
-  // void _initializeType() {
-  //   final resolvedType = HTType.resolve(_declType!, interpreter);
-  //   _declType = resolvedType.type;
-  //   _declClass = resolvedType.klass;
-  //   _isTypeInitialized = true;
-  // }
 
   /// Initialize this variable with its declared initializer bytecode
   void initialize() {
@@ -120,12 +113,57 @@ class HTVariable extends HTElement with HetuRef, GotoInfo {
     }
   }
 
+  // dynamic _computeValue(dynamic value, HTType type) {
+  //   final resolvedType = type.isResolved ? type : type.resolve(interpreter);
+
+  //   if (resolvedType is HTNominalType && value is Map) {
+  //     return resolvedType.klass.createInstanceFromJson(value);
+  //   }
+
+  //   // basically doing a type erasure here.
+  //   if ((value is List) &&
+  //       (type.id == HTLexicon.list) &&
+  //       (type.typeArgs.isNotEmpty)) {
+  //     final computedValueList = [];
+  //     for (final item in value) {
+  //       final computedValue = _computeValue(item, type.typeArgs.first);
+  //       computedValueList.add(computedValue);
+  //     }
+  //     return computedValueList;
+  //   } else if ((value is Map) &&
+  //       (type.id == HTLexicon.map) &&
+  //       (type.typeArgs.length >= 2)) {
+  //     final mapValueTypeResolveResult = type.typeArgs[1].resolve(interpreter);
+  //     if (mapValueTypeResolveResult is HTNominalType) {
+  //       final computedValueMap = {};
+  //       for (final entry in value.entries) {
+  //         final computedValue = mapValueTypeResolveResult.klass
+  //             .createInstanceFromJson(entry.value);
+  //         computedValueMap[entry.key] = computedValue;
+  //       }
+  //       return computedValueMap;
+  //     }
+  //   } else {
+  //     final encapsulation = interpreter.encapsulate(value);
+  //     final valueType = encapsulation.valueType;
+  //     if (valueType.isNotA(resolvedType)) {
+  //       throw HTError.type(id, valueType.toString(), type.toString());
+  //     }
+  //     return value;
+  //   }
+  // }
+
   @override
   HTVariable clone() => HTVariable(id, moduleFullName, libraryName, interpreter,
+      closure: closure,
       classId: classId,
+      declType: declType,
       value: value,
+      isExternal: isExternal,
+      isStatic: isStatic,
+      isConst: isConst,
+      isMutable: isMutable,
       definitionIp: definitionIp,
       definitionLine: definitionLine,
-      definitionColumn: definitionColumn,
-      isExternal: isExternal);
+      definitionColumn: definitionColumn);
 }

@@ -15,65 +15,65 @@ class HTClassNamespace extends HTNamespace {
       : super(moduleFullName, libraryName, id: id, closure: closure);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global,
       bool recursive = true,
       bool error = true}) {
-    final getter = '${SemanticNames.getter}$varName';
-    final externalStatic = '$id.$varName';
+    final getter = '${SemanticNames.getter}$field';
+    final externalStatic = '$id.$field';
 
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+    if (declarations.containsKey(field)) {
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
-      final decl = declarations[varName]!;
+      final decl = declarations[field]!;
       return decl.value;
     } else if (declarations.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
       final decl = declarations[getter]!;
       return decl.value;
     } else if (declarations.containsKey(externalStatic)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
       final decl = declarations[externalStatic]!;
       return decl.value;
     }
 
     if (recursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from);
+      return closure!.memberGet(field, from: from);
     }
 
     if (error) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(field);
     }
   }
 
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
       {String from = SemanticNames.global, bool error = true}) {
-    final setter = '${SemanticNames.setter}$varName';
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+    final setter = '${SemanticNames.setter}$field';
+    if (declarations.containsKey(field)) {
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
-      final decl = declarations[varName]!;
+      final decl = declarations[field]!;
       if (decl is HTTypedVariableDeclaration) {
         decl.value = varValue;
         return;
       } else {
-        throw HTError.immutable(varName);
+        throw HTError.immutable(field);
       }
     } else if (declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
       final setterFunc = declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
@@ -81,12 +81,12 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (closure != null) {
-      closure!.memberSet(varName, varValue, from: from);
+      closure!.memberSet(field, varValue, from: from);
       return;
     }
 
     if (error) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(field);
     }
   }
 }

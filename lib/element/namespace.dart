@@ -2,12 +2,12 @@ import '../error/error.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../type/type.dart';
-import 'variable/typed_variable_declaration.dart';
 import 'element.dart';
+import 'object.dart';
 
 /// For interpreter searching for symbols
 /// from a certain block or module.
-class HTNamespace extends HTElement {
+class HTNamespace extends HTElement with HTObject {
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
@@ -22,19 +22,15 @@ class HTNamespace extends HTElement {
   @override
   final declarations = <String, HTElement>{};
 
-  /// [HTTypedVariableDeclaration]s in this [HTNamespace],
-  /// could be [HTTypedVariableDeclaration], [AbstractFunction], [HTEnum] or [HTClass]
-  late final HTNamespace? closure;
-
   HTNamespace(
     String moduleFullName,
     String libraryName, {
     String id = SemanticNames.anonymousNamespace,
     String? classId,
-    bool isExternal = false,
-    this.closure,
+    Map<String, HTElement> declarations = const {},
+    HTNamespace? closure,
   }) : super(id, moduleFullName, libraryName,
-            classId: classId, isExternal: isExternal) {
+            classId: classId, closure: closure) {
     // calculate the full name of this namespace
     _fullName = id;
     var curSpace = closure;
@@ -42,6 +38,8 @@ class HTNamespace extends HTElement {
       _fullName = curSpace.id + HTLexicon.memberGet + fullName;
       curSpace = curSpace.closure;
     }
+
+    this.declarations.addAll(declarations);
   }
 
   HTNamespace closureAt(int distance) {
@@ -60,7 +58,7 @@ class HTNamespace extends HTElement {
       declarations[id] = decl;
     } else {
       if (error) {
-        throw HTError.definedRuntime(decl.id);
+        throw HTError.definedRuntime(id);
       }
     }
   }
@@ -68,49 +66,49 @@ class HTNamespace extends HTElement {
   /// 从当前命名空间，以及超空间，递归获取一个变量
   /// 注意和memberGet只是从对象本身取值不同
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global,
       bool recursive = true,
       bool error = true}) {
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+    if (declarations.containsKey(field)) {
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
-      final decl = declarations[varName]!;
+      final decl = declarations[field]!;
       return decl.value;
     }
 
     if (recursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from);
+      return closure!.memberGet(field, from: from);
     }
 
     if (error) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(field);
     }
   }
 
   /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
   /// 注意和memberSet只是对对象本身的成员赋值不同
   @override
-  void memberSet(String varName, dynamic varValue,
-      {String from = SemanticNames.global}) {
-    if (declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+  void memberSet(String field, dynamic varValue,
+      {String from = SemanticNames.global, bool recursive = true}) {
+    if (declarations.containsKey(field)) {
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
-      final decl = declarations[varName]!;
+      final decl = declarations[field]!;
       decl.value = varValue;
       return;
     }
 
-    if (closure != null) {
-      closure!.memberSet(varName, varValue, from: from);
+    if (recursive && (closure != null)) {
+      closure!.memberSet(field, varValue, from: from);
       return;
     }
 
-    throw HTError.undefined(varName);
+    throw HTError.undefined(field);
   }
 
   void import(HTNamespace other) {
@@ -118,4 +116,8 @@ class HTNamespace extends HTElement {
       define(decl.id, decl, error: false);
     }
   }
+
+  @override
+  HTNamespace clone() => HTNamespace(moduleFullName, libraryName,
+      id: id, classId: classId, declarations: declarations, closure: closure);
 }

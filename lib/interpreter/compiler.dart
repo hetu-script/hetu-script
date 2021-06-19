@@ -6,8 +6,8 @@ import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../ast/ast_compilation.dart';
 import 'const_table.dart';
-import '../element/class/class_declaration.dart';
-import '../element/function/function_declaration.dart';
+// import '../element/class/class_declaration.dart';
+// import '../element/function/function_declaration.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import 'opcode.dart';
@@ -81,8 +81,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   late String _curLibraryName;
   String get curLibraryName => _curLibraryName;
 
-  HTClassDeclaration? _curClass;
-  HTFunctionDeclaration? _curFunc;
+  // HTClassDeclaration? _curClass;
+  // HTFunctionDeclaration? _curFunc;
 
   final List<Map<String, String>> _markedSymbolsList = [];
 
@@ -1409,7 +1409,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   @override
   Uint8List visitFuncDeclStmt(FuncDeclExpr stmt) {
-    final savedCurFunc = _curFunc;
+    // final savedCurFunc = _curFunc;
     final bytesBuilder = BytesBuilder();
     // TODO: 泛型param
     if (stmt.category != FunctionCategory.literal) {
@@ -1476,7 +1476,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has no definition
     }
-    _curFunc = savedCurFunc;
+    // _curFunc = savedCurFunc;
     if (!stmt.isLiteral) {
       bytesBuilder.addByte(HTOpCode.endOfStmt);
     }
@@ -1485,13 +1485,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   @override
   Uint8List visitClassDeclStmt(ClassDeclStmt stmt) {
-    final savedClass = _curClass;
+    // final savedClass = _curClass;
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
     // TODO: 泛型param
-    _curClass = HTClassDeclaration(stmt.id, _curModuleFullName, _curLibraryName,
-        isExternal: stmt.isExternal, isAbstract: stmt.isAbstract);
+    // _curClass = HTClassDeclaration(stmt.id, _curModuleFullName, _curLibraryName,
+    //     isExternal: stmt.isExternal, isAbstract: stmt.isAbstract);
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isAbstract ? 1 : 0);
     bytesBuilder.addByte(stmt.isExported ? 1 : 0);
@@ -1512,7 +1512,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: hasDefinition
     }
     bytesBuilder.addByte(HTOpCode.endOfStmt);
-    _curClass = savedClass;
+    // _curClass = savedClass;
     return bytesBuilder.toBytes();
   }
 

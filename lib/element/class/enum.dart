@@ -23,37 +23,41 @@ class HTEnum extends HTElement with HTObject, HetuRef {
   }
 
   @override
-  bool contains(String varName) => enums.containsKey(varName);
+  bool contains(String field) => enums.containsKey(field);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
     if (!isExternal) {
-      if (enums.containsKey(varName)) {
-        return enums[varName]!;
-      } else if (varName == HTLexicon.values) {
+      if (enums.containsKey(field)) {
+        return enums[field]!;
+      } else if (field == HTLexicon.values) {
         return enums.values.toList();
       }
     } else {
       final externEnumClass = interpreter.fetchExternalClass(id);
-      return externEnumClass.memberGet(varName);
+      return externEnumClass.memberGet(field);
     }
 
     // TODO: elementAt() 方法
 
     if (error) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(field);
     }
   }
 
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
       {String from = SemanticNames.global}) {
-    if (enums.containsKey(varName)) {
-      throw HTError.immutable(varName);
+    if (enums.containsKey(field)) {
+      throw HTError.immutable(field);
     }
-    throw HTError.undefined(varName);
+    throw HTError.undefined(field);
   }
+
+  @override
+  HTEnum clone() => HTEnum(id, enums, moduleFullName, libraryName, interpreter,
+      classId: classId, isExternal: isExternal);
 }
 
 /// The Dart implementation of the enum item in Hetu.
@@ -74,9 +78,9 @@ class HTEnumItem<T> with HTObject {
   HTEnumItem(this.value, this.id, this.valueType);
 
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String field,
       {String from = SemanticNames.global, bool error = true}) {
-    switch (varName) {
+    switch (field) {
       case 'valueType':
         return valueType;
       case 'index':
@@ -93,7 +97,7 @@ class HTEnumItem<T> with HTObject {
             toString();
       default:
         if (error) {
-          throw HTError.undefinedMember(varName);
+          throw HTError.undefinedMember(field);
         }
     }
   }

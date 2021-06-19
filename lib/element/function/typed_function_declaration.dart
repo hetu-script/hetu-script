@@ -1,11 +1,20 @@
-import '../../grammar/semantic.dart';
+import '../../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';
+import '../namespace.dart';
+import '../element.dart';
 import 'typed_parameter_declaration.dart';
-import 'function_declaration.dart';
 
-class HTTypedFunctionDeclaration extends HTFunctionDeclaration {
+class HTTypedFunctionDeclaration extends HTElement {
+  final String declId;
+
+  final FunctionCategory category;
+
+  Function? externalFunc;
+
+  final String? externalTypeId;
+
   /// Holds declarations of all parameters.
   final Map<String, HTTypedParameterDeclaration> parameterDeclarations;
 
@@ -13,36 +22,37 @@ class HTTypedFunctionDeclaration extends HTFunctionDeclaration {
 
   final HTFunctionType type;
 
+  final bool isVariadic;
+
+  final int minArity;
+
+  final int maxArity;
+
   HTTypedFunctionDeclaration(
       String id, String moduleFullName, String libraryName,
-      {String declId = '',
+      {HTNamespace? closure,
+      this.declId = '',
       String? classId,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
-      FunctionCategory category = FunctionCategory.normal,
-      Function? externalFunc,
-      String? externalTypeId,
-      bool isVariadic = false,
-      int minArity = 0,
-      int maxArity = 0,
+      this.category = FunctionCategory.normal,
+      this.externalFunc,
+      this.externalTypeId,
+      this.isVariadic = false,
+      this.minArity = 0,
+      this.maxArity = 0,
       this.parameterDeclarations = const {},
       HTType? returnType})
       : type = HTFunctionType(moduleFullName, libraryName,
             parameterDeclarations: parameterDeclarations.values.toList(),
             returnType: returnType ?? HTType.ANY),
         super(id, moduleFullName, libraryName,
-            declId: declId,
+            closure: closure,
             classId: classId,
             isExternal: isExternal,
             isStatic: isStatic,
-            category: category,
-            externalFunc: externalFunc,
-            externalTypeId: externalTypeId,
-            isConst: isConst,
-            isVariadic: isVariadic,
-            minArity: minArity,
-            maxArity: maxArity);
+            isConst: isConst);
 
   /// Print function signature to String with function [id] and parameter [id].
   @override
@@ -106,7 +116,5 @@ class HTTypedFunctionDeclaration extends HTFunctionDeclaration {
           externalTypeId: externalTypeId,
           isVariadic: isVariadic,
           minArity: minArity,
-          maxArity: maxArity,
-          parameterDeclarations: parameterDeclarations,
-          returnType: returnType);
+          maxArity: maxArity);
 }

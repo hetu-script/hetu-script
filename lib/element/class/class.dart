@@ -8,11 +8,9 @@ import '../namespace.dart';
 import '../function/function.dart';
 import '../instance/instance.dart';
 import 'class_declaration.dart';
-import 'class_namespace.dart';
+// import 'class_namespace.dart';
 
-/// [HTClass] is the Dart implementation of the class declaration in Hetu.
-/// [static] members in Hetu class are stored within a _namespace of [HTClassNamespace].
-/// instance members of this class created by [createInstance] are stored in [instanceMembers].
+/// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HetuRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
@@ -69,7 +67,7 @@ class HTClass extends HTClassDeclaration with HetuRef {
   }
 
   @override
-  void resolve(HTNamespace namespace) {
+  void resolve() {
     super.resolve(namespace);
 
     if (superType != null) {
@@ -109,61 +107,63 @@ class HTClass extends HTClassDeclaration with HetuRef {
 
   /// Get a value of a static member from this [HTClass].
   @override
-  dynamic memberGet(String varName,
-      {String from = SemanticNames.global, bool error = true}) {
-    final getter = '${SemanticNames.getter}$varName';
-    final constructor = varName != id
-        ? '${SemanticNames.constructor}$varName'
+  dynamic memberGet(String field,
+      {String from = SemanticNames.global,
+      bool recursive = true,
+      bool error = true}) {
+    final getter = '${SemanticNames.getter}$field';
+    final constructor = field != id
+        ? '${SemanticNames.constructor}$field'
         : SemanticNames.constructor;
 
     if (isExternal) {
-      if (namespace.declarations.containsKey(varName)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (namespace.declarations.containsKey(field)) {
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
-        final decl = namespace.declarations[varName]!;
+        final decl = namespace.declarations[field]!;
         return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
         HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
       } else if (namespace.declarations.containsKey(constructor)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
         HTFunction func = namespace.declarations[constructor]!.value;
         return func;
       }
     } else {
-      if (namespace.declarations.containsKey(varName)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (namespace.declarations.containsKey(field)) {
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
-        final decl = namespace.declarations[varName]!;
+        final decl = namespace.declarations[field]!;
         return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
         HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
       } else if (namespace.declarations.containsKey(constructor)) {
-        if (varName.startsWith(HTLexicon.privatePrefix) &&
+        if (field.startsWith(HTLexicon.privatePrefix) &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(field);
         }
         return namespace.declarations[constructor]!.value as HTFunction;
       }
     }
 
-    switch (varName) {
+    switch (field) {
       case 'valueType':
         return valueType;
       // case 'fromJson':
@@ -173,40 +173,40 @@ class HTClass extends HTClassDeclaration with HetuRef {
       //   };
       default:
         if (error) {
-          throw HTError.undefined(varName);
+          throw HTError.undefined(field);
         }
     }
   }
 
   /// Assign a value to a static member of this [HTClass].
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String field, dynamic varValue,
       {String from = SemanticNames.global}) {
-    final setter = '${SemanticNames.setter}$varName';
+    final setter = '${SemanticNames.setter}$field';
 
     if (isExternal) {
       final externClass = interpreter.fetchExternalClass(id);
-      externClass.memberSet('$id.$varName', varValue);
+      externClass.memberSet('$id.$field', varValue);
       return;
-    } else if (namespace.declarations.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+    } else if (namespace.declarations.containsKey(field)) {
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
-      final decl = namespace.declarations[varName]!;
+      final decl = namespace.declarations[field]!;
       decl.value = varValue;
       return;
     } else if (namespace.declarations.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(field);
       }
       final setterFunc = namespace.declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
       return;
     }
 
-    throw HTError.undefined(varName);
+    throw HTError.undefined(field);
   }
 
   /// Call a static function of this [HTClass].
