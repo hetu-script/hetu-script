@@ -202,7 +202,8 @@ class HTFunctionType extends HTType {
                 otherParam.isOptional != param.isOptional ||
                 otherParam.isVariadic != param.isVariadic ||
                 otherParam.isNamed != param.isNamed ||
-                otherParam.declType.isNotA(param.declType)) {
+                ((otherParam.declType != null) &&
+                    (otherParam.declType!.isNotA(param.declType)))) {
               return false;
             }
           }

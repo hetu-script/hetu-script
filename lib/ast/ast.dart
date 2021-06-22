@@ -479,7 +479,7 @@ class WhileStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitWhileStmt(this);
 
-  final AstNode? condition;
+  final AstNode condition;
 
   final BlockStmt loop;
 
@@ -511,11 +511,13 @@ class ForStmt extends AstNode {
 
   final AstNode? increment;
 
+  final bool hasBracket;
+
   final BlockStmt loop;
 
   const ForStmt(this.declaration, this.condition, this.increment, this.loop,
       int line, int column,
-      {HTSource? source})
+      {this.hasBracket = false, HTSource? source})
       : super(SemanticNames.forStmt, line, column, source);
 }
 
@@ -527,11 +529,13 @@ class ForInStmt extends AstNode {
 
   final AstNode collection;
 
+  final bool hasBracket;
+
   final BlockStmt loop;
 
   const ForInStmt(
       this.declaration, this.collection, this.loop, int line, int column,
-      {HTSource? source})
+      {this.hasBracket = false, HTSource? source})
       : super(SemanticNames.forInStmt, line, column, source);
 }
 

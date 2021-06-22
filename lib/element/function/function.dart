@@ -85,6 +85,7 @@ class HTFunction extends HTTypedFunctionDeclaration
       this.paramDecls = const <String, HTParameter>{},
       int minArity = 0,
       int maxArity = 0,
+      HTNamespace? closure,
       this.context,
       this.referConstructor,
       this.klass})
@@ -99,7 +100,8 @@ class HTFunction extends HTTypedFunctionDeclaration
             externalTypeId: externalTypeId,
             isVariadic: isVariadic,
             minArity: minArity,
-            maxArity: maxArity) {
+            maxArity: maxArity,
+            closure: closure) {
     this.interpreter = interpreter;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -143,6 +145,7 @@ class HTFunction extends HTTypedFunctionDeclaration
       paramDecls: paramDecls,
       minArity: minArity,
       maxArity: maxArity,
+      closure: closure,
       context: context,
       referConstructor: referConstructor,
       klass: klass);
@@ -198,19 +201,19 @@ class HTFunction extends HTTypedFunctionDeclaration
           return result;
         }
         // 函数每次在调用时，临时生成一个新的作用域
-        final closure =
+        final callClosure =
             HTNamespace(moduleFullName, libraryName, id: id, closure: context);
         if (context is HTInstanceNamespace) {
           final instanceNamespace = context as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
-            closure.define(
+            callClosure.define(
                 HTLexicon.SUPER,
                 HTVariable(
                     HTLexicon.SUPER, moduleFullName, libraryName, interpreter,
                     value: instanceNamespace.next));
           }
 
-          closure.define(
+          callClosure.define(
               HTLexicon.THIS,
               HTVariable(
                   HTLexicon.THIS, moduleFullName, libraryName, interpreter,
@@ -224,20 +227,20 @@ class HTFunction extends HTTypedFunctionDeclaration
           if (referConstructor!.isSuper) {
             final superClass = klass!.superClass!;
             if (name == null) {
-              constructor =
-                  superClass.declarations[SemanticNames.constructor]!.value;
-            } else {
               constructor = superClass
+                  .namespace.declarations[SemanticNames.constructor]!.value;
+            } else {
+              constructor = superClass.namespace
                   .declarations['${SemanticNames.constructor}$name']!.value;
             }
           }
           // (callee == HTLexicon.THIS)
           else {
             if (name == null) {
-              constructor =
-                  klass!.declarations[SemanticNames.constructor]!.value;
-            } else {
               constructor = klass!
+                  .namespace.declarations[SemanticNames.constructor]!.value;
+            } else {
+              constructor = klass!.namespace
                   .declarations['${SemanticNames.constructor}$name']!.value;
             }
           }
@@ -253,7 +256,7 @@ class HTFunction extends HTTypedFunctionDeclaration
                 moduleFullName: moduleFullName,
                 libraryName: libraryName,
                 ip: referCtorPosArgIps[i],
-                namespace: closure);
+                namespace: callClosure);
             referCtorPosArgs.add(arg);
           }
 
@@ -265,7 +268,7 @@ class HTFunction extends HTTypedFunctionDeclaration
                 moduleFullName: moduleFullName,
                 libraryName: libraryName,
                 ip: referCtorNamedArgIp,
-                namespace: closure);
+                namespace: callClosure);
             referCtorNamedArgs[name] = arg;
           }
 
@@ -279,7 +282,7 @@ class HTFunction extends HTTypedFunctionDeclaration
         HTVariable? variadicParam;
         for (var i = 0; i < paramDecls.length; ++i) {
           var decl = paramDecls.values.elementAt(i).clone();
-          closure.define(decl.id, decl);
+          callClosure.define(decl.id, decl);
 
           if (decl.isVariadic) {
             variadicStart = i;
@@ -315,7 +318,7 @@ class HTFunction extends HTTypedFunctionDeclaration
               moduleFullName: moduleFullName,
               libraryName: libraryName,
               ip: definitionIp,
-              namespace: closure,
+              namespace: callClosure,
               function: this,
               line: definitionLine,
               column: definitionColumn);
@@ -324,7 +327,7 @@ class HTFunction extends HTTypedFunctionDeclaration
               moduleFullName: moduleFullName,
               libraryName: libraryName,
               ip: definitionIp,
-              namespace: closure,
+              namespace: callClosure,
               function: this,
               line: definitionLine,
               column: definitionColumn);

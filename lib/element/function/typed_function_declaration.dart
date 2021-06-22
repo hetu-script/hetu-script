@@ -30,12 +30,12 @@ class HTTypedFunctionDeclaration extends HTElement {
 
   HTTypedFunctionDeclaration(
       String id, String moduleFullName, String libraryName,
-      {HTNamespace? closure,
-      this.declId = '',
+      {this.declId = '',
       String? classId,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
+      HTNamespace? closure,
       this.category = FunctionCategory.normal,
       this.externalFunc,
       this.externalTypeId,
@@ -48,11 +48,11 @@ class HTTypedFunctionDeclaration extends HTElement {
             parameterDeclarations: parameterDeclarations.values.toList(),
             returnType: returnType ?? HTType.ANY),
         super(id, moduleFullName, libraryName,
-            closure: closure,
             classId: classId,
             isExternal: isExternal,
             isStatic: isStatic,
-            isConst: isConst);
+            isConst: isConst,
+            closure: closure);
 
   /// Print function signature to String with function [id] and parameter [id].
   @override

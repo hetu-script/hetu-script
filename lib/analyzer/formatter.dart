@@ -433,11 +433,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitWhileStmt(WhileStmt whileStmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.WHILE} ');
-    if (whileStmt.condition != null) {
-      output.write('${HTLexicon.roundLeft}');
-      final conditionString = printAst(whileStmt.condition!);
-      output.write('$conditionString${HTLexicon.roundRight} ');
-    }
+    final conditionString = printAst(whileStmt.condition);
+    output.write('$conditionString ');
     final loopString = printAst(whileStmt.loop);
     output.write(loopString);
     return output.toString();
@@ -451,9 +448,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
     output.write(loopString);
     if (doStmt.condition != null) {
       final conditionString = printAst(doStmt.condition!);
-      output.write(' ${HTLexicon.WHILE} ${HTLexicon.roundLeft}');
+      output.write(' ${HTLexicon.WHILE} ');
       output.write(conditionString);
-      output.write(HTLexicon.roundRight);
     }
     return output.toString();
   }
@@ -461,7 +457,10 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitForStmt(ForStmt forStmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.FOR} ${HTLexicon.roundLeft}');
+    output.write('${HTLexicon.FOR} ');
+    if (forStmt.hasBracket) {
+      output.write(HTLexicon.roundLeft);
+    }
     final declString =
         forStmt.declaration != null ? printAst(forStmt.declaration!) : '';
     final conditionString =
@@ -469,7 +468,10 @@ class HTFormatter implements AbstractAstVisitor<String> {
     final incrementString =
         forStmt.increment != null ? printAst(forStmt.increment!) : '';
     output.write(
-        '$declString${HTLexicon.semicolon} $conditionString${HTLexicon.semicolon} $incrementString${HTLexicon.roundRight} ');
+        '$declString${HTLexicon.semicolon} $conditionString${HTLexicon.semicolon} $incrementString');
+    if (forStmt.hasBracket) {
+      output.write('${HTLexicon.roundRight} ');
+    }
     final loopString = printAst(forStmt.loop);
     output.write(loopString);
     return output.toString();
@@ -478,11 +480,16 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitForInStmt(ForInStmt forInStmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.FOR} ${HTLexicon.roundLeft}');
+    output.write('${HTLexicon.FOR} ');
+    if (forInStmt.hasBracket) {
+      output.write(HTLexicon.roundLeft);
+    }
     final declString = printAst(forInStmt.declaration);
     final collectionString = printAst(forInStmt.collection);
     output.write('$declString ${HTLexicon.IN} $collectionString');
-    output.write('${HTLexicon.roundRight} ');
+    if (forInStmt.hasBracket) {
+      output.write('${HTLexicon.roundRight} ');
+    }
     final stmtString = printAst(forInStmt.loop);
     output.write(stmtString);
     return output.toString();

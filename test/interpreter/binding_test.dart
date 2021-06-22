@@ -117,7 +117,7 @@ class PersonClassBinding extends HTExternalClass {
 
   @override
   dynamic memberSet(String field, dynamic value,
-      {String from = SemanticNames.global}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (field) {
       case 'Person.profile':
         return Person.profile = value;

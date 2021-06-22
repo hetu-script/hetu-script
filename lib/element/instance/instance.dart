@@ -9,7 +9,7 @@ import '../../type/nominal_type.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import '../class/cast.dart';
-// import '../variable/typed_variable_declaration.dart';
+import '../variable/typed_variable_declaration.dart';
 import '../namespace.dart';
 import '../object.dart';
 import 'instance_namespace.dart';
@@ -51,13 +51,8 @@ class HTInstance with HTObject, InterpreterRef {
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
     HTInstanceNamespace? curNamespace = HTInstanceNamespace(
-        id,
-        interpreter.curModuleFullName,
-        interpreter.curLibraryName,
-        this,
-        interpreter,
-        classId: curKlass.id,
-        closure: klass.namespace);
+        id, interpreter.curModuleFullName, interpreter.curLibraryName, this,
+        classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final decl in curKlass.instanceMembers.values) {
@@ -79,13 +74,8 @@ class HTInstance with HTObject, InterpreterRef {
       curKlass = curKlass.superClass;
       if (curKlass != null) {
         curNamespace.next = HTInstanceNamespace(
-            id,
-            interpreter.curModuleFullName,
-            interpreter.curLibraryName,
-            this,
-            interpreter,
-            classId: curKlass.id,
-            closure: curKlass.namespace);
+            id, interpreter.curModuleFullName, interpreter.curLibraryName, this,
+            classId: curKlass.id, closure: curKlass.namespace);
       } else {
         curNamespace.next = null;
       }
@@ -219,7 +209,9 @@ class HTInstance with HTObject, InterpreterRef {
   /// only search that [classId]'s corresponed [HTInstanceNamespace].
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, String? classId}) {
+      {String from = SemanticNames.global,
+      bool error = true,
+      String? classId}) {
     final setter = '${SemanticNames.setter}$field';
 
     if (classId == null) {

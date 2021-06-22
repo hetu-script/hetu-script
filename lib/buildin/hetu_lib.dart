@@ -1,12 +1,10 @@
-/// The pre-packaged modules of Hetu scripting language.
-///
-/// Automatically generated based on files in 'hetu_lib' folder.
+/// This file has been automatically generated 
+/// from files in [hetu_lib] folder.
+/// Please do not edit manually.
+/// 
+/// The pre-included modules of Hetu scripting language.
 final Map<String, String> coreModules = const {
   'core.ht': r'''abstract class object {
-
-}
-
-abstract class function {
 
 }
 
@@ -278,9 +276,9 @@ external class Map {
 }''',
   'math.ht': r'''
 external class Math {
-  static const e: num = 2.718281828459045;
+  static final e: num = 2.718281828459045;
   
-  static const pi: num = 3.1415926535897932;
+  static final pi: num = 3.1415926535897932;
 
   static fun min(a, b)
 

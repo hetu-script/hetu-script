@@ -329,9 +329,7 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
 
   @override
   dynamic visitWhileStmt(WhileStmt stmt) {
-    if (stmt.condition != null) {
-      visitAstNode(stmt.condition!);
-    }
+    visitAstNode(stmt.condition);
     visitAstNode(stmt.loop);
   }
 

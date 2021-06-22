@@ -15,8 +15,6 @@ abstract class HTElement {
 
   final String? classId;
 
-  final HTNamespace? closure;
-
   final String moduleFullName;
 
   final String libraryName;
@@ -35,20 +33,17 @@ abstract class HTElement {
 
   final bool isMutable;
 
-  /// Elements defined within this class, namespace, block etc.
-  /// Element could be registerd with a key different from its id.
-  final Map<String, HTElement> declarations;
+  final HTNamespace? closure;
 
   const HTElement(this.id, this.moduleFullName, this.libraryName,
-      {this.closure,
-      this.source,
+      {this.source,
       this.idRange = SourceRange.EMPTY,
       this.classId,
       this.isExternal = false,
       this.isStatic = false,
       this.isConst = false,
       this.isMutable = false,
-      this.declarations = const {}});
+      this.closure});
 
   dynamic get value => this;
 

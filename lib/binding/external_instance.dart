@@ -81,7 +81,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
 
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global}) {
+      {String from = SemanticNames.global, bool error = true}) {
     if (externalClass != null) {
       externalClass!.instanceMemberSet(externalObject, field, varValue);
     } else {

@@ -1,6 +1,5 @@
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
-import '../../interpreter/abstract_interpreter.dart';
 import '../namespace.dart';
 import 'instance.dart';
 
@@ -9,17 +8,15 @@ import 'instance.dart';
 /// [HTInstanceNamespace] is a singly linked list node,
 /// it holds its super classes' [HTInstanceNamespace]'s referrences.
 class HTInstanceNamespace extends HTNamespace {
-  final String? classId;
-
   final HTInstance instance;
 
   late final HTInstanceNamespace? next;
 
-  HTInstanceNamespace(String id, String moduleFullName, String libraryName,
-      this.instance, AbstractInterpreter interpreter,
-      {this.classId, HTNamespace? closure})
-      : super(moduleFullName, libraryName, interpreter,
-            id: id, closure: closure);
+  HTInstanceNamespace(
+      String id, String moduleFullName, String libraryName, this.instance,
+      {String? classId, HTNamespace? closure})
+      : super(moduleFullName, libraryName,
+            id: id, classId: classId, closure: closure);
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberGet],
   /// with a new named parameter [recursive].
@@ -58,7 +55,9 @@ class HTInstanceNamespace extends HTNamespace {
   /// try assigning variable from enclosed namespace.
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, bool recursive = true}) {
+      {String from = SemanticNames.global,
+      bool recursive = true,
+      bool error = true}) {
     final setter = '${SemanticNames.getter}$field';
 
     HTInstanceNamespace? curNamespace = this;

@@ -56,7 +56,9 @@ class HTClassNamespace extends HTNamespace {
 
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, bool error = true}) {
+      {String from = SemanticNames.global,
+      bool recursive = true,
+      bool error = true}) {
     final setter = '${SemanticNames.setter}$field';
     if (declarations.containsKey(field)) {
       if (field.startsWith(HTLexicon.privatePrefix) &&
@@ -80,7 +82,7 @@ class HTClassNamespace extends HTNamespace {
       return;
     }
 
-    if (closure != null) {
+    if (recursive && closure != null) {
       closure!.memberSet(field, varValue, from: from);
       return;
     }

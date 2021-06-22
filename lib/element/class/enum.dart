@@ -48,7 +48,7 @@ class HTEnum extends HTElement with HTObject, HetuRef {
 
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global}) {
+      {String from = SemanticNames.global, bool error = true}) {
     if (enums.containsKey(field)) {
       throw HTError.immutable(field);
     }

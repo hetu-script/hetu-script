@@ -539,15 +539,15 @@ class Hetu extends AbstractInterpreter {
           }
           break;
         case HTOpCode.whileStmt:
-          final hasCondition = _code.readBool();
-          if (hasCondition && !_curValue) {
+          if (!_curValue) {
             _code.ip = _loops.last.breakIp;
             _loops.removeLast();
             --_curLoopCount;
           }
           break;
         case HTOpCode.doStmt:
-          if (_curValue) {
+          final hasCondition = _code.readBool();
+          if (hasCondition && _curValue) {
             _code.ip = _loops.last.startIp;
           }
           break;
@@ -733,6 +733,7 @@ class Hetu extends AbstractInterpreter {
             isVariadic: isVariadic,
             minArity: minArity,
             maxArity: maxArity,
+            closure: _curNamespace,
             context: _curNamespace);
 
         if (!hasExternalTypedef) {
@@ -1242,6 +1243,7 @@ class Hetu extends AbstractInterpreter {
         isVariadic: isVariadic,
         minArity: minArity,
         maxArity: maxArity,
+        closure: _curNamespace,
         referConstructor: referConstructor);
 
     if (!isStatic &&
@@ -1286,19 +1288,22 @@ class Hetu extends AbstractInterpreter {
     _curClass = klass;
     final hasDefinition = _code.readBool();
     if (hasDefinition) {
-      execute(namespace: klass);
+      execute(namespace: klass.namespace);
     }
     // Add default constructor if non-exist.
     if (!isAbstract) {
       if (!isExternal) {
-        if (!klass.contains(SemanticNames.constructor)) {
+        if (!klass.namespace.declarations
+            .containsKey(SemanticNames.constructor)) {
           final ctor = HTFunction(SemanticNames.constructor, _curModuleFullName,
               _curLibraryName, this,
-              classId: klass.id, category: FunctionCategory.constructor);
+              classId: klass.id,
+              category: FunctionCategory.constructor,
+              closure: klass.namespace);
           // final decl = HTVariable(
           //     ctor.id, _curModuleFullName, _curLibraryName, this,
           //     value: ctor);
-          klass.define(ctor.id, ctor);
+          klass.namespace.define(ctor.id, ctor);
         }
       }
       // else {

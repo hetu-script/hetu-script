@@ -19,7 +19,6 @@ class HTNamespace extends HTElement with HTObject {
   /// The full closure path of this namespace
   String get fullName => _fullName;
 
-  @override
   final declarations = <String, HTElement>{};
 
   HTNamespace(
@@ -92,7 +91,9 @@ class HTNamespace extends HTElement with HTObject {
   /// 注意和memberSet只是对对象本身的成员赋值不同
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, bool recursive = true}) {
+      {String from = SemanticNames.global,
+      bool recursive = true,
+      bool error = true}) {
     if (declarations.containsKey(field)) {
       if (field.startsWith(HTLexicon.privatePrefix) &&
           !from.startsWith(fullName)) {

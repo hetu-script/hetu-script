@@ -1,7 +1,8 @@
 import '../../type/type.dart';
 import '../namespace.dart';
+import '../element.dart';
 
-class HTClassDeclaration extends HTNamespace {
+class HTClassDeclaration extends HTElement {
   /// The type parameters of the class.
   final Iterable<HTType> genericParameters;
 
@@ -33,8 +34,8 @@ class HTClassDeclaration extends HTNamespace {
       bool isExternal = false,
       this.isAbstract = false,
       HTNamespace? closure})
-      : super(moduleFullName, libraryName,
-            id: id, classId: classId, closure: closure) {
+      : super(id, moduleFullName, libraryName,
+            classId: classId, isExternal: isExternal, closure: closure) {
     _superType = superType;
   }
 

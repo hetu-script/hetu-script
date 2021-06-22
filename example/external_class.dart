@@ -92,7 +92,7 @@ class PersonClassBinding extends HTExternalClass {
 
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (field) {
       case 'Person.race':
         throw HTError.immutable(field);

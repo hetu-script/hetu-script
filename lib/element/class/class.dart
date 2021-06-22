@@ -4,22 +4,24 @@ import '../../error/error.dart';
 import '../element.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
+import '../object.dart';
 import '../namespace.dart';
 import '../function/function.dart';
 import '../instance/instance.dart';
 import 'class_declaration.dart';
-// import 'class_namespace.dart';
+import 'class_namespace.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
-class HTClass extends HTClassDeclaration with HetuRef {
+class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
 
-  @override
-  HTType get valueType => HTType.CLASS;
+  /// The [HTNamespace] for this class,
+  /// for searching for static variables.
+  final HTClassNamespace namespace;
 
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
@@ -39,7 +41,6 @@ class HTClass extends HTClassDeclaration with HetuRef {
 
   /// The instance member variables defined in class definition.
   final instanceMembers = <String, HTElement>{};
-  // final Map<String, HTClass> instanceNestedClasses = {};
 
   /// Create a default [HTClass] instance.
   HTClass(String id, String moduleFullName, String libraryName,
@@ -53,7 +54,10 @@ class HTClass extends HTClassDeclaration with HetuRef {
       bool isExternal = false,
       bool isAbstract = false,
       this.superClass})
-      : super(id, moduleFullName, libraryName,
+      : namespace = HTClassNamespace(
+            id, id, moduleFullName, libraryName, interpreter,
+            closure: closure),
+        super(id, moduleFullName, libraryName,
             classId: classId,
             genericParameters: genericParameters,
             superType: superType,
@@ -68,14 +72,18 @@ class HTClass extends HTClassDeclaration with HetuRef {
 
   @override
   void resolve() {
-    super.resolve(namespace);
+    super.resolve();
 
     if (superType != null) {
       superClass = namespace.memberGet(superType!.id, from: namespace.fullName);
     }
 
-    for (final decl in declarations.values) {
-      decl.resolve(namespace);
+    for (final decl in namespace.declarations.values) {
+      decl.resolve();
+    }
+
+    for (final decl in instanceMembers.values) {
+      decl.resolve();
     }
   }
 
@@ -163,25 +171,15 @@ class HTClass extends HTClassDeclaration with HetuRef {
       }
     }
 
-    switch (field) {
-      case 'valueType':
-        return valueType;
-      // case 'fromJson':
-      //   return ({positionalArgs, namedArgs, typeArgs}) {
-      //     return createInstanceFromJson(positionalArgs.first,
-      //         typeArgs: typeArgs ?? const []);
-      //   };
-      default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+    if (error) {
+      throw HTError.undefined(field);
     }
   }
 
   /// Assign a value to a static member of this [HTClass].
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global}) {
+      {String from = SemanticNames.global, bool error = true}) {
     final setter = '${SemanticNames.setter}$field';
 
     if (isExternal) {

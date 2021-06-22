@@ -23,18 +23,6 @@ abstract class HTObject {
   /// The [HTType] of this [HTObject]
   HTType get valueType => HTType.object;
 
-  /// Wether this object contains a member with a name by [field].
-  bool contains(String field) {
-    switch (field) {
-      case 'valueType':
-        return true;
-      case 'toString':
-        return true;
-      default:
-        return false;
-    }
-  }
-
   void delete(String field) {}
 
   /// Fetch a member by the [field], in the form of
@@ -64,13 +52,14 @@ abstract class HTObject {
   /// object.field = value
   /// ```
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global}) {
+      {String from = SemanticNames.global, bool error = true}) {
     switch (field) {
       case 'valueType':
         throw HTError.immutable('valueType');
       case 'toString':
         throw HTError.immutable('toString');
       default:
+        // will throw even if error arg is false
         throw HTError.undefined(field);
     }
   }

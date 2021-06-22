@@ -1037,22 +1037,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitWhileStmt(WhileStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.loopPoint);
-    Uint8List? condition;
-    if (stmt.condition != null) {
-      condition = visitAstNode(stmt.condition!);
-    }
+    final condition = visitAstNode(stmt.condition);
     final loop = visitAstNode(stmt.loop);
-    final loopLength = (condition?.length ?? 0) + loop.length + 5;
+    final loopLength = condition.length + loop.length + 5;
     bytesBuilder.add(_uint16(0)); // while loop continue ip
     bytesBuilder.add(_uint16(loopLength)); // while loop break ip
-    if (condition != null) {
-      bytesBuilder.add(condition);
-      bytesBuilder.addByte(HTOpCode.whileStmt);
-      bytesBuilder.addByte(1); // bool: has condition
-    } else {
-      bytesBuilder.addByte(HTOpCode.whileStmt);
-      bytesBuilder.addByte(0); // bool: has condition
-    }
+    bytesBuilder.add(condition);
+    bytesBuilder.addByte(HTOpCode.whileStmt);
     bytesBuilder.add(loop);
     bytesBuilder.addByte(HTOpCode.skip);
     bytesBuilder.add(_int16(-loopLength));
@@ -1074,8 +1065,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.add(loop);
     if (condition != null) {
       bytesBuilder.add(condition);
+      bytesBuilder.addByte(HTOpCode.doStmt);
+      bytesBuilder.addByte(1); // bool: has condition
+    } else {
+      bytesBuilder.addByte(HTOpCode.doStmt);
+      bytesBuilder.addByte(0); // bool: has condition
     }
-    bytesBuilder.addByte(HTOpCode.doStmt);
     return bytesBuilder.toBytes();
   }
 
@@ -1084,7 +1079,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_shortUtf8String(SemanticNames.forStmtInit));
-    Uint8List? condition;
+    late Uint8List condition;
     Uint8List? increment;
     AstNode? capturedDecl;
     final newSymbolMap = <String, String>{};
@@ -1110,6 +1105,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     }
     if (stmt.condition != null) {
       condition = visitAstNode(stmt.condition!);
+    } else {
+      final boolExpr =
+          BooleanExpr(true, stmt.line, stmt.column, source: stmt.source);
+      condition = visitBooleanExpr(boolExpr);
     }
     if (stmt.increment != null) {
       increment = visitAstNode(stmt.increment!);
@@ -1118,16 +1117,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       stmt.loop.statements.insert(0, capturedDecl);
     }
     final loop = visitBlockStmt(stmt.loop);
-    final continueLength = (condition?.length ?? 0) + loop.length + 2;
+    final continueLength = condition.length + loop.length + 1;
     final breakLength = continueLength + (increment?.length ?? 0) + 3;
     bytesBuilder.addByte(HTOpCode.loopPoint);
     bytesBuilder.add(_uint16(continueLength));
     bytesBuilder.add(_uint16(breakLength));
-    if (condition != null) {
-      bytesBuilder.add(condition);
-    }
+    bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.whileStmt);
-    bytesBuilder.addByte((condition != null) ? 1 : 0); // bool: has condition
     bytesBuilder.add(loop);
     if (increment != null) {
       bytesBuilder.add(increment);
@@ -1234,13 +1230,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.loopPoint);
     stmt.loop.statements.insert(0, capturedDecl);
     final loop = visitBlockStmt(stmt.loop);
-    final continueLength = condition.length + loop.length + 2;
+    final continueLength = condition.length + loop.length + 1;
     final breakLength = continueLength + increment.length + 3;
     bytesBuilder.add(_uint16(continueLength));
     bytesBuilder.add(_uint16(breakLength));
     bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.whileStmt);
-    bytesBuilder.addByte(1); // bool: has condition
     bytesBuilder.add(loop);
     bytesBuilder.add(increment);
     bytesBuilder.addByte(HTOpCode.skip);
