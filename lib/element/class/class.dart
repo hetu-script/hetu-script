@@ -43,9 +43,12 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   final instanceMembers = <String, HTElement>{};
 
   /// Create a default [HTClass] instance.
-  HTClass(String id, String moduleFullName, String libraryName,
-      Hetu interpreter, HTNamespace closure,
-      {String? classId,
+  HTClass(Hetu interpreter,
+      {String? id,
+      String? classId,
+      HTNamespace? closure,
+      String? moduleFullName,
+      String? libraryName,
       Iterable<HTType> genericParameters = const [],
       HTType? superType,
       Iterable<HTType> withTypes = const [],
@@ -55,18 +58,24 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       bool isAbstract = false,
       this.superClass})
       : namespace = HTClassNamespace(
-            id, id, moduleFullName, libraryName, interpreter,
-            closure: closure),
-        super(id, moduleFullName, libraryName,
+            id: id,
             classId: classId,
+            closure: closure,
+            moduleFullName: moduleFullName,
+            libraryName: libraryName),
+        super(
+            id: id,
+            classId: classId,
+            closure: closure,
+            moduleFullName: moduleFullName,
+            libraryName: libraryName,
             genericParameters: genericParameters,
             superType: superType,
             withTypes: withTypes,
             implementsTypes: implementsTypes,
             isNested: isNested,
             isExternal: isExternal,
-            isAbstract: isAbstract,
-            closure: closure) {
+            isAbstract: isAbstract) {
     this.interpreter = interpreter;
   }
 
@@ -88,16 +97,19 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   }
 
   @override
-  HTClass clone() =>
-      HTClass(id, moduleFullName, libraryName, interpreter, closure!,
-          classId: classId,
-          genericParameters: genericParameters,
-          superType: superType,
-          withTypes: withTypes,
-          implementsTypes: implementsTypes,
-          isExternal: isExternal,
-          isAbstract: isAbstract,
-          superClass: superClass);
+  HTClass clone() => HTClass(interpreter,
+      id: id,
+      classId: classId,
+      closure: closure,
+      moduleFullName: moduleFullName,
+      libraryName: libraryName,
+      genericParameters: genericParameters,
+      superType: superType,
+      withTypes: withTypes,
+      implementsTypes: implementsTypes,
+      isExternal: isExternal,
+      isAbstract: isAbstract,
+      superClass: superClass);
 
   /// Create a [HTInstance] of this [HTClass],
   /// will not call constructors
@@ -183,7 +195,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
     final setter = '${SemanticNames.setter}$field';
 
     if (isExternal) {
-      final externClass = interpreter.fetchExternalClass(id);
+      final externClass = interpreter.fetchExternalClass(id!);
       externClass.memberSet('$id.$field', varValue);
       return;
     } else if (namespace.declarations.containsKey(field)) {
@@ -234,12 +246,12 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   }
 
   /// Add a instance member declaration to this [HTClass].
-  void defineInstanceMember(HTElement variable,
+  void defineInstanceMember(String id, HTElement decl,
       {bool override = false, bool error = true}) {
-    if ((!instanceMembers.containsKey(variable.id)) || override) {
-      instanceMembers[variable.id] = variable;
+    if ((!instanceMembers.containsKey(id)) || override) {
+      instanceMembers[id] = decl;
     } else {
-      if (error) throw HTError.definedRuntime(variable.id);
+      if (error) throw HTError.definedRuntime(id);
     }
   }
 }

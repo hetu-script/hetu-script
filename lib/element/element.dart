@@ -1,27 +1,34 @@
 import 'package:meta/meta.dart';
 
-import 'namespace.dart';
-import '../../error/error.dart';
+import '../error/error.dart';
+import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
 // import '../type/type.dart';
-// import 'object.dart';
+import 'object.dart';
+import 'namespace.dart';
 
 /// Element is a semantic entity in the program that
 /// represents things that are declared with a name
 /// and hence can be referenced elsewhere in the code.
-abstract class HTElement {
-  final String id;
+abstract class HTElement with HTObject {
+  final String? id;
+
+  String get name => id ?? (SemanticNames.anonymous + valueType.toString());
 
   final String? classId;
 
-  final String moduleFullName;
+  final HTNamespace? closure;
 
-  final String libraryName;
+  final String? moduleFullName;
+
+  final String? libraryName;
 
   final HTSource? source;
 
   final SourceRange idRange;
+
+  final SourceRange sourceRange;
 
   bool get isMember => classId != null;
 
@@ -33,23 +40,25 @@ abstract class HTElement {
 
   final bool isMutable;
 
-  final HTNamespace? closure;
-
-  const HTElement(this.id, this.moduleFullName, this.libraryName,
-      {this.source,
-      this.idRange = SourceRange.EMPTY,
+  const HTElement(
+      {this.id,
       this.classId,
+      this.closure,
+      this.moduleFullName,
+      this.libraryName,
+      this.source,
+      this.idRange = SourceRange.EMPTY,
+      this.sourceRange = SourceRange.EMPTY,
       this.isExternal = false,
       this.isStatic = false,
       this.isConst = false,
-      this.isMutable = false,
-      this.closure});
+      this.isMutable = false});
 
   dynamic get value => this;
 
   set value(dynamic newVal) {
     if (!isMutable || isConst) {
-      throw HTError.immutable(id);
+      throw HTError.immutable(name);
     }
   }
 

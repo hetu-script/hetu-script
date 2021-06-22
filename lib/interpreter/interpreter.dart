@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:hetu_script/type/nominal_type.dart';
-
 import '../binding/external_function.dart';
 import '../binding/external_class.dart';
 import '../element/namespace.dart';
@@ -17,6 +15,7 @@ import '../element/variable/variable.dart';
 import '../parser/abstract_parser.dart';
 import '../type/type.dart';
 import '../type/function_type.dart';
+import '../type/nominal_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
@@ -28,6 +27,7 @@ import 'const_table.dart';
 import 'bytecode_reader.dart';
 import 'compiler.dart';
 import 'opcode.dart';
+import 'library.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -42,21 +42,13 @@ class _LoopInfo {
   _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
-class _Library {
-  final Map<String, HTNamespace> namespaces;
-
-  final Uint8List bytes;
-
-  _Library(this.namespaces, this.bytes);
-}
-
 /// A bytecode implementation of a Hetu script interpreter
 class Hetu extends AbstractInterpreter {
   static const verMajor = 0;
   static const verMinor = 1;
   static const verPatch = 0;
 
-  final _libs = <String, _Library>{};
+  final _libs = <String, HTLibrary>{};
 
   late BytecodeReader _code;
 
@@ -196,7 +188,7 @@ class Hetu extends AbstractInterpreter {
         // 但这样的话，就需要把import改成一个命令，可以在函数内使用
         final nsp = execute(namespace: namespace ?? global);
         namespaces[nsp.id] = nsp;
-        final lib = _Library(namespaces, bytes);
+        final lib = HTLibrary(namespaces, bytes);
         _libs[_curLibraryName] = lib;
         global.import(nsp);
 
@@ -206,11 +198,11 @@ class Hetu extends AbstractInterpreter {
           final HTNamespace nsp = execute();
           namespaces[nsp.id] = nsp;
         }
-        final lib = _Library(namespaces, bytes);
+        final lib = HTLibrary(namespaces, bytes);
         _libs[_curLibraryName] = lib;
 
         if (createNamespace) {
-          for (final module in compilation.modules) {
+          for (final module in compilation.modules.values) {
             final nsp = lib.namespaces[module.fullName]!;
             for (final info in module.imports) {
               final importFullName =

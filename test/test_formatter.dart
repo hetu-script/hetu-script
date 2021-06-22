@@ -14,7 +14,7 @@ void main() async {
 
   formatter.formatLibrary(compilation);
 
-  for (final module in compilation.modules) {
+  for (final module in compilation.modules.values) {
     print('========[${module.fullName}]========');
     print(module.source.content);
     print('================');

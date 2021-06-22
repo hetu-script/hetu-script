@@ -75,16 +75,16 @@ class HTType with HTObject {
   String toString() {
     var typeString = StringBuffer();
     typeString.write(id);
-    // if (typeArgs.isNotEmpty) {
-    //   typeString.write(HTLexicon.angleLeft);
-    //   for (var i = 0; i < typeArgs.length; ++i) {
-    //     typeString.write(typeArgs[i]);
-    //     if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
-    //       typeString.write('${HTLexicon.comma} ');
-    //     }
-    //   }
-    //   typeString.write(HTLexicon.angleRight);
-    // }
+    if (typeArgs.isNotEmpty) {
+      typeString.write(HTLexicon.angleLeft);
+      for (var i = 0; i < typeArgs.length; ++i) {
+        typeString.write(typeArgs[i]);
+        if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
+          typeString.write('${HTLexicon.comma} ');
+        }
+      }
+      typeString.write(HTLexicon.angleRight);
+    }
     if (isNullable) {
       typeString.write(HTLexicon.nullable);
     }

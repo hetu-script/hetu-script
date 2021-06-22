@@ -106,7 +106,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     mainBytesBuilder.add(hetuVersionData);
 
     final bytesBuilder = BytesBuilder();
-    for (final module in library.modules) {
+    for (final module in library.modules.values) {
       _curModuleFullName = module.fullName;
       if (module.createNamespace) {
         bytesBuilder.addByte(HTOpCode.module);

@@ -47,26 +47,20 @@ class HTAstCompilation {
 
   HTAstCompilation(this.name);
 
-  final _modules = <String, HTAstModule>{};
-
-  Iterable<String> get keys => _modules.keys;
-
-  Iterable<HTAstModule> get modules => _modules.values;
-
-  bool containsModule(String fullName) => _modules.containsKey(fullName);
+  final modules = <String, HTAstModule>{};
 
   HTAstModule getModule(String fullName,
       [ErrorType errorType = ErrorType.runtimeError]) {
-    if (_modules.containsKey(fullName)) {
-      return _modules[fullName]!;
+    if (modules.containsKey(fullName)) {
+      return modules[fullName]!;
     } else {
       throw HTError.unknownModule(fullName, errorType);
     }
   }
 
-  void add(HTAstModule module) => _modules[module.fullName] = module;
+  void add(HTAstModule module) => modules[module.fullName] = module;
 
   void join(HTAstCompilation bundle2) {
-    _modules.addAll(bundle2._modules);
+    modules.addAll(bundle2.modules);
   }
 }

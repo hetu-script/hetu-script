@@ -73,7 +73,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   void formatLibrary(HTAstCompilation bundle) {
-    for (final module in bundle.modules) {
+    for (final module in bundle.modules.values) {
       formatModule(module);
     }
   }

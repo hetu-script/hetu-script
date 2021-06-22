@@ -3,11 +3,10 @@ import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../type/type.dart';
 import 'element.dart';
-import 'object.dart';
 
 /// For interpreter searching for symbols
 /// from a certain block or module.
-class HTNamespace extends HTElement with HTObject {
+class HTNamespace extends HTElement {
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
@@ -22,19 +21,23 @@ class HTNamespace extends HTElement with HTObject {
   final declarations = <String, HTElement>{};
 
   HTNamespace(
-    String moduleFullName,
-    String libraryName, {
-    String id = SemanticNames.anonymousNamespace,
-    String? classId,
-    Map<String, HTElement> declarations = const {},
-    HTNamespace? closure,
-  }) : super(id, moduleFullName, libraryName,
-            classId: classId, closure: closure) {
+      {String? id,
+      String? classId,
+      HTNamespace? closure,
+      String? moduleFullName,
+      String? libraryName,
+      Map<String, HTElement> declarations = const {}})
+      : super(
+            id: id,
+            classId: classId,
+            closure: closure,
+            moduleFullName: moduleFullName,
+            libraryName: libraryName) {
     // calculate the full name of this namespace
-    _fullName = id;
+    _fullName = name;
     var curSpace = closure;
     while (curSpace != null) {
-      _fullName = curSpace.id + HTLexicon.memberGet + fullName;
+      _fullName = curSpace.name + HTLexicon.memberGet + fullName;
       curSpace = curSpace.closure;
     }
 
@@ -114,11 +117,18 @@ class HTNamespace extends HTElement with HTObject {
 
   void import(HTNamespace other) {
     for (final decl in other.declarations.values) {
-      define(decl.id, decl, error: false);
+      if (decl.id != null) {
+        define(decl.id!, decl, error: false);
+      }
     }
   }
 
   @override
-  HTNamespace clone() => HTNamespace(moduleFullName, libraryName,
-      id: id, classId: classId, declarations: declarations, closure: closure);
+  HTNamespace clone() => HTNamespace(
+      id: id,
+      classId: classId,
+      closure: closure,
+      moduleFullName: moduleFullName,
+      libraryName: libraryName,
+      declarations: declarations);
 }

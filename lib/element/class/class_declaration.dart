@@ -24,8 +24,11 @@ class HTClassDeclaration extends HTElement {
 
   final bool isAbstract;
 
-  HTClassDeclaration(String id, String moduleFullName, String libraryName,
-      {String? classId,
+  HTClassDeclaration(
+      {String? id,
+      String? moduleFullName,
+      String? libraryName,
+      String? classId,
       this.genericParameters = const [],
       HTType? superType,
       this.withTypes = const [],
@@ -34,8 +37,13 @@ class HTClassDeclaration extends HTElement {
       bool isExternal = false,
       this.isAbstract = false,
       HTNamespace? closure})
-      : super(id, moduleFullName, libraryName,
-            classId: classId, isExternal: isExternal, closure: closure) {
+      : super(
+            id: id,
+            classId: classId,
+            closure: closure,
+            moduleFullName: moduleFullName,
+            libraryName: libraryName,
+            isExternal: isExternal) {
     _superType = superType;
   }
 
@@ -49,15 +57,17 @@ class HTClassDeclaration extends HTElement {
   }
 
   @override
-  HTClassDeclaration clone() =>
-      HTClassDeclaration(id, moduleFullName, libraryName,
-          classId: classId,
-          genericParameters: genericParameters,
-          superType: superType,
-          withTypes: withTypes,
-          implementsTypes: implementsTypes,
-          isNested: isNested,
-          isExternal: isExternal,
-          isAbstract: isAbstract,
-          closure: closure);
+  HTClassDeclaration clone() => HTClassDeclaration(
+      id: id,
+      classId: classId,
+      closure: closure,
+      moduleFullName: moduleFullName,
+      libraryName: libraryName,
+      genericParameters: genericParameters,
+      superType: superType,
+      withTypes: withTypes,
+      implementsTypes: implementsTypes,
+      isNested: isNested,
+      isExternal: isExternal,
+      isAbstract: isAbstract);
 }

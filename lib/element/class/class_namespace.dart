@@ -1,7 +1,6 @@
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
-import '../../interpreter/abstract_interpreter.dart';
 import '../variable/typed_variable_declaration.dart';
 import '../function/function.dart';
 import '../namespace.dart';
@@ -9,10 +8,17 @@ import '../namespace.dart';
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
-  HTClassNamespace(String id, String classId, String moduleFullName,
-      String libraryName, AbstractInterpreter interpreter,
-      {HTNamespace? closure})
-      : super(moduleFullName, libraryName, id: id, closure: closure);
+  HTClassNamespace(
+      {String? id,
+      String? classId,
+      HTNamespace? closure,
+      String? moduleFullName,
+      String? libraryName})
+      : super(
+            id: id,
+            closure: closure,
+            moduleFullName: moduleFullName,
+            libraryName: libraryName);
 
   @override
   dynamic memberGet(String field,

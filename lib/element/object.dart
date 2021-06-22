@@ -17,10 +17,9 @@ class _HTNull with HTObject {
 /// represents a value that have accessable member fields
 abstract class HTObject {
   /// The [null] in Hetu is a static const variable of [HTObject].
-  /// Hence every null is the same.
+  /// Hence every null is the same object.
   static const NULL = _HTNull();
 
-  /// The [HTType] of this [HTObject]
   HTType get valueType => HTType.object;
 
   void delete(String field) {}
