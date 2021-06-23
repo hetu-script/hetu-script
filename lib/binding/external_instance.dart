@@ -37,55 +37,45 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       if (klass != null) {
         valueType = HTNominalType(klass!);
       } else {
-        valueType = HTType(typeString, interpreter.curModuleFullName,
-            interpreter.curLibraryName);
+        valueType = HTType(typeString);
       }
     }
   }
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
-    switch (field) {
-      case 'valueType':
-        return valueType;
-      case 'toString':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            externalObject.toString();
-      default:
-        if (externalClass != null) {
-          final member =
-              externalClass!.instanceMemberGet(externalObject, field);
-          if (member is Function) {
-            final getter = '${SemanticNames.getter}$field';
-            if (klass!.instanceMembers.containsKey(field)) {
-              HTTypedFunctionDeclaration func =
-                  klass!.instanceMembers[field]!.value;
-              func.externalFunc = member;
-              return func;
-            } else if (klass!.instanceMembers.containsKey(getter)) {
-              HTTypedFunctionDeclaration func =
-                  klass!.instanceMembers[getter]!.value;
-              func.externalFunc = member;
-              return func;
-            }
-          }
-          return member;
-        } else {
-          if (error) {
-            throw HTError.undefined(field);
-          }
+  dynamic memberGet(String field, {bool error = true}) {
+    if (externalClass != null) {
+      final member = externalClass!.instanceMemberGet(externalObject, field);
+      if (member is Function) {
+        final getter = '${SemanticNames.getter}$field';
+        if (klass!.instanceMembers.containsKey(field)) {
+          HTTypedFunctionDeclaration func =
+              klass!.instanceMembers[field]!.value;
+          func.externalFunc = member;
+          return func;
+        } else if (klass!.instanceMembers.containsKey(getter)) {
+          HTTypedFunctionDeclaration func =
+              klass!.instanceMembers[getter]!.value;
+          func.externalFunc = member;
+          return func;
         }
+      }
+      return member;
+    } else {
+      if (error) {
+        throw HTError.undefined(field);
+      }
     }
   }
 
   @override
-  void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, bool error = true}) {
+  void memberSet(String field, dynamic varValue, {bool error = true}) {
     if (externalClass != null) {
       externalClass!.instanceMemberSet(externalObject, field, varValue);
     } else {
-      throw HTError.unknownTypeName(typeString);
+      if (error) {
+        throw HTError.unknownTypeName(typeString);
+      }
     }
   }
 }

@@ -13,11 +13,11 @@ import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../type/type.dart';
-import '../parser/parser.dart';
+import '../scanner/parser.dart';
 import 'compiler.dart';
 import '../element/function/function.dart';
 import '../element/namespace.dart';
-import '../parser/abstract_parser.dart' show ParserConfig;
+import '../scanner/abstract_parser.dart' show ParserConfig;
 import '../buildin/hetu_lib.dart';
 import '../element/object.dart';
 
@@ -73,9 +73,7 @@ abstract class AbstractInterpreter {
   late HTErrorHandler errorHandler;
   late SourceProvider sourceProvider;
 
-  final HTNamespace global = HTNamespace(
-      SemanticNames.global, SemanticNames.global,
-      id: SemanticNames.global);
+  final HTNamespace global = HTNamespace(id: SemanticNames.global);
 
   AbstractInterpreter(this.config,
       {HTErrorHandler? errorHandler, SourceProvider? sourceProvider}) {
@@ -131,8 +129,7 @@ abstract class AbstractInterpreter {
   }
 
   Future<dynamic> evalSource(HTSource source,
-      {String? libraryName,
-      HTNamespace? namespace,
+      {HTNamespace? namespace,
       InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -152,12 +149,10 @@ abstract class AbstractInterpreter {
       bool errorHandled = false}) async {
     final source = HTSource(
         moduleFullName ??
-            (SemanticNames.anonymousScript +
-                (AbstractInterpreter.anonymousScriptIndex++).toString()),
+            ('${SemanticNames.anonymousScript}${AbstractInterpreter.anonymousScriptIndex++}'),
         content);
 
     return await evalSource(source,
-        libraryName: libraryName,
         // when eval string, use current namespace by default
         namespace: namespace ?? curNamespace,
         config: config,
@@ -185,13 +180,12 @@ abstract class AbstractInterpreter {
       final fullName = sourceProvider.resolveFullName(key);
 
       if (reload || !sourceProvider.hasModule(fullName)) {
-        final module = await sourceProvider.getSource(key,
+        final module = sourceProvider.getSourceSync(key,
             curModuleFullName: useLastModuleFullName
                 ? curModuleFullName
                 : sourceProvider.workingDirectory);
 
         final result = await evalSource(module,
-            libraryName: libraryName,
             namespace: namespace,
             config: config,
             invokeFunc: invokeFunc,

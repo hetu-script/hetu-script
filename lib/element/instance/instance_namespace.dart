@@ -5,43 +5,37 @@ import 'instance.dart';
 
 /// A implementation of [HTNamespace] for [HTInstance].
 /// For interpreter searching for symbols within instance methods.
-/// [HTInstanceNamespace] is a singly linked list node,
+/// [HTInstanceNamespace] is a linked list node,
 /// it holds its super classes' [HTInstanceNamespace]'s referrences.
 class HTInstanceNamespace extends HTNamespace {
   final HTInstance instance;
 
   late final HTInstanceNamespace? next;
 
-  HTInstanceNamespace(
-      String id, String moduleFullName, String libraryName, this.instance,
+  HTInstanceNamespace(String id, this.instance,
       {String? classId, HTNamespace? closure})
-      : super(moduleFullName, libraryName,
-            id: id, classId: classId, closure: closure);
+      : super(id: id, classId: classId, closure: closure);
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberGet],
   /// with a new named parameter [recursive].
   /// If [recursive] is false, then it won't continue to
   /// try fetching variable from enclosed namespace.
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global,
-      bool error = true,
-      bool recursive = true}) {
+  dynamic memberGet(String field, {bool error = true, bool recursive = true}) {
     final getter = '${SemanticNames.getter}$field';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
       if (curNamespace.declarations.containsKey(field) ||
           curNamespace.declarations.containsKey(getter)) {
-        return instance.memberGet(field,
-            from: from, classId: curNamespace.classId);
+        return instance.memberGet(field);
       } else {
         curNamespace = curNamespace.next;
       }
     }
 
     if (recursive && closure != null) {
-      return closure!.memberGet(field, from: from);
+      return closure!.memberGet(field);
     }
 
     if (error) {
@@ -55,17 +49,14 @@ class HTInstanceNamespace extends HTNamespace {
   /// try assigning variable from enclosed namespace.
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global,
-      bool recursive = true,
-      bool error = true}) {
+      {bool recursive = true, bool error = true}) {
     final setter = '${SemanticNames.getter}$field';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
       if (curNamespace.declarations.containsKey(field) ||
           curNamespace.declarations.containsKey(setter)) {
-        instance.memberSet(field, varValue,
-            from: from, classId: curNamespace.classId);
+        instance.memberSet(field, varValue, classId: curNamespace.classId);
         return;
       } else {
         curNamespace = curNamespace.next;
@@ -73,7 +64,7 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      closure!.memberSet(field, varValue, from: from);
+      closure!.memberSet(field, varValue);
       return;
     }
 

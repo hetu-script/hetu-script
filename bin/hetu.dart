@@ -85,7 +85,7 @@ void main(List<String> arguments) async {
             await run(cmdArgs, sourceType);
             break;
           case 'fmt':
-            await format(cmdArgs, cmd['out'], cmd['print']);
+            format(cmdArgs, cmd['out'], cmd['print']);
             break;
         }
       } else {
@@ -111,17 +111,16 @@ Future<void> run(List<String> args,
   print(result);
 }
 
-Future<void> format(List<String> args,
-    [String? outPath, bool printResult = true]) async {
+void format(List<String> args, [String? outPath, bool printResult = true]) {
   final parser = HTAstParser();
   final formatter = HTFormatter();
   final sourceProvider = DefaultSourceProvider();
-  final source = await sourceProvider.getSource(args.first);
+  final source = sourceProvider.getSourceSync(args.first);
 
   try {
     // final config = ParserConfig(sourceType: sourceType);
     final compilation =
-        await parser.parseToCompilation(source, sourceProvider); //, config);
+        parser.parseToCompilation(source, sourceProvider); //, config);
 
     final module = compilation.getModule(source.fullName);
 

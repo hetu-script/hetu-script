@@ -2,7 +2,7 @@ import '../../binding/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import 'typed_function_declaration.dart';
+import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
@@ -13,6 +13,7 @@ import '../object.dart';
 import '../variable/variable.dart';
 import '../namespace.dart';
 import 'parameter.dart';
+import 'typed_function_declaration.dart';
 
 class ReferConstructor {
   /// id of super class's constructor
@@ -67,10 +68,11 @@ class HTFunction extends HTTypedFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(
-      String id, String moduleFullName, String libraryName, Hetu interpreter,
-      {String declId = '',
+  HTFunction(String name, Hetu interpreter,
+      {String? id,
       String? classId,
+      HTNamespace? closure,
+      HTSource? source,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
@@ -85,13 +87,14 @@ class HTFunction extends HTTypedFunctionDeclaration
       this.paramDecls = const <String, HTParameter>{},
       int minArity = 0,
       int maxArity = 0,
-      HTNamespace? closure,
       this.context,
       this.referConstructor,
       this.klass})
-      : super(id, moduleFullName, libraryName,
-            declId: declId,
+      : super(name,
+            id: id,
             classId: classId,
+            closure: closure,
+            source: source,
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
@@ -100,8 +103,7 @@ class HTFunction extends HTTypedFunctionDeclaration
             externalTypeId: externalTypeId,
             isVariadic: isVariadic,
             minArity: minArity,
-            maxArity: maxArity,
-            closure: closure) {
+            maxArity: maxArity) {
     this.interpreter = interpreter;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -123,14 +125,16 @@ class HTFunction extends HTTypedFunctionDeclaration
     super.resolve();
 
     if ((closure != null) && (classId != null) && (klass == null)) {
-      klass = closure!.memberGet(classId!, from: closure!.fullName);
+      klass = closure!.memberGet(classId!);
     }
   }
 
   @override
-  HTFunction clone() => HTFunction(id, moduleFullName, libraryName, interpreter,
-      declId: declId,
+  HTFunction clone() => HTFunction(name, interpreter,
+      id: id,
       classId: classId,
+      closure: closure,
+      source: source,
       isExternal: isExternal,
       isStatic: isStatic,
       isConst: isConst,
@@ -145,7 +149,6 @@ class HTFunction extends HTTypedFunctionDeclaration
       paramDecls: paramDecls,
       minArity: minArity,
       maxArity: maxArity,
-      closure: closure,
       context: context,
       referConstructor: referConstructor,
       klass: klass);
@@ -183,7 +186,7 @@ class HTFunction extends HTTypedFunctionDeclaration
       if (!isExternal) {
         if (positionalArgs.length < minArity ||
             (positionalArgs.length > maxArity && !isVariadic)) {
-          throw HTError.arity(id, positionalArgs.length, minArity);
+          throw HTError.arity(name, positionalArgs.length, minArity);
         }
 
         for (final name in namedArgs.keys) {
@@ -201,22 +204,19 @@ class HTFunction extends HTTypedFunctionDeclaration
           return result;
         }
         // 函数每次在调用时，临时生成一个新的作用域
-        final callClosure =
-            HTNamespace(moduleFullName, libraryName, id: id, closure: context);
+        final callClosure = HTNamespace(id: id, closure: context);
         if (context is HTInstanceNamespace) {
           final instanceNamespace = context as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
             callClosure.define(
                 HTLexicon.SUPER,
-                HTVariable(
-                    HTLexicon.SUPER, moduleFullName, libraryName, interpreter,
+                HTVariable(HTLexicon.SUPER, interpreter,
                     value: instanceNamespace.next));
           }
 
           callClosure.define(
               HTLexicon.THIS,
-              HTVariable(
-                  HTLexicon.THIS, moduleFullName, libraryName, interpreter,
+              HTVariable(HTLexicon.THIS, interpreter,
                   value: instanceNamespace));
         }
 
@@ -253,8 +253,8 @@ class HTFunction extends HTTypedFunctionDeclaration
           final referCtorPosArgIps = referConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
             final arg = interpreter.execute(
-                moduleFullName: moduleFullName,
-                libraryName: libraryName,
+                moduleFullName: source?.fullName,
+                libraryName: source?.libraryName,
                 ip: referCtorPosArgIps[i],
                 namespace: callClosure);
             referCtorPosArgs.add(arg);
@@ -265,8 +265,8 @@ class HTFunction extends HTTypedFunctionDeclaration
           for (final name in referCtorNamedArgIps.keys) {
             final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
             final arg = interpreter.execute(
-                moduleFullName: moduleFullName,
-                libraryName: libraryName,
+                moduleFullName: source?.fullName,
+                libraryName: source?.libraryName,
                 ip: referCtorNamedArgIp,
                 namespace: callClosure);
             referCtorNamedArgs[name] = arg;
@@ -279,10 +279,10 @@ class HTFunction extends HTTypedFunctionDeclaration
         }
 
         var variadicStart = -1;
-        HTVariable? variadicParam;
+        HTParameter? variadicParam;
         for (var i = 0; i < paramDecls.length; ++i) {
           var decl = paramDecls.values.elementAt(i).clone();
-          callClosure.define(decl.id, decl);
+          callClosure.define(decl.name, decl);
 
           if (decl.isVariadic) {
             variadicStart = i;
@@ -315,8 +315,8 @@ class HTFunction extends HTTypedFunctionDeclaration
 
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
-              moduleFullName: moduleFullName,
-              libraryName: libraryName,
+              moduleFullName: source?.fullName,
+              libraryName: source?.libraryName,
               ip: definitionIp,
               namespace: callClosure,
               function: this,
@@ -324,8 +324,8 @@ class HTFunction extends HTTypedFunctionDeclaration
               column: definitionColumn);
         } else {
           interpreter.execute(
-              moduleFullName: moduleFullName,
-              libraryName: libraryName,
+              moduleFullName: source?.fullName,
+              libraryName: source?.libraryName,
               ip: definitionIp,
               namespace: callClosure,
               function: this,
@@ -341,7 +341,7 @@ class HTFunction extends HTTypedFunctionDeclaration
         if (hasParamDecls) {
           if (positionalArgs.length < minArity ||
               (positionalArgs.length > maxArity && !isVariadic)) {
-            throw HTError.arity(id, positionalArgs.length, minArity);
+            throw HTError.arity(name, positionalArgs.length, minArity);
           }
 
           for (final name in namedArgs.keys) {
@@ -375,10 +375,10 @@ class HTFunction extends HTTypedFunctionDeclaration
               } else {
                 if (namedArgs.containsKey(decl.id)) {
                   decl.value = namedArgs[decl.id];
-                  finalNamedArgs[decl.id] = decl.value;
+                  finalNamedArgs[decl.name] = decl.value;
                 } else {
                   decl.initialize();
-                  finalNamedArgs[decl.id] = decl.value;
+                  finalNamedArgs[decl.name] = decl.value;
                 }
               }
             }
@@ -475,22 +475,6 @@ class HTFunction extends HTTypedFunctionDeclaration
       } else {
         interpreter.handleError(error, stack);
       }
-    }
-  }
-
-  @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
-    switch (field) {
-      case 'valueType':
-        return valueType;
-      case 'toString':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            '${SemanticNames.function} $id';
-      default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
     }
   }
 }

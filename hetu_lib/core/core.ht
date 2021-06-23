@@ -7,3 +7,5 @@ abstract class object {
 
 // print values of any type into lines
 external fun print(... args)
+
+external fun stringify(... args)

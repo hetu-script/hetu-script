@@ -1,9 +1,10 @@
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../error/error.dart';
-import '../element.dart';
+import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
+import '../element.dart';
 import '../object.dart';
 import '../namespace.dart';
 import '../function/function.dart';
@@ -47,8 +48,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       {String? id,
       String? classId,
       HTNamespace? closure,
-      String? moduleFullName,
-      String? libraryName,
+      HTSource? source,
       Iterable<HTType> genericParameters = const [],
       HTType? superType,
       Iterable<HTType> withTypes = const [],
@@ -58,17 +58,12 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       bool isAbstract = false,
       this.superClass})
       : namespace = HTClassNamespace(
-            id: id,
-            classId: classId,
-            closure: closure,
-            moduleFullName: moduleFullName,
-            libraryName: libraryName),
+            id: id, classId: classId, closure: closure, source: source),
         super(
             id: id,
             classId: classId,
             closure: closure,
-            moduleFullName: moduleFullName,
-            libraryName: libraryName,
+            source: source,
             genericParameters: genericParameters,
             superType: superType,
             withTypes: withTypes,
@@ -84,7 +79,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
     super.resolve();
 
     if (superType != null) {
-      superClass = namespace.memberGet(superType!.id, from: namespace.fullName);
+      superClass = namespace.memberGet(superType!.id);
     }
 
     for (final decl in namespace.declarations.values) {
@@ -101,8 +96,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       id: id,
       classId: classId,
       closure: closure,
-      moduleFullName: moduleFullName,
-      libraryName: libraryName,
+      source: source,
       genericParameters: genericParameters,
       superType: superType,
       withTypes: withTypes,
@@ -127,10 +121,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
 
   /// Get a value of a static member from this [HTClass].
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global,
-      bool recursive = true,
-      bool error = true}) {
+  dynamic memberGet(String field, {bool recursive = true, bool error = true}) {
     final getter = '${SemanticNames.getter}$field';
     final constructor = field != id
         ? '${SemanticNames.constructor}$field'
@@ -138,47 +129,23 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
 
     if (isExternal) {
       if (namespace.declarations.containsKey(field)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(field);
-        }
         final decl = namespace.declarations[field]!;
         return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(field);
-        }
         HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
       } else if (namespace.declarations.containsKey(constructor)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(field);
-        }
         HTFunction func = namespace.declarations[constructor]!.value;
         return func;
       }
     } else {
       if (namespace.declarations.containsKey(field)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(field);
-        }
         final decl = namespace.declarations[field]!;
         return decl.value;
       } else if (namespace.declarations.containsKey(getter)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(field);
-        }
         HTFunction func = namespace.declarations[getter]!.value;
         return func.call();
       } else if (namespace.declarations.containsKey(constructor)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(field);
-        }
         return namespace.declarations[constructor]!.value as HTFunction;
       }
     }
@@ -190,8 +157,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
 
   /// Assign a value to a static member of this [HTClass].
   @override
-  void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, bool error = true}) {
+  void memberSet(String field, dynamic varValue, {bool error = true}) {
     final setter = '${SemanticNames.setter}$field';
 
     if (isExternal) {
@@ -199,18 +165,10 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       externClass.memberSet('$id.$field', varValue);
       return;
     } else if (namespace.declarations.containsKey(field)) {
-      if (field.startsWith(HTLexicon.privatePrefix) &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(field);
-      }
       final decl = namespace.declarations[field]!;
       decl.value = varValue;
       return;
     } else if (namespace.declarations.containsKey(setter)) {
-      if (field.startsWith(HTLexicon.privatePrefix) &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(field);
-      }
       final setterFunc = namespace.declarations[setter] as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
       return;
@@ -226,7 +184,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
-      final func = memberGet(funcName, from: namespace.fullName);
+      final func = memberGet(funcName);
 
       if (func is HTFunction) {
         return func.call(

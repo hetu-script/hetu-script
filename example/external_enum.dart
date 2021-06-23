@@ -11,8 +11,7 @@ class CountryEnumBinding extends HTExternalClass {
   CountryEnumBinding() : super('Country');
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberGet(String field, {bool error = true}) {
     switch (field) {
       case 'values':
         return Country.values;

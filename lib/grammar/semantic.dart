@@ -22,11 +22,12 @@ abstract class SemanticNames {
   static const module = 'module';
   static const library = 'library';
   static const global = 'global';
+  static const preclude = 'preclude';
+  static const anonymous = 'anonymous';
   static const multiLine = r'\';
   static const newLine = '\n';
 
   static const internalMarker = r'$';
-  static const anonymous = r'$_anonymous_';
   static const anonymousScript = r'$_anonymousScript_';
   static const anonymousFunction = r'$_anonymousFunction_';
   static const anonymousNamespace = r'$_anonymousNamespace_';

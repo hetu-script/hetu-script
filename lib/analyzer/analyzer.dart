@@ -13,11 +13,13 @@ import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
 // import 'ast_function.dart';
-import '../parser/parser.dart';
+import '../scanner/parser.dart';
 import '../ast/ast_compilation.dart';
 import 'analysis_error.dart';
 
-part 'analysis_result.dart';
+import 'analysis_result.dart';
+
+import '../type/type.dart';
 
 class AnalyzerConfig extends InterpreterConfig {
   final List<ErrorProcessor> errorProcessors;
@@ -41,11 +43,8 @@ class AnalyzerConfig extends InterpreterConfig {
             externalStackTraceMaxline: externalStackTraceMaxline);
 }
 
-class HTBreak {}
-
-class HTContinue {}
-
-class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
+class HTAnalyzer extends AbstractInterpreter
+    implements AbstractAstVisitor<HTType> {
   @override
   late HTAstParser parser;
 
@@ -171,331 +170,220 @@ class HTAnalyzer extends AbstractInterpreter implements AbstractAstVisitor {
     throw HTError.unsupported('invoke on analyzer');
   }
 
-  // dynamic _getValue(String name, AstNode expr) {
-  //   var distance = _distances[expr];
-  //   if (distance != null) {
-  //     return _curNamespace.fetchAt(name, distance);
-  //   }
-
-  //   return global.fetch(name);
-  // }
-
-  dynamic visitAstNode(AstNode ast) => ast.accept(this);
+  HTType visitAstNode(AstNode ast) => ast.accept(this);
 
   @override
-  dynamic visitCommentExpr(CommentExpr expr) {}
-
-  @override
-  dynamic visitNullExpr(NullExpr expr) {}
-
-  @override
-  dynamic visitBooleanExpr(BooleanExpr expr) {}
-
-  @override
-  dynamic visitConstIntExpr(ConstIntExpr expr) {}
-
-  @override
-  dynamic visitConstFloatExpr(ConstFloatExpr expr) {}
-
-  @override
-  dynamic visitConstStringExpr(ConstStringExpr expr) {}
-
-  @override
-  dynamic visitStringInterpolationExpr(StringInterpolationExpr expr) {}
-
-  @override
-  dynamic visitListExpr(ListExpr expr) {
-    for (final item in expr.list) {
-      visitAstNode(item);
-    }
+  HTType visitCommentExpr(CommentExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitMapExpr(MapExpr expr) {
-    for (final key_expr in expr.map.keys) {
-      visitAstNode(key_expr);
-      visitAstNode(expr.map[key_expr]!);
-    }
+  HTType visitNullExpr(NullExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitGroupExpr(GroupExpr expr) {
-    visitAstNode(expr.inner);
+  HTType visitBooleanExpr(BooleanExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitSymbolExpr(SymbolExpr expr) {
-    return _curNamespace.memberGet(expr.id);
+  HTType visitConstIntExpr(ConstIntExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitTypeExpr(TypeExpr expr) {}
-
-  @override
-  dynamic visitParamTypeExpr(ParamTypeExpr expr) {}
-
-  @override
-  dynamic visitFunctionTypeExpr(FuncTypeExpr expr) {}
-
-  @override
-  dynamic visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
-    visitAstNode(expr.value);
+  HTType visitConstFloatExpr(ConstFloatExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitBinaryExpr(BinaryExpr expr) {
-    visitAstNode(expr.left);
-    visitAstNode(expr.right);
+  HTType visitConstStringExpr(ConstStringExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitTernaryExpr(TernaryExpr expr) {
-    visitAstNode(expr.condition);
-    visitAstNode(expr.elseBranch);
-    visitAstNode(expr.thenBranch);
+  HTType visitStringInterpolationExpr(StringInterpolationExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
-
-  @override
-  dynamic visitMemberExpr(MemberExpr expr) {
-    visitAstNode(expr.object);
-    // visitAstNode(expr.key);
+  HTType visitGroupExpr(GroupExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitMemberAssignExpr(MemberAssignExpr expr) {}
-
-  @override
-  dynamic visitSubExpr(SubExpr expr) {
-    visitAstNode(expr.array);
-    visitAstNode(expr.key);
+  HTType visitListExpr(ListExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitSubAssignExpr(SubAssignExpr expr) {}
-
-  @override
-  dynamic visitCallExpr(CallExpr expr) {
-    visitAstNode(expr.callee);
-    for (var i = 0; i < expr.positionalArgs.length; ++i) {
-      visitAstNode(expr.positionalArgs[i]);
-    }
-    for (var name in expr.namedArgs.keys) {
-      visitAstNode(expr.namedArgs[name]!);
-    }
+  HTType visitMapExpr(MapExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitExprStmt(ExprStmt stmt) {
-    if (stmt.expr != null) {
-      visitAstNode(stmt.expr!);
-    }
+  HTType visitSymbolExpr(SymbolExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitBlockStmt(BlockStmt block) {
-    var saved_context = _curNamespace;
-    _curNamespace =
-        HTNamespace(curModuleFullName, curLibraryName, closure: _curNamespace);
-    for (final stmt in block.statements) {
-      visitAstNode(stmt);
-    }
-    _curNamespace = saved_context;
+  HTType visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitLibraryStmt(LibraryStmt stmt) {}
-
-  @override
-  dynamic visitImportStmt(ImportStmt stmt) {}
-
-  @override
-  dynamic visitReturnStmt(ReturnStmt stmt) {
-    if (stmt.value != null) {
-      visitAstNode(stmt.value!);
-    }
+  HTType visitBinaryExpr(BinaryExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitIfStmt(IfStmt stmt) {
-    visitAstNode(stmt.condition);
-    visitAstNode(stmt.thenBranch);
-    if (stmt.elseBranch != null) {
-      visitAstNode(stmt.elseBranch!);
-    }
+  HTType visitTernaryExpr(TernaryExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitWhileStmt(WhileStmt stmt) {
-    visitAstNode(stmt.condition);
-    visitAstNode(stmt.loop);
+  HTType visitTypeExpr(TypeExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitDoStmt(DoStmt stmt) {
-    visitAstNode(stmt.loop);
-    if (stmt.condition != null) {
-      visitAstNode(stmt.condition!);
-    }
+  HTType visitParamTypeExpr(ParamTypeExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitForInStmt(ForInStmt stmt) {
-    visitAstNode(stmt.declaration);
-    visitAstNode(stmt.collection);
-    visitAstNode(stmt.loop);
+  HTType visitFunctionTypeExpr(FuncTypeExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitForStmt(ForStmt stmt) {
-    if (stmt.declaration != null) {
-      visitAstNode(stmt.declaration!);
-    }
-    if (stmt.condition != null) {
-      visitAstNode(stmt.condition!);
-    }
-    if (stmt.increment != null) {
-      visitAstNode(stmt.increment!);
-    }
-    visitAstNode(stmt.loop);
+  HTType visitCallExpr(CallExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitWhenStmt(WhenStmt stmt) {
-    if (stmt.condition != null) {
-      visitAstNode(stmt.condition!);
-    }
+  HTType visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitBreakStmt(BreakStmt stmt) {
-    throw HTBreak();
+  HTType visitMemberExpr(MemberExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitContinueStmt(ContinueStmt stmt) {
-    throw HTContinue();
+  HTType visitMemberAssignExpr(MemberAssignExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitVarDeclStmt(VarDeclStmt stmt) {
-    // dynamic value;
-    // if (stmt.initializer != null) {
-    //   value = visitAstNode(stmt.initializer!);
-    // }
-
-    // _curNamespace.define(HTAstVariable(
-    //   stmt.id,
-    //   this,
-    //   declType: stmt.declType,
-    //   initializer: stmt.initializer,
-    //   isDynamic: stmt.isDynamic,
-    //   isExternal: stmt.isExternal,
-    //   isImmutable: stmt.isImmutable,
-    // ));
-
-    // return value;
+  HTType visitSubExpr(SubExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitParamDeclStmt(ParamDeclExpr stmt) {}
-
-  @override
-  dynamic visitReferConstructorExpr(ReferConstructorExpr stmt) {}
-
-  @override
-  dynamic visitFuncDeclStmt(FuncDeclExpr stmt) {
-    // final func = HTAstFunction(stmt, this, context: _curNamespace);
-    // if (stmt.id != null) {
-    //   _curNamespace.define(func);
-    // }
-    // return func;
+  HTType visitSubAssignExpr(SubAssignExpr expr) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitClassDeclStmt(ClassDeclStmt stmt) {
-    // HTClass? superClass;
-    if (stmt.id != HTLexicon.object) {
-      // if (stmt.superClass == null) {
-      //   superClass = global.fetch(HTLexicon.object);
-      // } else {
-      //   HTClass existSuperClass =
-      //       _getValue(stmt.superClass!.id.lexeme, stmt.superClass!);
-      //   superClass = existSuperClass;
-      // }
-    }
-
-    // final klass = HTClass(stmt.id, this, _curModuleFullName, _curNamespace,
-    //     superClass: superClass,
-    //     isExternal: stmt.isExternal,
-    //     isAbstract: stmt.isAbstract);
-
-    // 在开头就定义类本身的名字，这样才可以在类定义体中使用类本身
-    // _curNamespace.define(klass);
-
-    var save = _curNamespace;
-    // _curNamespace = klass.namespace;
-
-    // for (final variable in stmt.variables) {
-    //   if (stmt.isExternal && variable.isExternal) {
-    //     throw HTError.externalVar();
-    //   }
-    // dynamic value;
-    // if (variable.initializer != null) {
-    //   value = visitAstNode(variable.initializer!);
-    // }
-
-    // final decl = HTAstVariable(variable.id, this,
-    //     declType: variable.declType,
-    //     isDynamic: variable.isDynamic,
-    //     isExternal: variable.isExternal,
-    //     isImmutable: variable.isImmutable,
-    //     isMember: true,
-    //     isStatic: variable.isStatic);
-
-    // if (variable.isStatic) {
-    //   klass.namespace.define(decl);
-    // } else {
-    //   klass.defineInstanceMember(decl);
-    // }
-    // }
-
-    _curNamespace = save;
-
-    // for (final method in stmt.methods) {
-    //   HTFunction func;
-    //   if (method.isStatic) {
-    //     func = HTAstFunction(method, this, context: klass.namespace);
-    //     klass.namespace.define(func, override: true);
-    //   } else if (method.category == FunctionCategory.constructor) {
-    //     func = HTAstFunction(method, this);
-    //     klass.namespace.define(func, override: true);
-    //   } else {
-    //     func = HTAstFunction(method, this);
-    //     klass.defineInstanceMember(func);
-    //   }
-    // }
-
-    // klass.inherit(superClass);
-
-    // return klass;
+  HTType visitLibraryStmt(LibraryStmt stmt) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitEnumDeclStmt(EnumDeclStmt stmt) {
-    // var defs = <String, HTEnumItem>{};
-    for (var i = 0; i < stmt.enumerations.length; i++) {
-      // final id = stmt.enumerations[i];
-      // defs[id] = HTEnumItem(i, id, HTType(stmt.id.lexeme));
-    }
-
-    // final enumClass = HTEnum(stmt.id, defs, this, isExternal: stmt.isExternal);
-
-    // _curNamespace.define(enumClass);
+  HTType visitImportStmt(ImportStmt stmt) {
+    return HTType.ANY;
   }
 
   @override
-  dynamic visitTypeAliasStmt(TypeAliasDeclStmt stmt) {}
+  HTType visitExprStmt(ExprStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitBlockStmt(BlockStmt block) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitReturnStmt(ReturnStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitIfStmt(IfStmt ifStmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitWhileStmt(WhileStmt whileStmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitDoStmt(DoStmt doStmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitForStmt(ForStmt forStmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitForInStmt(ForInStmt forInStmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitWhenStmt(WhenStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitBreakStmt(BreakStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitContinueStmt(ContinueStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitVarDeclStmt(VarDeclStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitParamDeclStmt(ParamDeclExpr stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitReferConstructorExpr(ReferConstructorExpr stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitFuncDeclStmt(FuncDeclExpr stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitClassDeclStmt(ClassDeclStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitEnumDeclStmt(EnumDeclStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
+    return HTType.ANY;
+  }
 }

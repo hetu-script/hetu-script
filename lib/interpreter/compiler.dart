@@ -94,7 +94,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
   }
 
-  Future<Uint8List> compile(HTAstCompilation library) async {
+  Uint8List compile(HTAstCompilation library) {
     _curLibraryName = library.name;
 
     final mainBytesBuilder = BytesBuilder();

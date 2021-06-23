@@ -1,4 +1,5 @@
 import '../../type/type.dart';
+import '../../source/source.dart';
 import '../namespace.dart';
 import '../element.dart';
 
@@ -26,23 +27,21 @@ class HTClassDeclaration extends HTElement {
 
   HTClassDeclaration(
       {String? id,
-      String? moduleFullName,
-      String? libraryName,
       String? classId,
+      HTNamespace? closure,
+      HTSource? source,
       this.genericParameters = const [],
       HTType? superType,
       this.withTypes = const [],
       this.implementsTypes = const [],
       this.isNested = false,
       bool isExternal = false,
-      this.isAbstract = false,
-      HTNamespace? closure})
+      this.isAbstract = false})
       : super(
             id: id,
             classId: classId,
             closure: closure,
-            moduleFullName: moduleFullName,
-            libraryName: libraryName,
+            source: source,
             isExternal: isExternal) {
     _superType = superType;
   }
@@ -61,8 +60,7 @@ class HTClassDeclaration extends HTElement {
       id: id,
       classId: classId,
       closure: closure,
-      moduleFullName: moduleFullName,
-      libraryName: libraryName,
+      source: source,
       genericParameters: genericParameters,
       superType: superType,
       withTypes: withTypes,

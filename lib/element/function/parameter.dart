@@ -1,6 +1,8 @@
 import '../../interpreter/interpreter.dart';
 import '../variable/variable.dart';
 
+// TODO: parameter's initializer must be a const expression.
+
 /// An implementation of [HTVariable] for function parameter declaration.
 class HTParameter extends HTVariable {
   final bool isOptional;
@@ -10,22 +12,21 @@ class HTParameter extends HTVariable {
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  HTParameter(
-      String id, String moduleFullName, String libraryName, Hetu interpreter,
+  HTParameter(String id, Hetu interpreter,
       {int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id, moduleFullName, libraryName, interpreter,
+      : super(id, interpreter,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
 
   @override
   HTParameter clone() {
-    return HTParameter(id, moduleFullName, libraryName, interpreter,
+    return HTParameter(id, interpreter,
         definitionIp: definitionIp,
         definitionLine: definitionLine,
         definitionColumn: definitionColumn,

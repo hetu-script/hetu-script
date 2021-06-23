@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../parser/abstract_parser.dart';
-import '../parser/lexer.dart';
+import '../scanner/abstract_parser.dart';
+import '../scanner/lexer.dart';
 import 'const_table.dart';
 import '../element/class/class_declaration.dart';
 import '../grammar/semantic.dart';

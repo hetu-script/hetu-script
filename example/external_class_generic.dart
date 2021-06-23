@@ -31,8 +31,7 @@ class GenericClassBinding extends HTExternalClass {
   GenericClassBinding() : super('Generic');
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberGet(String field, {bool error = true}) {
     switch (field) {
       case 'Generic':
         return (

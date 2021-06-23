@@ -59,8 +59,7 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberGet(String field, {bool error = true}) {
     switch (field) {
       case 'Person':
         return (
@@ -91,8 +90,7 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, bool error = true}) {
+  void memberSet(String field, dynamic varValue, {bool error = true}) {
     switch (field) {
       case 'Person.race':
         throw HTError.immutable(field);

@@ -15,6 +15,12 @@ final Map<String, Function> coreFunctions = {
     for (final arg in positionalArgs.first) {
       sb.write('$arg ');
     }
-    print(sb.toString());
+    print(sb.toString().trimRight());
+  },
+  'stringify': (
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    return positionalArgs.first.toString();
   },
 };

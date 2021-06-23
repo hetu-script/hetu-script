@@ -82,11 +82,11 @@ class HTAstParser extends AbstractParser {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  Future<HTAstCompilation> parseToCompilation(
+  HTAstCompilation parseToCompilation(
       HTSource source, SourceProvider sourceProvider,
       {bool createNamespace = true,
       String? libraryName,
-      ParserConfig? config}) async {
+      ParserConfig? config}) {
     final fullName = source.fullName;
     _curLibraryName = libraryName ?? fullName;
 
@@ -98,9 +98,9 @@ class HTAstParser extends AbstractParser {
       final importFullName =
           sourceProvider.resolveFullName(stmt.key, module.fullName);
       if (!sourceProvider.hasModule(importFullName)) {
-        final source2 = await sourceProvider.getSource(importFullName,
+        final source2 = sourceProvider.getSourceSync(importFullName,
             curModuleFullName: _curModuleFullName);
-        final compilation2 = await parseToCompilation(source2, sourceProvider,
+        final compilation2 = parseToCompilation(source2, sourceProvider,
             config: ParserConfig(sourceType: SourceType.module));
         _curModuleFullName = fullName;
         compilation.join(compilation2);
@@ -1420,7 +1420,8 @@ class HTAstParser extends AbstractParser {
   }
 
   ClassDeclStmt _parseClassDecl(
-      {bool isNested = false,
+      {String? classId,
+      bool isNested = false,
       bool isExternal = false,
       bool isAbstract = false,
       bool isExported = false,
@@ -1457,8 +1458,11 @@ class HTAstParser extends AbstractParser {
     final savedClass = _curClass;
 
     _curClass = HTClassDeclaration(
-        id.lexeme, _curModuleFullName, _curLibraryName,
-        isNested: isNested, isExternal: isExternal, isAbstract: isAbstract);
+        id: id.lexeme,
+        classId: classId,
+        isNested: isNested,
+        isExternal: isExternal,
+        isAbstract: isAbstract);
 
     final definition = _parseBlockStmt(
         sourceType: SourceType.klass,

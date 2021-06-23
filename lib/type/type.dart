@@ -1,7 +1,6 @@
 import 'package:quiver/core.dart';
 
 import '../../grammar/lexicon.dart';
-import '../grammar/semantic.dart';
 import '../../error/error.dart';
 import '../element/object.dart';
 import '../element/class/class_declaration.dart';
@@ -55,7 +54,7 @@ class HTType with HTObject {
 
   bool get isResolved => false;
 
-  const HTType(this.id, String moduleFullName, String librayName,
+  const HTType(this.id,
       {String? classId, this.typeArgs = const [], this.isNullable = false});
 
   // factory HTType.fromAst(
@@ -152,7 +151,7 @@ class HTType with HTObject {
     } else if (primitiveTypes.containsKey(id)) {
       return primitiveTypes[id]!;
     } else {
-      final typeDef = namespace.memberGet(id, from: namespace.fullName);
+      final typeDef = namespace.memberGet(id);
       if (typeDef is HTClassDeclaration) {
         return HTNominalType(typeDef, typeArgs: typeArgs);
       } else if (typeDef is HTFunctionType) {
@@ -171,6 +170,5 @@ class _PrimitiveType extends HTType {
   @override
   bool get isResolved => true;
 
-  const _PrimitiveType(String id)
-      : super(id, SemanticNames.global, SemanticNames.global);
+  const _PrimitiveType(String id) : super(id);
 }

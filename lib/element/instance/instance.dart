@@ -92,7 +92,7 @@ class HTInstance with HTObject, InterpreterRef {
     } else if (func is Function) {
       return func();
     } else {
-      return id;
+      return toJson().toString();
     }
   }
 
@@ -101,16 +101,15 @@ class HTInstance with HTObject, InterpreterRef {
 
     HTInstanceNamespace? curNamespace = namespace;
     while (curNamespace != null) {
-      for (final decl in curNamespace.declarations.values) {
-        if (decl is! HTTypedVariableDeclaration ||
-            jsonObject.containsKey(decl.id)) {
+      for (final id in curNamespace.declarations.keys) {
+        final decl = curNamespace.declarations[id];
+        if (decl is! HTTypedVariableDeclaration || jsonObject.containsKey(id)) {
           continue;
         }
-        jsonObject[decl.id] = decl.value;
+        jsonObject[id] = decl.value;
       }
       curNamespace = curNamespace.next;
     }
-
     return jsonObject;
   }
 
@@ -131,20 +130,12 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [classId] is provided, then the instance will
   /// only search that [classId]'s corresponed [HTInstanceNamespace].
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global,
-      String? classId,
-      bool error = true}) {
+  dynamic memberGet(String field, {String? classId, bool error = true}) {
     final getter = '${SemanticNames.getter}$field';
 
     if (classId == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(field)) {
-          if (field.startsWith(HTLexicon.privatePrefix) &&
-              !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(field);
-          }
-
           final value = space.declarations[field]!.value;
           if (value is HTFunction &&
               value.category != FunctionCategory.literal) {
@@ -152,11 +143,6 @@ class HTInstance with HTObject, InterpreterRef {
           }
           return value;
         } else if (space.declarations.containsKey(getter)) {
-          if (field.startsWith(HTLexicon.privatePrefix) &&
-              !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(field);
-          }
-
           HTFunction func = space.declarations[getter]!.value;
           func.context = namespace;
           return func.call();
@@ -165,41 +151,20 @@ class HTInstance with HTObject, InterpreterRef {
     } else {
       final space = _namespaces[classId]!;
       if (space.declarations.containsKey(field)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(field);
-        }
-
         final value = space.declarations[field]!.value;
         if (value is HTFunction && value.category != FunctionCategory.literal) {
           value.context = _namespaces[classId];
         }
         return value;
       } else if (space.declarations.containsKey(getter)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(field);
-        }
-
         HTFunction func = space.declarations[getter]!.value;
         func.context = _namespaces[classId];
         return func.call();
       }
     }
 
-    // TODO: this part should be declared in the hetu script codes
-    switch (field) {
-      case 'valueType':
-        return valueType;
-      case 'toString':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
-            '${SemanticNames.instanceOf} $valueType';
-      case 'toJson':
-        return ({positionalArgs, namedArgs, typeArgs}) => toJson();
-      default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+    if (error) {
+      throw HTError.undefined(field);
     }
   }
 
@@ -209,28 +174,16 @@ class HTInstance with HTObject, InterpreterRef {
   /// only search that [classId]'s corresponed [HTInstanceNamespace].
   @override
   void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global,
-      bool error = true,
-      String? classId}) {
+      {bool error = true, String? classId}) {
     final setter = '${SemanticNames.setter}$field';
 
     if (classId == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(field)) {
-          if (field.startsWith(HTLexicon.privatePrefix) &&
-              !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(field);
-          }
-
           var decl = space.declarations[field]!;
           decl.value = varValue;
           return;
         } else if (space.declarations.containsKey(setter)) {
-          if (field.startsWith(HTLexicon.privatePrefix) &&
-              !from.startsWith(space.fullName)) {
-            throw HTError.privateMember(field);
-          }
-
           HTFunction method = space.declarations[setter]!.value;
           method.context = namespace;
           method.call(positionalArgs: [varValue]);
@@ -244,20 +197,10 @@ class HTInstance with HTObject, InterpreterRef {
 
       final space = _namespaces[classId]!;
       if (space.declarations.containsKey(field)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(field);
-        }
-
         var decl = space.declarations[field]!;
         decl.value = varValue;
         return;
       } else if (space.declarations.containsKey(setter)) {
-        if (field.startsWith(HTLexicon.privatePrefix) &&
-            !from.startsWith(space.fullName)) {
-          throw HTError.privateMember(field);
-        }
-
         final method = space.declarations[setter]! as HTFunction;
         method.context = _namespaces[classId];
         method.call(positionalArgs: [varValue]);
@@ -275,7 +218,7 @@ class HTInstance with HTObject, InterpreterRef {
       List<HTType> typeArgs = const [],
       bool errorHandled = true}) {
     try {
-      HTFunction func = memberGet(funcName, from: namespace.fullName);
+      HTFunction func = memberGet(funcName);
       return func.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,

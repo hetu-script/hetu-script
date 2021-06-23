@@ -2,12 +2,14 @@ import '../../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';
+import '../../source/source.dart';
 import '../namespace.dart';
 import '../element.dart';
 import 'typed_parameter_declaration.dart';
 
 class HTTypedFunctionDeclaration extends HTElement {
-  final String declId;
+  @override
+  final String name;
 
   final FunctionCategory category;
 
@@ -28,14 +30,14 @@ class HTTypedFunctionDeclaration extends HTElement {
 
   final int maxArity;
 
-  HTTypedFunctionDeclaration(
-      String id, String moduleFullName, String libraryName,
-      {this.declId = '',
+  HTTypedFunctionDeclaration(this.name,
+      {String? id,
       String? classId,
+      HTNamespace? closure,
+      HTSource? source,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
-      HTNamespace? closure,
       this.category = FunctionCategory.normal,
       this.externalFunc,
       this.externalTypeId,
@@ -44,15 +46,17 @@ class HTTypedFunctionDeclaration extends HTElement {
       this.maxArity = 0,
       this.parameterDeclarations = const {},
       HTType? returnType})
-      : type = HTFunctionType(moduleFullName, libraryName,
+      : type = HTFunctionType(
             parameterDeclarations: parameterDeclarations.values.toList(),
             returnType: returnType ?? HTType.ANY),
-        super(id, moduleFullName, libraryName,
+        super(
+            id: id,
             classId: classId,
+            closure: closure,
+            source: source,
             isExternal: isExternal,
             isStatic: isStatic,
-            isConst: isConst,
-            closure: closure);
+            isConst: isConst);
 
   /// Print function signature to String with function [id] and parameter [id].
   @override
@@ -104,17 +108,20 @@ class HTTypedFunctionDeclaration extends HTElement {
   }
 
   @override
-  HTTypedFunctionDeclaration clone() =>
-      HTTypedFunctionDeclaration(id, moduleFullName, libraryName,
-          declId: declId,
-          classId: classId,
-          isExternal: isExternal,
-          isStatic: isStatic,
-          isConst: isConst,
-          category: category,
-          externalFunc: externalFunc,
-          externalTypeId: externalTypeId,
-          isVariadic: isVariadic,
-          minArity: minArity,
-          maxArity: maxArity);
+  HTTypedFunctionDeclaration clone() => HTTypedFunctionDeclaration(name,
+      id: id,
+      classId: classId,
+      closure: closure,
+      source: source,
+      isExternal: isExternal,
+      isStatic: isStatic,
+      isConst: isConst,
+      category: category,
+      externalFunc: externalFunc,
+      externalTypeId: externalTypeId,
+      isVariadic: isVariadic,
+      minArity: minArity,
+      maxArity: maxArity,
+      parameterDeclarations: parameterDeclarations,
+      returnType: returnType);
 }

@@ -1,9 +1,9 @@
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
-import '../../grammar/semantic.dart';
 import '../../interpreter/interpreter.dart';
-import '../element.dart';
+import '../../source/source.dart';
 import '../../type/type.dart';
+import '../element.dart';
 import '../object.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
@@ -15,10 +15,10 @@ class HTEnum extends HTElement with HTObject, HetuRef {
   final Map<String, HTEnumItem> enums;
 
   /// Create a default [HTEnum] class.
-  HTEnum(String id, this.enums, String moduleFullName, String libraryName,
-      Hetu interpreter, {String? classId, bool isExternal = false})
-      : super(id, moduleFullName, libraryName,
-            classId: classId, isExternal: isExternal) {
+  HTEnum(String id, this.enums, Hetu interpreter,
+      {String? classId, HTSource? source, bool isExternal = false})
+      : super(
+            id: id, classId: classId, source: source, isExternal: isExternal) {
     this.interpreter = interpreter;
   }
 
@@ -26,8 +26,7 @@ class HTEnum extends HTElement with HTObject, HetuRef {
   bool contains(String field) => enums.containsKey(field);
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberGet(String field, {bool error = true}) {
     if (!isExternal) {
       if (enums.containsKey(field)) {
         return enums[field]!;
@@ -35,7 +34,7 @@ class HTEnum extends HTElement with HTObject, HetuRef {
         return enums.values.toList();
       }
     } else {
-      final externEnumClass = interpreter.fetchExternalClass(id);
+      final externEnumClass = interpreter.fetchExternalClass(id!);
       return externEnumClass.memberGet(field);
     }
 
@@ -47,8 +46,7 @@ class HTEnum extends HTElement with HTObject, HetuRef {
   }
 
   @override
-  void memberSet(String field, dynamic varValue,
-      {String from = SemanticNames.global, bool error = true}) {
+  void memberSet(String field, dynamic varValue, {bool error = true}) {
     if (enums.containsKey(field)) {
       throw HTError.immutable(field);
     }
@@ -56,8 +54,8 @@ class HTEnum extends HTElement with HTObject, HetuRef {
   }
 
   @override
-  HTEnum clone() => HTEnum(id, enums, moduleFullName, libraryName, interpreter,
-      classId: classId, isExternal: isExternal);
+  HTEnum clone() => HTEnum(id!, enums, interpreter,
+      classId: classId, source: source, isExternal: isExternal);
 }
 
 /// The Dart implementation of the enum item in Hetu.
@@ -78,23 +76,14 @@ class HTEnumItem<T> with HTObject {
   HTEnumItem(this.value, this.id, this.valueType);
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberGet(String field, {bool error = true}) {
     switch (field) {
-      case 'valueType':
-        return valueType;
       case 'index':
         return value;
       case 'value':
         return value;
       case 'name':
         return id;
-      case 'toString':
-        return (
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toString();
       default:
         if (error) {
           throw HTError.undefinedMember(field);

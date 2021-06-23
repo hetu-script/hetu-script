@@ -12,7 +12,7 @@ import '../element/function/typed_parameter_declaration.dart';
 import '../element/function/function.dart';
 import '../element/function/parameter.dart';
 import '../element/variable/variable.dart';
-import '../parser/abstract_parser.dart';
+import '../scanner/abstract_parser.dart';
 import '../type/type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
@@ -149,8 +149,7 @@ class Hetu extends AbstractInterpreter {
   /// call the function after evaluation completed.
   @override
   Future<dynamic> evalSource(HTSource source,
-      {String? libraryName,
-      HTNamespace? namespace,
+      {HTNamespace? namespace,
       InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -166,18 +165,14 @@ class Hetu extends AbstractInterpreter {
 
     _curModuleFullName = source.fullName;
 
-    _curLibraryName = libraryName ?? _curModuleFullName;
+    _curLibraryName = source.libraryName;
 
     final createNamespace = namespace != global;
     try {
-      final compilation = await parser.parseToCompilation(
-          source, sourceProvider,
-          createNamespace: createNamespace,
-          libraryName:
-              libraryName, // TODO: should set in parser, and should read from script if exist
-          config: this.config);
+      final compilation = parser.parseToCompilation(source, sourceProvider,
+          createNamespace: createNamespace, config: this.config);
 
-      final bytes = await compiler.compile(compilation);
+      final bytes = compiler.compile(compilation);
 
       _code = BytecodeReader(bytes);
 

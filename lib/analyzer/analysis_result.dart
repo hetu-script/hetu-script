@@ -1,6 +1,8 @@
-part of 'analyzer.dart';
+import 'analyzer.dart';
+import 'analysis_error.dart';
+import '../element/namespace.dart';
 
-class HTAnalysisResult {
+class HTAnalysisResult extends HTNamespace {
   final HTAnalyzer analyzer;
 
   final List<HTAnalysisError> errors;

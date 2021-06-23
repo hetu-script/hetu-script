@@ -23,13 +23,11 @@ abstract class SourceProvider {
 
   String resolveFullName(String key, [String? currentModuleFullName]);
 
-  Future<HTSource> getSource(String key,
+  HTSource getSourceSync(String key,
       {bool isFullName = false,
       String? curModuleFullName,
       bool reload = true,
       ErrorType errorType = ErrorType.runtimeError});
-
-  HTSource getSourceSync(String key, {String? curFilePath, bool reload = true});
 }
 
 /// Default module import handler implementation
@@ -39,7 +37,7 @@ class DefaultSourceProvider implements SourceProvider {
   late final String workingDirectory;
 
   /// Saved module name list
-  final _importedFiles = <String, String>{};
+  final _cached = <String, HTSource>{};
 
   /// Create a [DefaultSourceProvider] with a certain [workingDirectory],
   /// which is used to determin a module's absolute path
@@ -57,7 +55,7 @@ class DefaultSourceProvider implements SourceProvider {
   }
 
   @override
-  bool hasModule(String key) => _importedFiles.containsKey(key);
+  bool hasModule(String key) => _cached.containsKey(key);
 
   @override
   String resolveFullName(String key, [String? curModuleFullName]) {
@@ -80,26 +78,26 @@ class DefaultSourceProvider implements SourceProvider {
   ///
   /// Otherwise, a absolute path is calculated from [workingDirectory]
   @override
-  Future<HTSource> getSource(String key,
+  HTSource getSourceSync(String key,
       {bool isFullName = false,
       String? curModuleFullName,
       bool reload = true,
-      ErrorType errorType = ErrorType.runtimeError}) async {
+      ErrorType errorType = ErrorType.runtimeError}) {
     try {
       final fullName =
           isFullName ? key : resolveFullName(key, curModuleFullName);
-
-      if (!hasModule(fullName) || reload) {
-        final content = await File(fullName).readAsString();
+      if (!_cached.containsKey(fullName) || reload) {
+        final content = File(fullName).readAsStringSync();
         if (content.isNotEmpty) {
-          _importedFiles[fullName] = content;
           if (content.isEmpty) throw HTError.emptyString(fullName);
-          return HTSource(fullName, content);
+          final source = HTSource(fullName, content);
+          _cached[fullName] = source;
+          return source;
         } else {
           throw HTError.emptyString(fullName);
         }
       } else {
-        return HTSource(fullName, _importedFiles[fullName]!);
+        return _cached[fullName]!;
       }
     } catch (e) {
       if (e is HTError) {
@@ -108,13 +106,5 @@ class DefaultSourceProvider implements SourceProvider {
         throw HTError.unknownModule(key, errorType);
       }
     }
-  }
-
-  /// Synchronized version of [evalFile].
-  @override
-  HTSource getSourceSync(String key,
-      {String? curFilePath, bool reload = true}) {
-    throw HTError(ErrorCode.extern, ErrorType.externalError,
-        message: 'getContentSync is currently unusable');
   }
 }

@@ -1,5 +1,4 @@
 import '../../error/error.dart';
-import '../../grammar/semantic.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
 import '../../type/nominal_type.dart';
@@ -49,12 +48,10 @@ class HTCast with HTObject, HetuRef {
   }
 
   @override
-  dynamic memberGet(String field,
-          {String from = SemanticNames.global, bool error = true}) =>
-      object.memberGet(field, from: from, classId: klass.id);
+  dynamic memberGet(String field, {bool error = true}) =>
+      object.memberGet(field, classId: klass.id);
 
   @override
-  void memberSet(String field, dynamic varValue,
-          {String from = SemanticNames.global, bool error = true}) =>
-      object.memberSet(field, varValue, from: from, classId: klass.id);
+  void memberSet(String field, dynamic varValue, {bool error = true}) =>
+      object.memberSet(field, varValue, classId: klass.id);
 }

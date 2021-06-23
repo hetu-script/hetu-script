@@ -74,8 +74,7 @@ class ProfileClassBinding extends HTExternalClass {
   ProfileClassBinding() : super('Profile');
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberGet(String field, {bool error = true}) {
     switch (field) {
       case 'Profile':
         return (
@@ -103,8 +102,7 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String field,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberGet(String field, {bool error = true}) {
     switch (field) {
       case 'Person.profile':
         return Person.profile;
@@ -116,8 +114,7 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic memberSet(String field, dynamic value,
-      {String from = SemanticNames.global, bool error = true}) {
+  dynamic memberSet(String field, dynamic value, {bool error = true}) {
     switch (field) {
       case 'Person.profile':
         return Person.profile = value;

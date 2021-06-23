@@ -2,12 +2,15 @@ import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
+import '../../source/source.dart';
 import '../namespace.dart';
-// import '../element.dart';
-import 'typed_variable_declaration.dart';
+import '../element.dart';
 
 /// Variable is a binding between an element and a value
-class HTVariable extends HTTypedVariableDeclaration with HetuRef, GotoInfo {
+class HTVariable extends HTElement with HetuRef, GotoInfo {
+  @override
+  final String id;
+
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 
@@ -21,10 +24,10 @@ class HTVariable extends HTTypedVariableDeclaration with HetuRef, GotoInfo {
   /// Create a standard [HTVariable].
   /// has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
-  HTVariable(
-      String id, String moduleFullName, String libraryName, Hetu interpreter,
-      {HTNamespace? closure,
-      String? classId,
+  HTVariable(this.id, Hetu interpreter,
+      {String? classId,
+      HTNamespace? closure,
+      HTSource? source,
       HTType? declType,
       dynamic value,
       bool isExternal = false,
@@ -34,9 +37,11 @@ class HTVariable extends HTTypedVariableDeclaration with HetuRef, GotoInfo {
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
-      : super(id, moduleFullName, libraryName,
-            closure: closure,
+      : super(
+            id: id,
             classId: classId,
+            closure: closure,
+            source: source,
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
@@ -75,8 +80,8 @@ class HTVariable extends HTTypedVariableDeclaration with HetuRef, GotoInfo {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
-            moduleFullName: moduleFullName,
-            libraryName: libraryName,
+            moduleFullName: source?.fullName,
+            libraryName: source?.libraryName,
             ip: definitionIp!,
             namespace: closure,
             line: definitionLine,
@@ -86,7 +91,7 @@ class HTVariable extends HTTypedVariableDeclaration with HetuRef, GotoInfo {
 
         _isInitializing = false;
       } else {
-        throw HTError.circleInit(id);
+        throw HTError.circleInit(name);
       }
     } else {
       value = null; // null 也要 assign 一下，因为需要类型检查
@@ -154,9 +159,10 @@ class HTVariable extends HTTypedVariableDeclaration with HetuRef, GotoInfo {
   // }
 
   @override
-  HTVariable clone() => HTVariable(id, moduleFullName, libraryName, interpreter,
-      closure: closure,
+  HTVariable clone() => HTVariable(id, interpreter,
       classId: classId,
+      closure: closure,
+      source: source,
       declType: declType,
       value: value,
       isExternal: isExternal,

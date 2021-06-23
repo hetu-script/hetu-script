@@ -175,6 +175,7 @@ abstract class HTLexicon {
     LET,
     FINAL,
     CONST,
+    TYPEOF,
     CLASS,
     ENUM,
     FUNCTION,
@@ -240,6 +241,7 @@ abstract class HTLexicon {
     negative,
     preIncrement,
     preDecrement,
+    TYPEOF,
   };
 
   static const multiply = '*';
@@ -275,6 +277,7 @@ abstract class HTLexicon {
     lesserOrEqual,
     AS,
     IS
+    // is! is handled in parser
   };
 
   static const Set<String> logicalRelationals = {

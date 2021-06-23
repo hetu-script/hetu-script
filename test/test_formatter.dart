@@ -8,7 +8,7 @@ void main() async {
   ''');
   final parser = HTAstParser();
   // final bundle = await parser.parseFileAsLibrary('script\\battle.ht', srcPrdr);
-  final compilation = await parser.parseToCompilation(source, srcPrdr);
+  final compilation = parser.parseToCompilation(source, srcPrdr);
 
   final formatter = HTFormatter();
 
