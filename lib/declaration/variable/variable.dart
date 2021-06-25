@@ -4,10 +4,10 @@ import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
 import '../../source/source.dart';
 import '../namespace.dart';
-import '../element.dart';
+import '../declaration.dart';
 
 /// Variable is a binding between an element and a value
-class HTVariable extends HTElement with HetuRef, GotoInfo {
+class HTVariable extends HTDeclaration with HetuRef, GotoInfo {
   @override
   final String id;
 
@@ -27,7 +27,6 @@ class HTVariable extends HTElement with HetuRef, GotoInfo {
   HTVariable(this.id, Hetu interpreter,
       {String? classId,
       HTNamespace? closure,
-      HTSource? source,
       HTType? declType,
       dynamic value,
       bool isExternal = false,
@@ -41,7 +40,7 @@ class HTVariable extends HTElement with HetuRef, GotoInfo {
             id: id,
             classId: classId,
             closure: closure,
-            source: source,
+            declType: declType,
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
@@ -162,7 +161,6 @@ class HTVariable extends HTElement with HetuRef, GotoInfo {
   HTVariable clone() => HTVariable(id, interpreter,
       classId: classId,
       closure: closure,
-      source: source,
       declType: declType,
       value: value,
       isExternal: isExternal,

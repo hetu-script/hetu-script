@@ -2,7 +2,7 @@ import '../source/source.dart';
 import '../source/source_provider.dart';
 // import '../binding/external_function.dart';
 import '../type/type.dart';
-import '../element/namespace.dart';
+import '../declaration/namespace.dart';
 // import '../core/function/abstract_function.dart';
 // import '../object/object.dart';
 import '../interpreter/abstract_interpreter.dart';
@@ -21,6 +21,8 @@ import 'analysis_result.dart';
 
 import '../type/type.dart';
 
+import '../declaration/library.dart';
+
 class AnalyzerConfig extends InterpreterConfig {
   final List<ErrorProcessor> errorProcessors;
 
@@ -31,16 +33,14 @@ class AnalyzerConfig extends InterpreterConfig {
       bool scriptStackTrace = true,
       int scriptStackTraceMaxline = 10,
       bool externalStackTrace = true,
-      int externalStackTraceMaxline = 10,
       this.errorProcessors = const []})
       : super(
             sourceType: sourceType,
             reload: reload,
             errorDetail: errorDetail,
             scriptStackTrace: scriptStackTrace,
-            scriptStackTraceMaxline: scriptStackTraceMaxline,
-            externalStackTrace: externalStackTrace,
-            externalStackTraceMaxline: externalStackTraceMaxline);
+            scriptStackTraceThreshhold: scriptStackTraceMaxline,
+            externalStackTrace: externalStackTrace);
 }
 
 class HTAnalyzer extends AbstractInterpreter
@@ -52,10 +52,13 @@ class HTAnalyzer extends AbstractInterpreter
 
   late HTAstModule _curCode;
 
-  late AnalyzerConfig _config;
+  late AnalyzerConfig _curConfig;
 
   @override
-  AnalyzerConfig get config => _config;
+  AnalyzerConfig get curConfig => _curConfig;
+
+  String? _curSymbol;
+  String? get curSymbol => _curSymbol;
 
   var _curLine = 0;
   @override
@@ -69,20 +72,9 @@ class HTAnalyzer extends AbstractInterpreter
   @override
   String get curModuleFullName => _curModuleFullName;
 
-  late String _curLibraryName;
+  late HTLibrary _curLibrary;
   @override
-  String get curLibraryName => _curLibraryName;
-
-  String? _curSymbol;
-  @override
-  String? get curSymbol => _curSymbol;
-  // String? _curObjectSymbol;
-  // @override
-  // String? get curLeftValue => _curObjectSymbol;
-
-  /// 本地变量表，不同语句块和环境的变量可能会有重名。
-  /// 这里用表达式而不是用变量名做key，用表达式的值所属环境相对位置作为value
-  // final _distances = <AstNode, int>{};
+  HTLibrary get curLibrary => _curLibrary;
 
   HTType? _curExprType;
 
@@ -162,7 +154,7 @@ class HTAnalyzer extends AbstractInterpreter
 
   @override
   dynamic invoke(String funcName,
-      {String? moduleFullName,
+      {String? classId,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],

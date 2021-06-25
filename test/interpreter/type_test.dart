@@ -55,7 +55,7 @@ void main() async {
       final result = await hetu.eval('''
         fun functionType {
           var numparse: fun (str) -> num = fun (value: str) -> num { return num.parse(value) }
-          var getType = fun { return numparse.valueType }
+          var getType = fun { typeof numparse }
           var funcTypedef2 = getType()
           var strlength: funcTypedef2 = fun (value: str) -> num { return value.length }
           return strlength('hello world')

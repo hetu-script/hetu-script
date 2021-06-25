@@ -6,8 +6,8 @@ import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../ast/ast_compilation.dart';
 import 'const_table.dart';
-// import '../element/class/class_declaration.dart';
-// import '../element/function/function_declaration.dart';
+// import '../declaration/class/class_declaration.dart';
+// import '../declaration/function/function_declaration.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import 'opcode.dart';
@@ -283,6 +283,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(0); // bool: isConst
     bytesBuilder.addByte(0); // bool: isExported
     bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
+    bytesBuilder.addByte(0); // bool: has type decl
     if (initializer != null) {
       bytesBuilder.addByte(1); // bool: has initializer
       if (lateInitialize) {
@@ -590,6 +591,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
             GroupExpr(value, value.line, value.column, source: expr.source);
         final bytes = visitAstNode(group);
         bytesBuilder.add(bytes);
+        break;
+      case HTLexicon.TYPEOF:
+        bytesBuilder.add(value);
+        bytesBuilder.addByte(HTOpCode.typeOf);
         break;
     }
     return bytesBuilder.toBytes();
@@ -1347,6 +1352,16 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isConst ? 1 : 0);
     bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
+    Uint8List? typeDecl;
+    if (stmt.declType != null) {
+      typeDecl = visitAstNode(stmt.declType!);
+    }
+    if (typeDecl != null) {
+      bytesBuilder.addByte(1); // bool: has type decl
+      bytesBuilder.add(typeDecl);
+    } else {
+      bytesBuilder.addByte(0); // bool: has type decl
+    }
     Uint8List? initializer;
     if (stmt.initializer != null) {
       initializer = visitAstNode(stmt.initializer!, endOfExec: true);
@@ -1373,15 +1388,28 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isOptional ? 1 : 0);
     bytesBuilder.addByte(stmt.isNamed ? 1 : 0);
     bytesBuilder.addByte(stmt.isVariadic ? 1 : 0);
+    Uint8List? typeDecl;
+    if (stmt.declType != null) {
+      typeDecl = visitAstNode(stmt.declType!);
+    }
+    if (typeDecl != null) {
+      bytesBuilder.addByte(1); // bool: has type decl
+      bytesBuilder.add(typeDecl);
+    } else {
+      bytesBuilder.addByte(0); // bool: has type decl
+    }
     Uint8List? initializer;
-    // 参数默认值
     if (stmt.initializer != null) {
       initializer = visitAstNode(stmt.initializer!, endOfExec: true);
-      bytesBuilder.addByte(1); // bool, hasInitializer
+    }
+    if (initializer != null) {
+      bytesBuilder.addByte(1); // bool: has initializer
+      bytesBuilder.add(_uint16(stmt.initializer!.line));
+      bytesBuilder.add(_uint16(stmt.initializer!.column));
       bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
     } else {
-      bytesBuilder.addByte(0); // bool，hasInitializer
+      bytesBuilder.addByte(0); // bool: has initializer
     }
     return bytesBuilder.toBytes();
   }
@@ -1410,8 +1438,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     if (stmt.category != FunctionCategory.literal) {
       bytesBuilder.addByte(HTOpCode.funcDecl);
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
-      bytesBuilder.add(_shortUtf8String(stmt.id));
-      bytesBuilder.add(_shortUtf8String(stmt.declId));
+      bytesBuilder.add(_shortUtf8String(stmt.internalName));
+      if (stmt.id != null) {
+        bytesBuilder.addByte(1); // bool: hasId
+        bytesBuilder.add(_shortUtf8String(stmt.id!));
+      } else {
+        bytesBuilder.addByte(0); // bool: hasId
+      }
       if (stmt.classId != null) {
         bytesBuilder.addByte(1); // bool: hasClassId
         bytesBuilder.add(_shortUtf8String(stmt.classId!));
@@ -1432,7 +1465,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(HTOpCode.local);
       bytesBuilder.addByte(HTValueTypeCode.function);
-      bytesBuilder.add(_shortUtf8String(stmt.id));
+      bytesBuilder.add(_shortUtf8String(stmt.internalName));
       if (stmt.externalTypeId != null) {
         bytesBuilder.addByte(1);
         bytesBuilder.add(_shortUtf8String(stmt.externalTypeId!));

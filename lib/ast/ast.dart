@@ -674,9 +674,9 @@ class FuncDeclExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitFuncDeclStmt(this);
 
-  final String id;
+  final String internalName;
 
-  final String declId;
+  final String? id;
 
   final String? classId;
 
@@ -700,7 +700,7 @@ class FuncDeclExpr extends AstNode {
 
   bool get isMember => classId != null;
 
-  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
+  bool get isPrivate => internalName.startsWith(HTLexicon.privatePrefix);
 
   bool get isAbstract => definition != null;
 
@@ -720,8 +720,9 @@ class FuncDeclExpr extends AstNode {
 
   bool get isLiteral => category == FunctionCategory.literal;
 
-  const FuncDeclExpr(this.id, this.declId, this.params, int line, int column,
-      {HTSource? source,
+  const FuncDeclExpr(this.internalName, this.params, int line, int column,
+      {this.id,
+      HTSource? source,
       this.classId,
       this.genericParameters = const [],
       this.externalTypeId,

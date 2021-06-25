@@ -1,9 +1,9 @@
 import '../../type/type.dart';
 import '../../source/source.dart';
 import '../namespace.dart';
-import '../element.dart';
+import '../declaration.dart';
 
-class HTClassDeclaration extends HTElement {
+class HTClassDeclaration extends HTDeclaration {
   /// The type parameters of the class.
   final Iterable<HTType> genericParameters;
 

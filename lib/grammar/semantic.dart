@@ -21,6 +21,8 @@ enum TypeType {
 abstract class SemanticNames {
   static const module = 'module';
   static const library = 'library';
+  static const namespace = 'namespace';
+
   static const global = 'global';
   static const preclude = 'preclude';
   static const anonymous = 'anonymous';
@@ -28,16 +30,16 @@ abstract class SemanticNames {
   static const newLine = '\n';
 
   static const internalMarker = r'$';
-  static const anonymousScript = r'$_anonymousScript_';
-  static const anonymousFunction = r'$_anonymousFunction_';
-  static const anonymousNamespace = r'$_anonymousNamespace_';
-  static const anonymousBlock = r'$_anonymousBlock_';
-  static const increment = r'$_increment_';
-  static const iterable = r'$_iterable_';
-  static const instance = r'$_instance_';
-  static const constructor = r'$_constructor_';
-  static const getter = r'$_getter_';
-  static const setter = r'$_setter_';
+  static const anonymousScript = r'anonymous_script';
+  static const anonymousFunction = r'$anonymous_function';
+  static const anonymousNamespace = r'$anonymous_namespace';
+  static const anonymousBlock = r'$anonymous_block';
+  static const increment = r'$increment';
+  static const iterable = r'$iterable';
+  static const instance = r'$instance';
+  static const constructor = r'$constructor_';
+  static const getter = r'$get_';
+  static const setter = r'$set_';
   static const instanceOf = 'instance of';
 
   static const endOfFile = 'end_of_file';
@@ -50,6 +52,7 @@ abstract class SemanticNames {
   static const punctuation = 'punctuation';
   static const expression = 'expression';
   static const statement = 'statement';
+
   static const declStmt = 'declaration_statement';
   static const thenBranch = 'then_branch';
   static const elseBranch = 'else_branch';

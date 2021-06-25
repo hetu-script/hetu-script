@@ -4,7 +4,7 @@
 /// 
 /// The pre-included modules of Hetu scripting language.
 final Map<String, String> coreModules = const {
-  'core.ht': r'''abstract class object {
+  'hetu:core': r'''abstract class object {
 
 }
 
@@ -12,8 +12,10 @@ final Map<String, String> coreModules = const {
 // external fun decltypeof(value) -> str
 
 // print values of any type into lines
-external fun print(... args)''',
-  'value.ht': r'''/// The apis here are named based on Dart SDK's
+external fun print(... args: any)
+
+external fun stringify(obj: any)''',
+  'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
 
 external class num {
@@ -250,7 +252,7 @@ external class Map {
 
   fun putIfAbsent(key, value) -> any
 }''',
-  'system.ht': r'''external class System {
+  'hetu:system': r'''external class System {
 
   static get now -> num
 
@@ -258,7 +260,7 @@ external class Map {
 
   // static fun tok()
 }''',
-  'console.ht': r'''external class Console {
+  'hetu:console': r'''external class Console {
 
 	// write a line without return
 	static fun write(line: str)
@@ -274,7 +276,7 @@ external class Map {
 	
 	static fun cls()
 }''',
-  'math.ht': r'''
+  'hetu:math': r'''
 external class Math {
   static final e: num = 2.718281828459045;
   
@@ -324,5 +326,5 @@ external class Math {
 
 }
 ''',
-  'help.ht': r'''external fun help(value) -> str''',
+  'hetu:help': r'''external fun help(value) -> str''',
 };

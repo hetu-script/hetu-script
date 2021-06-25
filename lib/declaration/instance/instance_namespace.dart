@@ -28,7 +28,7 @@ class HTInstanceNamespace extends HTNamespace {
     while (curNamespace != null) {
       if (curNamespace.declarations.containsKey(field) ||
           curNamespace.declarations.containsKey(getter)) {
-        return instance.memberGet(field);
+        return instance.memberGet(field, cast: curNamespace.classId);
       } else {
         curNamespace = curNamespace.next;
       }
@@ -56,7 +56,7 @@ class HTInstanceNamespace extends HTNamespace {
     while (curNamespace != null) {
       if (curNamespace.declarations.containsKey(field) ||
           curNamespace.declarations.containsKey(setter)) {
-        instance.memberSet(field, varValue, classId: curNamespace.classId);
+        instance.memberSet(field, varValue, cast: curNamespace.classId);
         return;
       } else {
         curNamespace = curNamespace.next;

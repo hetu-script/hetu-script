@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../scanner/abstract_parser.dart';
 import '../scanner/lexer.dart';
 import 'const_table.dart';
-import '../element/class/class_declaration.dart';
+import '../declaration/class/class_declaration.dart';
 import '../grammar/semantic.dart';
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
@@ -113,8 +113,8 @@ class HTCompiler extends AbstractParser {
           fullName.startsWith(SemanticNames.anonymousScript) ? null : fullName);
       if (!sourceProvider.hasModule(importedFullName)) {
         _curModuleFullName = importedFullName;
-        final importedContent = await sourceProvider.getSource(importedFullName,
-            curModuleFullName: _curModuleFullName);
+        final importedContent = sourceProvider.getSourceSync(importedFullName,
+            from: _curModuleFullName);
         final compiler2 = HTCompiler();
         // TODO: 这里的错误处理需要重新写，因为如果是新的compiler的错误无法捕捉
         final compilation2 = await compiler2.compile(
@@ -1834,7 +1834,7 @@ class HTCompiler extends AbstractParser {
     bytesBuilder.add(_shortUtf8String(id));
     if (isMember) {
       bytesBuilder.addByte(1); // bool: has class id
-      bytesBuilder.add(_shortUtf8String(_curClass!.id));
+      bytesBuilder.add(_shortUtf8String(_curClass!.id!));
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
@@ -2198,8 +2198,8 @@ class HTCompiler extends AbstractParser {
 
     final savedClass = _curClass;
 
-    _curClass = HTClassDeclaration(id, _curModuleFullName, _curLibraryName,
-        isExternal: isExternal, isAbstract: isAbstract);
+    _curClass = HTClassDeclaration(
+        id: id, isExternal: isExternal, isAbstract: isAbstract);
 
     bytesBuilder.addByte(isExternal ? 1 : 0);
     bytesBuilder.addByte(isAbstract ? 1 : 0);

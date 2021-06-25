@@ -673,8 +673,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
       output.write(
           ' ${HTLexicon.squareLeft}${stmt.externalTypeId}${HTLexicon.squareRight}');
     }
-    if (stmt.declId.isNotEmpty) {
-      output.write(' ${stmt.declId}');
+    if (stmt.id != null) {
+      output.write(' ${stmt.id}');
     }
     final paramDeclString = printParamDecls(stmt.params);
     output.write(paramDeclString);

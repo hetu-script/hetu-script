@@ -119,6 +119,8 @@ abstract class HTOpCode {
   /// modulo value store => reg[store] = !reg[valueOf]
   static const logicalNot = 61;
 
+  static const typeOf = 62;
+
   static const memberGet = 65;
 
   static const subGet = 66;

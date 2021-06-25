@@ -9,11 +9,11 @@ import '../../type/type.dart';
 import '../instance/instance_namespace.dart';
 import '../class/class.dart';
 import '../instance/instance.dart';
-import '../object.dart';
+import '../../object/object.dart';
 import '../variable/variable.dart';
 import '../namespace.dart';
 import 'parameter.dart';
-import 'typed_function_declaration.dart';
+import 'function_declaration.dart';
 
 class ReferConstructor {
   /// id of super class's constructor
@@ -36,9 +36,13 @@ class ReferConstructor {
 }
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
-class HTFunction extends HTTypedFunctionDeclaration
+class HTFunction extends HTFunctionDeclaration
     with HTObject, HetuRef, GotoInfo {
   static final callStack = <String>[];
+
+  final String moduleFullName;
+
+  final String libraryName;
 
   HTClass? klass;
 
@@ -54,7 +58,7 @@ class HTFunction extends HTTypedFunctionDeclaration
   /// will accept 0 params
   final bool hasParamDecls;
 
-  /// Holds declarations of all parameters.
+  @override
   final Map<String, HTParameter> paramDecls;
 
   final ReferConstructor? referConstructor;
@@ -62,13 +66,14 @@ class HTFunction extends HTTypedFunctionDeclaration
   HTNamespace? context;
 
   @override
-  HTType get valueType => HTType.function;
+  HTType get valueType => type;
 
   /// Create a standard [HTFunction].
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(String name, Hetu interpreter,
+  HTFunction(String internalName, this.moduleFullName, this.libraryName,
+      Hetu interpreter,
       {String? id,
       String? classId,
       HTNamespace? closure,
@@ -84,13 +89,13 @@ class HTFunction extends HTTypedFunctionDeclaration
       String? externalTypeId,
       bool isVariadic = false,
       this.hasParamDecls = true,
-      this.paramDecls = const <String, HTParameter>{},
+      this.paramDecls = const {},
       int minArity = 0,
       int maxArity = 0,
       this.context,
       this.referConstructor,
       this.klass})
-      : super(name,
+      : super(internalName,
             id: id,
             classId: classId,
             closure: closure,
@@ -103,7 +108,8 @@ class HTFunction extends HTTypedFunctionDeclaration
             externalTypeId: externalTypeId,
             isVariadic: isVariadic,
             minArity: minArity,
-            maxArity: maxArity) {
+            maxArity: maxArity,
+            paramDecls: paramDecls) {
     this.interpreter = interpreter;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -130,28 +136,29 @@ class HTFunction extends HTTypedFunctionDeclaration
   }
 
   @override
-  HTFunction clone() => HTFunction(name, interpreter,
-      id: id,
-      classId: classId,
-      closure: closure,
-      source: source,
-      isExternal: isExternal,
-      isStatic: isStatic,
-      isConst: isConst,
-      definitionIp: definitionIp,
-      definitionLine: definitionLine,
-      definitionColumn: definitionColumn,
-      category: category,
-      externalFunc: externalFunc,
-      externalTypeId: externalTypeId,
-      isVariadic: isVariadic,
-      hasParamDecls: hasParamDecls,
-      paramDecls: paramDecls,
-      minArity: minArity,
-      maxArity: maxArity,
-      context: context,
-      referConstructor: referConstructor,
-      klass: klass);
+  HTFunction clone() =>
+      HTFunction(name, moduleFullName, libraryName, interpreter,
+          id: id,
+          classId: classId,
+          closure: closure,
+          source: source,
+          isExternal: isExternal,
+          isStatic: isStatic,
+          isConst: isConst,
+          definitionIp: definitionIp,
+          definitionLine: definitionLine,
+          definitionColumn: definitionColumn,
+          category: category,
+          externalFunc: externalFunc,
+          externalTypeId: externalTypeId,
+          isVariadic: isVariadic,
+          hasParamDecls: hasParamDecls,
+          paramDecls: paramDecls,
+          minArity: minArity,
+          maxArity: maxArity,
+          context: context,
+          referConstructor: referConstructor,
+          klass: klass);
 
   /// Call this function with specific arguments.
   /// ```
@@ -179,7 +186,7 @@ class HTFunction extends HTTypedFunctionDeclaration
       bool errorHandled = true}) {
     try {
       callStack.add(
-          '#${callStack.length} $id - (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
+          '$internalName ($moduleFullName:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数
@@ -282,7 +289,8 @@ class HTFunction extends HTTypedFunctionDeclaration
         HTParameter? variadicParam;
         for (var i = 0; i < paramDecls.length; ++i) {
           var decl = paramDecls.values.elementAt(i).clone();
-          callClosure.define(decl.name, decl);
+          final paramId = paramDecls.keys.elementAt(i);
+          callClosure.define(paramId, decl);
 
           if (decl.isVariadic) {
             variadicStart = i;
@@ -315,8 +323,8 @@ class HTFunction extends HTTypedFunctionDeclaration
 
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
-              moduleFullName: source?.fullName,
-              libraryName: source?.libraryName,
+              moduleFullName: moduleFullName,
+              libraryName: libraryName,
               ip: definitionIp,
               namespace: callClosure,
               function: this,
@@ -403,7 +411,7 @@ class HTFunction extends HTTypedFunctionDeclaration
         // either a normal external function or
         // a external static method in a non-external class
         if (!(klass?.isExternal ?? false)) {
-          externalFunc ??= interpreter.fetchExternalFunction(id);
+          externalFunc ??= interpreter.fetchExternalFunction(name);
 
           if (externalFunc is HTExternalFunction) {
             result = externalFunc!(
@@ -423,12 +431,12 @@ class HTFunction extends HTTypedFunctionDeclaration
           if (category != FunctionCategory.getter) {
             if (externalFunc == null) {
               if (isStatic || (category == FunctionCategory.constructor)) {
-                final classId = klass!.id;
+                final classId = klass!.id!;
                 final externClass = interpreter.fetchExternalClass(classId);
-                final funcName = declId.isEmpty ? classId : '$classId.$declId';
+                final funcName = id != null ? '$classId.$id' : classId;
                 externalFunc = externClass.memberGet(funcName);
               } else {
-                throw HTError.missingExternalFunc(id);
+                throw HTError.missingExternalFunc(name);
               }
             }
 
@@ -446,9 +454,9 @@ class HTFunction extends HTTypedFunctionDeclaration
                       (key, value) => MapEntry(Symbol(key), value)));
             }
           } else {
-            final classId = klass!.id;
+            final classId = klass!.id!;
             final externClass = interpreter.fetchExternalClass(classId);
-            final funcName = isStatic ? '$classId.$declId' : declId;
+            final funcName = isStatic ? '$classId.$id' : id!;
             result = externClass.memberGet(funcName);
           }
         }

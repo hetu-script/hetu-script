@@ -1,15 +1,15 @@
+import 'package:hetu_script/declaration/function/abstract_parameter.dart';
+
 import '../../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';
 import '../../source/source.dart';
 import '../namespace.dart';
-import '../element.dart';
-import 'typed_parameter_declaration.dart';
+import '../declaration.dart';
 
-class HTTypedFunctionDeclaration extends HTElement {
-  @override
-  final String name;
+class HTFunctionDeclaration extends HTDeclaration {
+  final String internalName;
 
   final FunctionCategory category;
 
@@ -18,7 +18,7 @@ class HTTypedFunctionDeclaration extends HTElement {
   final String? externalTypeId;
 
   /// Holds declarations of all parameters.
-  final Map<String, HTTypedParameterDeclaration> parameterDeclarations;
+  final Map<String, AbstractParameter> paramDecls;
 
   HTType get returnType => type.returnType;
 
@@ -30,7 +30,7 @@ class HTTypedFunctionDeclaration extends HTElement {
 
   final int maxArity;
 
-  HTTypedFunctionDeclaration(this.name,
+  HTFunctionDeclaration(this.internalName,
       {String? id,
       String? classId,
       HTNamespace? closure,
@@ -44,10 +44,10 @@ class HTTypedFunctionDeclaration extends HTElement {
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0,
-      this.parameterDeclarations = const {},
+      this.paramDecls = const {},
       HTType? returnType})
       : type = HTFunctionType(
-            parameterDeclarations: parameterDeclarations.values.toList(),
+            parameterDeclarations: paramDecls.values.toList(),
             returnType: returnType ?? HTType.ANY),
         super(
             id: id,
@@ -63,7 +63,7 @@ class HTTypedFunctionDeclaration extends HTElement {
   String toString() {
     var result = StringBuffer();
     result.write(HTLexicon.FUNCTION);
-    result.write(' $id');
+    result.write(' $internalName');
     if (type.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
       for (var i = 0; i < type.typeArgs.length; ++i) {
@@ -78,7 +78,7 @@ class HTTypedFunctionDeclaration extends HTElement {
     var i = 0;
     var optionalStarted = false;
     var namedStarted = false;
-    for (final param in parameterDeclarations.values) {
+    for (final param in paramDecls.values) {
       if (param.isVariadic) {
         result.write(HTLexicon.variadicArgs + ' ');
       }
@@ -89,9 +89,11 @@ class HTTypedFunctionDeclaration extends HTElement {
         namedStarted = true;
         result.write(HTLexicon.curlyLeft);
       }
-      result.write(
-          param.id + '${HTLexicon.colon} ' + (param.declType.toString()));
-      if (i < parameterDeclarations.length - 1) {
+      if (param.declType != null) {
+        result.write(
+            param.id + '${HTLexicon.colon} ' + (param.declType.toString()));
+      }
+      if (i < paramDecls.length - 1) {
         result.write('${HTLexicon.comma} ');
       }
       if (optionalStarted) {
@@ -108,7 +110,7 @@ class HTTypedFunctionDeclaration extends HTElement {
   }
 
   @override
-  HTTypedFunctionDeclaration clone() => HTTypedFunctionDeclaration(name,
+  HTFunctionDeclaration clone() => HTFunctionDeclaration(name,
       id: id,
       classId: classId,
       closure: closure,
@@ -122,6 +124,6 @@ class HTTypedFunctionDeclaration extends HTElement {
       isVariadic: isVariadic,
       minArity: minArity,
       maxArity: maxArity,
-      parameterDeclarations: parameterDeclarations,
+      paramDecls: paramDecls,
       returnType: returnType);
 }

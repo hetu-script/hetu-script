@@ -3,11 +3,11 @@ import '../../grammar/lexicon.dart';
 import '../../interpreter/interpreter.dart';
 import '../../source/source.dart';
 import '../../type/type.dart';
-import '../element.dart';
-import '../object.dart';
+import '../declaration.dart';
+import '../../object/object.dart';
 
 /// [HTEnum] is the Dart implementation of the enum declaration in Hetu.
-class HTEnum extends HTElement with HTObject, HetuRef {
+class HTEnum extends HTDeclaration with HTObject, HetuRef {
   @override
   HTType get valueType => HTType.ENUM;
 

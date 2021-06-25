@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:pub_semver/pub_semver.dart';
 import 'package:meta/meta.dart';
 
@@ -15,11 +17,12 @@ import '../grammar/semantic.dart';
 import '../type/type.dart';
 import '../scanner/parser.dart';
 import 'compiler.dart';
-import '../element/function/function.dart';
-import '../element/namespace.dart';
+import '../declaration/function/function.dart';
+import '../declaration/namespace.dart';
 import '../scanner/abstract_parser.dart' show ParserConfig;
 import '../buildin/hetu_lib.dart';
-import '../element/object.dart';
+import '../object/object.dart';
+import '../declaration/library.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -29,25 +32,21 @@ mixin InterpreterRef {
 class InterpreterConfig extends ParserConfig {
   final bool errorDetail;
   final bool scriptStackTrace;
-  final int scriptStackTraceMaxline;
+  final int scriptStackTraceThreshhold;
   final bool externalStackTrace;
-  final int externalStackTraceMaxline;
 
   const InterpreterConfig(
       {SourceType sourceType = SourceType.module,
       bool reload = false,
       this.errorDetail = true,
       this.scriptStackTrace = true,
-      this.scriptStackTraceMaxline = 10,
-      this.externalStackTrace = true,
-      this.externalStackTraceMaxline = 10})
+      this.scriptStackTraceThreshhold = 10,
+      this.externalStackTrace = true})
       : super(sourceType: sourceType, reload: reload);
 }
 
-/// Shared interface for a ast or bytecode interpreter of Hetu.
+/// Base class for bytecode interpreter and static analyzer of Hetu.
 abstract class AbstractInterpreter {
-  static var anonymousScriptIndex = 0;
-
   static final version = Version(0, 1, 0);
 
   HTAstParser parser = HTAstParser();
@@ -55,20 +54,19 @@ abstract class AbstractInterpreter {
 
   InterpreterConfig config;
 
+  InterpreterConfig get curConfig;
+
   /// Current line number of execution.
   int get curLine;
 
   /// Current column number of execution.
   int get curColumn;
 
+  HTNamespace get curNamespace;
+
   String get curModuleFullName;
 
-  String get curLibraryName;
-
-  String? get curSymbol;
-  // String? get curLeftValue;
-
-  HTNamespace get curNamespace;
+  HTLibrary get curLibrary;
 
   late HTErrorHandler errorHandler;
   late SourceProvider sourceProvider;
@@ -147,9 +145,11 @@ abstract class AbstractInterpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
+    var firstLine = content.trimLeft().replaceAll(RegExp(r'\s'), '');
+    firstLine = firstLine.substring(0, math.min(100, firstLine.length));
+
     final source = HTSource(
-        moduleFullName ??
-            ('${SemanticNames.anonymousScript}${AbstractInterpreter.anonymousScriptIndex++}'),
+        moduleFullName ?? ('${SemanticNames.anonymousScript}: $firstLine'),
         content);
 
     return await evalSource(source,
@@ -181,7 +181,7 @@ abstract class AbstractInterpreter {
 
       if (reload || !sourceProvider.hasModule(fullName)) {
         final module = sourceProvider.getSourceSync(key,
-            curModuleFullName: useLastModuleFullName
+            from: useLastModuleFullName
                 ? curModuleFullName
                 : sourceProvider.workingDirectory);
 
@@ -207,7 +207,7 @@ abstract class AbstractInterpreter {
 
   /// 调用一个全局函数或者类、对象上的函数
   dynamic invoke(String funcName,
-      {String? moduleFullName,
+      {String? classId,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
@@ -216,9 +216,28 @@ abstract class AbstractInterpreter {
   /// Handle a error thrown by other funcion in Hetu.
   void handleError(Object error, [StackTrace? dartStack]) {
     final sb = StringBuffer();
-    if (config.scriptStackTrace) {
-      for (var funcName in HTFunction.callStack) {
-        sb.writeln('  $funcName');
+    if (curConfig.scriptStackTrace) {
+      if (HTFunction.callStack.length >
+          curConfig.scriptStackTraceThreshhold * 2) {
+        for (var i = HTFunction.callStack.length - 1;
+            i >=
+                HTFunction.callStack.length -
+                    1 -
+                    curConfig.scriptStackTraceThreshhold;
+            --i) {
+          sb.writeln(
+              '#${HTFunction.callStack.length - 1 - i}\t${HTFunction.callStack[i]}');
+        }
+        sb.writeln('...\n...');
+        for (var i = curConfig.scriptStackTraceThreshhold - 1; i >= 0; --i) {
+          sb.writeln(
+              '#${HTFunction.callStack.length - 1 - i}\t${HTFunction.callStack[i]}');
+        }
+      } else {
+        for (var i = HTFunction.callStack.length - 1; i >= 0; --i) {
+          sb.writeln(
+              '#${HTFunction.callStack.length - 1 - i}\t${HTFunction.callStack[i]}');
+        }
       }
       sb.writeln('Dart call stack:\n$dartStack');
     }

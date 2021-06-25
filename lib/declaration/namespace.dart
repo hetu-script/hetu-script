@@ -1,11 +1,11 @@
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
-import 'element.dart';
+import 'declaration.dart';
 
 /// For interpreter searching for symbols
 /// from a certain block or module.
-class HTNamespace extends HTElement {
+class HTNamespace extends HTDeclaration {
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
 
@@ -14,14 +14,10 @@ class HTNamespace extends HTElement {
   /// The full closure path of this namespace
   String get fullName => _fullName;
 
-  final declarations = <String, HTElement>{};
+  final declarations = <String, HTDeclaration>{};
 
   HTNamespace(
-      {String? id,
-      String? classId,
-      HTNamespace? closure,
-      HTSource? source,
-      Map<String, HTElement> declarations = const {}})
+      {String? id, String? classId, HTNamespace? closure, HTSource? source})
       : super(id: id, classId: classId, closure: closure, source: source) {
     // calculate the full name of this namespace
     _fullName = name;
@@ -30,14 +26,12 @@ class HTNamespace extends HTElement {
       _fullName = curSpace.name + HTLexicon.memberGet + fullName;
       curSpace = curSpace.closure;
     }
-
-    this.declarations.addAll(declarations);
   }
 
   /// define a declaration in this namespace,
   /// the defined id could be different from
   /// declaration's id
-  void define(String id, HTElement decl,
+  void define(String id, HTDeclaration decl,
       {bool override = false, bool error = true}) {
     if (!declarations.containsKey(id) || override) {
       declarations[id] = decl;
@@ -62,7 +56,7 @@ class HTNamespace extends HTElement {
     }
 
     if (recursive && (closure != null)) {
-      return closure!.memberGet(field);
+      return closure!.memberGet(field, recursive: recursive, error: error);
     }
 
     if (error) {
@@ -82,26 +76,28 @@ class HTNamespace extends HTElement {
     }
 
     if (recursive && (closure != null)) {
-      closure!.memberSet(field, varValue);
+      closure!.memberSet(field, varValue, recursive: recursive, error: error);
       return;
     }
 
     throw HTError.undefined(field);
   }
 
-  void import(HTNamespace other) {
-    for (final decl in other.declarations.values) {
-      if (decl.id != null) {
-        define(decl.id!, decl, error: false);
+  void import(HTNamespace other, {bool clone = false}) {
+    for (final key in other.declarations.keys) {
+      var decl = other.declarations[key]!;
+      if (clone) {
+        decl = decl.clone();
       }
+      define(key, decl, error: false);
     }
   }
 
   @override
-  HTNamespace clone() => HTNamespace(
-      id: id,
-      classId: classId,
-      closure: closure,
-      source: source,
-      declarations: declarations);
+  HTNamespace clone() {
+    final cloned =
+        HTNamespace(id: id, classId: classId, closure: closure, source: source);
+    cloned.import(this, clone: true);
+    return cloned;
+  }
 }

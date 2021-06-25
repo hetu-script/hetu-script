@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import '../../error/error.dart';
-import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../interpreter/abstract_interpreter.dart';
 import '../../type/type.dart';
@@ -9,9 +8,8 @@ import '../../type/nominal_type.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import '../class/cast.dart';
-import '../variable/typed_variable_declaration.dart';
 import '../namespace.dart';
-import '../object.dart';
+import '../../object/object.dart';
 import 'instance_namespace.dart';
 
 /// The Dart implementation of the instance in Hetu.
@@ -50,15 +48,15 @@ class HTInstance with HTObject, InterpreterRef {
 
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
-    HTInstanceNamespace? curNamespace = HTInstanceNamespace(
-        id, interpreter.curModuleFullName, interpreter.curLibraryName, this,
+    HTInstanceNamespace? curNamespace = HTInstanceNamespace(id, this,
         classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
-      for (final decl in curKlass.instanceMembers.values) {
+      for (final key in curKlass.instanceMembers.keys) {
+        final decl = curKlass.instanceMembers[key]!;
         // TODO: check if override, and if so, check the type wether fits super's type.
         final clone = decl.clone();
-        curNamespace.define(clone.id, clone);
+        curNamespace.define(key, clone);
 
         if (jsonObject != null && jsonObject.containsKey(clone.id)) {
           final value = jsonObject[clone.id];
@@ -66,15 +64,14 @@ class HTInstance with HTObject, InterpreterRef {
         }
       }
 
-      _namespaces[curKlass.id] = curNamespace;
+      _namespaces[curKlass.id!] = curNamespace;
 
       // if (curKlass.extendedType != null) {
       //   extended.add(curKlass.extendedType!);
       // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
-        curNamespace.next = HTInstanceNamespace(
-            id, interpreter.curModuleFullName, interpreter.curLibraryName, this,
+        curNamespace.next = HTInstanceNamespace(id, this,
             classId: curKlass.id, closure: curKlass.namespace);
       } else {
         curNamespace.next = null;
@@ -102,8 +99,8 @@ class HTInstance with HTObject, InterpreterRef {
     HTInstanceNamespace? curNamespace = namespace;
     while (curNamespace != null) {
       for (final id in curNamespace.declarations.keys) {
-        final decl = curNamespace.declarations[id];
-        if (decl is! HTTypedVariableDeclaration || jsonObject.containsKey(id)) {
+        final decl = curNamespace.declarations[id]!;
+        if (jsonObject.containsKey(id)) {
           continue;
         }
         jsonObject[id] = decl.value;
@@ -126,14 +123,14 @@ class HTInstance with HTObject, InterpreterRef {
   }
 
   /// [HTInstance] overrided [HTObject]'s [memberGet],
-  /// with a new named parameter [classId].
-  /// If [classId] is provided, then the instance will
-  /// only search that [classId]'s corresponed [HTInstanceNamespace].
+  /// with a new named parameter [cast].
+  /// If [cast] is provided, then the instance will
+  /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  dynamic memberGet(String field, {String? classId, bool error = true}) {
+  dynamic memberGet(String field, {String? cast, bool error = true}) {
     final getter = '${SemanticNames.getter}$field';
 
-    if (classId == null) {
+    if (cast == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(field)) {
           final value = space.declarations[field]!.value;
@@ -149,7 +146,7 @@ class HTInstance with HTObject, InterpreterRef {
         }
       }
     } else {
-      final space = _namespaces[classId]!;
+      final space = _namespaces[cast]!;
       if (space.declarations.containsKey(field)) {
         final value = space.declarations[field]!.value;
         if (value is HTFunction && value.category != FunctionCategory.literal) {
@@ -169,15 +166,15 @@ class HTInstance with HTObject, InterpreterRef {
   }
 
   /// [HTInstance] overrided [HTObject]'s [memberSet],
-  /// with a new named parameter [classId].
-  /// If [classId] is provided, then the instance will
-  /// only search that [classId]'s corresponed [HTInstanceNamespace].
+  /// with a new named parameter [cast].
+  /// If [cast] is provided, then the instance will
+  /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
   void memberSet(String field, dynamic varValue,
-      {bool error = true, String? classId}) {
+      {String? cast, bool error = true}) {
     final setter = '${SemanticNames.setter}$field';
 
-    if (classId == null) {
+    if (cast == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(field)) {
           var decl = space.declarations[field]!;
@@ -191,18 +188,18 @@ class HTInstance with HTObject, InterpreterRef {
         }
       }
     } else {
-      if (!_namespaces.containsKey(classId)) {
-        throw HTError.notSuper(classId, interpreter.curSymbol!);
+      if (!_namespaces.containsKey(cast)) {
+        throw HTError.notSuper(cast, classId);
       }
 
-      final space = _namespaces[classId]!;
+      final space = _namespaces[cast]!;
       if (space.declarations.containsKey(field)) {
         var decl = space.declarations[field]!;
         decl.value = varValue;
         return;
       } else if (space.declarations.containsKey(setter)) {
         final method = space.declarations[setter]! as HTFunction;
-        method.context = _namespaces[classId];
+        method.context = _namespaces[cast];
         method.call(positionalArgs: [varValue]);
         return;
       }

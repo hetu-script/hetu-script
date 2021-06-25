@@ -7,13 +7,13 @@ import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
 // import '../type/type.dart';
-import 'object.dart';
+import '../object/object.dart';
 import 'namespace.dart';
 
 /// Element is a semantic entity in the program that
 /// represents things that are declared with a name
 /// and hence can be referenced elsewhere in the code.
-abstract class HTElement with HTObject {
+abstract class HTDeclaration with HTObject {
   final String? id;
 
   String get name => id ?? ('${SemanticNames.anonymous} $valueType');
@@ -47,7 +47,7 @@ abstract class HTElement with HTObject {
 
   final bool isMutable;
 
-  HTElement(
+  HTDeclaration(
       {this.id,
       this.classId,
       this.closure,
@@ -77,5 +77,5 @@ abstract class HTElement with HTObject {
     }
   }
 
-  HTElement clone();
+  HTDeclaration clone();
 }

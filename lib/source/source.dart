@@ -29,6 +29,10 @@ class HTSource {
   final String fullName;
   String get name => path.basename(fullName);
 
+  final SourceType type;
+
+  final bool isLibrary;
+
   final String libraryName;
 
   String _content;
@@ -41,7 +45,10 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
-  HTSource(this.fullName, String content, {String? libraryName})
+  HTSource(this.fullName, String content,
+      {this.type = SourceType.module,
+      this.isLibrary = false,
+      String? libraryName})
       : libraryName = libraryName ?? fullName,
         _content = content,
         _lineInfo = LineInfo.fromContent(content);

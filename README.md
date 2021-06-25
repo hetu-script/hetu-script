@@ -36,7 +36,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   var hetu = Hetu();
   await hetu.init();
-  await hetu.import('hello.ht', invokeFunc: 'main');
+  await hetu.evalFile('hello.ht', invokeFunc: 'main');
 }
 ```
 

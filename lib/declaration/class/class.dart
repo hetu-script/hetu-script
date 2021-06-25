@@ -4,8 +4,8 @@ import '../../error/error.dart';
 import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
-import '../element.dart';
-import '../object.dart';
+import '../declaration.dart';
+import '../../object/object.dart';
 import '../namespace.dart';
 import '../function/function.dart';
 import '../instance/instance.dart';
@@ -41,7 +41,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   // final Iterable<HTType> implementedType;
 
   /// The instance member variables defined in class definition.
-  final instanceMembers = <String, HTElement>{};
+  final instanceMembers = <String, HTDeclaration>{};
 
   /// Create a default [HTClass] instance.
   HTClass(Hetu interpreter,
@@ -204,7 +204,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   }
 
   /// Add a instance member declaration to this [HTClass].
-  void defineInstanceMember(String id, HTElement decl,
+  void defineInstanceMember(String id, HTDeclaration decl,
       {bool override = false, bool error = true}) {
     if ((!instanceMembers.containsKey(id)) || override) {
       instanceMembers[id] = decl;

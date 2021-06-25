@@ -3,7 +3,7 @@ import '../grammar/token.dart';
 import '../grammar/semantic.dart';
 import '../source/source_provider.dart';
 import '../source/source.dart';
-import '../element/class/class_declaration.dart';
+import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
 import '../ast/ast_compilation.dart';
@@ -99,7 +99,7 @@ class HTAstParser extends AbstractParser {
           sourceProvider.resolveFullName(stmt.key, module.fullName);
       if (!sourceProvider.hasModule(importFullName)) {
         final source2 = sourceProvider.getSourceSync(importFullName,
-            curModuleFullName: _curModuleFullName);
+            from: _curModuleFullName);
         final compilation2 = parseToCompilation(source2, sourceProvider,
             config: ParserConfig(sourceType: SourceType.module));
         _curModuleFullName = fullName;
@@ -1218,31 +1218,31 @@ class HTAstParser extends AbstractParser {
       }
     }
 
-    var declId = '';
-    late String id;
+    String? id;
+    late String internalName;
 
     if (curTok.type == SemanticNames.identifier) {
-      declId = advance(1).lexeme;
+      id = advance(1).lexeme;
     }
 
     switch (category) {
       case FunctionCategory.constructor:
-        id = (declId.isEmpty)
+        internalName = (id == null)
             ? SemanticNames.constructor
-            : '${SemanticNames.constructor}$declId';
+            : '${SemanticNames.constructor}$id';
         break;
       case FunctionCategory.getter:
-        id = SemanticNames.getter + declId;
+        internalName = SemanticNames.getter + id!;
         break;
       case FunctionCategory.setter:
-        id = SemanticNames.setter + declId;
+        internalName = SemanticNames.setter + id!;
         break;
       case FunctionCategory.literal:
-        id = SemanticNames.anonymousFunction +
+        internalName = SemanticNames.anonymousFunction +
             (AbstractParser.anonymousFuncIndex++).toString();
         break;
       default:
-        id = declId;
+        internalName = id!;
     }
 
     final genericParameters = <TypeExpr>[];
@@ -1392,14 +1392,15 @@ class HTAstParser extends AbstractParser {
           category != FunctionCategory.literal &&
           !isExternal &&
           !(_curClass?.isAbstract ?? false)) {
-        throw HTError.missingFuncBody(id);
+        throw HTError.missingFuncBody(internalName);
       }
       expect([HTLexicon.semicolon], consume: true);
     }
 
     _curFuncType = savedCurFuncType;
 
-    return FuncDeclExpr(id, declId, paramDecls, keyword.line, keyword.column,
+    return FuncDeclExpr(internalName, paramDecls, keyword.line, keyword.column,
+        id: id,
         source: _curSource,
         classId: classId,
         genericParameters: genericParameters,

@@ -1,6 +1,6 @@
 import 'analyzer.dart';
 import 'analysis_error.dart';
-import '../element/namespace.dart';
+import '../declaration/namespace.dart';
 
 class HTAnalysisResult extends HTNamespace {
   final HTAnalyzer analyzer;

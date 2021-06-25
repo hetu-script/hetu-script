@@ -1,12 +1,12 @@
 import 'dart:io';
 
 final Map<String, String> coreModules = const {
-  'core.ht': 'hetu_lib/core/core.ht',
-  'value.ht': 'hetu_lib/core/value.ht',
-  'system.ht': 'hetu_lib/core/system.ht',
-  'console.ht': 'hetu_lib/core/console.ht',
-  'math.ht': 'hetu_lib/core/math.ht',
-  'help.ht': 'hetu_lib/core/help.ht',
+  'hetu:core': 'hetu_lib/core/core.ht',
+  'hetu:value': 'hetu_lib/core/value.ht',
+  'hetu:system': 'hetu_lib/core/system.ht',
+  'hetu:console': 'hetu_lib/core/console.ht',
+  'hetu:math': 'hetu_lib/core/math.ht',
+  'hetu:help': 'hetu_lib/core/help.ht',
 };
 
 final Map<String, String> optionalModules = const {};

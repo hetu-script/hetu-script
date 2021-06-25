@@ -25,7 +25,7 @@ abstract class SourceProvider {
 
   HTSource getSourceSync(String key,
       {bool isFullName = false,
-      String? curModuleFullName,
+      String? from,
       bool reload = true,
       ErrorType errorType = ErrorType.runtimeError});
 }
@@ -58,11 +58,10 @@ class DefaultSourceProvider implements SourceProvider {
   bool hasModule(String key) => _cached.containsKey(key);
 
   @override
-  String resolveFullName(String key, [String? curModuleFullName]) {
+  String resolveFullName(String key, [String? from]) {
     late final String fullName;
-    if ((curModuleFullName != null) &&
-        !curModuleFullName.startsWith(SemanticNames.anonymousScript)) {
-      fullName = path.dirname(curModuleFullName);
+    if ((from != null) && !from.startsWith(SemanticNames.anonymousScript)) {
+      fullName = path.dirname(from);
     } else {
       fullName = workingDirectory;
     }
@@ -74,23 +73,26 @@ class DefaultSourceProvider implements SourceProvider {
 
   /// Import a script module with a certain [key], ignore those already imported
   ///
-  /// If [curModuleFullName] is provided, the handler will try to get a relative path
+  /// If [from] is provided, the handler will try to get a relative path
   ///
   /// Otherwise, a absolute path is calculated from [workingDirectory]
   @override
   HTSource getSourceSync(String key,
       {bool isFullName = false,
-      String? curModuleFullName,
+      String? from,
+      SourceType type = SourceType.module,
+      bool isLibrary = false,
+      String? libraryName,
       bool reload = true,
       ErrorType errorType = ErrorType.runtimeError}) {
     try {
-      final fullName =
-          isFullName ? key : resolveFullName(key, curModuleFullName);
+      final fullName = isFullName ? key : resolveFullName(key, from);
       if (!_cached.containsKey(fullName) || reload) {
         final content = File(fullName).readAsStringSync();
         if (content.isNotEmpty) {
           if (content.isEmpty) throw HTError.emptyString(fullName);
-          final source = HTSource(fullName, content);
+          final source = HTSource(fullName, content,
+              type: type, isLibrary: isLibrary, libraryName: libraryName);
           _cached[fullName] = source;
           return source;
         } else {

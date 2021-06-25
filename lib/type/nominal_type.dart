@@ -1,6 +1,6 @@
 import 'package:quiver/core.dart';
 
-import '../element/class/class_declaration.dart';
+import '../declaration/class/class_declaration.dart';
 import 'type.dart';
 
 class HTNominalType extends HTType {

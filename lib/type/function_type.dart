@@ -1,6 +1,6 @@
 import 'package:quiver/core.dart';
 
-import '../element/function/typed_parameter_declaration.dart';
+import '../declaration/function/abstract_parameter.dart';
 import '../../grammar/lexicon.dart';
 import 'type.dart';
 // import '../ast/ast.dart' show ParamDeclExpr;
@@ -108,7 +108,7 @@ class HTFunctionType extends HTType {
   bool get isResolved => true;
 
   final Iterable<HTType> genericTypeParameters;
-  final List<HTTypedParameterDeclaration> parameterDeclarations;
+  final List<AbstractParameter> parameterDeclarations;
   final HTType returnType;
 
   HTFunctionType(
@@ -193,7 +193,7 @@ class HTFunctionType extends HTType {
       } else {
         for (var i = 0; i < parameterDeclarations.length; ++i) {
           final param = parameterDeclarations[i];
-          HTTypedParameterDeclaration? otherParam;
+          AbstractParameter? otherParam;
           if (other.parameterDeclarations.length > i) {
             otherParam = other.parameterDeclarations[i];
           }

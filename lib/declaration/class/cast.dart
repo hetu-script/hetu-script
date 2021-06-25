@@ -3,7 +3,7 @@ import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
 import '../../type/nominal_type.dart';
 import '../instance/instance.dart';
-import '../object.dart';
+import '../../object/object.dart';
 import 'class.dart';
 
 /// The implementation of a certain type cast of a object
@@ -49,9 +49,9 @@ class HTCast with HTObject, HetuRef {
 
   @override
   dynamic memberGet(String field, {bool error = true}) =>
-      object.memberGet(field, classId: klass.id);
+      object.memberGet(field, cast: klass.id);
 
   @override
   void memberSet(String field, dynamic varValue, {bool error = true}) =>
-      object.memberSet(field, varValue, classId: klass.id);
+      object.memberSet(field, varValue, cast: klass.id);
 }

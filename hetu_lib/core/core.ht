@@ -6,6 +6,6 @@ abstract class object {
 // external fun decltypeof(value) -> str
 
 // print values of any type into lines
-external fun print(... args)
+external fun print(... args: any)
 
-external fun stringify(... args)
+external fun stringify(obj: any)

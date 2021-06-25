@@ -1,4 +1,4 @@
-import '../element/object.dart';
+import '../object/object.dart';
 import '../../grammar/lexicon.dart';
 import 'type.dart';
 
