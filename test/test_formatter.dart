@@ -1,22 +1,15 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  final srcPrdr = DefaultSourceProvider();
   final source = HTSource(SemanticNames.anonymousScript, r'''
     var i = 42
     var j = 'hi, your number is ${ '#' +     i.toString()   }.'
   ''');
   final parser = HTAstParser();
-  // final bundle = await parser.parseFileAsLibrary('script\\battle.ht', srcPrdr);
-  final compilation = parser.parseToCompilation(source, srcPrdr);
-
+  final module = parser.parseToModule(source);
   final formatter = HTFormatter();
-
-  formatter.formatLibrary(compilation);
-
-  for (final module in compilation.modules.values) {
-    print('========[${module.fullName}]========');
-    print(module.source.content);
-    print('================');
-  }
+  formatter.formatModule(module);
+  print('========[${module.fullName}]========');
+  print(module.source.content);
+  print('==================================');
 }

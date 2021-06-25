@@ -29,7 +29,7 @@ class HTAstModule {
 
   final List<ImportStmt> imports;
 
-  final bool createNamespace;
+  final bool hasOwnNamespace;
 
   final bool isLibrary;
 
@@ -37,16 +37,12 @@ class HTAstModule {
 
   HTAstModule(this.source, this.nodes, this.sourceType,
       {this.imports = const [],
-      this.createNamespace = true,
+      this.hasOwnNamespace = true,
       this.isLibrary = false,
       this.errors = const []});
 }
 
 class HTAstCompilation {
-  final String name;
-
-  HTAstCompilation(this.name);
-
   final modules = <String, HTAstModule>{};
 
   HTAstModule getModule(String fullName,

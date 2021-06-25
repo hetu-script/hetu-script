@@ -77,5 +77,7 @@ abstract class HTDeclaration with HTObject {
     }
   }
 
-  HTDeclaration clone();
+  bool isOverrideOf(HTDeclaration decl) => false;
+
+  dynamic clone();
 }

@@ -1,9 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:hetu_script/interpreter/bytecode_library.dart';
-
 import '../binding/external_function.dart';
-import '../binding/external_class.dart';
 import '../declaration/namespace.dart';
 import '../object/object.dart';
 import '../declaration/declaration.dart';
@@ -15,6 +12,7 @@ import '../declaration/function/function.dart';
 import '../declaration/function/parameter.dart';
 import '../declaration/variable/variable.dart';
 import '../scanner/abstract_parser.dart';
+import '../scanner/parser.dart';
 import '../type/type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
@@ -26,10 +24,9 @@ import '../error/error.dart';
 import '../error/error_handler.dart';
 import 'abstract_interpreter.dart';
 import 'const_table.dart';
-import 'bytecode_reader.dart';
 import 'compiler.dart';
 import 'opcode.dart';
-import '../declaration/library.dart';
+import 'bytecode_library.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -51,8 +48,6 @@ class Hetu extends AbstractInterpreter {
   static const verPatch = 0;
 
   final _compilation = <String, HTBytecodeLibrary>{};
-
-  final _constTable = ConstTable();
 
   late InterpreterConfig _curConfig;
 
@@ -95,7 +90,6 @@ class Hetu extends AbstractInterpreter {
   dynamic get _curValue => _registers[_getRegIndex(HTRegIdx.value)];
   set _curSymbol(String? value) =>
       _registers[_getRegIndex(HTRegIdx.symbol)] = value;
-  @override
   String? get curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
   set _curLeftValue(dynamic value) =>
       _registers[_getRegIndex(HTRegIdx.leftValue)] = value;
@@ -124,25 +118,13 @@ class Hetu extends AbstractInterpreter {
   /// Each interpreter has a independent global [HTNamespace].
   Hetu(
       {HTErrorHandler? errorHandler,
-      SourceProvider? sourceProvider,
+      HTSourceProvider? sourceProvider,
       InterpreterConfig config = const InterpreterConfig()})
-      : super(config,
-            errorHandler: errorHandler, sourceProvider: sourceProvider) {
+      : super(
+            config: config,
+            errorHandler: errorHandler,
+            sourceProvider: sourceProvider) {
     _curNamespace = global;
-  }
-
-  @override
-  Future<void> init(
-      {bool coreModule = true,
-      List<HTExternalClass> externalClasses = const [],
-      Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
-          const {}}) async {
-    await super.init(
-        coreModule: coreModule,
-        externalClasses: externalClasses,
-        externalFunctions: externalFunctions,
-        externalFunctionTypedef: externalFunctionTypedef);
   }
 
   /// Evaluate a string content.
@@ -159,17 +141,24 @@ class Hetu extends AbstractInterpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) async {
-    if (source.content.isEmpty) throw HTError.emptyString();
-
+    if (source.content.isEmpty) {
+      return null;
+    }
     _curConfig = config ?? this.config;
-
     _curModuleFullName = source.fullName;
-
-    final createNamespace = namespace != global;
+    final hasOwnNamespace = namespace != global;
+    final parser = HTAstParser(
+        config: _curConfig,
+        errorHandler: errorHandler,
+        sourceProvider: sourceProvider);
+    final compiler = HTCompiler(
+        config: _curConfig,
+        errorHandler: errorHandler,
+        sourceProvider: sourceProvider);
     try {
-      final compilation = parser.parseToCompilation(source, sourceProvider,
-          createNamespace: createNamespace, config: _curConfig);
-      final bytes = compiler.compile(compilation);
+      final compilation =
+          parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
+      final bytes = compiler.compile(compilation, source.libraryName);
       _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
 
       var result;
@@ -189,7 +178,7 @@ class Hetu extends AbstractInterpreter {
         }
         _compilation[_curLibrary.id] = _curLibrary;
 
-        if (createNamespace) {
+        if (hasOwnNamespace) {
           for (final module in compilation.modules.values) {
             final nsp = _curLibrary.declarations[module.fullName]!;
             for (final info in module.imports) {
@@ -244,11 +233,12 @@ class Hetu extends AbstractInterpreter {
       }
 
       return result;
-    } catch (error, stack) {
+    } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
       } else {
-        handleError(error, stack);
+        handleError(error,
+            dartStackTrace: stackTrace, parser: parser, compiler: compiler);
       }
     }
   }
@@ -277,28 +267,26 @@ class Hetu extends AbstractInterpreter {
       } else {
         HTError.notCallable(funcName);
       }
-    } catch (error, stack) {
+    } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
       } else {
-        handleError(error, stack);
+        handleError(error, dartStackTrace: stackTrace);
       }
     }
   }
 
   /// Compile a script content into bytecode for later use.
   Future<Uint8List> compile(String content,
-      {ParserConfig config = const ParserConfig()}) async {
+      {ParserConfigImpl config = const ParserConfigImpl()}) async {
     throw HTError(ErrorCode.extern, ErrorType.externalError,
         message: 'compile is currently unusable');
   }
 
-  Future<dynamic> run(Uint8List code) async {}
-
   /// Load a pre-compiled bytecode in to module library.
   /// If [run] is true, then execute the bytecode immediately.
-  dynamic load(Uint8List code, String moduleFullName,
-      {bool run = true, int ip = 0}) {}
+  dynamic load(Uint8List code, String libraryName,
+      {bool import = true, bool run = false, int ip = 0}) {}
 
   /// Interpret a loaded module with the key of [moduleFullName]
   /// Starting from the instruction pointer of [ip]
@@ -471,15 +459,15 @@ class Hetu extends AbstractInterpreter {
         case HTOpCode.constTable:
           final int64Length = _curLibrary.readUint16();
           for (var i = 0; i < int64Length; ++i) {
-            _constTable.addInt(_curLibrary.readInt64());
+            _curLibrary.addInt(_curLibrary.readInt64());
           }
           final float64Length = _curLibrary.readUint16();
           for (var i = 0; i < float64Length; ++i) {
-            _constTable.addFloat(_curLibrary.readFloat64());
+            _curLibrary.addFloat(_curLibrary.readFloat64());
           }
           final utf8StringLength = _curLibrary.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
-            _constTable.addString(_curLibrary.readUtf8String());
+            _curLibrary.addString(_curLibrary.readUtf8String());
           }
           break;
         case HTOpCode.typeAliasDecl:
@@ -600,15 +588,15 @@ class Hetu extends AbstractInterpreter {
         break;
       case HTValueTypeCode.constInt:
         final index = _curLibrary.readUint16();
-        _curValue = _constTable.getInt64(index);
+        _curValue = _curLibrary.getInt64(index);
         break;
       case HTValueTypeCode.constFloat:
         final index = _curLibrary.readUint16();
-        _curValue = _constTable.getFloat64(index);
+        _curValue = _curLibrary.getFloat64(index);
         break;
       case HTValueTypeCode.constString:
         final index = _curLibrary.readUint16();
-        _curValue = _constTable.getUtf8String(index);
+        _curValue = _curLibrary.getUtf8String(index);
         break;
       case HTValueTypeCode.stringInterpolation:
         var literal = _curLibrary.readUtf8String();
@@ -795,22 +783,28 @@ class Hetu extends AbstractInterpreter {
         }
         break;
       case HTOpCode.equal:
-        _curValue = _getRegVal(HTRegIdx.equalLeft) == _curValue;
+        final left = _getRegVal(HTRegIdx.equalLeft);
+        _curValue = left == _curValue;
         break;
       case HTOpCode.notEqual:
-        _curValue = _getRegVal(HTRegIdx.equalLeft) != _curValue;
+        final left = _getRegVal(HTRegIdx.equalLeft);
+        _curValue = left != _curValue;
         break;
       case HTOpCode.lesser:
-        _curValue = _getRegVal(HTRegIdx.relationLeft) < _curValue;
+        final left = _getRegVal(HTRegIdx.relationLeft);
+        _curValue = left < _curValue;
         break;
       case HTOpCode.greater:
-        _curValue = _getRegVal(HTRegIdx.relationLeft) > _curValue;
+        final left = _getRegVal(HTRegIdx.relationLeft);
+        _curValue = left > _curValue;
         break;
       case HTOpCode.lesserOrEqual:
-        _curValue = _getRegVal(HTRegIdx.relationLeft) <= _curValue;
+        final left = _getRegVal(HTRegIdx.relationLeft);
+        _curValue = left <= _curValue;
         break;
       case HTOpCode.greaterOrEqual:
-        _curValue = _getRegVal(HTRegIdx.relationLeft) >= _curValue;
+        final left = _getRegVal(HTRegIdx.relationLeft);
+        _curValue = left >= _curValue;
         break;
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);

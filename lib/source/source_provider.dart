@@ -16,7 +16,7 @@ extension TrimPath on String {
 }
 
 /// Abstract module import handler class
-abstract class SourceProvider {
+abstract class HTSourceProvider {
   String get workingDirectory;
 
   bool hasModule(String path);
@@ -31,7 +31,7 @@ abstract class SourceProvider {
 }
 
 /// Default module import handler implementation
-class DefaultSourceProvider implements SourceProvider {
+class DefaultSourceProvider implements HTSourceProvider {
   /// Absolute path used when no relative path exists
   @override
   late final String workingDirectory;

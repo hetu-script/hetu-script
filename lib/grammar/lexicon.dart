@@ -74,6 +74,8 @@ abstract class HTLexicon {
     string,
   };
 
+  static const endOfFile = 'end_of_file';
+
   static const variadicArgs = '...';
   static const privatePrefix = '_';
   static const typesBracketLeft = '<';
@@ -138,11 +140,13 @@ abstract class HTLexicon {
 
   static const ABSTRACT = 'abstract';
   static const EXPORT = 'export';
+  static const OVERRIDE = 'override';
   static const EXTERNAL = 'external';
   static const STATIC = 'static';
   static const EXTENDS = 'extends';
   static const IMPLEMENTS = 'implements';
   static const MIXIN = 'mixin';
+  static const REQUIRED = 'required';
 
   static const CONSTRUCT = 'construct';
   static const FACTORY = 'factory';
@@ -184,6 +188,7 @@ abstract class HTLexicon {
     THIS,
     SUPER,
     ABSTRACT,
+    OVERRIDE,
     EXTERNAL,
     STATIC,
     EXTENDS,
@@ -417,7 +422,7 @@ abstract class HTLexicon {
   static const errorAbstractCtor =
       'Cannot create contructor for abstract class.';
 
-  static const errorUnsupported = 'Unsupported method [{0}]';
+  static const errorUnsupported = 'Unsupported operation: [{0}]';
   static const errorUnknownOpCode = 'Unknown opcode [{0}]';
   static const errorPrivateMember = 'Could not acess private member [{0}].';
   static const errorPrivateDecl = 'Could not acess private declaration [{0}].';

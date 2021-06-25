@@ -50,10 +50,15 @@ mixin GotoInfo {
   late final int? definitionColumn;
 }
 
-class CompilerConfig {
+abstract class CompilerConfig {
+  bool get lineInfo;
+}
+
+class CompilerConfigImpl implements CompilerConfig {
+  @override
   final bool lineInfo;
 
-  const CompilerConfig({this.lineInfo = true});
+  const CompilerConfigImpl({this.lineInfo = true});
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
@@ -64,9 +69,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   /// used to determine compatibility.
   static const hetuVersionData = [0, 1, 0, 0];
 
-  late HTErrorHandler errorHandler;
-  late SourceProvider sourceProvider;
-  late CompilerConfig config;
+  HTErrorHandler errorHandler;
+  HTSourceProvider sourceProvider;
+  CompilerConfig config;
 
   final _curConstTable = ConstTable();
 
@@ -87,15 +92,14 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   final List<Map<String, String>> _markedSymbolsList = [];
 
   HTCompiler(
-      {HTErrorHandler? errorHandler,
-      SourceProvider? sourceProvider,
-      this.config = const CompilerConfig()}) {
-    this.errorHandler = errorHandler ?? DefaultErrorHandler();
-    this.sourceProvider = sourceProvider ?? DefaultSourceProvider();
-  }
+      {this.config = const CompilerConfigImpl(),
+      HTErrorHandler? errorHandler,
+      HTSourceProvider? sourceProvider})
+      : errorHandler = errorHandler ?? DefaultErrorHandler(),
+        sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
-  Uint8List compile(HTAstCompilation library) {
-    _curLibraryName = library.name;
+  Uint8List compile(HTAstCompilation compilation, String libraryName) {
+    _curLibraryName = libraryName;
 
     final mainBytesBuilder = BytesBuilder();
     // 河图字节码标记
@@ -106,9 +110,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     mainBytesBuilder.add(hetuVersionData);
 
     final bytesBuilder = BytesBuilder();
-    for (final module in library.modules.values) {
+    for (final module in compilation.modules.values) {
       _curModuleFullName = module.fullName;
-      if (module.createNamespace) {
+      if (module.hasOwnNamespace) {
         bytesBuilder.addByte(HTOpCode.module);
         bytesBuilder.add(_shortUtf8String(_curModuleFullName));
       }
@@ -976,7 +980,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitBlockStmt(BlockStmt block) {
     final bytesBuilder = BytesBuilder();
-    if (block.createNamespace) {
+    if (block.hasOwnNamespace) {
       bytesBuilder.addByte(HTOpCode.block);
       if (block.id != null) {
         bytesBuilder.add(_shortUtf8String(block.id!));
@@ -988,7 +992,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       final bytes = visitAstNode(stmt);
       bytesBuilder.add(bytes);
     }
-    if (block.createNamespace) {
+    if (block.hasOwnNamespace) {
       bytesBuilder.addByte(HTOpCode.endOfBlock);
     }
     return bytesBuilder.toBytes();
@@ -1044,7 +1048,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final condition = visitAstNode(stmt.condition);
     final loop = visitAstNode(stmt.loop);
-    final loopLength = condition.length + loop.length + 5;
+    final loopLength = condition.length + loop.length + 4;
     bytesBuilder.add(_uint16(0)); // while loop continue ip
     bytesBuilder.add(_uint16(loopLength)); // while loop break ip
     bytesBuilder.add(condition);

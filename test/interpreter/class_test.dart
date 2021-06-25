@@ -63,11 +63,11 @@ void main() async {
           return number
         }
       }
-      fun override {
+      fun overrideTest {
         var j = John()
         return j.meaning();
       }
-      ''', invokeFunc: 'override');
+      ''', invokeFunc: 'overrideTest');
       expect(
         result,
         42,

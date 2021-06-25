@@ -2,7 +2,6 @@ import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
-import '../../source/source.dart';
 import '../namespace.dart';
 import '../declaration.dart';
 

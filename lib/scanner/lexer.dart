@@ -126,10 +126,11 @@ class HTLexer {
     final matches = pattern.allMatches(literal);
     for (final match in matches) {
       final matchString = match.group(1);
-      if (matchString == null) {
-        throw HTError.emptyString();
-      }
-      final tokens = lex(matchString, line: line, column: column);
+      // do not throw here, handle in analyzer instead
+      // if (matchString == null) {
+      //   throw HTError.emptyString();
+      // }
+      final tokens = lex(matchString ?? '', line: line, column: column);
       interpolations.add(tokens);
     }
     return TokenStringInterpolation(

@@ -4,7 +4,6 @@ enum ErrorHanldeApproach {
   ingore,
   stdout,
   exception,
-  list,
 }
 
 /// Abstract error handler class
@@ -15,11 +14,9 @@ abstract class HTErrorHandler {
 /// Default error handler implementation
 class DefaultErrorHandler implements HTErrorHandler {
   final ErrorHanldeApproach approach;
-
   const DefaultErrorHandler({this.approach = ErrorHanldeApproach.exception});
-
   @override
-  void handle(HTError error, [List<HTError>? errorList]) {
+  void handle(HTError error) {
     switch (approach) {
       case ErrorHanldeApproach.ingore:
         break;
@@ -28,8 +25,6 @@ class DefaultErrorHandler implements HTErrorHandler {
         break;
       case ErrorHanldeApproach.exception:
         throw (error);
-      case ErrorHanldeApproach.list:
-        errorList!.add(error);
     }
   }
 }

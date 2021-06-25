@@ -38,8 +38,6 @@ class ReferConstructor {
 /// Bytecode implementation of [TypedFunctionDeclaration].
 class HTFunction extends HTFunctionDeclaration
     with HTObject, HetuRef, GotoInfo {
-  static final callStack = <String>[];
-
   final String moduleFullName;
 
   final String libraryName;
@@ -185,7 +183,7 @@ class HTFunction extends HTFunctionDeclaration
       bool createInstance = true,
       bool errorHandled = true}) {
     try {
-      callStack.add(
+      interpreter.scriptStackTrace.add(
           '$internalName ($moduleFullName:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
@@ -472,16 +470,16 @@ class HTFunction extends HTFunctionDeclaration
       //   }
       // }
 
-      if (HTFunction.callStack.isNotEmpty) {
-        HTFunction.callStack.removeLast();
+      if (interpreter.scriptStackTrace.isNotEmpty) {
+        interpreter.scriptStackTrace.removeLast();
       }
 
       return result;
-    } catch (error, stack) {
+    } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error, stack);
+        interpreter.handleError(error, dartStackTrace: stackTrace);
       }
     }
   }

@@ -1,26 +1,11 @@
 import '../source/source.dart';
 import '../source/source_provider.dart';
-// import '../binding/external_function.dart';
 import '../type/type.dart';
 import '../declaration/namespace.dart';
-// import '../core/function/abstract_function.dart';
-// import '../object/object.dart';
 import '../interpreter/abstract_interpreter.dart';
-// import '../core/class/enum.dart';
-// import '../core/class/class.dart';
-import '../grammar/lexicon.dart';
 import '../error/error.dart';
-import '../error/error_handler.dart';
 import '../ast/ast.dart';
-// import 'ast_function.dart';
 import '../scanner/parser.dart';
-import '../ast/ast_compilation.dart';
-import 'analysis_error.dart';
-
-import 'analysis_result.dart';
-
-import '../type/type.dart';
-
 import '../declaration/library.dart';
 
 class AnalyzerConfig extends InterpreterConfig {
@@ -28,31 +13,13 @@ class AnalyzerConfig extends InterpreterConfig {
 
   const AnalyzerConfig(
       {SourceType sourceType = SourceType.module,
-      bool reload = false,
-      bool errorDetail = true,
-      bool scriptStackTrace = true,
-      int scriptStackTraceMaxline = 10,
-      bool externalStackTrace = true,
       this.errorProcessors = const []})
-      : super(
-            sourceType: sourceType,
-            reload: reload,
-            errorDetail: errorDetail,
-            scriptStackTrace: scriptStackTrace,
-            scriptStackTraceThreshhold: scriptStackTraceMaxline,
-            externalStackTrace: externalStackTrace);
+      : super(sourceType: sourceType);
 }
 
 class HTAnalyzer extends AbstractInterpreter
     implements AbstractAstVisitor<HTType> {
-  @override
-  late HTAstParser parser;
-
-  final _sources = HTAstCompilation('');
-
-  late HTAstModule _curCode;
-
-  late AnalyzerConfig _curConfig;
+  AnalyzerConfig _curConfig;
 
   @override
   AnalyzerConfig get curConfig => _curConfig;
@@ -68,6 +35,10 @@ class HTAnalyzer extends AbstractInterpreter
   @override
   int get curColumn => _curColumn;
 
+  late HTNamespace _curNamespace;
+  @override
+  HTNamespace get curNamespace => _curNamespace;
+
   late String _curModuleFullName;
   @override
   String get curModuleFullName => _curModuleFullName;
@@ -76,81 +47,35 @@ class HTAnalyzer extends AbstractInterpreter
   @override
   HTLibrary get curLibrary => _curLibrary;
 
-  HTType? _curExprType;
-
-  late String _savedModuleName;
-  late HTNamespace _savedNamespace;
-
-  late HTNamespace _curNamespace;
-  @override
-  HTNamespace get curNamespace => _curNamespace;
-
   HTAnalyzer(
-      {HTErrorHandler? errorHandler,
-      SourceProvider? sourceProvider,
+      {HTSourceProvider? sourceProvider,
       AnalyzerConfig config = const AnalyzerConfig()})
-      : super(config,
-            errorHandler: errorHandler, sourceProvider: sourceProvider) {
+      : _curConfig = config,
+        super(config: config, sourceProvider: sourceProvider) {
     _curNamespace = global;
   }
 
   @override
   Future<void> evalSource(HTSource source,
-      {String? libraryName,
-      HTNamespace? namespace,
-      InterpreterConfig? config,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) async {
-    // _savedModuleName = _curModuleFullName;
-    // _savedNamespace = _curNamespace;
-
-    // parser = HTAstParser();
-
-    // _curModuleFullName = moduleFullName ?? HTLexicon.anonymousScript;
-    // _curNamespace = namespace ?? HTNamespace(this, id: _curModuleFullName);
-
-    // try {
-    //   final compilation = await parser.parseAll(content, sourceProvider,
-    //       moduleFullName: _curModuleFullName, config: config ?? this.config);
-
-    //   _sources.join(compilation);
-
-    //   for (final module in compilation.modules) {
-    //     _curCode = module;
-    //     _curModuleFullName = module.fullName;
-    //     for (final stmt in module.nodes) {
-    //       visitAstNode(stmt);
-    //     }
-    //   }
-
-    //   _curModuleFullName = _savedModuleName;
-    //   _curNamespace = _savedNamespace;
-    // } catch (error, stack) {
-    //   if (errorHandled) {
-    //     rethrow;
-    //   } else {
-    //     handleError(error, stack);
-    //   }
-    // }
+      {String? libraryName, // ignored in analyzer
+      HTNamespace? namespace, // ignored in analyzer
+      InterpreterConfig? config, // ignored in analyzer
+      String? invokeFunc, // ignored in analyzer
+      List<dynamic> positionalArgs = const [], // ignored in analyzer
+      Map<String, dynamic> namedArgs = const {}, // ignored in analyzer
+      List<HTType> typeArgs = const [], // ignored in analyzer
+      bool errorHandled = false // ignored in analyzer
+      }) async {
+    if (source.content.isEmpty) {
+      return null;
+    }
+    _curModuleFullName = source.fullName;
+    final parser = HTAstParser(
+        config: _curConfig,
+        errorHandler: errorHandler,
+        sourceProvider: sourceProvider);
+    final compilation = parser.parseToCompilation(source);
   }
-
-  /// 解析文件
-  @override
-  Future<void> evalFile(String key,
-      {bool useLastModuleFullName = false,
-      bool reload = false,
-      String? moduleFullName,
-      String? libraryName,
-      HTNamespace? namespace,
-      InterpreterConfig? config,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) async {}
 
   @override
   dynamic invoke(String funcName,

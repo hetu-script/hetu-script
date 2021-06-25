@@ -6,9 +6,12 @@ void main() async {
   final result = await hetu.eval(r'''
     var list = [1,2,3]
 
-    for (var item in list) {
-      print(item)
-    }
+    var i = 0
+    do  {
+      print(i)
+      ++i
+    } while (i < 5)
+
 
   ''');
   print(result);

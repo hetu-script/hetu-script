@@ -119,8 +119,7 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
 
   try {
     // final config = ParserConfig(sourceType: sourceType);
-    final compilation =
-        parser.parseToCompilation(source, sourceProvider); //, config);
+    final compilation = parser.parseToCompilation(source); //, config);
 
     final module = compilation.getModule(source.fullName);
 

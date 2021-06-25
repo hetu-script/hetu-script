@@ -220,11 +220,11 @@ class HTInstance with HTObject, InterpreterRef {
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
           typeArgs: typeArgs);
-    } catch (error, stack) {
+    } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error, stack);
+        interpreter.handleError(error, dartStackTrace: stackTrace);
       }
     }
   }

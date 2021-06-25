@@ -437,12 +437,12 @@ class BlockStmt extends AstNode {
 
   final List<AstNode> statements;
 
-  final bool createNamespace;
+  final bool hasOwnNamespace;
 
   final String? id;
 
   const BlockStmt(this.statements, int line, int column,
-      {HTSource? source, this.createNamespace = true, this.id})
+      {HTSource? source, this.hasOwnNamespace = true, this.id})
       : super(SemanticNames.blockStmt, line, column, source);
 }
 

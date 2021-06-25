@@ -16,7 +16,7 @@ export 'type/type.dart';
 export 'ast/ast.dart';
 export 'ast/ast_compilation.dart';
 export 'scanner/lexer.dart';
-export 'scanner/abstract_parser.dart' show ParserConfig;
+export 'scanner/abstract_parser.dart';
 export 'scanner/parser.dart';
 export 'analyzer/formatter.dart';
 export 'analyzer/analyzer.dart';

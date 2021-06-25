@@ -1,13 +1,23 @@
 import '../source/source.dart';
+import '../source/source_provider.dart';
 import '../error/error.dart';
-import '../grammar/semantic.dart';
+import '../error/error_handler.dart';
+import '../grammar/lexicon.dart';
 import '../grammar/token.dart';
 
-class ParserConfig {
+abstract class ParserConfig {
+  SourceType get sourceType;
+  bool get reload;
+}
+
+class ParserConfigImpl implements ParserConfig {
+  @override
   final SourceType sourceType;
+
+  @override
   final bool reload;
 
-  const ParserConfig(
+  const ParserConfigImpl(
       {this.sourceType = SourceType.module, this.reload = false});
 }
 
@@ -30,7 +40,16 @@ abstract class AbstractParser {
 
   final List<Token> _tokens = [];
 
-  AbstractParser(this.config);
+  final HTErrorHandler errorHandler;
+
+  final HTSourceProvider sourceProvider;
+
+  AbstractParser(
+      {this.config = const ParserConfigImpl(),
+      HTErrorHandler? errorHandler,
+      HTSourceProvider? sourceProvider})
+      : errorHandler = errorHandler ?? DefaultErrorHandler(),
+        sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
   void addTokens(List<Token> tokens) {
     tokPos = 0;
@@ -79,7 +98,7 @@ abstract class AbstractParser {
     if ((tokPos + pos) < _tokens.length) {
       return _tokens[tokPos + pos];
     } else {
-      return Token(SemanticNames.endOfFile, -1, -1);
+      return Token(HTLexicon.endOfFile, -1, -1);
     }
   }
 
