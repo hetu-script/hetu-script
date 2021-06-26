@@ -1,7 +1,7 @@
-/// This file has been automatically generated 
+/// This file has been automatically generated
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
-/// 
+///
 /// The pre-included modules of Hetu scripting language.
 final Map<String, String> coreModules = const {
   'hetu:core': r'''abstract class object {
