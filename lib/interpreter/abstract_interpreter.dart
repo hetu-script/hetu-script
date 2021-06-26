@@ -75,9 +75,9 @@ abstract class AbstractInterpreter {
 
   HTLibrary get curLibrary;
 
-  final HTErrorHandler errorHandler;
+  HTErrorHandler errorHandler;
 
-  final HTSourceProvider sourceProvider;
+  HTSourceProvider sourceProvider;
 
   final HTNamespace global = HTNamespace(id: SemanticNames.global);
 
@@ -228,7 +228,7 @@ abstract class AbstractInterpreter {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false});
+      bool errorHandled = false}) {}
 
   /// Handle a error thrown by other funcion in Hetu.
   void handleError(Object error,

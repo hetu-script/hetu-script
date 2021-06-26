@@ -1,3 +1,5 @@
+import 'package:hetu_script/declaration/declaration.dart';
+
 import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../type/type.dart';
@@ -7,6 +9,9 @@ import '../error/error.dart';
 import '../ast/ast.dart';
 import '../scanner/parser.dart';
 import '../declaration/library.dart';
+import 'analysis_result.dart';
+import 'analysis_error.dart';
+import 'type_checker.dart';
 
 class AnalyzerConfig extends InterpreterConfig {
   final List<ErrorProcessor> errorProcessors;
@@ -18,7 +23,7 @@ class AnalyzerConfig extends InterpreterConfig {
 }
 
 class HTAnalyzer extends AbstractInterpreter
-    implements AbstractAstVisitor<HTType> {
+    implements AbstractAstVisitor<void> {
   AnalyzerConfig _curConfig;
 
   @override
@@ -47,6 +52,10 @@ class HTAnalyzer extends AbstractInterpreter
   @override
   HTLibrary get curLibrary => _curLibrary;
 
+  late List<HTAnalysisError> _curErrors;
+
+  late HTTypeChecker _curTypeChecker;
+
   HTAnalyzer(
       {HTSourceProvider? sourceProvider,
       AnalyzerConfig config = const AnalyzerConfig()})
@@ -70,237 +79,156 @@ class HTAnalyzer extends AbstractInterpreter
       return null;
     }
     _curModuleFullName = source.fullName;
+    _curLibrary = HTLibrary(source.libraryName);
+    _curErrors = <HTAnalysisError>[];
     final parser = HTAstParser(
         config: _curConfig,
         errorHandler: errorHandler,
         sourceProvider: sourceProvider);
     final compilation = parser.parseToCompilation(source);
+    final analysisResult = HTAnalysisResult(this, _curErrors);
+    errorHandler = analysisResult;
+    for (final module in compilation.modules.values) {
+      for (final node in module.nodes) {
+        analyzeAst(node);
+      }
+    }
+    _curTypeChecker = HTTypeChecker(_curLibrary);
+    for (final decl in _curLibrary.declarations.values) {
+      analyzeDeclaration(decl);
+    }
   }
+
+  void analyzeDeclaration(HTDeclaration decl) {}
+
+  void analyzeAst(AstNode node) => node.accept(this);
 
   @override
-  dynamic invoke(String funcName,
-      {String? classId,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
-    throw HTError.unsupported('invoke on analyzer');
-  }
-
-  HTType visitAstNode(AstNode ast) => ast.accept(this);
+  void visitCommentExpr(CommentExpr expr) {}
 
   @override
-  HTType visitCommentExpr(CommentExpr expr) {
-    return HTType.ANY;
-  }
+  void visitNullExpr(NullExpr expr) {}
 
   @override
-  HTType visitNullExpr(NullExpr expr) {
-    return HTType.ANY;
-  }
+  void visitBooleanExpr(BooleanExpr expr) {}
 
   @override
-  HTType visitBooleanExpr(BooleanExpr expr) {
-    return HTType.ANY;
-  }
+  void visitConstIntExpr(ConstIntExpr expr) {}
 
   @override
-  HTType visitConstIntExpr(ConstIntExpr expr) {
-    return HTType.ANY;
-  }
+  void visitConstFloatExpr(ConstFloatExpr expr) {}
 
   @override
-  HTType visitConstFloatExpr(ConstFloatExpr expr) {
-    return HTType.ANY;
-  }
+  void visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
-  HTType visitConstStringExpr(ConstStringExpr expr) {
-    return HTType.ANY;
-  }
+  void visitStringInterpolationExpr(StringInterpolationExpr expr) {}
 
   @override
-  HTType visitStringInterpolationExpr(StringInterpolationExpr expr) {
-    return HTType.ANY;
-  }
+  void visitGroupExpr(GroupExpr expr) {}
 
   @override
-  HTType visitGroupExpr(GroupExpr expr) {
-    return HTType.ANY;
-  }
+  void visitListExpr(ListExpr expr) {}
 
   @override
-  HTType visitListExpr(ListExpr expr) {
-    return HTType.ANY;
-  }
+  void visitMapExpr(MapExpr expr) {}
 
   @override
-  HTType visitMapExpr(MapExpr expr) {
-    return HTType.ANY;
-  }
+  void visitSymbolExpr(SymbolExpr expr) {}
 
   @override
-  HTType visitSymbolExpr(SymbolExpr expr) {
-    return HTType.ANY;
-  }
+  void visitUnaryPrefixExpr(UnaryPrefixExpr expr) {}
 
   @override
-  HTType visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
-    return HTType.ANY;
-  }
+  void visitBinaryExpr(BinaryExpr expr) {}
 
   @override
-  HTType visitBinaryExpr(BinaryExpr expr) {
-    return HTType.ANY;
-  }
+  void visitTernaryExpr(TernaryExpr expr) {}
 
   @override
-  HTType visitTernaryExpr(TernaryExpr expr) {
-    return HTType.ANY;
-  }
+  void visitTypeExpr(TypeExpr expr) {}
 
   @override
-  HTType visitTypeExpr(TypeExpr expr) {
-    return HTType.ANY;
-  }
+  void visitParamTypeExpr(ParamTypeExpr expr) {}
 
   @override
-  HTType visitParamTypeExpr(ParamTypeExpr expr) {
-    return HTType.ANY;
-  }
+  void visitFunctionTypeExpr(FuncTypeExpr expr) {}
 
   @override
-  HTType visitFunctionTypeExpr(FuncTypeExpr expr) {
-    return HTType.ANY;
-  }
+  void visitCallExpr(CallExpr expr) {}
 
   @override
-  HTType visitCallExpr(CallExpr expr) {
-    return HTType.ANY;
-  }
+  void visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
 
   @override
-  HTType visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
-    return HTType.ANY;
-  }
+  void visitMemberExpr(MemberExpr expr) {}
 
   @override
-  HTType visitMemberExpr(MemberExpr expr) {
-    return HTType.ANY;
-  }
+  void visitMemberAssignExpr(MemberAssignExpr expr) {}
 
   @override
-  HTType visitMemberAssignExpr(MemberAssignExpr expr) {
-    return HTType.ANY;
-  }
+  void visitSubExpr(SubExpr expr) {}
 
   @override
-  HTType visitSubExpr(SubExpr expr) {
-    return HTType.ANY;
-  }
+  void visitSubAssignExpr(SubAssignExpr expr) {}
 
   @override
-  HTType visitSubAssignExpr(SubAssignExpr expr) {
-    return HTType.ANY;
-  }
+  void visitLibraryStmt(LibraryStmt stmt) {}
 
   @override
-  HTType visitLibraryStmt(LibraryStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitImportStmt(ImportStmt stmt) {}
 
   @override
-  HTType visitImportStmt(ImportStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitExprStmt(ExprStmt stmt) {}
 
   @override
-  HTType visitExprStmt(ExprStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitBlockStmt(BlockStmt block) {}
 
   @override
-  HTType visitBlockStmt(BlockStmt block) {
-    return HTType.ANY;
-  }
+  void visitReturnStmt(ReturnStmt stmt) {}
 
   @override
-  HTType visitReturnStmt(ReturnStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitIfStmt(IfStmt ifStmt) {}
 
   @override
-  HTType visitIfStmt(IfStmt ifStmt) {
-    return HTType.ANY;
-  }
+  void visitWhileStmt(WhileStmt whileStmt) {}
 
   @override
-  HTType visitWhileStmt(WhileStmt whileStmt) {
-    return HTType.ANY;
-  }
+  void visitDoStmt(DoStmt doStmt) {}
 
   @override
-  HTType visitDoStmt(DoStmt doStmt) {
-    return HTType.ANY;
-  }
+  void visitForStmt(ForStmt forStmt) {}
 
   @override
-  HTType visitForStmt(ForStmt forStmt) {
-    return HTType.ANY;
-  }
+  void visitForInStmt(ForInStmt forInStmt) {}
 
   @override
-  HTType visitForInStmt(ForInStmt forInStmt) {
-    return HTType.ANY;
-  }
+  void visitWhenStmt(WhenStmt stmt) {}
 
   @override
-  HTType visitWhenStmt(WhenStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitBreakStmt(BreakStmt stmt) {}
 
   @override
-  HTType visitBreakStmt(BreakStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitContinueStmt(ContinueStmt stmt) {}
 
   @override
-  HTType visitContinueStmt(ContinueStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitVarDeclStmt(VarDeclStmt stmt) {}
 
   @override
-  HTType visitVarDeclStmt(VarDeclStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitParamDeclStmt(ParamDeclExpr stmt) {}
 
   @override
-  HTType visitParamDeclStmt(ParamDeclExpr stmt) {
-    return HTType.ANY;
-  }
+  void visitReferConstructorExpr(ReferConstructorExpr stmt) {}
 
   @override
-  HTType visitReferConstructorExpr(ReferConstructorExpr stmt) {
-    return HTType.ANY;
-  }
+  void visitFuncDeclStmt(FuncDeclExpr stmt) {}
 
   @override
-  HTType visitFuncDeclStmt(FuncDeclExpr stmt) {
-    return HTType.ANY;
-  }
+  void visitClassDeclStmt(ClassDeclStmt stmt) {}
 
   @override
-  HTType visitClassDeclStmt(ClassDeclStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitEnumDeclStmt(EnumDeclStmt stmt) {}
 
   @override
-  HTType visitEnumDeclStmt(EnumDeclStmt stmt) {
-    return HTType.ANY;
-  }
-
-  @override
-  HTType visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
-    return HTType.ANY;
-  }
+  void visitTypeAliasStmt(TypeAliasDeclStmt stmt) {}
 }

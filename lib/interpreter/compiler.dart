@@ -302,9 +302,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List visitAstNode(AstNode ast, {bool endOfExec = false}) {
+  Uint8List visitAstNode(AstNode node, {bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
-    final bytes = ast.accept(this);
+    final bytes = node.accept(this);
     bytesBuilder.add(bytes);
     if (endOfExec) {
       bytesBuilder.addByte(HTOpCode.endOfExec);
