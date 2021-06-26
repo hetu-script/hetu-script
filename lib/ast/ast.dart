@@ -1,6 +1,6 @@
 import '../grammar/token.dart';
-import '../../grammar/lexicon.dart';
-import '../../grammar/semantic.dart';
+import '../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
 import '../source/source.dart';
 
 part 'abstract_ast_visitor.dart';

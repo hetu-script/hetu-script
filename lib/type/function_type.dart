@@ -1,7 +1,7 @@
 import 'package:quiver/core.dart';
 
 import '../declaration/function/abstract_parameter.dart';
-import '../../grammar/lexicon.dart';
+import '../grammar/lexicon.dart';
 import 'type.dart';
 // import '../ast/ast.dart' show ParamDeclExpr;
 

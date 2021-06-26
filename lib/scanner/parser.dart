@@ -42,7 +42,7 @@ class HTAstParser extends AbstractParser {
             sourceProvider: sourceProvider);
 
   List<AstNode> parse(List<Token> tokens,
-      {HTSource? source, ParserConfigImpl? config}) {
+      {HTSource? source, ParserConfig? config}) {
     _curSource = source;
     final savedConfig = this.config;
     if (config != null) {
@@ -59,7 +59,7 @@ class HTAstParser extends AbstractParser {
   }
 
   HTAstModule parseToModule(HTSource source,
-      {bool hasOwnNamespace = true, ParserConfigImpl? config}) {
+      {bool hasOwnNamespace = true, ParserConfig? config}) {
     _curModuleFullName = source.fullName;
     _curClass = null;
     _curFuncCategory = null;
@@ -78,7 +78,7 @@ class HTAstParser extends AbstractParser {
   HTAstCompilation parseToCompilation(HTSource source,
       {bool hasOwnNamespace = true,
       String? libraryName,
-      ParserConfigImpl? config}) {
+      ParserConfig? config}) {
     final fullName = source.fullName;
     _curLibraryName = libraryName ?? fullName;
     final module =
@@ -730,7 +730,7 @@ class HTAstParser extends AbstractParser {
           final nodes = exprParser.parse(tokens,
               source: _curSource,
               config: ParserConfigImpl(sourceType: SourceType.expression));
-          if (nodes.length > 1) {
+          if (nodes.length != 1) {
             throw HTError.stringInterpolation();
           }
           interpolation.add(nodes.first);

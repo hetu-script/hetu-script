@@ -1,12 +1,11 @@
-import 'package:hetu_script/declaration/function/abstract_parameter.dart';
-
-import '../../../grammar/semantic.dart';
+import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';
 import '../../source/source.dart';
 import '../namespace.dart';
 import '../declaration.dart';
+import 'abstract_parameter.dart';
 
 class HTFunctionDeclaration extends HTDeclaration {
   final String internalName;
@@ -89,9 +88,9 @@ class HTFunctionDeclaration extends HTDeclaration {
         namedStarted = true;
         result.write(HTLexicon.curlyLeft);
       }
+      result.write(param.id);
       if (param.declType != null) {
-        result.write(
-            param.id + '${HTLexicon.colon} ' + (param.declType.toString()));
+        result.write('${HTLexicon.colon} ${param.declType}');
       }
       if (i < paramDecls.length - 1) {
         result.write('${HTLexicon.comma} ');

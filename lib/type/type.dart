@@ -1,7 +1,7 @@
 import 'package:quiver/core.dart';
 
-import '../../grammar/lexicon.dart';
-import '../../error/error.dart';
+import '../grammar/lexicon.dart';
+import '../error/error.dart';
 import '../object/object.dart';
 import '../declaration/class/class_declaration.dart';
 import '../declaration/namespace.dart';
