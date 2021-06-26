@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
+  hetu.init();
 
   group('edge cases -', () {
-    test('automatic semicolon insertion', () async {
-      final result = await hetu.eval(r'''
+    test('automatic semicolon insertion', () {
+      final result = hetu.eval(r'''
         fun asi {
           var j = 3
           var i =
@@ -24,8 +24,8 @@ void main() async {
         4,
       );
     });
-    test('late initialization', () async {
-      final result = await hetu.eval(r'''
+    test('late initialization', () {
+      final result = hetu.eval(r'''
       fun getIndex {
         return 2
       }
@@ -41,8 +41,8 @@ void main() async {
         3,
       );
     });
-    test('late initialization 2', () async {
-      final result = await hetu.eval(r'''
+    test('late initialization 2', () {
+      final result = hetu.eval(r'''
       fun lateInit2 {
         var list = [1,2,3,4]
         var item = list[3]
@@ -55,8 +55,8 @@ void main() async {
         4,
       );
     });
-    test('var in lambda', () async {
-      final result = await hetu.eval(r'''
+    test('var in lambda', () {
+      final result = hetu.eval(r'''
         class Left {
           var age = 10
           fun m() {
@@ -86,8 +86,8 @@ void main() async {
         5,
       );
     });
-    test('forward declaration 1', () async {
-      final result = await hetu.eval(r'''
+    test('forward declaration 1', () {
+      final result = hetu.eval(r'''
       fun forwardDecl1 {
         var i = 42
         var j = i
@@ -100,8 +100,8 @@ void main() async {
         42,
       );
     });
-    test('forward declaration 2', () async {
-      final result = await hetu.eval(r'''
+    test('forward declaration 2', () {
+      final result = hetu.eval(r'''
       fun forwardDecl2 {
         var i = 42
         i = 4
@@ -114,8 +114,8 @@ void main() async {
         4,
       );
     });
-    test('subget as left value', () async {
-      final result = await hetu.eval(r'''
+    test('subget as left value', () {
+      final result = hetu.eval(r'''
       fun subGetAsLeftValue {
         var list = [1,2,3]
         list[0]--

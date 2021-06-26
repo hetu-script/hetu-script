@@ -45,6 +45,8 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
+  bool evaluated = false;
+
   HTSource(this.fullName, String content,
       {this.type = SourceType.module,
       this.isLibrary = false,

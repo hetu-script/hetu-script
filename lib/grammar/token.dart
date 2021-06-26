@@ -17,6 +17,13 @@ class Token {
   const Token(this.lexeme, this.line, this.column);
 }
 
+class TokenEmpty extends Token {
+  @override
+  String get type => SemanticNames.empty;
+
+  const TokenEmpty(int line, int column) : super('', line, column);
+}
+
 class TokenEmptyLine extends Token {
   @override
   String get type => SemanticNames.emptyLine;

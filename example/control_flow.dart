@@ -1,9 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
-  await hetu.eval(r'''
+  hetu.init();
+  hetu.eval(r'''
     fun main {
       var j = 1
       var i = 0

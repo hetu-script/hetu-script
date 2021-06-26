@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
+  hetu.init();
 
   group('functions -', () {
-    test('nested & anonymous', () async {
-      final result = await hetu.eval('''
+    test('nested & anonymous', () {
+      final result = hetu.eval('''
             fun literalFunction(func) {
               var i = 42
               fun nested() {
@@ -27,8 +27,8 @@ void main() async {
         1936,
       );
     });
-    test('closure in loop', () async {
-      final result = await hetu.eval('''
+    test('closure in loop', () {
+      final result = hetu.eval('''
         fun closureInLoop {
           var list = [];
           var builders = [];

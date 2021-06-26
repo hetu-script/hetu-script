@@ -21,7 +21,6 @@ import '../declaration/library.dart';
 import '../scanner/abstract_parser.dart';
 import '../buildin/hetu_lib.dart';
 import '../object/object.dart';
-import '../scanner/parser.dart';
 import 'compiler.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
@@ -29,7 +28,8 @@ mixin InterpreterRef {
   late final AbstractInterpreter interpreter;
 }
 
-class InterpreterConfig implements ParserConfig, CompilerConfig {
+class InterpreterConfig
+    implements ParserConfig, CompilerConfig, ErrorHandlerConfig {
   @override
   final SourceType sourceType;
 
@@ -39,25 +39,32 @@ class InterpreterConfig implements ParserConfig, CompilerConfig {
   @override
   final bool lineInfo;
 
-  final bool scriptStackTrace;
-  final int scriptStackTraceThreshhold;
+  @override
   final bool externalStackTrace;
+
+  @override
+  final bool hetuStackTrace;
+
+  @override
+  final int hetuStackTraceThreshhold;
 
   const InterpreterConfig(
       {this.sourceType = SourceType.module,
       this.reload = false,
       this.lineInfo = true,
-      this.scriptStackTrace = true,
-      this.scriptStackTraceThreshhold = 10,
-      this.externalStackTrace = true});
+      this.externalStackTrace = true,
+      this.hetuStackTrace = true,
+      this.hetuStackTraceThreshhold = 10});
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.
-abstract class AbstractInterpreter {
+abstract class AbstractInterpreter<T> implements HTErrorHandler {
   static final version = Version(0, 1, 0);
   static const _anonymousScriptSignatureLength = 72;
 
-  final scriptStackTrace = <String>[];
+  final stackTrace = <String>[];
+
+  dynamic get failedResult => null;
 
   InterpreterConfig config;
 
@@ -75,31 +82,29 @@ abstract class AbstractInterpreter {
 
   HTLibrary get curLibrary;
 
-  HTErrorHandler errorHandler;
-
-  HTSourceProvider sourceProvider;
+  late HTSourceProvider sourceProvider;
 
   final HTNamespace global = HTNamespace(id: SemanticNames.global);
 
   AbstractInterpreter(
       {this.config = const InterpreterConfig(),
-      HTErrorHandler? errorHandler,
-      HTSourceProvider? sourceProvider})
-      : errorHandler = errorHandler ?? DefaultErrorHandler(),
-        sourceProvider = sourceProvider ?? DefaultSourceProvider();
+      HTSourceProvider? sourceProvider}) {
+    this.sourceProvider =
+        sourceProvider ?? DefaultSourceProvider(errorHandler: this);
+  }
 
   @mustCallSuper
-  Future<void> init(
+  void init(
       {bool coreModule = true,
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
-          const {}}) async {
+          const {}}) {
     try {
       // load classes and functions in core library.
       if (coreModule) {
         for (final file in coreModules.keys) {
-          await eval(coreModules[file]!,
+          eval(coreModules[file]!,
               moduleFullName: file,
               namespace: global,
               config: InterpreterConfig(sourceType: SourceType.module));
@@ -131,11 +136,11 @@ abstract class AbstractInterpreter {
         bindExternalClass(value);
       }
     } catch (error, stackTrace) {
-      handleError(error, dartStackTrace: stackTrace);
+      handleError(error, externalStackTrace: stackTrace);
     }
   }
 
-  Future<dynamic> evalSource(HTSource source,
+  T? evalSource(HTSource source,
       {HTNamespace? namespace,
       InterpreterConfig? config,
       String? invokeFunc,
@@ -144,7 +149,7 @@ abstract class AbstractInterpreter {
       List<HTType> typeArgs = const [],
       bool errorHandled = false});
 
-  Future<dynamic> eval(String content,
+  T? eval(String content,
       {String? moduleFullName,
       String? libraryName,
       HTNamespace? namespace,
@@ -153,23 +158,23 @@ abstract class AbstractInterpreter {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false}) async {
+      bool errorHandled = false}) {
     if (moduleFullName == null) {
       final sigBuilder = StringBuffer();
-      sigBuilder.write('${SemanticNames.anonymousScript}: ');
-      var firstLine = content.trimLeft().replaceAll(RegExp(r'\s'), '');
-      sigBuilder.write(firstLine);
+      sigBuilder.write('${SemanticNames.anonymousScript}: [');
+      var firstLine = content.trimLeft().replaceAll(RegExp(r'\s+'), ' ');
       sigBuilder.write(firstLine.substring(
           0, math.min(_anonymousScriptSignatureLength, firstLine.length)));
       if (firstLine.length > _anonymousScriptSignatureLength) {
         sigBuilder.write('...');
       }
+      sigBuilder.write(']');
       moduleFullName = sigBuilder.toString();
     }
 
     final source = HTSource(moduleFullName, content);
 
-    return await evalSource(source,
+    final result = evalSource(source,
         // when eval string, use current namespace by default
         namespace: namespace ?? curNamespace,
         config: config,
@@ -178,12 +183,13 @@ abstract class AbstractInterpreter {
         namedArgs: namedArgs,
         typeArgs: typeArgs,
         errorHandled: errorHandled);
+
+    return result;
   }
 
   /// 解析文件
-  Future<dynamic> evalFile(String key,
+  T? evalFile(String key,
       {bool useLastModuleFullName = false,
-      bool reload = false,
       String? moduleFullName,
       String? libraryName,
       HTNamespace? namespace,
@@ -192,34 +198,24 @@ abstract class AbstractInterpreter {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false}) async {
-    try {
-      final fullName = sourceProvider.resolveFullName(key);
-
-      if (reload || !sourceProvider.hasModule(fullName)) {
-        final module = sourceProvider.getSourceSync(key,
-            from: useLastModuleFullName
-                ? curModuleFullName
-                : sourceProvider.workingDirectory);
-
-        final result = await evalSource(module,
-            namespace: namespace,
-            config: config,
-            invokeFunc: invokeFunc,
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs,
-            errorHandled: true);
-
-        return result;
-      }
-    } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        handleError(error, dartStackTrace: stackTrace);
-      }
+      bool errorHandled = false}) {
+    final module = sourceProvider.getSourceSync(key,
+        from: useLastModuleFullName
+            ? curModuleFullName
+            : sourceProvider.workingDirectory);
+    if (module == null) {
+      return failedResult;
     }
+    final result = evalSource(module,
+        namespace: namespace,
+        config: config,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs,
+        errorHandled: true);
+
+    return result;
   }
 
   /// 调用一个全局函数或者类、对象上的函数
@@ -229,69 +225,6 @@ abstract class AbstractInterpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {}
-
-  /// Handle a error thrown by other funcion in Hetu.
-  void handleError(Object error,
-      {StackTrace? dartStackTrace, HTAstParser? parser, HTCompiler? compiler}) {
-    final sb = StringBuffer();
-    if (curConfig.scriptStackTrace) {
-      if (scriptStackTrace.length > curConfig.scriptStackTraceThreshhold * 2) {
-        for (var i = scriptStackTrace.length - 1;
-            i >=
-                scriptStackTrace.length -
-                    1 -
-                    curConfig.scriptStackTraceThreshhold;
-            --i) {
-          sb.writeln(
-              '#${scriptStackTrace.length - 1 - i}\t${scriptStackTrace[i]}');
-        }
-        sb.writeln('...\n...');
-        for (var i = curConfig.scriptStackTraceThreshhold - 1; i >= 0; --i) {
-          sb.writeln(
-              '#${scriptStackTrace.length - 1 - i}\t${scriptStackTrace[i]}');
-        }
-      } else {
-        for (var i = scriptStackTrace.length - 1; i >= 0; --i) {
-          sb.writeln(
-              '#${scriptStackTrace.length - 1 - i}\t${scriptStackTrace[i]}');
-        }
-      }
-      sb.writeln('Dart stack trace:\n$dartStackTrace');
-    }
-    final stackTraceString = sb.toString();
-
-    if (error is HTError) {
-      if (config.scriptStackTrace) {
-        error.message =
-            '${error.message}\nHetu stack trace:\n$stackTraceString';
-      }
-      if (error.type == ErrorType.syntacticError) {
-        error.moduleFullName = parser!.curModuleFullName;
-        error.line = parser.curLine;
-        error.column = parser.curColumn;
-      } else if (error.type == ErrorType.compileTimeError) {
-        error.moduleFullName = compiler!.curModuleFullName;
-        error.line = compiler.curLine;
-        error.column = compiler.curColumn;
-      } else {
-        error.moduleFullName = curModuleFullName;
-        error.line = curLine;
-        error.column = curColumn;
-      }
-      errorHandler.handle(error);
-    } else {
-      var message = error.toString();
-      if (config.scriptStackTrace) {
-        message = '$message\nCall stack:\n$stackTraceString';
-      }
-      final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
-          message: message,
-          moduleFullName: curModuleFullName,
-          line: curLine,
-          column: curColumn);
-      errorHandler.handle(hetuError);
-    }
-  }
 
   HTObject encapsulate(dynamic object) {
     if (object is HTObject) {

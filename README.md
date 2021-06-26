@@ -33,10 +33,10 @@ In your Dart code, you can interpret a script file:
 ```typescript
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   var hetu = Hetu();
-  await hetu.init();
-  await hetu.evalFile('hello.ht', invokeFunc: 'main');
+  hetu.init();
+  hetu.evalFile('hello.ht', invokeFunc: 'main');
 }
 ```
 
@@ -70,12 +70,12 @@ Check [this page](https://github.com/hetu-script/site-www/blob/main/docs/en-US/b
 ```dart
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   var hetu = Hetu();
-  await hetu.init(externalFunctions: {
+  hetu.init(externalFunctions: {
     'hello': () => {'greeting': 'hello'},
   });
-  await hetu.eval(r'''
+  hetu.eval(r'''
       external fun hello
       fun main {
         var dartValue = hello()

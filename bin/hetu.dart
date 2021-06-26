@@ -11,7 +11,7 @@ Version: 0.1.0
 Usage:
 hetu [command] [command_args]
   command:
-    fmt [path]
+    format [path]
       to format a script file.
       --script(-s)
       --print(-p)
@@ -32,20 +32,17 @@ Enter '\' for multiline, enter '.exit' to quit.''';
 
 final hetu = Hetu(
     config: InterpreterConfig(
-        sourceType: SourceType.script, scriptStackTrace: false));
+        sourceType: SourceType.script, hetuStackTrace: false));
 
-void main(List<String> arguments) async {
+void main(List<String> arguments) {
   try {
-    await hetu.init();
-
+    hetu.init();
     if (arguments.isEmpty) {
       print(repl_info);
       var exit = false;
-
       while (!exit) {
         stdout.write('>>>');
         var input = stdin.readLineSync();
-
         if (input == '.exit') {
           exit = true;
         } else {
@@ -53,7 +50,7 @@ void main(List<String> arguments) async {
             input += '\n' + stdin.readLineSync()!;
           }
           try {
-            final result = await hetu.eval(input);
+            final result = hetu.eval(input);
             print(result);
           } catch (e) {
             if (e is HTError) {
@@ -71,25 +68,25 @@ void main(List<String> arguments) async {
       } else if (results.command != null) {
         final cmd = results.command!;
         final cmdArgs = cmd.arguments;
-
         final targetPath = cmdArgs.first;
         if (path.extension(targetPath) != '.ht') {
           throw 'Error: target file extension is not \'.ht\'';
         }
-
         final sourceType =
             cmd['script'] ? SourceType.script : SourceType.module;
-
         switch (cmd.name) {
           case 'run':
-            await run(cmdArgs, sourceType);
+            run(cmdArgs, sourceType);
             break;
-          case 'fmt':
+          case 'format':
             format(cmdArgs, cmd['out'], cmd['print']);
+            break;
+          case 'analyze':
+            analyze(cmdArgs, sourceType);
             break;
         }
       } else {
-        await run(arguments);
+        run(arguments);
       }
     }
   } catch (e) {
@@ -97,15 +94,28 @@ void main(List<String> arguments) async {
   }
 }
 
-Future<void> run(List<String> args,
-    [SourceType sourceType = SourceType.script]) async {
+ArgResults parseArg(List<String> args) {
+  final parser = ArgParser();
+  parser.addFlag('help', abbr: 'h', negatable: false);
+  final runCmd = parser.addCommand('run');
+  runCmd.addFlag('script', abbr: 's');
+  final fmtCmd = parser.addCommand('format');
+  fmtCmd.addFlag('script', abbr: 's');
+  fmtCmd.addFlag('print', abbr: 'p');
+  fmtCmd.addOption('out', abbr: 'o');
+  final analyzeCmd = parser.addCommand('analyze');
+  analyzeCmd.addFlag('script', abbr: 's');
+  return parser.parse(args);
+}
+
+void run(List<String> args, [SourceType sourceType = SourceType.script]) {
   dynamic result;
   final config = InterpreterConfig(sourceType: sourceType);
   hetu.config = config;
   if (args.length == 1) {
-    result = await hetu.evalFile(args.first);
+    result = hetu.evalFile(args.first);
   } else {
-    result = await hetu.evalFile(args.first, invokeFunc: args[1]);
+    result = hetu.evalFile(args.first, invokeFunc: args[1]);
   }
   print('Execution result:');
   print(result);
@@ -116,53 +126,46 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
   final formatter = HTFormatter();
   final sourceProvider = DefaultSourceProvider();
   final source = sourceProvider.getSourceSync(args.first);
-
-  try {
-    // final config = ParserConfig(sourceType: sourceType);
-    final compilation = parser.parseToCompilation(source); //, config);
-
-    final module = compilation.getModule(source.fullName);
-
-    final fmtResult = formatter.format(module.nodes);
-
-    if (printResult) {
-      print(fmtResult);
-    }
-
-    if (outPath != null) {
-      if (!path.isAbsolute(outPath)) {
-        final curPath = path.dirname(source.fullName);
-        final name = path.basenameWithoutExtension(outPath);
-        outPath = path.join(curPath, '$name.ht');
-      }
-    } else {
-      outPath = module.fullName;
-    }
-
-    final outFile = File(outPath);
-    outFile.writeAsStringSync(fmtResult);
-
-    print('Saved formatted file to:');
-    print(outPath);
-  } catch (e) {
-    if (e is HTError && e.type == ErrorType.compileTimeError) {
-      e.moduleFullName = parser.curModuleFullName;
-      e.line = parser.curLine;
-      e.column = parser.curColumn;
-    }
-    rethrow;
+  if (source == null) {
+    print('An error occured while getting source.');
+    return;
   }
+  // final config = ParserConfig(sourceType: sourceType);
+  final compilation = parser.parseToCompilation(source); //, config);
+  final module = compilation.modules[source.fullName]!;
+  final fmtResult = formatter.format(module.nodes);
+  if (printResult) {
+    print(fmtResult);
+  }
+  if (outPath != null) {
+    if (!path.isAbsolute(outPath)) {
+      final curPath = path.dirname(source.fullName);
+      final name = path.basenameWithoutExtension(outPath);
+      outPath = path.join(curPath, '$name.ht');
+    }
+  } else {
+    outPath = module.fullName;
+  }
+  final outFile = File(outPath);
+  outFile.writeAsStringSync(fmtResult);
+  print('Saved formatted file to:');
+  print(outPath);
 }
 
-ArgResults parseArg(List<String> args) {
-  final parser = ArgParser();
-  parser.addFlag('help', abbr: 'h', negatable: false);
-  final runCmd = parser.addCommand('run');
-  runCmd.addFlag('script', abbr: 's');
-  final fmtCmd = parser.addCommand('fmt');
-  fmtCmd.addFlag('script');
-  fmtCmd.addFlag('print', abbr: 'p');
-  fmtCmd.addOption('out', abbr: 'o');
-
-  return parser.parse(args);
+void analyze(List<String> args, [SourceType sourceType = SourceType.script]) {
+  final analyzer = HTAnalyzer(config: AnalyzerConfig(sourceType: sourceType));
+  analyzer.init();
+  final result = analyzer.evalFile(args.first);
+  if (result != null) {
+    if (result.errors.isNotEmpty) {
+      print('Analyzer found ${result.errors.length} problems:');
+      for (final err in result.errors) {
+        print(err);
+      }
+    } else {
+      print('Analyzer found 0 problem.');
+    }
+  } else {
+    print('Unkown error occurred during analysis.');
+  }
 }

@@ -1,9 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
+  hetu.init();
   final result =
-      await hetu.evalFile('script/import_test.ht', invokeFunc: 'importTest');
+      hetu.evalFile('script/import_test.ht', invokeFunc: 'importTest');
   print(result);
 }

@@ -19,6 +19,15 @@ abstract class AstNode {
   const AstNode(this.type, this.line, this.column, this.source);
 }
 
+// Has no meaning, a helper for parser to recover from errors.
+class EmptyExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitEmptyExpr(this);
+
+  const EmptyExpr(int line, int column, {HTSource? source})
+      : super(SemanticNames.empty, line, column, source);
+}
+
 class CommentExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitCommentExpr(this);

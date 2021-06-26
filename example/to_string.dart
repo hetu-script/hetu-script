@@ -1,11 +1,11 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu(config: InterpreterConfig(sourceType: SourceType.module));
 
-  await hetu.init();
+  hetu.init();
 
-  await hetu.eval(r'''
+  hetu.eval(r'''
     class Name {
       var firstName = 'Adam'
       var familyName = 'Christ'

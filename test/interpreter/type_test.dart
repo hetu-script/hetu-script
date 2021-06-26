@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
+  hetu.init();
 
   group('type -', () {
-    test('extends', () async {
-      final result = await hetu.eval(r'''
+    test('extends', () {
+      final result = hetu.eval(r'''
         class Super2 {
           var name = 'Super'
         }
@@ -24,8 +24,8 @@ void main() async {
         true,
       );
     });
-    // test('arguments', () async {
-    //   final result = await hetu.eval('''
+    // test('arguments', () {
+    //   final result = hetu.eval('''
     //     fun functionAssign1 {
     //       fun convert(n) -> num {
     //         return num.parse(n)
@@ -39,8 +39,8 @@ void main() async {
     //     'function(any) -> num',
     //   );
     // });
-    // test('return type', () async {
-    //   final result = await hetu.eval('''
+    // test('return type', () {
+    //   final result = hetu.eval('''
     //     fun functionAssign2 {
     //       var a: fun (num) -> num = fun (n: any) -> num { return n }
     //       return a.valueType.toString()
@@ -51,8 +51,8 @@ void main() async {
     //     'function(any) -> num',
     //   );
     // });
-    test('function type', () async {
-      final result = await hetu.eval('''
+    test('function type', () {
+      final result = hetu.eval('''
         fun functionType {
           var numparse: fun (str) -> num = fun (value: str) -> num { return num.parse(value) }
           var getType = fun { typeof numparse }
@@ -66,8 +66,8 @@ void main() async {
         11,
       );
     });
-    test('type alias class', () async {
-      final result = await hetu.eval('''
+    test('type alias class', () {
+      final result = hetu.eval('''
         fun typeAlias1 {
           class A {
             var name: str
@@ -85,8 +85,8 @@ void main() async {
         'jimmy',
       );
     });
-    test('type alias function', () async {
-      final result = await hetu.eval('''
+    test('type alias function', () {
+      final result = hetu.eval('''
         fun typeAlias2 {
           type MyFuncType = fun (num, num) -> num
           var func: MyFuncType = fun add(a: num, b: num) -> num = a + b

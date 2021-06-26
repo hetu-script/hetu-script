@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
+  hetu.init();
 
   group('buildin values -', () {
-    test('string interpolation', () async {
-      final result = await hetu.eval(r'''
+    test('string interpolation', () {
+      final result = hetu.eval(r'''
       fun interpolation {
         var a = 'dragon'
         var b
@@ -22,8 +22,8 @@ void main() async {
   });
 
   group('operators -', () {
-    test('brackets', () async {
-      final result = await hetu.eval(r'''
+    test('brackets', () {
+      final result = hetu.eval(r'''
       fun math1 { 
         return 3 - (2 * 3 - 5)
       }
@@ -33,8 +33,8 @@ void main() async {
         2,
       );
     });
-    test('ternary operator', () async {
-      final result = await hetu.eval(r'''
+    test('ternary operator', () {
+      final result = hetu.eval(r'''
       fun ternary {
        return ((5 > 4 ? true ? 'certainly' : 'yeah' : 'ha') + ', eva!')
       }
@@ -44,8 +44,8 @@ void main() async {
         'certainly, eva!',
       );
     });
-    test('member and sub get', () async {
-      final result = await hetu.eval(r'''
+    test('member and sub get', () {
+      final result = hetu.eval(r'''
         class Ming {
           var first = 'tom'
         }
@@ -66,8 +66,8 @@ void main() async {
   });
 
   group('control flow -', () {
-    test('loop', () async {
-      final result = await hetu.eval(r'''
+    test('loop', () {
+      final result = hetu.eval(r'''
       fun loop {
         var j = 1
         var i = 0
@@ -89,8 +89,8 @@ void main() async {
         71,
       );
     });
-    test('for in', () async {
-      final result = await hetu.eval(r'''
+    test('for in', () {
+      final result = hetu.eval(r'''
       fun forIn {
         let value = ['', 'hello', 'world']
         let item = ''
@@ -108,8 +108,8 @@ void main() async {
         'hello',
       );
     });
-    test('continue', () async {
-      final result = await hetu.eval(r'''
+    test('continue', () {
+      final result = hetu.eval(r'''
       fun continueLoop {
         var j = 0
         for (var i = 0; i < 5; ++i) {
@@ -126,8 +126,8 @@ void main() async {
         4,
       );
     });
-    test('when', () async {
-      final result = await hetu.eval(r'''
+    test('when', () {
+      final result = hetu.eval(r'''
         fun swtich(expr) {
           when(expr) {
             0-> return '0'
@@ -147,8 +147,8 @@ void main() async {
   });
 
   group('variables -', () {
-    test('global var', () async {
-      final result = await hetu.eval(r'''
+    test('global var', () {
+      final result = hetu.eval(r'''
       var globalVar = 0
       class GetGlobal {
         construct {

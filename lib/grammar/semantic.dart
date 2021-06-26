@@ -42,6 +42,8 @@ abstract class SemanticNames {
   static const setter = r'$set_';
   static const instanceOf = 'instance of';
 
+  static const endOfFile = 'end_of_file';
+  static const empty = 'empty';
   static const emptyLine = 'empty_line';
   static const comment = 'comment';
   static const singleLineComment = 'single_line_comment';

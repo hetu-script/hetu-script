@@ -45,15 +45,6 @@ class HTAstModule {
 class HTAstCompilation {
   final modules = <String, HTAstModule>{};
 
-  HTAstModule getModule(String fullName,
-      [ErrorType errorType = ErrorType.runtimeError]) {
-    if (modules.containsKey(fullName)) {
-      return modules[fullName]!;
-    } else {
-      throw HTError.unknownModule(fullName, errorType);
-    }
-  }
-
   void add(HTAstModule module) => modules[module.fullName] = module;
 
   void join(HTAstCompilation bundle2) {

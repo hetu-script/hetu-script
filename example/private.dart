@@ -1,9 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
-  await hetu.eval(r'''
+  hetu.init();
+  hetu.eval(r'''
     class A {
       static fun _init {
         print('private static _init called!')

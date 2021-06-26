@@ -6,10 +6,10 @@ int hetuAdd(DartFunction func) {
   return func(6, 7);
 }
 
-void main() async {
+void main() {
   var hetu = Hetu();
 
-  await hetu.init(externalFunctions: {
+  hetu.init(externalFunctions: {
     'hetuAdd': (
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
@@ -25,7 +25,7 @@ void main() async {
     },
   });
 
-  await hetu.eval(r'''
+  hetu.eval(r'''
       external fun hetuAdd(func)
       fun [DartFunction] namedAdd(a: num, b: num) -> num {
         return a + b

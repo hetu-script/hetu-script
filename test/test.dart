@@ -1,18 +1,10 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu(config: InterpreterConfig(sourceType: SourceType.script));
-  await hetu.init();
-  final result = await hetu.eval(r'''
-    var list = [1,2,3]
-
-    var i = 0
-    do  {
-      print(i)
-      ++i
-    } while (i < 5)
-
-
+  hetu.init();
+  final result = hetu.eval(r'''
+    a * 1
   ''');
   print(result);
 }

@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Analyzer can check for syntactic errors now.
+
 ## 0.1.3
 
 - Named constructor can refer to default constructor: construct name(): this()

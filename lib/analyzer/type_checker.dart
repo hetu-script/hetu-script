@@ -2,225 +2,226 @@ import '../ast/ast.dart';
 import '../type/type.dart';
 import '../declaration/library.dart';
 
-class HTTypeChecker implements AbstractAstVisitor<HTType> {
+class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   final HTLibrary library;
 
   HTTypeChecker(this.library);
 
-  HTType analyzeAst(AstNode node) => node.accept(this);
+  HTType? analyzeAst(AstNode node) => node.accept(this);
 
   @override
-  HTType visitCommentExpr(CommentExpr expr) {
+  HTType? visitEmptyExpr(EmptyExpr expr) {}
+
+  @override
+  HTType? visitCommentExpr(CommentExpr expr) {}
+
+  @override
+  HTType? visitNullExpr(NullExpr expr) {
+    return HTType.NULL;
+  }
+
+  @override
+  HTType? visitBooleanExpr(BooleanExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitNullExpr(NullExpr expr) {
+  HTType? visitConstIntExpr(ConstIntExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitBooleanExpr(BooleanExpr expr) {
+  HTType? visitConstFloatExpr(ConstFloatExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitConstIntExpr(ConstIntExpr expr) {
+  HTType? visitConstStringExpr(ConstStringExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitConstFloatExpr(ConstFloatExpr expr) {
+  HTType? visitStringInterpolationExpr(StringInterpolationExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitConstStringExpr(ConstStringExpr expr) {
+  HTType? visitGroupExpr(GroupExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitStringInterpolationExpr(StringInterpolationExpr expr) {
+  HTType? visitListExpr(ListExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitGroupExpr(GroupExpr expr) {
+  HTType? visitMapExpr(MapExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitListExpr(ListExpr expr) {
+  HTType? visitSymbolExpr(SymbolExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitMapExpr(MapExpr expr) {
+  HTType? visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitSymbolExpr(SymbolExpr expr) {
+  HTType? visitBinaryExpr(BinaryExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
+  HTType? visitTernaryExpr(TernaryExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitBinaryExpr(BinaryExpr expr) {
+  HTType? visitTypeExpr(TypeExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitTernaryExpr(TernaryExpr expr) {
+  HTType? visitParamTypeExpr(ParamTypeExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitTypeExpr(TypeExpr expr) {
+  HTType? visitFunctionTypeExpr(FuncTypeExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitParamTypeExpr(ParamTypeExpr expr) {
+  HTType? visitCallExpr(CallExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitFunctionTypeExpr(FuncTypeExpr expr) {
+  HTType? visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitCallExpr(CallExpr expr) {
+  HTType? visitMemberExpr(MemberExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
+  HTType? visitMemberAssignExpr(MemberAssignExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitMemberExpr(MemberExpr expr) {
+  HTType? visitSubExpr(SubExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitMemberAssignExpr(MemberAssignExpr expr) {
+  HTType? visitSubAssignExpr(SubAssignExpr expr) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitSubExpr(SubExpr expr) {
+  HTType? visitLibraryStmt(LibraryStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitSubAssignExpr(SubAssignExpr expr) {
+  HTType? visitImportStmt(ImportStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitLibraryStmt(LibraryStmt stmt) {
+  HTType? visitExprStmt(ExprStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitImportStmt(ImportStmt stmt) {
+  HTType? visitBlockStmt(BlockStmt block) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitExprStmt(ExprStmt stmt) {
+  HTType? visitReturnStmt(ReturnStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitBlockStmt(BlockStmt block) {
+  HTType? visitIfStmt(IfStmt ifStmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitReturnStmt(ReturnStmt stmt) {
+  HTType? visitWhileStmt(WhileStmt whileStmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitIfStmt(IfStmt ifStmt) {
+  HTType? visitDoStmt(DoStmt doStmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitWhileStmt(WhileStmt whileStmt) {
+  HTType? visitForStmt(ForStmt forStmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitDoStmt(DoStmt doStmt) {
+  HTType? visitForInStmt(ForInStmt forInStmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitForStmt(ForStmt forStmt) {
+  HTType? visitWhenStmt(WhenStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitForInStmt(ForInStmt forInStmt) {
+  HTType? visitBreakStmt(BreakStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitWhenStmt(WhenStmt stmt) {
+  HTType? visitContinueStmt(ContinueStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitBreakStmt(BreakStmt stmt) {
+  HTType? visitVarDeclStmt(VarDeclStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitContinueStmt(ContinueStmt stmt) {
+  HTType? visitParamDeclStmt(ParamDeclExpr stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitVarDeclStmt(VarDeclStmt stmt) {
+  HTType? visitReferConstructorExpr(ReferConstructorExpr stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitParamDeclStmt(ParamDeclExpr stmt) {
+  HTType? visitFuncDeclStmt(FuncDeclExpr stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitReferConstructorExpr(ReferConstructorExpr stmt) {
+  HTType? visitClassDeclStmt(ClassDeclStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitFuncDeclStmt(FuncDeclExpr stmt) {
+  HTType? visitEnumDeclStmt(EnumDeclStmt stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType visitClassDeclStmt(ClassDeclStmt stmt) {
-    return HTType.ANY;
-  }
-
-  @override
-  HTType visitEnumDeclStmt(EnumDeclStmt stmt) {
-    return HTType.ANY;
-  }
-
-  @override
-  HTType visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
+  HTType? visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
     return HTType.ANY;
   }
 }

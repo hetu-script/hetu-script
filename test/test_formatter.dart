@@ -1,6 +1,6 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final source = HTSource(SemanticNames.anonymousScript, r'''
     var i = 42
     var j = 'hi, your number is ${ '#' +     i.toString()   }.'

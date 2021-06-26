@@ -198,7 +198,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error, dartStackTrace: stackTrace);
+        interpreter.handleError(error, externalStackTrace: stackTrace);
       }
     }
   }

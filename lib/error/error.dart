@@ -70,7 +70,7 @@ enum ErrorCode {
   classOnInstance,
   version,
   sourceType,
-  unknownModule
+  nonExistModule
 }
 
 /// The severity of an [ErrorCode].
@@ -204,9 +204,9 @@ class HTError {
 
   ErrorSeverity get severity => type.severity;
 
-  late String message;
+  String? message;
 
-  final String? correction;
+  String? correction;
 
   String? moduleFullName;
 
@@ -221,20 +221,22 @@ class HTError {
   @override
   String toString() {
     final output = StringBuffer();
-    output.write('\n[$type: $name]\n');
     if (moduleFullName != null) {
-      output.write('[File: $moduleFullName]\n');
+      output.write('File: $moduleFullName');
+      if (line != null && column != null) {
+        output.writeln(':$line:$column');
+      }
     }
-    if (line != null && column != null) {
-      output.write('[Line: $line, Column: $column]\n');
+    output.writeln('$type: $name');
+    if (message != null) {
+      output.write('Message: $message');
     }
-    output.write('$message\n');
     return output.toString();
   }
 
   /// [HTError] can not be created by default constructor.
   HTError(this.code, this.type,
-      {String message = '',
+      {String? message,
       List<String> interpolations = const [],
       this.correction,
       this.moduleFullName,
@@ -242,349 +244,1176 @@ class HTError {
       this.column,
       this.offset,
       this.length}) {
-    for (var i = 0; i < interpolations.length; ++i) {
-      message = message.replaceAll('{$i}', interpolations[i]);
+    if (message != null) {
+      for (var i = 0; i < interpolations.length; ++i) {
+        message = message!.replaceAll('{$i}', interpolations[i]);
+      }
+      this.message = message;
     }
-    this.message = message;
   }
 
   /// Error: Expected a token while met another.
-  HTError.unexpected(String expected, String met)
+  HTError.unexpected(String expected, String met,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.unexpected, ErrorType.syntacticError,
             message: HTLexicon.errorUnexpected,
-            interpolations: [expected, met]);
+            interpolations: [expected, met],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: external type is not allowed.
-  HTError.externalType()
+  HTError.externalType(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.externalType, ErrorType.syntacticError,
-            message: HTLexicon.errorExternalType);
+            message: HTLexicon.errorExternalType,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Nested class within another nested class.
-  HTError.nestedClass()
+  HTError.nestedClass(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.nestedClass, ErrorType.syntacticError,
-            message: HTLexicon.errorNestedClass);
+            message: HTLexicon.errorNestedClass,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Const variable in a class must be static.
-  HTError.constMustBeStatic(String id)
+  HTError.constMustBeStatic(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.constMustBeStatic, ErrorType.compileTimeError,
-            message: HTLexicon.errorConstMustBeStatic, interpolations: [id]);
+            message: HTLexicon.errorConstMustBeStatic,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Const variable must be initialized.
-  HTError.constMustInit(String id)
+  HTError.constMustInit(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.constMustInit, ErrorType.compileTimeError,
-            message: HTLexicon.errorConstMustInit, interpolations: [id]);
+            message: HTLexicon.errorConstMustInit,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: A same name declaration is already existed.
-  HTError.definedParser(String id)
+  HTError.definedParser(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.defined, ErrorType.compileTimeError,
-            message: HTLexicon.errorDefined, interpolations: [id]);
+            message: HTLexicon.errorDefined,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Illegal value appeared on left of assignment.
-  HTError.invalidLeftValue()
+  HTError.invalidLeftValue(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.invalidLeftValue, ErrorType.compileTimeError,
-            message: HTLexicon.errorInvalidLeftValue);
+            message: HTLexicon.errorInvalidLeftValue,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Return appeared outside of a function.
-  HTError.outsideReturn()
+  HTError.outsideReturn(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.outsideReturn, ErrorType.syntacticError,
-            message: HTLexicon.errorOutsideReturn);
+            message: HTLexicon.errorOutsideReturn,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: This appeared outside of a function.
-  HTError.outsideThis()
+  HTError.outsideThis(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.outsideThis, ErrorType.compileTimeError,
-            message: HTLexicon.errorOutsideThis);
+            message: HTLexicon.errorOutsideThis,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Illegal setter declaration.
-  HTError.setterArity()
+  HTError.setterArity(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.setterArity, ErrorType.syntacticError,
-            message: HTLexicon.errorSetterArity);
+            message: HTLexicon.errorSetterArity,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Illegal external member.
-  HTError.externalMember()
+  HTError.externalMember(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.externalMember, ErrorType.syntacticError,
-            message: HTLexicon.errorExternMember);
+            message: HTLexicon.errorExternMember,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Type arguments is emtpy brackets.
-  HTError.emptyTypeArgs()
+  HTError.emptyTypeArgs(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.emptyTypeArgs, ErrorType.syntacticError,
-            message: HTLexicon.errorEmptyTypeArgs);
+            message: HTLexicon.errorEmptyTypeArgs,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Symbol is not a class member.
-  HTError.notMember(String id, String className)
+  HTError.notMember(String id, String className,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.notMember, ErrorType.compileTimeError,
-            message: HTLexicon.errorNotMember, interpolations: [id, className]);
+            message: HTLexicon.errorNotMember,
+            interpolations: [id, className],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Symbol is not a class name.
-  HTError.notClass(String id)
+  HTError.notClass(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.notClass, ErrorType.compileTimeError,
-            message: HTLexicon.errorNotClass, interpolations: [id]);
+            message: HTLexicon.errorNotClass,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Symbol is not a class name.
-  HTError.extendsSelf()
+  HTError.extendsSelf(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.extendsSelf, ErrorType.syntacticError,
-            message: HTLexicon.errorExtendsSelf);
+            message: HTLexicon.errorExtendsSelf,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Not a super class of this instance.
-  HTError.ctorReturn()
+  HTError.ctorReturn(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.ctorReturn, ErrorType.syntacticError,
-            message: HTLexicon.errorCtorReturn);
+            message: HTLexicon.errorCtorReturn,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Not a super class of this instance.
-  HTError.abstracted()
+  HTError.abstracted(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.abstracted, ErrorType.compileTimeError,
-            message: HTLexicon.errorAbstracted);
+            message: HTLexicon.errorAbstracted,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Not a super class of this instance.
-  HTError.abstractCtor()
+  HTError.abstractCtor(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.abstractCtor, ErrorType.compileTimeError,
-            message: HTLexicon.errorAbstractCtor);
+            message: HTLexicon.errorAbstractCtor,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: unsupported method
-  HTError.unsupported(String name)
+  HTError.unsupported(String name,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.unsupported, ErrorType.runtimeError,
-            message: HTLexicon.errorUnsupported, interpolations: [name]);
+            message: HTLexicon.errorUnsupported,
+            interpolations: [name],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Access private member.
-  HTError.unknownOpCode(int opcode)
+  HTError.unknownOpCode(int opcode,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
             message: HTLexicon.errorUnknownOpCode,
-            interpolations: [opcode.toString()]);
+            interpolations: [opcode.toString()],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Access private member.
-  HTError.privateMember(String id)
+  HTError.privateMember(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.privateMember, ErrorType.runtimeError,
-            message: HTLexicon.errorPrivateMember, interpolations: [id]);
+            message: HTLexicon.errorPrivateMember,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Access private declaration.
-  HTError.privateDecl(String id)
+  HTError.privateDecl(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.privateDecl, ErrorType.runtimeError,
-            message: HTLexicon.errorPrivateDecl, interpolations: [id]);
+            message: HTLexicon.errorPrivateDecl,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to use a variable before its initialization.
-  HTError.notInitialized(String id)
+  HTError.notInitialized(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.notInitialized, ErrorType.runtimeError,
-            message: HTLexicon.errorNotInitialized, interpolations: [id]);
+            message: HTLexicon.errorNotInitialized,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to use a undefined variable.
-  HTError.undefined(String id)
+  HTError.undefined(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.undefined, ErrorType.runtimeError,
-            message: HTLexicon.errorUndefined, interpolations: [id]);
+            message: HTLexicon.errorUndefined,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to use a external variable without its binding.
-  HTError.undefinedExternal(String id)
+  HTError.undefinedExternal(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.undefinedExternal, ErrorType.runtimeError,
-            message: HTLexicon.errorUndefinedExternal, interpolations: [id]);
+            message: HTLexicon.errorUndefinedExternal,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to operate unkown type object.
-  HTError.unknownTypeName(String id)
+  HTError.unknownTypeName(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.unknownTypeName, ErrorType.runtimeError,
-            message: HTLexicon.errorUnknownTypeName, interpolations: [id]);
+            message: HTLexicon.errorUnknownTypeName,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Unknown operator.
-  HTError.undefinedOperator(String id, String op)
+  HTError.undefinedOperator(String id, String op,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.undefinedOperator, ErrorType.runtimeError,
             message: HTLexicon.errorUndefinedOperator,
-            interpolations: [id, op]);
+            interpolations: [id, op],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: A same name declaration is already existed.
-  HTError.definedRuntime(String id)
+  HTError.definedRuntime(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.defined, ErrorType.runtimeError,
-            message: HTLexicon.errorDefined, interpolations: [id]);
+            message: HTLexicon.errorDefined,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
 // HTError.range(int length) { message = '${HTError.errorRange} [$length]';type = HTErrorType.interpreter;
 // }
 
   /// Error: Object is not callable.
-  HTError.notCallable(String id)
+  HTError.notCallable(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.notCallable, ErrorType.runtimeError,
-            message: HTLexicon.errorNotCallable, interpolations: [id]);
+            message: HTLexicon.errorNotCallable,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Undefined member of a class/enum.
-  HTError.undefinedMember(String id)
+  HTError.undefinedMember(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.undefinedMember, ErrorType.runtimeError,
-            message: HTLexicon.errorUndefinedMember, interpolations: [id]);
+            message: HTLexicon.errorUndefinedMember,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: if/while condition expression must be boolean type.
-  HTError.condition()
+  HTError.condition(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.condition, ErrorType.runtimeError,
-            message: HTLexicon.errorCondition);
+            message: HTLexicon.errorCondition,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to use sub get operator on a non-list object.
-  HTError.notList(String id)
+  HTError.notList(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.notList, ErrorType.runtimeError,
-            message: HTLexicon.errorNotList, interpolations: [id]);
+            message: HTLexicon.errorNotList,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Calling method on null object.
-  HTError.errorNullInit()
+  HTError.errorNullInit(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.nullInit, ErrorType.runtimeError,
-            message: HTLexicon.errorNullInit);
+            message: HTLexicon.errorNullInit,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Calling method on null object.
-  HTError.nullObject(String id)
+  HTError.nullObject(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
-            message: HTLexicon.errorNullObject, interpolations: [id]);
+            message: HTLexicon.errorNullObject,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Type is assign a unnullable varialbe with null.
-  HTError.nullable(String id)
+  HTError.nullable(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.nullable, ErrorType.runtimeError,
-            message: HTLexicon.errorNullable, interpolations: [id]);
+            message: HTLexicon.errorNullable,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Type check failed.
-  HTError.type(String id, String valueType, String declValue)
+  HTError.type(String id, String valueType, String declValue,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.type, ErrorType.runtimeError,
             message: HTLexicon.errorType,
-            interpolations: [id, valueType, declValue]);
+            interpolations: [id, valueType, declValue],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to assign a immutable variable.
-  HTError.immutable(String id)
+  HTError.immutable(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.immutable, ErrorType.runtimeError,
-            message: HTLexicon.errorImmutable, interpolations: [id]);
+            message: HTLexicon.errorImmutable,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Symbol is not a type.
-  HTError.notType(String id)
+  HTError.notType(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.notType, ErrorType.runtimeError,
-            message: HTLexicon.errorNotType, interpolations: [id]);
+            message: HTLexicon.errorNotType,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Arguments type check failed.
-  HTError.argType(String id, String assignType, String declValue)
+  HTError.argType(String id, String assignType, String declValue,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.argType, ErrorType.runtimeError,
             message: HTLexicon.errorArgType,
-            interpolations: [id, assignType, declValue]);
+            interpolations: [id, assignType, declValue],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Only optional or named arguments can have initializer.
-  HTError.argInit()
+  HTError.argInit(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.argInit, ErrorType.syntacticError,
-            message: HTLexicon.errorArgInit);
+            message: HTLexicon.errorArgInit,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Return value type check failed.
   HTError.returnType(
-    String returnedType,
-    String funcName,
-    String declReturnType,
-  ) : this(ErrorCode.returnType, ErrorType.runtimeError,
+      String returnedType, String funcName, String declReturnType,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.returnType, ErrorType.runtimeError,
             message: HTLexicon.errorReturnType,
-            interpolations: [returnedType, funcName, declReturnType]);
+            interpolations: [returnedType, funcName, declReturnType],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to call a function without definition.
-  HTError.missingFuncBody(String id)
+  HTError.missingFuncBody(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
-            message: HTLexicon.errorMissingFuncBody, interpolations: [id]);
+            message: HTLexicon.errorMissingFuncBody,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: String interpolation has to be a single expression.
-  HTError.stringInterpolation()
+  HTError.stringInterpolation(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.stringInterpolation, ErrorType.syntacticError,
-            message: HTLexicon.errorStringInterpolation);
+            message: HTLexicon.errorStringInterpolation,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Function arity check failed.
-  HTError.arity(String id, int argsCount, int paramsCount)
+  HTError.arity(String id, int argsCount, int paramsCount,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.arity, ErrorType.runtimeError,
             message: HTLexicon.errorArity,
-            interpolations: [argsCount.toString(), id, paramsCount.toString()]);
+            interpolations: [argsCount.toString(), id, paramsCount.toString()],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Missing binding extension on dart object.
-  HTError.binding(String id)
+  HTError.binding(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.binding, ErrorType.runtimeError,
-            message: HTLexicon.errorBinding, interpolations: [id]);
+            message: HTLexicon.errorBinding,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Can not declare a external variable in global namespace.
-  HTError.externalVar()
+  HTError.externalVar(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.externalVar, ErrorType.syntacticError,
-            message: HTLexicon.errorExternalVar);
+            message: HTLexicon.errorExternalVar,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Bytecode signature check failed.
-  HTError.bytesSig()
+  HTError.bytesSig(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.bytesSig, ErrorType.runtimeError,
-            message: HTLexicon.errorBytesSig);
+            message: HTLexicon.errorBytesSig,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Variable's initialization relies on itself.
-  HTError.circleInit(String id)
+  HTError.circleInit(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.circleInit, ErrorType.runtimeError,
-            message: HTLexicon.errorCircleInit, interpolations: [id]);
+            message: HTLexicon.errorCircleInit,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Missing variable initializer.
-  HTError.initialize()
+  HTError.initialize(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.initialize, ErrorType.runtimeError,
-            message: HTLexicon.errorInitialize);
+            message: HTLexicon.errorInitialize,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Named arguments does not exist.
-  HTError.namedArg(String id)
+  HTError.namedArg(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.namedArg, ErrorType.runtimeError,
-            message: HTLexicon.errorNamedArg, interpolations: [id]);
+            message: HTLexicon.errorNamedArg,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Object is not iterable.
-  HTError.iterable(String id)
+  HTError.iterable(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.iterable, ErrorType.runtimeError,
-            message: HTLexicon.errorIterable, interpolations: [id]);
+            message: HTLexicon.errorIterable,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Unknown value type code
-  HTError.unkownValueType(int valType)
+  HTError.unkownValueType(int valType,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.unkownValueType, ErrorType.runtimeError,
             message: HTLexicon.errorUnkownValueType,
-            interpolations: [valType.toString()]);
+            interpolations: [valType.toString()],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Illegal empty string.
-  HTError.emptyString([String? message])
-      : this(ErrorCode.emptyString, ErrorType.runtimeError,
+  HTError.emptyString(
+      {ErrorType type = ErrorType.runtimeError,
+      String? info,
+      String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.emptyString, type,
             message: HTLexicon.errorEmptyString,
-            interpolations: message != null ? [message] : []);
+            interpolations: info != null ? [info] : const [],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Illegal type cast.
-  HTError.typeCast(String object, String type)
+  HTError.typeCast(String object, String type,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.typeCast, ErrorType.runtimeError,
-            message: HTLexicon.errorTypeCast, interpolations: [object, type]);
+            message: HTLexicon.errorTypeCast,
+            interpolations: [object, type],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Illegal castee.
-  HTError.castee(String varName)
+  HTError.castee(String varName,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.castee, ErrorType.runtimeError,
-            message: HTLexicon.errorCastee, interpolations: [varName]);
+            message: HTLexicon.errorCastee,
+            interpolations: [varName],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Illegal clone.
-  HTError.clone(String varName)
+  HTError.clone(String varName,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.clone, ErrorType.runtimeError,
-            message: HTLexicon.errorClone, interpolations: [varName]);
+            message: HTLexicon.errorClone,
+            interpolations: [varName],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Not a super class of this instance.
-  HTError.notSuper(String classId, String id)
+  HTError.notSuper(String classId, String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.notSuper, ErrorType.runtimeError,
-            message: HTLexicon.errorNotSuper, interpolations: [classId, id]);
+            message: HTLexicon.errorNotSuper,
+            interpolations: [classId, id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
-  HTError.missingExternalFunc(String id)
+  HTError.missingExternalFunc(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.missingExternalFunc, ErrorType.runtimeError,
-            message: HTLexicon.errorMissingExternalFunc, interpolations: [id]);
+            message: HTLexicon.errorMissingExternalFunc,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
-  HTError.internalFuncWithExternalTypeDef()
+  HTError.internalFuncWithExternalTypeDef(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.missingExternalFunc, ErrorType.syntacticError,
-            message: HTLexicon.errorInternalFuncWithExternalTypeDef);
+            message: HTLexicon.errorInternalFuncWithExternalTypeDef,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
-  HTError.externalCtorWithReferCtor()
+  HTError.externalCtorWithReferCtor(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.externalCtorWithReferCtor, ErrorType.syntacticError,
-            message: HTLexicon.errorExternalCtorWithReferCtor);
+            message: HTLexicon.errorExternalCtorWithReferCtor,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
-  HTError.nonCotrWithReferCtor()
+  HTError.nonCotrWithReferCtor(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.nonCotrWithReferCtor, ErrorType.syntacticError,
-            message: HTLexicon.errorNonCotrWithReferCtor);
+            message: HTLexicon.errorNonCotrWithReferCtor,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Module import error
-  HTError.moduleImport(String id)
+  HTError.moduleImport(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.moduleImport, ErrorType.runtimeError,
-            message: HTLexicon.errorModuleImport, interpolations: [id]);
+            message: HTLexicon.errorModuleImport,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Try to define a class on a instance.
-  HTError.classOnInstance()
+  HTError.classOnInstance(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.classOnInstance, ErrorType.runtimeError,
-            message: HTLexicon.errorClassOnInstance);
+            message: HTLexicon.errorClassOnInstance,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Incompatible bytecode version.
-  HTError.version(String codeVer, String itpVer)
+  HTError.version(String codeVer, String itpVer,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.version, ErrorType.runtimeError,
-            message: HTLexicon.errorVersion, interpolations: [codeVer, itpVer]);
+            message: HTLexicon.errorVersion,
+            interpolations: [codeVer, itpVer],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Unevalable source type.
-  HTError.sourceType()
+  HTError.sourceType(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
       : this(ErrorCode.sourceType, ErrorType.runtimeError,
-            message: HTLexicon.errorSourceType);
+            message: HTLexicon.errorSourceType,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
-  HTError.unknownModule(String key, ErrorType type)
-      : this(ErrorCode.unknownModule, type,
-            message: HTLexicon.errorUnknownModule, interpolations: [key]);
+  HTError.nonExistModule(String key, ErrorType type,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.nonExistModule, type,
+            message: HTLexicon.errorNonExistModule,
+            interpolations: [key],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 }

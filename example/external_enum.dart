@@ -49,12 +49,12 @@ class CountryEnumBinding extends HTExternalClass {
   }
 }
 
-void main() async {
+void main() {
   var hetu = Hetu();
 
-  await hetu.init(externalClasses: [CountryEnumBinding()]);
+  hetu.init(externalClasses: [CountryEnumBinding()]);
 
-  await hetu.eval(r'''
+  hetu.eval(r'''
       enum Race {
         caucasian,
         mongolian,

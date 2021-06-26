@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 // import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   // final hetu = HTAnalyzer();
-  // await hetu.init();
+  // hetu.init();
 
   group('expression -', () {
-    test('string', () async {
-      //   final result = await hetu.eval(r'''
+    test('string', () {
+      //   final result = hetu.eval(r'''
       //   fun evalExpr {
       //     return 'hello world';
       //   }

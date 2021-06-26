@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
+  hetu.init();
 
   group('utilities -', () {
-    // test('json conversion', () async {
-    //   final result = await hetu.eval('''
+    // test('json conversion', () {
+    //   final result = hetu.eval('''
     //     class SomePerson {
     //       var age = 17
     //       var name = 'Jimmy'
@@ -23,8 +23,8 @@ void main() async {
     //     '{age: 8, name: Lawrence, klass: magician}',
     //   );
     // });
-    // test('json assign', () async {
-    //   final result = await hetu.eval(r'''
+    // test('json assign', () {
+    //   final result = hetu.eval(r'''
     //     class Name {
     //       var first: str
     //       var last: str

@@ -72,10 +72,10 @@ class GenericClassBinding extends HTExternalClass {
   }
 }
 
-void main() async {
+void main() {
   var hetu = Hetu();
-  await hetu.init(externalClasses: [GenericClassBinding()]);
-  await hetu.eval('''
+  hetu.init(externalClasses: [GenericClassBinding()]);
+  hetu.eval('''
       external class Generic {
         construct (value)
         const value

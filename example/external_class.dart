@@ -114,10 +114,10 @@ class PersonClassBinding extends HTExternalClass {
   }
 }
 
-void main() async {
+void main() {
   var hetu = Hetu();
-  await hetu.init(externalClasses: [PersonClassBinding()]);
-  await hetu.eval('''
+  hetu.init(externalClasses: [PersonClassBinding()]);
+  hetu.eval('''
       external class Person {
         var race: str
         construct([name: str = 'Jimmy', race: str = 'Caucasian']);

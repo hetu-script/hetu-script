@@ -81,6 +81,11 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String printAst(AstNode ast) => ast.accept(this);
 
   @override
+  String visitEmptyExpr(EmptyExpr expr) {
+    return '';
+  }
+
+  @override
   String visitCommentExpr(CommentExpr expr) {
     return expr.content;
   }

@@ -6,6 +6,7 @@ import '../type/type.dart';
 import '../declaration/namespace.dart';
 import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
+import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../scanner/parser.dart';
 import '../declaration/library.dart';
@@ -22,9 +23,12 @@ class AnalyzerConfig extends InterpreterConfig {
       : super(sourceType: sourceType);
 }
 
-class HTAnalyzer extends AbstractInterpreter
+class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
     implements AbstractAstVisitor<void> {
   AnalyzerConfig _curConfig;
+
+  @override
+  ErrorHandlerConfig get errorConfig => curConfig;
 
   @override
   AnalyzerConfig get curConfig => _curConfig;
@@ -52,7 +56,12 @@ class HTAnalyzer extends AbstractInterpreter
   @override
   HTLibrary get curLibrary => _curLibrary;
 
-  late List<HTAnalysisError> _curErrors;
+  final _curErrors = <HTAnalysisError>[];
+
+  late HTAnalysisResult _curAnalysisResult;
+
+  @override
+  dynamic get failedResult => _curAnalysisResult;
 
   late HTTypeChecker _curTypeChecker;
 
@@ -62,10 +71,31 @@ class HTAnalyzer extends AbstractInterpreter
       : _curConfig = config,
         super(config: config, sourceProvider: sourceProvider) {
     _curNamespace = global;
+    _curAnalysisResult = HTAnalysisResult(this, _curErrors);
   }
 
   @override
-  Future<void> evalSource(HTSource source,
+  void handleError(Object error, {Object? externalStackTrace}) {
+    late final analysisError;
+    if (error is HTError) {
+      analysisError = HTAnalysisError.fromError(error);
+    } else {
+      var message = error.toString();
+      analysisError = HTAnalysisError(ErrorCode.extern, ErrorType.externalError,
+          message: message,
+          moduleFullName: _curModuleFullName,
+          line: _curLine,
+          column: _curColumn);
+    }
+    _curErrors.add(analysisError);
+  }
+
+  void reset() {
+    _curErrors.clear();
+  }
+
+  @override
+  HTAnalysisResult? evalSource(HTSource source,
       {String? libraryName, // ignored in analyzer
       HTNamespace? namespace, // ignored in analyzer
       InterpreterConfig? config, // ignored in analyzer
@@ -74,21 +104,17 @@ class HTAnalyzer extends AbstractInterpreter
       Map<String, dynamic> namedArgs = const {}, // ignored in analyzer
       List<HTType> typeArgs = const [], // ignored in analyzer
       bool errorHandled = false // ignored in analyzer
-      }) async {
+      }) {
     if (source.content.isEmpty) {
       return null;
     }
     _curModuleFullName = source.fullName;
     _curLibrary = HTLibrary(source.libraryName);
-    _curErrors = <HTAnalysisError>[];
     final parser = HTAstParser(
-        config: _curConfig,
-        errorHandler: errorHandler,
-        sourceProvider: sourceProvider);
+        config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     final compilation = parser.parseToCompilation(source);
-    final analysisResult = HTAnalysisResult(this, _curErrors);
-    errorHandler = analysisResult;
     for (final module in compilation.modules.values) {
+      _curLibrary.sources[module.source.fullName] = module.source;
       for (final node in module.nodes) {
         analyzeAst(node);
       }
@@ -97,11 +123,15 @@ class HTAnalyzer extends AbstractInterpreter
     for (final decl in _curLibrary.declarations.values) {
       analyzeDeclaration(decl);
     }
+    return _curAnalysisResult;
   }
 
   void analyzeDeclaration(HTDeclaration decl) {}
 
   void analyzeAst(AstNode node) => node.accept(this);
+
+  @override
+  void visitEmptyExpr(EmptyExpr expr) {}
 
   @override
   void visitCommentExpr(CommentExpr expr) {}

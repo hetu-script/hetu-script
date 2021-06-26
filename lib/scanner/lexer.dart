@@ -1,19 +1,18 @@
 import '../grammar/lexicon.dart';
-import '../error/error.dart';
+// import '../error/error.dart';
 import '../grammar/token.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
 class HTLexer {
-  List<Token> lex(String content, {int line = 0, int column = 0}) {
+  List<Token> lex(String content, {int line = 1, int column = 0}) {
     var curLine = line;
-    var curColumn = 0;
+    var curColumn = column;
     final tokens = <Token>[];
     final pattern = RegExp(
       HTLexicon.tokenPattern,
       unicode: true,
     );
     for (final line in content.split('\n')) {
-      ++curLine;
       final matches = pattern.allMatches(line);
       final toksOfLine = <Token>[];
       for (final match in matches) {
@@ -73,7 +72,7 @@ class HTLexer {
               HTLexicon.singleQuotationLeft,
               HTLexicon.singleQuotationRight,
               curLine,
-              curColumn);
+              curColumn + HTLexicon.singleQuotationLeft.length);
           toksOfLine.add(token);
         } else if (match
                 .group(HTLexicon.tokenGroupStringInterpolationDoubleMark) !=
@@ -83,7 +82,7 @@ class HTLexer {
               HTLexicon.doubleQuotationLeft,
               HTLexicon.doubleQuotationRight,
               curLine,
-              curColumn);
+              curColumn + HTLexicon.doubleQuotationLeft.length);
           toksOfLine.add(token);
         }
       }
@@ -106,6 +105,7 @@ class HTLexer {
       } else {
         toksOfLine.add(TokenEmptyLine(curLine, curColumn));
       }
+      ++curLine;
     }
 
     return tokens;
@@ -130,8 +130,19 @@ class HTLexer {
       // if (matchString == null) {
       //   throw HTError.emptyString();
       // }
-      final tokens = lex(matchString ?? '', line: line, column: column);
-      interpolations.add(tokens);
+      // move beyond the '${' part of the token.
+      final tokens = lex(matchString ?? '',
+          line: line,
+          column:
+              column + match.start + HTLexicon.stringInterpolationStart.length);
+      if (tokens.isNotEmpty) {
+        interpolations.add(tokens);
+      } else {
+        interpolations.add([
+          TokenEmpty(line,
+              column + match.start + HTLexicon.stringInterpolationStart.length)
+        ]);
+      }
     }
     return TokenStringInterpolation(
         literal, quotationLeft, quotationRight, interpolations, line, column);

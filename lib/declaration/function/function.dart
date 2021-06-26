@@ -183,7 +183,7 @@ class HTFunction extends HTFunctionDeclaration
       bool createInstance = true,
       bool errorHandled = true}) {
     try {
-      interpreter.scriptStackTrace.add(
+      interpreter.stackTrace.add(
           '$internalName ($moduleFullName:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
@@ -470,8 +470,8 @@ class HTFunction extends HTFunctionDeclaration
       //   }
       // }
 
-      if (interpreter.scriptStackTrace.isNotEmpty) {
-        interpreter.scriptStackTrace.removeLast();
+      if (interpreter.stackTrace.isNotEmpty) {
+        interpreter.stackTrace.removeLast();
       }
 
       return result;
@@ -479,7 +479,7 @@ class HTFunction extends HTFunctionDeclaration
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error, dartStackTrace: stackTrace);
+        interpreter.handleError(error, externalStackTrace: stackTrace);
       }
     }
   }

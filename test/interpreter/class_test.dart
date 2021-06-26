@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   final hetu = Hetu();
-  await hetu.init();
+  hetu.init();
 
   group('classes -', () {
-    test('named constructor', () async {
-      final result = await hetu.eval(r'''
+    test('named constructor', () {
+      final result = hetu.eval(r'''
         class AGuy {
           var name
           construct withName (name: str) {
@@ -24,8 +24,8 @@ void main() async {
         'harry',
       );
     });
-    test('static member', () async {
-      final result = await hetu.eval('''
+    test('static member', () {
+      final result = hetu.eval('''
         class StaticField {
           static var field: str
           construct ([field: str = 'a']) {
@@ -50,8 +50,8 @@ void main() async {
       );
     });
 
-    test('override', () async {
-      final result = await hetu.eval('''
+    test('override', () {
+      final result = hetu.eval('''
       class Guy {
         fun meaning {
           return null
@@ -74,8 +74,8 @@ void main() async {
       );
     });
 
-    test('inherits', () async {
-      final result = await hetu.eval('''
+    test('inherits', () {
+      final result = hetu.eval('''
       class Super1 {
         var name = 'Super'
         var age = 1
@@ -101,8 +101,8 @@ void main() async {
         3,
       );
     });
-    test('type cast', () async {
-      final result = await hetu.eval(r'''
+    test('type cast', () {
+      final result = hetu.eval(r'''
         class Super3 {
           var name = 'Super'
         }
@@ -121,8 +121,8 @@ void main() async {
         'changed',
       );
     });
-    test('derived sequence', () async {
-      final result = await hetu.eval(r'''
+    test('derived sequence', () {
+      final result = hetu.eval(r'''
         class SuperC1 {
           var name
           construct (name) {

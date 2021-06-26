@@ -124,15 +124,15 @@ class PersonClassBinding extends HTExternalClass {
   }
 }
 
-void main() async {
+void main() {
   var hetu = Hetu();
-  await hetu.init(externalClasses: [
+  hetu.init(externalClasses: [
     NameClassBinding(),
     ProfileClassBinding(),
     PersonClassBinding()
   ]);
 
-  await hetu.eval('''
+  hetu.eval('''
   external class Name {
     var familyName: str;
     var firstName: str;
@@ -151,8 +151,8 @@ void main() async {
   ''', namespace: hetu.global);
 
   group('binding -', () {
-    test('get & set', () async {
-      final result = await hetu.eval('''
+    test('get & set', () {
+      final result = hetu.eval('''
         fun bindingTest {
           Person.profile.isCivilian = false
           return Person.profile.isCivilian

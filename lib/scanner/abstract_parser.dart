@@ -2,7 +2,7 @@ import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
-import '../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
 import '../grammar/token.dart';
 
 abstract class ParserConfig {
@@ -78,11 +78,15 @@ abstract class AbstractParser {
 
   /// 如果当前token符合要求则前进一步，然后返回之前的token，否则抛出异常
   Token match(String tokenType) {
-    if (curTok.type == tokenType) {
-      return advance(1);
+    if (curTok.type != tokenType) {
+      final err = HTError.unexpected(tokenType, curTok.lexeme,
+          moduleFullName: curModuleFullName,
+          line: curTok.line,
+          column: curTok.column);
+      errorHandler.handleError(err);
     }
 
-    throw HTError.unexpected(tokenType, curTok.lexeme);
+    return advance(1);
   }
 
   /// 前进指定距离，返回原先位置的Token
@@ -98,7 +102,7 @@ abstract class AbstractParser {
     if ((tokPos + pos) < _tokens.length) {
       return _tokens[tokPos + pos];
     } else {
-      return Token(HTLexicon.endOfFile, -1, -1);
+      return Token(SemanticNames.endOfFile, -1, -1);
     }
   }
 

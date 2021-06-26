@@ -1,30 +1,44 @@
-import 'error.dart';
+abstract class ErrorHandlerConfig {
+  bool get hetuStackTrace;
 
-enum ErrorHanldeApproach {
-  ingore,
-  stdout,
-  exception,
+  int get hetuStackTraceThreshhold;
+
+  bool get externalStackTrace;
+}
+
+class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
+  @override
+  final bool externalStackTrace;
+
+  @override
+  final bool hetuStackTrace;
+
+  @override
+  final int hetuStackTraceThreshhold;
+
+  const ErrorHandlerConfigImpl(
+      {this.externalStackTrace = true,
+      this.hetuStackTrace = true,
+      this.hetuStackTraceThreshhold = 10});
 }
 
 /// Abstract error handler class
 abstract class HTErrorHandler {
-  void handle(HTError error);
+  ErrorHandlerConfig get errorConfig;
+
+  void handleError(Object error, {Object? externalStackTrace});
 }
 
 /// Default error handler implementation
 class DefaultErrorHandler implements HTErrorHandler {
-  final ErrorHanldeApproach approach;
-  const DefaultErrorHandler({this.approach = ErrorHanldeApproach.exception});
   @override
-  void handle(HTError error) {
-    switch (approach) {
-      case ErrorHanldeApproach.ingore:
-        break;
-      case ErrorHanldeApproach.stdout:
-        print(error);
-        break;
-      case ErrorHanldeApproach.exception:
-        throw (error);
-    }
+  final ErrorHandlerConfig errorConfig;
+
+  const DefaultErrorHandler(
+      {this.errorConfig = const ErrorHandlerConfigImpl()});
+
+  @override
+  void handleError(Object error, {Object? externalStackTrace}) {
+    throw (error);
   }
 }

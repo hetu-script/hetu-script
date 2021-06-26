@@ -23,7 +23,6 @@ import '../source/source_provider.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import 'abstract_interpreter.dart';
-import 'const_table.dart';
 import 'compiler.dart';
 import 'opcode.dart';
 import 'bytecode_library.dart';
@@ -50,6 +49,9 @@ class Hetu extends AbstractInterpreter {
   final _compilation = <String, HTBytecodeLibrary>{};
 
   late InterpreterConfig _curConfig;
+
+  @override
+  ErrorHandlerConfig get errorConfig => _curConfig;
 
   @override
   InterpreterConfig get curConfig => _curConfig;
@@ -117,14 +119,61 @@ class Hetu extends AbstractInterpreter {
   /// Create a bytecode interpreter.
   /// Each interpreter has a independent global [HTNamespace].
   Hetu(
-      {HTErrorHandler? errorHandler,
-      HTSourceProvider? sourceProvider,
+      {HTSourceProvider? sourceProvider,
       InterpreterConfig config = const InterpreterConfig()})
-      : super(
-            config: config,
-            errorHandler: errorHandler,
-            sourceProvider: sourceProvider) {
+      : super(config: config, sourceProvider: sourceProvider) {
     _curNamespace = global;
+  }
+
+  @override
+  void handleError(Object error, {Object? externalStackTrace}) {
+    final sb = StringBuffer();
+    if (stackTrace.isNotEmpty && errorConfig.hetuStackTrace) {
+      sb.writeln('Hetu stack trace:');
+      if (stackTrace.length > errorConfig.hetuStackTraceThreshhold * 2) {
+        for (var i = stackTrace.length - 1;
+            i >= stackTrace.length - 1 - errorConfig.hetuStackTraceThreshhold;
+            --i) {
+          sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
+        }
+        sb.writeln('...\n...');
+        for (var i = errorConfig.hetuStackTraceThreshhold - 1; i >= 0; --i) {
+          sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
+        }
+      } else {
+        for (var i = stackTrace.length - 1; i >= 0; --i) {
+          sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
+        }
+      }
+    }
+    if (externalStackTrace != null) {
+      sb.writeln('Dart stack trace:');
+      sb.writeln(externalStackTrace);
+    }
+    final stackTraceString = sb.toString().trimRight();
+
+    if (error is HTError) {
+      if (errorConfig.hetuStackTrace) {
+        error.message = '${error.message}\n$stackTraceString';
+      }
+      if (error.type == ErrorType.runtimeError) {
+        error.moduleFullName = _curModuleFullName;
+        error.line = _curLine;
+        error.column = _curColumn;
+      }
+      throw error;
+    } else {
+      var message = error.toString();
+      if (errorConfig.hetuStackTrace) {
+        message = '$message\nCall stack:\n$stackTraceString';
+      }
+      final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
+          message: message,
+          moduleFullName: curModuleFullName,
+          line: curLine,
+          column: curColumn);
+      throw hetuError;
+    }
   }
 
   /// Evaluate a string content.
@@ -133,14 +182,14 @@ class Hetu extends AbstractInterpreter {
   /// If [invokeFunc] is provided, will immediately
   /// call the function after evaluation completed.
   @override
-  Future<dynamic> evalSource(HTSource source,
+  dynamic evalSource(HTSource source,
       {HTNamespace? namespace,
       InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool errorHandled = false}) async {
+      bool errorHandled = false}) {
     if (source.content.isEmpty) {
       return null;
     }
@@ -148,19 +197,15 @@ class Hetu extends AbstractInterpreter {
     _curModuleFullName = source.fullName;
     final hasOwnNamespace = namespace != global;
     final parser = HTAstParser(
-        config: _curConfig,
-        errorHandler: errorHandler,
-        sourceProvider: sourceProvider);
+        config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     final compiler = HTCompiler(
-        config: _curConfig,
-        errorHandler: errorHandler,
-        sourceProvider: sourceProvider);
-    try {
-      final compilation =
-          parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
-      final bytes = compiler.compile(compilation, source.libraryName);
-      _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
+        config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
+    final compilation =
+        parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
+    final bytes = compiler.compile(compilation, source.libraryName);
+    _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
 
+    try {
       var result;
       if (_curConfig.sourceType == SourceType.script) {
         HTNamespace nsp = execute(namespace: namespace ?? global);
@@ -214,6 +259,7 @@ class Hetu extends AbstractInterpreter {
               }
             }
           }
+          _curNamespace = _curLibrary.declarations[source.fullName]!;
         }
 
         for (final namespace in _curLibrary.declarations.values) {
@@ -237,8 +283,7 @@ class Hetu extends AbstractInterpreter {
       if (errorHandled) {
         rethrow;
       } else {
-        handleError(error,
-            dartStackTrace: stackTrace, parser: parser, compiler: compiler);
+        handleError(error, externalStackTrace: stackTrace);
       }
     }
   }
@@ -271,14 +316,14 @@ class Hetu extends AbstractInterpreter {
       if (errorHandled) {
         rethrow;
       } else {
-        handleError(error, dartStackTrace: stackTrace);
+        handleError(error, externalStackTrace: stackTrace);
       }
     }
   }
 
   /// Compile a script content into bytecode for later use.
-  Future<Uint8List> compile(String content,
-      {ParserConfigImpl config = const ParserConfigImpl()}) async {
+  Uint8List compile(String content,
+      {ParserConfigImpl config = const ParserConfigImpl()}) {
     throw HTError(ErrorCode.extern, ErrorType.externalError,
         message: 'compile is currently unusable');
   }
@@ -306,61 +351,64 @@ class Hetu extends AbstractInterpreter {
       int? ip,
       int? line,
       int? column}) {
-    final savedLibraryName = _curLibrary.id;
     final savedModuleFullName = _curModuleFullName;
-    final savedIp = _curLibrary.ip;
+    final savedLibrary = _curLibrary;
     final savedNamespace = _curNamespace;
     final savedFunction = _curFunction;
+    final savedIp = _curLibrary.ip;
+    final savedLine = _curLine;
+    final savedColumn = _curColumn;
 
-    var codeChanged = false;
+    var libChanged = false;
     var ipChanged = false;
-    var namespaceChanged = false;
-    var functionChanged = false;
-    if (libraryName != null && (_curLibrary.id != libraryName)) {
-      _curLibrary = _compilation[libraryName]!;
-      codeChanged = true;
-      ipChanged = true;
-    }
-    if (moduleFullName != null && (_curModuleFullName != moduleFullName)) {
+
+    if (moduleFullName != null) {
       _curModuleFullName = moduleFullName;
     }
-    if (ip != null && _curLibrary.ip != ip) {
+    if (libraryName != null && (_curLibrary.id != libraryName)) {
+      _curLibrary = _compilation[libraryName]!;
+      libChanged = true;
+    }
+    if (namespace != null) {
+      _curNamespace = namespace;
+    }
+    if (function != null) {
+      _curFunction = function;
+    }
+    if (ip != null) {
       _curLibrary.ip = ip;
       ipChanged = true;
+    } else if (libChanged) {
+      _curLibrary.ip = 0;
+      ipChanged = true;
     }
-    if (namespace != null && _curNamespace != namespace) {
-      _curNamespace = namespace;
-      namespaceChanged = true;
+    if (line != null) {
+      _curLine = line;
+    } else if (libChanged) {
+      _curLine = 0;
     }
-    if (function != null && _curFunction != function) {
-      _curFunction = function;
-      functionChanged = true;
+    if (column != null) {
+      _curColumn = column;
+    } else if (libChanged) {
+      _curColumn = 0;
     }
 
     ++_regIndex;
     if (_registers.length <= _regIndex * HTRegIdx.length) {
       _registers.length += HTRegIdx.length;
     }
-    _curLine = line ?? 0;
-    _curColumn = column ?? 0;
 
     final result = _execute();
 
-    if (codeChanged) {
-      _curLibrary = _compilation[savedLibraryName]!;
-    }
-    if (namespaceChanged) {
-      _curModuleFullName = savedModuleFullName;
-    }
+    _curModuleFullName = savedModuleFullName;
+    _curLibrary = savedLibrary;
+    _curNamespace = savedNamespace;
+    _curFunction = savedFunction;
     if (ipChanged) {
       _curLibrary.ip = savedIp;
     }
-    if (namespaceChanged) {
-      _curNamespace = savedNamespace;
-    }
-    if (functionChanged) {
-      _curFunction = savedFunction;
-    }
+    _curLine = savedLine;
+    _curColumn = savedColumn;
 
     --_regIndex;
 

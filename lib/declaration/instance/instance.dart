@@ -224,7 +224,7 @@ class HTInstance with HTObject, InterpreterRef {
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error, dartStackTrace: stackTrace);
+        interpreter.handleError(error, externalStackTrace: stackTrace);
       }
     }
   }

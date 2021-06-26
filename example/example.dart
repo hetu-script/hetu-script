@@ -1,9 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() async {
+void main() {
   var hetu = Hetu();
-  await hetu.init();
-  await hetu.eval(r'''
+  hetu.init();
+  hetu.eval(r'''
       fun closure(func) {
         var i = 42
         fun nested () {
