@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../grammar/lexicon.dart';
 import '../grammar/token.dart';
 import '../grammar/semantic.dart';
@@ -45,6 +47,7 @@ class HTAstParser extends AbstractParser {
 
   List<AstNode> parse(List<Token> tokens, HTSource source,
       {ParserConfig? config}) {
+    final nodes = <AstNode>[];
     _curSource = source;
     _curModuleFullName = source.fullName;
     final savedConfig = this.config;
@@ -52,7 +55,6 @@ class HTAstParser extends AbstractParser {
       this.config = config;
     }
     addTokens(tokens);
-    final nodes = <AstNode>[];
     while (curTok.type != SemanticNames.endOfFile) {
       if (curTok.type == SemanticNames.emptyLine) {
         advance(1);
@@ -83,25 +85,40 @@ class HTAstParser extends AbstractParser {
   /// Parse a string content and generate a library,
   /// will import other files.
   HTAstCompilation parseToCompilation(HTSource source,
-      {bool hasOwnNamespace = true, ParserConfig? config}) {
+      {bool hasOwnNamespace = true,
+      ParserConfig? config,
+      bool errorHandled = false}) {
     _curLibraryName = source.libraryName;
     final module =
         parseToModule(source, hasOwnNamespace: hasOwnNamespace, config: config);
     final compilation = HTAstCompilation();
     compilation.sources[source.fullName] = source;
     for (final stmt in module.imports) {
-      final importFullName =
-          sourceProvider.resolveFullName(stmt.key, module.fullName);
-      final source2 = sourceProvider.getSourceSync(importFullName,
-          from: _curModuleFullName,
-          errorType: ErrorType.syntacticError,
-          line: stmt.line,
-          column: stmt.column);
-      if (source2 != null) {
+      try {
+        final importFullName =
+            sourceProvider.resolveFullName(stmt.key, module.fullName);
+        final source2 = sourceProvider.getSourceSync(importFullName,
+            from: _curModuleFullName);
         final compilation2 = parseToCompilation(source2,
             config: ParserConfigImpl(sourceType: SourceType.module));
         _curModuleFullName = source.fullName;
         compilation.join(compilation2);
+      } catch (error, stackTrace) {
+        var message = error.toString();
+        if (error is ArgumentError) {
+          message = error.message;
+        } else if (error is FileSystemException) {
+          message = error.message;
+        }
+        final hetuError = HTError.moduleImport(stmt.key, message,
+            moduleFullName: source.fullName,
+            line: stmt.line,
+            column: stmt.column);
+        if (errorHandled) {
+          throw hetuError;
+        } else {
+          errorHandler.handleError(hetuError, externalStackTrace: stackTrace);
+        }
       }
     }
     compilation.add(module);

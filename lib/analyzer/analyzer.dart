@@ -117,26 +117,36 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
     }
     final parser = HTAstParser(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
-    final compilation = parser.parseToCompilation(source);
-    _curLibrary = HTLibrary(source.libraryName, compilation.sources);
-    for (final module in compilation.modules.values) {
-      _curLibrary.sources[module.source.fullName] = module.source;
-      _curSource = module.source;
-      if (module.hasOwnNamespace) {
-        _curNamespace = HTNamespace(id: module.fullName, closure: global);
-        _curLibrary.declarations[module.fullName] = _curNamespace;
+
+    try {
+      final compilation = parser.parseToCompilation(source, errorHandled: true);
+      _curLibrary = HTLibrary(source.libraryName, compilation.sources);
+      for (final module in compilation.modules.values) {
+        _curLibrary.sources[module.source.fullName] = module.source;
+        _curSource = module.source;
+        if (module.hasOwnNamespace) {
+          _curNamespace = HTNamespace(id: module.fullName, closure: global);
+          _curLibrary.declarations[module.fullName] = _curNamespace;
+        } else {
+          _curNamespace = global;
+        }
+        for (final node in module.nodes) {
+          analyzeAst(node);
+        }
+      }
+      _curTypeChecker = HTTypeChecker(_curLibrary);
+      for (final decl in _curLibrary.declarations.values) {
+        analyzeDeclaration(decl);
+      }
+    } catch (error, stackTrace) {
+      if (errorHandled) {
+        rethrow;
       } else {
-        _curNamespace = global;
+        handleError(error, externalStackTrace: stackTrace);
       }
-      for (final node in module.nodes) {
-        analyzeAst(node);
-      }
+    } finally {
+      return _curAnalysisResult;
     }
-    _curTypeChecker = HTTypeChecker(_curLibrary);
-    for (final decl in _curLibrary.declarations.values) {
-      analyzeDeclaration(decl);
-    }
-    return _curAnalysisResult;
   }
 
   void analyzeDeclaration(HTDeclaration decl) {}

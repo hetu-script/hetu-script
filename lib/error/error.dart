@@ -1331,7 +1331,7 @@ class HTError {
             length: length);
 
   /// Error: Module import error
-  HTError.moduleImport(String id,
+  HTError.moduleImport(String id, String message,
       {String? correction,
       String? moduleFullName,
       int? line,
@@ -1339,8 +1339,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.moduleImport, ErrorType.runtimeError,
-            message: HTLexicon.errorModuleImport,
-            interpolations: [id],
+            message: '$message [$id]',
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,

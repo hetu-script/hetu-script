@@ -199,13 +199,12 @@ class Hetu extends AbstractInterpreter {
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     final compiler = HTCompiler(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
-    final compilation =
-        parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
-    final bytes = compiler.compile(compilation, source.libraryName);
-    _curLibrary =
-        HTBytecodeLibrary(source.libraryName, bytes, compilation.sources);
-
     try {
+      final compilation = parser.parseToCompilation(source,
+          hasOwnNamespace: hasOwnNamespace, errorHandled: true);
+      final bytes = compiler.compile(compilation, source.libraryName);
+      _curLibrary =
+          HTBytecodeLibrary(source.libraryName, bytes, compilation.sources);
       var result;
       if (_curConfig.sourceType == SourceType.script) {
         HTNamespace nsp = execute(namespace: namespace ?? global);

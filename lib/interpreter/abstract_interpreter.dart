@@ -64,8 +64,6 @@ abstract class AbstractInterpreter<T> implements HTErrorHandler {
 
   final stackTrace = <String>[];
 
-  dynamic get failedResult => null;
-
   InterpreterConfig config;
 
   InterpreterConfig get curConfig => config;
@@ -82,16 +80,14 @@ abstract class AbstractInterpreter<T> implements HTErrorHandler {
 
   HTLibrary get curLibrary;
 
-  late HTSourceProvider sourceProvider;
+  HTSourceProvider sourceProvider;
 
   final HTNamespace global = HTNamespace(id: SemanticNames.global);
 
   AbstractInterpreter(
       {this.config = const InterpreterConfig(),
-      HTSourceProvider? sourceProvider}) {
-    this.sourceProvider =
-        sourceProvider ?? DefaultSourceProvider(errorHandler: this);
-  }
+      HTSourceProvider? sourceProvider})
+      : sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
   @mustCallSuper
   void init(
@@ -200,23 +196,29 @@ abstract class AbstractInterpreter<T> implements HTErrorHandler {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    final module = sourceProvider.getSourceSync(key,
-        from: useLastModuleFullName
-            ? curModuleFullName
-            : sourceProvider.workingDirectory);
-    if (module == null) {
-      return failedResult;
-    }
-    final result = evalSource(module,
-        namespace: namespace,
-        config: config,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs,
-        errorHandled: true);
+    try {
+      final module = sourceProvider.getSourceSync(key,
+          from: useLastModuleFullName
+              ? curModuleFullName
+              : sourceProvider.workingDirectory);
 
-    return result;
+      final result = evalSource(module,
+          namespace: namespace,
+          config: config,
+          invokeFunc: invokeFunc,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs,
+          errorHandled: true);
+
+      return result;
+    } catch (error, stackTrace) {
+      if (errorHandled) {
+        rethrow;
+      } else {
+        handleError(error, externalStackTrace: stackTrace);
+      }
+    }
   }
 
   /// 调用一个全局函数或者类、对象上的函数
