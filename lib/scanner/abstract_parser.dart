@@ -102,7 +102,7 @@ abstract class AbstractParser {
     if ((tokPos + pos) < _tokens.length) {
       return _tokens[tokPos + pos];
     } else {
-      return Token(SemanticNames.endOfFile, -1, -1);
+      return Token(SemanticNames.endOfFile, -1, -1, -1, 0);
     }
   }
 

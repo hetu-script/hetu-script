@@ -19,6 +19,9 @@ enum TypeType {
 }
 
 abstract class SemanticNames {
+  static const scriptStackTrace = 'Hetu stack trace';
+  static const externalStackTrace = 'Dart stack trace';
+
   static const module = 'module';
   static const library = 'library';
   static const namespace = 'namespace';

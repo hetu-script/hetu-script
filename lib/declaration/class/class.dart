@@ -162,7 +162,10 @@ class HTClass extends HTClassDeclaration with HetuRef {
     // }
 
     if (error) {
-      throw HTError.undefined(field);
+      throw HTError.undefined(field,
+          moduleFullName: interpreter.curModuleFullName,
+          line: interpreter.curLine,
+          column: interpreter.curColumn);
     }
   }
 
@@ -185,7 +188,10 @@ class HTClass extends HTClassDeclaration with HetuRef {
       return;
     }
 
-    throw HTError.undefined(field);
+    throw HTError.undefined(field,
+        moduleFullName: interpreter.curModuleFullName,
+        line: interpreter.curLine,
+        column: interpreter.curColumn);
   }
 
   /// Call a static function of this [HTClass].
@@ -203,7 +209,10 @@ class HTClass extends HTClassDeclaration with HetuRef {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        throw HTError.notCallable(funcName);
+        throw HTError.notCallable(funcName,
+            moduleFullName: interpreter.curModuleFullName,
+            line: interpreter.curLine,
+            column: interpreter.curColumn);
       }
     } catch (error, stackTrace) {
       if (errorHandled) {

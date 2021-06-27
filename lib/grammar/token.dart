@@ -7,6 +7,10 @@ class Token {
 
   final int column;
 
+  final int offset;
+
+  final int length;
+
   String get type => lexeme;
 
   dynamic get literal => lexeme;
@@ -14,29 +18,32 @@ class Token {
   @override
   String toString() => lexeme;
 
-  const Token(this.lexeme, this.line, this.column);
+  const Token(this.lexeme, this.line, this.column, this.offset, this.length);
 }
 
 class TokenEmpty extends Token {
   @override
   String get type => SemanticNames.empty;
 
-  const TokenEmpty(int line, int column) : super('', line, column);
+  const TokenEmpty(int line, int column, int offset, int length)
+      : super('', line, column, offset, length);
 }
 
 class TokenEmptyLine extends Token {
   @override
   String get type => SemanticNames.emptyLine;
 
-  const TokenEmptyLine(int line, int column) : super('', line, column);
+  const TokenEmptyLine(int line, int column, int offset, int length)
+      : super('', line, column, offset, length);
 }
 
 class TokenIdentifier extends Token {
   @override
   String get type => SemanticNames.identifier;
 
-  const TokenIdentifier(String lexeme, int line, int column)
-      : super(lexeme, line, column);
+  const TokenIdentifier(
+      String lexeme, int line, int column, int offset, int length)
+      : super(lexeme, line, column, offset, length);
 }
 
 class TokenBooleanLiteral extends Token {
@@ -46,8 +53,9 @@ class TokenBooleanLiteral extends Token {
   @override
   final bool literal;
 
-  const TokenBooleanLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, line, column);
+  const TokenBooleanLiteral(
+      String lexeme, this.literal, int line, int column, int offset, int length)
+      : super(lexeme, line, column, offset, length);
 }
 
 class TokenIntLiteral extends Token {
@@ -57,8 +65,9 @@ class TokenIntLiteral extends Token {
   @override
   final int literal;
 
-  const TokenIntLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, line, column);
+  const TokenIntLiteral(
+      String lexeme, this.literal, int line, int column, int offset, int length)
+      : super(lexeme, line, column, offset, length);
 }
 
 class TokenFloatLiteral extends Token {
@@ -68,8 +77,9 @@ class TokenFloatLiteral extends Token {
   @override
   final double literal;
 
-  const TokenFloatLiteral(String lexeme, this.literal, int line, int column)
-      : super(lexeme, line, column);
+  const TokenFloatLiteral(
+      String lexeme, this.literal, int line, int column, int offset, int length)
+      : super(lexeme, line, column, offset, length);
 }
 
 class TokenStringLiteral extends Token {
@@ -84,8 +94,8 @@ class TokenStringLiteral extends Token {
   final String quotationRight;
 
   const TokenStringLiteral(this.literal, this.quotationLeft,
-      this.quotationRight, int line, int column)
-      : super(literal, line, column);
+      this.quotationRight, int line, int column, int offset, int length)
+      : super(literal, line, column, offset, length);
 }
 
 class TokenStringInterpolation extends TokenStringLiteral {
@@ -94,9 +104,17 @@ class TokenStringInterpolation extends TokenStringLiteral {
 
   final List<List<Token>> interpolations;
 
-  const TokenStringInterpolation(String literal, String quotationLeft,
-      String quotationRight, this.interpolations, int line, int column)
-      : super(literal, quotationLeft, quotationRight, line, column);
+  const TokenStringInterpolation(
+      String literal,
+      String quotationLeft,
+      String quotationRight,
+      this.interpolations,
+      int line,
+      int column,
+      int offset,
+      int length)
+      : super(literal, quotationLeft, quotationRight, line, column, offset,
+            length);
 }
 
 class TokenSingleLineComment extends Token {
@@ -106,8 +124,9 @@ class TokenSingleLineComment extends Token {
   @override
   String get type => SemanticNames.singleLineComment;
 
-  const TokenSingleLineComment(this.literal, int line, int column)
-      : super(literal, line, column);
+  const TokenSingleLineComment(
+      this.literal, int line, int column, int offset, int length)
+      : super(literal, line, column, offset, length);
 }
 
 class TokenMultiLineComment extends Token {
@@ -117,6 +136,7 @@ class TokenMultiLineComment extends Token {
   @override
   String get type => SemanticNames.multiLineComment;
 
-  const TokenMultiLineComment(this.literal, int line, int column)
-      : super(literal, line, column);
+  const TokenMultiLineComment(
+      this.literal, int line, int column, int offset, int length)
+      : super(literal, line, column, offset, length);
 }

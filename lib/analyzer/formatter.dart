@@ -78,7 +78,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     }
   }
 
-  String _printGenericTypes(List<TypeExpr> params) {
+  String printGenericTypes(List<TypeExpr> params) {
     final output = StringBuffer();
     if (params.isNotEmpty) {
       output.write(HTLexicon.typesBracketLeft);

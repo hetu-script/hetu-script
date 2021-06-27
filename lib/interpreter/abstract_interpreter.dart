@@ -40,10 +40,7 @@ class InterpreterConfig
   final bool lineInfo;
 
   @override
-  final bool externalStackTrace;
-
-  @override
-  final bool hetuStackTrace;
+  final bool stackTrace;
 
   @override
   final int hetuStackTraceThreshhold;
@@ -52,8 +49,7 @@ class InterpreterConfig
       {this.sourceType = SourceType.module,
       this.reload = false,
       this.lineInfo = true,
-      this.externalStackTrace = true,
-      this.hetuStackTrace = true,
+      this.stackTrace = true,
       this.hetuStackTraceThreshhold = 10});
 }
 

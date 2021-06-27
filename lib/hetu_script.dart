@@ -20,6 +20,7 @@ export 'scanner/abstract_parser.dart';
 export 'scanner/parser.dart';
 export 'analyzer/formatter.dart';
 export 'analyzer/analyzer.dart';
+export 'analyzer/analysis_result.dart';
 export 'analyzer/analysis_error.dart';
 export 'analyzer/diagnostic.dart';
 export 'interpreter/abstract_interpreter.dart' show InterpreterConfig;

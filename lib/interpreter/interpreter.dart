@@ -127,8 +127,8 @@ class Hetu extends AbstractInterpreter {
   @override
   void handleError(Object error, {Object? externalStackTrace}) {
     final sb = StringBuffer();
-    if (stackTrace.isNotEmpty && errorConfig.hetuStackTrace) {
-      sb.writeln('Hetu stack trace:');
+    if (stackTrace.isNotEmpty && errorConfig.stackTrace) {
+      sb.writeln('${SemanticNames.scriptStackTrace}${HTLexicon.colon}');
       if (stackTrace.length > errorConfig.hetuStackTraceThreshhold * 2) {
         for (var i = stackTrace.length - 1;
             i >= stackTrace.length - 1 - errorConfig.hetuStackTraceThreshhold;
@@ -146,31 +146,21 @@ class Hetu extends AbstractInterpreter {
       }
     }
     if (externalStackTrace != null) {
-      sb.writeln('Dart stack trace:');
+      sb.writeln('${SemanticNames.externalStackTrace}${HTLexicon.colon}');
       sb.writeln(externalStackTrace);
     }
     final stackTraceString = sb.toString().trimRight();
 
     if (error is HTError) {
-      if (errorConfig.hetuStackTrace) {
-        error.message = '${error.message}\n$stackTraceString';
-      }
-      if (error.type == ErrorType.runtimeError) {
-        error.moduleFullName = _curModuleFullName;
-        error.line = _curLine;
-        error.column = _curColumn;
+      if (errorConfig.stackTrace) {
+        error.extra = stackTraceString;
       }
       throw error;
     } else {
       var message = error.toString();
-      if (errorConfig.hetuStackTrace) {
-        message = '$message\nCall stack:\n$stackTraceString';
-      }
-      final hetuError = HTError(ErrorCode.extern, ErrorType.externalError,
-          message: message,
-          moduleFullName: curModuleFullName,
-          line: curLine,
-          column: curColumn);
+      final hetuError = HTError.extern(message,
+          moduleFullName: curModuleFullName, line: curLine, column: curColumn);
+      hetuError.extra = stackTraceString;
       throw hetuError;
     }
   }
@@ -203,8 +193,7 @@ class Hetu extends AbstractInterpreter {
       final compilation = parser.parseToCompilation(source,
           hasOwnNamespace: hasOwnNamespace, errorHandled: true);
       final bytes = compiler.compile(compilation, source.libraryName);
-      _curLibrary =
-          HTBytecodeLibrary(source.libraryName, bytes, compilation.sources);
+      _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
       var result;
       if (_curConfig.sourceType == SourceType.script) {
         HTNamespace nsp = execute(namespace: namespace ?? global);
@@ -274,7 +263,10 @@ class Hetu extends AbstractInterpreter {
               errorHandled: true);
         }
       } else {
-        throw HTError.sourceType();
+        throw HTError.sourceType(
+            moduleFullName: _curModuleFullName,
+            line: _curLine,
+            column: _curColumn);
       }
 
       return result;
@@ -323,8 +315,7 @@ class Hetu extends AbstractInterpreter {
   /// Compile a script content into bytecode for later use.
   Uint8List compile(String content,
       {ParserConfigImpl config = const ParserConfigImpl()}) {
-    throw HTError(ErrorCode.extern, ErrorType.externalError,
-        message: 'compile is currently unusable');
+    throw 'compile is currently unusable';
   }
 
   /// Load a pre-compiled bytecode in to module library.
@@ -427,7 +418,10 @@ class Hetu extends AbstractInterpreter {
           final patch = _curLibrary.readUint16();
           if (major != verMajor) {
             throw HTError.version(
-                '$major.$minor.$patch', '$verMajor.$verMinor.$verPatch');
+                '$major.$minor.$patch', '$verMajor.$verMinor.$verPatch',
+                moduleFullName: _curModuleFullName,
+                line: _curLine,
+                column: _curColumn);
           }
           // _curCode.version = Version(major, minor, patch);
           break;
@@ -569,7 +563,10 @@ class Hetu extends AbstractInterpreter {
           final value = execute();
           if (object == null || object == HTObject.NULL) {
             // TODO: object symbol?
-            throw HTError.nullObject(object);
+            throw HTError.nullObject(object,
+                moduleFullName: _curModuleFullName,
+                line: _curLine,
+                column: _curColumn);
           }
           if ((object is List) || (object is Map)) {
             object[key] = value;
@@ -612,7 +609,10 @@ class Hetu extends AbstractInterpreter {
           _handleUnaryPostfixOp(instruction);
           break;
         default:
-          throw HTError.unknownOpCode(instruction);
+          throw HTError.unknownOpCode(instruction,
+              moduleFullName: _curModuleFullName,
+              line: _curLine,
+              column: _curColumn);
       }
 
       instruction = _curLibrary.read();
@@ -751,7 +751,10 @@ class Hetu extends AbstractInterpreter {
         _curValue = _handleTypeExpr();
         break;
       default:
-        throw HTError.unkownValueType(valueType);
+        throw HTError.unkownValueType(valueType,
+            moduleFullName: _curModuleFullName,
+            line: _curLine,
+            column: _curColumn);
     }
   }
 
@@ -949,14 +952,20 @@ class Hetu extends AbstractInterpreter {
       if (callee is HTType) {
         final resolvedType = callee.resolve(_curNamespace);
         if (resolvedType is! HTNominalType) {
-          throw HTError.notCallable(callee.toString());
+          throw HTError.notCallable(callee.toString(),
+              moduleFullName: _curModuleFullName,
+              line: _curLine,
+              column: _curColumn);
         }
         klass = resolvedType.klass as HTClass;
       } else {
         klass = callee;
       }
       if (klass.isAbstract) {
-        throw HTError.abstracted();
+        throw HTError.abstracted(
+            moduleFullName: _curModuleFullName,
+            line: _curLine,
+            column: _curColumn);
       }
       // if (!klass.isExternal) {
       //   final constructor =
@@ -974,11 +983,17 @@ class Hetu extends AbstractInterpreter {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        throw HTError.notCallable(klass.id!);
+        throw HTError.notCallable(klass.id!,
+            moduleFullName: _curModuleFullName,
+            line: _curLine,
+            column: _curColumn);
       }
       // }
     } else {
-      throw HTError.notCallable(callee.toString());
+      throw HTError.notCallable(callee.toString(),
+          moduleFullName: _curModuleFullName,
+          line: _curLine,
+          column: _curColumn);
     }
   }
 

@@ -7,10 +7,7 @@ class HTModule extends HTNamespace {
   String toString() => '${SemanticNames.module} $id';
 
   @override
-  String get id => source.fullName;
+  final String id;
 
-  @override
-  final HTSource source;
-
-  HTModule(this.source) : super(source: source);
+  HTModule(this.id, {HTSource? source}) : super(source: source);
 }

@@ -394,42 +394,50 @@ abstract class HTLexicon {
   static const system = 'System';
   static const console = 'Console';
 
+  // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}]';
   static const errorExternalType = 'External type is not allowed.';
   static const errorNestedClass = 'Nested class within another nested class.';
+  static const errorOutsideReturn =
+      'Unexpected return statement outside of a function.';
+  static const errorSetterArity =
+      'Setter function must have exactly one parameter.';
+  static const errorExternalMember =
+      'Non-external class cannot have non-static external members.';
+  static const errorEmptyTypeArgs = 'Empty type arguments.';
+  static const errorExtendsSelf = 'Class try to extends itself.';
+  static const errorCtorReturn = 'Constructor cannot have a return type.';
+  static const errorMissingFuncBody = 'Missing function definition of [{0}]';
+  static const errorInternalFuncWithExternalTypeDef =
+      'Unexpected external typedef on internal function.';
+  static const errorExternalCtorWithReferCtor =
+      'Unexpected refer constructor on external constructor.';
+  static const errorNonCotrWithReferCtor =
+      'Unexpected refer constructor on normal function.';
+  static const errorInvalidLeftValue = 'Illegal left value.';
+  static const errorPrivateMember = 'Could not acess private member [{0}]';
   static const errorConstMustBeStatic =
       'Constant class member [{0}] must also be declared as static.';
   static const errorConstMustInit =
       'Constant declaration [{0}] must be initialized.';
+
+  // compile time errors
   static const errorDefined = '[{0}] is already defined.';
-  static const errorInvalidLeftValue = 'Illegal left value.';
-  static const errorOutsideReturn =
-      'Unexpected return statement outside of a function.';
   static const errorOutsideThis =
       'Unexpected this expression outside of a function.';
-  static const errorSetterArity =
-      'Setter function must have exactly one parameter.';
-  static const errorExternMember =
-      'Non-external class cannot have non-static external members.';
-  static const errorEmptyTypeArgs = 'Empty type arguments.';
   static const errorNotMember = '[{0}] is not a class member of [{1}]';
   static const errorNotClass = '[{0}] is not a class.';
-  static const errorExtendsSelf = 'Class try to extends itself.';
-  static const errorCtorReturn = 'Constructor cannot have a return type.';
   static const errorAbstracted = 'Cannot create instance from abstract class.';
-  static const errorAbstractCtor =
-      'Cannot create contructor for abstract class.';
+  static const errorInterfaceCtor = 'Cannot create contructor for interfaces.';
 
+  // runtime errors
   static const errorUnsupported = 'Unsupported operation: [{0}]';
   static const errorUnknownOpCode = 'Unknown opcode [{0}]';
-  static const errorPrivateMember = 'Could not acess private member [{0}]';
-  static const errorPrivateDecl = 'Could not acess private declaration [{0}]';
   static const errorNotInitialized = '[{0}] has not yet been initialized.';
   static const errorUndefined = 'Undefined identifier [{0}]';
   static const errorUndefinedExternal = 'Undefined external identifier [{0}]';
   static const errorUnknownTypeName = 'Unknown type name: [{0}]';
   static const errorUndefinedOperator = 'Undefined operator: [{0}]';
-  // static const errorRange = 'Index out of range, should be less than';
   static const errorNotCallable = '[{0}] is not callable.';
   static const errorUndefinedMember = '[{0}] isn\'t defined for the class.';
   static const errorCondition =
@@ -448,7 +456,6 @@ abstract class HTLexicon {
       'Only optional or named arguments can have initializer.';
   static const errorReturnType =
       '[{0}] can\'t be returned from function [{1}] with return type [{2}]';
-  static const errorMissingFuncBody = 'Missing function definition of [{0}]';
   static const errorStringInterpolation =
       'String interpolation has to be a single expression.';
   static const errorArity =
@@ -469,15 +476,9 @@ abstract class HTLexicon {
   static const errorNotSuper = '[{0}] is not a super class of [{1}]';
   static const errorMissingExternalFunc =
       'Missing external function definition of [{0}].';
-  static const errorInternalFuncWithExternalTypeDef =
-      'Unexpected external typedef on internal function.';
-  static const errorExternalCtorWithReferCtor =
-      'Unexpected refer constructor on external constructor.';
-  static const errorNonCotrWithReferCtor =
-      'Unexpected refer constructor on normal function.';
   static const errorClassOnInstance = 'Try to define a class on instance.';
   static const errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}]';
   static const errorSourceType = 'config.sourcetype must be script or module.';
-  static const errorNonExistModule = 'Could not open file: [{0}]';
+  // static const errorNonExistModule = 'Could not open file: [{0}]';
 }

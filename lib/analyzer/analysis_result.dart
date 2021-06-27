@@ -1,9 +1,9 @@
-import '../declaration/library.dart';
 import '../source/source.dart';
+import '../declaration/library.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
-class HTAnalysisResult extends HTLibrary {
+class HTModuleAnalysisResult extends HTSource {
   @override
   String toString() => '${errors.length} errors';
 
@@ -11,7 +11,12 @@ class HTAnalysisResult extends HTLibrary {
 
   final List<HTAnalysisError> errors;
 
-  HTAnalysisResult(
-      String id, Map<String, HTSource> sources, this.analyzer, this.errors)
-      : super(id, sources);
+  HTModuleAnalysisResult(String id, String content, this.analyzer, this.errors)
+      : super(id, content);
+}
+
+class HTLibraryAnalysisResult extends HTLibrary {
+  final modules = <String, HTModuleAnalysisResult>{};
+
+  HTLibraryAnalysisResult(String id) : super(id);
 }

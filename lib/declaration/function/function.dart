@@ -191,12 +191,18 @@ class HTFunction extends HTFunctionDeclaration with HetuRef, GotoInfo {
         if (hasParamDecls) {
           if (positionalArgs.length < minArity ||
               (positionalArgs.length > maxArity && !isVariadic)) {
-            throw HTError.arity(internalName, positionalArgs.length, minArity);
+            throw HTError.arity(internalName, positionalArgs.length, minArity,
+                moduleFullName: interpreter.curModuleFullName,
+                line: interpreter.curLine,
+                column: interpreter.curColumn);
           }
 
           for (final name in namedArgs.keys) {
             if (!paramDecls.containsKey(name)) {
-              throw HTError.namedArg(name);
+              throw HTError.namedArg(name,
+                  moduleFullName: interpreter.curModuleFullName,
+                  line: interpreter.curLine,
+                  column: interpreter.curColumn);
             }
           }
         }
@@ -348,12 +354,18 @@ class HTFunction extends HTFunctionDeclaration with HetuRef, GotoInfo {
         if (hasParamDecls) {
           if (positionalArgs.length < minArity ||
               (positionalArgs.length > maxArity && !isVariadic)) {
-            throw HTError.arity(internalName, positionalArgs.length, minArity);
+            throw HTError.arity(internalName, positionalArgs.length, minArity,
+                moduleFullName: interpreter.curModuleFullName,
+                line: interpreter.curLine,
+                column: interpreter.curColumn);
           }
 
           for (final name in namedArgs.keys) {
             if (!paramDecls.containsKey(name)) {
-              throw HTError.namedArg(name);
+              throw HTError.namedArg(name,
+                  moduleFullName: interpreter.curModuleFullName,
+                  line: interpreter.curLine,
+                  column: interpreter.curColumn);
             }
           }
 
@@ -435,7 +447,10 @@ class HTFunction extends HTFunctionDeclaration with HetuRef, GotoInfo {
                 final funcName = id != null ? '$classId.$id' : classId;
                 externalFunc = externClass.memberGet(funcName);
               } else {
-                throw HTError.missingExternalFunc(internalName);
+                throw HTError.missingExternalFunc(internalName,
+                    moduleFullName: interpreter.curModuleFullName,
+                    line: interpreter.curLine,
+                    column: interpreter.curColumn);
               }
             }
 

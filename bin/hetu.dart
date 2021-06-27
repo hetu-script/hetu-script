@@ -31,8 +31,8 @@ Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
 final hetu = Hetu(
-    config: InterpreterConfig(
-        sourceType: SourceType.script, hetuStackTrace: false));
+    config:
+        InterpreterConfig(sourceType: SourceType.script, stackTrace: false));
 
 void main(List<String> arguments) {
   try {
@@ -126,10 +126,6 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
   final formatter = HTFormatter();
   final sourceProvider = DefaultSourceProvider();
   final source = sourceProvider.getSourceSync(args.first);
-  if (source == null) {
-    print('An error occured while getting source.');
-    return;
-  }
   // final config = ParserConfig(sourceType: sourceType);
   final compilation = parser.parseToCompilation(source); //, config);
   final module = compilation.modules[source.fullName]!;

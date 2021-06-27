@@ -4,7 +4,8 @@ import '../grammar/token.dart';
 
 /// 负责对原始文本进行词法分析并生成Token列表
 class HTLexer {
-  List<Token> lex(String content, {int line = 1, int column = 0}) {
+  List<Token> lex(String content,
+      {int line = 1, int column = 0, int start = 0}) {
     var curLine = line;
     var curColumn = column;
     final tokens = <Token>[];
@@ -19,32 +20,40 @@ class HTLexer {
         final matchString = match.group(0)!;
         curColumn = column + match.start + 1;
         if (match.group(HTLexicon.tokenGroupSingleComment) != null) {
-          toksOfLine
-              .add(TokenSingleLineComment(matchString, curLine, curColumn));
+          toksOfLine.add(TokenSingleLineComment(matchString, curLine, curColumn,
+              start + match.start, start + match.end));
         } else if (match.group(HTLexicon.tokenGroupBlockComment) != null) {
-          toksOfLine
-              .add(TokenMultiLineComment(matchString, curLine, curColumn));
+          toksOfLine.add(TokenMultiLineComment(matchString, curLine, curColumn,
+              start + match.start, start + match.end));
         } else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
           if (matchString == HTLexicon.TRUE) {
-            toksOfLine.add(
-                TokenBooleanLiteral(matchString, true, curLine, curColumn));
+            toksOfLine.add(TokenBooleanLiteral(matchString, true, curLine,
+                curColumn, start + match.start, start + match.end));
           } else if (matchString == HTLexicon.FALSE) {
-            toksOfLine.add(
-                TokenBooleanLiteral(matchString, false, curLine, curColumn));
+            toksOfLine.add(TokenBooleanLiteral(matchString, false, curLine,
+                curColumn, start + match.start, start + match.end));
           } else if (HTLexicon.reservedKeywords.contains(matchString)) {
-            toksOfLine.add(Token(matchString, curLine, curColumn));
+            toksOfLine.add(Token(matchString, curLine, curColumn,
+                start + match.start, start + match.end));
           } else {
-            toksOfLine.add(TokenIdentifier(matchString, curLine, curColumn));
+            toksOfLine.add(TokenIdentifier(matchString, curLine, curColumn,
+                start + match.start, start + match.end));
           }
         } else if (match.group(HTLexicon.tokenGroupPunctuation) != null) {
-          toksOfLine.add(Token(matchString, curLine, curColumn));
+          toksOfLine.add(Token(matchString, curLine, curColumn,
+              start + match.start, start + match.end));
         } else if (match.group(HTLexicon.tokenGroupNumber) != null) {
           if (matchString.contains(HTLexicon.decimalPoint)) {
             toksOfLine.add(TokenFloatLiteral(
-                matchString, double.parse(matchString), curLine, curColumn));
+                matchString,
+                double.parse(matchString),
+                curLine,
+                curColumn,
+                start + match.start,
+                start + match.end));
           } else {
-            toksOfLine.add(TokenIntLiteral(
-                matchString, int.parse(matchString), curLine, curColumn));
+            toksOfLine.add(TokenIntLiteral(matchString, int.parse(matchString),
+                curLine, curColumn, start + match.start, start + match.end));
           }
         } else if (match.group(HTLexicon.tokenGroupStringSingleQuotation) !=
             null) {
@@ -54,7 +63,9 @@ class HTLexer {
               HTLexicon.singleQuotationLeft,
               HTLexicon.singleQuotationRight,
               curLine,
-              curColumn));
+              curColumn,
+              start + match.start,
+              start + match.end));
         } else if (match.group(HTLexicon.tokenGroupStringDoubleQuotation) !=
             null) {
           final literal = matchString.substring(1, matchString.length - 1);
@@ -63,7 +74,9 @@ class HTLexer {
               HTLexicon.doubleQuotationLeft,
               HTLexicon.doubleQuotationRight,
               curLine,
-              curColumn));
+              curColumn,
+              start + match.start,
+              start + match.end));
         } else if (match
                 .group(HTLexicon.tokenGroupStringInterpolationSingleMark) !=
             null) {
@@ -72,7 +85,8 @@ class HTLexer {
               HTLexicon.singleQuotationLeft,
               HTLexicon.singleQuotationRight,
               curLine,
-              curColumn + HTLexicon.singleQuotationLeft.length);
+              curColumn + HTLexicon.singleQuotationLeft.length,
+              start + match.start);
           toksOfLine.add(token);
         } else if (match
                 .group(HTLexicon.tokenGroupStringInterpolationDoubleMark) !=
@@ -82,7 +96,8 @@ class HTLexer {
               HTLexicon.doubleQuotationLeft,
               HTLexicon.doubleQuotationRight,
               curLine,
-              curColumn + HTLexicon.doubleQuotationLeft.length);
+              curColumn + HTLexicon.doubleQuotationLeft.length,
+              start + match.start);
           toksOfLine.add(token);
         }
       }
@@ -93,17 +108,24 @@ class HTLexer {
           /// and the last line does not ends with an unfinished token.
           if (tokens.isNotEmpty &&
               !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
-            tokens.add(Token(HTLexicon.semicolon, curLine, 1));
+            tokens.add(Token(HTLexicon.semicolon, curLine, 1,
+                toksOfLine.first.offset + toksOfLine.first.length, 0));
           }
           tokens.addAll(toksOfLine);
         } else if (toksOfLine.last.type == HTLexicon.RETURN) {
           tokens.addAll(toksOfLine);
-          tokens.add(Token(HTLexicon.semicolon, curLine, curColumn + 1));
+          tokens.add(Token(HTLexicon.semicolon, curLine, curColumn + 1,
+              toksOfLine.last.offset + toksOfLine.last.length, 0));
         } else {
           tokens.addAll(toksOfLine);
         }
       } else {
-        toksOfLine.add(TokenEmptyLine(curLine, curColumn));
+        if (tokens.isNotEmpty) {
+          toksOfLine.add(TokenEmptyLine(
+              curLine, curColumn, tokens.last.offset + tokens.last.length, 0));
+        } else {
+          toksOfLine.add(TokenEmptyLine(curLine, curColumn, 0, 0));
+        }
       }
       ++curLine;
     }
@@ -119,32 +141,38 @@ class HTLexer {
   // }
 
   Token _hanldeStringInterpolation(String matchString, String quotationLeft,
-      String quotationRight, int line, int column) {
+      String quotationRight, int line, int column, int start) {
     final interpolations = <List<Token>>[];
     final literal = matchString.substring(1, matchString.length - 1);
     final pattern = RegExp(HTLexicon.stringInterpolationPattern);
     final matches = pattern.allMatches(literal);
     for (final match in matches) {
-      final matchString = match.group(1);
+      final innerString = match.group(1);
       // do not throw here, handle in analyzer instead
       // if (matchString == null) {
       //   throw HTError.emptyString();
       // }
-      // move beyond the '${' part of the token.
-      final tokens = lex(matchString ?? '',
+      final tokens = lex(innerString ?? '',
           line: line,
           column:
-              column + match.start + HTLexicon.stringInterpolationStart.length);
+              column + match.start + HTLexicon.stringInterpolationStart.length,
+          start: start + quotationLeft.length + match.start);
       if (tokens.isNotEmpty) {
         interpolations.add(tokens);
       } else {
         interpolations.add([
-          TokenEmpty(line,
-              column + match.start + HTLexicon.stringInterpolationStart.length)
+          TokenEmpty(
+              line,
+              column + match.start + HTLexicon.stringInterpolationStart.length,
+              start +
+                  quotationLeft.length +
+                  match.start +
+                  HTLexicon.stringInterpolationStart.length, // move beyond '${'
+              0)
         ]);
       }
     }
-    return TokenStringInterpolation(
-        literal, quotationLeft, quotationRight, interpolations, line, column);
+    return TokenStringInterpolation(literal, quotationLeft, quotationRight,
+        interpolations, line, column, start, matchString.length);
   }
 }

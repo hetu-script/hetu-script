@@ -1,25 +1,18 @@
 abstract class ErrorHandlerConfig {
-  bool get hetuStackTrace;
+  bool get stackTrace;
 
   int get hetuStackTraceThreshhold;
-
-  bool get externalStackTrace;
 }
 
 class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
   @override
-  final bool externalStackTrace;
-
-  @override
-  final bool hetuStackTrace;
+  final bool stackTrace;
 
   @override
   final int hetuStackTraceThreshhold;
 
   const ErrorHandlerConfigImpl(
-      {this.externalStackTrace = true,
-      this.hetuStackTrace = true,
-      this.hetuStackTraceThreshhold = 10});
+      {this.stackTrace = true, this.hetuStackTraceThreshhold = 10});
 }
 
 /// Abstract error handler class
