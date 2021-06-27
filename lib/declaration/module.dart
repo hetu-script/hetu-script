@@ -1,7 +1,11 @@
-import 'namespace.dart';
+import '../grammar/semantic.dart';
 import '../source/source.dart';
+import 'namespace.dart';
 
 class HTModule extends HTNamespace {
+  @override
+  String toString() => '${SemanticNames.module} $id';
+
   @override
   String get id => source.fullName;
 

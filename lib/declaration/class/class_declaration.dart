@@ -21,7 +21,7 @@ class HTClassDeclaration extends HTDeclaration {
   /// and the re-definition must be of the same function signature.
   final Iterable<HTType> implementsTypes;
 
-  final bool isNested;
+  bool get isNested => classId != null;
 
   final bool isAbstract;
 
@@ -32,9 +32,8 @@ class HTClassDeclaration extends HTDeclaration {
       HTSource? source,
       this.genericParameters = const [],
       HTType? superType,
-      this.withTypes = const [],
       this.implementsTypes = const [],
-      this.isNested = false,
+      this.withTypes = const [],
       bool isExternal = false,
       this.isAbstract = false})
       : super(
@@ -63,9 +62,8 @@ class HTClassDeclaration extends HTDeclaration {
       source: source,
       genericParameters: genericParameters,
       superType: superType,
-      withTypes: withTypes,
       implementsTypes: implementsTypes,
-      isNested: isNested,
+      withTypes: withTypes,
       isExternal: isExternal,
       isAbstract: isAbstract);
 }

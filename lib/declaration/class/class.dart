@@ -4,8 +4,7 @@ import '../../error/error.dart';
 import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
-import '../declaration.dart';
-import '../../object/object.dart';
+// import '../declaration.dart';
 import '../namespace.dart';
 import '../function/function.dart';
 import '../instance/instance.dart';
@@ -13,7 +12,7 @@ import 'class_declaration.dart';
 import 'class_namespace.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
-class HTClass extends HTClassDeclaration with HTObject, HetuRef {
+class HTClass extends HTClassDeclaration with HetuRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -41,7 +40,7 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   // final Iterable<HTType> implementedType;
 
   /// The instance member variables defined in class definition.
-  final instanceMembers = <String, HTDeclaration>{};
+  // final instanceMembers = <String, HTDeclaration>{};
 
   /// Create a default [HTClass] instance.
   HTClass(Hetu interpreter,
@@ -53,7 +52,6 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       HTType? superType,
       Iterable<HTType> withTypes = const [],
       Iterable<HTType> implementsTypes = const [],
-      bool isNested = false,
       bool isExternal = false,
       bool isAbstract = false,
       this.superClass})
@@ -68,7 +66,6 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
             superType: superType,
             withTypes: withTypes,
             implementsTypes: implementsTypes,
-            isNested: isNested,
             isExternal: isExternal,
             isAbstract: isAbstract) {
     this.interpreter = interpreter;
@@ -86,9 +83,9 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
       decl.resolve();
     }
 
-    for (final decl in instanceMembers.values) {
-      decl.resolve();
-    }
+    // for (final decl in instanceMembers.values) {
+    //   decl.resolve();
+    // }
   }
 
   @override
@@ -119,6 +116,20 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
             jsonObject.map((key, value) => MapEntry(key.toString(), value)));
   }
 
+  @override
+  bool contains(String field) {
+    final getter = '${SemanticNames.getter}$field';
+    final setter = '${SemanticNames.setter}$field';
+    final constructor = field != id
+        ? '${SemanticNames.constructor}$field'
+        : SemanticNames.constructor;
+
+    return namespace.declarations.containsKey(field) ||
+        namespace.declarations.containsKey(getter) ||
+        namespace.declarations.containsKey(setter) ||
+        namespace.declarations.containsKey(constructor);
+  }
+
   /// Get a value of a static member from this [HTClass].
   @override
   dynamic memberGet(String field, {bool recursive = true, bool error = true}) {
@@ -127,28 +138,28 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
         ? '${SemanticNames.constructor}$field'
         : SemanticNames.constructor;
 
-    if (isExternal) {
-      if (namespace.declarations.containsKey(field)) {
-        final decl = namespace.declarations[field]!;
-        return decl.value;
-      } else if (namespace.declarations.containsKey(getter)) {
-        HTFunction func = namespace.declarations[getter]!.value;
-        return func.call();
-      } else if (namespace.declarations.containsKey(constructor)) {
-        HTFunction func = namespace.declarations[constructor]!.value;
-        return func;
-      }
-    } else {
-      if (namespace.declarations.containsKey(field)) {
-        final decl = namespace.declarations[field]!;
-        return decl.value;
-      } else if (namespace.declarations.containsKey(getter)) {
-        HTFunction func = namespace.declarations[getter]!.value;
-        return func.call();
-      } else if (namespace.declarations.containsKey(constructor)) {
-        return namespace.declarations[constructor]!.value as HTFunction;
-      }
+    // if (isExternal) {
+    //   if (namespace.declarations.containsKey(field)) {
+    //     final decl = namespace.declarations[field]!;
+    //     return decl.value;
+    //   } else if (namespace.declarations.containsKey(getter)) {
+    //     HTFunction func = namespace.declarations[getter]!.value;
+    //     return func.call();
+    //   } else if (namespace.declarations.containsKey(constructor)) {
+    //     HTFunction func = namespace.declarations[constructor]!.value;
+    //     return func;
+    //   }
+    // } else {
+    if (namespace.declarations.containsKey(field)) {
+      final decl = namespace.declarations[field]!;
+      return decl.value;
+    } else if (namespace.declarations.containsKey(getter)) {
+      HTFunction func = namespace.declarations[getter]!.value;
+      return func.call();
+    } else if (namespace.declarations.containsKey(constructor)) {
+      return namespace.declarations[constructor]!.value as HTFunction;
     }
+    // }
 
     if (error) {
       throw HTError.undefined(field);
@@ -204,12 +215,12 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   }
 
   /// Add a instance member declaration to this [HTClass].
-  void defineInstanceMember(String id, HTDeclaration decl,
-      {bool override = false, bool error = true}) {
-    if ((!instanceMembers.containsKey(id)) || override) {
-      instanceMembers[id] = decl;
-    } else {
-      if (error) throw HTError.definedRuntime(id);
-    }
-  }
+  // void defineInstanceMember(String id, HTDeclaration decl,
+  //     {bool override = false, bool error = true}) {
+  //   if ((!instanceMembers.containsKey(id)) || override) {
+  //     instanceMembers[id] = decl;
+  //   } else {
+  //     if (error) throw HTError.definedRuntime(id);
+  //   }
+  // }
 }

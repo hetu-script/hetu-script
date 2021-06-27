@@ -584,6 +584,35 @@ class ContinueStmt extends AstNode {
       : super(SemanticNames.continueStmt, line, column, source);
 }
 
+class TypeDeclStmt extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitTypeDeclStmt(this);
+
+  final String id;
+
+  final String? classId;
+
+  final List<TypeExpr> genericParameters;
+
+  final TypeExpr value;
+
+  bool get isMember => classId != null;
+
+  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
+
+  final bool isExported;
+
+  final bool isTopLevel;
+
+  const TypeDeclStmt(this.id, this.value, int line, int column,
+      {HTSource? source,
+      this.classId,
+      this.genericParameters = const [],
+      this.isExported = false,
+      this.isTopLevel = false})
+      : super(SemanticNames.typeAliasDeclaration, line, column, source);
+}
+
 class VarDeclStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitVarDeclStmt(this);
@@ -660,10 +689,10 @@ class ParamDeclExpr extends VarDeclStmt {
             isMutable: isMutable);
 }
 
-class ReferConstructorExpr extends AstNode {
+class ReferConstructCallExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitReferConstructorExpr(this);
+      visitor.visitReferConstructCallExpr(this);
 
   final bool isSuper;
 
@@ -673,7 +702,7 @@ class ReferConstructorExpr extends AstNode {
 
   final Map<String, AstNode> namedArgs;
 
-  const ReferConstructorExpr(this.isSuper, this.key, this.positionalArgs,
+  const ReferConstructCallExpr(this.isSuper, this.key, this.positionalArgs,
       this.namedArgs, int line, int column,
       {HTSource? source})
       : super(SemanticNames.referConstructorExpression, line, column, source);
@@ -695,11 +724,11 @@ class FuncDeclExpr extends AstNode {
 
   final TypeExpr? returnType;
 
-  final ReferConstructorExpr? referConstructor;
+  final ReferConstructCallExpr? referConstructor;
 
   final bool hasParamDecls;
 
-  final List<ParamDeclExpr> params;
+  final List<ParamDeclExpr> paramDecls;
 
   final int minArity;
 
@@ -729,7 +758,7 @@ class FuncDeclExpr extends AstNode {
 
   bool get isLiteral => category == FunctionCategory.literal;
 
-  const FuncDeclExpr(this.internalName, this.params, int line, int column,
+  const FuncDeclExpr(this.internalName, this.paramDecls, int line, int column,
       {this.id,
       HTSource? source,
       this.classId,
@@ -764,11 +793,15 @@ class ClassDeclStmt extends AstNode {
 
   final TypeExpr? superType;
 
+  final List<TypeExpr> implementsTypes;
+
+  final List<TypeExpr> withTypes;
+
   bool get isMember => classId != null;
 
   bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
 
-  final bool isNested;
+  bool get isNested => classId != null;
 
   final bool isExternal;
 
@@ -778,6 +811,8 @@ class ClassDeclStmt extends AstNode {
 
   final bool isTopLevel;
 
+  final bool hasUserDefinedConstructor;
+
   final BlockStmt? definition;
 
   const ClassDeclStmt(this.id, int line, int column,
@@ -785,11 +820,13 @@ class ClassDeclStmt extends AstNode {
       this.classId,
       this.genericParameters = const [],
       this.superType,
-      this.isNested = false,
+      this.implementsTypes = const [],
+      this.withTypes = const [],
       this.isExternal = false,
       this.isAbstract = false,
       this.isExported = true,
       this.isTopLevel = false,
+      this.hasUserDefinedConstructor = false,
       this.definition})
       : super(SemanticNames.classDeclaration, line, column, source);
 }
@@ -825,34 +862,4 @@ class EnumDeclStmt extends AstNode {
     this.isExported = true,
     this.isTopLevel = false,
   }) : super(SemanticNames.enumDeclaration, line, column, source);
-}
-
-class TypeAliasDeclStmt extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitTypeAliasStmt(this);
-
-  final String id;
-
-  final String? classId;
-
-  final List<TypeExpr> genericParameters;
-
-  final TypeExpr value;
-
-  bool get isMember => classId != null;
-
-  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
-
-  final bool isExported;
-
-  final bool isTopLevel;
-
-  const TypeAliasDeclStmt(this.id, this.value, int line, int column,
-      {HTSource? source,
-      this.classId,
-      this.genericParameters = const [],
-      this.isExported = false,
-      this.isTopLevel = false})
-      : super(SemanticNames.typeAliasDeclaration, line, column, source);
 }

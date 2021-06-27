@@ -100,8 +100,6 @@ dart pub global activate hetu_script
 
 Then you can use command line tool 'hetu' in any directory on your computer. (If you are facing any problems, please check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global))
 
-Currently there are two command: [run] for evaluate a script file and [fmt] for format the scrip file.
-
 More information can be found by enter [hetu -h].
 
 If no command and option is provided, enter REPL mode.

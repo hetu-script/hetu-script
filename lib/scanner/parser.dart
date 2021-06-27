@@ -30,6 +30,8 @@ class HTAstParser extends AbstractParser {
 
   bool _isLibrary = false;
 
+  bool _hasUserDefinedConstructor = false;
+
   late HTSource _curSource;
 
   HTAstParser(
@@ -86,18 +88,16 @@ class HTAstParser extends AbstractParser {
     final module =
         parseToModule(source, hasOwnNamespace: hasOwnNamespace, config: config);
     final compilation = HTAstCompilation();
+    compilation.sources[source.fullName] = source;
     for (final stmt in module.imports) {
       final importFullName =
           sourceProvider.resolveFullName(stmt.key, module.fullName);
-      if (!sourceProvider.hasModule(importFullName)) {
-        final source2 = sourceProvider.getSourceSync(importFullName,
-            from: _curModuleFullName,
-            errorType: ErrorType.syntacticError,
-            line: stmt.line,
-            column: stmt.column);
-        if (source2 == null) {
-          continue;
-        }
+      final source2 = sourceProvider.getSourceSync(importFullName,
+          from: _curModuleFullName,
+          errorType: ErrorType.syntacticError,
+          line: stmt.line,
+          column: stmt.column);
+      if (source2 != null) {
         final compilation2 = parseToCompilation(source2,
             config: ParserConfigImpl(sourceType: SourceType.module));
         _curModuleFullName = source.fullName;
@@ -1232,14 +1232,14 @@ class HTAstParser extends AbstractParser {
         source: _curSource);
   }
 
-  TypeAliasDeclStmt _parseTypeAliasDecl(
+  TypeDeclStmt _parseTypeAliasDecl(
       {String? classId, bool isExported = false, bool isTopLevel = false}) {
     final keyword = advance(1);
     final id = match(SemanticNames.identifier).lexeme;
     final genericParameters = <TypeExpr>[];
     match(HTLexicon.assign);
     final value = _parseTypeExpr();
-    return TypeAliasDeclStmt(id, value, keyword.line, keyword.column,
+    return TypeDeclStmt(id, value, keyword.line, keyword.column,
         source: _curSource,
         classId: classId,
         genericParameters: genericParameters,
@@ -1342,6 +1342,7 @@ class HTAstParser extends AbstractParser {
     }
     switch (category) {
       case FunctionCategory.constructor:
+        _hasUserDefinedConstructor = true;
         internalName = (id == null)
             ? SemanticNames.constructor
             : '${SemanticNames.constructor}$id';
@@ -1448,7 +1449,7 @@ class HTAstParser extends AbstractParser {
       }
     }
     TypeExpr? returnType;
-    ReferConstructorExpr? referCtor;
+    ReferConstructCallExpr? referCtor;
     // the return value type declaration
     if (expect([HTLexicon.singleArrow], consume: true)) {
       if (category == FunctionCategory.constructor) {
@@ -1495,7 +1496,7 @@ class HTAstParser extends AbstractParser {
       var positionalArgs = <AstNode>[];
       var namedArgs = <String, AstNode>{};
       _handleCallArguments(positionalArgs, namedArgs);
-      referCtor = ReferConstructorExpr(
+      referCtor = ReferConstructCallExpr(
         ctorCallee.lexeme == HTLexicon.SUPER,
         ctorKey,
         positionalArgs,
@@ -1547,7 +1548,6 @@ class HTAstParser extends AbstractParser {
 
   ClassDeclStmt _parseClassDecl(
       {String? classId,
-      bool isNested = false,
       bool isExternal = false,
       bool isAbstract = false,
       bool isExported = false,
@@ -1589,25 +1589,27 @@ class HTAstParser extends AbstractParser {
     _curClass = HTClassDeclaration(
         id: id.lexeme,
         classId: classId,
-        isNested: isNested,
         isExternal: isExternal,
         isAbstract: isAbstract);
-
+    final savedHasUsrDefCtor = _hasUserDefinedConstructor;
+    _hasUserDefinedConstructor = false;
     final definition = _parseBlockStmt(
         sourceType: SourceType.klass,
         hasOwnNamespace: false,
         id: SemanticNames.classDefinition);
-    _curClass = savedClass;
-    return ClassDeclStmt(id.lexeme, keyword.line, keyword.column,
+    final decl = ClassDeclStmt(id.lexeme, keyword.line, keyword.column,
         source: _curSource,
         genericParameters: genericParameters,
         superType: superClassType,
-        isNested: isNested,
         isExternal: isExternal,
         isAbstract: isAbstract,
         isExported: isExported,
         isTopLevel: isTopLevel,
+        hasUserDefinedConstructor: _hasUserDefinedConstructor,
         definition: definition);
+    _hasUserDefinedConstructor = savedHasUsrDefCtor;
+    _curClass = savedClass;
+    return decl;
   }
 
   EnumDeclStmt _parseEnumDecl(

@@ -9,7 +9,6 @@ import '../../type/type.dart';
 import '../instance/instance_namespace.dart';
 import '../class/class.dart';
 import '../instance/instance.dart';
-import '../../object/object.dart';
 import '../variable/variable.dart';
 import '../namespace.dart';
 import 'parameter.dart';
@@ -36,8 +35,7 @@ class ReferConstructor {
 }
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
-class HTFunction extends HTFunctionDeclaration
-    with HTObject, HetuRef, GotoInfo {
+class HTFunction extends HTFunctionDeclaration with HetuRef, GotoInfo {
   final String moduleFullName;
 
   final String libraryName;
@@ -61,10 +59,12 @@ class HTFunction extends HTFunctionDeclaration
 
   final ReferConstructor? referConstructor;
 
+  Function? externalFunc;
+
   HTNamespace? context;
 
   @override
-  HTType get valueType => type;
+  HTType get valueType => declType;
 
   /// Create a standard [HTFunction].
   ///
@@ -83,7 +83,7 @@ class HTFunction extends HTFunctionDeclaration
       int? definitionLine,
       int? definitionColumn,
       FunctionCategory category = FunctionCategory.normal,
-      Function? externalFunc,
+      this.externalFunc,
       String? externalTypeId,
       bool isVariadic = false,
       this.hasParamDecls = true,
@@ -102,7 +102,6 @@ class HTFunction extends HTFunctionDeclaration
             isStatic: isStatic,
             isConst: isConst,
             category: category,
-            externalFunc: externalFunc,
             externalTypeId: externalTypeId,
             isVariadic: isVariadic,
             minArity: minArity,
@@ -135,7 +134,7 @@ class HTFunction extends HTFunctionDeclaration
 
   @override
   HTFunction clone() =>
-      HTFunction(name, moduleFullName, libraryName, interpreter,
+      HTFunction(internalName, moduleFullName, libraryName, interpreter,
           id: id,
           classId: classId,
           closure: closure,
@@ -189,14 +188,16 @@ class HTFunction extends HTFunctionDeclaration
       dynamic result;
       // 如果是脚本函数
       if (!isExternal) {
-        if (positionalArgs.length < minArity ||
-            (positionalArgs.length > maxArity && !isVariadic)) {
-          throw HTError.arity(name, positionalArgs.length, minArity);
-        }
+        if (hasParamDecls) {
+          if (positionalArgs.length < minArity ||
+              (positionalArgs.length > maxArity && !isVariadic)) {
+            throw HTError.arity(internalName, positionalArgs.length, minArity);
+          }
 
-        for (final name in namedArgs.keys) {
-          if (!paramDecls.containsKey(name)) {
-            throw HTError.namedArg(name);
+          for (final name in namedArgs.keys) {
+            if (!paramDecls.containsKey(name)) {
+              throw HTError.namedArg(name);
+            }
           }
         }
 
@@ -216,13 +217,13 @@ class HTFunction extends HTFunctionDeclaration
             callClosure.define(
                 HTLexicon.SUPER,
                 HTVariable(HTLexicon.SUPER, interpreter,
-                    value: instanceNamespace.next));
+                    initValue: instanceNamespace.next));
           }
 
           callClosure.define(
               HTLexicon.THIS,
               HTVariable(HTLexicon.THIS, interpreter,
-                  value: instanceNamespace));
+                  initValue: instanceNamespace));
         }
 
         if (category == FunctionCategory.constructor &&
@@ -347,7 +348,7 @@ class HTFunction extends HTFunctionDeclaration
         if (hasParamDecls) {
           if (positionalArgs.length < minArity ||
               (positionalArgs.length > maxArity && !isVariadic)) {
-            throw HTError.arity(name, positionalArgs.length, minArity);
+            throw HTError.arity(internalName, positionalArgs.length, minArity);
           }
 
           for (final name in namedArgs.keys) {
@@ -381,10 +382,10 @@ class HTFunction extends HTFunctionDeclaration
               } else {
                 if (namedArgs.containsKey(decl.id)) {
                   decl.value = namedArgs[decl.id];
-                  finalNamedArgs[decl.name] = decl.value;
+                  finalNamedArgs[decl.id] = decl.value;
                 } else {
                   decl.initialize();
-                  finalNamedArgs[decl.name] = decl.value;
+                  finalNamedArgs[decl.id] = decl.value;
                 }
               }
             }
@@ -409,7 +410,7 @@ class HTFunction extends HTFunctionDeclaration
         // either a normal external function or
         // a external static method in a non-external class
         if (!(klass?.isExternal ?? false)) {
-          externalFunc ??= interpreter.fetchExternalFunction(name);
+          externalFunc ??= interpreter.fetchExternalFunction(internalName);
 
           if (externalFunc is HTExternalFunction) {
             result = externalFunc!(
@@ -434,7 +435,7 @@ class HTFunction extends HTFunctionDeclaration
                 final funcName = id != null ? '$classId.$id' : classId;
                 externalFunc = externClass.memberGet(funcName);
               } else {
-                throw HTError.missingExternalFunc(name);
+                throw HTError.missingExternalFunc(internalName);
               }
             }
 

@@ -1,16 +1,20 @@
-import 'package:hetu_script/ast/ast_compilation.dart';
-import 'package:hetu_script/hetu_script.dart';
-
+import '../grammar/semantic.dart';
+import '../source/source.dart';
 import 'namespace.dart';
 
 class HTLibrary extends HTNamespace {
   @override
-  final String id;
+  String toString() => '${SemanticNames.library} $id';
 
   @override
+  final String id;
+
+  final Map<String, HTSource> sources;
+
+  @override
+  // to override the type of this filed in super type,
+  // must write the type on the left
   final Map<String, HTNamespace> declarations = {};
 
-  final Map<String, HTSource> sources = {};
-
-  HTLibrary(this.id) : super(id: id);
+  HTLibrary(this.id, this.sources) : super(id: id);
 }

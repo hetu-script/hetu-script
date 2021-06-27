@@ -5,8 +5,7 @@ void main() {
       HTAnalyzer(config: AnalyzerConfig(sourceType: SourceType.script));
   hetu.init();
   final result = hetu.eval(r'''
-    import 'nofile.ht'
-    var %i = 'hey! ${}'
+    var i = 'Hello, world!'
   ''');
   if (result != null) {
     if (result.errors.isNotEmpty) {

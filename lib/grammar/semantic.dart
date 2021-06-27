@@ -30,17 +30,22 @@ abstract class SemanticNames {
   static const newLine = '\n';
 
   static const internalMarker = r'$';
+  static const analysisResult = r'analysis_result';
+  static const anonymousLibrary = r'anonymous_library';
   static const anonymousScript = r'anonymous_script';
-  static const anonymousFunction = r'$anonymous_function';
+  static const anonymousClass = r'$anonymous_class';
   static const anonymousNamespace = r'$anonymous_namespace';
+  static const anonymousFunction = r'$anonymous_function';
   static const anonymousBlock = r'$anonymous_block';
+  static const name = r'name';
   static const increment = r'$increment';
   static const iterable = r'$iterable';
   static const instance = r'$instance';
   static const constructor = r'$constructor_';
   static const getter = r'$get_';
   static const setter = r'$set_';
-  static const instanceOf = 'instance of';
+  static const instanceof = 'instance of';
+  static const tostring = 'toString';
 
   static const endOfFile = 'end_of_file';
   static const empty = 'empty';

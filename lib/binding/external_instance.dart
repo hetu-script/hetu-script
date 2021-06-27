@@ -2,9 +2,9 @@ import '../interpreter/abstract_interpreter.dart';
 import '../object/object.dart';
 import '../type/type.dart';
 import '../type/nominal_type.dart';
-import '../grammar/semantic.dart';
+// import '../grammar/semantic.dart';
 import '../error/error.dart';
-import '../declaration/function/function_declaration.dart';
+import '../declaration/function/function.dart';
 import '../declaration/class/class.dart';
 import 'external_class.dart';
 
@@ -47,18 +47,19 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     if (externalClass != null) {
       final member = externalClass!.instanceMemberGet(externalObject, field);
       if (member is Function) {
-        final getter = '${SemanticNames.getter}$field';
-        if (klass!.instanceMembers.containsKey(field)) {
-          HTFunctionDeclaration func = klass!.instanceMembers[field]!.value;
-          func.externalFunc = member;
-          return func;
-        } else if (klass!.instanceMembers.containsKey(getter)) {
-          HTFunctionDeclaration func = klass!.instanceMembers[getter]!.value;
-          func.externalFunc = member;
-          return func;
-        }
+        // final getter = '${SemanticNames.getter}$field';
+        // if (klass!.namespace.declarations.containsKey(field)) {
+        HTFunction func = klass!.memberGet(field, recursive: false);
+        func.externalFunc = member;
+        return func;
+        // } else if (klass!.namespace.declarations.containsKey(getter)) {
+        //   HTFunction func = klass!.namespace.declarations[getter]!.value;
+        //   func.externalFunc = member;
+        //   return func;
+        // }
+      } else {
+        return member;
       }
-      return member;
     } else {
       if (error) {
         throw HTError.undefined(field);

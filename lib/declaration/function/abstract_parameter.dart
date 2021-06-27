@@ -1,3 +1,4 @@
+import '../../type/type.dart';
 import '../declaration.dart';
 
 abstract class AbstractParameter implements HTDeclaration {
@@ -9,6 +10,8 @@ abstract class AbstractParameter implements HTDeclaration {
   bool get isNamed;
 
   bool get isVariadic;
+
+  HTType? get declType;
 
   @override
   AbstractParameter clone();

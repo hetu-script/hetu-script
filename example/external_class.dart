@@ -132,7 +132,7 @@ void main() {
       fun main {
         let p1: Person = Person()
         p1.greeting('jimmy')
-        print(p1.valueType)
+        print(typeof p1)
         print(p1.name)
         print(p1.child)
         print('My race is', p1.race)

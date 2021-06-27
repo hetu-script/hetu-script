@@ -4,24 +4,23 @@ import '../../type/type.dart';
 import '../../type/function_type.dart';
 import '../../source/source.dart';
 import '../namespace.dart';
-import '../declaration.dart';
+import '../variable/variable_declaration.dart';
 import 'abstract_parameter.dart';
 
-class HTFunctionDeclaration extends HTDeclaration {
+class HTFunctionDeclaration extends HTVariableDeclaration {
   final String internalName;
 
   final FunctionCategory category;
-
-  Function? externalFunc;
 
   final String? externalTypeId;
 
   /// Holds declarations of all parameters.
   final Map<String, AbstractParameter> paramDecls;
 
-  HTType get returnType => type.returnType;
+  HTType get returnType => declType.returnType;
 
-  final HTFunctionType type;
+  @override
+  final HTFunctionType declType;
 
   final bool isVariadic;
 
@@ -38,14 +37,13 @@ class HTFunctionDeclaration extends HTDeclaration {
       bool isStatic = false,
       bool isConst = false,
       this.category = FunctionCategory.normal,
-      this.externalFunc,
       this.externalTypeId,
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0,
       this.paramDecls = const {},
       HTType? returnType})
-      : type = HTFunctionType(
+      : declType = HTFunctionType(
             parameterDeclarations: paramDecls.values.toList(),
             returnType: returnType ?? HTType.ANY),
         super(
@@ -63,11 +61,11 @@ class HTFunctionDeclaration extends HTDeclaration {
     var result = StringBuffer();
     result.write(HTLexicon.FUNCTION);
     result.write(' $internalName');
-    if (type.typeArgs.isNotEmpty) {
+    if (declType.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
-      for (var i = 0; i < type.typeArgs.length; ++i) {
-        result.write(type.typeArgs[i]);
-        if (i < type.typeArgs.length - 1) {
+      for (var i = 0; i < declType.typeArgs.length; ++i) {
+        result.write(declType.typeArgs[i]);
+        if (i < declType.typeArgs.length - 1) {
           result.write('${HTLexicon.comma} ');
         }
       }
@@ -109,7 +107,7 @@ class HTFunctionDeclaration extends HTDeclaration {
   }
 
   @override
-  HTFunctionDeclaration clone() => HTFunctionDeclaration(name,
+  HTFunctionDeclaration clone() => HTFunctionDeclaration(internalName,
       id: id,
       classId: classId,
       closure: closure,
@@ -118,7 +116,6 @@ class HTFunctionDeclaration extends HTDeclaration {
       isStatic: isStatic,
       isConst: isConst,
       category: category,
-      externalFunc: externalFunc,
       externalTypeId: externalTypeId,
       isVariadic: isVariadic,
       minArity: minArity,

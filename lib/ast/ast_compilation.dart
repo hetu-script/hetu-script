@@ -45,9 +45,12 @@ class HTAstModule {
 class HTAstCompilation {
   final modules = <String, HTAstModule>{};
 
+  final sources = <String, HTSource>{};
+
   void add(HTAstModule module) => modules[module.fullName] = module;
 
   void join(HTAstCompilation bundle2) {
     modules.addAll(bundle2.modules);
+    sources.addAll(bundle2.sources);
   }
 }

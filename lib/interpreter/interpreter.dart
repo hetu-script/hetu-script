@@ -5,7 +5,6 @@ import '../declaration/namespace.dart';
 import '../object/object.dart';
 import '../declaration/declaration.dart';
 import '../declaration/class/class.dart';
-import '../declaration/class/enum.dart';
 import '../declaration/class/cast.dart';
 import '../declaration/function/parameter_declaration.dart';
 import '../declaration/function/function.dart';
@@ -46,7 +45,7 @@ class Hetu extends AbstractInterpreter {
   static const verMinor = 1;
   static const verPatch = 0;
 
-  final _compilation = <String, HTBytecodeLibrary>{};
+  final _cachedLibs = <String, HTBytecodeLibrary>{};
 
   late InterpreterConfig _curConfig;
 
@@ -203,14 +202,15 @@ class Hetu extends AbstractInterpreter {
     final compilation =
         parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
     final bytes = compiler.compile(compilation, source.libraryName);
-    _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
+    _curLibrary =
+        HTBytecodeLibrary(source.libraryName, bytes, compilation.sources);
 
     try {
       var result;
       if (_curConfig.sourceType == SourceType.script) {
         HTNamespace nsp = execute(namespace: namespace ?? global);
         _curLibrary.define(nsp.id!, nsp);
-        _compilation[_curLibrary.id] = _curLibrary;
+        _cachedLibs[_curLibrary.id] = _curLibrary;
         // every scripts shares each others declarations,
         // this is achieved by global namespace import from them
         global.import(nsp);
@@ -221,7 +221,7 @@ class Hetu extends AbstractInterpreter {
           final HTNamespace nsp = execute();
           _curLibrary.define(nsp.id!, nsp);
         }
-        _compilation[_curLibrary.id] = _curLibrary;
+        _cachedLibs[_curLibrary.id] = _curLibrary;
 
         if (hasOwnNamespace) {
           for (final module in compilation.modules.values) {
@@ -366,7 +366,7 @@ class Hetu extends AbstractInterpreter {
       _curModuleFullName = moduleFullName;
     }
     if (libraryName != null && (_curLibrary.id != libraryName)) {
-      _curLibrary = _compilation[libraryName]!;
+      _curLibrary = _cachedLibs[libraryName]!;
       libChanged = true;
     }
     if (namespace != null) {
@@ -520,9 +520,6 @@ class Hetu extends AbstractInterpreter {
           break;
         case HTOpCode.typeAliasDecl:
           _handleTypeAliasDecl();
-          break;
-        case HTOpCode.enumDecl:
-          _handleEnumDecl();
           break;
         case HTOpCode.funcDecl:
           _handleFuncDecl();
@@ -959,12 +956,18 @@ class Hetu extends AbstractInterpreter {
       } else {
         klass = callee;
       }
-
       if (klass.isAbstract) {
         throw HTError.abstracted();
       }
-
-      if (!klass.isExternal) {
+      // if (!klass.isExternal) {
+      //   final constructor =
+      //       klass.memberGet(SemanticNames.constructor) as HTFunction;
+      //   _curValue = constructor.call(
+      //       positionalArgs: positionalArgs,
+      //       namedArgs: namedArgs,
+      //       typeArgs: typeArgs);
+      // } else {
+      if (klass.contains(SemanticNames.constructor)) {
         final constructor =
             klass.memberGet(SemanticNames.constructor) as HTFunction;
         _curValue = constructor.call(
@@ -972,12 +975,9 @@ class Hetu extends AbstractInterpreter {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        final constructor = klass.memberGet(callee.internalName) as HTFunction;
-        _curValue = constructor.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
+        throw HTError.notCallable(klass.id!);
       }
+      // }
     } else {
       throw HTError.notCallable(callee.toString());
     }
@@ -1071,7 +1071,7 @@ class Hetu extends AbstractInterpreter {
     final isExported = _curLibrary.readBool();
     final value = _handleTypeExpr();
 
-    final decl = HTVariable(id, this, classId: classId, value: value);
+    final decl = HTVariable(id, this, classId: classId, initValue: value);
 
     _curNamespace.define(id, decl);
   }
@@ -1085,8 +1085,8 @@ class Hetu extends AbstractInterpreter {
     }
     final isExternal = _curLibrary.readBool();
     final isStatic = _curLibrary.readBool();
-    final isConst = _curLibrary.readBool();
     final isMutable = _curLibrary.readBool();
+    final isConst = _curLibrary.readBool();
     final isExported = _curLibrary.readBool();
     final lateInitialize = _curLibrary.readBool();
 
@@ -1118,13 +1118,13 @@ class Hetu extends AbstractInterpreter {
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
       } else {
-        final initValue = execute();
+        final value = execute();
 
         decl = HTVariable(id, this,
             classId: classId,
             closure: _curNamespace,
             declType: declType,
-            value: initValue,
+            initValue: value,
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
@@ -1141,11 +1141,11 @@ class Hetu extends AbstractInterpreter {
           isMutable: isMutable);
     }
 
-    if (!hasClassId || isStatic) {
-      _curNamespace.define(id, decl);
-    } else {
-      _curClass!.defineInstanceMember(id, decl);
-    }
+    // if (!hasClassId || isStatic) {
+    _curNamespace.define(id, decl);
+    // } else {
+    //   _curClass!.defineInstanceMember(id, decl);
+    // }
   }
 
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
@@ -1280,24 +1280,26 @@ class Hetu extends AbstractInterpreter {
         closure: _curNamespace,
         referConstructor: referConstructor);
 
-    if (!isStatic &&
-        (category == FunctionCategory.method ||
-            category == FunctionCategory.getter ||
-            category == FunctionCategory.setter)) {
-      // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
-      //     value: func);
-      _curClass!.defineInstanceMember(func.internalName, func);
-    } else {
-      // constructor are defined in class's namespace,
-      // however its context is on instance.
-      if (category != FunctionCategory.constructor) {
-        func.context = _curNamespace;
-      }
-      // static methods are defined in class's namespace,
-      // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
-      //     value: func);
-      _curNamespace.define(func.internalName, func);
+    // if (!isStatic &&
+    //     (category == FunctionCategory.method ||
+    //         category == FunctionCategory.getter ||
+    //         category == FunctionCategory.setter)) {
+    // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
+    //     value: func);
+    // _curClass!.defineInstanceMember(func.internalName, func);
+    // } else {
+    // constructor are defined in class's namespace,
+    // however its context is on instance.
+    if ((category != FunctionCategory.constructor) || isStatic) {
+      func.context = _curNamespace;
     }
+    // static methods are defined in class's namespace,
+    // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
+    //     value: func);
+    // _curNamespace.define(func.internalName, func);
+    // }
+
+    _curNamespace.define(func.internalName, func);
   }
 
   void _handleClassDecl() {
@@ -1305,6 +1307,7 @@ class Hetu extends AbstractInterpreter {
     final isExternal = _curLibrary.readBool();
     final isAbstract = _curLibrary.readBool();
     final isExported = _curLibrary.readBool();
+    final hasUserDefinedConstructor = _curLibrary.readBool();
     HTType? superType;
     final hasSuperClass = _curLibrary.readBool();
     if (hasSuperClass) {
@@ -1329,50 +1332,19 @@ class Hetu extends AbstractInterpreter {
     }
     // Add default constructor if non-exist.
     if (!isAbstract) {
-      if (!isExternal) {
-        if (!klass.namespace.declarations
-            .containsKey(SemanticNames.constructor)) {
-          final ctor = HTFunction(SemanticNames.constructor, _curModuleFullName,
-              _curLibrary.id, this,
-              classId: klass.id,
-              category: FunctionCategory.constructor,
-              closure: klass.namespace);
-          // final decl = HTVariable(
-          //     ctor.id, _curModuleFullName, _curLibraryName, this,
-          //     value: ctor);
-          klass.namespace.define(SemanticNames.constructor, ctor);
-        }
+      if (!hasUserDefinedConstructor) {
+        final ctor = HTFunction(
+            SemanticNames.constructor, _curModuleFullName, _curLibrary.id, this,
+            classId: klass.id,
+            category: FunctionCategory.constructor,
+            closure: klass.namespace);
+        klass.namespace.define(SemanticNames.constructor, ctor);
       }
-      // else {
-      //   if (!klass.namespace.contains(klass.id)) {
-      //     klass.namespace.define(HTBytecodeFunction(
-      //         klass.id, this, _curModuleFullName,
-      //         klass: klass, category: FunctionType.constructor));
-      //   }
-      // }
     }
     if (_curConfig.sourceType == SourceType.script || _curFunction != null) {
       klass.resolve();
     }
 
     _curClass = savedClass;
-  }
-
-  void _handleEnumDecl({String? classId}) {
-    final id = _curLibrary.readShortUtf8String();
-    final isExternal = _curLibrary.readBool();
-    final length = _curLibrary.readUint16();
-
-    var defs = <String, HTEnumItem>{};
-    for (var i = 0; i < length; i++) {
-      final enumId = _curLibrary.readShortUtf8String();
-      defs[enumId] = HTEnumItem<int>(i, enumId, HTType(id));
-    }
-
-    final enumClass =
-        HTEnum(id, defs, this, classId: classId, isExternal: isExternal);
-    // final decl = HTVariable(id, _curModuleFullName, _curLibraryName, this,
-    //     value: enumClass);
-    _curNamespace.define(id, enumClass);
   }
 }

@@ -52,8 +52,11 @@ class HTInstance with HTObject, InterpreterRef {
         classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
-      for (final key in curKlass.instanceMembers.keys) {
-        final decl = curKlass.instanceMembers[key]!;
+      for (final key in curKlass.namespace.declarations.keys) {
+        final decl = curKlass.namespace.declarations[key]!;
+        if (decl.isStatic) {
+          continue;
+        }
         // TODO: check if override, and if so, check the type wether fits super's type.
         final clone = decl.clone();
         curNamespace.define(key, clone);

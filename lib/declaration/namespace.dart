@@ -20,10 +20,10 @@ class HTNamespace extends HTDeclaration {
       {String? id, String? classId, HTNamespace? closure, HTSource? source})
       : super(id: id, classId: classId, closure: closure, source: source) {
     // calculate the full name of this namespace
-    _fullName = name;
+    _fullName = displayName;
     var curSpace = closure;
     while (curSpace != null) {
-      _fullName = curSpace.name + HTLexicon.memberGet + fullName;
+      _fullName = curSpace.displayName + HTLexicon.memberGet + fullName;
       curSpace = curSpace.closure;
     }
   }

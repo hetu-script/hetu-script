@@ -78,6 +78,24 @@ class HTFormatter implements AbstractAstVisitor<String> {
     }
   }
 
+  String _printGenericTypes(List<TypeExpr> params) {
+    final output = StringBuffer();
+    if (params.isNotEmpty) {
+      output.write(HTLexicon.typesBracketLeft);
+      for (var i = 0; i < params.length; ++i) {
+        final param = params[i];
+        final paramString = printAst(param);
+        output.write(paramString);
+
+        if (i < params.length - 1) {
+          output.write('${HTLexicon.comma} ');
+        }
+      }
+      output.write(HTLexicon.typesBracketRight);
+    }
+    return output.toString();
+  }
+
   String printAst(AstNode ast) => ast.accept(this);
 
   @override
@@ -541,6 +559,15 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitTypeDeclStmt(TypeDeclStmt stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.TYPE} ${stmt.id} ${HTLexicon.assign} ');
+    final valueString = printAst(stmt.value);
+    output.write(valueString);
+    return output.toString();
+  }
+
+  @override
   String visitVarDeclStmt(VarDeclStmt stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
@@ -568,24 +595,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return output.toString();
   }
 
-  String printGenericTypes(List<TypeExpr> params) {
-    final output = StringBuffer();
-    if (params.isNotEmpty) {
-      output.write(HTLexicon.typesBracketLeft);
-      for (var i = 0; i < params.length; ++i) {
-        final param = params[i];
-        final paramString = printAst(param);
-        output.write(paramString);
-
-        if (i < params.length - 1) {
-          output.write('${HTLexicon.comma} ');
-        }
-      }
-      output.write(HTLexicon.typesBracketRight);
-    }
-    return output.toString();
-  }
-
   @override
   String visitParamDeclStmt(ParamDeclExpr stmt) {
     final output = StringBuffer();
@@ -602,7 +611,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitReferConstructorExpr(ReferConstructorExpr stmt) {
+  String visitReferConstructCallExpr(ReferConstructCallExpr stmt) {
     final output = StringBuffer();
     output.write(stmt.isSuper ? HTLexicon.SUPER : HTLexicon.THIS);
     if (stmt.key != null) {
@@ -681,7 +690,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     if (stmt.id != null) {
       output.write(' ${stmt.id}');
     }
-    final paramDeclString = printParamDecls(stmt.params);
+    final paramDeclString = printParamDecls(stmt.paramDecls);
     output.write(paramDeclString);
 
     output.write(' ');
@@ -692,7 +701,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
       output.write('$returnTypeString ');
     } else if (stmt.referConstructor != null) {
       output.write('${HTLexicon.colon} ');
-      final referCtorString = visitReferConstructorExpr(stmt.referConstructor!);
+      final referCtorString =
+          visitReferConstructCallExpr(stmt.referConstructor!);
       output.write('$referCtorString ');
     }
 
@@ -745,15 +755,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
     output.write(curIndent);
     output.write(HTLexicon.curlyRight);
 
-    return output.toString();
-  }
-
-  @override
-  String visitTypeAliasStmt(TypeAliasDeclStmt stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.TYPE} ${stmt.id} ${HTLexicon.assign} ');
-    final valueString = printAst(stmt.value);
-    output.write(valueString);
     return output.toString();
   }
 }

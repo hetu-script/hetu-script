@@ -19,7 +19,7 @@ void main() {
     fun main {
       var a = A()
       a.init()
-      // a._post() // erorr!
+      a._post() // erorr!
     }
 
   ''', invokeFunc: 'main');

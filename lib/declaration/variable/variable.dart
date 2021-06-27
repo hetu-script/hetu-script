@@ -3,10 +3,10 @@ import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
 import '../namespace.dart';
-import '../declaration.dart';
+import 'variable_declaration.dart';
 
 /// Variable is a binding between an element and a value
-class HTVariable extends HTDeclaration with HetuRef, GotoInfo {
+class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   @override
   final String id;
 
@@ -14,9 +14,6 @@ class HTVariable extends HTDeclaration with HetuRef, GotoInfo {
   dynamic _value;
 
   var _isInitializing = false;
-
-  var _isInitialized = false;
-  bool get isInitialized => _isInitialized;
 
   // var _isTypeInitialized = false;
 
@@ -27,7 +24,7 @@ class HTVariable extends HTDeclaration with HetuRef, GotoInfo {
       {String? classId,
       HTNamespace? closure,
       HTType? declType,
-      dynamic value,
+      dynamic initValue,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
@@ -49,9 +46,8 @@ class HTVariable extends HTDeclaration with HetuRef, GotoInfo {
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
 
-    if (value != null) {
-      this.value = value;
-      _isInitialized = true;
+    if (initValue != null) {
+      _value = initValue;
     }
 
     // if (declType != null) {
@@ -72,41 +68,42 @@ class HTVariable extends HTDeclaration with HetuRef, GotoInfo {
 
   /// Initialize this variable with its declared initializer bytecode
   void initialize() {
-    if (isInitialized) return;
+    // if (_value != null) return;
 
-    if (definitionIp != null) {
-      if (!_isInitializing) {
-        _isInitializing = true;
-        final initVal = interpreter.execute(
-            moduleFullName: source?.fullName,
-            libraryName: source?.libraryName,
-            ip: definitionIp!,
-            namespace: closure,
-            line: definitionLine,
-            column: definitionColumn);
+    // if (definitionIp != null) {
+    if (!_isInitializing) {
+      _isInitializing = true;
+      final initVal = interpreter.execute(
+          moduleFullName: source?.fullName,
+          libraryName: source?.libraryName,
+          ip: definitionIp!,
+          namespace: closure,
+          line: definitionLine,
+          column: definitionColumn);
 
-        value = initVal;
-
-        _isInitializing = false;
-      } else {
-        throw HTError.circleInit(name);
-      }
+      value = initVal;
+      _isInitializing = false;
     } else {
-      value = null; // null 也要 assign 一下，因为需要类型检查
+      throw HTError.circleInit(id);
     }
+    // } else {
+    //   value = null; // null 也要 assign 一下，因为需要类型检查
+    // }
   }
 
   /// Assign a new value to this variable.
   @override
   set value(dynamic value) {
+    if ((!isMutable || isConst) && (_value != null)) {
+      throw HTError.immutable(id);
+    }
     _value = value;
-    _isInitialized = true;
   }
 
   @override
   dynamic get value {
     if (!isExternal) {
-      if (!isInitialized) {
+      if (_value == null && (definitionIp != null)) {
         initialize();
       }
       return _value;
@@ -161,7 +158,7 @@ class HTVariable extends HTDeclaration with HetuRef, GotoInfo {
       classId: classId,
       closure: closure,
       declType: declType,
-      value: value,
+      initValue: _value,
       isExternal: isExternal,
       isStatic: isStatic,
       isConst: isConst,

@@ -1,8 +1,8 @@
 import '../../type/type.dart';
-import '../declaration.dart';
+import '../variable/variable_declaration.dart';
 import 'abstract_parameter.dart';
 
-class HTParameterDeclaration extends HTDeclaration
+class HTParameterDeclaration extends HTVariableDeclaration
     implements AbstractParameter {
   @override
   final String id;

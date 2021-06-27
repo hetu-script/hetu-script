@@ -54,13 +54,11 @@ abstract class HTOpCode {
 
   static const typeAliasDecl = 22;
 
-  static const enumDecl = 23;
+  static const funcDecl = 23;
 
-  static const funcDecl = 24;
+  static const classDecl = 24;
 
-  static const classDecl = 25;
-
-  static const varDecl = 26;
+  static const varDecl = 25;
 
   static const ifStmt = 30;
 

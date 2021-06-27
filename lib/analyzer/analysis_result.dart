@@ -1,10 +1,10 @@
-import '../declaration/namespace.dart';
-import '../error/error.dart';
-import '../error/error_handler.dart';
+import '../declaration/library.dart';
+import '../source/source.dart';
+import '../grammar/semantic.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
-class HTAnalysisResult extends HTNamespace {
+class HTAnalysisResult extends HTLibrary {
   @override
   String toString() => '${errors.length} errors';
 
@@ -12,5 +12,6 @@ class HTAnalysisResult extends HTNamespace {
 
   final List<HTAnalysisError> errors;
 
-  HTAnalysisResult(this.analyzer, this.errors);
+  HTAnalysisResult(this.analyzer, this.errors, Map<String, HTSource> sources)
+      : super(SemanticNames.analysisResult, sources);
 }

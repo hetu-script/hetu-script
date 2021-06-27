@@ -23,7 +23,7 @@ void main() {
       var j = Person()
       var i
       j.name.familyName = i = 'Luke'
-      print(j.name) // Will use overrided toString function in user's class
+      print(j.name) // Will use overrided toString function in script class
     }
   ''', invokeFunc: 'main');
 }

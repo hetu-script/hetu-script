@@ -5,7 +5,7 @@ import '../error/error.dart';
 import '../object/object.dart';
 import '../declaration/class/class_declaration.dart';
 import '../declaration/namespace.dart';
-// import '../ast/ast.dart' show TypeExpr;
+import '../ast/ast.dart' show TypeExpr;
 import 'function_type.dart';
 import 'nominal_type.dart';
 
@@ -57,18 +57,15 @@ class HTType with HTObject {
   const HTType(this.id,
       {String? classId, this.typeArgs = const [], this.isNullable = false});
 
-  // factory HTType.fromAst(
-  //     TypeExpr? ast, String moduleFullName, String libraryName) {
-  //   if (ast != null) {
-  //     return HTType(ast.id, moduleFullName, libraryName,
-  //         typeArgs: ast.arguments
-  //             .map((expr) => HTType.fromAst(expr, moduleFullName, libraryName))
-  //             .toList(),
-  //         isNullable: ast.isNullable);
-  //   } else {
-  //     return HTType.ANY;
-  //   }
-  // }
+  factory HTType.fromAst(TypeExpr? ast) {
+    if (ast != null) {
+      return HTType(ast.id,
+          typeArgs: ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
+          isNullable: ast.isNullable);
+    } else {
+      return HTType.ANY;
+    }
+  }
 
   @override
   String toString() {

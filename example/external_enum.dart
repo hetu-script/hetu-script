@@ -61,23 +61,25 @@ void main() {
         african,
       }
 
-      external enum Country // 不用写定义体
+      external enum Country {
+        UnitedStates,
+        Japan,
+        Iraq,
+        Ukraine,
+      }
 
       fun main {
         print(Race.values)
         let race: Race = Race.african
         print(race)
-        print(race.valueType)
-        print(race.index)
+        print(typeof race)
         print(race.toString())
-        print(race)
         
-        print(Country.values)
-        let country: Country = Country.Japan // 可以进行类型检查
-        print(country.valueType)
-        print(country.index)
-        print(country.toString())
-        print(country)
+        // print(Country.values)
+        // let country: Country = Country.Japan // 可以进行类型检查
+        // print(country)
+        // print(typeof country)
+        // print(country.toString())
       }
       ''', invokeFunc: 'main');
 }

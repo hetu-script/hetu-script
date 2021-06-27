@@ -1,4 +1,8 @@
+import 'package:hetu_script/declaration/class/class_declaration.dart';
 import 'package:hetu_script/declaration/declaration.dart';
+import 'package:hetu_script/declaration/function/function_declaration.dart';
+import 'package:hetu_script/declaration/function/parameter_declaration.dart';
+import 'package:hetu_script/declaration/variable/variable_declaration.dart';
 
 import '../source/source.dart';
 import '../source/source_provider.dart';
@@ -48,13 +52,16 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
   @override
   HTNamespace get curNamespace => _curNamespace;
 
-  late String _curModuleFullName;
+  late HTSource _curSource;
   @override
-  String get curModuleFullName => _curModuleFullName;
+  String get curModuleFullName => _curSource.fullName;
 
   late HTLibrary _curLibrary;
   @override
   HTLibrary get curLibrary => _curLibrary;
+
+  HTClassDeclaration? _curClass;
+  HTFunctionDeclaration? _curFunction;
 
   final _curErrors = <HTAnalysisError>[];
 
@@ -71,7 +78,7 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
       : _curConfig = config,
         super(config: config, sourceProvider: sourceProvider) {
     _curNamespace = global;
-    _curAnalysisResult = HTAnalysisResult(this, _curErrors);
+    _curAnalysisResult = HTAnalysisResult(this, _curErrors, {});
   }
 
   @override
@@ -83,7 +90,7 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
       var message = error.toString();
       analysisError = HTAnalysisError(ErrorCode.extern, ErrorType.externalError,
           message: message,
-          moduleFullName: _curModuleFullName,
+          moduleFullName: _curSource.fullName,
           line: _curLine,
           column: _curColumn);
     }
@@ -108,13 +115,19 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
     if (source.content.isEmpty) {
       return null;
     }
-    _curModuleFullName = source.fullName;
-    _curLibrary = HTLibrary(source.libraryName);
     final parser = HTAstParser(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     final compilation = parser.parseToCompilation(source);
+    _curLibrary = HTLibrary(source.libraryName, compilation.sources);
     for (final module in compilation.modules.values) {
       _curLibrary.sources[module.source.fullName] = module.source;
+      _curSource = module.source;
+      if (module.hasOwnNamespace) {
+        _curNamespace = HTNamespace(id: module.fullName, closure: global);
+        _curLibrary.declarations[module.fullName] = _curNamespace;
+      } else {
+        _curNamespace = global;
+      }
       for (final node in module.nodes) {
         analyzeAst(node);
       }
@@ -242,23 +255,76 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
   void visitContinueStmt(ContinueStmt stmt) {}
 
   @override
-  void visitVarDeclStmt(VarDeclStmt stmt) {}
+  void visitTypeDeclStmt(TypeDeclStmt stmt) {}
+
+  @override
+  void visitVarDeclStmt(VarDeclStmt stmt) {
+    final decl = HTVariableDeclaration(
+        id: stmt.id,
+        classId: stmt.classId,
+        closure: _curNamespace,
+        source: _curSource,
+        declType: HTType.fromAst(stmt.declType),
+        isExternal: stmt.isExternal,
+        isStatic: stmt.isStatic,
+        isConst: stmt.isConst,
+        isMutable: stmt.isMutable);
+
+    _curNamespace.define(stmt.id, decl);
+  }
 
   @override
   void visitParamDeclStmt(ParamDeclExpr stmt) {}
 
   @override
-  void visitReferConstructorExpr(ReferConstructorExpr stmt) {}
+  void visitReferConstructCallExpr(ReferConstructCallExpr stmt) {}
 
   @override
-  void visitFuncDeclStmt(FuncDeclExpr stmt) {}
+  void visitFuncDeclStmt(FuncDeclExpr stmt) {
+    final decl = HTFunctionDeclaration(stmt.internalName,
+        id: stmt.id,
+        classId: stmt.classId,
+        closure: _curNamespace,
+        source: _curSource,
+        isExternal: stmt.isExternal,
+        isStatic: stmt.isStatic,
+        isConst: stmt.isConst,
+        category: stmt.category,
+        externalTypeId: stmt.externalTypeId,
+        isVariadic: stmt.isVariadic,
+        minArity: stmt.minArity,
+        maxArity: stmt.maxArity,
+        paramDecls: stmt.paramDecls.asMap().map((key, param) => MapEntry(
+            param.id,
+            HTParameterDeclaration(param.id,
+                declType: HTType.fromAst(param.declType),
+                isOptional: param.isOptional,
+                isNamed: param.isNamed,
+                isVariadic: param.isVariadic))),
+        returnType: HTType.fromAst(stmt.returnType));
+
+    _curNamespace.define(stmt.internalName, decl);
+  }
 
   @override
-  void visitClassDeclStmt(ClassDeclStmt stmt) {}
+  void visitClassDeclStmt(ClassDeclStmt stmt) {
+    final decl = HTClassDeclaration(
+        id: stmt.id,
+        classId: stmt.classId,
+        closure: _curNamespace,
+        source: _curSource,
+        genericParameters:
+            stmt.genericParameters.map((param) => HTType.fromAst(param)),
+        superType: HTType.fromAst(stmt.superType),
+        implementsTypes:
+            stmt.implementsTypes.map((param) => HTType.fromAst(param)),
+        withTypes: stmt.withTypes.map((param) => HTType.fromAst(param)),
+        isExternal: stmt.isExternal,
+        isAbstract: stmt.isAbstract);
+
+    _curNamespace.define(stmt.id, decl);
+  }
 
   @override
   void visitEnumDeclStmt(EnumDeclStmt stmt) {}
-
-  @override
-  void visitTypeAliasStmt(TypeAliasDeclStmt stmt) {}
 }

@@ -9,15 +9,15 @@ const cli_help = r'''
 Hetu Script Command-line Tool
 Version: 0.1.0
 Usage:
-hetu [command] [command_args]
+hetu [command] [option]
   command:
-    format [path]
-      to format a script file.
+    format [path] [option]
       --script(-s)
       --print(-p)
       --out(-o) [outpath]
-    run [path]
-      to run a script file.
+    analyze [path] [option]
+      --script(-s)
+    run [path] [option]
       --script(-s)
 hetu [option]
   option:

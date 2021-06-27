@@ -162,7 +162,8 @@ abstract class AbstractInterpreter<T> implements HTErrorHandler {
     if (moduleFullName == null) {
       final sigBuilder = StringBuffer();
       sigBuilder.write('${SemanticNames.anonymousScript}: [');
-      var firstLine = content.trimLeft().replaceAll(RegExp(r'\s+'), ' ');
+      var firstLine =
+          content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
       sigBuilder.write(firstLine.substring(
           0, math.min(_anonymousScriptSignatureLength, firstLine.length)));
       if (firstLine.length > _anonymousScriptSignatureLength) {

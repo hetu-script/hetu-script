@@ -76,17 +76,17 @@ abstract class AbstractAstVisitor<T> {
 
   T visitContinueStmt(ContinueStmt stmt);
 
+  T visitTypeDeclStmt(TypeDeclStmt stmt);
+
   T visitVarDeclStmt(VarDeclStmt stmt);
 
   T visitParamDeclStmt(ParamDeclExpr stmt);
 
-  T visitReferConstructorExpr(ReferConstructorExpr stmt);
+  T visitReferConstructCallExpr(ReferConstructCallExpr stmt);
 
   T visitFuncDeclStmt(FuncDeclExpr stmt);
 
   T visitClassDeclStmt(ClassDeclStmt stmt);
 
   T visitEnumDeclStmt(EnumDeclStmt stmt);
-
-  T visitTypeAliasStmt(TypeAliasDeclStmt stmt);
 }
