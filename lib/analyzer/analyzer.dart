@@ -56,19 +56,16 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
   @override
   String get curModuleFullName => _curSource.fullName;
 
-  late HTLibrary _curLibrary;
+  late HTAnalysisResult _curLibrary;
   @override
-  HTLibrary get curLibrary => _curLibrary;
+  HTAnalysisResult get curLibrary => _curLibrary;
+
+  final _cachedLibs = <String, HTLibrary>{};
 
   HTClassDeclaration? _curClass;
   HTFunctionDeclaration? _curFunction;
 
-  final _curErrors = <HTAnalysisError>[];
-
-  late HTAnalysisResult _curAnalysisResult;
-
-  @override
-  dynamic get failedResult => _curAnalysisResult;
+  late List<HTAnalysisError> _curErrors;
 
   late HTTypeChecker _curTypeChecker;
 
@@ -78,7 +75,6 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
       : _curConfig = config,
         super(config: config, sourceProvider: sourceProvider) {
     _curNamespace = global;
-    _curAnalysisResult = HTAnalysisResult(this, _curErrors, {});
   }
 
   @override
@@ -115,38 +111,33 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
     if (source.content.isEmpty) {
       return null;
     }
+    final hasOwnNamespace = namespace != global;
     final parser = HTAstParser(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
-
-    try {
-      final compilation = parser.parseToCompilation(source, errorHandled: true);
-      _curLibrary = HTLibrary(source.libraryName, compilation.sources);
-      for (final module in compilation.modules.values) {
-        _curLibrary.sources[module.source.fullName] = module.source;
-        _curSource = module.source;
-        if (module.hasOwnNamespace) {
-          _curNamespace = HTNamespace(id: module.fullName, closure: global);
-          _curLibrary.declarations[module.fullName] = _curNamespace;
-        } else {
-          _curNamespace = global;
-        }
-        for (final node in module.nodes) {
-          analyzeAst(node);
-        }
-      }
-      _curTypeChecker = HTTypeChecker(_curLibrary);
-      for (final decl in _curLibrary.declarations.values) {
-        analyzeDeclaration(decl);
-      }
-    } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
+    _curErrors = <HTAnalysisError>[];
+    final compilation = parser.parseToCompilation(source,
+        hasOwnNamespace: hasOwnNamespace, errorHandled: true);
+    _curLibrary = HTAnalysisResult(
+        source.libraryName, compilation.sources, this, _curErrors);
+    for (final module in compilation.modules.values) {
+      _curLibrary.sources[module.source.fullName] = module.source;
+      _curSource = module.source;
+      if (module.hasOwnNamespace) {
+        _curNamespace = HTNamespace(id: module.fullName, closure: global);
       } else {
-        handleError(error, externalStackTrace: stackTrace);
+        _curNamespace = global;
       }
-    } finally {
-      return _curAnalysisResult;
+      _curLibrary.declarations[module.fullName] = _curNamespace;
+      for (final node in module.nodes) {
+        analyzeAst(node);
+      }
     }
+    _curTypeChecker = HTTypeChecker(_curLibrary);
+    for (final decl in _curLibrary.declarations.values) {
+      analyzeDeclaration(decl);
+    }
+    _cachedLibs[_curLibrary.id] = _curLibrary;
+    return _curLibrary;
   }
 
   void analyzeDeclaration(HTDeclaration decl) {}
@@ -336,5 +327,14 @@ class HTAnalyzer extends AbstractInterpreter<HTAnalysisResult>
   }
 
   @override
-  void visitEnumDeclStmt(EnumDeclStmt stmt) {}
+  void visitEnumDeclStmt(EnumDeclStmt stmt) {
+    final decl = HTClassDeclaration(
+        id: stmt.id,
+        classId: stmt.classId,
+        closure: _curNamespace,
+        source: _curSource,
+        isExternal: stmt.isExternal);
+
+    _curNamespace.define(stmt.id, decl);
+  }
 }

@@ -1,6 +1,5 @@
 import '../declaration/library.dart';
 import '../source/source.dart';
-import '../grammar/semantic.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
@@ -12,6 +11,7 @@ class HTAnalysisResult extends HTLibrary {
 
   final List<HTAnalysisError> errors;
 
-  HTAnalysisResult(this.analyzer, this.errors, Map<String, HTSource> sources)
-      : super(SemanticNames.analysisResult, sources);
+  HTAnalysisResult(
+      String id, Map<String, HTSource> sources, this.analyzer, this.errors)
+      : super(id, sources);
 }

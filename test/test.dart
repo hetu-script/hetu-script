@@ -2,12 +2,12 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() {
   final hetu =
-      HTAnalyzer(config: AnalyzerConfig(sourceType: SourceType.script));
+      HTAnalyzer(config: AnalyzerConfig(sourceType: SourceType.module));
   hetu.init();
   final result = hetu.eval(r'''
-    import 'what'
-
-    var %i = 'Hello, world! ${}'
+    fun main {
+      print('hello world!')
+    }
   ''');
   if (result != null) {
     if (result.errors.isNotEmpty) {
