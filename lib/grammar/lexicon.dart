@@ -444,7 +444,7 @@ abstract class HTLexicon {
       'Condition expression must evaluate to type [bool]';
   static const errorNotList = '[{0}] is not a List or Map.';
   static const errorNullInit = 'Initializer evaluated to null.';
-  static const errorNullObject = 'Calling method on null object: [{0}]';
+  static const errorNullObject = 'Calling method on null object.';
   static const errorNullable = '[{0}] is not nullable.';
   static const errorType =
       'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}]';

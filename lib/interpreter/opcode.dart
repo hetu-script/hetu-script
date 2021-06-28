@@ -23,9 +23,6 @@ abstract class HTOpCode {
 
   static const module = 7;
 
-  /// uint16 line & column
-  static const lineInfo = 8;
-
   static const singleComment = 9;
 
   static const multilineComment = 10;
@@ -128,14 +125,17 @@ abstract class HTOpCode {
   /// 4 bytes
   static const signature = 200;
 
+  static const library = 201;
+
   /// uint8, uint8, uint16
-  static const version = 201;
+  static const version = 202;
 
   static const author = 203;
 
-  static const moduleName = 204;
+  static const created = 204;
 
-  static const created = 205;
+  /// uint16 line & column
+  static const lineInfo = 205;
 }
 
 /// Following a local operation, tells the value type, used by compiler.

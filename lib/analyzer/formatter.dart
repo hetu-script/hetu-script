@@ -336,8 +336,9 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitMemberAssignExpr(MemberAssignExpr expr) {
     final collectionString = printAst(expr.object);
-    //TODO: member assign
-    return '$collectionString${HTLexicon.memberGet}${expr.key}';
+    final keyString = visitSymbolExpr(expr.key);
+    final valueString = printAst(expr.value);
+    return '$collectionString${HTLexicon.memberGet}$keyString ${HTLexicon.assign} $valueString';
   }
 
   @override
@@ -351,15 +352,14 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitSubAssignExpr(SubAssignExpr expr) {
     final collectionString = printAst(expr.array);
     final keyString = printAst(expr.key);
-    //TODO: sub assign
-    return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight} ';
+    final valueString = printAst(expr.value);
+    return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight} ${HTLexicon.assign} $valueString';
   }
 
   @override
   String visitLibraryStmt(LibraryStmt stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.LIBRARY} ');
-    // TODO: library statement
+    output.write('${HTLexicon.LIBRARY} ${stmt.id}');
     return output.toString();
   }
 

@@ -949,7 +949,7 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: Calling method on null object.
-  HTError.nullObject(String id,
+  HTError.nullObject(
       {String? correction,
       String? moduleFullName,
       int? line,
@@ -958,7 +958,6 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
             HTLexicon.errorNullObject,
-            interpolations: [id],
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,

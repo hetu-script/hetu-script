@@ -562,8 +562,7 @@ class Hetu extends AbstractInterpreter {
           final key = execute();
           final value = execute();
           if (object == null || object == HTObject.NULL) {
-            // TODO: object symbol?
-            throw HTError.nullObject(object,
+            throw HTError.nullObject(
                 moduleFullName: _curModuleFullName,
                 line: _curLine,
                 column: _curColumn);
