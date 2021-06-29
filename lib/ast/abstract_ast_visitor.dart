@@ -76,7 +76,7 @@ abstract class AbstractAstVisitor<T> {
 
   T visitContinueStmt(ContinueStmt stmt);
 
-  T visitTypeDeclStmt(TypeDeclStmt stmt);
+  T visitTypeAliasDeclStmt(TypeAliasDeclStmt stmt);
 
   T visitVarDeclStmt(VarDeclStmt stmt);
 

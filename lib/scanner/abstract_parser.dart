@@ -38,6 +38,8 @@ abstract class AbstractParser {
 
   var tokPos = 0;
 
+  late Token endOfFile;
+
   final List<Token> _tokens = [];
 
   final HTErrorHandler errorHandler;
@@ -57,6 +59,9 @@ abstract class AbstractParser {
     _tokens.addAll(tokens);
     _curLine = 0;
     _curColumn = 0;
+
+    endOfFile = Token(SemanticNames.endOfFile, _tokens.last.line + 1, 0,
+        _tokens.last.offset + 1, 0);
   }
 
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
@@ -102,7 +107,7 @@ abstract class AbstractParser {
     if ((tokPos + pos) < _tokens.length) {
       return _tokens[tokPos + pos];
     } else {
-      return Token(SemanticNames.endOfFile, -1, -1, -1, 0);
+      return endOfFile;
     }
   }
 

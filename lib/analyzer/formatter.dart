@@ -387,10 +387,10 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitExprStmt(ExprStmt stmt) {
     final output = StringBuffer();
-    if (stmt.expr != null) {
-      final exprString = printAst(stmt.expr!);
-      output.write(exprString);
-    }
+    // if (stmt.expr != null) {
+    final exprString = printAst(stmt.expr);
+    output.write(exprString);
+    // }
     return output.toString();
   }
 
@@ -559,7 +559,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitTypeDeclStmt(TypeDeclStmt stmt) {
+  String visitTypeAliasDeclStmt(TypeAliasDeclStmt stmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.TYPE} ${stmt.id} ${HTLexicon.assign} ');
     final valueString = printAst(stmt.value);

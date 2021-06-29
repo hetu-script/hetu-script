@@ -262,7 +262,7 @@ class HTAnalyzer extends AbstractInterpreter<HTModuleAnalysisResult>
   void visitContinueStmt(ContinueStmt stmt) {}
 
   @override
-  void visitTypeDeclStmt(TypeDeclStmt stmt) {}
+  void visitTypeAliasDeclStmt(TypeAliasDeclStmt stmt) {}
 
   @override
   void visitVarDeclStmt(VarDeclStmt stmt) {

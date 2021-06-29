@@ -696,7 +696,7 @@ class ExprStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitExprStmt(this);
 
   /// 可能是单独的变量名，也可能是一个表达式作为函数使用
-  final AstNode? expr;
+  final AstNode expr;
 
   const ExprStmt(this.expr,
       {HTSource? source,
@@ -766,9 +766,9 @@ class IfStmt extends AstNode {
 
   final AstNode condition;
 
-  final BlockStmt thenBranch;
+  final AstNode thenBranch;
 
-  final BlockStmt? elseBranch;
+  final AstNode? elseBranch;
 
   const IfStmt(this.condition, this.thenBranch, this.elseBranch,
       {HTSource? source,
@@ -892,7 +892,7 @@ class WhenStmt extends AstNode {
 
   final Map<AstNode, AstNode> cases;
 
-  final BlockStmt? elseBranch;
+  final AstNode? elseBranch;
 
   const WhenStmt(this.cases, this.elseBranch, this.condition,
       {HTSource? source,
@@ -948,9 +948,10 @@ class ContinueStmt extends AstNode {
             length: length);
 }
 
-class TypeDeclStmt extends AstNode {
+class TypeAliasDeclStmt extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitTypeDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitTypeAliasDeclStmt(this);
 
   final String id;
 
@@ -968,7 +969,7 @@ class TypeDeclStmt extends AstNode {
 
   final bool isTopLevel;
 
-  const TypeDeclStmt(this.id, this.value,
+  const TypeAliasDeclStmt(this.id, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,

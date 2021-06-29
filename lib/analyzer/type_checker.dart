@@ -221,7 +221,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitTypeDeclStmt(TypeDeclStmt stmt) {
+  HTType? visitTypeAliasDeclStmt(TypeAliasDeclStmt stmt) {
     return HTType.ANY;
   }
 }

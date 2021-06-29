@@ -116,7 +116,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       _curModuleFullName = module.fullName;
       if (module.hasOwnNamespace) {
         bytesBuilder.addByte(HTOpCode.module);
-        bytesBuilder.addByte(HTOpCode.module);
         bytesBuilder.add(_shortUtf8String(_curModuleFullName));
       }
       for (final node in module.nodes) {
@@ -328,7 +327,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitNullExpr(NullExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (config.lineInfo && expr.source != null) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -339,7 +338,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitBooleanExpr(BooleanExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (config.lineInfo && expr.source != null) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -393,7 +392,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitListExpr(ListExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (config.lineInfo && expr.source != null) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -409,7 +408,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitMapExpr(MapExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (config.lineInfo) {
+    if (config.lineInfo && expr.source != null) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -447,7 +446,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         }
       }
     }
-    if (config.lineInfo) {
+    if (config.lineInfo && expr.source != null) {
       bytesBuilder.add(_lineInfo(expr.line, expr.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
@@ -539,98 +538,40 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.addByte(HTOpCode.logicalNot);
         break;
       case HTLexicon.preIncrement:
-        final constOne =
-            ConstIntExpr(1, expr.line, expr.column, expr.offset, expr.length);
+        final constOne = ConstIntExpr(1);
         late final AstNode value;
         if (expr.value is MemberExpr) {
           final memberExpr = expr.value as MemberExpr;
-          final add = BinaryExpr(
-              memberExpr,
-              HTLexicon.add,
-              constOne,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
-          value = MemberAssignExpr(
-              memberExpr.object,
-              memberExpr.key,
-              add,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
+          final add = BinaryExpr(memberExpr, HTLexicon.add, constOne);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, add);
         } else if (expr.value is SubExpr) {
           final subExpr = expr.value as SubExpr;
-          final add = BinaryExpr(subExpr, HTLexicon.add, constOne, subExpr.line,
-              subExpr.column, subExpr.offset, subExpr.length);
-          value = SubAssignExpr(subExpr.array, subExpr.key, add, subExpr.line,
-              subExpr.column, subExpr.offset, subExpr.length);
+          final add = BinaryExpr(subExpr, HTLexicon.add, constOne);
+          value = SubAssignExpr(subExpr.array, subExpr.key, add);
         } else {
-          final add = BinaryExpr(
-              expr.value,
-              HTLexicon.add,
-              constOne,
-              expr.value.line,
-              expr.value.column,
-              expr.value.offset,
-              expr.value.length);
-          value = BinaryExpr(expr.value, HTLexicon.assign, add, expr.value.line,
-              expr.value.column, expr.value.offset, expr.value.length);
+          final add = BinaryExpr(expr.value, HTLexicon.add, constOne);
+          value = BinaryExpr(expr.value, HTLexicon.assign, add);
         }
-        final group = GroupExpr(
-            value, value.line, value.column, value.offset, value.length);
+        final group = GroupExpr(value);
         final bytes = visitAstNode(group);
         bytesBuilder.add(bytes);
         break;
       case HTLexicon.preDecrement:
-        final constOne =
-            ConstIntExpr(1, expr.line, expr.column, expr.offset, expr.length);
+        final constOne = ConstIntExpr(1);
         late final AstNode value;
         if (expr.value is MemberExpr) {
           final memberExpr = expr.value as MemberExpr;
-          final subtract = BinaryExpr(
-              memberExpr,
-              HTLexicon.subtract,
-              constOne,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
-          value = MemberAssignExpr(
-              memberExpr.object,
-              memberExpr.key,
-              subtract,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
+          final subtract = BinaryExpr(memberExpr, HTLexicon.subtract, constOne);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, subtract);
         } else if (expr.value is SubExpr) {
           final subExpr = expr.value as SubExpr;
-          final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne,
-              subExpr.line, subExpr.column, subExpr.offset, subExpr.length);
-          value = SubAssignExpr(subExpr.array, subExpr.key, subtract,
-              subExpr.line, subExpr.column, subExpr.offset, subExpr.length);
+          final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne);
+          value = SubAssignExpr(subExpr.array, subExpr.key, subtract);
         } else {
-          final subtract = BinaryExpr(
-              expr.value,
-              HTLexicon.subtract,
-              constOne,
-              expr.value.line,
-              expr.value.column,
-              expr.value.offset,
-              expr.value.length);
-          value = BinaryExpr(
-              expr.value,
-              HTLexicon.assign,
-              subtract,
-              expr.value.line,
-              expr.value.column,
-              expr.value.offset,
-              expr.value.length);
+          final subtract = BinaryExpr(expr.value, HTLexicon.subtract, constOne);
+          value = BinaryExpr(expr.value, HTLexicon.assign, subtract);
         }
-        final group = GroupExpr(
-            value, value.line, value.column, value.offset, value.length);
+        final group = GroupExpr(value);
         final bytes = visitAstNode(group);
         bytesBuilder.add(bytes);
         break;
@@ -849,106 +790,44 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     switch (expr.op) {
       case HTLexicon.postIncrement:
-        final constOne =
-            ConstIntExpr(1, expr.line, expr.column, expr.offset, expr.length);
+        final constOne = ConstIntExpr(1);
         late final AstNode value;
         if (expr.value is MemberExpr) {
           final memberExpr = expr.value as MemberExpr;
-          final add = BinaryExpr(
-              memberExpr,
-              HTLexicon.add,
-              constOne,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
-          value = MemberAssignExpr(
-              memberExpr.object,
-              memberExpr.key,
-              add,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
+          final add = BinaryExpr(memberExpr, HTLexicon.add, constOne);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, add);
         } else if (expr.value is SubExpr) {
           final subExpr = expr.value as SubExpr;
-          final add = BinaryExpr(subExpr, HTLexicon.add, constOne, subExpr.line,
-              subExpr.column, subExpr.offset, subExpr.length);
-          value = SubAssignExpr(subExpr.array, subExpr.key, add, subExpr.line,
-              subExpr.column, subExpr.offset, subExpr.length);
+          final add = BinaryExpr(subExpr, HTLexicon.add, constOne);
+          value = SubAssignExpr(subExpr.array, subExpr.key, add);
         } else {
-          final add = BinaryExpr(
-              expr.value,
-              HTLexicon.add,
-              constOne,
-              expr.value.line,
-              expr.value.column,
-              expr.value.offset,
-              expr.value.length);
-          value = BinaryExpr(expr.value, HTLexicon.assign, add, expr.value.line,
-              expr.value.column, expr.value.offset, expr.value.length);
+          final add = BinaryExpr(expr.value, HTLexicon.add, constOne);
+          value = BinaryExpr(expr.value, HTLexicon.assign, add);
         }
-        final group = GroupExpr(
-            value, value.line, value.column, value.offset, value.length);
-        final subtract = BinaryExpr(group, HTLexicon.subtract, constOne,
-            group.line, group.column, group.offset, group.length);
-        final group2 = GroupExpr(subtract, subtract.line, subtract.column,
-            subtract.offset, subtract.column);
+        final group = GroupExpr(value);
+        final subtract = BinaryExpr(group, HTLexicon.subtract, constOne);
+        final group2 = GroupExpr(subtract);
         final bytes = visitAstNode(group2);
         bytesBuilder.add(bytes);
         break;
       case HTLexicon.postDecrement:
-        final constOne =
-            ConstIntExpr(1, expr.line, expr.column, expr.offset, expr.length);
+        final constOne = ConstIntExpr(1);
         late final AstNode value;
         if (expr.value is MemberExpr) {
           final memberExpr = expr.value as MemberExpr;
-          final subtract = BinaryExpr(
-              memberExpr,
-              HTLexicon.subtract,
-              constOne,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
-          value = MemberAssignExpr(
-              memberExpr.object,
-              memberExpr.key,
-              subtract,
-              memberExpr.line,
-              memberExpr.column,
-              memberExpr.offset,
-              memberExpr.length);
+          final subtract = BinaryExpr(memberExpr, HTLexicon.subtract, constOne);
+          value = MemberAssignExpr(memberExpr.object, memberExpr.key, subtract);
         } else if (expr.value is SubExpr) {
           final subExpr = expr.value as SubExpr;
-          final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne,
-              subExpr.line, subExpr.column, subExpr.offset, subExpr.length);
-          value = SubAssignExpr(subExpr.array, subExpr.key, subtract,
-              subExpr.line, subExpr.column, subExpr.offset, subExpr.length);
+          final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne);
+          value = SubAssignExpr(subExpr.array, subExpr.key, subtract);
         } else {
-          final subtract = BinaryExpr(
-              expr.value,
-              HTLexicon.subtract,
-              constOne,
-              expr.value.line,
-              expr.value.column,
-              expr.value.offset,
-              expr.value.length);
-          value = BinaryExpr(
-              expr.value,
-              HTLexicon.assign,
-              subtract,
-              expr.value.line,
-              expr.value.column,
-              expr.value.offset,
-              expr.value.length);
+          final subtract = BinaryExpr(expr.value, HTLexicon.subtract, constOne);
+          value = BinaryExpr(expr.value, HTLexicon.assign, subtract);
         }
-        final group = GroupExpr(
-            value, value.line, value.column, value.offset, value.length);
-        final add = BinaryExpr(group, HTLexicon.add, constOne, group.line,
-            group.column, group.offset, group.length);
-        final group2 =
-            GroupExpr(add, add.line, add.column, add.offset, add.length);
+        final group = GroupExpr(value);
+        final add = BinaryExpr(group, HTLexicon.add, constOne);
+        final group2 = GroupExpr(add);
         final bytes = visitAstNode(group2);
         bytesBuilder.add(bytes);
         break;
@@ -1036,10 +915,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitExprStmt(ExprStmt stmt) {
     final bytesBuilder = BytesBuilder();
-    if (stmt.expr != null) {
-      final bytes = visitAstNode(stmt.expr!);
-      bytesBuilder.add(bytes);
-    }
+    // if (stmt.expr != null) {
+    final bytes = visitAstNode(stmt.expr);
+    bytesBuilder.add(bytes);
+    // }
     return bytesBuilder.toBytes();
   }
 
@@ -1091,10 +970,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final condition = visitAstNode(stmt.condition);
     bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.ifStmt);
-    final thenBranch = visitBlockStmt(stmt.thenBranch);
+    final thenBranch = visitAstNode(stmt.thenBranch);
     Uint8List? elseBranch;
     if (stmt.elseBranch != null) {
-      elseBranch = visitBlockStmt(stmt.elseBranch!);
+      elseBranch = visitAstNode(stmt.elseBranch!);
     }
     final thenBranchLength = thenBranch.length + 3;
     final elseBranchLength = elseBranch?.length ?? 0;
@@ -1173,19 +1052,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
           initializer: initializer, isMutable: userDecl.isMutable);
       bytesBuilder.add(initDecl);
       // 这里是为了实现将变量声明移动到for循环语句块内部的效果
-      final capturedInit =
-          SymbolExpr(markedId, userDecl.line, userDecl.column, userDecl);
-      capturedDecl = VarDeclStmt(userDecl.id, userDecl.line, userDecl.column,
-          initializer: capturedInit);
+      final capturedInit = SymbolExpr(markedId);
+      capturedDecl = VarDeclStmt(userDecl.id, initializer: capturedInit);
     }
     if (stmt.condition != null) {
       condition = visitAstNode(stmt.condition!);
     } else {
-      final boolExpr = BooleanExpr(
-        true,
-        stmt.line,
-        stmt.column,
-      );
+      final boolExpr = BooleanExpr(true);
       condition = visitBooleanExpr(boolExpr);
     }
     if (stmt.increment != null) {
@@ -1236,11 +1109,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         collectionId, stmt.collection.line, stmt.collection.column,
         initializer: collectionInit);
     bytesBuilder.add(collectionDecl);
-    final collectionSymbol = SymbolExpr(
-      collectionId,
-      stmt.collection.line,
-      stmt.collection.column,
-    );
+    final collectionSymbol = SymbolExpr(collectionId);
     final collectionSymbolBytes = visitSymbolExpr(collectionSymbol);
 
     // assemble the condition expression
@@ -1267,28 +1136,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
     // assemble the initializer of the captured variable
     final capturedDeclInit = CallExpr(
-      MemberExpr(
-        stmt.collection,
-        SymbolExpr(
-            HTLexicon.elementAt, stmt.collection.line, stmt.collection.column,
-            isLocal: false),
-        stmt.collection.line,
-        stmt.collection.column,
-      ),
-      [
-        SymbolExpr(
-          increId,
-          stmt.collection.line,
-          stmt.collection.column,
-        )
-      ],
-      const {},
-      stmt.collection.line,
-      stmt.collection.column,
-    );
+        MemberExpr(
+            stmt.collection, SymbolExpr(HTLexicon.elementAt, isLocal: false)),
+        [SymbolExpr(increId)],
+        const {});
     // declared the captured variable
-    final capturedDecl = VarDeclStmt(
-        stmt.declaration.id, stmt.declaration.line, stmt.declaration.column,
+    final capturedDecl = VarDeclStmt(stmt.declaration.id,
         initializer: capturedDeclInit, isMutable: stmt.declaration.isMutable);
     final incrementBytesBuilder = BytesBuilder();
     final preIncreExpr = _assembleLocalSymbol(increId);
@@ -1336,7 +1189,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final branches = <Uint8List>[];
     Uint8List? elseBranch;
     if (stmt.elseBranch != null) {
-      elseBranch = visitBlockStmt(stmt.elseBranch!);
+      elseBranch = visitAstNode(stmt.elseBranch!);
     }
     for (final ast in stmt.cases.keys) {
       final caseBytes = visitAstNode(ast, endOfExec: true);
@@ -1394,7 +1247,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitTypeDeclStmt(TypeDeclStmt stmt) {
+  Uint8List visitTypeAliasDeclStmt(TypeAliasDeclStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.typeAliasDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1645,23 +1498,15 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(1); // bool: hasDefinition
 
     final valueId = '${HTLexicon.privatePrefix}${SemanticNames.name}';
-    final value =
-        VarDeclStmt(valueId, stmt.line, stmt.column, classId: stmt.id);
+    final value = VarDeclStmt(valueId, classId: stmt.id);
     final valueBytes = visitVarDeclStmt(value);
     bytesBuilder.add(valueBytes);
 
-    final ctorParam = ParamDeclExpr(SemanticNames.name, stmt.line, stmt.column);
+    final ctorParam = ParamDeclExpr(SemanticNames.name);
     final ctorDef = BinaryExpr(
-        SymbolExpr(valueId, stmt.line, stmt.column),
-        HTLexicon.assign,
-        SymbolExpr(SemanticNames.name, stmt.line, stmt.column),
-        stmt.line,
-        stmt.column);
+        SymbolExpr(valueId), HTLexicon.assign, SymbolExpr(SemanticNames.name));
     final constructor = FuncDeclExpr(
-        '${SemanticNames.constructor}${HTLexicon.privatePrefix}',
-        [ctorParam],
-        stmt.line,
-        stmt.column,
+        '${SemanticNames.constructor}${HTLexicon.privatePrefix}', [ctorParam],
         id: HTLexicon.privatePrefix,
         classId: stmt.id,
         minArity: 1,
@@ -1675,14 +1520,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         '${stmt.id}${HTLexicon.memberGet}${HTLexicon.curlyLeft}0${HTLexicon.curlyRight}',
         HTLexicon.singleQuotationLeft,
         HTLexicon.singleQuotationRight,
-        [SymbolExpr(valueId, stmt.line, stmt.column)],
-        stmt.line,
-        stmt.column);
-    final toStringFunc = FuncDeclExpr(
-        SemanticNames.tostring, [], stmt.line, stmt.column,
+        [SymbolExpr(valueId)]);
+    final toStringFunc = FuncDeclExpr(SemanticNames.tostring, [],
         id: SemanticNames.tostring,
         classId: stmt.id,
-        returnType: TypeExpr(HTLexicon.string, stmt.line, stmt.column),
+        returnType: TypeExpr(HTLexicon.string),
         hasParamDecls: true,
         definition: toStringDef);
     final toStringBytes = visitFuncDeclStmt(toStringFunc);
@@ -1690,23 +1532,17 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
     final itemList = <AstNode>[];
     for (final item in stmt.enumerations) {
-      final symbol = SymbolExpr(item, stmt.line, stmt.column);
+      final symbol = SymbolExpr(item);
       itemList.add(symbol);
       final itemInit = CallExpr(
-          MemberExpr(
-              SymbolExpr(stmt.id, stmt.line, stmt.column),
-              SymbolExpr(HTLexicon.privatePrefix, stmt.line, stmt.column,
-                  isLocal: false),
-              stmt.line,
-              stmt.column),
+          MemberExpr(SymbolExpr(stmt.id),
+              SymbolExpr(HTLexicon.privatePrefix, isLocal: false)),
           [
             ConstStringExpr(item, HTLexicon.singleQuotationLeft,
-                HTLexicon.singleQuotationRight, stmt.line, stmt.column)
+                HTLexicon.singleQuotationRight)
           ],
-          {},
-          stmt.line,
-          stmt.column);
-      final itemDecl = VarDeclStmt(item, stmt.line, stmt.column,
+          const {});
+      final itemDecl = VarDeclStmt(item,
           classId: stmt.classId,
           initializer: itemInit,
           isStatic: true,
@@ -1715,8 +1551,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.add(itemBytes);
     }
 
-    final valuesInit = ListExpr(itemList, stmt.line, stmt.column);
-    final valuesDecl = VarDeclStmt(HTLexicon.values, stmt.line, stmt.column,
+    final valuesInit = ListExpr(itemList);
+    final valuesDecl = VarDeclStmt(HTLexicon.values,
         classId: stmt.classId,
         initializer: valuesInit,
         isStatic: true,
