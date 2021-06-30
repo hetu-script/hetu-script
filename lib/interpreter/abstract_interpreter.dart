@@ -45,12 +45,15 @@ class InterpreterConfig
   @override
   final int hetuStackTraceThreshhold;
 
+  final bool doStaticAnalyze;
+
   const InterpreterConfig(
       {this.sourceType = SourceType.module,
       this.reload = false,
       this.lineInfo = true,
       this.stackTrace = true,
-      this.hetuStackTraceThreshhold = 10});
+      this.hetuStackTraceThreshhold = 10,
+      this.doStaticAnalyze = true});
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.

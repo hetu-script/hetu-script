@@ -105,8 +105,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   HTModuleAnalysisResult? evalSource(HTSource source,
-      {String? libraryName, // ignored in analyzer
-      HTNamespace? namespace, // ignored in analyzer
+      {HTNamespace? namespace, // ignored in analyzer
       InterpreterConfig? config, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
@@ -123,6 +122,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     final compilation = parser.parseToCompilation(source,
         hasOwnNamespace: hasOwnNamespace, errorHandled: true);
+
     _curLibrary = HTLibraryAnalysisResult(source.libraryName);
     for (final module in compilation.modules.values) {
       _curSource = HTModuleAnalysisResult(

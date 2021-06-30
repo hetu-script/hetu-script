@@ -22,6 +22,7 @@ import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
+import '../analyzer/analyzer.dart';
 import 'abstract_interpreter.dart';
 import 'compiler.dart';
 import 'opcode.dart';
@@ -193,6 +194,16 @@ class Hetu extends HTAbstractInterpreter {
     try {
       final compilation = parser.parseToCompilation(source,
           hasOwnNamespace: hasOwnNamespace, errorHandled: true);
+      if (_curConfig.doStaticAnalyze) {
+        final hetu = HTAnalyzer(
+            config: AnalyzerConfig(sourceType: _curConfig.sourceType));
+        hetu.init();
+        hetu.evalSource(source);
+
+        if (hetu.errors.isNotEmpty) {
+          throw hetu.errors.first;
+        }
+      }
       final bytes = compiler.compile(compilation, source.libraryName);
       _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
       var result;
