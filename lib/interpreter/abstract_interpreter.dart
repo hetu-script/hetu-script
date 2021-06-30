@@ -87,45 +87,47 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   @mustCallSuper
   void init(
-      {bool coreModule = true,
+      {Map<String, String> preincludes = const {},
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) {
     try {
       // load classes and functions in core library.
-      if (coreModule) {
-        for (final file in coreModules.keys) {
-          eval(coreModules[file]!,
-              moduleFullName: file,
-              namespace: global,
-              config: InterpreterConfig(sourceType: SourceType.module));
-        }
-        for (var key in coreFunctions.keys) {
-          bindExternalFunction(key, coreFunctions[key]!);
-        }
-        bindExternalClass(HTNumberClass());
-        bindExternalClass(HTIntegerClass());
-        bindExternalClass(HTFloatClass());
-        bindExternalClass(HTBooleanClass());
-        bindExternalClass(HTStringClass());
-        bindExternalClass(HTListClass());
-        bindExternalClass(HTMapClass());
-        bindExternalClass(HTMathClass());
-        bindExternalClass(HTSystemClass());
-        bindExternalClass(HTConsoleClass());
+      for (final file in coreModules.keys) {
+        eval(coreModules[file]!,
+            moduleFullName: file,
+            namespace: global,
+            config: InterpreterConfig(sourceType: SourceType.module));
       }
+      for (var key in coreFunctions.keys) {
+        bindExternalFunction(key, coreFunctions[key]!);
+      }
+      bindExternalClass(HTNumberClass());
+      bindExternalClass(HTIntegerClass());
+      bindExternalClass(HTFloatClass());
+      bindExternalClass(HTBooleanClass());
+      bindExternalClass(HTStringClass());
+      bindExternalClass(HTListClass());
+      bindExternalClass(HTMapClass());
+      bindExternalClass(HTMathClass());
+      bindExternalClass(HTSystemClass());
+      bindExternalClass(HTConsoleClass());
 
-      for (var key in externalFunctions.keys) {
+      for (final file in preincludes.keys) {
+        eval(coreModules[file]!,
+            moduleFullName: file,
+            namespace: global,
+            config: InterpreterConfig(sourceType: SourceType.module));
+      }
+      for (final value in externalClasses) {
+        bindExternalClass(value);
+      }
+      for (final key in externalFunctions.keys) {
         bindExternalFunction(key, externalFunctions[key]!);
       }
-
-      for (var key in externalFunctionTypedef.keys) {
+      for (final key in externalFunctionTypedef.keys) {
         bindExternalFunctionType(key, externalFunctionTypedef[key]!);
-      }
-
-      for (var value in externalClasses) {
-        bindExternalClass(value);
       }
     } catch (error, stackTrace) {
       handleError(error, externalStackTrace: stackTrace);
