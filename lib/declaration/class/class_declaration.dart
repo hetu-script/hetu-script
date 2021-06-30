@@ -6,7 +6,8 @@ import '../declaration.dart';
 import '../type/type_declaration.dart';
 import '../../type/generic_type_parameter.dart';
 
-class HTClassDeclaration extends HTDeclaration implements HTTypeDeclaration {
+class HTClassDeclaration extends HTDeclaration
+    implements HTAbstractTypeDeclaration {
   String get name => id ?? SemanticNames.anonymousClass;
 
   @override

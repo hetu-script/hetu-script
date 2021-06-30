@@ -24,7 +24,7 @@ Hetu's grammar is close to typescript/kotlin/swift and other modern languages, n
 
 - Optional semicolon.
 - Function is declared with 'fun, get, set, construct'.
-- Optional type annotation. Variable declared with 'let, const' will infer its type from its initializer expression.
+- Optional type annotation. Variable declared with 'let' will infer its type from its initializer expression.
 
 [Syntax referrence](https://github.com/hetu-script/site-www/blob/main/docs/en-US/syntax/index.md)
 

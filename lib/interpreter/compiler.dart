@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:hetu_script/hetu_script.dart';
-
 import '../source/source_provider.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';

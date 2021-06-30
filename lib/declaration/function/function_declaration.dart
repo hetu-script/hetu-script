@@ -10,7 +10,7 @@ import 'abstract_parameter.dart';
 import '../../type/generic_type_parameter.dart';
 
 class HTFunctionDeclaration extends HTVariableDeclaration
-    implements HTTypeDeclaration {
+    implements HTAbstractTypeDeclaration {
   final String internalName;
 
   final FunctionCategory category;

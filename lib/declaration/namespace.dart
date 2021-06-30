@@ -4,7 +4,8 @@ import '../source/source.dart';
 import '../object/object.dart';
 import 'declaration.dart';
 
-/// For interpreter searching for symbols
+/// Namespace is used when importing with a name
+/// or for interpreter searching for symbols
 /// from a certain block or module.
 class HTNamespace extends HTDeclaration with HTObject {
   @override
