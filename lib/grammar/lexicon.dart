@@ -470,7 +470,7 @@ abstract class HTLexicon {
   static const errorIterable = '[{0}] is not Iterable.';
   static const errorUnkownValueType = 'Unkown OpCode value type: [{0}]';
   static const errorEmptyString = 'Unexpected empty string. {0}';
-  static const errorTypeCast = '[{0}]\'s type cannot be cast into [{1}]';
+  static const errorTypeCast = 'Type [{0}] cannot be cast into type [{1}]';
   static const errorCastee = 'Illegal cast target [{0}].';
   static const errorClone = 'Illegal clone on [{0}].';
   static const errorNotSuper = '[{0}] is not a super class of [{1}]';

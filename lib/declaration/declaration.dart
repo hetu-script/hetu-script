@@ -6,16 +6,18 @@ import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
 // import '../type/type.dart';
-import '../object/object.dart';
 import 'namespace.dart';
 
-/// Element is a semantic entity in the program that
+/// Declaration is a semantic entity in the program that
 /// represents things that are declared with a name
 /// and hence can be referenced elsewhere in the code.
-abstract class HTDeclaration with HTObject {
+///
+/// Declaration is not necessarily exists in actual source,
+/// and is not necessarily exists in compiled bytecode
+/// some declaration are generated purely for analysis purpose.
+abstract class HTDeclaration {
   final String? id;
 
-  // ('${SemanticNames.anonymous} $valueType')
   String get displayName => id ?? '';
 
   bool get isPrivate => displayName.startsWith(HTLexicon.privatePrefix);
@@ -30,8 +32,6 @@ abstract class HTDeclaration with HTObject {
 
   final SourceRange sourceRange;
 
-  bool get isMember => classId != null;
-
   final bool isExternal;
 
   final bool isStatic;
@@ -39,6 +39,10 @@ abstract class HTDeclaration with HTObject {
   final bool isConst;
 
   final bool isMutable;
+
+  final bool isTopLevel;
+
+  bool get isMember => classId != null;
 
   HTDeclaration(
       {this.id,
@@ -50,7 +54,8 @@ abstract class HTDeclaration with HTObject {
       this.isExternal = false,
       this.isStatic = false,
       this.isConst = false,
-      this.isMutable = false});
+      this.isMutable = false,
+      this.isTopLevel = false});
 
   dynamic get value => this;
 
@@ -63,5 +68,7 @@ abstract class HTDeclaration with HTObject {
 
   bool isOverrideOf(HTDeclaration decl) => false;
 
+  /// Create a copy of this declaration,
+  /// mainly used on class member inheritance and function arguments passing.
   dynamic clone();
 }

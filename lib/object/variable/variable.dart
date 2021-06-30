@@ -1,12 +1,14 @@
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
+import '../../declaration/namespace.dart';
 import '../../type/type.dart';
-import '../namespace.dart';
-import 'variable_declaration.dart';
+import '../../declaration/variable/variable_declaration.dart';
+import '../object.dart';
 
 /// Variable is a binding between an element and a value
-class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
+class HTVariable extends HTVariableDeclaration
+    with HTObject, HetuRef, GotoInfo {
   @override
   final String id;
 
@@ -29,6 +31,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       bool isStatic = false,
       bool isConst = false,
       bool isMutable = false,
+      bool isTopLevel = false,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
@@ -40,7 +43,8 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
-            isMutable: isMutable) {
+            isMutable: isMutable,
+            isTopLevel: isTopLevel) {
     this.interpreter = interpreter;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;

@@ -15,7 +15,7 @@ import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../type/type.dart';
-import '../declaration/function/function.dart';
+import '../object/function/function.dart';
 import '../declaration/namespace.dart';
 import '../declaration/library.dart';
 import '../scanner/abstract_parser.dart';
@@ -25,7 +25,7 @@ import 'compiler.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
-  late final AbstractInterpreter interpreter;
+  late final HTAbstractInterpreter interpreter;
 }
 
 class InterpreterConfig
@@ -54,7 +54,7 @@ class InterpreterConfig
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.
-abstract class AbstractInterpreter<T> implements HTErrorHandler {
+abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   static final version = Version(0, 1, 0);
   static const _anonymousScriptSignatureLength = 72;
 
@@ -80,7 +80,7 @@ abstract class AbstractInterpreter<T> implements HTErrorHandler {
 
   final HTNamespace global = HTNamespace(id: SemanticNames.global);
 
-  AbstractInterpreter(
+  HTAbstractInterpreter(
       {this.config = const InterpreterConfig(),
       HTSourceProvider? sourceProvider})
       : sourceProvider = sourceProvider ?? DefaultSourceProvider();

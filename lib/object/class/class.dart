@@ -5,14 +5,16 @@ import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
 // import '../declaration.dart';
-import '../namespace.dart';
+import '../../declaration/namespace.dart';
 import '../function/function.dart';
-import '../instance/instance.dart';
-import 'class_declaration.dart';
+import '../../object/instance/instance.dart';
+import '../../declaration/class/class_declaration.dart';
 import 'class_namespace.dart';
+import '../object.dart';
+import '../../type/generic_type_parameter.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
-class HTClass extends HTClassDeclaration with HetuRef {
+class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -48,12 +50,13 @@ class HTClass extends HTClassDeclaration with HetuRef {
       String? classId,
       HTNamespace? closure,
       HTSource? source,
-      Iterable<HTType> genericParameters = const [],
+      Iterable<HTGenericTypeParameter> genericTypeParameters = const [],
       HTType? superType,
       Iterable<HTType> withTypes = const [],
       Iterable<HTType> implementsTypes = const [],
       bool isExternal = false,
       bool isAbstract = false,
+      bool isEnum = false,
       this.superClass})
       : namespace = HTClassNamespace(
             id: id, classId: classId, closure: closure, source: source),
@@ -62,12 +65,13 @@ class HTClass extends HTClassDeclaration with HetuRef {
             classId: classId,
             closure: closure,
             source: source,
-            genericParameters: genericParameters,
+            genericTypeParameters: genericTypeParameters,
             superType: superType,
             withTypes: withTypes,
             implementsTypes: implementsTypes,
             isExternal: isExternal,
-            isAbstract: isAbstract) {
+            isAbstract: isAbstract,
+            isEnum: isEnum) {
     this.interpreter = interpreter;
   }
 
@@ -94,7 +98,7 @@ class HTClass extends HTClassDeclaration with HetuRef {
       classId: classId,
       closure: closure,
       source: source,
-      genericParameters: genericParameters,
+      genericTypeParameters: genericTypeParameters,
       superType: superType,
       withTypes: withTypes,
       implementsTypes: implementsTypes,

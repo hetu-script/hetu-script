@@ -1,6 +1,6 @@
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
-import '../namespace.dart';
+import '../../declaration/namespace.dart';
 import 'instance.dart';
 
 /// A implementation of [HTNamespace] for [HTInstance].

@@ -27,6 +27,7 @@ abstract class SemanticNames {
   static const namespace = 'namespace';
 
   static const global = 'global';
+  static const extern = 'external';
   static const preclude = 'preclude';
   static const anonymous = 'anonymous';
   static const multiLine = r'\';
@@ -74,22 +75,23 @@ abstract class SemanticNames {
   static const classDefinition = 'class_definition';
   static const ctorCallExpr = 'constructor_call_expression';
 
-  static const literalNull = 'literal_null';
-  static const literalValue = 'literal_value';
-  static const literalBoolean = 'literal_boolean';
-  static const literalInteger = 'literal_integer';
-  static const literalFloat = 'literal_float';
-  static const literalString = 'literal_string';
+  static const nullLiteral = 'null_literal';
+  static const booleanLiteral = 'boolean_literal';
+  static const integerLiteral = 'integer_literal';
+  static const floatLiteral = 'float_literal';
+  static const stringLiteral = 'string_literal';
   static const stringInterpolation = 'string_interpolation';
-  static const literalFunction = 'literal_function_expression';
+  static const functionLiteral = 'function_literal_expression';
+  static const listLiteral = 'list_expression';
+  static const mapLiteral = 'map_expression';
 
   static const typeExpr = 'type_expression';
+  static const genericTypeParamExpr = 'generic_type_parameter_expression';
   static const literalTypeExpr = 'literal_type_expression';
   static const unionTypeExpr = 'union_type_expression';
   static const paramTypeExpr = 'parameter_type_expression';
   static const funcTypeExpr = 'function_type_expression';
   static const groupExpr = 'group_expression';
-  static const literalVectorExpr = 'vector_expression';
   static const blockExpr = 'block_expression';
   static const symbolExpr = 'symbol_expression';
   static const unaryExpr = 'unary_expression';

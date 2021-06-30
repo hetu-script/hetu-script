@@ -703,7 +703,7 @@ class HTAstParser extends AbstractParser {
   LibraryStmt _parseLibraryStmt() {
     final keyword = advance(1);
     _isLibrary = true;
-    final id = match(SemanticNames.literalString);
+    final id = match(SemanticNames.stringLiteral);
     final stmt = LibraryStmt(id.literal,
         source: _curSource,
         line: keyword.line,
@@ -716,7 +716,7 @@ class HTAstParser extends AbstractParser {
 
   ImportStmt _parseImportStmt() {
     final keyword = advance(1);
-    final key = match(SemanticNames.literalString);
+    final key = match(SemanticNames.stringLiteral);
     String? alias;
     if (expect([HTLexicon.AS], consume: true)) {
       alias = match(SemanticNames.identifier).lexeme;
@@ -1046,7 +1046,7 @@ class HTAstParser extends AbstractParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.literalBoolean:
+      case SemanticNames.booleanLiteral:
         _leftValueLegality = false;
         final token = advance(1) as TokenBooleanLiteral;
         return BooleanExpr(token.literal,
@@ -1055,7 +1055,7 @@ class HTAstParser extends AbstractParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.literalInteger:
+      case SemanticNames.integerLiteral:
         _leftValueLegality = false;
         final token = advance(1) as TokenIntLiteral;
         return ConstIntExpr(token.literal,
@@ -1064,7 +1064,7 @@ class HTAstParser extends AbstractParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.literalFloat:
+      case SemanticNames.floatLiteral:
         _leftValueLegality = false;
         final token = advance(1) as TokenFloatLiteral;
         return ConstFloatExpr(token.literal,
@@ -1073,7 +1073,7 @@ class HTAstParser extends AbstractParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.literalString:
+      case SemanticNames.stringLiteral:
         _leftValueLegality = false;
         final token = advance(1) as TokenStringLiteral;
         return ConstStringExpr(
@@ -1565,11 +1565,33 @@ class HTAstParser extends AbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
+  List<GenericTypeParamExpr> _getGenericParams() {
+    final genericParams = <GenericTypeParamExpr>[];
+    if (expect([HTLexicon.angleLeft], consume: true)) {
+      while ((curTok.type != HTLexicon.angleRight) &&
+          (curTok.type != SemanticNames.endOfFile)) {
+        if (genericParams.isNotEmpty) {
+          match(HTLexicon.comma);
+        }
+        final id = match(SemanticNames.identifier);
+        final param = GenericTypeParamExpr(id.lexeme,
+            source: _curSource,
+            line: id.line,
+            column: id.column,
+            offset: id.offset,
+            length: curTok.offset - id.offset);
+        genericParams.add(param);
+      }
+      match(HTLexicon.angleRight);
+    }
+    return genericParams;
+  }
+
   TypeAliasDeclStmt _parseTypeAliasDecl(
       {String? classId, bool isExported = false, bool isTopLevel = false}) {
     final keyword = advance(1);
     final id = match(SemanticNames.identifier).lexeme;
-    final genericParameters = <TypeExpr>[];
+    final genericParameters = _getGenericParams();
     match(HTLexicon.assign);
     final value = _parseTypeExpr();
     return TypeAliasDeclStmt(id, value,
@@ -1693,13 +1715,12 @@ class HTAstParser extends AbstractParser {
         internalName = '${SemanticNames.setter}$id';
         break;
       case FunctionCategory.literal:
-        internalName = SemanticNames.anonymousFunction +
-            (AbstractParser.anonymousFuncIndex++).toString();
+        internalName = SemanticNames.anonymousFunction;
         break;
       default:
         internalName = id!;
     }
-    final genericParameters = <TypeExpr>[];
+    final genericParameters = _getGenericParams();
     var isFuncVariadic = false;
     var minArity = 0;
     var maxArity = 0;
@@ -1927,18 +1948,7 @@ class HTAstParser extends AbstractParser {
       errorHandler.handleError(err);
     }
     final id = match(SemanticNames.identifier);
-    final genericParameters = <TypeExpr>[];
-    if (expect([HTLexicon.angleLeft], consume: true)) {
-      while ((curTok.type != HTLexicon.angleRight) &&
-          (curTok.type != SemanticNames.endOfFile)) {
-        if (genericParameters.isNotEmpty) {
-          match(HTLexicon.comma);
-        }
-        final typeExpr = _parseTypeExpr();
-        genericParameters.add(typeExpr);
-      }
-      match(HTLexicon.angleRight);
-    }
+    final genericParameters = _getGenericParams();
     TypeExpr? superClassType;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
       if (curTok.lexeme == id.lexeme) {

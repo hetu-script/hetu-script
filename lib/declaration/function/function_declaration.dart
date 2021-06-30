@@ -3,19 +3,31 @@ import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';
 import '../../source/source.dart';
-import '../namespace.dart';
+import '../type/type_declaration.dart';
 import '../variable/variable_declaration.dart';
+import '../namespace.dart';
 import 'abstract_parameter.dart';
+import '../../type/generic_type_parameter.dart';
 
-class HTFunctionDeclaration extends HTVariableDeclaration {
+class HTFunctionDeclaration extends HTVariableDeclaration
+    implements HTTypeDeclaration {
   final String internalName;
 
   final FunctionCategory category;
 
   final String? externalTypeId;
 
+  @override
+  final Iterable<HTGenericTypeParameter> genericTypeParameters;
+
   /// Holds declarations of all parameters.
-  final Map<String, AbstractParameter> paramDecls;
+  final Map<String, HTAbstractParameter> _paramDecls;
+
+  /// Holds declarations of all parameters.
+  Map<String, HTAbstractParameter>? _resolvedParamDecls;
+
+  Map<String, HTAbstractParameter> get paramDecls =>
+      _resolvedParamDecls ?? _paramDecls;
 
   HTType get returnType => declType.returnType;
 
@@ -36,15 +48,18 @@ class HTFunctionDeclaration extends HTVariableDeclaration {
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
+      bool isTopLevel = false,
       this.category = FunctionCategory.normal,
       this.externalTypeId,
+      this.genericTypeParameters = const [],
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0,
-      this.paramDecls = const {},
+      Map<String, HTAbstractParameter>? paramDecls,
       HTType? returnType})
-      : declType = HTFunctionType(
-            parameterDeclarations: paramDecls.values.toList(),
+      : _paramDecls = paramDecls ?? const {},
+        declType = HTFunctionType(
+            parameterDeclarations: paramDecls?.values.toList() ?? const [],
             returnType: returnType ?? HTType.ANY),
         super(
             id: id,
@@ -53,7 +68,8 @@ class HTFunctionDeclaration extends HTVariableDeclaration {
             source: source,
             isExternal: isExternal,
             isStatic: isStatic,
-            isConst: isConst);
+            isConst: isConst,
+            isTopLevel: isTopLevel);
 
   /// Print function signature to String with function [id] and parameter [id].
   @override
@@ -107,6 +123,14 @@ class HTFunctionDeclaration extends HTVariableDeclaration {
   }
 
   @override
+  void resolve() {
+    super.resolve();
+    for (final param in paramDecls.values) {
+      param.resolve();
+    }
+  }
+
+  @override
   HTFunctionDeclaration clone() => HTFunctionDeclaration(internalName,
       id: id,
       classId: classId,
@@ -117,6 +141,7 @@ class HTFunctionDeclaration extends HTVariableDeclaration {
       isConst: isConst,
       category: category,
       externalTypeId: externalTypeId,
+      genericTypeParameters: genericTypeParameters,
       isVariadic: isVariadic,
       minArity: minArity,
       maxArity: maxArity,

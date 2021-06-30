@@ -1,12 +1,13 @@
 import '../../interpreter/interpreter.dart';
+import '../../declaration/namespace.dart';
 import '../../type/type.dart';
 import '../variable/variable.dart';
-import 'abstract_parameter.dart';
+import '../../declaration/function/abstract_parameter.dart';
 
 // TODO: parameter's initializer must be a const expression.
 
 /// An implementation of [HTVariable] for function parameter declaration.
-class HTParameter extends HTVariable implements AbstractParameter {
+class HTParameter extends HTVariable implements HTAbstractParameter {
   @override
   final bool isOptional;
 
@@ -18,7 +19,8 @@ class HTParameter extends HTVariable implements AbstractParameter {
 
   /// Create a standard [HTParameter].
   HTParameter(String id, Hetu interpreter,
-      {HTType? declType,
+      {HTNamespace? closure,
+      HTType? declType,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
@@ -26,6 +28,7 @@ class HTParameter extends HTVariable implements AbstractParameter {
       this.isNamed = false,
       this.isVariadic = false})
       : super(id, interpreter,
+            closure: closure,
             declType: declType,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
@@ -44,6 +47,8 @@ class HTParameter extends HTVariable implements AbstractParameter {
   @override
   HTParameter clone() {
     return HTParameter(id, interpreter,
+        closure: closure,
+        declType: declType,
         definitionIp: definitionIp,
         definitionLine: definitionLine,
         definitionColumn: definitionColumn,

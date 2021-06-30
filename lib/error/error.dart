@@ -1282,7 +1282,7 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: Illegal type cast.
-  HTError.typeCast(String object, String type,
+  HTError.typeCast(String from, String to,
       {String? correction,
       String? moduleFullName,
       int? line,
@@ -1291,7 +1291,7 @@ class HTError implements AbstractError {
       int? length})
       : this(
             ErrorCode.typeCast, ErrorType.runtimeError, HTLexicon.errorTypeCast,
-            interpolations: [object, type],
+            interpolations: [from, to],
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,

@@ -1,6 +1,8 @@
 import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../type/type.dart';
+import '../type/unresolved_type.dart';
+import '../type/generic_type_parameter.dart';
 import '../declaration/namespace.dart';
 import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
@@ -25,7 +27,7 @@ class AnalyzerConfig extends InterpreterConfig {
       : super(sourceType: sourceType);
 }
 
-class HTAnalyzer extends AbstractInterpreter<HTModuleAnalysisResult>
+class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     implements AbstractAstVisitor<void> {
   AnalyzerConfig _curConfig;
 
@@ -205,6 +207,9 @@ class HTAnalyzer extends AbstractInterpreter<HTModuleAnalysisResult>
   void visitFunctionTypeExpr(FuncTypeExpr expr) {}
 
   @override
+  void visitGenericTypeParamExpr(GenericTypeParamExpr expr) {}
+
+  @override
   void visitCallExpr(CallExpr expr) {}
 
   @override
@@ -271,7 +276,7 @@ class HTAnalyzer extends AbstractInterpreter<HTModuleAnalysisResult>
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
-        declType: HTType.fromAst(stmt.declType),
+        declType: HTUnresolvedType.fromAst(stmt.declType),
         isExternal: stmt.isExternal,
         isStatic: stmt.isStatic,
         isConst: stmt.isConst,
@@ -304,11 +309,12 @@ class HTAnalyzer extends AbstractInterpreter<HTModuleAnalysisResult>
         paramDecls: stmt.paramDecls.asMap().map((key, param) => MapEntry(
             param.id,
             HTParameterDeclaration(param.id,
-                declType: HTType.fromAst(param.declType),
+                closure: _curNamespace,
+                declType: HTUnresolvedType.fromAst(param.declType),
                 isOptional: param.isOptional,
                 isNamed: param.isNamed,
                 isVariadic: param.isVariadic))),
-        returnType: HTType.fromAst(stmt.returnType));
+        returnType: HTUnresolvedType.fromAst(stmt.returnType));
 
     _curNamespace.define(stmt.internalName, decl);
   }
@@ -320,12 +326,13 @@ class HTAnalyzer extends AbstractInterpreter<HTModuleAnalysisResult>
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
-        genericParameters:
-            stmt.genericParameters.map((param) => HTType.fromAst(param)),
-        superType: HTType.fromAst(stmt.superType),
-        implementsTypes:
-            stmt.implementsTypes.map((param) => HTType.fromAst(param)),
-        withTypes: stmt.withTypes.map((param) => HTType.fromAst(param)),
+        genericTypeParameters: stmt.genericParameters
+            .map((param) => HTGenericTypeParameter(param.id)),
+        superType: HTUnresolvedType.fromAst(stmt.superType),
+        implementsTypes: stmt.implementsTypes
+            .map((param) => HTUnresolvedType.fromAst(param)),
+        withTypes:
+            stmt.withTypes.map((param) => HTUnresolvedType.fromAst(param)),
         isExternal: stmt.isExternal,
         isAbstract: stmt.isAbstract);
 

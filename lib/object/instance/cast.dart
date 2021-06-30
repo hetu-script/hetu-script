@@ -2,9 +2,9 @@ import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
 import '../../type/nominal_type.dart';
-import '../instance/instance.dart';
-import '../../object/object.dart';
-import 'class.dart';
+import '../class/class.dart';
+import '../object.dart';
+import 'instance.dart';
 
 /// The implementation of a certain type cast of a object
 class HTCast with HTObject, HetuRef {
@@ -18,7 +18,7 @@ class HTCast with HTObject, HetuRef {
   @override
   String toString() => object.toString();
 
-  HTCast(HTObject object, this.klass, Hetu interpreter,
+  HTCast(HTObject castee, this.klass, Hetu interpreter,
       {List<HTType> typeArgs = const []})
       : valueType = HTNominalType(klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
@@ -34,14 +34,14 @@ class HTCast with HTObject, HetuRef {
     // }
     // }
 
-    if (object.valueType.isNotA(valueType)) {
-      throw HTError.typeCast(object.toString(), valueType.toString());
+    if (castee.valueType.isNotA(valueType)) {
+      throw HTError.typeCast(castee.valueType.toString(), valueType.toString());
     }
 
-    if (object is HTInstance) {
-      this.object = object;
-    } else if (object is HTCast) {
-      this.object = object.object;
+    if (castee is HTInstance) {
+      object = castee;
+    } else if (castee is HTCast) {
+      object = castee.object;
     } else {
       throw HTError.castee(interpreter.curSymbol!);
     }

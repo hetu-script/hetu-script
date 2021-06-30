@@ -48,7 +48,7 @@ class TokenIdentifier extends Token {
 
 class TokenBooleanLiteral extends Token {
   @override
-  String get type => SemanticNames.literalBoolean;
+  String get type => SemanticNames.booleanLiteral;
 
   @override
   final bool literal;
@@ -60,7 +60,7 @@ class TokenBooleanLiteral extends Token {
 
 class TokenIntLiteral extends Token {
   @override
-  String get type => SemanticNames.literalInteger;
+  String get type => SemanticNames.integerLiteral;
 
   @override
   final int literal;
@@ -72,7 +72,7 @@ class TokenIntLiteral extends Token {
 
 class TokenFloatLiteral extends Token {
   @override
-  String get type => SemanticNames.literalFloat;
+  String get type => SemanticNames.floatLiteral;
 
   @override
   final double literal;
@@ -84,7 +84,7 @@ class TokenFloatLiteral extends Token {
 
 class TokenStringLiteral extends Token {
   @override
-  String get type => SemanticNames.literalString;
+  String get type => SemanticNames.stringLiteral;
 
   @override
   final String literal;

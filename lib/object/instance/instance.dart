@@ -2,20 +2,20 @@ import 'dart:collection';
 
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
-import '../../interpreter/abstract_interpreter.dart';
 import '../../type/type.dart';
 import '../../type/nominal_type.dart';
 import '../function/function.dart';
 import '../class/class.dart';
-import '../class/cast.dart';
-import '../namespace.dart';
-import '../../object/object.dart';
+import 'cast.dart';
+import '../../declaration/namespace.dart';
+import '../object.dart';
 import 'instance_namespace.dart';
+import '../../interpreter/interpreter.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
-class HTInstance with HTObject, InterpreterRef {
+class HTInstance with HTObject, HetuRef {
   final String id;
   final int index;
 
@@ -39,7 +39,7 @@ class HTInstance with HTObject, InterpreterRef {
   HTInstanceNamespace get namespace => _namespaces[classId]!;
 
   /// Create a default [HTInstance] instance.
-  HTInstance(HTClass klass, AbstractInterpreter interpreter,
+  HTInstance(HTClass klass, Hetu interpreter,
       {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject})
       : id = SemanticNames.instance,
         index = klass.instanceIndex,

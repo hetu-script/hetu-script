@@ -18,13 +18,13 @@ abstract class AbstractAstVisitor<T> {
 
   T visitStringInterpolationExpr(StringInterpolationExpr expr);
 
+  T visitSymbolExpr(SymbolExpr expr);
+
   T visitListExpr(ListExpr expr);
 
   T visitMapExpr(MapExpr expr);
 
   T visitGroupExpr(GroupExpr expr);
-
-  T visitSymbolExpr(SymbolExpr expr);
 
   T visitTypeExpr(TypeExpr expr);
 
@@ -32,13 +32,15 @@ abstract class AbstractAstVisitor<T> {
 
   T visitFunctionTypeExpr(FuncTypeExpr expr);
 
+  T visitGenericTypeParamExpr(GenericTypeParamExpr expr);
+
   T visitUnaryPrefixExpr(UnaryPrefixExpr expr);
+
+  T visitUnaryPostfixExpr(UnaryPostfixExpr expr);
 
   T visitBinaryExpr(BinaryExpr expr);
 
   T visitTernaryExpr(TernaryExpr expr);
-
-  T visitUnaryPostfixExpr(UnaryPostfixExpr expr);
 
   T visitMemberExpr(MemberExpr expr);
 

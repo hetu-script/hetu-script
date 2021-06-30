@@ -1,15 +1,22 @@
 import '../../type/type.dart';
 import '../../source/source.dart';
+import '../../grammar/semantic.dart';
 import '../namespace.dart';
 import '../declaration.dart';
+import '../type/type_declaration.dart';
+import '../../type/generic_type_parameter.dart';
 
-class HTClassDeclaration extends HTDeclaration {
-  /// The type parameters of the class.
-  final Iterable<HTType> genericParameters;
+class HTClassDeclaration extends HTDeclaration implements HTTypeDeclaration {
+  String get name => id ?? SemanticNames.anonymousClass;
 
-  HTType? _superType;
+  @override
+  final Iterable<HTGenericTypeParameter> genericTypeParameters;
 
-  HTType? get superType => _superType;
+  final HTType? _unresolvedSuperType;
+
+  HTType? _resolvedSuperType;
+
+  HTType? get superType => _resolvedSuperType ?? _unresolvedSuperType;
 
   /// Mixined class of this class.
   /// Those mixined class can not have any constructors.
@@ -21,36 +28,43 @@ class HTClassDeclaration extends HTDeclaration {
   /// and the re-definition must be of the same function signature.
   final Iterable<HTType> implementsTypes;
 
-  bool get isNested => classId != null;
-
   final bool isAbstract;
+
+  final bool isEnum;
+
+  bool get isNested => classId != null;
 
   HTClassDeclaration(
       {String? id,
       String? classId,
       HTNamespace? closure,
       HTSource? source,
-      this.genericParameters = const [],
+      this.genericTypeParameters = const [],
       HTType? superType,
       this.implementsTypes = const [],
       this.withTypes = const [],
       bool isExternal = false,
-      this.isAbstract = false})
-      : super(
+      this.isAbstract = false,
+      this.isEnum = false,
+      bool isTopLevel = false})
+      : _unresolvedSuperType = superType,
+        super(
             id: id,
             classId: classId,
             closure: closure,
             source: source,
-            isExternal: isExternal) {
-    _superType = superType;
+            isExternal: isExternal,
+            isTopLevel: isTopLevel) {
+    if (_unresolvedSuperType != null && _unresolvedSuperType!.isResolved) {
+      _resolvedSuperType = _unresolvedSuperType;
+    }
   }
 
   @override
   void resolve() {
     super.resolve();
-
-    if ((closure != null) && (_superType != null) && !_superType!.isResolved) {
-      _superType = _superType!.resolve(closure!);
+    if ((closure != null) && (_unresolvedSuperType != null)) {
+      _resolvedSuperType = _unresolvedSuperType!.resolve(closure!);
     }
   }
 
@@ -60,7 +74,7 @@ class HTClassDeclaration extends HTDeclaration {
       classId: classId,
       closure: closure,
       source: source,
-      genericParameters: genericParameters,
+      genericTypeParameters: genericTypeParameters,
       superType: superType,
       implementsTypes: implementsTypes,
       withTypes: withTypes,

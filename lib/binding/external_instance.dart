@@ -2,10 +2,11 @@ import '../interpreter/abstract_interpreter.dart';
 import '../object/object.dart';
 import '../type/type.dart';
 import '../type/nominal_type.dart';
+import '../type/external_type.dart';
 // import '../grammar/semantic.dart';
 import '../error/error.dart';
-import '../declaration/function/function.dart';
-import '../declaration/class/class.dart';
+import '../object/function/function.dart';
+import '../object/class/class.dart';
 import 'external_class.dart';
 
 /// Class for external object.
@@ -22,7 +23,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
 
   /// Create a external class object.
   HTExternalInstance(
-      this.externalObject, AbstractInterpreter interpreter, this.typeString) {
+      this.externalObject, HTAbstractInterpreter interpreter, this.typeString) {
     this.interpreter = interpreter;
     final id = HTType.parseBaseType(typeString);
     if (interpreter.containsExternalClass(id)) {
@@ -37,7 +38,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       if (klass != null) {
         valueType = HTNominalType(klass!);
       } else {
-        valueType = HTType(typeString);
+        valueType = HTExternalType(typeString);
       }
     }
   }

@@ -5,13 +5,17 @@
 library hetu_script;
 
 export 'declaration/declaration.dart';
-export 'object/object.dart';
 export 'declaration/namespace.dart';
+export 'declaration/type/type_declaration.dart';
 export 'declaration/class/class_declaration.dart';
-export 'declaration/class/class.dart';
-export 'declaration/instance/instance.dart';
 export 'declaration/function/function_declaration.dart';
-export 'declaration/function/function.dart';
+export 'declaration/function/parameter_declaration.dart';
+export 'declaration/variable/variable_declaration.dart';
+export 'object/variable/variable.dart';
+export 'object/object.dart';
+export 'object/class/class.dart';
+export 'object/function/function.dart';
+export 'object/instance/instance.dart';
 export 'type/type.dart';
 export 'ast/ast.dart';
 export 'ast/ast_compilation.dart';

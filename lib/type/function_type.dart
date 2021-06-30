@@ -104,11 +104,8 @@ import 'type.dart';
 // }
 
 class HTFunctionType extends HTType {
-  @override
-  bool get isResolved => true;
-
   final Iterable<HTType> genericTypeParameters;
-  final List<AbstractParameter> parameterDeclarations;
+  final List<HTAbstractParameter> parameterDeclarations;
   final HTType returnType;
 
   HTFunctionType(
@@ -193,7 +190,7 @@ class HTFunctionType extends HTType {
       } else {
         for (var i = 0; i < parameterDeclarations.length; ++i) {
           final param = parameterDeclarations[i];
-          AbstractParameter? otherParam;
+          HTAbstractParameter? otherParam;
           if (other.parameterDeclarations.length > i) {
             otherParam = other.parameterDeclarations[i];
           }

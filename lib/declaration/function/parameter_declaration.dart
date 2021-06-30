@@ -1,9 +1,11 @@
 import '../../type/type.dart';
+import '../../source/source.dart';
+import '../namespace.dart';
 import '../variable/variable_declaration.dart';
 import 'abstract_parameter.dart';
 
 class HTParameterDeclaration extends HTVariableDeclaration
-    implements AbstractParameter {
+    implements HTAbstractParameter {
   @override
   final String id;
 
@@ -18,11 +20,18 @@ class HTParameterDeclaration extends HTVariableDeclaration
 
   /// Create a standard [HTParameter].
   HTParameterDeclaration(this.id,
-      {HTType? declType,
+      {HTNamespace? closure,
+      HTSource? source,
+      HTType? declType,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id: id, declType: declType ?? HTType.ANY, isMutable: true);
+      : super(
+            id: id,
+            closure: closure,
+            source: source,
+            declType: declType,
+            isMutable: true);
 
   @override
   String toString() {
@@ -37,6 +46,7 @@ class HTParameterDeclaration extends HTVariableDeclaration
   @override
   HTParameterDeclaration clone() {
     return HTParameterDeclaration(id,
+        closure: closure,
         declType: declType,
         isOptional: isOptional,
         isNamed: isNamed,

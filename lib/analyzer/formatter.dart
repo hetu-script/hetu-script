@@ -292,6 +292,11 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitGenericTypeParamExpr(GenericTypeParamExpr expr) {
+    return expr.id;
+  }
+
+  @override
   String visitCallExpr(CallExpr expr) {
     final output = StringBuffer();
     final calleeString = printAst(expr.callee);

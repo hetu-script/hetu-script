@@ -2,7 +2,7 @@ import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../source/source.dart';
 import '../function/function.dart';
-import '../namespace.dart';
+import '../../declaration/namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.

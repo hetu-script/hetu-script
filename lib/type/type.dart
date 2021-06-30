@@ -1,15 +1,10 @@
 import 'package:quiver/core.dart';
 
 import '../grammar/lexicon.dart';
-import '../error/error.dart';
 import '../object/object.dart';
-import '../declaration/class/class_declaration.dart';
 import '../declaration/namespace.dart';
-import '../ast/ast.dart' show TypeExpr;
-import 'function_type.dart';
-import 'nominal_type.dart';
 
-class HTType with HTObject {
+abstract class HTType with HTObject {
   static const ANY = _PrimitiveType(HTLexicon.ANY);
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
@@ -19,7 +14,7 @@ class HTType with HTObject {
   static const CLASS = _PrimitiveType(HTLexicon.CLASS);
   static const TYPE = _PrimitiveType(HTLexicon.TYPE);
   static const unknown = _PrimitiveType(HTLexicon.unknown);
-  static const object = _PrimitiveType(HTLexicon.object);
+  // static const object = _PrimitiveType(HTLexicon.object);
   static const function = _PrimitiveType(HTLexicon.function);
 
   static const Map<String, HTType> primitiveTypes = {
@@ -31,7 +26,7 @@ class HTType with HTObject {
     HTLexicon.NAMESPACE: NAMESPACE,
     HTLexicon.CLASS: CLASS,
     HTLexicon.unknown: unknown,
-    HTLexicon.object: object,
+    // HTLexicon.object: object,
     HTLexicon.function: function,
   };
 
@@ -45,6 +40,8 @@ class HTType with HTObject {
     }
   }
 
+  bool get isResolved => true;
+
   @override
   HTType get valueType => HTType.TYPE;
 
@@ -52,20 +49,7 @@ class HTType with HTObject {
   final List<HTType> typeArgs;
   final bool isNullable;
 
-  bool get isResolved => false;
-
-  const HTType(this.id,
-      {String? classId, this.typeArgs = const [], this.isNullable = false});
-
-  factory HTType.fromAst(TypeExpr? ast) {
-    if (ast != null) {
-      return HTType(ast.id,
-          typeArgs: ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
-          isNullable: ast.isNullable);
-    } else {
-      return HTType.ANY;
-    }
-  }
+  const HTType(this.id, {this.typeArgs = const [], this.isNullable = false});
 
   @override
   String toString() {
@@ -91,13 +75,20 @@ class HTType with HTObject {
   int get hashCode {
     final hashList = <int>[];
     hashList.add(id.hashCode);
-    // hashList.add(isNullable.hashCode);
-    // for (final typeArg in typeArgs) {
-    //   hashList.add(typeArg.hashCode);
-    // }
+    hashList.add(isNullable.hashCode);
+    for (final typeArg in typeArgs) {
+      hashList.add(typeArg.hashCode);
+    }
     final hash = hashObjects(hashList);
     return hash;
   }
+
+  @override
+  bool operator ==(Object other) => hashCode == other.hashCode;
+
+  /// Return a resolved type if it's a class name.
+  /// only return the [HTClass] when its a non-external class
+  HTType resolve(HTNamespace namespace) => this;
 
   /// Wether object of this [HTType] can be assigned to other [HTType]
   bool isA(HTType? other) {
@@ -139,33 +130,8 @@ class HTType with HTObject {
 
   /// Wether object of this [HTType] cannot be assigned to other [HTType]
   bool isNotA(HTType? other) => !isA(other);
-
-  /// Return a resolved type if it's a class name.
-  /// only return the [HTClass] when its a non-external class
-  HTType resolve(HTNamespace namespace) {
-    if (isResolved) {
-      return this;
-    } else if (primitiveTypes.containsKey(id)) {
-      return primitiveTypes[id]!;
-    } else {
-      final typeDef = namespace.memberGet(id);
-      if (typeDef is HTClassDeclaration) {
-        return HTNominalType(typeDef, typeArgs: typeArgs);
-      } else if (typeDef is HTFunctionType) {
-        return typeDef;
-      } else {
-        throw HTError.notType(id);
-      }
-    }
-  }
-
-  @override
-  bool operator ==(Object other) => hashCode == other.hashCode;
 }
 
 class _PrimitiveType extends HTType {
-  @override
-  bool get isResolved => true;
-
   const _PrimitiveType(String id) : super(id);
 }

@@ -2,17 +2,18 @@ import 'dart:typed_data';
 
 import '../binding/external_function.dart';
 import '../declaration/namespace.dart';
-import '../object/object.dart';
 import '../declaration/declaration.dart';
-import '../declaration/class/class.dart';
-import '../declaration/class/cast.dart';
+import '../object/object.dart';
+import '../object/class/class.dart';
+import '../object/instance/cast.dart';
 import '../declaration/function/parameter_declaration.dart';
-import '../declaration/function/function.dart';
-import '../declaration/function/parameter.dart';
-import '../declaration/variable/variable.dart';
+import '../object/function/function.dart';
+import '../object/function/parameter.dart';
+import '../object/variable/variable.dart';
 import '../scanner/abstract_parser.dart';
 import '../scanner/parser.dart';
 import '../type/type.dart';
+import '../type/unresolved_type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
 import '../grammar/lexicon.dart';
@@ -40,7 +41,7 @@ class _LoopInfo {
 }
 
 /// A bytecode implementation of a Hetu script interpreter
-class Hetu extends AbstractInterpreter {
+class Hetu extends HTAbstractInterpreter {
   static const verMajor = 0;
   static const verMinor = 1;
   static const verPatch = 0;
@@ -854,19 +855,19 @@ class Hetu extends AbstractInterpreter {
         break;
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final HTType type = _curValue;
+        final type = (_curValue as HTType).resolve(_curNamespace);
         final HTClass klass = curNamespace.memberGet(type.id);
         _curValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final HTType type = _curValue;
+        final type = (_curValue as HTType).resolve(_curNamespace);
         final encapsulated = encapsulate(object);
         _curValue = encapsulated.valueType.isA(type);
         break;
       case HTOpCode.typeIsNot:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final HTType type = _curValue;
+        final type = (_curValue as HTType).resolve(_curNamespace);
         final encapsulated = encapsulate(object);
         _curValue = encapsulated.valueType.isNotA(type);
         break;
@@ -1037,7 +1038,8 @@ class Hetu extends AbstractInterpreter {
           typeArgs.add(_handleTypeExpr());
         }
         final isNullable = (_curLibrary.read() == 0) ? false : true;
-        return HTType(typeName, typeArgs: typeArgs, isNullable: isNullable);
+        return HTUnresolvedType(typeName,
+            typeArgs: typeArgs, isNullable: isNullable);
       case TypeType.function:
         final paramsLength = _curLibrary.read();
         final parameterTypes = <HTParameterDeclaration>[];
@@ -1057,8 +1059,9 @@ class Hetu extends AbstractInterpreter {
           }
           final isVariadic = _curLibrary.read() == 0 ? false : true;
           final decl = HTParameterDeclaration(paramId ?? '',
-              declType:
-                  HTType(typeId, typeArgs: typeArgs, isNullable: isNullable),
+              closure: _curNamespace,
+              declType: HTUnresolvedType(typeId,
+                  typeArgs: typeArgs, isNullable: isNullable),
               isOptional: isOptional,
               isNamed: isNamed,
               isVariadic: isVariadic);
@@ -1070,7 +1073,7 @@ class Hetu extends AbstractInterpreter {
       case TypeType.struct:
       case TypeType.interface:
       case TypeType.union:
-        return HTType(_curLibrary.readShortUtf8String());
+        return HTUnresolvedType(_curLibrary.readShortUtf8String());
     }
   }
 
@@ -1084,7 +1087,8 @@ class Hetu extends AbstractInterpreter {
     final isExported = _curLibrary.readBool();
     final value = _handleTypeExpr();
 
-    final decl = HTVariable(id, this, classId: classId, initValue: value);
+    final decl = HTVariable(id, this,
+        classId: classId, closure: _curNamespace, initValue: value);
 
     _curNamespace.define(id, decl);
   }
@@ -1189,6 +1193,7 @@ class Hetu extends AbstractInterpreter {
       }
 
       paramDecls[id] = HTParameter(id, this,
+          closure: _curNamespace,
           declType: declType,
           definitionIp: definitionIp,
           definitionLine: definitionLine,
@@ -1327,7 +1332,7 @@ class Hetu extends AbstractInterpreter {
       superType = _handleTypeExpr();
     } else {
       if (!isExternal && (id != HTLexicon.object)) {
-        superType = HTType.object;
+        superType = HTObject.type;
       }
     }
     final klass = HTClass(this,

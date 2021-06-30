@@ -79,7 +79,7 @@ class NullExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.literalNull,
+      : super(SemanticNames.nullLiteral,
             source: source,
             line: line,
             column: column,
@@ -99,7 +99,7 @@ class BooleanExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.literalBoolean,
+      : super(SemanticNames.booleanLiteral,
             source: source,
             line: line,
             column: column,
@@ -119,7 +119,7 @@ class ConstIntExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.literalInteger,
+      : super(SemanticNames.integerLiteral,
             source: source,
             line: line,
             column: column,
@@ -140,7 +140,7 @@ class ConstFloatExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.literalFloat,
+      : super(SemanticNames.floatLiteral,
             source: source,
             line: line,
             column: column,
@@ -165,7 +165,7 @@ class ConstStringExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.literalString,
+      : super(SemanticNames.stringLiteral,
             source: source,
             line: line,
             column: column,
@@ -209,6 +209,32 @@ class StringInterpolationExpr extends AstNode {
             length: length);
 }
 
+class SymbolExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitSymbolExpr(this);
+
+  final String id;
+
+  final bool isLocal;
+
+  final List<TypeExpr> typeArgs;
+
+  const SymbolExpr(this.id,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0,
+      this.isLocal = true,
+      this.typeArgs = const []})
+      : super(SemanticNames.symbolExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class ListExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitListExpr(this);
@@ -221,7 +247,7 @@ class ListExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.literalVectorExpr,
+      : super(SemanticNames.listLiteral,
             source: source,
             line: line,
             column: column,
@@ -241,7 +267,7 @@ class MapExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.blockExpr,
+      : super(SemanticNames.mapLiteral,
             source: source,
             line: line,
             column: column,
@@ -262,77 +288,6 @@ class GroupExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(SemanticNames.groupExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class UnaryPrefixExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitUnaryPrefixExpr(this);
-
-  final String op;
-
-  final AstNode value;
-
-  const UnaryPrefixExpr(this.op, this.value,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.unaryExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class BinaryExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitBinaryExpr(this);
-
-  final AstNode left;
-
-  final String op;
-
-  final AstNode right;
-
-  const BinaryExpr(this.left, this.op, this.right,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.binaryExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class TernaryExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitTernaryExpr(this);
-
-  final AstNode condition;
-
-  final AstNode thenBranch;
-
-  final AstNode elseBranch;
-
-  const TernaryExpr(this.condition, this.thenBranch, this.elseBranch,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.binaryExpr,
             source: source,
             line: line,
             column: column,
@@ -439,25 +394,114 @@ class FuncTypeExpr extends TypeExpr {
             length: length);
 }
 
-class SymbolExpr extends AstNode {
+class GenericTypeParamExpr extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitSymbolExpr(this);
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitGenericTypeParamExpr(this);
 
   final String id;
 
-  final bool isLocal;
-
-  final List<TypeExpr> typeArgs;
-
-  const SymbolExpr(this.id,
+  const GenericTypeParamExpr(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.isLocal = true,
-      this.typeArgs = const []})
-      : super(SemanticNames.symbolExpr,
+      int length = 0})
+      : super(SemanticNames.genericTypeParamExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class UnaryPrefixExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitUnaryPrefixExpr(this);
+
+  final String op;
+
+  final AstNode value;
+
+  const UnaryPrefixExpr(this.op, this.value,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.unaryExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class UnaryPostfixExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitUnaryPostfixExpr(this);
+
+  final AstNode value;
+
+  final String op;
+
+  const UnaryPostfixExpr(this.value, this.op,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.unaryExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class BinaryExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitBinaryExpr(this);
+
+  final AstNode left;
+
+  final String op;
+
+  final AstNode right;
+
+  const BinaryExpr(this.left, this.op, this.right,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.binaryExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class TernaryExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitTernaryExpr(this);
+
+  final AstNode condition;
+
+  final AstNode thenBranch;
+
+  final AstNode elseBranch;
+
+  const TernaryExpr(this.condition, this.thenBranch, this.elseBranch,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.binaryExpr,
             source: source,
             line: line,
             column: column,
@@ -615,29 +659,6 @@ class CallExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(SemanticNames.callExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class UnaryPostfixExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitUnaryPostfixExpr(this);
-
-  final AstNode value;
-
-  final String op;
-
-  const UnaryPostfixExpr(this.value, this.op,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.unaryExpr,
             source: source,
             line: line,
             column: column,
@@ -957,7 +978,7 @@ class TypeAliasDeclStmt extends AstNode {
 
   final String? classId;
 
-  final List<TypeExpr> genericParameters;
+  final List<GenericTypeParamExpr> genericParameters;
 
   final TypeExpr value;
 
@@ -1118,7 +1139,7 @@ class FuncDeclExpr extends AstNode {
 
   final String? classId;
 
-  final List<TypeExpr> genericParameters;
+  final List<GenericTypeParamExpr> genericParameters;
 
   final String? externalTypeId;
 
@@ -1198,7 +1219,7 @@ class ClassDeclStmt extends AstNode {
 
   final String? classId;
 
-  final List<TypeExpr> genericParameters;
+  final List<GenericTypeParamExpr> genericParameters;
 
   final TypeExpr? superType;
 

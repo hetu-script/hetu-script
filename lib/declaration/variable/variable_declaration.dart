@@ -4,15 +4,15 @@ import '../declaration.dart';
 import '../namespace.dart';
 
 class HTVariableDeclaration extends HTDeclaration {
-  HTType? _declType;
+  final HTType? _declType;
+
+  HTType? _resolvedDeclType;
 
   /// The declared [HTType] of this symbol, will be used to
   /// compare with the value type before compile to
   /// determine wether an value binding (assignment) is legal.
-  HTType? get declType => _declType;
+  HTType? get declType => _resolvedDeclType ?? _declType;
 
-  /// 基础声明不包含可变性、初始化、类型推断、类型检查（含空安全）
-  /// 这些工作都是在继承类中各自实现的
   HTVariableDeclaration(
       {String? id,
       String? classId,
@@ -22,8 +22,10 @@ class HTVariableDeclaration extends HTDeclaration {
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
-      bool isMutable = false})
-      : super(
+      bool isMutable = false,
+      bool isTopLevel = false})
+      : _declType = declType,
+        super(
             id: id,
             classId: classId,
             closure: closure,
@@ -31,20 +33,23 @@ class HTVariableDeclaration extends HTDeclaration {
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
-            isMutable: isMutable) {
-    _declType = declType;
+            isMutable: isMutable,
+            isTopLevel: isTopLevel) {
+    if (_declType != null && _declType!.isResolved) {
+      _resolvedDeclType = _declType!;
+    }
   }
 
   @override
   void resolve() {
     super.resolve();
-    if ((closure != null) && (_declType != null) && (!_declType!.isResolved)) {
-      _declType = _declType!.resolve(closure!);
+    if ((closure != null) && (_declType != null)) {
+      _resolvedDeclType = _declType!.resolve(closure!);
+    } else {
+      _resolvedDeclType = HTType.ANY;
     }
   }
 
-  /// Create a copy of this variable declaration,
-  /// mainly used on class member inheritance and function arguments passing.
   @override
   HTVariableDeclaration clone() => HTVariableDeclaration(
       id: id,

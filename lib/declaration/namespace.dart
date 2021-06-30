@@ -1,11 +1,12 @@
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 import '../source/source.dart';
+import '../object/object.dart';
 import 'declaration.dart';
 
 /// For interpreter searching for symbols
 /// from a certain block or module.
-class HTNamespace extends HTDeclaration {
+class HTNamespace extends HTDeclaration with HTObject {
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
 

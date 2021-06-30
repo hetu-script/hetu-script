@@ -6,13 +6,14 @@ import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
-import '../instance/instance_namespace.dart';
-import '../class/class.dart';
-import '../instance/instance.dart';
+import '../../object/instance/instance_namespace.dart';
+import '../../object/class/class.dart';
+import '../../object/instance/instance.dart';
 import '../variable/variable.dart';
-import '../namespace.dart';
+import '../../declaration/namespace.dart';
 import 'parameter.dart';
-import 'function_declaration.dart';
+import '../../declaration/function/function_declaration.dart';
+import '../object.dart';
 
 class ReferConstructor {
   /// id of super class's constructor
@@ -35,7 +36,8 @@ class ReferConstructor {
 }
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
-class HTFunction extends HTFunctionDeclaration with HetuRef, GotoInfo {
+class HTFunction extends HTFunctionDeclaration
+    with HTObject, HetuRef, GotoInfo {
   final String moduleFullName;
 
   final String libraryName;
@@ -79,6 +81,7 @@ class HTFunction extends HTFunctionDeclaration with HetuRef, GotoInfo {
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
+      bool isTopLevel = false,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
@@ -101,6 +104,7 @@ class HTFunction extends HTFunctionDeclaration with HetuRef, GotoInfo {
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
+            isTopLevel: isTopLevel,
             category: category,
             externalTypeId: externalTypeId,
             isVariadic: isVariadic,

@@ -1,7 +1,7 @@
 import '../../type/type.dart';
 import '../declaration.dart';
 
-abstract class AbstractParameter implements HTDeclaration {
+abstract class HTAbstractParameter implements HTDeclaration {
   @override
   String get id;
 
@@ -14,5 +14,8 @@ abstract class AbstractParameter implements HTDeclaration {
   HTType? get declType;
 
   @override
-  AbstractParameter clone();
+  void resolve();
+
+  @override
+  HTAbstractParameter clone();
 }

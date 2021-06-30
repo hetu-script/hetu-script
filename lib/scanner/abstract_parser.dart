@@ -22,8 +22,6 @@ class ParserConfigImpl implements ParserConfig {
 }
 
 abstract class AbstractParser {
-  static var anonymousFuncIndex = 0;
-
   ParserConfig config;
 
   int _curLine = 0;
