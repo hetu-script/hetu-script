@@ -2,7 +2,7 @@ import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../error/error.dart';
 import '../../source/source.dart';
-import '../../interpreter/interpreter.dart';
+import '../../interpreter/abstract_interpreter.dart';
 import '../../type/type.dart';
 // import '../declaration.dart';
 import '../../declaration/namespace.dart';
@@ -14,7 +14,7 @@ import '../object.dart';
 import '../../type/generic_type_parameter.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
-class HTClass extends HTClassDeclaration with HTObject, HetuRef {
+class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
   @override
   String toString() => '${HTLexicon.CLASS} $id';
 
@@ -45,12 +45,12 @@ class HTClass extends HTClassDeclaration with HTObject, HetuRef {
   // final instanceMembers = <String, HTDeclaration>{};
 
   /// Create a default [HTClass] instance.
-  HTClass(Hetu interpreter,
+  HTClass(HTAbstractInterpreter interpreter,
       {String? id,
       String? classId,
       HTNamespace? closure,
       HTSource? source,
-      Iterable<HTGenericTypeParameter> genericTypeParameters = const [],
+      List<HTGenericTypeParameter> genericTypeParameters = const [],
       HTType? superType,
       Iterable<HTType> withTypes = const [],
       Iterable<HTType> implementsTypes = const [],

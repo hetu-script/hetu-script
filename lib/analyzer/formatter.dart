@@ -2,6 +2,8 @@ import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../ast/ast_compilation.dart';
+import '../scanner/lexer.dart';
+import '../scanner/parser.dart';
 
 class FormatterConfig {
   final int pageWidth;
@@ -41,7 +43,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
     if (config != null) {
       this.config = config;
     }
-
     final output = StringBuffer();
     for (var i = 0; i < nodes.length; ++i) {
       final stmt = nodes[i];
@@ -60,21 +61,25 @@ class HTFormatter implements AbstractAstVisitor<String> {
       }
       _lastStmt = stmt;
     }
-
-    this.config = savedConfig;
-
     final result = output.toString();
-
+    this.config = savedConfig;
     return result;
   }
 
-  void formatModule(HTAstModule module) {
-    module.source.content = format(module.nodes);
+  String formatString(String content, {FormatterConfig? config}) {
+    final tokens = HTLexer().lex(content);
+    final nodes = HTAstParser().parse(tokens);
+    final result = format(nodes, config: config);
+    return result;
   }
 
-  void formatLibrary(HTAstCompilation bundle) {
+  void formatModule(HTAstModule module, {FormatterConfig? config}) {
+    module.source.content = format(module.nodes, config: config);
+  }
+
+  void formatLibrary(HTAstCompilation bundle, {FormatterConfig? config}) {
     for (final module in bundle.modules.values) {
-      formatModule(module);
+      module.source.content = format(module.nodes, config: config);
     }
   }
 
@@ -719,6 +724,15 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitNamespaceDeclStmt(NamespaceDeclStmt stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.NAMESPACE} ${stmt.id} ');
+    final blockString = visitBlockStmt(stmt.definition);
+    output.write(blockString);
+    return output.toString();
+  }
+
+  @override
   String visitClassDeclStmt(ClassDeclStmt stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
@@ -732,10 +746,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
       final superClassTypeString = visitTypeExpr(stmt.superType!);
       output.write('${HTLexicon.EXTENDS} $superClassTypeString ');
     }
-    if (stmt.definition != null) {
-      final blockString = visitBlockStmt(stmt.definition!);
-      output.write(blockString);
-    }
+    final blockString = visitBlockStmt(stmt.definition);
+    output.write(blockString);
     return output.toString();
   }
 

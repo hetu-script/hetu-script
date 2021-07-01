@@ -11,8 +11,9 @@ class HTModuleAnalysisResult extends HTSource {
 
   final List<HTAnalysisError> errors;
 
-  HTModuleAnalysisResult(String id, String content, this.analyzer, this.errors)
-      : super(id, content);
+  HTModuleAnalysisResult(String content, this.analyzer, this.errors,
+      {String? fullName})
+      : super(content, fullName: fullName);
 }
 
 class HTLibraryAnalysisResult extends HTLibrary {

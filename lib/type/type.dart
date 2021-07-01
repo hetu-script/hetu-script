@@ -42,6 +42,8 @@ abstract class HTType with HTObject {
 
   bool get isResolved => true;
 
+  HTType resolve(HTNamespace namespace) => this;
+
   @override
   HTType get valueType => HTType.TYPE;
 
@@ -50,6 +52,21 @@ abstract class HTType with HTObject {
   final bool isNullable;
 
   const HTType(this.id, {this.typeArgs = const [], this.isNullable = false});
+
+  @override
+  int get hashCode {
+    final hashList = <int>[];
+    hashList.add(id.hashCode);
+    hashList.add(isNullable.hashCode);
+    for (final typeArg in typeArgs) {
+      hashList.add(typeArg.hashCode);
+    }
+    final hash = hashObjects(hashList);
+    return hash;
+  }
+
+  @override
+  bool operator ==(Object other) => hashCode == other.hashCode;
 
   @override
   String toString() {
@@ -70,25 +87,6 @@ abstract class HTType with HTObject {
     }
     return typeString.toString();
   }
-
-  @override
-  int get hashCode {
-    final hashList = <int>[];
-    hashList.add(id.hashCode);
-    hashList.add(isNullable.hashCode);
-    for (final typeArg in typeArgs) {
-      hashList.add(typeArg.hashCode);
-    }
-    final hash = hashObjects(hashList);
-    return hash;
-  }
-
-  @override
-  bool operator ==(Object other) => hashCode == other.hashCode;
-
-  /// Return a resolved type if it's a class name.
-  /// only return the [HTClass] when its a non-external class
-  HTType resolve(HTNamespace namespace) => this;
 
   /// Wether object of this [HTType] can be assigned to other [HTType]
   bool isA(HTType? other) {

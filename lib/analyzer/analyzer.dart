@@ -120,13 +120,14 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curErrors = <HTAnalysisError>[];
     final parser = HTAstParser(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
-    final compilation = parser.parseToCompilation(source,
-        hasOwnNamespace: hasOwnNamespace, errorHandled: true);
+    final compilation =
+        parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
 
     _curLibrary = HTLibraryAnalysisResult(source.libraryName);
     for (final module in compilation.modules.values) {
       _curSource = HTModuleAnalysisResult(
-          module.source.fullName, module.source.content, this, _curErrors);
+          module.source.content, this, _curErrors,
+          fullName: module.source.fullName);
       _curLibrary.modules[module.source.fullName] = _curSource;
       if (module.hasOwnNamespace) {
         _curNamespace = HTNamespace(id: module.fullName, closure: global);
@@ -271,8 +272,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitVarDeclStmt(VarDeclStmt stmt) {
-    final decl = HTVariableDeclaration(
-        id: stmt.id,
+    final decl = HTVariableDeclaration(stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
@@ -320,6 +320,11 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
+  void visitNamespaceDeclStmt(NamespaceDeclStmt stmt) {
+    // TODO: namespace analysis
+  }
+
+  @override
   void visitClassDeclStmt(ClassDeclStmt stmt) {
     final decl = HTClassDeclaration(
         id: stmt.id,
@@ -327,7 +332,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         closure: _curNamespace,
         source: _curSource,
         genericTypeParameters: stmt.genericParameters
-            .map((param) => HTGenericTypeParameter(param.id)),
+            .map((param) => HTGenericTypeParameter(param.id))
+            .toList(),
         superType: HTUnresolvedType.fromAst(stmt.superType),
         implementsTypes: stmt.implementsTypes
             .map((param) => HTUnresolvedType.fromAst(param)),

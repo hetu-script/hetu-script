@@ -2,7 +2,7 @@ import '../grammar/lexicon.dart';
 // import '../error/error.dart';
 import '../grammar/token.dart';
 
-/// 负责对原始文本进行词法分析并生成Token列表
+/// Scans a string content and generates a list of Tokens.
 class HTLexer {
   List<Token> lex(String content,
       {int line = 1, int column = 0, int start = 0}) {
@@ -122,14 +122,16 @@ class HTLexer {
       } else {
         if (tokens.isNotEmpty) {
           toksOfLine.add(TokenEmptyLine(
-              curLine, curColumn, tokens.last.offset + tokens.last.length, 0));
+              curLine, curColumn, tokens.last.offset + tokens.last.length));
         } else {
-          toksOfLine.add(TokenEmptyLine(curLine, curColumn, 0, 0));
+          toksOfLine.add(TokenEmptyLine(curLine, curColumn, 0));
         }
       }
       ++curLine;
     }
-
+    if (tokens.isEmpty) {
+      tokens.add(TokenEmptyLine(0, 0, 0));
+    }
     return tokens;
   }
 
@@ -160,16 +162,16 @@ class HTLexer {
       if (tokens.isNotEmpty) {
         interpolations.add(tokens);
       } else {
-        interpolations.add([
-          TokenEmpty(
-              line,
-              column + match.start + HTLexicon.stringInterpolationStart.length,
-              start +
-                  quotationLeft.length +
-                  match.start +
-                  HTLexicon.stringInterpolationStart.length, // move beyond '${'
-              0)
-        ]);
+        interpolations.add(const []);
+        // TokenEmpty(
+        //     line,
+        //     column + match.start + HTLexicon.stringInterpolationStart.length,
+        //     // move beyond '${'
+        //     start +
+        //         quotationLeft.length +
+        //         match.start +
+        //         HTLexicon.stringInterpolationStart.length)
+        // ]);
       }
     }
     return TokenStringInterpolation(literal, quotationLeft, quotationRight,

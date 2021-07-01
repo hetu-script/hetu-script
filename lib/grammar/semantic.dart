@@ -107,6 +107,7 @@ abstract class SemanticNames {
 
   static const variableDeclaration = 'variable_declaration';
   static const parameterDeclaration = 'parameter_declaration';
+  static const namespaceDeclaration = 'namespace_declaration';
   static const classDeclaration = 'class_declaration';
   static const enumDeclaration = 'enum_declaration';
   static const typeAliasDeclaration = 'type_alias_declaration';

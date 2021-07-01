@@ -122,14 +122,14 @@ void run(List<String> args, [SourceType sourceType = SourceType.script]) {
 }
 
 void format(List<String> args, [String? outPath, bool printResult = true]) {
-  final parser = HTAstParser();
+  // final parser = HTAstParser();
   final formatter = HTFormatter();
   final sourceProvider = DefaultSourceProvider();
   final source = sourceProvider.getSourceSync(args.first);
   // final config = ParserConfig(sourceType: sourceType);
-  final compilation = parser.parseToCompilation(source); //, config);
-  final module = compilation.modules[source.fullName]!;
-  final fmtResult = formatter.format(module.nodes);
+  // final compilation = parser.parseToCompilation(source); //, config);
+  // final module = compilation.modules[source.fullName]!;
+  final fmtResult = formatter.formatString(source.content);
   if (printResult) {
     print(fmtResult);
   }
@@ -140,7 +140,7 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
       outPath = path.join(curPath, '$name.ht');
     }
   } else {
-    outPath = module.fullName;
+    outPath = source.fullName;
   }
   final outFile = File(outPath);
   outFile.writeAsStringSync(fmtResult);

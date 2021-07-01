@@ -22,6 +22,8 @@ class HTAstModule {
 
   String get fullName => source.fullName;
 
+  String get libraryName => source.libraryName;
+
   /// The bytecode, stores as uint8 list
   final List<AstNode> nodes;
 
@@ -46,6 +48,10 @@ class HTAstCompilation {
   final modules = <String, HTAstModule>{};
 
   final sources = <String, HTSource>{};
+
+  final String libraryName;
+
+  HTAstCompilation(this.libraryName);
 
   void add(HTAstModule module) => modules[module.fullName] = module;
 

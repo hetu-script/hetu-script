@@ -1,7 +1,16 @@
+enum ErrorHanldeApproach {
+  ingore,
+  stdout,
+  exception,
+  list,
+}
+
 abstract class ErrorHandlerConfig {
   bool get stackTrace;
 
   int get hetuStackTraceThreshhold;
+
+  ErrorHanldeApproach get approach;
 }
 
 class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
@@ -11,8 +20,13 @@ class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
   @override
   final int hetuStackTraceThreshhold;
 
+  @override
+  final ErrorHanldeApproach approach;
+
   const ErrorHandlerConfigImpl(
-      {this.stackTrace = true, this.hetuStackTraceThreshhold = 10});
+      {this.stackTrace = true,
+      this.hetuStackTraceThreshhold = 10,
+      this.approach = ErrorHanldeApproach.exception});
 }
 
 /// Abstract error handler class
@@ -27,11 +41,22 @@ class DefaultErrorHandler implements HTErrorHandler {
   @override
   final ErrorHandlerConfig errorConfig;
 
-  const DefaultErrorHandler(
-      {this.errorConfig = const ErrorHandlerConfigImpl()});
+  List errors = [];
+
+  DefaultErrorHandler({this.errorConfig = const ErrorHandlerConfigImpl()});
 
   @override
   void handleError(Object error, {Object? externalStackTrace}) {
-    throw (error);
+    switch (errorConfig.approach) {
+      case ErrorHanldeApproach.ingore:
+        break;
+      case ErrorHanldeApproach.stdout:
+        print(error);
+        break;
+      case ErrorHanldeApproach.exception:
+        throw (error);
+      case ErrorHanldeApproach.list:
+        errors.add(error);
+    }
   }
 }

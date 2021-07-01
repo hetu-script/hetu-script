@@ -1,26 +1,32 @@
 import '../../source/source.dart';
 import '../../type/type.dart';
+import '../../type/generic_type_parameter.dart';
 import '../declaration.dart';
 import '../namespace.dart';
+import 'abstract_type_declaration.dart';
 
-class HTVariableDeclaration extends HTDeclaration {
+class HTTypeAliasDeclaration extends HTDeclaration
+    implements HTAbstractTypeDeclaration {
   @override
   final String id;
 
-  final HTType? _declType;
+  @override
+  final List<HTGenericTypeParameter> genericTypeParameters;
+
+  final HTType _declType;
 
   HTType? _resolvedDeclType;
 
   /// The declared [HTType] of this symbol, will be used to
   /// compare with the value type before compile to
   /// determine wether an value binding (assignment) is legal.
-  HTType? get declType => _resolvedDeclType ?? _declType;
+  HTType get declType => _resolvedDeclType ?? _declType;
 
-  HTVariableDeclaration(this.id,
+  HTTypeAliasDeclaration(this.id, HTType declType,
       {String? classId,
       HTNamespace? closure,
       HTSource? source,
-      HTType? declType,
+      this.genericTypeParameters = const [],
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
@@ -36,27 +42,13 @@ class HTVariableDeclaration extends HTDeclaration {
             isStatic: isStatic,
             isConst: isConst,
             isMutable: isMutable,
-            isTopLevel: isTopLevel) {
-    if (_declType != null && _declType!.isResolved) {
-      _resolvedDeclType = _declType!;
-    }
-  }
+            isTopLevel: isTopLevel);
 
   @override
-  void resolve() {
-    super.resolve();
-    if ((closure != null) && (_declType != null)) {
-      _resolvedDeclType = _declType!.resolve(closure!);
-    } else {
-      _resolvedDeclType = HTType.ANY;
-    }
-  }
-
-  @override
-  HTVariableDeclaration clone() => HTVariableDeclaration(id,
+  HTTypeAliasDeclaration clone() => HTTypeAliasDeclaration(id, declType,
       classId: classId,
       closure: closure,
-      declType: declType,
+      genericTypeParameters: genericTypeParameters,
       isExternal: isExternal,
       isStatic: isStatic,
       isConst: isConst,

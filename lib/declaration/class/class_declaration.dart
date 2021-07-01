@@ -3,7 +3,7 @@ import '../../source/source.dart';
 import '../../grammar/semantic.dart';
 import '../namespace.dart';
 import '../declaration.dart';
-import '../type/type_declaration.dart';
+import '../type/abstract_type_declaration.dart';
 import '../../type/generic_type_parameter.dart';
 
 class HTClassDeclaration extends HTDeclaration
@@ -11,7 +11,7 @@ class HTClassDeclaration extends HTDeclaration
   String get name => id ?? SemanticNames.anonymousClass;
 
   @override
-  final Iterable<HTGenericTypeParameter> genericTypeParameters;
+  final List<HTGenericTypeParameter> genericTypeParameters;
 
   final HTType? _unresolvedSuperType;
 

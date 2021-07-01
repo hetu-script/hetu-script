@@ -11,6 +11,8 @@ class Token {
 
   final int length;
 
+  int get end => offset + length;
+
   String get type => lexeme;
 
   dynamic get literal => lexeme;
@@ -25,16 +27,16 @@ class TokenEmpty extends Token {
   @override
   String get type => SemanticNames.empty;
 
-  const TokenEmpty(int line, int column, int offset, int length)
-      : super('', line, column, offset, length);
+  const TokenEmpty(int line, int column, int offset)
+      : super('', line, column, offset, 0);
 }
 
 class TokenEmptyLine extends Token {
   @override
   String get type => SemanticNames.emptyLine;
 
-  const TokenEmptyLine(int line, int column, int offset, int length)
-      : super('', line, column, offset, length);
+  const TokenEmptyLine(int line, int column, int offset)
+      : super('', line, column, offset, 0);
 }
 
 class TokenIdentifier extends Token {

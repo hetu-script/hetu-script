@@ -216,6 +216,11 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
+  HTType? visitNamespaceDeclStmt(NamespaceDeclStmt stmt) {
+    return HTType.ANY;
+  }
+
+  @override
   HTType? visitClassDeclStmt(ClassDeclStmt stmt) {
     return HTType.ANY;
   }

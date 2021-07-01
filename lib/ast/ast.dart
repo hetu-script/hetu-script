@@ -11,10 +11,14 @@ abstract class AstNode {
   final HTSource? source;
 
   final int line;
+
   final int column;
 
   final int offset;
+
   final int length;
+
+  int get end => offset + length;
 
   /// 取表达式右值，返回值本身
   dynamic accept(AbstractAstVisitor visitor);
@@ -1210,6 +1214,29 @@ class FuncDeclExpr extends AstNode {
             length: length);
 }
 
+class NamespaceDeclStmt extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitNamespaceDeclStmt(this);
+
+  final String id;
+
+  final BlockStmt definition;
+
+  const NamespaceDeclStmt(this.id, this.definition,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.namespaceDeclaration,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class ClassDeclStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
@@ -1243,9 +1270,9 @@ class ClassDeclStmt extends AstNode {
 
   final bool hasUserDefinedConstructor;
 
-  final BlockStmt? definition;
+  final BlockStmt definition;
 
-  const ClassDeclStmt(this.id,
+  const ClassDeclStmt(this.id, this.definition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1260,8 +1287,7 @@ class ClassDeclStmt extends AstNode {
       this.isAbstract = false,
       this.isExported = true,
       this.isTopLevel = false,
-      this.hasUserDefinedConstructor = false,
-      this.definition})
+      this.hasUserDefinedConstructor = false})
       : super(SemanticNames.classDeclaration,
             source: source,
             line: line,

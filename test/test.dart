@@ -1,17 +1,23 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  final hetu =
-      HTAnalyzer(config: AnalyzerConfig(sourceType: SourceType.module));
-  hetu.init();
-  hetu.eval(r'''fun main { print('hello world! ${}') }
-  ''');
-  if (hetu.errors.isNotEmpty) {
-    print('Analyzer found ${hetu.errors.length} problems:');
-    for (final err in hetu.errors) {
-      print(err);
-    }
-  } else {
-    print('Analyzer found 0 problem.');
-  }
+  // final parser = HTAstParser();
+  // final nodes = parser.parseString('');
+  // print(nodes);
+
+  final lexer = HTLexer();
+  final tokens = lexer.lex('');
+  print(tokens);
+
+  // final source = HTSource(r'''
+  //   var i = 42
+  //   var j = 'hi, your number is ${ '#' +     i.toString()   }.'
+  // ''');
+  // // final parser = HTAstParser();
+  // final module = parser.parseToModule(source);
+  // final formatter = HTFormatter();
+  // formatter.formatModule(module);
+  // print('${module.fullName}');
+  // print('--------------------------------------------------------------------');
+  // print(module.source.content);
 }

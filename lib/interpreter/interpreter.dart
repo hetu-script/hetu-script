@@ -192,8 +192,8 @@ class Hetu extends HTAbstractInterpreter {
     final compiler = HTCompiler(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     try {
-      final compilation = parser.parseToCompilation(source,
-          hasOwnNamespace: hasOwnNamespace, errorHandled: true);
+      final compilation =
+          parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
       if (_curConfig.doStaticAnalyze) {
         final hetu = HTAnalyzer(
             config: AnalyzerConfig(sourceType: _curConfig.sourceType));
@@ -1044,9 +1044,10 @@ class Hetu extends HTAbstractInterpreter {
       case TypeType.normal:
         final typeName = _curLibrary.readShortUtf8String();
         final typeArgsLength = _curLibrary.read();
-        final typeArgs = <HTType>[];
+        final typeArgs = <HTUnresolvedType>[];
         for (var i = 0; i < typeArgsLength; ++i) {
-          typeArgs.add(_handleTypeExpr());
+          final typearg = _handleTypeExpr() as HTUnresolvedType;
+          typeArgs.add(typearg);
         }
         final isNullable = (_curLibrary.read() == 0) ? false : true;
         return HTUnresolvedType(typeName,
@@ -1057,9 +1058,10 @@ class Hetu extends HTAbstractInterpreter {
         for (var i = 0; i < paramsLength; ++i) {
           final typeId = _curLibrary.readShortUtf8String();
           final typeArgLength = _curLibrary.read();
-          final typeArgs = <HTType>[];
+          final typeArgs = <HTUnresolvedType>[];
           for (var i = 0; i < typeArgLength; ++i) {
-            typeArgs.add(_handleTypeExpr());
+            final typearg = _handleTypeExpr() as HTUnresolvedType;
+            typeArgs.add(typearg);
           }
           final isNullable = _curLibrary.read() == 0 ? false : true;
           final isOptional = _curLibrary.read() == 0 ? false : true;
@@ -1355,10 +1357,8 @@ class Hetu extends HTAbstractInterpreter {
     _curNamespace.define(id, klass);
     final savedClass = _curClass;
     _curClass = klass;
-    final hasDefinition = _curLibrary.readBool();
-    if (hasDefinition) {
-      execute(namespace: klass.namespace);
-    }
+    // deal with definition block
+    execute(namespace: klass.namespace);
     // Add default constructor if non-exist.
     if (!isAbstract) {
       if (!hasUserDefinedConstructor) {

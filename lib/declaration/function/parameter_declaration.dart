@@ -26,8 +26,7 @@ class HTParameterDeclaration extends HTVariableDeclaration
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(
-            id: id,
+      : super(id,
             closure: closure,
             source: source,
             declType: declType,

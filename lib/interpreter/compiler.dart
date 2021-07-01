@@ -1446,6 +1446,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitNamespaceDeclStmt(NamespaceDeclStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+    // TODO: namespace compilation
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitClassDeclStmt(ClassDeclStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
@@ -1464,14 +1471,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has super class
     }
     // TODO: deal with implements and mixins
-    if (stmt.definition != null) {
-      bytesBuilder.addByte(1); // bool: hasDefinition
-      final classDefinition = visitBlockStmt(stmt.definition!);
-      bytesBuilder.add(classDefinition);
-      bytesBuilder.addByte(HTOpCode.endOfExec);
-    } else {
-      bytesBuilder.addByte(0); // bool: hasDefinition
-    }
+    final classDefinition = visitBlockStmt(stmt.definition);
+    bytesBuilder.add(classDefinition);
+    bytesBuilder.addByte(HTOpCode.endOfExec);
     bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }

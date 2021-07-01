@@ -21,7 +21,8 @@ class ParserConfigImpl implements ParserConfig {
       {this.sourceType = SourceType.module, this.reload = false});
 }
 
-abstract class AbstractParser {
+/// Abstract interface for handling a token list.
+abstract class HTAbstractParser {
   ParserConfig config;
 
   int _curLine = 0;
@@ -30,9 +31,9 @@ abstract class AbstractParser {
   int get curColumn => _curColumn;
 
   /// The module current processing, used in error message.
-  String get curModuleFullName;
+  String? get curModuleFullName;
 
-  String get curLibraryName;
+  String? get curLibraryName;
 
   var tokPos = 0;
 
@@ -44,22 +45,26 @@ abstract class AbstractParser {
 
   final HTSourceProvider sourceProvider;
 
-  AbstractParser(
+  HTAbstractParser(
       {this.config = const ParserConfigImpl(),
       HTErrorHandler? errorHandler,
       HTSourceProvider? sourceProvider})
       : errorHandler = errorHandler ?? DefaultErrorHandler(),
         sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
-  void addTokens(List<Token> tokens) {
+  void setTokens(List<Token> tokens) {
     tokPos = 0;
     _tokens.clear();
     _tokens.addAll(tokens);
     _curLine = 0;
     _curColumn = 0;
 
-    endOfFile = Token(SemanticNames.endOfFile, _tokens.last.line + 1, 0,
-        _tokens.last.offset + 1, 0);
+    endOfFile = Token(
+        SemanticNames.endOfFile,
+        _tokens.isNotEmpty ? _tokens.last.line + 1 : 0,
+        0,
+        _tokens.last.offset + 1,
+        0);
   }
 
   /// 检查包括当前Token在内的接下来数个Token是否符合类型要求

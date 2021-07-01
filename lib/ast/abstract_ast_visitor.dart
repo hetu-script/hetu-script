@@ -88,6 +88,8 @@ abstract class AbstractAstVisitor<T> {
 
   T visitFuncDeclStmt(FuncDeclExpr stmt);
 
+  T visitNamespaceDeclStmt(NamespaceDeclStmt stmt);
+
   T visitClassDeclStmt(ClassDeclStmt stmt);
 
   T visitEnumDeclStmt(EnumDeclStmt stmt);

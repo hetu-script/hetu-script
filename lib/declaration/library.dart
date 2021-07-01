@@ -1,6 +1,8 @@
 import '../grammar/semantic.dart';
 import 'namespace.dart';
 
+/// Library is the semantic entity of the compilation
+/// it contains all object and code interpreter generated.
 class HTLibrary extends HTNamespace {
   @override
   String toString() => '${SemanticNames.library} $id';

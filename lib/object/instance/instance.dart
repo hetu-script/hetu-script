@@ -10,12 +10,12 @@ import 'cast.dart';
 import '../../declaration/namespace.dart';
 import '../object.dart';
 import 'instance_namespace.dart';
-import '../../interpreter/interpreter.dart';
+import '../../interpreter/abstract_interpreter.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
-class HTInstance with HTObject, HetuRef {
+class HTInstance with HTObject, InterpreterRef {
   final String id;
   final int index;
 
@@ -39,7 +39,7 @@ class HTInstance with HTObject, HetuRef {
   HTInstanceNamespace get namespace => _namespaces[classId]!;
 
   /// Create a default [HTInstance] instance.
-  HTInstance(HTClass klass, Hetu interpreter,
+  HTInstance(HTClass klass, HTAbstractInterpreter interpreter,
       {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject})
       : id = SemanticNames.instance,
         index = klass.instanceIndex,

@@ -3,6 +3,7 @@ import 'package:quiver/core.dart';
 import '../declaration/class/class_declaration.dart';
 import 'type.dart';
 
+/// A type checks ids and its super types.
 class HTNominalType extends HTType {
   final HTClassDeclaration klass;
   // late final Iterable<HTType> implemented;

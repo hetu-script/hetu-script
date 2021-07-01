@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:path/path.dart' as path;
 
+import '../grammar/semantic.dart';
 import 'line_info.dart';
 
 /// Code module types
@@ -26,14 +29,16 @@ enum SourceType {
 }
 
 class HTSource {
-  final String fullName;
+  static const _anonymousScriptSignatureLength = 72;
+
+  late final String fullName;
   String get name => path.basename(fullName);
 
   final SourceType type;
 
   final bool isLibrary;
 
-  final String libraryName;
+  late final String libraryName;
 
   String _content;
   String get content => _content;
@@ -47,11 +52,28 @@ class HTSource {
 
   bool evaluated = false;
 
-  HTSource(this.fullName, String content,
-      {this.type = SourceType.module,
+  HTSource(String content,
+      {String? fullName,
+      this.type = SourceType.module,
       this.isLibrary = false,
       String? libraryName})
-      : libraryName = libraryName ?? fullName,
-        _content = content,
-        _lineInfo = LineInfo.fromContent(content);
+      : _content = content,
+        _lineInfo = LineInfo.fromContent(content) {
+    if (fullName != null) {
+      this.fullName = fullName;
+    } else {
+      final sigBuilder = StringBuffer();
+      sigBuilder.write('${SemanticNames.anonymousScript}: {');
+      var firstLine =
+          content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
+      sigBuilder.write(firstLine.substring(
+          0, math.min(_anonymousScriptSignatureLength, firstLine.length)));
+      if (firstLine.length > _anonymousScriptSignatureLength) {
+        sigBuilder.write('...');
+      }
+      sigBuilder.write('}');
+      this.fullName = sigBuilder.toString();
+    }
+    this.libraryName = libraryName ?? this.fullName;
+  }
 }

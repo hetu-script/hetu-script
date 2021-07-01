@@ -1,111 +1,17 @@
 import 'package:quiver/core.dart';
 
 import '../declaration/function/abstract_parameter.dart';
+import '../declaration/type/abstract_type_declaration.dart';
 import '../grammar/lexicon.dart';
 import 'type.dart';
-// import '../ast/ast.dart' show ParamDeclExpr;
+import 'generic_type_parameter.dart';
 
-// class HTParameterType extends HTType implements ParameterDeclaration {
-//   @override
-//   HTType get declType => this;
+class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
+  @override
+  final List<HTGenericTypeParameter> genericTypeParameters;
 
-//   @override
-//   final String id;
-
-//   @override
-//   final bool isOptional;
-
-//   @override
-//   final bool isNamed;
-
-//   @override
-//   final bool isVariadic;
-
-//   const HTParameterType(String typeid,
-//       {this.id = '',
-//       List<HTType> typeArgs = const [],
-//       bool isNullable = false,
-//       this.isOptional = false,
-//       this.isNamed = false,
-//       this.isVariadic = false})
-//       : super(typeid, typeArgs: typeArgs, isNullable: isNullable);
-
-//   HTParameterType.fromType(String paramId,
-//       {HTType? paramType,
-//       bool isOptional = false,
-//       bool isNamed = false,
-//       bool isVariadic = false})
-//       : this(paramType?.id ?? HTLexicon.ANY,
-//             id: paramId,
-//             typeArgs: paramType?.typeArgs ?? const [],
-//             isNullable: paramType?.isNullable ?? false,
-//             isOptional: isOptional,
-//             isNamed: isNamed,
-//             isVariadic: isVariadic);
-
-//   HTParameterType.fromAst(ParamDeclExpr ast)
-//       : this.fromType(ast.id,
-//             paramType: HTType.fromAst(ast.declType),
-//             isOptional: ast.isOptional,
-//             isNamed: ast.isNamed,
-//             isVariadic: ast.isVariadic);
-
-//   @override
-//   String toString() {
-//     var typeString = StringBuffer();
-//     if (isNamed) {
-//       typeString.write('$id: ');
-//     }
-//     typeString.write(super.toString());
-//     return typeString.toString();
-//   }
-
-//   @override
-//   int get hashCode {
-//     final hashList = <int>[];
-//     hashList.add(super.hashCode);
-//     hashList.add(isOptional.hashCode);
-//     hashList.add(isNamed.hashCode);
-//     hashList.add(isVariadic.hashCode);
-//     final hash = hashObjects(hashList);
-//     return hash;
-//   }
-
-//   @override
-//   bool isA(dynamic other) {
-//     if (other == HTType.ANY) {
-//       return true;
-//     } else if (other.id == HTLexicon.ANY) {
-//       if ((isOptional == other.isOptional) ||
-//           (isNamed == other.isNamed) ||
-//           (isVariadic == other.isVariadic)) {
-//         return true;
-//       } else {
-//         return false;
-//       }
-//     } else if (other is HTParameterType) {
-//       if (isNamed && (id != other.id)) {
-//         return false;
-//       } else if ((isOptional != other.isOptional) ||
-//           (isNamed != other.isNamed) ||
-//           (isVariadic != other.isVariadic)) {
-//         return false;
-//       }
-//       // ignore: unnecessary_cast
-//       else if (!super.isA(other)) {
-//         return false;
-//       } else {
-//         return true;
-//       }
-//     } else {
-//       return false;
-//     }
-//   }
-// }
-
-class HTFunctionType extends HTType {
-  final Iterable<HTType> genericTypeParameters;
   final List<HTAbstractParameter> parameterDeclarations;
+
   final HTType returnType;
 
   HTFunctionType(
@@ -118,16 +24,16 @@ class HTFunctionType extends HTType {
   String toString() {
     var result = StringBuffer();
     result.write(HTLexicon.function);
-    // if (valueType.typeArgs.isNotEmpty) {
-    //   result.write(HTLexicon.angleLeft);
-    //   for (var i = 0; i < valueType.typeArgs.length; ++i) {
-    //     result.write(valueType.typeArgs[i]);
-    //     if (i < valueType.typeArgs.length - 1) {
-    //       result.write('${HTLexicon.comma} ');
-    //     }
-    //   }
-    //   result.write(HTLexicon.angleRight);
-    // }
+    if (genericTypeParameters.isNotEmpty) {
+      result.write(HTLexicon.angleLeft);
+      for (var i = 0; i < genericTypeParameters.length; ++i) {
+        result.write(genericTypeParameters[i]);
+        if (i < genericTypeParameters.length - 1) {
+          result.write('${HTLexicon.comma} ');
+        }
+      }
+      result.write(HTLexicon.angleRight);
+    }
 
     result.write(HTLexicon.roundLeft);
 

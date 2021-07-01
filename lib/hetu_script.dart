@@ -5,8 +5,10 @@
 library hetu_script;
 
 export 'declaration/declaration.dart';
+export 'declaration/module.dart';
+export 'declaration/library.dart';
 export 'declaration/namespace.dart';
-export 'declaration/type/type_declaration.dart';
+export 'declaration/type/abstract_type_declaration.dart';
 export 'declaration/class/class_declaration.dart';
 export 'declaration/function/function_declaration.dart';
 export 'declaration/function/parameter_declaration.dart';
@@ -17,6 +19,7 @@ export 'object/class/class.dart';
 export 'object/function/function.dart';
 export 'object/instance/instance.dart';
 export 'type/type.dart';
+export 'type/generic_type_parameter.dart';
 export 'ast/ast.dart';
 export 'ast/ast_compilation.dart';
 export 'scanner/lexer.dart';

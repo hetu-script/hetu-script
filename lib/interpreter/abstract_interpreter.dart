@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:pub_semver/pub_semver.dart';
 import 'package:meta/meta.dart';
 
@@ -45,6 +43,9 @@ class InterpreterConfig
   @override
   final int hetuStackTraceThreshhold;
 
+  @override
+  final ErrorHanldeApproach approach;
+
   final bool doStaticAnalyze;
 
   const InterpreterConfig(
@@ -53,13 +54,13 @@ class InterpreterConfig
       this.lineInfo = true,
       this.stackTrace = true,
       this.hetuStackTraceThreshhold = 10,
+      this.approach = ErrorHanldeApproach.exception,
       this.doStaticAnalyze = true});
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.
 abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   static final version = Version(0, 1, 0);
-  static const _anonymousScriptSignatureLength = 72;
 
   final stackTrace = <String>[];
 
@@ -156,21 +157,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    if (moduleFullName == null) {
-      final sigBuilder = StringBuffer();
-      sigBuilder.write('${SemanticNames.anonymousScript}: [');
-      var firstLine =
-          content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
-      sigBuilder.write(firstLine.substring(
-          0, math.min(_anonymousScriptSignatureLength, firstLine.length)));
-      if (firstLine.length > _anonymousScriptSignatureLength) {
-        sigBuilder.write('...');
-      }
-      sigBuilder.write(']');
-      moduleFullName = sigBuilder.toString();
-    }
-
-    final source = HTSource(moduleFullName, content);
+    final source = HTSource(content, fullName: moduleFullName);
 
     final result = evalSource(source,
         // when eval string, use current namespace by default

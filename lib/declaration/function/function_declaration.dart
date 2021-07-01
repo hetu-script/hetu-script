@@ -3,13 +3,13 @@ import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';
 import '../../source/source.dart';
-import '../type/type_declaration.dart';
-import '../variable/variable_declaration.dart';
+import '../type/abstract_type_declaration.dart';
+import '../declaration.dart';
 import '../namespace.dart';
 import 'abstract_parameter.dart';
 import '../../type/generic_type_parameter.dart';
 
-class HTFunctionDeclaration extends HTVariableDeclaration
+class HTFunctionDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
   final String internalName;
 
@@ -18,7 +18,19 @@ class HTFunctionDeclaration extends HTVariableDeclaration
   final String? externalTypeId;
 
   @override
-  final Iterable<HTGenericTypeParameter> genericTypeParameters;
+  final List<HTGenericTypeParameter> genericTypeParameters;
+
+  /// Wether to check params when called
+  /// A function like:
+  ///   ```
+  ///     fun { return 42 }
+  ///   ```
+  /// will accept any params, while a function:
+  ///   ```
+  ///     fun () { return 42 }
+  ///   ```
+  /// will accept 0 params
+  final bool hasParamDecls;
 
   /// Holds declarations of all parameters.
   final Map<String, HTAbstractParameter> _paramDecls;
@@ -31,8 +43,9 @@ class HTFunctionDeclaration extends HTVariableDeclaration
 
   HTType get returnType => declType.returnType;
 
-  @override
   final HTFunctionType declType;
+
+  final bool isAbstract;
 
   final bool isVariadic;
 
@@ -52,11 +65,13 @@ class HTFunctionDeclaration extends HTVariableDeclaration
       this.category = FunctionCategory.normal,
       this.externalTypeId,
       this.genericTypeParameters = const [],
+      this.hasParamDecls = true,
+      Map<String, HTAbstractParameter>? paramDecls,
+      HTType? returnType,
+      this.isAbstract = false,
       this.isVariadic = false,
       this.minArity = 0,
-      this.maxArity = 0,
-      Map<String, HTAbstractParameter>? paramDecls,
-      HTType? returnType})
+      this.maxArity = 0})
       : _paramDecls = paramDecls ?? const {},
         declType = HTFunctionType(
             parameterDeclarations: paramDecls?.values.toList() ?? const [],

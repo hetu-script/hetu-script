@@ -13,6 +13,7 @@ import '../variable/variable.dart';
 import '../../declaration/namespace.dart';
 import 'parameter.dart';
 import '../../declaration/function/function_declaration.dart';
+import '../../type/generic_type_parameter.dart';
 import '../object.dart';
 
 class ReferConstructor {
@@ -44,18 +45,6 @@ class HTFunction extends HTFunctionDeclaration
 
   HTClass? klass;
 
-  /// Wether to check params when called
-  /// A function like:
-  ///   ```
-  ///     fun { return 42 }
-  ///   ```
-  /// will accept any params, while a function:
-  ///   ```
-  ///     fun () { return 42 }
-  ///   ```
-  /// will accept 0 params
-  final bool hasParamDecls;
-
   @override
   final Map<String, HTParameter> paramDecls;
 
@@ -82,17 +71,20 @@ class HTFunction extends HTFunctionDeclaration
       bool isStatic = false,
       bool isConst = false,
       bool isTopLevel = false,
+      FunctionCategory category = FunctionCategory.normal,
+      String? externalTypeId,
+      List<HTGenericTypeParameter> genericTypeParameters = const [],
+      bool hasParamDecls = true,
+      this.paramDecls = const {},
+      HTType? returnType,
+      bool isAbstract = false,
+      bool isVariadic = false,
+      int minArity = 0,
+      int maxArity = 0,
+      this.externalFunc,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
-      FunctionCategory category = FunctionCategory.normal,
-      this.externalFunc,
-      String? externalTypeId,
-      bool isVariadic = false,
-      this.hasParamDecls = true,
-      this.paramDecls = const {},
-      int minArity = 0,
-      int maxArity = 0,
       this.context,
       this.referConstructor,
       this.klass})
@@ -107,10 +99,14 @@ class HTFunction extends HTFunctionDeclaration
             isTopLevel: isTopLevel,
             category: category,
             externalTypeId: externalTypeId,
+            genericTypeParameters: genericTypeParameters,
+            hasParamDecls: hasParamDecls,
+            paramDecls: paramDecls,
+            returnType: returnType,
+            isAbstract: isAbstract,
             isVariadic: isVariadic,
             minArity: minArity,
-            maxArity: maxArity,
-            paramDecls: paramDecls) {
+            maxArity: maxArity) {
     this.interpreter = interpreter;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;

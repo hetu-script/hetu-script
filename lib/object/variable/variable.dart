@@ -6,12 +6,9 @@ import '../../type/type.dart';
 import '../../declaration/variable/variable_declaration.dart';
 import '../object.dart';
 
-/// Variable is a binding between an element and a value
+/// Variable is a binding between an symbol and a value
 class HTVariable extends HTVariableDeclaration
     with HTObject, HetuRef, GotoInfo {
-  @override
-  final String id;
-
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 
@@ -22,7 +19,7 @@ class HTVariable extends HTVariableDeclaration
   /// Create a standard [HTVariable].
   /// has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
-  HTVariable(this.id, Hetu interpreter,
+  HTVariable(String id, Hetu interpreter,
       {String? classId,
       HTNamespace? closure,
       HTType? declType,
@@ -35,8 +32,7 @@ class HTVariable extends HTVariableDeclaration
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
-      : super(
-            id: id,
+      : super(id,
             classId: classId,
             closure: closure,
             declType: declType,
