@@ -108,8 +108,8 @@ class HTAstParser extends HTAbstractParser {
       try {
         final importFullName =
             sourceProvider.resolveFullName(stmt.key, module.fullName);
-        final source2 = sourceProvider.getSourceSync(importFullName,
-            from: _curModuleFullName);
+        final source2 =
+            sourceProvider.getSource(importFullName, from: _curModuleFullName);
         final compilation2 = parseToCompilation(source2,
             config: ParserConfigImpl(sourceType: SourceType.module));
         _curModuleFullName = source.fullName;
@@ -121,7 +121,7 @@ class HTAstParser extends HTAbstractParser {
         } else if (error is FileSystemException) {
           message = error.message;
         }
-        final hetuError = HTError.moduleImport(stmt.key, message,
+        final hetuError = HTError.souceProviderError(stmt.key, message,
             moduleFullName: source.fullName,
             line: stmt.line,
             column: stmt.column);

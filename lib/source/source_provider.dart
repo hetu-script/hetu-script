@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import '../grammar/semantic.dart';
+import '../error/error.dart';
 import 'source.dart';
 
 extension TrimPath on String {
@@ -22,8 +23,10 @@ abstract class HTSourceProvider {
 
   String resolveFullName(String key, [String? currentModuleFullName]);
 
-  HTSource getSourceSync(String key,
+  HTSource getSource(String key,
       {bool isFullName = false, String? from, bool reload = true});
+
+  void changeContent(String key, String content);
 }
 
 /// Default module import handler implementation
@@ -61,7 +64,6 @@ class DefaultSourceProvider implements HTSourceProvider {
     } else {
       fullName = workingDirectory;
     }
-
     final joined = path.join(fullName, key);
     final result = Uri.file(joined).path.trimPath();
     return result;
@@ -73,7 +75,7 @@ class DefaultSourceProvider implements HTSourceProvider {
   ///
   /// Otherwise, a absolute path is calculated from [workingDirectory]
   @override
-  HTSource getSourceSync(String key,
+  HTSource getSource(String key,
       {bool isFullName = false,
       String? from,
       SourceType type = SourceType.module,
@@ -92,6 +94,17 @@ class DefaultSourceProvider implements HTSourceProvider {
       return source;
     } else {
       return _cached[fullName]!;
+    }
+  }
+
+  @override
+  void changeContent(String fullName, String content) {
+    if (!_cached.containsKey(fullName)) {
+      throw HTError.souceProviderError(
+          fullName, 'Source provider error: could not load file with path');
+    } else {
+      final source = _cached[fullName]!;
+      source.content = content;
     }
   }
 }

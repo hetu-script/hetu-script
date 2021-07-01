@@ -103,8 +103,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     errors.clear();
   }
 
+  void closeSource(String fullName) {}
+
   @override
-  HTModuleAnalysisResult? evalSource(HTSource source,
+  HTModuleAnalysisResult evalSource(HTSource source,
       {HTNamespace? namespace, // ignored in analyzer
       InterpreterConfig? config, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
@@ -113,9 +115,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       List<HTType> typeArgs = const [], // ignored in analyzer
       bool errorHandled = false // ignored in analyzer
       }) {
-    if (source.content.isEmpty) {
-      return null;
-    }
     final hasOwnNamespace = namespace != global;
     _curErrors = <HTAnalysisError>[];
     final parser = HTAstParser(
