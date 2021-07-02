@@ -24,7 +24,7 @@ class AnalyzerConfig extends InterpreterConfig {
   const AnalyzerConfig(
       {SourceType sourceType = SourceType.module,
       this.errorProcessors = const []})
-      : super(sourceType: sourceType);
+      : super();
 }
 
 class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
@@ -108,7 +108,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   HTModuleAnalysisResult? evalSource(HTSource source,
       {bool importModule = false,
-      InterpreterConfig? config, // ignored in analyzer
+      SourceType type = SourceType.module, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
       Map<String, dynamic> namedArgs = const {}, // ignored in analyzer
@@ -120,8 +120,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     }
     // final hasOwnNamespace = namespace != global;
     _curErrors = <HTAnalysisError>[];
-    final parser = HTAstParser(
-        config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
+    final parser =
+        HTAstParser(errorHandler: this, sourceProvider: sourceProvider);
     final compilation = parser
         .parseToCompilation(source); //, hasOwnNamespace: hasOwnNamespace);
 

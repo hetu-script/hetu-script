@@ -30,9 +30,7 @@ Version: 0.1.0
 Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
-final hetu = Hetu(
-    config:
-        InterpreterConfig(sourceType: SourceType.script, stackTrace: false));
+final hetu = Hetu(config: InterpreterConfig(stackTrace: false));
 
 void main(List<String> arguments) {
   try {
@@ -110,12 +108,10 @@ ArgResults parseArg(List<String> args) {
 
 void run(List<String> args, [SourceType sourceType = SourceType.script]) {
   dynamic result;
-  final config = InterpreterConfig(sourceType: sourceType);
-  hetu.config = config;
   if (args.length == 1) {
-    result = hetu.evalFile(args.first);
+    result = hetu.evalFile(args.first, type: sourceType);
   } else {
-    result = hetu.evalFile(args.first, invokeFunc: args[1]);
+    result = hetu.evalFile(args.first, type: sourceType, invokeFunc: args[1]);
   }
   print('Execution result:');
   print(result);

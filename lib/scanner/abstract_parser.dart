@@ -1,29 +1,17 @@
-import '../source/source.dart';
+// import '../source/source.dart';
 import '../source/source_provider.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/semantic.dart';
 import '../grammar/token.dart';
 
-abstract class ParserConfig {
-  SourceType get sourceType;
-  bool get reload;
-}
+abstract class ParserConfig {}
 
-class ParserConfigImpl implements ParserConfig {
-  @override
-  final SourceType sourceType;
-
-  @override
-  final bool reload;
-
-  const ParserConfigImpl(
-      {this.sourceType = SourceType.module, this.reload = false});
-}
+class ParserConfigImpl implements ParserConfig {}
 
 /// Abstract interface for handling a token list.
 abstract class HTAbstractParser {
-  ParserConfig config;
+  // ParserConfig config;
 
   int _curLine = 0;
   int _curColumn = 0;
@@ -46,9 +34,7 @@ abstract class HTAbstractParser {
   final HTSourceProvider sourceProvider;
 
   HTAbstractParser(
-      {this.config = const ParserConfigImpl(),
-      HTErrorHandler? errorHandler,
-      HTSourceProvider? sourceProvider})
+      {HTErrorHandler? errorHandler, HTSourceProvider? sourceProvider})
       : errorHandler = errorHandler ?? DefaultErrorHandler(),
         sourceProvider = sourceProvider ?? DefaultSourceProvider();
 

@@ -10,7 +10,7 @@ import '../declaration/function/parameter_declaration.dart';
 import '../object/function/function.dart';
 import '../object/function/parameter.dart';
 import '../object/variable/variable.dart';
-import '../scanner/abstract_parser.dart';
+// import '../scanner/abstract_parser.dart';
 import '../scanner/parser.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
@@ -49,13 +49,8 @@ class Hetu extends HTAbstractInterpreter {
 
   final _cachedLibs = <String, HTBytecodeLibrary>{};
 
-  late InterpreterConfig _curConfig;
-
   @override
-  ErrorHandlerConfig get errorConfig => _curConfig;
-
-  @override
-  InterpreterConfig get curConfig => _curConfig;
+  ErrorHandlerConfig get errorConfig => config;
 
   var _curLine = 0;
   @override
@@ -175,7 +170,7 @@ class Hetu extends HTAbstractInterpreter {
   @override
   dynamic evalSource(HTSource source,
       {bool importModule = false,
-      InterpreterConfig? config,
+      SourceType? type,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -184,42 +179,38 @@ class Hetu extends HTAbstractInterpreter {
     if (source.content.isEmpty) {
       return null;
     }
-    _curConfig = config ?? this.config;
+    sourceType = type ?? source.type;
     _curModuleFullName = source.fullName;
-    final parser = HTAstParser(
-        config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
+    final parser =
+        HTAstParser(errorHandler: this, sourceProvider: sourceProvider);
     final compiler = HTCompiler(
-        config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
+        config: config, errorHandler: this, sourceProvider: sourceProvider);
     try {
       final compilation = parser.parseToCompilation(source);
-      if (_curConfig.doStaticAnalyze) {
-        final hetu = HTAnalyzer(
-            config: AnalyzerConfig(sourceType: _curConfig.sourceType));
+      if (config.doStaticAnalyze) {
+        final hetu = HTAnalyzer();
         hetu.init();
-        hetu.evalSource(source);
-
+        hetu.evalSource(source, type: sourceType);
         if (hetu.errors.isNotEmpty) {
           throw hetu.errors.first;
         }
       }
       final bytes = compiler.compile(compilation, source.libraryName);
       _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
-
       while (_curLibrary.ip < _curLibrary.bytes.length) {
         final HTNamespace nsp = execute();
         _curLibrary.define(nsp.id!, nsp);
       }
       _cachedLibs[_curLibrary.id] = _curLibrary;
-
       var result;
-      if (_curConfig.sourceType == SourceType.script) {
+      if (sourceType == SourceType.script) {
         for (final nsp in _curLibrary.declarations.values) {
           // scripts defines its member on global
           global.import(nsp);
         }
         // return the last expression's value
         result = _registers.first;
-      } else if (_curConfig.sourceType == SourceType.module) {
+      } else if (sourceType == SourceType.module) {
         // handles module imports
         for (final module in compilation.modules.values) {
           final nsp = _curLibrary.declarations[module.fullName]!;
@@ -267,7 +258,7 @@ class Hetu extends HTAbstractInterpreter {
           }
         }
 
-        if (_curConfig.sourceType == SourceType.module && invokeFunc != null) {
+        if (sourceType == SourceType.module && invokeFunc != null) {
           result = invoke(invokeFunc,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
@@ -324,8 +315,10 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   /// Compile a script content into bytecode for later use.
-  Uint8List compile(String content,
-      {ParserConfigImpl config = const ParserConfigImpl()}) {
+  Uint8List compile(
+    String content, {
+    SourceType? sourceType,
+  }) {
     throw 'compile is currently unusable';
   }
 
@@ -1369,7 +1362,7 @@ class Hetu extends HTAbstractInterpreter {
         klass.namespace.define(SemanticNames.constructor, ctor);
       }
     }
-    if (_curConfig.sourceType == SourceType.script || _curFunction != null) {
+    if (sourceType == SourceType.script || _curFunction != null) {
       klass.resolve();
     }
 

@@ -29,12 +29,6 @@ mixin InterpreterRef {
 class InterpreterConfig
     implements ParserConfig, CompilerConfig, ErrorHandlerConfig {
   @override
-  final SourceType sourceType;
-
-  @override
-  final bool reload;
-
-  @override
   final bool lineInfo;
 
   @override
@@ -46,15 +40,16 @@ class InterpreterConfig
   @override
   final ErrorHanldeApproach approach;
 
+  final bool reload;
+
   final bool doStaticAnalyze;
 
   const InterpreterConfig(
-      {this.sourceType = SourceType.module,
-      this.reload = false,
-      this.lineInfo = true,
+      {this.lineInfo = true,
       this.stackTrace = true,
       this.hetuStackTraceThreshhold = 10,
       this.approach = ErrorHanldeApproach.exception,
+      this.reload = false,
       this.doStaticAnalyze = true});
 }
 
@@ -66,7 +61,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   InterpreterConfig config;
 
-  InterpreterConfig get curConfig => config;
+  late SourceType sourceType;
 
   /// Current line number of execution.
   int get curLine;
@@ -100,9 +95,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       // load classes and functions in core library.
       for (final file in coreModules.keys) {
         eval(coreModules[file]!,
-            moduleFullName: file,
-            importModule: true,
-            config: InterpreterConfig(sourceType: SourceType.module));
+            moduleFullName: file, importModule: true, type: SourceType.module);
       }
       for (var key in coreFunctions.keys) {
         bindExternalFunction(key, coreFunctions[key]!);
@@ -122,7 +115,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
         eval(coreModules[file]!,
             moduleFullName: file,
             // namespace: global,
-            config: InterpreterConfig(sourceType: SourceType.module));
+            type: SourceType.module);
       }
       for (final value in externalClasses) {
         bindExternalClass(value);
@@ -140,7 +133,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   T? evalSource(HTSource source,
       {bool importModule = false,
-      InterpreterConfig? config,
+      SourceType type = SourceType.module,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -151,18 +144,17 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {String? moduleFullName,
       String? libraryName,
       bool importModule = false,
-      InterpreterConfig? config,
+      SourceType type = SourceType.module,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    final source = HTSource(content, fullName: moduleFullName);
+    final source = HTSource(content, fullName: moduleFullName, type: type);
 
     final result = evalSource(source,
         // when eval string, use current namespace by default
         importModule: importModule,
-        config: config,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
@@ -178,7 +170,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       String? moduleFullName,
       String? libraryName,
       bool importModule = false,
-      InterpreterConfig? config,
+      SourceType type = SourceType.module,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -188,11 +180,11 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       final module = sourceProvider.getSource(key,
           from: useLastModuleFullName
               ? curModuleFullName
-              : sourceProvider.workingDirectory);
+              : sourceProvider.workingDirectory,
+          type: type);
 
       final result = evalSource(module,
           importModule: importModule,
-          config: config,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,

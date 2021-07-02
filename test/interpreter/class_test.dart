@@ -144,5 +144,43 @@ void main() {
         'DerivedSequence',
       );
     });
+    test('factory constructor', () {
+      final result = hetu.eval(r'''
+        class Choclate {
+          factory Factory {
+            return Choclate._('Choclate')
+          }
+          var name
+          construct _(name) {
+            this.name = name
+          }
+        }
+        fun factoryCtor {
+          var d = Choclate.Factory();
+          return d.name
+        }
+      ''', invokeFunc: 'factoryCtor');
+      expect(
+        result,
+        'Choclate',
+      );
+    });
+    test('enum class', () {
+      final result = hetu.eval(r'''
+        enum Race {
+          caucasian,
+          mongolian,
+          african,
+        }
+        fun enumTest {
+          var race: Race = Race.african
+          return race.toString()
+        }
+      ''', invokeFunc: 'enumTest');
+      expect(
+        result,
+        'Race.african',
+      );
+    });
   });
 }

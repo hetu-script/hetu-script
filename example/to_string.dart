@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  final hetu = Hetu(config: InterpreterConfig(sourceType: SourceType.module));
+  final hetu = Hetu();
 
   hetu.init();
 

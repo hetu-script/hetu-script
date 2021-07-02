@@ -1,7 +1,8 @@
 /// All lexicons used by hetu
 abstract class HTLexicon {
-  static const tokenPattern = r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(1)
-      r'([_]?[\p{L}]+[\p{L}_0-9]*)|' // unicode identifier group(4)
+  static const tokenPattern =
+      r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
+      r'(([_]?[\p{L}]+[\p{L}_0-9]*)|([_]+))|' // unicode identifier group(4)
       r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(6)
       r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(8)
@@ -12,12 +13,12 @@ abstract class HTLexicon {
   static const tokenGroupSingleComment = 2;
   static const tokenGroupBlockComment = 3;
   static const tokenGroupIdentifier = 4;
-  static const tokenGroupPunctuation = 5;
-  static const tokenGroupNumber = 6;
-  static const tokenGroupStringInterpolationSingleMark = 8;
-  static const tokenGroupStringInterpolationDoubleMark = 12;
-  static const tokenGroupStringSingleQuotation = 16;
-  static const tokenGroupStringDoubleQuotation = 18;
+  static const tokenGroupPunctuation = 7;
+  static const tokenGroupNumber = 8;
+  static const tokenGroupStringInterpolationSingleMark = 10;
+  static const tokenGroupStringInterpolationDoubleMark = 14;
+  static const tokenGroupStringSingleQuotation = 18;
+  static const tokenGroupStringDoubleQuotation = 20;
 
   static const libraryNamePattern = r"(library '((\\'|[^'])*)')|"
       r'(library "((\\"|[^"])*)")';

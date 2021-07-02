@@ -1504,7 +1504,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     bytesBuilder.addByte(1); // bool: has user defined constructor
     bytesBuilder.addByte(0); // bool: has super class
-    bytesBuilder.addByte(1); // bool: hasDefinition
 
     final valueId = '${HTLexicon.privatePrefix}${SemanticNames.name}';
     final value = VarDeclStmt(valueId, classId: stmt.id);

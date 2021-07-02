@@ -262,9 +262,9 @@ class HTError implements AbstractError {
   String toString() {
     final output = StringBuffer();
     if (moduleFullName != null) {
-      output.write('File: $moduleFullName');
+      output.writeln('File: $moduleFullName');
       if (line != null && column != null) {
-        output.writeln(':$line:$column');
+        output.writeln('Line: $line, Column: $column');
       }
     }
     final recase = ReCase(type.name);

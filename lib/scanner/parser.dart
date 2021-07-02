@@ -37,24 +37,15 @@ class HTAstParser extends HTAbstractParser {
 
   HTSource? _curSource;
 
-  HTAstParser(
-      {ParserConfig config = const ParserConfigImpl(),
-      HTErrorHandler? errorHandler,
-      HTSourceProvider? sourceProvider})
-      : super(
-            config: config,
-            errorHandler: errorHandler,
-            sourceProvider: sourceProvider);
+  HTAstParser({HTErrorHandler? errorHandler, HTSourceProvider? sourceProvider})
+      : super(errorHandler: errorHandler, sourceProvider: sourceProvider);
 
+  /// Will use [type] when possible, then [source.type], then [SourceType.module]
   List<AstNode> parse(List<Token> tokens,
-      {HTSource? source, ParserConfig? config}) {
+      {HTSource? source, SourceType? type, ParserConfig? config}) {
     final nodes = <AstNode>[];
     _curSource = source;
     _curModuleFullName = source?.fullName;
-    final savedConfig = this.config;
-    if (config != null) {
-      this.config = config;
-    }
     setTokens(tokens);
     while (curTok.type != SemanticNames.endOfFile) {
       if (curTok.type == SemanticNames.emptyLine) {
@@ -64,13 +55,13 @@ class HTAstParser extends HTAbstractParser {
         //     line: empty.line, column: empty.column, offset: empty.offset);
         // nodes.add(stmt);
       } else {
-        final stmt = _parseStmt(sourceType: this.config.sourceType);
+        final stmt = _parseStmt(
+            sourceType: type ?? _curSource?.type ?? SourceType.module);
         if (stmt != null) {
           nodes.add(stmt);
         }
       }
     }
-    this.config = savedConfig;
     return nodes;
   }
 
@@ -94,9 +85,9 @@ class HTAstParser extends HTAbstractParser {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  HTAstCompilation parseToCompilation(HTSource source, {ParserConfig? config}) {
+  HTAstCompilation parseToCompilation(HTSource source) {
     _curLibraryName = source.libraryName;
-    final module = parseToModule(source, config: config);
+    final module = parseToModule(source);
     final compilation = HTAstCompilation(module.libraryName);
     compilation.sources[source.fullName] = source;
     for (final stmt in module.imports) {
@@ -105,8 +96,7 @@ class HTAstParser extends HTAbstractParser {
             sourceProvider.resolveFullName(stmt.key, module.fullName);
         final source2 =
             sourceProvider.getSource(importFullName, from: _curModuleFullName);
-        final compilation2 = parseToCompilation(source2,
-            config: ParserConfigImpl(sourceType: SourceType.module));
+        final compilation2 = parseToCompilation(source2);
         _curModuleFullName = source.fullName;
         compilation.join(compilation2);
       } catch (error, stackTrace) {
@@ -1067,10 +1057,9 @@ class HTAstParser extends HTAbstractParser {
         final interpolation = <AstNode>[];
         for (final tokens in token.interpolations) {
           final exprParser = HTAstParser(
-              config: ParserConfigImpl(sourceType: SourceType.expression),
-              errorHandler: errorHandler,
-              sourceProvider: sourceProvider);
-          final nodes = exprParser.parse(tokens, source: _curSource);
+              errorHandler: errorHandler, sourceProvider: sourceProvider);
+          final nodes = exprParser.parse(tokens,
+              source: _curSource, type: SourceType.expression);
           if (nodes.length != 1) {
             final err = HTError.stringInterpolation(
                 moduleFullName: _curModuleFullName,

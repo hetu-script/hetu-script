@@ -10,11 +10,14 @@ void main() {
   // print(tokens);
 
   final source = HTSource(r'''
-    library "hello-world"
-
-    var i = 42
-    var j = 'hi, your number is ${ '#' +     i.toString()   }.'
-  ''');
+        enum Race {
+          caucasian,
+          mongolian,
+          african,
+        }
+          var race: Race = Race.african
+          print( race.toString())
+  ''', type: SourceType.script);
   // // final parser = HTAstParser();
   // final module = parser.parseToModule(source);
   // final formatter = HTFormatter();

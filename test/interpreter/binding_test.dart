@@ -148,7 +148,7 @@ void main() {
     static get profile -> Profile
     static set profile(p: Profile)
   }
-  ''', config: InterpreterConfig(sourceType: SourceType.script));
+  ''', type: SourceType.script);
 
   group('binding -', () {
     test('get & set', () {

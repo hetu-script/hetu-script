@@ -24,7 +24,12 @@ abstract class HTSourceProvider {
   String resolveFullName(String key, [String? currentModuleFullName]);
 
   HTSource getSource(String key,
-      {bool isFullName = false, String? from, bool reload = true});
+      {bool isFullName = false,
+      String? from,
+      SourceType type = SourceType.module,
+      bool isLibrary = false,
+      String? libraryName,
+      bool reload = true});
 
   void changeContent(String key, String content);
 }
