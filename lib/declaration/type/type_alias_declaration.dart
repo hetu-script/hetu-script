@@ -31,7 +31,8 @@ class HTTypeAliasDeclaration extends HTDeclaration
       bool isStatic = false,
       bool isConst = false,
       bool isMutable = false,
-      bool isTopLevel = false})
+      bool isTopLevel = false,
+      bool isExported = false})
       : _declType = declType,
         super(
             id: id,
@@ -42,7 +43,8 @@ class HTTypeAliasDeclaration extends HTDeclaration
             isStatic: isStatic,
             isConst: isConst,
             isMutable: isMutable,
-            isTopLevel: isTopLevel);
+            isTopLevel: isTopLevel,
+            isExported: isExported);
 
   @override
   HTTypeAliasDeclaration clone() => HTTypeAliasDeclaration(id, declType,
@@ -52,5 +54,7 @@ class HTTypeAliasDeclaration extends HTDeclaration
       isExternal: isExternal,
       isStatic: isStatic,
       isConst: isConst,
-      isMutable: isMutable);
+      isMutable: isMutable,
+      isTopLevel: isTopLevel,
+      isExported: isExported);
 }

@@ -62,6 +62,7 @@ class HTFunctionDeclaration extends HTDeclaration
       bool isStatic = false,
       bool isConst = false,
       bool isTopLevel = false,
+      bool isExported = false,
       this.category = FunctionCategory.normal,
       this.externalTypeId,
       this.genericTypeParameters = const [],
@@ -84,7 +85,8 @@ class HTFunctionDeclaration extends HTDeclaration
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
-            isTopLevel: isTopLevel);
+            isTopLevel: isTopLevel,
+            isExported: isExported);
 
   /// Print function signature to String with function [id] and parameter [id].
   @override
@@ -154,9 +156,12 @@ class HTFunctionDeclaration extends HTDeclaration
       isExternal: isExternal,
       isStatic: isStatic,
       isConst: isConst,
+      isTopLevel: isTopLevel,
+      isExported: isExported,
       category: category,
       externalTypeId: externalTypeId,
       genericTypeParameters: genericTypeParameters,
+      isAbstract: isAbstract,
       isVariadic: isVariadic,
       minArity: minArity,
       maxArity: maxArity,

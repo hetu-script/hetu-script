@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
 
-import '../grammar/lexicon.dart';
+// import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import 'line_info.dart';
 
@@ -37,9 +37,9 @@ class HTSource {
 
   final SourceType type;
 
-  bool _isLibrary = false;
-  bool get isLibrary => _isLibrary;
-  late final String libraryName;
+  // bool _isLibrary = false;
+  // bool get isLibrary => _isLibrary;
+  // late final String libraryName;
 
   String _content;
   String get content => _content;
@@ -54,7 +54,8 @@ class HTSource {
   bool evaluated = false;
 
   HTSource(String content,
-      {String? fullName, this.type = SourceType.module, String? libraryName})
+      {String? fullName, this.type = SourceType.module //, String? libraryName
+      })
       : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (fullName != null) {
@@ -73,28 +74,28 @@ class HTSource {
       this.fullName = sigBuilder.toString();
     }
 
-    if (type == SourceType.module) {
-      final pattern = RegExp(
-        HTLexicon.libraryNamePattern,
-        unicode: true,
-      );
-      final matches = pattern.allMatches(content);
-      if (matches.isNotEmpty) {
-        final singleMark = matches.first.group(HTLexicon.libraryNameSingleMark);
-        if (singleMark != null) {
-          _isLibrary = true;
-          libraryName ??= singleMark;
-        } else {
-          final doubleMark =
-              matches.first.group(HTLexicon.libraryNameDoubleMark);
-          if (doubleMark != null) {
-            _isLibrary = true;
-            libraryName ??= doubleMark;
-          }
-        }
-      }
-    }
+    // if (type == SourceType.module) {
+    //   final pattern = RegExp(
+    //     HTLexicon.libraryNamePattern,
+    //     unicode: true,
+    //   );
+    //   final matches = pattern.allMatches(content);
+    //   if (matches.isNotEmpty) {
+    //     final singleMark = matches.first.group(HTLexicon.libraryNameSingleMark);
+    //     if (singleMark != null) {
+    //       _isLibrary = true;
+    //       libraryName ??= singleMark;
+    //     } else {
+    //       final doubleMark =
+    //           matches.first.group(HTLexicon.libraryNameDoubleMark);
+    //       if (doubleMark != null) {
+    //         _isLibrary = true;
+    //         libraryName ??= doubleMark;
+    //       }
+    //     }
+    //   }
+    // }
 
-    this.libraryName = libraryName ?? this.fullName;
+    // this.libraryName = libraryName ?? this.fullName;
   }
 }

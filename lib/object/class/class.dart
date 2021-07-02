@@ -57,6 +57,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
       bool isExternal = false,
       bool isAbstract = false,
       bool isEnum = false,
+      bool isExported = false,
       this.superClass})
       : namespace = HTClassNamespace(
             id: id, classId: classId, closure: closure, source: source),
@@ -71,7 +72,8 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
             implementsTypes: implementsTypes,
             isExternal: isExternal,
             isAbstract: isAbstract,
-            isEnum: isEnum) {
+            isEnum: isEnum,
+            isExported: isExported) {
     this.interpreter = interpreter;
   }
 
@@ -104,6 +106,8 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
       implementsTypes: implementsTypes,
       isExternal: isExternal,
       isAbstract: isAbstract,
+      isEnum: isEnum,
+      isExported: isExported,
       superClass: superClass);
 
   /// Create a [HTInstance] of this [HTClass],

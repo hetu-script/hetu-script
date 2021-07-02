@@ -44,9 +44,10 @@ class HTRegIdx {
   static const length = 16;
 }
 
-/// The information of snippet need goto
+// Execution jump point
 mixin GotoInfo {
-  /// The instructor pointer of the definition's bytecode.
+  late final String moduleFullName;
+  late final String libraryName;
   late final int? definitionIp;
   late final int? definitionLine;
   late final int? definitionColumn;
@@ -100,23 +101,22 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       : errorHandler = errorHandler ?? DefaultErrorHandler(),
         sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
-  Uint8List compile(HTAstCompilation compilation, String libraryName) {
-    _curLibraryName = libraryName;
-
+  Uint8List compile(HTAstCompilation compilation, {String? libraryName}) {
+    _curLibraryName = libraryName ?? compilation.libraryName;
     final mainBytesBuilder = BytesBuilder();
-    // 河图字节码标记
+    // hetu bytecode signature
     mainBytesBuilder.addByte(HTOpCode.signature);
     mainBytesBuilder.add(hetuSignatureData);
-    // 版本号
+    // hetu bytecode version
     mainBytesBuilder.addByte(HTOpCode.version);
     mainBytesBuilder.add(hetuVersionData);
-
     final bytesBuilder = BytesBuilder();
     for (final module in compilation.modules.values) {
       _curModuleFullName = module.fullName;
       if (module.sourceType == SourceType.module) {
         bytesBuilder.addByte(HTOpCode.module);
         bytesBuilder.add(_shortUtf8String(_curModuleFullName));
+        bytesBuilder.addByte(module.isLibrary ? 1 : 0);
       }
       for (final node in module.nodes) {
         final bytes = visitAstNode(node);
@@ -125,8 +125,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(HTOpCode.endOfModule);
     }
     final code = bytesBuilder.toBytes();
-
-    // 添加常量表
+    // const table
     mainBytesBuilder.addByte(HTOpCode.constTable);
     mainBytesBuilder.add(_uint16(_curConstTable.intTable.length));
     for (final value in _curConstTable.intTable) {
@@ -140,9 +139,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     for (final value in _curConstTable.stringTable) {
       mainBytesBuilder.add(_utf8String(value));
     }
-
     mainBytesBuilder.add(code);
-
     return mainBytesBuilder.toBytes();
   }
 

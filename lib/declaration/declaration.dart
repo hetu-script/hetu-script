@@ -42,6 +42,8 @@ abstract class HTDeclaration {
 
   final bool isTopLevel;
 
+  final bool isExported;
+
   bool get isMember => classId != null;
 
   HTDeclaration(
@@ -55,7 +57,8 @@ abstract class HTDeclaration {
       this.isStatic = false,
       this.isConst = false,
       this.isMutable = false,
-      this.isTopLevel = false});
+      this.isTopLevel = false,
+      this.isExported = false});
 
   dynamic get value => this;
 

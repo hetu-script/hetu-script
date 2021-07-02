@@ -39,10 +39,6 @@ class ReferConstructor {
 /// Bytecode implementation of [TypedFunctionDeclaration].
 class HTFunction extends HTFunctionDeclaration
     with HTObject, HetuRef, GotoInfo {
-  final String moduleFullName;
-
-  final String libraryName;
-
   HTClass? klass;
 
   @override
@@ -61,7 +57,7 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(String internalName, this.moduleFullName, this.libraryName,
+  HTFunction(String internalName, String moduleFullName, String libraryName,
       Hetu interpreter,
       {String? id,
       String? classId,
@@ -71,6 +67,7 @@ class HTFunction extends HTFunctionDeclaration
       bool isStatic = false,
       bool isConst = false,
       bool isTopLevel = false,
+      bool isExported = false,
       FunctionCategory category = FunctionCategory.normal,
       String? externalTypeId,
       List<HTGenericTypeParameter> genericTypeParameters = const [],
@@ -97,6 +94,7 @@ class HTFunction extends HTFunctionDeclaration
             isStatic: isStatic,
             isConst: isConst,
             isTopLevel: isTopLevel,
+            isExported: isExported,
             category: category,
             externalTypeId: externalTypeId,
             genericTypeParameters: genericTypeParameters,
@@ -108,6 +106,8 @@ class HTFunction extends HTFunctionDeclaration
             minArity: minArity,
             maxArity: maxArity) {
     this.interpreter = interpreter;
+    this.moduleFullName = moduleFullName;
+    this.libraryName = libraryName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
@@ -142,17 +142,22 @@ class HTFunction extends HTFunctionDeclaration
           isExternal: isExternal,
           isStatic: isStatic,
           isConst: isConst,
+          isTopLevel: isTopLevel,
+          isExported: isExported,
+          category: category,
+          externalTypeId: externalTypeId,
+          genericTypeParameters: genericTypeParameters,
+          hasParamDecls: hasParamDecls,
+          paramDecls: paramDecls,
+          returnType: returnType,
+          isAbstract: isAbstract,
+          isVariadic: isVariadic,
+          minArity: minArity,
+          maxArity: maxArity,
+          externalFunc: externalFunc,
           definitionIp: definitionIp,
           definitionLine: definitionLine,
           definitionColumn: definitionColumn,
-          category: category,
-          externalFunc: externalFunc,
-          externalTypeId: externalTypeId,
-          isVariadic: isVariadic,
-          hasParamDecls: hasParamDecls,
-          paramDecls: paramDecls,
-          minArity: minArity,
-          maxArity: maxArity,
           context: context,
           referConstructor: referConstructor,
           klass: klass);
@@ -222,13 +227,15 @@ class HTFunction extends HTFunctionDeclaration
           if (instanceNamespace.next != null) {
             callClosure.define(
                 HTLexicon.SUPER,
-                HTVariable(HTLexicon.SUPER, interpreter,
+                HTVariable(
+                    HTLexicon.SUPER, interpreter, moduleFullName, libraryName,
                     initValue: instanceNamespace.next));
           }
 
           callClosure.define(
               HTLexicon.THIS,
-              HTVariable(HTLexicon.THIS, interpreter,
+              HTVariable(
+                  HTLexicon.THIS, interpreter, moduleFullName, libraryName,
                   initValue: instanceNamespace));
         }
 
@@ -265,8 +272,8 @@ class HTFunction extends HTFunctionDeclaration
           final referCtorPosArgIps = referConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
             final arg = interpreter.execute(
-                moduleFullName: source?.fullName,
-                libraryName: source?.libraryName,
+                moduleFullName: moduleFullName,
+                libraryName: libraryName,
                 ip: referCtorPosArgIps[i],
                 namespace: callClosure);
             referCtorPosArgs.add(arg);
@@ -277,8 +284,8 @@ class HTFunction extends HTFunctionDeclaration
           for (final name in referCtorNamedArgIps.keys) {
             final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
             final arg = interpreter.execute(
-                moduleFullName: source?.fullName,
-                libraryName: source?.libraryName,
+                moduleFullName: moduleFullName,
+                libraryName: libraryName,
                 ip: referCtorNamedArgIp,
                 namespace: callClosure);
             referCtorNamedArgs[name] = arg;
@@ -337,8 +344,8 @@ class HTFunction extends HTFunctionDeclaration
               column: definitionColumn);
         } else {
           interpreter.execute(
-              moduleFullName: source?.fullName,
-              libraryName: source?.libraryName,
+              moduleFullName: moduleFullName,
+              libraryName: libraryName,
               ip: definitionIp,
               namespace: callClosure,
               function: this,

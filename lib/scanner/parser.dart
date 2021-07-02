@@ -21,7 +21,7 @@ class HTAstParser extends HTAbstractParser {
   @override
   String? get curModuleFullName => _curModuleFullName;
 
-  String? _curLibraryName;
+  late String _curLibraryName;
   @override
   String? get curLibraryName => _curLibraryName;
 
@@ -65,19 +65,20 @@ class HTAstParser extends HTAbstractParser {
     return nodes;
   }
 
-  List<AstNode> parseString(String content,
-      {HTSource? source, ParserConfig? config}) {
+  List<AstNode> parseString(String content, {HTSource? source}) {
     final tokens = HTLexer().lex(content);
-    final nodes = parse(tokens, source: source, config: config);
+    final nodes = parse(tokens, source: source);
     return nodes;
   }
 
-  HTAstModule parseToModule(HTSource source, {ParserConfig? config}) {
+  HTAstModule parseToModule(HTSource source, {String? libraryName}) {
+    _curLibraryName = libraryName ?? source.fullName;
     _curModuleFullName = source.fullName;
     _curClass = null;
     _curFuncCategory = null;
-    final nodes = parseString(source.content, source: source, config: config);
-    final module = HTAstModule(source, nodes,
+    final nodes = parseString(source.content, source: source);
+    final module = HTAstModule(source, nodes, _curLibraryName,
+        isLibrary: _isLibrary,
         imports: _curModuleImports.toList()); // copy the list);
     _curModuleImports.clear();
     return module;
@@ -85,18 +86,20 @@ class HTAstParser extends HTAbstractParser {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  HTAstCompilation parseToCompilation(HTSource source) {
-    _curLibraryName = source.libraryName;
+  HTAstCompilation parseToCompilation(HTSource source, {String? libraryName}) {
     final module = parseToModule(source);
-    final compilation = HTAstCompilation(module.libraryName);
+    final compilation = HTAstCompilation(_curLibraryName);
     compilation.sources[source.fullName] = source;
     for (final stmt in module.imports) {
       try {
-        final importFullName =
-            sourceProvider.resolveFullName(stmt.key, module.fullName);
-        final source2 =
-            sourceProvider.getSource(importFullName, from: _curModuleFullName);
-        final compilation2 = parseToCompilation(source2);
+        // final importFullName =
+        //     sourceProvider.resolveFullName(stmt.key, module.fullName);
+        final source2 = sourceProvider.getSource(
+          stmt.key,
+          from: _curModuleFullName, //libraryName: _curLibraryName
+        );
+        final compilation2 =
+            parseToCompilation(source2, libraryName: _curLibraryName);
         _curModuleFullName = source.fullName;
         compilation.join(compilation2);
       } catch (error, stackTrace) {

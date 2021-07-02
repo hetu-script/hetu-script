@@ -18,9 +18,23 @@ class HTNamespace extends HTDeclaration with HTObject {
 
   final declarations = <String, HTDeclaration>{};
 
+  final bool isLibrary;
+
   HTNamespace(
-      {String? id, String? classId, HTNamespace? closure, HTSource? source})
-      : super(id: id, classId: classId, closure: closure, source: source) {
+      {String? id,
+      String? classId,
+      HTNamespace? closure,
+      HTSource? source,
+      bool isTopLevel = false,
+      bool isExported = false,
+      this.isLibrary = false})
+      : super(
+            id: id,
+            classId: classId,
+            closure: closure,
+            source: source,
+            isTopLevel: isTopLevel,
+            isExported: isExported) {
     // calculate the full name of this namespace
     _fullName = displayName;
     var curSpace = closure;
@@ -86,12 +100,24 @@ class HTNamespace extends HTDeclaration with HTObject {
   }
 
   void import(HTNamespace other, {bool clone = false}) {
-    for (final key in other.declarations.keys) {
-      var decl = other.declarations[key]!;
-      if (clone) {
-        decl = decl.clone();
+    if (other.isLibrary) {
+      for (final key in other.declarations.keys) {
+        var decl = other.declarations[key]!;
+        if (decl.isExported) {
+          if (clone) {
+            decl = decl.clone();
+          }
+          define(key, decl, error: false);
+        }
       }
-      define(key, decl, error: false);
+    } else {
+      for (final key in other.declarations.keys) {
+        var decl = other.declarations[key]!;
+        if (clone) {
+          decl = decl.clone();
+        }
+        define(key, decl, error: false);
+      }
     }
   }
 

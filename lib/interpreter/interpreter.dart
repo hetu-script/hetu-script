@@ -169,7 +169,8 @@ class Hetu extends HTAbstractInterpreter {
   /// call the function after evaluation completed.
   @override
   dynamic evalSource(HTSource source,
-      {bool importModule = false,
+      {String? libraryName,
+      bool importModule = false,
       SourceType? type,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -186,7 +187,6 @@ class Hetu extends HTAbstractInterpreter {
     final compiler = HTCompiler(
         config: config, errorHandler: this, sourceProvider: sourceProvider);
     try {
-      final compilation = parser.parseToCompilation(source);
       if (config.doStaticAnalyze) {
         final hetu = HTAnalyzer();
         hetu.init();
@@ -195,8 +195,10 @@ class Hetu extends HTAbstractInterpreter {
           throw hetu.errors.first;
         }
       }
-      final bytes = compiler.compile(compilation, source.libraryName);
-      _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
+      final compilation =
+          parser.parseToCompilation(source, libraryName: libraryName);
+      final bytes = compiler.compile(compilation, libraryName: libraryName);
+      _curLibrary = HTBytecodeLibrary(compilation.libraryName, bytes);
       while (_curLibrary.ip < _curLibrary.bytes.length) {
         final HTNamespace nsp = execute();
         _curLibrary.define(nsp.id!, nsp);
@@ -451,8 +453,10 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.module:
           final id = _curLibrary.readShortUtf8String();
+          final isLibrary = _curLibrary.readBool();
           _curModuleFullName = id;
-          _curNamespace = HTNamespace(id: id, closure: global);
+          _curNamespace =
+              HTNamespace(id: id, closure: global, isLibrary: isLibrary);
           break;
         case HTOpCode.lineInfo:
           _curLine = _curLibrary.readUint16();
@@ -703,7 +707,6 @@ class Hetu extends HTAbstractInterpreter {
         if (hasExternalTypedef) {
           externalTypedef = _curLibrary.readShortUtf8String();
         }
-
         final hasParamDecls = _curLibrary.readBool();
         final isVariadic = _curLibrary.readBool();
         final minArity = _curLibrary.read();
@@ -720,7 +723,6 @@ class Hetu extends HTAbstractInterpreter {
           definitionIp = _curLibrary.ip;
           _curLibrary.skip(length);
         }
-
         final func = HTFunction(
             internalName, _curModuleFullName, _curLibrary.id, this,
             closure: _curNamespace,
@@ -1092,7 +1094,7 @@ class Hetu extends HTAbstractInterpreter {
     final isExported = _curLibrary.readBool();
     final value = _handleTypeExpr();
 
-    final decl = HTVariable(id, this,
+    final decl = HTVariable(id, this, _curModuleFullName, _curLibrary.id,
         classId: classId, closure: _curNamespace, initValue: value);
 
     _curNamespace.define(id, decl);
@@ -1128,7 +1130,7 @@ class Hetu extends HTAbstractInterpreter {
         final definitionIp = _curLibrary.ip;
         _curLibrary.skip(length);
 
-        decl = HTVariable(id, this,
+        decl = HTVariable(id, this, _curModuleFullName, _curLibrary.id,
             classId: classId,
             closure: _curNamespace,
             declType: declType,
@@ -1142,7 +1144,7 @@ class Hetu extends HTAbstractInterpreter {
       } else {
         final value = execute();
 
-        decl = HTVariable(id, this,
+        decl = HTVariable(id, this, _curModuleFullName, _curLibrary.id,
             classId: classId,
             closure: _curNamespace,
             declType: declType,
@@ -1153,7 +1155,7 @@ class Hetu extends HTAbstractInterpreter {
             isMutable: isMutable);
       }
     } else {
-      decl = HTVariable(id, this,
+      decl = HTVariable(id, this, _curModuleFullName, _curLibrary.id,
           classId: classId,
           closure: _curNamespace,
           declType: declType,
@@ -1197,7 +1199,7 @@ class Hetu extends HTAbstractInterpreter {
         _curLibrary.skip(length);
       }
 
-      paramDecls[id] = HTParameter(id, this,
+      paramDecls[id] = HTParameter(id, this, _curModuleFullName, _curLibrary.id,
           closure: _curNamespace,
           declType: declType,
           definitionIp: definitionIp,

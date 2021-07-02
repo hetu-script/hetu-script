@@ -132,7 +132,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   }
 
   T? evalSource(HTSource source,
-      {bool importModule = false,
+      {String? libraryName,
+      bool importModule = false,
       SourceType type = SourceType.module,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
