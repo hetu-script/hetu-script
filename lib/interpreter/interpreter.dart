@@ -174,7 +174,7 @@ class Hetu extends HTAbstractInterpreter {
   /// call the function after evaluation completed.
   @override
   dynamic evalSource(HTSource source,
-      {HTNamespace? namespace,
+      {bool importModule = false,
       InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -186,14 +186,12 @@ class Hetu extends HTAbstractInterpreter {
     }
     _curConfig = config ?? this.config;
     _curModuleFullName = source.fullName;
-    final hasOwnNamespace = namespace != global;
     final parser = HTAstParser(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     final compiler = HTCompiler(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
     try {
-      final compilation =
-          parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
+      final compilation = parser.parseToCompilation(source);
       if (_curConfig.doStaticAnalyze) {
         final hetu = HTAnalyzer(
             config: AnalyzerConfig(sourceType: _curConfig.sourceType));
@@ -206,60 +204,61 @@ class Hetu extends HTAbstractInterpreter {
       }
       final bytes = compiler.compile(compilation, source.libraryName);
       _curLibrary = HTBytecodeLibrary(source.libraryName, bytes);
+
+      while (_curLibrary.ip < _curLibrary.bytes.length) {
+        final HTNamespace nsp = execute();
+        _curLibrary.define(nsp.id!, nsp);
+      }
+      _cachedLibs[_curLibrary.id] = _curLibrary;
+
       var result;
       if (_curConfig.sourceType == SourceType.script) {
-        HTNamespace nsp = execute(namespace: namespace ?? global);
-        _curLibrary.define(nsp.id!, nsp);
-        _cachedLibs[_curLibrary.id] = _curLibrary;
-        // every scripts shares each others declarations,
-        // this is achieved by global namespace import from them
-        global.import(nsp);
+        for (final nsp in _curLibrary.declarations.values) {
+          // scripts defines its member on global
+          global.import(nsp);
+        }
         // return the last expression's value
         result = _registers.first;
       } else if (_curConfig.sourceType == SourceType.module) {
-        while (_curLibrary.ip < _curLibrary.bytes.length) {
-          final HTNamespace nsp = execute();
-          _curLibrary.define(nsp.id!, nsp);
-        }
-        _cachedLibs[_curLibrary.id] = _curLibrary;
-
-        if (hasOwnNamespace) {
-          for (final module in compilation.modules.values) {
-            final nsp = _curLibrary.declarations[module.fullName]!;
-            for (final info in module.imports) {
-              final importFullName =
-                  sourceProvider.resolveFullName(info.key, module.fullName);
-              final importNamespace = _curLibrary.declarations[importFullName]!;
-              if (info.alias == null) {
-                if (info.showList.isEmpty) {
-                  nsp.import(importNamespace);
-                } else {
-                  for (final id in info.showList) {
-                    HTDeclaration decl =
-                        importNamespace.memberGet(id, recursive: false);
-                    nsp.define(id, decl);
-                  }
-                }
+        // handles module imports
+        for (final module in compilation.modules.values) {
+          final nsp = _curLibrary.declarations[module.fullName]!;
+          for (final info in module.imports) {
+            final importFullName =
+                sourceProvider.resolveFullName(info.key, module.fullName);
+            final importNamespace = _curLibrary.declarations[importFullName]!;
+            if (info.alias == null) {
+              if (info.showList.isEmpty) {
+                nsp.import(importNamespace);
               } else {
-                if (info.showList.isEmpty) {
-                  final aliasNamespace =
-                      HTNamespace(id: info.alias!, closure: global);
-                  aliasNamespace.import(importNamespace);
-                  nsp.define(info.alias!, aliasNamespace);
-                } else {
-                  final aliasNamespace =
-                      HTNamespace(id: info.alias!, closure: global);
-                  for (final id in info.showList) {
-                    HTDeclaration decl =
-                        importNamespace.memberGet(id, recursive: false);
-                    aliasNamespace.define(id, decl);
-                  }
-                  nsp.define(info.alias!, aliasNamespace);
+                for (final id in info.showList) {
+                  HTDeclaration decl =
+                      importNamespace.memberGet(id, recursive: false);
+                  nsp.define(id, decl);
                 }
+              }
+            } else {
+              if (info.showList.isEmpty) {
+                final aliasNamespace =
+                    HTNamespace(id: info.alias!, closure: global);
+                aliasNamespace.import(importNamespace);
+                nsp.define(info.alias!, aliasNamespace);
+              } else {
+                final aliasNamespace =
+                    HTNamespace(id: info.alias!, closure: global);
+                for (final id in info.showList) {
+                  HTDeclaration decl =
+                      importNamespace.memberGet(id, recursive: false);
+                  aliasNamespace.define(id, decl);
+                }
+                nsp.define(info.alias!, aliasNamespace);
               }
             }
           }
-          _curNamespace = _curLibrary.declarations[source.fullName]!;
+        }
+        _curNamespace = _curLibrary.declarations[source.fullName]!;
+        if (importModule) {
+          global.import(_curNamespace);
         }
 
         for (final namespace in _curLibrary.declarations.values) {

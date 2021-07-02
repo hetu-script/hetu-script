@@ -9,6 +9,23 @@ abstract class HTLexicon {
       r"('(\\'|[^'])*')|" // string with single quotation mark group(16)
       r'("(\\"|[^"])*")'; // string with double quotation mark group(18)
 
+  static const tokenGroupSingleComment = 2;
+  static const tokenGroupBlockComment = 3;
+  static const tokenGroupIdentifier = 4;
+  static const tokenGroupPunctuation = 5;
+  static const tokenGroupNumber = 6;
+  static const tokenGroupStringInterpolationSingleMark = 8;
+  static const tokenGroupStringInterpolationDoubleMark = 12;
+  static const tokenGroupStringSingleQuotation = 16;
+  static const tokenGroupStringDoubleQuotation = 18;
+
+  static const libraryNamePattern = r"(library '((\\'|[^'])*)')|"
+      r'(library "((\\"|[^"])*)")';
+
+  static const libraryNameSingleMark = 2;
+
+  static const libraryNameDoubleMark = 5;
+
   static const stringInterpolationPattern = r'\${([^\${}]*)}';
 
   static const stringInterpolationStart = r'${';
@@ -34,16 +51,6 @@ abstract class HTLexicon {
   static const Set<String> ASIEnd = {
     RETURN,
   };
-
-  static const tokenGroupSingleComment = 2;
-  static const tokenGroupBlockComment = 3;
-  static const tokenGroupIdentifier = 4;
-  static const tokenGroupPunctuation = 5;
-  static const tokenGroupNumber = 6;
-  static const tokenGroupStringInterpolationSingleMark = 8;
-  static const tokenGroupStringInterpolationDoubleMark = 12;
-  static const tokenGroupStringSingleQuotation = 16;
-  static const tokenGroupStringDoubleQuotation = 18;
 
   static const punctuation = 'punctuation';
   static const boolean = 'bool';
@@ -88,14 +95,14 @@ abstract class HTLexicon {
   static const FALSE = 'false';
 
   static const VAR = 'var';
-  static const LET = 'let';
+  // static const LET = 'let';
   static const FINAL = 'final';
   static const CONST = 'const';
 
   /// 变量声明
   static const Set<String> varDeclKeywords = {
     VAR,
-    LET,
+    // LET,
     FINAL,
     CONST,
   };
@@ -174,7 +181,7 @@ abstract class HTLexicon {
     TRUE,
     FALSE,
     VAR,
-    LET,
+    // LET,
     FINAL,
     CONST,
     TYPEOF,
@@ -420,6 +427,7 @@ abstract class HTLexicon {
       'Constant class member [{0}] must also be declared as static.';
   static const errorConstMustInit =
       'Constant declaration [{0}] must be initialized.';
+  static const errorDuplicateLibStmt = 'Duplicate library statement.';
 
   // compile time errors
   static const errorDefined = '[{0}] is already defined.';

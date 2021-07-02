@@ -588,9 +588,11 @@ class HTFormatter implements AbstractAstVisitor<String> {
     }
     if (!stmt.isMutable) {
       output.write('${HTLexicon.CONST} ');
-    } else if (stmt.typeInferrence) {
-      output.write('${HTLexicon.LET} ');
-    } else {
+    }
+    // else if (stmt.typeInferrence) {
+    //   output.write('${HTLexicon.LET} ');
+    // }
+    else {
       output.write('${HTLexicon.VAR} ');
     }
     output.write('${stmt.id}');

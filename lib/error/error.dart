@@ -24,6 +24,7 @@ enum ErrorCode {
   privateMember,
   constMustBeStatic,
   constMustInit,
+  duplicateLibStmt,
 
   defined,
   outsideThis,
@@ -590,6 +591,23 @@ class HTError implements AbstractError {
       : this(ErrorCode.constMustInit, ErrorType.syntacticError,
             HTLexicon.errorConstMustInit,
             interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Duplicate library statement.
+  HTError.duplicateLibStmt(
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.duplicateLibStmt, ErrorType.syntacticError,
+            HTLexicon.errorDuplicateLibStmt,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,

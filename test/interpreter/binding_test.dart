@@ -148,7 +148,7 @@ void main() {
     static get profile -> Profile
     static set profile(p: Profile)
   }
-  ''', namespace: hetu.global);
+  ''', config: InterpreterConfig(sourceType: SourceType.script));
 
   group('binding -', () {
     test('get & set', () {

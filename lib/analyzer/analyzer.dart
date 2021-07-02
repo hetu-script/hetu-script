@@ -105,7 +105,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   HTModuleAnalysisResult? evalSource(HTSource source,
-      {HTNamespace? namespace, // ignored in analyzer
+      {bool importModule = false,
       InterpreterConfig? config, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
@@ -116,12 +116,12 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     if (source.content.isEmpty) {
       return null;
     }
-    final hasOwnNamespace = namespace != global;
+    // final hasOwnNamespace = namespace != global;
     _curErrors = <HTAnalysisError>[];
     final parser = HTAstParser(
         config: _curConfig, errorHandler: this, sourceProvider: sourceProvider);
-    final compilation =
-        parser.parseToCompilation(source, hasOwnNamespace: hasOwnNamespace);
+    final compilation = parser
+        .parseToCompilation(source); //, hasOwnNamespace: hasOwnNamespace);
 
     _curLibrary = HTLibraryAnalysisResult(source.libraryName);
     for (final module in compilation.modules.values) {
@@ -129,7 +129,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
           module.source.content, this, _curErrors,
           fullName: module.source.fullName);
       _curLibrary.modules[module.source.fullName] = _curSource;
-      if (module.hasOwnNamespace) {
+      if (module.sourceType == SourceType.module) {
         _curNamespace = HTNamespace(id: module.fullName, closure: global);
       } else {
         _curNamespace = global;

@@ -1024,7 +1024,7 @@ class VarDeclStmt extends AstNode {
 
   final AstNode? initializer;
 
-  final bool typeInferrence;
+  // final bool typeInferrence;
 
   bool get isMember => classId != null;
 
@@ -1053,7 +1053,7 @@ class VarDeclStmt extends AstNode {
       this.classId,
       this.declType,
       this.initializer,
-      this.typeInferrence = false,
+      // this.typeInferrence = false,
       this.isExternal = false,
       this.isStatic = false,
       this.isConst = false,

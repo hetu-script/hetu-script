@@ -84,10 +84,7 @@ class DefaultSourceProvider implements HTSourceProvider {
     if (!_cached.containsKey(fullName) || reload) {
       final content = File(fullName).readAsStringSync();
       final source = HTSource(content,
-          fullName: fullName,
-          type: type,
-          isLibrary: isLibrary,
-          libraryName: libraryName);
+          fullName: fullName, type: type, libraryName: libraryName);
       _cached[fullName] = source;
       return source;
     } else {

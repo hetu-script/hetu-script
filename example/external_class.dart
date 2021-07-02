@@ -130,7 +130,7 @@ void main() {
         fun greeting(tag: str)
       }
       fun main {
-        let p1: Person = Person()
+        var p1: Person = Person()
         p1.greeting('jimmy')
         print(typeof p1)
         print(p1.name)

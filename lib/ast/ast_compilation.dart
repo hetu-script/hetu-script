@@ -24,24 +24,19 @@ class HTAstModule {
 
   String get libraryName => source.libraryName;
 
+  SourceType get sourceType => source.type;
+
+  bool get isLibrary => source.isLibrary;
+
   /// The bytecode, stores as uint8 list
   final List<AstNode> nodes;
 
-  final SourceType sourceType;
-
   final List<ImportStmt> imports;
-
-  final bool hasOwnNamespace;
-
-  final bool isLibrary;
 
   final List<HTError> errors;
 
-  HTAstModule(this.source, this.nodes, this.sourceType,
-      {this.imports = const [],
-      this.hasOwnNamespace = true,
-      this.isLibrary = false,
-      this.errors = const []});
+  HTAstModule(this.source, this.nodes,
+      {this.imports = const [], this.errors = const []});
 }
 
 class HTAstCompilation {

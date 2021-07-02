@@ -92,15 +92,15 @@ void main() {
     test('for in', () {
       final result = hetu.eval(r'''
       fun forIn {
-        let value = ['', 'hello', 'world']
-        let item = ''
-        for (let val in value) {
-          if (val != '') {
-            item = val
+        var value = ['', 'hello', 'world']
+        var result = ''
+        for (var item in value) {
+          if (item != '') {
+            result = item
             break
           }
         }
-        return item
+        return result
       }
     ''', invokeFunc: 'forIn');
       expect(

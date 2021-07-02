@@ -70,13 +70,13 @@ void main() {
 
       fun main {
         print(Race.values)
-        let race: Race = Race.african
+        var race: Race = Race.african
         print(race)
         print(typeof race)
         print(race.toString())
         
         // print(Country.values)
-        // let country: Country = Country.Japan // 可以进行类型检查
+        // var country: Country = Country.Japan // 可以进行类型检查
         // print(country)
         // print(typeof country)
         // print(country.toString())

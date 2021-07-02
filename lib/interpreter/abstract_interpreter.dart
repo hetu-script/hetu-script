@@ -101,7 +101,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       for (final file in coreModules.keys) {
         eval(coreModules[file]!,
             moduleFullName: file,
-            namespace: global,
+            importModule: true,
             config: InterpreterConfig(sourceType: SourceType.module));
       }
       for (var key in coreFunctions.keys) {
@@ -121,7 +121,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       for (final file in preincludes.keys) {
         eval(coreModules[file]!,
             moduleFullName: file,
-            namespace: global,
+            // namespace: global,
             config: InterpreterConfig(sourceType: SourceType.module));
       }
       for (final value in externalClasses) {
@@ -139,7 +139,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   }
 
   T? evalSource(HTSource source,
-      {HTNamespace? namespace,
+      {bool importModule = false,
       InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -150,7 +150,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   T? eval(String content,
       {String? moduleFullName,
       String? libraryName,
-      HTNamespace? namespace,
+      bool importModule = false,
       InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -161,7 +161,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
     final result = evalSource(source,
         // when eval string, use current namespace by default
-        namespace: namespace ?? curNamespace,
+        importModule: importModule,
         config: config,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
@@ -177,7 +177,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {bool useLastModuleFullName = false,
       String? moduleFullName,
       String? libraryName,
-      HTNamespace? namespace,
+      bool importModule = false,
       InterpreterConfig? config,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -191,7 +191,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
               : sourceProvider.workingDirectory);
 
       final result = evalSource(module,
-          namespace: namespace,
+          importModule: importModule,
           config: config,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,

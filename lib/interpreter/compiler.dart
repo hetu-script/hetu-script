@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
+import 'package:hetu_script/hetu_script.dart';
+
 import '../source/source_provider.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
@@ -112,7 +114,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     for (final module in compilation.modules.values) {
       _curModuleFullName = module.fullName;
-      if (module.hasOwnNamespace) {
+      if (module.sourceType == SourceType.module) {
         bytesBuilder.addByte(HTOpCode.module);
         bytesBuilder.add(_shortUtf8String(_curModuleFullName));
       }
