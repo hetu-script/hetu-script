@@ -512,7 +512,7 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: Module import error
-  HTError.moduleImport(String id, String message,
+  HTError.souceProviderError(String id, String message,
       {String? correction,
       String? moduleFullName,
       int? line,

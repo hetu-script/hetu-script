@@ -103,6 +103,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     errors.clear();
   }
 
+  void closeSource(String fullName) {}
+
   @override
   HTModuleAnalysisResult? evalSource(HTSource source,
       {bool importModule = false,

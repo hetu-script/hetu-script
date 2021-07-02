@@ -185,7 +185,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
-      final module = sourceProvider.getSourceSync(key,
+      final module = sourceProvider.getSource(key,
           from: useLastModuleFullName
               ? curModuleFullName
               : sourceProvider.workingDirectory);
