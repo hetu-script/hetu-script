@@ -32,7 +32,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     final output = StringBuffer();
     var i = _curIndentCount;
     while (i > 0) {
-      output.write(HTLexicon.indentSpace);
+      output.write(HTLexicon.indentSpaces);
       --i;
     }
     return output.toString();

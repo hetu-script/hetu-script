@@ -24,16 +24,13 @@ abstract class HTLexicon {
       r'(library "((\\"|[^"])*)")';
 
   static const libraryNameSingleMark = 2;
-
   static const libraryNameDoubleMark = 5;
 
   static const stringInterpolationPattern = r'\${([^\${}]*)}';
-
   static const stringInterpolationStart = r'${';
-
   static const stringInterpolationEnd = r'}';
 
-  static const stringReplaces = <String, String>{
+  static const stringEscapes = <String, String>{
     r'\\': '\\',
     r"\'": '\'',
     r'\"': '\"',
@@ -53,19 +50,20 @@ abstract class HTLexicon {
     RETURN,
   };
 
-  static const punctuation = 'punctuation';
+  static const main = 'main';
+
   static const boolean = 'bool';
   static const number = 'num';
   static const integer = 'int';
   static const float = 'float';
-  static const dartFloat = 'double';
-  static const string = 'str';
-  static const dartString = 'String';
+  static const str = 'str';
   static const list = 'List';
   static const map = 'Map';
-  static const jsonObject = 'JsonObject';
-  static const valueType = 'valueType';
-  static const interfaceType = 'interfaceType';
+
+  static const double = 'double';
+  static const string = 'String';
+
+  static const json = 'json';
   static const keys = 'keys';
   static const values = 'values';
   static const first = 'first';
@@ -76,34 +74,26 @@ abstract class HTLexicon {
   static const elementAt = 'elementAt';
   static const parse = 'parse';
 
-  static const Set<String> literals = {
-    number,
-    boolean,
-    string,
-  };
-
   static const variadicArgs = '...';
   static const privatePrefix = '_';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
   static const singleArrow = '->';
   static const doubleArrow = '=>';
-  static const indentSpace = '  ';
   static const decimalPoint = '.';
+  static const indentSpaces = '  ';
 
   static const NULL = 'null';
   static const TRUE = 'true';
   static const FALSE = 'false';
 
   static const VAR = 'var';
-  // static const LET = 'let';
   static const FINAL = 'final';
   static const CONST = 'const';
 
   /// 变量声明
   static const Set<String> varDeclKeywords = {
     VAR,
-    // LET,
     FINAL,
     CONST,
   };
@@ -113,18 +103,6 @@ abstract class HTLexicon {
   static const unknown = 'unknown';
   static const object = 'object';
   static const function = 'function';
-
-  static const Set<String> primitiveType = {
-    ANY,
-    VOID,
-    CLASS,
-    ENUM,
-    NAMESPACE,
-    unknown,
-    TYPE,
-    object,
-    function,
-  };
 
   static const LIBRARY = 'library';
   static const TYPE = 'type';

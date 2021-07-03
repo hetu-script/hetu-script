@@ -108,7 +108,7 @@ class HTBooleanClass extends HTExternalClass {
 }
 
 class HTStringClass extends HTExternalClass {
-  HTStringClass() : super(HTLexicon.string);
+  HTStringClass() : super(HTLexicon.str);
 
   @override
   dynamic memberGet(String field, {bool error = true}) {

@@ -15,8 +15,8 @@ void main() {
           mongolian,
           african,
         }
-          var race: Race = Race.african
-          print( race.toString())
+        var race: Race = Race.african
+        print( race.toString())
   ''', type: SourceType.script);
   // // final parser = HTAstParser();
   // final module = parser.parseToModule(source);

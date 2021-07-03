@@ -360,7 +360,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitConstStringExpr(ConstStringExpr expr) {
     var literal = expr.value;
-    HTLexicon.stringReplaces.forEach((key, value) {
+    HTLexicon.stringEscapes.forEach((key, value) {
       literal = expr.value.replaceAll(key, value);
     });
     final index = _curConstTable.addString(literal);
@@ -374,7 +374,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.stringInterpolation);
     var literal = expr.value;
-    HTLexicon.stringReplaces.forEach((key, value) {
+    HTLexicon.stringEscapes.forEach((key, value) {
       literal = expr.value.replaceAll(key, value);
     });
     bytesBuilder.add(_utf8String(literal));
@@ -1529,7 +1529,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final toStringFunc = FuncDeclExpr(SemanticNames.tostring, [],
         id: SemanticNames.tostring,
         classId: stmt.id,
-        returnType: TypeExpr(HTLexicon.string),
+        returnType: TypeExpr(HTLexicon.str),
         hasParamDecls: true,
         definition: toStringDef);
     final toStringBytes = visitFuncDeclStmt(toStringFunc);

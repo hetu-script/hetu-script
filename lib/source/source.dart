@@ -6,6 +6,8 @@ import 'package:path/path.dart' as path;
 import '../grammar/semantic.dart';
 import 'line_info.dart';
 
+const hetuSouceFileExtension = '.ht';
+
 /// Code module types
 enum SourceType {
   /// A bare expression.

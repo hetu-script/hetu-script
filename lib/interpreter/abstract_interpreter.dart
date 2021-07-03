@@ -181,7 +181,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       final module = sourceProvider.getSource(key,
           from: useLastModuleFullName
               ? curModuleFullName
-              : sourceProvider.workingDirectory,
+              : sourceProvider.defaultDirectory,
           type: type);
 
       final result = evalSource(module,
@@ -226,7 +226,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     } else if (object is double) {
       typeString = HTLexicon.float;
     } else if (object is String) {
-      typeString = HTLexicon.string;
+      typeString = HTLexicon.str;
     } else if (object is List) {
       typeString = HTLexicon.list;
       // var valueType = HTType.ANY;
