@@ -5,7 +5,7 @@ import '../../type/function_type.dart';
 import '../../source/source.dart';
 import '../type/abstract_type_declaration.dart';
 import '../declaration.dart';
-import '../namespace.dart';
+import '../namespace/namespace.dart';
 import 'abstract_parameter.dart';
 import '../../type/generic_type_parameter.dart';
 

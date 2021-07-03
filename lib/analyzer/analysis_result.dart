@@ -1,5 +1,7 @@
 import '../source/source.dart';
-import '../declaration/library.dart';
+import '../declaration/namespace/library.dart';
+import '../declaration/namespace/namespace.dart';
+import '../ast/ast_compilation.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
@@ -17,7 +19,11 @@ class HTModuleAnalysisResult extends HTSource {
 }
 
 class HTLibraryAnalysisResult extends HTLibrary {
-  final modules = <String, HTModuleAnalysisResult>{};
+  final HTAstCompilation compilation;
 
-  HTLibraryAnalysisResult(String id) : super(id);
+  final Map<String, HTModuleAnalysisResult> modules;
+
+  HTLibraryAnalysisResult(this.compilation, this.modules,
+      {Map<String, HTNamespace>? declarations})
+      : super(compilation.libraryName, declarations: declarations);
 }

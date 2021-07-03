@@ -7,7 +7,7 @@ import '../../type/nominal_type.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import 'cast.dart';
-import '../../declaration/namespace.dart';
+import '../../declaration/namespace/namespace.dart';
 import '../object.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/abstract_interpreter.dart';

@@ -54,6 +54,10 @@ mixin GotoInfo {
 }
 
 abstract class CompilerConfig {
+  factory CompilerConfig({bool lineInfo = true}) {
+    return CompilerConfigImpl(lineInfo: lineInfo);
+  }
+
   bool get lineInfo;
 }
 
@@ -95,10 +99,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   final List<Map<String, String>> _markedSymbolsList = [];
 
   HTCompiler(
-      {this.config = const CompilerConfigImpl(),
+      {CompilerConfig? config,
       HTErrorHandler? errorHandler,
       HTSourceProvider? sourceProvider})
-      : errorHandler = errorHandler ?? DefaultErrorHandler(),
+      : config = config ?? const CompilerConfigImpl(),
+        errorHandler = errorHandler ?? DefaultErrorHandler(),
         sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
   Uint8List compile(HTAstCompilation compilation, {String? libraryName}) {
@@ -113,7 +118,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     for (final module in compilation.modules.values) {
       _curModuleFullName = module.fullName;
-      if (module.sourceType == SourceType.module) {
+      if (module.type == SourceType.module) {
         bytesBuilder.addByte(HTOpCode.module);
         bytesBuilder.add(_shortUtf8String(_curModuleFullName));
         bytesBuilder.addByte(module.isLibrary ? 1 : 0);

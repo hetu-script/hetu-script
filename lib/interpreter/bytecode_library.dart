@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import '../declaration/library.dart';
+import '../declaration/namespace/library.dart';
 import 'bytecode_reader.dart';
 import 'const_table.dart';
 

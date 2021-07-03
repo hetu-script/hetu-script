@@ -1,8 +1,18 @@
-import '../error/error.dart';
-import '../grammar/lexicon.dart';
-import '../source/source.dart';
-import '../object/object.dart';
-import 'declaration.dart';
+import '../../error/error.dart';
+import '../../grammar/lexicon.dart';
+import '../../source/source.dart';
+import '../../object/object.dart';
+import '../declaration.dart';
+
+class ImportDeclaration {
+  final String key;
+
+  final String? alias;
+
+  final List<String> showList;
+
+  ImportDeclaration(this.key, {this.alias, this.showList = const []});
+}
 
 /// Namespace is used when importing with a name
 /// or for interpreter searching for symbols
@@ -19,6 +29,8 @@ class HTNamespace extends HTDeclaration with HTObject {
   final declarations = <String, HTDeclaration>{};
 
   final bool isLibrary;
+
+  final imports = <String, ImportDeclaration>{};
 
   HTNamespace(
       {String? id,
@@ -97,6 +109,12 @@ class HTNamespace extends HTDeclaration with HTObject {
     }
 
     throw HTError.undefined(field);
+  }
+
+  void declareImport(String key,
+      {String? alias, List<String> showList = const []}) {
+    final decl = ImportDeclaration(key, alias: alias, showList: showList);
+    imports[key] = decl;
   }
 
   void import(HTNamespace other, {bool clone = false}) {

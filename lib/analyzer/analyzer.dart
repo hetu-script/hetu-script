@@ -3,7 +3,7 @@ import '../source/source_provider.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
 import '../type/generic_type_parameter.dart';
-import '../declaration/namespace.dart';
+import '../declaration/namespace/namespace.dart';
 import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
@@ -32,10 +32,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   AnalyzerConfig _curConfig;
 
   @override
-  ErrorHandlerConfig get errorConfig => curConfig;
-
-  @override
-  AnalyzerConfig get curConfig => _curConfig;
+  ErrorHandlerConfig get errorConfig => _curConfig;
 
   @override
   AnalyzerConfig get config => _curConfig;
@@ -108,7 +105,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   HTModuleAnalysisResult? evalSource(HTSource source,
       {String? libraryName,
-      bool importModule = false,
+      bool import = false,
       SourceType type = SourceType.module, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
@@ -119,25 +116,28 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     if (source.content.isEmpty) {
       return null;
     }
-    // final hasOwnNamespace = namespace != global;
     _curErrors = <HTAnalysisError>[];
     final parser =
         HTAstParser(errorHandler: this, sourceProvider: sourceProvider);
-    final compilation = parser.parseToCompilation(source,
-        libraryName: libraryName); //, hasOwnNamespace: hasOwnNamespace);
-
-    _curLibrary = HTLibraryAnalysisResult(compilation.libraryName);
+    final compilation =
+        parser.parseToCompilation(source, libraryName: libraryName);
+    final modules = <String, HTModuleAnalysisResult>{};
+    final declarations = <String, HTNamespace>{};
     for (final module in compilation.modules.values) {
       _curSource = HTModuleAnalysisResult(
           module.source.content, this, _curErrors,
           fullName: module.source.fullName);
-      _curLibrary.modules[module.source.fullName] = _curSource;
-      if (module.sourceType == SourceType.module) {
+      modules[module.source.fullName] = _curSource;
+      if (module.type == SourceType.module) {
         _curNamespace = HTNamespace(id: module.fullName, closure: global);
       } else {
         _curNamespace = global;
       }
-      _curLibrary.declarations[module.fullName] = _curNamespace;
+      declarations[module.fullName] = _curNamespace;
+    }
+    _curLibrary = HTLibraryAnalysisResult(compilation, modules,
+        declarations: declarations);
+    for (final module in compilation.modules.values) {
       for (final node in module.nodes) {
         analyzeAst(node);
       }
@@ -147,7 +147,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       analyzeDeclaration(decl);
     }
     _cachedLibs[_curLibrary.id] = _curLibrary;
-
     final result = _curLibrary.modules[source.fullName]!;
     return result;
   }

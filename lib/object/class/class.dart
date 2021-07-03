@@ -5,7 +5,7 @@ import '../../source/source.dart';
 import '../../interpreter/abstract_interpreter.dart';
 import '../../type/type.dart';
 // import '../declaration.dart';
-import '../../declaration/namespace.dart';
+import '../../declaration/namespace/namespace.dart';
 import '../function/function.dart';
 import '../../object/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';

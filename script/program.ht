@@ -1,0 +1,7 @@
+import 'hello.ht'
+
+fun main {
+  final greeting = hello()
+  print(greeting)
+
+}

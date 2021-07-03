@@ -6,7 +6,7 @@ import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
 // import '../type/type.dart';
-import 'namespace.dart';
+import 'namespace/namespace.dart';
 
 /// Declaration is a semantic entity in the program that
 /// represents things that are declared with a name

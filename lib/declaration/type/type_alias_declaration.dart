@@ -2,7 +2,7 @@ import '../../source/source.dart';
 import '../../type/type.dart';
 import '../../type/generic_type_parameter.dart';
 import '../declaration.dart';
-import '../namespace.dart';
+import '../namespace/namespace.dart';
 import 'abstract_type_declaration.dart';
 
 class HTTypeAliasDeclaration extends HTDeclaration

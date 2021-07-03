@@ -1,7 +1,7 @@
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
-import '../../declaration/namespace.dart';
+import '../../declaration/namespace/namespace.dart';
 import '../../type/type.dart';
 import '../../declaration/variable/variable_declaration.dart';
 import '../object.dart';
@@ -30,6 +30,7 @@ class HTVariable extends HTVariableDeclaration
       bool isConst = false,
       bool isMutable = false,
       bool isTopLevel = false,
+      bool isExported = false,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
@@ -41,7 +42,8 @@ class HTVariable extends HTVariableDeclaration
             isStatic: isStatic,
             isConst: isConst,
             isMutable: isMutable,
-            isTopLevel: isTopLevel) {
+            isTopLevel: isTopLevel,
+            isExported: isExported) {
     this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.libraryName = libraryName;
@@ -166,6 +168,8 @@ class HTVariable extends HTVariableDeclaration
       isStatic: isStatic,
       isConst: isConst,
       isMutable: isMutable,
+      isTopLevel: isTopLevel,
+      isExported: isExported,
       definitionIp: definitionIp,
       definitionLine: definitionLine,
       definitionColumn: definitionColumn);

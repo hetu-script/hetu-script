@@ -1,5 +1,5 @@
-import '../grammar/semantic.dart';
-import '../source/source.dart';
+import '../../grammar/semantic.dart';
+import '../../source/source.dart';
 import 'namespace.dart';
 
 /// Module is the semantic entity of a single file,

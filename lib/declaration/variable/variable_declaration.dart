@@ -1,7 +1,7 @@
 import '../../source/source.dart';
 import '../../type/type.dart';
 import '../declaration.dart';
-import '../namespace.dart';
+import '../namespace/namespace.dart';
 
 class HTVariableDeclaration extends HTDeclaration {
   @override

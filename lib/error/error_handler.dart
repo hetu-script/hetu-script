@@ -6,6 +6,16 @@ enum ErrorHanldeApproach {
 }
 
 abstract class ErrorHandlerConfig {
+  factory ErrorHandlerConfig(
+      {bool stackTrace = true,
+      int hetuStackTraceThreshhold = 10,
+      ErrorHanldeApproach approach = ErrorHanldeApproach.exception}) {
+    return ErrorHandlerConfigImpl(
+        stackTrace: stackTrace,
+        hetuStackTraceThreshhold: hetuStackTraceThreshhold,
+        approach: approach);
+  }
+
   bool get stackTrace;
 
   int get hetuStackTraceThreshhold;
@@ -43,7 +53,8 @@ class DefaultErrorHandler implements HTErrorHandler {
 
   List errors = [];
 
-  DefaultErrorHandler({this.errorConfig = const ErrorHandlerConfigImpl()});
+  DefaultErrorHandler({ErrorHandlerConfig? config})
+      : errorConfig = config ?? ErrorHandlerConfig();
 
   @override
   void handleError(Object error, {Object? externalStackTrace}) {

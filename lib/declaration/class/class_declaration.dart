@@ -1,7 +1,7 @@
 import '../../type/type.dart';
 import '../../source/source.dart';
 import '../../grammar/semantic.dart';
-import '../namespace.dart';
+import '../namespace/namespace.dart';
 import '../declaration.dart';
 import '../type/abstract_type_declaration.dart';
 import '../../type/generic_type_parameter.dart';

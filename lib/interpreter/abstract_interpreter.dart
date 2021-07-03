@@ -14,8 +14,8 @@ import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../type/type.dart';
 import '../object/function/function.dart';
-import '../declaration/namespace.dart';
-import '../declaration/library.dart';
+import '../declaration/namespace/namespace.dart';
+import '../declaration/namespace/library.dart';
 import '../scanner/abstract_parser.dart';
 import '../buildin/hetu_lib.dart';
 import '../object/object.dart';
@@ -40,17 +40,14 @@ class InterpreterConfig
   @override
   final ErrorHanldeApproach approach;
 
-  final bool reload;
-
-  final bool doStaticAnalyze;
+  final bool hotreload;
 
   const InterpreterConfig(
       {this.lineInfo = true,
       this.stackTrace = true,
       this.hetuStackTraceThreshhold = 10,
       this.approach = ErrorHanldeApproach.exception,
-      this.reload = false,
-      this.doStaticAnalyze = true});
+      this.hotreload = false});
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.
@@ -133,7 +130,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   T? evalSource(HTSource source,
       {String? libraryName,
-      bool importModule = false,
+      bool import = false,
       SourceType type = SourceType.module,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -155,7 +152,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
     final result = evalSource(source,
         // when eval string, use current namespace by default
-        importModule: importModule,
+        import: importModule,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
@@ -167,8 +164,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   /// 解析文件
   T? evalFile(String key,
-      {bool useLastModuleFullName = false,
-      String? moduleFullName,
+      {bool useCurModulePath = false,
       String? libraryName,
       bool importModule = false,
       SourceType type = SourceType.module,
@@ -179,13 +175,13 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool errorHandled = false}) {
     try {
       final module = sourceProvider.getSource(key,
-          from: useLastModuleFullName
+          from: useCurModulePath
               ? curModuleFullName
               : sourceProvider.defaultDirectory,
           type: type);
 
       final result = evalSource(module,
-          importModule: importModule,
+          import: importModule,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,

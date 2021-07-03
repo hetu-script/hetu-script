@@ -76,7 +76,9 @@ abstract class HTAbstractParser {
       final err = HTError.unexpected(tokenType, curTok.lexeme,
           moduleFullName: curModuleFullName,
           line: curTok.line,
-          column: curTok.column);
+          column: curTok.column,
+          offset: curTok.offset,
+          length: curTok.length);
       errorHandler.handleError(err);
     }
 

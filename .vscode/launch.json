@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "test/test_source_provider.dart",
+      "program": "test/test_compile.dart",
       "request": "launch",
       "type": "dart"
     }

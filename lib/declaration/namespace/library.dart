@@ -1,4 +1,4 @@
-import '../grammar/semantic.dart';
+import '../../grammar/semantic.dart';
 import 'namespace.dart';
 
 /// Library is the semantic entity of the compilation
@@ -11,9 +11,9 @@ class HTLibrary extends HTNamespace {
   final String id;
 
   @override
-  // to override the type of this filed in super type,
-  // must write the type on the left
-  final Map<String, HTNamespace> declarations = {};
+  final Map<String, HTNamespace> declarations;
 
-  HTLibrary(this.id) : super(id: id);
+  HTLibrary(this.id, {Map<String, HTNamespace>? declarations})
+      : declarations = declarations ?? <String, HTNamespace>{},
+        super(id: id);
 }

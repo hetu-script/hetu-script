@@ -2,6 +2,7 @@ import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../ast/ast_compilation.dart';
+import '../ast/ast_module.dart';
 import '../scanner/lexer.dart';
 import '../scanner/parser.dart';
 

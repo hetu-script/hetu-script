@@ -2,7 +2,7 @@ import 'package:quiver/core.dart';
 
 import '../grammar/lexicon.dart';
 import '../object/object.dart';
-import '../declaration/namespace.dart';
+import '../declaration/namespace/namespace.dart';
 
 abstract class HTType with HTObject {
   static const ANY = _PrimitiveType(HTLexicon.ANY);

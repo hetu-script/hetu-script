@@ -27,12 +27,7 @@ abstract class HTSourceProvider {
   String resolveFullName(String key, [String? from]);
 
   HTSource getSource(String key,
-      {bool isFullName = false,
-      String? from,
-      SourceType type = SourceType.module,
-      bool isLibrary = false,
-      //String? libraryName,
-      bool reload = true});
+      {String? from, SourceType type = SourceType.module, bool reload = true});
 
   void changeContent(String key, String content);
 
@@ -66,11 +61,11 @@ class DefaultSourceProvider implements HTSourceProvider {
 
   @override
   String resolveFullName(String key, [String? from]) {
-    late final String fullName;
+    String fullName;
     if ((from != null) && !from.startsWith(SemanticNames.anonymousScript)) {
       fullName = path.dirname(from);
     } else {
-      fullName = defaultDirectory;
+      fullName = path.dirname(defaultDirectory);
     }
     final result = _normalizeAbsolutePath(fullName, key);
     return result;
@@ -83,18 +78,13 @@ class DefaultSourceProvider implements HTSourceProvider {
   /// Otherwise, a absolute path is calculated from [defaultDirectory]
   @override
   HTSource getSource(String key,
-      {bool isFullName = false,
-      String? from,
-      SourceType type = SourceType.module,
-      bool isLibrary = false,
-      String? libraryName,
-      bool reload = true}) {
-    final fullName = isFullName ? key : resolveFullName(key, from);
+      {String? from, SourceType type = SourceType.module, bool reload = true}) {
+    final fullName = path.isAbsolute(key)
+        ? _normalizeAbsolutePath(key)
+        : resolveFullName(key, from);
     if (!_cachedSources.containsKey(fullName) || reload) {
       final content = File(fullName).readAsStringSync();
-      final source = HTSource(content,
-          fullName: fullName, type: type //, libraryName: libraryName
-          );
+      final source = HTSource(content, fullName: fullName, type: type);
       _cachedSources[fullName] = source;
       return source;
     } else {
@@ -161,7 +151,17 @@ class DefaultSourceProvider implements HTSourceProvider {
     return context;
   }
 
+  List<HTContext> getContexts(List<String> openedFiles,
+      {List<HTFilterConfig> excludedFilter = const []}) {
+    final contexts = <HTContext>[];
+
+    return contexts;
+  }
+
   String _normalizeAbsolutePath(String fullPath, [String? fileName]) {
+    if (!path.isAbsolute(fullPath)) {
+      fullPath = path.join(defaultDirectory, fullPath);
+    }
     if (fileName != null) {
       fullPath = path.join(fullPath, fileName);
     }

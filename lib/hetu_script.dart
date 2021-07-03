@@ -5,9 +5,9 @@
 library hetu_script;
 
 export 'declaration/declaration.dart';
-export 'declaration/module.dart';
-export 'declaration/library.dart';
-export 'declaration/namespace.dart';
+export 'declaration/namespace/module.dart';
+export 'declaration/namespace/library.dart';
+export 'declaration/namespace/namespace.dart';
 export 'declaration/type/abstract_type_declaration.dart';
 export 'declaration/class/class_declaration.dart';
 export 'declaration/function/function_declaration.dart';
@@ -31,6 +31,7 @@ export 'analyzer/analysis_result.dart';
 export 'analyzer/analysis_error.dart';
 export 'analyzer/diagnostic.dart';
 export 'interpreter/abstract_interpreter.dart' show InterpreterConfig;
+export 'interpreter/compiler.dart';
 export 'interpreter/interpreter.dart';
 export 'binding/auto_binding.dart';
 export 'binding/external_class.dart';

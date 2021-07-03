@@ -1,7 +1,7 @@
 import '../grammar/lexicon.dart';
 import '../error/error.dart';
 import '../declaration/class/class_declaration.dart';
-import '../declaration/namespace.dart';
+import '../declaration/namespace/namespace.dart';
 import '../ast/ast.dart' show TypeExpr;
 import '../declaration/type/abstract_type_declaration.dart';
 import '../declaration/type/type_alias_declaration.dart';

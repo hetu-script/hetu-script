@@ -10,7 +10,7 @@ import '../../object/instance/instance_namespace.dart';
 import '../../object/class/class.dart';
 import '../../object/instance/instance.dart';
 import '../variable/variable.dart';
-import '../../declaration/namespace.dart';
+import '../../declaration/namespace/namespace.dart';
 import 'parameter.dart';
 import '../../declaration/function/function_declaration.dart';
 import '../../type/generic_type_parameter.dart';

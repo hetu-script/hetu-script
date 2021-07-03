@@ -8,6 +8,7 @@ import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
+import '../ast/ast_module.dart';
 import '../ast/ast_compilation.dart';
 import '../error/error_handler.dart';
 import 'abstract_parser.dart';
@@ -87,9 +88,9 @@ class HTAstParser extends HTAbstractParser {
   /// Parse a string content and generate a library,
   /// will import other files.
   HTAstCompilation parseToCompilation(HTSource source, {String? libraryName}) {
-    final module = parseToModule(source);
+    final module = parseToModule(source, libraryName: libraryName);
     final compilation = HTAstCompilation(_curLibraryName);
-    compilation.sources[source.fullName] = source;
+    // compilation.sources[source.fullName] = source;
     for (final stmt in module.imports) {
       try {
         // final importFullName =
@@ -101,7 +102,7 @@ class HTAstParser extends HTAbstractParser {
         final compilation2 =
             parseToCompilation(source2, libraryName: _curLibraryName);
         _curModuleFullName = source.fullName;
-        compilation.join(compilation2);
+        compilation.addAll(compilation2);
       } catch (error, stackTrace) {
         var message = error.toString();
         if (error is ArgumentError) {
@@ -1708,27 +1709,30 @@ class HTAstParser extends HTAbstractParser {
     }
     String? id;
     late String internalName;
-    if (curTok.type == SemanticNames.identifier) {
-      id = advance(1).lexeme;
-    }
     switch (category) {
       case FunctionCategory.constructor:
         _hasUserDefinedConstructor = true;
+        if (curTok.type == SemanticNames.identifier) {
+          id = advance(1).lexeme;
+        }
         internalName = (id == null)
             ? SemanticNames.constructor
             : '${SemanticNames.constructor}$id';
         break;
-      case FunctionCategory.getter:
-        internalName = '${SemanticNames.getter}$id';
-        break;
-      case FunctionCategory.setter:
-        internalName = '${SemanticNames.setter}$id';
-        break;
       case FunctionCategory.literal:
         internalName = SemanticNames.anonymousFunction;
         break;
+      case FunctionCategory.getter:
+        id = match(SemanticNames.identifier).lexeme;
+        internalName = '${SemanticNames.getter}$id';
+        break;
+      case FunctionCategory.setter:
+        id = match(SemanticNames.identifier).lexeme;
+        internalName = '${SemanticNames.setter}$id';
+        break;
       default:
-        internalName = id!;
+        id = match(SemanticNames.identifier).lexeme;
+        internalName = id;
     }
     final genericParameters = _getGenericParams();
     var isFuncVariadic = false;
