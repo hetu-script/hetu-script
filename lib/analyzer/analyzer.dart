@@ -1,5 +1,8 @@
+import 'package:hetu_script/analyzer/analysis_context.dart';
+import 'package:hetu_script/grammar/semantic.dart';
+
 import '../source/source.dart';
-import '../source/source_provider.dart';
+import '../context/context_manager.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
 import '../type/generic_type_parameter.dart';
@@ -8,12 +11,13 @@ import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
-import '../scanner/parser.dart';
+import '../parser/parser.dart';
 import '../declaration/class/class_declaration.dart';
 import '../declaration/declaration.dart';
 import '../declaration/function/function_declaration.dart';
 import '../declaration/function/parameter_declaration.dart';
 import '../declaration/variable/variable_declaration.dart';
+import '../parser/parse_result_collection.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
 import 'type_checker.dart';
@@ -29,13 +33,14 @@ class AnalyzerConfig extends InterpreterConfig {
 
 class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     implements AbstractAstVisitor<void> {
-  AnalyzerConfig _curConfig;
+  @override
+  final stackTrace = const <String>[];
 
   @override
-  ErrorHandlerConfig get errorConfig => _curConfig;
+  AnalyzerConfig config;
 
   @override
-  AnalyzerConfig get config => _curConfig;
+  ErrorHandlerConfig get errorConfig => config;
 
   String? _curSymbol;
   String? get curSymbol => _curSymbol;
@@ -48,22 +53,26 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   int get curColumn => _curColumn;
 
+  @override
+  final HTNamespace global;
+
   late HTNamespace _curNamespace;
   @override
   HTNamespace get curNamespace => _curNamespace;
 
-  late HTModuleAnalysisResult _curSource;
+  late HTSource _curSource;
   @override
   String get curModuleFullName => _curSource.fullName;
 
-  late HTLibraryAnalysisResult _curLibrary;
-  @override
-  HTLibraryAnalysisResult get curLibrary => _curLibrary;
+  SourceType? _curSourceType;
 
-  final _cachedLibs = <String, HTLibraryAnalysisResult>{};
+  @override
+  SourceType get curSourceType => _curSourceType ?? _curSource.type;
 
   HTClassDeclaration? _curClass;
   HTFunctionDeclaration? _curFunction;
+
+  late HTParseResultCompilation curCompilation;
 
   late List<HTAnalysisError> _curErrors;
 
@@ -71,11 +80,20 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   late HTTypeChecker _curTypeChecker;
 
+  @override
+  final HTContextManager contextManager;
+
+  final HTParseContext parseContext;
+
+  final HTAnalysisContext analysisContext = HTAnalysisContext();
+
   HTAnalyzer(
-      {HTSourceProvider? sourceProvider,
-      AnalyzerConfig config = const AnalyzerConfig()})
-      : _curConfig = config,
-        super(config: config, sourceProvider: sourceProvider) {
+      {HTContextManager? contextManager,
+      HTParseContext? parseContext,
+      this.config = const AnalyzerConfig()})
+      : global = HTNamespace(id: SemanticNames.global),
+        contextManager = contextManager ?? HTContextManagerImpl(),
+        parseContext = parseContext ?? HTParseContext() {
     _curNamespace = global;
   }
 
@@ -96,17 +114,11 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     errors.add(analysisError);
   }
 
-  void reset() {
-    errors.clear();
-  }
-
-  void closeSource(String fullName) {}
-
   @override
   HTModuleAnalysisResult? evalSource(HTSource source,
       {String? libraryName,
       bool globallyImport = false,
-      SourceType type = SourceType.module, // ignored in analyzer
+      SourceType? type, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
       Map<String, dynamic> namedArgs = const {}, // ignored in analyzer
@@ -116,39 +128,34 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     if (source.content.isEmpty) {
       return null;
     }
+    _curSource = source;
     _curErrors = <HTAnalysisError>[];
-    final parser =
-        HTAstParser(errorHandler: this, sourceProvider: sourceProvider);
-    final compilation =
+    final parser = HTParser(
+        errorHandler: this,
+        contextManager: contextManager,
+        context: parseContext);
+    curCompilation =
         parser.parseToCompilation(source, libraryName: libraryName);
-    final modules = <String, HTModuleAnalysisResult>{};
     final declarations = <String, HTNamespace>{};
-    for (final module in compilation.modules.values) {
-      _curSource = HTModuleAnalysisResult(
-          module.source.content, this, _curErrors,
-          fullName: module.source.fullName);
-      modules[module.source.fullName] = _curSource;
-      if (module.type == SourceType.module) {
-        _curNamespace = HTNamespace(id: module.fullName, closure: global);
-      } else {
-        _curNamespace = global;
+    for (final module in curCompilation.modules.values) {
+      if (analysisContext.modules.containsKey(module.fullName)) {
+        continue;
       }
+      final moduleAnalysisResult =
+          HTModuleAnalysisResult(module.fullName, this, _curErrors);
+      analysisContext.modules[module.fullName] = moduleAnalysisResult;
+      _curNamespace = HTNamespace(id: module.fullName, closure: global);
       declarations[module.fullName] = _curNamespace;
-    }
-    _curLibrary = HTLibraryAnalysisResult(compilation, modules,
-        declarations: declarations);
-    for (final module in compilation.modules.values) {
       for (final node in module.nodes) {
         analyzeAst(node);
       }
+      for (final decl in _curNamespace.declarations.values) {
+        analyzeDeclaration(decl);
+      }
     }
-    _curTypeChecker = HTTypeChecker(_curLibrary);
-    for (final decl in _curLibrary.declarations.values) {
-      analyzeDeclaration(decl);
-    }
-    _cachedLibs[_curLibrary.id] = _curLibrary;
-    final result = _curLibrary.modules[source.fullName]!;
-    return result;
+    analysisContext.declarations.addAll(declarations);
+    final moduleAnalysisResult = analysisContext.modules[source.fullName]!;
+    return moduleAnalysisResult;
   }
 
   void analyzeDeclaration(HTDeclaration decl) {}

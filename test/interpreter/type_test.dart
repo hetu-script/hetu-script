@@ -89,7 +89,7 @@ void main() {
       final result = hetu.eval('''
         fun typeAlias2 {
           type MyFuncType = fun (num, num) -> num
-          var func: MyFuncType = fun add(a: num, b: num) -> num = a + b
+          var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
           return func(6, 7)
         }
       ''', invokeFunc: 'typeAlias2');

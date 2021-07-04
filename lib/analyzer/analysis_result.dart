@@ -1,29 +1,26 @@
-import '../source/source.dart';
+import 'package:hetu_script/declaration/namespace/module.dart';
+
 import '../declaration/namespace/library.dart';
-import '../declaration/namespace/namespace.dart';
-import '../ast/ast_compilation.dart';
+import '../parser/parse_result_collection.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
-class HTModuleAnalysisResult extends HTSource {
-  @override
-  String toString() => '${errors.length} errors';
+class HTModuleAnalysisResult {
+  final String fullName;
 
   final HTAnalyzer analyzer;
 
   final List<HTAnalysisError> errors;
 
-  HTModuleAnalysisResult(String content, this.analyzer, this.errors,
-      {String? fullName})
-      : super(content, fullName: fullName);
+  HTModuleAnalysisResult(this.fullName, this.analyzer, this.errors);
 }
 
 class HTLibraryAnalysisResult extends HTLibrary {
-  final HTAstCompilation compilation;
+  final HTParseContext compilation;
 
   final Map<String, HTModuleAnalysisResult> modules;
 
-  HTLibraryAnalysisResult(this.compilation, this.modules,
-      {Map<String, HTNamespace>? declarations})
-      : super(compilation.libraryName, declarations: declarations);
+  HTLibraryAnalysisResult(String libraryName, this.compilation, this.modules,
+      {Map<String, HTModule>? declarations})
+      : super(libraryName, declarations: declarations);
 }

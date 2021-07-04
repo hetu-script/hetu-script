@@ -1,9 +1,9 @@
 // import '../source/source.dart';
-import '../source/source_provider.dart';
+import '../context/context_manager.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/semantic.dart';
-import '../grammar/token.dart';
+import '../lexer/token.dart';
 
 abstract class ParserConfig {}
 
@@ -11,32 +11,25 @@ class ParserConfigImpl implements ParserConfig {}
 
 /// Abstract interface for handling a token list.
 abstract class HTAbstractParser {
-  // ParserConfig config;
+  /// The module current processing, used in error message.
+  String? get curModuleFullName;
+
+  String? get curLibraryName;
+
+  HTErrorHandler get errorHandler;
+
+  HTContextManager get contextManager;
 
   int _curLine = 0;
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
 
-  /// The module current processing, used in error message.
-  String? get curModuleFullName;
-
-  String? get curLibraryName;
-
   var tokPos = 0;
 
   late Token endOfFile;
 
   final List<Token> _tokens = [];
-
-  final HTErrorHandler errorHandler;
-
-  final HTSourceProvider sourceProvider;
-
-  HTAbstractParser(
-      {HTErrorHandler? errorHandler, HTSourceProvider? sourceProvider})
-      : errorHandler = errorHandler ?? DefaultErrorHandler(),
-        sourceProvider = sourceProvider ?? DefaultSourceProvider();
 
   void setTokens(List<Token> tokens) {
     tokPos = 0;

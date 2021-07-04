@@ -2,7 +2,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:meta/meta.dart';
 
 import '../source/source.dart';
-import '../source/source_provider.dart';
+import '../context/context_manager.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../binding/external_instance.dart';
@@ -11,12 +11,10 @@ import '../buildin/buildin_function.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
-import '../grammar/semantic.dart';
 import '../type/type.dart';
 import '../object/function/function.dart';
 import '../declaration/namespace/namespace.dart';
-import '../declaration/namespace/library.dart';
-import '../scanner/abstract_parser.dart';
+import '../parser/abstract_parser.dart';
 import '../buildin/hetu_lib.dart';
 import '../object/object.dart';
 import 'compiler.dart';
@@ -54,11 +52,11 @@ class InterpreterConfig
 abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   static final version = Version(0, 1, 0);
 
-  final stackTrace = <String>[];
+  List<String> get stackTrace;
 
-  InterpreterConfig config;
+  InterpreterConfig get config;
 
-  late SourceType sourceType;
+  SourceType get curSourceType;
 
   /// Current line number of execution.
   int get curLine;
@@ -70,16 +68,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   String get curModuleFullName;
 
-  HTLibrary get curLibrary;
+  HTContextManager get contextManager;
 
-  HTSourceProvider sourceProvider;
-
-  final HTNamespace global = HTNamespace(id: SemanticNames.global);
-
-  HTAbstractInterpreter(
-      {this.config = const InterpreterConfig(),
-      HTSourceProvider? sourceProvider})
-      : sourceProvider = sourceProvider ?? DefaultSourceProvider();
+  HTNamespace get global;
 
   @mustCallSuper
   void init(
@@ -133,7 +124,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   T? evalSource(HTSource source,
       {String? libraryName,
       bool globallyImport = false,
-      SourceType type = SourceType.module,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -177,7 +167,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
-      final source = sourceProvider.getSource(key, type: type);
+      final source = contextManager.getSource(key, type: type);
 
       final result = evalSource(source,
           globallyImport: globallyImport,

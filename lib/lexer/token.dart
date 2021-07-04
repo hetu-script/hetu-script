@@ -1,4 +1,4 @@
-import 'semantic.dart';
+import '../grammar/semantic.dart';
 
 class Token {
   final String lexeme;

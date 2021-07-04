@@ -1,3 +1,5 @@
+import 'package:hetu_script/declaration/namespace/module.dart';
+
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
@@ -28,8 +30,6 @@ class HTNamespace extends HTDeclaration with HTObject {
 
   final declarations = <String, HTDeclaration>{};
 
-  final bool isLibraryEntry;
-
   final imports = <String, ImportDeclaration>{};
 
   HTNamespace(
@@ -38,8 +38,7 @@ class HTNamespace extends HTDeclaration with HTObject {
       HTNamespace? closure,
       HTSource? source,
       bool isTopLevel = false,
-      bool isExported = false,
-      this.isLibraryEntry = false})
+      bool isExported = false})
       : super(
             id: id,
             classId: classId,
@@ -118,7 +117,7 @@ class HTNamespace extends HTDeclaration with HTObject {
   }
 
   void import(HTNamespace other, {bool clone = false}) {
-    if (other.isLibraryEntry) {
+    if ((other is HTModule) && other.isLibraryEntry) {
       for (final key in other.declarations.keys) {
         var decl = other.declarations[key]!;
         if (decl.isExported) {

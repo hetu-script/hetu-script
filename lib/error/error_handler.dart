@@ -47,13 +47,13 @@ abstract class HTErrorHandler {
 }
 
 /// Default error handler implementation
-class DefaultErrorHandler implements HTErrorHandler {
+class HTErrorHandlerImpl implements HTErrorHandler {
   @override
   final ErrorHandlerConfig errorConfig;
 
   List errors = [];
 
-  DefaultErrorHandler({ErrorHandlerConfig? config})
+  HTErrorHandlerImpl({ErrorHandlerConfig? config})
       : errorConfig = config ?? ErrorHandlerConfig();
 
   @override

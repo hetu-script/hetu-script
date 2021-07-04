@@ -3,16 +3,14 @@ import 'dart:convert';
 
 import 'package:hetu_script/hetu_script.dart';
 
-import '../source/source_provider.dart';
+import '../context/context_manager.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
-import '../ast/ast_compilation.dart';
-import 'const_table.dart';
-// import '../declaration/class/class_declaration.dart';
-// import '../declaration/function/function_declaration.dart';
+import '../parser/parse_result_collection.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import 'opcode.dart';
+import 'const_table.dart';
 
 // void main() {
 //   var bytes = utf8.encode("foobar"); // data being hashed
@@ -77,7 +75,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   static const hetuVersionData = [0, 1, 0, 0];
 
   HTErrorHandler errorHandler;
-  HTSourceProvider sourceProvider;
+  HTContextManager contextManager;
   CompilerConfig config;
 
   final _curConstTable = ConstTable();
@@ -87,11 +85,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   int get curLine => _curLine;
   int get curColumn => _curColumn;
 
-  late String _curModuleFullName;
-  String get curModuleFullName => _curModuleFullName;
-
-  late String _curLibraryName;
-  String get curLibraryName => _curLibraryName;
+  // late String _curLibraryName;
+  // String get curLibraryName => _curLibraryName;
 
   // HTClassDeclaration? _curClass;
   // HTFunctionDeclaration? _curFunc;
@@ -101,13 +96,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   HTCompiler(
       {CompilerConfig? config,
       HTErrorHandler? errorHandler,
-      HTSourceProvider? sourceProvider})
+      HTContextManager? contextManager})
       : config = config ?? const CompilerConfigImpl(),
-        errorHandler = errorHandler ?? DefaultErrorHandler(),
-        sourceProvider = sourceProvider ?? DefaultSourceProvider();
+        errorHandler = errorHandler ?? HTErrorHandlerImpl(),
+        contextManager = contextManager ?? HTContextManagerImpl();
 
-  Uint8List compile(HTAstCompilation compilation, {String? libraryName}) {
-    _curLibraryName = libraryName ?? compilation.libraryName;
+  Uint8List compile(HTParseResultCompilation compilation) {
+    // _curLibraryName = libraryName;
     final mainBytesBuilder = BytesBuilder();
     // hetu bytecode signature
     mainBytesBuilder.addByte(HTOpCode.signature);
@@ -117,12 +112,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     mainBytesBuilder.add(hetuVersionData);
     final bytesBuilder = BytesBuilder();
     for (final module in compilation.modules.values) {
-      _curModuleFullName = module.fullName;
       if (module.type == SourceType.module) {
         bytesBuilder.addByte(HTOpCode.module);
         final idBytes = module.isLibraryEntry
-            ? _shortUtf8String(module.libraryName)
-            : _shortUtf8String(_curModuleFullName);
+            ? _shortUtf8String(module.libraryName!)
+            : _shortUtf8String(module.fullName);
         bytesBuilder.add(idBytes);
         bytesBuilder.addByte(module.isLibraryEntry ? 1 : 0);
       }

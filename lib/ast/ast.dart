@@ -1,4 +1,4 @@
-import '../grammar/token.dart';
+import '../lexer/token.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';

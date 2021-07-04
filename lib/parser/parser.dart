@@ -1,21 +1,23 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 import '../grammar/lexicon.dart';
-import '../grammar/token.dart';
+import '../lexer/token.dart';
 import '../grammar/semantic.dart';
-import '../source/source_provider.dart';
+import '../context/context_manager.dart';
 import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
-import '../ast/ast_module.dart';
-import '../ast/ast_compilation.dart';
+import 'parse_result.dart';
+import 'parse_result_collection.dart';
 import '../error/error_handler.dart';
 import 'abstract_parser.dart';
-import 'lexer.dart';
+import '../lexer/lexer.dart';
 
 /// Scans a token list and generates a abstract syntax tree.
-class HTAstParser extends HTAbstractParser {
+class HTParser extends HTAbstractParser {
   final _curModuleImports = <ImportDecl>[];
 
   String? _curModuleFullName;
@@ -38,8 +40,21 @@ class HTAstParser extends HTAbstractParser {
 
   HTSource? _curSource;
 
-  HTAstParser({HTErrorHandler? errorHandler, HTSourceProvider? sourceProvider})
-      : super(errorHandler: errorHandler, sourceProvider: sourceProvider);
+  final HTParseContext context;
+
+  @override
+  final HTErrorHandler errorHandler;
+
+  @override
+  final HTContextManager contextManager;
+
+  HTParser(
+      {HTErrorHandler? errorHandler,
+      HTContextManager? contextManager,
+      HTParseContext? context})
+      : errorHandler = errorHandler ?? HTErrorHandlerImpl(),
+        contextManager = contextManager ?? HTContextManagerImpl(),
+        context = context ?? HTParseContext();
 
   /// Will use [type] when possible, then [source.type], then [SourceType.module]
   List<AstNode> parse(List<Token> tokens,
@@ -72,14 +87,15 @@ class HTAstParser extends HTAbstractParser {
     return nodes;
   }
 
-  HTAstModule parseToModule(HTSource source, {String? libraryName}) {
+  HTParseResult parseToModule(HTSource source, {String? libraryName}) {
     _curLibraryName = libraryName ?? source.fullName;
     _curModuleFullName = source.fullName;
     _curClass = null;
     _curFuncCategory = null;
     final nodes = parseString(source.content, source: source);
-    final module = HTAstModule(source, nodes, _curLibraryName,
+    final module = HTParseResult(source, nodes,
         isLibraryEntry: _isLibraryEntry,
+        libraryName: libraryName,
         imports: _curModuleImports.toList()); // copy the list);
     _curModuleImports.clear();
     return module;
@@ -87,38 +103,48 @@ class HTAstParser extends HTAbstractParser {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  HTAstCompilation parseToCompilation(HTSource source, {String? libraryName}) {
+  HTParseResultCompilation parseToCompilation(HTSource source,
+      {String? libraryName}) {
     final module = parseToModule(source, libraryName: libraryName);
-    final compilation = HTAstCompilation(_curLibraryName);
-    // compilation.sources[source.fullName] = source;
-    for (final decl in module.imports) {
-      try {
-        // final importFullName =
-        //     sourceProvider.resolveFullName(stmt.key, module.fullName);
-        final source2 = sourceProvider.getSource(
-          decl.key,
-          from: _curModuleFullName, //libraryName: _curLibraryName
-        );
-        decl.fullName = source2.fullName;
-        final compilation2 =
-            parseToCompilation(source2, libraryName: _curLibraryName);
-        _curModuleFullName = source.fullName;
-        compilation.addAll(compilation2);
-      } catch (error, stackTrace) {
-        var message = error.toString();
-        if (error is ArgumentError) {
-          message = error.message;
-        } else if (error is FileSystemException) {
-          message = error.message;
+    final results = <String, HTParseResult>{};
+
+    void handleImport(HTParseResult module) {
+      for (final decl in module.imports) {
+        try {
+          late final HTParseResult importModule;
+          final importFullName = contextManager.normalizeAbsolutePath(decl.key,
+              dirName: path.dirname(module.fullName));
+          decl.fullName = importFullName;
+          if (context.modules.containsKey(importFullName)) {
+            importModule = context.modules[importFullName]!;
+          } else {
+            final source2 = contextManager.getSource(importFullName);
+            importModule = parseToModule(source2, libraryName: _curLibraryName);
+            context.modules[importFullName] = importModule;
+          }
+          results[importFullName] = importModule;
+          handleImport(importModule);
+        } catch (error, stackTrace) {
+          var message = error.toString();
+          if (error is ArgumentError) {
+            message = error.message;
+          } else if (error is FileSystemException) {
+            message = error.message;
+          }
+          final hetuError = HTError.souceProviderError(decl.key, message,
+              moduleFullName: source.fullName,
+              line: decl.line,
+              column: decl.column,
+              offset: decl.offset,
+              length: decl.length);
+          errorHandler.handleError(hetuError, externalStackTrace: stackTrace);
         }
-        final hetuError = HTError.souceProviderError(decl.key, message,
-            moduleFullName: source.fullName,
-            line: decl.line,
-            column: decl.column);
-        errorHandler.handleError(hetuError, externalStackTrace: stackTrace);
       }
     }
-    compilation.add(module);
+
+    handleImport(module);
+    results[module.fullName] = module;
+    final compilation = HTParseResultCompilation(results);
     return compilation;
   }
 
@@ -911,8 +937,8 @@ class HTAstParser extends HTAbstractParser {
         final token = advance(1) as TokenStringInterpolation;
         final interpolation = <AstNode>[];
         for (final tokens in token.interpolations) {
-          final exprParser = HTAstParser(
-              errorHandler: errorHandler, sourceProvider: sourceProvider);
+          final exprParser = HTParser(
+              errorHandler: errorHandler, contextManager: contextManager);
           final nodes = exprParser.parse(tokens,
               source: _curSource, type: SourceType.expression);
           if (nodes.length != 1) {
@@ -1473,22 +1499,19 @@ class HTAstParser extends HTAbstractParser {
   }
 
   ImportDecl _parseImportDecl() {
+    // TODO: duplicate import and self import error.
     final keyword = advance(1);
     final showList = <String>[];
-    if (curTok.type != SemanticNames.stringLiteral) {
-      if (curTok.type == SemanticNames.identifier) {
-        final id = advance(1).lexeme;
+    if (curTok.type == HTLexicon.curlyLeft) {
+      advance(1);
+      do {
+        final id = match(SemanticNames.identifier).lexeme;
         showList.add(id);
-      } else if (curTok.type == HTLexicon.curlyLeft) {
-        advance(1);
-        do {
-          final id = match(SemanticNames.identifier).lexeme;
-          showList.add(id);
-        } while (expect([HTLexicon.comma], consume: true));
-        match(HTLexicon.curlyRight);
-      }
+      } while (expect([HTLexicon.comma], consume: true));
+      match(HTLexicon.curlyRight);
       // check lexeme here because expect() can only deal with token type
-      if (curTok.lexeme != HTLexicon.FROM) {
+      final fromKeyword = advance(1).lexeme;
+      if (fromKeyword != HTLexicon.FROM) {
         final err = HTError.unexpected(HTLexicon.FROM, curTok.lexeme,
             moduleFullName: _curModuleFullName,
             line: curTok.line,
@@ -1823,7 +1846,7 @@ class HTAstParser extends HTAbstractParser {
     AstNode? definition;
     if (curTok.type == HTLexicon.curlyLeft) {
       definition = _parseBlockStmt(id: SemanticNames.functionCall);
-    } else if (expect([HTLexicon.assign], consume: true)) {
+    } else if (expect([HTLexicon.doubleArrow], consume: true)) {
       definition = _parseExprStmt();
     } else {
       if (category != FunctionCategory.constructor &&

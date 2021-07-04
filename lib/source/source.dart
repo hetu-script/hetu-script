@@ -10,7 +10,7 @@ const hetuSouceFileExtension = '.ht';
 
 /// Code module types
 enum SourceType {
-  /// A bare expression.
+  /// An expression.
   expression,
 
   /// Module can only have declarations (variables, functions, classes, enums),

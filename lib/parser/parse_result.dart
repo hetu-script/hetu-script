@@ -1,6 +1,5 @@
-import '../source/source.dart';
-import '../error/error.dart';
-import 'ast.dart' show AstNode, ImportDecl;
+import '../../source/source.dart';
+import '../../ast/ast.dart' show AstNode, ImportDecl;
 
 /// Contains the resolved fullname of a import statement
 class ImportInfo {
@@ -17,14 +16,14 @@ class ImportInfo {
 }
 
 /// The parse result of a single file
-class HTAstModule {
+class HTParseResult {
   final HTSource source;
 
   String get fullName => source.fullName;
 
   SourceType get type => source.type;
 
-  final String libraryName;
+  final String? libraryName;
 
   final bool isLibraryEntry;
 
@@ -33,10 +32,6 @@ class HTAstModule {
 
   final List<ImportDecl> imports;
 
-  final List<HTError> errors;
-
-  HTAstModule(this.source, this.nodes, this.libraryName,
-      {this.isLibraryEntry = false,
-      this.imports = const [],
-      this.errors = const []});
+  HTParseResult(this.source, this.nodes,
+      {this.libraryName, this.isLibraryEntry = false, this.imports = const []});
 }

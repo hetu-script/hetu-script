@@ -4,8 +4,8 @@ import 'package:path/path.dart' as path;
 
 import '../grammar/semantic.dart';
 import '../error/error.dart';
+import '../source/source.dart';
 import 'context.dart';
-import 'source.dart';
 
 class HTFilterConfig {
   final String folder;
@@ -18,51 +18,58 @@ class HTFilterConfig {
       {this.extention = const [], this.recursive = true});
 }
 
-/// Abstract module import handler class
-abstract class HTSourceProvider {
-  String get root;
+abstract class HTContextManager {
+  /// Absolute path used when no relative path exists
+  HTContext get current;
 
   bool hasSource(String path);
 
   String normalizeAbsolutePath(String key, {String? fileName, String? dirName});
 
+  /// Import a script module with a certain [key], ignore those already imported
+  ///
+  /// If [from] is provided, the handler will try to get a relative path
+  ///
+  /// Otherwise, a absolute path is calculated from [current]
   HTSource getSource(String key,
       {String? from,
       SourceType type = SourceType.module,
-      bool isLibraryEntry = true,
-      bool reload = true});
+      bool isLibraryEntry = false,
+      bool reload = false});
 
   void changeContent(String key, String content);
 
+  /// Compute context from a given root path,
+  /// or get the current root context if none path is given.
   HTContext getContext(String root,
       {List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const []});
+
+  /// Compute all contexts from opened file list.
+  Set<String> computeRoots(List<String> openedFiles,
+      {List<HTFilterConfig> excludedFilter = const []});
 }
 
-/// A [HTSourceProvider] implementation handling file system
-class DefaultSourceProvider implements HTSourceProvider {
-  /// Absolute path used when no relative path exists
+/// A class handling file system
+class HTContextManagerImpl implements HTContextManager {
   @override
-  late final String root;
+  late final HTContext current;
 
   /// Sources will only load once
   final _cachedSources = <String, HTSource>{};
 
-  /// Create a [DefaultSourceProvider] with a certain [root],
+  /// Create a [HTContextManagerImpl] with a certain [current],
   /// which is used to determin a module's absolute path
   /// when no relative path exists
-  DefaultSourceProvider({String? defaultPath}) {
-    final dir = defaultPath != null
-        ? Directory(defaultPath).absolute.path
-        : Directory.current.absolute.path;
-
-    root = normalizeAbsolutePath(dir, fileName: 'script');
+  HTContextManagerImpl({String? defaultPath}) {
+    final dir = defaultPath != null ? path.absolute(defaultPath) : path.current;
+    final root = normalizeAbsolutePath(dir);
+    current = getContext(root);
   }
 
   @override
   bool hasSource(String key) => _cachedSources.containsKey(key);
 
-  /// Turn a uri into a unique absolute path
   @override
   String normalizeAbsolutePath(String key,
       {String? fileName, String? dirName}) {
@@ -70,7 +77,7 @@ class DefaultSourceProvider implements HTSourceProvider {
       if (dirName != null && !dirName.startsWith(SemanticNames.anonymous)) {
         key = path.join(dirName, key);
       } else {
-        key = path.join(path.dirname(root), key);
+        key = path.join(current.root, key);
       }
     }
     if (fileName != null) {
@@ -84,19 +91,16 @@ class DefaultSourceProvider implements HTSourceProvider {
     }
   }
 
-  /// Import a script module with a certain [key], ignore those already imported
-  ///
-  /// If [from] is provided, the handler will try to get a relative path
-  ///
-  /// Otherwise, a absolute path is calculated from [root]
   @override
   HTSource getSource(String key,
       {String? from,
       SourceType type = SourceType.module,
-      bool isLibraryEntry = true,
-      bool reload = true}) {
-    final fullName = normalizeAbsolutePath(key,
-        dirName: from != null ? path.dirname(from) : null);
+      bool isLibraryEntry = false,
+      bool reload = false}) {
+    final fullName = path.isAbsolute(key)
+        ? key
+        : normalizeAbsolutePath(key,
+            dirName: from != null ? path.dirname(from) : null);
     if (!_cachedSources.containsKey(fullName) || reload) {
       final content = File(fullName).readAsStringSync();
       final source = HTSource(content,
@@ -120,11 +124,11 @@ class DefaultSourceProvider implements HTSourceProvider {
   }
 
   @override
-  HTContext getContext(String rootPath,
+  HTContext getContext(String root,
       {List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const []}) {
-    final rootDir = Directory(rootPath);
-    final normalizedRootPath = normalizeAbsolutePath(rootPath);
+    final rootDir = Directory(root);
+    final normalizedRootPath = normalizeAbsolutePath(root);
     final rootFilter = HTFilterConfig(normalizedRootPath);
     final includedFiles = <String>[];
     final entities = rootDir.listSync(recursive: true);
@@ -164,11 +168,25 @@ class DefaultSourceProvider implements HTSourceProvider {
     return context;
   }
 
-  List<HTContext> getContexts(List<String> openedFiles,
+  @override
+  Set<String> computeRoots(List<String> openedFiles,
       {List<HTFilterConfig> excludedFilter = const []}) {
-    final contexts = <HTContext>[];
-
-    return contexts;
+    final contextRoots = <String>{};
+    for (final fileName in openedFiles) {
+      final normalizedFileName = normalizeAbsolutePath(fileName);
+      final fileRoot = path.dirname(normalizedFileName);
+      contextRoots.add(fileRoot);
+    }
+    contextRoots.removeWhere((item) {
+      for (final rootPath in contextRoots) {
+        if (rootPath == item) continue;
+        if (path.isWithin(rootPath, item)) {
+          return true;
+        }
+      }
+      return false;
+    });
+    return contextRoots;
   }
 
   // [fullPath] must be a normalized absolute path

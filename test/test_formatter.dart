@@ -5,7 +5,7 @@ void main() {
     var i = 42
     var j = 'hi, your number is ${ '#' +     i.toString()   }.'
   ''');
-  final parser = HTAstParser();
+  final parser = HTParser();
   final module = parser.parseToModule(source);
   final formatter = HTFormatter();
   formatter.formatModule(module);

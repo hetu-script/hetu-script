@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:hetu_script/declaration/namespace/module.dart';
+
 import '../binding/external_function.dart';
 import '../declaration/namespace/namespace.dart';
 import '../declaration/declaration.dart';
@@ -10,8 +12,9 @@ import '../declaration/function/parameter_declaration.dart';
 import '../object/function/function.dart';
 import '../object/function/parameter.dart';
 import '../object/variable/variable.dart';
-// import '../scanner/abstract_parser.dart';
-// import '../scanner/parser.dart';
+import '../binding/external_class.dart';
+// import '../parser/abstract_parser.dart';
+// import '../parser/parser.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
 import '../type/function_type.dart';
@@ -19,7 +22,7 @@ import '../type/nominal_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
-import '../source/source_provider.dart';
+import '../context/context_manager.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
@@ -47,7 +50,16 @@ class Hetu extends HTAbstractInterpreter {
   static const verMinor = 1;
   static const verPatch = 0;
 
+  @override
+  final stackTrace = <String>[];
+
   final _cachedLibs = <String, HTBytecodeLibrary>{};
+
+  @override
+  InterpreterConfig config;
+
+  @override
+  HTContextManager contextManager;
 
   @override
   ErrorHandlerConfig get errorConfig => config;
@@ -60,6 +72,9 @@ class Hetu extends HTAbstractInterpreter {
   @override
   int get curColumn => _curColumn;
 
+  @override
+  final HTNamespace global;
+
   late HTNamespace _curNamespace;
   @override
   HTNamespace get curNamespace => _curNamespace;
@@ -68,8 +83,12 @@ class Hetu extends HTAbstractInterpreter {
   @override
   String get curModuleFullName => _curModuleFullName;
 
-  late HTBytecodeLibrary _curLibrary;
+  late SourceType _curSourceType;
+
   @override
+  SourceType get curSourceType => _curSourceType;
+
+  late HTBytecodeLibrary _curLibrary;
   HTBytecodeLibrary get curLibrary => _curLibrary;
 
   HTClass? _curClass;
@@ -112,13 +131,36 @@ class Hetu extends HTAbstractInterpreter {
   /// break 指令将会跳回最近的一个 loop 的出口
   final _loops = <_LoopInfo>[];
 
+  late final HTAnalyzer analyzer;
+
   /// Create a bytecode interpreter.
   /// Each interpreter has a independent global [HTNamespace].
   Hetu(
-      {HTSourceProvider? sourceProvider,
-      InterpreterConfig config = const InterpreterConfig()})
-      : super(config: config, sourceProvider: sourceProvider) {
+      {HTContextManager? contextManager,
+      this.config = const InterpreterConfig()})
+      : global = HTNamespace(id: SemanticNames.global),
+        contextManager = contextManager ?? HTContextManagerImpl() {
     _curNamespace = global;
+    analyzer = HTAnalyzer(contextManager: this.contextManager);
+  }
+
+  @override
+  void init(
+      {Map<String, String> preincludes = const {},
+      List<HTExternalClass> externalClasses = const [],
+      Map<String, Function> externalFunctions = const {},
+      Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
+          const {}}) {
+    analyzer.init(
+        preincludes: preincludes,
+        externalClasses: externalClasses,
+        externalFunctions: externalFunctions,
+        externalFunctionTypedef: externalFunctionTypedef);
+    super.init(
+        preincludes: preincludes,
+        externalClasses: externalClasses,
+        externalFunctions: externalFunctions,
+        externalFunctionTypedef: externalFunctionTypedef);
   }
 
   @override
@@ -155,7 +197,7 @@ class Hetu extends HTAbstractInterpreter {
     } else {
       var message = error.toString();
       final hetuError = HTError.extern(message,
-          moduleFullName: curModuleFullName, line: curLine, column: curColumn);
+          moduleFullName: _curModuleFullName, line: curLine, column: curColumn);
       hetuError.extra = stackTraceString;
       throw hetuError;
     }
@@ -179,10 +221,11 @@ class Hetu extends HTAbstractInterpreter {
     if (source.content.isEmpty) {
       return null;
     }
-    sourceType = type ?? source.type;
+    _curSourceType = type ?? source.type;
     _curModuleFullName = source.fullName;
     try {
-      final bytes = compileSource(source, type: sourceType, errorHandled: true);
+      final bytes =
+          compileSource(source, type: _curSourceType, errorHandled: true);
       if (bytes != null) {
         final result = loadBytecode(bytes, libraryName ?? source.fullName,
             globallyImport: globallyImport,
@@ -240,29 +283,35 @@ class Hetu extends HTAbstractInterpreter {
       bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
-    final source = sourceProvider.getSource(key, type: type);
+    final source = contextManager.getSource(key, type: type);
     final bytes = compileSource(source,
-        isLibraryEntry: isLibraryEntry, errorHandled: errorHandled);
+        libraryName: libraryName,
+        type: type,
+        isLibraryEntry: isLibraryEntry,
+        config: config,
+        errorHandled: errorHandled);
     return bytes;
   }
 
+  /// Compile a [HTSource] into bytecode for later use.
   Uint8List? compileSource(HTSource source,
       {String? libraryName,
-      SourceType type = SourceType.module,
+      SourceType? type,
       bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
     try {
-      final analyzer = HTAnalyzer(sourceProvider: sourceProvider);
-      analyzer.init();
-      analyzer.evalSource(source, libraryName: libraryName, type: type);
-      if (analyzer.errors.isNotEmpty) {
-        throw analyzer.errors.first;
+      final moduleAnalysisResult =
+          analyzer.evalSource(source, libraryName: libraryName, type: type);
+      if (moduleAnalysisResult != null &&
+          moduleAnalysisResult.errors.isNotEmpty) {
+        throw moduleAnalysisResult.errors.first;
       }
-      final compilation = analyzer.curLibrary.compilation;
+      final compilation = analyzer.curCompilation;
       final compiler = HTCompiler(
-          config: config, errorHandler: this, sourceProvider: sourceProvider);
-      final bytes = compiler.compile(compilation, libraryName: libraryName);
+          config: config, errorHandler: this, contextManager: contextManager);
+      final bytes =
+          compiler.compile(compilation); //, libraryName ?? source.fullName);
       return bytes;
     } catch (error) {
       if (errorHandled) {
@@ -289,14 +338,14 @@ class Hetu extends HTAbstractInterpreter {
         _curLibrary.define(nsp.id!, nsp);
       }
       _cachedLibs[_curLibrary.id] = _curLibrary;
-      if (sourceType == SourceType.script) {
+      if (curSourceType == SourceType.script) {
         for (final nsp in _curLibrary.declarations.values) {
           // scripts defines its member on global
           global.import(nsp);
         }
         // return the last expression's value
         return _registers.first;
-      } else if (sourceType == SourceType.module) {
+      } else if (curSourceType == SourceType.module) {
         // handles module imports
         for (final nsp in _curLibrary.declarations.values) {
           // final nsp = _curLibrary.declarations[module.fullName]!;
@@ -340,7 +389,7 @@ class Hetu extends HTAbstractInterpreter {
             decl.resolve();
           }
         }
-        if (sourceType == SourceType.module && invokeFunc != null) {
+        if (curSourceType == SourceType.module && invokeFunc != null) {
           final result = invoke(invokeFunc,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
@@ -475,8 +524,8 @@ class Hetu extends HTAbstractInterpreter {
           final id = _curLibrary.readShortUtf8String();
           final isLibraryEntry = _curLibrary.readBool();
           _curModuleFullName = id;
-          _curNamespace = HTNamespace(
-              id: id, closure: global, isLibraryEntry: isLibraryEntry);
+          _curNamespace =
+              HTModule(id, closure: global, isLibraryEntry: isLibraryEntry);
           break;
         case HTOpCode.lineInfo:
           _curLine = _curLibrary.readUint16();
@@ -1340,7 +1389,7 @@ class Hetu extends HTAbstractInterpreter {
         klass.namespace.define(SemanticNames.constructor, ctor);
       }
     }
-    if (sourceType == SourceType.script || _curFunction != null) {
+    if (curSourceType == SourceType.script || _curFunction != null) {
       klass.resolve();
     }
     _curClass = savedClass;

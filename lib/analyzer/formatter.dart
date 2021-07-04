@@ -1,10 +1,10 @@
 import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../ast/ast_compilation.dart';
-import '../ast/ast_module.dart';
-import '../scanner/lexer.dart';
-import '../scanner/parser.dart';
+import '../parser/parse_result_collection.dart';
+import '../parser/parse_result.dart';
+import '../lexer/lexer.dart';
+import '../parser/parser.dart';
 
 class FormatterConfig {
   final int pageWidth;
@@ -67,16 +67,16 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   String formatString(String content, {FormatterConfig? config}) {
     final tokens = HTLexer().lex(content);
-    final nodes = HTAstParser().parse(tokens);
+    final nodes = HTParser().parse(tokens);
     final result = format(nodes, config: config);
     return result;
   }
 
-  void formatModule(HTAstModule module, {FormatterConfig? config}) {
+  void formatModule(HTParseResult module, {FormatterConfig? config}) {
     module.source.content = format(module.nodes, config: config);
   }
 
-  void formatLibrary(HTAstCompilation bundle, {FormatterConfig? config}) {
+  void formatLibrary(HTParseContext bundle, {FormatterConfig? config}) {
     for (final module in bundle.modules.values) {
       module.source.content = format(module.nodes, config: config);
     }

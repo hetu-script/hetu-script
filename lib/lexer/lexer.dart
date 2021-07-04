@@ -1,6 +1,6 @@
 import '../grammar/lexicon.dart';
 // import '../error/error.dart';
-import '../grammar/token.dart';
+import 'token.dart';
 
 /// Scans a string content and generates a list of Tokens.
 class HTLexer {
