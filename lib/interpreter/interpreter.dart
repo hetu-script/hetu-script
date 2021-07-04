@@ -205,19 +205,17 @@ class Hetu extends HTAbstractInterpreter {
   /// Call a function within current [HTNamespace].
   @override
   dynamic invoke(String funcName,
-      {String? classId,
+      {String? libraryName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
-      HTFunction func;
-      if (classId != null) {
-        HTClass klass = _curNamespace.memberGet(classId);
-        func = klass.memberGet(funcName, recursive: false);
-      } else {
-        func = _curNamespace.memberGet(funcName);
+      if (libraryName != null) {
+        _curLibrary = _cachedLibs[libraryName]!;
+        _curNamespace = _curLibrary.declarations[libraryName]!;
       }
+      final func = _curNamespace.memberGet(funcName, recursive: false);
       if (func is HTFunction) {
         return func.call(
             positionalArgs: positionalArgs,

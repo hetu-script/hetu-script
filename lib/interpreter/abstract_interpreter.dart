@@ -199,7 +199,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   /// 调用一个全局函数或者类、对象上的函数
   dynamic invoke(String funcName,
-      {String? classId,
+      {String? libraryName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
