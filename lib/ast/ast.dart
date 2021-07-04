@@ -670,52 +670,6 @@ class CallExpr extends AstNode {
             length: length);
 }
 
-class LibraryStmt extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitLibraryStmt(this);
-
-  final String id;
-
-  const LibraryStmt(this.id,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.libraryStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class ImportStmt extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitImportStmt(this);
-
-  final String key;
-
-  final String? alias;
-
-  final List<String> showList;
-
-  const ImportStmt(this.key,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0,
-      this.alias,
-      this.showList = const []})
-      : super(SemanticNames.importStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
 class ExprStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitExprStmt(this);
@@ -857,7 +811,7 @@ class ForStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitForStmt(this);
 
-  final VarDeclStmt? declaration;
+  final VarDecl? declaration;
 
   final AstNode? condition;
 
@@ -886,7 +840,7 @@ class ForInStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitForInStmt(this);
 
-  final VarDeclStmt declaration;
+  final VarDecl declaration;
 
   final AstNode collection;
 
@@ -973,7 +927,80 @@ class ContinueStmt extends AstNode {
             length: length);
 }
 
-class TypeAliasDeclStmt extends AstNode {
+class LibraryDecl extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitLibraryDeclStmt(this);
+
+  final String id;
+
+  const LibraryDecl(this.id,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.libraryStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class ImportDecl extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitImportDeclStmt(this);
+
+  final String key;
+
+  final String? alias;
+
+  final List<String> showList;
+
+  String? fullName;
+
+  ImportDecl(this.key,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0,
+      this.alias,
+      this.showList = const []})
+      : super(SemanticNames.importStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class NamespaceDecl extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitNamespaceDeclStmt(this);
+
+  final String id;
+
+  final BlockStmt definition;
+
+  const NamespaceDecl(this.id, this.definition,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.namespaceDeclaration,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class TypeAliasDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitTypeAliasDeclStmt(this);
@@ -994,7 +1021,7 @@ class TypeAliasDeclStmt extends AstNode {
 
   final bool isTopLevel;
 
-  const TypeAliasDeclStmt(this.id, this.value,
+  const TypeAliasDecl(this.id, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1012,7 +1039,7 @@ class TypeAliasDeclStmt extends AstNode {
             length: length);
 }
 
-class VarDeclStmt extends AstNode {
+class VarDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitVarDeclStmt(this);
 
@@ -1044,7 +1071,7 @@ class VarDeclStmt extends AstNode {
 
   final bool lateInitialize;
 
-  const VarDeclStmt(this.id,
+  const VarDecl(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1069,7 +1096,7 @@ class VarDeclStmt extends AstNode {
             length: length);
 }
 
-class ParamDeclExpr extends VarDeclStmt {
+class ParamDecl extends VarDecl {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitParamDeclStmt(this);
@@ -1080,7 +1107,7 @@ class ParamDeclExpr extends VarDeclStmt {
 
   final bool isNamed;
 
-  const ParamDeclExpr(String id,
+  const ParamDecl(String id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1133,7 +1160,7 @@ class ReferConstructCallExpr extends AstNode {
             length: length);
 }
 
-class FuncDeclExpr extends AstNode {
+class FuncDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitFuncDeclStmt(this);
 
@@ -1153,7 +1180,7 @@ class FuncDeclExpr extends AstNode {
 
   final bool hasParamDecls;
 
-  final List<ParamDeclExpr> paramDecls;
+  final List<ParamDecl> paramDecls;
 
   final int minArity;
 
@@ -1183,7 +1210,7 @@ class FuncDeclExpr extends AstNode {
 
   bool get isLiteral => category == FunctionCategory.literal;
 
-  const FuncDeclExpr(this.internalName, this.paramDecls,
+  const FuncDecl(this.internalName, this.paramDecls,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1214,30 +1241,7 @@ class FuncDeclExpr extends AstNode {
             length: length);
 }
 
-class NamespaceDeclStmt extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitNamespaceDeclStmt(this);
-
-  final String id;
-
-  final BlockStmt definition;
-
-  const NamespaceDeclStmt(this.id, this.definition,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.namespaceDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class ClassDeclStmt extends AstNode {
+class ClassDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitClassDeclStmt(this);
@@ -1272,7 +1276,7 @@ class ClassDeclStmt extends AstNode {
 
   final BlockStmt definition;
 
-  const ClassDeclStmt(this.id, this.definition,
+  const ClassDecl(this.id, this.definition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1296,7 +1300,7 @@ class ClassDeclStmt extends AstNode {
             length: length);
 }
 
-class EnumDeclStmt extends AstNode {
+class EnumDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitEnumDeclStmt(this);
 
@@ -1316,7 +1320,7 @@ class EnumDeclStmt extends AstNode {
 
   final bool isTopLevel;
 
-  const EnumDeclStmt(
+  const EnumDecl(
     this.id,
     this.enumerations, {
     HTSource? source,

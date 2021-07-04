@@ -120,8 +120,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       _curModuleFullName = module.fullName;
       if (module.type == SourceType.module) {
         bytesBuilder.addByte(HTOpCode.module);
-        bytesBuilder.add(_shortUtf8String(_curModuleFullName));
-        bytesBuilder.addByte(module.isLibrary ? 1 : 0);
+        final idBytes = module.isLibraryEntry
+            ? _shortUtf8String(module.libraryName)
+            : _shortUtf8String(_curModuleFullName);
+        bytesBuilder.add(idBytes);
+        bytesBuilder.addByte(module.isLibraryEntry ? 1 : 0);
       }
       for (final node in module.nodes) {
         final bytes = visitAstNode(node);
@@ -953,16 +956,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitLibraryStmt(LibraryStmt stmt) {
-    return Uint8List(0);
-  }
-
-  @override
-  Uint8List visitImportStmt(ImportStmt stmt) {
-    return Uint8List(0);
-  }
-
-  @override
   Uint8List visitReturnStmt(ReturnStmt stmt) {
     final bytesBuilder = BytesBuilder();
     if (stmt.value != null) {
@@ -1049,7 +1042,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     _markedSymbolsList.add(newSymbolMap);
     if (stmt.declaration != null) {
       // TODO: 如果有多个变量同时声明?
-      final userDecl = stmt.declaration as VarDeclStmt;
+      final userDecl = stmt.declaration as VarDecl;
       final markedId = '${SemanticNames.internalMarker}${userDecl.id}';
       newSymbolMap[userDecl.id] = markedId;
       Uint8List? initializer;
@@ -1062,7 +1055,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.add(initDecl);
       // 这里是为了实现将变量声明移动到for循环语句块内部的效果
       final capturedInit = SymbolExpr(markedId);
-      capturedDecl = VarDeclStmt(userDecl.id, initializer: capturedInit);
+      capturedDecl = VarDecl(userDecl.id, initializer: capturedInit);
     }
     if (stmt.condition != null) {
       condition = visitAstNode(stmt.condition!);
@@ -1150,7 +1143,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         [SymbolExpr(increId)],
         const {});
     // declared the captured variable
-    final capturedDecl = VarDeclStmt(stmt.declaration.id,
+    final capturedDecl = VarDecl(stmt.declaration.id,
         initializer: capturedDeclInit, isMutable: stmt.declaration.isMutable);
     final incrementBytesBuilder = BytesBuilder();
     final preIncreExpr = _assembleLocalSymbol(increId);
@@ -1256,7 +1249,40 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitTypeAliasDeclStmt(TypeAliasDeclStmt stmt) {
+  Uint8List visitLibraryDeclStmt(LibraryDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    // TODO: namespace compilation
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitImportDeclStmt(ImportDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.importDecl);
+    // use the normalized absolute name here instead of the key
+    bytesBuilder.add(_shortUtf8String(stmt.fullName!));
+    if (stmt.alias != null) {
+      bytesBuilder.addByte(1); // bool: has alias id
+      bytesBuilder.add(_shortUtf8String(stmt.alias!));
+    } else {
+      bytesBuilder.addByte(0); // bool: has alias id
+    }
+    bytesBuilder.addByte(stmt.showList.length);
+    for (final id in stmt.showList) {
+      bytesBuilder.add(_shortUtf8String(id));
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitNamespaceDeclStmt(NamespaceDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    // TODO: namespace compilation
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitTypeAliasDeclStmt(TypeAliasDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.typeAliasDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1274,7 +1300,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitVarDeclStmt(VarDeclStmt stmt) {
+  Uint8List visitVarDeclStmt(VarDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1320,7 +1346,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitParamDeclStmt(ParamDeclExpr stmt) {
+  Uint8List visitParamDeclStmt(ParamDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_shortUtf8String(stmt.id));
     bytesBuilder.addByte(stmt.isOptional ? 1 : 0);
@@ -1369,7 +1395,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitFuncDeclStmt(FuncDeclExpr stmt) {
+  Uint8List visitFuncDeclStmt(FuncDecl stmt) {
     // final savedCurFunc = _curFunc;
     final bytesBuilder = BytesBuilder();
     // TODO: 泛型param
@@ -1450,14 +1476,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitNamespaceDeclStmt(NamespaceDeclStmt stmt) {
-    final bytesBuilder = BytesBuilder();
-    // TODO: namespace compilation
-    return bytesBuilder.toBytes();
-  }
-
-  @override
-  Uint8List visitClassDeclStmt(ClassDeclStmt stmt) {
+  Uint8List visitClassDeclStmt(ClassDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1497,7 +1516,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   //   static final values = [val1, val2, val3]
   // }
   @override
-  Uint8List visitEnumDeclStmt(EnumDeclStmt stmt) {
+  Uint8List visitEnumDeclStmt(EnumDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1508,14 +1527,14 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(0); // bool: has super class
 
     final valueId = '${HTLexicon.privatePrefix}${SemanticNames.name}';
-    final value = VarDeclStmt(valueId, classId: stmt.id);
+    final value = VarDecl(valueId, classId: stmt.id);
     final valueBytes = visitVarDeclStmt(value);
     bytesBuilder.add(valueBytes);
 
-    final ctorParam = ParamDeclExpr(SemanticNames.name);
+    final ctorParam = ParamDecl(SemanticNames.name);
     final ctorDef = BinaryExpr(
         SymbolExpr(valueId), HTLexicon.assign, SymbolExpr(SemanticNames.name));
-    final constructor = FuncDeclExpr(
+    final constructor = FuncDecl(
         '${SemanticNames.constructor}${HTLexicon.privatePrefix}', [ctorParam],
         id: HTLexicon.privatePrefix,
         classId: stmt.id,
@@ -1531,7 +1550,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         HTLexicon.singleQuotationLeft,
         HTLexicon.singleQuotationRight,
         [SymbolExpr(valueId)]);
-    final toStringFunc = FuncDeclExpr(SemanticNames.tostring, [],
+    final toStringFunc = FuncDecl(SemanticNames.tostring, [],
         id: SemanticNames.tostring,
         classId: stmt.id,
         returnType: TypeExpr(HTLexicon.str),
@@ -1552,7 +1571,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
                 HTLexicon.singleQuotationRight)
           ],
           const {});
-      final itemDecl = VarDeclStmt(item,
+      final itemDecl = VarDecl(item,
           classId: stmt.classId,
           initializer: itemInit,
           isStatic: true,
@@ -1562,7 +1581,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     }
 
     final valuesInit = ListExpr(itemList);
-    final valuesDecl = VarDeclStmt(HTLexicon.values,
+    final valuesDecl = VarDecl(HTLexicon.values,
         classId: stmt.classId,
         initializer: valuesInit,
         isStatic: true,

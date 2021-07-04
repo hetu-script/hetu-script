@@ -20,14 +20,17 @@ class HTFilterConfig {
 
 /// Abstract module import handler class
 abstract class HTSourceProvider {
-  String get defaultDirectory;
+  String get root;
 
   bool hasSource(String path);
 
-  String resolveFullName(String key, [String? from]);
+  String normalizeAbsolutePath(String key, {String? fileName, String? dirName});
 
   HTSource getSource(String key,
-      {String? from, SourceType type = SourceType.module, bool reload = true});
+      {String? from,
+      SourceType type = SourceType.module,
+      bool isLibraryEntry = true,
+      bool reload = true});
 
   void changeContent(String key, String content);
 
@@ -40,12 +43,12 @@ abstract class HTSourceProvider {
 class DefaultSourceProvider implements HTSourceProvider {
   /// Absolute path used when no relative path exists
   @override
-  late final String defaultDirectory;
+  late final String root;
 
   /// Sources will only load once
   final _cachedSources = <String, HTSource>{};
 
-  /// Create a [DefaultSourceProvider] with a certain [defaultDirectory],
+  /// Create a [DefaultSourceProvider] with a certain [root],
   /// which is used to determin a module's absolute path
   /// when no relative path exists
   DefaultSourceProvider({String? defaultPath}) {
@@ -53,38 +56,51 @@ class DefaultSourceProvider implements HTSourceProvider {
         ? Directory(defaultPath).absolute.path
         : Directory.current.absolute.path;
 
-    defaultDirectory = _normalizeAbsolutePath(dir, 'script');
+    root = normalizeAbsolutePath(dir, fileName: 'script');
   }
 
   @override
   bool hasSource(String key) => _cachedSources.containsKey(key);
 
+  /// Turn a uri into a unique absolute path
   @override
-  String resolveFullName(String key, [String? from]) {
-    String fullName;
-    if ((from != null) && !from.startsWith(SemanticNames.anonymousScript)) {
-      fullName = path.dirname(from);
-    } else {
-      fullName = path.dirname(defaultDirectory);
+  String normalizeAbsolutePath(String key,
+      {String? fileName, String? dirName}) {
+    if (!path.isAbsolute(key)) {
+      if (dirName != null && !dirName.startsWith(SemanticNames.anonymous)) {
+        key = path.join(dirName, key);
+      } else {
+        key = path.join(path.dirname(root), key);
+      }
     }
-    final result = _normalizeAbsolutePath(fullName, key);
-    return result;
+    if (fileName != null) {
+      key = path.join(key, fileName);
+    }
+    final normalized = Uri.file(key).normalizePath().path;
+    if (Platform.isWindows && normalized.startsWith('/')) {
+      return normalized.substring(1);
+    } else {
+      return normalized;
+    }
   }
 
   /// Import a script module with a certain [key], ignore those already imported
   ///
   /// If [from] is provided, the handler will try to get a relative path
   ///
-  /// Otherwise, a absolute path is calculated from [defaultDirectory]
+  /// Otherwise, a absolute path is calculated from [root]
   @override
   HTSource getSource(String key,
-      {String? from, SourceType type = SourceType.module, bool reload = true}) {
-    final fullName = path.isAbsolute(key)
-        ? _normalizeAbsolutePath(key)
-        : resolveFullName(key, from);
+      {String? from,
+      SourceType type = SourceType.module,
+      bool isLibraryEntry = true,
+      bool reload = true}) {
+    final fullName = normalizeAbsolutePath(key,
+        dirName: from != null ? path.dirname(from) : null);
     if (!_cachedSources.containsKey(fullName) || reload) {
       final content = File(fullName).readAsStringSync();
-      final source = HTSource(content, fullName: fullName, type: type);
+      final source = HTSource(content,
+          fullName: fullName, type: type, isLibraryEntry: isLibraryEntry);
       _cachedSources[fullName] = source;
       return source;
     } else {
@@ -104,20 +120,17 @@ class DefaultSourceProvider implements HTSourceProvider {
   }
 
   @override
-  HTContext getContext(String root,
+  HTContext getContext(String rootPath,
       {List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const []}) {
-    final rootDir = Directory(root);
-    final normalizedRootPath = _normalizeAbsolutePath(rootDir.path);
-    if (!path.isAbsolute(normalizedRootPath)) {
-      // TODO: path error
-    }
+    final rootDir = Directory(rootPath);
+    final normalizedRootPath = normalizeAbsolutePath(rootPath);
     final rootFilter = HTFilterConfig(normalizedRootPath);
     final includedFiles = <String>[];
     final entities = rootDir.listSync(recursive: true);
     for (final entity in entities) {
       if (entity is File) {
-        final fileFullName = _normalizeAbsolutePath(entity.path);
+        final fileFullName = normalizeAbsolutePath(entity.path);
         var isIncluded = false;
         if (includedFilter.isEmpty) {
           isIncluded =
@@ -158,21 +171,6 @@ class DefaultSourceProvider implements HTSourceProvider {
     return contexts;
   }
 
-  String _normalizeAbsolutePath(String fullPath, [String? fileName]) {
-    if (!path.isAbsolute(fullPath)) {
-      fullPath = path.join(defaultDirectory, fullPath);
-    }
-    if (fileName != null) {
-      fullPath = path.join(fullPath, fileName);
-    }
-    final normalized = Uri.file(fullPath).normalizePath().path;
-    if (Platform.isWindows && normalized.startsWith('/')) {
-      return normalized.substring(1);
-    } else {
-      return normalized;
-    }
-  }
-
   // [fullPath] must be a normalized absolute path
   bool _filterFile(
       String fullName, HTFilterConfig filter, String rootFullName) {
@@ -180,7 +178,7 @@ class DefaultSourceProvider implements HTSourceProvider {
     final filterFolder = path.isAbsolute(filter.folder)
         ? filter.folder
         : path.join(rootFullName, filter.folder);
-    final normalizedFilterFolder = _normalizeAbsolutePath(filterFolder);
+    final normalizedFilterFolder = normalizeAbsolutePath(filterFolder);
     if (fullName.startsWith(normalizedFilterFolder)) {
       if (filter.recursive) {
         return _checkExt(ext, filter.extention);

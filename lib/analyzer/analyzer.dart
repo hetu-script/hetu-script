@@ -105,7 +105,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   HTModuleAnalysisResult? evalSource(HTSource source,
       {String? libraryName,
-      bool import = false,
+      bool globallyImport = false,
       SourceType type = SourceType.module, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
@@ -231,10 +231,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitSubAssignExpr(SubAssignExpr expr) {}
 
   @override
-  void visitLibraryStmt(LibraryStmt stmt) {}
+  void visitLibraryDeclStmt(LibraryDecl stmt) {}
 
   @override
-  void visitImportStmt(ImportStmt stmt) {}
+  void visitImportDeclStmt(ImportDecl stmt) {}
 
   @override
   void visitExprStmt(ExprStmt stmt) {}
@@ -270,10 +270,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitContinueStmt(ContinueStmt stmt) {}
 
   @override
-  void visitTypeAliasDeclStmt(TypeAliasDeclStmt stmt) {}
+  void visitTypeAliasDeclStmt(TypeAliasDecl stmt) {}
 
   @override
-  void visitVarDeclStmt(VarDeclStmt stmt) {
+  void visitVarDeclStmt(VarDecl stmt) {
     final decl = HTVariableDeclaration(stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
@@ -288,13 +288,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitParamDeclStmt(ParamDeclExpr stmt) {}
+  void visitParamDeclStmt(ParamDecl stmt) {}
 
   @override
   void visitReferConstructCallExpr(ReferConstructCallExpr stmt) {}
 
   @override
-  void visitFuncDeclStmt(FuncDeclExpr stmt) {
+  void visitFuncDeclStmt(FuncDecl stmt) {
     final decl = HTFunctionDeclaration(stmt.internalName,
         id: stmt.id,
         classId: stmt.classId,
@@ -322,12 +322,12 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitNamespaceDeclStmt(NamespaceDeclStmt stmt) {
+  void visitNamespaceDeclStmt(NamespaceDecl stmt) {
     // TODO: namespace analysis
   }
 
   @override
-  void visitClassDeclStmt(ClassDeclStmt stmt) {
+  void visitClassDeclStmt(ClassDecl stmt) {
     final decl = HTClassDeclaration(
         id: stmt.id,
         classId: stmt.classId,
@@ -348,7 +348,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitEnumDeclStmt(EnumDeclStmt stmt) {
+  void visitEnumDeclStmt(EnumDecl stmt) {
     final decl = HTClassDeclaration(
         id: stmt.id,
         classId: stmt.classId,

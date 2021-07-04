@@ -1,6 +1,8 @@
 ## 0.1.4
 
 - Analyzer can check for syntactic errors now.
+- It's possible now to compile source into bytecode and at another time
+  load and run directly (skip parsing static check and compile process).
 
 ## 0.1.3
 

@@ -125,7 +125,7 @@ class Hetu extends HTAbstractInterpreter {
   void handleError(Object error, {Object? externalStackTrace}) {
     final sb = StringBuffer();
     if (stackTrace.isNotEmpty && errorConfig.stackTrace) {
-      sb.writeln('${SemanticNames.scriptStackTrace}${HTLexicon.colon}');
+      sb.writeln('${HTLexicon.scriptStackTrace}${HTLexicon.colon}');
       if (stackTrace.length > errorConfig.hetuStackTraceThreshhold * 2) {
         for (var i = stackTrace.length - 1;
             i >= stackTrace.length - 1 - errorConfig.hetuStackTraceThreshhold;
@@ -143,7 +143,7 @@ class Hetu extends HTAbstractInterpreter {
       }
     }
     if (externalStackTrace != null) {
-      sb.writeln('${SemanticNames.externalStackTrace}${HTLexicon.colon}');
+      sb.writeln('${HTLexicon.externalStackTrace}${HTLexicon.colon}');
       sb.writeln(externalStackTrace);
     }
     final stackTraceString = sb.toString().trimRight();
@@ -169,7 +169,7 @@ class Hetu extends HTAbstractInterpreter {
   @override
   dynamic evalSource(HTSource source,
       {String? libraryName,
-      bool import = false,
+      bool globallyImport = false,
       SourceType? type,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -182,90 +182,17 @@ class Hetu extends HTAbstractInterpreter {
     sourceType = type ?? source.type;
     _curModuleFullName = source.fullName;
     try {
-      final analyzer = HTAnalyzer(sourceProvider: sourceProvider);
-      analyzer.init();
-      analyzer.evalSource(source, type: sourceType, libraryName: libraryName);
-      if (analyzer.errors.isNotEmpty) {
-        throw analyzer.errors.first;
+      final bytes = compileSource(source, type: sourceType, errorHandled: true);
+      if (bytes != null) {
+        final result = loadBytecode(bytes, libraryName ?? source.fullName,
+            globallyImport: globallyImport,
+            invokeFunc: invokeFunc,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs,
+            errorHandled: true);
+        return result;
       }
-      final compilation = analyzer.curLibrary.compilation;
-      final compiler = HTCompiler(
-          config: config, errorHandler: this, sourceProvider: sourceProvider);
-      final bytes = compiler.compile(compilation, libraryName: libraryName);
-
-      _curLibrary = HTBytecodeLibrary(compilation.libraryName, bytes);
-      while (_curLibrary.ip < _curLibrary.bytes.length) {
-        final HTNamespace nsp = execute();
-        _curLibrary.define(nsp.id!, nsp);
-      }
-      _cachedLibs[_curLibrary.id] = _curLibrary;
-      var result;
-      if (sourceType == SourceType.script) {
-        for (final nsp in _curLibrary.declarations.values) {
-          // scripts defines its member on global
-          global.import(nsp);
-        }
-        // return the last expression's value
-        result = _registers.first;
-      } else if (sourceType == SourceType.module) {
-        // handles module imports
-        for (final module in compilation.modules.values) {
-          final nsp = _curLibrary.declarations[module.fullName]!;
-          for (final info in module.imports) {
-            final importFullName =
-                sourceProvider.resolveFullName(info.key, module.fullName);
-            final importNamespace = _curLibrary.declarations[importFullName]!;
-            if (info.alias == null) {
-              if (info.showList.isEmpty) {
-                nsp.import(importNamespace);
-              } else {
-                for (final id in info.showList) {
-                  HTDeclaration decl =
-                      importNamespace.memberGet(id, recursive: false);
-                  nsp.define(id, decl);
-                }
-              }
-            } else {
-              if (info.showList.isEmpty) {
-                final aliasNamespace =
-                    HTNamespace(id: info.alias!, closure: global);
-                aliasNamespace.import(importNamespace);
-                nsp.define(info.alias!, aliasNamespace);
-              } else {
-                final aliasNamespace =
-                    HTNamespace(id: info.alias!, closure: global);
-                for (final id in info.showList) {
-                  HTDeclaration decl =
-                      importNamespace.memberGet(id, recursive: false);
-                  aliasNamespace.define(id, decl);
-                }
-                nsp.define(info.alias!, aliasNamespace);
-              }
-            }
-          }
-        }
-        _curNamespace = _curLibrary.declarations[source.fullName]!;
-        if (import) {
-          global.import(_curNamespace);
-        }
-        for (final namespace in _curLibrary.declarations.values) {
-          for (final decl in namespace.declarations.values) {
-            decl.resolve();
-          }
-        }
-        if (sourceType == SourceType.module && invokeFunc != null) {
-          result = invoke(invokeFunc,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              errorHandled: true);
-        }
-      } else {
-        throw HTError.sourceType(
-            moduleFullName: _curModuleFullName,
-            line: _curLine,
-            column: _curColumn);
-      }
-      return result;
     } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
@@ -309,27 +236,129 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   /// Compile a script content into bytecode for later use.
-  Uint8List compile(String key, {String? libraryName, CompilerConfig? config}) {
-    final source = sourceProvider.getSource(key);
-    final analyzer = HTAnalyzer(sourceProvider: sourceProvider);
-    analyzer.init();
-    analyzer.evalSource(source, libraryName: libraryName);
-    if (analyzer.errors.isNotEmpty) {
-      throw analyzer.errors.first;
-    }
-    final compilation = analyzer.curLibrary.compilation;
-    final compiler = HTCompiler(
-        config: config, errorHandler: this, sourceProvider: sourceProvider);
-    final bytes = compiler.compile(compilation, libraryName: libraryName);
+  Uint8List? compileFile(String key,
+      {String? libraryName,
+      SourceType type = SourceType.module,
+      bool isLibraryEntry = true,
+      CompilerConfig? config,
+      bool errorHandled = false}) {
+    final source = sourceProvider.getSource(key, type: type);
+    final bytes = compileSource(source,
+        isLibraryEntry: isLibraryEntry, errorHandled: errorHandled);
     return bytes;
   }
 
+  Uint8List? compileSource(HTSource source,
+      {String? libraryName,
+      SourceType type = SourceType.module,
+      bool isLibraryEntry = true,
+      CompilerConfig? config,
+      bool errorHandled = false}) {
+    try {
+      final analyzer = HTAnalyzer(sourceProvider: sourceProvider);
+      analyzer.init();
+      analyzer.evalSource(source, libraryName: libraryName, type: type);
+      if (analyzer.errors.isNotEmpty) {
+        throw analyzer.errors.first;
+      }
+      final compilation = analyzer.curLibrary.compilation;
+      final compiler = HTCompiler(
+          config: config, errorHandler: this, sourceProvider: sourceProvider);
+      final bytes = compiler.compile(compilation, libraryName: libraryName);
+      return bytes;
+    } catch (error) {
+      if (errorHandled) {
+        rethrow;
+      } else {
+        handleError(error);
+      }
+    }
+  }
+
   /// Load a pre-compiled bytecode in to module library.
-  /// If [run] is true, then execute the bytecode immediately.
-  dynamic load(Uint8List code, String libraryName,
-      {bool import = true, bool run = false, int ip = 0}) {
-    _curLibrary = HTBytecodeLibrary(libraryName, code);
-    _cachedLibs[libraryName] = HTBytecodeLibrary(libraryName, code);
+  /// If [invokeFunc] is true, execute the bytecode immediately.
+  dynamic loadBytecode(Uint8List bytes, String libraryName,
+      {bool globallyImport = false,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const [],
+      bool errorHandled = false}) {
+    try {
+      _curLibrary = HTBytecodeLibrary(libraryName, bytes);
+      while (_curLibrary.ip < _curLibrary.bytes.length) {
+        final HTNamespace nsp = execute();
+        _curLibrary.define(nsp.id!, nsp);
+      }
+      _cachedLibs[_curLibrary.id] = _curLibrary;
+      if (sourceType == SourceType.script) {
+        for (final nsp in _curLibrary.declarations.values) {
+          // scripts defines its member on global
+          global.import(nsp);
+        }
+        // return the last expression's value
+        return _registers.first;
+      } else if (sourceType == SourceType.module) {
+        // handles module imports
+        for (final nsp in _curLibrary.declarations.values) {
+          // final nsp = _curLibrary.declarations[module.fullName]!;
+          for (final decl in nsp.imports.values) {
+            final importNamespace = _curLibrary.declarations[decl.fullName]!;
+            if (decl.alias == null) {
+              if (decl.showList.isEmpty) {
+                nsp.import(importNamespace);
+              } else {
+                for (final id in decl.showList) {
+                  HTDeclaration decl =
+                      importNamespace.memberGet(id, recursive: false);
+                  nsp.define(id, decl);
+                }
+              }
+            } else {
+              if (decl.showList.isEmpty) {
+                final aliasNamespace =
+                    HTNamespace(id: decl.alias!, closure: global);
+                aliasNamespace.import(importNamespace);
+                nsp.define(decl.alias!, aliasNamespace);
+              } else {
+                final aliasNamespace =
+                    HTNamespace(id: decl.alias!, closure: global);
+                for (final id in decl.showList) {
+                  HTDeclaration decl =
+                      importNamespace.memberGet(id, recursive: false);
+                  aliasNamespace.define(id, decl);
+                }
+                nsp.define(decl.alias!, aliasNamespace);
+              }
+            }
+          }
+        }
+        _curNamespace = _curLibrary.declarations[libraryName]!;
+        if (globallyImport) {
+          global.import(_curNamespace);
+        }
+        for (final namespace in _curLibrary.declarations.values) {
+          for (final decl in namespace.declarations.values) {
+            decl.resolve();
+          }
+        }
+        if (sourceType == SourceType.module && invokeFunc != null) {
+          final result = invoke(invokeFunc,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              errorHandled: true);
+          return result;
+        }
+      } else {
+        throw HTError.sourceType(moduleFullName: _curModuleFullName);
+      }
+    } catch (error) {
+      if (errorHandled) {
+        rethrow;
+      } else {
+        handleError(error);
+      }
+    }
   }
 
   /// Interpret a loaded library with the key of [libraryName]
@@ -446,10 +475,10 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.module:
           final id = _curLibrary.readShortUtf8String();
-          final isLibrary = _curLibrary.readBool();
+          final isLibraryEntry = _curLibrary.readBool();
           _curModuleFullName = id;
-          _curNamespace =
-              HTNamespace(id: id, closure: global, isLibrary: isLibrary);
+          _curNamespace = HTNamespace(
+              id: id, closure: global, isLibraryEntry: isLibraryEntry);
           break;
         case HTOpCode.lineInfo:
           _curLine = _curLibrary.readUint16();
@@ -511,6 +540,21 @@ class Hetu extends HTAbstractInterpreter {
           for (var i = 0; i < utf8StringLength; ++i) {
             _curLibrary.addString(_curLibrary.readUtf8String());
           }
+          break;
+        case HTOpCode.importDecl:
+          final key = _curLibrary.readShortUtf8String();
+          String? alias;
+          final hasAlias = _curLibrary.readBool();
+          if (hasAlias) {
+            alias = _curLibrary.readShortUtf8String();
+          }
+          final showList = <String>[];
+          final showListLength = _curLibrary.read();
+          for (var i = 0; i < showListLength; ++i) {
+            final id = _curLibrary.readShortUtf8String();
+            showList.add(id);
+          }
+          _curNamespace.declareImport(key, alias: alias, showList: showList);
           break;
         case HTOpCode.typeAliasDecl:
           _handleTypeAliasDecl();

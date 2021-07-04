@@ -49,13 +49,19 @@ abstract class HTOpCode {
 
   static const constTable = 21;
 
-  static const typeAliasDecl = 22;
+  static const libraryDecl = 22;
 
-  static const funcDecl = 23;
+  static const importDecl = 23;
 
-  static const classDecl = 24;
+  static const namespaceDecl = 24;
 
-  static const varDecl = 25;
+  static const typeAliasDecl = 25;
+
+  static const funcDecl = 26;
+
+  static const classDecl = 27;
+
+  static const varDecl = 28;
 
   static const ifStmt = 30;
 

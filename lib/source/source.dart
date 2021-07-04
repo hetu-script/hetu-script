@@ -39,10 +39,6 @@ class HTSource {
 
   final SourceType type;
 
-  // bool _isLibrary = false;
-  // bool get isLibrary => _isLibrary;
-  // late final String libraryName;
-
   String _content;
   String get content => _content;
   set content(String value) {
@@ -53,11 +49,12 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
-  bool evaluated = false;
+  final bool isLibraryEntry;
 
   HTSource(String content,
-      {String? fullName, this.type = SourceType.module //, String? libraryName
-      })
+      {String? fullName,
+      this.type = SourceType.module,
+      this.isLibraryEntry = false})
       : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (fullName != null) {

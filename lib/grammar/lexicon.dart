@@ -74,6 +74,9 @@ abstract class HTLexicon {
   static const elementAt = 'elementAt';
   static const parse = 'parse';
 
+  static const scriptStackTrace = 'Hetu stack trace';
+  static const externalStackTrace = 'Dart stack trace';
+
   static const variadicArgs = '...';
   static const privatePrefix = '_';
   static const typesBracketLeft = '<';
@@ -111,7 +114,7 @@ abstract class HTLexicon {
   static const DECLARATION = 'declaration';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
-  static const SHOW = 'show';
+  static const FROM = 'from';
   static const CLASS = 'class';
   static const ENUM = 'enum';
   static const FUNCTION = 'fun';

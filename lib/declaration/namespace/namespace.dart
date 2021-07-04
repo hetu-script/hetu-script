@@ -5,13 +5,13 @@ import '../../object/object.dart';
 import '../declaration.dart';
 
 class ImportDeclaration {
-  final String key;
+  final String fullName;
 
   final String? alias;
 
   final List<String> showList;
 
-  ImportDeclaration(this.key, {this.alias, this.showList = const []});
+  ImportDeclaration(this.fullName, {this.alias, this.showList = const []});
 }
 
 /// Namespace is used when importing with a name
@@ -28,7 +28,7 @@ class HTNamespace extends HTDeclaration with HTObject {
 
   final declarations = <String, HTDeclaration>{};
 
-  final bool isLibrary;
+  final bool isLibraryEntry;
 
   final imports = <String, ImportDeclaration>{};
 
@@ -39,7 +39,7 @@ class HTNamespace extends HTDeclaration with HTObject {
       HTSource? source,
       bool isTopLevel = false,
       bool isExported = false,
-      this.isLibrary = false})
+      this.isLibraryEntry = false})
       : super(
             id: id,
             classId: classId,
@@ -118,7 +118,7 @@ class HTNamespace extends HTDeclaration with HTObject {
   }
 
   void import(HTNamespace other, {bool clone = false}) {
-    if (other.isLibrary) {
+    if (other.isLibraryEntry) {
       for (final key in other.declarations.keys) {
         var decl = other.declarations[key]!;
         if (decl.isExported) {

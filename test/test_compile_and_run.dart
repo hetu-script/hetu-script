@@ -4,7 +4,7 @@ void main() {
   final hetu = Hetu();
   hetu.init();
 
-  final bytes = hetu.compile('script/program.ht',
+  final bytes = hetu.compileFile('script/program.ht',
       config: CompilerConfig(lineInfo: false));
 
   print(bytes);

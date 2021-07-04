@@ -92,7 +92,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       // load classes and functions in core library.
       for (final file in coreModules.keys) {
         eval(coreModules[file]!,
-            moduleFullName: file, importModule: true, type: SourceType.module);
+            moduleFullName: file,
+            globallyImport: true,
+            type: SourceType.module);
       }
       for (var key in coreFunctions.keys) {
         bindExternalFunction(key, coreFunctions[key]!);
@@ -130,7 +132,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   T? evalSource(HTSource source,
       {String? libraryName,
-      bool import = false,
+      bool globallyImport = false,
       SourceType type = SourceType.module,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -141,18 +143,19 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   T? eval(String content,
       {String? moduleFullName,
       String? libraryName,
-      bool importModule = false,
+      bool globallyImport = false,
       SourceType type = SourceType.module,
+      bool isLibraryEntry = true,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    final source = HTSource(content, fullName: moduleFullName, type: type);
+    final source = HTSource(content,
+        fullName: moduleFullName, type: type, isLibraryEntry: isLibraryEntry);
 
     final result = evalSource(source,
-        // when eval string, use current namespace by default
-        import: importModule,
+        globallyImport: globallyImport,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
@@ -164,24 +167,20 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   /// 解析文件
   T? evalFile(String key,
-      {bool useCurModulePath = false,
-      String? libraryName,
-      bool importModule = false,
+      {String? libraryName,
       SourceType type = SourceType.module,
+      bool isLibraryEntry = true,
+      bool globallyImport = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
-      final module = sourceProvider.getSource(key,
-          from: useCurModulePath
-              ? curModuleFullName
-              : sourceProvider.defaultDirectory,
-          type: type);
+      final source = sourceProvider.getSource(key, type: type);
 
-      final result = evalSource(module,
-          import: importModule,
+      final result = evalSource(source,
+          globallyImport: globallyImport,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
