@@ -72,12 +72,13 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return result;
   }
 
-  void formatModule(HTParseResult module, {FormatterConfig? config}) {
+  void formatModule(HTModuleParseResult module, {FormatterConfig? config}) {
     module.source.content = format(module.nodes, config: config);
   }
 
-  void formatLibrary(HTParseContext bundle, {FormatterConfig? config}) {
-    for (final module in bundle.modules.values) {
+  void formatCompilation(HTModuleParseResultCompilation compilation,
+      {FormatterConfig? config}) {
+    for (final module in compilation.modules.values) {
       module.source.content = format(module.nodes, config: config);
     }
   }

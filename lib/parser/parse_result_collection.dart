@@ -1,25 +1,12 @@
 import 'parse_result.dart';
 
-abstract class HTParseResultCollection {
-  Map<String, HTParseResult> get modules;
+abstract class HTModuleParseResultCollection {
+  Map<String, HTModuleParseResult> get modules;
 }
 
-class HTParseResultCompilation implements HTParseResultCollection {
+class HTModuleParseResultCompilation implements HTModuleParseResultCollection {
   @override
-  final Map<String, HTParseResult> modules;
+  final Map<String, HTModuleParseResult> modules;
 
-  HTParseResultCompilation(this.modules);
-}
-
-class HTParseContext implements HTParseResultCollection {
-  @override
-  final modules = <String, HTParseResult>{};
-
-  void add(HTParseResult module) {
-    modules[module.fullName] = module;
-  }
-
-  void addAll(HTParseResultCollection collection) {
-    modules.addAll(collection.modules);
-  }
+  HTModuleParseResultCompilation(this.modules);
 }

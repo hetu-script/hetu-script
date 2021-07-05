@@ -16,7 +16,7 @@ class ImportInfo {
 }
 
 /// The parse result of a single file
-class HTParseResult {
+class HTModuleParseResult {
   final HTSource source;
 
   String get fullName => source.fullName;
@@ -32,6 +32,6 @@ class HTParseResult {
 
   final List<ImportDecl> imports;
 
-  HTParseResult(this.source, this.nodes,
+  HTModuleParseResult(this.source, this.nodes,
       {this.libraryName, this.isLibraryEntry = false, this.imports = const []});
 }

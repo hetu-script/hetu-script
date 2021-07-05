@@ -2,7 +2,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:meta/meta.dart';
 
 import '../source/source.dart';
-import '../context/context_manager.dart';
+import '../context/context.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../binding/external_instance.dart';
@@ -68,7 +68,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   String get curModuleFullName;
 
-  HTContextManager get contextManager;
+  HTContext get context;
 
   HTNamespace get global;
 
@@ -167,7 +167,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
-      final source = contextManager.getSource(key, type: type);
+      final source = context.getSource(key, type: type);
 
       final result = evalSource(source,
           globallyImport: globallyImport,

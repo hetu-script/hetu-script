@@ -1,14 +1,12 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:hetu_script/hetu_script.dart';
-
-import '../context/context_manager.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../parser/parse_result_collection.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
+import '../source/source.dart';
 import 'opcode.dart';
 import 'const_table.dart';
 
@@ -75,7 +73,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   static const hetuVersionData = [0, 1, 0, 0];
 
   HTErrorHandler errorHandler;
-  HTContextManager contextManager;
   CompilerConfig config;
 
   final _curConstTable = ConstTable();
@@ -93,15 +90,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   final List<Map<String, String>> _markedSymbolsList = [];
 
-  HTCompiler(
-      {CompilerConfig? config,
-      HTErrorHandler? errorHandler,
-      HTContextManager? contextManager})
+  HTCompiler({CompilerConfig? config, HTErrorHandler? errorHandler})
       : config = config ?? const CompilerConfigImpl(),
-        errorHandler = errorHandler ?? HTErrorHandlerImpl(),
-        contextManager = contextManager ?? HTContextManagerImpl();
+        errorHandler = errorHandler ?? HTErrorHandlerImpl();
 
-  Uint8List compile(HTParseResultCompilation compilation) {
+  Uint8List compile(HTModuleParseResultCompilation compilation) {
     // _curLibraryName = libraryName;
     final mainBytesBuilder = BytesBuilder();
     // hetu bytecode signature

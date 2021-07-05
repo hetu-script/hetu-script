@@ -1,5 +1,5 @@
 // import '../source/source.dart';
-import '../context/context_manager.dart';
+import '../context/context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/semantic.dart';
@@ -18,7 +18,7 @@ abstract class HTAbstractParser {
 
   HTErrorHandler get errorHandler;
 
-  HTContextManager get contextManager;
+  HTContext get context;
 
   int _curLine = 0;
   int _curColumn = 0;
