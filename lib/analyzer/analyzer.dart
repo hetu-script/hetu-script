@@ -277,6 +277,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitVarDecl(VarDecl stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     final decl = HTVariableDeclaration(stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
@@ -286,7 +288,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         isStatic: stmt.isStatic,
         isConst: stmt.isConst,
         isMutable: stmt.isMutable);
-
     _curNamespace.define(stmt.id, decl);
   }
 
@@ -298,6 +299,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitFuncDecl(FuncDecl stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     final decl = HTFunctionDeclaration(stmt.internalName,
         id: stmt.id,
         classId: stmt.classId,
@@ -320,12 +323,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
                 isNamed: param.isNamed,
                 isVariadic: param.isVariadic))),
         returnType: HTType.fromAst(stmt.returnType));
-
     _curNamespace.define(stmt.internalName, decl);
   }
 
   @override
   void visitClassDecl(ClassDecl stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     final decl = HTClassDeclaration(
         id: stmt.id,
         classId: stmt.classId,
@@ -340,24 +344,26 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         withTypes: stmt.withTypes.map((param) => HTType.fromAst(param)),
         isExternal: stmt.isExternal,
         isAbstract: stmt.isAbstract);
-
     _curNamespace.define(stmt.id, decl);
   }
 
   @override
   void visitEnumDecl(EnumDecl stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     final decl = HTClassDeclaration(
         id: stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
         isExternal: stmt.isExternal);
-
     _curNamespace.define(stmt.id, decl);
   }
 
   @override
   void visitStructDecl(StructDecl stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
     final decl = HTStructDeclaration(stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
@@ -365,7 +371,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         prototypeId: stmt.prototypeId,
         isTopLevel: stmt.isTopLevel,
         isExported: stmt.isExported);
-
     _curNamespace.define(stmt.id, decl);
   }
 }

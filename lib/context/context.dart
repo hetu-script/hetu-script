@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import '../grammar/semantic.dart';
 import '../error/error.dart';
 import '../source/source.dart';
 
@@ -22,8 +21,7 @@ class HTContext {
 
   final included = <String>[];
 
-  /// Sources will only load once
-  final _cachedSources = <String, HTSource>{};
+  final Map<String, HTSource> _cachedSources;
 
   /// Create a [HTContextManagerImpl] with a certain [root],
   /// which is used to determin a module's absolute path
@@ -31,15 +29,17 @@ class HTContext {
   HTContext(
       {String? rootPath,
       List<HTFilterConfig> includedFilter = const [],
-      List<HTFilterConfig> excludedFilter = const []}) {
+      List<HTFilterConfig> excludedFilter = const [],
+      Map<String, HTSource>? cache})
+      : _cachedSources = cache ?? <String, HTSource>{} {
     rootPath = rootPath != null ? path.absolute(rootPath) : path.current;
-    root = normalizeAbsolutePath(dirName: rootPath);
+    root = getAbsolutePath(dirName: rootPath);
     final dir = Directory(root);
     final folderFilter = HTFilterConfig(root);
     final entities = dir.listSync(recursive: true);
     for (final entity in entities) {
       if (entity is File) {
-        final fileFullName = normalizeAbsolutePath(pathName: entity.path);
+        final fileFullName = getAbsolutePath(pathName: entity.path);
         var isIncluded = false;
         if (includedFilter.isEmpty) {
           isIncluded = _filterFile(fileFullName, folderFilter);
@@ -69,10 +69,32 @@ class HTContext {
     }
   }
 
-  String normalizeAbsolutePath(
-      {String pathName = '', String? fileName, String? dirName}) {
+  /// Import a script module with a certain [key], ignore those already imported
+  ///
+  /// If [from] is provided, the handler will try to get a relative path
+  ///
+  /// Otherwise, a absolute path is calculated from [root]
+  HTSource getSource(String key,
+      {String? from,
+      SourceType type = SourceType.module,
+      bool isLibraryEntry = false}) {
+    final fullName = path.isAbsolute(key)
+        ? key
+        : getAbsolutePath(
+            pathName: key, dirName: from != null ? path.dirname(from) : null);
+
+    final content = File(fullName).readAsStringSync();
+    final source = HTSource(content,
+        fullName: fullName, type: type, isLibraryEntry: isLibraryEntry);
+
+    _cachedSources[fullName] = source;
+    return source;
+  }
+
+  String getAbsolutePath(
+      {String pathName = '', String? dirName, String? fileName}) {
     if (!path.isAbsolute(pathName)) {
-      if (dirName != null && !dirName.startsWith(SemanticNames.anonymous)) {
+      if (dirName != null) {
         pathName = path.join(dirName, pathName);
       } else {
         pathName = path.join(root, pathName);
@@ -89,33 +111,6 @@ class HTContext {
     }
   }
 
-  bool hasSource(String key) => _cachedSources.containsKey(key);
-
-  /// Import a script module with a certain [key], ignore those already imported
-  ///
-  /// If [from] is provided, the handler will try to get a relative path
-  ///
-  /// Otherwise, a absolute path is calculated from [root]
-  HTSource getSource(String key,
-      {String? from,
-      SourceType type = SourceType.module,
-      bool isLibraryEntry = false,
-      bool reload = false}) {
-    final fullName = path.isAbsolute(key)
-        ? key
-        : normalizeAbsolutePath(
-            pathName: key, dirName: from != null ? path.dirname(from) : null);
-    if (!_cachedSources.containsKey(fullName) || reload) {
-      final content = File(fullName).readAsStringSync();
-      final source = HTSource(content,
-          fullName: fullName, type: type, isLibraryEntry: isLibraryEntry);
-      _cachedSources[fullName] = source;
-      return source;
-    } else {
-      return _cachedSources[fullName]!;
-    }
-  }
-
   void changeContent(String fullName, String content) {
     if (!_cachedSources.containsKey(fullName)) {
       throw HTError.souceProviderError(
@@ -129,7 +124,7 @@ class HTContext {
   // [fullPath] must be a normalized absolute path
   bool _filterFile(String fullName, HTFilterConfig filter) {
     final ext = path.extension(fullName);
-    final normalizedFolder = normalizeAbsolutePath(pathName: filter.folder);
+    final normalizedFolder = getAbsolutePath(pathName: filter.folder);
     if (fullName.startsWith(normalizedFolder)) {
       if (filter.recursive) {
         return _checkExt(ext, filter.extention);
