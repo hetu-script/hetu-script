@@ -2,17 +2,16 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import '../type/type.dart';
-import '../grammar/lexicon.dart';
 import '../error/error.dart';
 import '../binding/external_class.dart';
 import 'buildin_instance.dart';
 
 class HTNumberClass extends HTExternalClass {
-  HTNumberClass() : super(HTLexicon.number);
+  HTNumberClass() : super('num');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'num.parse':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -20,19 +19,17 @@ class HTNumberClass extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             num.tryParse(positionalArgs.first);
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 }
 
 class HTIntegerClass extends HTExternalClass {
-  HTIntegerClass() : super(HTLexicon.integer);
+  HTIntegerClass() : super('int');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'int.fromEnvironment':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -47,23 +44,21 @@ class HTIntegerClass extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String field) =>
-      (object as int).htFetch(field);
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as int).htFetch(varName);
 }
 
 class HTFloatClass extends HTExternalClass {
-  HTFloatClass() : super(HTLexicon.float);
+  HTFloatClass() : super('float');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'float.nan':
         return double.nan;
       case 'float.infinity':
@@ -75,23 +70,21 @@ class HTFloatClass extends HTExternalClass {
       case 'float.maxFinite':
         return double.maxFinite;
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String field) =>
-      (object as double).htFetch(field);
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as double).htFetch(varName);
 }
 
 class HTBooleanClass extends HTExternalClass {
-  HTBooleanClass() : super(HTLexicon.boolean);
+  HTBooleanClass() : super('bool');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'bool.parse':
         return (
             {List<dynamic> positionalArgs = const [],
@@ -100,19 +93,17 @@ class HTBooleanClass extends HTExternalClass {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 }
 
 class HTStringClass extends HTExternalClass {
-  HTStringClass() : super(HTLexicon.str);
+  HTStringClass() : super('str');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'str.parse':
         return (
             {List<dynamic> positionalArgs = const [],
@@ -121,59 +112,53 @@ class HTStringClass extends HTExternalClass {
           return positionalArgs.first.toString();
         };
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String field) =>
-      (object as String).htFetch(field);
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as String).htFetch(varName);
 }
 
 class HTListClass extends HTExternalClass {
-  HTListClass() : super(HTLexicon.list);
+  HTListClass() : super('List');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String field) =>
-      (object as List).htFetch(field);
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as List).htFetch(varName);
 }
 
 class HTMapClass extends HTExternalClass {
-  HTMapClass() : super(HTLexicon.map);
+  HTMapClass() : super('Map');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String field) =>
-      (object as Map).htFetch(field);
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as Map).htFetch(varName);
 }
 
 class HTMathClass extends HTExternalClass {
-  HTMathClass() : super(HTLexicon.math);
+  HTMathClass() : super('Math');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'Math.e':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -318,35 +303,31 @@ class HTMathClass extends HTExternalClass {
             (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
 
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 }
 
 class HTSystemClass extends HTExternalClass {
-  HTSystemClass() : super(HTLexicon.system);
+  HTSystemClass() : super('System');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'System.now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 }
 
 class HTConsoleClass extends HTExternalClass {
-  HTConsoleClass() : super(HTLexicon.console);
+  HTConsoleClass() : super('Console');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'Console.write':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -390,9 +371,7 @@ class HTConsoleClass extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             stdout.write('\x1B[2J\x1B[0;0H');
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 }

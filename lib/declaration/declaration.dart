@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 // import '../grammar/semantic.dart';
@@ -66,7 +64,6 @@ abstract class HTDeclaration {
     throw HTError.immutable(displayName);
   }
 
-  @mustCallSuper
   void resolve() {}
 
   bool isOverrideOf(HTDeclaration decl) => false;

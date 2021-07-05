@@ -13,7 +13,7 @@ import '../variable/variable.dart';
 import '../../declaration/namespace/namespace.dart';
 import 'parameter.dart';
 import '../../declaration/function/function_declaration.dart';
-import '../../type/generic_type_parameter.dart';
+import '../../declaration/generic/generic_type_parameter.dart';
 import '../object.dart';
 
 class ReferConstructor {

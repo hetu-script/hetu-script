@@ -1,10 +1,13 @@
+import 'package:meta/meta.dart';
+
 import '../../type/type.dart';
 import '../../source/source.dart';
 import '../../grammar/semantic.dart';
 import '../namespace/namespace.dart';
 import '../declaration.dart';
 import '../type/abstract_type_declaration.dart';
-import '../../type/generic_type_parameter.dart';
+import '../generic/generic_type_parameter.dart';
+import 'class_namespace.dart';
 
 class HTClassDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
@@ -29,6 +32,10 @@ class HTClassDeclaration extends HTDeclaration
   /// and the re-definition must be of the same function signature.
   final Iterable<HTType> implementsTypes;
 
+  /// The [HTNamespace] for this class,
+  /// for searching for static variables.
+  final HTClassNamespace namespace;
+
   final bool isAbstract;
 
   final bool isEnum;
@@ -50,6 +57,8 @@ class HTClassDeclaration extends HTDeclaration
       bool isTopLevel = false,
       bool isExported = false})
       : _unresolvedSuperType = superType,
+        namespace = HTClassNamespace(
+            id: id, classId: classId, closure: closure, source: source),
         super(
             id: id,
             classId: classId,
@@ -64,8 +73,8 @@ class HTClassDeclaration extends HTDeclaration
   }
 
   @override
+  @mustCallSuper
   void resolve() {
-    super.resolve();
     if ((closure != null) && (_unresolvedSuperType != null)) {
       _resolvedSuperType = _unresolvedSuperType!.resolve(closure!);
     }

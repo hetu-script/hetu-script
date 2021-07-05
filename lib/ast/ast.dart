@@ -1,5 +1,4 @@
 import '../lexer/token.dart';
-import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
 
@@ -366,7 +365,7 @@ class ParamTypeExpr extends AstNode {
 class FuncTypeExpr extends TypeExpr {
   final TypeExpr returnType;
 
-  // final List<TypeExpr> genericParameters;
+  final List<GenericTypeParamExpr> genericTypeParameters;
 
   final List<ParamTypeExpr> paramTypes;
 
@@ -385,8 +384,8 @@ class FuncTypeExpr extends TypeExpr {
       int offset = 0,
       int length = 0,
       bool isLocal = true,
+      this.genericTypeParameters = const [],
       this.paramTypes = const [],
-      // this.genericParameters = const[],
       required this.hasOptionalParam,
       required this.hasNamedParam})
       : super(SemanticNames.funcTypeExpr,
@@ -405,12 +404,15 @@ class GenericTypeParamExpr extends AstNode {
 
   final String id;
 
+  final TypeExpr? superType;
+
   const GenericTypeParamExpr(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0})
+      int length = 0,
+      this.superType})
       : super(SemanticNames.genericTypeParamExpr,
             source: source,
             line: line,
@@ -929,8 +931,7 @@ class ContinueStmt extends AstNode {
 
 class LibraryDecl extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitLibraryDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitLibraryDecl(this);
 
   final String id;
 
@@ -950,8 +951,7 @@ class LibraryDecl extends AstNode {
 
 class ImportDecl extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitImportDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitImportDecl(this);
 
   final String key;
 
@@ -980,18 +980,32 @@ class ImportDecl extends AstNode {
 class NamespaceDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitNamespaceDeclStmt(this);
+      visitor.visitNamespaceDecl(this);
 
   final String id;
 
+  final String? classId;
+
   final BlockStmt definition;
+
+  final bool isPrivate;
+
+  final bool isTopLevel;
+
+  final bool isExported;
+
+  bool get isMember => classId != null;
 
   const NamespaceDecl(this.id, this.definition,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0})
+      int length = 0,
+      this.classId,
+      this.isPrivate = false,
+      this.isTopLevel = false,
+      this.isExported = false})
       : super(SemanticNames.namespaceDeclaration,
             source: source,
             line: line,
@@ -1003,23 +1017,23 @@ class NamespaceDecl extends AstNode {
 class TypeAliasDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitTypeAliasDeclStmt(this);
+      visitor.visitTypeAliasDecl(this);
 
   final String id;
 
   final String? classId;
 
-  final List<GenericTypeParamExpr> genericParameters;
+  final List<GenericTypeParamExpr> genericTypeParameters;
 
   final TypeExpr value;
 
   bool get isMember => classId != null;
 
-  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
-
-  final bool isExported;
+  final bool isPrivate;
 
   final bool isTopLevel;
+
+  final bool isExported;
 
   const TypeAliasDecl(this.id, this.value,
       {HTSource? source,
@@ -1028,9 +1042,10 @@ class TypeAliasDecl extends AstNode {
       int offset = 0,
       int length = 0,
       this.classId,
-      this.genericParameters = const [],
-      this.isExported = false,
-      this.isTopLevel = false})
+      this.genericTypeParameters = const [],
+      this.isPrivate = false,
+      this.isTopLevel = false,
+      this.isExported = false})
       : super(SemanticNames.typeAliasDeclaration,
             source: source,
             line: line,
@@ -1041,7 +1056,7 @@ class TypeAliasDecl extends AstNode {
 
 class VarDecl extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitVarDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitVarDecl(this);
 
   final String id;
 
@@ -1055,8 +1070,6 @@ class VarDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
-
   final bool isExternal;
 
   final bool isStatic;
@@ -1065,9 +1078,11 @@ class VarDecl extends AstNode {
 
   final bool isConst;
 
-  final bool isExported;
+  final bool isPrivate;
 
   final bool isTopLevel;
+
+  final bool isExported;
 
   final bool lateInitialize;
 
@@ -1085,8 +1100,9 @@ class VarDecl extends AstNode {
       this.isStatic = false,
       this.isConst = false,
       this.isMutable = false,
-      this.isExported = false,
+      this.isPrivate = false,
       this.isTopLevel = false,
+      this.isExported = false,
       this.lateInitialize = false})
       : super(SemanticNames.variableDeclaration,
             source: source,
@@ -1098,8 +1114,7 @@ class VarDecl extends AstNode {
 
 class ParamDecl extends VarDecl {
   @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitParamDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitParamDecl(this);
 
   final bool isVariadic;
 
@@ -1162,7 +1177,7 @@ class ReferConstructCallExpr extends AstNode {
 
 class FuncDecl extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitFuncDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitFuncDecl(this);
 
   final String internalName;
 
@@ -1170,7 +1185,7 @@ class FuncDecl extends AstNode {
 
   final String? classId;
 
-  final List<GenericTypeParamExpr> genericParameters;
+  final List<GenericTypeParamExpr> genericTypeParameters;
 
   final String? externalTypeId;
 
@@ -1190,8 +1205,6 @@ class FuncDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  bool get isPrivate => internalName.startsWith(HTLexicon.privatePrefix);
-
   bool get isAbstract => definition != null;
 
   final bool isExternal;
@@ -1202,9 +1215,11 @@ class FuncDecl extends AstNode {
 
   final bool isVariadic;
 
-  final bool isExported;
+  final bool isPrivate;
 
   final bool isTopLevel;
+
+  final bool isExported;
 
   final FunctionCategory category;
 
@@ -1218,7 +1233,7 @@ class FuncDecl extends AstNode {
       int length = 0,
       this.id,
       this.classId,
-      this.genericParameters = const [],
+      this.genericTypeParameters = const [],
       this.externalTypeId,
       this.returnType,
       this.referConstructor,
@@ -1230,8 +1245,9 @@ class FuncDecl extends AstNode {
       this.isStatic = false,
       this.isConst = false,
       this.isVariadic = false,
-      this.isExported = false,
+      this.isPrivate = false,
       this.isTopLevel = false,
+      this.isExported = false,
       this.category = FunctionCategory.normal})
       : super(SemanticNames.functionDeclaration,
             source: source,
@@ -1243,14 +1259,13 @@ class FuncDecl extends AstNode {
 
 class ClassDecl extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitClassDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitClassDecl(this);
 
   final String id;
 
   final String? classId;
 
-  final List<GenericTypeParamExpr> genericParameters;
+  final List<GenericTypeParamExpr> genericTypeParameters;
 
   final TypeExpr? superType;
 
@@ -1260,17 +1275,17 @@ class ClassDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
-
   bool get isNested => classId != null;
 
   final bool isExternal;
 
   final bool isAbstract;
 
-  final bool isExported;
+  final bool isPrivate;
 
   final bool isTopLevel;
+
+  final bool isExported;
 
   final bool hasUserDefinedConstructor;
 
@@ -1283,12 +1298,13 @@ class ClassDecl extends AstNode {
       int offset = 0,
       int length = 0,
       this.classId,
-      this.genericParameters = const [],
+      this.genericTypeParameters = const [],
       this.superType,
       this.implementsTypes = const [],
       this.withTypes = const [],
       this.isExternal = false,
       this.isAbstract = false,
+      this.isPrivate = false,
       this.isExported = true,
       this.isTopLevel = false,
       this.hasUserDefinedConstructor = false})
@@ -1302,7 +1318,7 @@ class ClassDecl extends AstNode {
 
 class EnumDecl extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitEnumDeclStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitEnumDecl(this);
 
   final String id;
 
@@ -1312,13 +1328,13 @@ class EnumDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  bool get isPrivate => id.startsWith(HTLexicon.privatePrefix);
-
   final bool isExternal;
 
-  final bool isExported;
+  final bool isPrivate;
 
   final bool isTopLevel;
+
+  final bool isExported;
 
   const EnumDecl(
     this.id,
@@ -1330,9 +1346,49 @@ class EnumDecl extends AstNode {
     int length = 0,
     this.classId,
     this.isExternal = false,
-    this.isExported = true,
+    this.isPrivate = false,
     this.isTopLevel = false,
+    this.isExported = true,
   }) : super(SemanticNames.enumDeclaration,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class StructDecl extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitStructDecl(this);
+
+  final String id;
+
+  final String? classId;
+
+  final String? prototypeId;
+
+  final List<VarDecl> fields;
+
+  final bool isPrivate;
+
+  final bool isTopLevel;
+
+  final bool isExported;
+
+  bool get isMember => classId != null;
+
+  StructDecl(this.id, this.fields,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0,
+      this.classId,
+      this.prototypeId,
+      this.isPrivate = false,
+      this.isTopLevel = false,
+      this.isExported = false})
+      : super(SemanticNames.structDeclaration,
             source: source,
             line: line,
             column: column,

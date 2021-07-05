@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
@@ -7,7 +9,7 @@ import '../type/abstract_type_declaration.dart';
 import '../declaration.dart';
 import '../namespace/namespace.dart';
 import 'abstract_parameter.dart';
-import '../../type/generic_type_parameter.dart';
+import '../generic/generic_type_parameter.dart';
 
 class HTFunctionDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
@@ -67,15 +69,20 @@ class HTFunctionDeclaration extends HTDeclaration
       this.externalTypeId,
       this.genericTypeParameters = const [],
       this.hasParamDecls = true,
-      Map<String, HTAbstractParameter>? paramDecls,
+      Map<String, HTAbstractParameter> paramDecls = const {},
       HTType? returnType,
       this.isAbstract = false,
       this.isVariadic = false,
       this.minArity = 0,
       this.maxArity = 0})
-      : _paramDecls = paramDecls ?? const {},
+      : _paramDecls = paramDecls,
         declType = HTFunctionType(
-            parameterDeclarations: paramDecls?.values.toList() ?? const [],
+            parameterTypes: paramDecls.values
+                .map((param) => HTParameterType(param.declType ?? HTType.ANY,
+                    isOptional: param.isOptional,
+                    isVariadic: param.isVariadic,
+                    id: param.isNamed ? param.id : null))
+                .toList(),
             returnType: returnType ?? HTType.ANY),
         super(
             id: id,
@@ -140,8 +147,8 @@ class HTFunctionDeclaration extends HTDeclaration
   }
 
   @override
+  @mustCallSuper
   void resolve() {
-    super.resolve();
     for (final param in paramDecls.values) {
       param.resolve();
     }

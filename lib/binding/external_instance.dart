@@ -44,13 +44,13 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
+  dynamic memberGet(String varName) {
     if (externalClass != null) {
-      final member = externalClass!.instanceMemberGet(externalObject, field);
+      final member = externalClass!.instanceMemberGet(externalObject, varName);
       if (member is Function) {
-        // final getter = '${SemanticNames.getter}$field';
-        // if (klass!.namespace.declarations.containsKey(field)) {
-        HTFunction func = klass!.memberGet(field, recursive: false);
+        // final getter = '${SemanticNames.getter}$varName';
+        // if (klass!.namespace.declarations.containsKey(varName)) {
+        HTFunction func = klass!.memberGet(varName, recursive: false);
         func.externalFunc = member;
         return func;
         // } else if (klass!.namespace.declarations.containsKey(getter)) {
@@ -62,20 +62,16 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
         return member;
       }
     } else {
-      if (error) {
-        throw HTError.undefined(field);
-      }
+      throw HTError.undefined(varName);
     }
   }
 
   @override
-  void memberSet(String field, dynamic varValue, {bool error = true}) {
+  void memberSet(String varName, dynamic varValue) {
     if (externalClass != null) {
-      externalClass!.instanceMemberSet(externalObject, field, varValue);
+      externalClass!.instanceMemberSet(externalObject, varName, varValue);
     } else {
-      if (error) {
-        throw HTError.unknownTypeName(typeString);
-      }
+      throw HTError.unknownTypeName(typeString);
     }
   }
 }

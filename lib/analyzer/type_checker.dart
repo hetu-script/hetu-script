@@ -131,12 +131,12 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitLibraryDeclStmt(LibraryDecl stmt) {
+  HTType? visitLibraryDecl(LibraryDecl stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType? visitImportDeclStmt(ImportDecl stmt) {
+  HTType? visitImportDecl(ImportDecl stmt) {
     return HTType.ANY;
   }
 
@@ -196,12 +196,12 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitVarDeclStmt(VarDecl stmt) {
+  HTType? visitVarDecl(VarDecl stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType? visitParamDeclStmt(ParamDecl stmt) {
+  HTType? visitParamDecl(ParamDecl stmt) {
     return HTType.ANY;
   }
 
@@ -211,27 +211,32 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitFuncDeclStmt(FuncDecl stmt) {
+  HTType? visitFuncDecl(FuncDecl stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType? visitNamespaceDeclStmt(NamespaceDecl stmt) {
+  HTType? visitNamespaceDecl(NamespaceDecl stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType? visitClassDeclStmt(ClassDecl stmt) {
+  HTType? visitClassDecl(ClassDecl stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType? visitEnumDeclStmt(EnumDecl stmt) {
+  HTType? visitEnumDecl(EnumDecl stmt) {
     return HTType.ANY;
   }
 
   @override
-  HTType? visitTypeAliasDeclStmt(TypeAliasDecl stmt) {
+  HTType? visitTypeAliasDecl(TypeAliasDecl stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType? visitStructDecl(StructDecl stmt) {
     return HTType.ANY;
   }
 }

@@ -1,8 +1,8 @@
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../source/source.dart';
-import '../function/function.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../object/function/function.dart';
+import '../namespace/namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
@@ -12,12 +12,13 @@ class HTClassNamespace extends HTNamespace {
       : super(id: id, closure: closure, source: source);
 
   @override
-  dynamic memberGet(String field, {bool recursive = true, bool error = true}) {
-    final getter = '${SemanticNames.getter}$field';
-    final externalStatic = '$id.$field';
+  dynamic memberGet(String varName,
+      {bool recursive = true, bool error = true}) {
+    final getter = '${SemanticNames.getter}$varName';
+    final externalStatic = '$id.$varName';
 
-    if (declarations.containsKey(field)) {
-      final decl = declarations[field]!;
+    if (declarations.containsKey(varName)) {
+      final decl = declarations[varName]!;
       return decl.value;
     } else if (declarations.containsKey(getter)) {
       final decl = declarations[getter]!;
@@ -28,20 +29,20 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (recursive && (closure != null)) {
-      return closure!.memberGet(field);
+      return closure!.memberGet(varName);
     }
 
     if (error) {
-      throw HTError.undefined(field);
+      throw HTError.undefined(varName);
     }
   }
 
   @override
-  void memberSet(String field, dynamic varValue,
+  void memberSet(String varName, dynamic varValue,
       {bool recursive = true, bool error = true}) {
-    final setter = '${SemanticNames.setter}$field';
-    if (declarations.containsKey(field)) {
-      final decl = declarations[field]!;
+    final setter = '${SemanticNames.setter}$varName';
+    if (declarations.containsKey(varName)) {
+      final decl = declarations[varName]!;
       decl.value = varValue;
       return;
     } else if (declarations.containsKey(setter)) {
@@ -51,12 +52,12 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      closure!.memberSet(field, varValue);
+      closure!.memberSet(varName, varValue);
       return;
     }
 
     if (error) {
-      throw HTError.undefined(field);
+      throw HTError.undefined(varName);
     }
   }
 }

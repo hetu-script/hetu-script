@@ -9,9 +9,8 @@ import '../../declaration/namespace/namespace.dart';
 import '../function/function.dart';
 import '../../object/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
-import 'class_namespace.dart';
 import '../object.dart';
-import '../../type/generic_type_parameter.dart';
+import '../../declaration/generic/generic_type_parameter.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
@@ -20,10 +19,6 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
 
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
-
-  /// The [HTNamespace] for this class,
-  /// for searching for static variables.
-  final HTClassNamespace namespace;
 
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
@@ -59,9 +54,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
       bool isEnum = false,
       bool isExported = false,
       this.superClass})
-      : namespace = HTClassNamespace(
-            id: id, classId: classId, closure: closure, source: source),
-        super(
+      : super(
             id: id,
             classId: classId,
             closure: closure,
@@ -125,14 +118,14 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
   }
 
   @override
-  bool contains(String field) {
-    final getter = '${SemanticNames.getter}$field';
-    final setter = '${SemanticNames.setter}$field';
-    final constructor = field != id
-        ? '${SemanticNames.constructor}$field'
+  bool contains(String varName) {
+    final getter = '${SemanticNames.getter}$varName';
+    final setter = '${SemanticNames.setter}$varName';
+    final constructor = varName != id
+        ? '${SemanticNames.constructor}$varName'
         : SemanticNames.constructor;
 
-    return namespace.declarations.containsKey(field) ||
+    return namespace.declarations.containsKey(varName) ||
         namespace.declarations.containsKey(getter) ||
         namespace.declarations.containsKey(setter) ||
         namespace.declarations.containsKey(constructor);
@@ -140,15 +133,16 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
 
   /// Get a value of a static member from this [HTClass].
   @override
-  dynamic memberGet(String field, {bool recursive = true, bool error = true}) {
-    final getter = '${SemanticNames.getter}$field';
-    final constructor = field != id
-        ? '${SemanticNames.constructor}$field'
+  dynamic memberGet(String varName,
+      {bool recursive = true, bool error = true}) {
+    final getter = '${SemanticNames.getter}$varName';
+    final constructor = varName != id
+        ? '${SemanticNames.constructor}$varName'
         : SemanticNames.constructor;
 
     // if (isExternal) {
-    //   if (namespace.declarations.containsKey(field)) {
-    //     final decl = namespace.declarations[field]!;
+    //   if (namespace.declarations.containsKey(varName)) {
+    //     final decl = namespace.declarations[varName]!;
     //     return decl.value;
     //   } else if (namespace.declarations.containsKey(getter)) {
     //     HTFunction func = namespace.declarations[getter]!.value;
@@ -158,8 +152,8 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
     //     return func;
     //   }
     // } else {
-    if (namespace.declarations.containsKey(field)) {
-      final decl = namespace.declarations[field]!;
+    if (namespace.declarations.containsKey(varName)) {
+      final decl = namespace.declarations[varName]!;
       return decl.value;
     } else if (namespace.declarations.containsKey(getter)) {
       HTFunction func = namespace.declarations[getter]!.value;
@@ -170,7 +164,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
     // }
 
     if (error) {
-      throw HTError.undefined(field,
+      throw HTError.undefined(varName,
           moduleFullName: interpreter.curModuleFullName,
           line: interpreter.curLine,
           column: interpreter.curColumn);
@@ -179,15 +173,15 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
 
   /// Assign a value to a static member of this [HTClass].
   @override
-  void memberSet(String field, dynamic varValue, {bool error = true}) {
-    final setter = '${SemanticNames.setter}$field';
+  void memberSet(String varName, dynamic varValue) {
+    final setter = '${SemanticNames.setter}$varName';
 
     if (isExternal) {
       final externClass = interpreter.fetchExternalClass(id!);
-      externClass.memberSet('$id.$field', varValue);
+      externClass.memberSet('$id.$varName', varValue);
       return;
-    } else if (namespace.declarations.containsKey(field)) {
-      final decl = namespace.declarations[field]!;
+    } else if (namespace.declarations.containsKey(varName)) {
+      final decl = namespace.declarations[varName]!;
       decl.value = varValue;
       return;
     } else if (namespace.declarations.containsKey(setter)) {
@@ -196,7 +190,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
       return;
     }
 
-    throw HTError.undefined(field,
+    throw HTError.undefined(varName,
         moduleFullName: interpreter.curModuleFullName,
         line: interpreter.curLine,
         column: interpreter.curColumn);

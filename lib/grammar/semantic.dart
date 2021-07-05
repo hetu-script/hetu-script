@@ -46,8 +46,6 @@ abstract class SemanticNames {
   static const constructor = r'$constructor_';
   static const getter = r'$get_';
   static const setter = r'$set_';
-  static const instanceof = 'instance of';
-  static const tostring = 'toString';
 
   static const endOfFile = 'end_of_file';
   static const empty = 'empty';
@@ -111,6 +109,7 @@ abstract class SemanticNames {
   static const typeAliasDeclaration = 'type_alias_declaration';
   static const referConstructorExpression = 'refer_constructor_expression';
   static const functionDeclaration = 'function_declaration';
+  static const structDeclaration = 'struct_declaration';
 
   static const libraryStmt = 'library_statement';
   static const importStmt = 'import_statement';

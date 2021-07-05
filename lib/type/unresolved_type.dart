@@ -2,7 +2,6 @@ import '../grammar/lexicon.dart';
 import '../error/error.dart';
 import '../declaration/class/class_declaration.dart';
 import '../declaration/namespace/namespace.dart';
-import '../ast/ast.dart' show TypeExpr;
 import '../declaration/type/abstract_type_declaration.dart';
 import '../declaration/type/type_alias_declaration.dart';
 import 'function_type.dart';
@@ -16,24 +15,9 @@ class HTUnresolvedType extends HTType {
   @override
   bool get isResolved => false;
 
-  @override
-  final List<HTUnresolvedType> typeArgs;
-
   const HTUnresolvedType(String id,
-      {this.typeArgs = const [], bool isNullable = false})
+      {List<HTType> typeArgs = const [], bool isNullable = false})
       : super(id, typeArgs: typeArgs, isNullable: isNullable);
-
-  factory HTUnresolvedType.fromAst(TypeExpr? ast) {
-    if (ast != null) {
-      return HTUnresolvedType(ast.id,
-          typeArgs: ast.arguments
-              .map((expr) => HTUnresolvedType.fromAst(expr))
-              .toList(),
-          isNullable: ast.isNullable);
-    } else {
-      return HTUnresolvedType(HTLexicon.ANY);
-    }
-  }
 
   @override
   HTType resolve(HTNamespace namespace) {

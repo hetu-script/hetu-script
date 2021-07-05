@@ -675,7 +675,7 @@ class HTParser extends HTAbstractParser {
     return condition;
   }
 
-  /// 逻辑或 or , 优先级 5, 左合并
+  /// 逻辑或 || , 优先级 5, 左合并
   AstNode _parseLogicalOrExpr() {
     var left = _parseLogicalAndExpr();
     if (curTok.type == HTLexicon.logicalOr) {
@@ -694,7 +694,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 逻辑和 and , 优先级 6, 左合并
+  /// 逻辑和 && , 优先级 6, 左合并
   AstNode _parseLogicalAndExpr() {
     var left = _parseEqualityExpr();
     if (curTok.type == HTLexicon.logicalAnd) {
@@ -1548,7 +1548,7 @@ class HTParser extends HTAbstractParser {
     final value = _parseTypeExpr();
     return TypeAliasDecl(id, value,
         classId: classId,
-        genericParameters: genericParameters,
+        genericTypeParameters: genericParameters,
         isExported: isExported,
         isTopLevel: isTopLevel,
         source: _curSource,
@@ -1867,7 +1867,7 @@ class HTParser extends HTAbstractParser {
     return FuncDecl(internalName, paramDecls,
         id: id,
         classId: classId,
-        genericParameters: genericParameters,
+        genericTypeParameters: genericParameters,
         externalTypeId: externalTypedef,
         returnType: returnType,
         referConstructor: referCtor,
@@ -1934,7 +1934,7 @@ class HTParser extends HTAbstractParser {
         hasOwnNamespace: false,
         id: SemanticNames.classDefinition);
     final decl = ClassDecl(id.lexeme, definition,
-        genericParameters: genericParameters,
+        genericTypeParameters: genericParameters,
         superType: superClassType,
         isExternal: isExternal,
         isAbstract: isAbstract,

@@ -19,7 +19,7 @@ export 'object/class/class.dart';
 export 'object/function/function.dart';
 export 'object/instance/instance.dart';
 export 'type/type.dart';
-export 'type/generic_type_parameter.dart';
+export 'declaration/generic/generic_type_parameter.dart';
 export 'ast/ast.dart';
 export 'parser/parse_result_collection.dart';
 export 'lexer/lexer.dart';
