@@ -21,7 +21,7 @@ import '../type/nominal_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
-import '../context/context_manager.dart';
+import '../context/context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
@@ -58,7 +58,7 @@ class Hetu extends HTAbstractInterpreter {
   InterpreterConfig config;
 
   @override
-  HTContextManager contextManager;
+  HTContext context;
 
   @override
   ErrorHandlerConfig get errorConfig => config;
@@ -134,13 +134,11 @@ class Hetu extends HTAbstractInterpreter {
 
   /// Create a bytecode interpreter.
   /// Each interpreter has a independent global [HTNamespace].
-  Hetu(
-      {HTContextManager? contextManager,
-      this.config = const InterpreterConfig()})
+  Hetu({HTContext? context, this.config = const InterpreterConfig()})
       : global = HTNamespace(id: SemanticNames.global),
-        contextManager = contextManager ?? HTContextManagerImpl() {
+        context = context ?? HTContext() {
     _curNamespace = global;
-    analyzer = HTAnalyzer(contextManager: this.contextManager);
+    analyzer = HTAnalyzer(context: this.context);
   }
 
   @override
@@ -282,7 +280,7 @@ class Hetu extends HTAbstractInterpreter {
       bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
-    final source = contextManager.getSource(key, type: type);
+    final source = context.getSource(key, type: type);
     final bytes = compileSource(source,
         libraryName: libraryName,
         type: type,
@@ -307,8 +305,7 @@ class Hetu extends HTAbstractInterpreter {
         throw moduleAnalysisResult.errors.first;
       }
       final compilation = analyzer.curCompilation;
-      final compiler = HTCompiler(
-          config: config, errorHandler: this, contextManager: contextManager);
+      final compiler = HTCompiler(config: config, errorHandler: this);
       final bytes =
           compiler.compile(compilation); //, libraryName ?? source.fullName);
       return bytes;

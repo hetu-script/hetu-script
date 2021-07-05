@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../context/context.dart';
 import '../grammar/lexicon.dart';
 import '../lexer/token.dart';
 import '../grammar/semantic.dart';
-import '../context/context_manager.dart';
 import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
@@ -40,21 +40,17 @@ class HTParser extends HTAbstractParser {
 
   HTSource? _curSource;
 
-  final HTParseContext context;
+  final _cachedResults = <String, HTModuleParseResult>{};
+
+  @override
+  final HTContext context;
 
   @override
   final HTErrorHandler errorHandler;
 
-  @override
-  final HTContextManager contextManager;
-
-  HTParser(
-      {HTErrorHandler? errorHandler,
-      HTContextManager? contextManager,
-      HTParseContext? context})
+  HTParser({HTErrorHandler? errorHandler, HTContext? context})
       : errorHandler = errorHandler ?? HTErrorHandlerImpl(),
-        contextManager = contextManager ?? HTContextManagerImpl(),
-        context = context ?? HTParseContext();
+        context = context ?? HTContext();
 
   /// Will use [type] when possible, then [source.type], then [SourceType.module]
   List<AstNode> parse(List<Token> tokens,
@@ -87,13 +83,13 @@ class HTParser extends HTAbstractParser {
     return nodes;
   }
 
-  HTParseResult parseToModule(HTSource source, {String? libraryName}) {
+  HTModuleParseResult parseToModule(HTSource source, {String? libraryName}) {
     _curLibraryName = libraryName ?? source.fullName;
     _curModuleFullName = source.fullName;
     _curClass = null;
     _curFuncCategory = null;
     final nodes = parseString(source.content, source: source);
-    final module = HTParseResult(source, nodes,
+    final module = HTModuleParseResult(source, nodes,
         isLibraryEntry: _isLibraryEntry,
         libraryName: libraryName,
         imports: _curModuleImports.toList()); // copy the list);
@@ -103,24 +99,24 @@ class HTParser extends HTAbstractParser {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  HTParseResultCompilation parseToCompilation(HTSource source,
+  HTModuleParseResultCompilation parseToCompilation(HTSource source,
       {String? libraryName}) {
     final module = parseToModule(source, libraryName: libraryName);
-    final results = <String, HTParseResult>{};
+    final results = <String, HTModuleParseResult>{};
 
-    void handleImport(HTParseResult module) {
+    void handleImport(HTModuleParseResult module) {
       for (final decl in module.imports) {
         try {
-          late final HTParseResult importModule;
-          final importFullName = contextManager.normalizeAbsolutePath(decl.key,
-              dirName: path.dirname(module.fullName));
+          late final HTModuleParseResult importModule;
+          final importFullName = context.normalizeAbsolutePath(
+              pathName: decl.key, dirName: path.dirname(module.fullName));
           decl.fullName = importFullName;
-          if (context.modules.containsKey(importFullName)) {
-            importModule = context.modules[importFullName]!;
+          if (_cachedResults.containsKey(importFullName)) {
+            importModule = _cachedResults[importFullName]!;
           } else {
-            final source2 = contextManager.getSource(importFullName);
+            final source2 = context.getSource(importFullName);
             importModule = parseToModule(source2, libraryName: _curLibraryName);
-            context.modules[importFullName] = importModule;
+            _cachedResults[importFullName] = importModule;
           }
           results[importFullName] = importModule;
           handleImport(importModule);
@@ -144,7 +140,7 @@ class HTParser extends HTAbstractParser {
 
     handleImport(module);
     results[module.fullName] = module;
-    final compilation = HTParseResultCompilation(results);
+    final compilation = HTModuleParseResultCompilation(results);
     return compilation;
   }
 
@@ -937,8 +933,8 @@ class HTParser extends HTAbstractParser {
         final token = advance(1) as TokenStringInterpolation;
         final interpolation = <AstNode>[];
         for (final tokens in token.interpolations) {
-          final exprParser = HTParser(
-              errorHandler: errorHandler, contextManager: contextManager);
+          final exprParser =
+              HTParser(errorHandler: errorHandler, context: context);
           final nodes = exprParser.parse(tokens,
               source: _curSource, type: SourceType.expression);
           if (nodes.length != 1) {

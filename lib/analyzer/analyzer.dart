@@ -1,9 +1,5 @@
-import 'package:hetu_script/analyzer/analysis_context.dart';
-import 'package:hetu_script/declaration/struct/struct_declaration.dart';
-import 'package:hetu_script/grammar/semantic.dart';
-
 import '../source/source.dart';
-import '../context/context_manager.dart';
+import '../context/context.dart';
 import '../type/type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 import '../declaration/namespace/namespace.dart';
@@ -21,6 +17,8 @@ import '../parser/parse_result_collection.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
 import 'type_checker.dart';
+import '../declaration/struct/struct_declaration.dart';
+import '../grammar/semantic.dart';
 
 class AnalyzerConfig extends InterpreterConfig {
   final List<ErrorProcessor> errorProcessors;
@@ -72,7 +70,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   HTClassDeclaration? _curClass;
   HTFunctionDeclaration? _curFunction;
 
-  late HTParseResultCompilation curCompilation;
+  late HTModuleParseResultCompilation curCompilation;
 
   late List<HTAnalysisError> _curErrors;
 
@@ -81,19 +79,15 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   late HTTypeChecker _curTypeChecker;
 
   @override
-  final HTContextManager contextManager;
+  final HTContext context;
 
-  final HTParseContext parseContext;
+  final moduleAnalysisResults = <String, HTModuleAnalysisResult>{};
 
-  final HTAnalysisContext analysisContext = HTAnalysisContext();
+  final analyzedDeclarations = <String, HTNamespace>{};
 
-  HTAnalyzer(
-      {HTContextManager? contextManager,
-      HTParseContext? parseContext,
-      this.config = const AnalyzerConfig()})
+  HTAnalyzer({HTContext? context, this.config = const AnalyzerConfig()})
       : global = HTNamespace(id: SemanticNames.global),
-        contextManager = contextManager ?? HTContextManagerImpl(),
-        parseContext = parseContext ?? HTParseContext() {
+        context = context ?? HTContext() {
     _curNamespace = global;
   }
 
@@ -130,20 +124,17 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     }
     _curSource = source;
     _curErrors = <HTAnalysisError>[];
-    final parser = HTParser(
-        errorHandler: this,
-        contextManager: contextManager,
-        context: parseContext);
+    final parser = HTParser(errorHandler: this, context: context);
     curCompilation =
         parser.parseToCompilation(source, libraryName: libraryName);
     final declarations = <String, HTNamespace>{};
     for (final module in curCompilation.modules.values) {
-      if (analysisContext.modules.containsKey(module.fullName)) {
+      if (moduleAnalysisResults.containsKey(module.fullName)) {
         continue;
       }
       final moduleAnalysisResult =
-          HTModuleAnalysisResult(module.fullName, this, _curErrors);
-      analysisContext.modules[module.fullName] = moduleAnalysisResult;
+          HTModuleAnalysisResult(module.source, this, _curErrors);
+      moduleAnalysisResults[module.fullName] = moduleAnalysisResult;
       _curNamespace = HTNamespace(id: module.fullName, closure: global);
       declarations[module.fullName] = _curNamespace;
       for (final node in module.nodes) {
@@ -153,8 +144,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         analyzeDeclaration(decl);
       }
     }
-    analysisContext.declarations.addAll(declarations);
-    final moduleAnalysisResult = analysisContext.modules[source.fullName]!;
+    analyzedDeclarations.addAll(declarations);
+    final moduleAnalysisResult = moduleAnalysisResults[source.fullName]!;
     return moduleAnalysisResult;
   }
 
