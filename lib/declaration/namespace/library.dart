@@ -1,6 +1,5 @@
-import 'package:hetu_script/declaration/namespace/module.dart';
-
 import '../../grammar/semantic.dart';
+import '../../declaration/namespace/module.dart';
 import 'namespace.dart';
 
 /// [HTLibrary] is the semantic entity of a program or package

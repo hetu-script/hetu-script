@@ -4,11 +4,9 @@ import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../declaration/namespace/namespace.dart';
 import '../../type/type.dart';
 import '../../declaration/variable/variable_declaration.dart';
-import '../object.dart';
 
 /// Variable is a binding between an symbol and a value
-class HTVariable extends HTVariableDeclaration
-    with HTObject, HetuRef, GotoInfo {
+class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 

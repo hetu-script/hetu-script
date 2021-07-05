@@ -10,8 +10,8 @@ import '../function/function.dart';
 import '../../object/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
 import 'class_namespace.dart';
-import '../object.dart';
 import '../../type/generic_type_parameter.dart';
+import '../object.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {

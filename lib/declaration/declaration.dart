@@ -20,8 +20,6 @@ abstract class HTDeclaration {
 
   String get displayName => id ?? '';
 
-  bool get isPrivate => displayName.startsWith(HTLexicon.privatePrefix);
-
   final String? classId;
 
   final HTNamespace? closure;
@@ -45,6 +43,8 @@ abstract class HTDeclaration {
   final bool isExported;
 
   bool get isMember => classId != null;
+
+  bool get isPrivate => displayName.startsWith(HTLexicon.privatePrefix);
 
   HTDeclaration(
       {this.id,

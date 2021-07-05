@@ -114,6 +114,7 @@ abstract class HTLexicon {
   static const DECLARATION = 'declaration';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
+  static const SHOW = 'show';
   static const FROM = 'from';
   static const CLASS = 'class';
   static const ENUM = 'enum';

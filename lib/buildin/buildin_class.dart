@@ -272,7 +272,7 @@ class HTMathClass extends HTExternalClass {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             (positionalArgs.first as List<num>)
-                .reduce((value, element) => value + element);
+                .reduce((value, declaration) => value + declaration);
       case 'Math.checkBit':
         return (
                 {List<dynamic> positionalArgs = const [],

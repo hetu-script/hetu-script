@@ -201,9 +201,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     } else if ((object == null) || (object is NullThrownError)) {
       return HTObject.NULL;
     }
-
     late String typeString;
-
     if (object is bool) {
       typeString = HTLexicon.boolean;
     } else if (object is int) {

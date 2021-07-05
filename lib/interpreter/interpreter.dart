@@ -1,13 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:hetu_script/declaration/namespace/module.dart';
-
 import '../binding/external_function.dart';
 import '../declaration/namespace/namespace.dart';
 import '../declaration/declaration.dart';
 import '../object/object.dart';
 import '../object/class/class.dart';
 import '../object/instance/cast.dart';
+import '../declaration/namespace/module.dart';
 import '../declaration/function/parameter_declaration.dart';
 import '../object/function/function.dart';
 import '../object/function/parameter.dart';

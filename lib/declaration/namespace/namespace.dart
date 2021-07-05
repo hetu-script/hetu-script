@@ -1,10 +1,9 @@
-import 'package:hetu_script/declaration/namespace/module.dart';
-
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
-import '../../object/object.dart';
 import '../declaration.dart';
+import '../../object/object.dart';
+import 'module.dart';
 
 class ImportDeclaration {
   final String fullName;

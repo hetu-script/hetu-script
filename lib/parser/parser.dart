@@ -1333,7 +1333,7 @@ class HTParser extends HTAbstractParser {
     final keyword = advance(1);
     final hasBracket = expect([HTLexicon.roundLeft], consume: true);
     final forStmtType = peek(2).lexeme;
-    VarDecl? declaration;
+    VarDecl? decl;
     AstNode? condition;
     AstNode? increment;
     final newSymbolMap = <String, String>{};
@@ -1349,7 +1349,7 @@ class HTParser extends HTAbstractParser {
             length: curTok.length);
         errorHandler.handleError(err);
       }
-      declaration = _parseVarDecl(
+      decl = _parseVarDecl(
           // typeInferrence: curTok.type != HTLexicon.VAR,
           isMutable: curTok.type != HTLexicon.FINAL);
       advance(1);
@@ -1358,7 +1358,7 @@ class HTParser extends HTAbstractParser {
         match(HTLexicon.roundRight);
       }
       final loop = _parseBlockStmt(id: SemanticNames.forLoop);
-      return ForInStmt(declaration, collection, loop,
+      return ForInStmt(decl, collection, loop,
           hasBracket: hasBracket,
           source: _curSource,
           line: keyword.line,
@@ -1367,7 +1367,7 @@ class HTParser extends HTAbstractParser {
           length: curTok.offset - keyword.offset);
     } else {
       if (!expect([HTLexicon.semicolon], consume: false)) {
-        declaration = _parseVarDecl(
+        decl = _parseVarDecl(
             // typeInferrence: curTok.type != HTLexicon.VAR,
             isMutable: curTok.type != HTLexicon.FINAL,
             endOfStatement: true);
@@ -1385,7 +1385,7 @@ class HTParser extends HTAbstractParser {
         match(HTLexicon.roundRight);
       }
       final loop = _parseBlockStmt(id: SemanticNames.forLoop);
-      return ForStmt(declaration, condition, increment, loop,
+      return ForStmt(decl, condition, increment, loop,
           hasBracket: hasBracket,
           source: _curSource,
           line: keyword.line,

@@ -7,7 +7,7 @@
 ## 0.1.3
 
 - Named constructor can refer to default constructor: construct name(): this()
-- Feature: Single expression function: fun add(a, b) = a + b
+- Feature: Single expression function: fun add(a, b) => a + b
 - Feature: Type alias: type MyFuncType = fun (num, num) -> num
 
 ## 0.1.2
