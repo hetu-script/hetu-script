@@ -108,7 +108,7 @@ class HTParser extends HTAbstractParser {
       for (final decl in module.imports) {
         try {
           late final HTModuleParseResult importModule;
-          final importFullName = context.normalizeAbsolutePath(
+          final importFullName = context.getAbsolutePath(
               pathName: decl.key, dirName: path.dirname(module.fullName));
           decl.fullName = importFullName;
           if (_cachedResults.containsKey(importFullName)) {
