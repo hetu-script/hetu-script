@@ -1241,7 +1241,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitLibraryDecl(LibraryDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    // TODO: namespace compilation
+    // TODO: library decl
     return bytesBuilder.toBytes();
   }
 

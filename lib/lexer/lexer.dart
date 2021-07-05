@@ -131,9 +131,9 @@ class HTLexer {
       // }
       ++curLine;
     }
-    if (tokens.isEmpty) {
-      tokens.add(TokenEmptyLine(0, 0, 0));
-    }
+    // if (tokens.isEmpty) {
+    //   tokens.add(TokenEmptyLine(0, 0, 0));
+    // }
     return tokens;
   }
 
