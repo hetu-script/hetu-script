@@ -27,7 +27,11 @@ enum SourceType {
   /// Class can only have declarations (variables, functions).
   klass,
 
+<<<<<<< HEAD
   /// Literal struct definition (declarations).
+=======
+  /// Literal struct definition (members).
+>>>>>>> refactor function type
   struct,
 }
 

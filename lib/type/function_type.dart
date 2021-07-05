@@ -1,22 +1,39 @@
 import 'package:quiver/core.dart';
 
-import '../declaration/function/abstract_parameter.dart';
 import '../declaration/type/abstract_type_declaration.dart';
 import '../grammar/lexicon.dart';
 import 'type.dart';
-import 'generic_type_parameter.dart';
+import '../declaration/generic/generic_type_parameter.dart';
+
+class HTParameterType {
+  final HTType declType;
+
+  /// Wether this is an optional parameter.
+  final bool isOptional;
+
+  /// Wether this is a variadic parameter.
+  final bool isVariadic;
+
+  bool get isNamed => id != null;
+
+  /// Wether this is a named parameter.
+  final String? id;
+
+  const HTParameterType(this.declType,
+      {required this.isOptional, required this.isVariadic, this.id});
+}
 
 class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;
 
-  final List<HTAbstractParameter> parameterDeclarations;
+  final List<HTParameterType> parameterTypes;
 
   final HTType returnType;
 
   HTFunctionType(
       {this.genericTypeParameters = const [],
-      this.parameterDeclarations = const [],
+      this.parameterTypes = const [],
       this.returnType = HTType.ANY})
       : super(HTLexicon.function);
 
@@ -40,7 +57,7 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
     var i = 0;
     var optionalStarted = false;
     var namedStarted = false;
-    for (final param in parameterDeclarations) {
+    for (final param in parameterTypes) {
       if (param.isVariadic) {
         result.write(HTLexicon.variadicArgs + ' ');
       }
@@ -52,7 +69,7 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
         result.write(HTLexicon.curlyLeft);
       }
       result.write(param.toString());
-      if (i < parameterDeclarations.length - 1) {
+      if (i < parameterTypes.length - 1) {
         result.write('${HTLexicon.comma} ');
       }
       if (optionalStarted) {
@@ -76,7 +93,7 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
     //   hashList.add(typeArg.hashCode);
     // }
     hashList.add(genericTypeParameters.length.hashCode);
-    for (final paramType in parameterDeclarations) {
+    for (final paramType in parameterTypes) {
       hashList.add(paramType.hashCode);
     }
     hashList.add(returnType.hashCode);
@@ -94,19 +111,18 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
       } else if (returnType.isNotA(other.returnType)) {
         return false;
       } else {
-        for (var i = 0; i < parameterDeclarations.length; ++i) {
-          final param = parameterDeclarations[i];
-          HTAbstractParameter? otherParam;
-          if (other.parameterDeclarations.length > i) {
-            otherParam = other.parameterDeclarations[i];
+        for (var i = 0; i < parameterTypes.length; ++i) {
+          final param = parameterTypes[i];
+          HTParameterType? otherParam;
+          if (other.parameterTypes.length > i) {
+            otherParam = other.parameterTypes[i];
           }
           if (!param.isOptional && !param.isVariadic) {
             if (otherParam == null ||
                 otherParam.isOptional != param.isOptional ||
                 otherParam.isVariadic != param.isVariadic ||
                 otherParam.isNamed != param.isNamed ||
-                ((otherParam.declType != null) &&
-                    (otherParam.declType!.isNotA(param.declType)))) {
+                (otherParam.declType.isNotA(param.declType))) {
               return false;
             }
           }

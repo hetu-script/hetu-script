@@ -486,21 +486,17 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitParamTypeExpr(ParamTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(_shortUtf8String(expr.declType.id));
-    bytesBuilder.addByte(expr.declType.arguments.length); // max 255
-    for (final expr in expr.declType.arguments) {
-      final typeArg = visitTypeExpr(expr);
-      bytesBuilder.add(typeArg);
-    }
-    bytesBuilder.addByte(expr.declType.isNullable ? 1 : 0); // bool isNullable
+    // could be function type so use visit ast node instead of visit type expr
+    final declTypeBytes = visitAstNode(expr.declType);
+    bytesBuilder.add(declTypeBytes);
     bytesBuilder.addByte(expr.isOptional ? 1 : 0);
+    bytesBuilder.addByte(expr.isVariadic ? 1 : 0);
     if (expr.id != null) {
       bytesBuilder.addByte(1); // bool: isNamed
       bytesBuilder.add(_shortUtf8String(expr.id!));
     } else {
       bytesBuilder.addByte(0); // bool: isNamed
     }
-    bytesBuilder.addByte(expr.isVariadic ? 1 : 0);
     return bytesBuilder.toBytes();
   }
 
@@ -1243,14 +1239,14 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitLibraryDeclStmt(LibraryDecl stmt) {
+  Uint8List visitLibraryDecl(LibraryDecl stmt) {
     final bytesBuilder = BytesBuilder();
     // TODO: namespace compilation
     return bytesBuilder.toBytes();
   }
 
   @override
-  Uint8List visitImportDeclStmt(ImportDecl stmt) {
+  Uint8List visitImportDecl(ImportDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.importDecl);
     // use the normalized absolute name here instead of the key
@@ -1269,14 +1265,14 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitNamespaceDeclStmt(NamespaceDecl stmt) {
+  Uint8List visitNamespaceDecl(NamespaceDecl stmt) {
     final bytesBuilder = BytesBuilder();
     // TODO: namespace compilation
     return bytesBuilder.toBytes();
   }
 
   @override
-  Uint8List visitTypeAliasDeclStmt(TypeAliasDecl stmt) {
+  Uint8List visitTypeAliasDecl(TypeAliasDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.typeAliasDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1294,7 +1290,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitVarDeclStmt(VarDecl stmt) {
+  Uint8List visitVarDecl(VarDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1340,12 +1336,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitParamDeclStmt(ParamDecl stmt) {
+  Uint8List visitParamDecl(ParamDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_shortUtf8String(stmt.id));
     bytesBuilder.addByte(stmt.isOptional ? 1 : 0);
-    bytesBuilder.addByte(stmt.isNamed ? 1 : 0);
     bytesBuilder.addByte(stmt.isVariadic ? 1 : 0);
+    bytesBuilder.addByte(stmt.isNamed ? 1 : 0);
     Uint8List? typeDecl;
     if (stmt.declType != null) {
       typeDecl = visitAstNode(stmt.declType!);
@@ -1389,7 +1385,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitFuncDeclStmt(FuncDecl stmt) {
+  Uint8List visitFuncDecl(FuncDecl stmt) {
     // final savedCurFunc = _curFunc;
     final bytesBuilder = BytesBuilder();
     // TODO: 泛型param
@@ -1437,7 +1433,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.maxArity);
     bytesBuilder.addByte(stmt.paramDecls.length); // max 255
     for (var param in stmt.paramDecls) {
-      final bytes = visitParamDeclStmt(param);
+      final bytes = visitParamDecl(param);
       bytesBuilder.add(bytes);
     }
     if (stmt.category == FunctionCategory.constructor) {
@@ -1470,7 +1466,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitClassDeclStmt(ClassDecl stmt) {
+  Uint8List visitClassDecl(ClassDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1510,7 +1506,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   //   static final values = [val1, val2, val3]
   // }
   @override
-  Uint8List visitEnumDeclStmt(EnumDecl stmt) {
+  Uint8List visitEnumDecl(EnumDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_shortUtf8String(stmt.id));
@@ -1522,7 +1518,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
     final valueId = '${HTLexicon.privatePrefix}${SemanticNames.name}';
     final value = VarDecl(valueId, classId: stmt.id);
-    final valueBytes = visitVarDeclStmt(value);
+    final valueBytes = visitVarDecl(value);
     bytesBuilder.add(valueBytes);
 
     final ctorParam = ParamDecl(SemanticNames.name);
@@ -1536,7 +1532,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         maxArity: 1,
         definition: ctorDef,
         category: FunctionCategory.constructor);
-    final ctorBytes = visitFuncDeclStmt(constructor);
+    final ctorBytes = visitFuncDecl(constructor);
     bytesBuilder.add(ctorBytes);
 
     final toStringDef = StringInterpolationExpr(
@@ -1544,13 +1540,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         HTLexicon.singleQuotationLeft,
         HTLexicon.singleQuotationRight,
         [SymbolExpr(valueId)]);
-    final toStringFunc = FuncDecl(SemanticNames.tostring, [],
-        id: SemanticNames.tostring,
+    final toStringFunc = FuncDecl(HTLexicon.tostring, [],
+        id: HTLexicon.tostring,
         classId: stmt.id,
         returnType: TypeExpr(HTLexicon.str),
         hasParamDecls: true,
         definition: toStringDef);
-    final toStringBytes = visitFuncDeclStmt(toStringFunc);
+    final toStringBytes = visitFuncDecl(toStringFunc);
     bytesBuilder.add(toStringBytes);
 
     final itemList = <AstNode>[];
@@ -1570,7 +1566,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
           initializer: itemInit,
           isStatic: true,
           lateInitialize: true);
-      final itemBytes = visitVarDeclStmt(itemDecl);
+      final itemBytes = visitVarDecl(itemDecl);
       bytesBuilder.add(itemBytes);
     }
 
@@ -1580,11 +1576,18 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         initializer: valuesInit,
         isStatic: true,
         lateInitialize: true);
-    final valuesBytes = visitVarDeclStmt(valuesDecl);
+    final valuesBytes = visitVarDecl(valuesDecl);
     bytesBuilder.add(valuesBytes);
 
     bytesBuilder.addByte(HTOpCode.endOfExec);
     bytesBuilder.addByte(HTOpCode.endOfStmt);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitStructDecl(StructDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    // TODO: strcut decl
     return bytesBuilder.toBytes();
   }
 }

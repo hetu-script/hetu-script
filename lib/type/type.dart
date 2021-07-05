@@ -3,6 +3,10 @@ import 'package:quiver/core.dart';
 import '../grammar/lexicon.dart';
 import '../object/object.dart';
 import '../declaration/namespace/namespace.dart';
+import 'unresolved_type.dart';
+import '../ast/ast.dart' show TypeExpr, FuncTypeExpr;
+import 'function_type.dart';
+import '../declaration/generic/generic_type_parameter.dart';
 
 abstract class HTType with HTObject {
   static const ANY = _PrimitiveType(HTLexicon.ANY);
@@ -52,6 +56,36 @@ abstract class HTType with HTObject {
   final bool isNullable;
 
   const HTType(this.id, {this.typeArgs = const [], this.isNullable = false});
+
+  factory HTType.fromAst(TypeExpr? ast) {
+    if (ast != null) {
+      if (ast is FuncTypeExpr) {
+        return HTFunctionType(
+            genericTypeParameters: ast.genericTypeParameters
+                .map((param) => HTGenericTypeParameter(param.id,
+                    superType: HTType.fromAst(param.superType)))
+                .toList(),
+            parameterTypes: ast.paramTypes
+                .map((param) => HTParameterType(HTType.fromAst(param.declType),
+                    isOptional: param.isOptional,
+                    isVariadic: param.isVariadic,
+                    id: param.id))
+                .toList(),
+            returnType: HTType.fromAst(ast.returnType));
+      } else {
+        if (HTType.primitiveTypes.containsKey(ast.id)) {
+          return HTType.primitiveTypes[ast.id]!;
+        } else {
+          return HTUnresolvedType(ast.id,
+              typeArgs:
+                  ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
+              isNullable: ast.isNullable);
+        }
+      }
+    } else {
+      return HTType.ANY;
+    }
+  }
 
   @override
   int get hashCode {

@@ -7,7 +7,6 @@ import '../object/object.dart';
 import '../object/class/class.dart';
 import '../object/instance/cast.dart';
 import '../declaration/namespace/module.dart';
-import '../declaration/function/parameter_declaration.dart';
 import '../object/function/function.dart';
 import '../object/function/parameter.dart';
 import '../object/variable/variable.dart';
@@ -107,10 +106,10 @@ class Hetu extends HTAbstractInterpreter {
   set _curSymbol(String? value) =>
       _registers[_getRegIndex(HTRegIdx.symbol)] = value;
   String? get curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
-  set _curLeftValue(dynamic value) =>
-      _registers[_getRegIndex(HTRegIdx.leftValue)] = value;
-  dynamic get curLeftValue =>
-      _registers[_getRegIndex(HTRegIdx.leftValue)] ?? _curNamespace;
+  // set  _curLeftValue(dynamic value) =>
+  //     _registers[_getRegIndex(HTRegIdx.leftValue)] = value;
+  // dynamic get curLeftValue =>
+  //     _registers[_getRegIndex(HTRegIdx.leftValue)] ?? _curNamespace;
   // set _curRefType(_RefType value) =>
   //     _registers[_getRegIndex(HTRegIdx.refType)] = value;
   // _RefType get _curRefType =>
@@ -559,7 +558,7 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.endOfStmt:
           _curValue = null;
           _curSymbol = null;
-          _curLeftValue = null;
+          // _curLeftValue = null;
           _curTypeArgs = [];
           break;
         case HTOpCode.endOfExec:
@@ -658,16 +657,17 @@ class Hetu extends HTAbstractInterpreter {
                 line: _curLine,
                 column: _curColumn);
           }
-          if ((object is List) || (object is Map)) {
-            object[key] = value;
-          } else if (object is HTObject) {
-            object.subSet(key, value);
-          } else {
-            final typeString = object.runtimeType.toString();
-            final id = HTType.parseBaseType(typeString);
-            final externClass = fetchExternalClass(id);
-            externClass.instanceSubSet(object, key!, value);
-          }
+          object[key] = value;
+          // if ((object is List) || (object is Map)) {
+          //   object[key] = value;
+          // } else if (object is HTObject) {
+          //   object.subSet(key, value);
+          // } else {
+          //   final typeString = object.runtimeType.toString();
+          //   final id = HTType.parseBaseType(typeString);
+          //   final externClass = fetchExternalClass(id);
+          //   externClass.instanceSubSet(object, key!, value);
+          // }
           _curValue = value;
           break;
         case HTOpCode.logicalOr:
@@ -743,7 +743,7 @@ class Hetu extends HTAbstractInterpreter {
         final isLocal = _curLibrary.readBool();
         if (isLocal) {
           _curValue = _curNamespace.memberGet(symbol);
-          _curLeftValue = _curNamespace;
+          // _curLeftValue = _curNamespace;
         } else {
           _curValue = symbol;
         }
@@ -1061,20 +1061,20 @@ class Hetu extends HTAbstractInterpreter {
         final object = _getRegVal(HTRegIdx.postfixObject);
         final key = _getRegVal(HTRegIdx.postfixKey);
         final encap = encapsulate(object);
-        _curLeftValue = encap;
+        // _curLeftValue = encap;
         _curValue = encap.memberGet(key);
         break;
       case HTOpCode.subGet:
         final object = _getRegVal(HTRegIdx.postfixObject);
-        _curLeftValue = object;
+        // _curLeftValue = object;
         final key = execute();
         // final key = execute(moveRegIndex: true);
-        _setRegVal(HTRegIdx.postfixKey, key);
-        if (object is HTObject) {
-          _curValue = object.subGet(key);
-        } else {
-          _curValue = object[key];
-        }
+        // _setRegVal(HTRegIdx.postfixKey, key);
+        // if (object is HTObject) {
+        //   _curValue = object.subGet(key);
+        // } else {
+        _curValue = object[key];
+        // }
         // _curRefType = _RefType.sub;
         break;
       case HTOpCode.call:
@@ -1100,35 +1100,23 @@ class Hetu extends HTAbstractInterpreter {
             typeArgs: typeArgs, isNullable: isNullable);
       case TypeType.function:
         final paramsLength = _curLibrary.read();
-        final parameterTypes = <HTParameterDeclaration>[];
+        final parameterTypes = <HTParameterType>[];
         for (var i = 0; i < paramsLength; ++i) {
-          final typeId = _curLibrary.readShortUtf8String();
-          final typeArgLength = _curLibrary.read();
-          final typeArgs = <HTUnresolvedType>[];
-          for (var i = 0; i < typeArgLength; ++i) {
-            final typearg = _handleTypeExpr() as HTUnresolvedType;
-            typeArgs.add(typearg);
-          }
-          final isNullable = _curLibrary.read() == 0 ? false : true;
+          final declType = _handleTypeExpr();
           final isOptional = _curLibrary.read() == 0 ? false : true;
+          final isVariadic = _curLibrary.read() == 0 ? false : true;
           final isNamed = _curLibrary.read() == 0 ? false : true;
           String? paramId;
           if (isNamed) {
             paramId = _curLibrary.readShortUtf8String();
           }
-          final isVariadic = _curLibrary.read() == 0 ? false : true;
-          final decl = HTParameterDeclaration(paramId ?? '',
-              closure: _curNamespace,
-              declType: HTUnresolvedType(typeId,
-                  typeArgs: typeArgs, isNullable: isNullable),
-              isOptional: isOptional,
-              isNamed: isNamed,
-              isVariadic: isVariadic);
+          final decl = HTParameterType(declType,
+              isOptional: isOptional, isVariadic: isVariadic, id: paramId);
           parameterTypes.add(decl);
         }
         final returnType = _handleTypeExpr();
         return HTFunctionType(
-            parameterDeclarations: parameterTypes, returnType: returnType);
+            parameterTypes: parameterTypes, returnType: returnType);
       case TypeType.struct:
       case TypeType.interface:
       case TypeType.union:
@@ -1224,8 +1212,8 @@ class Hetu extends HTAbstractInterpreter {
     for (var i = 0; i < paramDeclsLength; ++i) {
       final id = _curLibrary.readShortUtf8String();
       final isOptional = _curLibrary.readBool();
-      final isNamed = _curLibrary.readBool();
       final isVariadic = _curLibrary.readBool();
+      final isNamed = _curLibrary.readBool();
       HTType? declType;
       final hasTypeDecl = _curLibrary.readBool();
       if (hasTypeDecl) {

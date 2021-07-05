@@ -48,10 +48,10 @@ class HTCast with HTObject, HetuRef {
   }
 
   @override
-  dynamic memberGet(String field, {bool error = true}) =>
-      object.memberGet(field, cast: klass.id);
+  dynamic memberGet(String varName) =>
+      object.memberGet(varName, cast: klass.id);
 
   @override
-  void memberSet(String field, dynamic varValue, {bool error = true}) =>
-      object.memberSet(field, varValue, cast: klass.id);
+  void memberSet(String varName, dynamic varValue) =>
+      object.memberSet(varName, varValue, cast: klass.id);
 }

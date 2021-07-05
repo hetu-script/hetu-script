@@ -40,7 +40,9 @@ abstract class HTLexicon {
 
   /// Add semicolon before a line starting with one of '++, --, (, ['
   static const Set<String> ASIStart = {
+    curlyLeft,
     roundLeft,
+    squareLeft,
     preIncrement,
     preDecrement,
   };
@@ -51,6 +53,7 @@ abstract class HTLexicon {
   };
 
   static const main = 'main';
+  static const instanceof = 'instance of';
 
   static const boolean = 'bool';
   static const number = 'num';
@@ -73,6 +76,7 @@ abstract class HTLexicon {
   static const isNotEmpty = 'isNotEmpty';
   static const elementAt = 'elementAt';
   static const parse = 'parse';
+  static const tostring = 'toString';
 
   static const scriptStackTrace = 'Hetu stack trace';
   static const externalStackTrace = 'Dart stack trace';
@@ -106,6 +110,7 @@ abstract class HTLexicon {
   static const unknown = 'unknown';
   static const object = 'object';
   static const function = 'function';
+  static const prototype = 'prototype';
 
   static const LIBRARY = 'library';
   static const TYPE = 'type';
@@ -379,10 +384,6 @@ abstract class HTLexicon {
     colon,
     semicolon,
   };
-
-  static const math = 'Math';
-  static const system = 'System';
-  static const console = 'Console';
 
   // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}]';

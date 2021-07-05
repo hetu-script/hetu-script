@@ -74,23 +74,25 @@ abstract class AbstractAstVisitor<T> {
 
   T visitContinueStmt(ContinueStmt stmt);
 
-  T visitLibraryDeclStmt(LibraryDecl stmt);
+  T visitLibraryDecl(LibraryDecl decl);
 
-  T visitImportDeclStmt(ImportDecl stmt);
+  T visitImportDecl(ImportDecl decl);
 
-  T visitNamespaceDeclStmt(NamespaceDecl stmt);
+  T visitNamespaceDecl(NamespaceDecl decl);
 
-  T visitTypeAliasDeclStmt(TypeAliasDecl stmt);
+  T visitTypeAliasDecl(TypeAliasDecl decl);
 
-  T visitVarDeclStmt(VarDecl stmt);
+  T visitVarDecl(VarDecl decl);
 
-  T visitParamDeclStmt(ParamDecl stmt);
+  T visitParamDecl(ParamDecl decl);
 
-  T visitReferConstructCallExpr(ReferConstructCallExpr stmt);
+  T visitReferConstructCallExpr(ReferConstructCallExpr expr);
 
-  T visitFuncDeclStmt(FuncDecl stmt);
+  T visitFuncDecl(FuncDecl decl);
 
-  T visitClassDeclStmt(ClassDecl stmt);
+  T visitClassDecl(ClassDecl decl);
 
-  T visitEnumDeclStmt(EnumDecl stmt);
+  T visitEnumDecl(EnumDecl decl);
+
+  T visitStructDecl(StructDecl decl);
 }

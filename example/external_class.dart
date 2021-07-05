@@ -22,8 +22,8 @@ class Person {
 }
 
 extension PersonBinding on Person {
-  dynamic htFetch(String field) {
-    switch (field) {
+  dynamic htFetch(String varName) {
+    switch (varName) {
       case 'name':
         return name;
       case 'race':
@@ -37,12 +37,12 @@ extension PersonBinding on Person {
       case 'child':
         return child;
       default:
-        throw HTError.undefined(field);
+        throw HTError.undefined(varName);
     }
   }
 
-  void htAssign(String field, dynamic varValue) {
-    switch (field) {
+  void htAssign(String varName, dynamic varValue) {
+    switch (varName) {
       case 'name':
         name = varValue;
         break;
@@ -50,7 +50,7 @@ extension PersonBinding on Person {
         race = varValue;
         break;
       default:
-        throw HTError.undefined(field);
+        throw HTError.undefined(varName);
     }
   }
 }
@@ -59,8 +59,8 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String field, {bool error = true}) {
-    switch (field) {
+  dynamic memberGet(String varName) {
+    switch (varName) {
       case 'Person':
         return (
                 {List<dynamic> positionalArgs = const [],
@@ -83,34 +83,32 @@ class PersonClassBinding extends HTExternalClass {
       case 'Person.level':
         return Person.level;
       default:
-        if (error) {
-          throw HTError.undefined(field);
-        }
+        throw HTError.undefined(varName);
     }
   }
 
   @override
-  void memberSet(String field, dynamic varValue, {bool error = true}) {
-    switch (field) {
+  void memberSet(String varName, dynamic varValue) {
+    switch (varName) {
       case 'Person.race':
-        throw HTError.immutable(field);
+        throw HTError.immutable(varName);
       case 'Person.level':
         return Person.level = varValue;
       default:
-        throw HTError.undefined(field);
+        throw HTError.undefined(varName);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String field) {
+  dynamic instanceMemberGet(dynamic object, String varName) {
     var i = object as Person;
-    return i.htFetch(field);
+    return i.htFetch(varName);
   }
 
   @override
-  void instanceMemberSet(dynamic object, String field, dynamic varValue) {
+  void instanceMemberSet(dynamic object, String varName, dynamic varValue) {
     var i = object as Person;
-    i.htAssign(field, varValue);
+    i.htAssign(varName, varValue);
   }
 }
 

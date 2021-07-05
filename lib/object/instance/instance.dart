@@ -11,12 +11,12 @@ import '../../declaration/namespace/namespace.dart';
 import '../object.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/abstract_interpreter.dart';
+import '../../grammar/lexicon.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
 class HTInstance with HTObject, InterpreterRef {
-  final String id;
   final int index;
 
   @override
@@ -41,14 +41,14 @@ class HTInstance with HTObject, InterpreterRef {
   /// Create a default [HTInstance] instance.
   HTInstance(HTClass klass, HTAbstractInterpreter interpreter,
       {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject})
-      : id = SemanticNames.instance,
-        index = klass.instanceIndex,
+      : index = klass.instanceIndex,
         valueType = HTNominalType(klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
 
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
-    HTInstanceNamespace? curNamespace = HTInstanceNamespace(id, this,
+    HTInstanceNamespace? curNamespace = HTInstanceNamespace(
+        SemanticNames.instance, this,
         classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
@@ -74,7 +74,7 @@ class HTInstance with HTObject, InterpreterRef {
       // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
-        curNamespace.next = HTInstanceNamespace(id, this,
+        curNamespace.next = HTInstanceNamespace(SemanticNames.instance, this,
             classId: curKlass.id, closure: curKlass.namespace);
       } else {
         curNamespace.next = null;
@@ -92,7 +92,7 @@ class HTInstance with HTObject, InterpreterRef {
     } else if (func is Function) {
       return func();
     } else {
-      return toJson().toString();
+      return '${HTLexicon.instanceof} $classId';
     }
   }
 
@@ -114,11 +114,11 @@ class HTInstance with HTObject, InterpreterRef {
   }
 
   @override
-  bool contains(String field) {
+  bool contains(String varName) {
     for (final space in _namespaces.values) {
-      if (space.declarations.containsKey(field) ||
-          space.declarations.containsKey('${SemanticNames.getter}$field') ||
-          space.declarations.containsKey('${SemanticNames.setter}$field')) {
+      if (space.declarations.containsKey(varName) ||
+          space.declarations.containsKey('${SemanticNames.getter}$varName') ||
+          space.declarations.containsKey('${SemanticNames.setter}$varName')) {
         return true;
       }
     }
@@ -130,13 +130,13 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  dynamic memberGet(String field, {String? cast, bool error = true}) {
-    final getter = '${SemanticNames.getter}$field';
+  dynamic memberGet(String varName, {String? cast, bool error = true}) {
+    final getter = '${SemanticNames.getter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
-        if (space.declarations.containsKey(field)) {
-          final value = space.declarations[field]!.value;
+        if (space.declarations.containsKey(varName)) {
+          final value = space.declarations[varName]!.value;
           if (value is HTFunction &&
               value.category != FunctionCategory.literal) {
             value.context = namespace;
@@ -150,8 +150,8 @@ class HTInstance with HTObject, InterpreterRef {
       }
     } else {
       final space = _namespaces[cast]!;
-      if (space.declarations.containsKey(field)) {
-        final value = space.declarations[field]!.value;
+      if (space.declarations.containsKey(varName)) {
+        final value = space.declarations[varName]!.value;
         if (value is HTFunction && value.category != FunctionCategory.literal) {
           value.context = _namespaces[classId];
         }
@@ -164,7 +164,7 @@ class HTInstance with HTObject, InterpreterRef {
     }
 
     if (error) {
-      throw HTError.undefined(field);
+      throw HTError.undefined(varName);
     }
   }
 
@@ -173,14 +173,14 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  void memberSet(String field, dynamic varValue,
+  void memberSet(String varName, dynamic varValue,
       {String? cast, bool error = true}) {
-    final setter = '${SemanticNames.setter}$field';
+    final setter = '${SemanticNames.setter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
-        if (space.declarations.containsKey(field)) {
-          var decl = space.declarations[field]!;
+        if (space.declarations.containsKey(varName)) {
+          var decl = space.declarations[varName]!;
           decl.value = varValue;
           return;
         } else if (space.declarations.containsKey(setter)) {
@@ -196,8 +196,8 @@ class HTInstance with HTObject, InterpreterRef {
       }
 
       final space = _namespaces[cast]!;
-      if (space.declarations.containsKey(field)) {
-        var decl = space.declarations[field]!;
+      if (space.declarations.containsKey(varName)) {
+        var decl = space.declarations[varName]!;
         decl.value = varValue;
         return;
       } else if (space.declarations.containsKey(setter)) {
@@ -208,7 +208,7 @@ class HTInstance with HTObject, InterpreterRef {
       }
     }
 
-    throw HTError.undefined(field);
+    throw HTError.undefined(varName);
   }
 
   /// Call a member function of this [HTInstance].

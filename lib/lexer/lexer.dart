@@ -104,7 +104,7 @@ class HTLexer {
 
       if (toksOfLine.isNotEmpty) {
         if (HTLexicon.ASIStart.contains(toksOfLine.first.type)) {
-          /// Add semicolon before a newline if the new line starting with '[, (, +, -' tokens
+          /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
           if (tokens.isNotEmpty &&
               !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
@@ -119,14 +119,16 @@ class HTLexer {
         } else {
           tokens.addAll(toksOfLine);
         }
-      } else {
-        if (tokens.isNotEmpty) {
-          toksOfLine.add(TokenEmptyLine(
-              curLine, curColumn, tokens.last.offset + tokens.last.length));
-        } else {
-          toksOfLine.add(TokenEmptyLine(curLine, curColumn, 0));
-        }
       }
+
+      // else {
+      //   if (tokens.isNotEmpty) {
+      //     tokens.add(TokenEmptyLine(
+      //         curLine, curColumn, tokens.last.offset + tokens.last.length));
+      //   } else {
+      //     tokens.add(TokenEmptyLine(curLine, curColumn, 0));
+      //   }
+      // }
       ++curLine;
     }
     if (tokens.isEmpty) {

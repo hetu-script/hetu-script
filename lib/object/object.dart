@@ -14,7 +14,11 @@ class _HTNull with HTObject {
 }
 
 /// Object is a runtime entity in the program that
+<<<<<<< HEAD
 /// represents a value that have accessible members
+=======
+/// represents a value that have accessable member varNames
+>>>>>>> refactor function type
 abstract class HTObject {
   static const type = HTUnresolvedType(HTLexicon.object);
 
@@ -24,39 +28,21 @@ abstract class HTObject {
 
   HTType get valueType => type;
 
-  bool contains(String field) => false;
+  bool contains(String varName) => false;
 
-  void delete(String field) {}
-
-  /// Fetch a member by the [field], in the form of
+  /// Fetch a member by the [varName], in the form of
   /// ```
-  /// object.field
+  /// object.varName
   /// ```
-  dynamic memberGet(String field, {bool error = true}) {
-    if (error) {
-      throw HTError.undefined(field);
-    }
+  dynamic memberGet(String varName) {
+    throw HTError.undefined(varName);
   }
 
-  /// Assign a value to a member by the [field], in the form of
+  /// Assign a value to a member by the [varName], in the form of
   /// ```
-  /// object.field = value
+  /// object.varName = value
   /// ```
-  void memberSet(String field, dynamic varValue, {bool error = true}) {
-    if (error) {
-      throw HTError.undefined(field);
-    }
+  void memberSet(String varName, dynamic varValue) {
+    throw HTError.undefined(varName);
   }
-
-  /// Fetch a member by the [key], in the form of
-  /// ```
-  /// object[key]
-  /// ```
-  dynamic subGet(dynamic key) {}
-
-  /// Assign a value to a member by the [key], in the form of
-  /// ```
-  /// object[key] = value
-  /// ```
-  void subSet(String key, dynamic varValue) {}
 }

@@ -71,42 +71,39 @@ class HTNamespace extends HTDeclaration with HTObject {
   /// 从当前命名空间，以及超空间，递归获取一个变量
   /// 注意和memberGet只是从对象本身取值不同
   @override
-  dynamic memberGet(String field, {bool recursive = true, bool error = true}) {
-    // if (field.startsWith(HTLexicon.privatePrefix) &&
+  dynamic memberGet(String varName, {bool recursive = true}) {
+    // if (varName.startsWith(HTLexicon.privatePrefix) &&
     //     !from.startsWith(fullName)) {
-    //   throw HTError.privateMember(field);
+    //   throw HTError.privateMember(varName);
     // }
-    if (declarations.containsKey(field)) {
-      final decl = declarations[field]!;
+    if (declarations.containsKey(varName)) {
+      final decl = declarations[varName]!;
       return decl.value;
     }
 
     if (recursive && (closure != null)) {
-      return closure!.memberGet(field, recursive: recursive, error: error);
+      return closure!.memberGet(varName, recursive: recursive);
     }
 
-    if (error) {
-      throw HTError.undefined(field);
-    }
+    throw HTError.undefined(varName);
   }
 
   /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
   /// 注意和memberSet只是对对象本身的成员赋值不同
   @override
-  void memberSet(String field, dynamic varValue,
-      {bool recursive = true, bool error = true}) {
-    if (declarations.containsKey(field)) {
-      final decl = declarations[field]!;
+  void memberSet(String varName, dynamic varValue, {bool recursive = true}) {
+    if (declarations.containsKey(varName)) {
+      final decl = declarations[varName]!;
       decl.value = varValue;
       return;
     }
 
     if (recursive && (closure != null)) {
-      closure!.memberSet(field, varValue, recursive: recursive, error: error);
+      closure!.memberSet(varName, varValue, recursive: recursive);
       return;
     }
 
-    throw HTError.undefined(field);
+    throw HTError.undefined(varName);
   }
 
   void declareImport(String key,

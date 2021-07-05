@@ -82,17 +82,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
     }
   }
 
-  String printGenericTypes(List<TypeExpr> params) {
-    final output = StringBuffer();
-    if (params.isNotEmpty) {
-      output.write(HTLexicon.typesBracketLeft);
-      output
-          .write(params.map((param) => printAst(param)).join(HTLexicon.comma));
-      output.write(HTLexicon.typesBracketRight);
-    }
-    return output.toString();
-  }
-
   String printAst(AstNode ast) => ast.accept(this);
 
   @override
@@ -160,7 +149,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitListExpr(ListExpr expr) {
     final output = StringBuffer();
     output.write(HTLexicon.squareLeft);
-    output.write(expr.list.map((item) => printAst(item)).join(HTLexicon.comma));
+    output.write(
+        expr.list.map((item) => printAst(item)).join('${HTLexicon.comma} '));
     output.write(HTLexicon.squareRight);
     return output.toString();
   }
@@ -212,20 +202,17 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitTypeExpr(TypeExpr expr) {
     final output = StringBuffer();
-    if (expr is FuncTypeExpr) {
-    } else {
-      output.write(expr.id);
-      if (expr.arguments.isNotEmpty) {
-        output.write(HTLexicon.typesBracketLeft);
-        for (final type in expr.arguments) {
-          final typeString = visitTypeExpr(type);
-          output.write('$typeString');
-        }
-        output.write(HTLexicon.typesBracketRight);
+    output.write(expr.id);
+    if (expr.arguments.isNotEmpty) {
+      output.write(HTLexicon.typesBracketLeft);
+      for (final type in expr.arguments) {
+        final typeString = visitTypeExpr(type);
+        output.write('$typeString');
       }
-      if (expr.isNullable) {
-        output.write(HTLexicon.nullable);
-      }
+      output.write(HTLexicon.typesBracketRight);
+    }
+    if (expr.isNullable) {
+      output.write(HTLexicon.nullable);
     }
     return output.toString();
   }
@@ -257,7 +244,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     output.write('${HTLexicon.FUNCTION} ${HTLexicon.roundLeft}');
     output.write(expr.paramTypes
         .map((param) => visitParamTypeExpr(param))
-        .join(HTLexicon.comma));
+        .join('${HTLexicon.comma} '));
     if (expr.hasOptionalParam) {
       output.write(HTLexicon.squareRight);
     } else if (expr.hasNamedParam) {
@@ -292,7 +279,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
           .toList()
           .map((entry) =>
               '${entry.key}${HTLexicon.colon} ${printAst(entry.value)}')
-          .join(HTLexicon.comma));
+          .join('${HTLexicon.comma} '));
     }
     output.write(HTLexicon.roundRight);
     return output.toString();
@@ -332,33 +319,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
     final keyString = printAst(expr.key);
     final valueString = printAst(expr.value);
     return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight} ${HTLexicon.assign} $valueString';
-  }
-
-  @override
-  String visitLibraryDeclStmt(LibraryDecl stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.LIBRARY} ${stmt.id}');
-    return output.toString();
-  }
-
-  @override
-  String visitImportDeclStmt(ImportDecl stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.IMPORT} ');
-    if (stmt.showList.isNotEmpty) {
-      if (stmt.showList.length > 1) {
-        output.write('${HTLexicon.curlyLeft} ');
-        output.write(stmt.showList.join(HTLexicon.comma));
-        output.write(' ${HTLexicon.curlyRight} ');
-      } else {}
-    }
-
-    output.write(
-        '${HTLexicon.singleQuotationLeft}${stmt.key}${HTLexicon.singleQuotationRight}');
-    if (stmt.alias != null) {
-      output.write(' ${HTLexicon.AS} ${stmt.alias}');
-    }
-    return output.toString();
   }
 
   @override
@@ -536,7 +496,31 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitTypeAliasDeclStmt(TypeAliasDecl stmt) {
+  String visitLibraryDecl(LibraryDecl stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.LIBRARY} ${stmt.id}');
+    return output.toString();
+  }
+
+  @override
+  String visitImportDecl(ImportDecl stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.IMPORT} ');
+    if (stmt.showList.isNotEmpty) {
+      output.write('${HTLexicon.curlyLeft} ');
+      output.write(stmt.showList.join('${HTLexicon.comma} '));
+      output.write(' ${HTLexicon.curlyRight} ${HTLexicon.FROM} ');
+    }
+    output.write(
+        '${HTLexicon.singleQuotationLeft}${stmt.key}${HTLexicon.singleQuotationRight}');
+    if (stmt.alias != null) {
+      output.write(' ${HTLexicon.AS} ${stmt.alias}');
+    }
+    return output.toString();
+  }
+
+  @override
+  String visitTypeAliasDecl(TypeAliasDecl stmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.TYPE} ${stmt.id} ${HTLexicon.assign} ');
     final valueString = printAst(stmt.value);
@@ -545,7 +529,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitVarDeclStmt(VarDecl stmt) {
+  String visitVarDecl(VarDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');
@@ -575,7 +559,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitParamDeclStmt(ParamDecl stmt) {
+  String visitParamDecl(ParamDecl stmt) {
     final output = StringBuffer();
     output.write('${stmt.id}');
     if (stmt.declType != null) {
@@ -629,7 +613,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitFuncDeclStmt(FuncDecl stmt) {
+  String visitFuncDecl(FuncDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');
@@ -685,7 +669,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitNamespaceDeclStmt(NamespaceDecl stmt) {
+  String visitNamespaceDecl(NamespaceDecl stmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.NAMESPACE} ${stmt.id} ');
     final blockString = visitBlockStmt(stmt.definition);
@@ -694,7 +678,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitClassDeclStmt(ClassDecl stmt) {
+  String visitClassDecl(ClassDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');
@@ -713,7 +697,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitEnumDeclStmt(EnumDecl stmt) {
+  String visitEnumDecl(EnumDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
       output.write('${HTLexicon.EXTERNAL} ');
@@ -721,6 +705,22 @@ class HTFormatter implements AbstractAstVisitor<String> {
     output.writeln('${HTLexicon.ENUM} ${stmt.id} ${HTLexicon.curlyLeft}');
     ++_curIndentCount;
     output.write(stmt.enumerations.join('${HTLexicon.comma}\n'));
+    output.writeln();
+    --_curIndentCount;
+    output.write(curIndent);
+    output.write(HTLexicon.curlyRight);
+    return output.toString();
+  }
+
+  @override
+  String visitStructDecl(StructDecl stmt) {
+    final output = StringBuffer();
+    output.writeln('${HTLexicon.STRUCT} ${stmt.id} ${HTLexicon.curlyLeft}');
+    ++_curIndentCount;
+    output.write(stmt.fields.map((item) {
+      final initValueString = printAst(item.initializer!);
+      return '${item.id}${HTLexicon.colon} $initValueString';
+    }).join('${HTLexicon.comma}\n'));
     output.writeln();
     --_curIndentCount;
     output.write(curIndent);

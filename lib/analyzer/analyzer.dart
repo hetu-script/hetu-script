@@ -1,11 +1,11 @@
 import 'package:hetu_script/analyzer/analysis_context.dart';
+import 'package:hetu_script/declaration/struct/struct_declaration.dart';
 import 'package:hetu_script/grammar/semantic.dart';
 
 import '../source/source.dart';
 import '../context/context_manager.dart';
 import '../type/type.dart';
-import '../type/unresolved_type.dart';
-import '../type/generic_type_parameter.dart';
+import '../declaration/generic/generic_type_parameter.dart';
 import '../declaration/namespace/namespace.dart';
 import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
@@ -238,12 +238,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitSubAssignExpr(SubAssignExpr expr) {}
 
   @override
-  void visitLibraryDeclStmt(LibraryDecl stmt) {}
-
-  @override
-  void visitImportDeclStmt(ImportDecl stmt) {}
-
-  @override
   void visitExprStmt(ExprStmt stmt) {}
 
   @override
@@ -277,15 +271,26 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitContinueStmt(ContinueStmt stmt) {}
 
   @override
-  void visitTypeAliasDeclStmt(TypeAliasDecl stmt) {}
+  void visitLibraryDecl(LibraryDecl stmt) {}
 
   @override
-  void visitVarDeclStmt(VarDecl stmt) {
+  void visitImportDecl(ImportDecl stmt) {}
+
+  @override
+  void visitNamespaceDecl(NamespaceDecl stmt) {
+    // TODO: namespace analysis
+  }
+
+  @override
+  void visitTypeAliasDecl(TypeAliasDecl stmt) {}
+
+  @override
+  void visitVarDecl(VarDecl stmt) {
     final decl = HTVariableDeclaration(stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
-        declType: HTUnresolvedType.fromAst(stmt.declType),
+        declType: HTType.fromAst(stmt.declType),
         isExternal: stmt.isExternal,
         isStatic: stmt.isStatic,
         isConst: stmt.isConst,
@@ -295,13 +300,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitParamDeclStmt(ParamDecl stmt) {}
+  void visitParamDecl(ParamDecl stmt) {}
 
   @override
   void visitReferConstructCallExpr(ReferConstructCallExpr stmt) {}
 
   @override
-  void visitFuncDeclStmt(FuncDecl stmt) {
+  void visitFuncDecl(FuncDecl stmt) {
     final decl = HTFunctionDeclaration(stmt.internalName,
         id: stmt.id,
         classId: stmt.classId,
@@ -319,35 +324,29 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
             param.id,
             HTParameterDeclaration(param.id,
                 closure: _curNamespace,
-                declType: HTUnresolvedType.fromAst(param.declType),
+                declType: HTType.fromAst(param.declType),
                 isOptional: param.isOptional,
                 isNamed: param.isNamed,
                 isVariadic: param.isVariadic))),
-        returnType: HTUnresolvedType.fromAst(stmt.returnType));
+        returnType: HTType.fromAst(stmt.returnType));
 
     _curNamespace.define(stmt.internalName, decl);
   }
 
   @override
-  void visitNamespaceDeclStmt(NamespaceDecl stmt) {
-    // TODO: namespace analysis
-  }
-
-  @override
-  void visitClassDeclStmt(ClassDecl stmt) {
+  void visitClassDecl(ClassDecl stmt) {
     final decl = HTClassDeclaration(
         id: stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
-        genericTypeParameters: stmt.genericParameters
+        genericTypeParameters: stmt.genericTypeParameters
             .map((param) => HTGenericTypeParameter(param.id))
             .toList(),
-        superType: HTUnresolvedType.fromAst(stmt.superType),
-        implementsTypes: stmt.implementsTypes
-            .map((param) => HTUnresolvedType.fromAst(param)),
-        withTypes:
-            stmt.withTypes.map((param) => HTUnresolvedType.fromAst(param)),
+        superType: HTType.fromAst(stmt.superType),
+        implementsTypes:
+            stmt.implementsTypes.map((param) => HTType.fromAst(param)),
+        withTypes: stmt.withTypes.map((param) => HTType.fromAst(param)),
         isExternal: stmt.isExternal,
         isAbstract: stmt.isAbstract);
 
@@ -355,13 +354,26 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitEnumDeclStmt(EnumDecl stmt) {
+  void visitEnumDecl(EnumDecl stmt) {
     final decl = HTClassDeclaration(
         id: stmt.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
         isExternal: stmt.isExternal);
+
+    _curNamespace.define(stmt.id, decl);
+  }
+
+  @override
+  void visitStructDecl(StructDecl stmt) {
+    final decl = HTStructDeclaration(stmt.id,
+        classId: stmt.classId,
+        closure: _curNamespace,
+        source: _curSource,
+        prototypeId: stmt.prototypeId,
+        isTopLevel: stmt.isTopLevel,
+        isExported: stmt.isExported);
 
     _curNamespace.define(stmt.id, decl);
   }

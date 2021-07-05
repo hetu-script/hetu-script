@@ -46,8 +46,7 @@ class HTVariableDeclaration extends HTDeclaration {
 
   @override
   void resolve() {
-    super.resolve();
-    if ((closure != null) && (_declType != null)) {
+    if (closure != null && _declType != null) {
       _resolvedDeclType = _declType!.resolve(closure!);
     } else {
       _resolvedDeclType = HTType.ANY;
