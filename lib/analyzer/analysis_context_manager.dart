@@ -2,13 +2,18 @@ import '../context/context_manager.dart';
 import 'analysis_result.dart';
 import 'analyzer.dart';
 
-class HTAnalysisContextManager extends HTContextManager {
+class HTAnalysisContextManager {
+  /// The underlying context manager for analyzer to access to source.
+  final HTContextManager contextManager;
+
   final _pathToAnalyzer = <String, HTAnalyzer>{};
+
+  HTAnalysisContextManager(this.contextManager);
 
   HTModuleAnalysisResult? analyze(String fullName) {
     if (_pathToAnalyzer.containsKey(fullName)) {
       final analyzer = _pathToAnalyzer[fullName]!;
-      final source = getSource(fullName);
+      final source = contextManager.getSource(fullName);
       final result = analyzer.evalSource(source);
       return result;
     } else {
@@ -16,9 +21,8 @@ class HTAnalysisContextManager extends HTContextManager {
     }
   }
 
-  @override
   void afterRootsUpdated() {
-    for (final context in contextRoots.values) {
+    for (final context in contextManager.contexts) {
       final analyzer = HTAnalyzer(context: context);
       for (final path in context.included) {
         _pathToAnalyzer[path] = analyzer;

@@ -87,7 +87,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   HTAnalyzer({HTContext? context, this.config = const AnalyzerConfig()})
       : global = HTNamespace(id: SemanticNames.global),
-        context = context ?? HTContext() {
+        context = context ?? HTContext.fileSystem() {
     _curNamespace = global;
   }
 

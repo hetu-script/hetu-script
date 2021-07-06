@@ -50,7 +50,7 @@ class HTParser extends HTAbstractParser {
 
   HTParser({HTErrorHandler? errorHandler, HTContext? context})
       : errorHandler = errorHandler ?? HTErrorHandlerImpl(),
-        context = context ?? HTContext();
+        context = context ?? HTContext.fileSystem();
 
   /// Will use [type] when possible, then [source.type], then [SourceType.module]
   List<AstNode> parse(List<Token> tokens,
@@ -108,8 +108,8 @@ class HTParser extends HTAbstractParser {
       for (final decl in module.imports) {
         try {
           late final HTModuleParseResult importModule;
-          final importFullName = context.getAbsolutePath(
-              pathName: decl.key, dirName: path.dirname(module.fullName));
+          final importFullName = HTContext.getAbsolutePath(
+              key: decl.key, dirName: path.dirname(module.fullName));
           decl.fullName = importFullName;
           if (_cachedResults.containsKey(importFullName)) {
             importModule = _cachedResults[importFullName]!;

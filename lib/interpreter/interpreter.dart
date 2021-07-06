@@ -135,7 +135,7 @@ class Hetu extends HTAbstractInterpreter {
   /// Each interpreter has a independent global [HTNamespace].
   Hetu({HTContext? context, this.config = const InterpreterConfig()})
       : global = HTNamespace(id: SemanticNames.global),
-        context = context ?? HTContext() {
+        context = context ?? HTContext.fileSystem() {
     _curNamespace = global;
     analyzer = HTAnalyzer(context: this.context);
   }

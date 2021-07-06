@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import '../error/error_severity.dart';
-import '../context/context.dart';
 import '../util/util.dart';
 
 abstract class HTLogger {
