@@ -405,6 +405,8 @@ abstract class HTLexicon {
       'Unexpected refer constructor on external constructor.';
   static const errorNonCotrWithReferCtor =
       'Unexpected refer constructor on normal function.';
+  static const errorSourceProviderError =
+      'Context error: could not load file with path [{0}]';
   static const errorInvalidLeftValue = 'Illegal left value.';
   static const errorPrivateMember = 'Could not acess private member [{0}]';
   static const errorConstMustBeStatic =

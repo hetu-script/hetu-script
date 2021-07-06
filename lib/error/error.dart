@@ -469,14 +469,16 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: Module import error
-  HTError.souceProviderError(String id, String message,
+  HTError.sourceProviderError(String id,
       {String? correction,
       String? moduleFullName,
       int? line,
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.moduleImport, ErrorType.syntacticError, '$message [$id]',
+      : this(ErrorCode.moduleImport, ErrorType.externalError,
+            HTLexicon.errorSourceProviderError,
+            interpolations: [id],
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,

@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 
 import '../source/source.dart';
 import 'file_system/file_system_context.dart';
+import 'overlay/overlay_context.dart';
 
 class HTFilterConfig {
   final String folder;
@@ -16,7 +17,10 @@ class HTFilterConfig {
       {this.extention = const [hetuSouceFileExtension], this.recursive = true});
 }
 
-/// [HTContext] are a set of files and folders under a folder or a path.
+/// [HTContext] are a set of sources under a unique path.
+/// It could be a physical folder, a virtual collection in memory,
+/// an URL, or even a remote database... any thing that provide
+/// create, read, update, delete services could be a context.
 abstract class HTContext {
   /// Get a unique absolute normalized path.
   static String getAbsolutePath(
@@ -42,6 +46,10 @@ abstract class HTContext {
       List<HTFilterConfig> excludedFilter,
       Map<String, HTSource>? cache}) = HTFileSystemContext;
 
+  /// Create a [HTOverlayContext]
+  factory HTContext.overlay({String? root, Map<String, HTSource>? cache}) =
+      HTOverlayContext;
+
   String get root;
 
   Iterable<String> get included;
@@ -50,6 +58,8 @@ abstract class HTContext {
 
   HTSource addSource(String fullName, String content,
       {SourceType type = SourceType.module, bool isLibraryEntry = false});
+
+  void removeSource(String fullName);
 
   /// Import a script module with a certain [key], ignore those already imported
   ///

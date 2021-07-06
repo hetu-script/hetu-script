@@ -1,23 +1,28 @@
+import 'package:hetu_script/context/context.dart';
+
 import '../context/context_manager.dart';
+import '../error/error.dart';
+import '../context/context.dart';
 import 'analysis_result.dart';
 import 'analyzer.dart';
 
-class HTAnalysisContextManager {
+class HTAnalysisManager {
   /// The underlying context manager for analyzer to access to source.
   final HTContextManager contextManager;
 
   final _pathToAnalyzer = <String, HTAnalyzer>{};
 
-  HTAnalysisContextManager(this.contextManager);
+  HTAnalysisManager(this.contextManager);
 
   HTModuleAnalysisResult? analyze(String fullName) {
-    if (_pathToAnalyzer.containsKey(fullName)) {
-      final analyzer = _pathToAnalyzer[fullName]!;
-      final source = contextManager.getSource(fullName);
+    final normalized = HTContext.getAbsolutePath(key: fullName);
+    if (_pathToAnalyzer.containsKey(normalized)) {
+      final analyzer = _pathToAnalyzer[normalized]!;
+      final source = contextManager.getSource(normalized)!;
       final result = analyzer.evalSource(source);
       return result;
     } else {
-      throw Exception('Could not found context root for file: [$fullName].');
+      throw HTError.sourceProviderError(fullName);
     }
   }
 
