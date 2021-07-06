@@ -12,7 +12,7 @@ class HTFileSystemContext implements HTContext {
   late final String root;
 
   @override
-  final List<String> included = <String>[];
+  final Set<String> included = <String>{};
 
   final Map<String, HTSource> _cached;
 
@@ -73,7 +73,15 @@ class HTFileSystemContext implements HTContext {
     final source = HTSource(content,
         fullName: normalized, type: type, isLibraryEntry: isLibraryEntry);
     _cached[normalized] = source;
+    included.add(normalized);
     return source;
+  }
+
+  @override
+  void removeSource(String fullName) {
+    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
+    _cached.remove(normalized);
+    included.remove(normalized);
   }
 
   @override
@@ -81,41 +89,43 @@ class HTFileSystemContext implements HTContext {
       {String? from,
       SourceType type = SourceType.module,
       bool isLibraryEntry = false}) {
-    final fullName = HTContext.getAbsolutePath(
+    final normalized = HTContext.getAbsolutePath(
         key: key, dirName: from != null ? path.dirname(from) : root);
-    if (_cached.containsKey(fullName)) {
-      return _cached[fullName]!;
+    if (_cached.containsKey(normalized)) {
+      return _cached[normalized]!;
     } else {
-      final content = File(fullName).readAsStringSync();
+      final content = File(normalized).readAsStringSync();
       final source = HTSource(content,
-          fullName: fullName, type: type, isLibraryEntry: isLibraryEntry);
-      _cached[fullName] = source;
+          fullName: normalized, type: type, isLibraryEntry: isLibraryEntry);
+      _cached[normalized] = source;
       return source;
     }
   }
 
   @override
   void updateSource(String fullName, String content) {
-    if (!_cached.containsKey(fullName)) {
-      throw HTError.souceProviderError(
-          fullName, 'Context error: could not load file with path');
+    final normalized = HTContext.getAbsolutePath(key: fullName);
+    if (!_cached.containsKey(normalized)) {
+      throw HTError.sourceProviderError(normalized);
     } else {
-      final source = _cached[fullName]!;
+      final source = _cached[normalized]!;
       source.content = content;
     }
   }
 
   // [fullPath] must be a normalized absolute path
-  bool _filterFile(String fullName, HTFilterConfig filter) {
-    final ext = path.extension(fullName);
-    final normalizedFolder =
+  bool _filterFile(String fileName, HTFilterConfig filter) {
+    final ext = path.extension(fileName);
+    final normalizedFilePath =
+        HTContext.getAbsolutePath(key: fileName, dirName: root);
+    final normalizedFolderPath =
         HTContext.getAbsolutePath(key: filter.folder, dirName: root);
-    if (fullName.startsWith(normalizedFolder)) {
+    if (path.isWithin(normalizedFolderPath, normalizedFilePath)) {
       if (filter.recursive) {
         return _checkExt(ext, filter.extention);
       } else {
-        final fileDirName = path.dirname(fullName);
-        final folderDirName = path.dirname(normalizedFolder);
+        final fileDirName = path.basename(path.dirname(fileName));
+        final folderDirName = path.basename(normalizedFolderPath);
         if (fileDirName == folderDirName) {
           return _checkExt(ext, filter.extention);
         }

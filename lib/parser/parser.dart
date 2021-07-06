@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as path;
 
 import '../context/context.dart';
@@ -121,13 +119,7 @@ class HTParser extends HTAbstractParser {
           results[importFullName] = importModule;
           handleImport(importModule);
         } catch (error, stackTrace) {
-          var message = error.toString();
-          if (error is ArgumentError) {
-            message = error.message;
-          } else if (error is FileSystemException) {
-            message = error.message;
-          }
-          final hetuError = HTError.souceProviderError(decl.key, message,
+          final hetuError = HTError.sourceProviderError(decl.key,
               moduleFullName: source.fullName,
               line: decl.line,
               column: decl.column,
