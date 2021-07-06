@@ -47,3 +47,5 @@ export 'context/context.dart';
 export 'analyzer/analysis_context_manager.dart';
 export 'error/error.dart';
 export 'error/error_handler.dart';
+export 'error/error_severity.dart';
+export 'logger/logger.dart';

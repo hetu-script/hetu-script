@@ -67,8 +67,8 @@ void main(List<String> arguments) {
         final cmd = results.command!;
         final cmdArgs = cmd.arguments;
         final targetPath = cmdArgs.first;
-        if (path.extension(targetPath) != '.ht') {
-          throw 'Error: target file extension is not \'.ht\'';
+        if (path.extension(targetPath) != hetuSouceFileExtension) {
+          throw 'Error: target file is not of extension \'$hetuSouceFileExtension\'';
         }
         final sourceType =
             cmd['script'] ? SourceType.script : SourceType.module;

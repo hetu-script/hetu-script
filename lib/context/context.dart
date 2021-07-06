@@ -13,7 +13,7 @@ class HTFilterConfig {
   final recursive;
 
   HTFilterConfig(this.folder,
-      {this.extention = const [], this.recursive = true});
+      {this.extention = const [hetuSouceFileExtension], this.recursive = true});
 }
 
 class HTContext {
