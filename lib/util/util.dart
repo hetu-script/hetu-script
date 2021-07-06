@@ -1,3 +1,5 @@
+import 'dart:math';
+
 /// Compute line starts for the given [content].
 /// Lines end with `\r`, `\n` or `\r\n`.
 List<int> computeLineStarts(String content) {
@@ -46,4 +48,11 @@ bool isEqual(dynamic a, dynamic b) {
   } else {
     return a == b;
   }
+}
+
+String char4() {
+  return ((1.0 + Random.secure().nextDouble()) * 0x10000)
+      .floor()
+      .toRadixString(16)
+      .substring(1);
 }
