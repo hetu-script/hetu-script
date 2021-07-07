@@ -26,7 +26,8 @@ abstract class HTContextManager<T extends HTContext> {
   T createContext(String root);
 
   bool hasSource(String key) {
-    return _cachedSources.containsKey(key);
+    final normalized = HTContext.getAbsolutePath(key: key);
+    return _cachedSources.containsKey(normalized);
   }
 
   HTSource addSource(String fullName, String content,
@@ -41,6 +42,9 @@ abstract class HTContextManager<T extends HTContext> {
         final source = context.addSource(normalized, content,
             type: type, isLibraryEntry: isLibraryEntry);
         _cachedSources[normalized] = source;
+        if (onRootsUpdated != null) {
+          onRootsUpdated!();
+        }
         return source;
       }
     }

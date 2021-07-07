@@ -42,7 +42,7 @@ abstract class HTAbstractParser {
         SemanticNames.endOfFile,
         _tokens.isNotEmpty ? _tokens.last.line + 1 : 0,
         0,
-        _tokens.last.offset + 1,
+        _tokens.isNotEmpty ? _tokens.last.offset + 1 : 0,
         0);
   }
 

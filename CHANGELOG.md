@@ -1,6 +1,7 @@
-## 0.1.4
+## 0.2.0
 
 - Analyzer can check for syntactic errors now.
+- Added IDE support for analyzer and formatter.
 - It's possible now to compile source into bytecode and at another time
   load and run directly (skip parsing static check and compile process).
 

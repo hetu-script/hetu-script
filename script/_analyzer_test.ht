@@ -1,0 +1,5 @@
+var i = print 'Hello, world! ${}'
+
+var i = 1 + 'd'
+
+

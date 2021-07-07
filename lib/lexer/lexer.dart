@@ -131,9 +131,9 @@ class HTLexer {
       // }
       ++curLine;
     }
-    // if (tokens.isEmpty) {
-    //   tokens.add(TokenEmptyLine(0, 0, 0));
-    // }
+    if (tokens.isEmpty) {
+      tokens.add(TokenEmptyLine(curLine, curColumn, start));
+    }
     return tokens;
   }
 
@@ -164,16 +164,16 @@ class HTLexer {
       if (tokens.isNotEmpty) {
         interpolations.add(tokens);
       } else {
-        interpolations.add(const []);
-        // TokenEmpty(
-        //     line,
-        //     column + match.start + HTLexicon.stringInterpolationStart.length,
-        //     // move beyond '${'
-        //     start +
-        //         quotationLeft.length +
-        //         match.start +
-        //         HTLexicon.stringInterpolationStart.length)
-        // ]);
+        interpolations.add([
+          TokenEmpty(
+              line,
+              // move beyond '${'
+              column + match.start + HTLexicon.stringInterpolationStart.length,
+              start +
+                  quotationLeft.length +
+                  match.start +
+                  HTLexicon.stringInterpolationEnd.length)
+        ]);
       }
     }
     return TokenStringInterpolation(literal, quotationLeft, quotationRight,

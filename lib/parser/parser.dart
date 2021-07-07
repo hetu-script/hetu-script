@@ -71,6 +71,16 @@ class HTParser extends HTAbstractParser {
         }
       }
     }
+    if (nodes.isEmpty) {
+      // tokens can not be empty, lexer will insert a empty line token anyway
+      final empty = EmptyExpr(
+          source: _curSource,
+          line: tokens.first.line,
+          column: tokens.first.column,
+          offset: tokens.first.offset,
+          length: tokens.last.end - tokens.first.offset);
+      nodes.add(empty);
+    }
     return nodes;
   }
 
@@ -992,6 +1002,7 @@ class HTParser extends HTAbstractParser {
               HTParser(errorHandler: errorHandler, context: context);
           final nodes = exprParser.parse(tokens,
               source: _curSource, type: SourceType.expression);
+          // nodes can not be empty here, parser will insert a empty line astnode
           if (nodes.length != 1) {
             final err = HTError.stringInterpolation(
                 moduleFullName: _curModuleFullName,
@@ -1011,6 +1022,21 @@ class HTParser extends HTAbstractParser {
                 offset: token.offset);
             interpolation.add(errToken);
           } else {
+            if (nodes.first is EmptyExpr) {
+              final err = HTError.stringInterpolation(
+                  moduleFullName: _curModuleFullName,
+                  line: nodes.first.line,
+                  column: nodes.first.column,
+                  offset: nodes.first.offset,
+                  length: nodes.first.length +
+                      HTLexicon.stringInterpolationStart.length +
+                      HTLexicon.stringInterpolationEnd.length);
+              if (errorHandler != null) {
+                errorHandler!(err);
+              } else {
+                throw err;
+              }
+            }
             interpolation.add(nodes.first);
           }
         }
