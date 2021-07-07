@@ -14,11 +14,7 @@ class _HTNull with HTObject {
 }
 
 /// Object is a runtime entity in the program that
-<<<<<<< HEAD
 /// represents a value that have accessible members
-=======
-/// represents a value that have accessable member varNames
->>>>>>> refactor function type
 abstract class HTObject {
   static const type = HTUnresolvedType(HTLexicon.object);
 

@@ -9,14 +9,8 @@ import '../../declaration/namespace/namespace.dart';
 import '../function/function.dart';
 import '../../object/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
-<<<<<<< HEAD
-import 'class_namespace.dart';
-import '../../type/generic_type_parameter.dart';
-import '../object.dart';
-=======
 import '../object.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
->>>>>>> refactor function type
 
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
