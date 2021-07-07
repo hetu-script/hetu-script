@@ -8,6 +8,9 @@ import 'analysis_error.dart';
 
 class HTModuleAnalysisResult {
   final HTSource source;
+  // HTSource get source => parseResult.source;
+
+  // final HTModuleParseResult parseResult;
 
   String get fullName => source.fullName;
 
@@ -25,7 +28,10 @@ class HTLibraryAnalysisResult extends HTLibrary {
 
   final Map<String, HTModuleAnalysisResult> modules;
 
-  HTLibraryAnalysisResult(String libraryName, this.compilation, this.modules,
+  final List<HTAnalysisError> errors;
+
+  HTLibraryAnalysisResult(
+      String libraryName, this.compilation, this.modules, this.errors,
       {Map<String, HTModule>? declarations})
       : super(libraryName, declarations: declarations);
 }

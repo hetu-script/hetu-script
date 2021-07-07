@@ -13,6 +13,7 @@ class HTLexer {
       HTLexicon.tokenPattern,
       unicode: true,
     );
+    var curOffset = start;
     for (final line in content.split('\n')) {
       final matches = pattern.allMatches(line);
       final toksOfLine = <Token>[];
@@ -21,27 +22,27 @@ class HTLexer {
         curColumn = column + match.start + 1;
         if (match.group(HTLexicon.tokenGroupSingleComment) != null) {
           toksOfLine.add(TokenSingleLineComment(matchString, curLine, curColumn,
-              start + match.start, start + match.end));
+              curOffset + match.start, curOffset + match.end));
         } else if (match.group(HTLexicon.tokenGroupBlockComment) != null) {
           toksOfLine.add(TokenMultiLineComment(matchString, curLine, curColumn,
-              start + match.start, start + match.end));
+              curOffset + match.start, curOffset + match.end));
         } else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
           if (matchString == HTLexicon.TRUE) {
             toksOfLine.add(TokenBooleanLiteral(matchString, true, curLine,
-                curColumn, start + match.start, start + match.end));
+                curColumn, curOffset + match.start, curOffset + match.end));
           } else if (matchString == HTLexicon.FALSE) {
             toksOfLine.add(TokenBooleanLiteral(matchString, false, curLine,
-                curColumn, start + match.start, start + match.end));
+                curColumn, curOffset + match.start, curOffset + match.end));
           } else if (HTLexicon.reservedKeywords.contains(matchString)) {
             toksOfLine.add(Token(matchString, curLine, curColumn,
-                start + match.start, start + match.end));
+                curOffset + match.start, curOffset + match.end));
           } else {
             toksOfLine.add(TokenIdentifier(matchString, curLine, curColumn,
-                start + match.start, start + match.end));
+                curOffset + match.start, curOffset + match.end));
           }
         } else if (match.group(HTLexicon.tokenGroupPunctuation) != null) {
           toksOfLine.add(Token(matchString, curLine, curColumn,
-              start + match.start, start + match.end));
+              curOffset + match.start, curOffset + match.end));
         } else if (match.group(HTLexicon.tokenGroupNumber) != null) {
           if (matchString.contains(HTLexicon.decimalPoint)) {
             toksOfLine.add(TokenFloatLiteral(
@@ -49,11 +50,16 @@ class HTLexer {
                 double.parse(matchString),
                 curLine,
                 curColumn,
-                start + match.start,
-                start + match.end));
+                curOffset + match.start,
+                curOffset + match.end));
           } else {
-            toksOfLine.add(TokenIntLiteral(matchString, int.parse(matchString),
-                curLine, curColumn, start + match.start, start + match.end));
+            toksOfLine.add(TokenIntLiteral(
+                matchString,
+                int.parse(matchString),
+                curLine,
+                curColumn,
+                curOffset + match.start,
+                curOffset + match.end));
           }
         } else if (match.group(HTLexicon.tokenGroupStringSingleQuotation) !=
             null) {
@@ -64,8 +70,8 @@ class HTLexer {
               HTLexicon.singleQuotationRight,
               curLine,
               curColumn,
-              start + match.start,
-              start + match.end));
+              curOffset + match.start,
+              curOffset + match.end));
         } else if (match.group(HTLexicon.tokenGroupStringDoubleQuotation) !=
             null) {
           final literal = matchString.substring(1, matchString.length - 1);
@@ -75,8 +81,8 @@ class HTLexer {
               HTLexicon.doubleQuotationRight,
               curLine,
               curColumn,
-              start + match.start,
-              start + match.end));
+              curOffset + match.start,
+              curOffset + match.end));
         } else if (match
                 .group(HTLexicon.tokenGroupStringInterpolationSingleMark) !=
             null) {
@@ -86,7 +92,7 @@ class HTLexer {
               HTLexicon.singleQuotationRight,
               curLine,
               curColumn + HTLexicon.singleQuotationLeft.length,
-              start + match.start);
+              curOffset + match.start);
           toksOfLine.add(token);
         } else if (match
                 .group(HTLexicon.tokenGroupStringInterpolationDoubleMark) !=
@@ -97,7 +103,7 @@ class HTLexer {
               HTLexicon.doubleQuotationRight,
               curLine,
               curColumn + HTLexicon.doubleQuotationLeft.length,
-              start + match.start);
+              curOffset + match.start);
           toksOfLine.add(token);
         }
       }
@@ -130,6 +136,8 @@ class HTLexer {
       //   }
       // }
       ++curLine;
+      // empty line counts as a character
+      curOffset += line.length + 1;
     }
     if (tokens.isEmpty) {
       tokens.add(TokenEmptyLine(curLine, curColumn, start));

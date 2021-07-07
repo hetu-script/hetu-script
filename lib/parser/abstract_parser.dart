@@ -1,7 +1,7 @@
 // import '../source/source.dart';
 import '../context/context.dart';
 import '../error/error.dart';
-import '../error/error_handler.dart';
+// import '../error/error_handler.dart';
 import '../grammar/semantic.dart';
 import '../lexer/token.dart';
 
@@ -16,14 +16,14 @@ abstract class HTAbstractParser {
 
   String? get curLibraryName;
 
-  HTErrorHandlerCallback? get errorHandler;
-
   HTContext get context;
 
   int _curLine = 0;
   int _curColumn = 0;
   int get curLine => _curLine;
   int get curColumn => _curColumn;
+
+  final errors = <HTError>[];
 
   var tokPos = 0;
 
@@ -72,11 +72,7 @@ abstract class HTAbstractParser {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.length);
-      if (errorHandler != null) {
-        errorHandler!(err);
-      } else {
-        throw err;
-      }
+      errors.add(err);
     }
 
     return advance(1);

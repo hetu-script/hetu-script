@@ -1,3 +1,5 @@
+import 'package:hetu_script/hetu_script.dart';
+
 import '../source/source.dart';
 import '../context/context.dart';
 import '../type/type.dart';
@@ -13,10 +15,10 @@ import '../declaration/declaration.dart';
 import '../declaration/function/function_declaration.dart';
 import '../declaration/function/parameter_declaration.dart';
 import '../declaration/variable/variable_declaration.dart';
-import '../parser/parse_result_collection.dart';
+// import '../parser/parse_result_collection.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
-import 'type_checker.dart';
+// import 'type_checker.dart';
 import '../declaration/struct/struct_declaration.dart';
 import '../grammar/semantic.dart';
 
@@ -67,21 +69,21 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   SourceType get curSourceType => _curSourceType ?? _curSource.type;
 
-  HTClassDeclaration? _curClass;
-  HTFunctionDeclaration? _curFunction;
+  // HTClassDeclaration? _curClass;
+  // HTFunctionDeclaration? _curFunction;
 
-  late HTModuleParseResultCompilation curCompilation;
+  /// Errors of a single file
+  final _curErrors = <HTAnalysisError>[];
 
-  late List<HTAnalysisError> _curErrors;
-
+  /// Errors of an analyis process.
   final errors = <HTAnalysisError>[];
 
-  late HTTypeChecker _curTypeChecker;
+  // late HTTypeChecker _curTypeChecker;
+
+  late HTModuleParseResultCompilation compilation;
 
   @override
   final HTContext context;
-
-  final moduleAnalysisResults = <String, HTModuleAnalysisResult>{};
 
   final analyzedDeclarations = <String, HTNamespace>{};
 
@@ -91,62 +93,47 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curNamespace = global;
   }
 
+  /// Analyzer should never throw.
   @override
-  void handleError(Object error, {Object? externalStackTrace}) {
-    late final analysisError;
-    if (error is HTError) {
-      analysisError = HTAnalysisError.fromError(error);
-    } else {
-      var message = error.toString();
-      analysisError = HTAnalysisError(
-          ErrorCode.extern, ErrorType.externalError, message,
-          moduleFullName: _curSource.fullName,
-          line: _curLine,
-          column: _curColumn);
-    }
-    _curErrors.add(analysisError);
-    errors.add(analysisError);
-  }
+  void handleError(Object error, {Object? externalStackTrace}) {}
 
   @override
-  HTModuleAnalysisResult? evalSource(HTSource source,
+  HTModuleAnalysisResult evalSource(HTSource source,
       {String? libraryName,
       bool globallyImport = false,
-      SourceType? type, // ignored in analyzer
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
       Map<String, dynamic> namedArgs = const {}, // ignored in analyzer
       List<HTType> typeArgs = const [], // ignored in analyzer
       bool errorHandled = false // ignored in analyzer
       }) {
-    if (source.content.isEmpty) {
-      return null;
-    }
+    errors.clear();
     _curSource = source;
-    _curErrors = <HTAnalysisError>[];
-    final parser = HTParser(errorHandler: handleError, context: context);
-    curCompilation =
-        parser.parseToCompilation(source, libraryName: libraryName);
+    final parser = HTParser(context: context);
+    compilation = parser.parseToCompilation(source, libraryName: libraryName);
     final declarations = <String, HTNamespace>{};
-    for (final module in curCompilation.modules.values) {
-      if (moduleAnalysisResults.containsKey(module.fullName)) {
-        continue;
-      }
-      final moduleAnalysisResult =
-          HTModuleAnalysisResult(module.source, this, _curErrors);
-      moduleAnalysisResults[module.fullName] = moduleAnalysisResult;
+    final results = <String, HTModuleAnalysisResult>{};
+    for (final module in compilation.modules.values) {
+      _curErrors.clear();
+      final parserErrors =
+          module.errors.map((err) => HTAnalysisError.fromError(err)).toList();
+      _curErrors.addAll(parserErrors);
       _curNamespace = HTNamespace(id: module.fullName, closure: global);
       declarations[module.fullName] = _curNamespace;
       for (final node in module.nodes) {
         analyzeAst(node);
       }
-      for (final decl in _curNamespace.declarations.values) {
-        analyzeDeclaration(decl);
-      }
+      final moduleAnalysisResult =
+          HTModuleAnalysisResult(module.source, this, parserErrors);
+      results[moduleAnalysisResult.fullName] = moduleAnalysisResult;
+      errors.addAll(_curErrors);
+    }
+    for (final decl in _curNamespace.declarations.values) {
+      analyzeDeclaration(decl);
     }
     analyzedDeclarations.addAll(declarations);
-    final moduleAnalysisResult = moduleAnalysisResults[source.fullName]!;
-    return moduleAnalysisResult;
+    final result = results[source.fullName]!;
+    return result;
   }
 
   void analyzeDeclaration(HTDeclaration decl) {}

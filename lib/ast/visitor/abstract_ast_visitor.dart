@@ -1,4 +1,4 @@
-part of 'ast.dart';
+part of '../ast.dart';
 
 /// Visitor interface for a abstract syntactic tree node
 abstract class AbstractAstVisitor<T> {

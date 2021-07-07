@@ -208,7 +208,6 @@ class Hetu extends HTAbstractInterpreter {
   dynamic evalSource(HTSource source,
       {String? libraryName,
       bool globallyImport = false,
-      SourceType? type,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -217,11 +216,10 @@ class Hetu extends HTAbstractInterpreter {
     if (source.content.isEmpty) {
       return null;
     }
-    _curSourceType = type ?? source.type;
+    _curSourceType = source.type;
     _curModuleFullName = source.fullName;
     try {
-      final bytes =
-          compileSource(source, type: _curSourceType, errorHandled: true);
+      final bytes = compileSource(source, errorHandled: true);
       if (bytes != null) {
         final result = loadBytecode(bytes, libraryName ?? source.fullName,
             globallyImport: globallyImport,
@@ -282,7 +280,6 @@ class Hetu extends HTAbstractInterpreter {
     final source = context.getSource(key, type: type);
     final bytes = compileSource(source,
         libraryName: libraryName,
-        type: type,
         isLibraryEntry: isLibraryEntry,
         config: config,
         errorHandled: errorHandled);
@@ -292,16 +289,13 @@ class Hetu extends HTAbstractInterpreter {
   /// Compile a [HTSource] into bytecode for later use.
   Uint8List? compileSource(HTSource source,
       {String? libraryName,
-      SourceType? type,
       bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
     try {
-      final moduleAnalysisResult =
-          analyzer.evalSource(source, libraryName: libraryName, type: type);
-      if (moduleAnalysisResult != null &&
-          moduleAnalysisResult.errors.isNotEmpty) {
-        for (final error in moduleAnalysisResult.errors) {
+      analyzer.evalSource(source);
+      if (analyzer.errors.isNotEmpty) {
+        for (final error in analyzer.errors) {
           if (errorHandled) {
             throw error;
           } else {
@@ -309,10 +303,9 @@ class Hetu extends HTAbstractInterpreter {
           }
         }
       }
-      final compilation = analyzer.curCompilation;
       final compiler = HTCompiler(config: config);
-      final bytes =
-          compiler.compile(compilation); //, libraryName ?? source.fullName);
+      final bytes = compiler
+          .compile(analyzer.compilation); //, libraryName ?? source.fullName);
       return bytes;
     } catch (error) {
       if (errorHandled) {

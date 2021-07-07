@@ -1,5 +1,7 @@
 import '../../source/source.dart';
 import '../../ast/ast.dart' show AstNode, ImportDecl;
+import '../error/error.dart';
+import '../../source/line_info.dart';
 
 /// Contains the resolved fullname of a import statement
 class ImportInfo {
@@ -23,6 +25,8 @@ class HTModuleParseResult {
 
   SourceType get type => source.type;
 
+  LineInfo get lineInfo => source.lineInfo;
+
   final String? libraryName;
 
   final bool isLibraryEntry;
@@ -32,6 +36,11 @@ class HTModuleParseResult {
 
   final List<ImportDecl> imports;
 
+  final List<HTError> errors;
+
   HTModuleParseResult(this.source, this.nodes,
-      {this.libraryName, this.isLibraryEntry = false, this.imports = const []});
+      {this.libraryName,
+      this.isLibraryEntry = false,
+      this.imports = const [],
+      this.errors = const []});
 }

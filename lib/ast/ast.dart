@@ -2,7 +2,7 @@ import '../lexer/token.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
 
-part 'abstract_ast_visitor.dart';
+part 'visitor/abstract_ast_visitor.dart';
 
 abstract class AstNode {
   final String type;
@@ -19,8 +19,10 @@ abstract class AstNode {
 
   int get end => offset + length;
 
-  /// 取表达式右值，返回值本身
   dynamic accept(AbstractAstVisitor visitor);
+
+  /// Visit all the sub nodes
+  void acceptAll(AbstractAstVisitor visitor) {}
 
   const AstNode(this.type,
       {this.source,
@@ -174,20 +176,15 @@ class ConstStringExpr extends AstNode {
             column: column,
             offset: offset,
             length: length);
-
-  // ConstStringExpr.fromToken(TokenStringLiteral token, {HTSource? source})
-  //     : this(token.literal, token.quotationLeft, token.quotationRight,
-  //           source: source,
-  //           line: token.line,
-  //           column: token.column,
-  //           offset: token.offset,
-  //           length: token.length);
 }
 
 class StringInterpolationExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitStringInterpolationExpr(this);
+
+  @override
+  dynamic acceptAll(AbstractAstVisitor visitor) => null;
 
   final String value;
 
@@ -220,16 +217,13 @@ class SymbolExpr extends AstNode {
 
   final bool isLocal;
 
-  final List<TypeExpr> typeArgs;
-
   const SymbolExpr(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0,
-      this.isLocal = true,
-      this.typeArgs = const []})
+      this.isLocal = true})
       : super(SemanticNames.symbolExpr,
             source: source,
             line: line,
@@ -241,6 +235,13 @@ class SymbolExpr extends AstNode {
 class ListExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitListExpr(this);
+
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    for (final item in list) {
+      item.accept(visitor);
+    }
+  }
 
   final List<AstNode> list;
 
@@ -262,6 +263,15 @@ class MapExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitMapExpr(this);
 
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    for (final key in map.keys) {
+      key.accept(visitor);
+      final value = map[key]!;
+      value.accept(visitor);
+    }
+  }
+
   final Map<AstNode, AstNode> map;
 
   const MapExpr(this.map,
@@ -281,6 +291,11 @@ class MapExpr extends AstNode {
 class GroupExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitGroupExpr(this);
+
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    inner.accept(visitor);
+  }
 
   final AstNode inner;
 
@@ -302,7 +317,15 @@ class TypeExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitTypeExpr(this);
 
-  final String id;
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    id.accept(visitor);
+    for (final item in arguments) {
+      item.accept(visitor);
+    }
+  }
+
+  final SymbolExpr id;
 
   final List<TypeExpr> arguments;
 
@@ -332,6 +355,12 @@ class ParamTypeExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitParamTypeExpr(this);
 
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    id?.accept(visitor);
+    declType.accept(visitor);
+  }
+
   /// Wether this is an optional parameter.
   final bool isOptional;
 
@@ -341,7 +370,7 @@ class ParamTypeExpr extends AstNode {
   bool get isNamed => id != null;
 
   /// Wether this is a named parameter.
-  final String? id;
+  final SymbolExpr? id;
 
   final TypeExpr declType;
 
@@ -363,21 +392,35 @@ class ParamTypeExpr extends AstNode {
 }
 
 class FuncTypeExpr extends TypeExpr {
-  final TypeExpr returnType;
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitFunctionTypeExpr(this);
+
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    keyword.accept(visitor);
+    for (final item in genericTypeParameters) {
+      item.accept(visitor);
+    }
+    for (final item in paramTypes) {
+      item.accept(visitor);
+    }
+    returnType.accept(visitor);
+  }
+
+  final SymbolExpr keyword;
 
   final List<GenericTypeParamExpr> genericTypeParameters;
 
   final List<ParamTypeExpr> paramTypes;
 
+  final TypeExpr? returnType;
+
   final bool hasOptionalParam;
 
   final bool hasNamedParam;
 
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitFunctionTypeExpr(this);
-
-  const FuncTypeExpr(this.returnType,
+  const FuncTypeExpr(this.keyword,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -386,9 +429,10 @@ class FuncTypeExpr extends TypeExpr {
       bool isLocal = true,
       this.genericTypeParameters = const [],
       this.paramTypes = const [],
+      this.returnType,
       required this.hasOptionalParam,
       required this.hasNamedParam})
-      : super(SemanticNames.funcTypeExpr,
+      : super(keyword,
             isLocal: isLocal,
             source: source,
             line: line,
@@ -402,7 +446,13 @@ class GenericTypeParamExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitGenericTypeParamExpr(this);
 
-  final String id;
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    id.accept(visitor);
+    superType?.accept(visitor);
+  }
+
+  final SymbolExpr id;
 
   final TypeExpr? superType;
 

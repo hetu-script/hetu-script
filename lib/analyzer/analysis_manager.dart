@@ -1,4 +1,5 @@
 import 'package:hetu_script/context/context.dart';
+import 'package:hetu_script/parser/parse_result.dart';
 
 import '../context/context_manager.dart';
 // import '../error/error.dart';
@@ -15,6 +16,10 @@ class HTAnalysisManager {
 
   final _pathsToAnalyzer = <String, HTAnalyzer>{};
 
+  final _analysisResults = <String, HTModuleAnalysisResult>{};
+
+  final _parseResults = <String, HTModuleParseResult>{};
+
   Iterable<String> get pathsToAnalyze => _pathsToAnalyzer.keys;
 
   HTAnalysisManager(this.contextManager, {this.errorHandler}) {
@@ -28,23 +33,20 @@ class HTAnalysisManager {
     };
   }
 
-  HTModuleAnalysisResult? analyze(String fullName) {
+  HTModuleParseResult? getParseResult(String fullName) {
     final normalized = HTContext.getAbsolutePath(key: fullName);
-    if (_pathsToAnalyzer.containsKey(normalized)) {
-      final analyzer = _pathsToAnalyzer[normalized]!;
-      try {
-        final source = contextManager.getSource(normalized)!;
-        final result = analyzer.evalSource(source);
-        return result;
-      } catch (error, stackTrace) {
-        if (errorHandler != null) {
-          errorHandler!(error, externalStackTrace: stackTrace);
-        } else {
-          rethrow;
-        }
-      }
-    } else {
-      throw 'Could not find analyzer for: [$normalized]\nCurrent analyzers:\n$_pathsToAnalyzer';
+    return _parseResults[normalized];
+  }
+
+  HTModuleAnalysisResult analyze(String fullName) {
+    final normalized = HTContext.getAbsolutePath(key: fullName);
+    final analyzer = _pathsToAnalyzer[normalized]!;
+    final source = contextManager.getSource(normalized)!;
+    final result = analyzer.evalSource(source);
+    for (final module in analyzer.compilation.modules.values) {
+      _parseResults[module.fullName] = module;
     }
+    _analysisResults[normalized] = result;
+    return result;
   }
 }
