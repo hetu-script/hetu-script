@@ -20,7 +20,8 @@ enum ErrorCode {
   internalFuncWithExternalTypeDef,
   externalCtorWithReferCtor,
   nonCotrWithReferCtor,
-  moduleImport,
+  sourceProviderError,
+  notAbsoluteError,
   invalidLeftValue,
   privateMember,
   constMustBeStatic,
@@ -476,8 +477,26 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.moduleImport, ErrorType.externalError,
+      : this(ErrorCode.sourceProviderError, ErrorType.externalError,
             HTLexicon.errorSourceProviderError,
+            interpolations: [id],
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Module import error
+  HTError.notAbsoluteError(String id,
+      {String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.notAbsoluteError, ErrorType.externalError,
+            HTLexicon.errorNotAbsoluteError,
             interpolations: [id],
             correction: correction,
             moduleFullName: moduleFullName,

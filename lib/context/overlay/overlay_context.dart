@@ -15,7 +15,7 @@ class HTOverlayContext implements HTContext {
   late final String root;
 
   @override
-  Iterable<String> get included => _cached.keys;
+  final Set<String> included = <String>{};
 
   final Map<String, HTSource> _cached;
 
@@ -38,6 +38,7 @@ class HTOverlayContext implements HTContext {
     final source = HTSource(content,
         fullName: normalized, type: type, isLibraryEntry: isLibraryEntry);
     _cached[normalized] = source;
+    included.add(normalized);
     return source;
   }
 
@@ -45,6 +46,7 @@ class HTOverlayContext implements HTContext {
   void removeSource(String fullName) {
     final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
     _cached.remove(normalized);
+    included.remove(normalized);
   }
 
   @override

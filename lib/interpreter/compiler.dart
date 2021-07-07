@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../parser/parse_result_collection.dart';
 import '../grammar/lexicon.dart';
@@ -9,15 +8,6 @@ import '../grammar/semantic.dart';
 import '../source/source.dart';
 import 'opcode.dart';
 import 'const_table.dart';
-
-// void main() {
-//   var bytes = utf8.encode("foobar"); // data being hashed
-
-//   var digest = sha1.convert(bytes);
-
-//   print("Digest as bytes: ${digest.bytes}");
-//   print("Digest as hex string: $digest");
-// }
 
 class HTRegIdx {
   static const value = 0;
@@ -72,7 +62,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   /// used to determine compatibility.
   static const hetuVersionData = [0, 1, 0, 0];
 
-  HTErrorHandler errorHandler;
   CompilerConfig config;
 
   final _curConstTable = ConstTable();
@@ -82,20 +71,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   int get curLine => _curLine;
   int get curColumn => _curColumn;
 
-  // late String _curLibraryName;
-  // String get curLibraryName => _curLibraryName;
-
-  // HTClassDeclaration? _curClass;
-  // HTFunctionDeclaration? _curFunc;
-
   final List<Map<String, String>> _markedSymbolsList = [];
 
-  HTCompiler({CompilerConfig? config, HTErrorHandler? errorHandler})
-      : config = config ?? const CompilerConfigImpl(),
-        errorHandler = errorHandler ?? HTErrorHandlerImpl();
+  HTCompiler({CompilerConfig? config})
+      : config = config ?? const CompilerConfigImpl();
 
   Uint8List compile(HTModuleParseResultCompilation compilation) {
-    // _curLibraryName = libraryName;
     final mainBytesBuilder = BytesBuilder();
     // hetu bytecode signature
     mainBytesBuilder.addByte(HTOpCode.signature);

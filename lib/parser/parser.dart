@@ -44,11 +44,10 @@ class HTParser extends HTAbstractParser {
   final HTContext context;
 
   @override
-  final HTErrorHandler errorHandler;
+  final HTErrorHandlerCallback? errorHandler;
 
-  HTParser({HTErrorHandler? errorHandler, HTContext? context})
-      : errorHandler = errorHandler ?? HTErrorHandlerImpl(),
-        context = context ?? HTContext.fileSystem();
+  HTParser({this.errorHandler, HTContext? context})
+      : context = context ?? HTContext.fileSystem();
 
   /// Will use [type] when possible, then [source.type], then [SourceType.module]
   List<AstNode> parse(List<Token> tokens,
@@ -125,7 +124,11 @@ class HTParser extends HTAbstractParser {
               column: decl.column,
               offset: decl.offset,
               length: decl.length);
-          errorHandler.handleError(hetuError, externalStackTrace: stackTrace);
+          if (errorHandler != null) {
+            errorHandler!(hetuError, externalStackTrace: stackTrace);
+          } else {
+            throw hetuError;
+          }
         }
       }
     }
@@ -180,7 +183,11 @@ class HTParser extends HTAbstractParser {
                       column: curTok.column,
                       offset: curTok.offset,
                       length: curTok.length);
-                  errorHandler.handleError(err);
+                  if (errorHandler != null) {
+                    errorHandler!(err);
+                  } else {
+                    throw err;
+                  }
                   advance(1);
                   return null;
               }
@@ -203,7 +210,11 @@ class HTParser extends HTAbstractParser {
                       column: curTok.column,
                       offset: curTok.offset,
                       length: curTok.length);
-                  errorHandler.handleError(err);
+                  if (errorHandler != null) {
+                    errorHandler!(err);
+                  } else {
+                    throw err;
+                  }
                   advance(1);
                   return null;
                 case HTLexicon.FUNCTION:
@@ -216,7 +227,11 @@ class HTParser extends HTAbstractParser {
                       column: curTok.column,
                       offset: curTok.offset,
                       length: curTok.length);
-                  errorHandler.handleError(err);
+                  if (errorHandler != null) {
+                    errorHandler!(err);
+                  } else {
+                    throw err;
+                  }
                   advance(1);
                   return null;
               }
@@ -296,7 +311,11 @@ class HTParser extends HTAbstractParser {
                       column: curTok.column,
                       offset: curTok.offset,
                       length: curTok.length);
-                  errorHandler.handleError(err);
+                  if (errorHandler != null) {
+                    errorHandler!(err);
+                  } else {
+                    throw err;
+                  }
                   advance(1);
                   return null;
               }
@@ -313,7 +332,11 @@ class HTParser extends HTAbstractParser {
                         column: curTok.column,
                         offset: curTok.offset,
                         length: curTok.length);
-                    errorHandler.handleError(err);
+                    if (errorHandler != null) {
+                      errorHandler!(err);
+                    } else {
+                      throw err;
+                    }
                     advance(1);
                     return null;
                   } else {
@@ -332,7 +355,11 @@ class HTParser extends HTAbstractParser {
                         column: curTok.column,
                         offset: curTok.offset,
                         length: curTok.length);
-                    errorHandler.handleError(err);
+                    if (errorHandler != null) {
+                      errorHandler!(err);
+                    } else {
+                      throw err;
+                    }
                     advance(1);
                     return null;
                   } else {
@@ -347,7 +374,11 @@ class HTParser extends HTAbstractParser {
                       column: curTok.column,
                       offset: curTok.offset,
                       length: curTok.length);
-                  errorHandler.handleError(err);
+                  if (errorHandler != null) {
+                    errorHandler!(err);
+                  } else {
+                    throw err;
+                  }
                   advance(1);
                   return null;
                 default:
@@ -358,7 +389,11 @@ class HTParser extends HTAbstractParser {
                       column: curTok.column,
                       offset: curTok.offset,
                       length: curTok.length);
-                  errorHandler.handleError(err);
+                  if (errorHandler != null) {
+                    errorHandler!(err);
+                  } else {
+                    throw err;
+                  }
                   advance(1);
                   return null;
               }
@@ -383,7 +418,11 @@ class HTParser extends HTAbstractParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errorHandler.handleError(err);
+              if (errorHandler != null) {
+                errorHandler!(err);
+              } else {
+                throw err;
+              }
               advance(1);
               return null;
           }
@@ -401,7 +440,11 @@ class HTParser extends HTAbstractParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errorHandler.handleError(err);
+            if (errorHandler != null) {
+              errorHandler!(err);
+            } else {
+              throw err;
+            }
             advance(1);
             return null;
           } else {
@@ -457,7 +500,11 @@ class HTParser extends HTAbstractParser {
                     column: curTok.column,
                     offset: curTok.offset,
                     length: curTok.length);
-                errorHandler.handleError(err);
+                if (errorHandler != null) {
+                  errorHandler!(err);
+                } else {
+                  throw err;
+                }
                 advance(1);
                 return null;
               } else {
@@ -476,7 +523,11 @@ class HTParser extends HTAbstractParser {
                     column: curTok.column,
                     offset: curTok.offset,
                     length: curTok.length);
-                errorHandler.handleError(err);
+                if (errorHandler != null) {
+                  errorHandler!(err);
+                } else {
+                  throw err;
+                }
                 advance(1);
                 return null;
               } else {
@@ -494,7 +545,11 @@ class HTParser extends HTAbstractParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errorHandler.handleError(err);
+              if (errorHandler != null) {
+                errorHandler!(err);
+              } else {
+                throw err;
+              }
               advance(1);
               return null;
           }
@@ -565,7 +620,11 @@ class HTParser extends HTAbstractParser {
                     column: curTok.column,
                     offset: curTok.offset,
                     length: curTok.length);
-                errorHandler.handleError(err);
+                if (errorHandler != null) {
+                  errorHandler!(err);
+                } else {
+                  throw err;
+                }
                 advance(1);
                 return null;
               }
@@ -614,7 +673,11 @@ class HTParser extends HTAbstractParser {
               column: left.column,
               offset: left.offset,
               length: left.length);
-          errorHandler.handleError(err);
+          if (errorHandler != null) {
+            errorHandler!(err);
+          } else {
+            throw err;
+          }
         }
         final op = advance(1);
         final right = _parseExpr();
@@ -936,7 +999,11 @@ class HTParser extends HTAbstractParser {
                 column: nodes.first.column,
                 offset: token.offset,
                 length: token.length);
-            errorHandler.handleError(err);
+            if (errorHandler != null) {
+              errorHandler!(err);
+            } else {
+              throw err;
+            }
             final errToken = EmptyExpr(
                 source: _curSource,
                 line: token.line,
@@ -1051,7 +1118,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
         final errToken = advance(1);
         return EmptyExpr(
             source: _curSource,
@@ -1075,7 +1146,11 @@ class HTParser extends HTAbstractParser {
               column: curTok.column,
               offset: lastTok.offset,
               length: lastTok.length + curTok.length);
-          errorHandler.handleError(err);
+          if (errorHandler != null) {
+            errorHandler!(err);
+          } else {
+            throw err;
+          }
         }
         while ((curTok.type != HTLexicon.angleRight) &&
             (curTok.type != SemanticNames.endOfFile)) {
@@ -1259,7 +1334,11 @@ class HTParser extends HTAbstractParser {
             moduleFullName: curModuleFullName,
             line: curTok.line,
             column: curTok.column);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
         stmt = EmptyExpr(
             line: curTok.line, column: curTok.column, offset: curTok.offset);
       }
@@ -1277,7 +1356,11 @@ class HTParser extends HTAbstractParser {
               moduleFullName: curModuleFullName,
               line: curTok.line,
               column: curTok.column);
-          errorHandler.handleError(err);
+          if (errorHandler != null) {
+            errorHandler!(err);
+          } else {
+            throw err;
+          }
         }
         elseBranch = stmt;
       }
@@ -1335,7 +1418,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
       declaration = _parseVarDecl(
           // typeInferrence: curTok.type != HTLexicon.VAR,
@@ -1407,7 +1494,11 @@ class HTParser extends HTAbstractParser {
                 moduleFullName: curModuleFullName,
                 line: curTok.line,
                 column: curTok.column);
-            errorHandler.handleError(err);
+            if (errorHandler != null) {
+              errorHandler!(err);
+            } else {
+              throw err;
+            }
           }
           elseBranch = stmt;
         }
@@ -1425,7 +1516,11 @@ class HTParser extends HTAbstractParser {
                 moduleFullName: curModuleFullName,
                 line: curTok.line,
                 column: curTok.column);
-            errorHandler.handleError(err);
+            if (errorHandler != null) {
+              errorHandler!(err);
+            } else {
+              throw err;
+            }
           }
           caseBranch = stmt;
         }
@@ -1471,7 +1566,11 @@ class HTParser extends HTAbstractParser {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.length);
-      errorHandler.handleError(err);
+      if (errorHandler != null) {
+        errorHandler!(err);
+      } else {
+        throw err;
+      }
     }
     final keyword = advance(1);
     _isLibraryEntry = true;
@@ -1506,7 +1605,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
     }
     final key = match(SemanticNames.stringLiteral);
@@ -1569,7 +1672,11 @@ class HTParser extends HTAbstractParser {
             column: keyword.column,
             offset: curTok.offset,
             length: curTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
       id = '$classId.$id';
     }
@@ -1630,7 +1737,11 @@ class HTParser extends HTAbstractParser {
               column: curTok.column,
               offset: curTok.offset,
               length: curTok.length);
-          errorHandler.handleError(err);
+          if (errorHandler != null) {
+            errorHandler!(err);
+          } else {
+            throw err;
+          }
         }
         externalTypedef = match(SemanticNames.identifier).lexeme;
         match(HTLexicon.squareRight);
@@ -1719,7 +1830,11 @@ class HTParser extends HTAbstractParser {
                 column: lastTok.column,
                 offset: lastTok.offset,
                 length: lastTok.length);
-            errorHandler.handleError(err);
+            if (errorHandler != null) {
+              errorHandler!(err);
+            } else {
+              throw err;
+            }
           }
         }
         final param = ParamDecl(paramId.lexeme,
@@ -1761,7 +1876,11 @@ class HTParser extends HTAbstractParser {
             column: startTok.column,
             offset: startTok.offset,
             length: endTok.offset + endTok.length - startTok.offset);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
     }
     TypeExpr? returnType;
@@ -1776,7 +1895,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: lastTok.offset,
             length: lastTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
       returnType = _parseTypeExpr();
     }
@@ -1790,7 +1913,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: lastTok.offset,
             length: lastTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
       if (isExternal) {
         final lastTok = peek(-1);
@@ -1800,7 +1927,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: lastTok.offset,
             length: lastTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
       final ctorCallee = advance(1);
       if (!HTLexicon.constructorCall.contains(ctorCallee.lexeme)) {
@@ -1811,7 +1942,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: ctorCallee.offset,
             length: ctorCallee.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
       String? ctorKey;
       if (expect([HTLexicon.memberGet], consume: true)) {
@@ -1847,7 +1982,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
       expect([HTLexicon.semicolon], consume: true);
     }
@@ -1891,7 +2030,11 @@ class HTParser extends HTAbstractParser {
           column: curTok.column,
           offset: keyword.offset,
           length: keyword.length);
-      errorHandler.handleError(err);
+      if (errorHandler != null) {
+        errorHandler!(err);
+      } else {
+        throw err;
+      }
     }
     final id = match(SemanticNames.identifier);
     final genericParameters = _getGenericParams();
@@ -1904,7 +2047,11 @@ class HTParser extends HTAbstractParser {
             column: curTok.column,
             offset: keyword.offset,
             length: keyword.length);
-        errorHandler.handleError(err);
+        if (errorHandler != null) {
+          errorHandler!(err);
+        } else {
+          throw err;
+        }
       }
 
       superClassType = _parseTypeExpr();

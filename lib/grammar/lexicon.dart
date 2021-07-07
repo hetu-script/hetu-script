@@ -405,7 +405,9 @@ abstract class HTLexicon {
   static const errorNonCotrWithReferCtor =
       'Unexpected refer constructor on normal function.';
   static const errorSourceProviderError =
-      'Context error: could not load file with path [{0}]';
+      'Context error: could not load file: [{0}]';
+  static const errorNotAbsoluteError =
+      'Adding source failed, not a absolute path: [{0}]';
   static const errorInvalidLeftValue = 'Illegal left value.';
   static const errorPrivateMember = 'Could not acess private member [{0}]';
   static const errorConstMustBeStatic =

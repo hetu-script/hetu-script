@@ -2,7 +2,7 @@ enum ErrorHanldeApproach {
   ingore,
   stdout,
   exception,
-  list,
+  log,
 }
 
 abstract class ErrorHandlerConfig {
@@ -39,6 +39,9 @@ class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
       this.approach = ErrorHanldeApproach.exception});
 }
 
+typedef HTErrorHandlerCallback = void Function(Object error,
+    {Object? externalStackTrace});
+
 /// Abstract error handler class
 abstract class HTErrorHandler {
   ErrorHandlerConfig get errorConfig;
@@ -66,8 +69,9 @@ class HTErrorHandlerImpl implements HTErrorHandler {
         break;
       case ErrorHanldeApproach.exception:
         throw (error);
-      case ErrorHanldeApproach.list:
+      case ErrorHanldeApproach.log:
         errors.add(error);
+        break;
     }
   }
 }

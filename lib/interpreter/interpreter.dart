@@ -302,10 +302,16 @@ class Hetu extends HTAbstractInterpreter {
           analyzer.evalSource(source, libraryName: libraryName, type: type);
       if (moduleAnalysisResult != null &&
           moduleAnalysisResult.errors.isNotEmpty) {
-        throw moduleAnalysisResult.errors.first;
+        for (final error in moduleAnalysisResult.errors) {
+          if (errorHandled) {
+            throw error;
+          } else {
+            handleError(error);
+          }
+        }
       }
       final compilation = analyzer.curCompilation;
-      final compiler = HTCompiler(config: config, errorHandler: this);
+      final compiler = HTCompiler(config: config);
       final bytes =
           compiler.compile(compilation); //, libraryName ?? source.fullName);
       return bytes;
