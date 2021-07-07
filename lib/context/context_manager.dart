@@ -1,7 +1,10 @@
 import 'package:path/path.dart' as path;
 
 import '../source/source.dart';
+import '../error/error.dart';
 import 'context.dart';
+
+typedef _RootUpdatedCallback = void Function();
 
 /// Manage a set of contexts.
 /// Extends this class and provide an implementation of
@@ -17,7 +20,8 @@ abstract class HTContextManager<T extends HTContext> {
 
   Map<String, HTSource> get cachedSources => _cachedSources;
 
-  Function? _rootsUpdatedCallback;
+  /// Set up a callback for root updated event.
+  _RootUpdatedCallback? onRootsUpdated;
 
   T createContext(String root);
 
@@ -25,34 +29,40 @@ abstract class HTContextManager<T extends HTContext> {
     return _cachedSources.containsKey(key);
   }
 
-  void addSource(String fullName, String content,
+  HTSource addSource(String fullName, String content,
       {SourceType type = SourceType.module, bool isLibraryEntry = false}) {
     if (!path.isAbsolute(fullName)) {
-      throw Exception('Adding source failed, not a absolute path: [$fullName]');
+      throw HTError.notAbsoluteError(fullName);
     }
-    var isWithin = false;
+    final normalized = HTContext.getAbsolutePath(key: fullName);
+    // var isWithin = false;
     for (final context in contexts) {
-      if (context.contains(fullName)) {
-        final source = context.addSource(fullName, content,
+      if (context.contains(normalized)) {
+        final source = context.addSource(normalized, content,
             type: type, isLibraryEntry: isLibraryEntry);
-        _cachedSources[source.fullName] = source;
-        break;
+        _cachedSources[normalized] = source;
+        return source;
       }
     }
-    if (!isWithin) {
-      final root = path.dirname(fullName);
-      final context = createContext(root);
-      _contextRoots[context.root] = context;
-      final source = context.addSource(fullName, content,
-          type: type, isLibraryEntry: isLibraryEntry);
-      _cachedSources[source.fullName] = source;
+    // if (!isWithin) {
+    final root = path.dirname(normalized);
+    final context = createContext(root);
+    _contextRoots[context.root] = context;
+    final source = context.addSource(normalized, content,
+        type: type, isLibraryEntry: isLibraryEntry);
+    _cachedSources[normalized] = source;
+    if (onRootsUpdated != null) {
+      onRootsUpdated!();
     }
+    return source;
+    // }
   }
 
   void removeSource(String fullName) {
+    final normalized = HTContext.getAbsolutePath(key: fullName);
     for (final context in contexts) {
-      if (context.contains(fullName)) {
-        context.removeSource(fullName);
+      if (context.contains(normalized)) {
+        context.removeSource(normalized);
       }
     }
   }
@@ -93,27 +103,9 @@ abstract class HTContextManager<T extends HTContext> {
   ///
   /// The folder paths does not neccessarily be normalized.
   void setRoots(Iterable<String> folderPaths) {
-    final roots = folderPaths.toSet();
-    _comupteRoots(roots);
-    _contextRoots.clear();
-    for (final root in roots) {
-      final context = createContext(root);
-      _contextRoots[context.root] = context;
-    }
-    if (_rootsUpdatedCallback != null) {
-      _rootsUpdatedCallback!();
-    }
-  }
-
-  /// Computes roots from a set of files.
-  ///
-  /// The file paths does not neccessarily be normalized.
-  void computeRootsFromFiles(Iterable<String> filePaths) {
-    final roots = filePaths.map((filePath) => path.dirname(filePath)).toSet();
-    setRoots(roots);
-  }
-
-  void _comupteRoots(Set<String> roots) {
+    final roots = folderPaths
+        .map((folderPath) => HTContext.getAbsolutePath(key: folderPath))
+        .toSet();
     roots.removeWhere((root1) {
       for (final root2 in roots) {
         if (root2 == root1) continue;
@@ -123,10 +115,28 @@ abstract class HTContextManager<T extends HTContext> {
       }
       return false;
     });
+    _contextRoots.clear();
+    for (final root in roots) {
+      final context = createContext(root);
+      _contextRoots[root] = context;
+    }
+    if (onRootsUpdated != null) {
+      onRootsUpdated!();
+    }
   }
 
-  /// Set up a callback for root updated event.
-  void onRootsUpdated(Function callback) {
-    _rootsUpdatedCallback = callback;
+  /// Computes roots from a set of files.
+  ///
+  /// The file paths does not neccessarily be normalized.
+  void computeRootsFromFiles(Iterable<String> filePaths) {
+    final roots = filePaths
+        .map((folderPath) =>
+            path.dirname(HTContext.getAbsolutePath(key: folderPath)))
+        .toSet();
+    setRoots(roots);
   }
+
+  // void onRootsUpdated(Function callback) {
+  //   _rootsUpdatedCallback = callback;
+  // }
 }

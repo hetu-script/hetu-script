@@ -16,7 +16,7 @@ abstract class HTAbstractParser {
 
   String? get curLibraryName;
 
-  HTErrorHandler get errorHandler;
+  HTErrorHandlerCallback? get errorHandler;
 
   HTContext get context;
 
@@ -72,7 +72,11 @@ abstract class HTAbstractParser {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.length);
-      errorHandler.handleError(err);
+      if (errorHandler != null) {
+        errorHandler!(err);
+      } else {
+        throw err;
+      }
     }
 
     return advance(1);
