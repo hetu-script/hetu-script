@@ -995,6 +995,9 @@ class HTParser extends HTAbstractParser {
             column: keyword.column,
             offset: keyword.offset,
             length: keyword.length);
+      case HTLexicon.IF:
+        final expr = _parseIfStmt(isExpression: true);
+        return expr;
       case HTLexicon.roundLeft:
         _leftValueLegality = false;
         final start = advance(1);
@@ -1044,7 +1047,8 @@ class HTParser extends HTAbstractParser {
             offset: start.offset,
             length: end.offset + end.length - start.offset);
       case HTLexicon.FUNCTION:
-        return _parseFuncDecl(category: FunctionCategory.literal);
+        return _parseFuncDecl(
+            category: FunctionCategory.literal, isExpression: true);
       case SemanticNames.identifier:
         // literal function type
         if (curTok.lexeme == HTLexicon.function) {
@@ -1264,33 +1268,43 @@ class HTParser extends HTAbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
-  IfStmt _parseIfStmt() {
+  IfStmt _parseIfStmt({bool isExpression = false}) {
     final keyword = advance(1);
     var condition = _parseExpr();
-    late AstNode thenBranch;
+    AstNode thenBranch;
     if (curTok.type == HTLexicon.curlyLeft) {
       thenBranch = _parseBlockStmt(id: SemanticNames.thenBranch);
     } else {
-      var stmt = _parseStmt();
-      if (stmt == null) {
+      AstNode? node;
+      if (isExpression) {
+        node = _parseExpr();
+      } else {
+        node = _parseStmt();
+      }
+      if (node == null) {
         final err = HTError.unexpected(
             SemanticNames.statement, SemanticNames.emptyLine,
             moduleFullName: curModuleFullName,
             line: curTok.line,
             column: curTok.column);
         errors.add(err);
-        stmt = EmptyExpr(
+        node = EmptyExpr(
             line: curTok.line, column: curTok.column, offset: curTok.offset);
       }
-      thenBranch = stmt;
+      thenBranch = node;
     }
     AstNode? elseBranch;
     if (expect([HTLexicon.ELSE], consume: true)) {
       if (curTok.type == HTLexicon.curlyLeft) {
         elseBranch = _parseBlockStmt(id: SemanticNames.elseBranch);
       } else {
-        final stmt = _parseStmt();
-        if (stmt == null) {
+        AstNode? node;
+        if (isExpression) {
+          node = _parseExpr();
+        } else {
+          node = _parseStmt();
+        }
+        if (node == null) {
           final err = HTError.unexpected(
               SemanticNames.statement, SemanticNames.emptyLine,
               moduleFullName: curModuleFullName,
@@ -1298,7 +1312,7 @@ class HTParser extends HTAbstractParser {
               column: curTok.column);
           errors.add(err);
         }
-        elseBranch = stmt;
+        elseBranch = node;
       }
     }
     return IfStmt(condition, thenBranch, elseBranch,
@@ -1377,7 +1391,7 @@ class HTParser extends HTAbstractParser {
         decl = _parseVarDecl(
             // typeInferrence: curTok.type != HTLexicon.VAR,
             isMutable: curTok.type != HTLexicon.FINAL,
-            endOfStatement: true);
+            hasEndOfStatement: true);
       } else {
         match(HTLexicon.semicolon);
       }
@@ -1460,8 +1474,8 @@ class HTParser extends HTAbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
-  List<GenericTypeParamExpr> _getGenericParams() {
-    final genericParams = <GenericTypeParamExpr>[];
+  List<GenericTypeParameterExpr> _getGenericParams() {
+    final genericParams = <GenericTypeParameterExpr>[];
     if (expect([HTLexicon.angleLeft], consume: true)) {
       while ((curTok.type != HTLexicon.angleRight) &&
           (curTok.type != SemanticNames.endOfFile)) {
@@ -1469,7 +1483,7 @@ class HTParser extends HTAbstractParser {
           match(HTLexicon.comma);
         }
         final id = match(SemanticNames.identifier);
-        final param = GenericTypeParamExpr(id.lexeme,
+        final param = GenericTypeParameterExpr(id.lexeme,
             source: _curSource,
             line: id.line,
             column: id.column,
@@ -1577,7 +1591,7 @@ class HTParser extends HTAbstractParser {
       bool isTopLevel = false,
       bool lateInitialize = false,
       AstNode? additionalInitializer,
-      bool endOfStatement = false}) {
+      bool hasEndOfStatement = false}) {
     final keyword = advance(1);
     var id = match(SemanticNames.identifier).lexeme;
     if (classId != null && isExternal) {
@@ -1600,7 +1614,7 @@ class HTParser extends HTAbstractParser {
     if (expect([HTLexicon.assign], consume: true)) {
       initializer = _parseExpr();
     }
-    if (endOfStatement) {
+    if (hasEndOfStatement) {
       match(HTLexicon.semicolon);
     } else {
       expect([HTLexicon.semicolon], consume: true);
@@ -1632,7 +1646,8 @@ class HTParser extends HTAbstractParser {
       bool isStatic = false,
       bool isConst = false,
       bool isExported = false,
-      bool isTopLevel = false}) {
+      bool isTopLevel = false,
+      bool isExpression = false}) {
     final savedCurFuncType = _curFuncCategory;
     _curFuncCategory = category;
     final keyword = advance(1);
@@ -1868,7 +1883,9 @@ class HTParser extends HTAbstractParser {
             length: curTok.length);
         errors.add(err);
       }
-      expect([HTLexicon.semicolon], consume: true);
+      if (!isExpression) {
+        expect([HTLexicon.semicolon], consume: true);
+      }
     }
     _curFuncCategory = savedCurFuncType;
     return FuncDecl(internalName, paramDecls,

@@ -19,9 +19,10 @@ abstract class AstNode {
 
   int get end => offset + length;
 
+  /// Visit this node
   dynamic accept(AbstractAstVisitor visitor);
 
-  /// Visit all the sub nodes
+  /// Visit all the sub nodes of this
   void acceptAll(AbstractAstVisitor visitor) {}
 
   const AstNode(this.type,
@@ -410,17 +411,17 @@ class FuncTypeExpr extends TypeExpr {
 
   final SymbolExpr keyword;
 
-  final List<GenericTypeParamExpr> genericTypeParameters;
+  final List<GenericTypeParameterExpr> genericTypeParameters;
 
   final List<ParamTypeExpr> paramTypes;
 
-  final TypeExpr? returnType;
+  final TypeExpr returnType;
 
   final bool hasOptionalParam;
 
   final bool hasNamedParam;
 
-  const FuncTypeExpr(this.keyword,
+  const FuncTypeExpr(this.keyword, this.returnType,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -429,7 +430,6 @@ class FuncTypeExpr extends TypeExpr {
       bool isLocal = true,
       this.genericTypeParameters = const [],
       this.paramTypes = const [],
-      this.returnType,
       required this.hasOptionalParam,
       required this.hasNamedParam})
       : super(keyword,
@@ -441,7 +441,7 @@ class FuncTypeExpr extends TypeExpr {
             length: length);
 }
 
-class GenericTypeParamExpr extends AstNode {
+class GenericTypeParameterExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitGenericTypeParamExpr(this);
@@ -456,7 +456,7 @@ class GenericTypeParamExpr extends AstNode {
 
   final TypeExpr? superType;
 
-  const GenericTypeParamExpr(this.id,
+  const GenericTypeParameterExpr(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -475,6 +475,11 @@ class UnaryPrefixExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitUnaryPrefixExpr(this);
+
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    value.accept(visitor);
+  }
 
   final String op;
 
@@ -499,6 +504,11 @@ class UnaryPostfixExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitUnaryPostfixExpr(this);
 
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    value.accept(visitor);
+  }
+
   final AstNode value;
 
   final String op;
@@ -520,6 +530,12 @@ class UnaryPostfixExpr extends AstNode {
 class BinaryExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitBinaryExpr(this);
+
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    left.accept(visitor);
+    right.accept(visitor);
+  }
 
   final AstNode left;
 
@@ -544,6 +560,12 @@ class BinaryExpr extends AstNode {
 class TernaryExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitTernaryExpr(this);
+
+  @override
+  void acceptAll(AbstractAstVisitor visitor) {
+    left.accept(visitor);
+    right.accept(visitor);
+  }
 
   final AstNode condition;
 
@@ -1073,7 +1095,7 @@ class TypeAliasDecl extends AstNode {
 
   final String? classId;
 
-  final List<GenericTypeParamExpr> genericTypeParameters;
+  final List<GenericTypeParameterExpr> genericTypeParameters;
 
   final TypeExpr value;
 
@@ -1235,7 +1257,7 @@ class FuncDecl extends AstNode {
 
   final String? classId;
 
-  final List<GenericTypeParamExpr> genericTypeParameters;
+  final List<GenericTypeParameterExpr> genericTypeParameters;
 
   final String? externalTypeId;
 
@@ -1315,7 +1337,7 @@ class ClassDecl extends AstNode {
 
   final String? classId;
 
-  final List<GenericTypeParamExpr> genericTypeParameters;
+  final List<GenericTypeParameterExpr> genericTypeParameters;
 
   final TypeExpr? superType;
 

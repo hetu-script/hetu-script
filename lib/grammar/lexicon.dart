@@ -138,7 +138,7 @@ abstract class HTLexicon {
   static const STATIC = 'static';
   static const EXTENDS = 'extends';
   static const IMPLEMENTS = 'implements';
-  static const MIXIN = 'mixin';
+  static const WITH = 'with';
   static const REQUIRED = 'required';
 
   static const CONSTRUCT = 'construct';
@@ -186,14 +186,13 @@ abstract class HTLexicon {
     STATIC,
     EXTENDS,
     IMPLEMENTS,
-    MIXIN,
+    WITH,
     CONSTRUCT,
     FACTORY,
     GET,
     SET,
     ASYNC, // TODO: async单独可以用作函数声明关键字
     AWAIT,
-    ASSERT,
     BREAK,
     CONTINUE,
     RETURN,

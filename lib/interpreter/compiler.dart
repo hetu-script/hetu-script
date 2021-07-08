@@ -475,7 +475,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitGenericTypeParamExpr(GenericTypeParamExpr expr) {
+  Uint8List visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
     final bytesBuilder = BytesBuilder();
     // TODO: generic type params
     return bytesBuilder.toBytes();

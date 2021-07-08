@@ -195,7 +195,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitFunctionTypeExpr(FuncTypeExpr expr) {}
 
   @override
-  void visitGenericTypeParamExpr(GenericTypeParamExpr expr) {}
+  void visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {}
 
   @override
   void visitCallExpr(CallExpr expr) {}

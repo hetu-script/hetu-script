@@ -96,7 +96,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitGenericTypeParamExpr(GenericTypeParamExpr expr) {
+  HTType? visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
     return HTType.ANY;
   }
 

@@ -1,6 +1,14 @@
 import '../ast.dart';
 
-class RecursiveAstVisitor<T> implements AbstractAstVisitor<T?> {
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For example, using an instance of this class to visit a [Block]
+/// will also cause all of the statements in the block to be visited.
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or must explicitly ask the visited node to visit its children.
+/// Failure to do so will cause the children of the visited node to not be
+/// visited.
+abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   @override
   T? visitEmptyExpr(EmptyExpr expr) {}
 
@@ -47,7 +55,7 @@ class RecursiveAstVisitor<T> implements AbstractAstVisitor<T?> {
   T? visitFunctionTypeExpr(FuncTypeExpr expr) {}
 
   @override
-  T? visitGenericTypeParamExpr(GenericTypeParamExpr expr) {}
+  T? visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {}
 
   @override
   T? visitUnaryPrefixExpr(UnaryPrefixExpr expr) {}
