@@ -603,7 +603,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
         isNamed = true;
         output.write(HTLexicon.squareLeft);
       }
-      final paramString = printAst(param);
+      final paramString = visitParamDecl(param);
       output.write(paramString);
       if (i < params.length - 1) {
         output.write('${HTLexicon.comma} ');

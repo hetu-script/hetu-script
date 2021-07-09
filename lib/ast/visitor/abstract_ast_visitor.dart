@@ -6,97 +6,97 @@ part of '../ast.dart';
 /// * RecursiveAstVisitor which will visit every sub node in a structure,
 /// * GeneralizingAstVisitor which will visit a node AND its every sub node.
 abstract class AbstractAstVisitor<T> {
-  T? visitEmptyExpr(EmptyExpr expr) {}
+  T? visitEmptyExpr(EmptyExpr node) {}
 
-  T? visitCommentExpr(CommentExpr expr) {}
+  T? visitCommentExpr(CommentExpr node) {}
 
-  T? visitNullExpr(NullExpr expr) {}
+  T? visitNullExpr(NullExpr node) {}
 
-  T? visitBooleanExpr(BooleanExpr expr) {}
+  T? visitBooleanExpr(BooleanExpr node) {}
 
-  T? visitConstIntExpr(ConstIntExpr expr) {}
+  T? visitConstIntExpr(ConstIntExpr node) {}
 
-  T? visitConstFloatExpr(ConstFloatExpr expr) {}
+  T? visitConstFloatExpr(ConstFloatExpr node) {}
 
-  T? visitConstStringExpr(ConstStringExpr expr) {}
+  T? visitConstStringExpr(ConstStringExpr node) {}
 
-  T? visitStringInterpolationExpr(StringInterpolationExpr expr) {}
+  T? visitStringInterpolationExpr(StringInterpolationExpr node) {}
 
-  T? visitSymbolExpr(SymbolExpr expr) {}
+  T? visitSymbolExpr(SymbolExpr node) {}
 
-  T? visitListExpr(ListExpr expr) {}
+  T? visitListExpr(ListExpr node) {}
 
-  T? visitMapExpr(MapExpr expr) {}
+  T? visitMapExpr(MapExpr node) {}
 
-  T? visitGroupExpr(GroupExpr expr) {}
+  T? visitGroupExpr(GroupExpr node) {}
 
-  T? visitTypeExpr(TypeExpr expr) {}
+  T? visitTypeExpr(TypeExpr node) {}
 
-  T? visitParamTypeExpr(ParamTypeExpr expr) {}
+  T? visitParamTypeExpr(ParamTypeExpr node) {}
 
-  T? visitFunctionTypeExpr(FuncTypeExpr expr) {}
+  T? visitFunctionTypeExpr(FuncTypeExpr node) {}
 
-  T? visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {}
+  T? visitGenericTypeParamExpr(GenericTypeParameterExpr node) {}
 
-  T? visitUnaryPrefixExpr(UnaryPrefixExpr expr) {}
+  T? visitUnaryPrefixExpr(UnaryPrefixExpr node) {}
 
-  T? visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
+  T? visitUnaryPostfixExpr(UnaryPostfixExpr node) {}
 
-  T? visitBinaryExpr(BinaryExpr expr) {}
+  T? visitBinaryExpr(BinaryExpr node) {}
 
-  T? visitTernaryExpr(TernaryExpr expr) {}
+  T? visitTernaryExpr(TernaryExpr node) {}
 
-  T? visitMemberExpr(MemberExpr expr) {}
+  T? visitMemberExpr(MemberExpr node) {}
 
-  T? visitMemberAssignExpr(MemberAssignExpr expr) {}
+  T? visitMemberAssignExpr(MemberAssignExpr node) {}
 
-  T? visitSubExpr(SubExpr expr) {}
+  T? visitSubExpr(SubExpr node) {}
 
-  T? visitSubAssignExpr(SubAssignExpr expr) {}
+  T? visitSubAssignExpr(SubAssignExpr node) {}
 
-  T? visitCallExpr(CallExpr expr) {}
+  T? visitCallExpr(CallExpr node) {}
 
-  T? visitExprStmt(ExprStmt stmt) {}
+  T? visitExprStmt(ExprStmt node) {}
 
-  T? visitBlockStmt(BlockStmt block) {}
+  T? visitBlockStmt(BlockStmt node) {}
 
-  T? visitReturnStmt(ReturnStmt stmt) {}
+  T? visitReturnStmt(ReturnStmt node) {}
 
-  T? visitIfStmt(IfStmt ifStmt) {}
+  T? visitIfStmt(IfStmt node) {}
 
-  T? visitWhileStmt(WhileStmt whileStmt) {}
+  T? visitWhileStmt(WhileStmt node) {}
 
-  T? visitDoStmt(DoStmt doStmt) {}
+  T? visitDoStmt(DoStmt node) {}
 
-  T? visitForStmt(ForStmt forStmt) {}
+  T? visitForStmt(ForStmt node) {}
 
-  T? visitForInStmt(ForInStmt forInStmt) {}
+  T? visitForInStmt(ForInStmt node) {}
 
-  T? visitWhenStmt(WhenStmt stmt) {}
+  T? visitWhenStmt(WhenStmt node) {}
 
-  T? visitBreakStmt(BreakStmt stmt) {}
+  T? visitBreakStmt(BreakStmt node) {}
 
-  T? visitContinueStmt(ContinueStmt stmt) {}
+  T? visitContinueStmt(ContinueStmt node) {}
 
-  T? visitLibraryDecl(LibraryDecl decl) {}
+  T? visitLibraryDecl(LibraryDecl node) {}
 
-  T? visitImportDecl(ImportDecl decl) {}
+  T? visitImportDecl(ImportDecl node) {}
 
-  T? visitNamespaceDecl(NamespaceDecl decl) {}
+  T? visitNamespaceDecl(NamespaceDecl node) {}
 
-  T? visitTypeAliasDecl(TypeAliasDecl decl) {}
+  T? visitTypeAliasDecl(TypeAliasDecl node) {}
 
-  T? visitVarDecl(VarDecl decl) {}
+  T? visitVarDecl(VarDecl node) {}
 
-  T? visitParamDecl(ParamDecl decl) {}
+  T? visitParamDecl(ParamDecl node) {}
 
-  T? visitReferConstructCallExpr(ReferConstructCallExpr expr) {}
+  T? visitReferConstructCallExpr(ReferConstructCallExpr node) {}
 
-  T? visitFuncDecl(FuncDecl decl) {}
+  T? visitFuncDecl(FuncDecl node) {}
 
-  T? visitClassDecl(ClassDecl decl) {}
+  T? visitClassDecl(ClassDecl node) {}
 
-  T? visitEnumDecl(EnumDecl decl) {}
+  T? visitEnumDecl(EnumDecl node) {}
 
-  T? visitStructDecl(StructDecl decl) {}
+  T? visitStructDecl(StructDecl node) {}
 }

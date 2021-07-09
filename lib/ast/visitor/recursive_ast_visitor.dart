@@ -2,7 +2,7 @@ import '../ast.dart';
 
 /// An AST visitor that will recursively visit all of the nodes in an AST
 /// structure. For example, using an instance of this class to visit a [Block]
-/// will also cause all of the statements in the block to be visited.
+/// will also cause all of the statements in the node to be visited.
 ///
 /// Subclasses that override a visit method must either invoke the overridden
 /// visit method or must explicitly ask the visited node to visit its children.
@@ -10,143 +10,143 @@ import '../ast.dart';
 /// visited.
 abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   @override
-  T? visitEmptyExpr(EmptyExpr expr) {}
+  T? visitEmptyExpr(EmptyExpr node) {}
 
   @override
-  T? visitCommentExpr(CommentExpr expr) {}
+  T? visitCommentExpr(CommentExpr node) {}
 
   @override
-  T? visitNullExpr(NullExpr expr) {}
+  T? visitNullExpr(NullExpr node) {}
 
   @override
-  T? visitBooleanExpr(BooleanExpr expr) {}
+  T? visitBooleanExpr(BooleanExpr node) {}
 
   @override
-  T? visitConstIntExpr(ConstIntExpr expr) {}
+  T? visitConstIntExpr(ConstIntExpr node) {}
 
   @override
-  T? visitConstFloatExpr(ConstFloatExpr expr) {}
+  T? visitConstFloatExpr(ConstFloatExpr node) {}
 
   @override
-  T? visitConstStringExpr(ConstStringExpr expr) {}
+  T? visitConstStringExpr(ConstStringExpr node) {}
 
   @override
-  T? visitStringInterpolationExpr(StringInterpolationExpr expr) {}
+  T? visitStringInterpolationExpr(StringInterpolationExpr node) {}
 
   @override
-  T? visitSymbolExpr(SymbolExpr expr) {}
+  T? visitSymbolExpr(SymbolExpr node) {}
 
   @override
-  T? visitListExpr(ListExpr expr) {}
+  T? visitListExpr(ListExpr node) {}
 
   @override
-  T? visitMapExpr(MapExpr expr) {}
+  T? visitMapExpr(MapExpr node) {}
 
   @override
-  T? visitGroupExpr(GroupExpr expr) {}
+  T? visitGroupExpr(GroupExpr node) {}
 
   @override
-  T? visitTypeExpr(TypeExpr expr) {}
+  T? visitTypeExpr(TypeExpr node) {}
 
   @override
-  T? visitParamTypeExpr(ParamTypeExpr expr) {}
+  T? visitParamTypeExpr(ParamTypeExpr node) {}
 
   @override
-  T? visitFunctionTypeExpr(FuncTypeExpr expr) {}
+  T? visitFunctionTypeExpr(FuncTypeExpr node) {}
 
   @override
-  T? visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {}
+  T? visitGenericTypeParamExpr(GenericTypeParameterExpr node) {}
 
   @override
-  T? visitUnaryPrefixExpr(UnaryPrefixExpr expr) {}
+  T? visitUnaryPrefixExpr(UnaryPrefixExpr node) {}
 
   @override
-  T? visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
+  T? visitUnaryPostfixExpr(UnaryPostfixExpr node) {}
 
   @override
-  T? visitBinaryExpr(BinaryExpr expr) {}
+  T? visitBinaryExpr(BinaryExpr node) {}
 
   @override
-  T? visitTernaryExpr(TernaryExpr expr) {}
+  T? visitTernaryExpr(TernaryExpr node) {}
 
   @override
-  T? visitMemberExpr(MemberExpr expr) {}
+  T? visitMemberExpr(MemberExpr node) {}
 
   @override
-  T? visitMemberAssignExpr(MemberAssignExpr expr) {}
+  T? visitMemberAssignExpr(MemberAssignExpr node) {}
 
   @override
-  T? visitSubExpr(SubExpr expr) {}
+  T? visitSubExpr(SubExpr node) {}
 
   @override
-  T? visitSubAssignExpr(SubAssignExpr expr) {}
+  T? visitSubAssignExpr(SubAssignExpr node) {}
 
   @override
-  T? visitCallExpr(CallExpr expr) {}
+  T? visitCallExpr(CallExpr node) {}
 
   @override
-  T? visitExprStmt(ExprStmt stmt) {}
+  T? visitExprStmt(ExprStmt node) {}
 
   @override
-  T? visitBlockStmt(BlockStmt block) {}
+  T? visitBlockStmt(BlockStmt node) {}
 
   @override
-  T? visitReturnStmt(ReturnStmt stmt) {}
+  T? visitReturnStmt(ReturnStmt node) {}
 
   @override
-  T? visitIfStmt(IfStmt ifStmt) {}
+  T? visitIfStmt(IfStmt node) {}
 
   @override
-  T? visitWhileStmt(WhileStmt whileStmt) {}
+  T? visitWhileStmt(WhileStmt node) {}
 
   @override
-  T? visitDoStmt(DoStmt doStmt) {}
+  T? visitDoStmt(DoStmt node) {}
 
   @override
-  T? visitForStmt(ForStmt forStmt) {}
+  T? visitForStmt(ForStmt node) {}
 
   @override
-  T? visitForInStmt(ForInStmt forInStmt) {}
+  T? visitForInStmt(ForInStmt node) {}
 
   @override
-  T? visitWhenStmt(WhenStmt stmt) {}
+  T? visitWhenStmt(WhenStmt node) {}
 
   @override
-  T? visitBreakStmt(BreakStmt stmt) {}
+  T? visitBreakStmt(BreakStmt node) {}
 
   @override
-  T? visitContinueStmt(ContinueStmt stmt) {}
+  T? visitContinueStmt(ContinueStmt node) {}
 
   @override
-  T? visitLibraryDecl(LibraryDecl decl) {}
+  T? visitLibraryDecl(LibraryDecl node) {}
 
   @override
-  T? visitImportDecl(ImportDecl decl) {}
+  T? visitImportDecl(ImportDecl node) {}
 
   @override
-  T? visitNamespaceDecl(NamespaceDecl decl) {}
+  T? visitNamespaceDecl(NamespaceDecl node) {}
 
   @override
-  T? visitTypeAliasDecl(TypeAliasDecl decl) {}
+  T? visitTypeAliasDecl(TypeAliasDecl node) {}
 
   @override
-  T? visitVarDecl(VarDecl decl) {}
+  T? visitVarDecl(VarDecl node) {}
 
   @override
-  T? visitParamDecl(ParamDecl decl) {}
+  T? visitParamDecl(ParamDecl node) {}
 
   @override
-  T? visitReferConstructCallExpr(ReferConstructCallExpr expr) {}
+  T? visitReferConstructCallExpr(ReferConstructCallExpr node) {}
 
   @override
-  T? visitFuncDecl(FuncDecl decl) {}
+  T? visitFuncDecl(FuncDecl node) {}
 
   @override
-  T? visitClassDecl(ClassDecl decl) {}
+  T? visitClassDecl(ClassDecl node) {}
 
   @override
-  T? visitEnumDecl(EnumDecl decl) {}
+  T? visitEnumDecl(EnumDecl node) {}
 
   @override
-  T? visitStructDecl(StructDecl decl) {}
+  T? visitStructDecl(StructDecl node) {}
 }

@@ -62,21 +62,21 @@ abstract class HTType with HTObject {
       if (ast is FuncTypeExpr) {
         return HTFunctionType(
             genericTypeParameters: ast.genericTypeParameters
-                .map((param) => HTGenericTypeParameter(param.id,
+                .map((param) => HTGenericTypeParameter(param.id.id,
                     superType: HTType.fromAst(param.superType)))
                 .toList(),
             parameterTypes: ast.paramTypes
                 .map((param) => HTParameterType(HTType.fromAst(param.declType),
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
-                    id: param.id))
+                    id: param.id?.id))
                 .toList(),
             returnType: HTType.fromAst(ast.returnType));
       } else {
         if (HTType.primitiveTypes.containsKey(ast.id)) {
           return HTType.primitiveTypes[ast.id]!;
         } else {
-          return HTUnresolvedType(ast.id,
+          return HTUnresolvedType(ast.id.id,
               typeArgs:
                   ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
               isNullable: ast.isNullable);

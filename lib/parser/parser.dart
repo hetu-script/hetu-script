@@ -253,7 +253,7 @@ class HTParser extends HTAbstractParser {
                     category: FunctionCategory.literal, isTopLevel: true);
               }
             case HTLexicon.IF:
-              return _parseIfStmt();
+              return _parseIf();
             case HTLexicon.WHILE:
               return _parseWhileStmt();
             case HTLexicon.DO:
@@ -536,7 +536,7 @@ class HTParser extends HTAbstractParser {
                 return _parseFuncDecl(category: FunctionCategory.literal);
               }
             case HTLexicon.IF:
-              return _parseIfStmt();
+              return _parseIf();
             case HTLexicon.WHILE:
               return _parseWhileStmt();
             case HTLexicon.DO:
@@ -996,7 +996,7 @@ class HTParser extends HTAbstractParser {
             offset: keyword.offset,
             length: keyword.length);
       case HTLexicon.IF:
-        final expr = _parseIfStmt(isExpression: true);
+        final expr = _parseIf(isExpression: true);
         return expr;
       case HTLexicon.roundLeft:
         _leftValueLegality = false;
@@ -1060,12 +1060,7 @@ class HTParser extends HTAbstractParser {
           _leftValueLegality = true;
           final symbol = advance(1);
           // TODO: type arguments
-          return SymbolExpr(symbol.lexeme,
-              source: _curSource,
-              line: symbol.line,
-              column: symbol.column,
-              offset: symbol.offset,
-              length: symbol.length);
+          return SymbolExpr.fromToken(symbol);
         }
       default:
         final err = HTError.unexpected(SemanticNames.expression, curTok.lexeme,
@@ -1088,6 +1083,7 @@ class HTParser extends HTAbstractParser {
     // nominal type
     if (curTok.type == SemanticNames.identifier) {
       final id = match(SemanticNames.identifier);
+      final symbol = SymbolExpr.fromToken(id);
       final typeArgs = <TypeExpr>[];
       if (expect([HTLexicon.angleLeft], consume: true)) {
         if (curTok.type == HTLexicon.angleRight) {
@@ -1109,7 +1105,7 @@ class HTParser extends HTAbstractParser {
       }
       final isNullable = expect([HTLexicon.nullable], consume: true);
       return TypeExpr(
-        id.lexeme,
+        symbol,
         arguments: typeArgs,
         isNullable: isNullable,
         isLocal: isLocal,
@@ -1123,6 +1119,7 @@ class HTParser extends HTAbstractParser {
     else // if (curTok.type == HTLexicon.FUNCTION)
     {
       final keyword = advance(1);
+      final keywordSymbol = SymbolExpr.fromToken(keyword);
       // TODO: genericTypeParameters 泛型参数
       final parameters = <ParamTypeExpr>[];
       var isOptional = false;
@@ -1139,18 +1136,19 @@ class HTParser extends HTAbstractParser {
           }
         }
         late final paramType;
-        String? paramId;
+        SymbolExpr? paramSymbol;
         if (!isNamed) {
           isVariadic = expect([HTLexicon.variadicArgs], consume: true);
         } else {
-          paramId = match(SemanticNames.identifier).lexeme;
+          final paramId = match(SemanticNames.identifier);
+          paramSymbol = SymbolExpr.fromToken(paramId);
           match(HTLexicon.colon);
         }
         paramType = _parseTypeExpr();
         final param = ParamTypeExpr(paramType,
             isOptional: isOptional,
             isVariadic: isVariadic,
-            id: paramId,
+            id: paramSymbol,
             source: _curSource,
             line: start.line,
             column: start.column,
@@ -1171,7 +1169,7 @@ class HTParser extends HTAbstractParser {
       match(HTLexicon.roundRight);
       match(HTLexicon.singleArrow);
       final returnType = _parseTypeExpr();
-      return FuncTypeExpr(returnType,
+      return FuncTypeExpr(keywordSymbol, returnType,
           isLocal: isLocal,
           paramTypes: parameters,
           hasOptionalParam: isOptional,
@@ -1233,15 +1231,9 @@ class HTParser extends HTAbstractParser {
     match(HTLexicon.roundRight);
   }
 
-  ExprStmt _parseExprStmt({bool consumeSemicolon = true}) {
-    // AstNode? expr;
-    // if (curTok.type != HTLexicon.semicolon) {
-    // expr = _parseExpr();
-    // }
+  AstNode _parseExprStmt() {
     final expr = _parseExpr();
-    if (consumeSemicolon) {
-      expect([HTLexicon.semicolon], consume: true);
-    }
+    expect([HTLexicon.semicolon], consume: true);
     final stmt = ExprStmt(expr,
         source: _curSource,
         line: expr.line,
@@ -1268,51 +1260,42 @@ class HTParser extends HTAbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
-  IfStmt _parseIfStmt({bool isExpression = false}) {
+  // AstNode? _parseExprOrBlock({bool isExpression = false}) {
+  //   if (curTok.type == HTLexicon.curlyLeft) {
+  //     return _parseBlockStmt(id: SemanticNames.elseBranch);
+  //   } else {
+  //     AstNode? node;
+  //     if (isExpression) {
+  //       node = _parseExpr();
+  //     } else {
+  //       node = _parseStmt();
+  //     }
+  //     if (node == null) {
+  //       final err = HTError.unexpected(
+  //           SemanticNames.statement, SemanticNames.emptyLine,
+  //           moduleFullName: curModuleFullName,
+  //           line: curTok.line,
+  //           column: curTok.column);
+  //       errors.add(err);
+  //     }
+  //     return node;
+  //   }
+  // }
+
+  IfStmt _parseIf({bool isExpression = false}) {
     final keyword = advance(1);
     var condition = _parseExpr();
-    AstNode thenBranch;
-    if (curTok.type == HTLexicon.curlyLeft) {
-      thenBranch = _parseBlockStmt(id: SemanticNames.thenBranch);
-    } else {
-      AstNode? node;
-      if (isExpression) {
-        node = _parseExpr();
-      } else {
-        node = _parseStmt();
-      }
-      if (node == null) {
-        final err = HTError.unexpected(
-            SemanticNames.statement, SemanticNames.emptyLine,
-            moduleFullName: curModuleFullName,
-            line: curTok.line,
-            column: curTok.column);
-        errors.add(err);
-        node = EmptyExpr(
-            line: curTok.line, column: curTok.column, offset: curTok.offset);
-      }
-      thenBranch = node;
-    }
+
+    final thenBranch = isExpression
+        ? _parseExpr()
+        : _parseBlockStmt(id: SemanticNames.elseBranch);
     AstNode? elseBranch;
-    if (expect([HTLexicon.ELSE], consume: true)) {
-      if (curTok.type == HTLexicon.curlyLeft) {
+    if (isExpression) {
+      match(HTLexicon.ELSE);
+      elseBranch = _parseExpr();
+    } else {
+      if (expect([HTLexicon.ELSE], consume: true)) {
         elseBranch = _parseBlockStmt(id: SemanticNames.elseBranch);
-      } else {
-        AstNode? node;
-        if (isExpression) {
-          node = _parseExpr();
-        } else {
-          node = _parseStmt();
-        }
-        if (node == null) {
-          final err = HTError.unexpected(
-              SemanticNames.statement, SemanticNames.emptyLine,
-              moduleFullName: curModuleFullName,
-              line: curTok.line,
-              column: curTok.column);
-          errors.add(err);
-        }
-        elseBranch = node;
       }
     }
     return IfStmt(condition, thenBranch, elseBranch,
@@ -1483,7 +1466,8 @@ class HTParser extends HTAbstractParser {
           match(HTLexicon.comma);
         }
         final id = match(SemanticNames.identifier);
-        final param = GenericTypeParameterExpr(id.lexeme,
+        final symbol = SymbolExpr.fromToken(id);
+        final param = GenericTypeParameterExpr(symbol,
             source: _curSource,
             line: id.line,
             column: id.column,
@@ -1522,12 +1506,13 @@ class HTParser extends HTAbstractParser {
   ImportDecl _parseImportDecl() {
     // TODO: duplicate import and self import error.
     final keyword = advance(1);
-    final showList = <String>[];
+    final showList = <SymbolExpr>[];
     if (curTok.type == HTLexicon.curlyLeft) {
       advance(1);
       do {
-        final id = match(SemanticNames.identifier).lexeme;
-        showList.add(id);
+        final id = match(SemanticNames.identifier);
+        final symbol = SymbolExpr.fromToken(id);
+        showList.add(symbol);
       } while (expect([HTLexicon.comma], consume: true));
       match(HTLexicon.curlyRight);
       // check lexeme here because expect() can only deal with token type
@@ -1543,9 +1528,10 @@ class HTParser extends HTAbstractParser {
       }
     }
     final key = match(SemanticNames.stringLiteral);
-    String? alias;
+    SymbolExpr? alias;
     if (expect([HTLexicon.AS], consume: true)) {
-      alias = match(SemanticNames.identifier).lexeme;
+      final aliasId = match(SemanticNames.identifier);
+      alias = SymbolExpr.fromToken(aliasId);
     }
     final stmt = ImportDecl(key.literal,
         alias: alias,
@@ -1563,11 +1549,12 @@ class HTParser extends HTAbstractParser {
   TypeAliasDecl _parseTypeAliasDecl(
       {String? classId, bool isExported = false, bool isTopLevel = false}) {
     final keyword = advance(1);
-    final id = match(SemanticNames.identifier).lexeme;
+    final id = match(SemanticNames.identifier);
+    final symbol = SymbolExpr.fromToken(id);
     final genericParameters = _getGenericParams();
     match(HTLexicon.assign);
     final value = _parseTypeExpr();
-    return TypeAliasDecl(id, value,
+    return TypeAliasDecl(symbol, value,
         classId: classId,
         genericTypeParameters: genericParameters,
         isExported: isExported,
@@ -1593,7 +1580,9 @@ class HTParser extends HTAbstractParser {
       AstNode? additionalInitializer,
       bool hasEndOfStatement = false}) {
     final keyword = advance(1);
-    var id = match(SemanticNames.identifier).lexeme;
+    final id = match(SemanticNames.identifier);
+    final symbol = SymbolExpr.fromToken(id);
+    late final String internalName;
     if (classId != null && isExternal) {
       if (!(_curClass!.isExternal) && !isStatic) {
         final err = HTError.externalMember(
@@ -1604,7 +1593,7 @@ class HTParser extends HTAbstractParser {
             length: curTok.length);
         errors.add(err);
       }
-      id = '$classId.$id';
+      internalName = '$classId.${id.lexeme}';
     }
     var declType;
     if (expect([HTLexicon.colon], consume: true)) {
@@ -1619,7 +1608,7 @@ class HTParser extends HTAbstractParser {
     } else {
       expect([HTLexicon.semicolon], consume: true);
     }
-    return VarDecl(id,
+    return VarDecl(symbol, internalName,
         classId: classId,
         declType: declType,
         initializer: initializer,
@@ -1737,6 +1726,7 @@ class HTParser extends HTAbstractParser {
           }
         }
         final paramId = match(SemanticNames.identifier);
+        final paramSymbol = SymbolExpr.fromToken(paramId);
         TypeExpr? paramDeclType;
         if (expect([HTLexicon.colon], consume: true)) {
           paramDeclType = _parseTypeExpr();
@@ -1756,7 +1746,7 @@ class HTParser extends HTAbstractParser {
             errors.add(err);
           }
         }
-        final param = ParamDecl(paramId.lexeme,
+        final param = ParamDecl(paramSymbol,
             declType: paramDeclType,
             initializer: initializer,
             isVariadic: isVariadic,
