@@ -1267,7 +1267,7 @@ class Hetu extends HTAbstractInterpreter {
     final maxArity = _curLibrary.read();
     final paramLength = _curLibrary.read();
     final paramDecls = _getParams(paramLength);
-    ReferConstructor? referConstructor;
+    RedirectingConstructor? redirCtor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
     if (category == FunctionCategory.constructor) {
@@ -1292,7 +1292,7 @@ class Hetu extends HTAbstractInterpreter {
           namedArgIps[argName] = _curLibrary.ip;
           _curLibrary.skip(argLength);
         }
-        referConstructor = ReferConstructor(calleeId,
+        redirCtor = RedirectingConstructor(calleeId,
             key: ctorName,
             positionalArgsIp: positionalArgIps,
             namedArgsIp: namedArgIps);
@@ -1326,7 +1326,7 @@ class Hetu extends HTAbstractInterpreter {
         definitionIp: definitionIp,
         definitionLine: line,
         definitionColumn: column,
-        referConstructor: referConstructor);
+        redirectingConstructor: redirCtor);
     if ((category != FunctionCategory.constructor) || isStatic) {
       func.context = _curNamespace;
     }

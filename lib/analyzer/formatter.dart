@@ -575,7 +575,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitReferConstructCallExpr(ReferConstructCallExpr stmt) {
+  String visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {
     final output = StringBuffer();
     output.write(stmt.callee.id);
     if (stmt.key != null) {
@@ -656,10 +656,10 @@ class HTFormatter implements AbstractAstVisitor<String> {
       output.write('${HTLexicon.singleArrow} ');
       final returnTypeString = visitTypeExpr(stmt.returnType!);
       output.write('$returnTypeString ');
-    } else if (stmt.referConstructor != null) {
+    } else if (stmt.redirectingCtorCallExpr != null) {
       output.write('${HTLexicon.colon} ');
       final referCtorString =
-          visitReferConstructCallExpr(stmt.referConstructor!);
+          visitReferConstructCallExpr(stmt.redirectingCtorCallExpr!);
       output.write('$referCtorString ');
     }
     if (stmt.definition != null) {

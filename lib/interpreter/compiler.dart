@@ -1337,7 +1337,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitReferConstructCallExpr(ReferConstructCallExpr stmt) {
+  Uint8List visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_shortUtf8String(stmt.callee.id));
     if (stmt.key != null) {
@@ -1406,9 +1406,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     }
     if (stmt.category == FunctionCategory.constructor) {
       // referring to another constructor
-      if (stmt.referConstructor != null) {
+      if (stmt.redirectingCtorCallExpr != null) {
         bytesBuilder.addByte(1); // bool: hasRefCtor
-        final bytes = visitReferConstructCallExpr(stmt.referConstructor!);
+        final bytes =
+            visitReferConstructCallExpr(stmt.redirectingCtorCallExpr!);
         bytesBuilder.add(bytes);
       } else {
         bytesBuilder.addByte(0); // bool: hasRefCtor

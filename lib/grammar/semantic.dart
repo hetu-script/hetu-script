@@ -107,7 +107,8 @@ abstract class SemanticNames {
   static const classDeclaration = 'class_declaration';
   static const enumDeclaration = 'enum_declaration';
   static const typeAliasDeclaration = 'type_alias_declaration';
-  static const referConstructorExpression = 'refer_constructor_expression';
+  static const redirectingConstructorCallExpression =
+      'redirecting_constructor_call_expression';
   static const functionDeclaration = 'function_declaration';
   static const structDeclaration = 'struct_declaration';
 

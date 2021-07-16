@@ -1370,7 +1370,7 @@ class ParamDecl extends VarDecl {
             isMutable: isMutable);
 }
 
-class ReferConstructCallExpr extends AstNode {
+class RedirectingConstructCallExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitReferConstructCallExpr(this);
@@ -1395,14 +1395,15 @@ class ReferConstructCallExpr extends AstNode {
 
   final Map<String, AstNode> namedArgs;
 
-  const ReferConstructCallExpr(this.callee, this.positionalArgs, this.namedArgs,
+  const RedirectingConstructCallExpr(
+      this.callee, this.positionalArgs, this.namedArgs,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0,
       this.key})
-      : super(SemanticNames.referConstructorExpression,
+      : super(SemanticNames.redirectingConstructorExpression,
             source: source,
             line: line,
             column: column,
@@ -1421,7 +1422,7 @@ class FuncDecl extends AstNode {
       param.accept(visitor);
     }
     returnType?.accept(visitor);
-    referConstructor?.accept(visitor);
+    redirectingCtorCallExpr?.accept(visitor);
     for (final param in paramDecls) {
       param.accept(visitor);
     }
@@ -1440,7 +1441,7 @@ class FuncDecl extends AstNode {
 
   final TypeExpr? returnType;
 
-  final ReferConstructCallExpr? referConstructor;
+  final RedirectingConstructCallExpr? redirectingCtorCallExpr;
 
   final bool hasParamDecls;
 
@@ -1489,7 +1490,7 @@ class FuncDecl extends AstNode {
       this.genericTypeParameters = const [],
       this.externalTypeId,
       this.returnType,
-      this.referConstructor,
+      this.redirectingCtorCallExpr,
       this.hasParamDecls = true,
       this.minArity = 0,
       this.maxArity = 0,

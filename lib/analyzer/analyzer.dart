@@ -282,7 +282,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitParamDecl(ParamDecl stmt) {}
 
   @override
-  void visitReferConstructCallExpr(ReferConstructCallExpr stmt) {}
+  void visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {}
 
   @override
   void visitFuncDecl(FuncDecl stmt) {

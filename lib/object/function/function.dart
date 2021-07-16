@@ -16,7 +16,7 @@ import '../../declaration/function/function_declaration.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
 import '../object.dart';
 
-class ReferConstructor {
+class RedirectingConstructor {
   /// id of super class's constructor
   // final String callee;
   final String name;
@@ -29,7 +29,7 @@ class ReferConstructor {
   /// Holds ips of super class's constructor's named argumnets
   final Map<String, int> namedArgsIp;
 
-  ReferConstructor(this.name,
+  RedirectingConstructor(this.name,
       {this.key,
       this.positionalArgsIp = const [],
       this.namedArgsIp = const {}});
@@ -43,7 +43,7 @@ class HTFunction extends HTFunctionDeclaration
   @override
   final Map<String, HTParameter> paramDecls;
 
-  final ReferConstructor? referConstructor;
+  final RedirectingConstructor? redirectingConstructor;
 
   Function? externalFunc;
 
@@ -82,7 +82,7 @@ class HTFunction extends HTFunctionDeclaration
       int? definitionLine,
       int? definitionColumn,
       this.context,
-      this.referConstructor,
+      this.redirectingConstructor,
       this.klass})
       : super(internalName,
             id: id,
@@ -158,7 +158,7 @@ class HTFunction extends HTFunctionDeclaration
           definitionLine: definitionLine,
           definitionColumn: definitionColumn,
           context: context,
-          referConstructor: referConstructor,
+          redirectingConstructor: redirectingConstructor,
           klass: klass);
 
   /// Call this function with specific arguments.
@@ -239,10 +239,10 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         if (category == FunctionCategory.constructor &&
-            referConstructor != null) {
+            redirectingConstructor != null) {
           late final HTFunction constructor;
-          final name = referConstructor!.name;
-          final key = referConstructor!.key;
+          final name = redirectingConstructor!.name;
+          final key = redirectingConstructor!.key;
           if (name == HTLexicon.SUPER) {
             final superClass = klass!.superClass!;
             if (key == null) {
@@ -267,7 +267,7 @@ class HTFunction extends HTFunctionDeclaration
           constructor.context = instanceNamespace.next!;
 
           final referCtorPosArgs = [];
-          final referCtorPosArgIps = referConstructor!.positionalArgsIp;
+          final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
             final arg = interpreter.execute(
                 moduleFullName: moduleFullName,
@@ -278,7 +278,7 @@ class HTFunction extends HTFunctionDeclaration
           }
 
           final referCtorNamedArgs = <String, dynamic>{};
-          final referCtorNamedArgIps = referConstructor!.namedArgsIp;
+          final referCtorNamedArgIps = redirectingConstructor!.namedArgsIp;
           for (final name in referCtorNamedArgIps.keys) {
             final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
             final arg = interpreter.execute(

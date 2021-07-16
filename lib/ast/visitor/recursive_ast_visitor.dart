@@ -220,7 +220,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitReferConstructCallExpr(ReferConstructCallExpr node) {
+  T? visitReferConstructCallExpr(RedirectingConstructCallExpr node) {
     node.acceptAll(this);
   }
 

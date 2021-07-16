@@ -90,7 +90,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitParamDecl(ParamDecl node) {}
 
-  T? visitReferConstructCallExpr(ReferConstructCallExpr node) {}
+  T? visitReferConstructCallExpr(RedirectingConstructCallExpr node) {}
 
   T? visitFuncDecl(FuncDecl node) {}
 

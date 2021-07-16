@@ -1795,7 +1795,7 @@ class HTParser extends HTAbstractParser {
       }
     }
     TypeExpr? returnType;
-    ReferConstructCallExpr? referCtor;
+    RedirectingConstructCallExpr? referCtor;
     // the return value type declaration
     if (expect([HTLexicon.singleArrow], consume: true)) {
       if (category == FunctionCategory.constructor) {
@@ -1853,7 +1853,7 @@ class HTParser extends HTAbstractParser {
       var positionalArgs = <AstNode>[];
       var namedArgs = <String, AstNode>{};
       _handleCallArguments(positionalArgs, namedArgs);
-      referCtor = ReferConstructCallExpr(
+      referCtor = RedirectingConstructCallExpr(
           SymbolExpr.fromToken(ctorCallee), positionalArgs, namedArgs,
           key: ctorKey != null ? SymbolExpr.fromToken(ctorKey) : null,
           source: _curSource,
@@ -1891,7 +1891,7 @@ class HTParser extends HTAbstractParser {
         genericTypeParameters: genericParameters,
         externalTypeId: externalTypedef,
         returnType: returnType,
-        referConstructor: referCtor,
+        redirectingCtorCallExpr: referCtor,
         hasParamDecls: hasParamDecls,
         minArity: minArity,
         maxArity: maxArity,

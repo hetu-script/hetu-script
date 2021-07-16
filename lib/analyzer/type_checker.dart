@@ -206,7 +206,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitReferConstructCallExpr(ReferConstructCallExpr stmt) {
+  HTType? visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {
     return HTType.ANY;
   }
 
