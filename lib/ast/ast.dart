@@ -1403,7 +1403,7 @@ class RedirectingConstructCallExpr extends AstNode {
       int offset = 0,
       int length = 0,
       this.key})
-      : super(SemanticNames.redirectingConstructorExpression,
+      : super(SemanticNames.redirectingConstructorCallExpression,
             source: source,
             line: line,
             column: column,
