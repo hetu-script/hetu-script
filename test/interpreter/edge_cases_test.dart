@@ -14,7 +14,7 @@ void main() {
             ('all' 
             + 'oha')
           ++j
-          if (i is num)
+          if (i is num) 
         return
             return j
         }

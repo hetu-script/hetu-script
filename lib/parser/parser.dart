@@ -1260,42 +1260,46 @@ class HTParser extends HTAbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
-  // AstNode? _parseExprOrBlock({bool isExpression = false}) {
-  //   if (curTok.type == HTLexicon.curlyLeft) {
-  //     return _parseBlockStmt(id: SemanticNames.elseBranch);
-  //   } else {
-  //     AstNode? node;
-  //     if (isExpression) {
-  //       node = _parseExpr();
-  //     } else {
-  //       node = _parseStmt();
-  //     }
-  //     if (node == null) {
-  //       final err = HTError.unexpected(
-  //           SemanticNames.statement, SemanticNames.emptyLine,
-  //           moduleFullName: curModuleFullName,
-  //           line: curTok.line,
-  //           column: curTok.column);
-  //       errors.add(err);
-  //     }
-  //     return node;
-  //   }
-  // }
+  AstNode _parseExprOrStmtOrBlock({bool isExpression = false}) {
+    if (curTok.type == HTLexicon.curlyLeft) {
+      return _parseBlockStmt(id: SemanticNames.elseBranch);
+    } else {
+      if (isExpression) {
+        return _parseExpr();
+      } else {
+        final token = curTok;
+        final node = _parseStmt();
+        if (node == null) {
+          final err = HTError.unexpected(
+              SemanticNames.statement, SemanticNames.emptyLine,
+              moduleFullName: curModuleFullName,
+              line: curTok.line,
+              column: curTok.column);
+          errors.add(err);
+          return EmptyExpr(
+              source: _curSource,
+              line: token.line,
+              column: token.column,
+              offset: token.offset);
+        } else {
+          return node;
+        }
+      }
+    }
+  }
 
   IfStmt _parseIf({bool isExpression = false}) {
     final keyword = advance(1);
     var condition = _parseExpr();
 
-    final thenBranch = isExpression
-        ? _parseExpr()
-        : _parseBlockStmt(id: SemanticNames.elseBranch);
+    final thenBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
     AstNode? elseBranch;
     if (isExpression) {
       match(HTLexicon.ELSE);
       elseBranch = _parseExpr();
     } else {
       if (expect([HTLexicon.ELSE], consume: true)) {
-        elseBranch = _parseBlockStmt(id: SemanticNames.elseBranch);
+        elseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
       }
     }
     return IfStmt(condition, thenBranch, elseBranch,
@@ -1582,7 +1586,7 @@ class HTParser extends HTAbstractParser {
     final keyword = advance(1);
     final id = match(SemanticNames.identifier);
     final symbol = SymbolExpr.fromToken(id);
-    late final String internalName;
+    String? internalName;
     if (classId != null && isExternal) {
       if (!(_curClass!.isExternal) && !isStatic) {
         final err = HTError.externalMember(
@@ -1608,7 +1612,8 @@ class HTParser extends HTAbstractParser {
     } else {
       expect([HTLexicon.semicolon], consume: true);
     }
-    return VarDecl(symbol, internalName,
+    return VarDecl(symbol,
+        internalName: internalName,
         classId: classId,
         declType: declType,
         initializer: initializer,
@@ -1659,13 +1664,13 @@ class HTParser extends HTAbstractParser {
         match(HTLexicon.squareRight);
       }
     }
-    String? id;
+    Token? id;
     late String internalName;
     switch (category) {
       case FunctionCategory.constructor:
         _hasUserDefinedConstructor = true;
         if (curTok.type == SemanticNames.identifier) {
-          id = advance(1).lexeme;
+          id = advance(1);
         }
         internalName = (id == null)
             ? SemanticNames.constructor
@@ -1673,21 +1678,22 @@ class HTParser extends HTAbstractParser {
         break;
       case FunctionCategory.literal:
         if (curTok.type == SemanticNames.identifier) {
-          id = advance(1).lexeme;
+          id = advance(1);
         }
-        internalName = (id == null) ? SemanticNames.anonymousFunction : id;
+        internalName =
+            (id == null) ? SemanticNames.anonymousFunction : id.lexeme;
         break;
       case FunctionCategory.getter:
-        id = match(SemanticNames.identifier).lexeme;
+        id = match(SemanticNames.identifier);
         internalName = '${SemanticNames.getter}$id';
         break;
       case FunctionCategory.setter:
-        id = match(SemanticNames.identifier).lexeme;
+        id = match(SemanticNames.identifier);
         internalName = '${SemanticNames.setter}$id';
         break;
       default:
-        id = match(SemanticNames.identifier).lexeme;
-        internalName = id;
+        id = match(SemanticNames.identifier);
+        internalName = id.lexeme;
     }
     final genericParameters = _getGenericParams();
     var isFuncVariadic = false;
@@ -1837,9 +1843,9 @@ class HTParser extends HTAbstractParser {
             length: ctorCallee.length);
         errors.add(err);
       }
-      String? ctorKey;
+      Token? ctorKey;
       if (expect([HTLexicon.memberGet], consume: true)) {
-        ctorKey = match(SemanticNames.identifier).lexeme;
+        ctorKey = match(SemanticNames.identifier);
         match(HTLexicon.roundLeft);
       } else {
         match(HTLexicon.roundLeft);
@@ -1847,8 +1853,9 @@ class HTParser extends HTAbstractParser {
       var positionalArgs = <AstNode>[];
       var namedArgs = <String, AstNode>{};
       _handleCallArguments(positionalArgs, namedArgs);
-      referCtor = ReferConstructCallExpr(ctorCallee.lexeme == HTLexicon.SUPER,
-          ctorKey, positionalArgs, namedArgs,
+      referCtor = ReferConstructCallExpr(
+          SymbolExpr.fromToken(ctorCallee), positionalArgs, namedArgs,
+          key: ctorKey != null ? SymbolExpr.fromToken(ctorKey) : null,
           source: _curSource,
           line: ctorCallee.line,
           column: ctorCallee.column,
@@ -1879,7 +1886,7 @@ class HTParser extends HTAbstractParser {
     }
     _curFuncCategory = savedCurFuncType;
     return FuncDecl(internalName, paramDecls,
-        id: id,
+        id: id != null ? SymbolExpr.fromToken(id) : null,
         classId: classId,
         genericTypeParameters: genericParameters,
         externalTypeId: externalTypedef,
@@ -1947,7 +1954,7 @@ class HTParser extends HTAbstractParser {
         sourceType: SourceType.klass,
         hasOwnNamespace: false,
         id: SemanticNames.classDefinition);
-    final decl = ClassDecl(id.lexeme, definition,
+    final decl = ClassDecl(SymbolExpr.fromToken(id), definition,
         genericTypeParameters: genericParameters,
         superType: superClassType,
         isExternal: isExternal,
@@ -1971,11 +1978,12 @@ class HTParser extends HTAbstractParser {
       bool isTopLevel = false}) {
     final keyword = match(HTLexicon.ENUM);
     final id = match(SemanticNames.identifier);
-    var enumerations = <String>[];
+    var enumerations = <SymbolExpr>[];
     if (expect([HTLexicon.curlyLeft], consume: true)) {
       while (curTok.type != HTLexicon.curlyRight &&
           curTok.type != SemanticNames.endOfFile) {
-        enumerations.add(match(SemanticNames.identifier).lexeme);
+        final symbol = SymbolExpr.fromToken(match(SemanticNames.identifier));
+        enumerations.add(symbol);
         if (curTok.type != HTLexicon.curlyRight) {
           match(HTLexicon.comma);
         }
@@ -1984,7 +1992,7 @@ class HTParser extends HTAbstractParser {
     } else {
       expect([HTLexicon.semicolon], consume: true);
     }
-    return EnumDecl(id.lexeme, enumerations,
+    return EnumDecl(SymbolExpr.fromToken(id), enumerations,
         isExternal: isExternal,
         isExported: isExported,
         isTopLevel: isTopLevel,

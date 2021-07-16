@@ -14,7 +14,8 @@ class ImportInfo {
   ImportInfo(this.fullName, [this.alias, this.showList]);
 
   ImportInfo.fromAst(ImportDecl stmt, String fullName)
-      : this(fullName, stmt.alias, stmt.showList);
+      : this(fullName, stmt.alias?.id,
+            stmt.showList.map((id) => id.id).toList());
 }
 
 /// The parse result of a single file

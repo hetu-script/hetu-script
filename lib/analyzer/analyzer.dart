@@ -266,7 +266,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitVarDecl(VarDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    final decl = HTVariableDeclaration(stmt.id,
+    final decl = HTVariableDeclaration(stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
@@ -275,7 +275,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         isStatic: stmt.isStatic,
         isConst: stmt.isConst,
         isMutable: stmt.isMutable);
-    _curNamespace.define(stmt.id, decl);
+    _curNamespace.define(stmt.id.id, decl);
   }
 
   @override
@@ -289,7 +289,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curLine = stmt.line;
     _curColumn = stmt.column;
     final decl = HTFunctionDeclaration(stmt.internalName,
-        id: stmt.id,
+        id: stmt.id?.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
@@ -302,8 +302,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         minArity: stmt.minArity,
         maxArity: stmt.maxArity,
         paramDecls: stmt.paramDecls.asMap().map((key, param) => MapEntry(
-            param.id,
-            HTParameterDeclaration(param.id,
+            param.id.id,
+            HTParameterDeclaration(param.id.id,
                 closure: _curNamespace,
                 declType: HTType.fromAst(param.declType),
                 isOptional: param.isOptional,
@@ -318,12 +318,12 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curLine = stmt.line;
     _curColumn = stmt.column;
     final decl = HTClassDeclaration(
-        id: stmt.id,
+        id: stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
         genericTypeParameters: stmt.genericTypeParameters
-            .map((param) => HTGenericTypeParameter(param.id))
+            .map((param) => HTGenericTypeParameter(param.id.id))
             .toList(),
         superType: HTType.fromAst(stmt.superType),
         implementsTypes:
@@ -331,7 +331,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         withTypes: stmt.withTypes.map((param) => HTType.fromAst(param)),
         isExternal: stmt.isExternal,
         isAbstract: stmt.isAbstract);
-    _curNamespace.define(stmt.id, decl);
+    _curNamespace.define(stmt.id.id, decl);
   }
 
   @override
@@ -339,25 +339,25 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curLine = stmt.line;
     _curColumn = stmt.column;
     final decl = HTClassDeclaration(
-        id: stmt.id,
+        id: stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
         isExternal: stmt.isExternal);
-    _curNamespace.define(stmt.id, decl);
+    _curNamespace.define(stmt.id.id, decl);
   }
 
   @override
   void visitStructDecl(StructDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    final decl = HTStructDeclaration(stmt.id,
+    final decl = HTStructDeclaration(stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
         prototypeId: stmt.prototypeId,
         isTopLevel: stmt.isTopLevel,
         isExported: stmt.isExported);
-    _curNamespace.define(stmt.id, decl);
+    _curNamespace.define(stmt.id.id, decl);
   }
 }

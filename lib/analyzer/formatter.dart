@@ -259,7 +259,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
-    return expr.id;
+    return expr.id.id;
   }
 
   @override
@@ -577,7 +577,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitReferConstructCallExpr(ReferConstructCallExpr stmt) {
     final output = StringBuffer();
-    output.write(stmt.isSuper ? HTLexicon.SUPER : HTLexicon.THIS);
+    output.write(stmt.callee.id);
     if (stmt.key != null) {
       output.write('${HTLexicon.memberGet}${stmt.key}');
     }

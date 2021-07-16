@@ -743,16 +743,16 @@ class Hetu extends HTAbstractInterpreter {
         } else {
           _curValue = symbol;
         }
-        final hasTypeArgs = _curLibrary.readBool();
-        if (hasTypeArgs) {
-          final typeArgsLength = _curLibrary.read();
-          final typeArgs = <HTType>[];
-          for (var i = 0; i < typeArgsLength; ++i) {
-            final arg = _handleTypeExpr();
-            typeArgs.add(arg);
-          }
-          _curTypeArgs = typeArgs;
-        }
+        // final hasTypeArgs = _curLibrary.readBool();
+        // if (hasTypeArgs) {
+        //   final typeArgsLength = _curLibrary.read();
+        //   final typeArgs = <HTType>[];
+        //   for (var i = 0; i < typeArgsLength; ++i) {
+        //     final arg = _handleTypeExpr();
+        //     typeArgs.add(arg);
+        //   }
+        //   _curTypeArgs = typeArgs;
+        // }
         break;
       case HTValueTypeCode.group:
         _curValue = execute();
@@ -1273,11 +1273,11 @@ class Hetu extends HTAbstractInterpreter {
     if (category == FunctionCategory.constructor) {
       final hasRefCtor = _curLibrary.readBool();
       if (hasRefCtor) {
-        final isSuper = _curLibrary.readBool();
+        final calleeId = _curLibrary.readShortUtf8String();
         final hasCtorName = _curLibrary.readBool();
-        String? name;
+        String? ctorName;
         if (hasCtorName) {
-          name = _curLibrary.readShortUtf8String();
+          ctorName = _curLibrary.readShortUtf8String();
         }
         final positionalArgIpsLength = _curLibrary.read();
         for (var i = 0; i < positionalArgIpsLength; ++i) {
@@ -1292,9 +1292,8 @@ class Hetu extends HTAbstractInterpreter {
           namedArgIps[argName] = _curLibrary.ip;
           _curLibrary.skip(argLength);
         }
-        referConstructor = ReferConstructor(
-            isSuper: isSuper,
-            name: name,
+        referConstructor = ReferConstructor(calleeId,
+            key: ctorName,
             positionalArgsIp: positionalArgIps,
             namedArgsIp: namedArgIps);
       }

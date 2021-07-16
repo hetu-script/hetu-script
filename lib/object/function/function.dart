@@ -19,9 +19,9 @@ import '../object.dart';
 class ReferConstructor {
   /// id of super class's constructor
   // final String callee;
-  final bool isSuper;
+  final String name;
 
-  final String? name;
+  final String? key;
 
   /// Holds ips of super class's constructor's positional argumnets
   final List<int> positionalArgsIp;
@@ -29,9 +29,8 @@ class ReferConstructor {
   /// Holds ips of super class's constructor's named argumnets
   final Map<String, int> namedArgsIp;
 
-  ReferConstructor(
-      {this.isSuper = false,
-      this.name,
+  ReferConstructor(this.name,
+      {this.key,
       this.positionalArgsIp = const [],
       this.namedArgsIp = const {}});
 }
@@ -243,24 +242,23 @@ class HTFunction extends HTFunctionDeclaration
             referConstructor != null) {
           late final HTFunction constructor;
           final name = referConstructor!.name;
-          if (referConstructor!.isSuper) {
+          final key = referConstructor!.key;
+          if (name == HTLexicon.SUPER) {
             final superClass = klass!.superClass!;
-            if (name == null) {
+            if (key == null) {
               constructor = superClass
                   .namespace.declarations[SemanticNames.constructor]!.value;
             } else {
               constructor = superClass.namespace
-                  .declarations['${SemanticNames.constructor}$name']!.value;
+                  .declarations['${SemanticNames.constructor}$key']!.value;
             }
-          }
-          // (callee == HTLexicon.THIS)
-          else {
-            if (name == null) {
+          } else if (name == HTLexicon.THIS) {
+            if (key == null) {
               constructor = klass!
                   .namespace.declarations[SemanticNames.constructor]!.value;
             } else {
               constructor = klass!.namespace
-                  .declarations['${SemanticNames.constructor}$name']!.value;
+                  .declarations['${SemanticNames.constructor}$key']!.value;
             }
           }
 

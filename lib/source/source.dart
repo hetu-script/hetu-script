@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 
 // import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
+import '../util/crc32b.dart';
 import 'line_info.dart';
 
 const hetuSouceFileExtension = '.ht';
@@ -60,8 +61,9 @@ class HTSource {
     if (fullName != null) {
       this.fullName = fullName;
     } else {
+      final crc32b = Crc32b.compute(content);
       final sigBuilder = StringBuffer();
-      sigBuilder.write('${SemanticNames.anonymousScript}: {');
+      sigBuilder.write('${SemanticNames.anonymousScript}_$crc32b: ');
       var firstLine =
           content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
       sigBuilder.write(firstLine.substring(
@@ -69,7 +71,6 @@ class HTSource {
       if (firstLine.length > _anonymousScriptSignatureLength) {
         sigBuilder.write('...');
       }
-      sigBuilder.write('}');
       this.fullName = sigBuilder.toString();
     }
 

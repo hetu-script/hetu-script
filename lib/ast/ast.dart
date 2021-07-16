@@ -1274,7 +1274,9 @@ class VarDecl extends AstNode {
 
   final SymbolExpr id;
 
-  final String internalName;
+  final String? _internalName;
+
+  String get internalName => _internalName ?? id.id;
 
   final String? classId;
 
@@ -1304,8 +1306,9 @@ class VarDecl extends AstNode {
 
   final bool lateInitialize;
 
-  const VarDecl(this.id, this.internalName,
-      {HTSource? source,
+  const VarDecl(this.id,
+      {String? internalName,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
@@ -1323,7 +1326,8 @@ class VarDecl extends AstNode {
       this.isTopLevel = false,
       this.isExported = false,
       this.lateInitialize = false})
-      : super(SemanticNames.variableDeclaration,
+      : _internalName = internalName,
+        super(SemanticNames.variableDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1391,13 +1395,13 @@ class ReferConstructCallExpr extends AstNode {
 
   final Map<String, AstNode> namedArgs;
 
-  const ReferConstructCallExpr(
-      this.callee, this.key, this.positionalArgs, this.namedArgs,
+  const ReferConstructCallExpr(this.callee, this.positionalArgs, this.namedArgs,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0})
+      int length = 0,
+      this.key})
       : super(SemanticNames.referConstructorExpression,
             source: source,
             line: line,
