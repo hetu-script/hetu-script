@@ -102,7 +102,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTConsoleClass());
 
       for (final file in preincludes.keys) {
-        eval(coreModules[file]!,
+        eval(preincludes[file]!,
             moduleFullName: file,
             // namespace: global,
             type: SourceType.module);
