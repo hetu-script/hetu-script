@@ -6,7 +6,7 @@
 
 Discussion group:
 
-Discord: [https://discord.gg/Q8JWQYEw](https://discord.gg/Q8JWQYEw)
+Discord: [https://discord.gg/Q8JWQYEw](https://discord.gg/aJedwcRPr8)
 
 QQ 群: 812529118
 
