@@ -1131,6 +1131,7 @@ class HTParser extends HTAbstractParser {
         }
       }
       match(HTLexicon.roundRight);
+      match(HTLexicon.singleArrow);
       final returnType = _parseTypeExpr();
       return FuncTypeExpr(keywordSymbol, returnType,
           isLocal: isLocal,
