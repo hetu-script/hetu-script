@@ -2,6 +2,8 @@
 /// Copyright (C) 2012, Kai Sellgren
 /// Licensed under the MIT License.
 /// http://www.opensource.org/licenses/mit-license.php
+///
+/// Converted to dart code by chengfubeiming@live.com
 import 'dart:convert';
 
 /// Computes Cyclic Redundancy Check values.

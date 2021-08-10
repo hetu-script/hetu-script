@@ -12,11 +12,11 @@ QQ 群: 812529118
 
 ## Introduction
 
-Hetu is a lightweight script language purely written in Dart for embedding in Flutter apps. The main goal is to enable Flutter app have hotfix and scripting ability.
+Hetu is a lightweight script language purely written in Dart for embedding in Flutter apps. The main goal is to enable Flutter apps to have hotfix and scripting ability.
 
 We did not choose to use another existing language to achieve the goal. Because we want to keep the language simple, and keep it away from interference of other language's complex implementation and their irrelative-to-Flutter eco-system, and make the debug process pain-free and remain in Dart realms.
 
-It takes very little time to bind almost anything in Dart/Flutter into Hetu and use similar grammar to write your app. And to communicate with classes & functions in Dart is very easy.
+It takes very little time to bind almost anything in Dart/Flutter into Hetu, makes communicating with your existing Dart code very easy.
 
 ## Quick start
 
@@ -96,13 +96,16 @@ Hetu has a command line REPL tool for testing. You can activate by the following
 
 ```
 dart pub global activate hetu_script
+// or you can use a git url or local path:
+// dart pub global activate --source git https://github.com/hetu-script/hetu-script.git
+// dart pub global activate --source path G:\_dev\hetu-script
 ```
 
 Then you can use command line tool 'hetu' in any directory on your computer. (If you are facing any problems, please check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global))
 
-More information can be found by enter [hetu -h].
+More information about the command line tool can be found by enter [hetu -h].
 
-If no command and option is provided, enter REPL mode.
+If no arguments is provided, enter REPL mode.
 
 In REPL mode, every exrepssion you entered will be evaluated and print out immediately.
 

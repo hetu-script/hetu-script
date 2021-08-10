@@ -7,7 +7,6 @@ enum FunctionCategory {
   getter,
   setter,
   literal, // function expression with no function name
-  nested, // function within function, may with name
 }
 
 enum TypeType {

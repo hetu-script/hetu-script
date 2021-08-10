@@ -33,7 +33,7 @@ enum SourceType {
 }
 
 class HTSource {
-  static const _anonymousScriptSignatureLength = 72;
+  static const _anonymousScriptNameLengthLimit = 72;
 
   late final String fullName;
   String get name => path.basename(fullName);
@@ -62,16 +62,16 @@ class HTSource {
       this.fullName = fullName;
     } else {
       final crc32b = Crc32b.compute(content);
-      final sigBuilder = StringBuffer();
-      sigBuilder.write('${SemanticNames.anonymousScript}_$crc32b: ');
+      final nameBuilder = StringBuffer();
+      nameBuilder.write('${SemanticNames.anonymousScript}_$crc32b: ');
       var firstLine =
           content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
-      sigBuilder.write(firstLine.substring(
-          0, math.min(_anonymousScriptSignatureLength, firstLine.length)));
-      if (firstLine.length > _anonymousScriptSignatureLength) {
-        sigBuilder.write('...');
+      nameBuilder.write(firstLine.substring(
+          0, math.min(_anonymousScriptNameLengthLimit, firstLine.length)));
+      if (firstLine.length > _anonymousScriptNameLengthLimit) {
+        nameBuilder.write('...');
       }
-      this.fullName = sigBuilder.toString();
+      this.fullName = nameBuilder.toString();
     }
 
     // if (type == SourceType.module) {

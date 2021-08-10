@@ -88,7 +88,7 @@ void main() {
     test('type alias function', () {
       final result = hetu.eval('''
         fun typeAlias2 {
-          type MyFuncType = fun (num, num) -> num
+          type MyFuncType = fun (num, num) => num
           var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
           return func(6, 7)
         }

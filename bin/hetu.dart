@@ -48,7 +48,7 @@ void main(List<String> arguments) {
             input += '\n' + stdin.readLineSync()!;
           }
           try {
-            final result = hetu.eval(input);
+            final result = hetu.eval(input, type: SourceType.script);
             print(result);
           } catch (e) {
             if (e is HTError) {

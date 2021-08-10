@@ -1080,45 +1080,9 @@ class HTParser extends HTAbstractParser {
   }
 
   TypeExpr _parseTypeExpr({bool isLocal = false}) {
-    // nominal type
-    if (curTok.type == SemanticNames.identifier) {
-      final id = match(SemanticNames.identifier);
-      final symbol = SymbolExpr.fromToken(id);
-      final typeArgs = <TypeExpr>[];
-      if (expect([HTLexicon.angleLeft], consume: true)) {
-        if (curTok.type == HTLexicon.angleRight) {
-          final lastTok = peek(-1);
-          final err = HTError.emptyTypeArgs(
-              moduleFullName: _curModuleFullName,
-              line: curTok.line,
-              column: curTok.column,
-              offset: lastTok.offset,
-              length: lastTok.length + curTok.length);
-          errors.add(err);
-        }
-        while ((curTok.type != HTLexicon.angleRight) &&
-            (curTok.type != SemanticNames.endOfFile)) {
-          typeArgs.add(_parseTypeExpr());
-          expect([HTLexicon.comma], consume: true);
-        }
-        match(HTLexicon.angleRight);
-      }
-      final isNullable = expect([HTLexicon.nullable], consume: true);
-      return TypeExpr(
-        symbol,
-        arguments: typeArgs,
-        isNullable: isNullable,
-        isLocal: isLocal,
-        source: _curSource,
-        line: id.line,
-        column: id.column,
-        offset: id.offset,
-      );
-    }
     // function type
-    else // if (curTok.type == HTLexicon.FUNCTION)
-    {
-      final keyword = advance(1);
+    if (curTok.type == HTLexicon.FUNCTION) {
+      final keyword = match(HTLexicon.FUNCTION);
       final keywordSymbol = SymbolExpr.fromToken(keyword);
       // TODO: genericTypeParameters 泛型参数
       final parameters = <ParamTypeExpr>[];
@@ -1167,7 +1131,6 @@ class HTParser extends HTAbstractParser {
         }
       }
       match(HTLexicon.roundRight);
-      match(HTLexicon.singleArrow);
       final returnType = _parseTypeExpr();
       return FuncTypeExpr(keywordSymbol, returnType,
           isLocal: isLocal,
@@ -1181,6 +1144,41 @@ class HTParser extends HTAbstractParser {
           length: curTok.offset - keyword.offset);
     }
     // TODO: interface type
+    // nominal type
+    else {
+      final id = match(SemanticNames.identifier);
+      final symbol = SymbolExpr.fromToken(id);
+      final typeArgs = <TypeExpr>[];
+      if (expect([HTLexicon.angleLeft], consume: true)) {
+        if (curTok.type == HTLexicon.angleRight) {
+          final lastTok = peek(-1);
+          final err = HTError.emptyTypeArgs(
+              moduleFullName: _curModuleFullName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: lastTok.offset,
+              length: lastTok.length + curTok.length);
+          errors.add(err);
+        }
+        while ((curTok.type != HTLexicon.angleRight) &&
+            (curTok.type != SemanticNames.endOfFile)) {
+          typeArgs.add(_parseTypeExpr());
+          expect([HTLexicon.comma], consume: true);
+        }
+        match(HTLexicon.angleRight);
+      }
+      final isNullable = expect([HTLexicon.nullable], consume: true);
+      return TypeExpr(
+        symbol,
+        arguments: typeArgs,
+        isNullable: isNullable,
+        isLocal: isLocal,
+        source: _curSource,
+        line: id.line,
+        column: id.column,
+        offset: id.offset,
+      );
+    }
   }
 
   BlockStmt _parseBlockStmt(
@@ -1867,6 +1865,8 @@ class HTParser extends HTAbstractParser {
       definition = _parseBlockStmt(id: SemanticNames.functionCall);
     } else if (expect([HTLexicon.doubleArrow], consume: true)) {
       definition = _parseExprStmt();
+    } else if (expect([HTLexicon.assign], consume: true)) {
+      // TODO: redirecting function, usually for constructors
     } else {
       if (category != FunctionCategory.constructor &&
           category != FunctionCategory.literal &&
