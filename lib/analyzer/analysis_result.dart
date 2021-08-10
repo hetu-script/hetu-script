@@ -1,5 +1,5 @@
 import '../declaration/namespace/library.dart';
-import '../parser/parse_result_collection.dart';
+import '../parser/parse_result_compilation.dart';
 import '../source/source.dart';
 import '../source/line_info.dart';
 import '../declaration/namespace/module.dart';

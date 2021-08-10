@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../parser/parse_result_collection.dart';
+import '../parser/parse_result_compilation.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
