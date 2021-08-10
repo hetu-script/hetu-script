@@ -1,7 +1,7 @@
 import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../parser/parse_result_collection.dart';
+import '../parser/parse_result_compilation.dart';
 import '../parser/parse_result.dart';
 import '../lexer/lexer.dart';
 import '../parser/parser.dart';

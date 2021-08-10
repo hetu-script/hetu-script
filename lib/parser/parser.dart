@@ -9,12 +9,12 @@ import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
 import 'parse_result.dart';
-import 'parse_result_collection.dart';
+import 'parse_result_compilation.dart';
 // import '../error/error_handler.dart';
 import 'abstract_parser.dart';
 import '../lexer/lexer.dart';
 
-/// Scans a token list and generates a abstract syntax tree.
+/// Walk through a token list and generates a abstract syntax tree.
 class HTParser extends HTAbstractParser {
   final _curModuleImports = <ImportDecl>[];
 
