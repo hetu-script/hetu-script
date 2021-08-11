@@ -195,7 +195,11 @@ class StringInterpolationExpr extends AstNode {
       visitor.visitStringInterpolationExpr(this);
 
   @override
-  dynamic subAccept(AbstractAstVisitor visitor) => null;
+  dynamic subAccept(AbstractAstVisitor visitor) {
+    for (final node in interpolation) {
+      node.accept(visitor);
+    }
+  };
 
   final String value;
 
@@ -1154,7 +1158,8 @@ class ImportDecl extends AstNode {
   final List<SymbolExpr> showList;
 
   /// The normalized absolute path of the imported module.
-  /// It is left as null when parsing because at this time we don't know yet.
+  /// It is left as null at the first time of parsing,
+  /// because at this time we don't know yet.
   String? fullName;
 
   final bool hasEndOfStmtMark;
