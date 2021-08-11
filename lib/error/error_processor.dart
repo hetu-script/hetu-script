@@ -68,13 +68,12 @@ class ErrorProcessor {
 
   /// Return an error processor associated in the [analysisOptions] for the
   /// given [error], or `null` if none is found.
-  static ErrorProcessor? getProcessor(
-      AnalyzerConfig? analyzerConfig, HTError error) {
-    if (analyzerConfig == null) {
+  static ErrorProcessor? getProcessor(HTAnalyzer? analyzer, HTError error) {
+    if (analyzer == null) {
       return null;
     }
 
-    for (var processor in analyzerConfig.errorProcessors) {
+    for (var processor in analyzer.errorProcessors) {
       if (processor.appliesTo(error)) {
         return processor;
       }

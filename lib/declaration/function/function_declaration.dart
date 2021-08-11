@@ -55,6 +55,8 @@ class HTFunctionDeclaration extends HTDeclaration
 
   final int maxArity;
 
+  HTNamespace? namespace;
+
   HTFunctionDeclaration(this.internalName,
       {String? id,
       String? classId,
@@ -74,7 +76,8 @@ class HTFunctionDeclaration extends HTDeclaration
       this.isAbstract = false,
       this.isVariadic = false,
       this.minArity = 0,
-      this.maxArity = 0})
+      this.maxArity = 0,
+      this.namespace})
       : _paramDecls = paramDecls,
         declType = HTFunctionType(
             parameterTypes: paramDecls.values

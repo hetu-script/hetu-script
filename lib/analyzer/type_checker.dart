@@ -7,7 +7,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
 
   HTTypeChecker(this.library);
 
-  HTType? analyzeAst(AstNode node) => node.accept(this);
+  HTType? visitAstNode(AstNode node) => node.accept(this);
 
   @override
   HTType? visitEmptyExpr(EmptyExpr expr) {}
