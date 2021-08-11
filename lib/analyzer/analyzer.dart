@@ -129,7 +129,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     return result;
   }
 
-  void visitAstNode(AstNode node) => node.accept(this);
+  void visitAstNode(AstNode node) {
+    node.accept(this);
+  }
 
   @override
   void visitEmptyExpr(EmptyExpr expr) {}
@@ -153,7 +155,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
-  void visitStringInterpolationExpr(StringInterpolationExpr expr) {}
+  void visitStringInterpolationExpr(StringInterpolationExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
   void visitGroupExpr(GroupExpr expr) {}
@@ -165,9 +169,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitMapExpr(MapExpr expr) {}
 
   @override
-  void visitSymbolExpr(SymbolExpr expr) {
-    expr.analysisNamespace = _curNamespace;
-  }
+  void visitSymbolExpr(SymbolExpr expr) {}
 
   @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr expr) {}

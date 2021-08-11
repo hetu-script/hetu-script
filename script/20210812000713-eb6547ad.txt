@@ -1,0 +1,199 @@
+2021-08-12T00:07:13.323230 info - initialized!
+2021-08-12T00:07:13.356474 info - Open workspace paths: [d:\_dev\hetu-script\script]
+2021-08-12T00:07:13.359468 info - Client initialization option: {}
+2021-08-12T00:07:13.398937 info - received client message: {
+    "method": "initialized",
+    "params": {},
+    "jsonrpc": "2.0"
+}
+2021-08-12T00:07:13.402955 info - send request: workspace/configuration, {
+    "items": [
+        {
+            "section": "hetu"
+        }
+    ]
+}
+2021-08-12T00:07:13.411931 info - received client message: {
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result": [
+        null
+    ]
+}
+2021-08-12T00:07:13.417914 info - send request: client/registerCapability, {
+    "registrations": [
+        {
+            "id": "0",
+            "method": "textDocument/didOpen",
+            "registerOptions": {
+                "documentSelector": [
+                    {
+                        "language": "hetu",
+                        "scheme": "file"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "1",
+            "method": "textDocument/didClose",
+            "registerOptions": {
+                "documentSelector": [
+                    {
+                        "language": "hetu",
+                        "scheme": "file"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "2",
+            "method": "textDocument/didChange",
+            "registerOptions": {
+                "syncKind": 2,
+                "documentSelector": [
+                    {
+                        "language": "hetu",
+                        "scheme": "file"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "3",
+            "method": "textDocument/documentHighlight",
+            "registerOptions": {
+                "documentSelector": [
+                    {
+                        "language": "hetu",
+                        "scheme": "file"
+                    }
+                ]
+            }
+        }
+    ]
+}
+2021-08-12T00:07:13.428856 info - received client message: {
+    "method": "textDocument/didOpen",
+    "params": {
+        "textDocument": {
+            "uri": "file:///d%3A/_dev/hetu-script/script/_analyzer_test.ht",
+            "languageId": "hetu",
+            "version": 1,
+            "text": "class Person {\r\n  fun d {\r\n\r\n  }\r\n  var j = 21\r\n  construct {\r\n\r\n  }\r\n\r\n}\r\n"
+        }
+    },
+    "jsonrpc": "2.0"
+}
+2021-08-12T00:07:13.431874 info - document opened [d:\_dev\hetu-script\script\_analyzer_test.ht]
+2021-08-12T00:07:13.440824 info - source added: [d:/_dev/hetu-script/script/_analyzer_test.ht]
+class Person {
+  fun d {
+
+  }
+  var j = 21
+  construct {
+
+  }
+
+}
+
+2021-08-12T00:07:13.441821 info - pathsToAnalyze:
+(d:/_dev/hetu-script/script/_analyzer_test.ht)
+2021-08-12T00:07:13.507803 info - error when handling client message:
+Null check operator used on a null value
+2021-08-12T00:07:13.510763 info - sending notification: An error occurred while handling textDocument/didOpen notification
+Null check operator used on a null value
+#0      _OccurrencesVisitor.visitSymbolExpr (package:hetu_script/analyzer/analyzer.dart:376:31)
+#1      SymbolExpr.accept (package:hetu_script/ast/ast.dart:225:57)
+#2      ClassDecl.subAccept (package:hetu_script/ast/ast.dart:1548:12)
+#3      RecursiveAstVisitor.visitClassDecl (package:hetu_script/ast/visitor/recursive_ast_visitor.dart:234:10)
+#4      ClassDecl.accept (package:hetu_script/ast/ast.dart:1544:57)
+#5      HTAnalyzer.evalSource (package:hetu_script/analyzer/analyzer.dart:126:12)
+#6      HTAnalysisManager.analyze (package:hetu_script/analyzer/analysis_manager.dart:45:29)
+#7      LspAnalysisServer.doAnalyze (package:hetu_language_server/lsp/lsp_analysis_server.dart:333:36)
+#8      LspAnalysisServer.onOverlayCreated (package:hetu_language_server/lsp/lsp_analysis_server.dart:349:5)
+#9      TextDocumentOpenHandler.handle.<anonymous closure> (package:hetu_language_server/lsp/handler/handler_text_document_changes.dart:112:14)
+#10     ErrorOr.mapResult (package:hetu_language_server/protocol/protocol_special.dart:257:12)
+#11     TextDocumentOpenHandler.handle (package:hetu_language_server/lsp/handler/handler_text_document_changes.dart:105:17)
+#12     MessageHandler.handleMessage (package:hetu_language_server/lsp/handler/handlers.dart:198:12)
+#13     ServerStateMessageHandler.handleMessage (package:hetu_language_server/lsp/handler/handlers.dart:229:22)
+#14     LspAnalysisServer.handleMessage.<anonymous closure> (package:hetu_language_server/lsp/lsp_analysis_server.dart:252:48)
+#15     LspAnalysisServer.handleMessage.<anonymous closure> (package:hetu_language_server/lsp/lsp_analysis_server.dart:237:21)
+#16     _rootRun (dart:async/zone.dart:1354:13)
+#17     _CustomZone.run (dart:async/zone.dart:1258:19)
+#18     _runZoned (dart:async/zone.dart:1789:10)
+#19     runZonedGuarded (dart:async/zone.dart:1777:12)
+#20     LspAnalysisServer.handleMessage (package:hetu_language_server/lsp/lsp_analysis_server.dart:237:5)
+#21     LspByteStreamServerChannel._readMessage (package:hetu_language_server/lsp/channel/lsp_byte_stream_channel.dart:88:16)
+#22     LspByteStreamServerChannel.listen.<anonymous closure> (package:hetu_language_server/lsp/channel/lsp_byte_stream_channel.dart:55:24)
+#23     _rootRunUnary (dart:async/zone.dart:1362:47)
+#24     _CustomZone.runUnary (dart:async/zone.dart:1265:19)
+#25     _CustomZone.runUnaryGuarded (dart:async/zone.dart:1170:7)
+#26     _BufferingStreamSubscription._sendData (dart:async/stream_impl.dart:341:11)
+#27     _DelayedData.perform (dart:async/stream_impl.dart:591:14)
+#28     _StreamImplEvents.handleNext (dart:async/stream_impl.dart:706:11)
+#29     _PendingEvents.schedule.<anonymous closure> (dart:async/stream_impl.dart:663:7)
+#30     _rootRun (dart:async/zone.dart:1346:47)
+#31     _CustomZone.run (dart:async/zone.dart:1258:19)
+#32     _CustomZone.runGuarded (dart:async/zone.dart:1162:7)
+#33     _CustomZone.bindCallbackGuarded.<anonymous closure> (dart:async/zone.dart:1202:23)
+#34     _rootRun (dart:async/zone.dart:1354:13)
+#35     _CustomZone.run (dart:async/zone.dart:1258:19)
+#36     _CustomZone.runGuarded (dart:async/zone.dart:1162:7)
+#37     _CustomZone.bindCallbackGuarded.<anonymous closure> (dart:async/zone.dart:1202:23)
+#38     _microtaskLoop (dart:async/schedule_microtask.dart:40:21)
+#39     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49:5)
+#40     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:120:13)
+#41     _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:185:5)
+
+2021-08-12T00:07:13.516747 info - exception: An error occurred while handling textDocument/didOpen notification
+Null check operator used on a null value
+#0      _OccurrencesVisitor.visitSymbolExpr (package:hetu_script/analyzer/analyzer.dart:376:31)
+#1      SymbolExpr.accept (package:hetu_script/ast/ast.dart:225:57)
+#2      ClassDecl.subAccept (package:hetu_script/ast/ast.dart:1548:12)
+#3      RecursiveAstVisitor.visitClassDecl (package:hetu_script/ast/visitor/recursive_ast_visitor.dart:234:10)
+#4      ClassDecl.accept (package:hetu_script/ast/ast.dart:1544:57)
+#5      HTAnalyzer.evalSource (package:hetu_script/analyzer/analyzer.dart:126:12)
+#6      HTAnalysisManager.analyze (package:hetu_script/analyzer/analysis_manager.dart:45:29)
+#7      LspAnalysisServer.doAnalyze (package:hetu_language_server/lsp/lsp_analysis_server.dart:333:36)
+#8      LspAnalysisServer.onOverlayCreated (package:hetu_language_server/lsp/lsp_analysis_server.dart:349:5)
+#9      TextDocumentOpenHandler.handle.<anonymous closure> (package:hetu_language_server/lsp/handler/handler_text_document_changes.dart:112:14)
+#10     ErrorOr.mapResult (package:hetu_language_server/protocol/protocol_special.dart:257:12)
+#11     TextDocumentOpenHandler.handle (package:hetu_language_server/lsp/handler/handler_text_document_changes.dart:105:17)
+#12     MessageHandler.handleMessage (package:hetu_language_server/lsp/handler/handlers.dart:198:12)
+#13     ServerStateMessageHandler.handleMessage (package:hetu_language_server/lsp/handler/handlers.dart:229:22)
+#14     LspAnalysisServer.handleMessage.<anonymous closure> (package:hetu_language_server/lsp/lsp_analysis_server.dart:252:48)
+#15     LspAnalysisServer.handleMessage.<anonymous closure> (package:hetu_language_server/lsp/lsp_analysis_server.dart:237:21)
+#16     _rootRun (dart:async/zone.dart:1354:13)
+#17     _CustomZone.run (dart:async/zone.dart:1258:19)
+#18     _runZoned (dart:async/zone.dart:1789:10)
+#19     runZonedGuarded (dart:async/zone.dart:1777:12)
+#20     LspAnalysisServer.handleMessage (package:hetu_language_server/lsp/lsp_analysis_server.dart:237:5)
+#21     LspByteStreamServerChannel._readMessage (package:hetu_language_server/lsp/channel/lsp_byte_stream_channel.dart:88:16)
+#22     LspByteStreamServerChannel.listen.<anonymous closure> (package:hetu_language_server/lsp/channel/lsp_byte_stream_channel.dart:55:24)
+#23     _rootRunUnary (dart:async/zone.dart:1362:47)
+#24     _CustomZone.runUnary (dart:async/zone.dart:1265:19)
+#25     _CustomZone.runUnaryGuarded (dart:async/zone.dart:1170:7)
+#26     _BufferingStreamSubscription._sendData (dart:async/stream_impl.dart:341:11)
+#27     _DelayedData.perform (dart:async/stream_impl.dart:591:14)
+#28     _StreamImplEvents.handleNext (dart:async/stream_impl.dart:706:11)
+#29     _PendingEvents.schedule.<anonymous closure> (dart:async/stream_impl.dart:663:7)
+#30     _rootRun (dart:async/zone.dart:1346:47)
+#31     _CustomZone.run (dart:async/zone.dart:1258:19)
+#32     _CustomZone.runGuarded (dart:async/zone.dart:1162:7)
+#33     _CustomZone.bindCallbackGuarded.<anonymous closure> (dart:async/zone.dart:1202:23)
+#34     _rootRun (dart:async/zone.dart:1354:13)
+#35     _CustomZone.run (dart:async/zone.dart:1258:19)
+#36     _CustomZone.runGuarded (dart:async/zone.dart:1162:7)
+#37     _CustomZone.bindCallbackGuarded.<anonymous closure> (dart:async/zone.dart:1202:23)
+#38     _microtaskLoop (dart:async/schedule_microtask.dart:40:21)
+#39     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49:5)
+#40     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:120:13)
+#41     _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:185:5)
+
+2021-08-12T00:07:13.523728 info - received client message: {
+    "id": 2,
+    "jsonrpc": "2.0",
+    "result": null
+}
