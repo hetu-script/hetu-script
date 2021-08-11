@@ -36,9 +36,6 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
   // final Iterable<HTClass> implementedClass;
   // final Iterable<HTType> implementedType;
 
-  /// The instance member variables defined in class definition.
-  // final instanceMembers = <String, HTDeclaration>{};
-
   /// Create a default [HTClass] instance.
   HTClass(HTAbstractInterpreter interpreter,
       {String? id,

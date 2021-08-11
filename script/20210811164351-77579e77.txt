@@ -1,0 +1,100 @@
+2021-08-11T16:43:51.758961 info - initialized!
+2021-08-11T16:43:51.778955 info - Open workspace paths: [g:\_dev\hetu-script\script]
+2021-08-11T16:43:51.782954 info - Client initialization option: {closingLabels: true, outline: true, suggestFromUnimportedLibraries: true}
+2021-08-11T16:43:51.812945 info - received client message: {
+    "method": "initialized",
+    "params": {},
+    "jsonrpc": "2.0"
+}
+2021-08-11T16:43:51.819941 info - send request: workspace/configuration, {
+    "items": [
+        {
+            "section": "hetu"
+        }
+    ]
+}
+2021-08-11T16:43:51.831939 info - received client message: {
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result": [
+        null
+    ]
+}
+2021-08-11T16:43:51.842935 info - send request: client/registerCapability, {
+    "registrations": [
+        {
+            "id": "0",
+            "method": "textDocument/didOpen",
+            "registerOptions": {
+                "documentSelector": [
+                    {
+                        "language": "hetu",
+                        "scheme": "file"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "1",
+            "method": "textDocument/didClose",
+            "registerOptions": {
+                "documentSelector": [
+                    {
+                        "language": "hetu",
+                        "scheme": "file"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "2",
+            "method": "textDocument/didChange",
+            "registerOptions": {
+                "syncKind": 2,
+                "documentSelector": [
+                    {
+                        "language": "hetu",
+                        "scheme": "file"
+                    }
+                ]
+            }
+        }
+    ]
+}
+2021-08-11T16:43:51.852931 info - received client message: {
+    "method": "textDocument/didOpen",
+    "params": {
+        "textDocument": {
+            "uri": "file:///g%3A/_dev/hetu-script/script/_analyzer_test.ht",
+            "languageId": "hetu",
+            "version": 1,
+            "text": "class Person {\r\n  fun d {\r\n\r\n  }\r\n  var j = 21\r\n  construct {\r\n\r\n  }\r\n\r\n}\r\n"
+        }
+    },
+    "jsonrpc": "2.0"
+}
+2021-08-11T16:43:51.862928 info - document opened [g:\_dev\hetu-script\script\_analyzer_test.ht]
+2021-08-11T16:43:51.875924 info - source added: [g:/_dev/hetu-script/script/_analyzer_test.ht]
+class Person {
+  fun d {
+
+  }
+  var j = 21
+  construct {
+
+  }
+
+}
+
+2021-08-11T16:43:51.882923 info - pathsToAnalyze:
+(g:/_dev/hetu-script/script/_analyzer_test.ht)
+2021-08-11T16:43:51.927907 info - received client message: {
+    "id": 2,
+    "jsonrpc": "2.0",
+    "result": null
+}
+2021-08-11T16:44:30.957525 info - received client message: {
+    "id": 1,
+    "method": "shutdown",
+    "jsonrpc": "2.0"
+}

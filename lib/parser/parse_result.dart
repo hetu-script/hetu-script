@@ -32,7 +32,6 @@ class HTModuleParseResult {
 
   final bool isLibraryEntry;
 
-  /// The bytecode, stores as uint8 list
   final List<AstNode> nodes;
 
   final List<ImportDecl> imports;

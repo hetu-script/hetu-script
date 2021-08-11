@@ -11,32 +11,32 @@ abstract class ErrorHandlerConfig {
       int hetuStackTraceThreshhold = 10,
       ErrorHanldeApproach approach = ErrorHanldeApproach.exception}) {
     return ErrorHandlerConfigImpl(
-        stackTrace: stackTrace,
-        hetuStackTraceThreshhold: hetuStackTraceThreshhold,
-        approach: approach);
+        showDartStackTrace: stackTrace,
+        hetuStackTraceDisplayCountLimit: hetuStackTraceThreshhold,
+        errorHanldeApproach: approach);
   }
 
-  bool get stackTrace;
+  bool get showDartStackTrace;
 
-  int get hetuStackTraceThreshhold;
+  int get hetuStackTraceDisplayCountLimit;
 
-  ErrorHanldeApproach get approach;
+  ErrorHanldeApproach get errorHanldeApproach;
 }
 
 class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
   @override
-  final bool stackTrace;
+  final bool showDartStackTrace;
 
   @override
-  final int hetuStackTraceThreshhold;
+  final int hetuStackTraceDisplayCountLimit;
 
   @override
-  final ErrorHanldeApproach approach;
+  final ErrorHanldeApproach errorHanldeApproach;
 
   const ErrorHandlerConfigImpl(
-      {this.stackTrace = true,
-      this.hetuStackTraceThreshhold = 10,
-      this.approach = ErrorHanldeApproach.exception});
+      {this.showDartStackTrace = true,
+      this.hetuStackTraceDisplayCountLimit = 10,
+      this.errorHanldeApproach = ErrorHanldeApproach.exception});
 }
 
 typedef HTErrorHandlerCallback = void Function(Object error,
@@ -61,7 +61,7 @@ class HTErrorHandlerImpl implements HTErrorHandler {
 
   @override
   void handleError(Object error, {Object? externalStackTrace}) {
-    switch (errorConfig.approach) {
+    switch (errorConfig.errorHanldeApproach) {
       case ErrorHanldeApproach.ingore:
         break;
       case ErrorHanldeApproach.stdout:

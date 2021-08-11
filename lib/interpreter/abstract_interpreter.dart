@@ -6,8 +6,8 @@ import '../context/context.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../binding/external_instance.dart';
-import '../buildin/buildin_class.dart';
-import '../buildin/buildin_function.dart';
+import '../built_in/buildin_class.dart';
+import '../built_in/buildin_function.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
@@ -15,7 +15,7 @@ import '../type/type.dart';
 import '../object/function/function.dart';
 import '../declaration/namespace/namespace.dart';
 import '../parser/abstract_parser.dart';
-import '../buildin/hetu_lib.dart';
+import '../built_in/hetu_lib.dart';
 import '../object/object.dart';
 import 'compiler.dart';
 
@@ -27,28 +27,33 @@ mixin InterpreterRef {
 class InterpreterConfig
     implements ParserConfig, CompilerConfig, ErrorHandlerConfig {
   @override
-  final bool lineInfo;
+  final bool compileWithLineInfo;
 
   @override
-  final bool stackTrace;
+  final bool showDartStackTrace;
 
   @override
-  final int hetuStackTraceThreshhold;
+  final int hetuStackTraceDisplayCountLimit;
 
   @override
-  final ErrorHanldeApproach approach;
+  final ErrorHanldeApproach errorHanldeApproach;
 
-  final bool hotreload;
+  final bool doStaticAnalyze;
+
+  final bool allowHotReload;
 
   const InterpreterConfig(
-      {this.lineInfo = true,
-      this.stackTrace = true,
-      this.hetuStackTraceThreshhold = 10,
-      this.approach = ErrorHanldeApproach.exception,
-      this.hotreload = false});
+      {this.compileWithLineInfo = true,
+      this.showDartStackTrace = true,
+      this.hetuStackTraceDisplayCountLimit = 10,
+      this.errorHanldeApproach = ErrorHanldeApproach.exception,
+      this.doStaticAnalyze = true,
+      this.allowHotReload = false});
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.
+///
+/// Each instance of a interpreter has a independent global [HTNamespace].
 abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   static final version = Version(0, 1, 0);
 
@@ -74,21 +79,21 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   @mustCallSuper
   void init(
-      {Map<String, String> preincludes = const {},
+      {Map<String, String> preIncludes = const {},
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) {
     try {
       // load classes and functions in core library.
-      for (final file in coreModules.keys) {
-        eval(coreModules[file]!,
+      for (final file in builtInModules.keys) {
+        eval(builtInModules[file]!,
             moduleFullName: file,
             globallyImport: true,
             type: SourceType.module);
       }
-      for (var key in coreFunctions.keys) {
-        bindExternalFunction(key, coreFunctions[key]!);
+      for (var key in buildinFunctions.keys) {
+        bindExternalFunction(key, buildinFunctions[key]!);
       }
       bindExternalClass(HTNumberClass());
       bindExternalClass(HTIntegerClass());
@@ -101,8 +106,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTSystemClass());
       bindExternalClass(HTConsoleClass());
 
-      for (final file in preincludes.keys) {
-        eval(preincludes[file]!,
+      for (final file in preIncludes.keys) {
+        eval(preIncludes[file]!,
             moduleFullName: file,
             // namespace: global,
             type: SourceType.module);

@@ -30,7 +30,7 @@ Version: 0.1.0
 Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
-final hetu = Hetu(config: InterpreterConfig(stackTrace: false));
+final hetu = Hetu(config: InterpreterConfig(showDartStackTrace: false));
 
 void main(List<String> arguments) {
   try {
@@ -145,9 +145,9 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
 }
 
 void analyze(List<String> args, [SourceType sourceType = SourceType.script]) {
-  final analyzer = HTAnalyzer(config: AnalyzerConfig(sourceType: sourceType));
+  final analyzer = HTAnalyzer();
   analyzer.init();
-  final result = analyzer.evalFile(args.first);
+  final result = analyzer.evalFile(args.first, type: sourceType);
   if (result != null) {
     if (result.errors.isNotEmpty) {
       print('Analyzer found ${result.errors.length} problems:');

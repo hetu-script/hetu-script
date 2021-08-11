@@ -28,20 +28,28 @@ abstract class HTDeclaration {
 
   final SourceRange sourceRange;
 
+  /// Wether this declaration is from outside of the script.
   final bool isExternal;
 
+  /// Wether this declaration is static in a class.
   final bool isStatic;
 
+  /// Wether this declaration is a compile time const value.
   final bool isConst;
 
+  /// Wether this declaration's value can be assigned to another value.
   final bool isMutable;
 
+  /// Wether this declaration is defined directly under a module.
   final bool isTopLevel;
 
+  /// Wether this declaration is explicitly exported.
   final bool isExported;
 
+  /// Wether this declaration is a member of a class.
   bool get isMember => classId != null;
 
+  /// Wether this declaration is only accessible from a same class namespace.
   bool get isPrivate => displayName.startsWith(HTLexicon.privatePrefix);
 
   HTDeclaration(

@@ -1,6 +1,9 @@
+import 'package:hetu_script/declaration/namespace/namespace.dart';
+
 import '../lexer/token.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
+import '../declaration/declaration.dart';
 
 part 'visitor/abstract_ast_visitor.dart';
 
@@ -19,18 +22,25 @@ abstract class AstNode {
 
   int get end => offset + length;
 
+  /// This value is null untill assigned by an analyzer
+  HTNamespace? analysisNamespace;
+
+  /// This value is null untill assigned by an analyzer
+  HTDeclaration? declaration;
+
   /// Visit this node
   dynamic accept(AbstractAstVisitor visitor);
 
   /// Visit all the sub nodes of this, doing nothing by default.
-  void acceptAll(AbstractAstVisitor visitor) {}
+  void subAccept(AbstractAstVisitor visitor) {}
 
-  const AstNode(this.type,
+  AstNode(this.type,
       {this.source,
       this.line = 0,
       this.column = 0,
       this.offset = 0,
-      this.length = 0});
+      this.length = 0,
+      this.analysisNamespace});
 }
 
 // Has no meaning, a helper for parser to recover from errors.
@@ -38,7 +48,7 @@ class EmptyExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitEmptyExpr(this);
 
-  const EmptyExpr(
+  EmptyExpr(
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -60,7 +70,7 @@ class CommentExpr extends AstNode {
 
   final bool isMultiline;
 
-  const CommentExpr(this.content,
+  CommentExpr(this.content,
       {this.isMultiline = false,
       HTSource? source,
       int line = 0,
@@ -79,7 +89,7 @@ class NullExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitNullExpr(this);
 
-  const NullExpr(
+  NullExpr(
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -99,7 +109,7 @@ class BooleanExpr extends AstNode {
 
   final bool value;
 
-  const BooleanExpr(this.value,
+  BooleanExpr(this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -119,7 +129,7 @@ class ConstIntExpr extends AstNode {
 
   final int value;
 
-  const ConstIntExpr(this.value,
+  ConstIntExpr(this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -140,7 +150,7 @@ class ConstFloatExpr extends AstNode {
 
   final double value;
 
-  const ConstFloatExpr(this.value,
+  ConstFloatExpr(this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -165,7 +175,7 @@ class ConstStringExpr extends AstNode {
 
   final String quotationRight;
 
-  const ConstStringExpr(this.value, this.quotationLeft, this.quotationRight,
+  ConstStringExpr(this.value, this.quotationLeft, this.quotationRight,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -185,7 +195,7 @@ class StringInterpolationExpr extends AstNode {
       visitor.visitStringInterpolationExpr(this);
 
   @override
-  dynamic acceptAll(AbstractAstVisitor visitor) => null;
+  dynamic subAccept(AbstractAstVisitor visitor) => null;
 
   final String value;
 
@@ -195,7 +205,7 @@ class StringInterpolationExpr extends AstNode {
 
   final List<AstNode> interpolation;
 
-  const StringInterpolationExpr(
+  StringInterpolationExpr(
       this.value, this.quotationLeft, this.quotationRight, this.interpolation,
       {HTSource? source,
       int line = 0,
@@ -218,7 +228,7 @@ class SymbolExpr extends AstNode {
 
   final bool isLocal;
 
-  const SymbolExpr(this.id,
+  SymbolExpr(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -246,7 +256,7 @@ class ListExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitListExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     for (final item in list) {
       item.accept(visitor);
     }
@@ -254,7 +264,7 @@ class ListExpr extends AstNode {
 
   final List<AstNode> list;
 
-  const ListExpr(this.list,
+  ListExpr(this.list,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -273,7 +283,7 @@ class MapExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitMapExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     for (final key in map.keys) {
       key.accept(visitor);
       final value = map[key]!;
@@ -283,7 +293,7 @@ class MapExpr extends AstNode {
 
   final Map<AstNode, AstNode> map;
 
-  const MapExpr(this.map,
+  MapExpr(this.map,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -302,13 +312,13 @@ class GroupExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitGroupExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     inner.accept(visitor);
   }
 
   final AstNode inner;
 
-  const GroupExpr(this.inner,
+  GroupExpr(this.inner,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -327,7 +337,7 @@ class TypeExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitTypeExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     id.accept(visitor);
     for (final item in arguments) {
       item.accept(visitor);
@@ -342,7 +352,7 @@ class TypeExpr extends AstNode {
 
   final bool isLocal;
 
-  const TypeExpr(this.id,
+  TypeExpr(this.id,
       {this.arguments = const [],
       this.isNullable = false,
       this.isLocal = true,
@@ -365,7 +375,7 @@ class ParamTypeExpr extends AstNode {
       visitor.visitParamTypeExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     id?.accept(visitor);
     declType.accept(visitor);
   }
@@ -383,7 +393,7 @@ class ParamTypeExpr extends AstNode {
 
   final TypeExpr declType;
 
-  const ParamTypeExpr(this.declType,
+  ParamTypeExpr(this.declType,
       {this.id,
       required this.isOptional,
       required this.isVariadic,
@@ -406,7 +416,7 @@ class FuncTypeExpr extends TypeExpr {
       visitor.visitFunctionTypeExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     for (final item in genericTypeParameters) {
       item.accept(visitor);
     }
@@ -428,7 +438,7 @@ class FuncTypeExpr extends TypeExpr {
 
   final bool hasNamedParam;
 
-  const FuncTypeExpr(this.keyword, this.returnType,
+  FuncTypeExpr(this.keyword, this.returnType,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -454,7 +464,7 @@ class GenericTypeParameterExpr extends AstNode {
       visitor.visitGenericTypeParamExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     id.accept(visitor);
     superType?.accept(visitor);
   }
@@ -463,7 +473,7 @@ class GenericTypeParameterExpr extends AstNode {
 
   final TypeExpr? superType;
 
-  const GenericTypeParameterExpr(this.id,
+  GenericTypeParameterExpr(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -484,7 +494,7 @@ class UnaryPrefixExpr extends AstNode {
       visitor.visitUnaryPrefixExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     value.accept(visitor);
   }
 
@@ -492,7 +502,7 @@ class UnaryPrefixExpr extends AstNode {
 
   final AstNode value;
 
-  const UnaryPrefixExpr(this.op, this.value,
+  UnaryPrefixExpr(this.op, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -512,7 +522,7 @@ class UnaryPostfixExpr extends AstNode {
       visitor.visitUnaryPostfixExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     value.accept(visitor);
   }
 
@@ -520,7 +530,7 @@ class UnaryPostfixExpr extends AstNode {
 
   final String op;
 
-  const UnaryPostfixExpr(this.value, this.op,
+  UnaryPostfixExpr(this.value, this.op,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -539,7 +549,7 @@ class BinaryExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitBinaryExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     left.accept(visitor);
     right.accept(visitor);
   }
@@ -550,7 +560,7 @@ class BinaryExpr extends AstNode {
 
   final AstNode right;
 
-  const BinaryExpr(this.left, this.op, this.right,
+  BinaryExpr(this.left, this.op, this.right,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -569,7 +579,7 @@ class TernaryExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitTernaryExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     condition.accept(visitor);
     thenBranch.accept(visitor);
     elseBranch.accept(visitor);
@@ -581,7 +591,7 @@ class TernaryExpr extends AstNode {
 
   final AstNode elseBranch;
 
-  const TernaryExpr(this.condition, this.thenBranch, this.elseBranch,
+  TernaryExpr(this.condition, this.thenBranch, this.elseBranch,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -600,7 +610,7 @@ class MemberExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitMemberExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     object.accept(visitor);
     key.accept(visitor);
   }
@@ -609,7 +619,7 @@ class MemberExpr extends AstNode {
 
   final SymbolExpr key;
 
-  const MemberExpr(this.object, this.key,
+  MemberExpr(this.object, this.key,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -629,7 +639,7 @@ class MemberAssignExpr extends AstNode {
       visitor.visitMemberAssignExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     object.accept(visitor);
     key.accept(visitor);
     value.accept(visitor);
@@ -641,7 +651,7 @@ class MemberAssignExpr extends AstNode {
 
   final AstNode value;
 
-  const MemberAssignExpr(this.object, this.key, this.value,
+  MemberAssignExpr(this.object, this.key, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -664,7 +674,7 @@ class MemberAssignExpr extends AstNode {
 
 //   final String key;
 
-//   const MemberCallExpr(this.collection, this.key, int line, int column, int offset, int length, {HTSource? source})
+//   MemberCallExpr(this.collection, this.key, int line, int column, int offset, int length, {HTSource? source})
 //       : super(SemanticType.memberGetExpr, source: source, line: line, column: column, offset: offset, length: length);
 // }
 
@@ -673,7 +683,7 @@ class SubExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     array.accept(visitor);
     key.accept(visitor);
   }
@@ -682,7 +692,7 @@ class SubExpr extends AstNode {
 
   final AstNode key;
 
-  const SubExpr(this.array, this.key,
+  SubExpr(this.array, this.key,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -702,7 +712,7 @@ class SubAssignExpr extends AstNode {
       visitor.visitSubAssignExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     array.accept(visitor);
     key.accept(visitor);
     value.accept(visitor);
@@ -714,7 +724,7 @@ class SubAssignExpr extends AstNode {
 
   final AstNode value;
 
-  const SubAssignExpr(this.array, this.key, this.value,
+  SubAssignExpr(this.array, this.key, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -736,7 +746,7 @@ class SubAssignExpr extends AstNode {
 
 //   final AstNode key;
 
-//   const SubCallExpr(this.collection, this.key, int line, int column, int offset, int length, {HTSource? source})
+//   SubCallExpr(this.collection, this.key, int line, int column, int offset, int length, {HTSource? source})
 //       : super(SemanticType.subGetExpr, source: source, line: line, column: column, offset: offset, length: length);
 // }
 
@@ -745,7 +755,7 @@ class CallExpr extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitCallExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     callee.accept(visitor);
     for (final posArg in positionalArgs) {
       posArg.accept(visitor);
@@ -761,7 +771,7 @@ class CallExpr extends AstNode {
 
   final Map<String, AstNode> namedArgs;
 
-  const CallExpr(this.callee, this.positionalArgs, this.namedArgs,
+  CallExpr(this.callee, this.positionalArgs, this.namedArgs,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -780,7 +790,7 @@ class ExprStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitExprStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     expr.accept(visitor);
   }
 
@@ -788,7 +798,7 @@ class ExprStmt extends AstNode {
 
   final bool hasEndOfStmtMark;
 
-  const ExprStmt(this.expr,
+  ExprStmt(this.expr,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -808,7 +818,7 @@ class BlockStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitBlockStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     for (final stmt in statements) {
       stmt.accept(visitor);
     }
@@ -820,7 +830,7 @@ class BlockStmt extends AstNode {
 
   final String? id;
 
-  const BlockStmt(this.statements,
+  BlockStmt(this.statements,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -841,7 +851,7 @@ class ReturnStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitReturnStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     value?.accept(visitor);
   }
 
@@ -851,7 +861,7 @@ class ReturnStmt extends AstNode {
 
   final bool hasEndOfStmtMark;
 
-  const ReturnStmt(this.keyword, this.value,
+  ReturnStmt(this.keyword, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -871,7 +881,7 @@ class IfStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitIfStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     condition.accept(visitor);
     thenBranch.accept(visitor);
     elseBranch?.accept(visitor);
@@ -883,7 +893,7 @@ class IfStmt extends AstNode {
 
   final AstNode? elseBranch;
 
-  const IfStmt(this.condition, this.thenBranch, this.elseBranch,
+  IfStmt(this.condition, this.thenBranch, this.elseBranch,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -902,7 +912,7 @@ class WhileStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitWhileStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     condition.accept(visitor);
     loop.accept(visitor);
   }
@@ -911,7 +921,7 @@ class WhileStmt extends AstNode {
 
   final BlockStmt loop;
 
-  const WhileStmt(this.condition, this.loop,
+  WhileStmt(this.condition, this.loop,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -930,7 +940,7 @@ class DoStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitDoStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     loop.accept(visitor);
     condition?.accept(visitor);
   }
@@ -939,7 +949,7 @@ class DoStmt extends AstNode {
 
   final AstNode? condition;
 
-  const DoStmt(this.loop, this.condition,
+  DoStmt(this.loop, this.condition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -958,14 +968,14 @@ class ForStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitForStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    declaration?.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    init?.accept(visitor);
     condition?.accept(visitor);
     increment?.accept(visitor);
     loop.accept(visitor);
   }
 
-  final VarDecl? declaration;
+  final VarDecl? init;
 
   final AstNode? condition;
 
@@ -975,7 +985,7 @@ class ForStmt extends AstNode {
 
   final BlockStmt loop;
 
-  const ForStmt(this.declaration, this.condition, this.increment, this.loop,
+  ForStmt(this.init, this.condition, this.increment, this.loop,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -995,13 +1005,13 @@ class ForInStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitForInStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    declaration.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    iterator.accept(visitor);
     collection.accept(visitor);
     loop.accept(visitor);
   }
 
-  final VarDecl declaration;
+  final VarDecl iterator;
 
   final AstNode collection;
 
@@ -1009,7 +1019,7 @@ class ForInStmt extends AstNode {
 
   final BlockStmt loop;
 
-  const ForInStmt(this.declaration, this.collection, this.loop,
+  ForInStmt(this.iterator, this.collection, this.loop,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1029,7 +1039,7 @@ class WhenStmt extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitWhenStmt(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     condition?.accept(visitor);
     for (final caseExpr in cases.keys) {
       caseExpr.accept(visitor);
@@ -1045,7 +1055,7 @@ class WhenStmt extends AstNode {
 
   final AstNode? elseBranch;
 
-  const WhenStmt(this.cases, this.elseBranch, this.condition,
+  WhenStmt(this.cases, this.elseBranch, this.condition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1067,7 +1077,7 @@ class BreakStmt extends AstNode {
 
   final bool hasEndOfStmtMark;
 
-  const BreakStmt(this.keyword,
+  BreakStmt(this.keyword,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1090,7 +1100,7 @@ class ContinueStmt extends AstNode {
 
   final bool hasEndOfStmtMark;
 
-  const ContinueStmt(this.keyword,
+  ContinueStmt(this.keyword,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1111,7 +1121,7 @@ class LibraryDecl extends AstNode {
 
   final String id;
 
-  const LibraryDecl(this.id,
+  LibraryDecl(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1130,7 +1140,7 @@ class ImportDecl extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitImportDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     alias?.accept(visitor);
     for (final id in showList) {
       id.accept(visitor);
@@ -1166,24 +1176,38 @@ class ImportDecl extends AstNode {
             length: length);
 }
 
+abstract class Decl extends AstNode {
+  Decl(
+    String type, {
+    HTSource? source,
+    int line = 0,
+    int column = 0,
+    int offset = 0,
+    int length = 0,
+  }) : super(type,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class NamespaceDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitNamespaceDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    symbol.accept(visitor);
     definition.accept(visitor);
   }
 
-  final SymbolExpr id;
+  final SymbolExpr symbol;
 
   final String? classId;
 
   final BlockStmt definition;
-
-  final bool isPrivate;
 
   final bool isTopLevel;
 
@@ -1191,7 +1215,9 @@ class NamespaceDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  const NamespaceDecl(this.id, this.definition,
+  final bool isPrivate;
+
+  NamespaceDecl(this.symbol, this.definition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1209,21 +1235,21 @@ class NamespaceDecl extends AstNode {
             length: length);
 }
 
-class TypeAliasDecl extends AstNode {
+class TypeAliasDecl extends Decl {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitTypeAliasDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    symbol.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
     value.accept(visitor);
   }
 
-  final SymbolExpr id;
+  final SymbolExpr symbol;
 
   final String? classId;
 
@@ -1241,7 +1267,7 @@ class TypeAliasDecl extends AstNode {
 
   final bool isExported;
 
-  const TypeAliasDecl(this.id, this.value,
+  TypeAliasDecl(this.symbol, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1266,17 +1292,17 @@ class VarDecl extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitVarDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    symbol.accept(visitor);
     declType?.accept(visitor);
     initializer?.accept(visitor);
   }
 
-  final SymbolExpr id;
+  final SymbolExpr symbol;
 
   final String? _internalName;
 
-  String get internalName => _internalName ?? id.id;
+  String get internalName => _internalName ?? symbol.id;
 
   final String? classId;
 
@@ -1306,7 +1332,7 @@ class VarDecl extends AstNode {
 
   final bool lateInitialize;
 
-  const VarDecl(this.id,
+  VarDecl(this.symbol,
       {String? internalName,
       HTSource? source,
       int line = 0,
@@ -1345,7 +1371,7 @@ class ParamDecl extends VarDecl {
 
   final bool isNamed;
 
-  const ParamDecl(SymbolExpr id,
+  ParamDecl(SymbolExpr id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1376,7 +1402,7 @@ class RedirectingConstructCallExpr extends AstNode {
       visitor.visitReferConstructCallExpr(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     callee.accept(visitor);
     key?.accept(visitor);
     for (final posArg in positionalArgs) {
@@ -1395,8 +1421,7 @@ class RedirectingConstructCallExpr extends AstNode {
 
   final Map<String, AstNode> namedArgs;
 
-  const RedirectingConstructCallExpr(
-      this.callee, this.positionalArgs, this.namedArgs,
+  RedirectingConstructCallExpr(this.callee, this.positionalArgs, this.namedArgs,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1416,8 +1441,8 @@ class FuncDecl extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitFuncDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    id?.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    symbol?.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
@@ -1431,7 +1456,7 @@ class FuncDecl extends AstNode {
 
   final String internalName;
 
-  final SymbolExpr? id;
+  final SymbolExpr? symbol;
 
   final String? classId;
 
@@ -1479,13 +1504,13 @@ class FuncDecl extends AstNode {
 
   bool get isLiteral => category == FunctionCategory.literal;
 
-  const FuncDecl(this.internalName, this.paramDecls,
+  FuncDecl(this.internalName, this.paramDecls,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0,
-      this.id,
+      this.symbol,
       this.classId,
       this.genericTypeParameters = const [],
       this.externalTypeId,
@@ -1518,8 +1543,8 @@ class ClassDecl extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitClassDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    symbol.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
@@ -1533,7 +1558,7 @@ class ClassDecl extends AstNode {
     definition.accept(visitor);
   }
 
-  final SymbolExpr id;
+  final SymbolExpr symbol;
 
   final String? classId;
 
@@ -1563,7 +1588,7 @@ class ClassDecl extends AstNode {
 
   final BlockStmt definition;
 
-  const ClassDecl(this.id, this.definition,
+  ClassDecl(this.symbol, this.definition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1593,14 +1618,14 @@ class EnumDecl extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitEnumDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    symbol.accept(visitor);
     for (final enumItem in enumerations) {
       enumItem.accept(visitor);
     }
   }
 
-  final SymbolExpr id;
+  final SymbolExpr symbol;
 
   final String? classId;
 
@@ -1616,8 +1641,8 @@ class EnumDecl extends AstNode {
 
   final bool isExported;
 
-  const EnumDecl(
-    this.id,
+  EnumDecl(
+    this.symbol,
     this.enumerations, {
     HTSource? source,
     int line = 0,
@@ -1642,14 +1667,14 @@ class StructDecl extends AstNode {
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitStructDecl(this);
 
   @override
-  void acceptAll(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+  void subAccept(AbstractAstVisitor visitor) {
+    symbol.accept(visitor);
     for (final field in fields) {
       field.accept(visitor);
     }
   }
 
-  final SymbolExpr id;
+  final SymbolExpr symbol;
 
   final String? classId;
 
@@ -1665,7 +1690,7 @@ class StructDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  StructDecl(this.id, this.fields,
+  StructDecl(this.symbol, this.fields,
       {HTSource? source,
       int line = 0,
       int column = 0,

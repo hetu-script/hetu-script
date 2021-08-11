@@ -1,16 +1,13 @@
-import '../declaration/namespace/library.dart';
-import '../parser/parse_result_compilation.dart';
 import '../source/source.dart';
 import '../source/line_info.dart';
-import '../declaration/namespace/module.dart';
+import '../parser/parse_result.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
 class HTModuleAnalysisResult {
-  final HTSource source;
-  // HTSource get source => parseResult.source;
+  final HTModuleParseResult parseResult;
 
-  // final HTModuleParseResult parseResult;
+  HTSource get source => parseResult.source;
 
   String get fullName => source.fullName;
 
@@ -20,18 +17,5 @@ class HTModuleAnalysisResult {
 
   final List<HTAnalysisError> errors;
 
-  HTModuleAnalysisResult(this.source, this.analyzer, this.errors);
-}
-
-class HTLibraryAnalysisResult extends HTLibrary {
-  final HTModuleParseResultCompilation compilation;
-
-  final Map<String, HTModuleAnalysisResult> modules;
-
-  final List<HTAnalysisError> errors;
-
-  HTLibraryAnalysisResult(
-      String libraryName, this.compilation, this.modules, this.errors,
-      {Map<String, HTModule>? declarations})
-      : super(libraryName, declarations: declarations);
+  HTModuleAnalysisResult(this.parseResult, this.analyzer, this.errors);
 }

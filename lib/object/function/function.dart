@@ -47,8 +47,6 @@ class HTFunction extends HTFunctionDeclaration
 
   Function? externalFunc;
 
-  HTNamespace? context;
-
   @override
   HTType get valueType => declType;
 
@@ -81,7 +79,7 @@ class HTFunction extends HTFunctionDeclaration
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
-      this.context,
+      HTNamespace? namespace,
       this.redirectingConstructor,
       this.klass})
       : super(internalName,
@@ -103,7 +101,8 @@ class HTFunction extends HTFunctionDeclaration
             isAbstract: isAbstract,
             isVariadic: isVariadic,
             minArity: minArity,
-            maxArity: maxArity) {
+            maxArity: maxArity,
+            namespace: namespace) {
     this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.libraryName = libraryName;
@@ -157,7 +156,7 @@ class HTFunction extends HTFunctionDeclaration
           definitionIp: definitionIp,
           definitionLine: definitionLine,
           definitionColumn: definitionColumn,
-          context: context,
+          namespace: namespace,
           redirectingConstructor: redirectingConstructor,
           klass: klass);
 
@@ -213,16 +212,16 @@ class HTFunction extends HTFunctionDeclaration
 
         if (category == FunctionCategory.constructor && createInstance) {
           result = HTInstance(klass!, interpreter, typeArgs: typeArgs);
-          context = result.namespace;
+          namespace = result.namespace;
         }
 
         if (definitionIp == null) {
           return result;
         }
         // 函数每次在调用时，临时生成一个新的作用域
-        final callClosure = HTNamespace(id: id, closure: context);
-        if (context is HTInstanceNamespace) {
-          final instanceNamespace = context as HTInstanceNamespace;
+        final callClosure = HTNamespace(id: id, closure: namespace);
+        if (namespace is HTInstanceNamespace) {
+          final instanceNamespace = namespace as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
             callClosure.define(
                 HTLexicon.SUPER,
@@ -263,8 +262,8 @@ class HTFunction extends HTFunctionDeclaration
           }
 
           // constructor's context is on this newly created instance
-          final instanceNamespace = context as HTInstanceNamespace;
-          constructor.context = instanceNamespace.next!;
+          final instanceNamespace = namespace as HTInstanceNamespace;
+          constructor.namespace = instanceNamespace.next!;
 
           final referCtorPosArgs = [];
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
