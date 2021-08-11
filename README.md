@@ -7,7 +7,8 @@
 Discussion group:
 
 Discord: [https://discord.gg/Q8JWQYEw](https://discord.gg/aJedwcRPr8)
-(I'm sorry, the previous Discord link is invalid, I changed it now for a new one.)
+
+**(I'm sorry, the previous Discord link is invalid, I changed it now for a new one.)**
 
 QQ 群: 812529118
 
