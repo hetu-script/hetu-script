@@ -3,7 +3,7 @@
 /// Please do not edit manually.
 ///
 /// The pre-included modules of Hetu scripting language.
-const Map<String, String> coreModules = {
+const Map<String, String> builtInModules = {
   'hetu:core': r'''abstract class object {
 
 }

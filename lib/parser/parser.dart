@@ -1887,7 +1887,7 @@ class HTParser extends HTAbstractParser {
     }
     _curFuncCategory = savedCurFuncType;
     return FuncDecl(internalName, paramDecls,
-        id: id != null ? SymbolExpr.fromToken(id) : null,
+        symbol: id != null ? SymbolExpr.fromToken(id) : null,
         classId: classId,
         genericTypeParameters: genericParameters,
         externalTypeId: externalTypedef,

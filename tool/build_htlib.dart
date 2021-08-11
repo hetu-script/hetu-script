@@ -1,6 +1,6 @@
 import 'dart:io';
 
-final Map<String, String> coreModules = const {
+final Map<String, String> builtInModules = const {
   'hetu:core': 'hetu_lib/core/core.ht',
   'hetu:value': 'hetu_lib/core/value.ht',
   'hetu:system': 'hetu_lib/core/system.ht',
@@ -20,11 +20,11 @@ void main() {
 /// Please do not edit manually.
 ///
 /// The pre-included modules of Hetu scripting language.
-final Map<String, String> coreModules = const {
+final Map<String, String> builtInModules = const {
 ''');
-  final file = File('lib/buildin/hetu_lib.dart');
-  for (final key in coreModules.keys) {
-    final data = File(coreModules[key]!).readAsStringSync();
+  final file = File('lib/built_in/hetu_lib.dart');
+  for (final key in builtInModules.keys) {
+    final data = File(builtInModules[key]!).readAsStringSync();
     output.writeln("  '$key': r'''" + data + "''',");
   }
   output.writeln('};');

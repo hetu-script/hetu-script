@@ -11,8 +11,6 @@ import '../object/function/function.dart';
 import '../object/function/parameter.dart';
 import '../object/variable/variable.dart';
 import '../binding/external_class.dart';
-// import '../parser/abstract_parser.dart';
-// import '../parser/parser.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
 import '../type/function_type.dart';
@@ -93,6 +91,10 @@ class Hetu extends HTAbstractInterpreter {
   HTFunction? _curFunction;
 
   var _regIndex = -1;
+
+  /// Register values are stored by groups.
+  /// Every group have 16 values, they are HTRegIdx.
+  /// A such group can be understanded as the stack frame of a runtime function.
   final _registers =
       List<dynamic>.filled(HTRegIdx.length, null, growable: true);
 
@@ -106,14 +108,6 @@ class Hetu extends HTAbstractInterpreter {
   set _curSymbol(String? value) =>
       _registers[_getRegIndex(HTRegIdx.symbol)] = value;
   String? get curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
-  // set  _curLeftValue(dynamic value) =>
-  //     _registers[_getRegIndex(HTRegIdx.leftValue)] = value;
-  // dynamic get curLeftValue =>
-  //     _registers[_getRegIndex(HTRegIdx.leftValue)] ?? _curNamespace;
-  // set _curRefType(_RefType value) =>
-  //     _registers[_getRegIndex(HTRegIdx.refType)] = value;
-  // _RefType get _curRefType =>
-  //     _registers[_getRegIndex(HTRegIdx.refType)] ?? _RefType.normal;
   set _curTypeArgs(List<HTType> value) =>
       _registers[_getRegIndex(HTRegIdx.typeArgs)] = value;
   List<HTType> get _curTypeArgs =>
@@ -125,14 +119,16 @@ class Hetu extends HTAbstractInterpreter {
       _registers[_getRegIndex(HTRegIdx.anchor)] = value;
   int get _curAnchor => _registers[_getRegIndex(HTRegIdx.anchor)] ?? 0;
 
-  /// loop 信息以栈的形式保存
-  /// break 指令将会跳回最近的一个 loop 的出口
+  /// Loop point is stored as stack form.
+  /// Break statement will jump to the last loop point,
+  /// and remove it from this stack.
+  /// Return statement will clear loop points by
+  /// [_curLoopCount] in current stack frame.
   final _loops = <_LoopInfo>[];
 
   late final HTAnalyzer analyzer;
 
-  /// Create a bytecode interpreter.
-  /// Each interpreter has a independent global [HTNamespace].
+  /// A bytecode interpreter.
   Hetu({HTContext? context, this.config = const InterpreterConfig()})
       : global = HTNamespace(id: SemanticNames.global),
         context = context ?? HTContext.fileSystem() {
@@ -142,18 +138,14 @@ class Hetu extends HTAbstractInterpreter {
 
   @override
   void init(
-      {Map<String, String> preincludes = const {},
+      {Map<String, String> preIncludes = const {},
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) {
-    analyzer.init(
-        preincludes: preincludes,
-        externalClasses: externalClasses,
-        externalFunctions: externalFunctions,
-        externalFunctionTypedef: externalFunctionTypedef);
+    analyzer.init(preIncludes: preIncludes);
     super.init(
-        preincludes: preincludes,
+        preIncludes: preIncludes,
         externalClasses: externalClasses,
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef);
@@ -162,16 +154,21 @@ class Hetu extends HTAbstractInterpreter {
   @override
   void handleError(Object error, {Object? externalStackTrace}) {
     final sb = StringBuffer();
-    if (stackTrace.isNotEmpty && errorConfig.stackTrace) {
+    if (stackTrace.isNotEmpty && errorConfig.showDartStackTrace) {
       sb.writeln('${HTLexicon.scriptStackTrace}${HTLexicon.colon}');
-      if (stackTrace.length > errorConfig.hetuStackTraceThreshhold * 2) {
+      if (stackTrace.length > errorConfig.hetuStackTraceDisplayCountLimit * 2) {
         for (var i = stackTrace.length - 1;
-            i >= stackTrace.length - 1 - errorConfig.hetuStackTraceThreshhold;
+            i >=
+                stackTrace.length -
+                    1 -
+                    errorConfig.hetuStackTraceDisplayCountLimit;
             --i) {
           sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
         }
         sb.writeln('...\n...');
-        for (var i = errorConfig.hetuStackTraceThreshhold - 1; i >= 0; --i) {
+        for (var i = errorConfig.hetuStackTraceDisplayCountLimit - 1;
+            i >= 0;
+            --i) {
           sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
         }
       } else {
@@ -186,7 +183,7 @@ class Hetu extends HTAbstractInterpreter {
     }
     final stackTraceString = sb.toString().trimRight();
     if (error is HTError) {
-      if (errorConfig.stackTrace) {
+      if (errorConfig.showDartStackTrace) {
         error.extra = stackTraceString;
       }
       throw error;
@@ -293,17 +290,20 @@ class Hetu extends HTAbstractInterpreter {
       CompilerConfig? config,
       bool errorHandled = false}) {
     try {
-      analyzer.evalSource(source);
-      if (analyzer.errors.isNotEmpty) {
-        for (final error in analyzer.errors) {
-          if (errorHandled) {
-            throw error;
-          } else {
-            handleError(error);
+      final compileConfig = config ?? this.config;
+      if (compileConfig.compileWithLineInfo) {
+        analyzer.evalSource(source);
+        if (analyzer.errors.isNotEmpty) {
+          for (final error in analyzer.errors) {
+            if (errorHandled) {
+              throw error;
+            } else {
+              handleError(error);
+            }
           }
         }
       }
-      final compiler = HTCompiler(config: config);
+      final compiler = HTCompiler(config: compileConfig);
       final bytes = compiler
           .compile(analyzer.compilation); //, libraryName ?? source.fullName);
       return bytes;
@@ -342,7 +342,6 @@ class Hetu extends HTAbstractInterpreter {
       } else if (curSourceType == SourceType.module) {
         // handles module imports
         for (final nsp in _curLibrary.declarations.values) {
-          // final nsp = _curLibrary.declarations[module.fullName]!;
           for (final decl in nsp.imports.values) {
             final importNamespace = _curLibrary.declarations[decl.fullName]!;
             if (decl.alias == null) {
@@ -378,6 +377,7 @@ class Hetu extends HTAbstractInterpreter {
         if (globallyImport) {
           global.import(_curNamespace);
         }
+        // resolve each declaration after we get all declarations
         for (final namespace in _curLibrary.declarations.values) {
           for (final decl in namespace.declarations.values) {
             decl.resolve();
@@ -407,7 +407,7 @@ class Hetu extends HTAbstractInterpreter {
   /// This function will return current expression value
   /// when encountered [HTOpCode.endOfExec] or [HTOpCode.endOfFunc].
   ///
-  /// Chaning library will create space for new register values.
+  /// Changing library will create new stack frame for new register values.
   /// Such as currrent value, current symbol, current line & column, etc.
   dynamic execute(
       {String? moduleFullName,
@@ -810,7 +810,7 @@ class Hetu extends HTAbstractInterpreter {
             definitionIp: definitionIp,
             definitionLine: line,
             definitionColumn: column,
-            context: _curNamespace);
+            namespace: _curNamespace);
         if (!hasExternalTypedef) {
           _curValue = func;
         } else {
@@ -1328,7 +1328,7 @@ class Hetu extends HTAbstractInterpreter {
         definitionColumn: column,
         redirectingConstructor: redirCtor);
     if ((category != FunctionCategory.constructor) || isStatic) {
-      func.context = _curNamespace;
+      func.namespace = _curNamespace;
     }
     _curNamespace.define(func.internalName, func);
   }

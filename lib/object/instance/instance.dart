@@ -61,8 +61,8 @@ class HTInstance with HTObject, InterpreterRef {
         final clone = decl.clone();
         curNamespace.define(key, clone);
 
-        if (jsonObject != null && jsonObject.containsKey(clone.id)) {
-          final value = jsonObject[clone.id];
+        if (jsonObject != null && jsonObject.containsKey(clone.symbol)) {
+          final value = jsonObject[clone.symbol];
           clone.value = value;
         }
       }
@@ -139,12 +139,12 @@ class HTInstance with HTObject, InterpreterRef {
           final value = space.declarations[varName]!.value;
           if (value is HTFunction &&
               value.category != FunctionCategory.literal) {
-            value.context = namespace;
+            value.namespace = namespace;
           }
           return value;
         } else if (space.declarations.containsKey(getter)) {
           HTFunction func = space.declarations[getter]!.value;
-          func.context = namespace;
+          func.namespace = namespace;
           return func.call();
         }
       }
@@ -153,12 +153,12 @@ class HTInstance with HTObject, InterpreterRef {
       if (space.declarations.containsKey(varName)) {
         final value = space.declarations[varName]!.value;
         if (value is HTFunction && value.category != FunctionCategory.literal) {
-          value.context = _namespaces[classId];
+          value.namespace = _namespaces[classId];
         }
         return value;
       } else if (space.declarations.containsKey(getter)) {
         HTFunction func = space.declarations[getter]!.value;
-        func.context = _namespaces[classId];
+        func.namespace = _namespaces[classId];
         return func.call();
       }
     }
@@ -185,7 +185,7 @@ class HTInstance with HTObject, InterpreterRef {
           return;
         } else if (space.declarations.containsKey(setter)) {
           HTFunction method = space.declarations[setter]!.value;
-          method.context = namespace;
+          method.namespace = namespace;
           method.call(positionalArgs: [varValue]);
           return;
         }
@@ -202,7 +202,7 @@ class HTInstance with HTObject, InterpreterRef {
         return;
       } else if (space.declarations.containsKey(setter)) {
         final method = space.declarations[setter]! as HTFunction;
-        method.context = _namespaces[cast];
+        method.namespace = _namespaces[cast];
         method.call(positionalArgs: [varValue]);
         return;
       }

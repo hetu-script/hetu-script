@@ -1,7 +1,7 @@
 import 'package:recase/recase.dart';
 
 import '../grammar/lexicon.dart';
-import '../analyzer/analyzer.dart' show AnalyzerConfig;
+import '../analyzer/analyzer.dart';
 import 'error_severity.dart';
 
 part 'error_processor.dart';

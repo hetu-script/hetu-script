@@ -5,7 +5,7 @@ void main() {
   hetu.init();
 
   final bytes = hetu.compileFile('script/program.ht',
-      config: CompilerConfig(lineInfo: false));
+      config: CompilerConfig(compileWithLineInfo: false));
 
   print(bytes);
 }
