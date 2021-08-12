@@ -121,7 +121,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     }
     final result = results[source.fullName]!;
     // walk through ast again to set each symbol's declaration referrence.
-    final visitor = _OccurrencesVisitor();
+    final visitor = _OccurrencesCollector();
     for (final node in result.parseResult.nodes) {
       node.accept(visitor);
     }
@@ -155,30 +155,31 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
-  void visitStringInterpolationExpr(StringInterpolationExpr expr) {
-    expr.subAccept(this);
+  void visitStringInterpolationExpr(StringInterpolationExpr expr) =>
+      expr.subAccept(this);
+
+  @override
+  void visitGroupExpr(GroupExpr expr) => expr.subAccept(this);
+
+  @override
+  void visitListExpr(ListExpr expr) => expr.subAccept(this);
+
+  @override
+  void visitMapExpr(MapExpr expr) => expr.subAccept(this);
+
+  @override
+  void visitSymbolExpr(SymbolExpr expr) {
+    expr.analysisNamespace = _curNamespace;
   }
 
   @override
-  void visitGroupExpr(GroupExpr expr) {}
+  void visitUnaryPrefixExpr(UnaryPrefixExpr expr) => expr.subAccept(this);
 
   @override
-  void visitListExpr(ListExpr expr) {}
+  void visitBinaryExpr(BinaryExpr expr) => expr.subAccept(this);
 
   @override
-  void visitMapExpr(MapExpr expr) {}
-
-  @override
-  void visitSymbolExpr(SymbolExpr expr) {}
-
-  @override
-  void visitUnaryPrefixExpr(UnaryPrefixExpr expr) {}
-
-  @override
-  void visitBinaryExpr(BinaryExpr expr) {}
-
-  @override
-  void visitTernaryExpr(TernaryExpr expr) {}
+  void visitTernaryExpr(TernaryExpr expr) => expr.subAccept(this);
 
   @override
   void visitTypeExpr(TypeExpr expr) {}
@@ -193,49 +194,49 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {}
 
   @override
-  void visitCallExpr(CallExpr expr) {}
+  void visitCallExpr(CallExpr expr) => expr.subAccept(this);
 
   @override
-  void visitUnaryPostfixExpr(UnaryPostfixExpr expr) {}
+  void visitUnaryPostfixExpr(UnaryPostfixExpr expr) => expr.subAccept(this);
 
   @override
-  void visitMemberExpr(MemberExpr expr) {}
+  void visitMemberExpr(MemberExpr expr) => expr.subAccept(this);
 
   @override
-  void visitMemberAssignExpr(MemberAssignExpr expr) {}
+  void visitMemberAssignExpr(MemberAssignExpr expr) => expr.subAccept(this);
 
   @override
-  void visitSubExpr(SubExpr expr) {}
+  void visitSubExpr(SubExpr expr) => expr.subAccept(this);
 
   @override
-  void visitSubAssignExpr(SubAssignExpr expr) {}
+  void visitSubAssignExpr(SubAssignExpr expr) => expr.subAccept(this);
 
   @override
-  void visitExprStmt(ExprStmt stmt) {}
+  void visitExprStmt(ExprStmt stmt) => stmt.subAccept(this);
 
   @override
-  void visitBlockStmt(BlockStmt block) {}
+  void visitBlockStmt(BlockStmt block) => block.subAccept(this);
 
   @override
-  void visitReturnStmt(ReturnStmt stmt) {}
+  void visitReturnStmt(ReturnStmt stmt) => stmt.subAccept(this);
 
   @override
-  void visitIfStmt(IfStmt ifStmt) {}
+  void visitIfStmt(IfStmt ifStmt) => ifStmt.subAccept(this);
 
   @override
-  void visitWhileStmt(WhileStmt whileStmt) {}
+  void visitWhileStmt(WhileStmt whileStmt) => whileStmt.subAccept(this);
 
   @override
-  void visitDoStmt(DoStmt doStmt) {}
+  void visitDoStmt(DoStmt doStmt) => doStmt.subAccept(this);
 
   @override
-  void visitForStmt(ForStmt forStmt) {}
+  void visitForStmt(ForStmt forStmt) => forStmt.subAccept(this);
 
   @override
-  void visitForInStmt(ForInStmt forInStmt) {}
+  void visitForInStmt(ForInStmt forInStmt) => forInStmt.subAccept(this);
 
   @override
-  void visitWhenStmt(WhenStmt stmt) {}
+  void visitWhenStmt(WhenStmt stmt) => stmt.subAccept(this);
 
   @override
   void visitBreakStmt(BreakStmt stmt) {}
@@ -247,13 +248,19 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitLibraryDecl(LibraryDecl stmt) {}
 
   @override
-  void visitImportDecl(ImportDecl stmt) {}
+  void visitImportDecl(ImportDecl stmt) => stmt.subAccept(this);
 
   @override
-  void visitNamespaceDecl(NamespaceDecl stmt) {}
+  void visitNamespaceDecl(NamespaceDecl stmt) => stmt.subAccept(this);
 
   @override
-  void visitTypeAliasDecl(TypeAliasDecl stmt) {}
+  void visitTypeAliasDecl(TypeAliasDecl stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+    stmt.declaration = HTVariableDeclaration(stmt.symbol.id,
+        classId: stmt.classId, closure: _curNamespace, source: _curSource);
+    _curNamespace.define(stmt.symbol.id, stmt.declaration!);
+  }
 
   @override
   void visitVarDecl(VarDecl stmt) {
@@ -371,7 +378,11 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 }
 
-class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
+class _OccurrencesCollector extends RecursiveAstVisitor<void> {
+  final declarations = <SymbolExpr, HTDeclaration>{};
+
+  _OccurrencesCollector();
+
   @override
   void visitSymbolExpr(SymbolExpr expr) {
     expr.declaration =
