@@ -199,7 +199,7 @@ class StringInterpolationExpr extends AstNode {
     for (final node in interpolation) {
       node.accept(visitor);
     }
-  };
+  }
 
   final String value;
 
