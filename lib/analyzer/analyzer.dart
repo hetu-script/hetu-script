@@ -155,9 +155,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
-  void visitStringInterpolationExpr(StringInterpolationExpr expr) {
-    expr.subAccept(this);
-  }
+  void visitStringInterpolationExpr(StringInterpolationExpr expr) =>
+      expr.subAccept(this);
 
   @override
   void visitGroupExpr(GroupExpr expr) => expr.subAccept(this);
@@ -169,7 +168,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitMapExpr(MapExpr expr) => expr.subAccept(this);
 
   @override
-  void visitSymbolExpr(SymbolExpr expr) {}
+  void visitSymbolExpr(SymbolExpr expr) {
+    expr.analysisNamespace = _curNamespace;
+  }
 
   @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr expr) => expr.subAccept(this);
