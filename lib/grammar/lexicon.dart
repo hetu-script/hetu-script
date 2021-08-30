@@ -2,7 +2,7 @@
 abstract class HTLexicon {
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
-      r'(([_]?[\p{L}]+[\p{L}_0-9]*)|([_]+))|' // unicode identifier group(4)
+      r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(4)
       r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(6)
       r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(8)
