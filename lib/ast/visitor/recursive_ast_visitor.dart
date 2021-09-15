@@ -6,8 +6,7 @@ import '../ast.dart';
 ///
 /// Subclasses that override a visit method must either invoke the overridden
 /// visit method or must explicitly ask the visited node to visit its children.
-/// Failure to do so will cause the children of the visited node to not be
-/// visited.
+/// Otherwise the children of the visited node might not be visited.
 abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   @override
   T? visitEmptyExpr(EmptyExpr node) {

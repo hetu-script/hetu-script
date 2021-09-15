@@ -195,7 +195,7 @@ class StringInterpolationExpr extends AstNode {
       visitor.visitStringInterpolationExpr(this);
 
   @override
-  dynamic subAccept(AbstractAstVisitor visitor) {
+  void subAccept(AbstractAstVisitor visitor) {
     for (final node in interpolation) {
       node.accept(visitor);
     }
@@ -227,6 +227,9 @@ class StringInterpolationExpr extends AstNode {
 class SymbolExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSymbolExpr(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {}
 
   final String id;
 
