@@ -68,7 +68,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   /// Errors of a single file
   final _curErrors = <HTAnalysisError>[];
 
-  /// Errors of an analyis process.
+  /// Errors of an analyis context.
   final errors = <HTAnalysisError>[];
 
   // late HTTypeChecker _curTypeChecker;
@@ -115,17 +115,19 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         visitAstNode(node);
       }
       final moduleAnalysisResult =
-          HTModuleAnalysisResult(module, this, analysisErrors);
+          HTModuleAnalysisResult(module, this, analysisErrors, _curNamespace);
       results[moduleAnalysisResult.fullName] = moduleAnalysisResult;
       errors.addAll(_curErrors);
     }
     final result = results[source.fullName]!;
+    if (globallyImport) {
+      global.import(result.namespace);
+    }
     // walk through ast again to set each symbol's declaration referrence.
-    final visitor = _OccurrencesCollector();
+    final visitor = _OccurrencesVisitor();
     for (final node in result.parseResult.nodes) {
       node.accept(visitor);
     }
-
     return result;
   }
 
@@ -155,108 +157,175 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitConstStringExpr(ConstStringExpr expr) {}
 
   @override
-  void visitStringInterpolationExpr(StringInterpolationExpr expr) =>
-      expr.subAccept(this);
-
-  @override
-  void visitGroupExpr(GroupExpr expr) => expr.subAccept(this);
-
-  @override
-  void visitListExpr(ListExpr expr) => expr.subAccept(this);
-
-  @override
-  void visitMapExpr(MapExpr expr) => expr.subAccept(this);
+  void visitStringInterpolationExpr(StringInterpolationExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
   void visitSymbolExpr(SymbolExpr expr) {
     expr.analysisNamespace = _curNamespace;
+    // print(
+    //     'visited symbol: ${expr.id}, line: ${expr.line}, col: ${expr.column}, file: $curModuleFullName');
   }
 
   @override
-  void visitUnaryPrefixExpr(UnaryPrefixExpr expr) => expr.subAccept(this);
+  void visitListExpr(ListExpr expr) {
+    expr.subAccept(this);
+    expr.subAccept(this);
+  }
 
   @override
-  void visitBinaryExpr(BinaryExpr expr) => expr.subAccept(this);
+  void visitMapExpr(MapExpr expr) {
+    expr.subAccept(this);
+    expr.subAccept(this);
+  }
 
   @override
-  void visitTernaryExpr(TernaryExpr expr) => expr.subAccept(this);
+  void visitGroupExpr(GroupExpr expr) {
+    expr.subAccept(this);
+    expr.subAccept(this);
+  }
 
   @override
-  void visitTypeExpr(TypeExpr expr) {}
+  void visitTypeExpr(TypeExpr expr) {
+    // expr.subAccept(this);
+  }
 
   @override
-  void visitParamTypeExpr(ParamTypeExpr expr) {}
+  void visitParamTypeExpr(ParamTypeExpr expr) {
+    // expr.subAccept(this);
+  }
 
   @override
-  void visitFunctionTypeExpr(FuncTypeExpr expr) {}
+  void visitFunctionTypeExpr(FuncTypeExpr expr) {
+    // expr.subAccept(this);
+  }
 
   @override
-  void visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {}
+  void visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitCallExpr(CallExpr expr) => expr.subAccept(this);
+  void visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitUnaryPostfixExpr(UnaryPostfixExpr expr) => expr.subAccept(this);
+  void visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitMemberExpr(MemberExpr expr) => expr.subAccept(this);
+  void visitBinaryExpr(BinaryExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitMemberAssignExpr(MemberAssignExpr expr) => expr.subAccept(this);
+  void visitTernaryExpr(TernaryExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitSubExpr(SubExpr expr) => expr.subAccept(this);
+  void visitMemberExpr(MemberExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitSubAssignExpr(SubAssignExpr expr) => expr.subAccept(this);
+  void visitMemberAssignExpr(MemberAssignExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitExprStmt(ExprStmt stmt) => stmt.subAccept(this);
+  void visitSubExpr(SubExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitBlockStmt(BlockStmt block) => block.subAccept(this);
+  void visitSubAssignExpr(SubAssignExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitReturnStmt(ReturnStmt stmt) => stmt.subAccept(this);
+  void visitCallExpr(CallExpr expr) {
+    expr.subAccept(this);
+  }
 
   @override
-  void visitIfStmt(IfStmt ifStmt) => ifStmt.subAccept(this);
+  void visitExprStmt(ExprStmt stmt) {
+    stmt.subAccept(this);
+  }
 
   @override
-  void visitWhileStmt(WhileStmt whileStmt) => whileStmt.subAccept(this);
+  void visitBlockStmt(BlockStmt block) {
+    block.subAccept(this);
+  }
 
   @override
-  void visitDoStmt(DoStmt doStmt) => doStmt.subAccept(this);
+  void visitReturnStmt(ReturnStmt stmt) {
+    stmt.subAccept(this);
+  }
 
   @override
-  void visitForStmt(ForStmt forStmt) => forStmt.subAccept(this);
+  void visitIfStmt(IfStmt ifStmt) {
+    ifStmt.subAccept(this);
+  }
 
   @override
-  void visitForInStmt(ForInStmt forInStmt) => forInStmt.subAccept(this);
+  void visitWhileStmt(WhileStmt ifStmt) {
+    ifStmt.subAccept(this);
+  }
 
   @override
-  void visitWhenStmt(WhenStmt stmt) => stmt.subAccept(this);
+  void visitDoStmt(DoStmt ifStmt) {
+    ifStmt.subAccept(this);
+  }
 
   @override
-  void visitBreakStmt(BreakStmt stmt) {}
+  void visitForStmt(ForStmt ifStmt) {
+    ifStmt.subAccept(this);
+  }
 
   @override
-  void visitContinueStmt(ContinueStmt stmt) {}
+  void visitForInStmt(ForInStmt ifStmt) {
+    ifStmt.subAccept(this);
+  }
 
   @override
-  void visitLibraryDecl(LibraryDecl stmt) {}
+  void visitWhenStmt(WhenStmt stmt) {
+    stmt.subAccept(this);
+  }
 
   @override
-  void visitImportDecl(ImportDecl stmt) => stmt.subAccept(this);
+  void visitBreakStmt(BreakStmt stmt) {
+    stmt.subAccept(this);
+  }
 
   @override
-  void visitNamespaceDecl(NamespaceDecl stmt) => stmt.subAccept(this);
+  void visitContinueStmt(ContinueStmt stmt) {
+    stmt.subAccept(this);
+  }
+
+  @override
+  void visitLibraryDecl(LibraryDecl stmt) {
+    stmt.subAccept(this);
+  }
+
+  @override
+  void visitImportDecl(ImportDecl stmt) {
+    stmt.subAccept(this);
+  }
+
+  @override
+  void visitNamespaceDecl(NamespaceDecl stmt) {
+    stmt.subAccept(this);
+  }
 
   @override
   void visitTypeAliasDecl(TypeAliasDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
+    visitSymbolExpr(stmt.symbol);
     stmt.declaration = HTVariableDeclaration(stmt.symbol.id,
         classId: stmt.classId, closure: _curNamespace, source: _curSource);
     _curNamespace.define(stmt.symbol.id, stmt.declaration!);
@@ -266,6 +335,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitVarDecl(VarDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
+    visitSymbolExpr(stmt.symbol);
     stmt.declaration = HTVariableDeclaration(stmt.symbol.id,
         classId: stmt.classId,
         closure: _curNamespace,
@@ -279,23 +349,41 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitParamDecl(ParamDecl stmt) {}
+  void visitParamDecl(ParamDecl stmt) {
+    visitSymbolExpr(stmt.symbol);
+    stmt.declaration = HTParameterDeclaration(stmt.symbol.id,
+        closure: _curNamespace,
+        source: _curSource,
+        declType: HTType.fromAst(stmt.declType),
+        isOptional: stmt.isOptional,
+        isNamed: stmt.isNamed,
+        isVariadic: stmt.isVariadic);
+    _curNamespace.define(stmt.symbol.id, stmt.declaration!);
+  }
 
   @override
-  void visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {}
+  void visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {
+    visitSymbolExpr(stmt.callee);
+  }
 
   @override
   void visitFuncDecl(FuncDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
+    if (stmt.symbol != null) {
+      visitSymbolExpr(stmt.symbol!);
+    }
     final namespace =
         HTNamespace(id: stmt.internalName, closure: _curNamespace);
-    if (stmt.definition != null) {
-      final savedCurNamespace = _curNamespace;
-      _curNamespace = namespace;
-      visitAstNode(stmt.definition!);
-      _curNamespace = savedCurNamespace;
+    final savedCurNamespace = _curNamespace;
+    _curNamespace = namespace;
+    for (final arg in stmt.paramDecls) {
+      visitAstNode(arg);
     }
+    if (stmt.definition != null) {
+      visitAstNode(stmt.definition!);
+    }
+    _curNamespace = savedCurNamespace;
     stmt.declaration = HTFunctionDeclaration(stmt.internalName,
         id: stmt.symbol?.id,
         classId: stmt.classId,
@@ -326,6 +414,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitClassDecl(ClassDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
+    visitSymbolExpr(stmt.symbol);
     final decl = HTClassDeclaration(
         id: stmt.symbol.id,
         classId: stmt.classId,
@@ -354,6 +443,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitEnumDecl(EnumDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
+    visitSymbolExpr(stmt.symbol);
     stmt.declaration = HTClassDeclaration(
         id: stmt.symbol.id,
         classId: stmt.classId,
@@ -367,6 +457,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitStructDecl(StructDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
+    visitSymbolExpr(stmt.symbol);
     stmt.declaration = HTStructDeclaration(stmt.symbol.id,
         classId: stmt.classId,
         closure: _curNamespace,
@@ -378,15 +469,14 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 }
 
-class _OccurrencesCollector extends RecursiveAstVisitor<void> {
-  final declarations = <SymbolExpr, HTDeclaration>{};
-
-  _OccurrencesCollector();
+class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
+  _OccurrencesVisitor();
 
   @override
   void visitSymbolExpr(SymbolExpr expr) {
-    expr.declaration =
-        expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
-    super.visitSymbolExpr(expr);
+    if (expr.analysisNamespace != null) {
+      expr.declaration =
+          expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
+    }
   }
 }

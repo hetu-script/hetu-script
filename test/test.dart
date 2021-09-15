@@ -16,7 +16,7 @@ void main() {
           african,
         }
         var race: Race = Race.african
-        print( race.toString())
+        print(race)
   ''', type: SourceType.script);
   // // final parser = HTAstParser();
   // final module = parser.parseToModule(source);

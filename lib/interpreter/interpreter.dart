@@ -22,6 +22,7 @@ import '../context/context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
+import '../parser/parser.dart';
 import 'abstract_interpreter.dart';
 import 'compiler.dart';
 import 'opcode.dart';
@@ -143,7 +144,9 @@ class Hetu extends HTAbstractInterpreter {
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) {
-    analyzer.init(preIncludes: preIncludes);
+    if (config.doStaticAnalyze) {
+      analyzer.init(preIncludes: preIncludes);
+    }
     super.init(
         preIncludes: preIncludes,
         externalClasses: externalClasses,
@@ -291,7 +294,8 @@ class Hetu extends HTAbstractInterpreter {
       bool errorHandled = false}) {
     try {
       final compileConfig = config ?? this.config;
-      if (compileConfig.compileWithLineInfo) {
+      final compiler = HTCompiler(config: compileConfig);
+      if (compileConfig.doStaticAnalyze) {
         analyzer.evalSource(source);
         if (analyzer.errors.isNotEmpty) {
           for (final error in analyzer.errors) {
@@ -302,11 +306,17 @@ class Hetu extends HTAbstractInterpreter {
             }
           }
         }
+        final bytes = compiler
+            .compile(analyzer.compilation); //, libraryName ?? source.fullName);
+        return bytes;
+      } else {
+        final parser = HTParser(context: context);
+        final compilation =
+            parser.parseToCompilation(source, libraryName: libraryName);
+        final bytes =
+            compiler.compile(compilation); //, libraryName ?? source.fullName);
+        return bytes;
       }
-      final compiler = HTCompiler(config: compileConfig);
-      final bytes = compiler
-          .compile(analyzer.compilation); //, libraryName ?? source.fullName);
-      return bytes;
     } catch (error) {
       if (errorHandled) {
         rethrow;

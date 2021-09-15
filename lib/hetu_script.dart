@@ -21,7 +21,6 @@ export 'object/instance/instance.dart';
 export 'type/type.dart';
 export 'declaration/generic/generic_type_parameter.dart';
 export 'ast/ast.dart';
-export 'ast/visitor/generalizing_ast_visitor.dart';
 export 'ast/visitor/recursive_ast_visitor.dart';
 export 'lexer/lexer.dart';
 export 'parser/abstract_parser.dart';

@@ -5,7 +5,7 @@ import '../ast/ast.dart';
 import '../parser/parse_result_compilation.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../source/source.dart';
+// import '../source/source.dart';
 import 'opcode.dart';
 import 'const_table.dart';
 
@@ -40,16 +40,23 @@ mixin GotoInfo {
 }
 
 abstract class CompilerConfig {
-  factory CompilerConfig({bool compileWithLineInfo}) = CompilerConfigImpl;
+  factory CompilerConfig({bool compileWithLineInfo, bool doStaticAnalyze}) =
+      CompilerConfigImpl;
 
   bool get compileWithLineInfo;
+
+  bool get doStaticAnalyze;
 }
 
 class CompilerConfigImpl implements CompilerConfig {
   @override
   final bool compileWithLineInfo;
 
-  const CompilerConfigImpl({this.compileWithLineInfo = true});
+  @override
+  final bool doStaticAnalyze;
+
+  const CompilerConfigImpl(
+      {this.compileWithLineInfo = true, this.doStaticAnalyze = true});
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
@@ -84,14 +91,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     mainBytesBuilder.add(hetuVersionData);
     final bytesBuilder = BytesBuilder();
     for (final module in compilation.modules.values) {
-      if (module.type == SourceType.module) {
-        bytesBuilder.addByte(HTOpCode.module);
-        final idBytes = module.isLibraryEntry
-            ? _shortUtf8String(module.libraryName!)
-            : _shortUtf8String(module.fullName);
-        bytesBuilder.add(idBytes);
-        bytesBuilder.addByte(module.isLibraryEntry ? 1 : 0);
-      }
+      bytesBuilder.addByte(HTOpCode.module);
+      final idBytes = module.isLibraryEntry
+          ? _shortUtf8String(module.libraryName!)
+          : _shortUtf8String(module.fullName);
+      bytesBuilder.add(idBytes);
+      bytesBuilder.addByte(module.isLibraryEntry ? 1 : 0);
       for (final node in module.nodes) {
         final bytes = visitAstNode(node);
         bytesBuilder.add(bytes);

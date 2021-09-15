@@ -105,11 +105,21 @@ abstract class HTLexicon {
     CONST,
   };
 
+  static const Set<String> primitiveTypes = {
+    TYPE,
+    ANY,
+    VOID,
+    unknown,
+    never,
+    function,
+  };
+
   static const ANY = 'any';
   static const VOID = 'void';
   static const unknown = 'unknown';
-  static const object = 'object';
+  static const never = 'never';
   static const function = 'function';
+  static const object = 'object';
   static const prototype = 'prototype';
 
   static const LIBRARY = 'library';

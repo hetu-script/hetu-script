@@ -1,3 +1,5 @@
+import 'package:hetu_script/declaration/namespace/namespace.dart';
+
 import '../source/source.dart';
 import '../source/line_info.dart';
 import '../parser/parse_result.dart';
@@ -17,5 +19,8 @@ class HTModuleAnalysisResult {
 
   final List<HTAnalysisError> errors;
 
-  HTModuleAnalysisResult(this.parseResult, this.analyzer, this.errors);
+  final HTNamespace namespace;
+
+  HTModuleAnalysisResult(
+      this.parseResult, this.analyzer, this.errors, this.namespace);
 }

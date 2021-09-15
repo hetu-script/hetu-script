@@ -30,6 +30,9 @@ class InterpreterConfig
   final bool compileWithLineInfo;
 
   @override
+  final bool doStaticAnalyze;
+
+  @override
   final bool showDartStackTrace;
 
   @override
@@ -38,16 +41,14 @@ class InterpreterConfig
   @override
   final ErrorHanldeApproach errorHanldeApproach;
 
-  final bool doStaticAnalyze;
-
   final bool allowHotReload;
 
   const InterpreterConfig(
       {this.compileWithLineInfo = true,
+      this.doStaticAnalyze = true,
       this.showDartStackTrace = true,
       this.hetuStackTraceDisplayCountLimit = 10,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.doStaticAnalyze = true,
       this.allowHotReload = false});
 }
 
