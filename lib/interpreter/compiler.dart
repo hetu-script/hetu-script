@@ -182,7 +182,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       final bytes = visitAstNode(ast, endOfExec: true);
       positionalArgs.add(bytes);
     }
-    for (final name in namedArgs.keys) {
+    for (final name in namedArgsNodes.keys) {
       final bytes = visitAstNode(namedArgsNodes[name]!, endOfExec: true);
       namedArgs[name] = bytes;
     }

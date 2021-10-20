@@ -9,15 +9,15 @@ void main() {
   // final tokens = lexer.lex('');
   // print(tokens);
 
-  final source = HTSource(r'''
-        enum Race {
-          caucasian,
-          mongolian,
-          african,
-        }
-        var race: Race = Race.african
-        print( race.toString())
-  ''', type: SourceType.script);
+  // final source = HTSource(r'''
+  //       enum Race {
+  //         caucasian,
+  //         mongolian,
+  //         african,
+  //       }
+  //       var race: Race = Race.african
+  //       print( race.toString())
+  // ''', type: SourceType.script);
   // // final parser = HTAstParser();
   // final module = parser.parseToModule(source);
   // final formatter = HTFormatter();
@@ -28,5 +28,18 @@ void main() {
 
   final hetu = Hetu();
   hetu.init();
-  hetu.evalSource(source);
+  hetu.eval(r'''
+    // fun namedArgFun(a: num, b: num) {
+    fun namedArgFun({a: num, b: num}) {
+      return a + b
+    }
+
+    fun namedArgFunTest {
+      // return namedArgFun(1, 41)
+      return namedArgFun(a: 1, b: 41)
+    }
+  ''');
+  final result = hetu.invoke('namedArgFunTest');
+  print(result);
+  // hetu.evalSource(source);
 }

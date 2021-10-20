@@ -53,5 +53,21 @@ void main() {
         1,
       );
     });
+
+    test('named args', () {
+      final result = hetu.eval('''
+        fun namedArgFun({a: num, b: num}) {
+          return a + b
+        }
+
+        fun namedArgFunTest {
+          return namedArgFun(a: 1, b: 41)
+        }
+      ''', invokeFunc: 'namedArgFunTest');
+      expect(
+        result,
+        42,
+      );
+    });
   });
 }
