@@ -56,12 +56,12 @@ void main() {
 
     test('named args', () {
       final result = hetu.eval('''
-        fun namedArgFun({a: num, b: num}) {
-          return a + b
+        fun namedArgFun({a: num, b: num = 2, c: num}) {
+          return a * b
         }
 
         fun namedArgFunTest {
-          return namedArgFun(a: 1, b: 41)
+          return namedArgFun(a: 21)
         }
       ''', invokeFunc: 'namedArgFunTest');
       expect(
