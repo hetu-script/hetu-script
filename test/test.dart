@@ -28,7 +28,8 @@ void main() {
 
   final hetu = Hetu();
   hetu.init();
-  hetu.eval(r'''
+
+  final source = HTSource(r'''
     // fun namedArgFun(a: num, b: num) {
     fun namedArgFun({a: num, b: num}) {
       return a + b
@@ -39,6 +40,8 @@ void main() {
       return namedArgFun(a: 1, b: 41)
     }
   ''');
+
+  hetu.evalSource(source);
   final result = hetu.invoke('namedArgFunTest');
   print(result);
   // hetu.evalSource(source);
