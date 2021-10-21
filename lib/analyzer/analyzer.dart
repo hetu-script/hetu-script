@@ -1,5 +1,3 @@
-import 'package:hetu_script/declaration/declaration.dart';
-
 import '../source/source.dart';
 import '../context/context.dart';
 import '../type/type.dart';
@@ -10,6 +8,7 @@ import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../parser/parser.dart';
+// import '../declaration/declaration.dart';
 import '../declaration/class/class_declaration.dart';
 import '../declaration/function/function_declaration.dart';
 import '../declaration/function/parameter_declaration.dart';
@@ -20,7 +19,7 @@ import 'analysis_error.dart';
 // import 'type_checker.dart';
 import '../declaration/struct/struct_declaration.dart';
 import '../grammar/semantic.dart';
-import '../ast/visitor/recursive_ast_visitor.dart';
+// import '../ast/visitor/recursive_ast_visitor.dart';
 
 class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     implements AbstractAstVisitor<void> {
@@ -469,14 +468,14 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 }
 
-class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
-  _OccurrencesVisitor();
+// class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
+//   _OccurrencesVisitor();
 
-  @override
-  void visitSymbolExpr(SymbolExpr expr) {
-    if (expr.analysisNamespace != null) {
-      expr.declaration =
-          expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
-    }
-  }
-}
+//   @override
+//   void visitSymbolExpr(SymbolExpr expr) {
+//     if (expr.analysisNamespace != null) {
+//       expr.declaration =
+//           expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
+//     }
+//   }
+// }

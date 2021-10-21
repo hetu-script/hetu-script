@@ -73,10 +73,9 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   void initialize() {
     // if (_value != null) return;
 
-    // if (definitionIp != null) {
-    if (!_isInitializing) {
-      _isInitializing = true;
-      if (definitionIp != null) {
+    if (definitionIp != null) {
+      if (!_isInitializing) {
+        _isInitializing = true;
         final initVal = interpreter.execute(
             moduleFullName: moduleFullName,
             libraryName: libraryName,
@@ -85,16 +84,13 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             line: definitionLine,
             column: definitionColumn);
         value = initVal;
+        _isInitializing = false;
       } else {
-        value = null;
+        throw HTError.circleInit(id);
       }
-      _isInitializing = false;
     } else {
-      throw HTError.circleInit(id);
+      value = null; // assign it even if it's null, for static type check
     }
-    // } else {
-    //   value = null; // null 也要 assign 一下，因为需要类型检查
-    // }
   }
 
   /// Assign a new value to this variable.
