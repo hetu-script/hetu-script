@@ -1041,8 +1041,7 @@ class Hetu extends HTAbstractInterpreter {
             column: _curColumn);
       }
       if (klass.contains(SemanticNames.constructor)) {
-        final constructor =
-            klass.memberGet(SemanticNames.constructor) as HTFunction;
+        final constructor = klass.memberGet(klass.id!) as HTFunction;
         _curValue = constructor.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,

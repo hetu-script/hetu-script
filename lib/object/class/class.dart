@@ -137,28 +137,28 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
         ? '${SemanticNames.constructor}$varName'
         : SemanticNames.constructor;
 
-    // if (isExternal) {
-    //   if (namespace.declarations.containsKey(varName)) {
-    //     final decl = namespace.declarations[varName]!;
-    //     return decl.value;
-    //   } else if (namespace.declarations.containsKey(getter)) {
-    //     HTFunction func = namespace.declarations[getter]!.value;
-    //     return func.call();
-    //   } else if (namespace.declarations.containsKey(constructor)) {
-    //     HTFunction func = namespace.declarations[constructor]!.value;
-    //     return func;
-    //   }
-    // } else {
     if (namespace.declarations.containsKey(varName)) {
       final decl = namespace.declarations[varName]!;
-      return decl.value;
+      if (isExternal) {
+        return decl.value;
+      } else {
+        if (decl.isStatic) {
+          return decl.value;
+        }
+      }
     } else if (namespace.declarations.containsKey(getter)) {
-      HTFunction func = namespace.declarations[getter]!.value;
-      return func.call();
+      final decl = namespace.declarations[getter]!;
+      final func = decl as HTFunction;
+      if (isExternal) {
+        return func.call();
+      } else {
+        if (decl.isStatic) {
+          return func.call();
+        }
+      }
     } else if (namespace.declarations.containsKey(constructor)) {
       return namespace.declarations[constructor]!.value as HTFunction;
     }
-    // }
 
     if (error) {
       throw HTError.undefined(varName,
@@ -177,14 +177,21 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
       final externClass = interpreter.fetchExternalClass(id!);
       externClass.memberSet('$id.$varName', varValue);
       return;
-    } else if (namespace.declarations.containsKey(varName)) {
-      final decl = namespace.declarations[varName]!;
-      decl.value = varValue;
-      return;
-    } else if (namespace.declarations.containsKey(setter)) {
-      final setterFunc = namespace.declarations[setter] as HTFunction;
-      setterFunc.call(positionalArgs: [varValue]);
-      return;
+    } else {
+      if (namespace.declarations.containsKey(varName)) {
+        final decl = namespace.declarations[varName]!;
+        if (decl.isStatic) {
+          decl.value = varValue;
+          return;
+        }
+      } else if (namespace.declarations.containsKey(setter)) {
+        final decl = namespace.declarations[setter]!;
+        if (decl.isStatic) {
+          final setterFunc = decl as HTFunction;
+          setterFunc.call(positionalArgs: [varValue]);
+          return;
+        }
+      }
     }
 
     throw HTError.undefined(varName,

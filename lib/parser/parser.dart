@@ -491,6 +491,7 @@ class HTParser extends HTAbstractParser {
                   category: FunctionCategory.factoryConstructor,
                   classId: _curClass?.id,
                   isExternal: isExternal,
+                  isStatic: true,
                 );
               }
             default:

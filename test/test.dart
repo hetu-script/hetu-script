@@ -30,16 +30,20 @@ void main() {
   hetu.init();
 
   final source = HTSource(r'''
-    fun namedArgFun({a: num = 1, b: num}) {
-      return a
+    class Person {
+      static var race = 'Human'
+
+      var name = 'Jimmy'
+
     }
 
-    fun namedArgFunTest {
-      return namedArgFun(a: 40)
+    fun classTest {
+
+      print(Person.name)
     }
   ''');
 
-  hetu.evalSource(source);
-  final result = hetu.invoke('namedArgFunTest');
-  print(result);
+  hetu.evalSource(source, invokeFunc: 'classTest');
+  // final result = hetu.invoke('namedArgFunTest');
+  // print(result);
 }
