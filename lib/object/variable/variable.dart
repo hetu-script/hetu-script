@@ -76,15 +76,18 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
     // if (definitionIp != null) {
     if (!_isInitializing) {
       _isInitializing = true;
-      final initVal = interpreter.execute(
-          moduleFullName: moduleFullName,
-          libraryName: libraryName,
-          ip: definitionIp!,
-          namespace: closure,
-          line: definitionLine,
-          column: definitionColumn);
-
-      value = initVal;
+      if (definitionIp != null) {
+        final initVal = interpreter.execute(
+            moduleFullName: moduleFullName,
+            libraryName: libraryName,
+            ip: definitionIp!,
+            namespace: closure,
+            line: definitionLine,
+            column: definitionColumn);
+        value = initVal;
+      } else {
+        value = null;
+      }
       _isInitializing = false;
     } else {
       throw HTError.circleInit(id);
