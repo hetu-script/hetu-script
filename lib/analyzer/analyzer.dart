@@ -120,7 +120,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       errors.addAll(_curErrors);
     }
     final result = results[source.fullName]!;
-    if (globallyImport) {
+    if ((source.type == SourceType.script) || globallyImport) {
       global.import(result.namespace);
     }
     // walk through ast again to set each symbol's declaration referrence.
