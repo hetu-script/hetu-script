@@ -124,10 +124,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       global.import(result.namespace);
     }
     // walk through ast again to set each symbol's declaration referrence.
-    final visitor = _OccurrencesVisitor();
-    for (final node in result.parseResult.nodes) {
-      node.accept(visitor);
-    }
+    // final visitor = _OccurrencesVisitor();
+    // for (final node in result.parseResult.nodes) {
+    //   node.accept(visitor);
+    // }
     return result;
   }
 
