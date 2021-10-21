@@ -51,17 +51,10 @@ abstract class CompilerConfig {
 class CompilerConfigImpl implements CompilerConfig {
   @override
   final bool compileWithLineInfo;
-<<<<<<< HEAD
 
   @override
   final bool doStaticAnalyze;
 
-=======
-
-  @override
-  final bool doStaticAnalyze;
-
->>>>>>> 9ccfcebcbf49044bec1de1147ff38f47a591df8e
   const CompilerConfigImpl(
       {this.compileWithLineInfo = true, this.doStaticAnalyze = true});
 }
