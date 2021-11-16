@@ -1,5 +1,6 @@
 import 'package:path/path.dart' as path;
 
+import '../util/crc32b.dart';
 import '../context/context.dart';
 import '../grammar/lexicon.dart';
 import '../lexer/token.dart';
@@ -1680,8 +1681,9 @@ class HTParser extends HTAbstractParser {
         if (curTok.type == SemanticNames.identifier) {
           id = advance(1);
         }
-        internalName =
-            (id == null) ? SemanticNames.anonymousFunction : id.lexeme;
+        internalName = (id == null)
+            ? SemanticNames.anonymousFunction + Crc32b.timestamp()
+            : id.lexeme;
         break;
       case FunctionCategory.getter:
         id = match(SemanticNames.identifier);

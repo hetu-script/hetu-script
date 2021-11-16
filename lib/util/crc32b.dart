@@ -8,6 +8,10 @@ import 'dart:convert';
 
 /// Computes Cyclic Redundancy Check values.
 class Crc32b {
+  static String timestamp() {
+    return compute(DateTime.now().toIso8601String());
+  }
+
   /// Computes a CRC32 value for the given input.
   ///
   /// The return value is an unsigned integer.
