@@ -33,6 +33,20 @@ void main() {
         2,
       );
     });
+    test('null checker', () {
+      final result = hetu.eval(r'''
+      fun nullChecker {
+        var kek = null
+        if (kek == null || true) {
+          return('is null')
+        }
+      }
+    ''', invokeFunc: 'nullChecker');
+      expect(
+        result,
+        'is null',
+      );
+    });
     test('ternary operator', () {
       final result = hetu.eval(r'''
       fun ternary {

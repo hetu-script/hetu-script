@@ -30,28 +30,11 @@ void main() {
   hetu.init();
 
   final source = HTSource(r'''
-    fun fa({a, b}){
-      return a + b
-    }
-
-    fun fb({a:fun()->any}){
-      return a()
-    }
-
-    fun fc({a:fun()->any, b:fun()->int}){
-      return a() + b()
-    }
-
-    fun cc(){
-      return 2
-    }
-
-    fun test(){
-      print(fa(a:1, b:2))
-
-      print(fb(a:fun()=>2))
-
-      print(fc(a:cc, b:fun()=>3))
+    fun test {
+      var kek = null
+      if ((kek == null) || true) {
+        print('is null')
+      }
     }
   ''');
 

@@ -886,7 +886,7 @@ class Hetu extends HTAbstractInterpreter {
   void _handleBinaryOp(int opcode) {
     switch (opcode) {
       case HTOpCode.logicalOr:
-        final bool leftValue = _getRegVal(HTRegIdx.andLeft);
+        final bool leftValue = _getRegVal(HTRegIdx.orLeft);
         final rightValueLength = _curLibrary.readUint16();
         if (leftValue) {
           _curLibrary.skip(rightValueLength);
