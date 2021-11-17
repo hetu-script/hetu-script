@@ -17,6 +17,8 @@ import '../lexer/lexer.dart';
 
 /// Walk through a token list and generates a abstract syntax tree.
 class HTParser extends HTAbstractParser {
+  static var anonymousFunctionIndex = 0;
+
   final _curModuleImports = <ImportDecl>[];
 
   String? _curModuleFullName;
@@ -1682,7 +1684,7 @@ class HTParser extends HTAbstractParser {
           id = advance(1);
         }
         internalName = (id == null)
-            ? SemanticNames.anonymousFunction + Crc32b.timestamp()
+            ? '${SemanticNames.anonymousFunction}${HTParser.anonymousFunctionIndex++}'
             : id.lexeme;
         break;
       case FunctionCategory.getter:
