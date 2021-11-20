@@ -1,0 +1,6 @@
+language: dart
+before_install: cd package
+dart_task:
+  - dartfmt
+  - dartanalyzer: lib
+  - test
