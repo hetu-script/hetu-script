@@ -51,6 +51,8 @@ export 'source/source.dart';
 export 'source/source_range.dart';
 export 'context/context.dart';
 export 'context/context_manager.dart';
+export 'context/overlay/overlay_context.dart';
+export 'context/overlay/overlay_context_manager.dart';
 export 'analyzer/analysis_manager.dart';
 export 'error/error.dart';
 export 'error/error_handler.dart';

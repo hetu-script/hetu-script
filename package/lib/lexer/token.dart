@@ -17,10 +17,13 @@ class Token {
 
   dynamic get literal => lexeme;
 
+  final bool isKeyword;
+
   @override
   String toString() => lexeme;
 
-  const Token(this.lexeme, this.line, this.column, this.offset, this.length);
+  const Token(this.lexeme, this.line, this.column, this.offset, this.length,
+      [this.isKeyword = false]);
 }
 
 class TokenEmpty extends Token {

@@ -109,24 +109,24 @@ abstract class HTLexicon {
     TYPE,
     ANY,
     VOID,
-    unknown,
-    never,
-    function,
+    UNKNOWN,
+    NEVER,
+    // FUNCTION,
   };
 
+  static const TYPE = 'type';
   static const ANY = 'any';
   static const VOID = 'void';
-  static const unknown = 'unknown';
-  static const never = 'never';
-  static const function = 'function';
+  static const UNKNOWN = 'unknown';
+  static const NEVER = 'never';
+  // static const FUNCTION = 'function';
+
   static const object = 'object';
   static const prototype = 'prototype';
+  static const library = 'library';
+  static const import = 'import';
 
-  static const LIBRARY = 'library';
-  static const TYPE = 'type';
   static const TYPEOF = 'typeof';
-  static const IMPORT = 'import';
-  static const DECLARATION = 'declaration';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
   static const SHOW = 'show';
@@ -173,13 +173,18 @@ abstract class HTLexicon {
   static const IS = 'is';
   static const ISNOT = 'is!';
 
-  /// 保留字，不能用于变量名字
-  static const Set<String> reservedKeywords = {
+  /// 内置关键字
+  static const Set<String> keywords = {
+    TYPE,
+    ANY,
+    VOID,
+    UNKNOWN,
+    NEVER,
+    // FUNCTION,
     NULL,
     TRUE,
     FALSE,
     VAR,
-    // LET,
     FINAL,
     CONST,
     TYPEOF,

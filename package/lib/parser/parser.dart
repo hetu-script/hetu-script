@@ -148,7 +148,7 @@ class HTParser extends HTAbstractParser {
   AstNode? _parseStmt({SourceType sourceType = SourceType.function}) {
     switch (sourceType) {
       case SourceType.script:
-        if (curTok.lexeme == HTLexicon.IMPORT) {
+        if (curTok.lexeme == HTLexicon.import) {
           return _parseImportDecl();
         } else if (curTok.lexeme == HTLexicon.TYPE) {
           return _parseTypeAliasDecl();
@@ -269,9 +269,9 @@ class HTParser extends HTAbstractParser {
           }
         }
       case SourceType.module:
-        if (curTok.lexeme == HTLexicon.LIBRARY) {
+        if (curTok.lexeme == HTLexicon.library) {
           return _parseLibraryDecl();
-        } else if (curTok.lexeme == HTLexicon.IMPORT) {
+        } else if (curTok.lexeme == HTLexicon.import) {
           return _parseImportDecl();
         } else if (curTok.lexeme == HTLexicon.TYPE) {
           return _parseTypeAliasDecl();
@@ -988,7 +988,8 @@ class HTParser extends HTAbstractParser {
             line: keyword.line,
             column: keyword.column,
             offset: keyword.offset,
-            length: keyword.length);
+            length: keyword.length,
+            isKeyword: true);
       case HTLexicon.SUPER:
         _leftValueLegality = false;
         final keyword = advance(1);
@@ -997,7 +998,8 @@ class HTParser extends HTAbstractParser {
             line: keyword.line,
             column: keyword.column,
             offset: keyword.offset,
-            length: keyword.length);
+            length: keyword.length,
+            isKeyword: true);
       case HTLexicon.IF:
         final expr = _parseIf(isExpression: true);
         return expr;
@@ -1054,7 +1056,7 @@ class HTParser extends HTAbstractParser {
             category: FunctionCategory.literal, isExpression: true);
       case SemanticNames.identifier:
         // literal function type
-        if (curTok.lexeme == HTLexicon.function) {
+        if (curTok.lexeme == HTLexicon.FUNCTION) {
           _leftValueLegality = false;
           return _parseTypeExpr();
         }
@@ -1150,7 +1152,7 @@ class HTParser extends HTAbstractParser {
     // TODO: interface type
     // nominal type
     else {
-      final id = match(SemanticNames.identifier);
+      final id = advance(1);
       final symbol = SymbolExpr.fromToken(id);
       final typeArgs = <TypeExpr>[];
       if (expect([HTLexicon.angleLeft], consume: true)) {

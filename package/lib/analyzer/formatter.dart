@@ -499,14 +499,14 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitLibraryDecl(LibraryDecl stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.LIBRARY} ${stmt.id}');
+    output.write('${HTLexicon.library} ${stmt.id}');
     return output.toString();
   }
 
   @override
   String visitImportDecl(ImportDecl stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.IMPORT} ');
+    output.write('${HTLexicon.import} ');
     if (stmt.showList.isNotEmpty) {
       output.write('${HTLexicon.curlyLeft} ');
       output.write(stmt.showList.join('${HTLexicon.comma} '));

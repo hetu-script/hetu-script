@@ -53,6 +53,7 @@ abstract class SemanticNames {
   static const singleLineComment = 'single_line_comment';
   static const multiLineComment = 'multi_line_comment';
 
+  static const keyword = 'keyword';
   static const identifier = 'identifier';
   static const punctuation = 'punctuation';
   static const expression = 'expression';

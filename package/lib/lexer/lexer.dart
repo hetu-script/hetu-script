@@ -33,9 +33,9 @@ class HTLexer {
           } else if (matchString == HTLexicon.FALSE) {
             toksOfLine.add(TokenBooleanLiteral(matchString, false, curLine,
                 curColumn, curOffset + match.start, curOffset + match.end));
-          } else if (HTLexicon.reservedKeywords.contains(matchString)) {
+          } else if (HTLexicon.keywords.contains(matchString)) {
             toksOfLine.add(Token(matchString, curLine, curColumn,
-                curOffset + match.start, curOffset + match.end));
+                curOffset + match.start, curOffset + match.end, true));
           } else {
             toksOfLine.add(TokenIdentifier(matchString, curLine, curColumn,
                 curOffset + match.start, curOffset + match.end));

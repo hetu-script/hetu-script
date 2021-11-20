@@ -109,10 +109,10 @@ packages:
   hetu_script:
     dependency: "direct main"
     description:
-      name: hetu_script
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.2.0+1"
+      path: "../package"
+      relative: true
+    source: path
+    version: "0.2.1"
   http_multi_server:
     dependency: transitive
     description:

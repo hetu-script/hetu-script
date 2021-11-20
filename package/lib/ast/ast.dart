@@ -233,6 +233,8 @@ class SymbolExpr extends AstNode {
 
   final String id;
 
+  final bool isKeyword;
+
   final bool isLocal;
 
   SymbolExpr(this.id,
@@ -241,6 +243,7 @@ class SymbolExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0,
+      this.isKeyword = false,
       this.isLocal = true})
       : super(SemanticNames.symbolExpr,
             source: source,
@@ -255,7 +258,8 @@ class SymbolExpr extends AstNode {
             line: id.line,
             column: id.column,
             offset: id.offset,
-            length: id.length);
+            length: id.length,
+            isKeyword: id.isKeyword);
 }
 
 class ListExpr extends AstNode {

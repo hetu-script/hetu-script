@@ -13,25 +13,24 @@ abstract class HTType with HTObject {
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
   static const ENUM = _PrimitiveType(HTLexicon.ENUM);
-  static const DECLARATION = _PrimitiveType(HTLexicon.DECLARATION);
   static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
   static const CLASS = _PrimitiveType(HTLexicon.CLASS);
   static const TYPE = _PrimitiveType(HTLexicon.TYPE);
-  static const unknown = _PrimitiveType(HTLexicon.unknown);
+  static const UNKNOWN = _PrimitiveType(HTLexicon.UNKNOWN);
   // static const object = _PrimitiveType(HTLexicon.object);
-  static const function = _PrimitiveType(HTLexicon.function);
+  static const function = _PrimitiveType(HTLexicon.FUNCTION);
 
   static const Map<String, HTType> primitiveTypes = {
     HTLexicon.TYPE: TYPE,
     HTLexicon.ANY: ANY,
     HTLexicon.NULL: NULL,
     HTLexicon.VOID: VOID,
-    HTLexicon.ENUM: ENUM,
-    HTLexicon.NAMESPACE: NAMESPACE,
-    HTLexicon.CLASS: CLASS,
-    HTLexicon.unknown: unknown,
+    // HTLexicon.ENUM: ENUM,
+    // HTLexicon.NAMESPACE: NAMESPACE,
+    // HTLexicon.CLASS: CLASS,
+    HTLexicon.UNKNOWN: UNKNOWN,
     // HTLexicon.object: object,
-    HTLexicon.function: function,
+    // HTLexicon.FUNCTION: function,
   };
 
   static String parseBaseType(String typeString) {
@@ -126,8 +125,8 @@ abstract class HTType with HTObject {
   bool isA(HTType? other) {
     if (other == null) {
       return true;
-    } else if (this == HTType.unknown) {
-      if (other == HTType.ANY || other == HTType.unknown) {
+    } else if (this == HTType.UNKNOWN) {
+      if (other == HTType.ANY || other == HTType.UNKNOWN) {
         return true;
       } else {
         return false;

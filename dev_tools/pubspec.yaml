@@ -2,8 +2,8 @@ name: hetu_script_dev_tools
 description: Developer tools for Hetu Script.
 version: 0.0.1
 homepage: https://github.com/hetu-script/dev_tools
-# publish_to: none
-publish_to: https://pub.dartlang.org
+publish_to: none
+# publish_to: https://pub.dartlang.org
 
 executables:
   hetu: cli_tool
@@ -12,9 +12,9 @@ environment:
   sdk: '>=2.14.4 <3.0.0'
 
 dependencies:
-  hetu_script: ^0.2.1
-  # hetu_script:
-  #   path: ../package
+  # hetu_script: ^0.2.1
+  hetu_script:
+    path: ../package
 
 dev_dependencies:
   lints: ^1.0.0
