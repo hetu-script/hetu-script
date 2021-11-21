@@ -61,7 +61,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitSymbolExpr(SymbolExpr expr) {
+  HTType? visitIdentifierExpr(IdentifierExpr expr) {
     return HTType.ANY;
   }
 
@@ -206,7 +206,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {
+  HTType? visitReferConstructCallExpr(RedirectingConstructorCallExpr stmt) {
     return HTType.ANY;
   }
 

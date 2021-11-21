@@ -20,6 +20,9 @@ abstract class HTLexicon {
   static const tokenGroupStringSingleQuotation = 18;
   static const tokenGroupStringDoubleQuotation = 20;
 
+  static const singleLineCommentDocumentationPattern = r'///';
+  static const multiLineCommentDocumentationPattern = r'/**';
+
   static const libraryNamePattern = r"(library '((\\'|[^'])*)')|"
       r'(library "((\\"|[^"])*)")';
 

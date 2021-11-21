@@ -13,9 +13,11 @@ import '../lsp/semantic_tokens/encoder.dart' show SemanticTokenInfo;
 import '../lsp/semantic_tokens/mapping.dart'
     show highlightRegionTokenModifiers, highlightRegionTokenTypes;
 
-/// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
-class HetuUnitHighlightsComputer {
-  final HTModuleParseResult _unit;
+import '../protocol/protocol_common.dart';
+
+/// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Hetu [HTModuleParseResult].
+class HetuHighlightsComputer {
+  final HTModuleParseResult _parseResult;
   final SourceRange range;
 
   final _regions = <HighlightRegion>[];
@@ -24,18 +26,21 @@ class HetuUnitHighlightsComputer {
   bool _computeSemanticTokens = false;
 
   /// Creates a computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a
-  /// Dart [CompilationUnit].
+  /// Hetu [HTModuleParseResult].
   ///
   /// If [range] is supplied, tokens outside of this range will not be included
   /// in results.
-  DartUnitHighlightsComputer(this._unit, {this.range});
+  HetuHighlightsComputer(this._parseResult, {this.range});
 
   /// Returns the computed highlight regions, not `null`.
   List<HighlightRegion> compute() {
     _reset();
     _computeRegions = true;
-    _unit.accept(_DartUnitHighlightsComputerVisitor(this));
-    _addCommentRanges();
+    final visitor = _HetuHighlightsComputerVisitor(this);
+    for (final node in _parseResult.nodes) {
+      node.accept(visitor);
+    }
+    // _addCommentRanges();
     return _regions;
   }
 
@@ -43,46 +48,33 @@ class HetuUnitHighlightsComputer {
   List<SemanticTokenInfo> computeSemanticTokens() {
     _reset();
     _computeSemanticTokens = true;
-    _unit.accept(_DartUnitHighlightsComputerVisitor(this));
-    _addCommentRanges();
+    final visitor = _HetuHighlightsComputerVisitor(this);
+    for (final node in _parseResult.nodes) {
+      node.accept(visitor);
+    }
+    // _addCommentRanges();
     return _semanticTokens;
   }
 
-  void _addCommentRanges() {
-    var token = _unit.beginToken;
-    while (token != null) {
-      Token commentToken = token.precedingComments;
-      while (commentToken != null) {
-        HighlightRegionType highlightType;
-        if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
-          if (commentToken.lexeme.startsWith('/**')) {
-            highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
-          } else {
-            highlightType = HighlightRegionType.COMMENT_BLOCK;
-          }
-        }
-        if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
-          if (commentToken.lexeme.startsWith('///')) {
-            highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
-          } else {
-            highlightType = HighlightRegionType.COMMENT_END_OF_LINE;
-          }
-        }
-        if (highlightType != null) {
-          _addRegion_token(commentToken, highlightType);
-        }
-        commentToken = commentToken.next;
+  void _addCommentRegion(CommentExpr node) {
+    HighlightRegionType highlightType;
+    if (node.isMultiline) {
+      if (node.isDocumentation) {
+        highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
+      } else {
+        highlightType = HighlightRegionType.COMMENT_BLOCK;
       }
-      if (token.type == TokenType.EOF) {
-        // Only exit the loop *after* processing the EOF token as it may
-        // have preceeding comments.
-        break;
+    } else {
+      if (node.isDocumentation) {
+        highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
+      } else {
+        highlightType = HighlightRegionType.COMMENT_END_OF_LINE;
       }
-      token = token.next;
     }
+    _addRegion_node(node, highlightType);
   }
 
-  void _addIdentifierRegion(SimpleIdentifier node) {
+  void _addIdentifierRegion(IdentifierExpr node) {
     if (_addIdentifierRegion_keyword(node)) {
       return;
     }
@@ -519,36 +511,16 @@ class HetuUnitHighlightsComputer {
   }
 }
 
-/// An AST visitor for [DartUnitHighlightsComputer].
-class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
-  final DartUnitHighlightsComputer computer;
+/// An AST visitor for [HetuHighlightsComputer].
+class _HetuHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
+  final HetuHighlightsComputer computer;
 
-  _DartUnitHighlightsComputerVisitor(this.computer);
-
-  @override
-  void visitAnnotation(Annotation node) {
-    computer._addIdentifierRegion_annotation(node);
-    super.visitAnnotation(node);
-  }
+  _HetuHighlightsComputerVisitor(this.computer);
 
   @override
-  void visitAsExpression(AsExpression node) {
-    computer._addRegion_token(node.asOperator, HighlightRegionType.BUILT_IN);
-    super.visitAsExpression(node);
-  }
-
-  @override
-  void visitAssertStatement(AssertStatement node) {
-    computer._addRegion_token(node.assertKeyword, HighlightRegionType.KEYWORD,
-        semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
-    super.visitAssertStatement(node);
-  }
-
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN,
-        semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
-    super.visitAwaitExpression(node);
+  void visitCommentExpr(CommentExpr node) {
+    computer._addCommentRegion(node);
+    super.visitCommentExpr(node);
   }
 
   @override

@@ -26,22 +26,19 @@ class HetuModuleOutlineComputer {
       if (node is ClassDecl) {
         outlines.add(_newClassOutline(
             node, _outlinesForMembers(node.definition.statements)));
-      } else if (node is MixinDeclaration) {
-        outlines.add(_newMixinOutline(node, _outlinesForMembers(node.members)));
-      } else if (node is EnumDeclaration) {
+      }
+      //  else if (node is MixinDeclaration) {
+      //   outlines.add(_newMixinOutline(node, _outlinesForMembers(node.members)));
+      // }
+      else if (node is EnumDecl) {
         var enumDeclaration = node;
         var constantOutlines = <Outline>[];
         for (var constant in enumDeclaration.constants) {
           constantOutlines.add(_newEnumConstant(constant));
         }
         outlines.add(_newEnumOutline(enumDeclaration, constantOutlines));
-      } else if (node is ExtensionDeclaration) {
-        outlines
-            .add(_newExtensionOutline(node, _outlinesForMembers(node.members)));
-      } else if (node is TopLevelVariableDeclaration) {
-        var fieldDeclaration = node;
-        var fields = fieldDeclaration.variables;
-        var fieldType = fields.type;
+      } else if (node is VarDecl) {
+        var fieldType = node.declType;
         var fieldTypeName = _safeToSource(fieldType);
         for (var field in fields.variables) {
           outlines.add(_newVariableOutline(

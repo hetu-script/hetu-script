@@ -107,8 +107,8 @@ class Hetu extends HTAbstractInterpreter {
       _registers[_getRegIndex(HTRegIdx.value)] = value;
   dynamic get _curValue => _registers[_getRegIndex(HTRegIdx.value)];
   set _curSymbol(String? value) =>
-      _registers[_getRegIndex(HTRegIdx.symbol)] = value;
-  String? get curSymbol => _registers[_getRegIndex(HTRegIdx.symbol)];
+      _registers[_getRegIndex(HTRegIdx.identifier)] = value;
+  String? get curSymbol => _registers[_getRegIndex(HTRegIdx.identifier)];
   set _curTypeArgs(List<HTType> value) =>
       _registers[_getRegIndex(HTRegIdx.typeArgs)] = value;
   List<HTType> get _curTypeArgs =>
@@ -744,7 +744,7 @@ class Hetu extends HTAbstractInterpreter {
         }
         _curValue = literal;
         break;
-      case HTValueTypeCode.symbol:
+      case HTValueTypeCode.identifier:
         final symbol = _curSymbol = _curLibrary.readShortUtf8String();
         final isLocal = _curLibrary.readBool();
         if (isLocal) {

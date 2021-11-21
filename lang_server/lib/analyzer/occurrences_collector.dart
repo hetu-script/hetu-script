@@ -47,7 +47,7 @@ class _OccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
       <HTDeclaration, List<int>>{};
 
   @override
-  void visitSymbolExpr(SymbolExpr expr) {
+  void visitIdentifierExpr(IdentifierExpr expr) {
     final decl = expr.declaration;
     if (decl != null) {
       var offsets = declOffsets[decl];

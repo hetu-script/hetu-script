@@ -49,7 +49,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitSymbolExpr(SymbolExpr node) {
+  T? visitIdentifierExpr(IdentifierExpr node) {
     node.subAccept(this);
   }
 
@@ -219,7 +219,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitReferConstructCallExpr(RedirectingConstructCallExpr node) {
+  T? visitReferConstructCallExpr(RedirectingConstructorCallExpr node) {
     node.subAccept(this);
   }
 

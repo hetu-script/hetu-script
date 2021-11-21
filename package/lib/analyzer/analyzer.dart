@@ -111,7 +111,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       _curErrors.addAll(analysisErrors);
       _curNamespace = HTNamespace(id: module.fullName, closure: global);
       for (final node in module.nodes) {
-        visitAstNode(node);
+        analyzeAst(node);
       }
       final moduleAnalysisResult =
           HTModuleAnalysisResult(module, this, analysisErrors, _curNamespace);
@@ -123,14 +123,14 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       global.import(result.namespace);
     }
     // walk through ast again to set each symbol's declaration referrence.
-    final visitor = _OccurrencesVisitor();
-    for (final node in result.parseResult.nodes) {
-      node.accept(visitor);
-    }
+    // final visitor = _OccurrencesVisitor();
+    // for (final node in result.parseResult.nodes) {
+    //   node.accept(visitor);
+    // }
     return result;
   }
 
-  void visitAstNode(AstNode node) {
+  void analyzeAst(AstNode node) {
     node.accept(this);
   }
 
@@ -161,7 +161,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitSymbolExpr(SymbolExpr expr) {
+  void visitIdentifierExpr(IdentifierExpr expr) {
     expr.analysisNamespace = _curNamespace;
     // print(
     //     'visited symbol: ${expr.id}, line: ${expr.line}, col: ${expr.column}, file: $curModuleFullName');
@@ -321,9 +321,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitTypeAliasDecl(TypeAliasDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    stmt.declaration = HTVariableDeclaration(stmt.symbol.id,
+    stmt.declaration = HTVariableDeclaration(stmt.id.id,
         classId: stmt.classId, closure: _curNamespace, source: _curSource);
-    _curNamespace.define(stmt.symbol.id, stmt.declaration!);
+    _curNamespace.define(stmt.id.id, stmt.declaration!);
     stmt.subAccept(this);
   }
 
@@ -331,7 +331,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitVarDecl(VarDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    stmt.declaration = HTVariableDeclaration(stmt.symbol.id,
+    stmt.declaration = HTVariableDeclaration(stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
@@ -340,25 +340,25 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         isStatic: stmt.isStatic,
         isConst: stmt.isConst,
         isMutable: stmt.isMutable);
-    _curNamespace.define(stmt.symbol.id, stmt.declaration!);
+    _curNamespace.define(stmt.id.id, stmt.declaration!);
     stmt.subAccept(this);
   }
 
   @override
   void visitParamDecl(ParamDecl stmt) {
-    stmt.declaration = HTParameterDeclaration(stmt.symbol.id,
+    stmt.declaration = HTParameterDeclaration(stmt.id.id,
         closure: _curNamespace,
         source: _curSource,
         declType: HTType.fromAst(stmt.declType),
         isOptional: stmt.isOptional,
         isNamed: stmt.isNamed,
         isVariadic: stmt.isVariadic);
-    _curNamespace.define(stmt.symbol.id, stmt.declaration!);
+    _curNamespace.define(stmt.id.id, stmt.declaration!);
     stmt.subAccept(this);
   }
 
   @override
-  void visitReferConstructCallExpr(RedirectingConstructCallExpr stmt) {
+  void visitReferConstructCallExpr(RedirectingConstructorCallExpr stmt) {
     stmt.subAccept(this);
   }
 
@@ -366,7 +366,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitFuncDecl(FuncDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    stmt.symbol?.accept(this);
+    stmt.id?.accept(this);
     for (final param in stmt.genericTypeParameters) {
       visitGenericTypeParamExpr(param);
     }
@@ -380,11 +380,11 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       visitParamDecl(arg);
     }
     if (stmt.definition != null) {
-      visitAstNode(stmt.definition!);
+      analyzeAst(stmt.definition!);
     }
     _curNamespace = savedCurNamespace;
     stmt.declaration = HTFunctionDeclaration(stmt.internalName,
-        id: stmt.symbol?.id,
+        id: stmt.id?.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
@@ -394,8 +394,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
         category: stmt.category,
         externalTypeId: stmt.externalTypeId,
         paramDecls: stmt.paramDecls.asMap().map((key, param) => MapEntry(
-            param.symbol.id,
-            HTParameterDeclaration(param.symbol.id,
+            param.id.id,
+            HTParameterDeclaration(param.id.id,
                 closure: _curNamespace,
                 declType: HTType.fromAst(param.declType),
                 isOptional: param.isOptional,
@@ -413,7 +413,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitClassDecl(ClassDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    visitSymbolExpr(stmt.symbol);
+    visitIdentifierExpr(stmt.id);
     for (final param in stmt.genericTypeParameters) {
       visitGenericTypeParamExpr(param);
     }
@@ -425,7 +425,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       visitTypeExpr(withType);
     }
     final decl = HTClassDeclaration(
-        id: stmt.symbol.id,
+        id: stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
@@ -445,36 +445,36 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curNamespace = decl.namespace;
     visitBlockStmt(stmt.definition);
     _curNamespace = savedCurNamespace;
-    _curNamespace.define(stmt.symbol.id, decl);
+    _curNamespace.define(stmt.id.id, decl);
   }
 
   @override
   void visitEnumDecl(EnumDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    visitSymbolExpr(stmt.symbol);
+    visitIdentifierExpr(stmt.id);
     stmt.declaration = HTClassDeclaration(
-        id: stmt.symbol.id,
+        id: stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
         isExternal: stmt.isExternal);
-    _curNamespace.define(stmt.symbol.id, stmt.declaration!);
+    _curNamespace.define(stmt.id.id, stmt.declaration!);
   }
 
   @override
   void visitStructDecl(StructDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    visitSymbolExpr(stmt.symbol);
-    stmt.declaration = HTStructDeclaration(stmt.symbol.id,
+    visitIdentifierExpr(stmt.id);
+    stmt.declaration = HTStructDeclaration(stmt.id.id,
         classId: stmt.classId,
         closure: _curNamespace,
         source: _curSource,
         prototypeId: stmt.prototypeId,
         isTopLevel: stmt.isTopLevel,
         isExported: stmt.isExported);
-    _curNamespace.define(stmt.symbol.id, stmt.declaration!);
+    _curNamespace.define(stmt.id.id, stmt.declaration!);
   }
 }
 
@@ -482,10 +482,20 @@ class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
   _OccurrencesVisitor();
 
   @override
-  void visitSymbolExpr(SymbolExpr expr) {
-    if (expr.isLocal && !expr.isKeyword) {
-      expr.declaration =
-          expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
-    }
+  void visitIdentifierExpr(IdentifierExpr expr) {
+    // if (expr.isLocal && !expr.isKeyword) {
+    //   // TODO: deal with instance members
+    //   try {
+    //     expr.declaration =
+    //         expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
+    //   } catch (e) {
+    //     if (e is HTError && e.code == ErrorCode.undefined) {
+    //       print(
+    //           'Unable to resolve [${expr.id}] in [${expr.analysisNamespace!.id}] , is this an instance member?');
+    //     } else {
+    //       rethrow;
+    //     }
+    //   }
+    // }
   }
 }

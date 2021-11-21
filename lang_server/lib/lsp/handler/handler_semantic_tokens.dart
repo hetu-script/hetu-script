@@ -6,16 +6,16 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/computer/computer_highlights.dart';
-import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:hetu_script/hetu_script.dart';
+
+import '../../protocol/protocol_generated.dart';
+import '../../protocol/protocol_special.dart';
+import '../../computer/computer_highlights.dart';
+import 'handlers.dart';
+import '../lsp_analysis_server.dart';
+import '../mapping.dart';
+import '../semantic_tokens/encoder.dart';
+import '../../protocol/protocol_common.dart';
 
 abstract class AbstractSemanticTokensHandler<T>
     extends MessageHandler<T, SemanticTokens>

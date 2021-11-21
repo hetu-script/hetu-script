@@ -27,6 +27,7 @@ export 'declaration/generic/generic_type_parameter.dart';
 export 'ast/ast.dart';
 export 'ast/visitor/recursive_ast_visitor.dart';
 export 'lexer/lexer.dart';
+export 'lexer/token.dart';
 export 'parser/abstract_parser.dart';
 export 'parser/parser.dart';
 export 'parser/parse_result_compilation.dart';

@@ -152,7 +152,7 @@ abstract class HTValueTypeCode {
   static const constFloat = 3;
   static const constString = 4;
   static const stringInterpolation = 5;
-  static const symbol = 6;
+  static const identifier = 6;
   static const subValue = 7;
   static const group = 8;
   static const list = 9;
@@ -180,8 +180,8 @@ abstract class HTFunctionTypeCode {
 //   static const mix_in = 4;
 // }
 
-/// Current symbol type.
-abstract class SymbolType {
+/// Current identifier type.
+abstract class IdentifierType {
   static const normal = 0;
   static const member = 1;
   static const sub = 2;

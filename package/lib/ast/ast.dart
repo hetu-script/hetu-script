@@ -70,8 +70,11 @@ class CommentExpr extends AstNode {
 
   final bool isMultiline;
 
+  final bool isDocumentation;
+
   CommentExpr(this.content,
       {this.isMultiline = false,
+      this.isDocumentation = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -224,9 +227,10 @@ class StringInterpolationExpr extends AstNode {
             length: length);
 }
 
-class SymbolExpr extends AstNode {
+class IdentifierExpr extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitSymbolExpr(this);
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitIdentifierExpr(this);
 
   @override
   void subAccept(AbstractAstVisitor visitor) {}
@@ -237,7 +241,7 @@ class SymbolExpr extends AstNode {
 
   final bool isLocal;
 
-  SymbolExpr(this.id,
+  IdentifierExpr(this.id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -252,7 +256,7 @@ class SymbolExpr extends AstNode {
             offset: offset,
             length: length);
 
-  SymbolExpr.fromToken(Token id, {HTSource? source})
+  IdentifierExpr.fromToken(Token id, {HTSource? source})
       : this(id.lexeme,
             source: source,
             line: id.line,
@@ -355,7 +359,7 @@ class TypeExpr extends AstNode {
     }
   }
 
-  final SymbolExpr id;
+  final IdentifierExpr id;
 
   final List<TypeExpr> arguments;
 
@@ -400,7 +404,7 @@ class ParamTypeExpr extends AstNode {
   bool get isNamed => id != null;
 
   /// Wether this is a named parameter.
-  final SymbolExpr? id;
+  final IdentifierExpr? id;
 
   final TypeExpr declType;
 
@@ -437,7 +441,7 @@ class FuncTypeExpr extends TypeExpr {
     returnType.accept(visitor);
   }
 
-  final SymbolExpr keyword;
+  final IdentifierExpr keyword;
 
   final List<GenericTypeParameterExpr> genericTypeParameters;
 
@@ -480,7 +484,7 @@ class GenericTypeParameterExpr extends AstNode {
     superType?.accept(visitor);
   }
 
-  final SymbolExpr id;
+  final IdentifierExpr id;
 
   final TypeExpr? superType;
 
@@ -628,7 +632,7 @@ class MemberExpr extends AstNode {
 
   final AstNode object;
 
-  final SymbolExpr key;
+  final IdentifierExpr key;
 
   MemberExpr(this.object, this.key,
       {HTSource? source,
@@ -658,7 +662,7 @@ class MemberAssignExpr extends AstNode {
 
   final AstNode object;
 
-  final SymbolExpr key;
+  final IdentifierExpr key;
 
   final AstNode value;
 
@@ -1160,9 +1164,9 @@ class ImportDecl extends AstNode {
 
   final String key;
 
-  final SymbolExpr? alias;
+  final IdentifierExpr? alias;
 
-  final List<SymbolExpr> showList;
+  final List<IdentifierExpr> showList;
 
   /// The normalized absolute path of the imported module.
   /// It is left as null at the first time of parsing,
@@ -1211,11 +1215,11 @@ class NamespaceDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    symbol.accept(visitor);
+    id.accept(visitor);
     definition.accept(visitor);
   }
 
-  final SymbolExpr symbol;
+  final IdentifierExpr id;
 
   final String? classId;
 
@@ -1229,7 +1233,7 @@ class NamespaceDecl extends AstNode {
 
   final bool isPrivate;
 
-  NamespaceDecl(this.symbol, this.definition,
+  NamespaceDecl(this.id, this.definition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1254,14 +1258,14 @@ class TypeAliasDecl extends Decl {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    symbol.accept(visitor);
+    id.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
     value.accept(visitor);
   }
 
-  final SymbolExpr symbol;
+  final IdentifierExpr id;
 
   final String? classId;
 
@@ -1279,7 +1283,7 @@ class TypeAliasDecl extends Decl {
 
   final bool isExported;
 
-  TypeAliasDecl(this.symbol, this.value,
+  TypeAliasDecl(this.id, this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1305,16 +1309,16 @@ class VarDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    symbol.accept(visitor);
+    id.accept(visitor);
     declType?.accept(visitor);
     initializer?.accept(visitor);
   }
 
-  final SymbolExpr symbol;
+  final IdentifierExpr id;
 
   final String? _internalName;
 
-  String get internalName => _internalName ?? symbol.id;
+  String get internalName => _internalName ?? id.id;
 
   final String? classId;
 
@@ -1344,7 +1348,7 @@ class VarDecl extends AstNode {
 
   final bool lateInitialize;
 
-  VarDecl(this.symbol,
+  VarDecl(this.id,
       {String? internalName,
       HTSource? source,
       int line = 0,
@@ -1383,7 +1387,7 @@ class ParamDecl extends VarDecl {
 
   final bool isNamed;
 
-  ParamDecl(SymbolExpr id,
+  ParamDecl(IdentifierExpr id,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1408,7 +1412,7 @@ class ParamDecl extends VarDecl {
             isMutable: isMutable);
 }
 
-class RedirectingConstructCallExpr extends AstNode {
+class RedirectingConstructorCallExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitReferConstructCallExpr(this);
@@ -1425,15 +1429,16 @@ class RedirectingConstructCallExpr extends AstNode {
     }
   }
 
-  final SymbolExpr callee;
+  final IdentifierExpr callee;
 
-  final SymbolExpr? key;
+  final IdentifierExpr? key;
 
   final List<AstNode> positionalArgs;
 
   final Map<String, AstNode> namedArgs;
 
-  RedirectingConstructCallExpr(this.callee, this.positionalArgs, this.namedArgs,
+  RedirectingConstructorCallExpr(
+      this.callee, this.positionalArgs, this.namedArgs,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1454,7 +1459,7 @@ class FuncDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    symbol?.accept(visitor);
+    id?.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
@@ -1468,7 +1473,7 @@ class FuncDecl extends AstNode {
 
   final String internalName;
 
-  final SymbolExpr? symbol;
+  final IdentifierExpr? id;
 
   final String? classId;
 
@@ -1478,7 +1483,7 @@ class FuncDecl extends AstNode {
 
   final TypeExpr? returnType;
 
-  final RedirectingConstructCallExpr? redirectingCtorCallExpr;
+  final RedirectingConstructorCallExpr? redirectingCtorCallExpr;
 
   final bool hasParamDecls;
 
@@ -1522,7 +1527,7 @@ class FuncDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0,
-      this.symbol,
+      this.id,
       this.classId,
       this.genericTypeParameters = const [],
       this.externalTypeId,
@@ -1556,7 +1561,7 @@ class ClassDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    symbol.accept(visitor);
+    id.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
@@ -1570,7 +1575,7 @@ class ClassDecl extends AstNode {
     definition.accept(visitor);
   }
 
-  final SymbolExpr symbol;
+  final IdentifierExpr id;
 
   final String? classId;
 
@@ -1600,7 +1605,7 @@ class ClassDecl extends AstNode {
 
   final BlockStmt definition;
 
-  ClassDecl(this.symbol, this.definition,
+  ClassDecl(this.id, this.definition,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1631,17 +1636,17 @@ class EnumDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    symbol.accept(visitor);
+    id.accept(visitor);
     for (final enumItem in enumerations) {
       enumItem.accept(visitor);
     }
   }
 
-  final SymbolExpr symbol;
+  final IdentifierExpr id;
 
   final String? classId;
 
-  final List<SymbolExpr> enumerations;
+  final List<IdentifierExpr> enumerations;
 
   bool get isMember => classId != null;
 
@@ -1654,7 +1659,7 @@ class EnumDecl extends AstNode {
   final bool isExported;
 
   EnumDecl(
-    this.symbol,
+    this.id,
     this.enumerations, {
     HTSource? source,
     int line = 0,
@@ -1680,13 +1685,13 @@ class StructDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    symbol.accept(visitor);
+    id.accept(visitor);
     for (final field in fields) {
       field.accept(visitor);
     }
   }
 
-  final SymbolExpr symbol;
+  final IdentifierExpr id;
 
   final String? classId;
 
@@ -1702,7 +1707,7 @@ class StructDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  StructDecl(this.symbol, this.fields,
+  StructDecl(this.id, this.fields,
       {HTSource? source,
       int line = 0,
       int column = 0,

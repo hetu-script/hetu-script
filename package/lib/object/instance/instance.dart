@@ -61,8 +61,8 @@ class HTInstance with HTObject, InterpreterRef {
         final clone = decl.clone();
         curNamespace.define(key, clone);
 
-        if (jsonObject != null && jsonObject.containsKey(clone.symbol)) {
-          final value = jsonObject[clone.symbol];
+        if (jsonObject != null && jsonObject.containsKey(clone.id)) {
+          final value = jsonObject[clone.id];
           clone.value = value;
         }
       }

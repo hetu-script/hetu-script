@@ -22,7 +22,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitStringInterpolationExpr(StringInterpolationExpr node) {}
 
-  T? visitSymbolExpr(SymbolExpr node) {}
+  T? visitIdentifierExpr(IdentifierExpr node) {}
 
   T? visitListExpr(ListExpr node) {}
 
@@ -90,7 +90,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitParamDecl(ParamDecl node) {}
 
-  T? visitReferConstructCallExpr(RedirectingConstructCallExpr node) {}
+  T? visitReferConstructCallExpr(RedirectingConstructorCallExpr node) {}
 
   T? visitFuncDecl(FuncDecl node) {}
 
