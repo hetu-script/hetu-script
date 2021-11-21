@@ -1,11 +1,15 @@
-/// This file has been automatically generated
+/// This file has been automatically generated 
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
 ///
 /// The pre-included modules of Hetu scripting language.
-const Map<String, String> builtInModules = {
+final Map<String, String> builtInModules = const {
   'hetu:core': r'''abstract class object {
 
+}
+
+struct prototype {
+  
 }
 
 // return the declaration type of a symbol

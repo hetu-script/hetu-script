@@ -520,9 +520,18 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitNamespaceDecl(NamespaceDecl stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.NAMESPACE} ${stmt.id.id} ');
+    final blockString = visitBlockStmt(stmt.definition);
+    output.write(blockString);
+    return output.toString();
+  }
+
+  @override
   String visitTypeAliasDecl(TypeAliasDecl stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.TYPE} ${stmt.id} ${HTLexicon.assign} ');
+    output.write('${HTLexicon.type} ${stmt.id} ${HTLexicon.assign} ');
     final valueString = formatAst(stmt.value);
     output.write(valueString);
     return output.toString();
@@ -664,15 +673,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
       final blockString = formatAst(stmt.definition!);
       output.write(blockString);
     }
-    return output.toString();
-  }
-
-  @override
-  String visitNamespaceDecl(NamespaceDecl stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.NAMESPACE} ${stmt.id.id} ');
-    final blockString = visitBlockStmt(stmt.definition);
-    output.write(blockString);
     return output.toString();
   }
 

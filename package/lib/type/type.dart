@@ -15,13 +15,13 @@ abstract class HTType with HTObject {
   static const ENUM = _PrimitiveType(HTLexicon.ENUM);
   static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
   static const CLASS = _PrimitiveType(HTLexicon.CLASS);
-  static const TYPE = _PrimitiveType(HTLexicon.TYPE);
   static const UNKNOWN = _PrimitiveType(HTLexicon.UNKNOWN);
   // static const object = _PrimitiveType(HTLexicon.object);
   static const function = _PrimitiveType(HTLexicon.FUNCTION);
+  static const type = _PrimitiveType(HTLexicon.type);
 
   static const Map<String, HTType> primitiveTypes = {
-    HTLexicon.TYPE: TYPE,
+    HTLexicon.type: type,
     HTLexicon.ANY: ANY,
     HTLexicon.NULL: NULL,
     HTLexicon.VOID: VOID,
@@ -48,7 +48,7 @@ abstract class HTType with HTObject {
   HTType resolve(HTNamespace namespace) => this;
 
   @override
-  HTType get valueType => HTType.TYPE;
+  HTType get valueType => HTType.type;
 
   final String id;
   final List<HTType> typeArgs;

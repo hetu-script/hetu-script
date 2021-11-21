@@ -1385,4 +1385,8 @@ class Hetu extends HTAbstractInterpreter {
     }
     _curClass = savedClass;
   }
+
+  void _handleStructDecl() {
+    // TODO: interpret struct object
+  }
 }

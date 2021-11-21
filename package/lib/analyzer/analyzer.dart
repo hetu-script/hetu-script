@@ -8,7 +8,7 @@ import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../parser/parser.dart';
-import '../declaration/declaration.dart';
+// import '../declaration/declaration.dart';
 import '../declaration/class/class_declaration.dart';
 import '../declaration/function/function_declaration.dart';
 import '../declaration/function/parameter_declaration.dart';
@@ -19,7 +19,7 @@ import 'analysis_error.dart';
 // import 'type_checker.dart';
 import '../declaration/struct/struct_declaration.dart';
 import '../grammar/semantic.dart';
-import '../ast/visitor/recursive_ast_visitor.dart';
+// import '../ast/visitor/recursive_ast_visitor.dart';
 
 class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     implements AbstractAstVisitor<void> {
@@ -466,23 +466,25 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitStructDecl(StructDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    visitIdentifierExpr(stmt.id);
-    stmt.declaration = HTStructDeclaration(stmt.id.id,
-        classId: stmt.classId,
-        closure: _curNamespace,
-        source: _curSource,
-        prototypeId: stmt.prototypeId,
-        isTopLevel: stmt.isTopLevel,
-        isExported: stmt.isExported);
-    _curNamespace.define(stmt.id.id, stmt.declaration!);
+    stmt.id?.accept(this);
+    if (stmt.id != null) {
+      stmt.declaration = HTStructDeclaration(
+          id: stmt.id?.id,
+          closure: _curNamespace,
+          source: _curSource,
+          prototypeId: stmt.prototypeId?.id,
+          isTopLevel: stmt.isTopLevel,
+          isExported: stmt.isExported);
+      _curNamespace.define(stmt.id!.id, stmt.declaration!);
+    }
   }
 }
 
-class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
-  _OccurrencesVisitor();
+// class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
+//   _OccurrencesVisitor();
 
-  @override
-  void visitIdentifierExpr(IdentifierExpr expr) {
+//   @override
+//   void visitIdentifierExpr(IdentifierExpr expr) {
     // if (expr.isLocal && !expr.isKeyword) {
     //   // TODO: deal with instance members
     //   try {
@@ -497,5 +499,5 @@ class _OccurrencesVisitor extends RecursiveAstVisitor<void> {
     //     }
     //   }
     // }
-  }
-}
+//   }
+// }

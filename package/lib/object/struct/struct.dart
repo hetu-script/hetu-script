@@ -1,8 +1,11 @@
 import '../../grammar/lexicon.dart';
 import '../object.dart';
 
-/// Struct is a prototype based object
-/// unlike class, you have to use 'this' to
+/// A prototype based dynamic object.
+/// You can define and delete members in runtime.
+/// Use prototype to create and extends from other object.
+/// Can be named or anonymous.
+/// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
 class HTStruct with HTObject {
   final fields = <String, dynamic>{};

@@ -4,9 +4,15 @@ import '../namespace/namespace.dart';
 import '../../object/struct/struct.dart';
 import '../../object/variable/variable.dart';
 
+/// A prototype based dynamic object type.
+/// You can define and delete members in runtime.
+/// Use prototype to create and extends from other object.
+/// Can be named or anonymous.
+/// Unlike class, you have to use 'this' to
+/// access struct member within its own methods
 class HTStructDeclaration extends HTDeclaration {
   @override
-  final String id;
+  final String? id;
 
   final fields = <HTVariable>[];
 
@@ -18,8 +24,9 @@ class HTStructDeclaration extends HTDeclaration {
 
   var _isResolved = false;
 
-  HTStructDeclaration(this.id,
-      {String? classId,
+  HTStructDeclaration(
+      {this.id,
+      String? classId,
       HTNamespace? closure,
       HTSource? source,
       String? prototypeId,
@@ -56,7 +63,8 @@ class HTStructDeclaration extends HTDeclaration {
   HTStruct get value => HTStruct(prototype: _self);
 
   @override
-  HTStructDeclaration clone() => HTStructDeclaration(id,
+  HTStructDeclaration clone() => HTStructDeclaration(
+      id: id,
       classId: classId,
       closure: closure,
       source: source,

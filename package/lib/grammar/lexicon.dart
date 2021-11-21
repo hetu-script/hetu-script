@@ -100,6 +100,7 @@ abstract class HTLexicon {
   static const VAR = 'var';
   static const FINAL = 'final';
   static const CONST = 'const';
+  static const DELETE = 'delete';
 
   /// 变量声明
   static const Set<String> varDeclKeywords = {
@@ -109,7 +110,7 @@ abstract class HTLexicon {
   };
 
   static const Set<String> primitiveTypes = {
-    TYPE,
+    type,
     ANY,
     VOID,
     UNKNOWN,
@@ -117,13 +118,13 @@ abstract class HTLexicon {
     // FUNCTION,
   };
 
-  static const TYPE = 'type';
   static const ANY = 'any';
   static const VOID = 'void';
   static const UNKNOWN = 'unknown';
   static const NEVER = 'never';
   // static const FUNCTION = 'function';
 
+  static const type = 'type';
   static const object = 'object';
   static const prototype = 'prototype';
   static const library = 'library';
@@ -178,7 +179,7 @@ abstract class HTLexicon {
 
   /// 内置关键字
   static const Set<String> keywords = {
-    TYPE,
+    // TYPE,
     ANY,
     VOID,
     UNKNOWN,
@@ -227,7 +228,10 @@ abstract class HTLexicon {
   };
 
   /// 可以用作变量名字的关键字
-  static const Set<String> otherKeywords = {};
+  static const Set<String> otherKeywords = {
+    type,
+    import,
+  };
 
   static const memberGet = '.';
   static const subGet = '[';

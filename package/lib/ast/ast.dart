@@ -242,13 +242,13 @@ class IdentifierExpr extends AstNode {
   final bool isLocal;
 
   IdentifierExpr(this.id,
-      {HTSource? source,
+      {this.isKeyword = false,
+      this.isLocal = true,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.isKeyword = false,
-      this.isLocal = true})
+      int length = 0})
       : super(SemanticNames.symbolExpr,
             source: source,
             line: line,
@@ -454,16 +454,16 @@ class FuncTypeExpr extends TypeExpr {
   final bool hasNamedParam;
 
   FuncTypeExpr(this.keyword, this.returnType,
-      {HTSource? source,
+      {this.genericTypeParameters = const [],
+      this.paramTypes = const [],
+      this.hasOptionalParam = false,
+      this.hasNamedParam = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0,
-      bool isLocal = true,
-      this.genericTypeParameters = const [],
-      this.paramTypes = const [],
-      required this.hasOptionalParam,
-      required this.hasNamedParam})
+      bool isLocal = true})
       : super(keyword,
             isLocal: isLocal,
             source: source,
@@ -489,12 +489,12 @@ class GenericTypeParameterExpr extends AstNode {
   final TypeExpr? superType;
 
   GenericTypeParameterExpr(this.id,
-      {HTSource? source,
+      {this.superType,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.superType})
+      int length = 0})
       : super(SemanticNames.genericTypeParamExpr,
             source: source,
             line: line,
@@ -814,12 +814,12 @@ class ExprStmt extends AstNode {
   final bool hasEndOfStmtMark;
 
   ExprStmt(this.expr,
-      {HTSource? source,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.hasEndOfStmtMark = false})
+      int length = 0})
       : super(SemanticNames.exprStmt,
             source: source,
             line: line,
@@ -846,13 +846,13 @@ class BlockStmt extends AstNode {
   final String? id;
 
   BlockStmt(this.statements,
-      {HTSource? source,
+      {this.hasOwnNamespace = true,
+      this.id,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.hasOwnNamespace = true,
-      this.id})
+      int length = 0})
       : super(SemanticNames.blockStmt,
             source: source,
             line: line,
@@ -877,12 +877,12 @@ class ReturnStmt extends AstNode {
   final bool hasEndOfStmtMark;
 
   ReturnStmt(this.keyword, this.value,
-      {HTSource? source,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.hasEndOfStmtMark = false})
+      int length = 0})
       : super(SemanticNames.returnStmt,
             source: source,
             line: line,
@@ -1001,12 +1001,12 @@ class ForStmt extends AstNode {
   final BlockStmt loop;
 
   ForStmt(this.init, this.condition, this.increment, this.loop,
-      {HTSource? source,
+      {this.hasBracket = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.hasBracket = false})
+      int length = 0})
       : super(SemanticNames.forStmt,
             source: source,
             line: line,
@@ -1035,12 +1035,12 @@ class ForInStmt extends AstNode {
   final BlockStmt loop;
 
   ForInStmt(this.iterator, this.collection, this.loop,
-      {HTSource? source,
+      {this.hasBracket = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.hasBracket = false})
+      int length = 0})
       : super(SemanticNames.forInStmt,
             source: source,
             line: line,
@@ -1093,12 +1093,12 @@ class BreakStmt extends AstNode {
   final bool hasEndOfStmtMark;
 
   BreakStmt(this.keyword,
-      {HTSource? source,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.hasEndOfStmtMark = false})
+      int length = 0})
       : super(SemanticNames.breakStmt,
             source: source,
             line: line,
@@ -1116,12 +1116,12 @@ class ContinueStmt extends AstNode {
   final bool hasEndOfStmtMark;
 
   ContinueStmt(this.keyword,
-      {HTSource? source,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.hasEndOfStmtMark = false})
+      int length = 0})
       : super(SemanticNames.continueStmt,
             source: source,
             line: line,
@@ -1176,31 +1176,15 @@ class ImportDecl extends AstNode {
   final bool hasEndOfStmtMark;
 
   ImportDecl(this.key,
-      {HTSource? source,
+      {this.alias,
+      this.showList = const [],
+      this.hasEndOfStmtMark = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.alias,
-      this.showList = const [],
-      this.hasEndOfStmtMark = false})
+      int length = 0})
       : super(SemanticNames.importStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-abstract class Decl extends AstNode {
-  Decl(
-    String type, {
-    HTSource? source,
-    int line = 0,
-    int column = 0,
-    int offset = 0,
-    int length = 0,
-  }) : super(type,
             source: source,
             line: line,
             column: column,
@@ -1234,15 +1218,15 @@ class NamespaceDecl extends AstNode {
   final bool isPrivate;
 
   NamespaceDecl(this.id, this.definition,
-      {HTSource? source,
+      {this.classId,
+      this.isPrivate = false,
+      this.isTopLevel = false,
+      this.isExported = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.classId,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      this.isExported = false})
+      int length = 0})
       : super(SemanticNames.namespaceDeclaration,
             source: source,
             line: line,
@@ -1251,7 +1235,7 @@ class NamespaceDecl extends AstNode {
             length: length);
 }
 
-class TypeAliasDecl extends Decl {
+class TypeAliasDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitTypeAliasDecl(this);
@@ -1284,17 +1268,17 @@ class TypeAliasDecl extends Decl {
   final bool isExported;
 
   TypeAliasDecl(this.id, this.value,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0,
-      this.classId,
+      {this.classId,
       this.genericTypeParameters = const [],
       this.hasEndOfStmtMark = false,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = false})
+      this.isExported = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
       : super(SemanticNames.typeAliasDeclaration,
             source: source,
             line: line,
@@ -1350,11 +1334,6 @@ class VarDecl extends AstNode {
 
   VarDecl(this.id,
       {String? internalName,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0,
       this.classId,
       this.declType,
       this.initializer,
@@ -1367,7 +1346,12 @@ class VarDecl extends AstNode {
       this.isPrivate = false,
       this.isTopLevel = false,
       this.isExported = false,
-      this.lateInitialize = false})
+      this.lateInitialize = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
       : _internalName = internalName,
         super(SemanticNames.variableDeclaration,
             source: source,
@@ -1388,18 +1372,18 @@ class ParamDecl extends VarDecl {
   final bool isNamed;
 
   ParamDecl(IdentifierExpr id,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0,
-      TypeExpr? declType,
+      {TypeExpr? declType,
       AstNode? initializer,
       bool isConst = false,
       bool isMutable = false,
       this.isVariadic = false,
       this.isOptional = false,
-      this.isNamed = false})
+      this.isNamed = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
       : super(id,
             source: source,
             line: line,
@@ -1439,12 +1423,12 @@ class RedirectingConstructorCallExpr extends AstNode {
 
   RedirectingConstructorCallExpr(
       this.callee, this.positionalArgs, this.namedArgs,
-      {HTSource? source,
+      {this.key,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      this.key})
+      int length = 0})
       : super(SemanticNames.redirectingConstructorCallExpression,
             source: source,
             line: line,
@@ -1522,12 +1506,7 @@ class FuncDecl extends AstNode {
   bool get isLiteral => category == FunctionCategory.literal;
 
   FuncDecl(this.internalName, this.paramDecls,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0,
-      this.id,
+      {this.id,
       this.classId,
       this.genericTypeParameters = const [],
       this.externalTypeId,
@@ -1546,7 +1525,12 @@ class FuncDecl extends AstNode {
       this.isPrivate = false,
       this.isTopLevel = false,
       this.isExported = false,
-      this.category = FunctionCategory.normal})
+      this.category = FunctionCategory.normal,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
       : super(SemanticNames.functionDeclaration,
             source: source,
             line: line,
@@ -1606,12 +1590,7 @@ class ClassDecl extends AstNode {
   final BlockStmt definition;
 
   ClassDecl(this.id, this.definition,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0,
-      this.classId,
+      {this.classId,
       this.genericTypeParameters = const [],
       this.superType,
       this.implementsTypes = const [],
@@ -1621,7 +1600,12 @@ class ClassDecl extends AstNode {
       this.isPrivate = false,
       this.isExported = true,
       this.isTopLevel = false,
-      this.hasUserDefinedConstructor = false})
+      this.hasUserDefinedConstructor = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
       : super(SemanticNames.classDeclaration,
             source: source,
             line: line,
@@ -1658,20 +1642,18 @@ class EnumDecl extends AstNode {
 
   final bool isExported;
 
-  EnumDecl(
-    this.id,
-    this.enumerations, {
-    HTSource? source,
-    int line = 0,
-    int column = 0,
-    int offset = 0,
-    int length = 0,
-    this.classId,
-    this.isExternal = false,
-    this.isPrivate = false,
-    this.isTopLevel = false,
-    this.isExported = true,
-  }) : super(SemanticNames.enumDeclaration,
+  EnumDecl(this.id, this.enumerations,
+      {this.classId,
+      this.isExternal = false,
+      this.isPrivate = false,
+      this.isTopLevel = false,
+      this.isExported = true,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.enumDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1685,17 +1667,15 @@ class StructDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+    id?.accept(visitor);
     for (final field in fields) {
       field.accept(visitor);
     }
   }
 
-  final IdentifierExpr id;
+  final IdentifierExpr? id;
 
-  final String? classId;
-
-  final String? prototypeId;
+  final IdentifierExpr? prototypeId;
 
   final List<VarDecl> fields;
 
@@ -1705,19 +1685,19 @@ class StructDecl extends AstNode {
 
   final bool isExported;
 
-  bool get isMember => classId != null;
+  bool get isLiteral => id != null ? false : true;
 
-  StructDecl(this.id, this.fields,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0,
-      this.classId,
+  StructDecl(this.fields,
+      {this.id,
       this.prototypeId,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = false})
+      this.isExported = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
       : super(SemanticNames.structDeclaration,
             source: source,
             line: line,
