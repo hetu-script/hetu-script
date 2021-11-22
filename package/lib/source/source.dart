@@ -26,17 +26,14 @@ enum SourceType {
   script,
 
   /// Class can only have declarations (variables, functions).
-  klass,
-
-  /// Literal struct definition (declarations).
-  struct,
+  klass
 }
 
 class HTSource {
   static const _anonymousScriptNameLengthLimit = 72;
 
-  late final String fullName;
-  String get name => path.basename(fullName);
+  late String name;
+  String get basename => path.basename(name);
 
   final SourceType type;
 
@@ -53,13 +50,13 @@ class HTSource {
   final bool isLibraryEntry;
 
   HTSource(String content,
-      {String? fullName,
+      {String? name,
       this.type = SourceType.module,
       this.isLibraryEntry = false})
       : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
-    if (fullName != null) {
-      this.fullName = fullName;
+    if (name != null) {
+      this.name = name;
     } else {
       final crc32b = Crc32b.compute(content);
       final nameBuilder = StringBuffer();
@@ -71,7 +68,7 @@ class HTSource {
       if (firstLine.length > _anonymousScriptNameLengthLimit) {
         nameBuilder.write('...');
       }
-      this.fullName = nameBuilder.toString();
+      this.name = nameBuilder.toString();
     }
 
     // if (type == SourceType.module) {

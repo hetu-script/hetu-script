@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as path;
 
-import '../context/context.dart';
+import '../resource/resource_context.dart';
+import '../resource/overlay/overlay_context.dart';
 import '../grammar/lexicon.dart';
 import '../lexer/token.dart';
 import '../grammar/semantic.dart';
@@ -17,6 +18,7 @@ import '../lexer/lexer.dart';
 /// Walk through a token list and generates a abstract syntax tree.
 class HTParser extends HTAbstractParser {
   static var anonymousFunctionIndex = 0;
+  static var anonymousStructIndex = 0;
 
   final _curModuleImports = <ImportDecl>[];
 
@@ -43,16 +45,17 @@ class HTParser extends HTAbstractParser {
   final _cachedResults = <String, HTModuleParseResult>{};
 
   @override
-  final HTContext context;
+  final HTResourceContext<HTSource> context;
 
-  HTParser({HTContext? context}) : context = context ?? HTContext.overlay();
+  HTParser({HTResourceContext<HTSource>? context})
+      : context = context ?? HTOverlayContext();
 
   /// Will use [type] when possible, then [source.type], then [SourceType.module]
   List<AstNode> parse(List<Token> tokens,
       {HTSource? source, SourceType? type, ParserConfig? config}) {
     final nodes = <AstNode>[];
     _curSource = source;
-    _curModuleFullName = source?.fullName;
+    _curModuleFullName = source?.name;
     errors.clear();
     setTokens(tokens);
     while (curTok.type != SemanticNames.endOfFile) {
@@ -90,8 +93,8 @@ class HTParser extends HTAbstractParser {
   }
 
   HTModuleParseResult parseToModule(HTSource source, {String? libraryName}) {
-    _curLibraryName = libraryName ?? source.fullName;
-    _curModuleFullName = source.fullName;
+    _curLibraryName = libraryName ?? source.name;
+    _curModuleFullName = source.name;
     _curClass = null;
     _curFuncCategory = null;
     final nodes = parseString(source.content, source: source);
@@ -115,13 +118,13 @@ class HTParser extends HTAbstractParser {
       for (final decl in module.imports) {
         try {
           late final HTModuleParseResult importModule;
-          final importFullName = HTContext.getAbsolutePath(
+          final importFullName = HTResourceContext.getAbsolutePath(
               key: decl.key, dirName: path.dirname(module.fullName));
           decl.fullName = importFullName;
           if (_cachedResults.containsKey(importFullName)) {
             importModule = _cachedResults[importFullName]!;
           } else {
-            final source2 = context.getSource(importFullName);
+            final source2 = context.getResource(importFullName);
             importModule = parseToModule(source2, libraryName: _curLibraryName);
             _cachedResults[importFullName] = importModule;
           }
@@ -129,7 +132,7 @@ class HTParser extends HTAbstractParser {
           handleImport(importModule);
         } catch (error) {
           final sourceProviderError = HTError.sourceProviderError(decl.key,
-              moduleFullName: source.fullName,
+              moduleFullName: source.name,
               line: decl.line,
               column: decl.column,
               offset: decl.offset,
@@ -586,8 +589,6 @@ class HTParser extends HTAbstractParser {
               return _parseExprStmt();
           }
         }
-      case SourceType.struct:
-        throw HTError.unsupported('struct parsing');
       case SourceType.expression:
         return _parseExpr();
     }
@@ -1039,25 +1040,54 @@ class HTParser extends HTAbstractParser {
             offset: start.offset,
             length: end.offset + end.length - start.offset);
       case HTLexicon.curlyLeft:
-        _leftValueLegality = false;
-        final start = advance(1);
-        var mapExpr = <AstNode, AstNode>{};
-        while (curTok.type != HTLexicon.curlyRight) {
-          var keyExpr = _parseExpr();
+        final internalName =
+            '${SemanticNames.anonymousStruct}${HTParser.anonymousStructIndex++}';
+        final hasKeyword = expect([HTLexicon.STRUCT], consume: true);
+        IdentifierExpr? prototypeId;
+        if (hasKeyword && expect([HTLexicon.EXTENDS], consume: true)) {
+          final idTok = match(SemanticNames.identifier);
+          prototypeId = IdentifierExpr.fromToken(idTok);
+        }
+        final structBlockStartTok = match(HTLexicon.curlyLeft);
+        final fields = <String, AstNode>{};
+        while (curTok.type != HTLexicon.curlyRight &&
+            curTok.type != SemanticNames.endOfFile) {
+          final id = match(SemanticNames.identifier).lexeme;
           match(HTLexicon.colon);
-          var valueExpr = _parseExpr();
-          mapExpr[keyExpr] = valueExpr;
+          final initializer = _parseExpr();
+          fields[id] = initializer;
           if (curTok.type != HTLexicon.curlyRight) {
             match(HTLexicon.comma);
           }
         }
-        final end = match(HTLexicon.curlyRight);
-        return MapExpr(mapExpr,
+        match(HTLexicon.curlyRight);
+        return StructObj(internalName, fields,
+            prototypeId: prototypeId,
             source: _curSource,
-            line: start.line,
-            column: start.column,
-            offset: start.offset,
-            length: end.offset + end.length - start.offset);
+            line: structBlockStartTok.line,
+            column: structBlockStartTok.column,
+            offset: structBlockStartTok.offset,
+            length: curTok.offset - structBlockStartTok.offset);
+
+      // _leftValueLegality = false;
+      // final start = advance(1);
+      // var mapExpr = <AstNode, AstNode>{};
+      // while (curTok.type != HTLexicon.curlyRight) {
+      //   var keyExpr = _parseExpr();
+      //   match(HTLexicon.colon);
+      //   var valueExpr = _parseExpr();
+      //   mapExpr[keyExpr] = valueExpr;
+      //   if (curTok.type != HTLexicon.curlyRight) {
+      //     match(HTLexicon.comma);
+      //   }
+      // }
+      // final end = match(HTLexicon.curlyRight);
+      // return MapExpr(mapExpr,
+      //     source: _curSource,
+      //     line: start.line,
+      //     column: start.column,
+      //     offset: start.offset,
+      //     length: end.offset + end.length - start.offset);
       case HTLexicon.FUNCTION:
         return _parseFuncDecl(
             category: FunctionCategory.literal, isExpression: true);
@@ -1966,8 +1996,8 @@ class HTParser extends HTAbstractParser {
             moduleFullName: _curModuleFullName,
             line: curTok.line,
             column: curTok.column,
-            offset: keyword.offset,
-            length: keyword.length);
+            offset: curTok.offset,
+            length: curTok.length);
         errors.add(err);
       }
 
@@ -2038,15 +2068,12 @@ class HTParser extends HTAbstractParser {
   StructDecl _parseStructDecl(
       {bool isExported = false, bool isTopLevel = false}) {
     final keyword = match(HTLexicon.STRUCT);
-    IdentifierExpr? id;
-    if (curTok.type == SemanticNames.identifier) {
-      final idTok = match(SemanticNames.identifier);
-      id = IdentifierExpr.fromToken(idTok);
-    }
+    final idTok = match(SemanticNames.identifier);
+    final id = IdentifierExpr.fromToken(idTok);
     IdentifierExpr? prototypeId;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
       final idTok = match(SemanticNames.identifier);
-      if (idTok.lexeme == id?.id) {
+      if (idTok.lexeme == id.id) {
         final err = HTError.extendsSelf(
             moduleFullName: _curModuleFullName,
             line: curTok.line,
@@ -2057,19 +2084,15 @@ class HTParser extends HTAbstractParser {
       }
       prototypeId = IdentifierExpr.fromToken(idTok);
     }
-    final fields = <VarDecl>[];
     match(HTLexicon.curlyLeft);
+    final fields = <VarDecl>[];
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != SemanticNames.endOfFile) {
-      final field = _parseVarDecl(isStructMember: true, isMutable: true);
-      fields.add(field);
-      if (curTok.type != HTLexicon.curlyRight) {
-        match(HTLexicon.comma);
-      }
+      final decl = _parseVarDecl(isStructMember: true, isMutable: true);
+      fields.add(decl);
     }
     match(HTLexicon.curlyRight);
-    return StructDecl(fields,
-        id: id,
+    return StructDecl(id, fields,
         prototypeId: prototypeId,
         isExported: isExported,
         isTopLevel: isTopLevel,

@@ -1,5 +1,6 @@
 import '../source/source.dart';
-import '../context/context.dart';
+import '../resource/resource_context.dart';
+import '../resource/overlay/overlay_context.dart';
 import '../type/type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 import '../declaration/namespace/namespace.dart';
@@ -54,7 +55,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   late HTSource _curSource;
   @override
-  String get curModuleFullName => _curSource.fullName;
+  String get curModuleFullName => _curSource.name;
 
   SourceType? _curSourceType;
 
@@ -75,13 +76,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   late HTModuleParseResultCompilation compilation;
 
   @override
-  final HTContext context;
+  final HTResourceContext<HTSource> sourceContext;
 
   final analyzedDeclarations = <String, HTNamespace>{};
 
-  HTAnalyzer({HTContext? context})
+  HTAnalyzer({HTResourceContext<HTSource>? sourceContext})
       : global = HTNamespace(id: SemanticNames.global),
-        context = context ?? HTContext.overlay() {
+        sourceContext = sourceContext ?? HTOverlayContext() {
     _curNamespace = global;
   }
 
@@ -101,7 +102,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       }) {
     errors.clear();
     _curSource = source;
-    final parser = HTParser(context: context);
+    final parser = HTParser(context: sourceContext);
     compilation = parser.parseToCompilation(source, libraryName: libraryName);
     final results = <String, HTModuleAnalysisResult>{};
     for (final module in compilation.modules.values) {
@@ -118,7 +119,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       results[moduleAnalysisResult.fullName] = moduleAnalysisResult;
       errors.addAll(_curErrors);
     }
-    final result = results[source.fullName]!;
+    final result = results[source.name]!;
     if ((source.type == SourceType.script) || globallyImport) {
       global.import(result.namespace);
     }
@@ -172,10 +173,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     expr.subAccept(this);
   }
 
-  @override
-  void visitMapExpr(MapExpr expr) {
-    expr.subAccept(this);
-  }
+  // @override
+  // void visitMapExpr(MapExpr expr) {
+  //   expr.subAccept(this);
+  // }
 
   @override
   void visitGroupExpr(GroupExpr expr) {
@@ -466,17 +467,28 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitStructDecl(StructDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    stmt.id?.accept(this);
-    if (stmt.id != null) {
-      stmt.declaration = HTStructDeclaration(
-          id: stmt.id?.id,
-          closure: _curNamespace,
-          source: _curSource,
-          prototypeId: stmt.prototypeId?.id,
-          isTopLevel: stmt.isTopLevel,
-          isExported: stmt.isExported);
-      _curNamespace.define(stmt.id!.id, stmt.declaration!);
+    stmt.id.accept(this);
+    final savedCurNamespace = _curNamespace;
+    _curNamespace = HTNamespace(id: stmt.id.id, closure: _curNamespace);
+    for (final decl in stmt.fields) {
+      analyzeAst(decl);
     }
+    stmt.declaration = HTStructDeclaration(_curNamespace,
+        id: stmt.id.id,
+        closure: savedCurNamespace,
+        source: _curSource,
+        prototypeId: stmt.prototypeId?.id,
+        isTopLevel: stmt.isTopLevel,
+        isExported: stmt.isExported);
+    _curNamespace = savedCurNamespace;
+    _curNamespace.define(stmt.id.id, stmt.declaration!);
+  }
+
+  @override
+  void visitStructObj(StructObj obj) {
+    _curLine = obj.line;
+    _curColumn = obj.column;
+    // TODO: analyze struct object
   }
 }
 

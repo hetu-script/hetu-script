@@ -1,3 +1,4 @@
+import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../object.dart';
 
@@ -8,16 +9,52 @@ import '../object.dart';
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
 class HTStruct with HTObject {
-  final fields = <String, dynamic>{};
+  String? id;
 
   HTStruct? prototype;
 
-  HTStruct({this.prototype}) {
-    fields[HTLexicon.prototype] = prototype;
+  final fields = <String, dynamic>{};
+
+  HTStruct({this.id, this.prototype, Map<String, dynamic>? fields}) {
+    if (fields != null) {
+      this.fields.addAll(fields);
+    }
+    this.fields[SemanticNames.prototype] = prototype;
   }
 
   @override
-  bool contains(String varName) => fields.containsKey(varName);
+  String toString() {
+    if (id != null) {
+      return id!;
+    } else {
+      final output = StringBuffer();
+      output.writeln(HTLexicon.curlyLeft);
+      for (var i = 0; i < fields.length; ++i) {
+        final key = fields.keys.elementAt(i);
+        if (!key.startsWith(SemanticNames.internalMarker)) {
+          output.write(HTLexicon.indentSpaces);
+          final valueString = fields[key].toString();
+          output.write('$key${HTLexicon.colon} $valueString');
+          if (i < fields.length - 1) {
+            output.write(HTLexicon.comma);
+          }
+          output.writeln();
+        }
+      }
+      output.write(HTLexicon.curlyRight);
+      return output.toString();
+    }
+  }
+
+  @override
+  bool contains(String varName, {bool recursive = true}) {
+    if (fields.containsKey(varName)) {
+      return true;
+    } else if (recursive && prototype != null && prototype!.contains(varName)) {
+      return true;
+    }
+    return false;
+  }
 
   void define(String id, dynamic value,
       {bool override = false, bool error = true}) {
@@ -41,13 +78,13 @@ class HTStruct with HTObject {
   @override
   void memberSet(String varName, dynamic varValue) {
     if (fields.containsKey(varName)) {
-      final decl = fields[varName]!;
-      decl.value = varValue;
+      fields[varName] = varValue;
       return;
-    }
-    if (prototype != null) {
+    } else if (prototype != null && prototype!.contains(varName)) {
       prototype!.memberSet(varName, varValue);
       return;
+    } else {
+      fields[varName] = varValue;
     }
   }
 }

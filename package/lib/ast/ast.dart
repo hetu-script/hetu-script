@@ -293,34 +293,34 @@ class ListExpr extends AstNode {
             length: length);
 }
 
-class MapExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitMapExpr(this);
+// class MapExpr extends AstNode {
+//   @override
+//   dynamic accept(AbstractAstVisitor visitor) => visitor.visitMapExpr(this);
 
-  @override
-  void subAccept(AbstractAstVisitor visitor) {
-    for (final key in map.keys) {
-      key.accept(visitor);
-      final value = map[key]!;
-      value.accept(visitor);
-    }
-  }
+//   @override
+//   void subAccept(AbstractAstVisitor visitor) {
+//     for (final key in map.keys) {
+//       key.accept(visitor);
+//       final value = map[key]!;
+//       value.accept(visitor);
+//     }
+//   }
 
-  final Map<AstNode, AstNode> map;
+//   final Map<AstNode, AstNode> map;
 
-  MapExpr(this.map,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.mapLiteral,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
+//   MapExpr(this.map,
+//       {HTSource? source,
+//       int line = 0,
+//       int column = 0,
+//       int offset = 0,
+//       int length = 0})
+//       : super(SemanticNames.mapLiteral,
+//             source: source,
+//             line: line,
+//             column: column,
+//             offset: offset,
+//             length: length);
+// }
 
 class GroupExpr extends AstNode {
   @override
@@ -1667,13 +1667,13 @@ class StructDecl extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    id?.accept(visitor);
+    id.accept(visitor);
     for (final field in fields) {
       field.accept(visitor);
     }
   }
 
-  final IdentifierExpr? id;
+  final IdentifierExpr id;
 
   final IdentifierExpr? prototypeId;
 
@@ -1685,14 +1685,43 @@ class StructDecl extends AstNode {
 
   final bool isExported;
 
-  bool get isLiteral => id != null ? false : true;
-
-  StructDecl(this.fields,
-      {this.id,
-      this.prototypeId,
+  StructDecl(this.id, this.fields,
+      {this.prototypeId,
       this.isPrivate = false,
       this.isTopLevel = false,
       this.isExported = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.structDeclaration,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class StructObj extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitStructObj(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    for (final value in fields.values) {
+      value.accept(visitor);
+    }
+  }
+
+  final String internalName;
+
+  final IdentifierExpr? prototypeId;
+
+  final Map<String, AstNode> fields;
+
+  StructObj(this.internalName, this.fields,
+      {this.prototypeId,
       HTSource? source,
       int line = 0,
       int column = 0,

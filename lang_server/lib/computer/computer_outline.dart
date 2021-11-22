@@ -40,7 +40,7 @@ class HetuModuleOutlineComputer {
       } else if (node is VarDecl) {
         var fieldType = node.declType;
         var fieldTypeName = _safeToSource(fieldType);
-        for (var field in fields.variables) {
+        for (var field in unresolvedFields.variables) {
           outlines.add(_newVariableOutline(
               fieldTypeName, ElementKind.TOP_LEVEL_VARIABLE, field, false));
         }
@@ -381,7 +381,7 @@ class HetuModuleOutlineComputer {
       }
       if (classMember is FieldDeclaration) {
         var fieldDeclaration = classMember;
-        var fields = fieldDeclaration.fields;
+        var fields = fieldDeclaration.unresolvedFields;
         var fieldType = fields.type;
         var fieldTypeName = _safeToSource(fieldType);
         for (var field in fields.variables) {
@@ -522,6 +522,6 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   bool _isInsideTestPackage(engine.FunctionElement element) {
     var parent = element.enclosingElement;
     return parent is engine.CompilationUnitElement &&
-        parent.source.fullName.endsWith('test.dart');
+        parent.source.name.endsWith('test.dart');
   }
 }

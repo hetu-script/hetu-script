@@ -31,8 +31,8 @@ class TextDocumentChangeHandler
 
   ErrorOr<void> _changeFile(String path, DidChangeTextDocumentParams params) {
     String oldContents;
-    if (server.contextManager.hasSource(path)) {
-      final source = server.contextManager.getSource(path);
+    if (server.contextManager.hasResource(path)) {
+      final source = server.contextManager.getResource(path);
       if (source != null) {
         oldContents = source.content;
       }

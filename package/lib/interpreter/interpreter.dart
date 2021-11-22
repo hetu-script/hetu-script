@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../binding/external_function.dart';
 import '../declaration/namespace/namespace.dart';
 import '../declaration/declaration.dart';
+import '../declaration/struct/struct_declaration.dart';
 import '../object/object.dart';
 import '../object/class/class.dart';
 import '../object/instance/cast.dart';
@@ -10,6 +11,7 @@ import '../declaration/namespace/module.dart';
 import '../object/function/function.dart';
 import '../object/function/parameter.dart';
 import '../object/variable/variable.dart';
+import '../object/struct/struct.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
@@ -18,7 +20,8 @@ import '../type/nominal_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
-import '../context/context.dart';
+import '../resource/resource_context.dart';
+import '../resource/overlay/overlay_context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
@@ -56,7 +59,7 @@ class Hetu extends HTAbstractInterpreter {
   InterpreterConfig config;
 
   @override
-  HTContext context;
+  HTResourceContext<HTSource> sourceContext;
 
   @override
   ErrorHandlerConfig get errorConfig => config;
@@ -130,11 +133,13 @@ class Hetu extends HTAbstractInterpreter {
   late final HTAnalyzer analyzer;
 
   /// A bytecode interpreter.
-  Hetu({HTContext? context, this.config = const InterpreterConfig()})
+  Hetu(
+      {HTResourceContext<HTSource>? sourceContext,
+      this.config = const InterpreterConfig()})
       : global = HTNamespace(id: SemanticNames.global),
-        context = context ?? HTContext.overlay() {
+        sourceContext = sourceContext ?? HTOverlayContext() {
     _curNamespace = global;
-    analyzer = HTAnalyzer(context: this.context);
+    analyzer = HTAnalyzer(sourceContext: this.sourceContext);
   }
 
   @override
@@ -217,11 +222,11 @@ class Hetu extends HTAbstractInterpreter {
       return null;
     }
     _curSourceType = source.type;
-    _curModuleFullName = source.fullName;
+    _curModuleFullName = source.name;
     try {
       final bytes = compileSource(source, errorHandled: true);
       if (bytes != null) {
-        final result = loadBytecode(bytes, libraryName ?? source.fullName,
+        final result = loadBytecode(bytes, libraryName ?? source.name,
             globallyImport: globallyImport,
             invokeFunc: invokeFunc,
             positionalArgs: positionalArgs,
@@ -277,7 +282,7 @@ class Hetu extends HTAbstractInterpreter {
       bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
-    final source = context.getSource(key, type: type);
+    final source = sourceContext.getResource(key);
     final bytes = compileSource(source,
         libraryName: libraryName,
         isLibraryEntry: isLibraryEntry,
@@ -310,7 +315,7 @@ class Hetu extends HTAbstractInterpreter {
             .compile(analyzer.compilation); //, libraryName ?? source.fullName);
         return bytes;
       } else {
-        final parser = HTParser(context: context);
+        final parser = HTParser(context: sourceContext);
         final compilation =
             parser.parseToCompilation(source, libraryName: libraryName);
         final bytes =
@@ -619,6 +624,9 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.varDecl:
           _handleVarDecl();
           break;
+        case HTOpCode.structDecl:
+          _handleStructDecl();
+          break;
         case HTOpCode.ifStmt:
           bool condition = _curValue;
           final thenBranchLength = _curLibrary.readUint16();
@@ -776,16 +784,34 @@ class Hetu extends HTAbstractInterpreter {
         }
         _curValue = list;
         break;
-      case HTValueTypeCode.map:
-        final map = {};
-        final length = _curLibrary.readUint16();
-        for (var i = 0; i < length; ++i) {
-          final key = execute();
-          final value = execute();
-          map[key] = value;
+      case HTValueTypeCode.struct:
+        HTStruct? prototype;
+        final hasPrototypeId = _curLibrary.readBool();
+        if (hasPrototypeId) {
+          final prototypeId = _curLibrary.readShortUtf8String();
+          prototype = _curNamespace.memberGet(prototypeId);
+        } else {
+          prototype = global.memberGet(HTLexicon.prototype);
         }
-        _curValue = map;
+        final struct = HTStruct(prototype: prototype);
+        final fieldsCount = _curLibrary.read();
+        for (var i = 0; i < fieldsCount; ++i) {
+          final key = _curLibrary.readShortUtf8String();
+          final value = execute();
+          struct.fields[key] = value;
+        }
+        _curValue = struct;
         break;
+      // case HTValueTypeCode.map:
+      //   final map = {};
+      //   final length = _curLibrary.readUint16();
+      //   for (var i = 0; i < length; ++i) {
+      //     final key = execute();
+      //     final value = execute();
+      //     map[key] = value;
+      //   }
+      //   _curValue = map;
+      //   break;
       case HTValueTypeCode.function:
         final internalName = _curLibrary.readShortUtf8String();
         final hasExternalTypedef = _curLibrary.readBool();
@@ -1387,6 +1413,19 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleStructDecl() {
-    // TODO: interpret struct object
+    final id = _curLibrary.readShortUtf8String();
+    String? prototypeId;
+    final hasPrototypeId = _curLibrary.readBool();
+    if (hasPrototypeId) {
+      prototypeId = _curLibrary.readShortUtf8String();
+    } else if (id != HTLexicon.prototype) {
+      prototypeId = HTLexicon.prototype;
+    }
+    final isExported = _curLibrary.readBool();
+    final namespace = HTNamespace(id: id, closure: _curNamespace);
+    execute(namespace: namespace);
+    final struct = HTStructDeclaration(namespace,
+        id: id, prototypeId: prototypeId, isExported: isExported);
+    _curNamespace.define(id, struct);
   }
 }

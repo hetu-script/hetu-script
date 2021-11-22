@@ -382,22 +382,46 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitMapExpr(MapExpr expr) {
+  Uint8List visitStructObj(StructObj obj) {
     final bytesBuilder = BytesBuilder();
-    if (config.compileWithLineInfo && expr.source != null) {
-      bytesBuilder.add(_lineInfo(expr.line, expr.column));
+    if (config.compileWithLineInfo && obj.source != null) {
+      bytesBuilder.add(_lineInfo(obj.line, obj.column));
     }
     bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.map);
-    bytesBuilder.add(_uint16(expr.map.length));
-    for (final ast in expr.map.keys) {
-      final key = compileAst(ast, endOfExec: true);
-      bytesBuilder.add(key);
-      final value = compileAst(expr.map[ast]!, endOfExec: true);
-      bytesBuilder.add(value);
+    bytesBuilder.addByte(HTValueTypeCode.struct);
+    if (obj.prototypeId != null) {
+      bytesBuilder.addByte(1); // bool: has prototype
+      bytesBuilder.add(_shortUtf8String(obj.prototypeId!.id));
+    } else {
+      bytesBuilder.addByte(0); // bool: has prototype
+    }
+    bytesBuilder.addByte(obj.fields.length);
+    for (final key in obj.fields.keys) {
+      bytesBuilder.add(_shortUtf8String(key));
+      final value = obj.fields[key]!;
+      final valueBytes = compileAst(value, endOfExec: true);
+      bytesBuilder.add(valueBytes);
     }
     return bytesBuilder.toBytes();
   }
+
+  // @override
+  // Uint8List visitMapExpr(MapExpr expr) {
+  //   final bytesBuilder = BytesBuilder();
+  //   if (config.compileWithLineInfo && expr.source != null) {
+  //     bytesBuilder.add(_lineInfo(expr.line, expr.column));
+  //   }
+  //   bytesBuilder.addByte(HTOpCode.local);
+  //   bytesBuilder.addByte(HTValueTypeCode.map);
+  //   bytesBuilder.add(_uint16(expr.map.length));
+  //   for (final ast in expr.map.keys) {
+  //     final key = compileAst(ast, endOfExec: true);
+  //     bytesBuilder.add(key);
+  //     final value = compileAst(expr.map[ast]!, endOfExec: true);
+  //     bytesBuilder.add(value);
+  //   }
+  //   return bytesBuilder.toBytes();
+  // }
 
   @override
   Uint8List visitGroupExpr(GroupExpr expr) {
@@ -1559,27 +1583,20 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitStructDecl(StructDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.structDecl);
-    if (stmt.id != null) {
-      bytesBuilder.addByte(1); // bool: hasId
-      bytesBuilder.add(_shortUtf8String(stmt.id!.id));
-    } else {
-      bytesBuilder.addByte(0); // bool: hasId
-    }
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
+    bytesBuilder.add(_shortUtf8String(stmt.id.id));
     if (stmt.prototypeId != null) {
       bytesBuilder.addByte(1); // bool: has prototype
       bytesBuilder.add(_shortUtf8String(stmt.prototypeId!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
     }
-    for (final decl in stmt.fields) {
-      final field = visitVarDecl(decl);
-      bytesBuilder.add(field);
+    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
+    for (final field in stmt.fields) {
+      final fieldBytes = visitVarDecl(field);
+      bytesBuilder.add(fieldBytes);
     }
     bytesBuilder.addByte(HTOpCode.endOfExec);
-    if (!stmt.isLiteral) {
-      bytesBuilder.addByte(HTOpCode.endOfStmt);
-    }
+    bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
 }

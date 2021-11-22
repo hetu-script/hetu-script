@@ -31,10 +31,16 @@ void main() {
 
   final source = HTSource(r'''
     fun test {
-      var kek = null
-      if ((kek == null) || true) {
-        print('is null')
+      var foo = {
+        value: 42,
+        greeting: 'hi!'
       }
+      print(foo.value)
+      foo.value = 'ha!'
+      print(foo.value)
+      foo.world = 'everything'
+      print(foo)
+      print(foo.$prototype)
     }
   ''');
 

@@ -156,23 +156,23 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return output.toString();
   }
 
-  @override
-  String visitMapExpr(MapExpr expr) {
-    final output = StringBuffer();
-    output.write(HTLexicon.curlyLeft);
-    if (expr.map.keys.isNotEmpty) {
-      output.writeln();
-      ++_curIndentCount;
-      output.write(expr.map.entries
-          .map((entry) =>
-              '${formatAst(entry.key)}${HTLexicon.colon} ${formatAst(entry.value)}')
-          .join('${HTLexicon.comma}\n'));
-      --_curIndentCount;
-    }
-    output.write(curIndent);
-    output.write(HTLexicon.curlyRight);
-    return output.toString();
-  }
+  // @override
+  // String visitMapExpr(MapExpr expr) {
+  //   final output = StringBuffer();
+  //   output.write(HTLexicon.curlyLeft);
+  //   if (expr.map.keys.isNotEmpty) {
+  //     output.writeln();
+  //     ++_curIndentCount;
+  //     output.write(expr.map.entries
+  //         .map((entry) =>
+  //             '${formatAst(entry.key)}${HTLexicon.colon} ${formatAst(entry.value)}')
+  //         .join('${HTLexicon.comma}\n'));
+  //     --_curIndentCount;
+  //   }
+  //   output.write(curIndent);
+  //   output.write(HTLexicon.curlyRight);
+  //   return output.toString();
+  // }
 
   @override
   String visitIdentifierExpr(IdentifierExpr expr) {
@@ -720,7 +720,27 @@ class HTFormatter implements AbstractAstVisitor<String> {
       final initValueString = formatAst(item.initializer!);
       return '${item.id}${HTLexicon.colon} $initValueString';
     }).join('${HTLexicon.comma}\n'));
-    output.writeln();
+    --_curIndentCount;
+    output.write(curIndent);
+    output.write(HTLexicon.curlyRight);
+    return output.toString();
+  }
+
+  @override
+  String visitStructObj(StructObj obj) {
+    final output = StringBuffer();
+    output.writeln(HTLexicon.curlyLeft);
+    ++_curIndentCount;
+    for (var i = 0; i < obj.fields.length; ++i) {
+      final key = obj.fields.keys.elementAt(i);
+      final value = obj.fields[key]!;
+      final valueString = formatAst(value);
+      output.write('$key${HTLexicon.colon} $valueString');
+      if (i < obj.fields.length - 1) {
+        output.write(HTLexicon.comma);
+      }
+      output.writeln();
+    }
     --_curIndentCount;
     output.write(curIndent);
     output.write(HTLexicon.curlyRight);

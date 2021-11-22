@@ -23,47 +23,47 @@ abstract class HTOpCode {
 
   static const module = 7;
 
-  static const singleComment = 9;
+  static const singleComment = 8;
 
-  static const multilineComment = 10;
+  static const multilineComment = 9;
 
-  static const leftValue = 11;
+  static const leftValue = 10;
 
-  static const loopPoint = 12;
+  static const loopPoint = 11;
 
-  static const breakLoop = 13;
+  static const breakLoop = 12;
 
-  static const continueLoop = 14;
+  static const continueLoop = 13;
 
-  static const block = 15;
+  static const block = 14;
 
-  static const endOfBlock = 16;
+  static const endOfBlock = 15;
 
-  static const endOfStmt = 17;
+  static const endOfStmt = 16;
 
-  static const endOfExec = 18;
+  static const endOfExec = 17;
 
-  static const endOfFunc = 19;
+  static const endOfFunc = 18;
 
-  static const endOfModule = 20;
+  static const endOfModule = 19;
 
-  static const constTable = 21;
+  static const constTable = 20;
 
-  static const libraryDecl = 22;
+  static const libraryDecl = 21;
 
-  static const importDecl = 23;
+  static const importDecl = 22;
 
-  static const namespaceDecl = 24;
+  static const namespaceDecl = 23;
 
-  static const typeAliasDecl = 25;
+  static const typeAliasDecl = 24;
 
-  static const funcDecl = 26;
+  static const funcDecl = 25;
 
-  static const classDecl = 27;
+  static const classDecl = 26;
 
-  static const varDecl = 28;
+  static const varDecl = 27;
 
-  static const structDecl = 29;
+  static const structDecl = 28;
 
   static const ifStmt = 30;
 
@@ -158,7 +158,7 @@ abstract class HTValueTypeCode {
   static const subValue = 7;
   static const group = 8;
   static const list = 9;
-  static const map = 10;
+  static const struct = 10;
   static const function = 11;
   static const type = 12;
 }

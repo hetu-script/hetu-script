@@ -76,6 +76,8 @@ enum ErrorCode {
   version,
   sourceType,
   // nonExistModule
+  topLevelLiteralStruct,
+  unresolvedNamedStruct
 }
 
 /// The type of an [HTError].
@@ -1430,4 +1432,34 @@ class HTError implements AbstractError {
   //           column: column,
   //           offset: offset,
   //           length: length);
+
+  /// Error: Top level literal struct is not allowed.
+  HTError.topLevelLiteralStruct(
+      {String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.topLevelLiteralStruct, ErrorType.runtimeError,
+            HTLexicon.errorTopLevelLiteralStruct,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Unevalable source type.
+  HTError.unresolvedNamedStruct(
+      {String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.unresolvedNamedStruct, ErrorType.runtimeError,
+            HTLexicon.errorTopLevelLiteralStruct,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 }

@@ -174,9 +174,8 @@ class HTFunction extends HTFunctionDeclaration
   /// ```
   /// function(posArg1, posArg2...)
   /// ```
-  /// [HTBytecodeFunction.call]:
   /// ```
-  /// namedArgs['args'] = [posArg1, posArg2...];
+  /// args = [posArg1, posArg2...];
   /// ```
   dynamic call(
       {List<dynamic> positionalArgs = const [],

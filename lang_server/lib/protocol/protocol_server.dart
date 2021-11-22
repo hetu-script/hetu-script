@@ -36,7 +36,7 @@ void doSourceChange_addElementEdit(
 void doSourceChange_addSourceEdit(
     SourceChange change, HTSource source, SourceEdit edit,
     {bool isNewFile = false}) {
-  var file = source.fullName;
+  var file = source.name;
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
@@ -169,6 +169,6 @@ Location _locationForArgs(HTSource source, SourceRange range) {
   var endLocation = lineInfo.getLocation(range.end);
   endLine = endLocation.line;
   endColumn = endLocation.column;
-  return Location(source.fullName, range.offset, range.length, startLine,
+  return Location(source.name, range.offset, range.length, startLine,
       startColumn, endLine, endColumn);
 }

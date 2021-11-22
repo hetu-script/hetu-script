@@ -2,14 +2,15 @@ import 'package:path/path.dart' as path;
 
 import '../source/source.dart';
 import '../error/error.dart';
-import 'context.dart';
+import 'resource_context.dart';
 
 typedef _RootUpdatedCallback = void Function();
 
-/// Manage a set of contexts.
+/// Manage a set of resources.
+/// A resource could be hetu source, yaml, json... etc.
 /// Extends this class and provide an implementation of
-/// [createContext] to manage a certain kind of [HTContext]
-abstract class HTContextManager<T extends HTContext> {
+/// [createContext] to manage a certain kind of [HTResourceContext]
+abstract class HTResourceManager<T extends HTResourceContext> {
   bool get isSearchEnabled;
 
   final _contextRoots = <String, T>{};
@@ -25,70 +26,66 @@ abstract class HTContextManager<T extends HTContext> {
 
   T createContext(String root);
 
-  bool hasSource(String key) {
-    final normalized = HTContext.getAbsolutePath(key: key);
+  bool hasResource(String key) {
+    final normalized = HTResourceContext.getAbsolutePath(key: key);
     return _cachedSources.containsKey(normalized);
   }
 
-  HTSource addSource(String fullName, String content,
-      {SourceType type = SourceType.module, bool isLibraryEntry = false}) {
+  void addResource(String fullName, HTSource resource) {
     if (!path.isAbsolute(fullName)) {
       throw HTError.notAbsoluteError(fullName);
     }
-    final normalized = HTContext.getAbsolutePath(key: fullName);
-    // var isWithin = false;
+    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     for (final context in contexts) {
       if (context.contains(normalized)) {
-        final source = context.addSource(normalized, content,
-            type: type, isLibraryEntry: isLibraryEntry);
-        _cachedSources[normalized] = source;
+        // final source = context.addResource(normalized, content);
+        _cachedSources[normalized] = resource;
         if (onRootsUpdated != null) {
           onRootsUpdated!();
         }
-        return source;
+        return;
       }
     }
-    // if (!isWithin) {
     final root = path.dirname(normalized);
     final context = createContext(root);
     _contextRoots[context.root] = context;
-    final source = context.addSource(normalized, content,
-        type: type, isLibraryEntry: isLibraryEntry);
-    _cachedSources[normalized] = source;
+    // final source = context.addResource(normalized, resource,
+    //     type: type, isLibraryEntry: isLibraryEntry);
+    context.addResource(normalized, resource);
+    _cachedSources[normalized] = resource;
     if (onRootsUpdated != null) {
       onRootsUpdated!();
     }
-    return source;
-    // }
+    // return source;
   }
 
-  void removeSource(String fullName) {
-    final normalized = HTContext.getAbsolutePath(key: fullName);
+  void removeResource(String fullName) {
+    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     for (final context in contexts) {
       if (context.contains(normalized)) {
-        context.removeSource(normalized);
+        context.removeResource(normalized);
       }
     }
   }
 
   /// Try to get a source by a unique key.
-  HTSource? getSource(String fullName, {bool reload = false}) {
-    final normalized = HTContext.getAbsolutePath(key: fullName);
+  HTSource? getResource(String fullName, {bool reload = false}) {
+    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     if (_cachedSources.containsKey(normalized) && !reload) {
       return _cachedSources[normalized]!;
     } else if (isSearchEnabled) {
       for (final root in _contextRoots.keys) {
         if (path.isWithin(root, normalized)) {
           final context = _contextRoots[root]!;
-          final source = context.getSource(normalized);
+          final source = context.getResource(normalized);
           return source;
         }
       }
     }
   }
 
-  void updateSource(String fullName, String content) {
-    final normalized = HTContext.getAbsolutePath(key: fullName);
+  void updateResource(String fullName, String content) {
+    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     if (_cachedSources.containsKey(normalized)) {
       final source = _cachedSources[normalized]!;
       source.content = content;
@@ -96,7 +93,7 @@ abstract class HTContextManager<T extends HTContext> {
       for (final root in _contextRoots.keys) {
         if (path.isWithin(root, normalized)) {
           final context = _contextRoots[root]!;
-          context.updateSource(normalized, content);
+          context.updateResource(normalized, content);
           break;
         }
       }
@@ -108,7 +105,7 @@ abstract class HTContextManager<T extends HTContext> {
   /// The folder paths does not neccessarily be normalized.
   void setRoots(Iterable<String> folderPaths) {
     final roots = folderPaths
-        .map((folderPath) => HTContext.getAbsolutePath(key: folderPath))
+        .map((folderPath) => HTResourceContext.getAbsolutePath(key: folderPath))
         .toSet();
     roots.removeWhere((root1) {
       for (final root2 in roots) {
@@ -135,7 +132,7 @@ abstract class HTContextManager<T extends HTContext> {
   void computeRootsFromFiles(Iterable<String> filePaths) {
     final roots = filePaths
         .map((folderPath) =>
-            path.dirname(HTContext.getAbsolutePath(key: folderPath)))
+            path.dirname(HTResourceContext.getAbsolutePath(key: folderPath)))
         .toSet();
     setRoots(roots);
   }

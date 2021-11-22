@@ -4,8 +4,8 @@ import 'package:path/path.dart' as path;
 
 import 'package:hetu_script/hetu_script.dart';
 
-/// [HTContext] are a set of files and folders under a folder or a path.
-class HTFileSystemContext implements HTContext {
+/// [HTResourceContext] are a set of files and folders under a folder or a path.
+class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
   @override
   late final String root;
 
@@ -14,21 +14,21 @@ class HTFileSystemContext implements HTContext {
 
   final Map<String, HTSource> _cached;
 
-  HTFileSystemContext(
+  HTFileSystemSourceContext(
       {String? root,
       List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const [],
       Map<String, HTSource>? cache})
       : _cached = cache ?? <String, HTSource>{} {
     root = root != null ? path.absolute(root) : path.current;
-    this.root = root = HTContext.getAbsolutePath(dirName: root);
+    this.root = root = HTResourceContext.getAbsolutePath(dirName: root);
     final dir = Directory(root);
     final folderFilter = HTFilterConfig(root);
     final entities = dir.listSync(recursive: true);
     for (final entity in entities) {
       if (entity is File) {
         final fileFullName =
-            HTContext.getAbsolutePath(key: entity.path, dirName: root);
+            HTResourceContext.getAbsolutePath(key: entity.path, dirName: root);
         var isIncluded = false;
         if (includedFilter.isEmpty) {
           isIncluded = _filterFile(fileFullName, folderFilter);
@@ -60,54 +60,56 @@ class HTFileSystemContext implements HTContext {
 
   @override
   bool contains(String fullName) {
-    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
+    final normalized =
+        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
     return path.isWithin(root, normalized);
   }
 
   @override
-  HTSource addSource(String fullName, String content,
-      {SourceType type = SourceType.module, bool isLibraryEntry = false}) {
-    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
-    final source = HTSource(content,
-        fullName: normalized, type: type, isLibraryEntry: isLibraryEntry);
-    _cached[normalized] = source;
+  void addResource(String fullName, HTSource resource) {
+    final normalized =
+        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
+    resource.name = normalized;
+    // final source = HTSource(content,
+    //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
+    _cached[normalized] = resource;
     included.add(normalized);
-    return source;
+    // return source;
   }
 
   @override
-  void removeSource(String fullName) {
-    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
+  void removeResource(String fullName) {
+    final normalized =
+        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
     _cached.remove(normalized);
     included.remove(normalized);
   }
 
   @override
-  HTSource getSource(String key,
-      {String? from,
-      SourceType type = SourceType.module,
-      bool isLibraryEntry = false}) {
-    final normalized = HTContext.getAbsolutePath(
+  HTSource getResource(String key, {String? from}) {
+    final normalized = HTResourceContext.getAbsolutePath(
         key: key, dirName: from != null ? path.dirname(from) : root);
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
     } else {
       final content = File(normalized).readAsStringSync();
-      final source = HTSource(content,
-          fullName: normalized, type: type, isLibraryEntry: isLibraryEntry);
+      final source = HTSource(content, name: normalized);
+      // final source = HTSource(content,
+      //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
       _cached[normalized] = source;
       return source;
     }
   }
 
   @override
-  void updateSource(String fullName, String content) {
-    final normalized = HTContext.getAbsolutePath(key: fullName);
+  void updateResource(String fullName, HTSource resource) {
+    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     if (!_cached.containsKey(normalized)) {
       throw HTError.sourceProviderError(normalized);
     } else {
-      final source = _cached[normalized]!;
-      source.content = content;
+      // final source = _cached[normalized]!;
+      // source.content = resource;
+      _cached[normalized] = resource;
     }
   }
 
@@ -115,9 +117,9 @@ class HTFileSystemContext implements HTContext {
   bool _filterFile(String fileName, HTFilterConfig filter) {
     final ext = path.extension(fileName);
     final normalizedFilePath =
-        HTContext.getAbsolutePath(key: fileName, dirName: root);
+        HTResourceContext.getAbsolutePath(key: fileName, dirName: root);
     final normalizedFolderPath =
-        HTContext.getAbsolutePath(key: filter.folder, dirName: root);
+        HTResourceContext.getAbsolutePath(key: filter.folder, dirName: root);
     if (path.isWithin(normalizedFolderPath, normalizedFilePath)) {
       if (filter.recursive) {
         return _checkExt(ext, filter.extention);

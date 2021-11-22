@@ -26,7 +26,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitListExpr(ListExpr node) {}
 
-  T? visitMapExpr(MapExpr node) {}
+  // T? visitMapExpr(MapExpr node) {}
 
   T? visitGroupExpr(GroupExpr node) {}
 
@@ -99,4 +99,6 @@ abstract class AbstractAstVisitor<T> {
   T? visitEnumDecl(EnumDecl node) {}
 
   T? visitStructDecl(StructDecl node) {}
+
+  T? visitStructObj(StructObj node) {}
 }

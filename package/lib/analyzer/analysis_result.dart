@@ -11,7 +11,7 @@ class HTModuleAnalysisResult {
 
   HTSource get source => parseResult.source;
 
-  String get fullName => source.fullName;
+  String get fullName => source.name;
 
   LineInfo get lineInfo => source.lineInfo;
 

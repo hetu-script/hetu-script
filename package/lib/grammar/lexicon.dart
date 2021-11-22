@@ -498,4 +498,8 @@ abstract class HTLexicon {
       'Incompatible version - bytecode: [{0}], interpreter: [{1}]';
   static const errorSourceType = 'config.sourcetype must be script or module.';
   // static const errorNonExistModule = 'Could not open file: [{0}]';
+  static const errorTopLevelLiteralStruct =
+      'Cannot have literal struct on top level of a module.';
+  static const errorUnresolvedNamedStruct =
+      'Cannot get value from a unresolved named struct.';
 }

@@ -78,7 +78,7 @@ class LspAnalysisServer {
 
   late final HTAnalysisManager analysisManager;
 
-  HTContextManager get contextManager => analysisManager.contextManager;
+  HTResourceManager get contextManager => analysisManager.sourceContextManager;
 
   final HTLogger logger = HTFileSystemLogger();
 
@@ -187,7 +187,7 @@ class LspAnalysisServer {
   }
 
   LineInfo getLineInfo(String path) {
-    return contextManager.getSource(path)!.lineInfo;
+    return contextManager.getResource(path)!.lineInfo;
   }
 
   /// Gets the version of a document known to the server, returning a
@@ -341,13 +341,13 @@ class LspAnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
-    final source = contextManager.addSource(path, content);
+    final source = contextManager.addResource(path, content);
 
-    logger.log('source added: [${source.fullName}]\n${source.content}');
+    logger.log('source added: [${source.name}]\n${source.content}');
 
     logger.log('pathsToAnalyze:\n${analysisManager.pathsToAnalyze}');
 
-    doAnalyze(source.fullName);
+    doAnalyze(source.name);
 
     // _afterOverlayChanged(path, plugin.AddContentOverlay(content));
   }
@@ -366,7 +366,7 @@ class LspAnalysisServer {
   void onOverlayUpdated(String path, List<SourceEdit> edits,
       {String? newContent}) {
     // assert(resourceProvider.hasOverlay(path));
-    final source = contextManager.getSource(path)!;
+    final source = contextManager.getResource(path)!;
     if (newContent == null) {
       final oldContent = source.content;
       newContent = applySequenceOfEdits(oldContent, edits);
@@ -376,9 +376,9 @@ class LspAnalysisServer {
     source.content = newContent;
 
     logger.log(
-        'updated source: ${source.fullName}, edits:\n${edits.map((edit) => edit.toString())}');
+        'updated source: ${source.name}, edits:\n${edits.map((edit) => edit.toString())}');
 
-    doAnalyze(source.fullName);
+    doAnalyze(source.name);
 
     // resourceProvider.setOverlay(path,
     //     content: newContent, modificationStamp: overlayModificationStamp++);

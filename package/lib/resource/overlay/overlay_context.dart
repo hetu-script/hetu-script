@@ -2,15 +2,15 @@ import 'package:path/path.dart' as path;
 
 import '../../error/error.dart';
 import '../../source/source.dart';
-import '../context.dart';
+import '../resource_context.dart';
 
 /// [HTOverlayContext] are a virtual set of files that
 /// not neccessarily exists as physical files.
 ///
 /// [HTOverlayContext] will not scan physical disk,
-/// instead it depends on [addSource] method
+/// instead it depends on [addResource] method
 /// to manage sources
-class HTOverlayContext implements HTContext {
+class HTOverlayContext implements HTResourceContext<HTSource> {
   @override
   late final String root;
 
@@ -22,39 +22,42 @@ class HTOverlayContext implements HTContext {
   HTOverlayContext({String? root, Map<String, HTSource>? cache})
       : _cached = cache ?? <String, HTSource>{} {
     root = root != null ? path.absolute(root) : path.current;
-    this.root = HTContext.getAbsolutePath(dirName: root);
+    this.root = HTResourceContext.getAbsolutePath(dirName: root);
   }
 
   @override
   bool contains(String fullName) {
-    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
+    final normalized =
+        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
     return path.isWithin(root, normalized);
   }
 
   @override
-  HTSource addSource(String fullName, String content,
-      {SourceType type = SourceType.module, bool isLibraryEntry = false}) {
-    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
-    final source = HTSource(content,
-        fullName: normalized, type: type, isLibraryEntry: isLibraryEntry);
-    _cached[normalized] = source;
+  void addResource(String fullName, HTSource resource) {
+    final normalized =
+        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
+    // final source = HTSource(resource,
+    //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
+    resource.name = normalized;
+    _cached[normalized] = resource;
     included.add(normalized);
-    return source;
+    // return source;
   }
 
   @override
-  void removeSource(String fullName) {
-    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
+  void removeResource(String fullName) {
+    final normalized =
+        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
     _cached.remove(normalized);
     included.remove(normalized);
   }
 
   @override
-  HTSource getSource(String key,
+  HTSource getResource(String key,
       {String? from,
       SourceType type = SourceType.module,
       bool isLibraryEntry = false}) {
-    final normalized = HTContext.getAbsolutePath(
+    final normalized = HTResourceContext.getAbsolutePath(
         key: key, dirName: from != null ? path.dirname(from) : root);
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
@@ -63,11 +66,13 @@ class HTOverlayContext implements HTContext {
   }
 
   @override
-  void updateSource(String fullName, String content) {
-    final normalized = HTContext.getAbsolutePath(key: fullName, dirName: root);
+  void updateResource(String fullName, HTSource resource) {
+    final normalized =
+        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
     if (_cached.containsKey(normalized)) {
-      final source = _cached[normalized]!;
-      source.content = content;
+      // final source = _cached[normalized]!;
+      // source.content = resource;
+      _cached[normalized] = resource;
       return;
     }
     throw HTError.sourceProviderError(fullName);
