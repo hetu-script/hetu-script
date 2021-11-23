@@ -500,6 +500,8 @@ abstract class HTLexicon {
   // static const errorNonExistModule = 'Could not open file: [{0}]';
   static const errorTopLevelLiteralStruct =
       'Cannot have literal struct on top level of a module.';
+  static const errorStructMemberId =
+      'Struct member id should be symbol or string.';
   static const errorUnresolvedNamedStruct =
       'Cannot get value from a unresolved named struct.';
 }

@@ -1,5 +1,5 @@
-import 'package:hetu_script/declaration/namespace/namespace.dart';
-
+import '../declaration/namespace/namespace.dart';
+// import '../grammar/lexicon.dart';
 import '../lexer/token.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
@@ -241,8 +241,11 @@ class IdentifierExpr extends AstNode {
 
   final bool isLocal;
 
+  final bool isSymbol;
+
   IdentifierExpr(this.id,
-      {this.isKeyword = false,
+      {this.isSymbol = true,
+      this.isKeyword = false,
       this.isLocal = true,
       HTSource? source,
       int line = 0,
@@ -258,6 +261,7 @@ class IdentifierExpr extends AstNode {
 
   IdentifierExpr.fromToken(Token id, {HTSource? source})
       : this(id.lexeme,
+            isSymbol: id.type == SemanticNames.identifier,
             source: source,
             line: id.line,
             column: id.column,
@@ -1668,6 +1672,7 @@ class StructDecl extends AstNode {
   @override
   void subAccept(AbstractAstVisitor visitor) {
     id.accept(visitor);
+    prototypeId?.accept(visitor);
     for (final field in fields) {
       field.accept(visitor);
     }

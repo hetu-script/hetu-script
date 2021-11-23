@@ -87,4 +87,14 @@ class HTStruct with HTObject {
       fields[varName] = varValue;
     }
   }
+
+  @override
+  dynamic subGet(dynamic varName) {
+    return memberGet(varName.toString());
+  }
+
+  @override
+  void subSet(dynamic varName, dynamic varValue) {
+    memberSet(varName.toString(), varValue);
+  }
 }

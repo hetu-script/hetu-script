@@ -671,17 +671,11 @@ class Hetu extends HTAbstractInterpreter {
                 line: _curLine,
                 column: _curColumn);
           }
-          object[key] = value;
-          // if ((object is List) || (object is Map)) {
-          //   object[key] = value;
-          // } else if (object is HTObject) {
-          //   object.subSet(key, value);
-          // } else {
-          //   final typeString = object.runtimeType.toString();
-          //   final id = HTType.parseBaseType(typeString);
-          //   final externClass = fetchExternalClass(id);
-          //   externClass.instanceSubSet(object, key!, value);
-          // }
+          if (object is HTObject) {
+            object.subSet(key, value);
+          } else {
+            object[key] = value;
+          }
           _curValue = value;
           break;
         case HTOpCode.logicalOr:
@@ -708,9 +702,22 @@ class Hetu extends HTAbstractInterpreter {
           _handleUnaryPrefixOp(instruction);
           break;
         case HTOpCode.memberGet:
+          final object = _getRegVal(HTRegIdx.postfixObject);
+          final key = _getRegVal(HTRegIdx.postfixKey);
+          final encap = encapsulate(object);
+          _curValue = encap.memberGet(key);
+          break;
         case HTOpCode.subGet:
+          final object = _getRegVal(HTRegIdx.postfixObject);
+          final key = execute();
+          if (object is HTObject) {
+            _curValue = object.subGet(key);
+          } else {
+            _curValue = object[key];
+          }
+          break;
         case HTOpCode.call:
-          _handleUnaryPostfixOp(instruction);
+          _handleCallExpr();
           break;
         default:
           throw HTError.unknownOpCode(instruction,
@@ -1083,34 +1090,6 @@ class Hetu extends HTAbstractInterpreter {
           moduleFullName: _curModuleFullName,
           line: _curLine,
           column: _curColumn);
-    }
-  }
-
-  void _handleUnaryPostfixOp(int op) {
-    switch (op) {
-      case HTOpCode.memberGet:
-        final object = _getRegVal(HTRegIdx.postfixObject);
-        final key = _getRegVal(HTRegIdx.postfixKey);
-        final encap = encapsulate(object);
-        // _curLeftValue = encap;
-        _curValue = encap.memberGet(key);
-        break;
-      case HTOpCode.subGet:
-        final object = _getRegVal(HTRegIdx.postfixObject);
-        // _curLeftValue = object;
-        final key = execute();
-        // final key = execute(moveRegIndex: true);
-        // _setRegVal(HTRegIdx.postfixKey, key);
-        // if (object is HTObject) {
-        //   _curValue = object.subGet(key);
-        // } else {
-        _curValue = object[key];
-        // }
-        // _curRefType = _RefType.sub;
-        break;
-      case HTOpCode.call:
-        _handleCallExpr();
-        break;
     }
   }
 

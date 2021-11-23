@@ -1052,7 +1052,20 @@ class HTParser extends HTAbstractParser {
         final fields = <String, AstNode>{};
         while (curTok.type != HTLexicon.curlyRight &&
             curTok.type != SemanticNames.endOfFile) {
-          final id = match(SemanticNames.identifier).lexeme;
+          final idTok = advance(1);
+          late String id;
+          if (idTok.type == SemanticNames.identifier ||
+              idTok.type == SemanticNames.stringLiteral) {
+            id = idTok.lexeme;
+          } else {
+            final err = HTError.structMemberId(
+                moduleFullName: _curModuleFullName,
+                line: idTok.line,
+                column: idTok.column,
+                offset: idTok.offset,
+                length: idTok.length);
+            errors.add(err);
+          }
           match(HTLexicon.colon);
           final initializer = _parseExpr();
           fields[id] = initializer;
@@ -1626,8 +1639,20 @@ class HTParser extends HTAbstractParser {
       AstNode? additionalInitializer,
       bool hasEndOfStatement = false}) {
     if (isStructMember) {
-      final idTok = match(SemanticNames.identifier);
-      final id = IdentifierExpr.fromToken(idTok);
+      final idTok = advance(1);
+      late IdentifierExpr id;
+      if (idTok.type == SemanticNames.identifier ||
+          idTok.type == SemanticNames.stringLiteral) {
+        id = IdentifierExpr.fromToken(idTok);
+      } else {
+        final err = HTError.structMemberId(
+            moduleFullName: _curModuleFullName,
+            line: idTok.line,
+            column: idTok.column,
+            offset: idTok.offset,
+            length: idTok.length);
+        errors.add(err);
+      }
       match(HTLexicon.colon);
       final initializer = _parseExpr();
       return VarDecl(id,
@@ -2072,17 +2097,17 @@ class HTParser extends HTAbstractParser {
     final id = IdentifierExpr.fromToken(idTok);
     IdentifierExpr? prototypeId;
     if (expect([HTLexicon.EXTENDS], consume: true)) {
-      final idTok = match(SemanticNames.identifier);
-      if (idTok.lexeme == id.id) {
+      final prototypeIdTok = match(SemanticNames.identifier);
+      if (prototypeIdTok.lexeme == id.id) {
         final err = HTError.extendsSelf(
             moduleFullName: _curModuleFullName,
-            line: curTok.line,
-            column: curTok.column,
+            line: keyword.line,
+            column: keyword.column,
             offset: keyword.offset,
             length: keyword.length);
         errors.add(err);
       }
-      prototypeId = IdentifierExpr.fromToken(idTok);
+      prototypeId = IdentifierExpr.fromToken(prototypeIdTok);
     }
     match(HTLexicon.curlyLeft);
     final fields = <VarDecl>[];

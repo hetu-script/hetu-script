@@ -36,9 +36,25 @@ abstract class HTObject {
 
   /// Assign a value to a member by the [varName], in the form of
   /// ```
-  /// object.varName = value
+  /// object.varName = varValue
   /// ```
   void memberSet(String varName, dynamic varValue) {
+    throw HTError.undefined(varName);
+  }
+
+  /// Fetch a member by the [varName], in the form of
+  /// ```
+  /// object[varName]
+  /// ```
+  dynamic subGet(dynamic varName) {
+    throw HTError.undefined(varName);
+  }
+
+  /// Assign a value to a member by the [varName], in the form of
+  /// ```
+  /// object[varName] = varValue
+  /// ```
+  void subSet(dynamic varName, dynamic varValue) {
     throw HTError.undefined(varName);
   }
 }

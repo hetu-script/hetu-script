@@ -77,6 +77,7 @@ enum ErrorCode {
   sourceType,
   // nonExistModule
   topLevelLiteralStruct,
+  structMemberId,
   unresolvedNamedStruct
 }
 
@@ -1448,6 +1449,21 @@ class HTError implements AbstractError {
             offset: offset,
             length: length);
 
+  /// Error: Struct member id should be symbol or string.
+  HTError.structMemberId(
+      {String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.structMemberId, ErrorType.runtimeError,
+            HTLexicon.errorStructMemberId,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
   /// Error: Unevalable source type.
   HTError.unresolvedNamedStruct(
       {String? moduleFullName,
@@ -1456,7 +1472,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.unresolvedNamedStruct, ErrorType.runtimeError,
-            HTLexicon.errorTopLevelLiteralStruct,
+            HTLexicon.errorUnresolvedNamedStruct,
             moduleFullName: moduleFullName,
             line: line,
             column: column,
