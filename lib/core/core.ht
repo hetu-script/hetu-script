@@ -1,0 +1,15 @@
+abstract class object {
+  external fun toString
+}
+
+struct prototype {
+  external fun toString
+}
+
+// return the declaration type of a symbol
+// external fun decltypeof(value) -> str
+
+// print values of any type into lines
+external fun print(... args: any)
+
+external fun stringify(obj: any)

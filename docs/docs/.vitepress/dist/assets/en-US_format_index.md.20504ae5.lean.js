@@ -1,0 +1,1 @@
+import{o as t,c as e}from"./app.c9011ed2.js";const r='{"title":"","description":"","frontmatter":{},"relativePath":"en-US/format/index.md","lastUpdated":1628584867180}',a={};a.render=function(r,a,o,d,n,i){return t(),e("div")};export default a;export{r as __pageData};
