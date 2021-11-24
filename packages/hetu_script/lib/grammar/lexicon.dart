@@ -41,7 +41,8 @@ abstract class HTLexicon {
     r'\t': '\t',
   };
 
-  /// Add semicolon before a line starting with one of '++, --, (, ['
+  /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
+  /// Tthis is to avoid ambiguity in parser.
   static const Set<String> ASIStart = {
     curlyLeft,
     roundLeft,
@@ -418,7 +419,7 @@ abstract class HTLexicon {
       'Non-external class cannot have non-static external members.';
   static const errorEmptyTypeArgs = 'Empty type arguments.';
   static const errorExtendsSelf = 'Class try to extends itself.';
-  static const errorCtorReturn = 'Constructor cannot have a return type.';
+  // static const errorCtorReturn = 'Constructor cannot have a return type.';
   static const errorMissingFuncBody = 'Missing function definition of [{0}]';
   static const errorInternalFuncWithExternalTypeDef =
       'Unexpected external typedef on internal function.';

@@ -46,27 +46,46 @@ abstract class HTAbstractParser {
         0);
   }
 
-  /// 检查包括当前Token在内的接下来数个Token是否符合类型要求
-  ///
-  /// 根据是否符合预期，返回 boolean
-  ///
-  /// 如果consume为true，则在符合要求时向前移动Token指针
-  bool expect(List<String> tokTypes, {bool consume = false}) {
-    for (var i = 0; i < tokTypes.length; ++i) {
-      if (peek(i).type != tokTypes[i]) {
+  /// Get a token at a relative [distance] from current position.
+  Token peek(int distance) {
+    if ((tokPos + distance) < _tokens.length) {
+      return _tokens[tokPos + distance];
+    } else {
+      return endOfFile;
+    }
+  }
+
+  // Search for a token type, return the token next to it.
+  Token seek(String type) {
+    late Token current;
+    var distance = 0;
+    do {
+      current = peek(distance);
+      ++distance;
+    } while (current.type != type && curTok.type != SemanticNames.endOfFile);
+    return peek(distance);
+  }
+
+  /// Check current token and some tokens after it to see if the [types] match,
+  /// return a boolean result.
+  /// If [consume] is true, will advance.
+  bool expect(List<String> types, {bool consume = false}) {
+    for (var i = 0; i < types.length; ++i) {
+      if (peek(i).type != types[i]) {
         return false;
       }
     }
     if (consume) {
-      advance(tokTypes.length);
+      advance(types.length);
     }
     return true;
   }
 
-  /// 如果当前token符合要求则前进一步，然后返回之前的token，否则抛出异常
-  Token match(String tokenType) {
-    if (curTok.type != tokenType) {
-      final err = HTError.unexpected(tokenType, curTok.lexeme,
+  /// If the token match the [type] provided, advance 1
+  /// and return the original token. If not, generate an error.
+  Token match(String type) {
+    if (curTok.type != type) {
+      final err = HTError.unexpected(type, curTok.lexeme,
           moduleFullName: curModuleFullName,
           line: curTok.line,
           column: curTok.column,
@@ -78,7 +97,7 @@ abstract class HTAbstractParser {
     return advance(1);
   }
 
-  /// 前进指定距离，返回原先位置的Token
+  /// Advance till reach [distance], return the token at original position.
   Token advance(int distance) {
     tokPos += distance;
     _curLine = curTok.line;
@@ -86,15 +105,6 @@ abstract class HTAbstractParser {
     return peek(-distance);
   }
 
-  /// 获得相对于目前位置一定距离的Token，不改变目前位置
-  Token peek(int pos) {
-    if ((tokPos + pos) < _tokens.length) {
-      return _tokens[tokPos + pos];
-    } else {
-      return endOfFile;
-    }
-  }
-
-  /// 获得当前Token
+  /// Get current token.
   Token get curTok => peek(0);
 }

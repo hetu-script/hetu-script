@@ -5,6 +5,24 @@ import '../error/error.dart';
 import '../binding/external_class.dart';
 import 'buildin_instance.dart';
 
+class HTPrototypeClass extends HTExternalClass {
+  HTPrototypeClass() : super('prototype');
+
+  @override
+  dynamic memberGet(String varName) {
+    switch (varName) {
+      case 'num.parse':
+        return (
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            num.tryParse(positionalArgs.first);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
 class HTNumberClass extends HTExternalClass {
   HTNumberClass() : super('num');
 

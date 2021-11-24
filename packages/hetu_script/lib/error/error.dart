@@ -15,7 +15,7 @@ enum ErrorCode {
   externalMember,
   emptyTypeArgs,
   extendsSelf,
-  ctorReturn,
+  // ctorReturn,
   missingFuncBody,
   internalFuncWithExternalTypeDef,
   externalCtorWithReferCtor,
@@ -390,21 +390,21 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: Not a super class of this instance.
-  HTError.ctorReturn(
-      {String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.ctorReturn, ErrorType.syntacticError,
-            HTLexicon.errorCtorReturn,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+  // HTError.voidReturn(
+  //     {String? correction,
+  //     String? moduleFullName,
+  //     int? line,
+  //     int? column,
+  //     int? offset,
+  //     int? length})
+  //     : this(ErrorCode.ctorReturn, ErrorType.syntacticError,
+  //           HTLexicon.errorCtorReturn,
+  //           correction: correction,
+  //           moduleFullName: moduleFullName,
+  //           line: line,
+  //           column: column,
+  //           offset: offset,
+  //           length: length);
 
   /// Error: Try to call a function without definition.
   HTError.missingFuncBody(String id,

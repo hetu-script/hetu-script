@@ -1,22 +1,20 @@
-## 0.2.1
+## 0.3.0
 
-- Enable web support.
-- Command line tool and file system context support moved
-  to another package: hetu_script_dev_tools
+- Command line tool and file system context support moved to another package: [hetu_script_dev_tools].
 - Added a new kind of external binding: external method on normal classes
+- Now support literal function expression with no keyword.
 
 ## 0.2.0
 
 - Analyzer can check for syntactic errors now.
 - Added IDE support for analyzer and formatter.
-- It's possible now to compile source into bytecode and at another time
-  load and run directly (skip parsing static check and compile process).
+- Compile source into bytecode and load it at another time to skip parsing and compile process.
 
 ## 0.1.3
 
-- Named constructor can refer to default constructor: construct name(): this()
-- Feature: Single expression function: fun add(a, b) => a + b
-- Feature: Type alias: type MyFuncType = fun (num, num) -> num
+- Named constructor can refer to default constructor: 'construct name(): this()'.
+- Feature: Single expression 'function: fun add(a, b) => a + b'.
+- Feature: Type alias: 'type MyFuncType = fun (num, num) -> num'.
 
 ## 0.1.2
 
@@ -37,8 +35,7 @@
 - Feature: String interpolation.
 - Feature: Now fully support nested function and literal function.
 - Feature: Added ++, -- post and pre operators, and +=, -=, \*=, /= operators.
-- Feature: Full support on While, Do loops, classic for(init;condition;increment),
-  for...in, when statement (works like switch).
+- Feature: Full support on While, Do loops, classic for(init;condition;increment), for...in, when statement (works like switch).
 - Feature: Ternary operator: 'conditon ? true : false'.
 - Feature: Interpreter function for bind Dart Function Typedef.
 

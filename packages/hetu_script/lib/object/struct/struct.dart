@@ -11,11 +11,53 @@ import '../function/function.dart';
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
 class HTStruct with HTObject {
+  static var _curIndentCount = 0;
+
+  static String _curIndent() {
+    final output = StringBuffer();
+    var i = _curIndentCount;
+    while (i > 0) {
+      output.write(HTLexicon.indentSpaces);
+      --i;
+    }
+    return output.toString();
+  }
+
   static String stringify(HTObject object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    return (object as HTStruct)._toString();
+    final struct = object as HTStruct;
+
+    if (struct.id != null) {
+      return '${HTLexicon.STRUCT}.${struct.id}';
+    } else {
+      final output = StringBuffer();
+      output.writeln(HTLexicon.curlyLeft);
+      ++_curIndentCount;
+      for (var i = 0; i < struct.fields.length; ++i) {
+        final key = struct.fields.keys.elementAt(i);
+        if (!key.startsWith(SemanticNames.internalMarker)) {
+          output.write(_curIndent());
+          final value = struct.fields[key];
+          String valueString;
+          if (value is HTStruct) {
+            valueString = stringify(value);
+          } else {
+            valueString = value.toString();
+          }
+          output.write('$key${HTLexicon.colon} $valueString');
+          if (i < struct.fields.length - 1) {
+            output.write(HTLexicon.comma);
+          }
+          output.writeln();
+        }
+      }
+      --_curIndentCount;
+      output.write(_curIndent());
+      output.write(HTLexicon.curlyRight);
+      return output.toString();
+    }
   }
 
   String? id;
@@ -31,29 +73,6 @@ class HTStruct with HTObject {
     this.fields[SemanticNames.prototype] = prototype;
   }
 
-  String _toString() {
-    if (id != null) {
-      return id!;
-    } else {
-      final output = StringBuffer();
-      output.writeln(HTLexicon.curlyLeft);
-      for (var i = 0; i < fields.length; ++i) {
-        final key = fields.keys.elementAt(i);
-        if (!key.startsWith(SemanticNames.internalMarker)) {
-          output.write(HTLexicon.indentSpaces);
-          final valueString = fields[key].toString();
-          output.write('$key${HTLexicon.colon} $valueString');
-          if (i < fields.length - 1) {
-            output.write(HTLexicon.comma);
-          }
-          output.writeln();
-        }
-      }
-      output.write(HTLexicon.curlyRight);
-      return output.toString();
-    }
-  }
-
   @override
   String toString() {
     final func = memberGet('toString');
@@ -62,7 +81,7 @@ class HTStruct with HTObject {
     } else if (func is Function) {
       return func();
     } else {
-      return _toString();
+      return stringify(this);
     }
   }
 

@@ -1,18 +1,18 @@
 import 'dart:io';
 
 final Map<String, String> builtInModules = const {
-  'hetu:core': '../../lib/core/core.ht',
-  'hetu:value': '../../lib/core/value.ht',
-  'hetu:system': '../../lib/core/system.ht',
-  'hetu:console': '../../lib/core/console.ht',
-  'hetu:math': '../../lib/core/math.ht',
-  'hetu:help': '../../lib/core/help.ht',
+  'hetu:core': '../hetu_lib/hetu_lib/core/core.ht',
+  'hetu:value': '../hetu_lib/core/value.ht',
+  'hetu:system': '../hetu_lib/core/system.ht',
+  'hetu:console': '../hetu_lib/core/console.ht',
+  'hetu:math': '../hetu_lib/core/math.ht',
+  'hetu:help': '../hetu_lib/core/help.ht',
 };
 
 final Map<String, String> optionalModules = const {};
 
 void main() {
-  stdout.write('Converting files in \'lib\' folder into Dart strings...');
+  stdout.write('Converting files in \'hetu_lib\' folder into Dart strings...');
   final output = StringBuffer();
   output.write('''
 /// This file has been automatically generated 
@@ -22,7 +22,7 @@ void main() {
 /// The pre-included modules of Hetu scripting language.
 final Map<String, String> builtInModules = const {
 ''');
-  final file = File('lib/built_in/hetu_lib.dart');
+  final file = File('../packages/hetu_script/lib/built_in/hetu_lib.dart');
   for (final key in builtInModules.keys) {
     final data = File(builtInModules[key]!).readAsStringSync();
     output.writeln("  '$key': r'''" + data + "''',");

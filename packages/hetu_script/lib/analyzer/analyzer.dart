@@ -497,19 +497,19 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
 //   @override
 //   void visitIdentifierExpr(IdentifierExpr expr) {
-    // if (expr.isLocal && !expr.isKeyword) {
-    //   // TODO: deal with instance members
-    //   try {
-    //     expr.declaration =
-    //         expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
-    //   } catch (e) {
-    //     if (e is HTError && e.code == ErrorCode.undefined) {
-    //       print(
-    //           'Unable to resolve [${expr.id}] in [${expr.analysisNamespace!.id}] , is this an instance member?');
-    //     } else {
-    //       rethrow;
-    //     }
-    //   }
-    // }
+// if (expr.isLocal && !expr.isKeyword) {
+//   // TODO: deal with instance members
+//   try {
+//     expr.declaration =
+//         expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
+//   } catch (e) {
+//     if (e is HTError && e.code == ErrorCode.undefined) {
+//       print(
+//           'Unable to resolve [${expr.id}] in [${expr.analysisNamespace!.id}] , is this an instance member?');
+//     } else {
+//       rethrow;
+//     }
+//   }
+// }
 //   }
 // }

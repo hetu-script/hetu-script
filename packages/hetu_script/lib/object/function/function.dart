@@ -481,7 +481,7 @@ class HTFunction extends HTFunctionDeclaration
             }
           }
         }
-        // a normal external standalone binding external function
+        // a normal standalone external function
         else {
           final func =
               externalFunc ?? interpreter.fetchExternalFunction(internalName);

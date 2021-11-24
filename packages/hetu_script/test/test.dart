@@ -1,6 +1,32 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
+  final hetu = Hetu();
+  hetu.init();
+
+  final source = HTSource(r'''
+    fun test {
+      var jimmy = {
+        name: 'jimmy',
+        age: 17
+      }
+      var team = {
+        number: 1
+      }
+      team.leader = jimmy
+      print(team)
+      
+      jimmy.doubleIt = (x) { return x * 2 }
+
+      print(jimmy.doubleIt(42))
+      
+    }
+  ''');
+
+  hetu.evalSource(source, invokeFunc: 'test');
+  // final result = hetu.invoke('namedArgFunTest');
+  // print(result);
+
   // final parser = HTAstParser();
   // final nodes = parser.parseString('');
   // print(nodes);
@@ -25,31 +51,4 @@ void main() {
   // print('${module.fullName}');
   // print('--------------------------------------------------------------------');
   // print(module.source.content);
-
-  final hetu = Hetu();
-  hetu.init();
-
-  final source = HTSource(r'''
-    fun test {
-      var foo = {
-        value: 42,
-        greeting: 'hi!'
-      }
-      print(foo.value)
-      foo.value = 'ha!'
-      print(foo.value)
-      foo.world = 'everything'
-      print(foo)
-      
-      class Bar {
-        var name = 'barrrrrr!'
-      }
-      var b = Bar()
-      print(b)
-    }
-  ''');
-
-  hetu.evalSource(source, invokeFunc: 'test');
-  // final result = hetu.invoke('namedArgFunTest');
-  // print(result);
 }

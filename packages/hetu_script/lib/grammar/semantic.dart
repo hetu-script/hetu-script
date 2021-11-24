@@ -69,6 +69,7 @@ abstract class SemanticNames {
   static const whenBranch = 'when_loop';
   static const function = 'function';
   static const functionCall = 'function_call';
+  static const functionDefinition = 'function_definition';
   static const classDefinition = 'class_definition';
   static const ctorCallExpr = 'constructor_call_expression';
 
@@ -108,6 +109,9 @@ abstract class SemanticNames {
   static const classDeclaration = 'class_declaration';
   static const enumDeclaration = 'enum_declaration';
   static const typeAliasDeclaration = 'type_alias_declaration';
+  static const returnType = 'return_type';
+  static const redirectingFunctionDefinition =
+      'redirecting_function_definition';
   static const redirectingConstructorCallExpression =
       'redirecting_constructor_call_expression';
   static const functionDeclaration = 'function_declaration';

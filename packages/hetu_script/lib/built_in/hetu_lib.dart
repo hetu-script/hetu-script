@@ -1,19 +1,16 @@
-/// This file has been automatically generated 
+/// This file has been automatically generated
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
 ///
 /// The pre-included modules of Hetu scripting language.
 final Map<String, String> builtInModules = const {
   'hetu:core': r'''abstract class object {
-
+  external fun toString
 }
 
 struct prototype {
   
 }
-
-// return the declaration type of a symbol
-// external fun decltypeof(value) -> str
 
 // print values of any type into lines
 external fun print(... args: any)

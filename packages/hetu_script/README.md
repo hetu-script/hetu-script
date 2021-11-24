@@ -65,7 +65,7 @@ fun main {
 
 Hetu script is purely written in Dart, so passing object to and from script is extremely easy.
 
-Check [this page](https://github.com/hetu-script/docs/blob/main/docs/en-US/binding/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
+Check [this page](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -92,8 +92,8 @@ void main() {
 
 ## Referrences:
 
-- [Operator precedence](https://github.com/hetu-script/docs/blob/main/docs/en-US/operator_precedence/index.md)
-- [Bytecode specification](https://github.com/hetu-script/docs/blob/main/docs/en-US/bytecode_specification/index.md)
+- [Operator precedence](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/operator_precedence/index.md)
+- [Bytecode specification](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/bytecode_specification/index.md)
 
 ## Apps that embedded Hetu:
 
