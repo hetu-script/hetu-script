@@ -535,16 +535,19 @@ class HTParser extends HTAbstractParser {
             return _parseFunction(
                 category: FunctionCategory.method,
                 classId: _curStructId,
+                isStructMember: true,
                 isStatic: isStatic);
           case HTLexicon.GET:
             return _parseFunction(
                 category: FunctionCategory.getter,
                 classId: _curStructId,
+                isStructMember: true,
                 isStatic: isStatic);
           case HTLexicon.SET:
             return _parseFunction(
                 category: FunctionCategory.setter,
                 classId: _curStructId,
+                isStructMember: true,
                 isStatic: isStatic);
           case HTLexicon.CONSTRUCT:
             if (isStatic) {
@@ -560,9 +563,9 @@ class HTParser extends HTAbstractParser {
               return null;
             } else {
               return _parseFunction(
-                category: FunctionCategory.constructor,
-                classId: _curStructId,
-              );
+                  category: FunctionCategory.constructor,
+                  classId: _curStructId,
+                  isStructMember: true);
             }
           default:
             final err = HTError.unexpected(
@@ -1751,6 +1754,7 @@ class HTParser extends HTAbstractParser {
       {FunctionCategory category = FunctionCategory.normal,
       String? classId,
       bool hasKeyword = true,
+      bool isStructMember = false,
       bool isOverrided = false,
       bool isExternal = false,
       bool isStatic = false,
@@ -2029,6 +2033,7 @@ class HTParser extends HTAbstractParser {
         minArity: minArity,
         maxArity: maxArity,
         definition: definition,
+        isStructMember: isStructMember,
         isExternal: isExternal,
         isStatic: isStatic,
         isConst: isConst,

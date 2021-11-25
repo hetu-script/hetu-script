@@ -470,9 +470,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     stmt.id.accept(this);
     final savedCurNamespace = _curNamespace;
     _curNamespace = HTNamespace(id: stmt.id.id, closure: _curNamespace);
-    for (final decl in stmt.fields) {
-      analyzeAst(decl);
-    }
+    analyzeAst(stmt.definition);
     stmt.declaration = HTStructDeclaration(_curNamespace,
         id: stmt.id.id,
         closure: savedCurNamespace,

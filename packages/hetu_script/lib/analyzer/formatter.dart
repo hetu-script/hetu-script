@@ -648,6 +648,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
       case FunctionCategory.setter:
         output.write(HTLexicon.SET);
         break;
+      default:
+        break;
     }
     if (stmt.externalTypeId != null) {
       output.write(

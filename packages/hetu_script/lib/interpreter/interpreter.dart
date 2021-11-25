@@ -1166,6 +1166,7 @@ class Hetu extends HTAbstractInterpreter {
     if (hasClassId) {
       classId = _curLibrary.readShortUtf8String();
     }
+    final isStructMember = _curLibrary.readBool();
     final isExternal = _curLibrary.readBool();
     final isStatic = _curLibrary.readBool();
     final isMutable = _curLibrary.readBool();
@@ -1222,7 +1223,10 @@ class Hetu extends HTAbstractInterpreter {
           isMutable: isMutable,
           isExported: isExported);
     }
-    _curNamespace.define(id, decl);
+    if (isStructMember) {
+    } else {
+      _curNamespace.define(id, decl);
+    }
   }
 
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
@@ -1279,6 +1283,7 @@ class Hetu extends HTAbstractInterpreter {
       externalTypeId = _curLibrary.readShortUtf8String();
     }
     final category = FunctionCategory.values[_curLibrary.read()];
+    final isStructMember = _curLibrary.readBool();
     final isExternal = _curLibrary.readBool();
     final isStatic = _curLibrary.readBool();
     final isConst = _curLibrary.readBool();
@@ -1349,10 +1354,13 @@ class Hetu extends HTAbstractInterpreter {
         definitionLine: line,
         definitionColumn: column,
         redirectingConstructor: redirCtor);
-    if ((category != FunctionCategory.constructor) || isStatic) {
-      func.namespace = _curNamespace;
+    if (isStructMember) {
+    } else {
+      if ((category != FunctionCategory.constructor) || isStatic) {
+        func.namespace = _curNamespace;
+      }
+      _curNamespace.define(func.internalName, func);
     }
-    _curNamespace.define(func.internalName, func);
   }
 
   void _handleClassDecl() {
