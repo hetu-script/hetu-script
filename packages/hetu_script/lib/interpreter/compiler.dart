@@ -1487,20 +1487,32 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
-  // Enums are compiled to a class with static members,
-  // and a private constructor
-  //
-  // class ENUM {
-  //   final $name;
-  //   ENUM._(name) {
-  //     $name = name;
-  //   }
-  //   fun toString = 'ENUM.${_name}'
-  //   static final val1 = ENUM._('val1')
-  //   static final val2 = ENUM._('val2')
-  //   static final val3 = ENUM._('val3')
-  //   static final values = [val1, val2, val3]
-  // }
+  /// Enums are compiled to a class with static members
+  /// and a private constructor.
+  ///
+  /// For example:
+  /// ```dart
+  /// enum ENUM {
+  ///   value1,
+  ///   value2,
+  ///   value3
+  /// }
+  /// ```
+  ///
+  /// are compiled into:
+  /// ```dart
+  /// class ENUM {
+  ///   final $name;
+  ///   ENUM._(name) {
+  ///     $name = name;
+  ///   }
+  ///   fun toString = 'ENUM.${_name}'
+  ///   static final value1 = ENUM._('value1')
+  ///   static final value2 = ENUM._('value2')
+  ///   static final value3 = ENUM._('value3')
+  ///   static final values = [value1, value2, value3]
+  /// }
+  /// ```
   @override
   Uint8List visitEnumDecl(EnumDecl stmt) {
     final bytesBuilder = BytesBuilder();
@@ -1579,24 +1591,66 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
+  /// Named struct declarations are compiled to a variable declaration
+  /// and a pseudo constructor function
+  ///
+  /// For example:
+  ///
+  /// ```typescript
+  /// struct STRUCT {
+  ///   static var races = [human, dragon]
+  ///   var name
+  ///   constructor () {
+  ///     this.age = 17
+  ///   }
+  ///   constructor withName (name: str) {
+  ///     this.name = name
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// are compiled into:
+  ///
+  /// ```typescript
+  /// //static members and named constructors:
+  /// var $STRUCT = struct $STRUCT.prototype {
+  ///   races: [human, dragon]
+  ///   $
+  ///   withName: (name: str) {
+  ///     return struct extends $STRUCT.prototype {
+  ///       name: name
+  ///     }
+  ///   }
+  /// }
+  ///
+  /// fun STRUCT (name: str) {
+  ///   var $entity = struct extends $STRUCT.prototype {
+  ///     name: null
+  ///   }
+  ///   $entity.name = name
+  ///   return $entity
+  /// }
+  /// ```
   @override
   Uint8List visitStructDecl(StructDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.structDecl);
-    bytesBuilder.add(_shortUtf8String(stmt.id.id));
-    if (stmt.prototypeId != null) {
-      bytesBuilder.addByte(1); // bool: has prototype
-      bytesBuilder.add(_shortUtf8String(stmt.prototypeId!.id));
-    } else {
-      bytesBuilder.addByte(0); // bool: has prototype
-    }
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
-    for (final field in stmt.fields) {
-      final fieldBytes = visitVarDecl(field);
-      bytesBuilder.add(fieldBytes);
-    }
-    bytesBuilder.addByte(HTOpCode.endOfExec);
-    bytesBuilder.addByte(HTOpCode.endOfStmt);
+    final internalVarName = '\$${stmt.id.id}';
+    final fields = <String, AstNode>{};
+    for (final stmt in stmt.definition.statements) {}
+
+    final declStructObj = StructObj(fields, prototypeId: stmt.prototypeId);
+    final structObjBytes = visitStructObj(declStructObj);
+    final varDeclBytes = _assembleVarDeclStmt(
+        internalVarName, stmt.line, stmt.column,
+        initializer: structObjBytes);
+    bytesBuilder.add(varDeclBytes);
+
+    final constructor = FuncDecl(
+      stmt.id.id,
+      const [],
+      id: IdentifierExpr(stmt.id.id),
+    );
+
     return bytesBuilder.toBytes();
   }
 }

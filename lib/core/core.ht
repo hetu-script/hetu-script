@@ -2,6 +2,10 @@ abstract class object {
   external fun toString
 }
 
+struct prototype {
+  toString: () => stringify(this)
+}
+
 // print values of any type into lines
 external fun print(... args: any)
 

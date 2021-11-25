@@ -6,15 +6,15 @@ import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
 import '../../type/type.dart';
-import '../../object/instance/instance_namespace.dart';
-import '../../object/class/class.dart';
-import '../../object/instance/instance.dart';
+import '../../value/instance/instance_namespace.dart';
+import '../../value/class/class.dart';
+import '../../value/instance/instance.dart';
 import '../variable/variable.dart';
 import '../../declaration/namespace/namespace.dart';
 import 'parameter.dart';
 import '../../declaration/function/function_declaration.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
-import '../object.dart';
+import '../entity.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
@@ -37,7 +37,7 @@ class RedirectingConstructor {
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
 class HTFunction extends HTFunctionDeclaration
-    with HTObject, HetuRef, GotoInfo {
+    with HTEntity, HetuRef, GotoInfo {
   HTClass? klass;
 
   @override
@@ -226,14 +226,14 @@ class HTFunction extends HTFunctionDeclaration
                 HTLexicon.SUPER,
                 HTVariable(
                     HTLexicon.SUPER, interpreter, moduleFullName, libraryName,
-                    initValue: instanceNamespace.next));
+                    value: instanceNamespace.next));
           }
 
           callClosure.define(
               HTLexicon.THIS,
               HTVariable(
                   HTLexicon.THIS, interpreter, moduleFullName, libraryName,
-                  initValue: instanceNamespace));
+                  value: instanceNamespace));
         }
 
         if (category == FunctionCategory.constructor &&

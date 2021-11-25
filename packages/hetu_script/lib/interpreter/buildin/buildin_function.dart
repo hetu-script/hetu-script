@@ -1,4 +1,4 @@
-import '../type/type.dart';
+part of '../abstract_interpreter.dart';
 
 /// Core exernal functions for use globally in Hetu script.
 final Map<String, Function> buildinFunctions = {

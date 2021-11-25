@@ -26,7 +26,10 @@ enum SourceType {
   script,
 
   /// Class can only have declarations (variables, functions).
-  klass
+  klass,
+
+  /// Struct can not have external members
+  struct
 }
 
 class HTSource {

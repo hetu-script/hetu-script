@@ -14,7 +14,7 @@ void main() {
         number: 1
       }
       team.leader = jimmy
-      print(team)
+      print(team.toString())
       
       jimmy.doubleIt = (x) { return x * 2 }
 

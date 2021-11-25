@@ -18,7 +18,7 @@ import '../lexer/lexer.dart';
 /// Walk through a token list and generates a abstract syntax tree.
 class HTParser extends HTAbstractParser {
   static var anonymousFunctionIndex = 0;
-  static var anonymousStructIndex = 0;
+  // static var anonymousStructIndex = 0;
 
   final _curModuleImports = <ImportDecl>[];
 
@@ -32,6 +32,7 @@ class HTParser extends HTAbstractParser {
 
   HTClassDeclaration? _curClass;
   FunctionCategory? _curFuncCategory;
+  String? _curStructId;
 
   var _leftValueLegality = false;
   final List<Map<String, String>> _markedSymbolsList = [];
@@ -512,6 +513,68 @@ class HTParser extends HTAbstractParser {
               advance(1);
               return null;
           }
+        }
+      case SourceType.struct:
+        final isStatic = expect([HTLexicon.STATIC], consume: true);
+        switch (curTok.type) {
+          case SemanticNames.singleLineComment:
+          case SemanticNames.multiLineComment:
+            return _parseExprStmt();
+          case HTLexicon.VAR:
+            return _parseVarDecl(
+                classId: _curStructId,
+                isMutable: true,
+                isStatic: isStatic,
+                lateInitialize: true);
+          case HTLexicon.FINAL:
+            return _parseVarDecl(
+                classId: _curStructId,
+                isStatic: isStatic,
+                lateInitialize: true);
+          case HTLexicon.FUNCTION:
+            return _parseFunction(
+                category: FunctionCategory.method,
+                classId: _curStructId,
+                isStatic: isStatic);
+          case HTLexicon.GET:
+            return _parseFunction(
+                category: FunctionCategory.getter,
+                classId: _curStructId,
+                isStatic: isStatic);
+          case HTLexicon.SET:
+            return _parseFunction(
+                category: FunctionCategory.setter,
+                classId: _curStructId,
+                isStatic: isStatic);
+          case HTLexicon.CONSTRUCT:
+            if (isStatic) {
+              final err = HTError.unexpected(
+                  SemanticNames.declStmt, HTLexicon.CONSTRUCT,
+                  moduleFullName: _curModuleFullName,
+                  line: curTok.line,
+                  column: curTok.column,
+                  offset: curTok.offset,
+                  length: curTok.length);
+              errors.add(err);
+              advance(1);
+              return null;
+            } else {
+              return _parseFunction(
+                category: FunctionCategory.constructor,
+                classId: _curStructId,
+              );
+            }
+          default:
+            final err = HTError.unexpected(
+                SemanticNames.declStmt, curTok.lexeme,
+                moduleFullName: _curModuleFullName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            advance(1);
+            return null;
         }
       case SourceType.function:
         if (curTok.lexeme == HTLexicon.type) {
@@ -2093,15 +2156,14 @@ class HTParser extends HTAbstractParser {
       }
       prototypeId = IdentifierExpr.fromToken(prototypeIdTok);
     }
-    match(HTLexicon.curlyLeft);
-    final fields = <VarDecl>[];
-    while (curTok.type != HTLexicon.curlyRight &&
-        curTok.type != SemanticNames.endOfFile) {
-      final decl = _parseVarDecl(isStructMember: true, isMutable: true);
-      fields.add(decl);
-    }
-    match(HTLexicon.curlyRight);
-    return StructDecl(id, fields,
+    final savedStructId = _curStructId;
+    _curStructId = id.id;
+    final definition = _parseBlockStmt(
+        sourceType: SourceType.struct,
+        hasOwnNamespace: false,
+        id: SemanticNames.structDefinition);
+    _curStructId = savedStructId;
+    return StructDecl(id, definition,
         prototypeId: prototypeId,
         isExported: isExported,
         isTopLevel: isTopLevel,
@@ -2121,8 +2183,8 @@ class HTParser extends HTAbstractParser {
         prototypeId = IdentifierExpr.fromToken(idTok);
       }
     }
-    final internalName =
-        '${SemanticNames.anonymousStruct}${HTParser.anonymousStructIndex++}';
+    // final internalName =
+    //     '${SemanticNames.anonymousStruct}${HTParser.anonymousStructIndex++}';
     final structBlockStartTok = match(HTLexicon.curlyLeft);
     final fields = <String, AstNode>{};
     while (curTok.type != HTLexicon.curlyRight &&
@@ -2147,7 +2209,7 @@ class HTParser extends HTAbstractParser {
       }
     }
     match(HTLexicon.curlyRight);
-    return StructObj(internalName, fields,
+    return StructObj(fields,
         prototypeId: prototypeId,
         source: _curSource,
         line: structBlockStartTok.line,

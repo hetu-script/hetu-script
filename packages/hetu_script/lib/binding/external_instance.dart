@@ -1,16 +1,16 @@
 import '../interpreter/abstract_interpreter.dart';
-import '../object/object.dart';
+import '../value/entity.dart';
 import '../type/type.dart';
 import '../type/nominal_type.dart';
 import '../type/external_type.dart';
 // import '../grammar/semantic.dart';
 import '../error/error.dart';
-import '../object/function/function.dart';
-import '../object/class/class.dart';
+import '../value/function/function.dart';
+import '../value/class/class.dart';
 import 'external_class.dart';
 
 /// Class for external object.
-class HTExternalInstance<T> with HTObject, InterpreterRef {
+class HTExternalInstance<T> with HTEntity, InterpreterRef {
   @override
   late final HTType valueType;
 

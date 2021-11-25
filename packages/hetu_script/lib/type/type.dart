@@ -1,14 +1,14 @@
 import 'package:quiver/core.dart';
 
 import '../grammar/lexicon.dart';
-import '../object/object.dart';
+import '../value/entity.dart';
 import '../declaration/namespace/namespace.dart';
 import 'unresolved_type.dart';
 import '../ast/ast.dart' show TypeExpr, FuncTypeExpr;
 import 'function_type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 
-abstract class HTType with HTObject {
+abstract class HTType with HTEntity {
   static const ANY = _PrimitiveType(HTLexicon.ANY);
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);

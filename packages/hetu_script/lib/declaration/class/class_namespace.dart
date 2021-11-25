@@ -1,7 +1,7 @@
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../source/source.dart';
-import '../../object/function/function.dart';
+import '../../value/function/function.dart';
 import '../namespace/namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].

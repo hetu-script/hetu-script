@@ -3,7 +3,7 @@ import '../grammar/lexicon.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
 
-class _HTNull with HTObject {
+class _HTNull with HTEntity {
   const _HTNull();
 
   @override
@@ -13,12 +13,11 @@ class _HTNull with HTObject {
   HTType get valueType => HTType.NULL;
 }
 
-/// Object is a runtime entity in the program that
-/// represents a value that have accessible members
-abstract class HTObject {
+/// A collection of various symbols & value pairs.
+abstract class HTEntity {
   static const type = HTUnresolvedType(HTLexicon.object);
 
-  /// The [null] in Hetu is a static const variable of [HTObject].
+  /// The [null] in Hetu is a static const variable of [HTEntity].
   /// Hence every null is the same object.
   static const NULL = _HTNull();
 

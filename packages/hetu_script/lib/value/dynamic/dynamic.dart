@@ -1,6 +1,6 @@
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
-import '../object.dart';
+import '../entity.dart';
 import '../../type/type.dart';
 import '../function/function.dart';
 
@@ -10,7 +10,7 @@ import '../function/function.dart';
 /// Can be named or anonymous.
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
-class HTStruct with HTObject {
+class HTDynamic with HTEntity {
   static var _curIndentCount = 0;
 
   static String _curIndent() {
@@ -23,50 +23,45 @@ class HTStruct with HTObject {
     return output.toString();
   }
 
-  static String stringify(HTObject object,
+  static String stringify(HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    final struct = object as HTStruct;
-
-    if (struct.id != null) {
-      return '${HTLexicon.STRUCT}.${struct.id}';
-    } else {
-      final output = StringBuffer();
-      output.writeln(HTLexicon.curlyLeft);
-      ++_curIndentCount;
-      for (var i = 0; i < struct.fields.length; ++i) {
-        final key = struct.fields.keys.elementAt(i);
-        if (!key.startsWith(SemanticNames.internalMarker)) {
-          output.write(_curIndent());
-          final value = struct.fields[key];
-          String valueString;
-          if (value is HTStruct) {
-            valueString = stringify(value);
-          } else {
-            valueString = value.toString();
-          }
-          output.write('$key${HTLexicon.colon} $valueString');
-          if (i < struct.fields.length - 1) {
-            output.write(HTLexicon.comma);
-          }
-          output.writeln();
+    final struct = object as HTDynamic;
+    final output = StringBuffer();
+    output.writeln(HTLexicon.curlyLeft);
+    ++_curIndentCount;
+    for (var i = 0; i < struct.fields.length; ++i) {
+      final key = struct.fields.keys.elementAt(i);
+      if (!key.startsWith(SemanticNames.internalMarker)) {
+        output.write(_curIndent());
+        final value = struct.fields[key];
+        String valueString;
+        if (value is HTDynamic) {
+          valueString = stringify(value);
+        } else {
+          valueString = value.toString();
         }
+        output.write('$key${HTLexicon.colon} $valueString');
+        if (i < struct.fields.length - 1) {
+          output.write(HTLexicon.comma);
+        }
+        output.writeln();
       }
-      --_curIndentCount;
-      output.write(_curIndent());
-      output.write(HTLexicon.curlyRight);
-      return output.toString();
     }
+    --_curIndentCount;
+    output.write(_curIndent());
+    output.write(HTLexicon.curlyRight);
+    return output.toString();
   }
 
   String? id;
 
-  HTStruct? prototype;
+  HTDynamic? prototype;
 
   final fields = <String, dynamic>{};
 
-  HTStruct({this.id, this.prototype, Map<String, dynamic>? fields}) {
+  HTDynamic({this.id, this.prototype, Map<String, dynamic>? fields}) {
     if (fields != null) {
       this.fields.addAll(fields);
     }

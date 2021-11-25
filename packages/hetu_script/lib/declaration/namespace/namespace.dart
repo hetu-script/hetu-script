@@ -2,7 +2,7 @@ import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
 import '../declaration.dart';
-import '../../object/object.dart';
+import '../../value/entity.dart';
 import 'module.dart';
 
 class ImportDeclaration {
@@ -18,7 +18,7 @@ class ImportDeclaration {
 /// Namespace is used when importing with a name
 /// or for interpreter searching for symbols
 /// from a certain block or module.
-class HTNamespace extends HTDeclaration with HTObject {
+class HTNamespace extends HTDeclaration with HTEntity {
   @override
   String toString() => '${HTLexicon.NAMESPACE} $id';
 

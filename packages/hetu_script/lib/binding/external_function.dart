@@ -1,6 +1,6 @@
 import '../type/type.dart';
-import '../object/function/function.dart';
-import '../object/object.dart';
+import '../value/function/function.dart';
+import '../value/entity.dart';
 
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
@@ -9,7 +9,7 @@ typedef HTExternalFunction = dynamic Function(
     List<HTType> typeArgs});
 
 /// typedef of external method for binding.
-typedef HTExternalMethod = dynamic Function(HTObject object,
+typedef HTExternalMethod = dynamic Function(HTEntity object,
     {List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
     List<HTType> typeArgs});

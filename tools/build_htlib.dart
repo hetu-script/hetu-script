@@ -22,7 +22,7 @@ void main() {
 /// The pre-included modules of Hetu scripting language.
 final Map<String, String> builtInModules = const {
 ''');
-  final file = File('lib/built_in/hetu_lib.dart');
+  final file = File('lib/buildin//hetu_lib.dart');
   for (final key in builtInModules.keys) {
     final data = File(builtInModules[key]!).readAsStringSync();
     output.writeln("  '$key': r'''" + data + "''',");

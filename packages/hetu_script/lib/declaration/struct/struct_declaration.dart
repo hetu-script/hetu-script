@@ -1,8 +1,10 @@
 import '../../source/source.dart';
 import '../declaration.dart';
 import '../namespace/namespace.dart';
-import '../../object/struct/struct.dart';
+import '../../value/dynamic/dynamic.dart';
 import '../../error/error.dart';
+import '../../grammar/lexicon.dart';
+// import '../../grammar/semantic.dart';
 
 /// A prototype based dynamic object type.
 /// You can define and delete members in runtime.
@@ -18,7 +20,7 @@ class HTStructDeclaration extends HTDeclaration {
 
   HTNamespace namespace;
 
-  HTStruct? _self;
+  HTDynamic? _self;
 
   var _isResolved = false;
 
@@ -44,21 +46,25 @@ class HTStructDeclaration extends HTDeclaration {
     if (_isResolved) {
       return;
     }
-    _isResolved = true;
-    HTStruct? prototype;
-    if (closure != null && _unresolvedPrototypeId != null) {
-      prototype = closure!.memberGet(_unresolvedPrototypeId!);
+    HTDynamic? prototype;
+    if (closure != null) {
+      if (_unresolvedPrototypeId != null) {
+        prototype = closure!.memberGet(_unresolvedPrototypeId!);
+      } else {
+        prototype = closure!.memberGet(HTLexicon.prototype);
+      }
     }
-    _self = HTStruct(id: id, prototype: prototype);
+    _self = HTDynamic(id: id, prototype: prototype);
     for (final decl in namespace.declarations.values) {
       decl.resolve();
       final value = decl.value;
       _self!.define(decl.id!, value);
     }
+    _isResolved = true;
   }
 
   @override
-  HTStruct get value {
+  HTDynamic get value {
     if (_isResolved) {
       return _self!;
     } else {

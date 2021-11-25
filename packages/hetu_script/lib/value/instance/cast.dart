@@ -3,11 +3,11 @@ import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
 import '../../type/nominal_type.dart';
 import '../class/class.dart';
-import '../object.dart';
+import '../entity.dart';
 import 'instance.dart';
 
 /// The implementation of a certain type cast of a object
-class HTCast with HTObject, HetuRef {
+class HTCast with HTEntity, HetuRef {
   @override
   final HTNominalType valueType;
 
@@ -18,7 +18,7 @@ class HTCast with HTObject, HetuRef {
   @override
   String toString() => object.toString();
 
-  HTCast(HTObject castee, this.klass, Hetu interpreter,
+  HTCast(HTEntity castee, this.klass, Hetu interpreter,
       {List<HTType> typeArgs = const []})
       : valueType = HTNominalType(klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;

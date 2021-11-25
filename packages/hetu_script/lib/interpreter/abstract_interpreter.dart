@@ -1,25 +1,29 @@
 import 'package:pub_semver/pub_semver.dart';
 import 'package:meta/meta.dart';
 
+import 'dart:math' as math;
+
 import '../source/source.dart';
 import '../resource/resource_context.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../binding/external_instance.dart';
-import '../built_in/buildin_class.dart';
-import '../built_in/buildin_function.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
 import '../type/type.dart';
-import '../object/function/function.dart';
+import '../value/function/function.dart';
 import '../declaration/namespace/namespace.dart';
 import '../parser/abstract_parser.dart';
-import '../built_in/hetu_lib.dart';
-import '../object/object.dart';
-import '../object/instance/instance.dart';
-import '../object/struct/struct.dart';
+import 'buildin//hetu_lib.dart';
+import '../value/entity.dart';
+import '../value/instance/instance.dart';
+import '../value/dynamic/dynamic.dart';
 import 'compiler.dart';
+
+part 'buildin/buildin_class.dart';
+part 'buildin/buildin_function.dart';
+part 'buildin/buildin_instance.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -89,7 +93,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
           const {}}) {
     try {
       bindExternalFunction('object.toString', HTInstance.stringify);
-      bindExternalFunction('prototype.toString', HTStruct.stringify);
+      bindExternalFunction('prototype.toString', HTDynamic.stringify);
 
       // load classes and functions in core library.
       for (final file in builtInModules.keys) {
@@ -204,11 +208,11 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {}
 
-  HTObject encapsulate(dynamic object) {
-    if (object is HTObject) {
+  HTEntity encapsulate(dynamic object) {
+    if (object is HTEntity) {
       return object;
     } else if ((object == null) || (object is NullThrownError)) {
-      return HTObject.NULL;
+      return HTEntity.NULL;
     }
     late String typeString;
     if (object is bool) {
@@ -284,9 +288,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
-  /// Register a external class into scrfipt
-  /// for acessing static members and constructors of this class
-  /// there must be a declaraction also in script for using this
+  /// Register a external class into scrfipt.
+  /// For acessing static members and constructors of this class,
+  /// there must also be a declaraction in script
   void bindExternalClass(HTExternalClass externalClass) {
     if (_externClasses.containsKey(externalClass.valueType)) {
       throw HTError.definedRuntime(externalClass.valueType.toString());

@@ -1673,16 +1673,14 @@ class StructDecl extends AstNode {
   void subAccept(AbstractAstVisitor visitor) {
     id.accept(visitor);
     prototypeId?.accept(visitor);
-    for (final field in fields) {
-      field.accept(visitor);
-    }
+    definition.accept(visitor);
   }
 
   final IdentifierExpr id;
 
   final IdentifierExpr? prototypeId;
 
-  final List<VarDecl> fields;
+  final BlockStmt definition;
 
   final bool isPrivate;
 
@@ -1690,7 +1688,7 @@ class StructDecl extends AstNode {
 
   final bool isExported;
 
-  StructDecl(this.id, this.fields,
+  StructDecl(this.id, this.definition,
       {this.prototypeId,
       this.isPrivate = false,
       this.isTopLevel = false,
@@ -1719,13 +1717,15 @@ class StructObj extends AstNode {
     }
   }
 
-  final String internalName;
+  // final String internalName;
 
   final IdentifierExpr? prototypeId;
 
   final Map<String, AstNode> fields;
 
-  StructObj(this.internalName, this.fields,
+  StructObj(
+      //this.internalName,
+      this.fields,
       {this.prototypeId,
       HTSource? source,
       int line = 0,

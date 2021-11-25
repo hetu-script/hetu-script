@@ -1,10 +1,10 @@
 import '../error/error.dart';
 // import '../class.dart' show HTInheritable;
 import '../type/type.dart';
-import '../object/object.dart';
+import '../value/entity.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
-abstract class HTExternalClass with HTObject {
+abstract class HTExternalClass with HTEntity {
   // @override
   // final HTExternalClass? superClass;
 

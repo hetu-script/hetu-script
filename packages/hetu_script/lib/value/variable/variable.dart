@@ -22,7 +22,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       {String? classId,
       HTNamespace? closure,
       HTType? declType,
-      dynamic initValue,
+      dynamic value,
       bool isExternal = false,
       bool isStatic = false,
       bool isConst = false,
@@ -49,8 +49,8 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
 
-    if (initValue != null) {
-      _value = initValue;
+    if (value != null) {
+      _value = value;
     }
 
     // if (declType != null) {
@@ -160,7 +160,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       classId: classId,
       closure: closure,
       declType: declType,
-      initValue: _value,
+      value: _value,
       isExternal: isExternal,
       isStatic: isStatic,
       isConst: isConst,

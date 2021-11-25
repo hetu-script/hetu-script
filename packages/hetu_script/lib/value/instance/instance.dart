@@ -8,7 +8,7 @@ import '../function/function.dart';
 import '../class/class.dart';
 import 'cast.dart';
 import '../../declaration/namespace/namespace.dart';
-import '../object.dart';
+import '../entity.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/abstract_interpreter.dart';
 import '../../grammar/lexicon.dart';
@@ -16,8 +16,8 @@ import '../../grammar/lexicon.dart';
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
-class HTInstance with HTObject, InterpreterRef {
-  static String stringify(HTObject object,
+class HTInstance with HTEntity, InterpreterRef {
+  static String stringify(HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -136,7 +136,7 @@ class HTInstance with HTObject, InterpreterRef {
     return false;
   }
 
-  /// [HTInstance] overrided [HTObject]'s [memberGet],
+  /// [HTInstance] overrided [HTEntity]'s [memberGet],
   /// with a new named parameter [cast].
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
@@ -179,7 +179,7 @@ class HTInstance with HTObject, InterpreterRef {
     }
   }
 
-  /// [HTInstance] overrided [HTObject]'s [memberSet],
+  /// [HTInstance] overrided [HTEntity]'s [memberSet],
   /// with a new named parameter [cast].
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
