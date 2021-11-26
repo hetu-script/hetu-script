@@ -1,7 +1,7 @@
 import '../../source/source.dart';
 import '../declaration.dart';
 import '../namespace/namespace.dart';
-import '../../value/dynamic/dynamic.dart';
+import '../../value/struct/dynamic.dart';
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 // import '../../grammar/semantic.dart';
@@ -20,7 +20,7 @@ class HTStructDeclaration extends HTDeclaration {
 
   HTNamespace namespace;
 
-  HTDynamic? _self;
+  HTStruct? _self;
 
   var _isResolved = false;
 
@@ -46,7 +46,7 @@ class HTStructDeclaration extends HTDeclaration {
     if (_isResolved) {
       return;
     }
-    HTDynamic? prototype;
+    HTStruct? prototype;
     if (closure != null) {
       if (_unresolvedPrototypeId != null) {
         prototype = closure!.memberGet(_unresolvedPrototypeId!);
@@ -54,7 +54,7 @@ class HTStructDeclaration extends HTDeclaration {
         prototype = closure!.memberGet(HTLexicon.prototype);
       }
     }
-    _self = HTDynamic(id: id, prototype: prototype);
+    _self = HTStruct(id: id, prototype: prototype);
     for (final decl in namespace.declarations.values) {
       decl.resolve();
       final value = decl.value;
@@ -64,7 +64,7 @@ class HTStructDeclaration extends HTDeclaration {
   }
 
   @override
-  HTDynamic get value {
+  HTStruct get value {
     if (_isResolved) {
       return _self!;
     } else {

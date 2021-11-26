@@ -18,7 +18,7 @@ import '../parser/abstract_parser.dart';
 import 'buildin//hetu_lib.dart';
 import '../value/entity.dart';
 import '../value/instance/instance.dart';
-import '../value/dynamic/dynamic.dart';
+import '../value/struct/dynamic.dart';
 import 'compiler.dart';
 
 part 'buildin/buildin_class.dart';
@@ -93,7 +93,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
           const {}}) {
     try {
       bindExternalFunction('object.toString', HTInstance.stringify);
-      bindExternalFunction('prototype.toString', HTDynamic.stringify);
+      bindExternalFunction('prototype.toString', HTStruct.stringify);
 
       // load classes and functions in core library.
       for (final file in builtInModules.keys) {

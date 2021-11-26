@@ -42,10 +42,11 @@ abstract class SemanticNames {
   static const increment = r'$increment';
   static const iterable = r'$iterable';
   static const instance = r'$instance';
-  static const constructor = r'$constructor_';
-  static const getter = r'$get_';
-  static const setter = r'$set_';
   static const prototype = r'$prototype';
+  static const call = r'$_call_';
+  static const constructor = r'$_construct_';
+  static const getter = r'$_get_';
+  static const setter = r'$_set_';
 
   static const endOfFile = 'end_of_file';
   static const empty = 'empty';

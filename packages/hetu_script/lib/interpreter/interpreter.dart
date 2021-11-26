@@ -11,7 +11,7 @@ import '../declaration/namespace/module.dart';
 import '../value/function/function.dart';
 import '../value/function/parameter.dart';
 import '../value/variable/variable.dart';
-import '../value/dynamic/dynamic.dart';
+import '../value/struct/dynamic.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
@@ -28,7 +28,7 @@ import '../analyzer/analyzer.dart';
 import '../parser/parser.dart';
 import 'abstract_interpreter.dart';
 import 'compiler.dart';
-import 'opcode.dart';
+import 'constants.dart';
 import 'bytecode_library.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
@@ -93,6 +93,7 @@ class Hetu extends HTAbstractInterpreter {
 
   HTClass? _curClass;
   HTFunction? _curFunction;
+  HTStruct? _curStruct;
 
   var _regIndex = -1;
 
@@ -789,7 +790,7 @@ class Hetu extends HTAbstractInterpreter {
         _curValue = list;
         break;
       case HTValueTypeCode.struct:
-        HTDynamic? prototype;
+        HTStruct? prototype;
         final hasPrototypeId = _curLibrary.readBool();
         if (hasPrototypeId) {
           final prototypeId = _curLibrary.readShortUtf8String();
@@ -797,7 +798,7 @@ class Hetu extends HTAbstractInterpreter {
         } else {
           prototype = global.memberGet(HTLexicon.prototype);
         }
-        final struct = HTDynamic(prototype: prototype);
+        final struct = HTStruct(prototype: prototype);
         // struct members are wrapped around with a namespace
         final namespace = HTNamespace(
             id: SemanticNames.anonymousStruct, closure: _curNamespace);

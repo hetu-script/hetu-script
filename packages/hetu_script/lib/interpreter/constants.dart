@@ -63,6 +63,8 @@ abstract class HTOpCode {
 
   static const varDecl = 27;
 
+  static const structDecl = 27;
+
   static const ifStmt = 30;
 
   static const whileStmt = 31;
@@ -180,9 +182,14 @@ abstract class HTFunctionTypeCode {
 //   static const mix_in = 4;
 // }
 
-/// Current identifier type.
+/// Identifier type code.
 abstract class IdentifierType {
   static const normal = 0;
   static const member = 1;
   static const sub = 2;
 }
+
+// abstract class FieldType {
+//   static const variable = 0;
+//   static const function = 1;
+// }

@@ -6,7 +6,7 @@ import '../parser/parse_result_compilation.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 // import '../source/source.dart';
-import 'opcode.dart';
+import 'constants.dart';
 import 'const_table.dart';
 
 class HTRegIdx {
@@ -26,7 +26,6 @@ class HTRegIdx {
   static const multiplyLeft = 13;
   static const postfixObject = 14;
   static const postfixKey = 15;
-
   static const length = 16;
 }
 
@@ -1593,65 +1592,26 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
-  /// Named struct declarations are compiled to a variable declaration
-  /// and a pseudo constructor function
-  ///
-  /// For example:
-  ///
-  /// ```typescript
-  /// struct STRUCT {
-  ///   static var races = [human, dragon]
-  ///   var name
-  ///   constructor () {
-  ///     this.age = 17
-  ///   }
-  ///   constructor withName (name: str) {
-  ///     this.name = name
-  ///   }
-  /// }
-  /// ```
-  ///
-  /// are compiled into:
-  ///
-  /// ```typescript
-  /// //static members and named constructors:
-  /// var $STRUCT = struct $STRUCT.prototype {
-  ///   races: [human, dragon]
-  ///   $
-  ///   withName: (name: str) {
-  ///     return struct extends $STRUCT.prototype {
-  ///       name: name
-  ///     }
-  ///   }
-  /// }
-  ///
-  /// fun STRUCT (name: str) {
-  ///   var $entity = struct extends $STRUCT.prototype {
-  ///     name: null
-  ///   }
-  ///   $entity.name = name
-  ///   return $entity
-  /// }
-  /// ```
   @override
   Uint8List visitStructDecl(StructDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    final internalVarName = '\$${stmt.id.id}';
-    final fields = <String, AstNode>{};
-    for (final stmt in stmt.definition.statements) {}
-
-    final declStructObj = StructObj(fields, prototypeId: stmt.prototypeId);
-    final structObjBytes = visitStructObj(declStructObj);
-    final varDeclBytes = _assembleVarDeclStmt(
-        internalVarName, stmt.line, stmt.column,
-        initializer: structObjBytes);
-    bytesBuilder.add(varDeclBytes);
-
-    final constructor = FuncDecl(
-      stmt.id.id,
-      const [],
-      id: IdentifierExpr(stmt.id.id),
-    );
+    bytesBuilder.addByte(HTOpCode.classDecl);
+    bytesBuilder.add(_shortUtf8String(stmt.id.id));
+    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
+    final staticFields = BytesBuilder();
+    final fields = BytesBuilder();
+    for (final node in stmt.definition) {
+      final bytes = compileAst(node);
+      if (node.isStatic) {
+        staticFields.add(bytes);
+      } else {
+        fields.add(bytes);
+      }
+    }
+    bytesBuilder.add(_uint16(stmt.initializer!.line));
+    bytesBuilder.add(_uint16(stmt.initializer!.column));
+    bytesBuilder.add(_uint16(initializer.length));
+    bytesBuilder.add(initializer);
 
     return bytesBuilder.toBytes();
   }

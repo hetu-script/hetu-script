@@ -10,7 +10,7 @@ import '../function/function.dart';
 /// Can be named or anonymous.
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
-class HTDynamic with HTEntity {
+class HTStruct with HTEntity {
   static var _curIndentCount = 0;
 
   static String _curIndent() {
@@ -27,7 +27,7 @@ class HTDynamic with HTEntity {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    final struct = object as HTDynamic;
+    final struct = object as HTStruct;
     final output = StringBuffer();
     output.writeln(HTLexicon.curlyLeft);
     ++_curIndentCount;
@@ -37,7 +37,7 @@ class HTDynamic with HTEntity {
         output.write(_curIndent());
         final value = struct.fields[key];
         String valueString;
-        if (value is HTDynamic) {
+        if (value is HTStruct) {
           valueString = stringify(value);
         } else {
           valueString = value.toString();
@@ -57,11 +57,11 @@ class HTDynamic with HTEntity {
 
   String? id;
 
-  HTDynamic? prototype;
+  HTStruct? prototype;
 
   final fields = <String, dynamic>{};
 
-  HTDynamic({this.id, this.prototype, Map<String, dynamic>? fields}) {
+  HTStruct({this.id, this.prototype, Map<String, dynamic>? fields}) {
     if (fields != null) {
       this.fields.addAll(fields);
     }

@@ -34,6 +34,8 @@ abstract class AstNode {
   /// Visit all the sub nodes of this, doing nothing by default.
   void subAccept(AbstractAstVisitor visitor) {}
 
+  bool get isStatic => false;
+
   AstNode(this.type,
       {this.source,
       this.line = 0,
@@ -1324,6 +1326,7 @@ class VarDecl extends AstNode {
 
   final bool isExternal;
 
+  @override
   final bool isStatic;
 
   final bool isMutable;
@@ -1498,6 +1501,7 @@ class FuncDecl extends AstNode {
 
   final bool isExternal;
 
+  @override
   final bool isStatic;
 
   final bool isConst;
@@ -1677,14 +1681,16 @@ class StructDecl extends AstNode {
   void subAccept(AbstractAstVisitor visitor) {
     id.accept(visitor);
     prototypeId?.accept(visitor);
-    definition.accept(visitor);
+    for (final node in definition) {
+      node.accept(visitor);
+    }
   }
 
   final IdentifierExpr id;
 
   final IdentifierExpr? prototypeId;
 
-  final BlockStmt definition;
+  final List<AstNode> definition;
 
   final bool isPrivate;
 
