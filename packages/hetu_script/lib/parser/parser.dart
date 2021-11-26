@@ -1087,8 +1087,8 @@ class HTParser extends HTAbstractParser {
       case HTLexicon.roundLeft:
         _leftValueLegality = false;
         // a literal function expression
-        final functionDefinitionStartTok = seek(HTLexicon.roundRight);
-        if (functionDefinitionStartTok.type == HTLexicon.curlyLeft) {
+        final token = seek(HTLexicon.roundRight);
+        if (token.type == HTLexicon.curlyLeft) {
           return _parseFunction(
               category: FunctionCategory.literal, hasKeyword: false);
         }
@@ -1385,9 +1385,10 @@ class HTParser extends HTAbstractParser {
   }
 
   IfStmt _parseIf({bool isExpression = false}) {
-    final keyword = advance(1);
-    var condition = _parseExpr();
-
+    final keyword = match(HTLexicon.IF);
+    match(HTLexicon.roundLeft);
+    final condition = _parseExpr();
+    match(HTLexicon.roundRight);
     final thenBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
     AstNode? elseBranch;
     if (isExpression) {
@@ -1407,8 +1408,10 @@ class HTParser extends HTAbstractParser {
   }
 
   WhileStmt _parseWhileStmt() {
-    final keyword = advance(1);
+    final keyword = match(HTLexicon.WHILE);
+    match(HTLexicon.roundLeft);
     final condition = _parseExpr();
+    match(HTLexicon.roundRight);
     final loop = _parseBlockStmt(id: SemanticNames.whileLoop);
     return WhileStmt(condition, loop,
         source: _curSource,
@@ -1423,7 +1426,9 @@ class HTParser extends HTAbstractParser {
     final loop = _parseBlockStmt(id: SemanticNames.doLoop);
     AstNode? condition;
     if (expect([HTLexicon.WHILE], consume: true)) {
+      match(HTLexicon.roundLeft);
       condition = _parseExpr();
+      match(HTLexicon.roundRight);
     }
     return DoStmt(loop, condition,
         source: _curSource,
@@ -1503,7 +1508,9 @@ class HTParser extends HTAbstractParser {
     final keyword = advance(1);
     AstNode? condition;
     if (curTok.type != HTLexicon.curlyLeft) {
+      match(HTLexicon.roundLeft);
       condition = _parseExpr();
+      match(HTLexicon.roundRight);
     }
     final options = <AstNode, AstNode>{};
     AstNode? elseBranch;

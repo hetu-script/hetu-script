@@ -260,6 +260,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.add(_shortUtf8String(id));
     bytesBuilder.addByte(0); // bool: hasClassId
+    bytesBuilder.addByte(0);
     bytesBuilder.addByte(0); // bool: isExternal
     bytesBuilder.addByte(0); // bool: isStatic
     bytesBuilder.addByte(isMutable ? 1 : 0); // bool: isMutable
@@ -493,7 +494,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(_lineInfo(expr.line, expr.column));
     // TODO: generic type params
     return bytesBuilder.toBytes();
   }
@@ -501,7 +501,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitFunctionTypeExpr(FuncTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(_lineInfo(expr.line, expr.column));
     if (expr.isLocal) {
       bytesBuilder.addByte(HTOpCode.local);
       bytesBuilder.addByte(HTValueTypeCode.type);

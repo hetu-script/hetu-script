@@ -1324,7 +1324,6 @@ class VarDecl extends AstNode {
 
   final bool isExternal;
 
-  @override
   final bool isStatic;
 
   final bool isMutable;
@@ -1499,7 +1498,6 @@ class FuncDecl extends AstNode {
 
   final bool isExternal;
 
-  @override
   final bool isStatic;
 
   final bool isConst;

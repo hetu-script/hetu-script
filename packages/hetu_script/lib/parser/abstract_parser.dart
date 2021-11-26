@@ -55,7 +55,7 @@ abstract class HTAbstractParser {
     }
   }
 
-  // Search for a token type, return the token next to it.
+  /// Search for a token type, return the token next to it.
   Token seek(String type) {
     late Token current;
     var distance = 0;

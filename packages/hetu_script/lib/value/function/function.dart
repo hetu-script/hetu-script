@@ -9,7 +9,6 @@ import '../../type/type.dart';
 import '../../value/instance/instance_namespace.dart';
 import '../../value/class/class.dart';
 import '../../value/instance/instance.dart';
-import '../variable/variable.dart';
 import '../../declaration/namespace/namespace.dart';
 import 'parameter.dart';
 import '../../declaration/function/function_declaration.dart';
