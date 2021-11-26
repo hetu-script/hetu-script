@@ -139,7 +139,7 @@ external class str {
 
 	get isNotEmpty -> bool
 
-	fun substring(startIndex: num, [endIndex: num]) -> str
+	fun subString(startIndex: num, [endIndex: num]) -> str
 
 	fun trim() -> str
 
