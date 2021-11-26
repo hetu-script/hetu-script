@@ -76,16 +76,7 @@ class HTStruct with HTEntity {
   }
 
   @override
-  String toString() {
-    final func = memberGet('toString');
-    if (func is HTFunction) {
-      return func.call();
-    } else if (func is Function) {
-      return func();
-    } else {
-      return stringify(this);
-    }
-  }
+  String toString() => stringify(this);
 
   @override
   bool contains(String varName, {bool recursive = true}) {

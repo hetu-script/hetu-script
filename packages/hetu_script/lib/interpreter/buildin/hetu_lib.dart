@@ -14,9 +14,7 @@ abstract class object {
 }
 
 struct prototype {
-  fun toString {
-    return this.toString()
-  }
+  fun toString => stringify(this)
 }''',
   'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]

@@ -10,16 +10,12 @@ void main() {
         name: 'jimmy',
         age: 17
       }
-      // var team = {
-      //   number: 1
-      // }
-      // team.leader = jimmy
-      print(jimmy.toString())
-      
-      // jimmy.doubleIt = (x) { return x * 2 }
-
-      // print(jimmy.doubleIt(42))
-      
+      var team = struct extends jimmy {
+        number: 1
+      }
+      team.doubleIt = (x) { return x * 2 }
+      print(team.doubleIt(42))
+      print(team)
     }
   ''');
 
