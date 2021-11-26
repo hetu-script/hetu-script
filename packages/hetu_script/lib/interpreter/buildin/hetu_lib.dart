@@ -1,21 +1,23 @@
-/// This file has been automatically generated
+/// This file has been automatically generated 
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
 ///
 /// The pre-included modules of Hetu scripting language.
 final Map<String, String> builtInModules = const {
-  'hetu:core': r'''abstract class object {
+  'hetu:core': r'''// print values of any type into lines
+external fun print(... args: any)
+
+external fun stringify(obj: any)
+
+abstract class object {
   external fun toString
 }
 
 struct prototype {
-  
-}
-
-// print values of any type into lines
-external fun print(... args: any)
-
-external fun stringify(obj: any)''',
+  fun toString {
+    return this.toString()
+  }
+}''',
   'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
 

@@ -244,7 +244,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitStructObj(StructObj node) {
+  T? visitStructObjExpr(StructObjExpr node) {
     node.subAccept(this);
   }
 }

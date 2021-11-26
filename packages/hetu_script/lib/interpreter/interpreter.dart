@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import '../binding/external_function.dart';
 import '../declaration/namespace/namespace.dart';
 import '../declaration/declaration.dart';
-// import '../declaration/struct/struct_declaration.dart';
+import '../value/struct/named_struct.dart';
 import '../value/entity.dart';
 import '../value/class/class.dart';
 import '../value/instance/cast.dart';
@@ -11,7 +11,7 @@ import '../declaration/namespace/module.dart';
 import '../value/function/function.dart';
 import '../value/function/parameter.dart';
 import '../value/variable/variable.dart';
-import '../value/struct/dynamic.dart';
+import '../value/struct/struct.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
@@ -93,7 +93,6 @@ class Hetu extends HTAbstractInterpreter {
 
   HTClass? _curClass;
   HTFunction? _curFunction;
-  HTStruct? _curStruct;
 
   var _regIndex = -1;
 
@@ -476,7 +475,9 @@ class Hetu extends HTAbstractInterpreter {
     if (_registers.length <= _regIndex * HTRegIdx.length) {
       _registers.length += HTRegIdx.length;
     }
+
     final result = _execute();
+
     _curModuleFullName = savedModuleFullName;
     _curLibrary = savedLibrary;
     _curNamespace = savedNamespace;
@@ -624,6 +625,9 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.varDecl:
           _handleVarDecl();
+          break;
+        case HTOpCode.structDecl:
+          _handleStructDecl();
           break;
         case HTOpCode.ifStmt:
           bool condition = _curValue;
@@ -795,27 +799,15 @@ class Hetu extends HTAbstractInterpreter {
         if (hasPrototypeId) {
           final prototypeId = _curLibrary.readShortUtf8String();
           prototype = _curNamespace.memberGet(prototypeId);
-        } else {
-          prototype = global.memberGet(HTLexicon.prototype);
         }
-        final struct = HTStruct(prototype: prototype);
-        // struct members are wrapped around with a namespace
-        final namespace = HTNamespace(
-            id: SemanticNames.anonymousStruct, closure: _curNamespace);
-        // define [this] in the struct namespace
-        namespace.define(
-            HTLexicon.THIS,
-            HTVariable(HTLexicon.THIS, this, _curModuleFullName, _curLibrary.id,
-                value: struct));
-        final savedCurNamespace = _curNamespace;
-        _curNamespace = namespace;
+        final struct = HTStruct(_curNamespace, prototype: prototype);
         final fieldsCount = _curLibrary.read();
         for (var i = 0; i < fieldsCount; ++i) {
           final key = _curLibrary.readShortUtf8String();
           final value = execute();
           struct.fields[key] = value;
         }
-        _curNamespace = savedCurNamespace;
+        // _curNamespace = savedCurNamespace;
         _curValue = struct;
         break;
       // case HTValueTypeCode.map:
@@ -1356,6 +1348,7 @@ class Hetu extends HTAbstractInterpreter {
         definitionColumn: column,
         redirectingConstructor: redirCtor);
     if (isStructMember) {
+      _curValue = func;
     } else {
       if ((category != FunctionCategory.constructor) || isStatic) {
         func.namespace = _curNamespace;
@@ -1408,26 +1401,33 @@ class Hetu extends HTAbstractInterpreter {
     _curClass = savedClass;
   }
 
-  // void _handleStructDecl() {
-  //   final id = _curLibrary.readShortUtf8String();
-  //   String? prototypeId;
-  //   final hasPrototypeId = _curLibrary.readBool();
-  //   if (hasPrototypeId) {
-  //     prototypeId = _curLibrary.readShortUtf8String();
-  //   } else if (id != HTLexicon.prototype) {
-  //     prototypeId = HTLexicon.prototype;
-  //   }
-  //   final isExported = _curLibrary.readBool();
-  //   final namespace = HTNamespace(id: id, closure: _curNamespace);
-  //   // define [this] in the struct namespace
-  //   namespace.define(HTLexicon.THIS,
-  //       HTVariable(HTLexicon.THIS, this, _curModuleFullName, _curLibrary.id));
-  //   execute(namespace: namespace);
-  //   final struct = HTStructDeclaration(namespace,
-  //       id: id,
-  //       closure: _curNamespace,
-  //       prototypeId: prototypeId,
-  //       isExported: isExported);
-  //   _curNamespace.define(id, struct);
-  // }
+  void _handleStructDecl() {
+    final id = _curLibrary.readShortUtf8String();
+    String? prototypeId;
+    final hasPrototypeId = _curLibrary.readBool();
+    if (hasPrototypeId) {
+      prototypeId = _curLibrary.readShortUtf8String();
+    }
+    final isExported = _curLibrary.readBool();
+
+    final staticFiledsLength = _curLibrary.readUint16();
+    final staticDefinitionIp = _curLibrary.ip;
+    _curLibrary.skip(staticFiledsLength);
+    final filedsLength = _curLibrary.readUint16();
+    final definitionIp = _curLibrary.ip;
+    _curLibrary.skip(filedsLength);
+
+    final struct = HTNamedStruct(
+      id,
+      this,
+      _curModuleFullName,
+      _curLibrary.id,
+      _curNamespace,
+      prototypeId: prototypeId,
+      isExported: isExported,
+      staticDefinitionIp: staticDefinitionIp,
+      definitionIp: definitionIp,
+    );
+    _curNamespace.define(id, struct);
+  }
 }

@@ -504,5 +504,5 @@ abstract class HTLexicon {
   static const errorStructMemberId =
       'Struct member id should be symbol or string.';
   static const errorUnresolvedNamedStruct =
-      'Cannot get value from a unresolved named struct.';
+      'Cannot create struct object from unresolved prototype [{0}]';
 }

@@ -1465,7 +1465,7 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: Unevalable source type.
-  HTError.unresolvedNamedStruct(
+  HTError.unresolvedNamedStruct(String id,
       {String? moduleFullName,
       int? line,
       int? column,
@@ -1473,6 +1473,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.unresolvedNamedStruct, ErrorType.runtimeError,
             HTLexicon.errorUnresolvedNamedStruct,
+            interpolations: [id],
             moduleFullName: moduleFullName,
             line: line,
             column: column,

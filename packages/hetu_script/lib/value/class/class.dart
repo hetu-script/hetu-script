@@ -102,17 +102,17 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   /// Create a [HTInstance] of this [HTClass],
   /// will not call constructors
-  HTInstance createInstance({List<HTType> typeArgs = const []}) {
-    return HTInstance(this, interpreter, typeArgs: typeArgs);
-  }
+  // HTInstance createInstance({List<HTType> typeArgs = const []}) {
+  //   return HTInstance(this, interpreter, typeArgs: typeArgs);
+  // }
 
-  HTInstance createInstanceFromJson(Map<dynamic, dynamic> jsonObject,
-      {List<HTType> typeArgs = const []}) {
-    return HTInstance(this, interpreter,
-        typeArgs: typeArgs,
-        jsonObject:
-            jsonObject.map((key, value) => MapEntry(key.toString(), value)));
-  }
+  // HTInstance createInstanceFromJson(Map<dynamic, dynamic> jsonObject,
+  //     {List<HTType> typeArgs = const []}) {
+  //   return HTInstance(this, interpreter,
+  //       typeArgs: typeArgs,
+  //       jsonObject:
+  //           jsonObject.map((key, value) => MapEntry(key.toString(), value)));
+  // }
 
   @override
   bool contains(String varName) {

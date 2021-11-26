@@ -18,7 +18,7 @@ import '../parser/abstract_parser.dart';
 import 'buildin//hetu_lib.dart';
 import '../value/entity.dart';
 import '../value/instance/instance.dart';
-import '../value/struct/dynamic.dart';
+import '../value/struct/struct.dart';
 import 'compiler.dart';
 
 part 'buildin/buildin_class.dart';

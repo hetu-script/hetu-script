@@ -15,6 +15,8 @@ class BytecodeReader {
     ip += distance;
   }
 
+  int get curByte => bytes[ip];
+
   /// Fetch a single byte at the current instruction pointer
   int read() {
     if (ip >= 0 && ip < bytes.length) {

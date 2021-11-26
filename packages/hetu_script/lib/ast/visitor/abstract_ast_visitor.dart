@@ -100,5 +100,5 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitStructDecl(StructDecl node) {}
 
-  T? visitStructObj(StructObj node) {}
+  T? visitStructObjExpr(StructObjExpr node) {}
 }

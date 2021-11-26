@@ -2167,6 +2167,8 @@ class HTParser extends HTAbstractParser {
         errors.add(err);
       }
       prototypeId = IdentifierExpr.fromToken(prototypeIdTok);
+    } else if (id.id != HTLexicon.prototype) {
+      prototypeId = IdentifierExpr(HTLexicon.prototype);
     }
     final savedStructId = _curStructId;
     _curStructId = id.id;
@@ -2192,7 +2194,7 @@ class HTParser extends HTAbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
-  StructObj _parseStructObj({bool hasKeyword = false}) {
+  StructObjExpr _parseStructObj({bool hasKeyword = false}) {
     IdentifierExpr? prototypeId;
     if (hasKeyword) {
       match(HTLexicon.STRUCT);
@@ -2200,6 +2202,8 @@ class HTParser extends HTAbstractParser {
         final idTok = match(SemanticNames.identifier);
         prototypeId = IdentifierExpr.fromToken(idTok);
       }
+    } else {
+      prototypeId = IdentifierExpr(HTLexicon.prototype);
     }
     // final internalName =
     //     '${SemanticNames.anonymousStruct}${HTParser.anonymousStructIndex++}';
@@ -2227,7 +2231,7 @@ class HTParser extends HTAbstractParser {
       }
     }
     match(HTLexicon.curlyRight);
-    return StructObj(fields,
+    return StructObjExpr(fields,
         prototypeId: prototypeId,
         source: _curSource,
         line: structBlockStartTok.line,

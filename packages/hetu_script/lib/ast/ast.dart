@@ -34,8 +34,6 @@ abstract class AstNode {
   /// Visit all the sub nodes of this, doing nothing by default.
   void subAccept(AbstractAstVisitor visitor) {}
 
-  bool get isStatic => false;
-
   AstNode(this.type,
       {this.source,
       this.line = 0,
@@ -1716,9 +1714,10 @@ class StructDecl extends AstNode {
             length: length);
 }
 
-class StructObj extends AstNode {
+class StructObjExpr extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitStructObj(this);
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitStructObjExpr(this);
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
@@ -1733,7 +1732,7 @@ class StructObj extends AstNode {
 
   final Map<String, AstNode> fields;
 
-  StructObj(
+  StructObjExpr(
       //this.internalName,
       this.fields,
       {this.prototypeId,

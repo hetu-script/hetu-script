@@ -63,7 +63,7 @@ abstract class HTOpCode {
 
   static const varDecl = 27;
 
-  static const structDecl = 27;
+  static const structDecl = 28;
 
   static const ifStmt = 30;
 

@@ -3,6 +3,8 @@ import '../../grammar/lexicon.dart';
 import '../entity.dart';
 import '../../type/type.dart';
 import '../function/function.dart';
+import '../../declaration/namespace/namespace.dart';
+import '../../value/const.dart';
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -61,7 +63,12 @@ class HTStruct with HTEntity {
 
   final fields = <String, dynamic>{};
 
-  HTStruct({this.id, this.prototype, Map<String, dynamic>? fields}) {
+  HTNamespace namespace;
+
+  HTStruct(HTNamespace closure,
+      {this.id, this.prototype, Map<String, dynamic>? fields})
+      : namespace = HTNamespace(id: id ?? HTLexicon.STRUCT, closure: closure) {
+    namespace.define(HTLexicon.THIS, HTConst(HTLexicon.THIS, value: this));
     if (fields != null) {
       this.fields.addAll(fields);
     }
@@ -90,6 +97,14 @@ class HTStruct with HTEntity {
     return false;
   }
 
+  void import(HTStruct other, {bool clone = false}) {
+    for (final key in other.fields.keys) {
+      if (!fields.keys.contains(key)) {
+        define(key, other.fields[key]);
+      }
+    }
+  }
+
   void define(String id, dynamic value,
       {bool override = false, bool error = true}) {
     fields[id] = value;
@@ -101,12 +116,16 @@ class HTStruct with HTEntity {
 
   @override
   dynamic memberGet(String varName) {
+    dynamic value;
     if (fields.containsKey(varName)) {
-      return fields[varName];
+      value = fields[varName];
+    } else if (prototype != null) {
+      value = prototype!.memberGet(varName);
     }
-    if (prototype != null) {
-      return prototype!.memberGet(varName);
+    if (value is HTFunction) {
+      value.namespace = namespace;
     }
+    return value;
   }
 
   @override

@@ -18,7 +18,6 @@ import '../parser/parse_result_compilation.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
 // import 'type_checker.dart';
-import '../declaration/struct/struct_declaration.dart';
 import '../grammar/semantic.dart';
 // import '../ast/visitor/recursive_ast_visitor.dart';
 
@@ -468,22 +467,24 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curLine = stmt.line;
     _curColumn = stmt.column;
     stmt.id.accept(this);
-    final savedCurNamespace = _curNamespace;
-    _curNamespace = HTNamespace(id: stmt.id.id, closure: _curNamespace);
-    analyzeAst(stmt.definition);
-    stmt.declaration = HTStructDeclaration(_curNamespace,
-        id: stmt.id.id,
-        closure: savedCurNamespace,
-        source: _curSource,
-        prototypeId: stmt.prototypeId?.id,
-        isTopLevel: stmt.isTopLevel,
-        isExported: stmt.isExported);
-    _curNamespace = savedCurNamespace;
-    _curNamespace.define(stmt.id.id, stmt.declaration!);
+    // final savedCurNamespace = _curNamespace;
+    // _curNamespace = HTNamespace(id: stmt.id.id, closure: _curNamespace);
+    for (final node in stmt.definition) {
+      node.accept(this);
+    }
+    // stmt.declaration = HTStructDeclaration(_curNamespace,
+    //     id: stmt.id.id,
+    //     closure: savedCurNamespace,
+    //     source: _curSource,
+    //     prototypeId: stmt.prototypeId?.id,
+    //     isTopLevel: stmt.isTopLevel,
+    //     isExported: stmt.isExported);
+    // _curNamespace = savedCurNamespace;
+    // _curNamespace.define(stmt.id.id, stmt.declaration!);
   }
 
   @override
-  void visitStructObj(StructObj obj) {
+  void visitStructObjExpr(StructObjExpr obj) {
     _curLine = obj.line;
     _curColumn = obj.column;
     // TODO: analyze struct object

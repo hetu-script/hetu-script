@@ -716,14 +716,20 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitStructDecl(StructDecl stmt) {
     final output = StringBuffer();
-    output.writeln('${HTLexicon.STRUCT} ${stmt.id} ');
-    final blockString = visitBlockStmt(stmt.definition);
-    output.write(blockString);
+    output.writeln('${HTLexicon.STRUCT} ${stmt.id} ${HTLexicon.curlyLeft}');
+    ++_curIndentCount;
+    for (var i = 0; i < stmt.definition.length; ++i) {
+      final valueString = formatAst(stmt.definition[i]);
+      output.writeln(valueString);
+    }
+    --_curIndentCount;
+    output.write(curIndent);
+    output.write(HTLexicon.curlyRight);
     return output.toString();
   }
 
   @override
-  String visitStructObj(StructObj obj) {
+  String visitStructObjExpr(StructObjExpr obj) {
     final output = StringBuffer();
     output.writeln(HTLexicon.curlyLeft);
     ++_curIndentCount;

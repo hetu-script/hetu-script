@@ -10,15 +10,15 @@ void main() {
         name: 'jimmy',
         age: 17
       }
-      var team = {
-        number: 1
-      }
-      team.leader = jimmy
-      print(team.toString())
+      // var team = {
+      //   number: 1
+      // }
+      // team.leader = jimmy
+      print(jimmy.toString())
       
-      jimmy.doubleIt = (x) { return x * 2 }
+      // jimmy.doubleIt = (x) { return x * 2 }
 
-      print(jimmy.doubleIt(42))
+      // print(jimmy.doubleIt(42))
       
     }
   ''');

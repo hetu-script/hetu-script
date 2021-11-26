@@ -241,7 +241,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitStructObj(StructObj obj) {
+  HTType? visitStructObjExpr(StructObjExpr obj) {
     return HTType.ANY;
   }
 }

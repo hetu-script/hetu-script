@@ -15,6 +15,7 @@ import 'parameter.dart';
 import '../../declaration/function/function_declaration.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
 import '../entity.dart';
+import '../const.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
@@ -222,18 +223,12 @@ class HTFunction extends HTFunctionDeclaration
         if (namespace is HTInstanceNamespace) {
           final instanceNamespace = namespace as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
-            callClosure.define(
-                HTLexicon.SUPER,
-                HTVariable(
-                    HTLexicon.SUPER, interpreter, moduleFullName, libraryName,
-                    value: instanceNamespace.next));
+            callClosure.define(HTLexicon.SUPER,
+                HTConst(HTLexicon.SUPER, value: instanceNamespace.next));
           }
 
-          callClosure.define(
-              HTLexicon.THIS,
-              HTVariable(
-                  HTLexicon.THIS, interpreter, moduleFullName, libraryName,
-                  value: instanceNamespace));
+          callClosure.define(HTLexicon.THIS,
+              HTConst(HTLexicon.THIS, value: instanceNamespace));
         }
 
         if (category == FunctionCategory.constructor &&
