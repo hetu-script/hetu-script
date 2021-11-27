@@ -131,33 +131,44 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   /// Get a value of a static member from this [HTClass].
   @override
   dynamic memberGet(String varName,
-      {bool recursive = true, bool error = true}) {
+      {bool recursive = true, bool error = true, bool internal = false}) {
     final getter = '${SemanticNames.getter}$varName';
     final constructor = varName != id
         ? '${SemanticNames.constructor}$varName'
         : SemanticNames.constructor;
 
-    if (namespace.declarations.containsKey(varName)) {
-      final decl = namespace.declarations[varName]!;
-      if (isExternal) {
-        return decl.value;
-      } else {
-        if (decl.isStatic) {
+    if (isExternal && !internal) {
+      final externClass = interpreter.fetchExternalClass(id!);
+      final value = externClass.memberGet('$id.$varName');
+      return value;
+    } else {
+      if (namespace.declarations.containsKey(varName)) {
+        final decl = namespace.declarations[varName]!;
+        if (isExternal) {
           return decl.value;
+        } else {
+          if (decl.isStatic) {
+            return decl.value;
+          }
         }
-      }
-    } else if (namespace.declarations.containsKey(getter)) {
-      final decl = namespace.declarations[getter]!;
-      final func = decl as HTFunction;
-      if (isExternal) {
-        return func.call();
-      } else {
-        if (decl.isStatic) {
+      } else if (namespace.declarations.containsKey(getter)) {
+        final decl = namespace.declarations[getter]!;
+        final func = decl as HTFunction;
+        if (isExternal) {
           return func.call();
+        } else {
+          if (decl.isStatic) {
+            return func.call();
+          }
         }
+      } else if (namespace.declarations.containsKey(constructor)) {
+        return namespace.declarations[constructor]!.value as HTFunction;
       }
-    } else if (namespace.declarations.containsKey(constructor)) {
-      return namespace.declarations[constructor]!.value as HTFunction;
+
+      if (superClass != null) {
+        return superClass!.memberGet(varName,
+            recursive: recursive, error: error, internal: internal);
+      }
     }
 
     if (error) {
@@ -228,14 +239,4 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       }
     }
   }
-
-  /// Add a instance member declaration to this [HTClass].
-  // void defineInstanceMember(String id, HTDeclaration decl,
-  //     {bool override = false, bool error = true}) {
-  //   if ((!instanceMembers.containsKey(id)) || override) {
-  //     instanceMembers[id] = decl;
-  //   } else {
-  //     if (error) throw HTError.definedRuntime(id);
-  //   }
-  // }
 }

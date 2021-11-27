@@ -709,27 +709,55 @@ class HTParser extends HTAbstractParser {
         }
         final op = advance(1);
         final right = _parseExpr();
-        if (left is MemberExpr) {
-          return MemberAssignExpr(left.object, left.key, right,
-              source: _curSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
-        } else if (left is SubExpr) {
-          return SubAssignExpr(left.array, left.key, right,
-              source: _curSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
+        if (op.type == HTLexicon.assign) {
+          if (left is MemberExpr) {
+            return MemberAssignExpr(left.object, left.key, right,
+                source: _curSource,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: curTok.offset - left.offset);
+          } else if (left is SubExpr) {
+            return SubAssignExpr(left.object, left.key, right,
+                source: _curSource,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: curTok.offset - left.offset);
+          } else {
+            return BinaryExpr(left, op.lexeme, right,
+                source: _curSource,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: curTok.offset - left.offset);
+          }
         } else {
-          return BinaryExpr(left, op.lexeme, right,
-              source: _curSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
+          if (left is MemberExpr) {
+            return MemberAssignExpr(left.object, left.key,
+                BinaryExpr(left, op.lexeme.substring(0, 1), right),
+                source: _curSource,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: curTok.offset - left.offset);
+          } else if (left is SubExpr) {
+            return SubAssignExpr(left.object, left.key,
+                BinaryExpr(left, op.lexeme.substring(0, 1), right),
+                source: _curSource,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: curTok.offset - left.offset);
+          } else {
+            return BinaryExpr(left, op.lexeme,
+                BinaryExpr(left, op.lexeme.substring(0, 1), right),
+                source: _curSource,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: curTok.offset - left.offset);
+          }
         }
       } else {
         return left;
@@ -2216,12 +2244,42 @@ class HTParser extends HTAbstractParser {
     //     '${SemanticNames.anonymousStruct}${HTParser.anonymousStructIndex++}';
     final structBlockStartTok = match(HTLexicon.curlyLeft);
     final fields = <String, AstNode>{};
+    var commentIndex = 0;
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != SemanticNames.endOfFile) {
       final idTok = advance(1);
-      final id = idTok.lexeme;
-      if (idTok.type != SemanticNames.identifier &&
-          idTok.type != SemanticNames.stringLiteral) {
+      if (idTok.type == SemanticNames.identifier ||
+          idTok.type == SemanticNames.stringLiteral) {
+        final id = idTok.lexeme;
+        match(HTLexicon.colon);
+        final initializer = _parseExpr();
+        fields[id] = initializer;
+        if (curTok.type != HTLexicon.curlyRight) {
+          match(HTLexicon.comma);
+        }
+      } else if (idTok.type == SemanticNames.singleLineComment) {
+        final node = CommentExpr(idTok.literal,
+            isMultiline: false,
+            isDocumentation: idTok.lexeme
+                .startsWith(HTLexicon.singleLineCommentDocumentationPattern),
+            source: _curSource,
+            line: idTok.line,
+            column: idTok.column,
+            offset: idTok.offset,
+            length: idTok.length);
+        fields['${SemanticNames.comment}${commentIndex++}'] = node;
+      } else if (idTok.type == SemanticNames.multiLineComment) {
+        final node = CommentExpr(idTok.literal,
+            isMultiline: true,
+            isDocumentation: idTok.lexeme
+                .startsWith(HTLexicon.multiLineCommentDocumentationPattern),
+            source: _curSource,
+            line: idTok.line,
+            column: idTok.column,
+            offset: idTok.offset,
+            length: idTok.length);
+        fields['${SemanticNames.comment}${commentIndex++}'] = node;
+      } else {
         final err = HTError.structMemberId(
             moduleFullName: _curModuleFullName,
             line: idTok.line,
@@ -2229,12 +2287,6 @@ class HTParser extends HTAbstractParser {
             offset: idTok.offset,
             length: idTok.length);
         errors.add(err);
-      }
-      match(HTLexicon.colon);
-      final initializer = _parseExpr();
-      fields[id] = initializer;
-      if (curTok.type != HTLexicon.curlyRight) {
-        match(HTLexicon.comma);
       }
     }
     match(HTLexicon.curlyRight);

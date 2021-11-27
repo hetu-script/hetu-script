@@ -15,15 +15,15 @@ import '../type/type.dart';
 import '../value/function/function.dart';
 import '../declaration/namespace/namespace.dart';
 import '../parser/abstract_parser.dart';
-import 'buildin//hetu_lib.dart';
 import '../value/entity.dart';
 import '../value/instance/instance.dart';
 import 'compiler.dart';
 import '../value/struct/struct.dart';
 
-part 'buildin/buildin_class.dart';
-part 'buildin/buildin_function.dart';
-part 'buildin/buildin_instance.dart';
+part 'preinclude/preinclude_modules.dart';
+part 'preinclude/preinclude_functions.dart';
+part 'preinclude/class_binding.dart';
+part 'preinclude/instance_binding.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -86,23 +86,23 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   @mustCallSuper
   void init(
-      {Map<String, String> preIncludes = const {},
+      {Map<String, String> includes = const {},
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) {
     try {
-      bindExternalFunction('object.toString', HTInstance.stringify);
-
       // load classes and functions in core library.
-      for (final file in builtInModules.keys) {
-        eval(builtInModules[file]!,
-            moduleFullName: file,
-            globallyImport: true,
-            type: SourceType.module);
+      for (final file in preIncludeModules.keys) {
+        eval(
+          preIncludeModules[file]!,
+          moduleFullName: file,
+          globallyImport: true,
+          type: SourceType.module,
+        );
       }
-      for (var key in buildinFunctions.keys) {
-        bindExternalFunction(key, buildinFunctions[key]!);
+      for (var key in preIncludeFunctions.keys) {
+        bindExternalFunction(key, preIncludeFunctions[key]!);
       }
       bindExternalClass(HTNumberClass());
       bindExternalClass(HTIntegerClass());
@@ -115,8 +115,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTSystemClass());
       // bindExternalClass(HTConsoleClass());
 
-      for (final file in preIncludes.keys) {
-        eval(preIncludes[file]!,
+      for (final file in includes.keys) {
+        eval(includes[file]!,
             moduleFullName: file,
             // namespace: global,
             type: SourceType.module);

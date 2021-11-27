@@ -28,8 +28,9 @@ fun main {
 fun start(player_dex: num, enemy_dex: num) {
   print('战斗开始！')
 
-  player.initiative = 1000 / sqrt(player_dex) - 20
-  enemy.initiative = 1000 / sqrt(enemy_dex)
+  player.initiative = 1000 / Math.sqrt(player_dex) - 20
+  enemy.initiative = 1000 / Math.sqrt(enemy_dex)
+
 
   while ((player.vitality > 0) && (enemy.vitality > 0)) {
     if (player.initiative >= enemy.initiative) {
@@ -45,14 +46,14 @@ fun start(player_dex: num, enemy_dex: num) {
 
     if (next_char_name == 'player') {
       while (true) {
-        var input = Console.getln('输入指令(attack\ultimate)>')
-        if (input == 'attack') {
+        var input = Console.getln('输入指令(atk/ult)>')
+        if (input == 'atk') {
           player.initiative = player.initiative + 10
           enemy.vitality = enemy.vitality - 15
           print('你进行了攻击！')
           print('敌人生命减少15，现在为：' + enemy.vitality.toStringAsFixed(2))
           break
-        } else if (input == 'ultimate') {
+        } else if (input == 'ult') {
           player.initiative = player.initiative + 100
           enemy.vitality = enemy.vitality - 100
           print('你释放了大招！')

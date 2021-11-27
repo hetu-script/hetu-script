@@ -1,0 +1,67 @@
+fun calculateDamage(damage: num, defense: num) -> num {
+  if (defense <= 0) {
+    return damage;
+  } else {
+    return ((1 / (Math.log((defense + 5) / 100) + 5)) * 2 * damage);
+  }
+}
+
+fun checkTurn(timeframe: int, entity) {
+  return (timeframe / (entity.speed * 10)) % entity.speed == 0
+}
+
+fun attack(attacker, victim) {
+  print('-------------');
+  print('${attacker.name}发动普通攻击！')
+  final damage = calculateDamage(attacker.attack, victim.defense)
+  victim.health = victim.health - damage;
+  if (victim.health < 0) {
+    victim.health = 0
+  }
+  print('${victim.name}受到了 ${damage.toStringAsFixed(2)} 点伤害！当前生命：${victim.health.toStringAsFixed(2)}/${victim.life.toStringAsFixed(2)}')
+}
+
+fun main {
+
+  final player = {
+    id: '玩家',
+    name: '玲',
+    health: 15.0,
+    life: 15.0,
+    attack: 7.0,
+    defense: 5.0,
+    speed: 1.5
+  }
+
+  final enemy = {
+    id: '敌人',
+    name: '黑瀑',
+    health: 10.0,
+    life: 10.0,
+    attack: 4.0,
+    defense: 4.0,
+    speed: 2
+  }
+
+  print(player)
+  print(enemy)
+
+  // Console.getln('按回车键开始战斗！')
+
+  print('-------------');
+
+  var timeframe = 0
+
+  while (player.health > 0 && enemy.health > 0) {
+    ++timeframe
+
+    if (checkTurn(timeframe, player)) {
+      attack(player, enemy)
+    }
+
+    if (checkTurn(timeframe, enemy)) {
+      attack(enemy, player)
+    }
+  }
+
+}

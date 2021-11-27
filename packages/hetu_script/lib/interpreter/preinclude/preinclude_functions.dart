@@ -1,7 +1,7 @@
 part of '../abstract_interpreter.dart';
 
 /// Core exernal functions for use globally in Hetu script.
-final Map<String, Function> buildinFunctions = {
+final Map<String, Function> preIncludeFunctions = {
   // TODO: 读取注释
   'help': (
       {List<dynamic> positionalArgs = const [],
@@ -33,4 +33,5 @@ final Map<String, Function> buildinFunctions = {
       return HTStruct.jsonifyObject(object);
     }
   },
+  'object.toString': HTInstance.stringify
 };

@@ -5,7 +5,7 @@ abstract class HTOpCode {
   /// 1 byte of OpRandType, value
   static const local = 1;
 
-  /// reg index => reg[index] = local
+  /// reg index => reg[key] = local
   static const register = 2; // 1 byte of index
 
   /// copy from to => reg[to] = reg[from]
@@ -21,114 +21,112 @@ abstract class HTOpCode {
   /// ip = pos, distance could be negative
   static const goto = 6;
 
-  static const module = 7;
+  static const moveReg = 7;
 
-  static const singleComment = 8;
+  static const leftValue = 8;
 
-  static const multilineComment = 9;
+  static const loopPoint = 10;
 
-  static const leftValue = 10;
+  static const breakLoop = 11;
 
-  static const loopPoint = 11;
+  static const continueLoop = 12;
 
-  static const breakLoop = 12;
+  static const endOfStmt = 20;
 
-  static const continueLoop = 13;
+  static const endOfBlock = 21;
 
-  static const block = 14;
+  static const endOfExec = 22;
 
-  static const endOfBlock = 15;
+  static const endOfFunc = 23;
 
-  static const endOfStmt = 16;
+  static const endOfModule = 24;
 
-  static const endOfExec = 17;
+  static const ifStmt = 26;
 
-  static const endOfFunc = 18;
+  static const whileStmt = 27;
 
-  static const endOfModule = 19;
+  static const doStmt = 28;
 
-  static const constTable = 20;
+  static const whenStmt = 29;
 
-  static const libraryDecl = 21;
+  static const block = 30;
 
-  static const importDecl = 22;
+  static const module = 40;
 
-  static const namespaceDecl = 23;
+  static const constTable = 41;
 
-  static const typeAliasDecl = 24;
+  static const importDecl = 42;
 
-  static const funcDecl = 25;
+  static const libraryDecl = 43;
 
-  static const classDecl = 26;
+  static const namespaceDecl = 44;
 
-  static const varDecl = 27;
+  static const typeAliasDecl = 45;
 
-  static const structDecl = 28;
+  static const funcDecl = 46;
 
-  static const ifStmt = 30;
+  static const classDecl = 47;
 
-  static const whileStmt = 31;
+  static const varDecl = 48;
 
-  static const doStmt = 32;
+  static const structDecl = 49;
 
-  static const whenStmt = 33;
+  static const assign = 50; // 1 byte right value
 
-  static const assign = 40; // 1 byte right value
+  static const memberSet = 51;
 
-  static const memberSet = 41;
+  static const subSet = 52;
 
-  static const subSet = 42;
+  static const logicalOr = 53;
 
-  static const logicalOr = 43;
+  static const logicalAnd = 54;
 
-  static const logicalAnd = 44;
+  static const equal = 55;
 
-  static const equal = 45;
+  static const notEqual = 56;
 
-  static const notEqual = 46;
+  static const lesser = 57;
 
-  static const lesser = 47;
+  static const greater = 58;
 
-  static const greater = 48;
+  static const lesserOrEqual = 59;
 
-  static const lesserOrEqual = 49;
+  static const greaterOrEqual = 60;
 
-  static const greaterOrEqual = 50;
+  static const typeAs = 61;
 
-  static const typeAs = 51;
+  static const typeIs = 62;
 
-  static const typeIs = 52;
-
-  static const typeIsNot = 53;
+  static const typeIsNot = 63;
 
   /// add left right store => reg[store] = reg[left] + reg[right]
-  static const add = 54;
+  static const add = 64;
 
   /// subtract left right store => reg[store] = reg[left] + reg[right]
-  static const subtract = 55;
+  static const subtract = 65;
 
   /// multiply left right store => reg[store] = reg[left] * reg[right]
-  static const multiply = 56;
+  static const multiply = 66;
 
   /// devide left right store => reg[store] = reg[left] / reg[right]
-  static const devide = 57;
+  static const devide = 67;
 
   /// modulo left right store => reg[store] = reg[left] % reg[right]
-  static const modulo = 58;
+  static const modulo = 68;
 
   /// modulo value store => reg[store] = -reg[valueOf]
-  static const negative = 60;
+  static const negative = 69;
 
   /// modulo value store => reg[store] = !reg[valueOf]
-  static const logicalNot = 61;
+  static const logicalNot = 70;
 
-  static const typeOf = 62;
+  static const typeOf = 71;
 
-  static const memberGet = 65;
+  static const memberGet = 72;
 
-  static const subGet = 66;
+  static const subGet = 73;
 
-  static const call = 67;
+  static const call = 74;
 
   /// 4 bytes
   static const signature = 200;

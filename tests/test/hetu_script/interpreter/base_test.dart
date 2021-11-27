@@ -77,6 +77,22 @@ void main() {
         'kaine',
       );
     });
+    test('complex assign', () {
+      final result = hetu.eval(r'''
+        fun complexAssign() {
+          var jimmy = {
+            age: 17
+          }
+          jimmy.age -= 10
+          jimmy.age *= 6
+          return jimmy.age
+        }
+    ''', invokeFunc: 'complexAssign');
+      expect(
+        result,
+        42,
+      );
+    });
   });
 
   group('control flow -', () {

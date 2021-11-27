@@ -17,11 +17,12 @@ void main() {
 /// This file has been automatically generated 
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
-///
+part of '../abstract_interpreter.dart';
+
 /// The pre-included modules of Hetu scripting language.
-final Map<String, String> builtInModules = const {
+final Map<String, String> preIncludeModules = const {
 ''');
-  final file = File('lib/interpreter/buildin//hetu_lib.dart');
+  final file = File('lib/interpreter/preinclude/preinclude_modules.dart');
   for (final key in builtInModules.keys) {
     final data = File(builtInModules[key]!).readAsStringSync();
     output.writeln("  '$key': r'''" + data + "''',");

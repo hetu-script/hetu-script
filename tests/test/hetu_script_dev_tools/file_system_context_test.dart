@@ -9,16 +9,14 @@ void main() {
 
   group('module -', () {
     test('import 1', () {
-      final result =
-          hetu.evalFile('../script/import_test.ht', invokeFunc: 'importTest');
+      final result = hetu.evalFile('import_test.ht', invokeFunc: 'importTest');
       expect(
         result,
         87.5,
       );
     });
     test('import 2', () {
-      final result =
-          hetu.evalFile('../script/import_test2.ht', invokeFunc: 'main');
+      final result = hetu.evalFile('import_test2.ht', invokeFunc: 'main');
       expect(
         result,
         'Hello, world!',

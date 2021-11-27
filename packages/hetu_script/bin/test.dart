@@ -7,19 +7,22 @@ void main() {
   final source = HTSource(r'''
     fun test {
       var jimmy = {
-        name: 'jimmy',
+        // name: 'jimmy',
         age: 17
       }
-      var team = {
-        number: 1
-      }
-      team.leader = jimmy
+      // var team = {
+      //   number: 1
+      // }
+      // team.leader = jimmy
       // print(team.toString())
 
-      print(team)
+      jimmy.age = jimmy.age - 10
+
+      print(jimmy.age)
       
       // jimmy.doubleIt = (x) { return x * 2 }
       // print(jimmy.doubleIt(42))
+
     }
   ''');
 

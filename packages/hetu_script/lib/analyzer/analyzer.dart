@@ -331,29 +331,29 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitVarDecl(VarDecl stmt) {
     _curLine = stmt.line;
     _curColumn = stmt.column;
-    stmt.declaration = HTVariableDeclaration(stmt.id.id,
-        classId: stmt.classId,
-        closure: _curNamespace,
-        source: _curSource,
-        declType: HTType.fromAst(stmt.declType),
-        isExternal: stmt.isExternal,
-        isStatic: stmt.isStatic,
-        isConst: stmt.isConst,
-        isMutable: stmt.isMutable);
-    _curNamespace.define(stmt.id.id, stmt.declaration!);
+    // stmt.declaration = HTVariableDeclaration(stmt.id.id,
+    //     classId: stmt.classId,
+    //     closure: _curNamespace,
+    //     source: _curSource,
+    //     declType: HTType.fromAst(stmt.declType),
+    //     isExternal: stmt.isExternal,
+    //     isStatic: stmt.isStatic,
+    //     isConst: stmt.isConst,
+    //     isMutable: stmt.isMutable);
+    // _curNamespace.define(stmt.id.id, stmt.declaration!);
     stmt.subAccept(this);
   }
 
   @override
   void visitParamDecl(ParamDecl stmt) {
-    stmt.declaration = HTParameterDeclaration(stmt.id.id,
-        closure: _curNamespace,
-        source: _curSource,
-        declType: HTType.fromAst(stmt.declType),
-        isOptional: stmt.isOptional,
-        isNamed: stmt.isNamed,
-        isVariadic: stmt.isVariadic);
-    _curNamespace.define(stmt.id.id, stmt.declaration!);
+    // stmt.declaration = HTParameterDeclaration(stmt.id.id,
+    //     closure: _curNamespace,
+    //     source: _curSource,
+    //     declType: HTType.fromAst(stmt.declType),
+    //     isOptional: stmt.isOptional,
+    //     isNamed: stmt.isNamed,
+    //     isVariadic: stmt.isVariadic);
+    // _curNamespace.define(stmt.id.id, stmt.declaration!);
     stmt.subAccept(this);
   }
 
@@ -372,41 +372,41 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     }
     stmt.returnType?.accept(this);
     stmt.redirectingCtorCallExpr?.accept(this);
-    final namespace =
-        HTNamespace(id: stmt.internalName, closure: _curNamespace);
-    final savedCurNamespace = _curNamespace;
-    _curNamespace = namespace;
-    for (final arg in stmt.paramDecls) {
-      visitParamDecl(arg);
-    }
-    if (stmt.definition != null) {
-      analyzeAst(stmt.definition!);
-    }
-    _curNamespace = savedCurNamespace;
-    stmt.declaration = HTFunctionDeclaration(stmt.internalName,
-        id: stmt.id?.id,
-        classId: stmt.classId,
-        closure: _curNamespace,
-        source: _curSource,
-        isExternal: stmt.isExternal,
-        isStatic: stmt.isStatic,
-        isConst: stmt.isConst,
-        category: stmt.category,
-        externalTypeId: stmt.externalTypeId,
-        paramDecls: stmt.paramDecls.asMap().map((key, param) => MapEntry(
-            param.id.id,
-            HTParameterDeclaration(param.id.id,
-                closure: _curNamespace,
-                declType: HTType.fromAst(param.declType),
-                isOptional: param.isOptional,
-                isNamed: param.isNamed,
-                isVariadic: param.isVariadic))),
-        returnType: HTType.fromAst(stmt.returnType),
-        isVariadic: stmt.isVariadic,
-        minArity: stmt.minArity,
-        maxArity: stmt.maxArity,
-        namespace: namespace);
-    _curNamespace.define(stmt.internalName, stmt.declaration!);
+    // final namespace =
+    //     HTNamespace(id: stmt.internalName, closure: _curNamespace);
+    // final savedCurNamespace = _curNamespace;
+    // _curNamespace = namespace;
+    // for (final arg in stmt.paramDecls) {
+    //   visitParamDecl(arg);
+    // }
+    // if (stmt.definition != null) {
+    //   analyzeAst(stmt.definition!);
+    // }
+    // _curNamespace = savedCurNamespace;
+    // stmt.declaration = HTFunctionDeclaration(stmt.internalName,
+    //     id: stmt.id?.id,
+    //     classId: stmt.classId,
+    //     closure: _curNamespace,
+    //     source: _curSource,
+    //     isExternal: stmt.isExternal,
+    //     isStatic: stmt.isStatic,
+    //     isConst: stmt.isConst,
+    //     category: stmt.category,
+    //     externalTypeId: stmt.externalTypeId,
+    //     paramDecls: stmt.paramDecls.asMap().map((key, param) => MapEntry(
+    //         param.id.id,
+    //         HTParameterDeclaration(param.id.id,
+    //             closure: _curNamespace,
+    //             declType: HTType.fromAst(param.declType),
+    //             isOptional: param.isOptional,
+    //             isNamed: param.isNamed,
+    //             isVariadic: param.isVariadic))),
+    //     returnType: HTType.fromAst(stmt.returnType),
+    //     isVariadic: stmt.isVariadic,
+    //     minArity: stmt.minArity,
+    //     maxArity: stmt.maxArity,
+    //     namespace: namespace);
+    // _curNamespace.define(stmt.internalName, stmt.declaration!);
   }
 
   @override
@@ -424,28 +424,28 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     for (final withType in stmt.withTypes) {
       visitTypeExpr(withType);
     }
-    final decl = HTClassDeclaration(
-        id: stmt.id.id,
-        classId: stmt.classId,
-        closure: _curNamespace,
-        source: _curSource,
-        genericTypeParameters: stmt.genericTypeParameters
-            .map((param) => HTGenericTypeParameter(param.id.id))
-            .toList(),
-        superType: HTType.fromAst(stmt.superType),
-        implementsTypes:
-            stmt.implementsTypes.map((param) => HTType.fromAst(param)),
-        withTypes: stmt.withTypes.map((param) => HTType.fromAst(param)),
-        isExternal: stmt.isExternal,
-        isAbstract: stmt.isAbstract,
-        isTopLevel: stmt.isTopLevel,
-        isExported: stmt.isExported);
-    final savedCurNamespace = _curNamespace;
-    stmt.declaration = decl;
-    _curNamespace = decl.namespace;
-    visitBlockStmt(stmt.definition);
-    _curNamespace = savedCurNamespace;
-    _curNamespace.define(stmt.id.id, decl);
+    // final decl = HTClassDeclaration(
+    //     id: stmt.id.id,
+    //     classId: stmt.classId,
+    //     closure: _curNamespace,
+    //     source: _curSource,
+    //     genericTypeParameters: stmt.genericTypeParameters
+    //         .map((param) => HTGenericTypeParameter(param.id.id))
+    //         .toList(),
+    //     superType: HTType.fromAst(stmt.superType),
+    //     implementsTypes:
+    //         stmt.implementsTypes.map((param) => HTType.fromAst(param)),
+    //     withTypes: stmt.withTypes.map((param) => HTType.fromAst(param)),
+    //     isExternal: stmt.isExternal,
+    //     isAbstract: stmt.isAbstract,
+    //     isTopLevel: stmt.isTopLevel,
+    //     isExported: stmt.isExported);
+    // final savedCurNamespace = _curNamespace;
+    // stmt.declaration = decl;
+    // _curNamespace = decl.namespace;
+    // visitBlockStmt(stmt.definition);
+    // _curNamespace = savedCurNamespace;
+    // _curNamespace.define(stmt.id.id, decl);
   }
 
   @override
@@ -453,13 +453,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curLine = stmt.line;
     _curColumn = stmt.column;
     visitIdentifierExpr(stmt.id);
-    stmt.declaration = HTClassDeclaration(
-        id: stmt.id.id,
-        classId: stmt.classId,
-        closure: _curNamespace,
-        source: _curSource,
-        isExternal: stmt.isExternal);
-    _curNamespace.define(stmt.id.id, stmt.declaration!);
+    // stmt.declaration = HTClassDeclaration(
+    //     id: stmt.id.id,
+    //     classId: stmt.classId,
+    //     closure: _curNamespace,
+    //     source: _curSource,
+    //     isExternal: stmt.isExternal);
+    // _curNamespace.define(stmt.id.id, stmt.declaration!);
   }
 
   @override

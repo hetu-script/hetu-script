@@ -1,19 +1,21 @@
-/// This file has been automatically generated 
+/// This file has been automatically generated
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
-///
-/// The pre-included modules of Hetu scripting language.
-final Map<String, String> builtInModules = const {
-  'hetu:core': r'''// print values of any type into lines
-external fun print(... args)
+part of '../abstract_interpreter.dart';
 
-external fun stringify(obj)
+/// The pre-included modules of Hetu scripting language.
+final Map<String, String> preIncludeModules = const {
+  'hetu:core': r'''// print values of any type into lines
+external fun print(... args: any)
+
+external fun stringify(obj: any)
+
+// TODO: obj's type here should be '{}' (empty interface)
+external fun jsonify(obj)
 
 abstract class object {
   external fun toString()
 }
-
-external fun jsonify(obj)
 
 struct prototype {
   fun toString() => stringify(this)

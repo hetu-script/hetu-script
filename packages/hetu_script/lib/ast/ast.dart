@@ -703,15 +703,15 @@ class SubExpr extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    array.accept(visitor);
+    object.accept(visitor);
     key.accept(visitor);
   }
 
-  final AstNode array;
+  final AstNode object;
 
   final AstNode key;
 
-  SubExpr(this.array, this.key,
+  SubExpr(this.object, this.key,
       {HTSource? source,
       int line = 0,
       int column = 0,

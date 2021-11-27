@@ -2,7 +2,7 @@ part of hetu_script_flutter;
 
 extension HTFlutterExtension on Hetu {
   Future<void> initFlutter(
-      {Map<String, String> preIncludes = const {},
+      {Map<String, String> includes = const {},
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
@@ -13,7 +13,7 @@ extension HTFlutterExtension on Hetu {
     sourceContext = assetsContext;
 
     init(
-        preIncludes: preIncludes,
+        includes: includes,
         externalClasses: externalClasses,
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef);

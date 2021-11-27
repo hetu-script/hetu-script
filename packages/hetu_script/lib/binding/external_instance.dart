@@ -50,7 +50,8 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
       if (member is Function) {
         // final getter = '${SemanticNames.getter}$varName';
         // if (klass!.namespace.declarations.containsKey(varName)) {
-        HTFunction func = klass!.memberGet(varName, recursive: false);
+        HTFunction func =
+            klass!.memberGet(varName, recursive: false, internal: true);
         func.externalFunc = member;
         return func;
         // } else if (klass!.namespace.declarations.containsKey(getter)) {

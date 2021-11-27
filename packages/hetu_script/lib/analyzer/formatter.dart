@@ -309,7 +309,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitSubExpr(SubExpr expr) {
-    final collectionString = formatAst(expr.array);
+    final collectionString = formatAst(expr.object);
     final keyString = formatAst(expr.key);
     return '$collectionString${HTLexicon.squareLeft}$keyString${HTLexicon.squareRight}';
   }

@@ -144,16 +144,16 @@ class Hetu extends HTAbstractInterpreter {
 
   @override
   void init(
-      {Map<String, String> preIncludes = const {},
+      {Map<String, String> includes = const {},
       List<HTExternalClass> externalClasses = const [],
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) {
     if (config.doStaticAnalyze) {
-      analyzer.init(preIncludes: preIncludes);
+      analyzer.init(includes: includes);
     }
     super.init(
-        preIncludes: preIncludes,
+        includes: includes,
         externalClasses: externalClasses,
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef);
