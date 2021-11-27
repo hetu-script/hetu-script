@@ -1,5 +1,5 @@
 language: dart
-before_install: cd packages/hetu_script
+before_install: cd tests
 dart_task:
   - dartfmt
   - dartanalyzer: lib

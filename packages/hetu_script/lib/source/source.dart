@@ -7,8 +7,6 @@ import '../grammar/semantic.dart';
 import '../util/crc32b.dart';
 import 'line_info.dart';
 
-const hetuSouceFileExtension = '.ht';
-
 /// Code module types
 enum SourceType {
   /// An expression.
@@ -34,6 +32,8 @@ enum SourceType {
 
 class HTSource {
   static const _anonymousScriptNameLengthLimit = 72;
+
+  static const hetuSouceFileExtension = '.ht';
 
   late String name;
   String get basename => path.basename(name);

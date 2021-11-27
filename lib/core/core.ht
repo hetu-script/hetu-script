@@ -3,10 +3,15 @@ external fun print(... args: any)
 
 external fun stringify(obj: any)
 
+// TODO: obj's type here should be '{}' (empty interface)
+external fun jsonify(obj)
+
 abstract class object {
-  external fun toString
+  external fun toString()
 }
 
 struct prototype {
-  fun toString => stringify(this)
+  fun toString() => stringify(this)
+
+  fun toJson() => jsonify(this)
 }

@@ -1,7 +1,6 @@
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../entity.dart';
-import '../../type/type.dart';
 import '../function/function.dart';
 import '../../declaration/namespace/namespace.dart';
 import '../../value/const.dart';
@@ -25,24 +24,49 @@ class HTStruct with HTEntity {
     return output.toString();
   }
 
-  static String stringify(HTEntity object,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    final struct = object as HTStruct;
+  static Map<String, dynamic> jsonify(HTStruct struct) {
+    final output = <String, dynamic>{};
+    for (final key in struct.fields.keys) {
+      if (!key.startsWith(SemanticNames.internalMarker)) {
+        var value = struct.fields[key];
+        if (value is HTStruct) {
+          value = jsonify(value);
+        }
+        output[key] = value;
+      }
+    }
+    if (struct.prototype != null &&
+        struct.prototype!.id != HTLexicon.prototype) {
+      final inherits = jsonify(struct.prototype!);
+      output.addAll(inherits);
+    }
+    return output;
+  }
+
+  /// Print all members of a struct object.
+  static String stringify(HTStruct struct, {HTStruct? from}) {
     final output = StringBuffer();
-    output.writeln(HTLexicon.curlyLeft);
+    // output.writeln(HTLexicon.curlyLeft);
     ++_curIndentCount;
     for (var i = 0; i < struct.fields.length; ++i) {
       final key = struct.fields.keys.elementAt(i);
+      if (from != null && from != struct) {
+        if (from.contains(key)) {
+          continue;
+        }
+      }
       if (!key.startsWith(SemanticNames.internalMarker)) {
         output.write(_curIndent());
         final value = struct.fields[key];
-        String valueString;
+        final valueString = StringBuffer();
         if (value is HTStruct) {
-          valueString = stringify(value);
+          final content = stringify(value, from: from);
+          valueString.writeln(HTLexicon.curlyLeft);
+          valueString.write(content);
+          valueString.write(_curIndent());
+          valueString.write(HTLexicon.curlyRight);
         } else {
-          valueString = value.toString();
+          valueString.write(value);
         }
         output.write('$key${HTLexicon.colon} $valueString');
         if (i < struct.fields.length - 1) {
@@ -52,8 +76,13 @@ class HTStruct with HTEntity {
       }
     }
     --_curIndentCount;
-    output.write(_curIndent());
-    output.write(HTLexicon.curlyRight);
+    if (struct.prototype != null &&
+        struct.prototype!.id != HTLexicon.prototype) {
+      final inherits = stringify(struct.prototype!);
+      output.write(inherits);
+    }
+    // output.write(_curIndent());
+    // output.write(HTLexicon.curlyRight);
     return output.toString();
   }
 
@@ -76,7 +105,7 @@ class HTStruct with HTEntity {
   }
 
   @override
-  String toString() => stringify(this);
+  String toString() => stringify(this, from: this);
 
   @override
   bool contains(String varName, {bool recursive = true}) {

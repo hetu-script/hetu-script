@@ -1,0 +1,5 @@
+import 'hello.ht' as h
+
+fun main {
+  return h.hello()
+}

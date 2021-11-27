@@ -1,0 +1,9 @@
+fun getBeauty(x: num, cuteness: num, sexy: num) -> num {
+  var a = Math.min(cuteness, sexy)
+  var b = Math.max(cuteness, sexy)
+  if (x < ((a + b) / 2)) {
+    return (-(x - a) * (x - a)) / 50 + 100
+  } else {
+    return (-(x - b) * (x - b)) / 50 + 100
+  }
+}

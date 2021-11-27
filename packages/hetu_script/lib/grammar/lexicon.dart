@@ -189,6 +189,7 @@ abstract class HTLexicon {
     NULL,
     TRUE,
     FALSE,
+    EXPORT,
     VAR,
     FINAL,
     CONST,

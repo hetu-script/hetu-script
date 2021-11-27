@@ -1,0 +1,80 @@
+// Document information
+
+import    'utility.ht' 
+  as util 
+    show isEqual
+
+// docs of class
+external abstract class Animal {
+  static var race: str; // trailing comment
+
+  construct (race: str) {
+    this.race = race;
+  }
+}
+
+class Converser {
+
+  // docs of method
+  fun talk    (other: 
+    Converser) {}
+}
+
+class Profile {
+  var name: str;
+}
+
+class Person extends Animal   {
+  var name: str
+  construct (name: str):  super(name) {
+    this.name = name
+  }
+  fun greeting {
+    print   ('Hi! I\'m'  ,   name)
+  }
+}
+
+// This is where the script starts executing.
+fun main {
+  fun nested ([arg: str = 'catchya'])  ->void { const cc = arg return cc;// comment in block  } 
+
+  if (nested() == -1) 
+    main();
+      else return 1 + 1;;;;;
+
+  (fun (num) { return num * num   
+  }) ();
+
+  for (var i = 0; i< max ; i *= 5) {
+        expect  (value: true);
+  }
+
+// comment in block
+
+  while {
+    i++
+            break
+    do    {
+      continue
+
+    } while (value is! bool)
+  }
+
+  when (true) {
+    1 ->   '1'
+    2 -> {
+      return [
+        1,
+        2,
+        3
+      ]
+    }
+    else -> print(  { "name": "Kevin",
+    
+    
+    "age": 16}, 7> 2 ? true : cal(42))
+  }
+
+  var ht = Person('Hetu')
+  ht.greeting()
+}

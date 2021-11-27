@@ -382,6 +382,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.add(_lineInfo(obj.line, obj.column));
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.struct);
+    if (obj.id != null) {
+      bytesBuilder.addByte(1); // bool: has prototype
+      bytesBuilder.add(_shortUtf8String(obj.id!));
+    } else {
+      bytesBuilder.addByte(0); // bool: has prototype
+    }
     if (obj.prototypeId != null) {
       bytesBuilder.addByte(1); // bool: has prototype
       bytesBuilder.add(_shortUtf8String(obj.prototypeId!.id));
@@ -1651,7 +1657,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final staticBytes =
         compileAst(StructObjExpr(staticFields), endOfExec: true);
     final structBytes = compileAst(
-        StructObjExpr(fields, prototypeId: stmt.prototypeId),
+        StructObjExpr(fields, id: stmt.id.id, prototypeId: stmt.prototypeId),
         endOfExec: true);
     bytesBuilder.add(_uint16(staticBytes.length));
     bytesBuilder.add(staticBytes);

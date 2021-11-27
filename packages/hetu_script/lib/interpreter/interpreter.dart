@@ -388,7 +388,7 @@ class Hetu extends HTAbstractInterpreter {
             }
           }
         }
-        _curNamespace = _curLibrary.declarations[libraryName]!;
+        _curNamespace = _curLibrary.declarations.values.last;
         if (globallyImport) {
           global.import(_curNamespace);
         }
@@ -794,13 +794,18 @@ class Hetu extends HTAbstractInterpreter {
         _curValue = list;
         break;
       case HTValueTypeCode.struct:
+        String? id;
+        final hasId = _curLibrary.readBool();
+        if (hasId) {
+          id = _curLibrary.readShortUtf8String();
+        }
         HTStruct? prototype;
         final hasPrototypeId = _curLibrary.readBool();
         if (hasPrototypeId) {
           final prototypeId = _curLibrary.readShortUtf8String();
           prototype = _curNamespace.memberGet(prototypeId);
         }
-        final struct = HTStruct(_curNamespace, prototype: prototype);
+        final struct = HTStruct(_curNamespace, id: id, prototype: prototype);
         final fieldsCount = _curLibrary.read();
         for (var i = 0; i < fieldsCount; ++i) {
           final key = _curLibrary.readShortUtf8String();

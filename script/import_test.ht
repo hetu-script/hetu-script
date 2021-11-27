@@ -1,0 +1,24 @@
+import 'tool/person.ht'
+import 'tool/beauty.ht'
+import 'tool/class_decl.ht'
+
+class Jimmy extends Person {
+  var age = 17
+  construct {
+    name = 'Jimmy'
+  }
+  fun greeting {
+    print("Hi! I'm", name)
+  }
+}
+
+fun importTest {
+  var cal = Calculator(6, 7)
+
+  var j = Jimmy()
+
+  // print(cal.meaning())
+
+  return (getBeauty(cal.meaning(), j.age, 100))
+
+}

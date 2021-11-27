@@ -5,16 +5,20 @@
 /// The pre-included modules of Hetu scripting language.
 final Map<String, String> builtInModules = const {
   'hetu:core': r'''// print values of any type into lines
-external fun print(... args: any)
+external fun print(... args)
 
-external fun stringify(obj: any)
+external fun stringify(obj)
 
 abstract class object {
-  external fun toString
+  external fun toString()
 }
 
+external fun jsonify(obj)
+
 struct prototype {
-  fun toString => stringify(this)
+  fun toString() => stringify(this)
+
+  fun toJson() => jsonify(this)
 }''',
   'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
@@ -260,22 +264,6 @@ external class Map {
   // static fun tik()
 
   // static fun tok()
-}''',
-  'hetu:console': r'''external class Console {
-
-	// write a line without return
-	static fun write(line: str)
-	
-	// write a line ends with return
-	static fun writeln(line: str)
-	
-	static fun getln(info: str) -> str
-	
-	static fun eraseLine()
-	
-	static fun setTitle(title: str)
-	
-	static fun cls()
 }''',
   'hetu:math': r'''
 external class Math {

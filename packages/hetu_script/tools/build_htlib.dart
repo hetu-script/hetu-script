@@ -4,7 +4,6 @@ final Map<String, String> builtInModules = const {
   'hetu:core': '../../lib/core/core.ht',
   'hetu:value': '../../lib/core/value.ht',
   'hetu:system': '../../lib/core/system.ht',
-  'hetu:console': '../../lib/core/console.ht',
   'hetu:math': '../../lib/core/math.ht',
   'hetu:help': '../../lib/core/help.ht',
 };

@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Dart",
-      "program": "packages/hetu_script/test/test.dart",
+      "program": "packages/hetu_script/bin/test.dart",
       "request": "launch",
       "type": "dart"
     }

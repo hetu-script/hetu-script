@@ -1724,7 +1724,7 @@ class StructObjExpr extends AstNode {
     }
   }
 
-  // final String internalName;
+  final String? id;
 
   final IdentifierExpr? prototypeId;
 
@@ -1733,7 +1733,8 @@ class StructObjExpr extends AstNode {
   StructObjExpr(
       //this.internalName,
       this.fields,
-      {this.prototypeId,
+      {this.id,
+      this.prototypeId,
       HTSource? source,
       int line = 0,
       int column = 0,

@@ -14,7 +14,8 @@ class HTFilterConfig {
   final bool recursive;
 
   HTFilterConfig(this.folder,
-      {this.extention = const [hetuSouceFileExtension], this.recursive = true});
+      {this.extention = const [HTSource.hetuSouceFileExtension],
+      this.recursive = true});
 }
 
 /// [HTResourceContext] are a set of resources, each has a unique path.
@@ -24,16 +25,18 @@ class HTFilterConfig {
 abstract class HTResourceContext<T> {
   /// Get a unique absolute normalized path.
   static String getAbsolutePath(
-      {String key = '', String? dirName, String? fileName}) {
+      {String key = '',
+      String? dirName,
+      String? fileName,
+      bool isWindows = false}) {
     if (!path.isAbsolute(key) && dirName != null) {
       key = path.join(dirName, key);
     }
     if (fileName != null) {
       key = path.join(key, fileName);
     }
-    final normalized = Uri.file(key).normalizePath().path;
-    // if (Platform.isWindows && normalized.startsWith('/')) {
-    if (normalized.startsWith('/')) {
+    final normalized = Uri.file(key).path;
+    if (isWindows && normalized.startsWith('/')) {
       return normalized.substring(1);
     } else {
       return normalized;

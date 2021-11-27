@@ -23,4 +23,14 @@ final Map<String, Function> buildinFunctions = {
       List<HTType> typeArgs = const []}) {
     return positionalArgs.first.toString();
   },
+  'jsonify': (
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    // TODO: jsonify class
+    final object = positionalArgs.first;
+    if (object is HTStruct) {
+      return HTStruct.jsonify(object);
+    }
+  },
 };

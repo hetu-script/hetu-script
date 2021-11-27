@@ -3,7 +3,7 @@ import 'overlay_context.dart';
 
 class HTOverlayContextManager extends HTResourceManager<HTOverlayContext> {
   @override
-  final isSearchEnabled = false;
+  bool get isSearchEnabled => false;
 
   @override
   HTOverlayContext createContext(String root) {
