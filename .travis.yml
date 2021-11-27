@@ -1,6 +1,4 @@
 language: dart
 before_install: cd tests
 dart_task:
-  - dartfmt
-  - dartanalyzer: lib
   - test
