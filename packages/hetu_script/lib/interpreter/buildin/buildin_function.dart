@@ -30,7 +30,7 @@ final Map<String, Function> buildinFunctions = {
     // TODO: jsonify class
     final object = positionalArgs.first;
     if (object is HTStruct) {
-      return HTStruct.jsonify(object);
+      return HTStruct.jsonifyObject(object);
     }
   },
 };
