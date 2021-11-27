@@ -4,7 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as path;
 import 'package:hetu_script/hetu_script.dart';
 
-class HTAssetsSourceContext implements HTResourceContext<HTSource> {
+class HTAssetsSourceContext extends HTResourceContext<HTSource> {
   @override
   final String root;
 
@@ -44,8 +44,8 @@ class HTAssetsSourceContext implements HTResourceContext<HTSource> {
   }
 
   @override
-  bool contains(String name) {
-    return _cached.keys.contains(getFullName(name));
+  bool contains(String key) {
+    return _cached.keys.contains(getFullName(key));
   }
 
   @override
@@ -65,7 +65,7 @@ class HTAssetsSourceContext implements HTResourceContext<HTSource> {
       {String? from,
       SourceType type = SourceType.module,
       bool isLibraryEntry = false}) {
-    final normalized = HTResourceContext.getAbsolutePath(
+    final normalized = getAbsolutePath(
         key: key, dirName: from != null ? path.dirname(from) : root);
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;

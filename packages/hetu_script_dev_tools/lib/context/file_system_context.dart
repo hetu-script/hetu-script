@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:hetu_script/hetu_script.dart';
 
 /// [HTResourceContext] are a set of files and folders under a folder or a path.
-class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
+class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
   @override
   late final String root;
 
@@ -14,7 +14,16 @@ class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
 
   final Map<String, HTSource> _cached;
 
-  final isWindows = Platform.isWindows;
+  @override
+  String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
+    final normalized =
+        super.getAbsolutePath(key: key, dirName: dirName, fileName: fileName);
+    if (Platform.isWindows && normalized.startsWith('/')) {
+      return normalized.substring(1);
+    } else {
+      return normalized;
+    }
+  }
 
   HTFileSystemSourceContext(
       {String? root,
@@ -23,15 +32,13 @@ class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
       Map<String, HTSource>? cache})
       : _cached = cache ?? <String, HTSource>{} {
     root = root != null ? path.absolute(root) : path.current;
-    this.root = root =
-        HTResourceContext.getAbsolutePath(dirName: root, isWindows: isWindows);
+    this.root = root = getAbsolutePath(dirName: root);
     final dir = Directory(root);
     final folderFilter = HTFilterConfig(root);
     final entities = dir.listSync(recursive: true);
     for (final entity in entities) {
       if (entity is File) {
-        final fileFullName = HTResourceContext.getAbsolutePath(
-            key: entity.path, dirName: root, isWindows: isWindows);
+        final fileFullName = getAbsolutePath(key: entity.path, dirName: root);
         var isIncluded = false;
         if (includedFilter.isEmpty) {
           isIncluded = _filterFile(fileFullName, folderFilter);
@@ -62,16 +69,14 @@ class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
   }
 
   @override
-  bool contains(String fullName) {
-    final normalized = HTResourceContext.getAbsolutePath(
-        key: fullName, dirName: root, isWindows: isWindows);
+  bool contains(String key) {
+    final normalized = getAbsolutePath(key: key, dirName: root);
     return path.isWithin(root, normalized);
   }
 
   @override
   void addResource(String fullName, HTSource resource) {
-    final normalized = HTResourceContext.getAbsolutePath(
-        key: fullName, dirName: root, isWindows: isWindows);
+    final normalized = getAbsolutePath(key: fullName, dirName: root);
     resource.name = normalized;
     // final source = HTSource(content,
     //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
@@ -82,18 +87,15 @@ class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
 
   @override
   void removeResource(String fullName) {
-    final normalized = HTResourceContext.getAbsolutePath(
-        key: fullName, dirName: root, isWindows: isWindows);
+    final normalized = getAbsolutePath(key: fullName, dirName: root);
     _cached.remove(normalized);
     included.remove(normalized);
   }
 
   @override
   HTSource getResource(String key, {String? from}) {
-    final normalized = HTResourceContext.getAbsolutePath(
-        key: key,
-        dirName: from != null ? path.dirname(from) : root,
-        isWindows: isWindows);
+    final normalized = getAbsolutePath(
+        key: key, dirName: from != null ? path.dirname(from) : root);
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
     } else {
@@ -108,8 +110,7 @@ class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
 
   @override
   void updateResource(String fullName, HTSource resource) {
-    final normalized =
-        HTResourceContext.getAbsolutePath(key: fullName, isWindows: isWindows);
+    final normalized = getAbsolutePath(key: fullName);
     if (!_cached.containsKey(normalized)) {
       throw HTError.sourceProviderError(normalized);
     } else {
@@ -122,10 +123,9 @@ class HTFileSystemSourceContext implements HTResourceContext<HTSource> {
   // [fullPath] must be a normalized absolute path
   bool _filterFile(String fileName, HTFilterConfig filter) {
     final ext = path.extension(fileName);
-    final normalizedFilePath = HTResourceContext.getAbsolutePath(
-        key: fileName, dirName: root, isWindows: isWindows);
-    final normalizedFolderPath = HTResourceContext.getAbsolutePath(
-        key: filter.folder, dirName: root, isWindows: isWindows);
+    final normalizedFilePath = getAbsolutePath(key: fileName, dirName: root);
+    final normalizedFolderPath =
+        getAbsolutePath(key: filter.folder, dirName: root);
     if (path.isWithin(normalizedFolderPath, normalizedFilePath)) {
       if (filter.recursive) {
         return _checkExt(ext, filter.extention);

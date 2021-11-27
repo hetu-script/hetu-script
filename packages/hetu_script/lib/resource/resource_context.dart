@@ -24,11 +24,7 @@ class HTFilterConfig {
 /// create, read, update, delete services could be a resource context.
 abstract class HTResourceContext<T> {
   /// Get a unique absolute normalized path.
-  static String getAbsolutePath(
-      {String key = '',
-      String? dirName,
-      String? fileName,
-      bool isWindows = false}) {
+  String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
     if (!path.isAbsolute(key) && dirName != null) {
       key = path.join(dirName, key);
     }
@@ -36,11 +32,7 @@ abstract class HTResourceContext<T> {
       key = path.join(key, fileName);
     }
     final normalized = Uri.file(key).path;
-    if (isWindows && normalized.startsWith('/')) {
-      return normalized.substring(1);
-    } else {
-      return normalized;
-    }
+    return normalized;
   }
 
   /// Create a [HTFileSystemContext]
@@ -58,9 +50,9 @@ abstract class HTResourceContext<T> {
 
   Iterable<String> get included;
 
-  bool contains(String fullName);
+  bool contains(String key);
 
-  void addResource(String fullName, T content);
+  void addResource(String fullName, T resource);
 
   void removeResource(String fullName);
 
@@ -71,5 +63,5 @@ abstract class HTResourceContext<T> {
   /// Otherwise, a absolute path is calculated from [root]
   T getResource(String key, {String? from});
 
-  void updateResource(String fullName, T content);
+  void updateResource(String fullName, T resource);
 }

@@ -33,19 +33,19 @@ class HTAnalysisManager {
   }
 
   HTModuleParseResult? getParseResult(String fullName) {
-    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
-    return _parseResults[normalized];
+    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+    return _parseResults[fullName];
   }
 
   HTModuleAnalysisResult analyze(String fullName) {
-    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
-    final analyzer = _pathsToAnalyzer[normalized]!;
-    final source = sourceContextManager.getResource(normalized)!;
+    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+    final analyzer = _pathsToAnalyzer[fullName]!;
+    final source = sourceContextManager.getResource(fullName)!;
     final result = analyzer.evalSource(source);
     for (final module in analyzer.compilation.modules.values) {
       _parseResults[module.fullName] = module;
     }
-    _analysisResults[normalized] = result;
+    _analysisResults[fullName] = result;
     return result;
   }
 }

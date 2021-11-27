@@ -26,33 +26,33 @@ abstract class HTResourceManager<T extends HTResourceContext> {
 
   T createContext(String root);
 
-  bool hasResource(String key) {
-    final normalized = HTResourceContext.getAbsolutePath(key: key);
-    return _cachedSources.containsKey(normalized);
+  bool hasResource(String fullName) {
+    // final normalized = HTResourceContext.getAbsolutePath(key: key);
+    return _cachedSources.containsKey(fullName);
   }
 
   void addResource(String fullName, HTSource resource) {
     if (!path.isAbsolute(fullName)) {
       throw HTError.notAbsoluteError(fullName);
     }
-    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     for (final context in contexts) {
-      if (context.contains(normalized)) {
+      if (context.contains(fullName)) {
         // final source = context.addResource(normalized, content);
-        _cachedSources[normalized] = resource;
+        _cachedSources[fullName] = resource;
         if (onRootsUpdated != null) {
           onRootsUpdated!();
         }
         return;
       }
     }
-    final root = path.dirname(normalized);
+    final root = path.dirname(fullName);
     final context = createContext(root);
     _contextRoots[context.root] = context;
     // final source = context.addResource(normalized, resource,
     //     type: type, isLibraryEntry: isLibraryEntry);
-    context.addResource(normalized, resource);
-    _cachedSources[normalized] = resource;
+    context.addResource(fullName, resource);
+    _cachedSources[fullName] = resource;
     if (onRootsUpdated != null) {
       onRootsUpdated!();
     }
@@ -60,24 +60,24 @@ abstract class HTResourceManager<T extends HTResourceContext> {
   }
 
   void removeResource(String fullName) {
-    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     for (final context in contexts) {
-      if (context.contains(normalized)) {
-        context.removeResource(normalized);
+      if (context.contains(fullName)) {
+        context.removeResource(fullName);
       }
     }
   }
 
   /// Try to get a source by a unique key.
   HTSource? getResource(String fullName, {bool reload = false}) {
-    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
-    if (_cachedSources.containsKey(normalized) && !reload) {
-      return _cachedSources[normalized]!;
+    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+    if (_cachedSources.containsKey(fullName) && !reload) {
+      return _cachedSources[fullName]!;
     } else if (isSearchEnabled) {
       for (final root in _contextRoots.keys) {
-        if (path.isWithin(root, normalized)) {
+        if (path.isWithin(root, fullName)) {
           final context = _contextRoots[root]!;
-          final source = context.getResource(normalized);
+          final source = context.getResource(fullName);
           return source;
         }
       }
@@ -85,15 +85,15 @@ abstract class HTResourceManager<T extends HTResourceContext> {
   }
 
   void updateResource(String fullName, String content) {
-    final normalized = HTResourceContext.getAbsolutePath(key: fullName);
-    if (_cachedSources.containsKey(normalized)) {
-      final source = _cachedSources[normalized]!;
+    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+    if (_cachedSources.containsKey(fullName)) {
+      final source = _cachedSources[fullName]!;
       source.content = content;
     } else if (isSearchEnabled) {
       for (final root in _contextRoots.keys) {
-        if (path.isWithin(root, normalized)) {
+        if (path.isWithin(root, fullName)) {
           final context = _contextRoots[root]!;
-          context.updateResource(normalized, content);
+          context.updateResource(fullName, content);
           break;
         }
       }
@@ -105,7 +105,7 @@ abstract class HTResourceManager<T extends HTResourceContext> {
   /// The folder paths does not neccessarily be normalized.
   void setRoots(Iterable<String> folderPaths) {
     final roots = folderPaths
-        .map((folderPath) => HTResourceContext.getAbsolutePath(key: folderPath))
+        // .map((folderPath) => HTResourceContext.getAbsolutePath(key: folderPath))
         .toSet();
     roots.removeWhere((root1) {
       for (final root2 in roots) {
@@ -131,8 +131,8 @@ abstract class HTResourceManager<T extends HTResourceContext> {
   /// The file paths does not neccessarily be normalized.
   void computeRootsFromFiles(Iterable<String> filePaths) {
     final roots = filePaths
-        .map((folderPath) =>
-            path.dirname(HTResourceContext.getAbsolutePath(key: folderPath)))
+        // .map((folderPath) =>
+        // path.dirname(HTResourceContext.getAbsolutePath(key: folderPath)))
         .toSet();
     setRoots(roots);
   }

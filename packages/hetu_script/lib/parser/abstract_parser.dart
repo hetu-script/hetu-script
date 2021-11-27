@@ -16,7 +16,7 @@ abstract class HTAbstractParser {
 
   String? get curLibraryName;
 
-  HTResourceContext get context;
+  HTResourceContext get sourceContext;
 
   int _curLine = 0;
   int _curColumn = 0;

@@ -10,7 +10,7 @@ import '../resource_context.dart';
 /// [HTOverlayContext] will not scan physical disk,
 /// instead it depends on [addResource] method
 /// to manage sources
-class HTOverlayContext implements HTResourceContext<HTSource> {
+class HTOverlayContext extends HTResourceContext<HTSource> {
   @override
   late final String root;
 
@@ -22,20 +22,18 @@ class HTOverlayContext implements HTResourceContext<HTSource> {
   HTOverlayContext({String? root, Map<String, HTSource>? cache})
       : _cached = cache ?? <String, HTSource>{} {
     root = root != null ? path.absolute(root) : path.current;
-    this.root = HTResourceContext.getAbsolutePath(dirName: root);
+    this.root = getAbsolutePath(dirName: root);
   }
 
   @override
   bool contains(String fullName) {
-    final normalized =
-        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
+    final normalized = getAbsolutePath(key: fullName, dirName: root);
     return path.isWithin(root, normalized);
   }
 
   @override
   void addResource(String fullName, HTSource resource) {
-    final normalized =
-        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
+    final normalized = getAbsolutePath(key: fullName, dirName: root);
     // final source = HTSource(resource,
     //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
     resource.name = normalized;
@@ -46,8 +44,7 @@ class HTOverlayContext implements HTResourceContext<HTSource> {
 
   @override
   void removeResource(String fullName) {
-    final normalized =
-        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
+    final normalized = getAbsolutePath(key: fullName, dirName: root);
     _cached.remove(normalized);
     included.remove(normalized);
   }
@@ -57,7 +54,7 @@ class HTOverlayContext implements HTResourceContext<HTSource> {
       {String? from,
       SourceType type = SourceType.module,
       bool isLibraryEntry = false}) {
-    final normalized = HTResourceContext.getAbsolutePath(
+    final normalized = getAbsolutePath(
         key: key, dirName: from != null ? path.dirname(from) : root);
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
@@ -67,8 +64,7 @@ class HTOverlayContext implements HTResourceContext<HTSource> {
 
   @override
   void updateResource(String fullName, HTSource resource) {
-    final normalized =
-        HTResourceContext.getAbsolutePath(key: fullName, dirName: root);
+    final normalized = getAbsolutePath(key: fullName, dirName: root);
     if (_cached.containsKey(normalized)) {
       // final source = _cached[normalized]!;
       // source.content = resource;

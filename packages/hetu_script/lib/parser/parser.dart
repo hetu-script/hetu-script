@@ -46,10 +46,10 @@ class HTParser extends HTAbstractParser {
   final _cachedResults = <String, HTModuleParseResult>{};
 
   @override
-  final HTResourceContext<HTSource> context;
+  final HTResourceContext<HTSource> sourceContext;
 
   HTParser({HTResourceContext<HTSource>? context})
-      : context = context ?? HTOverlayContext();
+      : sourceContext = context ?? HTOverlayContext();
 
   /// Will use [type] when possible, then [source.type], then [SourceType.module]
   List<AstNode> parse(List<Token> tokens,
@@ -119,13 +119,13 @@ class HTParser extends HTAbstractParser {
       for (final decl in module.imports) {
         try {
           late final HTModuleParseResult importModule;
-          final importFullName = HTResourceContext.getAbsolutePath(
+          final importFullName = sourceContext.getAbsolutePath(
               key: decl.key, dirName: path.dirname(module.fullName));
           decl.fullName = importFullName;
           if (_cachedResults.containsKey(importFullName)) {
             importModule = _cachedResults[importFullName]!;
           } else {
-            final source2 = context.getResource(importFullName);
+            final source2 = sourceContext.getResource(importFullName);
             importModule = parseToModule(source2, libraryName: _curLibraryName);
             _cachedResults[importFullName] = importModule;
           }
@@ -1016,7 +1016,7 @@ class HTParser extends HTAbstractParser {
         final token = advance(1) as TokenStringInterpolation;
         final interpolation = <AstNode>[];
         for (final tokens in token.interpolations) {
-          final exprParser = HTParser(context: context);
+          final exprParser = HTParser(context: sourceContext);
           final nodes = exprParser.parse(tokens,
               source: _curSource, type: SourceType.expression);
           errors.addAll(exprParser.errors);
