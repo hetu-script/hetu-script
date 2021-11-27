@@ -24,20 +24,58 @@ class HTStruct with HTEntity {
     return output.toString();
   }
 
-  static Map<String, dynamic> jsonify(HTStruct struct) {
+  static bool _isJsonDataType(dynamic object) {
+    if (object == null ||
+        object is num ||
+        object is bool ||
+        object is String ||
+        object is HTStruct) {
+      return true;
+    } else if (object is Iterable) {
+      for (final value in object) {
+        if (!_isJsonDataType(value)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static List<dynamic> jsonifyList(Iterable list) {
+    final output = [];
+    for (final value in list) {
+      if (value is HTStruct) {
+        output.add(jsonifyObject(value));
+      } else if (value is Iterable) {
+        output.add(jsonifyList(value));
+      } else {
+        output.add(value);
+      }
+    }
+    return output;
+  }
+
+  static Map<String, dynamic> jsonifyObject(HTStruct struct) {
     final output = <String, dynamic>{};
     for (final key in struct.fields.keys) {
-      if (!key.startsWith(SemanticNames.internalMarker)) {
-        var value = struct.fields[key];
-        if (value is HTStruct) {
-          value = jsonify(value);
+      var value = struct.fields[key];
+      // ignore internal members and none json data value
+      if (!key.startsWith(SemanticNames.internalMarker) &&
+          _isJsonDataType(value)) {
+        if (value is Iterable) {
+          value = jsonifyList(value);
+        } else if (value is HTStruct) {
+          value = jsonifyObject(value);
         }
         output[key] = value;
       }
     }
+    // print prototype members, ignore the root object members
     if (struct.prototype != null &&
         struct.prototype!.id != HTLexicon.prototype) {
-      final inherits = jsonify(struct.prototype!);
+      final inherits = jsonifyObject(struct.prototype!);
       output.addAll(inherits);
     }
     return output;
@@ -46,7 +84,6 @@ class HTStruct with HTEntity {
   /// Print all members of a struct object.
   static String stringify(HTStruct struct, {HTStruct? from}) {
     final output = StringBuffer();
-    // output.writeln(HTLexicon.curlyLeft);
     ++_curIndentCount;
     for (var i = 0; i < struct.fields.length; ++i) {
       final key = struct.fields.keys.elementAt(i);
@@ -81,8 +118,6 @@ class HTStruct with HTEntity {
       final inherits = stringify(struct.prototype!);
       output.write(inherits);
     }
-    // output.write(_curIndent());
-    // output.write(HTLexicon.curlyRight);
     return output.toString();
   }
 
@@ -104,8 +139,13 @@ class HTStruct with HTEntity {
     this.fields[SemanticNames.prototype] = prototype;
   }
 
+  Map<String, dynamic> toJson() => jsonifyObject(this);
+
   @override
-  String toString() => stringify(this, from: this);
+  String toString() {
+    final content = stringify(this, from: this);
+    return '{\n$content}';
+  }
 
   @override
   bool contains(String varName, {bool recursive = true}) {

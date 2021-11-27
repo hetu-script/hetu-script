@@ -16,7 +16,7 @@ void main() {
       team.leader = jimmy
       // print(team.toString())
 
-      print(team.toJson())
+      print(team)
       
       // jimmy.doubleIt = (x) { return x * 2 }
       // print(jimmy.doubleIt(42))
