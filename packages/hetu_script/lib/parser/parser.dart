@@ -750,7 +750,7 @@ class HTParser extends HTAbstractParser {
                 offset: left.offset,
                 length: curTok.offset - left.offset);
           } else {
-            return BinaryExpr(left, op.lexeme,
+            return BinaryExpr(left, op.lexeme.substring(1),
                 BinaryExpr(left, op.lexeme.substring(0, 1), right),
                 source: _curSource,
                 line: left.line,

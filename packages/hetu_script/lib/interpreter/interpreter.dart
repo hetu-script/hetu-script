@@ -198,9 +198,9 @@ class Hetu extends HTAbstractInterpreter {
     final stackTraceString = sb.toString().trimRight();
     if (error is HTError) {
       final hetuError = HTError(error.code, error.type, error.message,
-          moduleFullName: _curModuleFullName,
-          line: _curLine,
-          column: _curColumn,
+          moduleFullName: error.moduleFullName ?? _curModuleFullName,
+          line: error.line ?? _curLine,
+          column: error.column ?? _curColumn,
           extra: errorConfig.showDartStackTrace ? stackTraceString : null);
       throw hetuError;
     } else {

@@ -5,12 +5,10 @@ void main() {
   hetu.init();
 
   hetu.eval(r'''
-    fun print1(obj) {
-      print(obj)
-    }
-
     fun test {
-      print1(aaa)
+      var name1 = 'jimmy'
+      name1 += 'tom'
+      print(name1)
     }
   ''', invokeFunc: 'test');
 }
