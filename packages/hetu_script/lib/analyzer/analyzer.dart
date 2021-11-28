@@ -2,7 +2,7 @@ import '../source/source.dart';
 import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
 import '../type/type.dart';
-import '../declaration/generic/generic_type_parameter.dart';
+// import '../declaration/generic/generic_type_parameter.dart';
 import '../declaration/namespace/namespace.dart';
 import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
@@ -10,9 +10,9 @@ import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import '../parser/parser.dart';
 // import '../declaration/declaration.dart';
-import '../declaration/class/class_declaration.dart';
-import '../declaration/function/function_declaration.dart';
-import '../declaration/function/parameter_declaration.dart';
+// import '../declaration/class/class_declaration.dart';
+// import '../declaration/function/function_declaration.dart';
+// import '../declaration/function/parameter_declaration.dart';
 import '../declaration/variable/variable_declaration.dart';
 import '../parser/parse_result_compilation.dart';
 import 'analysis_result.dart';
@@ -75,7 +75,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   late HTModuleParseResultCompilation compilation;
 
   @override
-  final HTResourceContext<HTSource> sourceContext;
+  HTResourceContext<HTSource> sourceContext;
 
   final analyzedDeclarations = <String, HTNamespace>{};
 

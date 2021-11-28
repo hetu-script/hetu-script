@@ -199,6 +199,8 @@ class HTError implements AbstractError {
   @override
   late final String message;
 
+  String? extra;
+
   @override
   final String? correction;
 
@@ -206,18 +208,16 @@ class HTError implements AbstractError {
   final String? moduleFullName;
 
   @override
-  final int? line;
+  int? line;
 
   @override
-  final int? column;
+  int? column;
 
   @override
-  final int? offset;
+  int? offset;
 
   @override
-  final int? length;
-
-  String? extra;
+  int? length;
 
   @override
   String toString() {
@@ -239,7 +239,8 @@ class HTError implements AbstractError {
 
   /// [HTError] can not be created by default constructor.
   HTError(this.code, this.type, String message,
-      {List<String> interpolations = const [],
+      {this.extra,
+      List<String> interpolations = const [],
       this.correction,
       this.moduleFullName,
       this.line,

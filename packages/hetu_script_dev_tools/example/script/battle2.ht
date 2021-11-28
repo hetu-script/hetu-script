@@ -1,67 +1,130 @@
-fun calculateDamage(damage: num, defense: num) -> num {
-  if (defense <= 0) {
-    return damage;
+/// 战斗模块
+/// 输入战斗相关角色的对象
+/// 生成战斗过程的文字描述，以及最终结果
+/// 
+/// 角色对象结构示例
+/// final hero = {
+///   id: '玩家',
+///   name: '玲',
+///   health: 100,
+///   life: 100,
+///   attack: 35,
+///   defense: 5,
+///   speed: 15, 
+///   skillName: '绝尘剑',
+///   offGuard: false,
+/// }
+
+
+fun isReady(timeframe: int, speed) {
+  return timeframe % speed == 0
+}
+
+// damage = ((1 / (Math.log((victim.defense + 5) / 100) + 5)) * 2 * attacker.attack)
+
+fun attack(attacker, victim, [skill = false]) {
+  var damage
+  if (!skill) {
+    damage = attacker.weapon.attack - victim.defense * Math.random();
+    print('「${attacker.name}」使用「${attacker.weapon.name}」攻击「${victim.name}」，造成了 ${damage.truncate()} 点伤害。')
   } else {
-    return ((1 / (Math.log((defense + 5) / 100) + 5)) * 2 * damage);
+    damage = attacker.skill.attack - victim.defense * Math.random();
+    print('「${attacker.name}」发动了「${attacker.skill.name}」，对「${victim.name}」造成了 ${damage.truncate()} 点伤害。')
   }
-}
-
-fun checkTurn(timeframe: int, entity) {
-  return (timeframe / (entity.speed * 10)) % entity.speed == 0
-}
-
-fun attack(attacker, victim) {
-  print('-------------');
-  print('${attacker.name}发动普通攻击！')
-  final damage = calculateDamage(attacker.attack, victim.defense)
-  victim.health = victim.health - damage;
+  victim.health -= damage;
   if (victim.health < 0) {
     victim.health = 0
   }
-  print('${victim.name}受到了 ${damage.toStringAsFixed(2)} 点伤害！当前生命：${victim.health.toStringAsFixed(2)}/${victim.life.toStringAsFixed(2)}')
+}
+
+final hero = {
+  id: '玩家',
+  name: '玲',
+  health: 100,
+  life: 100,
+  defense: 5,
+  weapon: {
+    name: '钢剑',
+    attack: 25,
+    speed: 15,
+  },
+  skill: {
+    name: '绝尘剑气',
+    attack: 100,
+    speed: 25,
+  },
+  ultSpeed: 25,
+  initiative: 10,
+}
+
+final enemy = {
+  id: '敌人',
+  name: '黑熊',
+  health: 120,
+  life: 120,
+  defense: 20,
+  weapon: {
+    name: '爪子',
+    attack: 40,
+    speed: 20,
+  },
+  skill: {
+    name: '扑击',
+    attack: 60,
+    speed: 40,
+  },
+  initiative: 0,
 }
 
 fun main {
+  battle(hero, enemy)
+}
 
-  final player = {
-    id: '玩家',
-    name: '玲',
-    health: 15.0,
-    life: 15.0,
-    attack: 7.0,
-    defense: 5.0,
-    speed: 1.5
-  }
+fun battle(hero, enemy) {
 
-  final enemy = {
-    id: '敌人',
-    name: '黑瀑',
-    health: 10.0,
-    life: 10.0,
-    attack: 4.0,
-    defense: 4.0,
-    speed: 2
-  }
-
-  print(player)
+  print(hero)
   print(enemy)
 
-  // Console.getln('按回车键开始战斗！')
-
   print('-------------');
-
   var timeframe = 0
 
-  while (player.health > 0 && enemy.health > 0) {
-    ++timeframe
-
-    if (checkTurn(timeframe, player)) {
-      attack(player, enemy)
-    }
-
-    if (checkTurn(timeframe, enemy)) {
-      attack(enemy, player)
-    }
+  final initiativeSum = hero.initiative + enemy.initiative
+  final initiativeValue = initiativeSum * Math.random()
+  if (hero.initiative > initiativeValue) {
+    print('「${hero.name}」趁对手不备，抢先攻击！')
+    attack(hero, enemy)
+  } else {
+    print('「${enemy.name}」趁对手不备，抢先攻击！')
+    attack(enemy, hero)
   }
 
+  while (true) {
+    ++timeframe
+    if (timeframe >=1000) {
+      print('「${enemy.name}」获胜!')
+      break
+    }
+
+    if (isReady(timeframe, hero.skill.speed)) {
+      attack(hero, enemy, true)
+    } else if (isReady(timeframe, hero.weapon.speed)) {
+      attack(hero, enemy)
+    }
+
+    if (enemy.health <= 0) {
+      print('「${hero.name}」获胜!')
+      break
+    }
+
+    if (isReady(timeframe, enemy.skill.speed)) {
+      attack(enemy, hero, true)
+    } else if (isReady(timeframe, hero.weapon.speed)) {
+      attack(enemy, hero)
+    }
+    
+    if (hero.health <= 0) {
+      print('「${enemy.name}」获胜!')
+      break
+    }
+  }
 }

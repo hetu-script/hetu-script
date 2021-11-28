@@ -65,8 +65,11 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
       {String? from,
       SourceType type = SourceType.module,
       bool isLibraryEntry = false}) {
-    final normalized = getAbsolutePath(
-        key: key, dirName: from != null ? path.dirname(from) : root);
+    var normalized = key;
+    if (!key.startsWith(root)) {
+      normalized = getAbsolutePath(
+          key: key, dirName: from != null ? path.dirname(from) : root);
+    }
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
     }

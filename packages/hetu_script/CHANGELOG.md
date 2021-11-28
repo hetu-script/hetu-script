@@ -2,7 +2,8 @@
 
 - Command line tool and file system context support moved to another package: [hetu_script_dev_tools].
 - Added a new kind of external binding: external method on normal classes
-- Now support literal function expression with no keyword.
+- Added support for literal function expression with no keyword.
+- Added struct literal and prototype based object system.
 
 ## 0.2.0
 

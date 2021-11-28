@@ -55,11 +55,19 @@ class Hetu extends HTAbstractInterpreter {
 
   final _cachedLibs = <String, HTBytecodeLibrary>{};
 
+  late final HTAnalyzer analyzer;
+
   @override
   InterpreterConfig config;
 
+  HTResourceContext<HTSource> _sourceContext;
+
   @override
-  HTResourceContext<HTSource> sourceContext;
+  HTResourceContext<HTSource> get sourceContext => _sourceContext;
+
+  set sourceContext(HTResourceContext<HTSource> context) {
+    analyzer.sourceContext = _sourceContext = context;
+  }
 
   @override
   ErrorHandlerConfig get errorConfig => config;
@@ -130,14 +138,12 @@ class Hetu extends HTAbstractInterpreter {
   /// [_curLoopCount] in current stack frame.
   final _loops = <_LoopInfo>[];
 
-  late final HTAnalyzer analyzer;
-
   /// A bytecode interpreter.
   Hetu(
       {HTResourceContext<HTSource>? sourceContext,
       this.config = const InterpreterConfig()})
       : global = HTNamespace(id: SemanticNames.global),
-        sourceContext = sourceContext ?? HTOverlayContext() {
+        _sourceContext = sourceContext ?? HTOverlayContext() {
     _curNamespace = global;
     analyzer = HTAnalyzer(sourceContext: this.sourceContext);
   }
@@ -191,13 +197,14 @@ class Hetu extends HTAbstractInterpreter {
     }
     final stackTraceString = sb.toString().trimRight();
     if (error is HTError) {
-      if (errorConfig.showDartStackTrace) {
-        error.extra = stackTraceString;
-      }
-      throw error;
+      final hetuError = HTError(error.code, error.type, error.message,
+          moduleFullName: _curModuleFullName,
+          line: _curLine,
+          column: _curColumn,
+          extra: errorConfig.showDartStackTrace ? stackTraceString : null);
+      throw hetuError;
     } else {
-      var message = error.toString();
-      final hetuError = HTError.extern(message,
+      final hetuError = HTError.extern(error.toString(),
           moduleFullName: _curModuleFullName, line: curLine, column: curColumn);
       hetuError.extra = stackTraceString;
       throw hetuError;
@@ -282,7 +289,7 @@ class Hetu extends HTAbstractInterpreter {
       bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
-    final source = sourceContext.getResource(key);
+    final source = _sourceContext.getResource(key);
     final bytes = compileSource(source,
         libraryName: libraryName,
         isLibraryEntry: isLibraryEntry,
@@ -315,7 +322,7 @@ class Hetu extends HTAbstractInterpreter {
             .compile(analyzer.compilation); //, libraryName ?? source.fullName);
         return bytes;
       } else {
-        final parser = HTParser(context: sourceContext);
+        final parser = HTParser(context: _sourceContext);
         final compilation =
             parser.parseToCompilation(source, libraryName: libraryName);
         final bytes =
