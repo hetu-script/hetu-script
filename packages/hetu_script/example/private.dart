@@ -5,21 +5,18 @@ void main() {
   hetu.init();
   hetu.eval(r'''
     class A {
-      static fun _init {
-        print('private static _init called!')
+      var name: str
+      static fun create(name) {
+        return A._(name)
       }
-      fun _post {
-        print('private instance _post called!')
-      }
-      fun init {
-        _init()
-        _post()
+      construct _(name) {
+        this.name = name
       }
     }
     fun main {
-      var a = A()
-      a.init()
-      a._post() // erorr!
+      // var a = A() // erorr!
+      var a = A.create('Tom')
+      print(a.name)
     }
 
   ''', invokeFunc: 'main');

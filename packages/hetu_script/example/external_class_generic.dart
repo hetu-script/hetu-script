@@ -76,7 +76,7 @@ void main() {
   hetu.eval('''
       external class Generic {
         construct (value)
-        const value
+        final value
       }
       fun main {
         var obj = Generic<str>('hello world')

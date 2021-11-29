@@ -21,7 +21,7 @@ void main() {
     }
     fun main {
       var j = Person()
-      j.name.familyName = i = 'Luke'
+      j.name.familyName = 'Luke'
       print(j.name) // Will use overrided toString function in script class
     }
   ''', invokeFunc: 'main');

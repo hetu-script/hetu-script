@@ -131,7 +131,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   /// Get a value of a static member from this [HTClass].
   @override
   dynamic memberGet(String varName,
-      {bool recursive = true, bool error = true, bool internal = false}) {
+      {bool recursive = true, bool error = true, bool internal = true}) {
     final getter = '${SemanticNames.getter}$varName';
     final constructor = varName != id
         ? '${SemanticNames.constructor}$varName'
@@ -139,7 +139,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
     if (isExternal && !internal) {
       final externClass = interpreter.fetchExternalClass(id!);
-      final value = externClass.memberGet('$id.$varName');
+      final value =
+          externClass.memberGet(varName != id ? '$id.$varName' : varName);
       return value;
     } else {
       if (namespace.declarations.containsKey(varName)) {
