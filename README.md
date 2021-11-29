@@ -28,7 +28,7 @@ Hetu's grammar is close to typescript/kotlin/swift and other modern languages, n
 
 [Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md)
 
-In your Dart code, you can interpret a script file:
+This is an example to eval a string literal of Hetu code in Dart.
 
 ```typescript
 import 'package:hetu_script/hetu_script.dart';
@@ -36,30 +36,18 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   var hetu = Hetu();
   hetu.init();
-  hetu.evalFile('hello.ht', invokeFunc: 'main');
-}
-```
-
-While [hello.ht] is the script file written in Hetu, here is an example:
-
-```typescript
-// Define a class.
-class Person {
-  var name: str
-  construct (name: str) {
-    this.name = name
+  hetu.eval(r'''
+    fun main {
+      var ht = {
+      name: 'Jimmy',
+      greeting: () {
+        print('Hi! I\'m', name)
+      }
+      ht.greeting()
+    }
   }
-  fun greeting {
-    print('Hi! I\'m', name)
-  }
+  ''', invokeFunc: 'main');
 }
-
-// This is where the script starts executing.
-fun main {
-  var ht = Person('Hetu')
-  ht.greeting()
-}
-```
 
 ## Binding
 
