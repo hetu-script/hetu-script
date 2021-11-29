@@ -12,9 +12,7 @@ environment:
   sdk: '>=2.14.4 <3.0.0'
 
 dependencies:
-  # hetu_script: ^0.2.1
-  hetu_script:
-    path: ../hetu_script
+  hetu_script: 0.3.0+1
 
 dev_dependencies:
   lints: ^1.0.0

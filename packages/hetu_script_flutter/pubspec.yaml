@@ -12,8 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  hetu_script:
-    path: ../hetu_script
+  hetu_script: 0.3.0+1
 
 dev_dependencies:
   flutter_test:

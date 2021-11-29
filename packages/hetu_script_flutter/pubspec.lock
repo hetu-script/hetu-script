@@ -77,10 +77,10 @@ packages:
   hetu_script:
     dependency: "direct main"
     description:
-      path: "../hetu_script"
-      relative: true
-    source: path
-    version: "0.3.0"
+      name: hetu_script
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0+1"
   lints:
     dependency: transitive
     description:
