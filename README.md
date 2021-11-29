@@ -30,7 +30,7 @@ Hetu's grammar is close to typescript/kotlin/swift and other modern languages, n
 
 This is an example to eval a string literal of Hetu code in Dart.
 
-```typescript
+```dart
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
@@ -48,6 +48,7 @@ void main() {
   }
   ''', invokeFunc: 'main');
 }
+```
 
 ## Binding
 
