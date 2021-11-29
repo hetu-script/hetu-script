@@ -199,7 +199,7 @@ class HTError implements AbstractError {
   @override
   late final String message;
 
-  String? extra;
+  final String? extra;
 
   @override
   final String? correction;
@@ -208,16 +208,16 @@ class HTError implements AbstractError {
   final String? moduleFullName;
 
   @override
-  int? line;
+  final int? line;
 
   @override
-  int? column;
+  final int? column;
 
   @override
-  int? offset;
+  final int? offset;
 
   @override
-  int? length;
+  final int? length;
 
   @override
   String toString() {
@@ -255,7 +255,8 @@ class HTError implements AbstractError {
 
   /// Error: Expected a token while met another.
   HTError.unexpected(String expected, String met,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -264,6 +265,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.unexpected, ErrorType.syntacticError,
             HTLexicon.errorUnexpected,
             interpolations: [expected, met],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -273,7 +275,8 @@ class HTError implements AbstractError {
 
   /// Error: external type is not allowed.
   HTError.externalType(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -281,6 +284,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.externalType, ErrorType.syntacticError,
             HTLexicon.errorExternalType,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -290,7 +294,8 @@ class HTError implements AbstractError {
 
   /// Error: Nested class within another nested class.
   HTError.nestedClass(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -298,6 +303,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.nestedClass, ErrorType.syntacticError,
             HTLexicon.errorNestedClass,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -307,7 +313,8 @@ class HTError implements AbstractError {
 
   /// Error: Return appeared outside of a function.
   HTError.outsideReturn(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -315,6 +322,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.outsideReturn, ErrorType.syntacticError,
             HTLexicon.errorOutsideReturn,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -324,7 +332,8 @@ class HTError implements AbstractError {
 
   /// Error: Illegal setter declaration.
   HTError.setterArity(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -332,6 +341,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.setterArity, ErrorType.syntacticError,
             HTLexicon.errorSetterArity,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -341,7 +351,8 @@ class HTError implements AbstractError {
 
   /// Error: Illegal external member.
   HTError.externalMember(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -349,6 +360,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.externalMember, ErrorType.syntacticError,
             HTLexicon.errorExternalMember,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -358,7 +370,8 @@ class HTError implements AbstractError {
 
   /// Error: Type arguments is emtpy brackets.
   HTError.emptyTypeArgs(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -366,6 +379,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.emptyTypeArgs, ErrorType.syntacticError,
             HTLexicon.errorEmptyTypeArgs,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -375,7 +389,8 @@ class HTError implements AbstractError {
 
   /// Error: Symbol is not a class name.
   HTError.extendsSelf(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -383,6 +398,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.extendsSelf, ErrorType.syntacticError,
             HTLexicon.errorExtendsSelf,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -392,7 +408,8 @@ class HTError implements AbstractError {
 
   /// Error: Not a super class of this instance.
   // HTError.voidReturn(
-  //     {String? correction,
+  //     {String? extra,
+  //     String? correction,
   //     String? moduleFullName,
   //     int? line,
   //     int? column,
@@ -400,6 +417,7 @@ class HTError implements AbstractError {
   //     int? length})
   //     : this(ErrorCode.ctorReturn, ErrorType.syntacticError,
   //           HTLexicon.errorCtorReturn,
+  //           extra: extra,
   //           correction: correction,
   //           moduleFullName: moduleFullName,
   //           line: line,
@@ -409,7 +427,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to call a function without definition.
   HTError.missingFuncBody(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -418,6 +437,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
             HTLexicon.errorMissingFuncBody,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -426,7 +446,8 @@ class HTError implements AbstractError {
             length: length);
 
   HTError.internalFuncWithExternalTypeDef(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -434,6 +455,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.missingExternalFunc, ErrorType.syntacticError,
             HTLexicon.errorInternalFuncWithExternalTypeDef,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -442,7 +464,8 @@ class HTError implements AbstractError {
             length: length);
 
   HTError.externalCtorWithReferCtor(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -450,6 +473,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.externalCtorWithReferCtor, ErrorType.syntacticError,
             HTLexicon.errorExternalCtorWithReferCtor,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -458,7 +482,8 @@ class HTError implements AbstractError {
             length: length);
 
   HTError.nonCotrWithReferCtor(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -466,6 +491,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.nonCotrWithReferCtor, ErrorType.syntacticError,
             HTLexicon.errorNonCotrWithReferCtor,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -475,7 +501,8 @@ class HTError implements AbstractError {
 
   /// Error: Module import error
   HTError.sourceProviderError(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -484,6 +511,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.sourceProviderError, ErrorType.externalError,
             HTLexicon.errorSourceProviderError,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -493,7 +521,8 @@ class HTError implements AbstractError {
 
   /// Error: Module import error
   HTError.notAbsoluteError(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -502,6 +531,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.notAbsoluteError, ErrorType.externalError,
             HTLexicon.errorNotAbsoluteError,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -511,7 +541,8 @@ class HTError implements AbstractError {
 
   /// Error: Illegal value appeared on left of assignment.
   HTError.invalidLeftValue(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -519,6 +550,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.invalidLeftValue, ErrorType.syntacticError,
             HTLexicon.errorInvalidLeftValue,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -528,7 +560,8 @@ class HTError implements AbstractError {
 
   /// Error: Access private member.
   HTError.privateMember(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -537,6 +570,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.privateMember, ErrorType.syntacticError,
             HTLexicon.errorPrivateMember,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -546,7 +580,8 @@ class HTError implements AbstractError {
 
   /// Error: Const variable in a class must be static.
   HTError.constMustBeStatic(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -555,6 +590,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.constMustBeStatic, ErrorType.syntacticError,
             HTLexicon.errorConstMustBeStatic,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -564,7 +600,8 @@ class HTError implements AbstractError {
 
   /// Error: Const variable must be initialized.
   HTError.constMustInit(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -573,6 +610,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.constMustInit, ErrorType.syntacticError,
             HTLexicon.errorConstMustInit,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -582,7 +620,8 @@ class HTError implements AbstractError {
 
   /// Error: Duplicate library statement.
   HTError.duplicateLibStmt(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -590,6 +629,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.duplicateLibStmt, ErrorType.syntacticError,
             HTLexicon.errorDuplicateLibStmt,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -599,7 +639,8 @@ class HTError implements AbstractError {
 
   /// Error: A same name declaration is already existed.
   HTError.defined(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -608,6 +649,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.defined, ErrorType.compileTimeError,
             HTLexicon.errorDefined,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -617,7 +659,8 @@ class HTError implements AbstractError {
 
   /// Error: This appeared outside of a function.
   HTError.outsideThis(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -625,6 +668,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.outsideThis, ErrorType.compileTimeError,
             HTLexicon.errorOutsideThis,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -634,7 +678,8 @@ class HTError implements AbstractError {
 
   /// Error: Symbol is not a class member.
   HTError.notMember(String id, String className,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -643,6 +688,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.notMember, ErrorType.compileTimeError,
             HTLexicon.errorNotMember,
             interpolations: [id, className],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -652,7 +698,8 @@ class HTError implements AbstractError {
 
   /// Error: Symbol is not a class name.
   HTError.notClass(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -661,6 +708,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.notClass, ErrorType.compileTimeError,
             HTLexicon.errorNotClass,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -670,7 +718,8 @@ class HTError implements AbstractError {
 
   /// Error: Cannot create instance from abstract class.
   HTError.abstracted(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -678,6 +727,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.abstracted, ErrorType.compileTimeError,
             HTLexicon.errorAbstracted,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -687,7 +737,8 @@ class HTError implements AbstractError {
 
   /// Error: Cannot create contructor for interfaces.
   HTError.interfaceCtor(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -695,6 +746,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.interfaceCtor, ErrorType.compileTimeError,
             HTLexicon.errorInterfaceCtor,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -704,7 +756,8 @@ class HTError implements AbstractError {
 
   /// Error: unsupported runtime operation
   HTError.unsupported(String name,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -713,6 +766,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.unsupported, ErrorType.runtimeError,
             HTLexicon.errorUnsupported,
             interpolations: [name],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -722,13 +776,15 @@ class HTError implements AbstractError {
 
   /// Error: dart error
   HTError.extern(String message,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
       int? offset,
       int? length})
       : this(ErrorCode.extern, ErrorType.runtimeError, message,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -738,7 +794,8 @@ class HTError implements AbstractError {
 
   /// Error: Access private member.
   HTError.unknownOpCode(int opcode,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -747,6 +804,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
             HTLexicon.errorUnknownOpCode,
             interpolations: [opcode.toString()],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -756,7 +814,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to use a variable before its initialization.
   HTError.notInitialized(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -765,6 +824,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.notInitialized, ErrorType.runtimeError,
             HTLexicon.errorNotInitialized,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -774,7 +834,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to use a undefined variable.
   HTError.undefined(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -783,6 +844,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.undefined, ErrorType.runtimeError,
             HTLexicon.errorUndefined,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -792,7 +854,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to use a external variable without its binding.
   HTError.undefinedExternal(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -801,6 +864,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.undefinedExternal, ErrorType.runtimeError,
             HTLexicon.errorUndefinedExternal,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -810,7 +874,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to operate unkown type object.
   HTError.unknownTypeName(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -819,6 +884,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.unknownTypeName, ErrorType.runtimeError,
             HTLexicon.errorUnknownTypeName,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -828,7 +894,8 @@ class HTError implements AbstractError {
 
   /// Error: Unknown operator.
   HTError.undefinedOperator(String id, String op,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -837,6 +904,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.undefinedOperator, ErrorType.runtimeError,
             HTLexicon.errorUndefinedOperator,
             interpolations: [id, op],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -846,7 +914,8 @@ class HTError implements AbstractError {
 
   /// Error: A same name declaration is already existed.
   HTError.definedRuntime(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -854,6 +923,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.defined, ErrorType.runtimeError, HTLexicon.errorDefined,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -863,7 +933,8 @@ class HTError implements AbstractError {
 
   /// Error: Object is not callable.
   HTError.notCallable(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -872,6 +943,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.notCallable, ErrorType.runtimeError,
             HTLexicon.errorNotCallable,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -881,7 +953,8 @@ class HTError implements AbstractError {
 
   /// Error: Undefined member of a class/enum.
   HTError.undefinedMember(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -890,6 +963,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.undefinedMember, ErrorType.runtimeError,
             HTLexicon.errorUndefinedMember,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -899,7 +973,8 @@ class HTError implements AbstractError {
 
   /// Error: if/while condition expression must be boolean type.
   HTError.condition(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -907,6 +982,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.condition, ErrorType.runtimeError,
             HTLexicon.errorCondition,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -916,7 +992,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to use sub get operator on a non-list object.
   HTError.notList(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -924,6 +1001,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.notList, ErrorType.runtimeError, HTLexicon.errorNotList,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -933,7 +1011,8 @@ class HTError implements AbstractError {
 
   /// Error: Calling method on null object.
   HTError.errorNullInit(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -941,6 +1020,7 @@ class HTError implements AbstractError {
       int? length})
       : this(
             ErrorCode.nullInit, ErrorType.runtimeError, HTLexicon.errorNullInit,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -950,7 +1030,8 @@ class HTError implements AbstractError {
 
   /// Error: Calling method on null object.
   HTError.nullObject(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -958,6 +1039,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
             HTLexicon.errorNullObject,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -967,7 +1049,8 @@ class HTError implements AbstractError {
 
   /// Error: Type is assign a unnullable varialbe with null.
   HTError.nullable(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -976,6 +1059,7 @@ class HTError implements AbstractError {
       : this(
             ErrorCode.nullable, ErrorType.runtimeError, HTLexicon.errorNullable,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -985,7 +1069,8 @@ class HTError implements AbstractError {
 
   /// Error: Type check failed.
   HTError.type(String id, String valueType, String declValue,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -993,6 +1078,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.type, ErrorType.runtimeError, HTLexicon.errorType,
             interpolations: [id, valueType, declValue],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1002,7 +1088,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to assign a immutable variable.
   HTError.immutable(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1011,6 +1098,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.immutable, ErrorType.runtimeError,
             HTLexicon.errorImmutable,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1020,7 +1108,8 @@ class HTError implements AbstractError {
 
   /// Error: Symbol is not a type.
   HTError.notType(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1028,6 +1117,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.notType, ErrorType.runtimeError, HTLexicon.errorNotType,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1037,7 +1127,8 @@ class HTError implements AbstractError {
 
   /// Error: Arguments type check failed.
   HTError.argType(String id, String assignType, String declValue,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1045,6 +1136,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.argType, ErrorType.runtimeError, HTLexicon.errorArgType,
             interpolations: [id, assignType, declValue],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1054,7 +1146,8 @@ class HTError implements AbstractError {
 
   /// Error: Only optional or named arguments can have initializer.
   HTError.argInit(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1062,6 +1155,7 @@ class HTError implements AbstractError {
       int? length})
       : this(
             ErrorCode.argInit, ErrorType.syntacticError, HTLexicon.errorArgInit,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1072,7 +1166,8 @@ class HTError implements AbstractError {
   /// Error: Return value type check failed.
   HTError.returnType(
       String returnedType, String funcName, String declReturnType,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1081,6 +1176,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.returnType, ErrorType.runtimeError,
             HTLexicon.errorReturnType,
             interpolations: [returnedType, funcName, declReturnType],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1090,7 +1186,8 @@ class HTError implements AbstractError {
 
   /// Error: String interpolation has to be a single expression.
   HTError.stringInterpolation(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1098,6 +1195,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.stringInterpolation, ErrorType.syntacticError,
             HTLexicon.errorStringInterpolation,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1107,7 +1205,8 @@ class HTError implements AbstractError {
 
   /// Error: Function arity check failed.
   HTError.arity(String id, int argsCount, int paramsCount,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1115,6 +1214,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.arity, ErrorType.runtimeError, HTLexicon.errorArity,
             interpolations: [argsCount.toString(), id, paramsCount.toString()],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1124,7 +1224,8 @@ class HTError implements AbstractError {
 
   /// Error: Missing binding extension on dart object.
   HTError.binding(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1132,6 +1233,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.binding, ErrorType.runtimeError, HTLexicon.errorBinding,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1141,7 +1243,8 @@ class HTError implements AbstractError {
 
   /// Error: Can not declare a external variable in global namespace.
   HTError.externalVar(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1149,6 +1252,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.externalVar, ErrorType.syntacticError,
             HTLexicon.errorExternalVar,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1158,7 +1262,8 @@ class HTError implements AbstractError {
 
   /// Error: Bytecode signature check failed.
   HTError.bytesSig(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1166,6 +1271,7 @@ class HTError implements AbstractError {
       int? length})
       : this(
             ErrorCode.bytesSig, ErrorType.runtimeError, HTLexicon.errorBytesSig,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1175,7 +1281,8 @@ class HTError implements AbstractError {
 
   /// Error: Variable's initialization relies on itself.
   HTError.circleInit(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1184,6 +1291,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.circleInit, ErrorType.runtimeError,
             HTLexicon.errorCircleInit,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1193,7 +1301,8 @@ class HTError implements AbstractError {
 
   /// Error: Missing variable initializer.
   HTError.initialize(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1201,6 +1310,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.initialize, ErrorType.runtimeError,
             HTLexicon.errorInitialize,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1210,7 +1320,8 @@ class HTError implements AbstractError {
 
   /// Error: Named arguments does not exist.
   HTError.namedArg(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1219,6 +1330,7 @@ class HTError implements AbstractError {
       : this(
             ErrorCode.namedArg, ErrorType.runtimeError, HTLexicon.errorNamedArg,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1228,7 +1340,8 @@ class HTError implements AbstractError {
 
   /// Error: Object is not iterable.
   HTError.iterable(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1237,6 +1350,7 @@ class HTError implements AbstractError {
       : this(
             ErrorCode.iterable, ErrorType.runtimeError, HTLexicon.errorIterable,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1246,7 +1360,8 @@ class HTError implements AbstractError {
 
   /// Error: Unknown value type code
   HTError.unkownValueType(int valType,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1255,6 +1370,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.unkownValueType, ErrorType.runtimeError,
             HTLexicon.errorUnkownValueType,
             interpolations: [valType.toString()],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1266,6 +1382,7 @@ class HTError implements AbstractError {
   HTError.emptyString(
       {ErrorType type = ErrorType.runtimeError,
       String? info,
+      String? extra,
       String? correction,
       String? moduleFullName,
       int? line,
@@ -1274,6 +1391,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.emptyString, type, HTLexicon.errorEmptyString,
             interpolations: info != null ? [info] : const [],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1283,7 +1401,8 @@ class HTError implements AbstractError {
 
   /// Error: Illegal type cast.
   HTError.typeCast(String from, String to,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1292,6 +1411,7 @@ class HTError implements AbstractError {
       : this(
             ErrorCode.typeCast, ErrorType.runtimeError, HTLexicon.errorTypeCast,
             interpolations: [from, to],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1301,7 +1421,8 @@ class HTError implements AbstractError {
 
   /// Error: Illegal castee.
   HTError.castee(String varName,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1309,6 +1430,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.castee, ErrorType.runtimeError, HTLexicon.errorCastee,
             interpolations: [varName],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1318,7 +1440,8 @@ class HTError implements AbstractError {
 
   /// Error: Illegal clone.
   HTError.clone(String varName,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1326,6 +1449,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.clone, ErrorType.runtimeError, HTLexicon.errorClone,
             interpolations: [varName],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1335,7 +1459,8 @@ class HTError implements AbstractError {
 
   /// Error: Not a super class of this instance.
   HTError.notSuper(String classId, String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1344,6 +1469,7 @@ class HTError implements AbstractError {
       : this(
             ErrorCode.notSuper, ErrorType.runtimeError, HTLexicon.errorNotSuper,
             interpolations: [classId, id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1352,7 +1478,8 @@ class HTError implements AbstractError {
             length: length);
 
   HTError.missingExternalFunc(String id,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1361,6 +1488,7 @@ class HTError implements AbstractError {
       : this(ErrorCode.missingExternalFunc, ErrorType.runtimeError,
             HTLexicon.errorMissingExternalFunc,
             interpolations: [id],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1370,7 +1498,8 @@ class HTError implements AbstractError {
 
   /// Error: Try to define a class on a instance.
   HTError.classOnInstance(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1378,6 +1507,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.classOnInstance, ErrorType.runtimeError,
             HTLexicon.errorClassOnInstance,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1387,7 +1517,8 @@ class HTError implements AbstractError {
 
   /// Error: Incompatible bytecode version.
   HTError.version(String codeVer, String itpVer,
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1395,6 +1526,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.version, ErrorType.runtimeError, HTLexicon.errorVersion,
             interpolations: [codeVer, itpVer],
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1404,7 +1536,8 @@ class HTError implements AbstractError {
 
   /// Error: Unevalable source type.
   HTError.sourceType(
-      {String? correction,
+      {String? extra,
+      String? correction,
       String? moduleFullName,
       int? line,
       int? column,
@@ -1412,6 +1545,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.sourceType, ErrorType.runtimeError,
             HTLexicon.errorSourceType,
+            extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
             line: line,
@@ -1420,7 +1554,8 @@ class HTError implements AbstractError {
             length: length);
 
   // HTError.nonExistModule(String key, ErrorType type,
-  //     {String? correction,
+  //     {String? extra,
+  //     String? correction,
   //     String? moduleFullName,
   //     int? line,
   //     int? column,
@@ -1428,6 +1563,7 @@ class HTError implements AbstractError {
   //     int? length})
   //     : this(ErrorCode.nonExistModule, type, HTLexicon.errorNonExistModule,
   //           interpolations: [key],
+  //           extra: extra,
   //           correction: correction,
   //           moduleFullName: moduleFullName,
   //           line: line,

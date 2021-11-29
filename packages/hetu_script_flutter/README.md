@@ -2,22 +2,25 @@
 
 This is an extension for [hetu_script](https://pub.dev/packages/hetu_script).
 
-## Features
-
-With this package, you can now read hetu script from assets.
-
 ## Getting started
 
-Use [initFlutter] instead of [init]. Also note that this is an async function.
+To load a script file from assets, add the script file's path into your pubspec.yaml like other assets.
+The default folder is 'assets/scripts/',
+
+```yaml
+assets:
+  - assets/scripts/main.ht
+```
+
+Then those script will be pre-loaded by the new init method on Hetu class: [initFlutter].
+
+You don't need to use old [init]. Also note that this is an async function.
+
+You can load a asset script file by [evalFile] method:
 
 ```dart
 final hetu = Hetu();
 await hetu.initFlutter();
 
-hetu.eval(r'''
-  fun main {
-    print('hello Flutter!')
-  }
-''', invokeFunc: 'main');
-
+final result = hetu.evalFile('main.ht', invokeFunc: 'main');
 ```

@@ -197,16 +197,24 @@ class Hetu extends HTAbstractInterpreter {
     }
     final stackTraceString = sb.toString().trimRight();
     if (error is HTError) {
-      final hetuError = HTError(error.code, error.type, error.message,
-          moduleFullName: error.moduleFullName ?? _curModuleFullName,
-          line: error.line ?? _curLine,
-          column: error.column ?? _curColumn,
-          extra: errorConfig.showDartStackTrace ? stackTraceString : null);
-      throw hetuError;
+      final wrappedError = HTError(
+        error.code,
+        error.type,
+        error.message,
+        extra: errorConfig.showDartStackTrace ? stackTraceString : null,
+        moduleFullName: error.moduleFullName ?? _curModuleFullName,
+        line: error.line ?? _curLine,
+        column: error.column ?? _curColumn,
+      );
+      throw wrappedError;
     } else {
-      final hetuError = HTError.extern(error.toString(),
-          moduleFullName: _curModuleFullName, line: curLine, column: curColumn);
-      hetuError.extra = stackTraceString;
+      final hetuError = HTError.extern(
+        error.toString(),
+        extra: errorConfig.showDartStackTrace ? stackTraceString : null,
+        moduleFullName: _curModuleFullName,
+        line: curLine,
+        column: curColumn,
+      );
       throw hetuError;
     }
   }

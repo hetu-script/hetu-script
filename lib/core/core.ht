@@ -11,6 +11,7 @@ abstract class object {
 }
 
 struct prototype {
+
   fun toString() => stringify(this)
 
   fun toJson() => jsonify(this)
