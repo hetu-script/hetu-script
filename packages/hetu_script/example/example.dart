@@ -14,7 +14,7 @@ void main() {
       }
 
       fun main {
-        var func = closure( fun (n) { return n * n } )
+        var func = closure( (n) => n * n )
         func()
       }
       ''', invokeFunc: 'main');

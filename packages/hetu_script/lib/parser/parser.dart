@@ -1116,7 +1116,8 @@ class HTParser extends HTAbstractParser {
         _leftValueLegality = false;
         // a literal function expression
         final token = seek(HTLexicon.roundRight);
-        if (token.type == HTLexicon.curlyLeft) {
+        if (token.type == HTLexicon.curlyLeft ||
+            token.type == HTLexicon.doubleArrow) {
           return _parseFunction(
               category: FunctionCategory.literal, hasKeyword: false);
         }
@@ -2036,6 +2037,9 @@ class HTParser extends HTAbstractParser {
       }
       definition = _parseBlockStmt(id: SemanticNames.functionCall);
     } else if (expect([HTLexicon.doubleArrow], consume: true)) {
+      if (category == FunctionCategory.literal && !hasKeyword) {
+        startTok = curTok;
+      }
       definition = _parseExprStmt();
     } else if (expect([HTLexicon.assign], consume: true)) {
       final err = HTError.unsupported(
