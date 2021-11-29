@@ -163,7 +163,7 @@ extension StringBinding on String {
         return isEmpty;
       case 'isNotEmpty':
         return isNotEmpty;
-      case 'subString':
+      case 'substring':
         return ({positionalArgs, namedArgs, typeArgs}) =>
             substring(positionalArgs[0], positionalArgs[1]);
       case 'trim':
