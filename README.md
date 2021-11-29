@@ -45,7 +45,6 @@ void main() {
       }
       ht.greeting()
     }
-  }
   ''', invokeFunc: 'main');
 }
 ```
