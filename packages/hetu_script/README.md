@@ -18,22 +18,6 @@ We did not choose to use another existing language to achieve the goal. Because 
 
 It takes very little time to bind almost anything in Dart/Flutter into Hetu, makes communicating with your existing Dart code very easy.
 
-## Installation
-
-For pure dart project, just add 'hetu_script: 0.3.0+1' in your pubspec.yamal and import the package.
-For handling module import from physical disk within the script, and REPL tool, there's another package called: 'hetu_script_dev_tools'.
-For Flutter project, use package 'hetu_script_flutter' along with 'hetu_script', then you can easily read script from assets.
-Note that in Flutter, the [init] method is changed:
-
-```dart
-import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script_flutter/hetu_script_flutter.dart';
-
-final hetu = Hetu();
-await hetu.initFlutter();
-// do something
-```
-
 ## Quick start
 
 Hetu's grammar is close to typescript/kotlin/swift and other modern languages, need very little time to get familar with.
@@ -42,38 +26,26 @@ Hetu's grammar is close to typescript/kotlin/swift and other modern languages, n
 - Function is declared with 'fun, get, set, construct'.
 - Optional type annotation. Variable declared will infer its type from its initializer expression.
 
-[Syntax referrence](https://github.com/hetu-script/docs/blob/main/docs/en-US/syntax/index.md)
+[Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md)
 
-In your Dart code, you can interpret a script file:
+This is an example to eval a string literal of Hetu code in Dart.
 
-```typescript
+```dart
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
   var hetu = Hetu();
   hetu.init();
-  hetu.evalFile('hello.ht', invokeFunc: 'main');
-}
-```
-
-While [hello.ht] is the script file written in Hetu, here is an example:
-
-```typescript
-// Define a class.
-class Person {
-  var name: str
-  construct (name: str) {
-    this.name = name
-  }
-  fun greeting {
-    print('Hi! I\'m', name)
-  }
-}
-
-// This is where the script starts executing.
-fun main {
-  var ht = Person('Hetu')
-  ht.greeting()
+  hetu.eval(r'''
+    fun main {
+      var ht = {
+      name: 'Jimmy',
+      greeting: () {
+        print('Hi! I\'m', name)
+      }
+      ht.greeting()
+    }
+  ''', invokeFunc: 'main');
 }
 ```
 
@@ -81,7 +53,7 @@ fun main {
 
 Hetu script is purely written in Dart, so passing object to and from script is extremely easy.
 
-Check [this page](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
+Check [this page](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
