@@ -1,8 +1,10 @@
 # Hetu Script for Flutter
 
+This is an extension for [hetu_script](https://pub.dev/packages/hetu_script).
+
 ## Features
 
-Read script from assets dirrectly.
+With this package, you can now read hetu script from assets.
 
 ## Getting started
 
