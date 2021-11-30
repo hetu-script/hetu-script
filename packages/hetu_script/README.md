@@ -18,6 +18,27 @@ We did not choose to use another existing language to achieve the goal. Because 
 
 It takes very little time to bind almost anything in Dart/Flutter into Hetu, makes communicating with your existing Dart code very easy.
 
+## Installation
+
+For pure dart project, add 'hetu_script: 0.3.0+1' (or future higher versions) in your pubspec.yaml.
+
+```yaml
+dependencies:
+  hetu_script: ^0.3.0+1
+```
+
+- For handling module import from physical disk within the script, and REPL tool, there's another package called: 'hetu_script_dev_tools'.
+- For Flutter project, use package 'hetu_script_flutter' along with 'hetu_script', then you can easily read script from assets. Note that in Flutter, the [init] method is changed:
+
+```dart
+import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script_flutter/hetu_script_flutter.dart';
+
+final hetu = Hetu();
+await hetu.initFlutter();
+// do something
+```
+
 ## Quick start
 
 Hetu's grammar is close to typescript/kotlin/swift and other modern languages, need very little time to get familar with.
