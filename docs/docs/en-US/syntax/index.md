@@ -25,13 +25,10 @@ another line.*/
 Variable is declared with [var], [final]. The type annotation and initialize expression is optional.
 
 ```typescript
-var person;
-var fineStructureConstant: num = 1 / 137;
-var isTimeTravelSuccessful: bool = true;
-var skill: Map<str> = {
-  tags: ['attack'],
-  script: '//path/to/skill_script.ht',
-};
+var person
+var fineStructureConstant: num = 1 / 137
+var isTimeTravelSuccessful: bool = true
+var skill: List = ['attack', 'defense']
 ```
 
 Variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
@@ -54,6 +51,8 @@ A little difference from Dart is that you have to write a curly brackets even if
 
 ## Type declaration
 
+**WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them.**
+
 Type is a variable in Hetu, it can be assigned and returned.
 The type of a type is always 'type', no matter it's a primitive, instance, or function type.
 Use 'runtimeType' to get the runtime type of a value.
@@ -61,11 +60,11 @@ Use 'runtimeType' to get the runtime type of a value.
 ```typescript
 fun main {
   // decalre a function typedef
-  var funcTypedef: type = fun(str) -> num
+  type funcTypedef = fun(str) -> num
   // assign a function to a value of a certain function type
   var numparse: funcTypedef = fun(value: str) -> num { return num.parse(value) }
   // get a value's runtime type and return it from a function
-  var getType = fun { return numparse.runtimeType }
+  var getType = fun { return typeof numparse }
   var funcTypedef2 = getType()
   // use this new type
   var strlength: funcTypedef2 = fun(value: str) -> num { return value.length }
@@ -96,9 +95,9 @@ fun main {
 - Function can have no name, it will then become a literal function expression(anonymous function).
 - Functions can be nested, and nested functions can have names.
 - Function are first class, you can use function as parameter, return value and store them in variables.
-- Function must be within a block statement (within '{' and '}').
-- Return type is marked by a single arrow ('->') after the parameters.
-- If a literal function is declared without a definition body, then it is deemed as a function type rather than an function definition.
+- Function body could be a block statement (within '{' and '}'), or a single line expression after '=>'.
+- Return type is marked by a single arrow ('->') after the parameters brackets.
+- Literal function could have no names, in this situation, the parameter brackets are not omittable.
 
 ```typescript
 fun closure(func) {
@@ -110,7 +109,7 @@ fun closure(func) {
 }
 
 fun main {
-  var func = closure( fun (n) { return n * n } )
+  var func = closure( (n) => n * n )
   print(func()) // print: 1849
   print(func()) // print: 1936
 }
@@ -157,6 +156,46 @@ class Calculator {
   }
 }
 ```
+
+## Struct
+
+Struct are a prototype base object system. This is mainly borrowed from Javascript.
+
+### Named struct
+
+Named struct's declaration are like class, you can have constructors, getter and setters.
+
+struct Named {
+  var name -> str
+  construct (name) {
+    this.name = name
+  }
+}
+
+var n = Named('jimmy')
+
+### Literal struct
+
+Literal struct are expressions in the form of '{key: value}'
+
+```typescript
+var obj = {
+  name: 'jimmy'
+  age: 17
+}
+```
+
+The key must be either a identifier, or a string literal (not includes string interpolation).
+
+Struct are different from class, that you wont get errors when you visit a non-exist member.
+
+```typescript
+obj.race = 'dragon' // okay, this will define a new member on obj.
+var lvl = obj.level // okay, although lvl's value will be null
+```
+
+- Struct's prototype can be accessed and modified through '$prototype'.
+- Struct's root prototype has two functions: toString() and toJson(). Can be used to easily convert a struct into other code.
 
 ## Control flow
 
@@ -219,7 +258,7 @@ do {
 - When use for...in, the loop will iterate through the keys of a list.
 
 ```dart
-for ( init; condition; increment ) {
+for (init; condition; increment) {
   ...
 }
 
@@ -242,23 +281,35 @@ when (condition) {
     // ...block statement...
   }
   // will not fall through here
-  else : {
+  else -> {
     // ...
   }
 }
 ```
 
-# Import
+# Import and export
 
 Use import statement to import content from another script file.
 
 ```dart
-import 'hello.ht'
+import 'game.ht'
+import { hello as greeting, calculator } from 'hello.ht' as h
 
 fun main {
-  hello()
+  h.greeting()
 }
 ```
+
+Use export in a module to specify the symbols you wish to let other module access when they import from you.
+
+```
+Export {
+  hello,
+  calculator,
+}
+```
+
+When there's no export statement, everything will be exported by default.
 
 ## Keywords
 
