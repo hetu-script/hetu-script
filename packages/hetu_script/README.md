@@ -41,7 +41,7 @@ void main() {
       var ht = {
         name: 'Jimmy',
         greeting: () {
-          print('Hi! I\'m', name)
+          print('Hi! I\'m', this.name)
         }
       }
       ht.greeting()
