@@ -31,14 +31,6 @@ var isTimeTravelSuccessful: bool = true
 var skill: List = ['attack', 'defense']
 ```
 
-Variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
-However, if you declare a variable with no initialize expression, the variable will be considered as having a [any] type (equals to dart's dynamic type).
-
-```typescript
-var name = 'naruto';
-// name = 2020 // error!
-```
-
 String literal can have interpolation the same to Javascript:
 
 ```dart
@@ -51,7 +43,16 @@ A little difference from Dart is that you have to write a curly brackets even if
 
 ## Type declaration
 
-**WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them.**
+**WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them currently.**
+
+
+Variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
+However, if you declare a variable with no initialize expression, the variable will be considered as having a [any] type (equals to dart's dynamic type).
+
+```typescript
+var name = 'naruto';
+// name = 2020 // error!
+```
 
 - Type is a variable in Hetu, it can be assigned and returned.
 - The type of a type is always 'type', no matter it's a primitive, instance, or function type.
@@ -165,14 +166,16 @@ Struct are a prototype base object system. This is mainly borrowed from Javascri
 
 Named struct's declaration are like class, you can have constructors, getter and setters.
 
+```
 struct Named {
   var name -> str
-  construct (name) {
+  construct (name-> str) {
     this.name = name
   }
 }
 
 var n = Named('jimmy')
+```
 
 ### Literal struct
 
@@ -199,7 +202,7 @@ var lvl = obj.level // okay, although lvl's value will be null
 
 ## Control flow
 
-Hetu has while, do loops, and classic for(init;condition;increment) and for...in/of loops. As well as when statement, which works like switch.
+Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as when statement, which works like switch.
 
 ```typescript
 fun main {
