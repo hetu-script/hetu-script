@@ -1,1 +1,1 @@
-packages/hetu_script/README.md
+./packages/hetu_script/README.md
