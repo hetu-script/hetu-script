@@ -336,7 +336,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitConstStringExpr(ConstStringExpr expr) {
     var literal = expr.value;
     HTLexicon.stringEscapes.forEach((key, value) {
-      literal = expr.value.replaceAll(key, value);
+      literal = literal.replaceAll(key, value);
     });
     final index = _curConstTable.addString(literal);
     return _localConst(
