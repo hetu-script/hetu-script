@@ -53,9 +53,9 @@ A little difference from Dart is that you have to write a curly brackets even if
 
 **WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them.**
 
-Type is a variable in Hetu, it can be assigned and returned.
-The type of a type is always 'type', no matter it's a primitive, instance, or function type.
-Use 'runtimeType' to get the runtime type of a value.
+- Type is a variable in Hetu, it can be assigned and returned.
+- The type of a type is always 'type', no matter it's a primitive, instance, or function type.
+- Use 'typeof' keyword to get the runtime type of a value.
 
 ```typescript
 fun main {
