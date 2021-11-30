@@ -11,7 +11,7 @@ void main() {
           print('Hi! I\'m', this.name)
         }
       }
-      ht.greeting()
+      print(prototype.keys(ht))
     }
   ''', invokeFunc: 'main');
 }

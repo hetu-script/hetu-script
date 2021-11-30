@@ -1179,7 +1179,7 @@ class Hetu extends HTAbstractInterpreter {
     if (hasClassId) {
       classId = _curLibrary.readShortUtf8String();
     }
-    final isStructMember = _curLibrary.readBool();
+    final isField = _curLibrary.readBool();
     final isExternal = _curLibrary.readBool();
     final isStatic = _curLibrary.readBool();
     final isMutable = _curLibrary.readBool();
@@ -1236,7 +1236,7 @@ class Hetu extends HTAbstractInterpreter {
           isMutable: isMutable,
           isExported: isExported);
     }
-    if (isStructMember) {
+    if (isField) {
     } else {
       _curNamespace.define(id, decl);
     }
@@ -1296,7 +1296,7 @@ class Hetu extends HTAbstractInterpreter {
       externalTypeId = _curLibrary.readShortUtf8String();
     }
     final category = FunctionCategory.values[_curLibrary.read()];
-    final isStructMember = _curLibrary.readBool();
+    final isField = _curLibrary.readBool();
     final isExternal = _curLibrary.readBool();
     final isStatic = _curLibrary.readBool();
     final isConst = _curLibrary.readBool();
@@ -1352,6 +1352,7 @@ class Hetu extends HTAbstractInterpreter {
         id: id,
         classId: classId,
         closure: _curNamespace,
+        isField: isField,
         isExternal: isExternal,
         isStatic: isStatic,
         isConst: isConst,
@@ -1367,7 +1368,7 @@ class Hetu extends HTAbstractInterpreter {
         definitionLine: line,
         definitionColumn: column,
         redirectingConstructor: redirCtor);
-    if (isStructMember) {
+    if (isField) {
       _curValue = func;
     } else {
       if ((category != FunctionCategory.constructor) || isStatic) {

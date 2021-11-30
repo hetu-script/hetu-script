@@ -522,6 +522,7 @@ class HTParser extends HTAbstractParser {
           }
         }
       case SourceType.struct:
+        final isExternal = expect([HTLexicon.EXTERNAL], consume: true);
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         switch (curTok.type) {
           case SemanticNames.singleLineComment:
@@ -530,31 +531,36 @@ class HTParser extends HTAbstractParser {
           case HTLexicon.VAR:
             return _parseVarDecl(
                 classId: _curStructId,
+                isExternal: isExternal,
                 isMutable: true,
                 isStatic: isStatic,
                 lateInitialize: true);
           case HTLexicon.FINAL:
             return _parseVarDecl(
                 classId: _curStructId,
+                isExternal: isExternal,
                 isStatic: isStatic,
                 lateInitialize: true);
           case HTLexicon.FUNCTION:
             return _parseFunction(
                 category: FunctionCategory.method,
                 classId: _curStructId,
-                isStructMember: true,
+                isExternal: isExternal,
+                isField: true,
                 isStatic: isStatic);
           case HTLexicon.GET:
             return _parseFunction(
                 category: FunctionCategory.getter,
                 classId: _curStructId,
-                isStructMember: true,
+                isExternal: isExternal,
+                isField: true,
                 isStatic: isStatic);
           case HTLexicon.SET:
             return _parseFunction(
                 category: FunctionCategory.setter,
                 classId: _curStructId,
-                isStructMember: true,
+                isExternal: isExternal,
+                isField: true,
                 isStatic: isStatic);
           case HTLexicon.CONSTRUCT:
             if (isStatic) {
@@ -572,7 +578,8 @@ class HTParser extends HTAbstractParser {
               return _parseFunction(
                   category: FunctionCategory.constructor,
                   classId: _curStructId,
-                  isStructMember: true);
+                  isExternal: isExternal,
+                  isField: true);
             }
           default:
             final err = HTError.unexpected(
@@ -1704,7 +1711,7 @@ class HTParser extends HTAbstractParser {
 
   VarDecl _parseVarDecl(
       {String? classId,
-      bool isStructMember = false,
+      bool isField = false,
       // bool typeInferrence = false,
       bool isOverrided = false,
       bool isExternal = false,
@@ -1716,7 +1723,7 @@ class HTParser extends HTAbstractParser {
       bool lateInitialize = false,
       AstNode? additionalInitializer,
       bool hasEndOfStatement = false}) {
-    if (isStructMember) {
+    if (isField) {
       final idTok = advance(1);
       late IdentifierExpr id;
       if (idTok.type == SemanticNames.identifier ||
@@ -1797,7 +1804,7 @@ class HTParser extends HTAbstractParser {
       {FunctionCategory category = FunctionCategory.normal,
       String? classId,
       bool hasKeyword = true,
-      bool isStructMember = false,
+      bool isField = false,
       bool isOverrided = false,
       bool isExternal = false,
       bool isStatic = false,
@@ -1860,7 +1867,7 @@ class HTParser extends HTAbstractParser {
         break;
       default:
         id = match(SemanticNames.identifier);
-        internalName = id.lexeme;
+        internalName = isField ? '$_curStructId.${id.lexeme}' : id.lexeme;
     }
     final genericParameters = _getGenericParams();
     var isFuncVariadic = false;
@@ -2079,7 +2086,7 @@ class HTParser extends HTAbstractParser {
         minArity: minArity,
         maxArity: maxArity,
         definition: definition,
-        isStructMember: isStructMember,
+        isField: isField,
         isExternal: isExternal,
         isStatic: isStatic,
         isConst: isConst,

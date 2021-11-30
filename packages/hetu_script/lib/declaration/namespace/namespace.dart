@@ -68,8 +68,8 @@ class HTNamespace extends HTDeclaration with HTEntity {
     }
   }
 
-  /// 从当前命名空间，以及超空间，递归获取一个变量
-  /// 注意和memberGet只是从对象本身取值不同
+  /// Fetch a value from this namespace,
+  /// if not found and [recursive] is true, will continue search in super namespaces.
   @override
   dynamic memberGet(String varName, {bool recursive = true}) {
     // if (varName.startsWith(HTLexicon.privatePrefix) &&
@@ -88,8 +88,9 @@ class HTNamespace extends HTDeclaration with HTEntity {
     throw HTError.undefined(varName);
   }
 
-  /// 从当前命名空间，以及超空间，递归获取一个变量并赋值
-  /// 注意和memberSet只是对对象本身的成员赋值不同
+  /// Fetch a declaration from this namespace,
+  /// if not found and [recursive] is true, will continue search in super namespaces,
+  /// then assign the value to that declaration.
   @override
   void memberSet(String varName, dynamic varValue, {bool recursive = true}) {
     if (declarations.containsKey(varName)) {

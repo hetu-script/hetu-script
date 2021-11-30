@@ -1297,7 +1297,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
-    bytesBuilder.addByte(stmt.isStructMember ? 1 : 0);
+    bytesBuilder.addByte(stmt.isField ? 1 : 0);
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
     bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
@@ -1404,7 +1404,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.addByte(0); // bool: hasExternalTypedef
       }
       bytesBuilder.addByte(stmt.category.index);
-      bytesBuilder.addByte(stmt.isStructMember ? 1 : 0);
+      bytesBuilder.addByte(stmt.isField ? 1 : 0);
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
       bytesBuilder.addByte(stmt.isConst ? 1 : 0);
@@ -1453,7 +1453,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has no definition
     }
     // _curFunc = savedCurFunc;
-    if (stmt.category != FunctionCategory.literal && !stmt.isStructMember) {
+    if (stmt.category != FunctionCategory.literal && !stmt.isField) {
       bytesBuilder.addByte(HTOpCode.endOfStmt);
     }
     return bytesBuilder.toBytes();

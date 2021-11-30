@@ -33,5 +33,23 @@ final Map<String, Function> preIncludeFunctions = {
       return HTStruct.jsonifyObject(object);
     }
   },
-  'object.toString': HTInstance.stringify
+  'object.toString': HTInstance.stringify,
+  'prototype.keys': (
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final object = positionalArgs.first;
+    if (object is HTStruct) {
+      return object.fields.keys.toList();
+    }
+  },
+  'prototype.values': (
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final object = positionalArgs.first;
+    if (object is HTStruct) {
+      return object.fields.values.toList();
+    }
+  },
 };

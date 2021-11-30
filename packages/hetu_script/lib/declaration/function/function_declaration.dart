@@ -47,6 +47,8 @@ class HTFunctionDeclaration extends HTDeclaration
 
   final HTFunctionType declType;
 
+  final bool isField;
+
   final bool isAbstract;
 
   final bool isVariadic;
@@ -73,6 +75,7 @@ class HTFunctionDeclaration extends HTDeclaration
       this.hasParamDecls = true,
       Map<String, HTAbstractParameter> paramDecls = const {},
       HTType? returnType,
+      this.isField = false,
       this.isAbstract = false,
       this.isVariadic = false,
       this.minArity = 0,

@@ -61,9 +61,8 @@ class HTStruct with HTEntity {
     final output = <String, dynamic>{};
     for (final key in struct.fields.keys) {
       var value = struct.fields[key];
-      // ignore internal members and none json data value
-      if (!key.startsWith(SemanticNames.internalMarker) &&
-          _isJsonDataType(value)) {
+      // ignore none json data value
+      if (_isJsonDataType(value)) {
         if (value is Iterable) {
           value = jsonifyList(value);
         } else if (value is HTStruct) {
@@ -92,25 +91,23 @@ class HTStruct with HTEntity {
           continue;
         }
       }
-      if (!key.startsWith(SemanticNames.internalMarker)) {
-        output.write(_curIndent());
-        final value = struct.fields[key];
-        final valueString = StringBuffer();
-        if (value is HTStruct) {
-          final content = stringify(value, from: from);
-          valueString.writeln(HTLexicon.curlyLeft);
-          valueString.write(content);
-          valueString.write(_curIndent());
-          valueString.write(HTLexicon.curlyRight);
-        } else {
-          valueString.write(value);
-        }
-        output.write('$key${HTLexicon.colon} $valueString');
-        if (i < struct.fields.length - 1) {
-          output.write(HTLexicon.comma);
-        }
-        output.writeln();
+      output.write(_curIndent());
+      final value = struct.fields[key];
+      final valueString = StringBuffer();
+      if (value is HTStruct) {
+        final content = stringify(value, from: from);
+        valueString.writeln(HTLexicon.curlyLeft);
+        valueString.write(content);
+        valueString.write(_curIndent());
+        valueString.write(HTLexicon.curlyRight);
+      } else {
+        valueString.write(value);
       }
+      output.write('$key${HTLexicon.colon} $valueString');
+      if (i < struct.fields.length - 1) {
+        output.write(HTLexicon.comma);
+      }
+      output.writeln();
     }
     --_curIndentCount;
     if (struct.prototype != null &&
@@ -136,7 +133,6 @@ class HTStruct with HTEntity {
     if (fields != null) {
       this.fields.addAll(fields);
     }
-    this.fields[SemanticNames.prototype] = prototype;
   }
 
   Map<String, dynamic> toJson() => jsonifyObject(this);
@@ -177,6 +173,9 @@ class HTStruct with HTEntity {
   @override
   dynamic memberGet(String varName) {
     dynamic value;
+    if (varName == SemanticNames.prototype) {
+      return prototype;
+    }
     if (fields.containsKey(varName)) {
       value = fields[varName];
     } else if (prototype != null) {
@@ -190,6 +189,10 @@ class HTStruct with HTEntity {
 
   @override
   void memberSet(String varName, dynamic varValue) {
+    if (varName == SemanticNames.prototype) {
+      prototype = namespace.closure!.memberGet(varName);
+      return;
+    }
     if (fields.containsKey(varName)) {
       fields[varName] = varValue;
       return;

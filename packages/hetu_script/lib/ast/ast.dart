@@ -1320,7 +1320,7 @@ class VarDecl extends AstNode {
 
   bool get isMember => classId != null;
 
-  final bool isStructMember;
+  final bool isField;
 
   final bool isExternal;
 
@@ -1345,7 +1345,7 @@ class VarDecl extends AstNode {
       this.initializer,
       this.hasEndOfStmtMark = false,
       // this.typeInferrence = false,
-      this.isStructMember = false,
+      this.isField = false,
       this.isExternal = false,
       this.isStatic = false,
       this.isConst = false,
@@ -1494,7 +1494,7 @@ class FuncDecl extends AstNode {
 
   bool get isAbstract => definition != null;
 
-  final bool isStructMember;
+  final bool isField;
 
   final bool isExternal;
 
@@ -1525,7 +1525,7 @@ class FuncDecl extends AstNode {
       this.isExpressionBody = false,
       this.hasEndOfStmtMark = false,
       this.definition,
-      this.isStructMember = false,
+      this.isField = false,
       this.isExternal = false,
       this.isStatic = false,
       this.isConst = false,

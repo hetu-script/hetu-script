@@ -1,4 +1,4 @@
-/// This file has been automatically generated
+/// This file has been automatically generated 
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
 part of '../abstract_interpreter.dart';
@@ -18,6 +18,13 @@ abstract class object {
 }
 
 struct prototype {
+
+  // external static fromJson()
+
+  external static fun keys(obj)
+
+  external static fun values(obj)
+
   fun toString() => stringify(this)
 
   fun toJson() => jsonify(this)
