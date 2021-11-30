@@ -6,6 +6,15 @@ void main() {
   hetu.init();
 
   group('buildin values -', () {
+    test('escape char in string', () {
+      final result = hetu.eval(r'''
+      fun escapeChar => 'Alice\'s world.'
+    ''', invokeFunc: 'escapeChar');
+      expect(
+        result,
+        "Alice's world.",
+      );
+    });
     test('string interpolation', () {
       final result = hetu.eval(r'''
       fun interpolation {
