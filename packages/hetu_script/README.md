@@ -39,9 +39,10 @@ void main() {
   hetu.eval(r'''
     fun main {
       var ht = {
-      name: 'Jimmy',
-      greeting: () {
-        print('Hi! I\'m', name)
+        name: 'Jimmy',
+        greeting: () {
+          print('Hi! I\'m', name)
+        }
       }
       ht.greeting()
     }
