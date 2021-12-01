@@ -25,8 +25,7 @@ class HTVariableDeclaration extends HTDeclaration {
       bool isStatic = false,
       bool isConst = false,
       bool isMutable = false,
-      bool isTopLevel = false,
-      bool isExported = false})
+      bool isTopLevel = false})
       : _declType = declType,
         super(
             id: id,
@@ -37,8 +36,7 @@ class HTVariableDeclaration extends HTDeclaration {
             isStatic: isStatic,
             isConst: isConst,
             isMutable: isMutable,
-            isTopLevel: isTopLevel,
-            isExported: isExported) {
+            isTopLevel: isTopLevel) {
     if (_declType != null && _declType!.isResolved) {
       _resolvedDeclType = _declType!;
     }
@@ -63,6 +61,5 @@ class HTVariableDeclaration extends HTDeclaration {
       isStatic: isStatic,
       isConst: isConst,
       isMutable: isMutable,
-      isTopLevel: isTopLevel,
-      isExported: isExported);
+      isTopLevel: isTopLevel);
 }

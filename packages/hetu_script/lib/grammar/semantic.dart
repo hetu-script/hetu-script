@@ -121,6 +121,8 @@ abstract class SemanticNames {
 
   static const libraryStmt = 'library_statement';
   static const importStmt = 'import_statement';
+  static const exportStmt = 'export_statement';
+  static const exportImportStmt = 'export_import_statement';
   static const exprStmt = 'expression_statement';
   static const blockStmt = 'block_statement';
   static const returnStmt = 'return_statement';

@@ -98,6 +98,8 @@ abstract class HTLexicon {
   static const TRUE = 'true';
   static const FALSE = 'false';
 
+  static const late = 'late';
+
   static const VAR = 'var';
   static const FINAL = 'final';
   static const CONST = 'const';
@@ -112,17 +114,17 @@ abstract class HTLexicon {
 
   static const Set<String> primitiveTypes = {
     type,
-    ANY,
+    any,
     VOID,
-    UNKNOWN,
-    NEVER,
+    unknown,
+    never,
     // FUNCTION,
   };
 
-  static const ANY = 'any';
   static const VOID = 'void';
-  static const UNKNOWN = 'unknown';
-  static const NEVER = 'never';
+  static const any = 'any';
+  static const unknown = 'unknown';
+  static const never = 'never';
   // static const FUNCTION = 'function';
 
   static const type = 'type';
@@ -130,12 +132,13 @@ abstract class HTLexicon {
   static const prototype = 'prototype';
   static const library = 'library';
   static const import = 'import';
+  static const export = 'export';
+  static const show = 'show';
+  static const from = 'from';
 
   static const TYPEOF = 'typeof';
   static const NAMESPACE = 'namespace';
   static const AS = 'as';
-  static const SHOW = 'show';
-  static const FROM = 'from';
   static const CLASS = 'class';
   static const ENUM = 'enum';
   static const FUNCTION = 'fun';
@@ -147,7 +150,6 @@ abstract class HTLexicon {
   static const Set<String> constructorCall = {THIS, SUPER};
 
   static const ABSTRACT = 'abstract';
-  static const EXPORT = 'export';
   static const OVERRIDE = 'override';
   static const EXTERNAL = 'external';
   static const STATIC = 'static';
@@ -178,18 +180,15 @@ abstract class HTLexicon {
   static const IS = 'is';
   static const ISNOT = 'is!';
 
+  static const TRY = 'try';
+  static const CATCH = 'catch';
+  static const THROW = 'throw';
+
   /// 内置关键字
   static const Set<String> keywords = {
-    // TYPE,
-    ANY,
-    VOID,
-    UNKNOWN,
-    NEVER,
-    // FUNCTION,
     NULL,
     TRUE,
     FALSE,
-    EXPORT,
     VAR,
     FINAL,
     CONST,
@@ -227,12 +226,21 @@ abstract class HTLexicon {
     WHEN,
     IS,
     AS,
+    TRY,
+    CATCH,
+    THROW,
   };
 
-  /// 可以用作变量名字的关键字
-  static const Set<String> otherKeywords = {
+  static const Set<String> contextualKeyword = {
+    VOID,
     type,
     import,
+    export,
+    any,
+    unknown,
+    never,
+    show,
+    from,
   };
 
   static const memberGet = '.';

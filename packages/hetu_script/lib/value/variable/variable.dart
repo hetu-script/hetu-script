@@ -28,7 +28,6 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       bool isConst = false,
       bool isMutable = false,
       bool isTopLevel = false,
-      bool isExported = false,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
@@ -40,8 +39,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             isStatic: isStatic,
             isConst: isConst,
             isMutable: isMutable,
-            isTopLevel: isTopLevel,
-            isExported: isExported) {
+            isTopLevel: isTopLevel) {
     this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.libraryName = libraryName;
@@ -166,7 +164,6 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       isConst: isConst,
       isMutable: isMutable,
       isTopLevel: isTopLevel,
-      isExported: isExported,
       definitionIp: definitionIp,
       definitionLine: definitionLine,
       definitionColumn: definitionColumn);

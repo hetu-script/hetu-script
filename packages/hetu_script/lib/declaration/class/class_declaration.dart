@@ -54,8 +54,7 @@ class HTClassDeclaration extends HTDeclaration
       bool isExternal = false,
       this.isAbstract = false,
       this.isEnum = false,
-      bool isTopLevel = false,
-      bool isExported = false})
+      bool isTopLevel = false})
       : _unresolvedSuperType = superType,
         namespace = HTClassNamespace(
             id: id, classId: classId, closure: closure, source: source),
@@ -65,8 +64,7 @@ class HTClassDeclaration extends HTDeclaration
             closure: closure,
             source: source,
             isExternal: isExternal,
-            isTopLevel: isTopLevel,
-            isExported: isExported) {
+            isTopLevel: isTopLevel) {
     if (_unresolvedSuperType != null && _unresolvedSuperType!.isResolved) {
       _resolvedSuperType = _unresolvedSuperType;
     }
@@ -93,6 +91,5 @@ class HTClassDeclaration extends HTDeclaration
       isExternal: isExternal,
       isAbstract: isAbstract,
       isEnum: isEnum,
-      isTopLevel: isTopLevel,
-      isExported: isExported);
+      isTopLevel: isTopLevel);
 }

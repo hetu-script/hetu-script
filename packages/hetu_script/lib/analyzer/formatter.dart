@@ -509,13 +509,35 @@ class HTFormatter implements AbstractAstVisitor<String> {
     if (stmt.showList.isNotEmpty) {
       output.write('${HTLexicon.curlyLeft} ');
       output.write(stmt.showList.join('${HTLexicon.comma} '));
-      output.write(' ${HTLexicon.curlyRight} ${HTLexicon.FROM} ');
+      output.write(' ${HTLexicon.curlyRight} ${HTLexicon.from} ');
     }
     output.write(
         '${HTLexicon.singleQuotationLeft}${stmt.key}${HTLexicon.singleQuotationRight}');
     if (stmt.alias != null) {
       output.write(' ${HTLexicon.AS} ${stmt.alias}');
     }
+    return output.toString();
+  }
+
+  @override
+  String visitExportDecl(ExportDecl stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.export} ');
+    output.write(stmt.showList.join('${HTLexicon.comma} '));
+    return output.toString();
+  }
+
+  @override
+  String visitExportImportDecl(ExportImportDecl stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.export} ');
+    if (stmt.showList.isNotEmpty) {
+      output.write('${HTLexicon.curlyLeft} ');
+      output.write(stmt.showList.join('${HTLexicon.comma} '));
+      output.write(' ${HTLexicon.curlyRight} ${HTLexicon.from} ');
+    }
+    output.write(
+        '${HTLexicon.singleQuotationLeft}${stmt.key}${HTLexicon.singleQuotationRight}');
     return output.toString();
   }
 

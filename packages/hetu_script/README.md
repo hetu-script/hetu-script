@@ -4,7 +4,7 @@
 
 **Hetu is early WIP! We are focusing on making Hetu stable and feature complete right now.**
 
-Discussion group:
+## Discussion group
 
 Discord: [https://discord.gg/Q8JWQYEw](https://discord.gg/aJedwcRPr8)
 
@@ -18,38 +18,13 @@ We did not choose to use another existing language to achieve the goal. Because 
 
 It takes very little time to bind almost anything in Dart/Flutter into Hetu, makes communicating with your existing Dart code very easy.
 
-## Installation
+## Document
 
-For pure dart project, add 'hetu_script: 0.3.0+1' (or future higher versions) in your pubspec.yaml.
-
-```yaml
-dependencies:
-  hetu_script: ^0.3.0+1
-```
-
-- For handling module import from physical disk within the script, and REPL tool, there's another package called: 'hetu_script_dev_tools'.
-- For Flutter project, use package 'hetu_script_flutter' along with 'hetu_script', then you can easily read script from assets. Note that in Flutter, the [init] method is changed:
-
-```dart
-import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script_flutter/hetu_script_flutter.dart';
-
-final hetu = Hetu();
-await hetu.initFlutter();
-// do something
-```
+### [English](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/index.md)
 
 ## Quick start
 
-Hetu's grammar is close to typescript/kotlin/swift and other modern languages, need very little time to get familar with.
-
-- Optional semicolon.
-- Function is declared with 'fun, get, set, construct'.
-- Optional type annotation. Variable declared will infer its type from its initializer expression.
-
-[Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md)
-
-This is an example to eval a string literal of Hetu code in Dart.
+Below is an example to eval a string literal of Hetu code in Dart.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -60,7 +35,7 @@ void main() {
   hetu.eval(r'''
     fun main {
       var ht = {
-        name: 'Jimmy',
+        name: 'Hetu',
         greeting: () {
           print('Hi! I\'m', this.name)
         }
@@ -70,6 +45,15 @@ void main() {
   ''', invokeFunc: 'main');
 }
 ```
+
+Hetu's grammar is close to typescript/kotlin/swift and other modern languages, need very little time to get familar with.
+
+- Optional semicolon.
+- Function is declared with 'fun, get, set, construct'.
+- Optional type annotation. Variable declared will infer its type from its initializer expression.
+- Support for traditional class style OOP and javascript-like prototyped based OOP, and also functional programming as function is a first class value. You can choose whatever style you want.
+
+[Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md)
 
 ## Binding
 

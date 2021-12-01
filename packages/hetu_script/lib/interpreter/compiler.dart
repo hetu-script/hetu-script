@@ -265,7 +265,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(0); // bool: isStatic
     bytesBuilder.addByte(isMutable ? 1 : 0); // bool: isMutable
     bytesBuilder.addByte(0); // bool: isConst
-    bytesBuilder.addByte(0); // bool: isExported
     bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
     bytesBuilder.addByte(0); // bool: has type decl
     if (initializer != null) {
@@ -1262,6 +1261,29 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitExportDecl(ExportDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.exportDecl);
+    bytesBuilder.addByte(stmt.showList.length);
+    for (final id in stmt.showList) {
+      bytesBuilder.add(_shortUtf8String(id));
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitExportImportDecl(ExportImportDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.exportImportDecl);
+    bytesBuilder.addByte(stmt.showList.length);
+    for (final id in stmt.showList) {
+      bytesBuilder.add(_shortUtf8String(id));
+    }
+    bytesBuilder.add(_shortUtf8String(stmt.key));
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitNamespaceDecl(NamespaceDecl stmt) {
     final bytesBuilder = BytesBuilder();
     // TODO: namespace compilation
@@ -1279,7 +1301,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     // do not use visitTypeExpr here because the value could be a function type
     final bytes = compileAst(stmt.value);
     bytesBuilder.add(bytes);
@@ -1302,7 +1323,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
     bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
     bytesBuilder.addByte(stmt.isConst ? 1 : 0);
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
     if (stmt.declType != null) {
       bytesBuilder.addByte(1); // bool: has type decl
@@ -1408,7 +1428,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
       bytesBuilder.addByte(stmt.isConst ? 1 : 0);
-      bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     } else {
       bytesBuilder.addByte(HTOpCode.local);
       bytesBuilder.addByte(HTValueTypeCode.function);
@@ -1467,7 +1486,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // TODO: 泛型param
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isAbstract ? 1 : 0);
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     bytesBuilder.addByte(stmt.hasUserDefinedConstructor ? 1 : 0);
     Uint8List? superType;
     if (stmt.superType != null) {
@@ -1518,7 +1536,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.add(_shortUtf8String(stmt.id.id));
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(0); // bool: is abstract
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     bytesBuilder.addByte(1); // bool: has user defined constructor
     bytesBuilder.addByte(0); // bool: has super class
 
@@ -1600,7 +1617,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: hasPrototypeId
     }
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0);
     final staticFields = <String, AstNode>{};
     final fields = <String, AstNode>{};
     for (final node in stmt.definition) {

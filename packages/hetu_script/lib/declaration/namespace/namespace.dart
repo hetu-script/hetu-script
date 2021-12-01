@@ -3,7 +3,7 @@ import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
 import '../declaration.dart';
 import '../../value/entity.dart';
-import 'module.dart';
+// import 'module.dart';
 
 class ImportDeclaration {
   final String fullName;
@@ -12,7 +12,14 @@ class ImportDeclaration {
 
   final List<String> showList;
 
-  ImportDeclaration(this.fullName, {this.alias, this.showList = const []});
+  final bool isExported;
+
+  ImportDeclaration(
+    this.fullName, {
+    this.alias,
+    this.showList = const [],
+    this.isExported = true,
+  });
 }
 
 /// Namespace is used when importing with a name
@@ -31,20 +38,20 @@ class HTNamespace extends HTDeclaration with HTEntity {
 
   final imports = <String, ImportDeclaration>{};
 
+  final exports = <String>[];
+
   HTNamespace(
       {String? id,
       String? classId,
       HTNamespace? closure,
       HTSource? source,
-      bool isTopLevel = false,
-      bool isExported = false})
+      bool isTopLevel = false})
       : super(
             id: id,
             classId: classId,
             closure: closure,
             source: source,
-            isTopLevel: isTopLevel,
-            isExported: isExported) {
+            isTopLevel: isTopLevel) {
     // calculate the full name of this namespace
     _fullName = displayName;
     var curSpace = closure;
@@ -108,29 +115,43 @@ class HTNamespace extends HTDeclaration with HTEntity {
   }
 
   void declareImport(String key,
-      {String? alias, List<String> showList = const []}) {
-    final decl = ImportDeclaration(key, alias: alias, showList: showList);
+      {String? alias,
+      List<String> showList = const [],
+      bool isExported = false}) {
+    final decl = ImportDeclaration(
+      key,
+      alias: alias,
+      showList: showList,
+      isExported: isExported,
+    );
     imports[key] = decl;
   }
 
-  void import(HTNamespace other, {bool clone = false}) {
-    if ((other is HTModule) && other.isLibraryEntry) {
-      for (final key in other.declarations.keys) {
-        var decl = other.declarations[key]!;
-        if (decl.isExported) {
+  void declareExport(String id) {
+    exports.add(id);
+  }
+
+  void import(HTNamespace other,
+      {bool clone = false,
+      bool isExported = false,
+      List<String> showList = const []}) {
+    if (isExported && showList.isNotEmpty) {
+      for (final id in showList) {
+        declareExport(id);
+      }
+    }
+    for (final key in other.declarations.keys) {
+      var decl = other.declarations[key]!;
+      if (other.exports.isNotEmpty) {
+        if (other.exports.contains(decl.id)) {
           if (clone) {
             decl = decl.clone();
           }
           define(key, decl, error: false);
+          if (isExported && showList.isEmpty) {
+            declareExport(decl.id!);
+          }
         }
-      }
-    } else {
-      for (final key in other.declarations.keys) {
-        var decl = other.declarations[key]!;
-        if (clone) {
-          decl = decl.clone();
-        }
-        define(key, decl, error: false);
       }
     }
   }

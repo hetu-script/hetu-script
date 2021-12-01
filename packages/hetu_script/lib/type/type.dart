@@ -9,26 +9,25 @@ import 'function_type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 
 abstract class HTType with HTEntity {
-  static const ANY = _PrimitiveType(HTLexicon.ANY);
+  static const type = _PrimitiveType(HTLexicon.type);
+  static const ANY = _PrimitiveType(HTLexicon.any);
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
   static const ENUM = _PrimitiveType(HTLexicon.ENUM);
   static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
   static const CLASS = _PrimitiveType(HTLexicon.CLASS);
-  static const UNKNOWN = _PrimitiveType(HTLexicon.UNKNOWN);
-  // static const object = _PrimitiveType(HTLexicon.object);
+  static const UNKNOWN = _PrimitiveType(HTLexicon.unknown);
   static const function = _PrimitiveType(HTLexicon.FUNCTION);
-  static const type = _PrimitiveType(HTLexicon.type);
 
   static const Map<String, HTType> primitiveTypes = {
     HTLexicon.type: type,
-    HTLexicon.ANY: ANY,
+    HTLexicon.any: ANY,
     HTLexicon.NULL: NULL,
     HTLexicon.VOID: VOID,
     // HTLexicon.ENUM: ENUM,
     // HTLexicon.NAMESPACE: NAMESPACE,
     // HTLexicon.CLASS: CLASS,
-    HTLexicon.UNKNOWN: UNKNOWN,
+    HTLexicon.unknown: UNKNOWN,
     // HTLexicon.object: object,
     // HTLexicon.FUNCTION: function,
   };

@@ -47,7 +47,7 @@ class _LoopInfo {
 /// A bytecode implementation of a Hetu script interpreter
 class Hetu extends HTAbstractInterpreter {
   static const verMajor = 0;
-  static const verMinor = 1;
+  static const verMinor = 3;
   static const verPatch = 0;
 
   @override
@@ -376,7 +376,8 @@ class Hetu extends HTAbstractInterpreter {
             final importNamespace = _curLibrary.declarations[decl.fullName]!;
             if (decl.alias == null) {
               if (decl.showList.isEmpty) {
-                nsp.import(importNamespace);
+                nsp.import(importNamespace,
+                    isExported: decl.isExported, showList: decl.showList);
               } else {
                 for (final id in decl.showList) {
                   HTDeclaration decl =
@@ -510,6 +511,10 @@ class Hetu extends HTAbstractInterpreter {
     var instruction = _curLibrary.read();
     while (instruction != HTOpCode.endOfFile) {
       switch (instruction) {
+        case HTOpCode.lineInfo:
+          _curLine = _curLibrary.readUint16();
+          _curColumn = _curLibrary.readUint16();
+          break;
         case HTOpCode.signature:
           _curLibrary.readUint32();
           break;
@@ -517,7 +522,17 @@ class Hetu extends HTAbstractInterpreter {
           final major = _curLibrary.read();
           final minor = _curLibrary.read();
           final patch = _curLibrary.readUint16();
-          if (major != verMajor) {
+          var incompatible = false;
+          if (major > 0) {
+            if (major != verMajor) {
+              incompatible = true;
+            }
+          } else {
+            if (major != verMajor || minor != verMinor || patch != verPatch) {
+              incompatible = true;
+            }
+          }
+          if (incompatible) {
             throw HTError.version(
                 '$major.$minor.$patch', '$verMajor.$verMinor.$verPatch',
                 moduleFullName: _curModuleFullName,
@@ -552,10 +567,6 @@ class Hetu extends HTAbstractInterpreter {
           _curModuleFullName = id;
           _curNamespace =
               HTModule(id, closure: global, isLibraryEntry: isLibraryEntry);
-          break;
-        case HTOpCode.lineInfo:
-          _curLine = _curLibrary.readUint16();
-          _curColumn = _curLibrary.readUint16();
           break;
         case HTOpCode.loopPoint:
           final continueLength = _curLibrary.readUint16();
@@ -615,19 +626,17 @@ class Hetu extends HTAbstractInterpreter {
           }
           break;
         case HTOpCode.importDecl:
-          final key = _curLibrary.readShortUtf8String();
-          String? alias;
-          final hasAlias = _curLibrary.readBool();
-          if (hasAlias) {
-            alias = _curLibrary.readShortUtf8String();
-          }
-          final showList = <String>[];
+          _handleImport();
+          break;
+        case HTOpCode.exportImportDecl:
+          _handleImport(isExported: true);
+          break;
+        case HTOpCode.exportDecl:
           final showListLength = _curLibrary.read();
           for (var i = 0; i < showListLength; ++i) {
             final id = _curLibrary.readShortUtf8String();
-            showList.add(id);
+            _curNamespace.declareExport(id);
           }
-          _curNamespace.declareImport(key, alias: alias, showList: showList);
           break;
         case HTOpCode.typeAliasDecl:
           _handleTypeAliasDecl();
@@ -744,6 +753,27 @@ class Hetu extends HTAbstractInterpreter {
       }
       instruction = _curLibrary.read();
     }
+  }
+
+  void _handleImport({bool isExported = false}) {
+    final key = _curLibrary.readShortUtf8String();
+    String? alias;
+    final hasAlias = _curLibrary.readBool();
+    if (hasAlias) {
+      alias = _curLibrary.readShortUtf8String();
+    }
+    final showList = <String>[];
+    final showListLength = _curLibrary.read();
+    for (var i = 0; i < showListLength; ++i) {
+      final id = _curLibrary.readShortUtf8String();
+      showList.add(id);
+    }
+    _curNamespace.declareImport(
+      key,
+      alias: alias,
+      showList: showList,
+      isExported: isExported,
+    );
   }
 
   void _storeLocal() {
@@ -1162,13 +1192,9 @@ class Hetu extends HTAbstractInterpreter {
     if (hasClassId) {
       classId = _curLibrary.readShortUtf8String();
     }
-    final isExported = _curLibrary.readBool();
     final value = _handleTypeExpr();
     final decl = HTVariable(id, this, _curModuleFullName, _curLibrary.id,
-        classId: classId,
-        closure: _curNamespace,
-        value: value,
-        isExported: isExported);
+        classId: classId, closure: _curNamespace, value: value);
     _curNamespace.define(id, decl);
   }
 
@@ -1184,7 +1210,6 @@ class Hetu extends HTAbstractInterpreter {
     final isStatic = _curLibrary.readBool();
     final isMutable = _curLibrary.readBool();
     final isConst = _curLibrary.readBool();
-    final isExported = _curLibrary.readBool();
     final lateInitialize = _curLibrary.readBool();
     HTType? declType;
     final hasTypeDecl = _curLibrary.readBool();
@@ -1208,7 +1233,6 @@ class Hetu extends HTAbstractInterpreter {
             isStatic: isStatic,
             isConst: isConst,
             isMutable: isMutable,
-            isExported: isExported,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
@@ -1222,8 +1246,7 @@ class Hetu extends HTAbstractInterpreter {
             isExternal: isExternal,
             isStatic: isStatic,
             isConst: isConst,
-            isMutable: isMutable,
-            isExported: isExported);
+            isMutable: isMutable);
       }
     } else {
       decl = HTVariable(id, this, _curModuleFullName, _curLibrary.id,
@@ -1233,8 +1256,7 @@ class Hetu extends HTAbstractInterpreter {
           isExternal: isExternal,
           isStatic: isStatic,
           isConst: isConst,
-          isMutable: isMutable,
-          isExported: isExported);
+          isMutable: isMutable);
     }
     if (isField) {
     } else {
@@ -1300,7 +1322,6 @@ class Hetu extends HTAbstractInterpreter {
     final isExternal = _curLibrary.readBool();
     final isStatic = _curLibrary.readBool();
     final isConst = _curLibrary.readBool();
-    final isExported = _curLibrary.readBool();
     final hasParamDecls = _curLibrary.readBool();
     final isVariadic = _curLibrary.readBool();
     final minArity = _curLibrary.read();
@@ -1356,7 +1377,6 @@ class Hetu extends HTAbstractInterpreter {
         isExternal: isExternal,
         isStatic: isStatic,
         isConst: isConst,
-        isExported: isExported,
         category: category,
         externalTypeId: externalTypeId,
         hasParamDecls: hasParamDecls,
@@ -1382,7 +1402,6 @@ class Hetu extends HTAbstractInterpreter {
     final id = _curLibrary.readShortUtf8String();
     final isExternal = _curLibrary.readBool();
     final isAbstract = _curLibrary.readBool();
-    final isExported = _curLibrary.readBool();
     final hasUserDefinedConstructor = _curLibrary.readBool();
     HTType? superType;
     final hasSuperClass = _curLibrary.readBool();
@@ -1398,8 +1417,7 @@ class Hetu extends HTAbstractInterpreter {
         closure: _curNamespace,
         superType: superType,
         isExternal: isExternal,
-        isAbstract: isAbstract,
-        isExported: isExported);
+        isAbstract: isAbstract);
     _curNamespace.define(id, klass);
     final savedClass = _curClass;
     _curClass = klass;
@@ -1429,7 +1447,6 @@ class Hetu extends HTAbstractInterpreter {
     if (hasPrototypeId) {
       prototypeId = _curLibrary.readShortUtf8String();
     }
-    final isExported = _curLibrary.readBool();
 
     final staticFiledsLength = _curLibrary.readUint16();
     final staticDefinitionIp = _curLibrary.ip;
@@ -1445,7 +1462,6 @@ class Hetu extends HTAbstractInterpreter {
       _curLibrary.id,
       _curNamespace,
       prototypeId: prototypeId,
-      isExported: isExported,
       staticDefinitionIp: staticDefinitionIp,
       definitionIp: definitionIp,
     );

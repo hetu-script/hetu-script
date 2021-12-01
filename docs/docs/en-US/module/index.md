@@ -14,6 +14,26 @@ Hetu script file have two different way to interpret, controlled by a source [ty
 
 - [SourceType.script]: the script file contains all kinds of expression and control statement that is allowed in a anonymous function body (including nested function and class declaration). Everything is immediately evaluated. This is like the usage of most script languages like Javascript, Python and Lua.
 
-## Library
+## Within script
 
-## Context
+Use import statement to import content from another script file.
+
+```dart
+import 'game.ht'
+import { hello as greeting, calculator } from 'hello.ht' as h
+
+fun main {
+  h.greeting()
+}
+```
+
+Use export in a module to specify the symbols you wish to let other module access when they import from you.
+
+```
+Export {
+  hello,
+  calculator,
+}
+```
+
+When there's no export statement, everything will be exported by default.

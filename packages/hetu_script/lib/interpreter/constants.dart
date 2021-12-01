@@ -51,11 +51,15 @@ abstract class HTOpCode {
 
   static const block = 30;
 
-  static const module = 40;
+  static const module = 31;
 
-  static const constTable = 41;
+  static const constTable = 32;
 
-  static const importDecl = 42;
+  static const importDecl = 40;
+
+  static const exportDecl = 41;
+
+  static const exportImportDecl = 42;
 
   static const libraryDecl = 43;
 

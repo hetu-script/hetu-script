@@ -25,10 +25,10 @@ another line.*/
 Variable is declared with [var], [final]. The type annotation and initialize expression is optional.
 
 ```typescript
-var person
-var fineStructureConstant: num = 1 / 137
-var isTimeTravelSuccessful: bool = true
-var skill: List = ['attack', 'defense']
+var person;
+var fineStructureConstant: num = 1 / 137;
+var isTimeTravelSuccessful: bool = true;
+var skill: List = ['attack', 'defense'];
 ```
 
 String literal can have interpolation the same to Javascript:
@@ -44,7 +44,6 @@ A little difference from Dart is that you have to write a curly brackets even if
 ## Type declaration
 
 **WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them currently.**
-
 
 Variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
 However, if you declare a variable with no initialize expression, the variable will be considered as having a [any] type (equals to dart's dynamic type).
@@ -193,8 +192,8 @@ The key must be either a identifier, or a string literal (not includes string in
 Struct are different from class, that you wont get errors when you visit a non-exist member.
 
 ```typescript
-obj.race = 'dragon' // okay, this will define a new member on obj.
-var lvl = obj.level // okay, although lvl's value will be null
+obj.race = 'dragon'; // okay, this will define a new member on obj.
+var lvl = obj.level; // okay, although lvl's value will be null
 ```
 
 - Struct's prototype can be accessed and modified through '$prototype'.
@@ -224,9 +223,8 @@ fun main {
 ### If
 
 - 'if' statement's condition expression must be bool.
-- 'if' statement's condition is allowed to have no brackets.
 - 'if' statement's branches could be a single statement without brackets.
-- 'if' can also be a expression which will have a value, in this case else branch is un-omitable.
+- 'if' can also be a expression which will have a value, in this case else branch is not omitable.
 
 ```dart
 if (condition) {
@@ -272,6 +270,8 @@ for (var item in list) {
 
 ### When
 
+When is the substitue for 'switch' in older programming languages, we change its name to indicate more complex usages.
+
 - 'when' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true. In this case, the when statement is more like a if else statement except with a little more efficiency because it won't go through every branch.
 - 'when' statement's case could be non-const expression or variables;
 - 'when' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
@@ -290,35 +290,14 @@ when (condition) {
 }
 ```
 
-# Import and export
-
-Use import statement to import content from another script file.
-
-```dart
-import 'game.ht'
-import { hello as greeting, calculator } from 'hello.ht' as h
-
-fun main {
-  h.greeting()
-}
-```
-
-Use export in a module to specify the symbols you wish to let other module access when they import from you.
-
-```
-Export {
-  hello,
-  calculator,
-}
-```
-
-When there's no export statement, everything will be exported by default.
-
 ## Keywords
+
+Some of the keywords only used in specific places, hence can be used as normal identifiers (variable names & class members, etc.).
+Some of the keywords have no meaning right now, they are reserved for future development.
 
 null, true, false, var, final, const, typeof, class, enum, fun, struct, interface, this, super, abstract, override, external, static, extends, implements, with, construct, factory, get, set, async, break, continue, return, for, in, of, if, else, while, do, when, is, as
 
-## Operators
+## Operator precedence
 
 | Description    | Operator                  | Associativity | Precedence |
 | :------------- | :------------------------ | :-----------: | :--------: |
@@ -332,3 +311,24 @@ null, true, false, var, final, const, typeof, class, enum, fun, struct, interfac
 | Logical Or     | \|\|                      |     Left      |     5      |
 | Conditional    | e1 ? e2 : e3              |     Right     |     3      |
 | Assignment     | =, \*=, /=, +=, -=        |     Right     |     1      |
+
+## Dart operator precedence (for reference)
+
+| Description    | Operator                         | Associativity | Precedence |
+| :------------- | :------------------------------- | :-----------: | :--------: |
+| Unary postfix  | e., e?., e++, e--, e1[e2], e()   |     None      |     16     |
+| Unary prefix   | -e, !e, ˜e, ++e, --e, await e    |     None      |     15     |
+| Multiplicative | \*, /, ˜/, %                     |     Left      |     14     |
+| Additive       | +, -                             |     Left      |     13     |
+| Shift          | <<, >>, >>>                      |     Left      |     12     |
+| Bitwise        | AND &                            |     Left      |     11     |
+| Bitwise        | XOR ˆ                            |     Left      |     10     |
+| Bitwise        | OR \|                            |     Left      |     9      |
+| Relational     | <, >, <=, >=, as, is, is!        |     None      |     8      |
+| Equality       | ==, !=                           |     None      |     7      |
+| Logical        | and &&                           |     Left      |     6      |
+| Logical        | or \|\|                          |     Left      |     5      |
+| If-null        | ??                               |     Left      |     4      |
+| Conditional    | e1 ? e2 : e3                     |     Right     |     3      |
+| Cascade        | ..                               |     Left      |     2      |
+| Assignment     | =, \*=, /=, +=, -=, &=, ˆ=, etc. |     Right     |     1      |

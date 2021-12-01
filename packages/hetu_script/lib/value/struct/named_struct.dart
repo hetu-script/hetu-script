@@ -33,15 +33,9 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     this.prototypeId,
     HTSource? source,
     bool isTopLevel = false,
-    bool isExported = false,
     this.staticDefinitionIp,
     int? definitionIp,
-  }) : super(
-            id: id,
-            closure: closure,
-            source: source,
-            isTopLevel: isTopLevel,
-            isExported: isExported) {
+  }) : super(id: id, closure: closure, source: source, isTopLevel: isTopLevel) {
     this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.libraryName = libraryName;
@@ -112,7 +106,6 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         source: source,
         prototypeId: prototypeId,
         isTopLevel: isTopLevel,
-        isExported: isExported,
         staticDefinitionIp: staticDefinitionIp,
         definitionIp: definitionIp,
       );

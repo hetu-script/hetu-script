@@ -49,7 +49,6 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       bool isExternal = false,
       bool isAbstract = false,
       bool isEnum = false,
-      bool isExported = false,
       this.superClass})
       : super(
             id: id,
@@ -62,8 +61,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
             implementsTypes: implementsTypes,
             isExternal: isExternal,
             isAbstract: isAbstract,
-            isEnum: isEnum,
-            isExported: isExported) {
+            isEnum: isEnum) {
     this.interpreter = interpreter;
   }
 
@@ -97,7 +95,6 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       isExternal: isExternal,
       isAbstract: isAbstract,
       isEnum: isEnum,
-      isExported: isExported,
       superClass: superClass);
 
   /// Create a [HTInstance] of this [HTClass],

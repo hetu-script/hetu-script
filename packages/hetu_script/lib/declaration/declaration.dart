@@ -43,9 +43,6 @@ abstract class HTDeclaration {
   /// Wether this declaration is defined directly under a module.
   final bool isTopLevel;
 
-  /// Wether this declaration is explicitly exported.
-  final bool isExported;
-
   /// Wether this declaration is a member of a class.
   bool get isMember => classId != null;
 
@@ -63,8 +60,7 @@ abstract class HTDeclaration {
       this.isStatic = false,
       this.isConst = false,
       this.isMutable = false,
-      this.isTopLevel = false,
-      this.isExported = false});
+      this.isTopLevel = false});
 
   dynamic get value => this;
 

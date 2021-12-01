@@ -82,6 +82,10 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitImportDecl(ImportDecl node) {}
 
+  T? visitExportDecl(ExportDecl node) {}
+
+  T? visitExportImportDecl(ExportImportDecl node) {}
+
   T? visitNamespaceDecl(NamespaceDecl node) {}
 
   T? visitTypeAliasDecl(TypeAliasDecl node) {}

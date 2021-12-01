@@ -1196,6 +1196,68 @@ class ImportDecl extends AstNode {
             length: length);
 }
 
+/// export a, b, c
+class ExportDecl extends AstNode {
+  @override
+  String get type => SemanticNames.exportStmt;
+
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitExportDecl(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {}
+
+  final List<String> showList;
+
+  final bool hasEndOfStmtMark;
+
+  ExportDecl(this.showList,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.exportStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class ExportImportDecl extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitExportImportDecl(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {}
+
+  final String key;
+
+  final List<String> showList;
+
+  final bool hasEndOfStmtMark;
+
+  ExportImportDecl(this.key,
+      {this.showList = const [],
+      this.hasEndOfStmtMark = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(
+          SemanticNames.exportImportStmt,
+          source: source,
+          line: line,
+          column: column,
+          offset: offset,
+          length: length,
+        );
+}
+
 class NamespaceDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
@@ -1215,8 +1277,6 @@ class NamespaceDecl extends AstNode {
 
   final bool isTopLevel;
 
-  final bool isExported;
-
   bool get isMember => classId != null;
 
   final bool isPrivate;
@@ -1225,7 +1285,6 @@ class NamespaceDecl extends AstNode {
       {this.classId,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1269,15 +1328,12 @@ class TypeAliasDecl extends AstNode {
 
   final bool isTopLevel;
 
-  final bool isExported;
-
   TypeAliasDecl(this.id, this.value,
       {this.classId,
       this.genericTypeParameters = const [],
       this.hasEndOfStmtMark = false,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1334,8 +1390,6 @@ class VarDecl extends AstNode {
 
   final bool isTopLevel;
 
-  final bool isExported;
-
   final bool lateInitialize;
 
   VarDecl(this.id,
@@ -1352,7 +1406,6 @@ class VarDecl extends AstNode {
       this.isMutable = false,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = false,
       this.lateInitialize = false,
       HTSource? source,
       int line = 0,
@@ -1369,6 +1422,9 @@ class VarDecl extends AstNode {
 }
 
 class ParamDecl extends VarDecl {
+  @override
+  String get type => SemanticNames.parameterDeclaration;
+
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitParamDecl(this);
 
@@ -1508,8 +1564,6 @@ class FuncDecl extends AstNode {
 
   final bool isTopLevel;
 
-  final bool isExported;
-
   final FunctionCategory category;
 
   FuncDecl(this.internalName, this.paramDecls,
@@ -1532,7 +1586,6 @@ class FuncDecl extends AstNode {
       this.isVariadic = false,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = false,
       this.category = FunctionCategory.normal,
       HTSource? source,
       int line = 0,
@@ -1591,8 +1644,6 @@ class ClassDecl extends AstNode {
 
   final bool isTopLevel;
 
-  final bool isExported;
-
   final bool hasUserDefinedConstructor;
 
   final BlockStmt definition;
@@ -1606,7 +1657,6 @@ class ClassDecl extends AstNode {
       this.isExternal = false,
       this.isAbstract = false,
       this.isPrivate = false,
-      this.isExported = true,
       this.isTopLevel = false,
       this.hasUserDefinedConstructor = false,
       HTSource? source,
@@ -1648,14 +1698,11 @@ class EnumDecl extends AstNode {
 
   final bool isTopLevel;
 
-  final bool isExported;
-
   EnumDecl(this.id, this.enumerations,
       {this.classId,
       this.isExternal = false,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = true,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1692,13 +1739,10 @@ class StructDecl extends AstNode {
 
   final bool isTopLevel;
 
-  final bool isExported;
-
   StructDecl(this.id, this.definition,
       {this.prototypeId,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.isExported = false,
       HTSource? source,
       int line = 0,
       int column = 0,
