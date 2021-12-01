@@ -45,6 +45,8 @@ class HTParser extends HTAbstractParser {
 
   final _cachedResults = <String, HTModuleParseResult>{};
 
+  final Set<String> _cachedRecursiveParsingTargets = {};
+
   @override
   final HTResourceContext<HTSource> sourceContext;
 
@@ -116,13 +118,16 @@ class HTParser extends HTAbstractParser {
     final results = <String, HTModuleParseResult>{};
 
     void handleImport(HTModuleParseResult module) {
+      _cachedRecursiveParsingTargets.add(module.fullName);
       for (final decl in module.imports) {
         try {
           late final HTModuleParseResult importModule;
           final importFullName = sourceContext.getAbsolutePath(
               key: decl.key, dirName: path.dirname(module.fullName));
           decl.fullName = importFullName;
-          if (_cachedResults.containsKey(importFullName)) {
+          if (_cachedRecursiveParsingTargets.contains(importFullName)) {
+            continue;
+          } else if (_cachedResults.containsKey(importFullName)) {
             importModule = _cachedResults[importFullName]!;
           } else {
             final source2 = sourceContext.getResource(importFullName);
@@ -141,6 +146,7 @@ class HTParser extends HTAbstractParser {
           errors.add(sourceProviderError);
         }
       }
+      _cachedRecursiveParsingTargets.remove(module.fullName);
     }
 
     handleImport(module);

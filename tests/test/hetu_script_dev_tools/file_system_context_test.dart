@@ -8,18 +8,25 @@ void main() {
   hetu.init();
 
   group('module -', () {
-    test('import 1', () {
+    test('import test 1', () {
       final result = hetu.evalFile('import_test.ht', invokeFunc: 'importTest');
       expect(
         result,
         87.5,
       );
     });
-    test('import 2', () {
+    test('import test 2', () {
       final result = hetu.evalFile('import_test2.ht', invokeFunc: 'main');
       expect(
         result,
         'Hello, world!',
+      );
+    });
+    test('recursive import', () {
+      final result = hetu.evalFile('recursive2.ht', invokeFunc: 'main');
+      expect(
+        result,
+        'hello, r2, I\'m r1!',
       );
     });
   });

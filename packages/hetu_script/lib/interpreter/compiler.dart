@@ -353,7 +353,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTValueTypeCode.stringInterpolation);
     var literal = expr.value;
     HTLexicon.stringEscapes.forEach((key, value) {
-      literal = expr.value.replaceAll(key, value);
+      literal = literal.replaceAll(key, value);
     });
     bytesBuilder.add(_utf8String(literal));
     bytesBuilder.addByte(expr.interpolation.length);
