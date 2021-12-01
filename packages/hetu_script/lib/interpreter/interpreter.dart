@@ -83,7 +83,7 @@ class Hetu extends HTAbstractInterpreter {
   @override
   HTNamespace get curNamespace => _curNamespace;
 
-  late String _curModuleFullName;
+  String _curModuleFullName = '';
   @override
   String get curModuleFullName => _curModuleFullName;
 
