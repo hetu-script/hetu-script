@@ -2,19 +2,14 @@
 
 ## Function
 
-### Typedef of external function
+### External function
 
-External functions (for both global and methods) can be binded as the following type:
+External functions in dart for use in Hetu have following type:
 
 ```dart
+/// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
     {List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs});
-
-await hetu.init(externalFunctions: {
-  // you can omit the type, and keep the correct type parameter names,
-  // this way Dart will still count it as HTExternalFunction
-  'hello': ({positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
-});
 ```
 
 or even you can directy write it as a Dart Function:
@@ -27,17 +22,17 @@ await hetu.init(externalFunctions: {
 
 It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's [Function.apply] feature to call it. This is normally slower and inefficient than direct call.
 
-## Binding external function
+To call Dart functions in Hetu, define those dart funtion in Hetu with [external] keyword and init Hetu with [externalFunctions] argument.
 
-To call Dart functions in Hetu, just init Hetu with [externalFunctions].
-
-Then define those dart funtion in Hetu with [external] keyword.
+```dart
+await hetu.init(externalFunctions: {
+  // you can omit the type, and keep the correct type parameter names,
+  // this way Dart will still count it as HTExternalFunction
+  'hello': ({positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
+});
+```
 
 Then you can call those functions in Hetu.
-
-You can pass object from Dart to Hetu by the return value of external functions.
-
-You can pass object from Hetu to Dart by the return value of Interpreter's [invoke] function;
 
 ```typescript
 import 'package:hetu_script/hetu_script.dart';
@@ -71,6 +66,10 @@ And the output should be:
 dart value: {greeting: hello}
 hetu value: {greeting: hello, foo: bar}
 ```
+
+You can pass object from Dart to Hetu by the return value of external functions.
+
+You can pass object from Hetu to Dart by the return value of Interpreter's [invoke] function;
 
 ## Typedef for unwrap Hetu function into Dart function
 
@@ -118,9 +117,51 @@ The typedef of the unwrapper is:
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 ```
 
-## Binding of External class
+## External methods in classes
 
-It's possible to get and return pure Dart object with class information in Hetu.
+It's possible for a Hetu class to have a external method, even if other part of this class is Hetu. For example, we have the following class with a external method:
+
+```
+class Someone {
+  external fun calculate
+}
+```
+
+We have to define a external method in Dart code:
+```
+/// typedef of external method for binding.
+typedef HTExternalMethod = dynamic Function(HTEntity object,
+    {List<dynamic> positionalArgs,
+    Map<String, dynamic> namedArgs,
+    List<HTType> typeArgs});
+
+int calculate({List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {}) {
+        return 42;
+      }
+```
+
+We have to bind this external method some where in the Dart code, before we can use it in Hetu:
+
+```dart
+// the key of this external method have to be in the form of 'className.methodName'
+hetu.bindExternalFunction('Someone.calculate', calculate);
+```
+
+You can also have a external method on a named struct:
+
+```
+struct Person {
+  external fun sing
+}
+```
+
+Everything else you should do is the same to a external method on a class.
+
+## Binding a full class
+
+It's possible to use Dart object with full class definition in Hetu.
 
 To achieve this, you have to write a full definition of that class in Hetu, which includes 4 parts of code:
 
@@ -133,6 +174,7 @@ You can check the following example for how to bind a class and its various kind
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/binding.dart';
 
 class Person {
   static final races = <String>['Caucasian'];
@@ -285,6 +327,8 @@ void main() {
 ```
 
 ## Auto-Binding tools
+
+**This tool is outdated and not suitable for this version of Hetu, we may fix it some time in the future.**
 
 Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
 
