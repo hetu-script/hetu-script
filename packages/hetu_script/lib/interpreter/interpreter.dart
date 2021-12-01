@@ -46,10 +46,6 @@ class _LoopInfo {
 
 /// A bytecode implementation of a Hetu script interpreter
 class Hetu extends HTAbstractInterpreter {
-  static const verMajor = 0;
-  static const verMinor = 3;
-  static const verPatch = 0;
-
   @override
   final stackTrace = <String>[];
 
@@ -524,17 +520,19 @@ class Hetu extends HTAbstractInterpreter {
           final patch = _curLibrary.readUint16();
           var incompatible = false;
           if (major > 0) {
-            if (major != verMajor) {
+            if (major != HTCompiler.verMajor) {
               incompatible = true;
             }
           } else {
-            if (major != verMajor || minor != verMinor || patch != verPatch) {
+            if (major != HTCompiler.verMajor ||
+                minor != HTCompiler.verMinor ||
+                patch != HTCompiler.verPatch) {
               incompatible = true;
             }
           }
           if (incompatible) {
-            throw HTError.version(
-                '$major.$minor.$patch', '$verMajor.$verMinor.$verPatch',
+            throw HTError.version('$major.$minor.$patch',
+                '${HTCompiler.verMajor}.${HTCompiler.verMinor}.${HTCompiler.verPatch}',
                 moduleFullName: _curModuleFullName,
                 line: _curLine,
                 column: _curColumn);

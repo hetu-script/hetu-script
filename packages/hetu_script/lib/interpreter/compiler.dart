@@ -59,12 +59,16 @@ class CompilerConfigImpl implements CompilerConfig {
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
+  static const verMajor = 0;
+  static const verMinor = 3;
+  static const verPatch = 0;
+
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
 
   /// The version of the compiled bytecode,
   /// used to determine compatibility.
-  static const hetuVersionData = [0, 1, 0, 0];
+  static const hetuVersionData = [verMajor, verMinor, verPatch, 0];
 
   CompilerConfig config;
 
