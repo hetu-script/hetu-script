@@ -18,8 +18,6 @@ A lightweight script language written in Dart for embedding in Flutter apps.
 
 **Hetu is early WIP! We are focusing on making Hetu stable and feature complete right now.**
 
-中文交流请加 QQ 群: 812529118
-
 ## Introduction
 
 Hetu is a lightweight script language purely written in Dart for embedding in Flutter apps. The main goal is to enable Flutter apps to have hotfix and scripting ability.
@@ -93,6 +91,11 @@ void main() {
   print('hetu value: $hetuValue');
 }
 ```
+
+## Discussion group
+
+Discord: https://discord.gg/sTF73qcS
+中文交流请加 QQ 群：812529118
 
 ## Support
 
