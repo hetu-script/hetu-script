@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/parser.dart';
 
 import '../../protocol/protocol_generated.dart';
 import '../../protocol/protocol_special.dart';

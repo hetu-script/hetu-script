@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/binding.dart';
 
 class HTConsoleClass extends HTExternalClass {
   HTConsoleClass() : super('Console');

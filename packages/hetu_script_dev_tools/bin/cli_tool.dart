@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/analyzer.dart';
 
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 

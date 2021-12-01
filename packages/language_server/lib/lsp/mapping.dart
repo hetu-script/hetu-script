@@ -8,6 +8,7 @@
 
 // import 'package:meta/meta.dart';
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/analyzer.dart';
 
 import '../protocol/protocol_custom_generated.dart' as lsp;
 import '../protocol/protocol_generated.dart' as lsp;

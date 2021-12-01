@@ -5,6 +5,8 @@
 // @dart = 2.9
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/parser.dart';
+import 'package:hetu_script/ast.dart';
 
 import '../protocol/protocol_generated.dart'
     show SemanticTokenTypes, SemanticTokenModifiers;

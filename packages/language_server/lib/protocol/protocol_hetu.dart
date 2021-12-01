@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:hetu_script/declaration/type/type_alias_declaration.dart';
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/declarations.dart';
 
 import 'protocol_common.dart';
 import 'protocol_server.dart';

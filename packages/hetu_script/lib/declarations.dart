@@ -1,0 +1,12 @@
+export 'declaration/declaration.dart';
+export 'declaration/namespace/module.dart';
+export 'declaration/namespace/library.dart';
+export 'declaration/namespace/namespace.dart';
+export 'declaration/type/abstract_type_declaration.dart';
+export 'declaration/class/class_declaration.dart';
+export 'declaration/function/function_declaration.dart';
+export 'declaration/function/parameter_declaration.dart';
+export 'declaration/variable/variable_declaration.dart';
+export 'declaration/generic/generic_type_parameter.dart';
+export 'declaration/type/abstract_type_declaration.dart';
+export 'declaration/type/type_alias_declaration.dart';

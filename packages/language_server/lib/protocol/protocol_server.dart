@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/declarations.dart';
+import 'package:hetu_script/ast.dart';
 
 // import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 // import 'package:analysis_server/protocol/protocol_generated.dart';
