@@ -143,15 +143,16 @@ class HTNamespace extends HTDeclaration with HTEntity {
     for (final key in other.declarations.keys) {
       var decl = other.declarations[key]!;
       if (other.exports.isNotEmpty) {
-        if (other.exports.contains(decl.id)) {
-          if (clone) {
-            decl = decl.clone();
-          }
-          define(key, decl, error: false);
-          if (isExported && showList.isEmpty) {
-            declareExport(decl.id!);
-          }
+        if (!other.exports.contains(decl.id)) {
+          continue;
         }
+      }
+      if (clone) {
+        decl = decl.clone();
+      }
+      define(key, decl, error: false);
+      if (isExported && showList.isEmpty) {
+        declareExport(decl.id!);
       }
     }
   }
