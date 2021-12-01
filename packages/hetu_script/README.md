@@ -14,13 +14,11 @@ A lightweight script language written in Dart for embedding in Flutter apps.
   <a title="Discord" href="https://discord.gg/sTF73qcS" ><img src="https://img.shields.io/discord/829269197727989760" /></a>
 </p>
 
-<p align="center">
-中文交流请加 QQ 群: 812529118
-</p>
-
 ## Warning
 
 **Hetu is early WIP! We are focusing on making Hetu stable and feature complete right now.**
+
+中文交流请加 QQ 群: 812529118
 
 ## Introduction
 
