@@ -1,4 +1,20 @@
-# Hetu Script
+<p align="center">
+  <a href="https://hetu.dev">
+    <img alt="hetu script" width="200px" src="https://hetu.dev/image/hetu-logo-large.png">
+  </a>
+  <h1 align="center">Hetu Script</h1>
+</p>
+
+<p align="center">
+A lightweight script language written in Dart for embedding in Flutter apps.
+</p>
+
+<p align="center">
+  <a title="Pub" href="https://pub.dev/packages/hetu_script" ><img src="https://img.shields.io/pub/v/hetu_script" /></a>
+  <a title="Discord" href="https://discord.gg/sTF73qcS" ><img src="https://img.shields.io/discord/829269197727989760" /></a>
+</p>
+
+---
 
 ## Warning
 
@@ -18,7 +34,7 @@ We did not choose to use another existing language to achieve the goal. Because 
 
 It takes very little time to bind almost anything in Dart/Flutter into Hetu, makes communicating with your existing Dart code very easy.
 
-## Document
+## Documentation
 
 ### [English](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/index.md)
 
@@ -84,13 +100,10 @@ void main() {
 }
 ```
 
-## Referrences:
+## Support
 
-- [Operator precedence](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/operator_precedence/index.md)
-- [Bytecode specification](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/bytecode_specification/index.md)
+You can support my project by simply giving it a star on GitHub.
 
-## Apps that embedded Hetu:
+Or you can buy me a coffee:
 
-| Name                       | Author                                        | Description                                                       |                     Download                      | Source        |
-| :------------------------- | :-------------------------------------------- | :---------------------------------------------------------------- | :-----------------------------------------------: | :------------ |
-| Monster Hunter Otomo: Rise | [rockingdice](https://github.com/rockingdice) | A unofficial game companion app for Capcom's Monster Hunter: Rise | [iOS](https://apps.apple.com/cn/app/id1561983275) | Closed Source |
+[![PAYPAL](https://hetu.dev/image/paypal-small.png)](http://paypal.me/chengfubeiming)
