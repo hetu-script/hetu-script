@@ -1,4 +1,4 @@
-/// This file has been automatically generated 
+/// This file has been automatically generated
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
 part of '../abstract_interpreter.dart';

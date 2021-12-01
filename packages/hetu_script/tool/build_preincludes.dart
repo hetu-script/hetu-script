@@ -14,7 +14,7 @@ void main() {
   stdout.write('Converting files in \'lib\' folder into Dart strings...');
   final output = StringBuffer();
   output.write('''
-/// This file has been automatically generated 
+/// This file has been automatically generated
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
 part of '../abstract_interpreter.dart';
