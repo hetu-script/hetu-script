@@ -100,4 +100,4 @@ You can support my project by simply giving it a star on GitHub.
 
 Or you can buy me a coffee:
 
-[![PAYPAL](https://hetu.dev/image/paypal-small.png)](http://paypal.me/chengfubeiming)
+[![Buy me a coffee](buy_me_a_coffee_small.png)](https://www.buymeacoffee.com/chengfubeiming)
