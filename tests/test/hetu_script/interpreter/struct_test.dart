@@ -21,9 +21,9 @@ void main() {
       expect(
         result,
         r'''{
-  value: ha!,
-  greeting: hi!,
-  world: everything
+  value: 'ha!',
+  greeting: 'hi!',
+  world: 'everything'
 }''',
       );
     });
