@@ -6,6 +6,8 @@ There are three ways to communicate with Dart: Primitive value, Json, Binding. T
 
 For these kind of values, their bindings are pre-included within the script source. And they are specificaly handled by the interpreter. Thus you can pass and get them directly.
 
+- null
+- bool
 - int
 - double (it is called float in the script)
 - String
