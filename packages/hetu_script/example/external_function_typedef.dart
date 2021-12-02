@@ -11,7 +11,7 @@ void main() {
   var hetu = Hetu();
 
   hetu.init(externalFunctions: {
-    'hetuAdd': (
+    'hetuAdd': (HTNamespace context,
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
         List<HTType> typeArgs = const []}) {

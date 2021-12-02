@@ -1631,7 +1631,7 @@ class HTParser extends HTAbstractParser {
     return stmt;
   }
 
-  AstNode _parseExportStmt() {
+  ExportDecl _parseExportStmt() {
     final keyword = advance(1);
     if (curTok.type == SemanticNames.identifier) {
       final showList = <String>[];
@@ -1640,14 +1640,6 @@ class HTParser extends HTAbstractParser {
         showList.add(curId.lexeme);
       } while (expect([HTLexicon.comma], consume: true));
       return ExportDecl(showList,
-          source: _curSource,
-          line: keyword.line,
-          column: keyword.column,
-          offset: keyword.offset,
-          length: curTok.offset - keyword.offset);
-    } else if (curTok.type == SemanticNames.stringLiteral) {
-      final key = match(SemanticNames.stringLiteral);
-      return ExportImportDecl(key.literal,
           source: _curSource,
           line: keyword.line,
           column: keyword.column,
@@ -1670,23 +1662,17 @@ class HTParser extends HTAbstractParser {
             length: curTok.length);
         errors.add(err);
       }
-      final key = match(SemanticNames.stringLiteral);
-      return ExportImportDecl(key.literal,
-          showList: showList,
+      final fromPath = match(SemanticNames.stringLiteral).literal;
+      return ExportDecl(showList,
+          fromPath: fromPath,
           source: _curSource,
           line: keyword.line,
           column: keyword.column,
           offset: keyword.offset,
           length: curTok.offset - keyword.offset);
     } else {
-      final err = HTError.unexpected(SemanticNames.identifier, curTok.lexeme,
-          moduleFullName: _curModuleFullName,
-          line: curTok.line,
-          column: curTok.column,
-          offset: curTok.offset,
-          length: curTok.length);
-      errors.add(err);
-      return EmptyExpr(
+      final key = match(SemanticNames.stringLiteral);
+      return ExportDecl(key.literal,
           source: _curSource,
           line: keyword.line,
           column: keyword.column,

@@ -20,8 +20,6 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
 
   HTStruct? _self;
 
-  var _isResolved = false;
-
   final int? staticDefinitionIp;
 
   HTNamedStruct(
@@ -43,7 +41,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
   }
 
   HTStruct createObject() {
-    if (!_isResolved) {
+    if (!isResolved) {
       throw HTError.unresolvedNamedStruct(id);
     }
 
@@ -58,9 +56,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
 
   @override
   void resolve() {
-    if (_isResolved) {
-      return;
-    }
+    super.resolve();
 
     _static = interpreter.execute(
         moduleFullName: moduleFullName,
@@ -83,13 +79,11 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         _self!.prototype = closure!.memberGet(HTLexicon.prototype);
       }
     }
-
-    _isResolved = true;
   }
 
   @override
   HTStruct get value {
-    if (_isResolved) {
+    if (isResolved) {
       return _self!;
     } else {
       throw HTError.unresolvedNamedStruct(id);

@@ -9,6 +9,7 @@
 library hetu_script;
 
 export 'type/type.dart';
+export 'declaration/namespace/namespace.dart';
 export 'interpreter/abstract_interpreter.dart' show InterpreterConfig;
 export 'interpreter/compiler.dart';
 export 'interpreter/interpreter.dart';

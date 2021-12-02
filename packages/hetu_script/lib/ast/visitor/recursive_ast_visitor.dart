@@ -204,11 +204,6 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitExportImportDecl(ExportImportDecl node) {
-    node.subAccept(this);
-  }
-
-  @override
   T? visitNamespaceDecl(NamespaceDecl node) {
     node.subAccept(this);
   }

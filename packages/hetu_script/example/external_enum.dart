@@ -37,7 +37,7 @@ class CountryEnumBinding extends HTExternalClass {
         return i.index;
       case 'toString':
         var i = object as Country;
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -53,7 +53,7 @@ void main() {
 
   hetu.init(externalClasses: [CountryEnumBinding()]);
 
-  hetu.eval(r'''
+  final result = hetu.eval(r'''
       enum Race {
         caucasian,
         mongolian,
@@ -68,17 +68,17 @@ void main() {
       }
 
       fun main {
-        print(Race.values)
-        var race: Race = Race.african
-        print(race)
-        print(typeof race)
-        print(race.toString())
+        // print(Race.values)
+        // var race: Race = Race.african
+        // print(race)
+        // print(typeof race)
+        // print(race.toString())
         
         // print(Country.values)
-        // var country: Country = Country.Japan // 可以进行类型检查
-        // print(country)
-        // print(typeof country)
-        // print(country.toString())
+        var country = Country.Japan
+        return country;
       }
       ''', invokeFunc: 'main');
+
+  print(result.runtimeType);
 }

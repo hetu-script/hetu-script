@@ -59,21 +59,21 @@ abstract class HTOpCode {
 
   static const exportDecl = 41;
 
-  static const exportImportDecl = 42;
+  static const libraryDecl = 42;
 
-  static const libraryDecl = 43;
+  static const namespaceDecl = 43;
 
-  static const namespaceDecl = 44;
+  static const typeAliasDecl = 44;
 
-  static const typeAliasDecl = 45;
+  static const funcDecl = 45;
 
-  static const funcDecl = 46;
+  static const classDecl = 46;
 
-  static const classDecl = 47;
+  static const externalEnumDecl = 47;
 
-  static const varDecl = 48;
+  static const structDecl = 48;
 
-  static const structDecl = 49;
+  static const varDecl = 49;
 
   static const assign = 50; // 1 byte right value
 

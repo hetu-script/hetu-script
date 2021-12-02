@@ -153,6 +153,7 @@ class HTFunctionDeclaration extends HTDeclaration
   @override
   @mustCallSuper
   void resolve() {
+    super.resolve();
     for (final param in paramDecls.values) {
       param.resolve();
     }

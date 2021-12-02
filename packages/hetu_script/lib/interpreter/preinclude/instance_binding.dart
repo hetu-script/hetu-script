@@ -4,10 +4,16 @@ extension IntBinding on int {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'remainder':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             remainder(positionalArgs[0]);
       case 'compareTo':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             compareTo(positionalArgs[0]);
       case 'isNaN':
         return isNaN;
@@ -18,26 +24,47 @@ extension IntBinding on int {
       case 'isFinite':
         return isFinite;
       case 'clamp':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             clamp(positionalArgs[0], positionalArgs[1]);
       case 'toStringAsFixed':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toStringAsFixed(positionalArgs[0]);
       case 'toStringAsExponential':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toStringAsExponential(positionalArgs[0]);
       case 'toStringAsPrecision':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toStringAsPrecision(positionalArgs[0]);
 
       case 'modPow':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             modPow(positionalArgs[0], positionalArgs[1]);
       case 'modInverse':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             modInverse(positionalArgs[0]);
       case 'gcd':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             gcd(positionalArgs[0]);
       case 'isEven':
         return isEven;
@@ -46,33 +73,78 @@ extension IntBinding on int {
       case 'bitLength':
         return bitLength;
       case 'toUnsigned':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toUnsigned(positionalArgs[0]);
       case 'toSigned':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toSigned(positionalArgs[0]);
       case 'abs':
-        return ({positionalArgs, namedArgs, typeArgs}) => abs();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            abs();
       case 'sign':
         return sign;
       case 'round':
-        return ({positionalArgs, namedArgs, typeArgs}) => round();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            round();
       case 'floor':
-        return ({positionalArgs, namedArgs, typeArgs}) => floor();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            floor();
       case 'ceil':
-        return ({positionalArgs, namedArgs, typeArgs}) => ceil();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            ceil();
       case 'truncate':
-        return ({positionalArgs, namedArgs, typeArgs}) => truncate();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            truncate();
       case 'roundToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => roundToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            roundToDouble();
       case 'floorToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => floorToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            floorToDouble();
       case 'ceilToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => ceilToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            ceilToDouble();
       case 'truncateToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => truncateToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            truncateToDouble();
       case 'toRadixString':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toRadixString(positionalArgs[0]);
       default:
         throw HTError.undefined(varName);
@@ -84,10 +156,16 @@ extension DoubleBinding on double {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'remainder':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             remainder(positionalArgs[0]);
       case 'compareTo':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             compareTo(positionalArgs[0]);
       case 'isNaN':
         return isNaN;
@@ -98,38 +176,86 @@ extension DoubleBinding on double {
       case 'isFinite':
         return isFinite;
       case 'clamp':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             clamp(positionalArgs[0], positionalArgs[1]);
       case 'toStringAsFixed':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toStringAsFixed(positionalArgs[0]);
       case 'toStringAsExponential':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toStringAsExponential(positionalArgs[0]);
       case 'toStringAsPrecision':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             toStringAsPrecision(positionalArgs[0]);
 
       case 'abs':
-        return ({positionalArgs, namedArgs, typeArgs}) => abs();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            abs();
       case 'sign':
         return sign;
       case 'round':
-        return ({positionalArgs, namedArgs, typeArgs}) => round();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            round();
       case 'floor':
-        return ({positionalArgs, namedArgs, typeArgs}) => floor();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            floor();
       case 'ceil':
-        return ({positionalArgs, namedArgs, typeArgs}) => ceil();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            ceil();
       case 'truncate':
-        return ({positionalArgs, namedArgs, typeArgs}) => truncate();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            truncate();
       case 'roundToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => roundToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            roundToDouble();
       case 'floorToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => floorToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            floorToDouble();
       case 'ceilToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => ceilToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            ceilToDouble();
       case 'truncateToDouble':
-        return ({positionalArgs, namedArgs, typeArgs}) => truncateToDouble();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            truncateToDouble();
       default:
         throw HTError.undefined(varName);
     }
@@ -140,63 +266,127 @@ extension StringBinding on String {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'compareTo':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             compareTo(positionalArgs[0]);
       case 'codeUnitAt':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             codeUnitAt(positionalArgs[0]);
       case 'length':
         return length;
       case 'endsWith':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             endsWith(positionalArgs[0]);
       case 'startsWith':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             startsWith(positionalArgs[0], positionalArgs[1]);
       case 'indexOf':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             indexOf(positionalArgs[0], positionalArgs[1]);
       case 'lastIndexOf':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             lastIndexOf(positionalArgs[0], positionalArgs[1]);
       case 'isEmpty':
         return isEmpty;
       case 'isNotEmpty':
         return isNotEmpty;
       case 'substring':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             substring(positionalArgs[0], positionalArgs[1]);
       case 'trim':
-        return ({positionalArgs, namedArgs, typeArgs}) => trim();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            trim();
       case 'trimLeft':
-        return ({positionalArgs, namedArgs, typeArgs}) => trimLeft();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            trimLeft();
       case 'trimRight':
-        return ({positionalArgs, namedArgs, typeArgs}) => trimRight();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            trimRight();
       case 'padLeft':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             padLeft(positionalArgs[0], positionalArgs[1]);
       case 'padRight':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             padRight(positionalArgs[0], positionalArgs[1]);
       case 'contains':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             contains(positionalArgs[0], positionalArgs[1]);
       case 'replaceFirst':
-        return ({positionalArgs, namedArgs, typeArgs}) => replaceFirst(
-            positionalArgs[0], positionalArgs[1], positionalArgs[2]);
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            replaceFirst(
+                positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'replaceAll':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             replaceAll(positionalArgs[0], positionalArgs[1]);
       case 'replaceRange':
-        return ({positionalArgs, namedArgs, typeArgs}) => replaceRange(
-            positionalArgs[0], positionalArgs[1], positionalArgs[2]);
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            replaceRange(
+                positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'split':
-        return ({positionalArgs, namedArgs, typeArgs}) =>
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
             split(positionalArgs[0]);
       case 'toLowerCase':
-        return ({positionalArgs, namedArgs, typeArgs}) => toLowerCase();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toLowerCase();
       case 'toUpperCase':
-        return ({positionalArgs, namedArgs, typeArgs}) => toUpperCase();
+        return (HTNamespace context,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toUpperCase();
       default:
         throw HTError.undefined(varName);
     }
@@ -212,19 +402,19 @@ extension ListBinding on List {
       case 'isNotEmpty':
         return isNotEmpty;
       case 'contains':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             contains(positionalArgs.first);
       case 'elementAt':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             elementAt(positionalArgs.first);
       case 'join':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -236,13 +426,13 @@ extension ListBinding on List {
       case 'length':
         return length;
       case 'add':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             add(positionalArgs.first);
       case 'addAll':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -250,61 +440,61 @@ extension ListBinding on List {
       case 'reversed':
         return reversed;
       case 'indexOf':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             indexOf(positionalArgs[0], positionalArgs[1]);
       case 'lastIndexOf':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             lastIndexOf(positionalArgs[0], positionalArgs[1]);
       case 'insert':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             insert(positionalArgs[0], positionalArgs[1]);
       case 'insertAll':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             insertAll(positionalArgs[0], positionalArgs[1]);
       case 'clear':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             clear();
       case 'remove':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             remove(positionalArgs.first);
       case 'removeAt':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             removeAt(positionalArgs.first);
       case 'removeLast':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             removeLast();
       case 'sublist':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             sublist(positionalArgs[0], positionalArgs[1]);
       case 'asMap':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -330,31 +520,31 @@ extension MapBinding on Map {
       case 'values':
         return values.toList();
       case 'containsKey':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             containsKey(positionalArgs.first);
       case 'containsValue':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             containsValue(positionalArgs.first);
       case 'addAll':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             addAll(positionalArgs.first);
       case 'clear':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             clear();
       case 'remove':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>

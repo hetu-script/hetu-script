@@ -1251,15 +1251,15 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.importDecl);
     // use the normalized absolute name here instead of the key
     bytesBuilder.add(_shortUtf8String(stmt.fullName!));
+    bytesBuilder.addByte(stmt.showList.length);
+    for (final id in stmt.showList) {
+      bytesBuilder.add(_shortUtf8String(id.id));
+    }
     if (stmt.alias != null) {
       bytesBuilder.addByte(1); // bool: has alias id
       bytesBuilder.add(_shortUtf8String(stmt.alias!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has alias id
-    }
-    bytesBuilder.addByte(stmt.showList.length);
-    for (final id in stmt.showList) {
-      bytesBuilder.add(_shortUtf8String(id.id));
     }
     return bytesBuilder.toBytes();
   }
@@ -1268,22 +1268,16 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitExportDecl(ExportDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.exportDecl);
+    if (stmt.fromPath != null) {
+      bytesBuilder.addByte(1); // bool has fromPath
+      bytesBuilder.add(_shortUtf8String(stmt.fromPath!));
+    } else {
+      bytesBuilder.addByte(0); // bool has fromPath
+    }
     bytesBuilder.addByte(stmt.showList.length);
     for (final id in stmt.showList) {
       bytesBuilder.add(_shortUtf8String(id));
     }
-    return bytesBuilder.toBytes();
-  }
-
-  @override
-  Uint8List visitExportImportDecl(ExportImportDecl stmt) {
-    final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.exportImportDecl);
-    bytesBuilder.addByte(stmt.showList.length);
-    for (final id in stmt.showList) {
-      bytesBuilder.add(_shortUtf8String(id));
-    }
-    bytesBuilder.add(_shortUtf8String(stmt.key));
     return bytesBuilder.toBytes();
   }
 
@@ -1499,6 +1493,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has super class
     }
+    bytesBuilder.addByte(0); // bool: is enum
     // TODO: deal with implements and mixins
     final classDefinition = visitBlockStmt(stmt.definition);
     bytesBuilder.add(classDefinition);
@@ -1507,106 +1502,114 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
-  /// Enums are compiled to a class with static members
-  /// and a private constructor.
-  ///
-  /// For example:
-  /// ```dart
-  /// enum ENUM {
-  ///   value1,
-  ///   value2,
-  ///   value3
-  /// }
-  /// ```
-  ///
-  /// are compiled into:
-  /// ```dart
-  /// class ENUM {
-  ///   final $name;
-  ///   ENUM._(name) {
-  ///     $name = name;
-  ///   }
-  ///   fun toString = 'ENUM.${_name}'
-  ///   static final value1 = ENUM._('value1')
-  ///   static final value2 = ENUM._('value2')
-  ///   static final value3 = ENUM._('value3')
-  ///   static final values = [value1, value2, value3]
-  /// }
-  /// ```
   @override
   Uint8List visitEnumDecl(EnumDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.classDecl);
-    bytesBuilder.add(_shortUtf8String(stmt.id.id));
-    bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
-    bytesBuilder.addByte(0); // bool: is abstract
-    bytesBuilder.addByte(1); // bool: has user defined constructor
-    bytesBuilder.addByte(0); // bool: has super class
 
-    final valueId = '${HTLexicon.privatePrefix}${SemanticNames.name}';
-    final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
-    final valueBytes = visitVarDecl(value);
-    bytesBuilder.add(valueBytes);
+    // Script enum are compiled to a class with static members
+    // and a private constructor.
+    //
+    // For example:
+    // ```dart
+    // enum ENUM {
+    //   value1,
+    //   value2,
+    //   value3
+    // }
+    // ```
+    //
+    // are compiled into:
+    // ```dart
+    // class ENUM {
+    //   final $name;
+    //   ENUM._(name) {
+    //     $name = name;
+    //   }
+    //   fun toString = 'ENUM.${_name}'
+    //   static final value1 = ENUM._('value1')
+    //   static final value2 = ENUM._('value2')
+    //   static final value3 = ENUM._('value3')
+    //   static final values = [value1, value2, value3]
+    // }
+    // ```
+    if (!stmt.isExternal) {
+      bytesBuilder.addByte(HTOpCode.classDecl);
+      bytesBuilder.add(_shortUtf8String(stmt.id.id));
+      bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
+      bytesBuilder.addByte(0); // bool: is abstract
+      bytesBuilder.addByte(1); // bool: has user defined constructor
+      bytesBuilder.addByte(0); // bool: has super class
+      bytesBuilder.addByte(1); // bool: is enum
 
-    final ctorParam = ParamDecl(IdentifierExpr(SemanticNames.name));
-    final ctorDef = BinaryExpr(IdentifierExpr(valueId), HTLexicon.assign,
-        IdentifierExpr(SemanticNames.name));
-    final constructor = FuncDecl(
-        '${SemanticNames.constructor}${HTLexicon.privatePrefix}', [ctorParam],
-        id: IdentifierExpr(HTLexicon.privatePrefix),
-        classId: stmt.id.id,
-        minArity: 1,
-        maxArity: 1,
-        definition: ctorDef,
-        category: FunctionCategory.constructor);
-    final ctorBytes = visitFuncDecl(constructor);
-    bytesBuilder.add(ctorBytes);
+      final valueId = '${HTLexicon.privatePrefix}${SemanticNames.name}';
+      final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
+      final valueBytes = visitVarDecl(value);
+      bytesBuilder.add(valueBytes);
 
-    final toStringDef = StringInterpolationExpr(
-        '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.curlyLeft}0${HTLexicon.curlyRight}',
-        HTLexicon.singleQuotationLeft,
-        HTLexicon.singleQuotationRight,
-        [IdentifierExpr(valueId)]);
-    final toStringFunc = FuncDecl(HTLexicon.tostring, [],
-        id: IdentifierExpr(HTLexicon.tostring),
-        classId: stmt.id.id,
-        returnType: TypeExpr(IdentifierExpr(HTLexicon.str)),
-        hasParamDecls: true,
-        definition: toStringDef);
-    final toStringBytes = visitFuncDecl(toStringFunc);
-    bytesBuilder.add(toStringBytes);
+      final ctorParam = ParamDecl(IdentifierExpr(SemanticNames.name));
+      final ctorDef = BinaryExpr(IdentifierExpr(valueId), HTLexicon.assign,
+          IdentifierExpr(SemanticNames.name));
+      final constructor = FuncDecl(
+          '${SemanticNames.constructor}${HTLexicon.privatePrefix}', [ctorParam],
+          id: IdentifierExpr(HTLexicon.privatePrefix),
+          classId: stmt.id.id,
+          minArity: 1,
+          maxArity: 1,
+          definition: ctorDef,
+          category: FunctionCategory.constructor);
+      final ctorBytes = visitFuncDecl(constructor);
+      bytesBuilder.add(ctorBytes);
 
-    final itemList = <AstNode>[];
-    for (final item in stmt.enumerations) {
-      itemList.add(item);
-      final itemInit = CallExpr(
-          MemberExpr(
-              stmt.id, IdentifierExpr(HTLexicon.privatePrefix, isLocal: false)),
-          [
-            ConstStringExpr(item.id, HTLexicon.singleQuotationLeft,
-                HTLexicon.singleQuotationRight)
-          ],
-          const {});
-      final itemDecl = VarDecl(item,
+      final toStringDef = StringInterpolationExpr(
+          '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.curlyLeft}0${HTLexicon.curlyRight}',
+          HTLexicon.singleQuotationLeft,
+          HTLexicon.singleQuotationRight,
+          [IdentifierExpr(valueId)]);
+      final toStringFunc = FuncDecl(HTLexicon.tostring, [],
+          id: IdentifierExpr(HTLexicon.tostring),
+          classId: stmt.id.id,
+          returnType: TypeExpr(IdentifierExpr(HTLexicon.str)),
+          hasParamDecls: true,
+          definition: toStringDef);
+      final toStringBytes = visitFuncDecl(toStringFunc);
+      bytesBuilder.add(toStringBytes);
+
+      final itemList = <AstNode>[];
+      for (final item in stmt.enumerations) {
+        itemList.add(item);
+        final itemInit = CallExpr(
+            MemberExpr(stmt.id,
+                IdentifierExpr(HTLexicon.privatePrefix, isLocal: false)),
+            [
+              ConstStringExpr(item.id, HTLexicon.singleQuotationLeft,
+                  HTLexicon.singleQuotationRight)
+            ],
+            const {});
+        final itemDecl = VarDecl(item,
+            classId: stmt.classId,
+            initializer: itemInit,
+            isStatic: true,
+            lateInitialize: true);
+        final itemBytes = visitVarDecl(itemDecl);
+        bytesBuilder.add(itemBytes);
+      }
+
+      final valuesInit = ListExpr(itemList);
+      final valuesDecl = VarDecl(IdentifierExpr(HTLexicon.values),
           classId: stmt.classId,
-          initializer: itemInit,
+          initializer: valuesInit,
           isStatic: true,
           lateInitialize: true);
-      final itemBytes = visitVarDecl(itemDecl);
-      bytesBuilder.add(itemBytes);
+      final valuesBytes = visitVarDecl(valuesDecl);
+      bytesBuilder.add(valuesBytes);
+
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+      bytesBuilder.addByte(HTOpCode.endOfStmt);
+    } else {
+      bytesBuilder.addByte(HTOpCode.externalEnumDecl);
+      bytesBuilder.add(_shortUtf8String(stmt.id.id));
     }
 
-    final valuesInit = ListExpr(itemList);
-    final valuesDecl = VarDecl(IdentifierExpr(HTLexicon.values),
-        classId: stmt.classId,
-        initializer: valuesInit,
-        isStatic: true,
-        lateInitialize: true);
-    final valuesBytes = visitVarDecl(valuesDecl);
-    bytesBuilder.add(valuesBytes);
-
-    bytesBuilder.addByte(HTOpCode.endOfExec);
-    bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
 

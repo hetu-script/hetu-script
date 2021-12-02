@@ -73,6 +73,7 @@ class HTClassDeclaration extends HTDeclaration
   @override
   @mustCallSuper
   void resolve() {
+    super.resolve();
     if ((closure != null) && (_unresolvedSuperType != null)) {
       _resolvedSuperType = _unresolvedSuperType!.resolve(closure!);
     }

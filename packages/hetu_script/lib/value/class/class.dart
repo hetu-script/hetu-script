@@ -1,3 +1,4 @@
+import '../../binding/external_class.dart';
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../error/error.dart';
@@ -23,6 +24,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   /// Super class of this class.
   /// If a class is not extends from any super class, then it is extended of class `Object`
   HTClass? superClass;
+
+  HTExternalClass? externalClass;
 
   /// Mixined class of this class.
   /// Those mixined class can not have any constructors.
@@ -73,13 +76,13 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       superClass = namespace.memberGet(superType!.id);
     }
 
+    if (isExternal) {
+      externalClass = interpreter.fetchExternalClass(id!);
+    }
+
     for (final decl in namespace.declarations.values) {
       decl.resolve();
     }
-
-    // for (final decl in instanceMembers.values) {
-    //   decl.resolve();
-    // }
   }
 
   @override
@@ -126,6 +129,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   }
 
   /// Get a value of a static member from this [HTClass].
+  /// If [internal] is true, will get the hetu definition even if it's a external class.
   @override
   dynamic memberGet(String varName,
       {bool recursive = true, bool error = true, bool internal = true}) {
@@ -135,9 +139,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
         : SemanticNames.constructor;
 
     if (isExternal && !internal) {
-      final externClass = interpreter.fetchExternalClass(id!);
       final value =
-          externClass.memberGet(varName != id ? '$id.$varName' : varName);
+          externalClass!.memberGet(varName != id ? '$id.$varName' : varName);
       return value;
     } else {
       if (namespace.declarations.containsKey(varName)) {
@@ -183,8 +186,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     final setter = '${SemanticNames.setter}$varName';
 
     if (isExternal) {
-      final externClass = interpreter.fetchExternalClass(id!);
-      externClass.memberSet('$id.$varName', varValue);
+      externalClass!.memberSet('$id.$varName', varValue);
       return;
     } else {
       if (namespace.declarations.containsKey(varName)) {

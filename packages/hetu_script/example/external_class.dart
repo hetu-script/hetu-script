@@ -30,7 +30,7 @@ extension PersonBinding on Person {
       case 'race':
         return race;
       case 'greeting':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -63,20 +63,20 @@ class PersonClassBinding extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Person':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person.withName(positionalArgs[0],
                 (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.meaning':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>

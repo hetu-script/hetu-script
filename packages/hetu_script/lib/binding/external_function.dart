@@ -1,14 +1,17 @@
+import '../declaration/namespace/namespace.dart';
 import '../type/type.dart';
 import '../value/function/function.dart';
 import '../value/entity.dart';
 
-/// typedef of external function for binding.
-typedef HTExternalFunction = dynamic Function(
+/// Typedef of external function for binding.
+typedef HTExternalFunction = dynamic Function(HTNamespace context,
     {List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
     List<HTType> typeArgs});
 
-/// typedef of external method for binding.
+/// Typedef of external method for binding.
+/// Only used on external method of a script class,
+/// For full external class, use [HTExternalFunction] instead.
 typedef HTExternalMethod = dynamic Function(HTEntity object,
     {List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
@@ -21,12 +24,12 @@ typedef HTExternalMethod = dynamic Function(HTEntity object,
 /// native function as parameter.
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
-class DaobjectTypeReflectResult {
+class DartObjectTypeReflectResult {
   final bool success;
   final String typeString;
 
-  DaobjectTypeReflectResult(this.success, this.typeString);
+  DartObjectTypeReflectResult(this.success, this.typeString);
 }
 
-typedef HTExternalTypeReflection = DaobjectTypeReflectResult Function(
+typedef HTExternalTypeReflection = DartObjectTypeReflectResult Function(
     dynamic object);

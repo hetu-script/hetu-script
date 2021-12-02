@@ -318,11 +318,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitExportImportDecl(ExportImportDecl stmt) {
-    stmt.subAccept(this);
-  }
-
-  @override
   void visitNamespaceDecl(NamespaceDecl stmt) {
     stmt.subAccept(this);
   }

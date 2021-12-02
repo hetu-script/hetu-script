@@ -3,11 +3,11 @@ part of '../abstract_interpreter.dart';
 /// Core exernal functions for use globally in Hetu script.
 final Map<String, Function> preIncludeFunctions = {
   // TODO: 读取注释
-  'help': (
+  'help': (HTNamespace context,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {},
-  'print': (
+  'print': (HTNamespace context,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -17,13 +17,13 @@ final Map<String, Function> preIncludeFunctions = {
     }
     print(sb.toString().trimRight());
   },
-  'stringify': (
+  'stringify': (HTNamespace context,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     return positionalArgs.first.toString();
   },
-  'jsonify': (
+  'jsonify': (HTNamespace context,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -33,8 +33,7 @@ final Map<String, Function> preIncludeFunctions = {
       return HTStruct.jsonifyObject(object);
     }
   },
-  'object.toString': HTInstance.stringify,
-  'prototype.keys': (
+  'prototype.keys': (HTNamespace context,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -43,7 +42,7 @@ final Map<String, Function> preIncludeFunctions = {
       return object.fields.keys.toList();
     }
   },
-  'prototype.values': (
+  'prototype.values': (HTNamespace context,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -51,5 +50,11 @@ final Map<String, Function> preIncludeFunctions = {
     if (object is HTStruct) {
       return object.fields.values.toList();
     }
+  },
+  'object.toString': (HTEntity object,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    return (object as HTInstance).getTypeString();
   },
 };

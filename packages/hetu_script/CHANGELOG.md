@@ -1,9 +1,13 @@
+## 0.3.1
+
+- **Changed the external function typedef in Dart, added namespace when called.**
+
 ## 0.3.0
 
 - Command line tool and file system context support moved to another package: [hetu_script_dev_tools].
 - Added a new kind of external binding: external method on normal classes
 - Added support for literal function expression with no keyword.
-- Added struct literal and prototype based object system.
+- Added struct literal and prototype based object system. **The map literal is replaced with struct literal.**
 
 ## 0.2.0
 

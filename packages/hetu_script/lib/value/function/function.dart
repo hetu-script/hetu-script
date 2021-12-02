@@ -114,8 +114,8 @@ class HTFunction extends HTFunctionDeclaration
   @override
   dynamic get value {
     if (externalTypeId != null) {
-      final externalFunc = interpreter.unwrapExternalFunctionType(this);
-      return externalFunc;
+      final unwrapFunc = interpreter.unwrapExternalFunctionType(this);
+      return unwrapFunc;
     } else {
       return this;
     }
@@ -124,9 +124,15 @@ class HTFunction extends HTFunctionDeclaration
   @override
   void resolve() {
     super.resolve();
-
     if ((closure != null) && (classId != null) && (klass == null)) {
       klass = closure!.memberGet(classId!);
+    }
+    if (klass != null &&
+        klass!.isExternal &&
+        (isStatic || category == FunctionCategory.constructor) &&
+        category != FunctionCategory.getter) {
+      final funcName = id != null ? '$classId.$id' : classId!;
+      externalFunc = klass!.externalClass!.memberGet(funcName);
     }
   }
 
@@ -418,22 +424,9 @@ class HTFunction extends HTFunctionDeclaration
           // a method of a external class
           if (klass!.isExternal) {
             if (category != FunctionCategory.getter) {
-              if (externalFunc == null) {
-                if (isStatic || (category == FunctionCategory.constructor)) {
-                  final classId = klass!.id!;
-                  final externClass = interpreter.fetchExternalClass(classId);
-                  final funcName = id != null ? '$classId.$id' : classId;
-                  externalFunc = externClass.memberGet(funcName);
-                } else {
-                  throw HTError.missingExternalFunc(internalName,
-                      moduleFullName: interpreter.curModuleFullName,
-                      line: interpreter.curLine,
-                      column: interpreter.curColumn);
-                }
-              }
               final func = externalFunc!;
               if (func is HTExternalFunction) {
-                result = func(
+                result = func(interpreter.curNamespace,
                     positionalArgs: finalPosArgs,
                     namedArgs: finalNamedArgs,
                     typeArgs: typeArgs);
@@ -450,10 +443,8 @@ class HTFunction extends HTFunctionDeclaration
                     column: interpreter.curColumn);
               }
             } else {
-              final classId = klass!.id!;
-              final externClass = interpreter.fetchExternalClass(classId);
               final funcName = isStatic ? '$classId.$id' : id!;
-              result = externClass.memberGet(funcName);
+              result = klass!.externalClass!.memberGet(funcName);
             }
           }
           // a external method in a normal class
@@ -480,7 +471,7 @@ class HTFunction extends HTFunctionDeclaration
               externalFunc ?? interpreter.fetchExternalFunction(internalName);
 
           if (func is HTExternalFunction) {
-            result = func(
+            result = func(interpreter.curNamespace,
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);

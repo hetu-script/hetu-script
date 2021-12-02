@@ -78,7 +78,7 @@ class ProfileClassBinding extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Profile':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>

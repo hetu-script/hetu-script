@@ -1,3 +1,4 @@
+import '../../binding/external_class.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
@@ -11,6 +12,8 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   dynamic _value;
 
   var _isInitializing = false;
+
+  HTExternalClass? externalClass;
 
   // var _isTypeInitialized = false;
 
@@ -108,8 +111,9 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       }
       return _value;
     } else {
-      final externClass = interpreter.fetchExternalClass(classId!);
-      return externClass.memberGet(id);
+      final externalClass = interpreter.fetchExternalClass(classId!);
+      final value = externalClass.memberGet(id);
+      return value;
     }
   }
 

@@ -9,7 +9,10 @@ External functions in dart for use in Hetu have following type:
 ```dart
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
-    {List<dynamic> positionalArgs, Map<String, dynamic> namedArgs, List<HTTypeId> typeArgs});
+    HTNamespace context,
+    {List<dynamic> positionalArgs,
+    Map<String, dynamic> namedArgs,
+    List<HTType> typeArgs});
 ```
 
 or even you can directy write it as a Dart Function:
@@ -28,7 +31,7 @@ To call Dart functions in Hetu, define those dart funtion in Hetu with [external
 await hetu.init(externalFunctions: {
   // you can omit the type, and keep the correct type parameter names,
   // this way Dart will still count it as HTExternalFunction
-  'hello': ({positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
+  'hello': (context, {positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
 });
 ```
 
@@ -40,7 +43,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   var hetu = Hetu();
   await hetu.init(externalFunctions: {
-    'hello': (
+    'hello': (HTNamespace context,
         {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTTypeId> typeArgs = const []}) => {'greeting': 'hello'},
@@ -119,7 +122,21 @@ typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
 ## External methods in classes
 
-It's possible for a Hetu class to have a external method, even if other part of this class is Hetu. For example, we have the following class with a external method:
+It's possible for a Hetu class to have a external method, even if other part of this class is Hetu.
+
+The typedef of external method is slightly different from external functions.
+
+That the first parameter is changed from namespace to a object.
+
+```
+/// typedef of external method for binding.
+typedef HTExternalMethod = dynamic Function(HTEntity object,
+    {List<dynamic> positionalArgs,
+    Map<String, dynamic> namedArgs,
+    List<HTType> typeArgs});
+```
+
+For example, we have the following class with a external method:
 
 ```
 class Someone {
@@ -128,18 +145,11 @@ class Someone {
 ```
 
 We have to define a external method in Dart code:
-```
-/// typedef of external method for binding.
-typedef HTExternalMethod = dynamic Function(HTEntity object,
-    {List<dynamic> positionalArgs,
-    Map<String, dynamic> namedArgs,
-    List<HTType> typeArgs});
 
-int calculate({List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {}) {
-        return 42;
-      }
+```
+dynamic calculate(object, {positionalArgs, namedArgs, typeArgs}) {
+  // do somthing about the object
+};
 ```
 
 We have to bind this external method some where in the Dart code, before we can use it in Hetu:
@@ -147,6 +157,13 @@ We have to bind this external method some where in the Dart code, before we can 
 ```dart
 // the key of this external method have to be in the form of 'className.methodName'
 hetu.bindExternalFunction('Someone.calculate', calculate);
+```
+
+Then it's okay to call this in Hetu:
+
+```
+var ss = Someone()
+ss.calculate()
 ```
 
 You can also have a external method on a named struct:
@@ -158,6 +175,10 @@ struct Person {
 ```
 
 Everything else you should do is the same to a external method on a class.
+
+## External getter
+
+For external getter, you don't need to have a external function or external method typed function. You can directly return the value in the dart code.
 
 ## Binding a full class
 
@@ -205,7 +226,7 @@ extension PersonBinding on Person {
       case 'race':
         return race;
       case 'greeting':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -238,20 +259,20 @@ class PersonClassBinding extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Person':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person.withName(positionalArgs[0],
                 (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.meaning':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>

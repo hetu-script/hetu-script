@@ -17,13 +17,6 @@ import '../../grammar/lexicon.dart';
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
 class HTInstance with HTEntity, InterpreterRef {
-  static String stringify(HTEntity object,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    return (object as HTInstance)._toString();
-  }
-
   final int index;
 
   @override
@@ -91,7 +84,8 @@ class HTInstance with HTEntity, InterpreterRef {
     }
   }
 
-  String _toString() {
+  String getTypeString() {
+    // TODO: type args
     return '${HTLexicon.instanceof} $classId';
   }
 
@@ -103,7 +97,7 @@ class HTInstance with HTEntity, InterpreterRef {
     } else if (func is Function) {
       return func();
     } else {
-      return _toString();
+      return getTypeString();
     }
   }
 

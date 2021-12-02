@@ -24,6 +24,44 @@ class HTStruct with HTEntity {
     return output.toString();
   }
 
+  /// Print all members of a struct object to a string.
+  static String stringify(HTStruct struct, {HTStruct? from}) {
+    final output = StringBuffer();
+    ++_curIndentCount;
+    for (var i = 0; i < struct.fields.length; ++i) {
+      final key = struct.fields.keys.elementAt(i);
+      if (from != null && from != struct) {
+        if (from.contains(key)) {
+          continue;
+        }
+      }
+      output.write(_curIndent());
+      final value = struct.fields[key];
+      final valueString = StringBuffer();
+      if (value is HTStruct) {
+        final content = stringify(value, from: from);
+        valueString.writeln(HTLexicon.curlyLeft);
+        valueString.write(content);
+        valueString.write(_curIndent());
+        valueString.write(HTLexicon.curlyRight);
+      } else {
+        valueString.write(value);
+      }
+      output.write('$key${HTLexicon.colon} $valueString');
+      if (i < struct.fields.length - 1) {
+        output.write(HTLexicon.comma);
+      }
+      output.writeln();
+    }
+    --_curIndentCount;
+    if (struct.prototype != null &&
+        struct.prototype!.id != HTLexicon.prototype) {
+      final inherits = stringify(struct.prototype!);
+      output.write(inherits);
+    }
+    return output.toString();
+  }
+
   static bool _isJsonDataType(dynamic object) {
     if (object == null ||
         object is num ||
@@ -80,43 +118,9 @@ class HTStruct with HTEntity {
     return output;
   }
 
-  /// Print all members of a struct object.
-  static String stringify(HTStruct struct, {HTStruct? from}) {
-    final output = StringBuffer();
-    ++_curIndentCount;
-    for (var i = 0; i < struct.fields.length; ++i) {
-      final key = struct.fields.keys.elementAt(i);
-      if (from != null && from != struct) {
-        if (from.contains(key)) {
-          continue;
-        }
-      }
-      output.write(_curIndent());
-      final value = struct.fields[key];
-      final valueString = StringBuffer();
-      if (value is HTStruct) {
-        final content = stringify(value, from: from);
-        valueString.writeln(HTLexicon.curlyLeft);
-        valueString.write(content);
-        valueString.write(_curIndent());
-        valueString.write(HTLexicon.curlyRight);
-      } else {
-        valueString.write(value);
-      }
-      output.write('$key${HTLexicon.colon} $valueString');
-      if (i < struct.fields.length - 1) {
-        output.write(HTLexicon.comma);
-      }
-      output.writeln();
-    }
-    --_curIndentCount;
-    if (struct.prototype != null &&
-        struct.prototype!.id != HTLexicon.prototype) {
-      final inherits = stringify(struct.prototype!);
-      output.write(inherits);
-    }
-    return output.toString();
-  }
+  // static HTStruct fromJson(Map<String, dynamic> jsonData) {
+  //   final struct = HTStruct()
+  // }
 
   String? id;
 
@@ -205,12 +209,9 @@ class HTStruct with HTEntity {
   }
 
   @override
-  dynamic subGet(dynamic varName) {
-    return memberGet(varName.toString());
-  }
+  dynamic subGet(dynamic varName) => memberGet(varName.toString());
 
   @override
-  void subSet(dynamic varName, dynamic varValue) {
-    memberSet(varName.toString(), varValue);
-  }
+  void subSet(dynamic varName, dynamic varValue) =>
+      memberSet(varName.toString(), varValue);
 }

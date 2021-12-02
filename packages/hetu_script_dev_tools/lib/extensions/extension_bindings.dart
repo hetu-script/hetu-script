@@ -10,19 +10,19 @@ class HTConsoleClass extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Console.write':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             stdout.write(positionalArgs.first);
       case 'Console.writeln':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             stdout.writeln(positionalArgs.first);
       case 'Console.getln':
-        return (
+        return (HTNamespace context,
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
@@ -34,19 +34,19 @@ class HTConsoleClass extends HTExternalClass {
           return stdin.readLineSync();
         };
       case 'Console.eraseLine':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             stdout.write('\x1B[1F\x1B[1G\x1B[1K');
       case 'Console.setTitle':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             stdout.write('\x1b]0;${positionalArgs.first}\x07');
       case 'Console.clear':
-        return (
+        return (HTNamespace context,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>

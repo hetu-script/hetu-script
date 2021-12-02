@@ -1209,10 +1209,13 @@ class ExportDecl extends AstNode {
 
   final List<String> showList;
 
+  final String? fromPath;
+
   final bool hasEndOfStmtMark;
 
   ExportDecl(this.showList,
-      {this.hasEndOfStmtMark = false,
+      {this.fromPath,
+      this.hasEndOfStmtMark = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1224,38 +1227,6 @@ class ExportDecl extends AstNode {
             column: column,
             offset: offset,
             length: length);
-}
-
-class ExportImportDecl extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitExportImportDecl(this);
-
-  @override
-  void subAccept(AbstractAstVisitor visitor) {}
-
-  final String key;
-
-  final List<String> showList;
-
-  final bool hasEndOfStmtMark;
-
-  ExportImportDecl(this.key,
-      {this.showList = const [],
-      this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(
-          SemanticNames.exportImportStmt,
-          source: source,
-          line: line,
-          column: column,
-          offset: offset,
-          length: length,
-        );
 }
 
 class NamespaceDecl extends AstNode {

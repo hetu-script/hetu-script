@@ -92,15 +92,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) {
     try {
-      // load classes and functions in core library.
-      for (final file in preIncludeModules.keys) {
-        eval(
-          preIncludeModules[file]!,
-          moduleFullName: file,
-          globallyImport: true,
-          type: SourceType.module,
-        );
-      }
+      // bind externals before any eval
       for (var key in preIncludeFunctions.keys) {
         bindExternalFunction(key, preIncludeFunctions[key]!);
       }
@@ -114,6 +106,16 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTMathClass());
       bindExternalClass(HTSystemClass());
       // bindExternalClass(HTConsoleClass());
+
+      // load classes and functions in core library.
+      for (final file in preIncludeModules.keys) {
+        eval(
+          preIncludeModules[file]!,
+          moduleFullName: file,
+          globallyImport: true,
+          type: SourceType.module,
+        );
+      }
 
       for (final file in includes.keys) {
         eval(includes[file]!,

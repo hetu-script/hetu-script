@@ -523,21 +523,17 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitExportDecl(ExportDecl stmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.export} ');
-    output.write(stmt.showList.join('${HTLexicon.comma} '));
-    return output.toString();
-  }
-
-  @override
-  String visitExportImportDecl(ExportImportDecl stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.export} ');
-    if (stmt.showList.isNotEmpty) {
-      output.write('${HTLexicon.curlyLeft} ');
+    if (stmt.fromPath == null) {
       output.write(stmt.showList.join('${HTLexicon.comma} '));
-      output.write(' ${HTLexicon.curlyRight} ${HTLexicon.from} ');
+    } else {
+      if (stmt.showList.isNotEmpty) {
+        output.write('${HTLexicon.curlyLeft} ');
+        output.write(stmt.showList.join('${HTLexicon.comma} '));
+        output.write(' ${HTLexicon.curlyRight} ${HTLexicon.from} ');
+      }
+      output.write(
+          '${HTLexicon.singleQuotationLeft}${stmt.fromPath}${HTLexicon.singleQuotationRight}');
     }
-    output.write(
-        '${HTLexicon.singleQuotationLeft}${stmt.key}${HTLexicon.singleQuotationRight}');
     return output.toString();
   }
 

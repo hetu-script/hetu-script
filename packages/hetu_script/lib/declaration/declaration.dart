@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 // import '../grammar/semantic.dart';
@@ -13,6 +15,9 @@ import 'namespace/namespace.dart';
 /// Declaration is not necessarily exists in actual source,
 /// and is not necessarily exists in compiled bytecode
 /// some declaration are generated purely for analysis purpose.
+///
+/// Declaration can have a value, but it has to be resolved
+/// after the source is interpreted once.
 abstract class HTDeclaration {
   final String? id;
 
@@ -49,6 +54,9 @@ abstract class HTDeclaration {
   /// Wether this declaration is only accessible from a same class namespace.
   bool get isPrivate => displayName.startsWith(HTLexicon.privatePrefix);
 
+  bool _isResolved = false;
+  bool get isResolved => _isResolved;
+
   HTDeclaration(
       {this.id,
       this.classId,
@@ -68,7 +76,10 @@ abstract class HTDeclaration {
     throw HTError.immutable(displayName);
   }
 
-  void resolve() {}
+  @mustCallSuper
+  void resolve() {
+    _isResolved = true;
+  }
 
   bool isOverrideOf(HTDeclaration decl) => false;
 

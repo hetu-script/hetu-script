@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../../source/source.dart';
 import '../../type/type.dart';
 import '../declaration.dart';
@@ -43,7 +45,9 @@ class HTVariableDeclaration extends HTDeclaration {
   }
 
   @override
+  @mustCallSuper
   void resolve() {
+    super.resolve();
     if (closure != null && _declType != null) {
       _resolvedDeclType = _declType!.resolve(closure!);
     } else {

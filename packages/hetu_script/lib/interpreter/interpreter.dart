@@ -12,6 +12,7 @@ import '../value/function/function.dart';
 import '../value/function/parameter.dart';
 import '../value/variable/variable.dart';
 import '../value/struct/struct.dart';
+import '../value/external_enum/external_enum.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
@@ -626,14 +627,16 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.importDecl:
           _handleImport();
           break;
-        case HTOpCode.exportImportDecl:
-          _handleImport(isExported: true);
-          break;
         case HTOpCode.exportDecl:
-          final showListLength = _curLibrary.read();
-          for (var i = 0; i < showListLength; ++i) {
-            final id = _curLibrary.readShortUtf8String();
-            _curNamespace.declareExport(id);
+          final hasFromPath = _curLibrary.readBool();
+          if (hasFromPath) {
+            _handleImport(isExported: true);
+          } else {
+            final showListLength = _curLibrary.read();
+            for (var i = 0; i < showListLength; ++i) {
+              final id = _curLibrary.readShortUtf8String();
+              _curNamespace.declareExport(id);
+            }
           }
           break;
         case HTOpCode.typeAliasDecl:
@@ -645,11 +648,14 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.classDecl:
           _handleClassDecl();
           break;
-        case HTOpCode.varDecl:
-          _handleVarDecl();
+        case HTOpCode.externalEnumDecl:
+          _handleExternalEnumDecl();
           break;
         case HTOpCode.structDecl:
           _handleStructDecl();
+          break;
+        case HTOpCode.varDecl:
+          _handleVarDecl();
           break;
         case HTOpCode.ifStmt:
           bool condition = _curValue;
@@ -755,16 +761,18 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleImport({bool isExported = false}) {
     final key = _curLibrary.readShortUtf8String();
-    String? alias;
-    final hasAlias = _curLibrary.readBool();
-    if (hasAlias) {
-      alias = _curLibrary.readShortUtf8String();
-    }
     final showList = <String>[];
     final showListLength = _curLibrary.read();
     for (var i = 0; i < showListLength; ++i) {
       final id = _curLibrary.readShortUtf8String();
       showList.add(id);
+    }
+    String? alias;
+    if (!isExported) {
+      final hasAlias = _curLibrary.readBool();
+      if (hasAlias) {
+        alias = _curLibrary.readShortUtf8String();
+      }
     }
     _curNamespace.declareImport(
       key,
@@ -1091,7 +1099,7 @@ class Hetu extends HTAbstractInterpreter {
     // calle is a dart function
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
-        _curValue = callee(
+        _curValue = callee(_curNamespace,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
             typeArgs: typeArgs);
@@ -1410,32 +1418,38 @@ class Hetu extends HTAbstractInterpreter {
         superType = HTEntity.type;
       }
     }
+    final isEnum = _curLibrary.readBool();
     final klass = HTClass(this,
         id: id,
         closure: _curNamespace,
         superType: superType,
         isExternal: isExternal,
-        isAbstract: isAbstract);
+        isAbstract: isAbstract,
+        isEnum: isEnum);
     _curNamespace.define(id, klass);
     final savedClass = _curClass;
     _curClass = klass;
     // deal with definition block
     execute(namespace: klass.namespace);
     // Add default constructor if non-exist.
-    if (!isAbstract) {
-      if (!hasUserDefinedConstructor) {
-        final ctor = HTFunction(
-            SemanticNames.constructor, _curModuleFullName, _curLibrary.id, this,
-            classId: klass.id,
-            category: FunctionCategory.constructor,
-            closure: klass.namespace);
-        klass.namespace.define(SemanticNames.constructor, ctor);
-      }
+    if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
+      final ctor = HTFunction(
+          SemanticNames.constructor, _curModuleFullName, _curLibrary.id, this,
+          classId: klass.id,
+          category: FunctionCategory.constructor,
+          closure: klass.namespace);
+      klass.namespace.define(SemanticNames.constructor, ctor);
     }
     if (curSourceType == SourceType.script || _curFunction != null) {
       klass.resolve();
     }
     _curClass = savedClass;
+  }
+
+  void _handleExternalEnumDecl() {
+    final id = _curLibrary.readShortUtf8String();
+    final enumClass = ExternalEnum(id, this);
+    _curNamespace.define(id, enumClass);
   }
 
   void _handleStructDecl() {
@@ -1445,14 +1459,12 @@ class Hetu extends HTAbstractInterpreter {
     if (hasPrototypeId) {
       prototypeId = _curLibrary.readShortUtf8String();
     }
-
     final staticFiledsLength = _curLibrary.readUint16();
     final staticDefinitionIp = _curLibrary.ip;
     _curLibrary.skip(staticFiledsLength);
     final filedsLength = _curLibrary.readUint16();
     final definitionIp = _curLibrary.ip;
     _curLibrary.skip(filedsLength);
-
     final struct = HTNamedStruct(
       id,
       this,

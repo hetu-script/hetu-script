@@ -2,20 +2,19 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() {
   var hetu = Hetu();
-  hetu.init();
+  hetu.init(externalFunctions: {
+    'hello': () => {'greeting': 'hello'},
+  });
   hetu.eval(r'''
-      fun closure(func) {
-        var i = 42
-        fun nested () {
-          i = i + 1
-          print(func(i))
-        }
-        return nested
-      }
-
+      external fun hello
       fun main {
-        var func = closure( (n) => n * n )
-        func()
-      }
-      ''', invokeFunc: 'main');
+        var dartValue = hello()
+        print('dart value:', dartValue)
+        dartValue['foo'] = 'bar'
+        return dartValue
+      }''');
+
+  var hetuValue = hetu.invoke('main');
+
+  print('hetu value: $hetuValue');
 }
