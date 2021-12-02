@@ -1448,7 +1448,7 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleExternalEnumDecl() {
     final id = _curLibrary.readShortUtf8String();
-    final enumClass = ExternalEnum(id, this);
+    final enumClass = HTExternalEnum(id, this);
     _curNamespace.define(id, enumClass);
   }
 

@@ -8,6 +8,7 @@ import '../error/error.dart';
 import '../value/function/function.dart';
 import '../value/class/class.dart';
 import 'external_class.dart';
+import '../value/external_enum/external_enum.dart';
 
 /// Class for external object.
 class HTExternalInstance<T> with HTEntity, InterpreterRef {
@@ -21,6 +22,8 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
 
   HTClass? klass;
 
+  HTExternalEnum? enumClass;
+
   /// Create a external class object.
   HTExternalInstance(
       this.externalObject, HTAbstractInterpreter interpreter, this.typeString) {
@@ -32,14 +35,16 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
       externalClass = null;
     }
 
-    try {
-      klass = interpreter.curNamespace.memberGet(id);
-    } finally {
-      if (klass != null) {
-        valueType = HTNominalType(klass!);
-      } else {
-        valueType = HTExternalType(typeString);
-      }
+    final def = interpreter.curNamespace.memberGet(id, error: false);
+    if (def is HTClass) {
+      klass = def;
+    } else if (def is HTExternalEnum) {
+      enumClass = def;
+    }
+    if (klass != null) {
+      valueType = HTNominalType(klass!);
+    } else {
+      valueType = HTExternalType(typeString);
     }
   }
 
@@ -47,7 +52,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
   dynamic memberGet(String varName) {
     if (externalClass != null) {
       final member = externalClass!.instanceMemberGet(externalObject, varName);
-      if (member is Function) {
+      if (member is Function && klass != null) {
         // final getter = '${SemanticNames.getter}$varName';
         // if (klass!.namespace.declarations.containsKey(varName)) {
         HTFunction func =

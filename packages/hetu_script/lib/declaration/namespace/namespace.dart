@@ -78,7 +78,8 @@ class HTNamespace extends HTDeclaration with HTEntity {
   /// Fetch a value from this namespace,
   /// if not found and [recursive] is true, will continue search in super namespaces.
   @override
-  dynamic memberGet(String varName, {bool recursive = true}) {
+  dynamic memberGet(String varName,
+      {bool recursive = true, bool error = true}) {
     // if (varName.startsWith(HTLexicon.privatePrefix) &&
     //     !from.startsWith(fullName)) {
     //   throw HTError.privateMember(varName);
@@ -92,7 +93,9 @@ class HTNamespace extends HTDeclaration with HTEntity {
       return closure!.memberGet(varName, recursive: recursive);
     }
 
-    throw HTError.undefined(varName);
+    if (error) {
+      throw HTError.undefined(varName);
+    }
   }
 
   /// Fetch a declaration from this namespace,

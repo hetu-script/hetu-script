@@ -5,7 +5,7 @@ import '../entity.dart';
 import '../../declaration/namespace/namespace.dart';
 import '../../source/source.dart';
 
-class ExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
+class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
   @override
   final String id;
 
@@ -13,7 +13,7 @@ class ExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
 
   bool get isNested => classId != null;
 
-  ExternalEnum(
+  HTExternalEnum(
     this.id,
     HTAbstractInterpreter interpreter, {
     String? classId,
@@ -41,5 +41,5 @@ class ExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
   }
 
   @override
-  ExternalEnum clone() => ExternalEnum(id, interpreter);
+  HTExternalEnum clone() => HTExternalEnum(id, interpreter);
 }

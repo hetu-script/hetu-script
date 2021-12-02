@@ -54,12 +54,6 @@ void main() {
   hetu.init(externalClasses: [CountryEnumBinding()]);
 
   final result = hetu.eval(r'''
-      enum Race {
-        caucasian,
-        mongolian,
-        african,
-      }
-
       external enum Country {
         UnitedStates,
         Japan,
@@ -68,17 +62,13 @@ void main() {
       }
 
       fun main {
-        // print(Race.values)
-        // var race: Race = Race.african
-        // print(race)
-        // print(typeof race)
-        // print(race.toString())
-        
-        // print(Country.values)
+        print(Country.values)
         var country = Country.Japan
-        return country;
+        print(country.index);
+        print(country.toString());
+        return country
       }
       ''', invokeFunc: 'main');
 
-  print(result.runtimeType);
+  print(result is Country);
 }
