@@ -30,7 +30,7 @@ final Map<String, Function> preIncludeFunctions = {
     // TODO: jsonify class
     final object = positionalArgs.first;
     if (object is HTStruct) {
-      return HTStruct.jsonifyObject(object);
+      return HTStruct.jsonify(object);
     }
   },
   'prototype.keys': (HTNamespace context,

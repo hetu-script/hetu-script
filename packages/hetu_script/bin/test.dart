@@ -11,7 +11,7 @@ void main() {
           print('Hi! I\'m', this.name)
         }
       }
-      print(prototype.keys(ht))
+      print(ht.toString())
     }
   ''', invokeFunc: 'main');
 }

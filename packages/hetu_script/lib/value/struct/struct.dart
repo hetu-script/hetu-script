@@ -4,6 +4,7 @@ import '../entity.dart';
 import '../function/function.dart';
 import '../../declaration/namespace/namespace.dart';
 import '../../value/const.dart';
+import '../../util/util.dart' show reverseLiteralString;
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -44,6 +45,8 @@ class HTStruct with HTEntity {
         valueString.write(content);
         valueString.write(_curIndent());
         valueString.write(HTLexicon.curlyRight);
+      } else if (value is String) {
+        valueString.write(reverseLiteralString(value));
       } else {
         valueString.write(value);
       }
@@ -81,13 +84,13 @@ class HTStruct with HTEntity {
     }
   }
 
-  static List<dynamic> jsonifyList(Iterable list) {
+  static List<dynamic> _jsonifyList(Iterable list) {
     final output = [];
     for (final value in list) {
       if (value is HTStruct) {
-        output.add(jsonifyObject(value));
+        output.add(jsonify(value));
       } else if (value is Iterable) {
-        output.add(jsonifyList(value));
+        output.add(_jsonifyList(value));
       } else {
         output.add(value);
       }
@@ -95,16 +98,16 @@ class HTStruct with HTEntity {
     return output;
   }
 
-  static Map<String, dynamic> jsonifyObject(HTStruct struct) {
+  static Map<String, dynamic> jsonify(HTStruct struct) {
     final output = <String, dynamic>{};
     for (final key in struct.fields.keys) {
       var value = struct.fields[key];
       // ignore none json data value
       if (_isJsonDataType(value)) {
         if (value is Iterable) {
-          value = jsonifyList(value);
+          value = _jsonifyList(value);
         } else if (value is HTStruct) {
-          value = jsonifyObject(value);
+          value = jsonify(value);
         }
         output[key] = value;
       }
@@ -112,7 +115,7 @@ class HTStruct with HTEntity {
     // print prototype members, ignore the root object members
     if (struct.prototype != null &&
         struct.prototype!.id != HTLexicon.prototype) {
-      final inherits = jsonifyObject(struct.prototype!);
+      final inherits = jsonify(struct.prototype!);
       output.addAll(inherits);
     }
     return output;
@@ -165,7 +168,7 @@ class HTStruct with HTEntity {
     }
   }
 
-  Map<String, dynamic> toJson() => jsonifyObject(this);
+  Map<String, dynamic> toJson() => jsonify(this);
 
   @override
   String toString() {

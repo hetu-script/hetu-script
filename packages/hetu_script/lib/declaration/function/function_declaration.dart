@@ -103,8 +103,10 @@ class HTFunctionDeclaration extends HTDeclaration
   @override
   String toString() {
     var result = StringBuffer();
-    result.write(HTLexicon.FUNCTION);
-    result.write(' $internalName');
+    // result.write(HTLexicon.FUNCTION);
+    if (id != null) {
+      result.write(' $id');
+    }
     if (declType.typeArgs.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
       for (var i = 0; i < declType.typeArgs.length; ++i) {
@@ -145,7 +147,7 @@ class HTFunctionDeclaration extends HTDeclaration
       }
       ++i;
     }
-    result.write('${HTLexicon.roundRight}${HTLexicon.singleArrow} ' +
+    result.write('${HTLexicon.roundRight} ${HTLexicon.singleArrow} ' +
         returnType.toString());
     return result.toString();
   }
