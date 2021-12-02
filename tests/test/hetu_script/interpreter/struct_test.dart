@@ -27,5 +27,25 @@ void main() {
 }''',
       );
     });
+    test('fromJson', () {
+      final jsonData = {
+        "name": "Aleph",
+        "type": "novel",
+        "volumes": 7,
+      };
+      final result = hetu.eval(
+          r'''
+        fun fromJsonTest(data) {
+          final obj = prototype.fromJson(data)
+          return obj.volumes
+        }
+      ''',
+          invokeFunc: 'fromJsonTest',
+          positionalArgs: [jsonData]);
+      expect(
+        result,
+        7,
+      );
+    });
   });
 }

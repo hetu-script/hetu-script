@@ -11,12 +11,11 @@ abstract class object {
 }
 
 struct prototype {
-
-  // external static fromJson()
-
   external static fun keys(obj)
 
   external static fun values(obj)
+
+  external static fun fromJson(data)
 
   fun toString() => stringify(this)
 

@@ -51,6 +51,12 @@ final Map<String, Function> preIncludeFunctions = {
       return object.fields.values.toList();
     }
   },
+  'prototype.fromJson': (HTNamespace context,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    return HTStruct.fromJson(positionalArgs.first, context);
+  },
   'object.toString': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},

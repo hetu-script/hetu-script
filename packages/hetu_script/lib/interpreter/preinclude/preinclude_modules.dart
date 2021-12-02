@@ -18,16 +18,19 @@ abstract class object {
 }
 
 struct prototype {
-
-  // external static fromJson()
-
   external static fun keys(obj)
 
   external static fun values(obj)
 
+  external static fun fromJson(data)
+
   fun toString() => stringify(this)
 
   fun toJson() => jsonify(this)
+
+  get keys => prototype.keys(this)
+
+  get values => prototype.values(this)
 }''',
   'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]

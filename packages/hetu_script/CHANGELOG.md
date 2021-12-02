@@ -1,6 +1,6 @@
 ## 0.3.1
 
-- **Changed the external function typedef in Dart, added namespace when called.**
+- **Changed the external function typedef in Dart, added namespace as first arg when called.**
 
 ## 0.3.0
 

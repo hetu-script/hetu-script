@@ -118,9 +118,35 @@ class HTStruct with HTEntity {
     return output;
   }
 
-  // static HTStruct fromJson(Map<String, dynamic> jsonData) {
-  //   final struct = HTStruct()
-  // }
+  static dynamic _toJsonValue(dynamic value, HTNamespace closure) {
+    if (value is Iterable) {
+      final list = [];
+      for (final item in value) {
+        final result = _toJsonValue(item, closure);
+        list.add(result);
+      }
+      return list;
+    } else if (value is Map) {
+      final struct = HTStruct(closure);
+      for (final key in value.keys) {
+        final fieldKey = key.toString();
+        final fieldValue = _toJsonValue(value[key], closure);
+        struct.define(fieldKey, fieldValue);
+      }
+      return struct;
+    } else {
+      return value;
+    }
+  }
+
+  static HTStruct fromJson(Map<String, dynamic> jsonData, HTNamespace closure) {
+    final struct = HTStruct(closure);
+    for (final key in jsonData.keys) {
+      var value = _toJsonValue(jsonData[key], closure);
+      struct.define(key, value);
+    }
+    return struct;
+  }
 
   String? id;
 
