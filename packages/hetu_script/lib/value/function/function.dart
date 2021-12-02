@@ -130,7 +130,8 @@ class HTFunction extends HTFunctionDeclaration
     if (klass != null &&
         klass!.isExternal &&
         (isStatic || category == FunctionCategory.constructor) &&
-        category != FunctionCategory.getter) {
+        category != FunctionCategory.getter &&
+        category != FunctionCategory.setter) {
       final funcName = id != null ? '$classId.$id' : classId!;
       externalFunc = klass!.externalClass!.memberGet(funcName);
     }
