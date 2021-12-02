@@ -1,3 +1,58 @@
+# Communicating with Dart
+
+There are three ways to communicate with Dart: Primitive value, Json, Binding. They have pros and cons respectively. You can choose the style best suits your needs.
+
+# Primitive value
+
+For these kind of values, their bindings are pre-included within the script source. And they are specificaly handled by the interpreter. Thus you can pass and get them directly.
+
+- int
+- double (it is called float in the script)
+- String
+- List<dynamic>
+- Map<dynamic, dynamic>
+
+You can get value from Hetu by the return value of Interpreter's [invoke] function;
+You can pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
+
+```dart
+final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isFloat': true};
+// equal to this function call in script
+// calculate(6, 7, isFloat: true)
+```
+
+# Json
+
+The HTStruct object in Dart code, or a struct object in the script, has builtin method: toJson() and fromJson() on its root prototype. So you can pass complex data set in this form between script and Dart.
+
+In script:
+
+```kotlin
+fun main (data) {
+  var book = prototype.fromJson(data)
+  print(book)
+}
+```
+
+In dart:
+
+```dart
+final Map<String, dynamic> data = {
+  'id': 324,
+  'title': 'Catcher in the Rye',
+}
+hetu.invoke('main', positionalArgs: [data]);
+```
+
+output:
+
+```javascript
+{
+  id: 324,
+  title: 'Catcher in the Rye',
+}
+```
+
 # Binding
 
 ## Function
@@ -69,10 +124,6 @@ And the output should be:
 dart value: {greeting: hello}
 hetu value: {greeting: hello, foo: bar}
 ```
-
-You can pass object from Dart to Hetu by the return value of external functions.
-
-You can pass object from Hetu to Dart by the return value of Interpreter's [invoke] function;
 
 ## Typedef for unwrap Hetu function into Dart function
 
