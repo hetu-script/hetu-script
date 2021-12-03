@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Added [isStrictMode] for interpreter, in non strict mode, if/while/do and and/or expression can have a non boolean value for condition check.
+
 ## 0.3.1
 
 - **Changed the external function typedef in Dart, added namespace as first arg when called.**

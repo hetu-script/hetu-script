@@ -690,7 +690,8 @@ class Hetu extends HTAbstractInterpreter {
           }
           break;
         case HTOpCode.whileStmt:
-          if (!_curValue) {
+          final truthValue = _truthy(_curValue);
+          if (!truthValue) {
             _curLibrary.ip = _loops.last.breakIp;
             _loops.removeLast();
             --_curLoopCount;
@@ -698,8 +699,11 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.doStmt:
           final hasCondition = _curLibrary.readBool();
-          if (hasCondition && _curValue) {
-            _curLibrary.ip = _loops.last.startIp;
+          if (hasCondition) {
+            final truthValue = _truthy(_curValue);
+            if (truthValue) {
+              _curLibrary.ip = _loops.last.startIp;
+            }
           }
           break;
         case HTOpCode.whenStmt:
