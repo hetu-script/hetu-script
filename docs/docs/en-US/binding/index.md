@@ -13,6 +13,7 @@ For these kind of values, their bindings are pre-included within the script sour
 - String
 - List\<dynamic\>
 - Map\<dynamic, dynamic\>
+- Function
 
 You can get primitive value from Hetu by the return value of Interpreter's [invoke] function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
 
@@ -21,6 +22,8 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 // equivalent in script
 // final result = calculate(6, 7, isFloat: true)
 ```
+
+You can directly access and set the sub value of a List and Map directly by '[]' operator and call a Dart Function by '()' operator in script.
 
 # Json
 
@@ -53,6 +56,8 @@ output:
   title: 'Catcher in the Rye',
 }
 ```
+
+Primitives and Json are a quick way to pass around values without any binding. However, if you want to create a Dart object, or to call a Dart function more efficiently, you have to tell the script the exact definition of the external functions and classes.
 
 # Binding
 
