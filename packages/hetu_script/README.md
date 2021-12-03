@@ -54,14 +54,12 @@ void main() {
 }
 ```
 
-Hetu's grammar is close to typescript/kotlin/swift and other modern languages, need very little time to get familar with.
+Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md) is close to typescript/kotlin/swift and other modern languages. Once you get familiar with some key points, you can get right in.
 
-- Optional semicolon.
-- Function is declared with 'fun, get, set, construct'.
-- Optional type annotation. Variable declared will infer its type from its initializer expression.
-- Support for traditional class style OOP and javascript-like prototyped based OOP, and also functional programming as function is a first class value. You can choose whatever style you want.
-
-[Syntax referrence](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md)
+- Semicolon is optional.
+- Function starts with a keyword like 'fun, get, set, construct'.
+- Support both class based OOP and prototype based OOP, and also functional programming. You can choose whatever style you want.
+- Type annotation is ptional. Variable declared will infer its type from its initializer expression. (The static analysis is still WIP.)
 
 ## Binding
 
