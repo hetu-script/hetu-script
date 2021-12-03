@@ -191,7 +191,7 @@ class HTFunction extends HTFunctionDeclaration
       bool errorHandled = true}) {
     try {
       interpreter.stackTrace.add(
-          '$internalName ($moduleFullName:${interpreter.curLine}:${interpreter.curColumn})');
+          '$internalName (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
 
       dynamic result;
       // 如果是脚本函数

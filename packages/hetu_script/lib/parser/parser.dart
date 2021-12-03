@@ -2116,7 +2116,6 @@ class HTParser extends HTAbstractParser {
             length: curTok.length);
         errors.add(err);
       }
-
       superClassType = _parseTypeExpr();
     }
     final savedClass = _curClass;
