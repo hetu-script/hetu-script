@@ -6,10 +6,8 @@ void main() {
   hetu.eval(r'''
       var ht = {
         name: 'Jimmy',
-        greeting: () {
-          print('Hi! I\'m', this.name)
-        }
       }
-      print(ht.toString())
+      var j = ['243', '2342']
+      print(stringify(ht))
   ''', asScript: true);
 }

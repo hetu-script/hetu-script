@@ -4,7 +4,7 @@ import 'package:path/path.dart' as path;
 
 // import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../util/crc32b.dart';
+import '../shared/crc32b.dart';
 import 'line_info.dart';
 
 /// Code module types

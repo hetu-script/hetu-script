@@ -47,11 +47,3 @@ bool isEqual(dynamic a, dynamic b) {
     return a == b;
   }
 }
-
-String reverseLiteralString(String literal) {
-  var output = literal;
-  if (output.contains("'")) {
-    output = output.replaceAll(r"'", r"\'");
-  }
-  return "'$output'";
-}

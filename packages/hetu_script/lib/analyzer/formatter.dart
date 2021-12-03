@@ -5,7 +5,7 @@ import '../parser/parse_result_compilation.dart';
 import '../parser/parse_result.dart';
 import '../lexer/lexer.dart';
 import '../parser/parser.dart';
-import '../util/util.dart' show reverseLiteralString;
+import '../shared/stringify.dart';
 
 class FormatterConfig {
   final int pageWidth;
@@ -118,7 +118,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitConstStringExpr(ConstStringExpr expr) {
-    return reverseLiteralString(expr.value);
+    return stringify(expr.value);
   }
 
   @override

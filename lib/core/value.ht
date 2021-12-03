@@ -1,6 +1,11 @@
 /// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
 
+external class ExternalObject {
+
+  fun toString() -> str
+}
+
 external class num {
 
 	static fun parse(value: str) -> num

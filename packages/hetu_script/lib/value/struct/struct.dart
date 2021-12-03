@@ -4,7 +4,7 @@ import '../entity.dart';
 import '../function/function.dart';
 import '../../declaration/namespace/namespace.dart';
 import '../../value/const.dart';
-import '../../util/util.dart' show reverseLiteralString;
+import '../../shared/stringify.dart' as util;
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -38,19 +38,18 @@ class HTStruct with HTEntity {
       }
       output.write(_curIndent());
       final value = struct.fields[key];
-      final valueString = StringBuffer();
+      final valueBuffer = StringBuffer();
       if (value is HTStruct) {
         final content = stringify(value, from: from);
-        valueString.writeln(HTLexicon.curlyLeft);
-        valueString.write(content);
-        valueString.write(_curIndent());
-        valueString.write(HTLexicon.curlyRight);
-      } else if (value is String) {
-        valueString.write(reverseLiteralString(value));
+        valueBuffer.writeln(HTLexicon.curlyLeft);
+        valueBuffer.write(content);
+        valueBuffer.write(_curIndent());
+        valueBuffer.write(HTLexicon.curlyRight);
       } else {
-        valueString.write(value);
+        final valueString = util.stringify(value);
+        valueBuffer.write(valueString);
       }
-      output.write('$key${HTLexicon.colon} $valueString');
+      output.write('$key${HTLexicon.colon} $valueBuffer');
       if (i < struct.fields.length - 1) {
         output.write(HTLexicon.comma);
       }

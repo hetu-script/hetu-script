@@ -21,7 +21,7 @@ final Map<String, Function> preIncludeFunctions = {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    return positionalArgs.first.toString();
+    return stringify(positionalArgs.first);
   },
   'jsonify': (HTNamespace context,
       {List<dynamic> positionalArgs = const [],

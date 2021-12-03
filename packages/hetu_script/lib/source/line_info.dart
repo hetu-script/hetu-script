@@ -1,4 +1,4 @@
-import '../util/util.dart' as util;
+import '../shared/util.dart' as util;
 
 /// The location of a character represented as a line and column pair.
 class CharacterLocation {
