@@ -93,6 +93,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   HTModuleAnalysisResult evalSource(HTSource source,
       {String? libraryName,
       bool globallyImport = false,
+      bool isStrictMode = false,
       String? invokeFunc, // ignored in analyzer
       List<dynamic> positionalArgs = const [], // ignored in analyzer
       Map<String, dynamic> namedArgs = const {}, // ignored in analyzer

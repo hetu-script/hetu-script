@@ -185,6 +185,10 @@ class HTStruct with HTEntity {
     return false;
   }
 
+  bool get isEmpty => fields.isEmpty;
+
+  bool get isNotEmpty => fields.isNotEmpty;
+
   void import(HTStruct other, {bool clone = false}) {
     for (final key in other.fields.keys) {
       if (!fields.keys.contains(key)) {

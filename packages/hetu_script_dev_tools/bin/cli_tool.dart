@@ -74,17 +74,16 @@ void main(List<String> arguments) {
         if (path.extension(targetPath) != HTSource.hetuSouceFileExtension) {
           throw 'Error: target file is not of extension \'${HTSource.hetuSouceFileExtension}\'';
         }
-        final sourceType =
-            cmd['script'] ? SourceType.script : SourceType.module;
+        final asScript = cmd['script'] ? true : false;
         switch (cmd.name) {
           case 'run':
-            run(cmdArgs, sourceType);
+            run(cmdArgs, asScript: asScript);
             break;
           case 'format':
             format(cmdArgs, cmd['out'], cmd['print']);
             break;
           case 'analyze':
-            analyze(cmdArgs, sourceType);
+            analyze(cmdArgs, asScript: asScript);
             break;
         }
       } else {
@@ -110,12 +109,12 @@ ArgResults parseArg(List<String> args) {
   return parser.parse(args);
 }
 
-void run(List<String> args, [SourceType sourceType = SourceType.script]) {
+void run(List<String> args, {bool asScript = true}) {
   dynamic result;
   if (args.length == 1) {
-    result = hetu.evalFile(args.first, type: sourceType);
+    result = hetu.evalFile(args.first, asScript: asScript);
   } else {
-    result = hetu.evalFile(args.first, type: sourceType, invokeFunc: args[1]);
+    result = hetu.evalFile(args.first, asScript: asScript, invokeFunc: args[1]);
   }
   print('Execution result:');
   print(result);
@@ -148,10 +147,10 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
   print(outPath);
 }
 
-void analyze(List<String> args, [SourceType sourceType = SourceType.script]) {
+void analyze(List<String> args, {bool asScript = true}) {
   final analyzer = HTAnalyzer();
   analyzer.init();
-  final result = analyzer.evalFile(args.first, type: sourceType);
+  final result = analyzer.evalFile(args.first, asScript: asScript);
   if (result != null) {
     if (result.errors.isNotEmpty) {
       print('Analyzer found ${result.errors.length} problems:');

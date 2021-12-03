@@ -11,16 +11,15 @@ For these kind of values, their bindings are pre-included within the script sour
 - int
 - double (it is called float in the script)
 - String
-- List<dynamic>
-- Map<dynamic, dynamic>
+- List\<dynamic\>
+- Map\<dynamic, dynamic\>
 
-You can get value from Hetu by the return value of Interpreter's [invoke] function;
-You can pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
+You can get primitive value from Hetu by the return value of Interpreter's [invoke] function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
 
 ```dart
 final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isFloat': true};
-// equal to this function call in script
-// calculate(6, 7, isFloat: true)
+// equivalent in script
+// final result = calculate(6, 7, isFloat: true)
 ```
 
 # Json

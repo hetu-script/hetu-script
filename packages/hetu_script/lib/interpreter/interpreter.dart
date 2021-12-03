@@ -99,6 +99,8 @@ class Hetu extends HTAbstractInterpreter {
   HTClass? _curClass;
   HTFunction? _curFunction;
 
+  bool _isStrictMode = false;
+
   var _regIndex = -1;
 
   /// Register values are stored by groups.
@@ -134,6 +136,25 @@ class Hetu extends HTAbstractInterpreter {
   /// Return statement will clear loop points by
   /// [_curLoopCount] in current stack frame.
   final _loops = <_LoopInfo>[];
+
+  bool _truthy(dynamic condition) {
+    if (_isStrictMode) {
+      return condition;
+    } else {
+      if (condition == null ||
+          !condition ||
+          condition == 0 ||
+          condition == '' ||
+          condition == '0' ||
+          (condition is List && condition.isEmpty) ||
+          (condition is Map && condition.isEmpty) ||
+          (condition is HTStruct && condition.isEmpty)) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  }
 
   /// A bytecode interpreter.
   Hetu(
@@ -225,6 +246,7 @@ class Hetu extends HTAbstractInterpreter {
   dynamic evalSource(HTSource source,
       {String? libraryName,
       bool globallyImport = false,
+      bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -235,6 +257,7 @@ class Hetu extends HTAbstractInterpreter {
     }
     _curSourceType = source.type;
     _curModuleFullName = source.name;
+    _isStrictMode = isStrictMode;
     try {
       final bytes = compileSource(source, errorHandled: true);
       if (bytes != null) {
@@ -659,9 +682,9 @@ class Hetu extends HTAbstractInterpreter {
           _handleVarDecl();
           break;
         case HTOpCode.ifStmt:
-          bool condition = _curValue;
           final thenBranchLength = _curLibrary.readUint16();
-          if (!condition) {
+          final truthValue = _truthy(_curValue);
+          if (!truthValue) {
             _curLibrary.skip(thenBranchLength);
           }
           break;
@@ -977,25 +1000,29 @@ class Hetu extends HTAbstractInterpreter {
   void _handleBinaryOp(int opcode) {
     switch (opcode) {
       case HTOpCode.logicalOr:
-        final bool leftValue = _getRegVal(HTRegIdx.orLeft);
+        final leftValue = _getRegVal(HTRegIdx.orLeft);
+        final leftValueTruthValue = _truthy(leftValue);
         final rightValueLength = _curLibrary.readUint16();
-        if (leftValue) {
+        if (leftValueTruthValue) {
           _curLibrary.skip(rightValueLength);
           _curValue = true;
         } else {
-          final bool rightValue = execute();
-          _curValue = rightValue;
+          final rightValue = execute();
+          final rightValueTruthValue = _truthy(rightValue);
+          _curValue = rightValueTruthValue;
         }
         break;
       case HTOpCode.logicalAnd:
-        final bool leftValue = _getRegVal(HTRegIdx.andLeft);
+        final leftValue = _getRegVal(HTRegIdx.andLeft);
+        final leftValueTruthValue = _truthy(leftValue);
         final rightValueLength = _curLibrary.readUint16();
-        if (leftValue) {
-          final bool rightValue = execute();
-          _curValue = leftValue && rightValue;
-        } else {
+        if (!leftValueTruthValue) {
           _curLibrary.skip(rightValueLength);
           _curValue = false;
+        } else {
+          final rightValue = execute();
+          final rightValueTruthValue = _truthy(rightValue);
+          _curValue = leftValueTruthValue && rightValueTruthValue;
         }
         break;
       case HTOpCode.equal:
