@@ -91,6 +91,45 @@ void main() {
 }
 ```
 
+## VScode extension
+
+If you are using VSCode as your editor, you can download [this extension](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript) to get basic highlight and snippets features.
+
+## Command line tool
+
+We have a command line REPL tool for quick testing. You can activate by the following command:
+
+```
+dart pub global activate hetu_script_dev_tools
+// or you can use a git url or local path:
+// dart pub global activate --source path G:\_dev\hetu-script\packages\hetu_script_dev-tools
+```
+
+Then you can use command line tool 'hetu' in any directory on your computer.
+
+More information about the command line tool can be found by enter [hetu -h].
+
+If no arguments is provided, enter REPL mode.
+
+In REPL mode, every exrepssion you entered will be evaluated and print out immediately.
+
+If you want to write multiple line in REPL mode, use '\\' to end a line.
+
+```typescript
+>>>var a = 42
+>>>a
+42
+>>>fun hello {\
+return a }
+>>>hello
+function hello() -> any // repl print
+>>>hello()
+42 // repl print
+>>>
+```
+
+If there's any problems, you can check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global).
+
 ## Discussion group
 
 - Discord: https://discord.gg/sTF73qcS
