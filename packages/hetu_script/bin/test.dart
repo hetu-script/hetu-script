@@ -4,7 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    fun main {
       var ht = {
         name: 'Jimmy',
         greeting: () {
@@ -12,6 +11,5 @@ void main() {
         }
       }
       print(ht.toString())
-    }
-  ''', invokeFunc: 'main');
+  ''', asScript: true);
 }

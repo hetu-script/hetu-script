@@ -18,7 +18,6 @@ extension HTExtension on Hetu {
         extensionModules[file]!,
         moduleFullName: file,
         globallyImport: true,
-        type: SourceType.module,
       );
     }
     bindExternalClass(HTConsoleClass());

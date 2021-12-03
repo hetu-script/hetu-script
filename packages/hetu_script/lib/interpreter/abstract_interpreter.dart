@@ -113,15 +113,15 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
           preIncludeModules[file]!,
           moduleFullName: file,
           globallyImport: true,
-          type: SourceType.module,
         );
       }
 
       for (final file in includes.keys) {
-        eval(includes[file]!,
-            moduleFullName: file,
-            // namespace: global,
-            type: SourceType.module);
+        eval(
+          includes[file]!,
+          moduleFullName: file,
+          // namespace: global,
+        );
       }
       for (final value in externalClasses) {
         bindExternalClass(value);
@@ -150,7 +150,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {String? moduleFullName,
       String? libraryName,
       bool globallyImport = false,
-      SourceType type = SourceType.module,
+      bool asScript = false,
       bool isLibraryEntry = true,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -158,7 +158,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     final source = HTSource(content,
-        name: moduleFullName, type: type, isLibraryEntry: isLibraryEntry);
+        name: moduleFullName,
+        type: asScript ? SourceType.script : SourceType.module,
+        isLibraryEntry: isLibraryEntry);
     final result = evalSource(source,
         globallyImport: globallyImport,
         invokeFunc: invokeFunc,

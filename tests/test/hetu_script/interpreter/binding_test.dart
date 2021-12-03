@@ -145,7 +145,7 @@ void main() {
     static get profile -> Profile
     static set profile(p: Profile)
   }
-  ''', type: SourceType.script);
+  ''', globallyImport: true);
 
   group('binding -', () {
     test('get & set', () {

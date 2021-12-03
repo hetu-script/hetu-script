@@ -5,11 +5,11 @@ void main() {
   hetu.init();
   hetu.eval(r'''
     var i = 42
-  ''', type: SourceType.script);
+  ''', asScript: true, globallyImport: true);
   hetu.eval(r'''
     var j = 'hello, guest no.${i}, next guest is no.${i+1}!'
-  ''', type: SourceType.script);
+  ''', asScript: true, globallyImport: true);
   hetu.eval(r'''
     print(j)
-  ''', type: SourceType.script);
+  ''', asScript: true, globallyImport: true);
 }

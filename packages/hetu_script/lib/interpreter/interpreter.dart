@@ -358,15 +358,16 @@ class Hetu extends HTAbstractInterpreter {
         final HTNamespace nsp = execute();
         _curLibrary.define(nsp.id!, nsp);
       }
-      _cachedLibs[_curLibrary.id] = _curLibrary;
       if (curSourceType == SourceType.script) {
-        for (final nsp in _curLibrary.declarations.values) {
-          // scripts defines its member on global
-          global.import(nsp);
+        if (globallyImport) {
+          for (final nsp in _curLibrary.declarations.values) {
+            global.import(nsp);
+          }
         }
         // return the last expression's value
         return _registers.first;
       } else if (curSourceType == SourceType.module) {
+        _cachedLibs[_curLibrary.id] = _curLibrary;
         // handles module imports
         for (final nsp in _curLibrary.declarations.values) {
           for (final decl in nsp.imports.values) {
