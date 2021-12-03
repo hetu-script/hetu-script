@@ -146,6 +146,7 @@ class Hetu extends HTAbstractInterpreter {
           condition == 0 ||
           condition == '' ||
           condition == '0' ||
+          condition == 'false' ||
           (condition is List && condition.isEmpty) ||
           (condition is Map && condition.isEmpty) ||
           (condition is HTStruct && condition.isEmpty)) {
@@ -1092,7 +1093,8 @@ class Hetu extends HTAbstractInterpreter {
         _curValue = -object;
         break;
       case HTOpCode.logicalNot:
-        _curValue = !object;
+        final truthValue = _truthy(object);
+        _curValue = !truthValue;
         break;
       case HTOpCode.typeOf:
         final encap = encapsulate(object);
