@@ -1,18 +1,12 @@
-import '../declaration/namespace/namespace.dart';
 import '../type/type.dart';
 import '../value/function/function.dart';
 import '../value/entity.dart';
 
 /// Typedef of external function for binding.
-typedef HTExternalFunction = dynamic Function(HTNamespace context,
-    {List<dynamic> positionalArgs,
-    Map<String, dynamic> namedArgs,
-    List<HTType> typeArgs});
-
-/// Typedef of external method for binding.
-/// Only used on external method of a script class,
-/// For full external class, use [HTExternalFunction] instead.
-typedef HTExternalMethod = dynamic Function(HTEntity object,
+/// Can be used on normal external function or external method of a script class,
+/// The first argument could be a instance like [HTInstance] or [HTStruct],
+/// or be a [HTNamespace] of the function's closure when called.
+typedef HTExternalFunction = dynamic Function(HTEntity object,
     {List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
     List<HTType> typeArgs});

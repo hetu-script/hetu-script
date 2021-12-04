@@ -10,6 +10,7 @@ import '../declaration.dart';
 import '../namespace/namespace.dart';
 import 'abstract_parameter.dart';
 import '../generic/generic_type_parameter.dart';
+import '../../value/entity.dart';
 
 class HTFunctionDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
@@ -58,6 +59,8 @@ class HTFunctionDeclaration extends HTDeclaration
   final int maxArity;
 
   HTNamespace? namespace;
+
+  HTEntity? instance;
 
   HTFunctionDeclaration(this.internalName,
       {String? id,

@@ -35,7 +35,7 @@ class GenericClassBinding extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Generic':
-        return (HTNamespace context,
+        return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {

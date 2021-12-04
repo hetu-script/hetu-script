@@ -1173,6 +1173,7 @@ class Hetu extends HTAbstractInterpreter {
       namedArgs[name] = arg;
     }
     final typeArgs = _curTypeArgs;
+    // calle is a script function
     if (callee is HTFunction) {
       _curValue = callee.call(
           positionalArgs: positionalArgs,

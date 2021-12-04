@@ -37,7 +37,7 @@ class CountryEnumBinding extends HTExternalClass {
         return i.index;
       case 'toString':
         var i = object as Country;
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>

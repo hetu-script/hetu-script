@@ -70,7 +70,7 @@ External functions in dart for use in Hetu have following type:
 ```dart
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
-    HTNamespace context,
+    HTEntity entity,
     {List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
     List<HTType> typeArgs});
@@ -104,7 +104,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   var hetu = Hetu();
   await hetu.init(externalFunctions: {
-    'hello': (HTNamespace context,
+    'hello': (HTEntity entity,
         {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTTypeId> typeArgs = const []}) => {'greeting': 'hello'},
@@ -131,67 +131,9 @@ dart value: {greeting: hello}
 hetu value: {greeting: hello, foo: bar}
 ```
 
-## Typedef for unwrap Hetu function into Dart function
-
-In Hetu script:
-
-```dart
-fun [DartFunction] add(a: num, b: num) -> num {
-  return a + b
-}
-
-fun getFunc {
-  return add
-}
-```
-
-Then when you evaluate this [add] function in Hetu, you will get a native Dart function.
-This grammar could also be used on literal function, this is especially usefull when you try to bind callback function to a dart widget.
-
-```dart
-typedef DartFunction = int Function(int a, int b);
-
-int hetuAdd(DartFunction func) {
-  var func = hetu.invoke('getFunc');
-  return func(6, 7);
-}
-```
-
-You have to bind the Dart typedef in [Interpreter.init] before you can use it.
-
-```dart
-await hetu.init(externalFunctions: {
-  externalFunctionTypedef: {
-  'DartFunction': (HTFunction function) {
-    return (int a, int b) {
-      // must convert the return type here to let dart know its return value type.
-      return function.call([a, b]) as int;
-    };
-  },
-});
-```
-
-The typedef of the unwrapper is:
-
-```dart
-typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
-```
-
 ## External methods in classes
 
-It's possible for a Hetu class to have a external method, even if other part of this class is Hetu.
-
-The typedef of external method is slightly different from external functions.
-
-That the first parameter is changed from namespace to a object.
-
-```
-/// typedef of external method for binding.
-typedef HTExternalMethod = dynamic Function(HTEntity object,
-    {List<dynamic> positionalArgs,
-    Map<String, dynamic> namedArgs,
-    List<HTType> typeArgs});
-```
+It's possible for a Hetu class to have a external method, even if other part of this class is Hetu. In this case, the first argument passed from the script will be the instance instead of the namespace.
 
 For example, we have the following class with a external method:
 
@@ -262,12 +204,10 @@ class Person {
   static String meaning(int n) => 'The meaning of life is $n';
 
   String get child => 'Tom';
-
   String name;
   String race;
 
   Person([this.name = 'Jimmy', this.race = 'Caucasian']);
-
   Person.withName(this.name, [this.race = 'Caucasian']);
 
   void greeting(String tag) {
@@ -283,7 +223,7 @@ extension PersonBinding on Person {
       case 'race':
         return race;
       case 'greeting':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -316,20 +256,20 @@ class PersonClassBinding extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Person':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person.withName(positionalArgs[0],
                 (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.meaning':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -384,107 +324,69 @@ void main() {
       fun main {
         var p1: Person = Person()
         p1.greeting('jimmy')
+        print(Person.meaning(42))
         print(typeof p1)
         print(p1.name)
         print(p1.child)
         print('My race is', p1.race)
         p1.race = 'Reptile'
         print('Oh no! My race turned into', p1.race)
+        Person.level = '3'
+        print(Person.level)
 
         var p2 = Person.withName('Jimmy')
         print(p2.name)
         p2.name = 'John'
-
-        Person.level = '3'
-        print(Person.level)
-
-        print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }
 ```
 
-## Static class & external enum
+## Typedef for unwrap Hetu function into Dart function
 
-If the dart class has only static fields, it's okay to just have a class binding and a hetu declaration to get it work.
+It is possible to return a pure Dart function from the script side.
 
-The same applies when you want hetu to manipulate a dart enum. Check the following enum example:
+For example, in Hetu script, we have this function typedef:
 
 ```dart
-import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script/binding.dart';
-
-enum Country {
-  UnitedStates,
-  Japan,
-  Iraq,
-  Ukraine,
+fun [DartFunction] add(a: num, b: num) -> num {
+  return a + b
 }
 
-class CountryEnumBinding extends HTExternalClass {
-  CountryEnumBinding() : super('Country');
-
-  @override
-  dynamic memberGet(String varName) {
-    switch (varName) {
-      case 'values':
-        return Country.values;
-      case 'UnitedStates':
-        return Country.UnitedStates;
-      case 'Japan':
-        return Country.Japan;
-      case 'Iraq':
-        return Country.Iraq;
-      case 'Ukraine':
-        return Country.Ukraine;
-      default:
-        throw HTError.undefined(varName);
-    }
-  }
-
-  @override
-  dynamic instanceMemberGet(dynamic object, String varName) {
-    switch (varName) {
-      case 'index':
-        var i = object as Country;
-        return i.index;
-      case 'toString':
-        var i = object as Country;
-        return (HTNamespace context,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            i.toString();
-      default:
-        throw HTError.undefined(varName);
-    }
-  }
+fun getFunc {
+  return add
 }
+```
 
-void main() {
-  var hetu = Hetu();
+Then when you evaluate this [add] function in Hetu, you will get a native Dart function. This grammar could also be used on literal function, this is especially usefull when you try to bind callback function to a dart widget.
 
-  hetu.init(externalClasses: [CountryEnumBinding()]);
+```dart
+typedef DartFunction = int Function(int a, int b);
 
-  final result = hetu.eval(r'''
-      external enum Country {
-        UnitedStates,
-        Japan,
-        Iraq,
-        Ukraine,
-      }
-
-      fun main {
-        print(Country.values)
-        var country = Country.Japan
-        print(country.index);
-        print(country.toString());
-        return country
-      }
-      ''', invokeFunc: 'main');
-
-  print(result is Country); // true
+int hetuAdd(DartFunction func) {
+  var func = hetu.invoke('getFunc');
+  return func(6, 7);
 }
+```
+
+You have to bind the Dart typedef in [Interpreter.init] before you can use it.
+
+```dart
+await hetu.init(externalFunctions: {
+  externalFunctionTypedef: {
+  'DartFunction': (HTFunction function) {
+    return (int a, int b) {
+      // must convert the return type here to let dart know its return value type.
+      return function.call([a, b]) as int;
+    };
+  },
+});
+```
+
+The typedef of the unwrapper is:
+
+```dart
+typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 ```
 
 ## Auto-Binding tools

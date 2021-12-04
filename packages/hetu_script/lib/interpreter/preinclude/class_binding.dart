@@ -7,7 +7,7 @@ class HTNumberClass extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'num.parse':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -25,14 +25,14 @@ class HTIntegerClass extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'int.fromEnvironment':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             int.fromEnvironment(positionalArgs[0],
                 defaultValue: namedArgs['defaultValue']);
       case 'int.parse':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -64,7 +64,7 @@ class HTFloatClass extends HTExternalClass {
       case 'float.maxFinite':
         return double.maxFinite;
       case 'float.parse':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -86,7 +86,7 @@ class HTBooleanClass extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'bool.parse':
-        return (HTNamespace context,
+        return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
@@ -105,7 +105,7 @@ class HTStringClass extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'str.parse':
-        return (HTNamespace context,
+        return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
@@ -160,85 +160,85 @@ class HTMathClass extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Math.e':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.e;
       case 'Math.pi':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.pi;
       case 'Math.min':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.min(positionalArgs[0] as num, positionalArgs[1] as num);
       case 'Math.max':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.max(positionalArgs[0] as num, positionalArgs[1] as num);
       case 'Math.random':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.Random().nextDouble();
       case 'Math.randomInt':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.Random().nextInt(positionalArgs.first as int);
       case 'Math.sqrt':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.sqrt(positionalArgs.first as num);
       case 'Math.pow':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.pow(positionalArgs[0] as num, positionalArgs[1] as num);
       case 'Math.sin':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.sin(positionalArgs.first as num);
       case 'Math.cos':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.cos(positionalArgs.first as num);
       case 'Math.tan':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.tan(positionalArgs.first as num);
       case 'Math.exp':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.exp(positionalArgs.first as num);
       case 'Math.log':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.log(positionalArgs.first as num);
       case 'Math.parseInt':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -246,57 +246,57 @@ class HTMathClass extends HTExternalClass {
                 radix: namedArgs['radix'] as int) ??
             0;
       case 'Math.parseDouble':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             double.tryParse(positionalArgs.first as String) ?? 0.0;
       case 'Math.sum':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             (positionalArgs.first as List<num>)
                 .reduce((value, element) => value + element);
       case 'Math.checkBit':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             ((positionalArgs[0] as int) & (1 << (positionalArgs[1] as int))) !=
             0;
       case 'Math.bitLS':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             (positionalArgs[0] as int) << (positionalArgs[1] as int);
       case 'Math.bitRS':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             (positionalArgs[0] as int) >> (positionalArgs[1] as int);
       case 'Math.bitAnd':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             (positionalArgs[0] as int) & (positionalArgs[1] as int);
       case 'Math.bitOr':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             (positionalArgs[0] as int) | (positionalArgs[1] as int);
       case 'Math.bitNot':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             ~(positionalArgs[0] as int);
       case 'Math.bitXor':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>

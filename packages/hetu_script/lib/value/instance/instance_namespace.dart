@@ -1,3 +1,5 @@
+import 'package:hetu_script/value/function/function.dart';
+
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../declaration/namespace/namespace.dart';
@@ -29,7 +31,11 @@ class HTInstanceNamespace extends HTNamespace {
     while (curNamespace != null) {
       if (curNamespace.declarations.containsKey(varName) ||
           curNamespace.declarations.containsKey(getter)) {
-        return instance.memberGet(varName, cast: curNamespace.classId);
+        final value = instance.memberGet(varName, cast: curNamespace.classId);
+        if (value is HTFunction) {
+          value.instance = instance;
+        }
+        return value;
       } else {
         curNamespace = curNamespace.next;
       }

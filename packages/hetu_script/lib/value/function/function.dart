@@ -187,7 +187,7 @@ class HTFunction extends HTFunctionDeclaration
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool createInstance = true,
+      bool construct = true,
       bool errorHandled = true}) {
     try {
       interpreter.stackTrace.add(
@@ -215,7 +215,7 @@ class HTFunction extends HTFunctionDeclaration
           }
         }
 
-        if (category == FunctionCategory.constructor && createInstance) {
+        if (category == FunctionCategory.constructor && construct) {
           result = HTInstance(klass!, interpreter, typeArgs: typeArgs);
           namespace = result.namespace;
         }
@@ -223,15 +223,16 @@ class HTFunction extends HTFunctionDeclaration
         if (definitionIp == null) {
           return result;
         }
-        // 函数每次在调用时，临时生成一个新的作用域
+        // callClosure is a temporary closure created everytime a function is called
         final callClosure = HTNamespace(id: id, closure: namespace);
+
+        // define this and super keyword
         if (namespace is HTInstanceNamespace) {
           final instanceNamespace = namespace as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
             callClosure.define(HTLexicon.SUPER,
                 HTConst(HTLexicon.SUPER, value: instanceNamespace.next));
           }
-
           callClosure.define(HTLexicon.THIS,
               HTConst(HTLexicon.THIS, value: instanceNamespace));
         }
@@ -259,7 +260,6 @@ class HTFunction extends HTFunctionDeclaration
                   .declarations['${SemanticNames.constructor}$key']!.value;
             }
           }
-
           // constructor's context is on this newly created instance
           final instanceNamespace = namespace as HTInstanceNamespace;
           constructor.namespace = instanceNamespace.next!;
@@ -290,7 +290,7 @@ class HTFunction extends HTFunctionDeclaration
           constructor.call(
               positionalArgs: referCtorPosArgs,
               namedArgs: referCtorNamedArgs,
-              createInstance: false);
+              construct: false);
         }
 
         var variadicStart = -1;
@@ -349,7 +349,7 @@ class HTFunction extends HTFunctionDeclaration
               column: definitionColumn);
         }
       }
-      // 如果是外部函数
+      // external function
       else {
         late final List<dynamic> finalPosArgs;
         late final Map<String, dynamic> finalNamedArgs;
@@ -421,8 +421,9 @@ class HTFunction extends HTFunctionDeclaration
           finalNamedArgs = namedArgs;
         }
 
+        // a class method
         if (klass != null) {
-          // a method of a external class
+          // a external class method
           if (klass!.isExternal) {
             if (category != FunctionCategory.getter) {
               final func = externalFunc!;
@@ -452,12 +453,18 @@ class HTFunction extends HTFunctionDeclaration
           else {
             final func = externalFunc ??
                 interpreter.fetchExternalFunction('${klass!.name}.$id');
-            if (func is HTExternalMethod) {
-              HTInstance instance = result;
-              result = func(instance,
-                  positionalArgs: finalPosArgs,
-                  namedArgs: finalNamedArgs,
-                  typeArgs: typeArgs);
+            if (func is HTExternalFunction) {
+              if (isStatic || category == FunctionCategory.constructor) {
+                result = func(interpreter.curNamespace,
+                    positionalArgs: finalPosArgs,
+                    namedArgs: finalNamedArgs,
+                    typeArgs: typeArgs);
+              } else {
+                result = func(instance!,
+                    positionalArgs: finalPosArgs,
+                    namedArgs: finalNamedArgs,
+                    typeArgs: typeArgs);
+              }
             } else {
               throw HTError.notCallable(internalName,
                   moduleFullName: interpreter.curModuleFullName,
@@ -470,7 +477,6 @@ class HTFunction extends HTFunctionDeclaration
         else {
           final func =
               externalFunc ?? interpreter.fetchExternalFunction(internalName);
-
           if (func is HTExternalFunction) {
             result = func(interpreter.curNamespace,
                 positionalArgs: finalPosArgs,

@@ -11,7 +11,7 @@ void main() {
   var hetu = Hetu();
 
   hetu.init(externalFunctions: {
-    'hetuAdd': (HTNamespace context,
+    'hetuAdd': (HTEntity entity,
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
         List<HTType> typeArgs = const []}) {

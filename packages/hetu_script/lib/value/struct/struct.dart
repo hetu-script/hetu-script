@@ -175,11 +175,20 @@ class HTStruct with HTEntity {
     return '{\n$content}';
   }
 
-  @override
-  bool contains(String varName, {bool recursive = true}) {
+  /// Check if this struct has the key in its own fields
+  bool own(String varName) {
     if (fields.containsKey(varName)) {
       return true;
-    } else if (recursive && prototype != null && prototype!.contains(varName)) {
+    }
+    return false;
+  }
+
+  /// Check if this struct has the key in its own fields or its prototypes' fields
+  @override
+  bool contains(String varName) {
+    if (fields.containsKey(varName)) {
+      return true;
+    } else if (prototype != null && prototype!.contains(varName)) {
       return true;
     }
     return false;
@@ -219,6 +228,7 @@ class HTStruct with HTEntity {
     }
     if (value is HTFunction) {
       value.namespace = namespace;
+      value.instance = this;
     }
     return value;
   }

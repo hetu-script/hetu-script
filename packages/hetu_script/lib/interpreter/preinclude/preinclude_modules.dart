@@ -18,19 +18,21 @@ abstract class object {
 }
 
 struct prototype {
-  external static fun keys(obj)
-
-  external static fun values(obj)
-
   external static fun fromJson(data)
 
-  fun toString() => stringify(this)
+  external get keys
+
+  external get values
+
+  /// Check if this struct has the key in its own fields
+  external fun own(key: str)
+
+  /// Check if this struct has the key in its own fields or its prototypes' fields
+  external fun contains(key: str)
 
   fun toJson() => jsonify(this)
 
-  get keys => prototype.keys(this)
-
-  get values => prototype.values(this)
+  fun toString() => stringify(this)
 }''',
   'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]

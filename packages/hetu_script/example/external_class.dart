@@ -9,12 +9,10 @@ class Person {
   static String meaning(int n) => 'The meaning of life is $n';
 
   String get child => 'Tom';
-
   String name;
   String race;
 
   Person([this.name = 'Jimmy', this.race = 'Caucasian']);
-
   Person.withName(this.name, [this.race = 'Caucasian']);
 
   void greeting(String tag) {
@@ -30,7 +28,7 @@ extension PersonBinding on Person {
       case 'race':
         return race;
       case 'greeting':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -63,20 +61,20 @@ class PersonClassBinding extends HTExternalClass {
   dynamic memberGet(String varName) {
     switch (varName) {
       case 'Person':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             Person.withName(positionalArgs[0],
                 (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.meaning':
-        return (HTNamespace context,
+        return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
@@ -131,21 +129,19 @@ void main() {
       fun main {
         var p1: Person = Person()
         p1.greeting('jimmy')
+        print(Person.meaning(42))
         print(typeof p1)
         print(p1.name)
         print(p1.child)
         print('My race is', p1.race)
         p1.race = 'Reptile'
         print('Oh no! My race turned into', p1.race)
+        Person.level = '3'
+        print(Person.level)
 
         var p2 = Person.withName('Jimmy')
         print(p2.name)
         p2.name = 'John'
-
-        Person.level = '3'
-        print(Person.level)
-
-        print(Person.meaning(42))
       }
       ''', invokeFunc: 'main');
 }
