@@ -10,6 +10,8 @@
 
 ## [Communicating with Dart](binding/index.md)
 
+## [Future](future/index.md)
+
 ## [Analyzer](analyzer/index.md)
 
 ## [Command line Tool](command_line_tool/index.md)

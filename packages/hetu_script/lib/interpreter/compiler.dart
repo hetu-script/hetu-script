@@ -469,7 +469,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(HTValueTypeCode.type);
     }
     bytesBuilder.addByte(TypeType.normal.index); // enum: type type
-    bytesBuilder.add(_shortUtf8String(expr.id.id));
+    bytesBuilder.add(_shortUtf8String(expr.id!.id));
     bytesBuilder.addByte(expr.arguments.length); // max 255
     for (final expr in expr.arguments) {
       final typeArg = visitTypeExpr(expr);
@@ -1568,7 +1568,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       final toStringFunc = FuncDecl(HTLexicon.tostring, [],
           id: IdentifierExpr(HTLexicon.tostring),
           classId: stmt.id.id,
-          returnType: TypeExpr(IdentifierExpr(HTLexicon.str)),
+          returnType: TypeExpr(id: IdentifierExpr(HTLexicon.str)),
           hasParamDecls: true,
           definition: toStringDef);
       final toStringBytes = visitFuncDecl(toStringFunc);

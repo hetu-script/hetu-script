@@ -357,13 +357,13 @@ class TypeExpr extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    id.accept(visitor);
+    id?.accept(visitor);
     for (final item in arguments) {
       item.accept(visitor);
     }
   }
 
-  final IdentifierExpr id;
+  final IdentifierExpr? id;
 
   final List<TypeExpr> arguments;
 
@@ -371,8 +371,9 @@ class TypeExpr extends AstNode {
 
   final bool isLocal;
 
-  TypeExpr(this.id,
-      {this.arguments = const [],
+  TypeExpr(
+      {this.id,
+      this.arguments = const [],
       this.isNullable = false,
       this.isLocal = true,
       HTSource? source,
@@ -445,8 +446,6 @@ class FuncTypeExpr extends TypeExpr {
     returnType.accept(visitor);
   }
 
-  final IdentifierExpr keyword;
-
   final List<GenericTypeParameterExpr> genericTypeParameters;
 
   final List<ParamTypeExpr> paramTypes;
@@ -457,7 +456,7 @@ class FuncTypeExpr extends TypeExpr {
 
   final bool hasNamedParam;
 
-  FuncTypeExpr(this.keyword, this.returnType,
+  FuncTypeExpr(this.returnType,
       {this.genericTypeParameters = const [],
       this.paramTypes = const [],
       this.hasOptionalParam = false,
@@ -468,7 +467,7 @@ class FuncTypeExpr extends TypeExpr {
       int offset = 0,
       int length = 0,
       bool isLocal = true})
-      : super(keyword,
+      : super(
             isLocal: isLocal,
             source: source,
             line: line,

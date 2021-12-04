@@ -3,6 +3,7 @@ import 'dart:io';
 final Map<String, String> builtInModules = const {
   'hetu:core': '../../lib/core/core.ht',
   'hetu:value': '../../lib/core/value.ht',
+  'hetu:async': '../../lib/core/async.ht',
   'hetu:system': '../../lib/core/system.ht',
   'hetu:math': '../../lib/core/math.ht',
   'hetu:help': '../../lib/core/help.ht',

@@ -74,7 +74,7 @@ abstract class HTType with HTEntity {
         if (HTType.primitiveTypes.containsKey(ast.id)) {
           return HTType.primitiveTypes[ast.id]!;
         } else {
-          return HTUnresolvedType(ast.id.id,
+          return HTUnresolvedType(ast.id!.id,
               typeArgs:
                   ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
               isNullable: ast.isNullable);

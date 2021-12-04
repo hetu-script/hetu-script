@@ -13,7 +13,6 @@ enum TypeType {
   normal, // HTTypeid
   function, // HTFunctionTypeid
   struct,
-  interface,
   union,
 }
 

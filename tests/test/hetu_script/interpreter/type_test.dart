@@ -54,7 +54,7 @@ void main() {
     test('function type', () {
       final result = hetu.eval('''
         fun functionType {
-          var numparse: fun (str) -> num = fun (value: str) -> num { return num.parse(value) }
+          var numparse: (str) -> num = fun (value: str) -> num { return num.parse(value) }
           var getType = fun { typeof numparse }
           var funcTypedef2 = getType()
           var strlength: funcTypedef2 = fun (value: str) -> num { return value.length }
@@ -88,7 +88,7 @@ void main() {
     test('type alias function', () {
       final result = hetu.eval('''
         fun typeAlias2 {
-          type MyFuncType = fun (num, num) -> num
+          type MyFuncType = (num, num) -> num
           var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
           return func(6, 7)
         }

@@ -554,3 +554,23 @@ extension MapBinding on Map {
     }
   }
 }
+
+/// Binding object for dart future.
+extension FutureBinding on Future {
+  dynamic htFetch(String varName) {
+    switch (varName) {
+      case 'then':
+        return (HTNamespace context,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs[0];
+          then((value) {
+            func.call(positionalArgs: [value]);
+          });
+        };
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}

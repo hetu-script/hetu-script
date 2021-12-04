@@ -35,6 +35,11 @@ struct prototype {
   'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
 
+// external class ExternalObject {
+
+//   fun toString() -> str
+// }
+
 external class num {
 
 	static fun parse(value: str) -> num
@@ -269,6 +274,11 @@ external class Map {
 
   fun putIfAbsent(key, value) -> any
 }''',
+  'hetu:async': r'''external class Future {
+
+  fun then(func: (value) -> any)
+}
+''',
   'hetu:system': r'''external class System {
 
   static get now -> num

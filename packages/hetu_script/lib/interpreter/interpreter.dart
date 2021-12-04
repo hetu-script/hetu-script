@@ -168,20 +168,21 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   @override
-  void init(
-      {Map<String, String> includes = const {},
-      List<HTExternalClass> externalClasses = const [],
-      Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
-          const {}}) {
+  void init({
+    Map<String, String> includes = const {},
+    Map<String, Function> externalFunctions = const {},
+    Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
+    List<HTExternalClass> externalClasses = const [],
+  }) {
     if (config.doStaticAnalyze) {
       analyzer.init(includes: includes);
     }
     super.init(
-        includes: includes,
-        externalClasses: externalClasses,
-        externalFunctions: externalFunctions,
-        externalFunctionTypedef: externalFunctionTypedef);
+      includes: includes,
+      externalFunctions: externalFunctions,
+      externalFunctionTypedef: externalFunctionTypedef,
+      externalClasses: externalClasses,
+    );
   }
 
   @override
@@ -1219,9 +1220,8 @@ class Hetu extends HTAbstractInterpreter {
         return HTFunctionType(
             parameterTypes: parameterTypes, returnType: returnType);
       case TypeType.struct:
-      case TypeType.interface:
       case TypeType.union:
-        return HTUnresolvedType(_curLibrary.readShortUtf8String());
+        return HTUnresolvedType('Unsupported Type');
     }
   }
 

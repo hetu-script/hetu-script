@@ -321,3 +321,11 @@ class HTSystemClass extends HTExternalClass {
     }
   }
 }
+
+class HTFutureClass extends HTExternalClass {
+  HTFutureClass() : super('Future');
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as Future).htFetch(varName);
+}

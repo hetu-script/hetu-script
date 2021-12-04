@@ -1157,15 +1157,13 @@ class HTParser extends HTAbstractParser {
 
   TypeExpr _parseTypeExpr({bool isLocal = false}) {
     // function type
-    if (curTok.type == HTLexicon.FUNCTION) {
-      final keyword = match(HTLexicon.FUNCTION);
-      final keywordSymbol = IdentifierExpr.fromToken(keyword);
+    if (curTok.type == HTLexicon.roundLeft) {
+      final startTok = match(HTLexicon.roundLeft);
       // TODO: genericTypeParameters 泛型参数
       final parameters = <ParamTypeExpr>[];
       var isOptional = false;
       var isNamed = false;
       var isVariadic = false;
-      match(HTLexicon.roundLeft);
       while (curTok.type != HTLexicon.roundRight &&
           curTok.type != SemanticNames.endOfFile) {
         final start = curTok;
@@ -1209,18 +1207,21 @@ class HTParser extends HTAbstractParser {
       match(HTLexicon.roundRight);
       match(HTLexicon.singleArrow);
       final returnType = _parseTypeExpr();
-      return FuncTypeExpr(keywordSymbol, returnType,
+      return FuncTypeExpr(returnType,
           isLocal: isLocal,
           paramTypes: parameters,
           hasOptionalParam: isOptional,
           hasNamedParam: isNamed,
           source: _curSource,
-          line: keyword.line,
-          column: keyword.column,
-          offset: keyword.offset,
-          length: curTok.offset - keyword.offset);
+          line: startTok.line,
+          column: startTok.column,
+          offset: startTok.offset,
+          length: curTok.offset - startTok.offset);
     }
     // TODO: interface type
+    // else if (curTok.type == HTLexicon.curlyLeft) {
+    //   return StructuralTypeExpr();
+    // }
     // nominal type
     else {
       final idTok = advance(1);
@@ -1245,7 +1246,7 @@ class HTParser extends HTAbstractParser {
       }
       final isNullable = expect([HTLexicon.nullable], consume: true);
       return TypeExpr(
-        id,
+        id: id,
         arguments: typeArgs,
         isNullable: isNullable,
         isLocal: isLocal,

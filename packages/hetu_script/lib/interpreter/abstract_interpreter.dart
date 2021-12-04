@@ -86,12 +86,12 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   HTNamespace get global;
 
   @mustCallSuper
-  void init(
-      {Map<String, String> includes = const {},
-      List<HTExternalClass> externalClasses = const [],
-      Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
-          const {}}) {
+  void init({
+    Map<String, String> includes = const {},
+    Map<String, Function> externalFunctions = const {},
+    Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
+    List<HTExternalClass> externalClasses = const [],
+  }) {
     try {
       // bind externals before any eval
       for (var key in preIncludeFunctions.keys) {
@@ -106,6 +106,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTMapClass());
       bindExternalClass(HTMathClass());
       bindExternalClass(HTSystemClass());
+      bindExternalClass(HTFutureClass());
       // bindExternalClass(HTConsoleClass());
 
       // load classes and functions in core library.
@@ -124,14 +125,14 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
           // namespace: global,
         );
       }
-      for (final value in externalClasses) {
-        bindExternalClass(value);
-      }
       for (final key in externalFunctions.keys) {
         bindExternalFunction(key, externalFunctions[key]!);
       }
       for (final key in externalFunctionTypedef.keys) {
         bindExternalFunctionType(key, externalFunctionTypedef[key]!);
+      }
+      for (final value in externalClasses) {
+        bindExternalClass(value);
       }
     } catch (error, stackTrace) {
       handleError(error, externalStackTrace: stackTrace);

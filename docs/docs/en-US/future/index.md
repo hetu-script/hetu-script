@@ -1,3 +1,14 @@
+# Future
+
+The script is single threaded and all functions are sync. We do not support making futures within the script, and not planning to do so.
+
+However, it is possible for an external function to return a Future value.
+
+To make things easy, we added a simple wrapper for Dart's Future object. You can use the 'then' method to do something when the Dart Future is completed.
+
+Example:
+
+```dart
 import 'package:hetu_script/hetu_script.dart';
 
 Future<void> fetch() {
@@ -17,3 +28,4 @@ void main() {
       })
   ''', asScript: true);
 }
+```
