@@ -717,26 +717,47 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.memberSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
-          final key = _getRegVal(HTRegIdx.postfixKey);
-          final encap = encapsulate(object);
-          encap.memberSet(key, _curValue);
-          break;
-        case HTOpCode.subSet:
-          final object = _getRegVal(HTRegIdx.postfixObject);
-          final key = execute();
-          final value = execute();
-          if (object == null || object == HTEntity.NULL) {
+          if (object == null) {
             throw HTError.nullObject(
                 moduleFullName: _curModuleFullName,
                 line: _curLine,
                 column: _curColumn);
-          }
-          if (object is HTEntity) {
-            object.subSet(key, value);
           } else {
-            object[key] = value;
+            final key = _getRegVal(HTRegIdx.postfixKey);
+            final encap = encapsulate(object);
+            encap.memberSet(key, _curValue);
           }
-          _curValue = value;
+          break;
+        case HTOpCode.subSet:
+          final object = _getRegVal(HTRegIdx.postfixObject);
+          if (object == null) {
+            throw HTError.nullObject(
+                moduleFullName: _curModuleFullName,
+                line: _curLine,
+                column: _curColumn);
+          } else {
+            final key = execute();
+            final value = execute();
+            if (object is HTEntity) {
+              object.subSet(key, value);
+            } else {
+              if (object is List) {
+                if (key is! int) {
+                  throw HTError.subGetKey(
+                      moduleFullName: _curModuleFullName,
+                      line: _curLine,
+                      column: _curColumn);
+                } else if (key >= object.length) {
+                  throw HTError.outOfRange(key, object.length,
+                      moduleFullName: _curModuleFullName,
+                      line: _curLine,
+                      column: _curColumn);
+                }
+                object[key] = value;
+              }
+            }
+            _curValue = value;
+          }
           break;
         case HTOpCode.logicalOr:
         case HTOpCode.logicalAnd:
@@ -763,17 +784,44 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.memberGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
-          final key = _getRegVal(HTRegIdx.postfixKey);
-          final encap = encapsulate(object);
-          _curValue = encap.memberGet(key);
+          if (object == null) {
+            throw HTError.nullObject(
+                moduleFullName: _curModuleFullName,
+                line: _curLine,
+                column: _curColumn);
+          } else {
+            final key = _getRegVal(HTRegIdx.postfixKey);
+            final encap = encapsulate(object);
+            _curValue = encap.memberGet(key);
+          }
           break;
         case HTOpCode.subGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
-          final key = execute();
-          if (object is HTEntity) {
-            _curValue = object.subGet(key);
+          if (object == null) {
+            throw HTError.nullObject(
+                moduleFullName: _curModuleFullName,
+                line: _curLine,
+                column: _curColumn);
           } else {
-            _curValue = object[key];
+            final key = execute();
+            if (object is HTEntity) {
+              _curValue = object.subGet(key);
+            } else {
+              if (object is List) {
+                if (key is! int) {
+                  throw HTError.subGetKey(
+                      moduleFullName: _curModuleFullName,
+                      line: _curLine,
+                      column: _curColumn);
+                } else if (key >= object.length) {
+                  throw HTError.outOfRange(key, object.length,
+                      moduleFullName: _curModuleFullName,
+                      line: _curLine,
+                      column: _curColumn);
+                }
+              }
+              _curValue = object[key];
+            }
           }
           break;
         case HTOpCode.call:

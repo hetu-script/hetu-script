@@ -49,6 +49,8 @@ enum ErrorCode {
   notList,
   nullInit,
   nullObject,
+  subGetKey,
+  outOfRange,
   nullable,
   type,
   immutable,
@@ -240,7 +242,7 @@ class HTError implements AbstractError {
   /// [HTError] can not be created by default constructor.
   HTError(this.code, this.type, String message,
       {this.extra,
-      List<String> interpolations = const [],
+      List<Object> interpolations = const [],
       this.correction,
       this.moduleFullName,
       this.line,
@@ -248,7 +250,7 @@ class HTError implements AbstractError {
       this.offset,
       this.length}) {
     for (var i = 0; i < interpolations.length; ++i) {
-      message = message.replaceAll('{$i}', interpolations[i]);
+      message = message.replaceAll('{$i}', interpolations[i].toString());
     }
     this.message = message;
   }
@@ -803,7 +805,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
             HTLexicon.errorUnknownOpCode,
-            interpolations: [opcode.toString()],
+            interpolations: [opcode],
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1047,6 +1049,45 @@ class HTError implements AbstractError {
             offset: offset,
             length: length);
 
+  /// Error: Subget key is not int
+  HTError.subGetKey(
+      {String? extra,
+      String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.nullObject, ErrorType.runtimeError,
+            HTLexicon.errorNullObject,
+            extra: extra,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Calling method on null object.
+  HTError.outOfRange(int index, int range,
+      {String? extra,
+      String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.outOfRange, ErrorType.runtimeError,
+            HTLexicon.errorOutOfRange,
+            interpolations: [index, range],
+            extra: extra,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
   /// Error: Type is assign a unnullable varialbe with null.
   HTError.nullable(String id,
       {String? extra,
@@ -1213,7 +1254,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.arity, ErrorType.runtimeError, HTLexicon.errorArity,
-            interpolations: [argsCount.toString(), id, paramsCount.toString()],
+            interpolations: [argsCount, id, paramsCount],
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1369,7 +1410,7 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.unkownValueType, ErrorType.runtimeError,
             HTLexicon.errorUnkownValueType,
-            interpolations: [valType.toString()],
+            interpolations: [valType],
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,

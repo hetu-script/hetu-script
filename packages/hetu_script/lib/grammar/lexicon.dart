@@ -472,6 +472,8 @@ abstract class HTLexicon {
   static const errorNotList = '[{0}] is not a List or Map.';
   static const errorNullInit = 'Initializer evaluated to null.';
   static const errorNullObject = 'Calling method on null object.';
+  static const errorSubGetKey = 'Sub get key is not of type [int]';
+  static const errorOutOfRange = 'Index [{0}] is out of range [{1}].';
   static const errorNullable = '[{0}] is not nullable.';
   static const errorType =
       'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}]';
