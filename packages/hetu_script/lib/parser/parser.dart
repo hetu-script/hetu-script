@@ -1864,6 +1864,7 @@ class HTParser extends HTAbstractParser {
       {FunctionCategory category = FunctionCategory.normal,
       String? classId,
       bool hasKeyword = true,
+      bool isAsync = false,
       bool isField = false,
       bool isOverrided = false,
       bool isExternal = false,

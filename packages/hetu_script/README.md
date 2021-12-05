@@ -60,7 +60,7 @@ Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/doc
 - Semicolon is optional.
 - Function starts with a keyword like 'fun, get, set, construct'.
 - Support both class based OOP and prototype based OOP, and also functional programming. You can choose whatever style you want.
-- Type annotation is ptional. Variable declared will infer its type from its initializer expression. (The static analysis is still WIP.)
+- Type annotation is optional. Variable declared will infer its type from its initializer expression. (The static analysis is still WIP.)
 
 ## Binding
 

@@ -1520,6 +1520,8 @@ class FuncDecl extends AstNode {
 
   bool get isAbstract => definition != null;
 
+  final bool isAsync;
+
   final bool isField;
 
   final bool isExternal;
@@ -1549,6 +1551,7 @@ class FuncDecl extends AstNode {
       this.isExpressionBody = false,
       this.hasEndOfStmtMark = false,
       this.definition,
+      this.isAsync = false,
       this.isField = false,
       this.isExternal = false,
       this.isStatic = false,
