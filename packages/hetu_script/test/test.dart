@@ -9,6 +9,8 @@ void main() {
       age: 1
     }
 
-    print(ht.contains('toJson'))
+    print(ht.owns('toJson')) // false
+    print(ht.contains('toJson')) // true
+
   ''', asScript: true);
 }

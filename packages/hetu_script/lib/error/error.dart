@@ -9,6 +9,7 @@ part 'error_processor.dart';
 enum ErrorCode {
   unexpected,
   externalType,
+  externalCtor,
   nestedClass,
   outsideReturn,
   setterArity,
@@ -286,6 +287,25 @@ class HTError implements AbstractError {
       int? length})
       : this(ErrorCode.externalType, ErrorType.syntacticError,
             HTLexicon.errorExternalType,
+            extra: extra,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: external constructor on a normal class.
+  HTError.externalCtor(
+      {String? extra,
+      String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.externalType, ErrorType.syntacticError,
+            HTLexicon.errorExternalCtor,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,

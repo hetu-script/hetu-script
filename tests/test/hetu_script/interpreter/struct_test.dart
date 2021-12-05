@@ -47,5 +47,20 @@ void main() {
         7,
       );
     });
+    test('owns', () {
+      final result = hetu.eval(r'''
+        fun ownsTest {
+          var ht = {
+            name: 'Hetu',
+            age: 1
+          }
+          return ht.owns('toJson') // false
+        }
+      ''', invokeFunc: 'ownsTest');
+      expect(
+        result,
+        false,
+      );
+    });
   });
 }

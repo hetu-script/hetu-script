@@ -419,6 +419,8 @@ abstract class HTLexicon {
   // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}]';
   static const errorExternalType = 'External type is not allowed.';
+  static const errorExternalCtor =
+      'External constructor on a normal class is not allowed.';
   static const errorNestedClass = 'Nested class within another nested class.';
   static const errorOutsideReturn =
       'Unexpected return statement outside of a function.';

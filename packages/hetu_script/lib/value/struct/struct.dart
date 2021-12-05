@@ -176,7 +176,7 @@ class HTStruct with HTEntity {
   }
 
   /// Check if this struct has the key in its own fields
-  bool own(String varName) {
+  bool owns(String varName) {
     if (fields.containsKey(varName)) {
       return true;
     }
@@ -215,8 +215,9 @@ class HTStruct with HTEntity {
     fields.remove(id);
   }
 
+  /// [isSelf] means wether this is called by the struct itself, or a recursive one
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {bool isSelf = true}) {
     dynamic value;
     if (varName == SemanticNames.prototype) {
       return prototype;
@@ -224,11 +225,17 @@ class HTStruct with HTEntity {
     if (fields.containsKey(varName)) {
       value = fields[varName];
     } else if (prototype != null) {
-      value = prototype!.memberGet(varName);
+      value = prototype!.memberGet(varName, isSelf: false);
     }
-    if (value is HTFunction) {
-      value.namespace = namespace;
-      value.instance = this;
+    // assign the original struct as instance, not the prototype object
+    if (isSelf) {
+      if (value is HTFunction) {
+        value.namespace = namespace;
+        value.instance = this;
+        if (value.category == FunctionCategory.getter) {
+          value = value.call();
+        }
+      }
     }
     return value;
   }

@@ -61,12 +61,12 @@ final Map<String, Function> preIncludeFunctions = {
     final obj = object as HTStruct;
     return obj.contains(positionalArgs.first);
   },
-  'prototype.own': (HTEntity object,
+  'prototype.owns': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.own(positionalArgs.first);
+    return obj.owns(positionalArgs.first);
   },
   'object.toString': (HTEntity object,
       {List<dynamic> positionalArgs = const [],

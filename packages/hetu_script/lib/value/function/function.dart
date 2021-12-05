@@ -445,14 +445,13 @@ class HTFunction extends HTFunctionDeclaration
                     column: interpreter.curColumn);
               }
             } else {
-              final funcName = isStatic ? '$classId.$id' : id!;
-              result = klass!.externalClass!.memberGet(funcName);
+              result = klass!.externalClass!.memberGet('$classId.$id');
             }
           }
           // a external method in a normal class
           else {
             final func = externalFunc ??
-                interpreter.fetchExternalFunction('${klass!.name}.$id');
+                interpreter.fetchExternalFunction('$classId.$id');
             if (func is HTExternalFunction) {
               if (isStatic || category == FunctionCategory.constructor) {
                 result = func(interpreter.curNamespace,
@@ -473,10 +472,39 @@ class HTFunction extends HTFunctionDeclaration
             }
           }
         }
-        // a normal standalone external function
+        // a external method of a struct
+        else if (classId != null) {
+          externalFunc ??= interpreter.fetchExternalFunction('$classId.$id');
+          final func = externalFunc!;
+          if (func is HTExternalFunction) {
+            if (isStatic || category == FunctionCategory.constructor) {
+              result = func(interpreter.curNamespace,
+                  positionalArgs: finalPosArgs,
+                  namedArgs: finalNamedArgs,
+                  typeArgs: typeArgs);
+            } else {
+              result = func(instance!,
+                  positionalArgs: finalPosArgs,
+                  namedArgs: finalNamedArgs,
+                  typeArgs: typeArgs);
+            }
+          } else if (func is Function) {
+            result = Function.apply(
+                func,
+                finalPosArgs,
+                finalNamedArgs.map<Symbol, dynamic>(
+                    (key, value) => MapEntry(Symbol(key), value)));
+          } else {
+            throw HTError.notCallable(internalName,
+                moduleFullName: interpreter.curModuleFullName,
+                line: interpreter.curLine,
+                column: interpreter.curColumn);
+          }
+        }
+        // a toplevel external function
         else {
-          final func =
-              externalFunc ?? interpreter.fetchExternalFunction(internalName);
+          externalFunc ??= interpreter.fetchExternalFunction(id!);
+          final func = externalFunc!;
           if (func is HTExternalFunction) {
             result = func(interpreter.curNamespace,
                 positionalArgs: finalPosArgs,
@@ -497,6 +525,7 @@ class HTFunction extends HTFunctionDeclaration
         }
       }
 
+      // TODO: move this into analyzer
       // if (category != FunctionCategory.constructor) {
       //   if (returnType != HTType.ANY) {
       //     final encapsulation = interpreter.encapsulate(result);

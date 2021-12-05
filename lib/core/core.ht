@@ -18,7 +18,7 @@ struct prototype {
   external get values
 
   /// Check if this struct has the key in its own fields
-  external fun own(key: str)
+  external fun owns(key: str)
 
   /// Check if this struct has the key in its own fields or its prototypes' fields
   external fun contains(key: str)
