@@ -252,6 +252,28 @@ do {
 } while (condition)
 ```
 
+### Truth value
+
+The truth value in the if/do/while condition brackets, will be inexplicitly converted, if the interpreter is in non strict mode.
+
+The conversion rules is:
+
+```dart
+if (condition == null ||
+    !condition ||
+    condition == 0 ||
+    condition == '' ||
+    condition == '0' ||
+    condition == 'false' ||
+    (condition is List && condition.isEmpty) ||
+    (condition is Map && condition.isEmpty) ||
+    (condition is HTStruct && condition.isEmpty)) {
+  return false;
+} else {
+  return true;
+}
+```
+
 ### For
 
 - 'for' statement's expr must be separated with ';'.
@@ -301,7 +323,7 @@ null, true, false, var, final, const, typeof, class, enum, fun, struct, interfac
 
 | Description    | Operator                  | Associativity | Precedence |
 | :------------- | :------------------------ | :-----------: | :--------: |
-| Unary postfix  | e., e1[e2], e(), e++, e-- |     None      |     16     |
+| Unary postfix  | e., e++, e--, e1[e2], e() |     None      |     16     |
 | Unary prefix   | -e, !e, ++e, --e          |     None      |     15     |
 | Multiplicative | \*, /, %                  |     Left      |     14     |
 | Additive       | +, -                      |     Left      |     13     |
