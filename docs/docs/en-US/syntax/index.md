@@ -222,9 +222,8 @@ fun main {
 
 ### If
 
-- 'if' statement's condition expression must be bool.
 - 'if' statement's branches could be a single statement without brackets.
-- 'if' can also be a expression which will have a value, in this case else branch is not omitable.
+- 'if' can also be an expression which will have a value, in this case else branch is not omitable.
 
 ```dart
 if (condition) {
@@ -254,7 +253,7 @@ do {
 
 ### Truth value
 
-The truth value in the if/do/while condition brackets, will be inexplicitly converted, if the interpreter is in non strict mode.
+If the interpreter is in non strict mode, the if/do/while statement's condition expression will be inexplicitly converted to boolean.
 
 The conversion rules is:
 
