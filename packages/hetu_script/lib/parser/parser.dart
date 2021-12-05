@@ -1294,7 +1294,7 @@ class HTParser extends HTAbstractParser {
     // }
     // nominal type
     else {
-      final idTok = advance(1);
+      final idTok = match(SemanticNames.identifier);
       final id = IdentifierExpr.fromToken(idTok);
       final typeArgs = <TypeExpr>[];
       if (expect([HTLexicon.angleLeft], consume: true)) {
