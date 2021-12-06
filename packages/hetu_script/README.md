@@ -62,7 +62,7 @@ Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/doc
 
 ## Binding
 
-Becuase it is written in pure Dart, [communicating with it](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) is very easy.
+Becuase Hetu is written in pure Dart, [communicating with it](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) is very easy.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
