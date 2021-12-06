@@ -27,7 +27,7 @@ We did not choose to use another existing language to achieve the goal. Because 
 
 ## Documentation
 
-### [English](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/index.md)
+### [English](https://hetu.dev/docs/en-US/)
 
 ## Quick start
 
@@ -53,7 +53,7 @@ void main() {
 }
 ```
 
-Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md) is close to typescript/kotlin/swift and other modern languages.
+Hetu's [grammar](https://hetu.dev/docs/en-US/syntax/) is close to typescript/kotlin/swift and other modern languages.
 
 - Semicolon is optional.
 - Function starts with a keyword like 'fun, get, set, construct'.
@@ -62,7 +62,9 @@ Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/doc
 
 ## Binding
 
-Becuase Hetu is written in pure Dart, [communicating with it](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) is very easy.
+[Communicating with Dart](binding/index.md) is very easy. You can directly pass common value types from and to script.
+
+Below is an example to pass a Map to script, modify it in script and get it back:
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -86,8 +88,6 @@ void main() {
   print('hetu value: $hetuValue');
 }
 ```
-
-Check [this page](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
 ## VScode extension
 

@@ -13,20 +13,20 @@ npm run build
 
 # Table of contents
 
-### [Introduction](docs/en-US/introduction/index.md)
+### [Introduction](docs/docs/en-US/index.md)
 
-### [Installation](docs/en-US/installation/index.md)
+### [Installation](docs/docs/en-US/installation/index.md)
 
-### [Common API](docs/en-US/common_api/index.md)
+### [Common API](docs/docs/en-US/common_api/index.md)
 
-### [Language](docs/en-US/syntax/index.md)
+### [Language](docs/docs/en-US/syntax/index.md)
 
-### [Module import & export](docs/en-US/module/index.md)
+### [Module import & export](docs/docs/en-US/module/index.md)
 
-### [Communicating with Dart](docs/en-US/binding/index.md)
+### [Communicating with Dart](docs/docs/en-US/binding/index.md)
 
-### [Advanced topics](docs/en-US/advanced/index.md)
+### [Advanced topics](docs/docs/en-US/advanced/index.md)
 
-### [Analyzer](docs/en-US/analyzer/index.md)
+### [Analyzer](docs/docs/en-US/analyzer/index.md)
 
-### [Command line tool](docs/en-US/command_line_tool/index.md)
+### [Command line tool](docs/docs/en-US/command_line_tool/index.md)
