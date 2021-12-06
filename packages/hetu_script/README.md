@@ -25,8 +25,6 @@ Hetu is a lightweight script language purely written in Dart for embedding in Fl
 
 We did not choose to use another existing language to achieve the goal. Because we want to keep it away from interference of other language's complex implementation and their irrelative-to-Flutter eco-system. This will keep this language simple and focus on what we actually need.
 
-Becuase it is written in pure Dart, [communicating with Dart](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) is very easy. This also enables you debugging the script itself within your project.
-
 ## Documentation
 
 ### [English](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/index.md)
@@ -55,7 +53,7 @@ void main() {
 }
 ```
 
-Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md) is close to typescript/kotlin/swift and other modern languages. Once you get familiar with some key points, you can get right in.
+Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/syntax/index.md) is close to typescript/kotlin/swift and other modern languages.
 
 - Semicolon is optional.
 - Function starts with a keyword like 'fun, get, set, construct'.
@@ -64,9 +62,7 @@ Hetu's [grammar](https://github.com/hetu-script/hetu-script/blob/master/docs/doc
 
 ## Binding
 
-Hetu script is purely written in Dart, so passing object to and from script is extremely easy.
-
-Check [this page](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
+Becuase it is written in pure Dart, [communicating with it](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) is very easy.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -90,6 +86,8 @@ void main() {
   print('hetu value: $hetuValue');
 }
 ```
+
+Check [this page](https://github.com/hetu-script/hetu-script/blob/master/docs/docs/en-US/binding/index.md) for more information about how to bind external classes, functions, enums and how to passing object and functions between Dart and script.
 
 ## VScode extension
 
