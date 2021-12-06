@@ -155,14 +155,15 @@ abstract class HTValueTypeCode {
   static const constInt = 2;
   static const constFloat = 3;
   static const constString = 4;
-  static const stringInterpolation = 5;
-  static const identifier = 6;
-  static const subValue = 7;
-  static const group = 8;
-  static const list = 9;
-  static const struct = 10;
-  static const function = 11;
-  static const type = 12;
+  static const string = 5;
+  static const stringInterpolation = 6;
+  static const identifier = 7;
+  static const subValue = 8;
+  static const group = 9;
+  static const list = 10;
+  static const struct = 11;
+  static const function = 12;
+  static const type = 13;
 }
 
 /// Function type code.

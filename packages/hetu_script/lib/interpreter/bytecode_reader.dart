@@ -75,13 +75,13 @@ class BytecodeReader {
   }
 
   /// Fetch a utf8 string from the bytes list
-  String readShortUtf8String() {
-    final length = readUint8();
-    final start = ip;
-    ip += length;
-    final codeUnits = bytes.sublist(start, ip);
-    return utf8.decoder.convert(codeUnits);
-  }
+  // String _readShortUtf8String() {
+  //   final length = readUint8();
+  //   final start = ip;
+  //   ip += length;
+  //   final codeUnits = bytes.sublist(start, ip);
+  //   return utf8.decoder.convert(codeUnits);
+  // }
 
   /// Fetch a utf8 string from the bytes list
   String readUtf8String() {

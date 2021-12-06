@@ -530,6 +530,16 @@ class Hetu extends HTAbstractInterpreter {
     return result;
   }
 
+  String _readString() {
+    final isLocal = _curLibrary.readBool();
+    if (isLocal) {
+      return _curLibrary.readUtf8String();
+    } else {
+      final index = _curLibrary.readUint16();
+      return _curLibrary.getUtf8String(index);
+    }
+  }
+
   dynamic _execute() {
     var instruction = _curLibrary.read();
     while (instruction != HTOpCode.endOfFile) {
@@ -587,7 +597,7 @@ class Hetu extends HTAbstractInterpreter {
           _curLibrary.ip = _curAnchor + distance;
           break;
         case HTOpCode.module:
-          final id = _curLibrary.readShortUtf8String();
+          final id = _readString();
           final isLibraryEntry = _curLibrary.readBool();
           _curModuleFullName = id;
           _curNamespace =
@@ -612,7 +622,7 @@ class Hetu extends HTAbstractInterpreter {
           break;
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
-          final id = _curLibrary.readShortUtf8String();
+          final id = _readString();
           _curNamespace = HTNamespace(id: id, closure: _curNamespace);
           break;
         case HTOpCode.endOfBlock:
@@ -660,7 +670,7 @@ class Hetu extends HTAbstractInterpreter {
           } else {
             final showListLength = _curLibrary.read();
             for (var i = 0; i < showListLength; ++i) {
-              final id = _curLibrary.readShortUtf8String();
+              final id = _readString();
               _curNamespace.declareExport(id);
             }
           }
@@ -838,18 +848,18 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleImport({bool isExported = false}) {
-    final key = _curLibrary.readShortUtf8String();
+    final key = _readString();
     final showList = <String>[];
     final showListLength = _curLibrary.read();
     for (var i = 0; i < showListLength; ++i) {
-      final id = _curLibrary.readShortUtf8String();
+      final id = _readString();
       showList.add(id);
     }
     String? alias;
     if (!isExported) {
       final hasAlias = _curLibrary.readBool();
       if (hasAlias) {
-        alias = _curLibrary.readShortUtf8String();
+        alias = _readString();
       }
     }
     _curNamespace.declareImport(
@@ -881,6 +891,9 @@ class Hetu extends HTAbstractInterpreter {
         final index = _curLibrary.readUint16();
         _curValue = _curLibrary.getUtf8String(index);
         break;
+      case HTValueTypeCode.string:
+        _curValue = _curLibrary.readUtf8String();
+        break;
       case HTValueTypeCode.stringInterpolation:
         var literal = _curLibrary.readUtf8String();
         final interpolationLength = _curLibrary.read();
@@ -891,7 +904,7 @@ class Hetu extends HTAbstractInterpreter {
         _curValue = literal;
         break;
       case HTValueTypeCode.identifier:
-        final symbol = _curSymbol = _curLibrary.readShortUtf8String();
+        final symbol = _curSymbol = _readString();
         final isLocal = _curLibrary.readBool();
         if (isLocal) {
           _curValue = _curNamespace.memberGet(symbol);
@@ -926,18 +939,18 @@ class Hetu extends HTAbstractInterpreter {
         String? id;
         final hasId = _curLibrary.readBool();
         if (hasId) {
-          id = _curLibrary.readShortUtf8String();
+          id = _readString();
         }
         HTStruct? prototype;
         final hasPrototypeId = _curLibrary.readBool();
         if (hasPrototypeId) {
-          final prototypeId = _curLibrary.readShortUtf8String();
+          final prototypeId = _readString();
           prototype = _curNamespace.memberGet(prototypeId);
         }
         final struct = HTStruct(_curNamespace, id: id, prototype: prototype);
         final fieldsCount = _curLibrary.read();
         for (var i = 0; i < fieldsCount; ++i) {
-          final key = _curLibrary.readShortUtf8String();
+          final key = _readString();
           final value = execute();
           struct.fields[key] = value;
         }
@@ -955,11 +968,11 @@ class Hetu extends HTAbstractInterpreter {
       //   _curValue = map;
       //   break;
       case HTValueTypeCode.function:
-        final internalName = _curLibrary.readShortUtf8String();
+        final internalName = _readString();
         final hasExternalTypedef = _curLibrary.readBool();
         String? externalTypedef;
         if (hasExternalTypedef) {
-          externalTypedef = _curLibrary.readShortUtf8String();
+          externalTypedef = _readString();
         }
         final hasParamDecls = _curLibrary.readBool();
         final isVariadic = _curLibrary.readBool();
@@ -1167,7 +1180,7 @@ class Hetu extends HTAbstractInterpreter {
     final namedArgs = <String, dynamic>{};
     final namedArgsLength = _curLibrary.read();
     for (var i = 0; i < namedArgsLength; ++i) {
-      final name = _curLibrary.readShortUtf8String();
+      final name = _readString();
       final arg = execute();
       // final arg = execute(moveRegIndex: true);
       namedArgs[name] = arg;
@@ -1239,7 +1252,7 @@ class Hetu extends HTAbstractInterpreter {
     final typeType = TypeType.values.elementAt(index);
     switch (typeType) {
       case TypeType.normal:
-        final typeName = _curLibrary.readShortUtf8String();
+        final typeName = _readString();
         final typeArgsLength = _curLibrary.read();
         final typeArgs = <HTUnresolvedType>[];
         for (var i = 0; i < typeArgsLength; ++i) {
@@ -1259,7 +1272,7 @@ class Hetu extends HTAbstractInterpreter {
           final isNamed = _curLibrary.read() == 0 ? false : true;
           String? paramId;
           if (isNamed) {
-            paramId = _curLibrary.readShortUtf8String();
+            paramId = _readString();
           }
           final decl = HTParameterType(declType,
               isOptional: isOptional, isVariadic: isVariadic, id: paramId);
@@ -1275,11 +1288,11 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleTypeAliasDecl() {
-    final id = _curLibrary.readShortUtf8String();
+    final id = _readString();
     String? classId;
     final hasClassId = _curLibrary.readBool();
     if (hasClassId) {
-      classId = _curLibrary.readShortUtf8String();
+      classId = _readString();
     }
     final value = _handleTypeExpr();
     final decl = HTVariable(id, this, _curModuleFullName, _curLibrary.id,
@@ -1288,11 +1301,11 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleVarDecl() {
-    final id = _curLibrary.readShortUtf8String();
+    final id = _readString();
     String? classId;
     final hasClassId = _curLibrary.readBool();
     if (hasClassId) {
-      classId = _curLibrary.readShortUtf8String();
+      classId = _readString();
     }
     final isField = _curLibrary.readBool();
     final isExternal = _curLibrary.readBool();
@@ -1356,7 +1369,7 @@ class Hetu extends HTAbstractInterpreter {
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
     final paramDecls = <String, HTParameter>{};
     for (var i = 0; i < paramDeclsLength; ++i) {
-      final id = _curLibrary.readShortUtf8String();
+      final id = _readString();
       final isOptional = _curLibrary.readBool();
       final isVariadic = _curLibrary.readBool();
       final isNamed = _curLibrary.readBool();
@@ -1390,21 +1403,21 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleFuncDecl() {
-    final internalName = _curLibrary.readShortUtf8String();
+    final internalName = _readString();
     String? id;
     final hasId = _curLibrary.readBool();
     if (hasId) {
-      id = _curLibrary.readShortUtf8String();
+      id = _readString();
     }
     String? classId;
     final hasClassId = _curLibrary.readBool();
     if (hasClassId) {
-      classId = _curLibrary.readShortUtf8String();
+      classId = _readString();
     }
     String? externalTypeId;
     final hasExternalTypedef = _curLibrary.readBool();
     if (hasExternalTypedef) {
-      externalTypeId = _curLibrary.readShortUtf8String();
+      externalTypeId = _readString();
     }
     final category = FunctionCategory.values[_curLibrary.read()];
     final isField = _curLibrary.readBool();
@@ -1423,11 +1436,11 @@ class Hetu extends HTAbstractInterpreter {
     if (category == FunctionCategory.constructor) {
       final hasRefCtor = _curLibrary.readBool();
       if (hasRefCtor) {
-        final calleeId = _curLibrary.readShortUtf8String();
+        final calleeId = _readString();
         final hasCtorName = _curLibrary.readBool();
         String? ctorName;
         if (hasCtorName) {
-          ctorName = _curLibrary.readShortUtf8String();
+          ctorName = _readString();
         }
         final positionalArgIpsLength = _curLibrary.read();
         for (var i = 0; i < positionalArgIpsLength; ++i) {
@@ -1437,7 +1450,7 @@ class Hetu extends HTAbstractInterpreter {
         }
         final namedArgsLength = _curLibrary.read();
         for (var i = 0; i < namedArgsLength; ++i) {
-          final argName = _curLibrary.readShortUtf8String();
+          final argName = _readString();
           final argLength = _curLibrary.readUint16();
           namedArgIps[argName] = _curLibrary.ip;
           _curLibrary.skip(argLength);
@@ -1488,7 +1501,7 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleClassDecl() {
-    final id = _curLibrary.readShortUtf8String();
+    final id = _readString();
     final isExternal = _curLibrary.readBool();
     final isAbstract = _curLibrary.readBool();
     final hasUserDefinedConstructor = _curLibrary.readBool();
@@ -1530,17 +1543,17 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleExternalEnumDecl() {
-    final id = _curLibrary.readShortUtf8String();
+    final id = _readString();
     final enumClass = HTExternalEnum(id, this);
     _curNamespace.define(id, enumClass);
   }
 
   void _handleStructDecl() {
-    final id = _curLibrary.readShortUtf8String();
+    final id = _readString();
     String? prototypeId;
     final hasPrototypeId = _curLibrary.readBool();
     if (hasPrototypeId) {
-      prototypeId = _curLibrary.readShortUtf8String();
+      prototypeId = _readString();
     }
     final staticFiledsLength = _curLibrary.readUint16();
     final staticDefinitionIp = _curLibrary.ip;
