@@ -59,7 +59,6 @@ class HTParser extends HTAbstractParser {
     final nodes = <AstNode>[];
     _curSource = source;
     _curModuleFullName = source?.name;
-    errors.clear();
     setTokens(tokens);
     while (curTok.type != SemanticNames.endOfFile) {
       if (curTok.type == SemanticNames.emptyLine) {
@@ -143,7 +142,7 @@ class HTParser extends HTAbstractParser {
               column: decl.column,
               offset: decl.offset,
               length: decl.length);
-          errors.add(sourceProviderError);
+          module.errors.add(sourceProviderError);
         }
       }
       _cachedRecursiveParsingTargets.remove(module.fullName);
