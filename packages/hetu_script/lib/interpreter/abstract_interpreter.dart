@@ -69,8 +69,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   InterpreterConfig get config;
 
-  SourceType get curSourceType;
-
   /// Current line number of execution.
   int get curLine;
 
@@ -153,7 +151,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {String? moduleFullName,
       String? libraryName,
       bool globallyImport = false,
-      bool asScript = false,
+      bool isScript = false,
       bool isStrictMode = false,
       bool isLibraryEntry = true,
       String? invokeFunc,
@@ -163,7 +161,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool errorHandled = false}) {
     final source = HTSource(content,
         name: moduleFullName,
-        type: asScript ? SourceType.script : SourceType.module,
+        isScript: isScript ? true : false,
         isLibraryEntry: isLibraryEntry);
     final result = evalSource(source,
         globallyImport: globallyImport,
@@ -180,7 +178,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {String? libraryName,
       bool isLibraryEntry = true,
       bool globallyImport = false,
-      bool asScript = false,
+      bool isScript = false,
       bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],

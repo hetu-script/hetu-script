@@ -68,8 +68,18 @@ class HTParser extends HTAbstractParser {
         //     line: empty.line, column: empty.column, offset: empty.offset);
         // nodes.add(stmt);
       } else {
-        final stmt = _parseStmt(
-            sourceType: type ?? _curSource?.type ?? SourceType.module);
+        late SourceType sourceType;
+        if (type != null) {
+          sourceType = type;
+        } else {
+          if (_curSource != null) {
+            sourceType =
+                _curSource!.isScript ? SourceType.script : SourceType.module;
+          } else {
+            sourceType = SourceType.module;
+          }
+        }
+        final stmt = _parseStmt(sourceType: sourceType);
         // if (stmt != null) {
         nodes.add(stmt);
         // }
@@ -150,7 +160,8 @@ class HTParser extends HTAbstractParser {
 
     handleImport(module);
     results[module.fullName] = module;
-    final compilation = HTModuleParseResultCompilation(results);
+    final compilation = HTModuleParseResultCompilation(
+        modules: results, isScript: source.isScript);
     return compilation;
   }
 
@@ -197,6 +208,9 @@ class HTParser extends HTAbstractParser {
                         offset: errToken.offset);
                   case HTLexicon.FUNCTION:
                     return _parseFunction(isExternal: true, isTopLevel: true);
+                  case HTLexicon.ASYNC:
+                    return _parseFunction(
+                        isAsync: true, isExternal: true, isTopLevel: true);
                   default:
                     final err = HTError.unexpected(
                         SemanticNames.declStmt, curTok.lexeme,
@@ -237,6 +251,22 @@ class HTParser extends HTAbstractParser {
                 } else {
                   return _parseFunction(
                       category: FunctionCategory.literal, isTopLevel: true);
+                }
+              case HTLexicon.ASYNC:
+                if (expect([HTLexicon.ASYNC, SemanticNames.identifier]) ||
+                    expect([
+                      HTLexicon.FUNCTION,
+                      HTLexicon.squareLeft,
+                      SemanticNames.identifier,
+                      HTLexicon.squareRight,
+                      SemanticNames.identifier
+                    ])) {
+                  return _parseFunction(isAsync: true, isTopLevel: true);
+                } else {
+                  return _parseFunction(
+                      category: FunctionCategory.literal,
+                      isAsync: true,
+                      isTopLevel: true);
                 }
               case HTLexicon.STRUCT:
                 return _parseStructDecl(isTopLevel: true);
@@ -296,24 +326,7 @@ class HTParser extends HTAbstractParser {
                 case HTLexicon.ENUM:
                   return _parseEnumDecl(isExternal: true, isTopLevel: true);
                 case HTLexicon.FUNCTION:
-                  if (!expect([HTLexicon.FUNCTION, SemanticNames.identifier])) {
-                    final err = HTError.unexpected(
-                        SemanticNames.functionDeclaration, peek(1).lexeme,
-                        moduleFullName: _curModuleFullName,
-                        line: curTok.line,
-                        column: curTok.column,
-                        offset: curTok.offset,
-                        length: curTok.length);
-                    errors.add(err);
-                    final errToken = advance(1);
-                    return EmptyExpr(
-                        source: _curSource,
-                        line: errToken.line,
-                        column: errToken.column,
-                        offset: errToken.offset);
-                  } else {
-                    return _parseFunction(isExternal: true, isTopLevel: true);
-                  }
+                  return _parseFunction(isExternal: true, isTopLevel: true);
                 case HTLexicon.VAR:
                 case HTLexicon.FINAL:
                   final err = HTError.externalVar(
@@ -385,7 +398,7 @@ class HTParser extends HTAbstractParser {
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         if (curTok.lexeme == HTLexicon.type) {
           if (isExternal) {
-            final err = HTError.externalType(
+            final err = HTError.external(SemanticNames.typeAliasDeclaration,
                 moduleFullName: _curModuleFullName,
                 line: curTok.line,
                 column: curTok.column,
@@ -428,6 +441,30 @@ class HTParser extends HTAbstractParser {
                   isOverrided: isOverrided,
                   isExternal: isExternal,
                   isStatic: isStatic);
+            case HTLexicon.ASYNC:
+              if (isExternal) {
+                final err = HTError.external(SemanticNames.asyncFunction,
+                    moduleFullName: _curModuleFullName,
+                    line: curTok.line,
+                    column: curTok.column,
+                    offset: curTok.offset,
+                    length: curTok.length);
+                errors.add(err);
+                final errToken = advance(1);
+                return EmptyExpr(
+                    source: _curSource,
+                    line: errToken.line,
+                    column: errToken.column,
+                    offset: errToken.offset);
+              } else {
+                return _parseFunction(
+                    category: FunctionCategory.method,
+                    classId: _curClass?.id,
+                    isAsync: true,
+                    isOverrided: isOverrided,
+                    isExternal: isExternal,
+                    isStatic: isStatic);
+              }
             case HTLexicon.GET:
               return _parseFunction(
                   category: FunctionCategory.getter,
@@ -459,7 +496,7 @@ class HTParser extends HTAbstractParser {
                     column: errToken.column,
                     offset: errToken.offset);
               } else if (isExternal && !_curClass!.isExternal) {
-                final err = HTError.externalCtor(
+                final err = HTError.external(SemanticNames.ctorFunction,
                     moduleFullName: _curModuleFullName,
                     line: curTok.line,
                     column: curTok.column,
@@ -483,6 +520,20 @@ class HTParser extends HTAbstractParser {
               if (isStatic) {
                 final err = HTError.unexpected(
                     SemanticNames.declStmt, HTLexicon.CONSTRUCT,
+                    moduleFullName: _curModuleFullName,
+                    line: curTok.line,
+                    column: curTok.column,
+                    offset: curTok.offset,
+                    length: curTok.length);
+                errors.add(err);
+                final errToken = advance(1);
+                return EmptyExpr(
+                    source: _curSource,
+                    line: errToken.line,
+                    column: errToken.column,
+                    offset: errToken.offset);
+              } else if (isExternal && !_curClass!.isExternal) {
+                final err = HTError.external(SemanticNames.factory,
                     moduleFullName: _curModuleFullName,
                     line: curTok.line,
                     column: curTok.column,
@@ -547,6 +598,30 @@ class HTParser extends HTAbstractParser {
                 isExternal: isExternal,
                 isField: true,
                 isStatic: isStatic);
+          case HTLexicon.ASYNC:
+            if (isExternal) {
+              final err = HTError.external(SemanticNames.asyncFunction,
+                  moduleFullName: _curModuleFullName,
+                  line: curTok.line,
+                  column: curTok.column,
+                  offset: curTok.offset,
+                  length: curTok.length);
+              errors.add(err);
+              final errToken = advance(1);
+              return EmptyExpr(
+                  source: _curSource,
+                  line: errToken.line,
+                  column: errToken.column,
+                  offset: errToken.offset);
+            } else {
+              return _parseFunction(
+                  category: FunctionCategory.method,
+                  classId: _curStructId,
+                  isAsync: true,
+                  isExternal: isExternal,
+                  isField: true,
+                  isStatic: isStatic);
+            }
           case HTLexicon.GET:
             return _parseFunction(
                 category: FunctionCategory.getter,
@@ -565,6 +640,20 @@ class HTParser extends HTAbstractParser {
             if (isStatic) {
               final err = HTError.unexpected(
                   SemanticNames.declStmt, HTLexicon.CONSTRUCT,
+                  moduleFullName: _curModuleFullName,
+                  line: curTok.line,
+                  column: curTok.column,
+                  offset: curTok.offset,
+                  length: curTok.length);
+              errors.add(err);
+              final errToken = advance(1);
+              return EmptyExpr(
+                  source: _curSource,
+                  line: errToken.line,
+                  column: errToken.column,
+                  offset: errToken.offset);
+            } else if (isExternal) {
+              final err = HTError.external(SemanticNames.ctorFunction,
                   moduleFullName: _curModuleFullName,
                   line: curTok.line,
                   column: curTok.column,
@@ -628,6 +717,20 @@ class HTParser extends HTAbstractParser {
                 return _parseFunction();
               } else {
                 return _parseFunction(category: FunctionCategory.literal);
+              }
+            case HTLexicon.ASYNC:
+              if (expect([HTLexicon.ASYNC, SemanticNames.identifier]) ||
+                  expect([
+                    HTLexicon.FUNCTION,
+                    HTLexicon.squareLeft,
+                    SemanticNames.identifier,
+                    HTLexicon.squareRight,
+                    SemanticNames.identifier
+                  ])) {
+                return _parseFunction(isAsync: true);
+              } else {
+                return _parseFunction(
+                    category: FunctionCategory.literal, isAsync: true);
               }
             case HTLexicon.STRUCT:
               return _parseStructDecl();
@@ -1336,9 +1439,9 @@ class HTParser extends HTAbstractParser {
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != SemanticNames.endOfFile) {
       final stmt = _parseStmt(sourceType: sourceType);
-      if (stmt != null) {
-        statements.add(stmt);
-      }
+      // if (stmt != null) {
+      statements.add(stmt);
+      // }
     }
     match(HTLexicon.curlyRight);
     return BlockStmt(statements,
@@ -1411,23 +1514,23 @@ class HTParser extends HTAbstractParser {
       if (isExpression) {
         return _parseExpr();
       } else {
-        final token = curTok;
+        // final token = curTok;
         final node = _parseStmt();
-        if (node == null) {
-          final err = HTError.unexpected(
-              SemanticNames.statement, SemanticNames.emptyLine,
-              moduleFullName: curModuleFullName,
-              line: curTok.line,
-              column: curTok.column);
-          errors.add(err);
-          return EmptyExpr(
-              source: _curSource,
-              line: token.line,
-              column: token.column,
-              offset: token.offset);
-        } else {
-          return node;
-        }
+        // if (node == null) {
+        //   final err = HTError.unexpected(
+        //       SemanticNames.statement, SemanticNames.emptyLine,
+        //       moduleFullName: curModuleFullName,
+        //       line: curTok.line,
+        //       column: curTok.column);
+        //   errors.add(err);
+        //   return EmptyExpr(
+        //       source: _curSource,
+        //       line: token.line,
+        //       column: token.column,
+        //       offset: token.offset);
+        // } else {
+        return node;
+        // }
       }
     }
   }
@@ -1572,14 +1675,14 @@ class HTParser extends HTAbstractParser {
           elseBranch = _parseBlockStmt(id: SemanticNames.elseBranch);
         } else {
           final stmt = _parseStmt();
-          if (stmt == null) {
-            final err = HTError.unexpected(
-                SemanticNames.statement, SemanticNames.emptyLine,
-                moduleFullName: curModuleFullName,
-                line: curTok.line,
-                column: curTok.column);
-            errors.add(err);
-          }
+          // if (stmt == null) {
+          //   final err = HTError.unexpected(
+          //       SemanticNames.statement, SemanticNames.emptyLine,
+          //       moduleFullName: curModuleFullName,
+          //       line: curTok.line,
+          //       column: curTok.column);
+          //   errors.add(err);
+          // }
           elseBranch = stmt;
         }
       } else {
@@ -1590,14 +1693,14 @@ class HTParser extends HTAbstractParser {
           caseBranch = _parseBlockStmt(id: SemanticNames.whenBranch);
         } else {
           final stmt = _parseStmt();
-          if (stmt == null) {
-            final err = HTError.unexpected(
-                SemanticNames.statement, SemanticNames.emptyLine,
-                moduleFullName: curModuleFullName,
-                line: curTok.line,
-                column: curTok.column);
-            errors.add(err);
-          }
+          // if (stmt == null) {
+          //   final err = HTError.unexpected(
+          //       SemanticNames.statement, SemanticNames.emptyLine,
+          //       moduleFullName: curModuleFullName,
+          //       line: curTok.line,
+          //       column: curTok.column);
+          //   errors.add(err);
+          // }
           caseBranch = stmt;
         }
         options[caseExpr] = caseBranch;
@@ -2272,9 +2375,9 @@ class HTParser extends HTAbstractParser {
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != SemanticNames.endOfFile) {
       final stmt = _parseStmt(sourceType: SourceType.struct);
-      if (stmt != null) {
-        definition.add(stmt);
-      }
+      // if (stmt != null) {
+      definition.add(stmt);
+      // }
     }
     match(HTLexicon.curlyRight);
     _curStructId = savedStructId;

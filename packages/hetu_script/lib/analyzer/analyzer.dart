@@ -56,10 +56,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   String get curModuleFullName => _curSource.name;
 
-  SourceType? _curSourceType;
-
-  @override
-  SourceType get curSourceType => _curSourceType ?? _curSource.type;
+  bool get isScript => _curSource.isScript;
 
   // HTClassDeclaration? _curClass;
   // HTFunctionDeclaration? _curFunction;
@@ -120,7 +117,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       errors.addAll(_curErrors);
     }
     final result = results[source.name]!;
-    if ((source.type == SourceType.script) || globallyImport) {
+    if (globallyImport) {
       global.import(result.namespace);
     }
     // walk through ast again to set each symbol's declaration referrence.

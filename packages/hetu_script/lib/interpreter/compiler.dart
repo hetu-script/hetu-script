@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:typed_data';
 import 'dart:convert';
 
@@ -59,18 +60,17 @@ class CompilerConfigImpl implements CompilerConfig {
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
+  /// The version of the compiled bytecode,
+  /// used to determine compatibility.
   static const verMajor = 0;
   static const verMinor = 3;
-  static const verPatch = 0;
+  static const verPatch = 1;
 
   static const constStringLengthLimit = 255;
 
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
-
-  /// The version of the compiled bytecode,
-  /// used to determine compatibility.
-  static const hetuVersionData = [verMajor, verMinor, verPatch, 0];
+  static const hetuSignature = 134550549;
 
   CompilerConfig config;
 
@@ -88,12 +88,15 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   Uint8List compile(HTModuleParseResultCompilation compilation) {
     final mainBytesBuilder = BytesBuilder();
+    mainBytesBuilder.addByte(HTOpCode.meta);
     // hetu bytecode signature
-    mainBytesBuilder.addByte(HTOpCode.signature);
     mainBytesBuilder.add(hetuSignatureData);
     // hetu bytecode version
-    mainBytesBuilder.addByte(HTOpCode.version);
-    mainBytesBuilder.add(hetuVersionData);
+    mainBytesBuilder.addByte(verMajor);
+    mainBytesBuilder.addByte(verMinor);
+    mainBytesBuilder.add(_uint16(verPatch));
+    // bool: isScript
+    mainBytesBuilder.addByte(compilation.isScript ? 1 : 0);
     final bytesBuilder = BytesBuilder();
     for (final module in compilation.modules.values) {
       bytesBuilder.addByte(HTOpCode.module);

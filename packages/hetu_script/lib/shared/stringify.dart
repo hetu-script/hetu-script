@@ -1,5 +1,4 @@
 import '../grammar/lexicon.dart';
-import '../value/struct/struct.dart';
 
 String stringify(Object object) {
   final output = StringBuffer();

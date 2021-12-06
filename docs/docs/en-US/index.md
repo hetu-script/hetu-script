@@ -15,5 +15,3 @@
 ## [Analyzer](analyzer/index.md)
 
 ## [Command line Tool](command_line_tool/index.md)
-
-## [Bytecode specification](bytecode_specification/index.md)

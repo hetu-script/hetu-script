@@ -88,10 +88,7 @@ class Hetu extends HTAbstractInterpreter {
   @override
   String get curModuleFullName => _curModuleFullName;
 
-  late SourceType _curSourceType;
-
-  @override
-  SourceType get curSourceType => _curSourceType;
+  late bool _isScript;
 
   late HTBytecodeLibrary _curLibrary;
   HTBytecodeLibrary get curLibrary => _curLibrary;
@@ -257,21 +254,19 @@ class Hetu extends HTAbstractInterpreter {
     if (source.content.isEmpty) {
       return null;
     }
-    _curSourceType = source.type;
+    _isScript = source.isScript;
     _curModuleFullName = source.name;
     _isStrictMode = isStrictMode;
     try {
       final bytes = compileSource(source, errorHandled: true);
-      if (bytes != null) {
-        final result = loadBytecode(bytes, libraryName ?? source.name,
-            globallyImport: globallyImport,
-            invokeFunc: invokeFunc,
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs,
-            errorHandled: true);
-        return result;
-      }
+      final result = loadBytecode(bytes, libraryName ?? source.name,
+          globallyImport: globallyImport,
+          invokeFunc: invokeFunc,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs,
+          errorHandled: true);
+      return result;
     } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
@@ -312,26 +307,9 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  /// Compile a script content into bytecode for later use.
-  Uint8List? compileFile(String key,
-      {String? libraryName,
-      SourceType type = SourceType.module,
-      bool isLibraryEntry = true,
-      CompilerConfig? config,
-      bool errorHandled = false}) {
-    final source = _sourceContext.getResource(key);
-    final bytes = compileSource(source,
-        libraryName: libraryName,
-        isLibraryEntry: isLibraryEntry,
-        config: config,
-        errorHandled: errorHandled);
-    return bytes;
-  }
-
   /// Compile a [HTSource] into bytecode for later use.
-  Uint8List? compileSource(HTSource source,
+  Uint8List compileSource(HTSource source,
       {String? libraryName,
-      bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
     try {
@@ -364,26 +342,57 @@ class Hetu extends HTAbstractInterpreter {
         rethrow;
       } else {
         handleError(error);
+        return Uint8List.fromList([]);
       }
     }
+  }
+
+  Uint8List? compile(String content,
+      {String? moduleFullName,
+      String? libraryName,
+      bool isScript = false,
+      bool isLibraryEntry = true,
+      bool errorHandled = false}) {
+    final source = HTSource(content,
+        name: moduleFullName,
+        isScript: isScript ? true : false,
+        isLibraryEntry: isLibraryEntry);
+    final result = compileSource(source,
+        libraryName: libraryName, errorHandled: errorHandled);
+    return result;
+  }
+
+  /// Compile a script content into bytecode for later use.
+  Uint8List? compileFile(String key,
+      {String? libraryName,
+      SourceType type = SourceType.module,
+      bool isLibraryEntry = true,
+      CompilerConfig? config,
+      bool errorHandled = false}) {
+    final source = _sourceContext.getResource(key);
+    final bytes = compileSource(source,
+        libraryName: libraryName, config: config, errorHandled: errorHandled);
+    return bytes;
   }
 
   /// Load a pre-compiled bytecode in to module library.
   /// If [invokeFunc] is true, execute the bytecode immediately.
   dynamic loadBytecode(Uint8List bytes, String libraryName,
       {bool globallyImport = false,
+      bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
+    _isStrictMode = isStrictMode;
     try {
       _curLibrary = HTBytecodeLibrary(libraryName, bytes);
       while (_curLibrary.ip < _curLibrary.bytes.length) {
         final HTNamespace nsp = execute();
         _curLibrary.define(nsp.id!, nsp);
       }
-      if (curSourceType == SourceType.script) {
+      if (_isScript) {
         if (globallyImport) {
           for (final nsp in _curLibrary.declarations.values) {
             global.import(nsp);
@@ -391,7 +400,7 @@ class Hetu extends HTAbstractInterpreter {
         }
         // return the last expression's value
         return _registers.first;
-      } else if (curSourceType == SourceType.module) {
+      } else {
         _cachedLibs[_curLibrary.id] = _curLibrary;
         // handles module imports
         for (final nsp in _curLibrary.declarations.values) {
@@ -437,16 +446,17 @@ class Hetu extends HTAbstractInterpreter {
             decl.resolve();
           }
         }
-        if (curSourceType == SourceType.module && invokeFunc != null) {
+        if (!_isScript && invokeFunc != null) {
           final result = invoke(invokeFunc,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
               errorHandled: true);
           return result;
         }
-      } else {
-        throw HTError.sourceType(moduleFullName: _curModuleFullName);
       }
+      // else {
+      //   throw HTError.sourceType(moduleFullName: _curModuleFullName);
+      // }
     } catch (error) {
       if (errorHandled) {
         rethrow;
@@ -548,10 +558,14 @@ class Hetu extends HTAbstractInterpreter {
           _curLine = _curLibrary.readUint16();
           _curColumn = _curLibrary.readUint16();
           break;
-        case HTOpCode.signature:
-          _curLibrary.readUint32();
-          break;
-        case HTOpCode.version:
+        case HTOpCode.meta:
+          final signature = _curLibrary.readUint32();
+          if (signature != HTCompiler.hetuSignature) {
+            throw HTError.bytecode(
+                moduleFullName: _curModuleFullName,
+                line: _curLine,
+                column: _curColumn);
+          }
           final major = _curLibrary.read();
           final minor = _curLibrary.read();
           final patch = _curLibrary.readUint16();
@@ -574,7 +588,7 @@ class Hetu extends HTAbstractInterpreter {
                 line: _curLine,
                 column: _curColumn);
           }
-          // _curCode.version = Version(major, minor, patch);
+          _isScript = _curLibrary.readBool();
           break;
         // 将字面量存储在本地变量中
         case HTOpCode.local:
@@ -1536,7 +1550,7 @@ class Hetu extends HTAbstractInterpreter {
           closure: klass.namespace);
       klass.namespace.define(SemanticNames.constructor, ctor);
     }
-    if (curSourceType == SourceType.script || _curFunction != null) {
+    if (_isScript || _curFunction != null) {
       klass.resolve();
     }
     _curClass = savedClass;

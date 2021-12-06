@@ -38,7 +38,7 @@ class HTSource {
   late String name;
   String get basename => path.basename(name);
 
-  final SourceType type;
+  final bool isScript;
 
   String _content;
   String get content => _content;
@@ -53,9 +53,7 @@ class HTSource {
   final bool isLibraryEntry;
 
   HTSource(String content,
-      {String? name,
-      this.type = SourceType.module,
-      this.isLibraryEntry = false})
+      {String? name, this.isScript = false, this.isLibraryEntry = false})
       : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (name != null) {

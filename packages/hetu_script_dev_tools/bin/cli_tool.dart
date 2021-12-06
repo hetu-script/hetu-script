@@ -52,7 +52,7 @@ void main(List<String> arguments) {
           }
           try {
             final result =
-                hetu.eval(input, asScript: true, globallyImport: true);
+                hetu.eval(input, isScript: true, globallyImport: true);
             print(result);
           } catch (e) {
             if (e is HTError) {
@@ -74,16 +74,16 @@ void main(List<String> arguments) {
         if (path.extension(targetPath) != HTSource.hetuSouceFileExtension) {
           throw 'Error: target file is not of extension \'${HTSource.hetuSouceFileExtension}\'';
         }
-        final asScript = cmd['script'] ? true : false;
+        final isScript = cmd['script'] ? true : false;
         switch (cmd.name) {
           case 'run':
-            run(cmdArgs, asScript: asScript);
+            run(cmdArgs, isScript: isScript);
             break;
           case 'format':
             format(cmdArgs, cmd['out'], cmd['print']);
             break;
           case 'analyze':
-            analyze(cmdArgs, asScript: asScript);
+            analyze(cmdArgs, isScript: isScript);
             break;
         }
       } else {
@@ -109,12 +109,12 @@ ArgResults parseArg(List<String> args) {
   return parser.parse(args);
 }
 
-void run(List<String> args, {bool asScript = true}) {
+void run(List<String> args, {bool isScript = true}) {
   dynamic result;
   if (args.length == 1) {
-    result = hetu.evalFile(args.first, asScript: asScript);
+    result = hetu.evalFile(args.first, isScript: isScript);
   } else {
-    result = hetu.evalFile(args.first, asScript: asScript, invokeFunc: args[1]);
+    result = hetu.evalFile(args.first, isScript: isScript, invokeFunc: args[1]);
   }
   print('Execution result:');
   print(result);
@@ -147,10 +147,10 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
   print(outPath);
 }
 
-void analyze(List<String> args, {bool asScript = true}) {
+void analyze(List<String> args, {bool isScript = true}) {
   final analyzer = HTAnalyzer();
   analyzer.init();
-  final result = analyzer.evalFile(args.first, asScript: asScript);
+  final result = analyzer.evalFile(args.first, isScript: isScript);
   if (result != null) {
     if (result.errors.isNotEmpty) {
       print('Analyzer found ${result.errors.length} problems:');

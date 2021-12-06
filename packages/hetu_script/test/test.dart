@@ -11,5 +11,5 @@ void main() {
 
     print(ht.owns('toJson')) // false
     print(ht.contains('toJson')) // true
-  ''', asScript: true);
+  ''', isScript: true);
 }

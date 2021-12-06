@@ -14,7 +14,7 @@ void main() {
       }
     }
     fun main {
-      // var a = A() // erorr!
+      // var a = A() // error!
       var a = A.create('Tom')
       print(a.name)
     }

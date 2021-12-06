@@ -1,24 +1,23 @@
 # Module
 
-Hetu script codes are a batch of [HTSource] files organized in the form of [HTModule] and [HTLibrary]. If a module contains import statement, the parser will try to fetch another module content by the import path through a [HTContext].
-
-## Module
-
-A module is a single string content. It could be a runtime string literal from dart side. Or it could be a plain text file on your physical disk.
+Hetu script codes are a batch of [HTSource] files organized in the form of [HTModule]. If a module contains import statement, the parser will try to fetch another module content by the import path through the [HTResourceContext]. The default [HTResourceContext] provided by the Interpreter is [HTOverlayContext], it will not handle physical files and you need to manually add String content into the context for modules to import from.
 
 ### Source type
 
-Hetu script file have two different way to interpret, controlled by a source [type] parameter in the eval method of the Interpreter class.
+Hetu script file have two different way to interpret, controlled by the [isScript] parameter in the eval method of the Interpreter class.
 
-- [SourceType.module]: the script file contains only import statement and declarations(variable, function and class). Interpreter can invoke a function immediately after evaluation, the name of the invoked function is given by parameter [invokeFunc], which is commonly 'main'. This is like most app structure in C++, Java and Dart.
+- When [isScript] is not provided or set to false, interpreter will evaluate the source as [SourceType.module]. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
 
-- [SourceType.script]: the script file contains all kinds of expression and control statement that is allowed in a anonymous function body (including nested function and class declaration). Everything is immediately evaluated. This is like the usage of most script languages like Javascript, Python and Lua.
+- When [isScript] is true, interpreter will evaluate the source as [SourceType.script]. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
 
-## Within script
+## Import
 
-Use import statement to import content from another script file.
+Use import statement to import from another script file.
 
-```dart
+- You can specify a list to limit the symbols imported.
+- You can set aliases for the imported symbols as well as the namespace as a whole.
+
+```javascript
 import 'game.ht'
 import { hello as greeting, calculator } from 'hello.ht' as h
 
@@ -27,13 +26,21 @@ fun main {
 }
 ```
 
+## Export
+
 Use export in a module to specify the symbols you wish to let other module access when they import from you.
 
-```
-Export {
+- If there's no path provided, exported the symbols from the source contains this statement.
+- You can give a path after the export keyword, to export other module's content.
+
+```javascript
+export {
   hello,
   calculator,
 }
+
+export 'game.ht'
+export { hello } from 'hello.ht'
 ```
 
-When there's no export statement, everything will be exported by default.
+If there's no export statement within a source file, every top level symbol will be exported if other module import from it.

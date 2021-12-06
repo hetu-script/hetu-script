@@ -51,9 +51,11 @@ abstract class HTOpCode {
 
   static const block = 30;
 
-  static const module = 31;
+  static const library = 31;
 
-  static const constTable = 32;
+  static const module = 32;
+
+  static const constTable = 33;
 
   static const importDecl = 40;
 
@@ -133,16 +135,7 @@ abstract class HTOpCode {
   static const call = 74;
 
   /// 4 bytes
-  static const signature = 200;
-
-  static const library = 201;
-
-  /// uint8, uint8, uint16
-  static const version = 202;
-
-  static const author = 203;
-
-  static const created = 204;
+  static const meta = 200;
 
   /// uint16 line & column
   static const lineInfo = 205;

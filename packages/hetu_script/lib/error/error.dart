@@ -7,9 +7,12 @@ import 'error_severity.dart';
 part 'error_processor.dart';
 
 enum ErrorCode {
+  bytecode,
+  version,
+
   unexpected,
-  externalType,
-  externalCtor,
+  external,
+  // externalCtor,
   nestedClass,
   outsideReturn,
   setterArity,
@@ -76,8 +79,7 @@ enum ErrorCode {
   notSuper,
   missingExternalFunc,
   classOnInstance,
-  version,
-  sourceType,
+  // sourceType,
   // nonExistModule
   topLevelLiteralStruct,
   structMemberId,
@@ -277,7 +279,7 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: external type is not allowed.
-  HTError.externalType(
+  HTError.external(String semanticName,
       {String? extra,
       String? correction,
       String? moduleFullName,
@@ -285,8 +287,9 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.externalType, ErrorType.syntacticError,
-            HTLexicon.errorExternalType,
+      : this(ErrorCode.external, ErrorType.syntacticError,
+            HTLexicon.errorExternal,
+            interpolations: [semanticName],
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -296,23 +299,23 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: external constructor on a normal class.
-  HTError.externalCtor(
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.externalType, ErrorType.syntacticError,
-            HTLexicon.errorExternalCtor,
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+  // HTError.externalCtor(
+  //     {String? extra,
+  //     String? correction,
+  //     String? moduleFullName,
+  //     int? line,
+  //     int? column,
+  //     int? offset,
+  //     int? length})
+  //     : this(ErrorCode.external, ErrorType.syntacticError,
+  //           HTLexicon.errorExternalCtor,
+  //           extra: extra,
+  //           correction: correction,
+  //           moduleFullName: moduleFullName,
+  //           line: line,
+  //           column: column,
+  //           offset: offset,
+  //           length: length);
 
   /// Error: Nested class within another nested class.
   HTError.nestedClass(
@@ -1576,6 +1579,25 @@ class HTError implements AbstractError {
             offset: offset,
             length: length);
 
+  /// Error: Unrecognizable bytecode.
+  HTError.bytecode(
+      {String? extra,
+      String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(
+            ErrorCode.bytecode, ErrorType.runtimeError, HTLexicon.errorBytecode,
+            extra: extra,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
   /// Error: Incompatible bytecode version.
   HTError.version(String codeVer, String itpVer,
       {String? extra,
@@ -1596,23 +1618,23 @@ class HTError implements AbstractError {
             length: length);
 
   /// Error: Unevalable source type.
-  HTError.sourceType(
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.sourceType, ErrorType.runtimeError,
-            HTLexicon.errorSourceType,
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+  // HTError.sourceType(
+  //     {String? extra,
+  //     String? correction,
+  //     String? moduleFullName,
+  //     int? line,
+  //     int? column,
+  //     int? offset,
+  //     int? length})
+  //     : this(ErrorCode.sourceType, ErrorType.runtimeError,
+  //           HTLexicon.errorSourceType,
+  //           extra: extra,
+  //           correction: correction,
+  //           moduleFullName: moduleFullName,
+  //           line: line,
+  //           column: column,
+  //           offset: offset,
+  //           length: length);
 
   // HTError.nonExistModule(String key, ErrorType type,
   //     {String? extra,

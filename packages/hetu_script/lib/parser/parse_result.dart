@@ -24,7 +24,7 @@ class HTModuleParseResult {
 
   String get fullName => source.name;
 
-  SourceType get type => source.type;
+  bool get isScript => source.isScript;
 
   LineInfo get lineInfo => source.lineInfo;
 

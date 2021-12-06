@@ -70,6 +70,9 @@ abstract class SemanticNames {
   static const function = 'function';
   static const functionCall = 'function_call';
   static const functionDefinition = 'function_definition';
+  static const asyncFunction = 'async_function';
+  static const ctorFunction = 'constructor';
+  static const factory = 'factory';
   static const classDefinition = 'class_definition';
   static const structDefinition = 'struct_definition';
   static const ctorCallExpr = 'constructor_call_expression';

@@ -16,6 +16,14 @@ fun main {
 
   print(cal.meaning())
 
+  var i = () {
+    final i = ii
+  }
+
+  for (var d in list) {
+    final i = 3
+  }
+
   
   var cal2 = Calculator(13, 4)
 
