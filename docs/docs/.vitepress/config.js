@@ -2,7 +2,7 @@ module.exports = {
   base: '/',
   title: 'Hetu Script Language',
   locales: {
-    '/en-US/': {
+    '/docs/en-US/': {
       lang: 'en-US',
       title: 'Hetu Script Language',
       description:
@@ -11,7 +11,7 @@ module.exports = {
   },
   themeConfig: {
     locales: {
-      '/en-US/': {
+      '/docs/en-US/': {
         selectText: 'Languages',
         label: 'English',
         editLinkText: 'Edit this page on GitHub',
@@ -25,44 +25,48 @@ module.exports = {
               },
             ],
           },
+          {
+            text: 'Github',
+            link: 'https://github.com/hetu-script/hetu-script',
+          },
         ],
         sidebar: {
           '/': [
             {
               text: 'Introduction',
-              link: '/en-US/introduction/',
+              link: '/docs/en-US/',
             },
             {
               text: 'Installation',
-              link: '/en-US/installation/',
+              link: '/docs/en-US/installation/',
             },
             {
               text: 'Common API',
-              link: '/en-US/common_api/',
+              link: '/docs/en-US/common_api/',
             },
             {
               text: 'Language',
-              link: '/en-US/syntax/',
+              link: '/docs/en-US/syntax/',
             },
             {
               text: 'Module import & export',
-              link: '/en-US/module/',
+              link: '/docs/en-US/module/',
             },
             {
               text: 'Communicating with Dart',
-              link: '/en-US/binding/',
+              link: '/docs/en-US/binding/',
             },
             {
               text: 'Advanced topics',
-              link: '/en-US/advanced/',
+              link: '/docs/en-US/advanced/',
             },
             {
               text: 'Analyzer',
-              link: '/en-US/analyzer/',
+              link: '/docs/en-US/analyzer/',
             },
             {
               text: 'Command line tool',
-              link: '/en-US/command_line_tool/',
+              link: '/docs/en-US/command_line_tool/',
             },
           ],
         },
