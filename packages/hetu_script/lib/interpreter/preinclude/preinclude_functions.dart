@@ -30,7 +30,7 @@ final Map<String, Function> preIncludeFunctions = {
     // TODO: jsonify class
     final object = positionalArgs.first;
     if (object is HTStruct) {
-      return HTStruct.jsonify(object);
+      return jsonifyStruct(object);
     }
   },
   'prototype.fromJson': (HTEntity entity,
@@ -67,6 +67,13 @@ final Map<String, Function> preIncludeFunctions = {
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.owns(positionalArgs.first);
+  },
+  'prototype.clone': (HTEntity object,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final obj = object as HTStruct;
+    return obj.clone();
   },
   'object.toString': (HTEntity object,
       {List<dynamic> positionalArgs = const [],

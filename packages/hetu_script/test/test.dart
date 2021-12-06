@@ -8,8 +8,9 @@ void main() {
       name: 'Hetu',
       age: 1
     }
-
-    print(ht.owns('toJson')) // false
-    print(ht.contains('toJson')) // true
+    var ht2 = ht.clone()
+    ht2.name = 'Harry'
+    print(ht)
+    print(ht2)
   ''', isScript: true);
 }

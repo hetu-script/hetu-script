@@ -30,6 +30,8 @@ struct prototype {
   /// Check if this struct has the key in its own fields or its prototypes' fields
   external fun contains(key: str)
 
+  external fun clone()
+
   fun toJson() => jsonify(this)
 
   fun toString() => stringify(this)

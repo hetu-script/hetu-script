@@ -1,4 +1,5 @@
 import '../grammar/lexicon.dart';
+import '../value/struct/struct.dart';
 
 String stringify(Object object) {
   final output = StringBuffer();
@@ -36,6 +37,56 @@ String stringify(Object object) {
     output.write(HTLexicon.curlyRight);
   } else {
     output.write(object.toString());
+  }
+  return output.toString();
+}
+
+var _curIndentCount = 0;
+
+String _curIndent() {
+  final output = StringBuffer();
+  var i = _curIndentCount;
+  while (i > 0) {
+    output.write(HTLexicon.indentSpaces);
+    --i;
+  }
+  return output.toString();
+}
+
+/// Print all members of a struct object to a string.
+String stringifyStruct(HTStruct struct, {HTStruct? from}) {
+  final output = StringBuffer();
+  ++_curIndentCount;
+  for (var i = 0; i < struct.fields.length; ++i) {
+    final key = struct.fields.keys.elementAt(i);
+    if (from != null && from != struct) {
+      if (from.contains(key)) {
+        continue;
+      }
+    }
+    output.write(_curIndent());
+    final value = struct.fields[key];
+    final valueBuffer = StringBuffer();
+    if (value is HTStruct) {
+      final content = stringifyStruct(value, from: from);
+      valueBuffer.writeln(HTLexicon.curlyLeft);
+      valueBuffer.write(content);
+      valueBuffer.write(_curIndent());
+      valueBuffer.write(HTLexicon.curlyRight);
+    } else {
+      final valueString = stringify(value);
+      valueBuffer.write(valueString);
+    }
+    output.write('$key${HTLexicon.colon} $valueBuffer');
+    if (i < struct.fields.length - 1) {
+      output.write(HTLexicon.comma);
+    }
+    output.writeln();
+  }
+  --_curIndentCount;
+  if (struct.prototype != null && struct.prototype!.id != HTLexicon.prototype) {
+    final inherits = stringify(struct.prototype!);
+    output.write(inherits);
   }
   return output.toString();
 }
