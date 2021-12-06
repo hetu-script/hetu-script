@@ -130,8 +130,9 @@ If there's any problems, you can check this official document about [pub global 
 
 ## Discussion group
 
-- Discord: https://discord.gg/sTF73qcS
-- 中文交流请加 QQ 群：812529118
+Discord: https://discord.gg/sTF73qcS
+
+中文交流请加 QQ 群：812529118
 
 ## Support
 

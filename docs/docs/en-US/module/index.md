@@ -1,14 +1,17 @@
+---
+title: Module import & export - Hetu Script Language
+---
+
 # Module
 
-Hetu script codes are a batch of [HTSource] files organized in the form of [HTModule]. If a module contains import statement, the parser will try to fetch another module content by the import path through the [HTResourceContext]. The default [HTResourceContext] provided by the Interpreter is [HTOverlayContext], it will not handle physical files and you need to manually add String content into the context for modules to import from.
+Hetu script codes are a batch of **HTSource** files organized in the form of **HTModule**. If a module contains import statement, the parser will try to fetch another module content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
 
-### Source type
+## Source type
 
-Hetu script file have two different way to interpret, controlled by the [isScript] parameter in the eval method of the Interpreter class.
+Hetu script file have two different way to interpret, controlled by the **isScript** parameter in the eval method of the Interpreter class.
 
-- When [isScript] is not provided or set to false, interpreter will evaluate the source as [SourceType.module]. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
-
-- When [isScript] is true, interpreter will evaluate the source as [SourceType.script]. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
+- When **isScript** is not provided or set to false, interpreter will evaluate the source as **SourceType.module**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+- When **isScript** is true, interpreter will evaluate the source as **SourceType.script**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
 
 ## Import
 

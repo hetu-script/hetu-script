@@ -1,13 +1,32 @@
 # Build
 
+This documentation is for Hetu script version: 0.3.2
+
 The documents of the [Hetu Script Language](https://github.com/hetu-script/hetu-script) is created by [VitePress](https://github.com/vuejs/vitepress).
 
 Run the command below in project root folder to build the doc into static html pages:
 
 ```
+npm i
 npm run build
 ```
 
-## Documentation
+# Table of contents
 
-[Table of Contents](docs/en-US/index.md)
+### [Introduction](docs/en-US/introduction/index.md)
+
+### [Installation](docs/en-US/installation/index.md)
+
+### [Common API](docs/en-US/common_api/index.md)
+
+### [Language](docs/en-US/syntax/index.md)
+
+### [Module import & export](docs/en-US/module/index.md)
+
+### [Communicating with Dart](docs/en-US/binding/index.md)
+
+### [Advanced topics](docs/en-US/advanced/index.md)
+
+### [Analyzer](docs/en-US/analyzer/index.md)
+
+### [Command line tool](docs/en-US/command_line_tool/index.md)

@@ -1,3 +1,7 @@
+---
+title: Communicating with Dart - Hetu Script Language
+---
+
 # Communicating with Dart
 
 There are three ways to communicate with Dart: Primitive value, Json, Binding. They have pros and cons respectively. You can choose the style best suits your needs.
@@ -15,7 +19,7 @@ For these kind of values, their bindings are pre-included within the script sour
 - Map\<dynamic, dynamic\>
 - Function
 
-You can get primitive value from Hetu by the return value of Interpreter's [invoke] function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
+You can get primitive value from Hetu by the return value of Interpreter's **invoke** function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
 
 ```dart
 final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isFloat': true};
@@ -61,9 +65,7 @@ Primitives and Json are a quick way to pass around values without any binding. H
 
 # Binding
 
-## Function
-
-### External function
+## External function
 
 External functions in dart for use in Hetu have following type:
 
@@ -84,9 +86,9 @@ await hetu.init(externalFunctions: {
 });
 ```
 
-It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's [Function.apply] feature to call it. This is normally slower and inefficient than direct call.
+It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's **Function.apply** feature to call it. This is normally slower and inefficient than direct call.
 
-To call Dart functions in Hetu, define those dart funtion in Hetu with [external] keyword and init Hetu with [externalFunctions] argument.
+To call Dart functions in Hetu, define those dart funtion in Hetu with **external** keyword and init Hetu with **externalFunctions** argument.
 
 ```dart
 await hetu.init(externalFunctions: {
@@ -187,7 +189,7 @@ To achieve this, you have to write a full definition of that class in Hetu, whic
 
 - Original class definition of the class you intended to use in Hetu. For Dart & Flutter, this is the part where you already have when you import a library.
 - An extension on that class. This part is used for dynamic reflection in Hetu and should return members of this class.
-- A binding definition of that class, which extends [HTExternalClass] interface provided by Hetu's dart lib. This part is used for access to the constructor and static members of that class.
+- A binding definition of that class, which extends **HTExternalClass** interface provided by Hetu's dart lib. This part is used for access to the constructor and static members of that class.
 - A Hetu version of class definition of that class. This part is used for Hetu to understand the structure and type of this class.
 
 You can check the following example for how to bind a class and its various kinds of members.
@@ -342,7 +344,7 @@ void main() {
 }
 ```
 
-## Typedef for unwrap Hetu function into Dart function
+## Typedef of Dart function
 
 It is possible to return a pure Dart function from the script side.
 
@@ -358,7 +360,7 @@ fun getFunc {
 }
 ```
 
-Then when you evaluate this [add] function in Hetu, you will get a native Dart function. This grammar could also be used on literal function, this is especially usefull when you try to bind callback function to a dart widget.
+Then when you evaluate this _add_ function in Hetu, you will get a native Dart function. This grammar could also be used on literal function, this is especially usefull when you try to bind callback function to a dart widget.
 
 ```dart
 typedef DartFunction = int Function(int a, int b);
@@ -369,7 +371,7 @@ int hetuAdd(DartFunction func) {
 }
 ```
 
-You have to bind the Dart typedef in [Interpreter.init] before you can use it.
+You have to bind the Dart typedef in **init** method of the interpreter before you can use it.
 
 ```dart
 await hetu.init(externalFunctions: {

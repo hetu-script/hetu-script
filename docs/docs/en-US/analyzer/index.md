@@ -1,4 +1,8 @@
-## Analyzer
+---
+title: Analyzer - Hetu Script Language
+---
+
+# Analyzer
 
 Analyzer is a standalone utility class for analyze a Hetu source.
 

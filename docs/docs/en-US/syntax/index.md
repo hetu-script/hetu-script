@@ -1,3 +1,7 @@
+---
+title: Language - Hetu Script Language
+---
+
 # Syntax of Hetu Script Language
 
 Hetu's grammar is close to most modern languages, it need very little time to get familar with.
@@ -5,12 +9,9 @@ Hetu's grammar is close to most modern languages, it need very little time to ge
 Key characteristics of Hetu:
 
 - Declarations starts with a keyword before the identifier: var, final, fun, construct, get, set, class, type, etc.
-
 - Semicolon is optional. In most cases, the interpreter will know when a statement is finished. In rare cases, the lexer will implicitly add "end of statement token" (a semicolon in default lexicon) to avoid ambiguities. For example, before a line when the line starts with one of '++, --, (, [, {', or after a line when the line ends with 'return'.
-
 - Type annotation is optional. Type is annotated **with a colon after the identifier** like typescript/kotlin/swift.
-
-- Use [when] instead of [switch]
+- Use **when** instead of **switch**
 
 ## Comments
 
@@ -46,7 +47,8 @@ A little difference from Dart is that you have to write a curly brackets even if
 **WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them currently.**
 
 Variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
-However, if you declare a variable with no initialize expression, the variable will be considered as having a [any] type (equals to dart's dynamic type).
+
+However, if you declare a variable with no initialize expression, the variable will be considered as having a **any** type (equals to dart's dynamic type).
 
 ```typescript
 var name = 'naruto';
@@ -75,8 +77,9 @@ fun main {
 
 ## Function
 
-Function is declared with [fun], [get], [set], [construct]. The parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
-If this is a function expression (or literal function, or anonymous function) the function name is also optional.
+Function is declared with **fun**, **get**, **set**, **construct**. The parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
+
+For a literal function expression, the function name is also optional if there's no type arguments and dart function typedef.
 
 ```typescript
 fun doubleIt(n: num) -> num {
@@ -89,10 +92,10 @@ fun main {
 }
 ```
 
-- For functions declared with [fun], when no return type is provided in declaration, it will have a return type of [any]. And it will return null if you didn't write return statement within the definition body.
-- Member functions can also be declared with [get], [set], [construct], they literally means getter, setter and contructor function.
+- For functions declared with **fun**, when no return type is provided in declaration, it will have a return type of **any**. And it will return null if you didn't write return statement within the definition body.
+- Member functions can also be declared with **get**, **set**, **construct**, they literally means getter, setter and contructor function.
 - If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
-- Function can have no name, it will then become a literal function expression(anonymous function).
+- Function can have no name, it will then become a literal function expression (anonymous function).
 - Functions can be nested, and nested functions can have names.
 - Function are first class, you can use function as parameter, return value and store them in variables.
 - Function body could be a block statement (within '{' and '}'), or a single line expression after '=>'.
@@ -118,7 +121,7 @@ fun main {
 ## Class
 
 - Class can have static variables and methods. Which can be accessed through the class name.
-- Class's member functions (methods) use special keyword: construct, get, set, to define a constructor, getter, setter function.
+- Class's member functions use special keyword: **construct, get, set**, to define a constructor, getter, setter function.
 - Constructors can be with no function name and cannot return values. When calling they will always return a instance.
 - Getter & setter functions can be used feels like a member variable. They can be accessed without brackets.
 - Use 'extends' to inherits other class's members
@@ -276,7 +279,7 @@ if (condition == null ||
 ### For
 
 - 'for' statement's expr must be separated with ';'.
-- The expression itself is optional. If you write 'for (;;)', it will be the same to 'while (true)'
+- The expression itself is optional. If you write 'for ( ; ; )', it will be the same to 'while (true)'
 - When use for...in, the loop will iterate through the keys of a list.
 
 ```dart
@@ -332,24 +335,3 @@ null, true, false, var, final, const, typeof, class, enum, fun, struct, interfac
 | Logical Or     | \|\|                      |     Left      |     5      |
 | Conditional    | e1 ? e2 : e3              |     Right     |     3      |
 | Assignment     | =, \*=, /=, +=, -=        |     Right     |     1      |
-
-## Dart operator precedence (for reference)
-
-| Description    | Operator                         | Associativity | Precedence |
-| :------------- | :------------------------------- | :-----------: | :--------: |
-| Unary postfix  | e., e?., e++, e--, e1[e2], e()   |     None      |     16     |
-| Unary prefix   | -e, !e, ˜e, ++e, --e, await e    |     None      |     15     |
-| Multiplicative | \*, /, ˜/, %                     |     Left      |     14     |
-| Additive       | +, -                             |     Left      |     13     |
-| Shift          | <<, >>, >>>                      |     Left      |     12     |
-| Bitwise        | AND &                            |     Left      |     11     |
-| Bitwise        | XOR ˆ                            |     Left      |     10     |
-| Bitwise        | OR \|                            |     Left      |     9      |
-| Relational     | <, >, <=, >=, as, is, is!        |     None      |     8      |
-| Equality       | ==, !=                           |     None      |     7      |
-| Logical        | and &&                           |     Left      |     6      |
-| Logical        | or \|\|                          |     Left      |     5      |
-| If-null        | ??                               |     Left      |     4      |
-| Conditional    | e1 ? e2 : e3                     |     Right     |     3      |
-| Cascade        | ..                               |     Left      |     2      |
-| Assignment     | =, \*=, /=, +=, -=, &=, ˆ=, etc. |     Right     |     1      |

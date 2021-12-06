@@ -1,4 +1,10 @@
-# Future
+---
+title: Advanced topics - Hetu Script Language
+---
+
+# Advanced topics
+
+## Future
 
 The script is single threaded and all functions are sync. We do not support making futures within the script, and not planning to do so.
 
