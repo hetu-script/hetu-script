@@ -466,6 +466,86 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  void newStackFrame(
+      {String? moduleFullName,
+      String? libraryName,
+      HTNamespace? namespace,
+      HTFunction? function,
+      int? ip,
+      int? line,
+      int? column}) {
+    // var ipChanged = false;
+    var libChanged = false;
+    if (moduleFullName != null) {
+      _curModuleFullName = moduleFullName;
+    }
+    if (libraryName != null && (_curLibrary.id != libraryName)) {
+      _curLibrary = _cachedLibs[libraryName]!;
+      libChanged = true;
+    }
+    if (namespace != null) {
+      _curNamespace = namespace;
+    }
+    if (function != null) {
+      _curFunction = function;
+    }
+    if (ip != null) {
+      _curLibrary.ip = ip;
+    } else if (libChanged) {
+      _curLibrary.ip = 0;
+      // ipChanged = true;
+    }
+    if (line != null) {
+      _curLine = line;
+    } else if (libChanged) {
+      _curLine = 0;
+    }
+    if (column != null) {
+      _curColumn = column;
+    } else if (libChanged) {
+      _curColumn = 0;
+    }
+    ++_regIndex;
+    if (_registers.length <= _regIndex * HTRegIdx.length) {
+      _registers.length += HTRegIdx.length;
+    }
+    // return ipChanged;
+  }
+
+  void restoreStackFrame(
+      {String? savedModuleFullName,
+      String? savedLibraryName,
+      HTNamespace? savedNamespace,
+      HTFunction? savedFunction,
+      int? savedIp,
+      int? savedLine,
+      int? savedColumn}) {
+    if (savedModuleFullName != null) {
+      _curModuleFullName = savedModuleFullName;
+    }
+    if (savedLibraryName != null) {
+      if (_curLibrary.id != savedLibraryName) {
+        _curLibrary = _cachedLibs[savedLibraryName]!;
+      }
+    }
+    if (savedNamespace != null) {
+      _curNamespace = savedNamespace;
+    }
+    if (savedFunction != null) {
+      _curFunction = savedFunction;
+    }
+    if (savedIp != null) {
+      _curLibrary.ip = savedIp;
+    }
+    if (savedLine != null) {
+      _curLine = savedLine;
+    }
+    if (savedColumn != null) {
+      _curColumn = savedColumn;
+    }
+    --_regIndex;
+  }
+
   /// Interpret a loaded library with the key of [libraryName]
   /// Starting from the instruction pointer of [ip]
   /// This function will return current expression value
@@ -944,8 +1024,14 @@ class Hetu extends HTAbstractInterpreter {
         final list = [];
         final length = _curLibrary.readUint16();
         for (var i = 0; i < length; ++i) {
-          final listItem = execute();
-          list.add(listItem);
+          final isSpread = _curLibrary.readBool();
+          if (!isSpread) {
+            final listItem = execute();
+            list.add(listItem);
+          } else {
+            final List spreadValue = execute();
+            list.addAll(spreadValue);
+          }
         }
         _curValue = list;
         break;
@@ -964,9 +1050,21 @@ class Hetu extends HTAbstractInterpreter {
         final struct = HTStruct(_curNamespace, id: id, prototype: prototype);
         final fieldsCount = _curLibrary.read();
         for (var i = 0; i < fieldsCount; ++i) {
-          final key = _readString();
-          final value = execute();
-          struct.fields[key] = value;
+          final fieldType = _curLibrary.read();
+          if (fieldType == StructObjFieldType.normal ||
+              fieldType == StructObjFieldType.identifier) {
+            final key = _readString();
+            final value = execute();
+            struct.fields[key] = value;
+          } else if (fieldType == StructObjFieldType.spread) {
+            execute();
+            final HTStruct value = _curValue;
+            for (final key in value.fields.keys) {
+              final copiedValue =
+                  HTStruct.toStructValue(value.fields[key], value.closure!);
+              struct.define(key, copiedValue);
+            }
+          }
         }
         // _curNamespace = savedCurNamespace;
         _curValue = struct;
@@ -1188,8 +1286,14 @@ class Hetu extends HTAbstractInterpreter {
     final positionalArgs = [];
     final positionalArgsLength = _curLibrary.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
-      final arg = execute();
-      positionalArgs.add(arg);
+      final isSpread = _curLibrary.readBool();
+      if (!isSpread) {
+        final arg = execute();
+        positionalArgs.add(arg);
+      } else {
+        final List spreadValue = execute();
+        positionalArgs.addAll(spreadValue);
+      }
     }
     final namedArgs = <String, dynamic>{};
     final namedArgsLength = _curLibrary.read();
@@ -1448,8 +1552,8 @@ class Hetu extends HTAbstractInterpreter {
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
     if (category == FunctionCategory.constructor) {
-      final hasRefCtor = _curLibrary.readBool();
-      if (hasRefCtor) {
+      final hasRedirectingCtor = _curLibrary.readBool();
+      if (hasRedirectingCtor) {
         final calleeId = _readString();
         final hasCtorName = _curLibrary.readBool();
         String? ctorName;

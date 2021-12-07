@@ -144,6 +144,15 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitSpreadExpr(SpreadExpr expr) {
+    final output = StringBuffer();
+    output.write(HTLexicon.spreadSyntax);
+    final valueString = formatAst(expr.value);
+    output.write(valueString);
+    return output.toString();
+  }
+
+  @override
   String visitListExpr(ListExpr expr) {
     final output = StringBuffer();
     output.write(HTLexicon.squareLeft);
@@ -744,15 +753,32 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitStructObjField(StructObjField field) {
+    final output = StringBuffer();
+    if (field.key != null) {
+      output.write('${field.key}${HTLexicon.colon} ');
+      final valueString = formatAst(field.value);
+      output.write(valueString);
+    } else if (field.isSpread) {
+      output.write(HTLexicon.spreadSyntax);
+      final valueString = formatAst(field.value);
+      output.write(valueString);
+    } else {
+      final valueString = formatAst(field.value);
+      output.write(valueString);
+    }
+    return output.toString();
+  }
+
+  @override
   String visitStructObjExpr(StructObjExpr obj) {
     final output = StringBuffer();
     output.writeln(HTLexicon.curlyLeft);
     ++_curIndentCount;
     for (var i = 0; i < obj.fields.length; ++i) {
-      final key = obj.fields.keys.elementAt(i);
-      final value = obj.fields[key]!;
-      final valueString = formatAst(value);
-      output.write('$key${HTLexicon.colon} $valueString');
+      final field = obj.fields[i];
+      final fieldString = visitStructObjField(field);
+      output.write(fieldString);
       if (i < obj.fields.length - 1) {
         output.write(HTLexicon.comma);
       }

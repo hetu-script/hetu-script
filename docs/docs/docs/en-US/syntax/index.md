@@ -168,10 +168,10 @@ Struct are a prototype base object system. This is mainly borrowed from Javascri
 
 Named struct's declaration are like class, you can have constructors, getter and setters.
 
-```
+```javascript
 struct Named {
-  var name -> str
-  construct (name-> str) {
+  var name: str
+  construct (name: str) {
     this.name = name
   }
 }
@@ -183,7 +183,7 @@ var n = Named('jimmy')
 
 Literal struct are expressions in the form of '{key: value}'
 
-```typescript
+```javascript
 var obj = {
   name: 'jimmy'
   age: 17
@@ -194,7 +194,7 @@ The key must be either a identifier, or a string literal (not includes string in
 
 Struct are different from class, that you wont get errors when you visit a non-exist member.
 
-```typescript
+```javascript
 obj.race = 'dragon'; // okay, this will define a new member on obj.
 var lvl = obj.level; // okay, although lvl's value will be null
 ```
@@ -206,7 +206,7 @@ var lvl = obj.level; // okay, although lvl's value will be null
 
 Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as when statement, which works like switch.
 
-```typescript
+```javascript
 fun main {
   var i = 0
   for (;;) {
@@ -228,7 +228,7 @@ fun main {
 - 'if' statement's branches could be a single statement without brackets.
 - 'if' can also be an expression which will have a value, in this case else branch is not omitable.
 
-```dart
+```javascript
 if (condition) {
   ...
 } else {
@@ -238,7 +238,7 @@ if (condition) {
 
 ### While
 
-```dart
+```javascript
 while (condition) {
   ...
 }
@@ -248,7 +248,7 @@ while (condition) {
 
 - 'do' statement's 'while' part is optional, if omitted, it will become a anonymous namespace.
 
-```dart
+```javascript
 do {
   ...
 } while (condition)
@@ -301,7 +301,7 @@ When is the substitue for 'switch' in older programming languages, we change its
 - 'when' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
 - 'when' statement's else branch is optional.
 
-```dart
+```javascript
 when (condition) {
   expr -> expr // ...single expression...
   expr -> {
@@ -312,6 +312,62 @@ when (condition) {
     // ...
   }
 }
+```
+
+## Spread syntax
+
+You can use spread syntax ('...') in three places:
+
+### Variadic parameter
+
+In function declaration's parameters. This means you can pass as many positional arguments as you wish.
+
+```javascript
+external fun print(... args: any)
+
+print('hello', 'world!', 42) // okay!
+```
+
+### Function call argument
+
+In function call's arguments. This means to 'spread' the list object here to fill in the positional argument list.
+
+```javascript
+fun someFunc(a, b) {
+  print(a + b)
+}
+var list = [5, 6]
+someFunc(...list) // same to 'someFunc(5, 6)'
+```
+
+### List literal
+
+In list literal's value list, This means to 'spread' the list object here to fill in the items.
+
+```javascript
+var list = [5, 6];
+var ht = [1, 2, ...[3, 4], ...list]; // same to [1, 2, 3, 4, 5, 6]
+```
+
+### Struct literal
+
+In struct literal's value list, This means to 'spread' the struct object here to fill in the field.
+
+```javascript
+var name = {
+  familyName: 'Hord',
+  firstName: 'Luk',
+};
+var person = {
+  ...name,
+  age: 23,
+};
+// same to:
+// {
+//   familyName: 'Hord',
+//   firstName: 'Luk',
+//   age: 23
+// }
 ```
 
 ## Keywords

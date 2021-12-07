@@ -30,6 +30,56 @@ void main() {
     });
   });
 
+  group('spread - ', () {
+    test('spread in struct', () {
+      final result = hetu.eval(r'''
+      fun spread {
+        var name = {
+          familyName: 'Hord',
+          firstName: 'Luk'
+        }
+        var person = {
+          ...name,
+          age: 23,
+        }
+        return person.firstName
+      }
+    ''', invokeFunc: 'spread');
+      expect(
+        result,
+        'Luk',
+      );
+    });
+    test('spread in list', () {
+      final result = hetu.eval(r'''
+      fun spread {
+        var list = [5, 6]
+        var ht = [1, 2, ...[3, 4], ...list]
+        return stringify(ht)
+      }
+    ''', invokeFunc: 'spread');
+      expect(
+        result,
+        '[1, 2, 3, 4, 5, 6]',
+      );
+    });
+    test('spread in function call', () {
+      final result = hetu.eval(r'''
+      fun someFunc(a, b) {
+        return a + b
+      }
+      fun spreadInCallArg {
+        var list = [5, 6]
+        return someFunc(...list)
+      }
+    ''', invokeFunc: 'spreadInCallArg');
+      expect(
+        result,
+        11,
+      );
+    });
+  });
+
   group('operators -', () {
     test('brackets', () {
       final result = hetu.eval(r'''

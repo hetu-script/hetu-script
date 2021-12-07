@@ -93,6 +93,7 @@ abstract class HTLexicon {
   static const doubleArrow = '=>';
   static const decimalPoint = '.';
   static const indentSpaces = '  ';
+  static const spreadSyntax = '...';
 
   static const NULL = 'null';
   static const TRUE = 'true';

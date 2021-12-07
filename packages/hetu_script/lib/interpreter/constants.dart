@@ -159,30 +159,17 @@ abstract class HTValueTypeCode {
   static const type = 13;
 }
 
-/// Function type code.
-abstract class HTFunctionTypeCode {
-  static const normal = 0;
-  static const constructor = 1;
-  static const getter = 2;
-  static const setter = 3;
-  static const literal = 4; // function expression with no function name
-  static const nested = 5; // function within function, may with name
-}
-
-/// Class type code.
-// abstract class HTClassTypeCode {
-//   static const normal = 0;
-//   static const nested = 1;
-//   static const abstracted = 2;
-//   static const interface = 3;
-//   static const mix_in = 4;
-// }
-
 /// Identifier type code.
 abstract class IdentifierType {
   static const normal = 0;
   static const member = 1;
   static const sub = 2;
+}
+
+abstract class StructObjFieldType {
+  static const normal = 0;
+  static const spread = 1;
+  static const identifier = 2;
 }
 
 // abstract class FieldType {

@@ -86,6 +86,7 @@ abstract class SemanticNames {
   static const functionLiteral = 'function_literal_expression';
   static const listLiteral = 'list_expression';
   static const mapLiteral = 'map_expression';
+  static const spreadExpr = 'spread_expression';
 
   static const typeExpr = 'type_expression';
   static const genericTypeParamExpr = 'generic_type_parameter_expression';
@@ -120,6 +121,8 @@ abstract class SemanticNames {
       'redirecting_constructor_call_expression';
   static const functionDeclaration = 'function_declaration';
   static const structDeclaration = 'struct_declaration';
+  static const structLiteral = 'struct_literal';
+  static const structLiteralField = 'struct_literal_field';
 
   static const libraryStmt = 'library_statement';
   static const importStmt = 'import_statement';

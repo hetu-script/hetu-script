@@ -1260,7 +1260,20 @@ class HTParser extends HTAbstractParser {
         var listExpr = <AstNode>[];
         while (curTok.type != HTLexicon.squareRight &&
             curTok.type != SemanticNames.endOfFile) {
-          listExpr.add(_parseExpr());
+          AstNode item;
+          if (curTok.type == HTLexicon.spreadSyntax) {
+            final spreadTok = advance(1);
+            item = _parseExpr();
+            listExpr.add(SpreadExpr(item,
+                source: _curSource,
+                line: spreadTok.line,
+                column: spreadTok.column,
+                offset: spreadTok.offset,
+                length: item.end - spreadTok.offset));
+          } else {
+            item = _parseExpr();
+            listExpr.add(item);
+          }
           if (curTok.type != HTLexicon.squareRight) {
             match(HTLexicon.comma);
           }
@@ -1271,7 +1284,7 @@ class HTParser extends HTAbstractParser {
             line: start.line,
             column: start.column,
             offset: start.offset,
-            length: end.offset + end.length - start.offset);
+            length: end.end - start.offset);
       case HTLexicon.curlyLeft:
         return _parseStructObj();
       case HTLexicon.STRUCT:
@@ -1469,7 +1482,19 @@ class HTParser extends HTAbstractParser {
         final value = _parseExpr();
         namedArgs[name] = value;
       } else {
-        positionalArgs.add(_parseExpr());
+        if (curTok.type == HTLexicon.spreadSyntax) {
+          final spreadTok = advance(1);
+          final arg = _parseExpr();
+          positionalArgs.add(SpreadExpr(arg,
+              source: _curSource,
+              line: spreadTok.line,
+              column: spreadTok.column,
+              offset: spreadTok.offset,
+              length: arg.end - spreadTok.offset));
+        } else {
+          final arg = _parseExpr();
+          positionalArgs.add(arg);
+        }
       }
       if (curTok.type != HTLexicon.roundRight) {
         match(HTLexicon.comma);
@@ -2405,22 +2430,36 @@ class HTParser extends HTAbstractParser {
     // final internalName =
     //     '${SemanticNames.anonymousStruct}${HTParser.anonymousStructIndex++}';
     final structBlockStartTok = match(HTLexicon.curlyLeft);
-    final fields = <String, AstNode>{};
-    var commentIndex = 0;
+    final fields = <StructObjField>[];
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != SemanticNames.endOfFile) {
       final idTok = advance(1);
       if (idTok.type == SemanticNames.identifier ||
           idTok.type == SemanticNames.stringLiteral) {
-        final id = idTok.lexeme;
-        match(HTLexicon.colon);
-        final initializer = _parseExpr();
-        fields[id] = initializer;
+        final key = idTok.lexeme;
+        late final StructObjField field;
+        if (curTok.type == HTLexicon.comma ||
+            curTok.type == HTLexicon.curlyRight) {
+          final id = IdentifierExpr.fromToken(idTok);
+          field = StructObjField(id, key: key);
+        } else {
+          match(HTLexicon.colon);
+          final value = _parseExpr();
+          field = StructObjField(value, key: key);
+        }
+        fields.add(field);
+        if (curTok.type != HTLexicon.curlyRight) {
+          match(HTLexicon.comma);
+        }
+      } else if (idTok.type == HTLexicon.spreadSyntax) {
+        final value = _parseExpr();
+        final field = StructObjField(value, isSpread: true);
+        fields.add(field);
         if (curTok.type != HTLexicon.curlyRight) {
           match(HTLexicon.comma);
         }
       } else if (idTok.type == SemanticNames.singleLineComment) {
-        final node = CommentExpr(idTok.literal,
+        final value = CommentExpr(idTok.literal,
             isMultiline: false,
             isDocumentation: idTok.lexeme
                 .startsWith(HTLexicon.singleLineCommentDocumentationPattern),
@@ -2429,9 +2468,10 @@ class HTParser extends HTAbstractParser {
             column: idTok.column,
             offset: idTok.offset,
             length: idTok.length);
-        fields['${SemanticNames.comment}${commentIndex++}'] = node;
+        final field = StructObjField(value, isComment: true);
+        fields.add(field);
       } else if (idTok.type == SemanticNames.multiLineComment) {
-        final node = CommentExpr(idTok.literal,
+        final value = CommentExpr(idTok.literal,
             isMultiline: true,
             isDocumentation: idTok.lexeme
                 .startsWith(HTLexicon.multiLineCommentDocumentationPattern),
@@ -2440,7 +2480,8 @@ class HTParser extends HTAbstractParser {
             column: idTok.column,
             offset: idTok.offset,
             length: idTok.length);
-        fields['${SemanticNames.comment}${commentIndex++}'] = node;
+        final field = StructObjField(value, isComment: true);
+        fields.add(field);
       } else {
         final err = HTError.structMemberId(
             moduleFullName: _curModuleFullName,

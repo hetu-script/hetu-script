@@ -31,6 +31,12 @@ final Map<String, Function> preIncludeFunctions = {
     final object = positionalArgs.first;
     if (object is HTStruct) {
       return jsonifyStruct(object);
+    } else if (object is List) {
+      return jsonifyList(object);
+    } else if (isJsonDataType(object)) {
+      return stringify(object);
+    } else {
+      return null;
     }
   },
   'prototype.fromJson': (HTEntity entity,

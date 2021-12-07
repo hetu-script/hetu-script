@@ -267,12 +267,29 @@ class HTFunction extends HTFunctionDeclaration
           final referCtorPosArgs = [];
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
-            final arg = interpreter.execute(
+            final savedModuleFullName = interpreter.curModuleFullName;
+            final savedlibraryName = interpreter.curLibrary.fullName;
+            final savedNamespace = interpreter.curNamespace;
+            final savedIp = interpreter.curLibrary.ip;
+            interpreter.newStackFrame(
                 moduleFullName: moduleFullName,
                 libraryName: libraryName,
-                ip: referCtorPosArgIps[i],
-                namespace: callClosure);
-            referCtorPosArgs.add(arg);
+                namespace: callClosure,
+                ip: referCtorPosArgIps[i]);
+            final isSpread = interpreter.curLibrary.readBool();
+            if (!isSpread) {
+              final arg = interpreter.execute();
+              referCtorPosArgs.add(arg);
+            } else {
+              final List arg = interpreter.execute();
+              referCtorPosArgs.addAll(arg);
+            }
+            interpreter.restoreStackFrame(
+              savedModuleFullName: savedModuleFullName,
+              savedLibraryName: savedlibraryName,
+              savedNamespace: savedNamespace,
+              savedIp: savedIp,
+            );
           }
 
           final referCtorNamedArgs = <String, dynamic>{};

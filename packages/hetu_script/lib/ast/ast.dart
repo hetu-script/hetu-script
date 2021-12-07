@@ -270,6 +270,31 @@ class IdentifierExpr extends AstNode {
             isKeyword: id.isKeyword);
 }
 
+class SpreadExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitSpreadExpr(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    value.accept(visitor);
+  }
+
+  final AstNode value;
+
+  SpreadExpr(this.value,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.spreadExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class ListExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitListExpr(this);
@@ -1729,6 +1754,41 @@ class StructDecl extends AstNode {
             length: length);
 }
 
+class StructObjField extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitStructObjField(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    value.accept(visitor);
+  }
+
+  final String? key; // if key is omitted, the value must be a identifier expr.
+
+  final bool isSpread;
+
+  final bool isComment;
+
+  final AstNode value;
+
+  StructObjField(this.value,
+      {this.key,
+      this.isSpread = false,
+      this.isComment = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.structLiteralField,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class StructObjExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
@@ -1736,7 +1796,7 @@ class StructObjExpr extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    for (final value in fields.values) {
+    for (final value in fields) {
       value.accept(visitor);
     }
   }
@@ -1745,7 +1805,7 @@ class StructObjExpr extends AstNode {
 
   final IdentifierExpr? prototypeId;
 
-  final Map<String, AstNode> fields;
+  final List<StructObjField> fields;
 
   StructObjExpr(
       //this.internalName,
@@ -1757,7 +1817,7 @@ class StructObjExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.structDeclaration,
+      : super(SemanticNames.structLiteral,
             source: source,
             line: line,
             column: column,

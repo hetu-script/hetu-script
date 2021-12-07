@@ -166,6 +166,11 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
+  void visitSpreadExpr(SpreadExpr expr) {
+    expr.subAccept(this);
+  }
+
+  @override
   void visitListExpr(ListExpr expr) {
     expr.subAccept(this);
   }
@@ -484,6 +489,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     //     isExported: stmt.isExported);
     // _curNamespace = savedCurNamespace;
     // _curNamespace.define(stmt.id.id, stmt.declaration!);
+  }
+
+  @override
+  void visitStructObjField(StructObjField field) {
+    _curLine = field.line;
+    _curColumn = field.column;
+    // TODO: analyze struct object
   }
 
   @override

@@ -211,6 +211,8 @@ external class str {
 
 external class List {
 
+  fun toJson() => jsonify(this)
+
 	get isEmpty -> bool
 
 	get isNotEmpty -> bool

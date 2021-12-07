@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 import 'dart:convert';
 
@@ -203,29 +202,36 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       {bool hasLength = false}) {
     // 这里不判断左括号，已经跳过了
     final bytesBuilder = BytesBuilder();
-    final positionalArgs = <Uint8List>[];
-    final namedArgs = <String, Uint8List>{};
+    final positionalArgBytesList = <Uint8List>[];
+    final namedArgBytesList = <String, Uint8List>{};
     for (final ast in posArgsNodes) {
+      final argBytesBuilder = BytesBuilder();
       final bytes = compileAst(ast, endOfExec: true);
-      positionalArgs.add(bytes);
+      if (ast is! SpreadExpr) {
+        // bool: is not spread
+        // spread AST will add the bool so we only add 0 for other ASTs.
+        argBytesBuilder.addByte(0);
+      }
+      argBytesBuilder.add(bytes);
+      positionalArgBytesList.add(argBytesBuilder.toBytes());
     }
     for (final name in namedArgsNodes.keys) {
       final bytes = compileAst(namedArgsNodes[name]!, endOfExec: true);
-      namedArgs[name] = bytes;
+      namedArgBytesList[name] = bytes;
     }
-    bytesBuilder.addByte(positionalArgs.length);
-    for (var i = 0; i < positionalArgs.length; ++i) {
-      final argExpr = positionalArgs[i];
+    bytesBuilder.addByte(positionalArgBytesList.length);
+    for (var i = 0; i < positionalArgBytesList.length; ++i) {
+      final argBytes = positionalArgBytesList[i];
       if (hasLength) {
-        bytesBuilder.add(_uint16(argExpr.length));
+        bytesBuilder.add(_uint16(argBytes.length));
       }
-      bytesBuilder.add(argExpr);
+      bytesBuilder.add(argBytes);
     }
-    bytesBuilder.addByte(namedArgs.length);
-    for (final name in namedArgs.keys) {
+    bytesBuilder.addByte(namedArgBytesList.length);
+    for (final name in namedArgBytesList.keys) {
       final nameExpr = _string(name);
       bytesBuilder.add(nameExpr);
-      final argExpr = namedArgs[name]!;
+      final argExpr = namedArgBytesList[name]!;
       if (hasLength) {
         bytesBuilder.add(_uint16(argExpr.length));
       }
@@ -384,14 +390,51 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitSpreadExpr(SpreadExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(1); // bool: isSpread
+    final bytes = compileAst(expr.value);
+    bytesBuilder.add(bytes);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitListExpr(ListExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.list);
     bytesBuilder.add(_uint16(expr.list.length));
     for (final item in expr.list) {
+      if (item is! SpreadExpr) {
+        bytesBuilder.addByte(0); // bool: isSpread
+      }
       final bytes = compileAst(item, endOfExec: true);
       bytesBuilder.add(bytes);
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitStructObjField(StructObjField field) {
+    final bytesBuilder = BytesBuilder();
+    if (field.key != null) {
+      bytesBuilder
+          .addByte(StructObjFieldType.normal); // normal key: value field
+      bytesBuilder.add(_string(field.key!));
+      final valueBytes = compileAst(field.value, endOfExec: true);
+      bytesBuilder.add(valueBytes);
+    } else if (field.isSpread) {
+      bytesBuilder.addByte(StructObjFieldType.spread); // spread another object
+      final valueBytes = compileAst(field.value, endOfExec: true);
+      bytesBuilder.add(valueBytes);
+    } else if (!field.isComment) {
+      bytesBuilder
+          .addByte(StructObjFieldType.identifier); // identifier as key & value
+      // if key is omitted, the value must be a identifier expr.
+      final id = field.value as IdentifierExpr;
+      bytesBuilder.add(_string(id.id));
+      final valueBytes = compileAst(id, endOfExec: true);
+      bytesBuilder.add(valueBytes);
     }
     return bytesBuilder.toBytes();
   }
@@ -414,11 +457,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has prototype
     }
     bytesBuilder.addByte(obj.fields.length);
-    for (final key in obj.fields.keys) {
-      bytesBuilder.add(_string(key));
-      final value = obj.fields[key]!;
-      final valueBytes = compileAst(value, endOfExec: true);
-      bytesBuilder.add(valueBytes);
+    for (final field in obj.fields) {
+      final bytes = visitStructObjField(field);
+      bytesBuilder.add(bytes);
     }
     return bytesBuilder.toBytes();
   }
@@ -1643,24 +1684,19 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: hasPrototypeId
     }
-    final staticFields = <String, AstNode>{};
-    final fields = <String, AstNode>{};
+    final staticFields = <StructObjField>[];
+    final fields = <StructObjField>[];
+    // TODO: deal with comments
     for (final node in stmt.definition) {
       AstNode initializer;
       if (node is VarDecl) {
         initializer = node.initializer ?? NullExpr();
-        if (node.isStatic) {
-          staticFields[node.id.id] = initializer;
-        } else {
-          fields[node.id.id] = initializer;
-        }
+        final field = StructObjField(initializer, key: node.id.id);
+        node.isStatic ? staticFields.add(field) : fields.add(field);
       } else if (node is FuncDecl) {
         initializer = node;
-        if (node.isStatic) {
-          staticFields[node.id!.id] = initializer;
-        } else {
-          fields[node.id!.id] = initializer;
-        }
+        final field = StructObjField(initializer, key: node.id!.id);
+        node.isStatic ? staticFields.add(field) : fields.add(field);
       }
       // Other node type is ignored.
     }

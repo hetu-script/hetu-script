@@ -51,6 +51,11 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
+  HTType? visitSpreadExpr(SpreadExpr expr) {
+    return HTType.ANY;
+  }
+
+  @override
   HTType? visitListExpr(ListExpr expr) {
     return HTType.ANY;
   }
@@ -242,6 +247,11 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
 
   @override
   HTType? visitStructDecl(StructDecl stmt) {
+    return HTType.ANY;
+  }
+
+  @override
+  HTType? visitStructObjField(StructObjField field) {
     return HTType.ANY;
   }
 

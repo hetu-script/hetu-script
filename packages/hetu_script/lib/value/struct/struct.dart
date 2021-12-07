@@ -14,11 +14,11 @@ import '../../shared/jsonify.dart' as util;
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
 class HTStruct with HTEntity {
-  static dynamic _toStructValue(dynamic value, HTNamespace closure) {
+  static dynamic toStructValue(dynamic value, HTNamespace closure) {
     if (value is Iterable) {
       final list = [];
       for (final item in value) {
-        final result = _toStructValue(item, closure);
+        final result = toStructValue(item, closure);
         list.add(result);
       }
       return list;
@@ -26,7 +26,7 @@ class HTStruct with HTEntity {
       final struct = HTStruct(closure);
       for (final key in value.keys) {
         final fieldKey = key.toString();
-        final fieldValue = _toStructValue(value[key], closure);
+        final fieldValue = toStructValue(value[key], closure);
         struct.define(fieldKey, fieldValue);
       }
       return struct;
@@ -40,7 +40,7 @@ class HTStruct with HTEntity {
   static HTStruct fromJson(Map<String, dynamic> jsonData, HTNamespace closure) {
     final struct = HTStruct(closure);
     for (final key in jsonData.keys) {
-      var value = _toStructValue(jsonData[key], closure);
+      var value = toStructValue(jsonData[key], closure);
       struct.define(key, value);
     }
     return struct;
@@ -53,6 +53,8 @@ class HTStruct with HTEntity {
   final fields = <String, dynamic>{};
 
   HTNamespace namespace;
+
+  HTNamespace? get closure => namespace.closure;
 
   HTStruct(HTNamespace closure,
       {this.id, this.prototype, Map<String, dynamic>? fields})
@@ -157,10 +159,10 @@ class HTStruct with HTEntity {
       memberSet(varName.toString(), varValue);
 
   HTStruct clone() {
-    final cloned = HTStruct(namespace.closure!);
+    final cloned = HTStruct(closure!);
     for (final key in fields.keys) {
       final value = fields[key]!;
-      final copiedValue = _toStructValue(value, namespace.closure!);
+      final copiedValue = toStructValue(value, closure!);
       cloned.define(key, copiedValue);
     }
     return cloned;
