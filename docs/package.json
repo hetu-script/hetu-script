@@ -19,9 +19,9 @@
   },
   "homepage": "https://github.com/hetu-script/docs#readme",
   "dependencies": {
-    "vue": "^3.2.20"
+    "vue": "^3.2.24"
   },
   "devDependencies": {
-    "vitepress": "^0.20.1"
+    "vitepress": "^0.20.2"
   }
 }

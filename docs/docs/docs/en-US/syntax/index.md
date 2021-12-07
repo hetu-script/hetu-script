@@ -358,6 +358,7 @@ var name = {
   familyName: 'Hord',
   firstName: 'Luk',
 };
+var job = 'wood cutter';
 var person = {
   ...name,
   age: 23,
@@ -366,7 +367,8 @@ var person = {
 // {
 //   familyName: 'Hord',
 //   firstName: 'Luk',
-//   age: 23
+//   age: 23,
+//   job: 'wood cutter'
 // }
 ```
 
