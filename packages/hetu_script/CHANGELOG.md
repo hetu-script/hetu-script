@@ -1,3 +1,8 @@
+## 0.3.3
+
+- Added spread syntax on function call argument, list and struct literal
+- Added short identifier for struct literal
+
 ## 0.3.2
 
 - Added [isStrictMode] for interpreter, in non strict mode, if/while/do and and/or expression can have a non boolean value for condition check.

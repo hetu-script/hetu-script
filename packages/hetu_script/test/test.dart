@@ -18,9 +18,11 @@ void main() {
       familyName: 'Hord',
       firstName: 'Luk'
     }
+    var job = 'wood cutter'
     var person = {
       ...name,
       age: 23,
+      job,
     }
     print(person)
   ''', isScript: true);

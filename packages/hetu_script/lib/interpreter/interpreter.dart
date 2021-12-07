@@ -1057,8 +1057,7 @@ class Hetu extends HTAbstractInterpreter {
             final value = execute();
             struct.fields[key] = value;
           } else if (fieldType == StructObjFieldType.spread) {
-            execute();
-            final HTStruct value = _curValue;
+            final HTStruct value = execute();
             for (final key in value.fields.keys) {
               final copiedValue =
                   HTStruct.toStructValue(value.fields[key], value.closure!);
