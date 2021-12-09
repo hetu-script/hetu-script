@@ -5,7 +5,7 @@ void main() {
   hetu.init();
   hetu.eval(r'''
     fun structSet {
-      print( {} is {})
+      print(() {} is ()->any)
     }
   ''', invokeFunc: 'structSet');
 }
