@@ -92,7 +92,8 @@ class PersonClassBinding extends HTExternalClass {
       case 'Person.race':
         throw HTError.immutable(varName);
       case 'Person.level':
-        return Person.level = varValue;
+        Person.level = varValue;
+        break;
       default:
         throw HTError.undefined(varName);
     }
