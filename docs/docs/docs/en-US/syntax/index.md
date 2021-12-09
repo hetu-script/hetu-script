@@ -95,12 +95,11 @@ fun main {
 - For functions declared with **fun**, when no return type is provided in declaration, it will have a return type of **any**. And it will return null if you didn't write return statement within the definition body.
 - Member functions can also be declared with **get**, **set**, **construct**, they literally means getter, setter and contructor function.
 - If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
-- Function can have no name, it will then become a literal function expression (anonymous function).
+- Function can have no name, it will then become a literal function expression (anonymous function). And a literal function can have no keyword, in this situation, the parameter brackets are not omittable even if it's empty.
 - Functions can be nested, and nested functions can have names.
 - Function are first class, you can use function as parameter, return value and store them in variables.
 - Function body could be a block statement (within '{' and '}'), or a single line expression after '=>'.
 - Return type is marked by a single arrow ('->') after the parameters brackets.
-- Literal function could have no names, in this situation, the parameter brackets are not omittable.
 
 ```typescript
 fun closure(func) {
@@ -116,6 +115,16 @@ fun main {
   print(func()) // print: 1849
   print(func()) // print: 1936
 }
+```
+
+### Variadic parameter
+
+In function declaration's parameters. '...' means you can pass as many positional arguments as you wish.
+
+```javascript
+external fun print(... args: any)
+
+print('hello', 'world!', 42) // okay!
 ```
 
 ## Class
@@ -317,16 +326,6 @@ when (condition) {
 ## Spread syntax
 
 You can use spread syntax ('...') in three places:
-
-### Variadic parameter
-
-In function declaration's parameters. This means you can pass as many positional arguments as you wish.
-
-```javascript
-external fun print(... args: any)
-
-print('hello', 'world!', 42) // okay!
-```
 
 ### Function call argument
 
