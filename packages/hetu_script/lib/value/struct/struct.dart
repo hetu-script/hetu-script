@@ -6,6 +6,7 @@ import '../../declaration/namespace/namespace.dart';
 import '../../value/const.dart';
 import '../../shared/stringify.dart' as util;
 import '../../shared/jsonify.dart' as util;
+import '../../type/structural_type.dart';
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -56,9 +57,13 @@ class HTStruct with HTEntity {
 
   HTNamespace? get closure => namespace.closure;
 
+  @override
+  final HTStructuralType valueType;
+
   HTStruct(HTNamespace closure,
       {this.id, this.prototype, Map<String, dynamic>? fields})
-      : namespace = HTNamespace(id: id ?? HTLexicon.STRUCT, closure: closure) {
+      : namespace = HTNamespace(id: id ?? HTLexicon.STRUCT, closure: closure),
+        valueType = HTStructuralType() {
     namespace.define(HTLexicon.THIS, HTConst(HTLexicon.THIS, value: this));
     if (fields != null) {
       this.fields.addAll(fields);

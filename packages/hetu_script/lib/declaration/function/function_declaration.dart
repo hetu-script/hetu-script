@@ -86,12 +86,12 @@ class HTFunctionDeclaration extends HTDeclaration
       : _paramDecls = paramDecls,
         declType = HTFunctionType(
             parameterTypes: paramDecls.values
-                .map((param) => HTParameterType(param.declType ?? HTType.ANY,
+                .map((param) => HTParameterType(param.declType ?? HTType.any,
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
                     id: param.isNamed ? param.id : null))
                 .toList(),
-            returnType: returnType ?? HTType.ANY),
+            returnType: returnType ?? HTType.any),
         super(
             id: id,
             classId: classId,

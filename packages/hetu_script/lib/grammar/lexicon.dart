@@ -126,7 +126,7 @@ abstract class HTLexicon {
   static const any = 'any';
   static const unknown = 'unknown';
   static const never = 'never';
-  // static const FUNCTION = 'function';
+  static const function = 'function';
 
   static const type = 'type';
   static const object = 'object';

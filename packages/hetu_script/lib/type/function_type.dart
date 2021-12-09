@@ -34,13 +34,12 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
   HTFunctionType(
       {this.genericTypeParameters = const [],
       this.parameterTypes = const [],
-      this.returnType = HTType.ANY})
+      this.returnType = HTType.any})
       : super(HTLexicon.FUNCTION);
 
   @override
   String toString() {
     var result = StringBuffer();
-    result.write(HTLexicon.FUNCTION);
     if (genericTypeParameters.isNotEmpty) {
       result.write(HTLexicon.angleLeft);
       for (var i = 0; i < genericTypeParameters.length; ++i) {
@@ -103,7 +102,9 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
 
   @override
   bool isA(dynamic other) {
-    if (other == HTType.ANY) {
+    if (other == HTType.any) {
+      return true;
+    } else if (other == HTType.function) {
       return true;
     } else if (other is HTFunctionType) {
       if (genericTypeParameters.length != other.genericTypeParameters.length) {
@@ -129,8 +130,6 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
         }
         return true;
       }
-    } else if (other == HTType.function) {
-      return true;
     } else {
       return false;
     }

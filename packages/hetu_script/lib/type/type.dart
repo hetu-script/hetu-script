@@ -10,26 +10,19 @@ import '../declaration/generic/generic_type_parameter.dart';
 
 abstract class HTType with HTEntity {
   static const type = _PrimitiveType(HTLexicon.type);
-  static const ANY = _PrimitiveType(HTLexicon.any);
+  static const any = _PrimitiveType(HTLexicon.any);
   static const NULL = _PrimitiveType(HTLexicon.NULL);
   static const VOID = _PrimitiveType(HTLexicon.VOID);
-  static const ENUM = _PrimitiveType(HTLexicon.ENUM);
-  static const NAMESPACE = _PrimitiveType(HTLexicon.NAMESPACE);
-  static const CLASS = _PrimitiveType(HTLexicon.CLASS);
   static const UNKNOWN = _PrimitiveType(HTLexicon.unknown);
-  static const function = _PrimitiveType(HTLexicon.FUNCTION);
+  static const function = _PrimitiveType(HTLexicon.function);
 
   static const Map<String, HTType> primitiveTypes = {
     HTLexicon.type: type,
-    HTLexicon.any: ANY,
+    HTLexicon.any: any,
     HTLexicon.NULL: NULL,
     HTLexicon.VOID: VOID,
-    // HTLexicon.ENUM: ENUM,
-    // HTLexicon.NAMESPACE: NAMESPACE,
-    // HTLexicon.CLASS: CLASS,
     HTLexicon.unknown: UNKNOWN,
-    // HTLexicon.object: object,
-    // HTLexicon.FUNCTION: function,
+    HTLexicon.function: function,
   };
 
   static String parseBaseType(String typeString) {
@@ -81,7 +74,7 @@ abstract class HTType with HTEntity {
         }
       }
     } else {
-      return HTType.ANY;
+      return HTType.any;
     }
   }
 
@@ -125,12 +118,12 @@ abstract class HTType with HTEntity {
     if (other == null) {
       return true;
     } else if (this == HTType.UNKNOWN) {
-      if (other == HTType.ANY || other == HTType.UNKNOWN) {
+      if (other == HTType.any || other == HTType.UNKNOWN) {
         return true;
       } else {
         return false;
       }
-    } else if (other == HTType.ANY) {
+    } else if (other == HTType.any) {
       return true;
     } else {
       if (this == HTType.NULL) {

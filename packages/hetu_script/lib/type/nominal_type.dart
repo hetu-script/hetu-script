@@ -54,7 +54,7 @@ class HTNominalType extends HTType {
   @override
   bool isA(dynamic other) {
     if (other is HTType) {
-      if (other == HTType.ANY) {
+      if (other == HTType.any) {
         return true;
       } else if (this == other) {
         return true;
