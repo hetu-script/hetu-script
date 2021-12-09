@@ -4,26 +4,16 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    // var list = [5, 6]
-    // var ht = [1, 2, ...[3, 4], ...list]
-    // print(ht)
-
-    // fun someFunc(a, b) {
-    //   return a + b
-    // }
-    // var list = [5, 6]
-    // print(someFunc(...list))
-
-    var name = {
-      familyName: 'Hord',
-      firstName: 'Luk'
+    var obj = {
+      name: {
+        foo: {
+          bar: 1
+        }
+      }
     }
-    var job = 'wood cutter'
-    var person = {
-      ...name,
-      age: 23,
-      job,
+    fun structSet {
+      obj.name.cur = obj.name.foo
+      print(obj)
     }
-    print(person)
-  ''', isScript: true);
+  ''', invokeFunc: 'structSet');
 }

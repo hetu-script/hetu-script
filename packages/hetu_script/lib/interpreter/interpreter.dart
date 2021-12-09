@@ -828,8 +828,9 @@ class Hetu extends HTAbstractInterpreter {
                 column: _curColumn);
           } else {
             final key = _getRegVal(HTRegIdx.postfixKey);
+            final value = execute();
             final encap = encapsulate(object);
-            encap.memberSet(key, _curValue);
+            encap.memberSet(key, value);
           }
           break;
         case HTOpCode.subSet:
