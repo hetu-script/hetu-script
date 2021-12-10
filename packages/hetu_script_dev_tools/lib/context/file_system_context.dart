@@ -77,8 +77,6 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
   @override
   void addResource(String fullName, HTSource resource) {
     resource.name = fullName;
-    // final source = HTSource(content,
-    //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
     _cached[fullName] = resource;
     included.add(fullName);
     // return source;

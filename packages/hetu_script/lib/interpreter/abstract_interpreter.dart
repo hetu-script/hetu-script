@@ -159,6 +159,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     final source = HTSource(content,
         name: moduleFullName, isScript: isScript ? true : false);
     final result = evalSource(source,
+        libraryName: libraryName,
         globallyImport: globallyImport,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
@@ -171,7 +172,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   /// 解析文件
   T? evalFile(String key,
       {String? libraryName,
-      bool isLibraryEntry = true,
       bool globallyImport = false,
       bool isScript = false,
       bool isStrictMode = false,
@@ -182,15 +182,14 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool errorHandled = false}) {
     try {
       final source = sourceContext.getResource(key);
-
       final result = evalSource(source,
+          libraryName: libraryName,
           globallyImport: globallyImport,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
           typeArgs: typeArgs,
           errorHandled: true);
-
       return result;
     } catch (error, stackTrace) {
       if (errorHandled) {

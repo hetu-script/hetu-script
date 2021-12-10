@@ -62,7 +62,7 @@ class CompilerConfigImpl implements CompilerConfig {
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
   static final version = Version(0, 3, 4);
-  static const constStringLengthLimit = 255;
+  static const constStringLengthLimit = 128;
 
   /// Hetu script bytecode's bytecode signature
   static const hetuSignatureData = [8, 5, 20, 21];
@@ -96,11 +96,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     for (final module in compilation.modules.values) {
       bytesBuilder.addByte(HTOpCode.module);
-      final idBytes = module.isLibraryEntry
-          ? _string(module.libraryName!)
+      final idBytes = module.hasMetaInfo
+          ? _string(module.packageName!)
           : _string(module.fullName);
       bytesBuilder.add(idBytes);
-      bytesBuilder.addByte(module.isLibraryEntry ? 1 : 0);
+      // bytesBuilder.addByte(module.hasMetaInfo ? 1 : 0);
       for (final node in module.nodes) {
         final bytes = compileAst(node);
         bytesBuilder.add(bytes);

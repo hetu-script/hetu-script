@@ -49,8 +49,6 @@ abstract class HTResourceManager<T extends HTResourceContext> {
     final root = path.dirname(fullName);
     final context = createContext(root);
     _contextRoots[context.root] = context;
-    // final source = context.addResource(normalized, resource,
-    //     type: type, isLibraryEntry: isLibraryEntry);
     context.addResource(fullName, resource);
     _cachedSources[fullName] = resource;
     if (onRootsUpdated != null) {

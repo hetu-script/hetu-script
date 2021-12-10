@@ -7,7 +7,6 @@ import '../value/struct/named_struct.dart';
 import '../value/entity.dart';
 import '../value/class/class.dart';
 import '../value/instance/cast.dart';
-import '../declaration/namespace/module.dart';
 import '../value/function/function.dart';
 import '../value/function/parameter.dart';
 import '../value/variable/variable.dart';
@@ -258,7 +257,12 @@ class Hetu extends HTAbstractInterpreter {
     _curModuleFullName = source.name;
     _isStrictMode = isStrictMode;
     try {
-      final bytes = compileSource(source, errorHandled: true);
+      final bytes = compileSource(
+        source,
+        libraryName: libraryName,
+        config: config,
+        errorHandled: true,
+      );
       final result = loadBytecode(bytes, libraryName ?? source.name,
           globallyImport: globallyImport,
           invokeFunc: invokeFunc,
@@ -307,6 +311,15 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  bool switchLibrary(String id) {
+    if (_cachedLibs.containsKey(id)) {
+      newStackFrame(libraryName: id);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   /// Compile a [HTSource] into bytecode for later use.
   Uint8List compileSource(HTSource source,
       {String? libraryName,
@@ -351,7 +364,6 @@ class Hetu extends HTAbstractInterpreter {
       {String? moduleFullName,
       String? libraryName,
       bool isScript = false,
-      bool isLibraryEntry = true,
       bool errorHandled = false}) {
     final source = HTSource(content,
         name: moduleFullName, isScript: isScript ? true : false);
@@ -481,6 +493,8 @@ class Hetu extends HTAbstractInterpreter {
     }
     if (namespace != null) {
       _curNamespace = namespace;
+    } else if (libChanged) {
+      _curNamespace = _curLibrary.declarations.values.last;
     }
     if (function != null) {
       _curFunction = function;
@@ -489,7 +503,6 @@ class Hetu extends HTAbstractInterpreter {
       _curLibrary.ip = ip;
     } else if (libChanged) {
       _curLibrary.ip = 0;
-      // ipChanged = true;
     }
     if (line != null) {
       _curLine = line;
@@ -505,7 +518,6 @@ class Hetu extends HTAbstractInterpreter {
     if (_registers.length <= _regIndex * HTRegIdx.length) {
       _registers.length += HTRegIdx.length;
     }
-    // return ipChanged;
   }
 
   void restoreStackFrame(
@@ -688,10 +700,9 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.module:
           final id = _readString();
-          final isLibraryEntry = _curLibrary.readBool();
+          // final hasMetaInfo = _curLibrary.readBool();
           _curModuleFullName = id;
-          _curNamespace =
-              HTModule(id, closure: global, isLibraryEntry: isLibraryEntry);
+          _curNamespace = HTNamespace(id: id, closure: global);
           break;
         case HTOpCode.loopPoint:
           final continueLength = _curLibrary.readUint16();

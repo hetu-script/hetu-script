@@ -28,9 +28,9 @@ class HTModuleParseResult {
 
   LineInfo get lineInfo => source.lineInfo;
 
-  final String? libraryName;
+  final String? packageName;
 
-  final bool isLibraryEntry;
+  final bool hasMetaInfo;
 
   final List<AstNode> nodes;
 
@@ -39,8 +39,8 @@ class HTModuleParseResult {
   final List<HTError> errors;
 
   HTModuleParseResult(this.source, this.nodes,
-      {this.libraryName,
-      this.isLibraryEntry = false,
+      {this.packageName,
+      this.hasMetaInfo = false,
       this.imports = const [],
       this.errors = const []});
 }

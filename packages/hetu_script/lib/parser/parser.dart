@@ -39,7 +39,7 @@ class HTParser extends HTAbstractParser {
   var _leftValueLegality = false;
   final List<Map<String, String>> _markedSymbolsList = [];
 
-  bool _isLibraryEntry = false;
+  bool _hasMetaInfo = false;
 
   bool _hasUserDefinedConstructor = false;
 
@@ -113,8 +113,8 @@ class HTParser extends HTAbstractParser {
     _curFuncCategory = null;
     final nodes = parseString(source.content, source: source);
     final module = HTModuleParseResult(source, nodes,
-        isLibraryEntry: _isLibraryEntry,
-        libraryName: libraryName,
+        hasMetaInfo: _hasMetaInfo,
+        packageName: libraryName,
         imports: _curModuleImports.toList(),
         errors: errors); // copy the list);
     _curModuleImports.clear();
@@ -1777,7 +1777,7 @@ class HTParser extends HTAbstractParser {
   }
 
   LibraryDecl _parseLibraryDecl() {
-    if (_isLibraryEntry) {
+    if (_hasMetaInfo) {
       final err = HTError.duplicateLibStmt(
           moduleFullName: _curModuleFullName,
           line: curTok.line,
@@ -1787,7 +1787,7 @@ class HTParser extends HTAbstractParser {
       errors.add(err);
     }
     final keyword = advance(1);
-    _isLibraryEntry = true;
+    _hasMetaInfo = true;
     final id = match(SemanticNames.stringLiteral);
     final stmt = LibraryDecl(id.literal,
         source: _curSource,
