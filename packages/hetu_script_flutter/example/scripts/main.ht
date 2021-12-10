@@ -1,0 +1,5 @@
+import 'mod:sample_mod' as mod
+
+fun hello {
+  return mod.hello()
+}

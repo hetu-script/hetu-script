@@ -22,7 +22,7 @@ The default folder is 'assets/scripts/',
 
 ```yaml
 assets:
-  - assets/scripts/main.ht
+  - scripts/main.ht
 ```
 
 Those script will be pre-loaded by the new init method on Hetu class: **initFlutter**. You don't need to use old **init**. Also note that this is an async function.

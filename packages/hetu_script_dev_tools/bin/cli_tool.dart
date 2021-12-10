@@ -71,8 +71,10 @@ void main(List<String> arguments) {
         final cmd = results.command!;
         final cmdArgs = cmd.arguments;
         final targetPath = cmdArgs.first;
-        if (path.extension(targetPath) != HTSource.hetuSouceFileExtension) {
-          throw 'Error: target file is not of extension \'${HTSource.hetuSouceFileExtension}\'';
+        final ext = path.extension(targetPath);
+        if (ext != HTSource.hetuScriptFileExtension ||
+            ext != HTSource.hetuModuleFileExtension) {
+          throw 'Error: target is not Hetu source code file.';
         }
         final isScript = cmd['script'] ? true : false;
         switch (cmd.name) {

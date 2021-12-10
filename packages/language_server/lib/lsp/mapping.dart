@@ -635,7 +635,8 @@ lsp.SymbolKind elementKindToSymbolKind(
 // }
 
 bool isHetuDocument(lsp.TextDocumentIdentifier doc) =>
-    doc?.uri?.endsWith(HTSource.hetuSouceFileExtension);
+    doc.uri.endsWith(HTSource.hetuModuleFileExtension) ||
+    doc.uri.endsWith(HTSource.hetuScriptFileExtension);
 
 // Location navigationTargetToLocation(
 //   String targetFilePath,

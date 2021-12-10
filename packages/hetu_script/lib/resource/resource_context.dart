@@ -14,7 +14,10 @@ class HTFilterConfig {
   final bool recursive;
 
   HTFilterConfig(this.folder,
-      {this.extention = const [HTSource.hetuSouceFileExtension],
+      {this.extention = const [
+        HTSource.hetuModuleFileExtension,
+        HTSource.hetuScriptFileExtension,
+      ],
       this.recursive = true});
 }
 
@@ -28,22 +31,36 @@ class HTFilterConfig {
 abstract class HTResourceContext<T> {
   static const hetuModulesPrefix = 'mod:';
   static const defaultLocalModulesFolder = '.hetu_modules';
+  static const hetuModuleEntryFileName = 'main.ht';
+
+  // static String checkHetuModuleName(String fileName) {
+  //   if (fileName.contains(HTResourceContext.defaultLocalModulesFolder) &&
+  //       fileName.endsWith(HTResourceContext.hetuModuleEntryFileName)) {
+  //     final start =
+  //         fileName.indexOf(HTResourceContext.defaultLocalModulesFolder) +
+  //             HTResourceContext.defaultLocalModulesFolder.length;
+  //     final end = fileName.indexOf('/', start);
+  //     return fileName.substring(start, end);
+  //   } else {
+  //     return fileName;
+  //   }
+  // }
 
   /// Get a unique absolute normalized path.
   String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
-    var name = key;
     if (key.startsWith(HTResourceContext.hetuModulesPrefix)) {
-      name =
-          '${HTResourceContext.defaultLocalModulesFolder}/${key.substring(4)}/main.ht';
+      return '$root$defaultLocalModulesFolder/${key.substring(4)}/$hetuModuleEntryFileName';
+    } else {
+      var name = key;
+      if (!path.isAbsolute(name) && dirName != null) {
+        name = path.join(dirName, name);
+      }
+      if (fileName != null) {
+        name = path.join(name, fileName);
+      }
+      final normalized = Uri.file(name).path;
+      return normalized;
     }
-    if (!path.isAbsolute(name) && dirName != null) {
-      name = path.join(dirName, name);
-    }
-    if (fileName != null) {
-      name = path.join(name, fileName);
-    }
-    final normalized = Uri.file(name).path;
-    return normalized;
   }
 
   /// Create a [HTFileSystemContext]

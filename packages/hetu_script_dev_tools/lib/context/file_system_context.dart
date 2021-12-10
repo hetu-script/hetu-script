@@ -76,12 +76,11 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
 
   @override
   void addResource(String fullName, HTSource resource) {
-    final normalized = getAbsolutePath(key: fullName, dirName: root);
-    resource.name = normalized;
+    resource.name = fullName;
     // final source = HTSource(content,
     //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
-    _cached[normalized] = resource;
-    included.add(normalized);
+    _cached[fullName] = resource;
+    included.add(fullName);
     // return source;
   }
 
@@ -100,8 +99,10 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
       return _cached[normalized]!;
     } else {
       final content = File(normalized).readAsStringSync();
-      final source = HTSource(content, name: normalized);
-      _cached[normalized] = source;
+      final isScript =
+          path.extension(normalized) == HTSource.hetuScriptFileExtension;
+      final source = HTSource(content, name: normalized, isScript: isScript);
+      addResource(normalized, source);
       return source;
     }
   }

@@ -14,7 +14,7 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
   final _cached = <String, HTSource>{};
 
   /// Create a [HTAssetsSourceContext] with every script file
-  /// placed under folder of [root], which defaults to 'assets/scripts/'
+  /// placed under folder of [root], which defaults to 'scripts/'
   HTAssetsSourceContext({this.root = 'scripts/'});
 
   Future<void> init() async {
@@ -23,13 +23,18 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
 
     final scriptPaths = manifestMap.keys
         .where((String key) => key.contains(root))
-        .where((String key) => key.contains(HTSource.hetuSouceFileExtension))
+        .where((String key) =>
+            key.contains(HTSource.hetuModuleFileExtension) ||
+            key.contains(HTSource.hetuScriptFileExtension))
         .toList();
 
-    for (final path in scriptPaths) {
-      final content = await rootBundle.loadString(path);
-      final source = HTSource(content, name: path);
-      addResource(path, source);
+    for (final fileName in scriptPaths) {
+      final content = await rootBundle.loadString(fileName);
+      final ext = path.extension(fileName);
+      // final name = HTResourceContext.checkHetuModuleName(fileName);
+      final source = HTSource(content,
+          name: fileName, isScript: ext == HTSource.hetuScriptFileExtension);
+      addResource(fileName, source);
     }
   }
 
@@ -63,10 +68,12 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
   @override
   HTSource getResource(String key, {String? from}) {
     var normalized = key;
+    // if (!key.startsWith(HTResourceContext.hetuModulesPrefix)) {
     if (!key.startsWith(root)) {
       normalized = getAbsolutePath(
           key: key, dirName: from != null ? path.dirname(from) : root);
     }
+    // }
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
     }

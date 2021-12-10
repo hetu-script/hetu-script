@@ -33,7 +33,8 @@ enum SourceType {
 class HTSource {
   static const _anonymousScriptNameLengthLimit = 72;
 
-  static const hetuSouceFileExtension = '.ht';
+  static const hetuModuleFileExtension = '.ht';
+  static const hetuScriptFileExtension = '.hts';
 
   late String name;
   String get basename => path.basename(name);

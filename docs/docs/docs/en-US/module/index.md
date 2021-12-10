@@ -46,4 +46,6 @@ export 'game.ht'
 export { hello } from 'hello.ht'
 ```
 
-If there's no export statement within a source file, every top level symbol will be exported if other module import from it.
+If you have at least one export statement, nomatter it's a export + 'path' form or export { namelist } form, you wont' inexplicitly export any of the members.
+
+Otherwise, every top level symbol will be exported by default.

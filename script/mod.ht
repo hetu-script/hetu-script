@@ -1,5 +1,5 @@
-import 'mod:sample_mod'
+import 'mod:sample_mod' as mod
 
 fun modTest {
-  return sampleMod()
+  return mod.hello()
 }

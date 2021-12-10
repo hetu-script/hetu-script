@@ -1,0 +1,4 @@
+
+fun hello {
+  return 'hello from a hetu module!'
+}
