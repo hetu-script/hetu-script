@@ -428,10 +428,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.struct);
     if (obj.id != null) {
-      bytesBuilder.addByte(1); // bool: has prototype
+      bytesBuilder.addByte(1); // bool: has id
       bytesBuilder.add(_string(obj.id!));
     } else {
-      bytesBuilder.addByte(0); // bool: has prototype
+      bytesBuilder.addByte(0); // bool: has id
     }
     if (obj.prototypeId != null) {
       bytesBuilder.addByte(1); // bool: has prototype
@@ -439,8 +439,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
     }
-    bytesBuilder.addByte(obj.fields.length);
-    for (final field in obj.fields) {
+    final fields = obj.fields.where((element) => element.value is! CommentExpr);
+    bytesBuilder.addByte(fields.length);
+    for (final field in fields) {
       final bytes = visitStructObjField(field);
       bytesBuilder.add(bytes);
     }

@@ -190,7 +190,7 @@ class HTParser extends HTAbstractParser {
           switch (curTok.type) {
             case SemanticNames.singleLineComment:
             case SemanticNames.multiLineComment:
-              return _parseExprStmt();
+              return _parseComment();
             case HTLexicon.EXTERNAL:
               advance(1);
               switch (curTok.type) {
@@ -308,7 +308,7 @@ class HTParser extends HTAbstractParser {
           switch (curTok.type) {
             case SemanticNames.singleLineComment:
             case SemanticNames.multiLineComment:
-              return _parseExprStmt();
+              return _parseComment();
             case HTLexicon.EXTERNAL:
               advance(1);
               switch (curTok.type) {
@@ -430,7 +430,7 @@ class HTParser extends HTAbstractParser {
           switch (curTok.type) {
             case SemanticNames.singleLineComment:
             case SemanticNames.multiLineComment:
-              return _parseExprStmt();
+              return _parseComment();
             case HTLexicon.VAR:
               return _parseVarDecl(
                   classId: _curClass?.id,
@@ -589,7 +589,7 @@ class HTParser extends HTAbstractParser {
         switch (curTok.type) {
           case SemanticNames.singleLineComment:
           case SemanticNames.multiLineComment:
-            return _parseExprStmt();
+            return _parseComment();
           case HTLexicon.VAR:
             return _parseVarDecl(
                 classId: _curStructId,
@@ -800,14 +800,9 @@ class HTParser extends HTAbstractParser {
     }
   }
 
-  /// 使用递归向下的方法生成表达式, 不断调用更底层的, 优先级更高的子Parser
-  ///
-  /// 赋值 = , 优先级 1, 右合并
-  ///
-  /// 需要判断嵌套赋值、取属性、取下标的叠加
-  AstNode _parseExpr() {
+  CommentExpr _parseComment() {
     if (curTok.type == SemanticNames.singleLineComment) {
-      final comment = advance(1);
+      final comment = match(SemanticNames.singleLineComment);
       return CommentExpr(comment.literal,
           isMultiline: false,
           isDocumentation: comment.lexeme
@@ -817,8 +812,8 @@ class HTParser extends HTAbstractParser {
           column: comment.column,
           offset: comment.offset,
           length: comment.length);
-    } else if (curTok.type == SemanticNames.multiLineComment) {
-      final comment = advance(1);
+    } else {
+      final comment = match(SemanticNames.multiLineComment);
       return CommentExpr(comment.literal,
           isMultiline: true,
           isDocumentation: comment.lexeme
@@ -828,73 +823,80 @@ class HTParser extends HTAbstractParser {
           column: comment.column,
           offset: comment.offset,
           length: comment.length);
-    } else {
-      final left = _parserTernaryExpr();
-      if (HTLexicon.assignments.contains(curTok.type)) {
-        if (!_leftValueLegality) {
-          final err = HTError.invalidLeftValue(
-              moduleFullName: _curModuleFullName,
+    }
+  }
+
+  /// 使用递归向下的方法生成表达式, 不断调用更底层的, 优先级更高的子Parser
+  ///
+  /// 赋值 = , 优先级 1, 右合并
+  ///
+  /// 需要判断嵌套赋值、取属性、取下标的叠加
+  AstNode _parseExpr() {
+    final left = _parserTernaryExpr();
+    if (HTLexicon.assignments.contains(curTok.type)) {
+      if (!_leftValueLegality) {
+        final err = HTError.invalidLeftValue(
+            moduleFullName: _curModuleFullName,
+            line: left.line,
+            column: left.column,
+            offset: left.offset,
+            length: left.length);
+        errors.add(err);
+      }
+      final op = advance(1);
+      final right = _parseExpr();
+      if (op.type == HTLexicon.assign) {
+        if (left is MemberExpr) {
+          return MemberAssignExpr(left.object, left.key, right,
+              source: _curSource,
               line: left.line,
               column: left.column,
               offset: left.offset,
-              length: left.length);
-          errors.add(err);
-        }
-        final op = advance(1);
-        final right = _parseExpr();
-        if (op.type == HTLexicon.assign) {
-          if (left is MemberExpr) {
-            return MemberAssignExpr(left.object, left.key, right,
-                source: _curSource,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: curTok.offset - left.offset);
-          } else if (left is SubExpr) {
-            return SubAssignExpr(left.object, left.key, right,
-                source: _curSource,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: curTok.offset - left.offset);
-          } else {
-            return BinaryExpr(left, op.lexeme, right,
-                source: _curSource,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: curTok.offset - left.offset);
-          }
+              length: curTok.offset - left.offset);
+        } else if (left is SubExpr) {
+          return SubAssignExpr(left.object, left.key, right,
+              source: _curSource,
+              line: left.line,
+              column: left.column,
+              offset: left.offset,
+              length: curTok.offset - left.offset);
         } else {
-          if (left is MemberExpr) {
-            return MemberAssignExpr(left.object, left.key,
-                BinaryExpr(left, op.lexeme.substring(0, 1), right),
-                source: _curSource,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: curTok.offset - left.offset);
-          } else if (left is SubExpr) {
-            return SubAssignExpr(left.object, left.key,
-                BinaryExpr(left, op.lexeme.substring(0, 1), right),
-                source: _curSource,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: curTok.offset - left.offset);
-          } else {
-            return BinaryExpr(left, op.lexeme.substring(1),
-                BinaryExpr(left, op.lexeme.substring(0, 1), right),
-                source: _curSource,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: curTok.offset - left.offset);
-          }
+          return BinaryExpr(left, op.lexeme, right,
+              source: _curSource,
+              line: left.line,
+              column: left.column,
+              offset: left.offset,
+              length: curTok.offset - left.offset);
         }
       } else {
-        return left;
+        if (left is MemberExpr) {
+          return MemberAssignExpr(left.object, left.key,
+              BinaryExpr(left, op.lexeme.substring(0, 1), right),
+              source: _curSource,
+              line: left.line,
+              column: left.column,
+              offset: left.offset,
+              length: curTok.offset - left.offset);
+        } else if (left is SubExpr) {
+          return SubAssignExpr(left.object, left.key,
+              BinaryExpr(left, op.lexeme.substring(0, 1), right),
+              source: _curSource,
+              line: left.line,
+              column: left.column,
+              offset: left.offset,
+              length: curTok.offset - left.offset);
+        } else {
+          return BinaryExpr(left, op.lexeme.substring(1),
+              BinaryExpr(left, op.lexeme.substring(0, 1), right),
+              source: _curSource,
+              line: left.line,
+              column: left.column,
+              offset: left.offset,
+              length: curTok.offset - left.offset);
+        }
       }
+    } else {
+      return left;
     }
   }
 
@@ -2441,62 +2443,44 @@ class HTParser extends HTAbstractParser {
     final fields = <StructObjField>[];
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != SemanticNames.endOfFile) {
-      final idTok = advance(1);
-      if (idTok.type == SemanticNames.identifier ||
-          idTok.type == SemanticNames.stringLiteral) {
-        final key = idTok.lexeme;
+      if (curTok.type == SemanticNames.identifier ||
+          curTok.type == SemanticNames.stringLiteral) {
+        final keyTok = advance(1);
         late final StructObjField field;
         if (curTok.type == HTLexicon.comma ||
             curTok.type == HTLexicon.curlyRight) {
-          final id = IdentifierExpr.fromToken(idTok);
-          field = StructObjField(id, key: key);
+          final id = IdentifierExpr.fromToken(keyTok);
+          field = StructObjField(id, key: keyTok.lexeme);
         } else {
           match(HTLexicon.colon);
           final value = _parseExpr();
-          field = StructObjField(value, key: key);
+          field = StructObjField(value, key: keyTok.lexeme);
         }
         fields.add(field);
         if (curTok.type != HTLexicon.curlyRight) {
           match(HTLexicon.comma);
         }
-      } else if (idTok.type == HTLexicon.spreadSyntax) {
+      } else if (curTok.type == HTLexicon.spreadSyntax) {
+        match(HTLexicon.spreadSyntax);
         final value = _parseExpr();
         final field = StructObjField(value, isSpread: true);
         fields.add(field);
         if (curTok.type != HTLexicon.curlyRight) {
           match(HTLexicon.comma);
         }
-      } else if (idTok.type == SemanticNames.singleLineComment) {
-        final value = CommentExpr(idTok.literal,
-            isMultiline: false,
-            isDocumentation: idTok.lexeme
-                .startsWith(HTLexicon.singleLineCommentDocumentationPattern),
-            source: _curSource,
-            line: idTok.line,
-            column: idTok.column,
-            offset: idTok.offset,
-            length: idTok.length);
-        final field = StructObjField(value, isComment: true);
-        fields.add(field);
-      } else if (idTok.type == SemanticNames.multiLineComment) {
-        final value = CommentExpr(idTok.literal,
-            isMultiline: true,
-            isDocumentation: idTok.lexeme
-                .startsWith(HTLexicon.multiLineCommentDocumentationPattern),
-            source: _curSource,
-            line: idTok.line,
-            column: idTok.column,
-            offset: idTok.offset,
-            length: idTok.length);
-        final field = StructObjField(value, isComment: true);
+      } else if (curTok.type == SemanticNames.singleLineComment ||
+          curTok.type == SemanticNames.multiLineComment) {
+        final comment = _parseComment();
+        final field = StructObjField(comment, isComment: true);
         fields.add(field);
       } else {
+        final errTok = advance(1);
         final err = HTError.structMemberId(
             moduleFullName: _curModuleFullName,
-            line: idTok.line,
-            column: idTok.column,
-            offset: idTok.offset,
-            length: idTok.length);
+            line: errTok.line,
+            column: errTok.column,
+            offset: errTok.offset,
+            length: errTok.length);
         errors.add(err);
       }
     }

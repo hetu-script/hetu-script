@@ -2,7 +2,7 @@
 
 - Added for...of syntax for iterate through values of Map or struct literal.
 - When statement now can also be used as expression.
-- Import statement now support 'lib:xxx/xxx.ht' syntax.
+- Import statement now support 'mod:xxx' syntax. This will search for module under '.hetu_modules' folder.
 
 ## 0.3.3
 
