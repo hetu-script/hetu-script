@@ -50,10 +50,7 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
   }
 
   @override
-  HTSource getResource(String key,
-      {String? from,
-      SourceType type = SourceType.module,
-      bool isLibraryEntry = false}) {
+  HTSource getResource(String key, {String? from}) {
     final normalized = getAbsolutePath(
         key: key, dirName: from != null ? path.dirname(from) : root);
     if (_cached.containsKey(normalized)) {

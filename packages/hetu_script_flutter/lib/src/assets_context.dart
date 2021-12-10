@@ -15,7 +15,7 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
 
   /// Create a [HTAssetsSourceContext] with every script file
   /// placed under folder of [root], which defaults to 'assets/scripts/'
-  HTAssetsSourceContext({this.root = 'assets/scripts/'});
+  HTAssetsSourceContext({this.root = 'scripts/'});
 
   Future<void> init() async {
     final manifestContent = await rootBundle.loadString('AssetManifest.json');
@@ -61,10 +61,7 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
   }
 
   @override
-  HTSource getResource(String key,
-      {String? from,
-      SourceType type = SourceType.module,
-      bool isLibraryEntry = false}) {
+  HTSource getResource(String key, {String? from}) {
     var normalized = key;
     if (!key.startsWith(root)) {
       normalized = getAbsolutePath(

@@ -1,0 +1,5 @@
+import 'mod:sample_mod'
+
+fun modTest {
+  return sampleMod()
+}

@@ -22,16 +22,27 @@ class HTFilterConfig {
 /// It could be a physical folder, a virtual collection in memory,
 /// an URL, or a remote database... any thing that provide
 /// create, read, update, delete services could be a resource context.
+///
+/// If the import path starts with 'mod:',
+/// will try to fetch the source file from '.hetu_modules' under root
 abstract class HTResourceContext<T> {
+  static const hetuModulesPrefix = 'mod:';
+  static const defaultLocalModulesFolder = '.hetu_modules';
+
   /// Get a unique absolute normalized path.
   String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
-    if (!path.isAbsolute(key) && dirName != null) {
-      key = path.join(dirName, key);
+    var name = key;
+    if (key.startsWith(HTResourceContext.hetuModulesPrefix)) {
+      name =
+          '${HTResourceContext.defaultLocalModulesFolder}/${key.substring(4)}/main.ht';
+    }
+    if (!path.isAbsolute(name) && dirName != null) {
+      name = path.join(dirName, name);
     }
     if (fileName != null) {
-      key = path.join(key, fileName);
+      name = path.join(name, fileName);
     }
-    final normalized = Uri.file(key).path;
+    final normalized = Uri.file(name).path;
     return normalized;
   }
 

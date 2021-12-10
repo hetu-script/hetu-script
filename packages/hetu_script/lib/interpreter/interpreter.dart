@@ -354,9 +354,7 @@ class Hetu extends HTAbstractInterpreter {
       bool isLibraryEntry = true,
       bool errorHandled = false}) {
     final source = HTSource(content,
-        name: moduleFullName,
-        isScript: isScript ? true : false,
-        isLibraryEntry: isLibraryEntry);
+        name: moduleFullName, isScript: isScript ? true : false);
     final result = compileSource(source,
         libraryName: libraryName, errorHandled: errorHandled);
     return result;
@@ -365,8 +363,6 @@ class Hetu extends HTAbstractInterpreter {
   /// Compile a script content into bytecode for later use.
   Uint8List? compileFile(String key,
       {String? libraryName,
-      SourceType type = SourceType.module,
-      bool isLibraryEntry = true,
       CompilerConfig? config,
       bool errorHandled = false}) {
     final source = _sourceContext.getResource(key);
@@ -651,19 +647,19 @@ class Hetu extends HTAbstractInterpreter {
           final patch = _curLibrary.readUint16();
           var incompatible = false;
           if (major > 0) {
-            if (major != HTCompiler.verMajor) {
+            if (major != HTCompiler.version.major) {
               incompatible = true;
             }
           } else {
-            if (major != HTCompiler.verMajor ||
-                minor != HTCompiler.verMinor ||
-                patch != HTCompiler.verPatch) {
+            if (major != HTCompiler.version.major ||
+                minor != HTCompiler.version.minor ||
+                patch != HTCompiler.version.patch) {
               incompatible = true;
             }
           }
           if (incompatible) {
-            throw HTError.version('$major.$minor.$patch',
-                '${HTCompiler.verMajor}.${HTCompiler.verMinor}.${HTCompiler.verPatch}',
+            throw HTError.version(
+                '$major.$minor.$patch', '${HTCompiler.version}',
                 moduleFullName: _curModuleFullName,
                 line: _curLine,
                 column: _curColumn);

@@ -1,4 +1,3 @@
-import 'package:pub_semver/pub_semver.dart';
 import 'package:meta/meta.dart';
 
 import 'dart:math' as math;
@@ -64,8 +63,6 @@ class InterpreterConfig
 ///
 /// Each instance of a interpreter has a independent global [HTNamespace].
 abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
-  static final version = Version(0, 1, 0);
-
   List<String> get stackTrace;
 
   InterpreterConfig get config;
@@ -154,16 +151,13 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool globallyImport = false,
       bool isScript = false,
       bool isStrictMode = false,
-      bool isLibraryEntry = true,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     final source = HTSource(content,
-        name: moduleFullName,
-        isScript: isScript ? true : false,
-        isLibraryEntry: isLibraryEntry);
+        name: moduleFullName, isScript: isScript ? true : false);
     final result = evalSource(source,
         globallyImport: globallyImport,
         invokeFunc: invokeFunc,

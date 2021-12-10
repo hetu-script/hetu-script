@@ -10,4 +10,7 @@ void main() {
 
   final result2 = hetu.evalFile('import_test.ht', invokeFunc: 'importTest');
   print(result2);
+
+  final result3 = hetu.evalFile('mod.ht', invokeFunc: 'modTest');
+  print(result3);
 }

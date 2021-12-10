@@ -1,3 +1,9 @@
+## 0.3.4
+
+- Added for...of syntax for iterate through values of Map or struct literal.
+- When statement now can also be used as expression.
+- Import statement now support 'lib:xxx/xxx.ht' syntax.
+
 ## 0.3.3
 
 - Added spread syntax on function call argument, list and struct literal

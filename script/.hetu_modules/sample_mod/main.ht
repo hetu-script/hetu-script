@@ -1,0 +1,4 @@
+
+fun sampleMod {
+  return 'this is a sample mod!'
+}

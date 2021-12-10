@@ -101,8 +101,6 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
     } else {
       final content = File(normalized).readAsStringSync();
       final source = HTSource(content, name: normalized);
-      // final source = HTSource(content,
-      //     name: normalized, type: type, isLibraryEntry: isLibraryEntry);
       _cached[normalized] = source;
       return source;
     }
@@ -114,8 +112,6 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
     if (!_cached.containsKey(normalized)) {
       throw HTError.sourceProviderError(normalized);
     } else {
-      // final source = _cached[normalized]!;
-      // source.content = resource;
       _cached[normalized] = resource;
     }
   }

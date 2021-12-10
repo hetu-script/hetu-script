@@ -50,10 +50,7 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
-  final bool isLibraryEntry;
-
-  HTSource(String content,
-      {String? name, this.isScript = false, this.isLibraryEntry = false})
+  HTSource(String content, {String? name, this.isScript = false})
       : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (name != null) {
@@ -71,29 +68,5 @@ class HTSource {
       }
       this.name = nameBuilder.toString();
     }
-
-    // if (type == SourceType.module) {
-    //   final pattern = RegExp(
-    //     HTLexicon.libraryNamePattern,
-    //     unicode: true,
-    //   );
-    //   final matches = pattern.allMatches(content);
-    //   if (matches.isNotEmpty) {
-    //     final singleMark = matches.first.group(HTLexicon.libraryNameSingleMark);
-    //     if (singleMark != null) {
-    //       _isLibrary = true;
-    //       libraryName ??= singleMark;
-    //     } else {
-    //       final doubleMark =
-    //           matches.first.group(HTLexicon.libraryNameDoubleMark);
-    //       if (doubleMark != null) {
-    //         _isLibrary = true;
-    //         libraryName ??= doubleMark;
-    //       }
-    //     }
-    //   }
-    // }
-
-    // this.libraryName = libraryName ?? this.fullName;
   }
 }

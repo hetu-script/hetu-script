@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
+import 'package:pub_semver/pub_semver.dart';
+
 import '../ast/ast.dart';
 import '../parser/parse_result_compilation.dart';
 import '../grammar/lexicon.dart';
@@ -59,12 +61,7 @@ class CompilerConfigImpl implements CompilerConfig {
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
-  /// The version of the compiled bytecode,
-  /// used to determine compatibility.
-  static const verMajor = 0;
-  static const verMinor = 3;
-  static const verPatch = 1;
-
+  static final version = Version(0, 3, 4);
   static const constStringLengthLimit = 255;
 
   /// Hetu script bytecode's bytecode signature
@@ -91,9 +88,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
     // hetu bytecode version
-    mainBytesBuilder.addByte(verMajor);
-    mainBytesBuilder.addByte(verMinor);
-    mainBytesBuilder.add(_uint16(verPatch));
+    mainBytesBuilder.addByte(version.major);
+    mainBytesBuilder.addByte(version.minor);
+    mainBytesBuilder.add(_uint16(version.patch));
     // bool: isScript
     mainBytesBuilder.addByte(compilation.isScript ? 1 : 0);
     final bytesBuilder = BytesBuilder();
