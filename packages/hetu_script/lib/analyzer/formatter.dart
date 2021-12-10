@@ -50,7 +50,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
       final stmt = nodes[i];
       final stmtString = formatAst(stmt);
       if (stmtString.isNotEmpty) {
-        if (_lastStmt is ImportDecl && stmt is! ImportDecl) {
+        if (_lastStmt is ImportExportDecl && stmt is! ImportExportDecl) {
           output.writeln('');
         }
         output.writeln(stmtString);
@@ -509,29 +509,10 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitImportDecl(ImportDecl stmt) {
+  String visitImportExportDecl(ImportExportDecl stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.import} ');
-    if (stmt.showList.isNotEmpty) {
-      output.write('${HTLexicon.curlyLeft} ');
-      output.write(stmt.showList.join('${HTLexicon.comma} '));
-      output.write(' ${HTLexicon.curlyRight} ${HTLexicon.from} ');
-    }
-    output.write(
-        '${HTLexicon.singleQuotationLeft}${stmt.key}${HTLexicon.singleQuotationRight}');
-    if (stmt.alias != null) {
-      output.write(' ${HTLexicon.AS} ${stmt.alias}');
-    }
-    return output.toString();
-  }
-
-  @override
-  String visitExportDecl(ExportDecl stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.export} ');
-    if (stmt.fromPath == null) {
-      output.write(stmt.showList.join('${HTLexicon.comma} '));
-    } else {
+    if (!stmt.isExported) {
+      output.write('${HTLexicon.import} ');
       if (stmt.showList.isNotEmpty) {
         output.write('${HTLexicon.curlyLeft} ');
         output.write(stmt.showList.join('${HTLexicon.comma} '));
@@ -539,6 +520,22 @@ class HTFormatter implements AbstractAstVisitor<String> {
       }
       output.write(
           '${HTLexicon.singleQuotationLeft}${stmt.fromPath}${HTLexicon.singleQuotationRight}');
+      if (stmt.alias != null) {
+        output.write(' ${HTLexicon.AS} ${stmt.alias}');
+      }
+    } else {
+      output.write('${HTLexicon.export} ');
+      if (stmt.fromPath == null) {
+        output.write(stmt.showList.join('${HTLexicon.comma} '));
+      } else {
+        if (stmt.showList.isNotEmpty) {
+          output.write('${HTLexicon.curlyLeft} ');
+          output.write(stmt.showList.join('${HTLexicon.comma} '));
+          output.write(' ${HTLexicon.curlyRight} ${HTLexicon.from} ');
+        }
+        output.write(
+            '${HTLexicon.singleQuotationLeft}${stmt.fromPath}${HTLexicon.singleQuotationRight}');
+      }
     }
     return output.toString();
   }

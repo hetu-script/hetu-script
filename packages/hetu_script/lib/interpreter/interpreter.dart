@@ -754,20 +754,8 @@ class Hetu extends HTAbstractInterpreter {
             _curLibrary.addString(_curLibrary.readUtf8String());
           }
           break;
-        case HTOpCode.importDecl:
-          _handleImport();
-          break;
-        case HTOpCode.exportDecl:
-          final hasFromPath = _curLibrary.readBool();
-          if (hasFromPath) {
-            _handleImport(isExported: true);
-          } else {
-            final showListLength = _curLibrary.read();
-            for (var i = 0; i < showListLength; ++i) {
-              final id = _readString();
-              _curNamespace.declareExport(id);
-            }
-          }
+        case HTOpCode.importExportDecl:
+          _handleImportExport();
           break;
         case HTOpCode.typeAliasDecl:
           _handleTypeAliasDecl();
@@ -942,27 +930,35 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  void _handleImport({bool isExported = false}) {
-    final key = _readString();
+  void _handleImportExport() {
+    final isExported = _curLibrary.readBool();
     final showList = <String>[];
     final showListLength = _curLibrary.read();
     for (var i = 0; i < showListLength; ++i) {
       final id = _readString();
       showList.add(id);
-    }
-    String? alias;
-    if (!isExported) {
-      final hasAlias = _curLibrary.readBool();
-      if (hasAlias) {
-        alias = _readString();
+      if (isExported) {
+        _curNamespace.declareExport(id);
       }
     }
-    _curNamespace.declareImport(
-      key,
-      alias: alias,
-      showList: showList,
-      isExported: isExported,
-    );
+    final hasFromPath = _curLibrary.readBool();
+    String? fromPath;
+    if (hasFromPath) {
+      fromPath = _readString();
+    }
+    String? alias;
+    final hasAlias = _curLibrary.readBool();
+    if (hasAlias) {
+      alias = _readString();
+    }
+    if (fromPath != null) {
+      _curNamespace.declareImport(
+        fromPath,
+        alias: alias,
+        showList: showList,
+        isExported: isExported,
+      );
+    }
   }
 
   void _storeLocal() {

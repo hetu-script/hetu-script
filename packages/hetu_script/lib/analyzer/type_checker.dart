@@ -141,12 +141,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitImportDecl(ImportDecl stmt) {
-    return HTType.any;
-  }
-
-  @override
-  HTType? visitExportDecl(ExportDecl stmt) {
+  HTType? visitImportExportDecl(ImportExportDecl stmt) {
     return HTType.any;
   }
 

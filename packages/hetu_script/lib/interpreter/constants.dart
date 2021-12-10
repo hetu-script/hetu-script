@@ -5,7 +5,7 @@ abstract class HTOpCode {
   /// 1 byte of OpRandType, value
   static const local = 1;
 
-  /// reg index => reg[key] = local
+  /// reg index => reg[fromPath] = local
   static const register = 2; // 1 byte of index
 
   /// copy from to => reg[to] = reg[from]
@@ -57,9 +57,7 @@ abstract class HTOpCode {
 
   static const constTable = 33;
 
-  static const importDecl = 40;
-
-  static const exportDecl = 41;
+  static const importExportDecl = 40;
 
   static const libraryDecl = 42;
 

@@ -1178,9 +1178,14 @@ class LibraryDecl extends AstNode {
             length: length);
 }
 
-class ImportDecl extends AstNode {
+class ImportExportDecl extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitImportDecl(this);
+  String get type =>
+      isExported ? SemanticNames.exportStmt : SemanticNames.importStmt;
+
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitImportExportDecl(this);
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
@@ -1190,7 +1195,7 @@ class ImportDecl extends AstNode {
     }
   }
 
-  final String key;
+  final String? fromPath;
 
   final IdentifierExpr? alias;
 
@@ -1203,49 +1208,20 @@ class ImportDecl extends AstNode {
 
   final bool hasEndOfStmtMark;
 
-  ImportDecl(this.key,
-      {this.alias,
-      this.showList = const [],
-      this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.importStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
+  final bool isExported;
 
-/// export a, b, c
-class ExportDecl extends AstNode {
-  @override
-  String get type => SemanticNames.exportStmt;
-
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitExportDecl(this);
-
-  @override
-  void subAccept(AbstractAstVisitor visitor) {}
-
-  final List<String> showList;
-
-  final String? fromPath;
-
-  final bool hasEndOfStmtMark;
-
-  ExportDecl(this.showList,
+  ImportExportDecl(
       {this.fromPath,
+      this.showList = const [],
+      this.alias,
       this.hasEndOfStmtMark = false,
+      this.isExported = false,
       HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.exportStmt,
+      : super(SemanticNames.exportImportStmt,
             source: source,
             line: line,
             column: column,

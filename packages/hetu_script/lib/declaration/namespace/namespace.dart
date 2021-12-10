@@ -117,17 +117,17 @@ class HTNamespace extends HTDeclaration with HTEntity {
     throw HTError.undefined(varName);
   }
 
-  void declareImport(String key,
+  void declareImport(String fromPath,
       {String? alias,
       List<String> showList = const [],
       bool isExported = false}) {
     final decl = ImportDeclaration(
-      key,
+      fromPath,
       alias: alias,
       showList: showList,
       isExported: isExported,
     );
-    imports[key] = decl;
+    imports[fromPath] = decl;
   }
 
   void declareExport(String id) {

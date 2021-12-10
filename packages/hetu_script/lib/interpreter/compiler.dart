@@ -1306,37 +1306,26 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitImportDecl(ImportDecl stmt) {
+  Uint8List visitImportExportDecl(ImportExportDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.importDecl);
-    // use the normalized absolute name here instead of the key
-    bytesBuilder.add(_string(stmt.fullName!));
+    bytesBuilder.addByte(HTOpCode.importExportDecl);
+    bytesBuilder.addByte(stmt.isExported ? 1 : 0); // bool: isExported
     bytesBuilder.addByte(stmt.showList.length);
     for (final id in stmt.showList) {
       bytesBuilder.add(_string(id.id));
+    }
+    if (stmt.fromPath != null) {
+      bytesBuilder.addByte(1); // bool: hasFromPath
+      // use the normalized absolute name here instead of the key
+      bytesBuilder.add(_string(stmt.fullName!));
+    } else {
+      bytesBuilder.addByte(0); // bool: hasFromPath
     }
     if (stmt.alias != null) {
       bytesBuilder.addByte(1); // bool: has alias id
       bytesBuilder.add(_string(stmt.alias!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has alias id
-    }
-    return bytesBuilder.toBytes();
-  }
-
-  @override
-  Uint8List visitExportDecl(ExportDecl stmt) {
-    final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.exportDecl);
-    if (stmt.fromPath != null) {
-      bytesBuilder.addByte(1); // bool has fromPath
-      bytesBuilder.add(_string(stmt.fromPath!));
-    } else {
-      bytesBuilder.addByte(0); // bool has fromPath
-    }
-    bytesBuilder.addByte(stmt.showList.length);
-    for (final id in stmt.showList) {
-      bytesBuilder.add(_string(id));
     }
     return bytesBuilder.toBytes();
   }

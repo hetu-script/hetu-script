@@ -1,5 +1,5 @@
 import '../../source/source.dart';
-import '../../ast/ast.dart' show AstNode, ImportDecl;
+import '../../ast/ast.dart' show AstNode, ImportExportDecl;
 import '../error/error.dart';
 import '../../source/line_info.dart';
 
@@ -13,7 +13,7 @@ class ImportInfo {
 
   ImportInfo(this.fullName, [this.alias, this.showList]);
 
-  ImportInfo.fromAst(ImportDecl stmt, String fullName)
+  ImportInfo.fromAst(ImportExportDecl stmt, String fullName)
       : this(fullName, stmt.alias?.id,
             stmt.showList.map((id) => id.id).toList());
 }
@@ -34,7 +34,7 @@ class HTModuleParseResult {
 
   final List<AstNode> nodes;
 
-  final List<ImportDecl> imports;
+  final List<ImportExportDecl> imports;
 
   final List<HTError> errors;
 
