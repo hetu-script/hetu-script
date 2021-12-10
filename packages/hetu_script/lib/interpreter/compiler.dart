@@ -261,23 +261,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.add(_string(id));
     bytesBuilder.addByte(isLocal ? 1 : 0); // bool: isLocal
     // bytesBuilder.addByte(0); // bool: has type args
-    if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
-    return bytesBuilder.toBytes();
-  }
-
-  Uint8List _assembleMemberGet(Uint8List object, String key,
-      {bool endOfExec = false}) {
-    final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(object);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixObject);
-    // bytesBuilder.addByte(HTOpCode.leftValue); // save object identifier in reg
-    final idBytes = _assembleLocalIdentifier(key, isLocal: false);
-    bytesBuilder.add(idBytes);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixKey);
-    bytesBuilder.addByte(HTOpCode.memberGet);
-    if (endOfExec) bytesBuilder.addByte(HTOpCode.endOfExec);
+    if (endOfExec) {
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1135,7 +1121,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitForInStmt(ForInStmt stmt) {
+  Uint8List visitForRangeStmt(ForRangeStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_string(SemanticNames.forStmtInit));
@@ -1150,41 +1136,42 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         increId, stmt.iterator.line, stmt.iterator.column,
         initializer: increInit);
     bytesBuilder.add(increDecl);
-
-    final collectionId = SemanticNames.iterable;
-    final collectionInit = compileAst(stmt.collection, endOfExec: true);
+    // assemble the condition expression
+    final conditionBytesBuilder = BytesBuilder();
+    final collectionId = SemanticNames.collection;
+    final collectionExpr = stmt.iterateValue
+        ? MemberExpr(
+            stmt.collection, IdentifierExpr(HTLexicon.values, isLocal: false))
+        : stmt.collection;
+    final collectionInit = compileAst(collectionExpr, endOfExec: true);
     final collectionDecl = _assembleVarDeclStmt(
         collectionId, stmt.collection.line, stmt.collection.column,
         initializer: collectionInit);
     bytesBuilder.add(collectionDecl);
-    final collectionSymbol = IdentifierExpr(collectionId);
-    final collectionSymbolBytes = visitIdentifierExpr(collectionSymbol);
-
-    // assemble the condition expression
-    final conditionBytesBuilder = BytesBuilder();
-    final isNotEmptyExpr =
-        _assembleMemberGet(collectionSymbolBytes, HTLexicon.isNotEmpty);
-    conditionBytesBuilder.add(isNotEmptyExpr);
+    final isNotEmptyExpr = MemberExpr(IdentifierExpr(collectionId),
+        IdentifierExpr(HTLexicon.isNotEmpty, isLocal: false));
+    final isNotEmptyByte = compileAst(isNotEmptyExpr);
+    conditionBytesBuilder.add(isNotEmptyByte);
     conditionBytesBuilder.addByte(HTOpCode.register);
     conditionBytesBuilder.addByte(HTRegIdx.andLeft);
     conditionBytesBuilder.addByte(HTOpCode.logicalAnd);
     final lesserLeftExpr = _assembleLocalIdentifier(increId);
-    final iterableLengthExpr =
-        _assembleMemberGet(collectionSymbolBytes, HTLexicon.length);
-    final logicalAndRightLength =
-        lesserLeftExpr.length + iterableLengthExpr.length + 4;
+    final lengthExpr = MemberExpr(IdentifierExpr(collectionId),
+        IdentifierExpr(HTLexicon.length, isLocal: false));
+    final lengthByte = compileAst(lengthExpr);
+    final logicalAndRightLength = lesserLeftExpr.length + lengthByte.length + 4;
     conditionBytesBuilder.add(_uint16(logicalAndRightLength));
     conditionBytesBuilder.add(lesserLeftExpr);
     conditionBytesBuilder.addByte(HTOpCode.register);
     conditionBytesBuilder.addByte(HTRegIdx.relationLeft);
-    conditionBytesBuilder.add(iterableLengthExpr);
+    conditionBytesBuilder.add(lengthByte);
     conditionBytesBuilder.addByte(HTOpCode.lesser);
     conditionBytesBuilder.addByte(HTOpCode.endOfExec);
     condition = conditionBytesBuilder.toBytes();
 
     // assemble the initializer of the captured variable
     final capturedDeclInit = CallExpr(
-        MemberExpr(stmt.collection,
+        MemberExpr(collectionExpr,
             IdentifierExpr(HTLexicon.elementAt, isLocal: false)),
         [IdentifierExpr(increId)],
         const {});

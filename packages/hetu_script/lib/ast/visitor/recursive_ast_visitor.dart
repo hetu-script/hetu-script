@@ -174,7 +174,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitForInStmt(ForInStmt node) {
+  T? visitForRangeStmt(ForRangeStmt node) {
     node.subAccept(this);
   }
 

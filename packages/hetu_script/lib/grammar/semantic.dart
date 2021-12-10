@@ -38,8 +38,8 @@ abstract class SemanticNames {
   static const anonymousBlock = r'$anonymous_block';
   static const anonymousStruct = r'$anonymous_struct';
   static const name = r'name';
-  static const increment = r'$increment';
-  static const iterable = r'$iterable';
+  static const increment = r'$$increment';
+  static const collection = r'$$collection';
   static const instance = r'$instance';
   static const prototype = r'$prototype';
   static const call = r'$_call_';

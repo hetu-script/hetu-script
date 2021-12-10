@@ -1635,7 +1635,7 @@ class HTParser extends HTAbstractParser {
     AstNode? increment;
     final newSymbolMap = <String, String>{};
     _markedSymbolsList.add(newSymbolMap);
-    if (forStmtType == HTLexicon.IN) {
+    if (forStmtType == HTLexicon.IN || forStmtType == HTLexicon.OF) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
         final err = HTError.unexpected(
             SemanticNames.variableDeclaration, curTok.type,
@@ -1655,8 +1655,9 @@ class HTParser extends HTAbstractParser {
         match(HTLexicon.roundRight);
       }
       final loop = _parseBlockStmt(id: SemanticNames.forLoop);
-      return ForInStmt(decl, collection, loop,
+      return ForRangeStmt(decl, collection, loop,
           hasBracket: hasBracket,
+          iterateValue: forStmtType == HTLexicon.OF,
           source: _curSource,
           line: keyword.line,
           column: keyword.column,

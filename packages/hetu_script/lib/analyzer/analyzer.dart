@@ -286,7 +286,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitForInStmt(ForInStmt ifStmt) {
+  void visitForRangeStmt(ForRangeStmt ifStmt) {
     ifStmt.subAccept(this);
   }
 

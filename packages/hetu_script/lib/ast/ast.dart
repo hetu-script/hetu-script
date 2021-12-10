@@ -1043,9 +1043,9 @@ class ForStmt extends AstNode {
             length: length);
 }
 
-class ForInStmt extends AstNode {
+class ForRangeStmt extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitForInStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitForRangeStmt(this);
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
@@ -1062,8 +1062,11 @@ class ForInStmt extends AstNode {
 
   final BlockStmt loop;
 
-  ForInStmt(this.iterator, this.collection, this.loop,
+  final bool iterateValue;
+
+  ForRangeStmt(this.iterator, this.collection, this.loop,
       {this.hasBracket = false,
+      this.iterateValue = false,
       HTSource? source,
       int line = 0,
       int column = 0,

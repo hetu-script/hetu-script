@@ -290,6 +290,7 @@ if (condition == null ||
 - 'for' statement's expr must be separated with ';'.
 - The expression itself is optional. If you write 'for ( ; ; )', it will be the same to 'while (true)'
 - When use for...in, the loop will iterate through the keys of a list.
+- When use for...of, the loop will iterate through the values of a struct literal/Dart Map.
 
 ```dart
 for (init; condition; increment) {
@@ -297,6 +298,10 @@ for (init; condition; increment) {
 }
 
 for (var item in list) {
+  ...
+}
+
+for (var item of obj) {
   ...
 }
 ```

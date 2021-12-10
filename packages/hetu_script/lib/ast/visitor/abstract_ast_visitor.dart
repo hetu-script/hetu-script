@@ -72,7 +72,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitForStmt(ForStmt node) {}
 
-  T? visitForInStmt(ForInStmt node) {}
+  T? visitForRangeStmt(ForRangeStmt node) {}
 
   T? visitWhenStmt(WhenStmt node) {}
 

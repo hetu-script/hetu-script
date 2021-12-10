@@ -4,8 +4,13 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    fun structSet {
-      print(() {} is ()->any)
+    var obj = {
+      a: 1,
+      b: 23,
+      c: 42,
     }
-  ''', invokeFunc: 'structSet');
+    for (var i of obj) {
+      print(i)
+    }
+  ''', isScript: true);
 }

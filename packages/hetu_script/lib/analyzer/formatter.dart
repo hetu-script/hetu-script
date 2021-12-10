@@ -444,7 +444,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitForInStmt(ForInStmt forInStmt) {
+  String visitForRangeStmt(ForRangeStmt forInStmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.FOR} ');
     if (forInStmt.hasBracket) {

@@ -181,7 +181,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitForInStmt(ForInStmt forInStmt) {
+  HTType? visitForRangeStmt(ForRangeStmt forInStmt) {
     return HTType.any;
   }
 
