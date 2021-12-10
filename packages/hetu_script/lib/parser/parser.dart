@@ -189,8 +189,9 @@ class HTParser extends HTAbstractParser {
         } else {
           switch (curTok.type) {
             case SemanticNames.singleLineComment:
-            case SemanticNames.multiLineComment:
               return _parseComment();
+            case SemanticNames.multiLineComment:
+              return _parseComment(isMultiline: true);
             case HTLexicon.EXTERNAL:
               advance(1);
               switch (curTok.type) {
@@ -307,8 +308,9 @@ class HTParser extends HTAbstractParser {
         } else {
           switch (curTok.type) {
             case SemanticNames.singleLineComment:
-            case SemanticNames.multiLineComment:
               return _parseComment();
+            case SemanticNames.multiLineComment:
+              return _parseComment(isMultiline: true);
             case HTLexicon.EXTERNAL:
               advance(1);
               switch (curTok.type) {
@@ -429,8 +431,9 @@ class HTParser extends HTAbstractParser {
         } else {
           switch (curTok.type) {
             case SemanticNames.singleLineComment:
-            case SemanticNames.multiLineComment:
               return _parseComment();
+            case SemanticNames.multiLineComment:
+              return _parseComment(isMultiline: true);
             case HTLexicon.VAR:
               return _parseVarDecl(
                   classId: _curClass?.id,
@@ -588,8 +591,9 @@ class HTParser extends HTAbstractParser {
         final isStatic = expect([HTLexicon.STATIC], consume: true);
         switch (curTok.type) {
           case SemanticNames.singleLineComment:
-          case SemanticNames.multiLineComment:
             return _parseComment();
+          case SemanticNames.multiLineComment:
+            return _parseComment(isMultiline: true);
           case HTLexicon.VAR:
             return _parseVarDecl(
                 classId: _curStructId,
@@ -706,6 +710,10 @@ class HTParser extends HTAbstractParser {
           return _parseTypeAliasDecl();
         } else {
           switch (curTok.type) {
+            case SemanticNames.singleLineComment:
+              return _parseComment();
+            case SemanticNames.multiLineComment:
+              return _parseComment(isMultiline: true);
             case HTLexicon.ABSTRACT:
               advance(1);
               return _parseClassDecl(isAbstract: true);
@@ -800,8 +808,8 @@ class HTParser extends HTAbstractParser {
     }
   }
 
-  CommentExpr _parseComment() {
-    if (curTok.type == SemanticNames.singleLineComment) {
+  CommentExpr _parseComment({bool isMultiline = false}) {
+    if (!isMultiline) {
       final comment = match(SemanticNames.singleLineComment);
       return CommentExpr(comment.literal,
           isMultiline: false,
