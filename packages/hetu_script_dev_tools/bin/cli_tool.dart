@@ -25,11 +25,12 @@ hetu [command] [option]
 hetu [option]
   option:
     --help(-h)
+    --version(-v)
 ''';
 
 const replInfoText = r'''
 Hetu Script Read-Evaluate-Print-Loop Tool
-Version: 0.1.0
+Version: {0}
 Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
@@ -38,8 +39,10 @@ final hetu = Hetu(config: InterpreterConfig(showDartStackTrace: false));
 void main(List<String> arguments) {
   try {
     hetu.init();
+    final version = HTCompiler.version.toString();
+    final replInfo = replInfoText.replaceAll('{0}', version);
     if (arguments.isEmpty) {
-      print(replInfoText);
+      print(replInfo);
       var exit = false;
       while (!exit) {
         stdout.write('>>>');
@@ -67,6 +70,8 @@ void main(List<String> arguments) {
       final results = parseArg(arguments);
       if (results['help']) {
         print(cliHelpText);
+      } else if (results['version']) {
+        print('Hetu Script Language, version: $version');
       } else if (results.command != null) {
         final cmd = results.command!;
         final cmdArgs = cmd.arguments;
@@ -100,6 +105,7 @@ void main(List<String> arguments) {
 ArgResults parseArg(List<String> args) {
   final parser = ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false);
+  parser.addFlag('version', abbr: 'v', negatable: false);
   final runCmd = parser.addCommand('run');
   runCmd.addFlag('script', abbr: 's');
   final fmtCmd = parser.addCommand('format');
