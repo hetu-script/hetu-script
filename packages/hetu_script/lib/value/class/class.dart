@@ -71,15 +71,12 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   @override
   void resolve() {
     super.resolve();
-
     if (superType != null) {
       superClass = namespace.memberGet(superType!.id);
     }
-
     if (isExternal) {
       externalClass = interpreter.fetchExternalClass(id!);
     }
-
     for (final decl in namespace.declarations.values) {
       decl.resolve();
     }

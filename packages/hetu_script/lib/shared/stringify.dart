@@ -59,6 +59,9 @@ String stringifyStruct(HTStruct struct, {HTStruct? from}) {
   ++_curIndentCount;
   for (var i = 0; i < struct.fields.length; ++i) {
     final key = struct.fields.keys.elementAt(i);
+    if (key.startsWith(HTLexicon.internalMarker)) {
+      continue;
+    }
     if (from != null && from != struct) {
       if (from.contains(key)) {
         continue;

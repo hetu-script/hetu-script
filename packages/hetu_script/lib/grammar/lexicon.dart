@@ -56,6 +56,8 @@ abstract class HTLexicon {
     kReturn,
   };
 
+  static const internalMarker = r'_$';
+
   static const main = 'main';
   static const instanceof = 'instance of';
 

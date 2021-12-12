@@ -187,6 +187,7 @@ class HTFunction extends HTFunctionDeclaration
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
+      bool createClosure = true,
       bool construct = true,
       bool errorHandled = true}) {
     try {
@@ -215,7 +216,9 @@ class HTFunction extends HTFunctionDeclaration
           }
         }
 
-        if (category == FunctionCategory.constructor && construct) {
+        if (category == FunctionCategory.constructor &&
+            construct &&
+            klass != null) {
           result = HTInstance(klass!, interpreter, typeArgs: typeArgs);
           namespace = result.namespace;
         }
@@ -224,7 +227,10 @@ class HTFunction extends HTFunctionDeclaration
           return result;
         }
         // callClosure is a temporary closure created everytime a function is called
-        final callClosure = HTNamespace(id: id, closure: namespace);
+        late HTNamespace callClosure;
+        if (createClosure || namespace == null) {
+          callClosure = HTNamespace(id: id, closure: namespace);
+        }
 
         // define this and super keyword
         if (namespace is HTInstanceNamespace) {

@@ -28,24 +28,23 @@ abstract class SemanticNames {
   static const multiLine = r'\';
   static const newLine = '\n';
 
-  static const internalMarker = r'$';
   static const analysisResult = r'analysis_result';
   static const anonymousLibrary = r'anonymous_library';
   static const anonymousScript = r'anonymous_script';
   static const anonymousClass = r'$anonymous_class';
-  static const anonymousNamespace = r'$anonymous_namespace';
-  static const anonymousFunction = r'$anonymous_function';
-  static const anonymousBlock = r'$anonymous_block';
-  static const anonymousStruct = r'$anonymous_struct';
+  static const anonymousNamespace = r'_$anonymous_namespace';
+  static const anonymousFunction = r'_$anonymous_function';
+  static const anonymousBlock = r'_$anonymous_block';
+  static const anonymousStruct = r'_$anonymous_struct';
   static const name = r'name';
-  static const increment = r'$$increment';
-  static const collection = r'$$collection';
-  static const instance = r'$instance';
+  static const increment = r'_$increment';
+  static const collection = r'_$collection';
+  static const instance = r'_$instance';
   static const prototype = r'$prototype';
-  static const call = r'$_call_';
-  static const constructor = r'$_construct_';
-  static const getter = r'$_get_';
-  static const setter = r'$_set_';
+  static const call = r'_$call_';
+  static const constructor = r'_$constructor_';
+  static const getter = r'_$getter_';
+  static const setter = r'_$setter_';
 
   static const endOfFile = 'end_of_file';
   static const empty = 'empty';

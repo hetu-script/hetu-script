@@ -5,12 +5,14 @@ void main() {
   hetu.init();
   hetu.eval(r'''
   struct Named {
-    var name = 'Unity'
-    var age = 17
+    var name
+    var age
+    construct(name, age) {
+      this.name = name
+      this.age = age
+    }
   }
-  final n = Named()
-  n.age = 42
+  final n = Named('Jimmy', 17)
   print(n)
-  print(Named)
   ''', isScript: true);
 }

@@ -4,9 +4,10 @@ import '../../declaration/namespace/namespace.dart';
 import 'struct.dart';
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
-// import '../../grammar/semantic.dart';
+import '../../grammar/semantic.dart';
 import '../../interpreter/interpreter.dart';
 import '../../interpreter/compiler.dart' show GotoInfo;
+import '../function/function.dart';
 
 /// Unlike class and function, the declaration of a struct is a value
 /// and struct object does not extends from this.
@@ -43,7 +44,10 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     this.definitionIp = definitionIp;
   }
 
-  HTStruct createObject() {
+  HTStruct createObject({
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+  }) {
     if (!isResolved) {
       throw HTError.unresolvedNamedStruct(id);
     }
@@ -53,6 +57,12 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         ip: definitionIp!,
         namespace: closure);
     structObj.import(_static!);
+    if (structObj.owns(SemanticNames.constructor)) {
+      final constructor =
+          structObj.memberGet(SemanticNames.constructor) as HTFunction;
+      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+    }
+    // TODO: even if there's none constructor, you can still create a struct through the named arguments
     return structObj;
   }
 

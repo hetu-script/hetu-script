@@ -1362,7 +1362,10 @@ class Hetu extends HTAbstractInterpreter {
       }
     } else if (callee is HTStruct && callee.definition != null) {
       HTNamedStruct def = callee.definition!;
-      _curValue = def.createObject();
+      _curValue = def.createObject(
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+      );
     } else {
       throw HTError.notCallable(callee.toString(),
           moduleFullName: _curModuleFullName,

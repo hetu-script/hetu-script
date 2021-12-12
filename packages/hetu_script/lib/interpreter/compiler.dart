@@ -1073,7 +1073,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     if (stmt.init != null) {
       // TODO: 如果有多个变量同时声明?
       final userDecl = stmt.init as VarDecl;
-      final markedId = '${SemanticNames.internalMarker}${userDecl.id}';
+      final markedId = '${HTLexicon.internalMarker}${userDecl.id}';
       newSymbolMap[userDecl.id.id] = markedId;
       Uint8List? initializer;
       if (userDecl.initializer != null) {
@@ -1669,8 +1669,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         final field = StructObjField(initializer, key: node.id.id);
         node.isStatic ? staticFields.add(field) : fields.add(field);
       } else if (node is FuncDecl) {
-        initializer = node;
-        final field = StructObjField(initializer, key: node.id!.id);
+        FuncDecl initializer = node;
+        final field =
+            StructObjField(initializer, key: initializer.internalName);
         node.isStatic ? staticFields.add(field) : fields.add(field);
       }
       // Other node type is ignored.

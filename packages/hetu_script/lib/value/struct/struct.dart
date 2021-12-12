@@ -84,10 +84,7 @@ class HTStruct with HTEntity {
 
   /// Check if this struct has the key in its own fields
   bool owns(String varName) {
-    if (fields.containsKey(varName)) {
-      return true;
-    }
-    return false;
+    return fields.containsKey(varName);
   }
 
   /// Check if this struct has the key in its own fields or its prototypes' fields
@@ -97,8 +94,9 @@ class HTStruct with HTEntity {
       return true;
     } else if (prototype != null && prototype!.contains(varName)) {
       return true;
+    } else {
+      return false;
     }
-    return false;
   }
 
   bool get isEmpty => fields.isEmpty;
