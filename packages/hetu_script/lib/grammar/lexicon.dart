@@ -441,8 +441,6 @@ abstract class HTLexicon {
   static const errorExtendsSelf = 'Class try to extends itself.';
   // static const errorCtorReturn = 'Constructor cannot have a return type.';
   static const errorMissingFuncBody = 'Missing function definition of [{0}].';
-  static const errorInternalFuncWithExternalTypeDef =
-      'Unexpected external typedef on internal function.';
   static const errorExternalCtorWithReferCtor =
       'Unexpected refer constructor on external constructor.';
   static const errorNonCotrWithReferCtor =
@@ -480,13 +478,10 @@ abstract class HTLexicon {
   static const errorUndefinedMember = '[{0}] isn\'t defined for the class.';
   static const errorCondition =
       'Condition expression must evaluate to type [bool]';
-  static const errorNotList = '[{0}] is not a List or Map.';
-  static const errorNullInit = 'Initializer evaluated to null.';
   static const errorNullObject = 'Calling method on null object.';
   static const errorSubGetKey = 'Sub get key is not of type [int]';
   static const errorOutOfRange = 'Index [{0}] is out of range [{1}].';
-  static const errorNullable = '[{0}] is not nullable.';
-  static const errorType =
+  static const errorAssignType =
       'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}].';
   static const errorImmutable = '[{0}] is immutable.';
   static const errorNotType = '[{0}] is not a type.';
@@ -505,22 +500,14 @@ abstract class HTLexicon {
   static const errorBytesSig = 'Unknown bytecode signature.';
   static const errorCircleInit =
       'Variable [{0}]\'s initializer depend on itself being initialized.';
-  static const errorInitialize = 'Missing variable initializer.';
   static const errorNamedArg = 'Undefined named parameter: [{0}].';
   static const errorIterable = '[{0}] is not Iterable.';
   static const errorUnkownValueType = 'Unkown OpCode value type: [{0}].';
-  static const errorEmptyString = 'Unexpected empty string. {0}';
   static const errorTypeCast = 'Type [{0}] cannot be cast into type [{1}].';
   static const errorCastee = 'Illegal cast target [{0}].';
-  static const errorClone = 'Illegal clone on [{0}].';
   static const errorNotSuper = '[{0}] is not a super class of [{1}].';
-  static const errorMissingExternalFunc =
-      'Missing external function definition of [{0}].';
-  static const errorClassOnInstance = 'Try to define a class on instance.';
   // static const errorSourceType = 'config.sourcetype must be script or module.';
   // static const errorNonExistModule = 'Could not open file: [{0}].';
-  static const errorTopLevelLiteralStruct =
-      'Cannot have literal struct on top level of a module.';
   static const errorStructMemberId =
       'Struct member id should be symbol or string.';
   static const errorUnresolvedNamedStruct =

@@ -13,16 +13,13 @@ enum ErrorCode {
   assertionFailed,
   unexpected,
   external,
-  // externalCtor,
   nestedClass,
   outsideReturn,
   setterArity,
   externalMember,
   emptyTypeArgs,
   extendsSelf,
-  // ctorReturn,
   missingFuncBody,
-  internalFuncWithExternalTypeDef,
   externalCtorWithReferCtor,
   nonCotrWithReferCtor,
   sourceProviderError,
@@ -51,13 +48,10 @@ enum ErrorCode {
   notCallable,
   undefinedMember,
   condition,
-  notList,
-  nullInit,
   nullObject,
   subGetKey,
   outOfRange,
-  nullable,
-  type,
+  assignType,
   immutable,
   notType,
   argType,
@@ -69,20 +63,12 @@ enum ErrorCode {
   externalVar,
   bytesSig,
   circleInit,
-  initialize,
   namedArg,
   iterable,
   unkownValueType,
-  emptyString,
   typeCast,
   castee,
-  clone,
   notSuper,
-  missingExternalFunc,
-  classOnInstance,
-  // sourceType,
-  // nonExistModule
-  topLevelLiteralStruct,
   structMemberId,
   unresolvedNamedStruct
 }
@@ -234,25 +220,6 @@ class HTError {
       _message = message;
     }
   }
-
-  HTError.assertionFailed(String message,
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.assertionFailed, ErrorType.syntacticError,
-            message: HTLexicon.errorAssertionFailed,
-            interpolations: [message],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
 
   /// Error: Expected a token while met another.
   HTError.unexpected(String expected, String met,
@@ -458,24 +425,6 @@ class HTError {
       : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
             message: HTLexicon.errorMissingFuncBody,
             interpolations: [id],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  HTError.internalFuncWithExternalTypeDef(
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.missingExternalFunc, ErrorType.syntacticError,
-            message: HTLexicon.errorInternalFuncWithExternalTypeDef,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -775,6 +724,25 @@ class HTError {
             offset: offset,
             length: length);
 
+  HTError.assertionFailed(String message,
+      {String? extra,
+      String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.assertionFailed, ErrorType.runtimeError,
+            message: HTLexicon.errorAssertionFailed,
+            interpolations: [message],
+            extra: extra,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
   /// Error: unsupported runtime operation
   HTError.unsupported(String name,
       {String? extra,
@@ -784,7 +752,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unsupported, ErrorType.runtimeError,
+      : this(ErrorCode.unsupported, ErrorType.syntacticError,
             message: HTLexicon.errorUnsupported,
             interpolations: [name],
             extra: extra,
@@ -895,7 +863,7 @@ class HTError {
             length: length);
 
   /// Error: Try to operate unkown type object.
-  HTError.unknownTypeName(String id,
+  HTError.unknownExternalTypeName(String id,
       {String? extra,
       String? correction,
       String? moduleFullName,
@@ -1003,47 +971,8 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.condition, ErrorType.runtimeError,
+      : this(ErrorCode.condition, ErrorType.staticWarning,
             message: HTLexicon.errorCondition,
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: Try to use sub get operator on a non-list object.
-  HTError.notList(String id,
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.notList, ErrorType.runtimeError,
-            message: HTLexicon.errorNotList,
-            interpolations: [id],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: Calling method on null object.
-  HTError.errorNullInit(
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.nullInit, ErrorType.runtimeError,
-            message: HTLexicon.errorNullInit,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1110,28 +1039,8 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Type is assign a unnullable varialbe with null.
-  HTError.nullable(String id,
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.nullable, ErrorType.runtimeError,
-            message: HTLexicon.errorNullable,
-            interpolations: [id],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: Type check failed.
-  HTError.type(String id, String valueType, String declValue,
+  HTError.assignType(String id, String valueType, String declValue,
       {String? extra,
       String? correction,
       String? moduleFullName,
@@ -1139,8 +1048,8 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.type, ErrorType.runtimeError,
-            message: HTLexicon.errorType,
+      : this(ErrorCode.assignType, ErrorType.staticTypeWarning,
+            message: HTLexicon.errorAssignType,
             interpolations: [id, valueType, declValue],
             extra: extra,
             correction: correction,
@@ -1239,7 +1148,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.returnType, ErrorType.runtimeError,
+      : this(ErrorCode.returnType, ErrorType.staticTypeWarning,
             message: HTLexicon.errorReturnType,
             interpolations: [returnedType, funcName, declReturnType],
             extra: extra,
@@ -1278,7 +1187,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.arity, ErrorType.runtimeError,
+      : this(ErrorCode.arity, ErrorType.staticWarning,
             message: HTLexicon.errorArity,
             interpolations: [argsCount, id, paramsCount],
             extra: extra,
@@ -1367,25 +1276,6 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Missing variable initializer.
-  HTError.initialize(
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.initialize, ErrorType.runtimeError,
-            message: HTLexicon.errorInitialize,
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: Named arguments does not exist.
   HTError.namedArg(String id,
       {String? extra,
@@ -1395,7 +1285,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.namedArg, ErrorType.runtimeError,
+      : this(ErrorCode.namedArg, ErrorType.staticTypeWarning,
             message: HTLexicon.errorNamedArg,
             interpolations: [id],
             extra: extra,
@@ -1415,7 +1305,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.iterable, ErrorType.runtimeError,
+      : this(ErrorCode.iterable, ErrorType.staticTypeWarning,
             message: HTLexicon.errorIterable,
             interpolations: [id],
             extra: extra,
@@ -1446,28 +1336,6 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Illegal empty string.
-  HTError.emptyString(
-      {ErrorType type = ErrorType.runtimeError,
-      String? info,
-      String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.emptyString, type,
-            message: HTLexicon.errorEmptyString,
-            interpolations: info != null ? [info] : const [],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: Illegal type cast.
   HTError.typeCast(String from, String to,
       {String? extra,
@@ -1477,7 +1345,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.typeCast, ErrorType.runtimeError,
+      : this(ErrorCode.typeCast, ErrorType.staticTypeWarning,
             message: HTLexicon.errorTypeCast,
             interpolations: [from, to],
             extra: extra,
@@ -1508,26 +1376,6 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Illegal clone.
-  HTError.clone(String varName,
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.clone, ErrorType.runtimeError,
-            message: HTLexicon.errorClone,
-            interpolations: [varName],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: Not a super class of this instance.
   HTError.notSuper(String classId, String id,
       {String? extra,
@@ -1537,47 +1385,9 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notSuper, ErrorType.runtimeError,
+      : this(ErrorCode.notSuper, ErrorType.staticTypeWarning,
             message: HTLexicon.errorNotSuper,
             interpolations: [classId, id],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  HTError.missingExternalFunc(String id,
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.missingExternalFunc, ErrorType.runtimeError,
-            message: HTLexicon.errorMissingExternalFunc,
-            interpolations: [id],
-            extra: extra,
-            correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: Try to define a class on a instance.
-  HTError.classOnInstance(
-      {String? extra,
-      String? correction,
-      String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.classOnInstance, ErrorType.runtimeError,
-            message: HTLexicon.errorClassOnInstance,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1619,58 +1429,6 @@ class HTError {
             interpolations: [codeVer, itpVer],
             extra: extra,
             correction: correction,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: Unevalable source type.
-  // HTError.sourceType(
-  //     {String? extra,
-  //     String? correction,
-  //     String? moduleFullName,
-  //     int? line,
-  //     int? column,
-  //     int? offset,
-  //     int? length})
-  //     : this(ErrorCode.sourceType, ErrorType.runtimeError,
-  //           message: HTLexicon.errorSourceType,
-  //           extra: extra,
-  //           correction: correction,
-  //           moduleFullName: moduleFullName,
-  //           line: line,
-  //           column: column,
-  //           offset: offset,
-  //           length: length);
-
-  // HTError.nonExistModule(String key, ErrorType type,
-  //     {String? extra,
-  //     String? correction,
-  //     String? moduleFullName,
-  //     int? line,
-  //     int? column,
-  //     int? offset,
-  //     int? length})
-  //     : this(ErrorCode.nonExistModule, type, message: HTLexicon.errorNonExistModule,
-  //           interpolations: [key],
-  //           extra: extra,
-  //           correction: correction,
-  //           moduleFullName: moduleFullName,
-  //           line: line,
-  //           column: column,
-  //           offset: offset,
-  //           length: length);
-
-  /// Error: Top level literal struct is not allowed.
-  HTError.topLevelLiteralStruct(
-      {String? moduleFullName,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.topLevelLiteralStruct, ErrorType.runtimeError,
-            message: HTLexicon.errorTopLevelLiteralStruct,
             moduleFullName: moduleFullName,
             line: line,
             column: column,

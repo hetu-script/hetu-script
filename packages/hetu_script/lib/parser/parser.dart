@@ -2048,13 +2048,6 @@ class HTParser extends HTAbstractParser {
             category == FunctionCategory.normal ||
             category == FunctionCategory.literal)) {
       if (expect([HTLexicon.squareLeft], consume: true)) {
-        final err = HTError.internalFuncWithExternalTypeDef(
-            moduleFullName: _curModuleFullName,
-            line: curTok.line,
-            column: curTok.column,
-            offset: curTok.offset,
-            length: curTok.length);
-        errors.add(err);
         externalTypedef = match(SemanticNames.identifier).lexeme;
         match(HTLexicon.squareRight);
       }

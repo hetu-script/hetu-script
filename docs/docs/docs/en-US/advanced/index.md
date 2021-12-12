@@ -35,3 +35,19 @@ void main() {
   ''', isScript: true);
 }
 ```
+
+## Error hanlding
+
+It's not recommended to try to handle error in the script. You should do this in the Dart code.
+
+The script doesn't support 'try...catch' functionality. However, it's possible to throw a error within the script using the Assert keyword.
+
+For example, a statement like:
+
+```dart
+assert 1 > 5
+```
+
+Will throw an 'assertion failed' error. And the error message will contain the expression string after the keyword to let you know why this happened.
+
+The expression after assert must be a boolean value.
