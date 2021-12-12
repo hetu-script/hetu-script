@@ -6,7 +6,7 @@ import 'type.dart';
 class HTExternalType extends HTType {
   @override
   String toString() {
-    return '${SemanticNames.extern} ${HTLexicon.type}${HTLexicon.colon} $id';
+    return '${SemanticNames.extern} ${HTLexicon.kType}${HTLexicon.colon} $id';
   }
 
   const HTExternalType(String id) : super(id);

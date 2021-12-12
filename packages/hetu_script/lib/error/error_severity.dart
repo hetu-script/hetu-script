@@ -29,6 +29,11 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   const ErrorSeverity(this.name, this.weight, this.displayName);
 
   @override
+  bool operator ==(Object other) {
+    return other is ErrorSeverity && weight == other.weight;
+  }
+
+  @override
   int get hashCode => weight;
 
   @override

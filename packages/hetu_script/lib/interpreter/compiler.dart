@@ -317,7 +317,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitNullExpr(NullExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.NULL);
+    bytesBuilder.addByte(HTValueTypeCode.nullValue);
     return bytesBuilder.toBytes();
   }
 
@@ -617,7 +617,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         final bytes = compileAst(group);
         bytesBuilder.add(bytes);
         break;
-      case HTLexicon.TYPEOF:
+      case HTLexicon.kTypeof:
         bytesBuilder.add(value);
         bytesBuilder.addByte(HTOpCode.typeOf);
         break;
@@ -742,7 +742,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.greaterOrEqual);
         break;
-      case HTLexicon.AS:
+      case HTLexicon.kAs:
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.register);
         bytesBuilder.addByte(HTRegIdx.relationLeft);
@@ -750,7 +750,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.typeAs);
         break;
-      case HTLexicon.IS:
+      case HTLexicon.kIs:
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.register);
         bytesBuilder.addByte(HTRegIdx.relationLeft);
@@ -758,7 +758,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.typeIs);
         break;
-      case HTLexicon.ISNOT:
+      case HTLexicon.kIsNot:
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.register);
         bytesBuilder.addByte(HTRegIdx.relationLeft);
@@ -1658,6 +1658,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: hasPrototypeId
     }
+    bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
     final staticFields = <StructObjField>[];
     final fields = <StructObjField>[];
     // TODO: deal with comments

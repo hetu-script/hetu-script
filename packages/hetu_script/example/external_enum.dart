@@ -2,10 +2,10 @@ import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/binding.dart';
 
 enum Country {
-  UnitedStates,
-  Japan,
-  Iraq,
-  Ukraine,
+  unitedStates,
+  japan,
+  iraq,
+  ukraine,
 }
 
 class CountryEnumBinding extends HTExternalClass {
@@ -16,14 +16,14 @@ class CountryEnumBinding extends HTExternalClass {
     switch (varName) {
       case 'values':
         return Country.values;
-      case 'UnitedStates':
-        return Country.UnitedStates;
-      case 'Japan':
-        return Country.Japan;
-      case 'Iraq':
-        return Country.Iraq;
-      case 'Ukraine':
-        return Country.Ukraine;
+      case 'unitedStates':
+        return Country.unitedStates;
+      case 'japan':
+        return Country.japan;
+      case 'iraq':
+        return Country.iraq;
+      case 'ukraine':
+        return Country.ukraine;
       default:
         throw HTError.undefined(varName);
     }
@@ -55,12 +55,12 @@ void main() {
 
   final result = hetu.eval(r'''
       external enum Country {
-        UnitedStates,
-        Japan,
-        Iraq,
-        Ukraine,
+        unitedStates,
+        japan,
+        iraq,
+        ukraine,
       }
-
+      
       fun main {
         print(Country.values)
         var country = Country.Japan

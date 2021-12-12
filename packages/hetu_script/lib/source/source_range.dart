@@ -7,7 +7,7 @@ import 'dart:math' as math;
 /// A source range defines a range of characters within source code.
 class SourceRange {
   /// An empty source range (a range with offset `0` and length `0`).
-  static const SourceRange EMPTY = SourceRange(0, 0);
+  static const SourceRange empty = SourceRange(0, 0);
 
   /// The 0-based index of the first character of the source range.
   final int offset;

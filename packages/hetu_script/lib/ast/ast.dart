@@ -1716,10 +1716,13 @@ class StructDecl extends AstNode {
 
   final bool isTopLevel;
 
+  final bool lateInitialize;
+
   StructDecl(this.id, this.definition,
       {this.prototypeId,
       this.isPrivate = false,
       this.isTopLevel = false,
+      this.lateInitialize = true,
       HTSource? source,
       int line = 0,
       int column = 0,

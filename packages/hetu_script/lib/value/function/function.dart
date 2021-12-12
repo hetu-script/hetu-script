@@ -230,11 +230,11 @@ class HTFunction extends HTFunctionDeclaration
         if (namespace is HTInstanceNamespace) {
           final instanceNamespace = namespace as HTInstanceNamespace;
           if (instanceNamespace.next != null) {
-            callClosure.define(HTLexicon.SUPER,
-                HTConst(HTLexicon.SUPER, value: instanceNamespace.next));
+            callClosure.define(HTLexicon.kSuper,
+                HTConst(HTLexicon.kSuper, value: instanceNamespace.next));
           }
-          callClosure.define(HTLexicon.THIS,
-              HTConst(HTLexicon.THIS, value: instanceNamespace));
+          callClosure.define(HTLexicon.kThis,
+              HTConst(HTLexicon.kThis, value: instanceNamespace));
         }
 
         if (category == FunctionCategory.constructor &&
@@ -242,7 +242,7 @@ class HTFunction extends HTFunctionDeclaration
           late final HTFunction constructor;
           final name = redirectingConstructor!.name;
           final key = redirectingConstructor!.key;
-          if (name == HTLexicon.SUPER) {
+          if (name == HTLexicon.kSuper) {
             final superClass = klass!.superClass!;
             if (key == null) {
               constructor = superClass
@@ -251,7 +251,7 @@ class HTFunction extends HTFunctionDeclaration
               constructor = superClass.namespace
                   .declarations['${SemanticNames.constructor}$key']!.value;
             }
-          } else if (name == HTLexicon.THIS) {
+          } else if (name == HTLexicon.kThis) {
             if (key == null) {
               constructor = klass!
                   .namespace.declarations[SemanticNames.constructor]!.value;

@@ -6,21 +6,23 @@ import '../../declaration/namespace/namespace.dart';
 import '../../source/source.dart';
 
 class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
+  final String _id;
+
   @override
-  final String id;
+  String get id => _id;
 
   HTExternalClass? externalClass;
 
   bool get isNested => classId != null;
 
   HTExternalEnum(
-    this.id,
+    this._id,
     HTAbstractInterpreter interpreter, {
     String? classId,
     HTNamespace? closure,
     HTSource? source,
   }) : super(
-            id: id,
+            id: _id,
             classId: classId,
             closure: closure,
             source: source,

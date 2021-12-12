@@ -1139,19 +1139,19 @@ lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
 }
 
 lsp.DiagnosticSeverity toDiagnosticSeverity(ErrorSeverity severity) {
-  switch (severity) {
-    case ErrorSeverity.error:
-      return lsp.DiagnosticSeverity.Error;
-    case ErrorSeverity.warning:
-      return lsp.DiagnosticSeverity.Warning;
-    case ErrorSeverity.info:
-      return lsp.DiagnosticSeverity.Information;
-    // Note: LSP also supports "Hint", but they won't render in things like the
-    // VS Code errors list as they're apparently intended to communicate
-    // non-visible diagnostics back (for example, if you wanted to grey out
-    // unreachable code without producing an item in the error list).
-    default:
-      throw 'Unknown AnalysisErrorSeverity: $severity';
+  if (severity == ErrorSeverity.error) {
+    return lsp.DiagnosticSeverity.Error;
+  } else if (severity == ErrorSeverity.warning) {
+    return lsp.DiagnosticSeverity.Warning;
+  } else if (severity == ErrorSeverity.info) {
+    return lsp.DiagnosticSeverity.Information;
+  }
+  // Note: LSP also supports "Hint", but they won't render in things like the
+  // VS Code errors list as they're apparently intended to communicate
+  // non-visible diagnostics back (for example, if you wanted to grey out
+  // unreachable code without producing an item in the error list).
+  else {
+    throw 'Unknown AnalysisErrorSeverity: $severity';
   }
 }
 

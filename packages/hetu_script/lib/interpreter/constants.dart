@@ -8,7 +8,7 @@ abstract class HTOpCode {
   /// reg index => reg[fromPath] = local
   static const register = 2; // 1 byte of index
 
-  /// copy from to => reg[to] = reg[from]
+  /// copy from to => reg[to] = reg[kFrom]
   static const copy = 3;
 
   // static const leftValue = 4;
@@ -141,7 +141,7 @@ abstract class HTOpCode {
 
 /// Following a local operation, tells the value type, used by compiler.
 abstract class HTValueTypeCode {
-  static const NULL = 0;
+  static const nullValue = 0;
   static const boolean = 1;
   static const constInt = 2;
   static const constFloat = 3;

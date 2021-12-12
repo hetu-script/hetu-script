@@ -9,8 +9,10 @@ import 'abstract_type_declaration.dart';
 /// And can have generic type parameters.
 class HTTypeAliasDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
+  final String _id;
+
   @override
-  final String id;
+  String get id => _id;
 
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;
@@ -24,7 +26,7 @@ class HTTypeAliasDeclaration extends HTDeclaration
   /// determine wether an value binding (assignment) is legal.
   HTType get declType => _resolvedDeclType ?? _declType;
 
-  HTTypeAliasDeclaration(this.id, HTType declType,
+  HTTypeAliasDeclaration(this._id, HTType declType,
       {String? classId,
       HTNamespace? closure,
       HTSource? source,
@@ -36,7 +38,7 @@ class HTTypeAliasDeclaration extends HTDeclaration
       bool isTopLevel = false})
       : _declType = declType,
         super(
-            id: id,
+            id: _id,
             classId: classId,
             closure: closure,
             source: source,

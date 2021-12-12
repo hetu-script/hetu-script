@@ -971,7 +971,7 @@ class Hetu extends HTAbstractInterpreter {
   void _storeLocal() {
     final valueType = _curLibrary.read();
     switch (valueType) {
-      case HTValueTypeCode.NULL:
+      case HTValueTypeCode.nullValue:
         _curValue = null;
         break;
       case HTValueTypeCode.boolean:
@@ -1360,6 +1360,9 @@ class Hetu extends HTAbstractInterpreter {
             line: _curLine,
             column: _curColumn);
       }
+    } else if (callee is HTStruct && callee.definition != null) {
+      HTNamedStruct def = callee.definition!;
+      _curValue = def.createObject();
     } else {
       throw HTError.notCallable(callee.toString(),
           moduleFullName: _curModuleFullName,
@@ -1676,6 +1679,7 @@ class Hetu extends HTAbstractInterpreter {
     if (hasPrototypeId) {
       prototypeId = _readString();
     }
+    final lateInitialize = _curLibrary.readBool();
     final staticFiledsLength = _curLibrary.readUint16();
     final staticDefinitionIp = _curLibrary.ip;
     _curLibrary.skip(staticFiledsLength);
@@ -1692,6 +1696,9 @@ class Hetu extends HTAbstractInterpreter {
       staticDefinitionIp: staticDefinitionIp,
       definitionIp: definitionIp,
     );
+    if (!lateInitialize) {
+      struct.resolve();
+    }
     _curNamespace.define(id, struct);
   }
 }

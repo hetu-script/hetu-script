@@ -16,7 +16,7 @@ import '../../declaration/generic/generic_type_parameter.dart';
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   @override
-  String toString() => '${HTLexicon.CLASS} $id';
+  String toString() => '${HTLexicon.kClass} $id';
 
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;

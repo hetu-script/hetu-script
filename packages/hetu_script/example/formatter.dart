@@ -11,7 +11,7 @@ void main() {
   final module = parser.parseToModule(source);
   final formatter = HTFormatter();
   formatter.formatModule(module);
-  print('${module.fullName}');
+  print(module.fullName);
   print('--------------------------------------------------------------------');
   print(module.source.content);
   print('--------------------------------------------------------------------');

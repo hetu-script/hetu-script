@@ -6,6 +6,8 @@ external fun stringify(obj: any)
 // TODO: obj's type here should be '{}' (empty interface)
 external fun jsonify(obj)
 
+external fun assert(value: bool)
+
 abstract class object {
   external fun toString()
 }

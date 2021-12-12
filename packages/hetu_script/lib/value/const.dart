@@ -1,14 +1,16 @@
 import '../declaration/declaration.dart';
 
 class HTConst extends HTDeclaration {
+  final String _id;
+
   @override
-  final String id;
+  String get id => _id;
 
   @override
   final dynamic value;
 
-  HTConst(this.id, {this.value}) : super(id: id);
+  HTConst(this._id, {this.value}) : super(id: _id);
 
   @override
-  HTConst clone() => HTConst(id, value: value);
+  HTConst clone() => HTConst(_id, value: value);
 }

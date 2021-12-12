@@ -27,7 +27,6 @@ final Map<String, Function> preIncludeFunctions = {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    // TODO: jsonify class
     final object = positionalArgs.first;
     if (object is HTStruct) {
       return jsonifyStruct(object);
@@ -37,6 +36,16 @@ final Map<String, Function> preIncludeFunctions = {
       return stringify(object);
     } else {
       return null;
+    }
+  },
+  'assert': (HTEntity entity,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    String message = positionalArgs[0];
+    bool value = positionalArgs[1];
+    if (!value) {
+      throw HTError.assertionFailed(message);
     }
   },
   'prototype.fromJson': (HTEntity entity,

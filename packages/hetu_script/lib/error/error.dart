@@ -10,6 +10,7 @@ enum ErrorCode {
   bytecode,
   version,
 
+  assertionFailed,
   unexpected,
   external,
   // externalCtor,
@@ -155,6 +156,11 @@ class ErrorType implements Comparable<ErrorType> {
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
 
   @override
+  bool operator ==(Object other) {
+    return other is HTError && hashCode == other.hashCode;
+  }
+
+  @override
   int get hashCode => weight;
 
   @override
@@ -255,8 +261,28 @@ class HTError implements AbstractError {
     for (var i = 0; i < interpolations.length; ++i) {
       message = message.replaceAll('{$i}', interpolations[i].toString());
     }
+    // ignore: prefer_initializing_formals
     this.message = message;
   }
+
+  HTError.assertionFailed(String message,
+      {String? extra,
+      String? correction,
+      String? moduleFullName,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.assertionFailed, ErrorType.syntacticError,
+            HTLexicon.errorAssertionFailed,
+            interpolations: [message],
+            extra: extra,
+            correction: correction,
+            moduleFullName: moduleFullName,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Expected a token while met another.
   HTError.unexpected(String expected, String met,

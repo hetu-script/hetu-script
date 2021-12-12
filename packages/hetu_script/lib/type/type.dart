@@ -9,20 +9,20 @@ import 'function_type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 
 abstract class HTType with HTEntity {
-  static const type = _PrimitiveType(HTLexicon.type);
-  static const any = _PrimitiveType(HTLexicon.any);
-  static const NULL = _PrimitiveType(HTLexicon.NULL);
-  static const VOID = _PrimitiveType(HTLexicon.VOID);
-  static const UNKNOWN = _PrimitiveType(HTLexicon.unknown);
-  static const function = _PrimitiveType(HTLexicon.function);
+  static const type = _PrimitiveType(HTLexicon.kType);
+  static const any = _PrimitiveType(HTLexicon.kAny);
+  static const nullType = _PrimitiveType(HTLexicon.kNull);
+  static const voidType = _PrimitiveType(HTLexicon.kVoid);
+  static const unknownType = _PrimitiveType(HTLexicon.kUnknown);
+  static const function = _PrimitiveType(HTLexicon.kFunction);
 
   static const Map<String, HTType> primitiveTypes = {
-    HTLexicon.type: type,
-    HTLexicon.any: any,
-    HTLexicon.NULL: NULL,
-    HTLexicon.VOID: VOID,
-    HTLexicon.unknown: UNKNOWN,
-    HTLexicon.function: function,
+    HTLexicon.kType: type,
+    HTLexicon.kAny: any,
+    HTLexicon.kNull: nullType,
+    HTLexicon.kVoid: voidType,
+    HTLexicon.kUnknown: unknownType,
+    HTLexicon.kFunction: function,
   };
 
   static String parseBaseType(String typeString) {
@@ -91,7 +91,8 @@ abstract class HTType with HTEntity {
   }
 
   @override
-  bool operator ==(Object other) => hashCode == other.hashCode;
+  bool operator ==(Object other) =>
+      other is HTType && hashCode == other.hashCode;
 
   @override
   String toString() {
@@ -117,8 +118,8 @@ abstract class HTType with HTEntity {
   bool isA(HTType? other) {
     if (other == null) {
       return true;
-    } else if (this == HTType.UNKNOWN) {
-      if (other == HTType.any || other == HTType.UNKNOWN) {
+    } else if (this == HTType.unknownType) {
+      if (other == HTType.any || other == HTType.unknownType) {
         return true;
       } else {
         return false;
@@ -126,7 +127,7 @@ abstract class HTType with HTEntity {
     } else if (other == HTType.any) {
       return true;
     } else {
-      if (this == HTType.NULL) {
+      if (this == HTType.nullType) {
         // TODO: 这里是 nullable 功能的开关
         // if (other.isNullable) {
         //   return true;

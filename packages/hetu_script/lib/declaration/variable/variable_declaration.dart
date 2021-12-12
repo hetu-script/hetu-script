@@ -6,8 +6,10 @@ import '../declaration.dart';
 import '../namespace/namespace.dart';
 
 class HTVariableDeclaration extends HTDeclaration {
+  final String _id;
+
   @override
-  final String id;
+  String get id => _id;
 
   final HTType? _declType;
 
@@ -18,7 +20,7 @@ class HTVariableDeclaration extends HTDeclaration {
   /// determine wether an value binding (assignment) is legal.
   HTType? get declType => _resolvedDeclType ?? _declType;
 
-  HTVariableDeclaration(this.id,
+  HTVariableDeclaration(this._id,
       {String? classId,
       HTNamespace? closure,
       HTSource? source,
@@ -30,7 +32,7 @@ class HTVariableDeclaration extends HTDeclaration {
       bool isTopLevel = false})
       : _declType = declType,
         super(
-            id: id,
+            id: _id,
             classId: classId,
             closure: closure,
             source: source,

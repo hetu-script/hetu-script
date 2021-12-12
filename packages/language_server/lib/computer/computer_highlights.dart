@@ -169,7 +169,7 @@ class HetuHighlightsComputer {
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element is LocalVariableElement) {
-      var elementType = element.type;
+      var elementType = element.kType;
       if (elementType?.isDynamic == true) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
@@ -178,7 +178,7 @@ class HetuHighlightsComputer {
       }
     }
     if (element is ParameterElement) {
-      var elementType = element.type;
+      var elementType = element.kType;
       if (elementType?.isDynamic == true) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
@@ -982,7 +982,7 @@ class _HetuHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    var type = node.type;
+    var type = node.kType;
     if (type != null) {
       if (type.isDynamic && node.name.name == 'dynamic') {
         computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);

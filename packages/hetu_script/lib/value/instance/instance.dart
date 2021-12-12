@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import 'package:quiver/core.dart';
+
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../type/type.dart';
@@ -241,7 +243,17 @@ class HTInstance with HTEntity, InterpreterRef {
   bool operator ==(Object other) {
     if (other is HTCast) {
       return this == other.object;
+    } else {
+      return hashCode == other.hashCode;
     }
-    return hashCode == other.hashCode;
+  }
+
+  @override
+  int get hashCode {
+    final hashList = <int>[];
+    hashList.add(classId.hashCode);
+    hashList.add(index.hashCode);
+    final hash = hashObjects(hashList);
+    return hash;
   }
 }

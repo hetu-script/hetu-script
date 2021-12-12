@@ -28,6 +28,11 @@ class HTNominalType extends HTType {
   // }
 
   @override
+  bool operator ==(Object other) {
+    return other is HTNominalType && hashCode == other.hashCode;
+  }
+
+  @override
   int get hashCode {
     final hashList = <int>[];
     hashList.add(id.hashCode);

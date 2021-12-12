@@ -4,10 +4,13 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-  final obj = {
-    a: 1,
-    b: 2,
+  struct Named {
+    var name = 'Unity'
+    var age = 17
   }
-  print(obj)
+  final n = Named()
+  n.age = 42
+  print(n)
+  print(Named)
   ''', isScript: true);
 }

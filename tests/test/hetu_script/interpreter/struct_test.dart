@@ -62,5 +62,22 @@ void main() {
         false,
       );
     });
+    test('named', () {
+      final result = hetu.eval(r'''
+        fun namedStructTest {
+          struct Named {
+            var name = 'Unity'
+            var age = 17
+          }
+          final n = Named()
+          n.age = 42
+          return Named.age
+        }
+      ''', invokeFunc: 'namedStructTest');
+      expect(
+        result,
+        17,
+      );
+    });
   });
 }

@@ -17,7 +17,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
 
   @override
   HTType? visitNullExpr(NullExpr expr) {
-    return HTType.NULL;
+    return HTType.nullType;
   }
 
   @override

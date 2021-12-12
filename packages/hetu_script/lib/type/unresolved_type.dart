@@ -42,7 +42,7 @@ class HTUnresolvedType extends HTType {
           return type;
         } // TODO: interface type, union type, literal type etc...
         else {
-          throw HTError.unsupported('${HTLexicon.TYPEOF} $type');
+          throw HTError.unsupported('${HTLexicon.kTypeof} $type');
         }
       } else {
         throw HTError.notType(id);

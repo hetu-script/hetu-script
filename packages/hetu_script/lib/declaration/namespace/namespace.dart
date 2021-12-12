@@ -27,7 +27,7 @@ class ImportDeclaration {
 /// from a certain block or module.
 class HTNamespace extends HTDeclaration with HTEntity {
   @override
-  String toString() => '${HTLexicon.NAMESPACE} $id';
+  String toString() => '${HTLexicon.kNamespace} $id';
 
   late String _fullName;
 

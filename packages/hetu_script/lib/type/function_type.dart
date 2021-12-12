@@ -35,7 +35,7 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
       {this.genericTypeParameters = const [],
       this.parameterTypes = const [],
       this.returnType = HTType.any})
-      : super(HTLexicon.FUNCTION);
+      : super(HTLexicon.kFun);
 
   @override
   String toString() {
@@ -82,6 +82,11 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
     result.write('${HTLexicon.roundRight} ${HTLexicon.singleArrow} ' +
         returnType.toString());
     return result.toString();
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is HTFunctionType && hashCode == other.hashCode;
   }
 
   @override

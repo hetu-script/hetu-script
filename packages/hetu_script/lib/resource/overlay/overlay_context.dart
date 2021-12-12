@@ -26,8 +26,8 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
   }
 
   @override
-  bool contains(String fullName) {
-    final normalized = getAbsolutePath(key: fullName, dirName: root);
+  bool contains(String key) {
+    final normalized = getAbsolutePath(key: key, dirName: root);
     return path.isWithin(root, normalized);
   }
 

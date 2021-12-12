@@ -7,13 +7,17 @@ class HTLibrary extends HTNamespace {
   @override
   String toString() => '${SemanticNames.library} $id';
 
-  @override
-  final String id;
+  final String _id;
 
   @override
-  final Map<String, HTNamespace> declarations;
+  String get id => _id;
 
-  HTLibrary(this.id, {Map<String, HTNamespace>? declarations})
-      : declarations = declarations ?? <String, HTNamespace>{},
-        super(id: id);
+  final Map<String, HTNamespace> _namespaces;
+
+  @override
+  Map<String, HTNamespace> get declarations => _namespaces;
+
+  HTLibrary(this._id, {Map<String, HTNamespace>? declarations})
+      : _namespaces = declarations ?? <String, HTNamespace>{},
+        super(id: _id);
 }

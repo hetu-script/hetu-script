@@ -11,8 +11,10 @@ import '../../interpreter/compiler.dart' show GotoInfo;
 /// Unlike class and function, the declaration of a struct is a value
 /// and struct object does not extends from this.
 class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
+  final String _id;
+
   @override
-  final String id;
+  String get id => _id;
 
   final String? prototypeId;
 
@@ -23,7 +25,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
   final int? staticDefinitionIp;
 
   HTNamedStruct(
-    this.id,
+    this._id,
     Hetu interpreter,
     String moduleFullName,
     String libraryName,
@@ -33,7 +35,8 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     bool isTopLevel = false,
     this.staticDefinitionIp,
     int? definitionIp,
-  }) : super(id: id, closure: closure, source: source, isTopLevel: isTopLevel) {
+  }) : super(
+            id: _id, closure: closure, source: source, isTopLevel: isTopLevel) {
     this.interpreter = interpreter;
     this.moduleFullName = moduleFullName;
     this.libraryName = libraryName;
@@ -44,41 +47,38 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     if (!isResolved) {
       throw HTError.unresolvedNamedStruct(id);
     }
-
     HTStruct structObj = interpreter.execute(
         moduleFullName: moduleFullName,
         libraryName: libraryName,
         ip: definitionIp!,
         namespace: closure);
-
+    structObj.import(_static!);
     return structObj;
   }
 
   @override
   void resolve() {
     super.resolve();
-
     _static = interpreter.execute(
         moduleFullName: moduleFullName,
         libraryName: libraryName,
         ip: staticDefinitionIp!,
         namespace: closure);
-
-    _self = interpreter.execute(
+    HTStruct self = interpreter.execute(
         moduleFullName: moduleFullName,
         libraryName: libraryName,
         ip: definitionIp!,
         namespace: closure);
-
-    _self!.import(_static!);
-
+    self.import(_static!);
     if (closure != null) {
       if (prototypeId != null) {
-        _self!.prototype = closure!.memberGet(prototypeId!);
+        self.prototype = closure!.memberGet(prototypeId!);
       } else if (id != HTLexicon.prototype) {
-        _self!.prototype = closure!.memberGet(HTLexicon.prototype);
+        self.prototype = closure!.memberGet(HTLexicon.prototype);
       }
     }
+    self.definition = this;
+    _self = self;
   }
 
   @override

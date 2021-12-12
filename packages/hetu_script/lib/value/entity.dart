@@ -7,10 +7,10 @@ class _HTNull with HTEntity {
   const _HTNull();
 
   @override
-  String toString() => HTLexicon.NULL;
+  String toString() => HTLexicon.kNull;
 
   @override
-  HTType get valueType => HTType.NULL;
+  HTType get valueType => HTType.nullType;
 }
 
 /// A collection of various symbols & value pairs.
@@ -19,7 +19,8 @@ abstract class HTEntity {
 
   /// The [null] in Hetu is a static const variable of [HTEntity].
   /// Hence every null is the same object.
-  static const NULL = _HTNull();
+  // ignore: constant_identifier_names
+  static const nullValue = _HTNull();
 
   HTType get valueType => type;
 

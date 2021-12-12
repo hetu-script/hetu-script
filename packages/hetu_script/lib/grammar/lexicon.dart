@@ -36,14 +36,14 @@ abstract class HTLexicon {
   static const stringEscapes = <String, String>{
     r'\\': '\\',
     r"\'": '\'',
-    r'\"': '\"',
+    r'\"': '"',
     r'\n': '\n',
     r'\t': '\t',
   };
 
   /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
-  /// Tthis is to avoid ambiguity in parser.
-  static const Set<String> ASIStart = {
+  /// This is to avoid ambiguity in parser.
+  static const Set<String> defaultSemicolonStart = {
     curlyLeft,
     roundLeft,
     squareLeft,
@@ -52,8 +52,8 @@ abstract class HTLexicon {
   };
 
   /// Add semicolon after a line with 'return'
-  static const Set<String> ASIEnd = {
-    RETURN,
+  static const Set<String> defaultSemicolonEnd = {
+    kReturn,
   };
 
   static const main = 'main';
@@ -95,153 +95,152 @@ abstract class HTLexicon {
   static const indentSpaces = '  ';
   static const spreadSyntax = '...';
 
-  static const NULL = 'null';
-  static const TRUE = 'true';
-  static const FALSE = 'false';
+  static const kNull = 'null';
+  static const kTrue = 'true';
+  static const kFalse = 'false';
 
-  static const late = 'late';
+  static const kLate = 'late';
 
-  static const VAR = 'var';
-  static const FINAL = 'final';
-  static const CONST = 'const';
-  static const DELETE = 'delete';
+  static const kVar = 'var';
+  static const kFinal = 'final';
+  static const kConst = 'const';
+  static const kDelete = 'delete';
 
   /// 变量声明
   static const Set<String> varDeclKeywords = {
-    VAR,
-    FINAL,
-    CONST,
+    kVar,
+    kFinal,
+    kConst,
   };
 
   static const Set<String> primitiveTypes = {
-    type,
-    any,
-    VOID,
-    unknown,
-    never,
+    kType,
+    kAny,
+    kVoid,
+    kUnknown,
+    kNever,
     // FUNCTION,
   };
 
-  static const VOID = 'void';
-  static const any = 'any';
-  static const unknown = 'unknown';
-  static const never = 'never';
-  static const function = 'function';
+  static const kVoid = 'void';
+  static const kAny = 'any';
+  static const kUnknown = 'unknown';
+  static const kNever = 'never';
+  static const kFunction = 'function';
 
-  static const type = 'type';
+  static const kType = 'type';
   static const object = 'object';
   static const prototype = 'prototype';
   static const library = 'library';
-  static const import = 'import';
-  static const export = 'export';
-  static const show = 'show';
-  static const from = 'from';
+  static const kImport = 'import';
+  static const kExport = 'export';
+  static const kFrom = 'from';
 
-  static const TYPEOF = 'typeof';
-  static const NAMESPACE = 'namespace';
-  static const AS = 'as';
-  static const CLASS = 'class';
-  static const ENUM = 'enum';
-  static const FUNCTION = 'fun';
-  static const STRUCT = 'struct';
-  static const INTERFACE = 'inteface';
-  static const THIS = 'this';
-  static const SUPER = 'super';
+  static const kTypeof = 'typeof';
+  static const kNamespace = 'namespace';
+  static const kAs = 'as';
+  static const kClass = 'class';
+  static const kEnum = 'enum';
+  static const kFun = 'fun';
+  static const kStruct = 'struct';
+  static const kInterface = 'inteface';
+  static const kThis = 'this';
+  static const kSuper = 'super';
 
-  static const Set<String> constructorCall = {THIS, SUPER};
+  static const Set<String> constructorCall = {kThis, kSuper};
 
-  static const ABSTRACT = 'abstract';
-  static const OVERRIDE = 'override';
-  static const EXTERNAL = 'external';
-  static const STATIC = 'static';
-  static const EXTENDS = 'extends';
-  static const IMPLEMENTS = 'implements';
-  static const WITH = 'with';
-  static const REQUIRED = 'required';
+  static const kAbstract = 'abstract';
+  static const kOverride = 'override';
+  static const kExternal = 'external';
+  static const kStatic = 'static';
+  static const kExtends = 'extends';
+  static const kImplements = 'implements';
+  static const kWith = 'with';
+  static const kRequired = 'required';
 
-  static const CONSTRUCT = 'construct';
-  static const FACTORY = 'factory';
-  static const GET = 'get';
-  static const SET = 'set';
-  static const ASYNC = 'async';
+  static const kConstruct = 'construct';
+  static const kFactory = 'factory';
+  static const kGet = 'get';
+  static const kSet = 'set';
+  static const kAsync = 'async';
 
-  static const AWAIT = 'await';
-  static const ASSERT = 'assert';
-  static const BREAK = 'break';
-  static const CONTINUE = 'continue';
-  static const RETURN = 'return';
-  static const FOR = 'for';
-  static const IN = 'in';
-  static const OF = 'of';
-  static const IF = 'if';
-  static const ELSE = 'else';
-  static const WHILE = 'while';
-  static const DO = 'do';
-  static const WHEN = 'when';
-  static const IS = 'is';
-  static const ISNOT = 'is!';
+  static const kAwait = 'await';
+  static const kBreak = 'break';
+  static const kContinue = 'continue';
+  static const kReturn = 'return';
+  static const kFor = 'for';
+  static const kIn = 'in';
+  static const kOf = 'of';
+  static const kIf = 'if';
+  static const kElse = 'else';
+  static const kWhile = 'while';
+  static const kDo = 'do';
+  static const kWhen = 'when';
+  static const kIs = 'is';
+  static const kIsNot = 'is!';
 
-  static const TRY = 'try';
-  static const CATCH = 'catch';
-  static const THROW = 'throw';
+  static const kTry = 'try';
+  static const kCatch = 'catch';
+  static const kFinally = 'finally';
+  static const kThrow = 'throw';
 
   /// 内置关键字
   static const Set<String> keywords = {
-    NULL,
-    TRUE,
-    FALSE,
-    VAR,
-    FINAL,
-    CONST,
-    TYPEOF,
-    CLASS,
-    ENUM,
-    FUNCTION,
-    STRUCT,
-    INTERFACE,
-    THIS,
-    SUPER,
-    ABSTRACT,
-    OVERRIDE,
-    EXTERNAL,
-    STATIC,
-    EXTENDS,
-    IMPLEMENTS,
-    WITH,
-    CONSTRUCT,
-    FACTORY,
-    GET,
-    SET,
-    ASYNC, // TODO: async单独可以用作函数声明关键字
-    AWAIT,
-    BREAK,
-    CONTINUE,
-    RETURN,
-    FOR,
-    IN,
-    OF,
-    IF,
-    ELSE,
-    WHILE,
-    DO,
-    WHEN,
-    IS,
-    AS,
-    TRY,
-    CATCH,
-    THROW,
+    kNull,
+    kTrue,
+    kFalse,
+    kVar,
+    kFinal,
+    kConst,
+    kTypeof,
+    kClass,
+    kEnum,
+    kFun,
+    kStruct,
+    kInterface,
+    kThis,
+    kSuper,
+    kAbstract,
+    kOverride,
+    kExternal,
+    kStatic,
+    kExtends,
+    kImplements,
+    kWith,
+    kConstruct,
+    kFactory,
+    kGet,
+    kSet,
+    kAsync, // TODO: async单独可以用作函数声明关键字
+    kAwait,
+    kBreak,
+    kContinue,
+    kReturn,
+    kFor,
+    kIn,
+    kIf,
+    kElse,
+    kWhile,
+    kDo,
+    kWhen,
+    kIs,
+    kAs,
+    kTry,
+    kCatch,
+    kFinally,
+    kThrow,
   };
 
   static const Set<String> contextualKeyword = {
-    VOID,
-    type,
-    import,
-    export,
-    any,
-    unknown,
-    never,
-    show,
-    from,
+    kOf,
+    kVoid,
+    kType,
+    kImport,
+    kExport,
+    kAny,
+    kUnknown,
+    kNever,
+    kFrom,
   };
 
   static const memberGet = '.';
@@ -271,7 +270,7 @@ abstract class HTLexicon {
     negative,
     preIncrement,
     preDecrement,
-    TYPEOF,
+    kTypeof,
   };
 
   static const multiply = '*';
@@ -305,8 +304,8 @@ abstract class HTLexicon {
     greaterOrEqual,
     lesser,
     lesserOrEqual,
-    AS,
-    IS
+    kAs,
+    kIs
     // is! is handled in parser
   };
 
@@ -317,7 +316,7 @@ abstract class HTLexicon {
     lesserOrEqual
   };
 
-  static const Set<String> typeRelationals = {AS, IS};
+  static const Set<String> typeRelationals = {kAs, kIs};
 
   static const equal = '==';
   static const notEqual = '!=';
@@ -420,6 +419,7 @@ abstract class HTLexicon {
   static const errorBytecode = 'Unrecognizable bytecode.';
   static const errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}].';
+  static const errorAssertionFailed = 'Assertion failed: [{0}]';
 
   // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}].';

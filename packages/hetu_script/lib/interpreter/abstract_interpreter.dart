@@ -212,7 +212,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     if (object is HTEntity) {
       return object;
     } else if ((object == null) || (object is NullThrownError)) {
-      return HTEntity.NULL;
+      return HTEntity.nullValue;
     }
     late String typeString;
     if (object is bool) {

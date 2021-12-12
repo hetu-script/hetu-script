@@ -27,10 +27,10 @@ class HTLexer {
           toksOfLine.add(TokenMultiLineComment(matchString, curLine, curColumn,
               curOffset + match.start, curOffset + match.end));
         } else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
-          if (matchString == HTLexicon.TRUE) {
+          if (matchString == HTLexicon.kTrue) {
             toksOfLine.add(TokenBooleanLiteral(matchString, true, curLine,
                 curColumn, curOffset + match.start, curOffset + match.end));
-          } else if (matchString == HTLexicon.FALSE) {
+          } else if (matchString == HTLexicon.kFalse) {
             toksOfLine.add(TokenBooleanLiteral(matchString, false, curLine,
                 curColumn, curOffset + match.start, curOffset + match.end));
           } else if (HTLexicon.keywords.contains(matchString)) {
@@ -109,7 +109,7 @@ class HTLexer {
       }
 
       if (toksOfLine.isNotEmpty) {
-        if (HTLexicon.ASIStart.contains(toksOfLine.first.type)) {
+        if (HTLexicon.defaultSemicolonStart.contains(toksOfLine.first.type)) {
           /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
           if (tokens.isNotEmpty &&
@@ -118,7 +118,7 @@ class HTLexer {
                 toksOfLine.first.offset + toksOfLine.first.length, 0));
           }
           tokens.addAll(toksOfLine);
-        } else if (toksOfLine.last.type == HTLexicon.RETURN) {
+        } else if (toksOfLine.last.type == HTLexicon.kReturn) {
           tokens.addAll(toksOfLine);
           tokens.add(Token(HTLexicon.semicolon, curLine, curColumn + 1,
               toksOfLine.last.offset + toksOfLine.last.length, 0));

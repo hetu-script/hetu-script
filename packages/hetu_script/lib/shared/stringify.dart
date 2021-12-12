@@ -1,7 +1,7 @@
 import '../grammar/lexicon.dart';
 import '../value/struct/struct.dart';
 
-String stringify(Object object) {
+String stringify(dynamic object) {
   final output = StringBuffer();
   if (object is String) {
     if (object.contains("'")) {

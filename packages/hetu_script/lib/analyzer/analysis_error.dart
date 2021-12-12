@@ -1,8 +1,28 @@
 import '../error/error.dart';
+import '../error/error_severity.dart';
 import 'diagnostic.dart';
 
-class HTAnalysisError extends HTError {
-  final List<HTDiagnosticMessage> contextMessages;
+class HTAnalysisError implements HTError {
+  @override
+  final ErrorCode code;
+
+  @override
+  String get name => code.toString().split('.').last;
+
+  @override
+  final ErrorType type;
+
+  @override
+  ErrorSeverity get severity => type.severity;
+
+  @override
+  late final String message;
+
+  @override
+  final String? extra;
+
+  @override
+  final String? correction;
 
   @override
   final String moduleFullName;
@@ -19,21 +39,18 @@ class HTAnalysisError extends HTError {
   @override
   final int length;
 
-  HTAnalysisError(ErrorCode code, ErrorType type, String message,
-      {List<String> interpolations = const [],
-      String? correction,
+  final List<HTDiagnosticMessage> contextMessages;
+
+  HTAnalysisError(this.code, this.type, String message,
+      {this.extra,
+      List<String> interpolations = const [],
+      this.correction,
       required this.moduleFullName,
       required this.line,
       required this.column,
       this.offset = 0,
       this.length = 0,
-      this.contextMessages = const []})
-      : super(code, type, message,
-            moduleFullName: moduleFullName,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      this.contextMessages = const []});
 
   HTAnalysisError.fromError(HTError error,
       {List<HTDiagnosticMessage> contextMessages = const []})

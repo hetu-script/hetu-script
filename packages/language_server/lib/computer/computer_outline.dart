@@ -244,7 +244,7 @@ class HetuModuleOutlineComputer {
     var nameNode = node.name;
     var name = nameNode.name;
 
-    var aliasedType = node.type;
+    var aliasedType = node.kType;
     var aliasedFunctionType =
         aliasedType is GenericFunctionType ? aliasedType : null;
 
@@ -383,7 +383,7 @@ class HetuModuleOutlineComputer {
       if (classMember is FieldDeclaration) {
         var fieldDeclaration = classMember;
         var fields = fieldDeclaration.unresolvedFields;
-        var fieldType = fields.type;
+        var fieldType = fields.kType;
         var fieldTypeName = _safeToSource(fieldType);
         for (var field in fields.variables) {
           memberOutlines.add(_newVariableOutline(fieldTypeName,

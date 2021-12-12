@@ -4,7 +4,7 @@ import 'type.dart';
 
 /// A type checks interfaces rather than type ids.
 class HTStructuralType extends HTType with HTEntity {
-  const HTStructuralType() : super(HTLexicon.STRUCT);
+  const HTStructuralType() : super(HTLexicon.kStruct);
 
   @override
   String toString() {
