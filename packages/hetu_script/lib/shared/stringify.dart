@@ -88,7 +88,7 @@ String stringifyStruct(HTStruct struct, {HTStruct? from}) {
   }
   --_curIndentCount;
   if (struct.prototype != null && struct.prototype!.id != HTLexicon.prototype) {
-    final inherits = stringify(struct.prototype!);
+    final inherits = stringifyStruct(struct.prototype!, from: struct);
     output.write(inherits);
   }
   return output.toString();

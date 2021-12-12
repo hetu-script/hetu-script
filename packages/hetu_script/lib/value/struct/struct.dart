@@ -166,9 +166,9 @@ class HTStruct with HTEntity {
       memberSet(varName.toString(), varValue);
 
   HTStruct clone() {
-    final cloned = HTStruct(closure!);
+    final cloned = HTStruct(closure!, prototype: prototype);
     for (final key in fields.keys) {
-      final value = fields[key]!;
+      final value = fields[key];
       final copiedValue = toStructValue(value, closure!);
       cloned.define(key, copiedValue);
     }

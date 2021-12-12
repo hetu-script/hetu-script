@@ -51,12 +51,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     if (!isResolved) {
       throw HTError.unresolvedNamedStruct(id);
     }
-    HTStruct structObj = interpreter.execute(
-        moduleFullName: moduleFullName,
-        libraryName: libraryName,
-        ip: definitionIp!,
-        namespace: closure);
-    structObj.import(_static!);
+    HTStruct structObj = _self!.clone();
     if (structObj.owns(SemanticNames.constructor)) {
       final constructor =
           structObj.memberGet(SemanticNames.constructor) as HTFunction;
@@ -69,24 +64,25 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
   @override
   void resolve() {
     super.resolve();
-    _static = interpreter.execute(
+    HTStruct static = interpreter.execute(
         moduleFullName: moduleFullName,
         libraryName: libraryName,
         ip: staticDefinitionIp!,
         namespace: closure);
+    if (closure != null) {
+      if (prototypeId != null) {
+        static.prototype = closure!.memberGet(prototypeId!);
+      } else if (id != HTLexicon.prototype) {
+        static.prototype = closure!.memberGet(HTLexicon.prototype);
+      }
+    }
+    _static = static;
     HTStruct self = interpreter.execute(
         moduleFullName: moduleFullName,
         libraryName: libraryName,
         ip: definitionIp!,
         namespace: closure);
-    self.import(_static!);
-    if (closure != null) {
-      if (prototypeId != null) {
-        self.prototype = closure!.memberGet(prototypeId!);
-      } else if (id != HTLexicon.prototype) {
-        self.prototype = closure!.memberGet(HTLexicon.prototype);
-      }
-    }
+    self.prototype = static;
     self.definition = this;
     _self = self;
   }

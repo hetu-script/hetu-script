@@ -184,8 +184,37 @@ struct Named {
     this.name = name
   }
 }
+```
 
-var n = Named('jimmy')
+The named struct declaration itself is also a struct. you can access and modify its member.
+
+However this kind of modification won't affect the object that created before.
+
+```dart
+final n = Named('Jimmy')
+Named.name = 'Jones'
+print(n.name) // 'Jimmy'
+```
+
+You can define static fields on a named struct.
+
+Unlike static members in class, the object created by the struct constructor can access the static fields through '.' operator.
+
+And if you changed the static fields in a named struct. All the object created from this named struct, will be getting the new value.
+
+```javascript
+struct Named {
+  static var race = 'Human'
+  var name
+  construct(name) {
+    this.name = name
+  }
+}
+final n = Named('Jimmy')
+print(n.name) // Jimmy
+print(Named.name) // null
+Named.race = 'Dragon'
+print(n.race) // Dragon
 ```
 
 ### Literal struct
