@@ -955,12 +955,22 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitAssertStmt(AssertStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.assertion);
+    final source = stmt.source!;
+    final text = source.content.substring(stmt.expr.offset, stmt.expr.end);
+    bytesBuilder.add(_string(text.trim()));
+    final bytes = compileAst(stmt.expr, endOfExec: true);
+    bytesBuilder.add(bytes);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitExprStmt(ExprStmt stmt) {
     final bytesBuilder = BytesBuilder();
-    // if (stmt.expr != null) {
     final bytes = compileAst(stmt.expr);
     bytesBuilder.add(bytes);
-    // }
     return bytesBuilder.toBytes();
   }
 

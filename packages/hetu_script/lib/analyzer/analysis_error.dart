@@ -16,7 +16,7 @@ class HTAnalysisError implements HTError {
   ErrorSeverity get severity => type.severity;
 
   @override
-  late final String message;
+  final String? message;
 
   @override
   final String? extra;
@@ -41,8 +41,9 @@ class HTAnalysisError implements HTError {
 
   final List<HTDiagnosticMessage> contextMessages;
 
-  HTAnalysisError(this.code, this.type, String message,
-      {this.extra,
+  HTAnalysisError(this.code, this.type,
+      {this.message,
+      this.extra,
       List<String> interpolations = const [],
       this.correction,
       required this.moduleFullName,
@@ -54,7 +55,8 @@ class HTAnalysisError implements HTError {
 
   HTAnalysisError.fromError(HTError error,
       {List<HTDiagnosticMessage> contextMessages = const []})
-      : this(error.code, error.type, error.message,
+      : this(error.code, error.type,
+            message: error.message,
             correction: error.correction,
             moduleFullName: error.moduleFullName!,
             line: error.line!,

@@ -224,7 +224,7 @@ class Hetu extends HTAbstractInterpreter {
       final wrappedError = HTError(
         error.code,
         error.type,
-        error.message,
+        message: error.message,
         extra: errorConfig.showDartStackTrace ? stackTraceString : null,
         moduleFullName: error.moduleFullName ?? _curModuleFullName,
         line: error.line ?? _curLine,
@@ -728,6 +728,13 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.continueLoop:
           _curLibrary.ip = _loops.last.continueIp;
           _curNamespace = _loops.last.namespace;
+          break;
+        case HTOpCode.assertion:
+          final text = _readString();
+          final value = execute();
+          if (!value) {
+            throw HTError.assertionFailed(text);
+          }
           break;
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:

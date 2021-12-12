@@ -828,6 +828,34 @@ class CallExpr extends AstNode {
             length: length);
 }
 
+class AssertStmt extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitAssertStmt(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    expr.accept(visitor);
+  }
+
+  final AstNode expr;
+
+  final bool hasEndOfStmtMark;
+
+  AssertStmt(this.expr,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.exprStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class ExprStmt extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitExprStmt(this);

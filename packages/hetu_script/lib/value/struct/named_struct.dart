@@ -19,8 +19,6 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
 
   final String? prototypeId;
 
-  HTStruct? _static;
-
   HTStruct? _self;
 
   final int? staticDefinitionIp;
@@ -76,7 +74,6 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         static.prototype = closure!.memberGet(HTLexicon.prototype);
       }
     }
-    _static = static;
     HTStruct self = interpreter.execute(
         moduleFullName: moduleFullName,
         libraryName: libraryName,

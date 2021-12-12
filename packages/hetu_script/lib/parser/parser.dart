@@ -192,6 +192,8 @@ class HTParser extends HTAbstractParser {
               return _parseComment();
             case SemanticNames.multiLineComment:
               return _parseComment(isMultiline: true);
+            case HTLexicon.kAssert:
+              return _parseAssertStmt();
             case HTLexicon.kExternal:
               advance(1);
               switch (curTok.type) {
@@ -311,6 +313,8 @@ class HTParser extends HTAbstractParser {
               return _parseComment();
             case SemanticNames.multiLineComment:
               return _parseComment(isMultiline: true);
+            case HTLexicon.kAssert:
+              return _parseAssertStmt();
             case HTLexicon.kExternal:
               advance(1);
               switch (curTok.type) {
@@ -714,6 +718,8 @@ class HTParser extends HTAbstractParser {
               return _parseComment();
             case SemanticNames.multiLineComment:
               return _parseComment(isMultiline: true);
+            case HTLexicon.kAssert:
+              return _parseAssertStmt();
             case HTLexicon.kAbstract:
               advance(1);
               return _parseClassDecl(isAbstract: true);
@@ -832,6 +838,19 @@ class HTParser extends HTAbstractParser {
           offset: comment.offset,
           length: comment.length);
     }
+  }
+
+  AssertStmt _parseAssertStmt() {
+    final keyword = match(HTLexicon.kAssert);
+    final expr = _parseExpr();
+    expect([HTLexicon.semicolon], consume: true);
+    final stmt = AssertStmt(expr,
+        source: _curSource,
+        line: keyword.line,
+        column: keyword.column,
+        offset: keyword.offset,
+        length: expr.end - keyword.offset);
+    return stmt;
   }
 
   /// 使用递归向下的方法生成表达式, 不断调用更底层的, 优先级更高的子Parser

@@ -251,6 +251,11 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
+  void visitAssertStmt(AssertStmt stmt) {
+    stmt.subAccept(this);
+  }
+
+  @override
   void visitExprStmt(ExprStmt stmt) {
     stmt.subAccept(this);
   }

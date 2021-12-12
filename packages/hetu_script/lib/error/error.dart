@@ -170,64 +170,31 @@ class ErrorType implements Comparable<ErrorType> {
   String toString() => name;
 }
 
-abstract class AbstractError {
-  ErrorCode get code;
-
-  String get name;
-
-  ErrorType get type;
-
-  ErrorSeverity get severity => type.severity;
-
-  String get message;
-
-  String? get correction;
-
-  String? get moduleFullName;
-
-  int? get line;
-
-  int? get column;
-
-  int? get offset;
-
-  int? get length;
-}
-
-class HTError implements AbstractError {
-  @override
+class HTError {
   final ErrorCode code;
 
-  @override
   String get name => code.toString().split('.').last;
 
-  @override
   final ErrorType type;
 
-  @override
   ErrorSeverity get severity => type.severity;
 
-  @override
-  late final String message;
+  String? _message;
+
+  String? get message => _message;
 
   final String? extra;
 
-  @override
   final String? correction;
 
-  @override
   final String? moduleFullName;
 
-  @override
   final int? line;
 
-  @override
   final int? column;
 
-  @override
   final int? offset;
 
-  @override
   final int? length;
 
   @override
@@ -249,8 +216,9 @@ class HTError implements AbstractError {
   }
 
   /// [HTError] can not be created by default constructor.
-  HTError(this.code, this.type, String message,
-      {this.extra,
+  HTError(this.code, this.type,
+      {String? message,
+      this.extra,
       List<Object> interpolations = const [],
       this.correction,
       this.moduleFullName,
@@ -258,11 +226,13 @@ class HTError implements AbstractError {
       this.column,
       this.offset,
       this.length}) {
-    for (var i = 0; i < interpolations.length; ++i) {
-      message = message.replaceAll('{$i}', interpolations[i].toString());
+    if (message != null) {
+      for (var i = 0; i < interpolations.length; ++i) {
+        message = message!.replaceAll('{$i}', interpolations[i].toString());
+      }
+      // ignore: prefer_initializing_formals
+      _message = message;
     }
-    // ignore: prefer_initializing_formals
-    this.message = message;
   }
 
   HTError.assertionFailed(String message,
@@ -274,7 +244,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.assertionFailed, ErrorType.syntacticError,
-            HTLexicon.errorAssertionFailed,
+            message: HTLexicon.errorAssertionFailed,
             interpolations: [message],
             extra: extra,
             correction: correction,
@@ -294,7 +264,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.unexpected, ErrorType.syntacticError,
-            HTLexicon.errorUnexpected,
+            message: HTLexicon.errorUnexpected,
             interpolations: [expected, met],
             extra: extra,
             correction: correction,
@@ -314,7 +284,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.external, ErrorType.syntacticError,
-            HTLexicon.errorExternal,
+            message: HTLexicon.errorExternal,
             interpolations: [semanticName],
             extra: extra,
             correction: correction,
@@ -334,7 +304,7 @@ class HTError implements AbstractError {
   //     int? offset,
   //     int? length})
   //     : this(ErrorCode.external, ErrorType.syntacticError,
-  //           HTLexicon.errorExternalCtor,
+  //           message: HTLexicon.errorExternalCtor,
   //           extra: extra,
   //           correction: correction,
   //           moduleFullName: moduleFullName,
@@ -353,7 +323,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.nestedClass, ErrorType.syntacticError,
-            HTLexicon.errorNestedClass,
+            message: HTLexicon.errorNestedClass,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -372,7 +342,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.outsideReturn, ErrorType.syntacticError,
-            HTLexicon.errorOutsideReturn,
+            message: HTLexicon.errorOutsideReturn,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -391,7 +361,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.setterArity, ErrorType.syntacticError,
-            HTLexicon.errorSetterArity,
+            message: HTLexicon.errorSetterArity,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -410,7 +380,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.externalMember, ErrorType.syntacticError,
-            HTLexicon.errorExternalMember,
+            message: HTLexicon.errorExternalMember,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -429,7 +399,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.emptyTypeArgs, ErrorType.syntacticError,
-            HTLexicon.errorEmptyTypeArgs,
+            message: HTLexicon.errorEmptyTypeArgs,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -448,7 +418,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.extendsSelf, ErrorType.syntacticError,
-            HTLexicon.errorExtendsSelf,
+            message: HTLexicon.errorExtendsSelf,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -467,7 +437,7 @@ class HTError implements AbstractError {
   //     int? offset,
   //     int? length})
   //     : this(ErrorCode.ctorReturn, ErrorType.syntacticError,
-  //           HTLexicon.errorCtorReturn,
+  //           message: HTLexicon.errorCtorReturn,
   //           extra: extra,
   //           correction: correction,
   //           moduleFullName: moduleFullName,
@@ -486,7 +456,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
-            HTLexicon.errorMissingFuncBody,
+            message: HTLexicon.errorMissingFuncBody,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -505,7 +475,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.missingExternalFunc, ErrorType.syntacticError,
-            HTLexicon.errorInternalFuncWithExternalTypeDef,
+            message: HTLexicon.errorInternalFuncWithExternalTypeDef,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -523,7 +493,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.externalCtorWithReferCtor, ErrorType.syntacticError,
-            HTLexicon.errorExternalCtorWithReferCtor,
+            message: HTLexicon.errorExternalCtorWithReferCtor,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -541,7 +511,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.nonCotrWithReferCtor, ErrorType.syntacticError,
-            HTLexicon.errorNonCotrWithReferCtor,
+            message: HTLexicon.errorNonCotrWithReferCtor,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -560,7 +530,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.sourceProviderError, ErrorType.externalError,
-            HTLexicon.errorSourceProviderError,
+            message: HTLexicon.errorSourceProviderError,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -580,7 +550,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.notAbsoluteError, ErrorType.externalError,
-            HTLexicon.errorNotAbsoluteError,
+            message: HTLexicon.errorNotAbsoluteError,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -600,7 +570,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.invalidLeftValue, ErrorType.syntacticError,
-            HTLexicon.errorInvalidLeftValue,
+            message: HTLexicon.errorInvalidLeftValue,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -619,7 +589,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.privateMember, ErrorType.syntacticError,
-            HTLexicon.errorPrivateMember,
+            message: HTLexicon.errorPrivateMember,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -639,7 +609,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.constMustBeStatic, ErrorType.syntacticError,
-            HTLexicon.errorConstMustBeStatic,
+            message: HTLexicon.errorConstMustBeStatic,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -659,7 +629,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.constMustInit, ErrorType.syntacticError,
-            HTLexicon.errorConstMustInit,
+            message: HTLexicon.errorConstMustInit,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -679,7 +649,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.duplicateLibStmt, ErrorType.syntacticError,
-            HTLexicon.errorDuplicateLibStmt,
+            message: HTLexicon.errorDuplicateLibStmt,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -698,7 +668,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.defined, ErrorType.compileTimeError,
-            HTLexicon.errorDefined,
+            message: HTLexicon.errorDefined,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -718,7 +688,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.outsideThis, ErrorType.compileTimeError,
-            HTLexicon.errorOutsideThis,
+            message: HTLexicon.errorOutsideThis,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -737,7 +707,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.notMember, ErrorType.compileTimeError,
-            HTLexicon.errorNotMember,
+            message: HTLexicon.errorNotMember,
             interpolations: [id, className],
             extra: extra,
             correction: correction,
@@ -757,7 +727,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.notClass, ErrorType.compileTimeError,
-            HTLexicon.errorNotClass,
+            message: HTLexicon.errorNotClass,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -777,7 +747,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.abstracted, ErrorType.compileTimeError,
-            HTLexicon.errorAbstracted,
+            message: HTLexicon.errorAbstracted,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -796,7 +766,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.interfaceCtor, ErrorType.compileTimeError,
-            HTLexicon.errorInterfaceCtor,
+            message: HTLexicon.errorInterfaceCtor,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -815,7 +785,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.unsupported, ErrorType.runtimeError,
-            HTLexicon.errorUnsupported,
+            message: HTLexicon.errorUnsupported,
             interpolations: [name],
             extra: extra,
             correction: correction,
@@ -834,7 +804,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.extern, ErrorType.runtimeError, message,
+      : this(ErrorCode.extern, ErrorType.runtimeError,
+            message: message,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -853,7 +824,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
-            HTLexicon.errorUnknownOpCode,
+            message: HTLexicon.errorUnknownOpCode,
             interpolations: [opcode],
             extra: extra,
             correction: correction,
@@ -873,7 +844,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.notInitialized, ErrorType.runtimeError,
-            HTLexicon.errorNotInitialized,
+            message: HTLexicon.errorNotInitialized,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -893,7 +864,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.undefined, ErrorType.runtimeError,
-            HTLexicon.errorUndefined,
+            message: HTLexicon.errorUndefined,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -913,7 +884,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.undefinedExternal, ErrorType.runtimeError,
-            HTLexicon.errorUndefinedExternal,
+            message: HTLexicon.errorUndefinedExternal,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -933,7 +904,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.unknownTypeName, ErrorType.runtimeError,
-            HTLexicon.errorUnknownTypeName,
+            message: HTLexicon.errorUnknownTypeName,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -953,7 +924,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.undefinedOperator, ErrorType.runtimeError,
-            HTLexicon.errorUndefinedOperator,
+            message: HTLexicon.errorUndefinedOperator,
             interpolations: [id, op],
             extra: extra,
             correction: correction,
@@ -972,7 +943,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.defined, ErrorType.runtimeError, HTLexicon.errorDefined,
+      : this(ErrorCode.defined, ErrorType.runtimeError,
+            message: HTLexicon.errorDefined,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -992,7 +964,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.notCallable, ErrorType.runtimeError,
-            HTLexicon.errorNotCallable,
+            message: HTLexicon.errorNotCallable,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1012,7 +984,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.undefinedMember, ErrorType.runtimeError,
-            HTLexicon.errorUndefinedMember,
+            message: HTLexicon.errorUndefinedMember,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1032,7 +1004,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.condition, ErrorType.runtimeError,
-            HTLexicon.errorCondition,
+            message: HTLexicon.errorCondition,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1050,7 +1022,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notList, ErrorType.runtimeError, HTLexicon.errorNotList,
+      : this(ErrorCode.notList, ErrorType.runtimeError,
+            message: HTLexicon.errorNotList,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1069,8 +1042,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.nullInit, ErrorType.runtimeError, HTLexicon.errorNullInit,
+      : this(ErrorCode.nullInit, ErrorType.runtimeError,
+            message: HTLexicon.errorNullInit,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1089,7 +1062,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
-            HTLexicon.errorNullObject,
+            message: HTLexicon.errorNullObject,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1108,7 +1081,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
-            HTLexicon.errorNullObject,
+            message: HTLexicon.errorNullObject,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1127,7 +1100,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.outOfRange, ErrorType.runtimeError,
-            HTLexicon.errorOutOfRange,
+            message: HTLexicon.errorOutOfRange,
             interpolations: [index, range],
             extra: extra,
             correction: correction,
@@ -1146,8 +1119,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.nullable, ErrorType.runtimeError, HTLexicon.errorNullable,
+      : this(ErrorCode.nullable, ErrorType.runtimeError,
+            message: HTLexicon.errorNullable,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1166,7 +1139,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.type, ErrorType.runtimeError, HTLexicon.errorType,
+      : this(ErrorCode.type, ErrorType.runtimeError,
+            message: HTLexicon.errorType,
             interpolations: [id, valueType, declValue],
             extra: extra,
             correction: correction,
@@ -1186,7 +1160,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.immutable, ErrorType.runtimeError,
-            HTLexicon.errorImmutable,
+            message: HTLexicon.errorImmutable,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1205,7 +1179,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notType, ErrorType.runtimeError, HTLexicon.errorNotType,
+      : this(ErrorCode.notType, ErrorType.runtimeError,
+            message: HTLexicon.errorNotType,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1224,7 +1199,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.argType, ErrorType.runtimeError, HTLexicon.errorArgType,
+      : this(ErrorCode.argType, ErrorType.runtimeError,
+            message: HTLexicon.errorArgType,
             interpolations: [id, assignType, declValue],
             extra: extra,
             correction: correction,
@@ -1243,8 +1219,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.argInit, ErrorType.syntacticError, HTLexicon.errorArgInit,
+      : this(ErrorCode.argInit, ErrorType.syntacticError,
+            message: HTLexicon.errorArgInit,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1264,7 +1240,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.returnType, ErrorType.runtimeError,
-            HTLexicon.errorReturnType,
+            message: HTLexicon.errorReturnType,
             interpolations: [returnedType, funcName, declReturnType],
             extra: extra,
             correction: correction,
@@ -1284,7 +1260,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.stringInterpolation, ErrorType.syntacticError,
-            HTLexicon.errorStringInterpolation,
+            message: HTLexicon.errorStringInterpolation,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1302,7 +1278,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.arity, ErrorType.runtimeError, HTLexicon.errorArity,
+      : this(ErrorCode.arity, ErrorType.runtimeError,
+            message: HTLexicon.errorArity,
             interpolations: [argsCount, id, paramsCount],
             extra: extra,
             correction: correction,
@@ -1321,7 +1298,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.binding, ErrorType.runtimeError, HTLexicon.errorBinding,
+      : this(ErrorCode.binding, ErrorType.runtimeError,
+            message: HTLexicon.errorBinding,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1341,7 +1319,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.externalVar, ErrorType.syntacticError,
-            HTLexicon.errorExternalVar,
+            message: HTLexicon.errorExternalVar,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1359,8 +1337,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.bytesSig, ErrorType.runtimeError, HTLexicon.errorBytesSig,
+      : this(ErrorCode.bytesSig, ErrorType.runtimeError,
+            message: HTLexicon.errorBytesSig,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1379,7 +1357,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.circleInit, ErrorType.runtimeError,
-            HTLexicon.errorCircleInit,
+            message: HTLexicon.errorCircleInit,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1399,7 +1377,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.initialize, ErrorType.runtimeError,
-            HTLexicon.errorInitialize,
+            message: HTLexicon.errorInitialize,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1417,8 +1395,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.namedArg, ErrorType.runtimeError, HTLexicon.errorNamedArg,
+      : this(ErrorCode.namedArg, ErrorType.runtimeError,
+            message: HTLexicon.errorNamedArg,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1437,8 +1415,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.iterable, ErrorType.runtimeError, HTLexicon.errorIterable,
+      : this(ErrorCode.iterable, ErrorType.runtimeError,
+            message: HTLexicon.errorIterable,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1458,7 +1436,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.unkownValueType, ErrorType.runtimeError,
-            HTLexicon.errorUnkownValueType,
+            message: HTLexicon.errorUnkownValueType,
             interpolations: [valType],
             extra: extra,
             correction: correction,
@@ -1479,7 +1457,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.emptyString, type, HTLexicon.errorEmptyString,
+      : this(ErrorCode.emptyString, type,
+            message: HTLexicon.errorEmptyString,
             interpolations: info != null ? [info] : const [],
             extra: extra,
             correction: correction,
@@ -1498,8 +1477,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.typeCast, ErrorType.runtimeError, HTLexicon.errorTypeCast,
+      : this(ErrorCode.typeCast, ErrorType.runtimeError,
+            message: HTLexicon.errorTypeCast,
             interpolations: [from, to],
             extra: extra,
             correction: correction,
@@ -1518,7 +1497,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.castee, ErrorType.runtimeError, HTLexicon.errorCastee,
+      : this(ErrorCode.castee, ErrorType.runtimeError,
+            message: HTLexicon.errorCastee,
             interpolations: [varName],
             extra: extra,
             correction: correction,
@@ -1537,7 +1517,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.clone, ErrorType.runtimeError, HTLexicon.errorClone,
+      : this(ErrorCode.clone, ErrorType.runtimeError,
+            message: HTLexicon.errorClone,
             interpolations: [varName],
             extra: extra,
             correction: correction,
@@ -1556,8 +1537,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.notSuper, ErrorType.runtimeError, HTLexicon.errorNotSuper,
+      : this(ErrorCode.notSuper, ErrorType.runtimeError,
+            message: HTLexicon.errorNotSuper,
             interpolations: [classId, id],
             extra: extra,
             correction: correction,
@@ -1576,7 +1557,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.missingExternalFunc, ErrorType.runtimeError,
-            HTLexicon.errorMissingExternalFunc,
+            message: HTLexicon.errorMissingExternalFunc,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1596,7 +1577,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.classOnInstance, ErrorType.runtimeError,
-            HTLexicon.errorClassOnInstance,
+            message: HTLexicon.errorClassOnInstance,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1614,8 +1595,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(
-            ErrorCode.bytecode, ErrorType.runtimeError, HTLexicon.errorBytecode,
+      : this(ErrorCode.bytecode, ErrorType.runtimeError,
+            message: HTLexicon.errorBytecode,
             extra: extra,
             correction: correction,
             moduleFullName: moduleFullName,
@@ -1633,7 +1614,8 @@ class HTError implements AbstractError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.version, ErrorType.runtimeError, HTLexicon.errorVersion,
+      : this(ErrorCode.version, ErrorType.runtimeError,
+            message: HTLexicon.errorVersion,
             interpolations: [codeVer, itpVer],
             extra: extra,
             correction: correction,
@@ -1653,7 +1635,7 @@ class HTError implements AbstractError {
   //     int? offset,
   //     int? length})
   //     : this(ErrorCode.sourceType, ErrorType.runtimeError,
-  //           HTLexicon.errorSourceType,
+  //           message: HTLexicon.errorSourceType,
   //           extra: extra,
   //           correction: correction,
   //           moduleFullName: moduleFullName,
@@ -1670,7 +1652,7 @@ class HTError implements AbstractError {
   //     int? column,
   //     int? offset,
   //     int? length})
-  //     : this(ErrorCode.nonExistModule, type, HTLexicon.errorNonExistModule,
+  //     : this(ErrorCode.nonExistModule, type, message: HTLexicon.errorNonExistModule,
   //           interpolations: [key],
   //           extra: extra,
   //           correction: correction,
@@ -1688,7 +1670,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.topLevelLiteralStruct, ErrorType.runtimeError,
-            HTLexicon.errorTopLevelLiteralStruct,
+            message: HTLexicon.errorTopLevelLiteralStruct,
             moduleFullName: moduleFullName,
             line: line,
             column: column,
@@ -1703,7 +1685,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.structMemberId, ErrorType.runtimeError,
-            HTLexicon.errorStructMemberId,
+            message: HTLexicon.errorStructMemberId,
             moduleFullName: moduleFullName,
             line: line,
             column: column,
@@ -1718,7 +1700,7 @@ class HTError implements AbstractError {
       int? offset,
       int? length})
       : this(ErrorCode.unresolvedNamedStruct, ErrorType.runtimeError,
-            HTLexicon.errorUnresolvedNamedStruct,
+            message: HTLexicon.errorUnresolvedNamedStruct,
             interpolations: [id],
             moduleFullName: moduleFullName,
             line: line,

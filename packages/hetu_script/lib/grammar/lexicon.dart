@@ -138,6 +138,7 @@ abstract class HTLexicon {
   static const kExport = 'export';
   static const kFrom = 'from';
 
+  static const kAssert = 'assert';
   static const kTypeof = 'typeof';
   static const kNamespace = 'namespace';
   static const kAs = 'as';
@@ -194,6 +195,7 @@ abstract class HTLexicon {
     kVar,
     kFinal,
     kConst,
+    kAssert,
     kTypeof,
     kClass,
     kEnum,
@@ -421,7 +423,7 @@ abstract class HTLexicon {
   static const errorBytecode = 'Unrecognizable bytecode.';
   static const errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}].';
-  static const errorAssertionFailed = 'Assertion failed: [{0}]';
+  static const errorAssertionFailed = "Assertion failed on '{0}'.";
 
   // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}].';

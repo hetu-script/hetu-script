@@ -31,6 +31,8 @@ abstract class HTOpCode {
 
   static const continueLoop = 12;
 
+  static const assertion = 13;
+
   static const endOfStmt = 20;
 
   static const endOfBlock = 21;

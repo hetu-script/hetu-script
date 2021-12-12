@@ -146,6 +146,11 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
+  HTType? visitAssertStmt(AssertStmt stmt) {
+    return HTType.any;
+  }
+
+  @override
   HTType? visitExprStmt(ExprStmt stmt) {
     return HTType.any;
   }

@@ -6,7 +6,7 @@ final Map<String, String> builtInModules = const {
   'hetu:async': '../../lib/core/async.ht',
   'hetu:system': '../../lib/core/system.ht',
   'hetu:math': '../../lib/core/math.ht',
-  'hetu:help': '../../lib/core/help.ht',
+  'hetu:dev_tools': '../../lib/core/dev_tools.ht',
 };
 
 final Map<String, String> optionalModules = const {};

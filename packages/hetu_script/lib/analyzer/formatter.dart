@@ -329,12 +329,19 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitExprStmt(ExprStmt stmt) {
+  String visitAssertStmt(AssertStmt stmt) {
     final output = StringBuffer();
-    // if (stmt.expr != null) {
+    output.write('${HTLexicon.kAssert} ');
     final exprString = formatAst(stmt.expr);
     output.write(exprString);
-    // }
+    return output.toString();
+  }
+
+  @override
+  String visitExprStmt(ExprStmt stmt) {
+    final output = StringBuffer();
+    final exprString = formatAst(stmt.expr);
+    output.write(exprString);
     return output.toString();
   }
 

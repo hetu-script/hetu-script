@@ -58,6 +58,8 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitCallExpr(CallExpr node) {}
 
+  T? visitAssertStmt(AssertStmt node) {}
+
   T? visitExprStmt(ExprStmt node) {}
 
   T? visitBlockStmt(BlockStmt node) {}

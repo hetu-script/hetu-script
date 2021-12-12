@@ -14,27 +14,27 @@ external fun stringify(obj: any)
 external fun jsonify(obj)
 
 abstract class object {
-  external fun toString()
+  external fun toString() -> str
 }
 
 struct prototype {
-  external static fun fromJson(data)
+  external static fun fromJson(data) // -> {}
 
-  external get keys
+  external get keys -> List
 
-  external get values
+  external get values -> List
 
   /// Check if this struct has the key in its own fields
-  external fun owns(key: str)
+  external fun owns(key: str) -> bool
 
   /// Check if this struct has the key in its own fields or its prototypes' fields
-  external fun contains(key: str)
+  external fun contains(key: str) -> bool
 
-  external fun clone()
+  external fun clone() // -> {}
 
-  fun toJson() => jsonify(this)
+  fun toJson() -> Map => jsonify(this)
 
-  fun toString() => stringify(this)
+  fun toString() -> str => stringify(this)
 }''',
   'hetu:value': r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
@@ -343,5 +343,5 @@ external class Math {
 
 }
 ''',
-  'hetu:help': r'''external fun help(value) -> str''',
+  'hetu:dev_tools': r'''external fun help(value) -> str''',
 };

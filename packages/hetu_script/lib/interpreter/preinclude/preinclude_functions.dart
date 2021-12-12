@@ -38,16 +38,6 @@ final Map<String, Function> preIncludeFunctions = {
       return null;
     }
   },
-  'assert': (HTEntity entity,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    String message = positionalArgs[0];
-    bool value = positionalArgs[1];
-    if (!value) {
-      throw HTError.assertionFailed(message);
-    }
-  },
   'prototype.fromJson': (HTEntity entity,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
