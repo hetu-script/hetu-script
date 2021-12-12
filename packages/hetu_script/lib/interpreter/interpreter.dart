@@ -97,34 +97,34 @@ class Hetu extends HTAbstractInterpreter {
 
   bool _isStrictMode = false;
 
-  var _regIndex = -1;
+  var _currentStackIndex = -1;
 
   /// Register values are stored by groups.
   /// Every group have 16 values, they are HTRegIdx.
   /// A such group can be understanded as the stack frame of a runtime function.
-  final _registers =
-      List<dynamic>.filled(HTRegIdx.length, null, growable: true);
+  final _stackFrames = <List>[];
 
-  int _getRegIndex(int relative) => (_regIndex * HTRegIdx.length + relative);
   void _setRegVal(int index, dynamic value) =>
-      _registers[_getRegIndex(index)] = value;
-  dynamic _getRegVal(int index) => _registers[_getRegIndex(index)];
+      _stackFrames[_currentStackIndex][index] = value;
+  dynamic _getRegVal(int index) => _stackFrames[_currentStackIndex][index];
   set _curValue(dynamic value) =>
-      _registers[_getRegIndex(HTRegIdx.value)] = value;
-  dynamic get _curValue => _registers[_getRegIndex(HTRegIdx.value)];
+      _stackFrames[_currentStackIndex][HTRegIdx.value] = value;
+  dynamic get _curValue => _stackFrames[_currentStackIndex][HTRegIdx.value];
   set _curSymbol(String? value) =>
-      _registers[_getRegIndex(HTRegIdx.identifier)] = value;
-  String? get curSymbol => _registers[_getRegIndex(HTRegIdx.identifier)];
+      _stackFrames[_currentStackIndex][HTRegIdx.identifier] = value;
+  String? get curSymbol =>
+      _stackFrames[_currentStackIndex][HTRegIdx.identifier];
   set _curTypeArgs(List<HTType> value) =>
-      _registers[_getRegIndex(HTRegIdx.typeArgs)] = value;
+      _stackFrames[_currentStackIndex][HTRegIdx.typeArgs] = value;
   List<HTType> get _curTypeArgs =>
-      _registers[_getRegIndex(HTRegIdx.typeArgs)] ?? const [];
+      _stackFrames[_currentStackIndex][HTRegIdx.typeArgs] ?? const [];
   set _curLoopCount(int value) =>
-      _registers[_getRegIndex(HTRegIdx.loopCount)] = value;
-  int get _curLoopCount => _registers[_getRegIndex(HTRegIdx.loopCount)] ?? 0;
+      _stackFrames[_currentStackIndex][HTRegIdx.loopCount] = value;
+  int get _curLoopCount =>
+      _stackFrames[_currentStackIndex][HTRegIdx.loopCount] ?? 0;
   set _curAnchor(int value) =>
-      _registers[_getRegIndex(HTRegIdx.anchor)] = value;
-  int get _curAnchor => _registers[_getRegIndex(HTRegIdx.anchor)] ?? 0;
+      _stackFrames[_currentStackIndex][HTRegIdx.anchor] = value;
+  int get _curAnchor => _stackFrames[_currentStackIndex][HTRegIdx.anchor] ?? 0;
 
   /// Loop point is stored as stack form.
   /// Break statement will jump to the last loop point,
@@ -133,12 +133,20 @@ class Hetu extends HTAbstractInterpreter {
   /// [_curLoopCount] in current stack frame.
   final _loops = <_LoopInfo>[];
 
+  bool _isZero(dynamic condition) {
+    if (_isStrictMode) {
+      return condition == 0;
+    } else {
+      return condition == 0 || condition == null;
+    }
+  }
+
   bool _truthy(dynamic condition) {
     if (_isStrictMode) {
       return condition;
     } else {
-      if (condition == null ||
-          !condition ||
+      if ((condition is bool && !condition) ||
+          condition == null ||
           condition == 0 ||
           condition == '' ||
           condition == '0' ||
@@ -407,7 +415,7 @@ class Hetu extends HTAbstractInterpreter {
           }
         }
         // return the last expression's value
-        return _registers.first;
+        return _stackFrames.first.first;
       } else {
         _cachedLibs[_curLibrary.id] = _curLibrary;
         // handles module imports
@@ -514,9 +522,9 @@ class Hetu extends HTAbstractInterpreter {
     } else if (libChanged) {
       _curColumn = 0;
     }
-    ++_regIndex;
-    if (_registers.length <= _regIndex * HTRegIdx.length) {
-      _registers.length += HTRegIdx.length;
+    ++_currentStackIndex;
+    if (_stackFrames.length <= _currentStackIndex) {
+      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
     }
   }
 
@@ -551,7 +559,7 @@ class Hetu extends HTAbstractInterpreter {
     if (savedColumn != null) {
       _curColumn = savedColumn;
     }
-    --_regIndex;
+    --_currentStackIndex;
   }
 
   /// Interpret a loaded library with the key of [libraryName]
@@ -608,9 +616,9 @@ class Hetu extends HTAbstractInterpreter {
     } else if (libChanged) {
       _curColumn = 0;
     }
-    ++_regIndex;
-    if (_registers.length <= _regIndex * HTRegIdx.length) {
-      _registers.length += HTRegIdx.length;
+    ++_currentStackIndex;
+    if (_stackFrames.length <= _currentStackIndex) {
+      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
     }
 
     final result = _execute();
@@ -624,7 +632,7 @@ class Hetu extends HTAbstractInterpreter {
     }
     _curLine = savedLine;
     _curColumn = savedColumn;
-    --_regIndex;
+    --_currentStackIndex;
     return result;
   }
 
@@ -1182,29 +1190,29 @@ class Hetu extends HTAbstractInterpreter {
   void _handleBinaryOp(int opcode) {
     switch (opcode) {
       case HTOpCode.logicalOr:
-        final leftValue = _getRegVal(HTRegIdx.orLeft);
-        final leftValueTruthValue = _truthy(leftValue);
+        final left = _getRegVal(HTRegIdx.orLeft);
+        final leftTruthValue = _truthy(left);
         final rightValueLength = _curLibrary.readUint16();
-        if (leftValueTruthValue) {
+        if (leftTruthValue) {
           _curLibrary.skip(rightValueLength);
           _curValue = true;
         } else {
-          final rightValue = execute();
-          final rightValueTruthValue = _truthy(rightValue);
-          _curValue = rightValueTruthValue;
+          final right = execute();
+          final rightTruthValue = _truthy(right);
+          _curValue = rightTruthValue;
         }
         break;
       case HTOpCode.logicalAnd:
-        final leftValue = _getRegVal(HTRegIdx.andLeft);
-        final leftValueTruthValue = _truthy(leftValue);
+        final left = _getRegVal(HTRegIdx.andLeft);
+        final leftTruthValue = _truthy(left);
         final rightValueLength = _curLibrary.readUint16();
-        if (!leftValueTruthValue) {
+        if (!leftTruthValue) {
           _curLibrary.skip(rightValueLength);
           _curValue = false;
         } else {
-          final rightValue = execute();
-          final rightValueTruthValue = _truthy(rightValue);
-          _curValue = leftValueTruthValue && rightValueTruthValue;
+          final right = execute();
+          final rightTruthValue = _truthy(right);
+          _curValue = leftTruthValue && rightTruthValue;
         }
         break;
       case HTOpCode.equal:
@@ -1250,19 +1258,53 @@ class Hetu extends HTAbstractInterpreter {
         _curValue = encapsulated.valueType.isNotA(type);
         break;
       case HTOpCode.add:
-        _curValue = _getRegVal(HTRegIdx.addLeft) + _curValue;
+        var left = _getRegVal(HTRegIdx.addLeft);
+        if (_isZero(left)) {
+          left = 0;
+        }
+        var right = _curValue;
+        if (_isZero(right)) {
+          right = 0;
+        }
+        _curValue = left + right;
         break;
       case HTOpCode.subtract:
-        _curValue = _getRegVal(HTRegIdx.addLeft) - _curValue;
+        var left = _getRegVal(HTRegIdx.addLeft);
+        if (_isZero(left)) {
+          left = 0;
+        }
+        var right = _curValue;
+        if (_isZero(right)) {
+          right = 0;
+        }
+        _curValue = left - right;
         break;
       case HTOpCode.multiply:
-        _curValue = _getRegVal(HTRegIdx.multiplyLeft) * _curValue;
+        var left = _getRegVal(HTRegIdx.multiplyLeft);
+        if (_isZero(left)) {
+          left = 0;
+        }
+        var right = _curValue;
+        if (_isZero(right)) {
+          right = 0;
+        }
+        _curValue = left * right;
         break;
       case HTOpCode.devide:
-        _curValue = _getRegVal(HTRegIdx.multiplyLeft) / _curValue;
+        var left = _getRegVal(HTRegIdx.multiplyLeft);
+        if (_isZero(left)) {
+          left = 0;
+        }
+        var right = _curValue;
+        _curValue = left / right;
         break;
       case HTOpCode.modulo:
-        _curValue = _getRegVal(HTRegIdx.multiplyLeft) % _curValue;
+        var left = _getRegVal(HTRegIdx.multiplyLeft);
+        if (_isZero(left)) {
+          left = 0;
+        }
+        var right = _curValue;
+        _curValue = left % right;
         break;
     }
   }
