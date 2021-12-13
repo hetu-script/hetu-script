@@ -20,6 +20,10 @@ class HTVariableDeclaration extends HTDeclaration {
   /// determine wether an value binding (assignment) is legal.
   HTType? get declType => _resolvedDeclType ?? _declType;
 
+  bool _isResolved = false;
+  @override
+  bool get isResolved => _isResolved;
+
   HTVariableDeclaration(this._id,
       {String? classId,
       HTNamespace? closure,
@@ -27,7 +31,6 @@ class HTVariableDeclaration extends HTDeclaration {
       HTType? declType,
       bool isExternal = false,
       bool isStatic = false,
-      bool isConst = false,
       bool isMutable = false,
       bool isTopLevel = false})
       : _declType = declType,
@@ -38,7 +41,6 @@ class HTVariableDeclaration extends HTDeclaration {
             source: source,
             isExternal: isExternal,
             isStatic: isStatic,
-            isConst: isConst,
             isMutable: isMutable,
             isTopLevel: isTopLevel) {
     if (_declType != null && _declType!.isResolved) {
@@ -49,12 +51,12 @@ class HTVariableDeclaration extends HTDeclaration {
   @override
   @mustCallSuper
   void resolve() {
-    super.resolve();
     if (closure != null && _declType != null) {
       _resolvedDeclType = _declType!.resolve(closure!);
     } else {
       _resolvedDeclType = HTType.any;
     }
+    _isResolved = true;
   }
 
   @override
@@ -65,7 +67,6 @@ class HTVariableDeclaration extends HTDeclaration {
       declType: declType,
       isExternal: isExternal,
       isStatic: isStatic,
-      isConst: isConst,
       isMutable: isMutable,
       isTopLevel: isTopLevel);
 }

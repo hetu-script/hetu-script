@@ -18,7 +18,7 @@ dependencies:
 ## Flutter project
 
 To load a script file from assets, add the script file's path into your pubspec.yaml like other assets.
-The default folder is 'assets/scripts/',
+The default folder is 'scripts/',
 
 ```yaml
 assets:

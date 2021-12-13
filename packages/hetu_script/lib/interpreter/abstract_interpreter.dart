@@ -136,7 +136,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   }
 
   T? evalSource(HTSource source,
-      {String? libraryName,
+      {String? moduleName,
       bool globallyImport = false,
       bool isStrictMode = false,
       String? invokeFunc,
@@ -147,7 +147,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   T? eval(String content,
       {String? filename,
-      String? libraryName,
+      String? moduleName,
       bool globallyImport = false,
       bool isScript = false,
       bool isStrictMode = false,
@@ -159,7 +159,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     final source =
         HTSource(content, name: filename, isScript: isScript ? true : false);
     final result = evalSource(source,
-        libraryName: libraryName,
+        moduleName: moduleName,
         globallyImport: globallyImport,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
@@ -171,9 +171,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   /// 解析文件
   T? evalFile(String key,
-      {String? libraryName,
+      {String? moduleName,
       bool globallyImport = false,
-      bool isScript = false,
       bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -183,7 +182,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     try {
       final source = sourceContext.getResource(key);
       final result = evalSource(source,
-          libraryName: libraryName,
+          moduleName: moduleName,
           globallyImport: globallyImport,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
@@ -202,7 +201,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   /// 调用一个全局函数或者类、对象上的函数
   dynamic invoke(String funcName,
-      {String? libraryName,
+      {String? moduleName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],

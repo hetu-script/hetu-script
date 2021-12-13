@@ -29,17 +29,17 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitConstIntExpr(ConstIntExpr node) {
+  T? visitIntLiteralExpr(IntLiteralExpr node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitConstFloatExpr(ConstFloatExpr node) {
+  T? visitFloatLiteralExpr(FloatLiteralExpr node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitConstStringExpr(ConstStringExpr node) {
+  T? visitStringLiteralExpr(StringLiteralExpr node) {
     node.subAccept(this);
   }
 
@@ -215,6 +215,11 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
 
   @override
   T? visitTypeAliasDecl(TypeAliasDecl node) {
+    node.subAccept(this);
+  }
+
+  @override
+  T? visitConstDecl(ConstDecl node) {
     node.subAccept(this);
   }
 

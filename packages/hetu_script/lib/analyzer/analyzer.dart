@@ -88,7 +88,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   HTModuleAnalysisResult evalSource(HTSource source,
-      {String? libraryName,
+      {String? moduleName,
       bool globallyImport = false,
       bool isStrictMode = false,
       String? invokeFunc, // ignored in analyzer
@@ -100,7 +100,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     errors.clear();
     _curSource = source;
     final parser = HTParser(context: sourceContext);
-    moduleParseResult = parser.parseToModule(source, libraryName: libraryName);
+    moduleParseResult = parser.parseToModule(source, moduleName: moduleName);
     final results = <String, HTModuleAnalysisResult>{};
     for (final result in moduleParseResult.results.values) {
       _curErrors.clear();
@@ -145,13 +145,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitBooleanExpr(BooleanExpr expr) {}
 
   @override
-  void visitConstIntExpr(ConstIntExpr expr) {}
+  void visitIntLiteralExpr(IntLiteralExpr expr) {}
 
   @override
-  void visitConstFloatExpr(ConstFloatExpr expr) {}
+  void visitFloatLiteralExpr(FloatLiteralExpr expr) {}
 
   @override
-  void visitConstStringExpr(ConstStringExpr expr) {}
+  void visitStringLiteralExpr(StringLiteralExpr expr) {}
 
   @override
   void visitStringInterpolationExpr(StringInterpolationExpr expr) {
@@ -332,6 +332,14 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     stmt.declaration = HTVariableDeclaration(stmt.id.id,
         classId: stmt.classId, closure: _curNamespace, source: _curSource);
     _curNamespace.define(stmt.id.id, stmt.declaration!);
+    stmt.subAccept(this);
+  }
+
+  @override
+  void visitConstDecl(ConstDecl stmt) {
+    _curLine = stmt.line;
+    _curColumn = stmt.column;
+
     stmt.subAccept(this);
   }
 

@@ -14,6 +14,7 @@ enum ErrorCode {
   unexpected,
   external,
   nestedClass,
+  constInClass,
   outsideReturn,
   setterArity,
   externalMember,
@@ -29,6 +30,7 @@ enum ErrorCode {
   constMustBeStatic,
   constMustInit,
   duplicateLibStmt,
+  notConstValue,
 
   defined,
   outsideThis,
@@ -291,6 +293,25 @@ class HTError {
       int? length})
       : this(ErrorCode.nestedClass, ErrorType.syntacticError,
             message: HTLexicon.errorNestedClass,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Const value in class must be also static.
+  HTError.constInClass(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.constInClass, ErrorType.syntacticError,
+            message: HTLexicon.errorConstInClass,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -599,6 +620,25 @@ class HTError {
       int? length})
       : this(ErrorCode.duplicateLibStmt, ErrorType.syntacticError,
             message: HTLexicon.errorDuplicateLibStmt,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Duplicate library statement.
+  HTError.notConstValue(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.notConstValue, ErrorType.syntacticError,
+            message: HTLexicon.errorNotConstValue,
             extra: extra,
             correction: correction,
             filename: filename,

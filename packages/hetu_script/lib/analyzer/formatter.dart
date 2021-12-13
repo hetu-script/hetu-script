@@ -106,17 +106,17 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitConstIntExpr(ConstIntExpr expr) {
+  String visitIntLiteralExpr(IntLiteralExpr expr) {
     return expr.value.toString();
   }
 
   @override
-  String visitConstFloatExpr(ConstFloatExpr expr) {
+  String visitFloatLiteralExpr(FloatLiteralExpr expr) {
     return expr.value.toString();
   }
 
   @override
-  String visitConstStringExpr(ConstStringExpr expr) {
+  String visitStringLiteralExpr(StringLiteralExpr expr) {
     return stringify(expr.value);
   }
 
@@ -560,6 +560,15 @@ class HTFormatter implements AbstractAstVisitor<String> {
     final output = StringBuffer();
     output.write('${HTLexicon.kType} ${stmt.id} ${HTLexicon.assign} ');
     final valueString = formatAst(stmt.value);
+    output.write(valueString);
+    return output.toString();
+  }
+
+  @override
+  String visitConstDecl(ConstDecl stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.kConst} ${HTLexicon.assign} ');
+    final valueString = formatAst(stmt.constExpr);
     output.write(valueString);
     return output.toString();
   }

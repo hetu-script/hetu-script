@@ -62,6 +62,10 @@ class HTFunctionDeclaration extends HTDeclaration
 
   HTEntity? instance;
 
+  bool _isResolved = false;
+  @override
+  bool get isResolved => _isResolved;
+
   HTFunctionDeclaration(this.internalName,
       {String? id,
       String? classId,
@@ -158,10 +162,13 @@ class HTFunctionDeclaration extends HTDeclaration
   @override
   @mustCallSuper
   void resolve() {
-    super.resolve();
+    if (_isResolved) {
+      return;
+    }
     for (final param in paramDecls.values) {
       param.resolve();
     }
+    _isResolved = true;
   }
 
   @override

@@ -106,6 +106,7 @@ abstract class SemanticNames {
   static const memberGetExpr = 'member_get_expression';
   static const memberSetExpr = 'member_set_expression';
 
+  static const constantDeclaration = 'constant_declaration';
   static const variableDeclaration = 'variable_declaration';
   static const parameterDeclaration = 'parameter_declaration';
   static const namespaceDeclaration = 'namespace_declaration';

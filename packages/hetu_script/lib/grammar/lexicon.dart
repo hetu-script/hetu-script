@@ -437,6 +437,7 @@ abstract class HTLexicon {
   static const errorUnexpected = 'Expected [{0}], met [{1}].';
   static const errorExternal = 'External [{0}] is not allowed.';
   static const errorNestedClass = 'Nested class within another nested class.';
+  static const errorConstInClass = 'Const value in class must be also static.';
   static const errorOutsideReturn =
       'Unexpected return statement outside of a function.';
   static const errorSetterArity =
@@ -461,6 +462,7 @@ abstract class HTLexicon {
   static const errorConstMustInit =
       'Constant declaration [{0}] must be initialized.';
   static const errorDuplicateLibStmt = 'Duplicate library statement.';
+  static const errorNotConstValue = 'Constant declared with a non-const value.';
 
   // compile time errors
   static const errorDefined = '[{0}] is already defined.';

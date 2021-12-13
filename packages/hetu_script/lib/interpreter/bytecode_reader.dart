@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'constants.dart';
+import '../shared/constants.dart';
 
 class BytecodeReader {
   /// The bytecode, stores as uint8 list

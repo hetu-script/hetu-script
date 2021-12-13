@@ -1,3 +1,7 @@
+## 0.3.5
+
+- Added const declaration for boolean, int, float and string.
+
 ## 0.3.4
 
 - Added for...of syntax for iterate through values of Map or struct literal.

@@ -404,7 +404,7 @@ class HetuHighlightsComputer {
       }
     } else if (node.inGetterContext() || node.inSetterContext()) {
       if (parent is PrefixedIdentifier) {
-        decorate = parent.identifier == node;
+        decorate = parent.objectIdentifier == node;
       } else if (parent is PropertyAccess) {
         decorate = parent.propertyName == node;
       }

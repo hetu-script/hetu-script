@@ -26,6 +26,10 @@ class HTTypeAliasDeclaration extends HTDeclaration
   /// determine wether an value binding (assignment) is legal.
   HTType get declType => _resolvedDeclType ?? _declType;
 
+  bool _isResolved = false;
+  @override
+  bool get isResolved => _isResolved;
+
   HTTypeAliasDeclaration(this._id, HTType declType,
       {String? classId,
       HTNamespace? closure,
@@ -47,6 +51,19 @@ class HTTypeAliasDeclaration extends HTDeclaration
             isConst: isConst,
             isMutable: isMutable,
             isTopLevel: isTopLevel);
+
+  @override
+  void resolve() {
+    if (_isResolved) {
+      return;
+    }
+    if (closure != null) {
+      _resolvedDeclType = _declType.resolve(closure!);
+    } else {
+      _resolvedDeclType = HTType.any;
+    }
+    _isResolved = true;
+  }
 
   @override
   HTTypeAliasDeclaration clone() => HTTypeAliasDeclaration(id, declType,

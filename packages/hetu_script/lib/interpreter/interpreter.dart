@@ -12,6 +12,7 @@ import '../value/function/parameter.dart';
 import '../value/variable/variable.dart';
 import '../value/struct/struct.dart';
 import '../value/external_enum/external_enum.dart';
+import '../value/const.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
@@ -26,10 +27,10 @@ import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
 import '../parser/parser.dart';
+import '../shared/constants.dart';
+import 'bytecode_module.dart';
 import 'abstract_interpreter.dart';
 import 'compiler.dart';
-import 'constants.dart';
-import 'bytecode_module.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -49,7 +50,7 @@ class Hetu extends HTAbstractInterpreter {
   @override
   final stackTrace = <String>[];
 
-  final _cachedMods = <String, HTBytecodeModule>{};
+  final _cachedModules = <String, HTBytecodeModule>{};
 
   late final HTAnalyzer analyzer;
 
@@ -250,7 +251,7 @@ class Hetu extends HTAbstractInterpreter {
   /// call the function after evaluation completed.
   @override
   dynamic evalSource(HTSource source,
-      {String? libraryName,
+      {String? moduleName,
       bool globallyImport = false,
       bool isStrictMode = false,
       String? invokeFunc,
@@ -267,11 +268,11 @@ class Hetu extends HTAbstractInterpreter {
     try {
       final bytes = compileSource(
         source,
-        libraryName: libraryName,
+        moduleName: moduleName,
         config: config,
         errorHandled: true,
       );
-      final result = loadBytecode(bytes, libraryName ?? source.name,
+      final result = loadBytecode(bytes, moduleName ?? source.name,
           globallyImport: globallyImport,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
@@ -291,15 +292,15 @@ class Hetu extends HTAbstractInterpreter {
   /// Call a function within current [HTNamespace].
   @override
   dynamic invoke(String funcName,
-      {String? libraryName,
+      {String? moduleName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
-      if (libraryName != null) {
-        _bytecodeModule = _cachedMods[libraryName]!;
-        _namespace = _bytecodeModule.declarations[libraryName]!;
+      if (moduleName != null) {
+        _bytecodeModule = _cachedModules[moduleName]!;
+        _namespace = _bytecodeModule.declarations[moduleName]!;
       }
       final func = _namespace.memberGet(funcName, recursive: false);
       if (func is HTFunction) {
@@ -319,9 +320,9 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  bool switchLibrary(String id) {
-    if (_cachedMods.containsKey(id)) {
-      newStackFrame(libraryName: id);
+  bool switchModule(String id) {
+    if (_cachedModules.containsKey(id)) {
+      newStackFrame(moduleName: id);
       return true;
     } else {
       return false;
@@ -330,9 +331,7 @@ class Hetu extends HTAbstractInterpreter {
 
   /// Compile a [HTSource] into bytecode for later use.
   Uint8List compileSource(HTSource source,
-      {String? libraryName,
-      CompilerConfig? config,
-      bool errorHandled = false}) {
+      {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
     try {
       final compileConfig = config ?? this.config;
       final compiler = HTCompiler(config: compileConfig);
@@ -348,14 +347,13 @@ class Hetu extends HTAbstractInterpreter {
           }
         }
         final bytes = compiler.compile(
-            analyzer.moduleParseResult); //, libraryName ?? source.fullName);
+            analyzer.moduleParseResult); //, moduleName ?? source.fullName);
         return bytes;
       } else {
         final parser = HTParser(context: _sourceContext);
-        final compilation =
-            parser.parseToModule(source, libraryName: libraryName);
+        final module = parser.parseToModule(source, moduleName: moduleName);
         final bytes =
-            compiler.compile(compilation); //, libraryName ?? source.fullName);
+            compiler.compile(module); //, moduleName ?? source.fullName);
         return bytes;
       }
     } catch (error) {
@@ -370,30 +368,32 @@ class Hetu extends HTAbstractInterpreter {
 
   Uint8List? compile(String content,
       {String? filename,
-      String? libraryName,
+      String? moduleName,
       bool isScript = false,
       bool errorHandled = false}) {
     final source =
         HTSource(content, name: filename, isScript: isScript ? true : false);
     final result = compileSource(source,
-        libraryName: libraryName, errorHandled: errorHandled);
+        moduleName: moduleName, errorHandled: errorHandled);
     return result;
   }
 
   /// Compile a script content into bytecode for later use.
   Uint8List? compileFile(String key,
-      {String? libraryName,
-      CompilerConfig? config,
-      bool errorHandled = false}) {
+      {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
     final source = _sourceContext.getResource(key);
     final bytes = compileSource(source,
-        libraryName: libraryName, config: config, errorHandled: errorHandled);
+        moduleName: moduleName, config: config, errorHandled: errorHandled);
     return bytes;
+  }
+
+  HTBytecodeModule? getBytecode(String moduleName) {
+    return _cachedModules[moduleName];
   }
 
   /// Load a pre-compiled bytecode module.
   /// If [invokeFunc] is true, execute the bytecode immediately.
-  dynamic loadBytecode(Uint8List bytes, String libraryName,
+  dynamic loadBytecode(Uint8List bytes, String moduleName,
       {bool globallyImport = false,
       bool isStrictMode = false,
       String? invokeFunc,
@@ -403,7 +403,7 @@ class Hetu extends HTAbstractInterpreter {
       bool errorHandled = false}) {
     _isStrictMode = isStrictMode;
     try {
-      _bytecodeModule = HTBytecodeModule(libraryName, bytes);
+      _bytecodeModule = HTBytecodeModule(moduleName, bytes);
       while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
         final HTNamespace nsp = execute();
         _bytecodeModule.define(nsp.id!, nsp);
@@ -417,7 +417,7 @@ class Hetu extends HTAbstractInterpreter {
         // return the last expression's value
         return _stackFrames.first.first;
       } else {
-        _cachedMods[_bytecodeModule.id] = _bytecodeModule;
+        _cachedModules[_bytecodeModule.id] = _bytecodeModule;
         // handles imports
         for (final nsp in _bytecodeModule.declarations.values) {
           for (final decl in nsp.imports.values) {
@@ -485,7 +485,7 @@ class Hetu extends HTAbstractInterpreter {
 
   void newStackFrame(
       {String? filename,
-      String? libraryName,
+      String? moduleName,
       HTNamespace? namespace,
       HTFunction? function,
       int? ip,
@@ -496,8 +496,8 @@ class Hetu extends HTAbstractInterpreter {
     if (filename != null) {
       _fileName = filename;
     }
-    if (libraryName != null && (_bytecodeModule.id != libraryName)) {
-      _bytecodeModule = _cachedMods[libraryName]!;
+    if (moduleName != null && (_bytecodeModule.id != moduleName)) {
+      _bytecodeModule = _cachedModules[moduleName]!;
       libChanged = true;
     }
     if (namespace != null) {
@@ -542,7 +542,7 @@ class Hetu extends HTAbstractInterpreter {
     }
     if (savedLibraryName != null) {
       if (_bytecodeModule.id != savedLibraryName) {
-        _bytecodeModule = _cachedMods[savedLibraryName]!;
+        _bytecodeModule = _cachedModules[savedLibraryName]!;
       }
     }
     if (savedNamespace != null) {
@@ -563,7 +563,7 @@ class Hetu extends HTAbstractInterpreter {
     --_currentStackIndex;
   }
 
-  /// Interpret a loaded library with the key of [libraryName]
+  /// Interpret a loaded module with the key of [moduleName]
   /// Starting from the instruction pointer of [ip]
   /// This function will return current expression value
   /// when encountered [HTOpCode.endOfExec] or [HTOpCode.endOfFunc].
@@ -572,7 +572,7 @@ class Hetu extends HTAbstractInterpreter {
   /// Such as currrent value, current symbol, current line & column, etc.
   dynamic execute(
       {String? filename,
-      String? libraryName,
+      String? moduleName,
       HTNamespace? namespace,
       HTFunction? function,
       int? ip,
@@ -590,8 +590,8 @@ class Hetu extends HTAbstractInterpreter {
     if (filename != null) {
       _fileName = filename;
     }
-    if (libraryName != null && (_bytecodeModule.id != libraryName)) {
-      _bytecodeModule = _cachedMods[libraryName]!;
+    if (moduleName != null && (_bytecodeModule.id != moduleName)) {
+      _bytecodeModule = _cachedModules[moduleName]!;
       libChanged = true;
     }
     if (namespace != null) {
@@ -796,6 +796,9 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.varDecl:
           _handleVarDecl();
+          break;
+        case HTOpCode.constDecl:
+          _handleConstDecl();
           break;
         case HTOpCode.ifStmt:
           final thenBranchLength = _bytecodeModule.readUint16();
@@ -1061,7 +1064,7 @@ class Hetu extends HTAbstractInterpreter {
         for (var i = 0; i < fieldsCount; ++i) {
           final fieldType = _bytecodeModule.read();
           if (fieldType == StructObjFieldType.normal ||
-              fieldType == StructObjFieldType.identifier) {
+              fieldType == StructObjFieldType.objectIdentifier) {
             final key = _readString();
             final value = execute();
             struct.fields[key] = value;
@@ -1462,8 +1465,25 @@ class Hetu extends HTAbstractInterpreter {
       classId = _readString();
     }
     final value = _handleTypeExpr();
-    final decl = HTVariable(id, this, _fileName, _bytecodeModule.id,
-        classId: classId, closure: _namespace, value: value);
+    final decl =
+        HTVariable(id, classId: classId, closure: _namespace, value: value);
+    _namespace.define(id, decl);
+  }
+
+  void _handleConstDecl() {
+    final id = _readString();
+    String? classId;
+    final hasClassId = _bytecodeModule.readBool();
+    if (hasClassId) {
+      classId = _readString();
+    }
+    final isStatic = _bytecodeModule.readBool();
+    final typeIndex = _bytecodeModule.read();
+    final type = ConstType.values.elementAt(typeIndex);
+    final index = _bytecodeModule.readInt16();
+
+    final decl = HTConst(id, type, index, _bytecodeModule,
+        classId: classId, isStatic: isStatic);
     _namespace.define(id, decl);
   }
 
@@ -1478,7 +1498,6 @@ class Hetu extends HTAbstractInterpreter {
     final isExternal = _bytecodeModule.readBool();
     final isStatic = _bytecodeModule.readBool();
     final isMutable = _bytecodeModule.readBool();
-    final isConst = _bytecodeModule.readBool();
     final lateInitialize = _bytecodeModule.readBool();
     HTType? declType;
     final hasTypeDecl = _bytecodeModule.readBool();
@@ -1494,41 +1513,46 @@ class Hetu extends HTAbstractInterpreter {
         final length = _bytecodeModule.readUint16();
         final definitionIp = _bytecodeModule.ip;
         _bytecodeModule.skip(length);
-        decl = HTVariable(id, this, _fileName, _bytecodeModule.id,
+        decl = HTVariable(id,
+            interpreter: this,
+            fileName: _fileName,
+            moduleName: _bytecodeModule.id,
             classId: classId,
             closure: _namespace,
             declType: declType,
             isExternal: isExternal,
             isStatic: isStatic,
-            isConst: isConst,
             isMutable: isMutable,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
       } else {
         final value = execute();
-        decl = HTVariable(id, this, _fileName, _bytecodeModule.id,
+        decl = HTVariable(id,
+            interpreter: this,
+            fileName: _fileName,
+            moduleName: _bytecodeModule.id,
             classId: classId,
             closure: _namespace,
             declType: declType,
             value: value,
             isExternal: isExternal,
             isStatic: isStatic,
-            isConst: isConst,
             isMutable: isMutable);
       }
     } else {
-      decl = HTVariable(id, this, _fileName, _bytecodeModule.id,
+      decl = HTVariable(id,
+          interpreter: this,
+          fileName: _fileName,
+          moduleName: _bytecodeModule.id,
           classId: classId,
           closure: _namespace,
           declType: declType,
           isExternal: isExternal,
           isStatic: isStatic,
-          isConst: isConst,
           isMutable: isMutable);
     }
-    if (isField) {
-    } else {
+    if (!isField) {
       _namespace.define(id, decl);
     }
   }
@@ -1556,7 +1580,10 @@ class Hetu extends HTAbstractInterpreter {
         definitionIp = _bytecodeModule.ip;
         _bytecodeModule.skip(length);
       }
-      paramDecls[id] = HTParameter(id, this, _fileName, _bytecodeModule.id,
+      paramDecls[id] = HTParameter(id,
+          interpreter: this,
+          fileName: _fileName,
+          moduleName: _bytecodeModule.id,
           closure: _namespace,
           declType: declType,
           definitionIp: definitionIp,

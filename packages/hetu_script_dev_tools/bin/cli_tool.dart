@@ -15,13 +15,10 @@ Usage:
 hetu [command] [option]
   command:
     format [path] [option]
-      --script(-s)
       --print(-p)
       --out(-o) [outpath]
     analyze [path] [option]
-      --script(-s)
     run [path] [option]
-      --script(-s)
 hetu [option]
   option:
     --help(-h)
@@ -81,16 +78,15 @@ void main(List<String> arguments) {
             ext != HTSource.hetuModuleFileExtension) {
           throw 'Error: target is not Hetu source code file.';
         }
-        final isScript = cmd['script'] ? true : false;
         switch (cmd.name) {
           case 'run':
-            run(cmdArgs, isScript: isScript);
+            run(cmdArgs);
             break;
           case 'format':
             format(cmdArgs, cmd['out'], cmd['print']);
             break;
           case 'analyze':
-            analyze(cmdArgs, isScript: isScript);
+            analyze(cmdArgs);
             break;
         }
       } else {
@@ -106,23 +102,20 @@ ArgResults parseArg(List<String> args) {
   final parser = ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false);
   parser.addFlag('version', abbr: 'v', negatable: false);
-  final runCmd = parser.addCommand('run');
-  runCmd.addFlag('script', abbr: 's');
+  parser.addCommand('run');
   final fmtCmd = parser.addCommand('format');
-  fmtCmd.addFlag('script', abbr: 's');
   fmtCmd.addFlag('print', abbr: 'p');
   fmtCmd.addOption('out', abbr: 'o');
-  final analyzeCmd = parser.addCommand('analyze');
-  analyzeCmd.addFlag('script', abbr: 's');
+  parser.addCommand('analyze');
   return parser.parse(args);
 }
 
-void run(List<String> args, {bool isScript = true}) {
+void run(List<String> args) {
   dynamic result;
   if (args.length == 1) {
-    result = hetu.evalFile(args.first, isScript: isScript);
+    result = hetu.evalFile(args.first);
   } else {
-    result = hetu.evalFile(args.first, isScript: isScript, invokeFunc: args[1]);
+    result = hetu.evalFile(args.first, invokeFunc: args[1]);
   }
   print('Execution result:');
   print(result);
@@ -155,10 +148,10 @@ void format(List<String> args, [String? outPath, bool printResult = true]) {
   print(outPath);
 }
 
-void analyze(List<String> args, {bool isScript = true}) {
+void analyze(List<String> args) {
   final analyzer = HTAnalyzer();
   analyzer.init();
-  final result = analyzer.evalFile(args.first, isScript: isScript);
+  final result = analyzer.evalFile(args.first);
   if (result != null) {
     if (result.errors.isNotEmpty) {
       print('Analyzer found ${result.errors.length} problems:');

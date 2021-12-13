@@ -1,4 +1,11 @@
+import '../interpreter/const_table.dart';
 import '../declaration/declaration.dart';
+
+enum ConstType {
+  intValue,
+  floatValue,
+  stringValue,
+}
 
 class HTConst extends HTDeclaration {
   final String _id;
@@ -7,10 +14,40 @@ class HTConst extends HTDeclaration {
   String get id => _id;
 
   @override
-  final dynamic value;
+  bool get isConst => true;
 
-  HTConst(this._id, {this.value}) : super(id: _id);
+  final int _index;
+
+  final ConstType _type;
+
+  final ConstTable _table;
+
+  HTConst(
+    this._id,
+    this._type,
+    this._index,
+    this._table, {
+    String? classId,
+    bool isStatic = false,
+    bool isTopLevel = false,
+  }) : super(
+            id: _id,
+            classId: classId,
+            isStatic: isStatic,
+            isTopLevel: isTopLevel);
 
   @override
-  HTConst clone() => HTConst(_id, value: value);
+  dynamic get value {
+    switch (_type) {
+      case ConstType.intValue:
+        return _table.getInt64(_index);
+      case ConstType.floatValue:
+        return _table.getFloat64(_index);
+      case ConstType.stringValue:
+        return _table.getUtf8String(_index);
+    }
+  }
+
+  @override
+  HTConst clone() => this;
 }
