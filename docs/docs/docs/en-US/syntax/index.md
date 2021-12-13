@@ -8,7 +8,7 @@ Hetu's grammar is close to most modern languages, it need very little time to ge
 
 Key characteristics of Hetu:
 
-- Declarations starts with a keyword before the identifier: var, final, fun, construct, get, set, class, type, etc.
+- Declarations starts with a keyword before the identifier: var, final, const, fun, construct, get, set, class, type, etc.
 - Semicolon is optional. In most cases, the interpreter will know when a statement is finished. In rare cases, the lexer will implicitly add "end of statement token" (a semicolon in default lexicon) to avoid ambiguities. For example, before a line when the line starts with one of '++, --, (, [, {', or after a line when the line ends with 'return'.
 - Type annotation is optional. Type is annotated **with a colon after the identifier** like typescript/kotlin/swift.
 - Use **when** instead of **switch**
@@ -23,7 +23,7 @@ another line.*/
 
 ## Variable
 
-Variable is declared with [var], [final]. The type annotation and initialize expression is optional.
+Variable is declared with 'var', 'final'. The type annotation and initialize expression is optional.
 
 ```typescript
 var person;
@@ -41,6 +41,8 @@ print('To kill the ${a}, you have to wait ${6*7} years.')
 ```
 
 A little difference from Dart is that you have to write a curly brackets even if you have only one identifier.
+
+You can declare a const int/float/string value by keyword 'const'
 
 ## Type declaration
 
