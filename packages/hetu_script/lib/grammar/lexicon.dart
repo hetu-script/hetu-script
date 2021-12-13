@@ -3,12 +3,13 @@ abstract class HTLexicon {
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
       r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(4)
-      r'(\.\.\.|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(5)
-      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(6)
-      r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(8)
-      r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(12)
-      r"('(\\'|[^'])*')|" // string with single quotation mark group(16)
-      r'("(\\"|[^"])*")'; // string with double quotation mark group(18)
+      r'(\.\.\.|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(7)
+      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(8)
+      r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(10)
+      r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(14)
+      r"('(\\'|[^'])*')|" // string with single quotation mark group(18)
+      r'("(\\"|[^"])*")|' // string with double quotation mark group(20)
+      r'(`(\\`|[^`])*`)'; // string with grave accent mark group(22)
 
   static const tokenGroupSingleComment = 2;
   static const tokenGroupBlockComment = 3;
@@ -19,6 +20,7 @@ abstract class HTLexicon {
   static const tokenGroupStringInterpolationDoubleMark = 14;
   static const tokenGroupStringSingleQuotation = 18;
   static const tokenGroupStringDoubleQuotation = 20;
+  static const tokenGroupStringGraveAccent = 22;
 
   static const singleLineCommentDocumentationPattern = r'///';
   static const multiLineCommentDocumentationPattern = r'/**';
@@ -37,6 +39,7 @@ abstract class HTLexicon {
     r'\\': '\\',
     r"\'": '\'',
     r'\"': '"',
+    r'\`': '`',
     r'\n': '\n',
     r'\t': '\t',
   };

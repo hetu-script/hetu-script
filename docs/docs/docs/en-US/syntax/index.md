@@ -240,6 +240,20 @@ var lvl = obj.level; // okay, although lvl's value will be null
 - Struct's prototype can be accessed and modified through '$prototype'.
 - Struct's root prototype has two functions: toString() and toJson(). Can be used to easily convert a struct into other code.
 
+## Identifier
+
+Identifiers are the names of classes, functions, types, members and fields. In common situations, you can only use letters or characters from any language, plus underscore and dollor sign.
+
+However, it's possible to get a identifier from any possible characters within a pair grave accent mark.
+
+```dart
+var obj = {
+  `name-#42🍎`: 'aleph' // it's legal for a field name.
+}
+
+print(obj.`name-#42🍎`) // 'aleph'
+```
+
 ## Control flow
 
 Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as when statement, which works like switch.

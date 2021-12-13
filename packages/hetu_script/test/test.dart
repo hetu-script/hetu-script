@@ -4,8 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    var i
-    i ??= 42
-    print(i)
+    var obj = {
+      `name-#42🍎`: 'aleph'
+    }
+
+    print(obj.`name-#42🍎`)
     ''', isScript: true);
 }
