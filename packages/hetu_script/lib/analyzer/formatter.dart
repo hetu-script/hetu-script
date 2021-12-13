@@ -68,19 +68,18 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   String formatString(String content, {FormatterConfig? config}) {
     final tokens = HTLexer().lex(content);
-    final nodes = HTParser().parse(tokens);
+    final nodes = HTParser().parseToken(tokens);
     final result = format(nodes, config: config);
     return result;
   }
 
-  void formatModule(HTModuleParseResult module, {FormatterConfig? config}) {
-    module.source.content = format(module.nodes, config: config);
+  void formatSource(HTSourceParseResult result, {FormatterConfig? config}) {
+    result.source.content = format(result.nodes, config: config);
   }
 
-  void formatCompilation(HTModuleParseResultCompilation compilation,
-      {FormatterConfig? config}) {
-    for (final module in compilation.modules.values) {
-      module.source.content = format(module.nodes, config: config);
+  void formatModule(HTModuleParseResult module, {FormatterConfig? config}) {
+    for (final result in module.results.values) {
+      result.source.content = format(result.nodes, config: config);
     }
   }
 

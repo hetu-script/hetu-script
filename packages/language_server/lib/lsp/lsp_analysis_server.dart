@@ -3,6 +3,7 @@ import 'dart:async';
 // import 'package:path/path.dart' as path;
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/analyzer.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 import 'channel/lsp_channel.dart';
@@ -78,7 +79,7 @@ class LspAnalysisServer {
 
   late final HTAnalysisManager analysisManager;
 
-  HTResourceManager get contextManager => analysisManager.sourceContextManager;
+  HTSourceManager get contextManager => analysisManager.sourceContextManager;
 
   final HTLogger logger = HTFileSystemLogger();
 
@@ -341,14 +342,14 @@ class LspAnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
-    final source = contextManager.addResource(path, content);
+    final source = HTSource(content,
+        name: path, isScript: path.endsWith(HTSource.hetuScriptFileExtension));
+    contextManager.addResource(path, source);
 
     logger.log('source added: [${source.name}]\n${source.content}');
-
     logger.log('pathsToAnalyze:\n${analysisManager.pathsToAnalyze}');
 
     doAnalyze(source.name);
-
     // _afterOverlayChanged(path, plugin.AddContentOverlay(content));
   }
 

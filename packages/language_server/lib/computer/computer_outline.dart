@@ -15,7 +15,7 @@ import '../protocol/protocol_common.dart';
 
 /// A computer for [CompilationUnit] outline.
 class HetuModuleOutlineComputer {
-  final HTModuleParseResult parseResult;
+  final HTSourceParseResult parseResult;
   final bool withBasicFlutter;
 
   HetuModuleOutlineComputer(this.parseResult, {this.withBasicFlutter = false});

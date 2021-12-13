@@ -127,7 +127,7 @@ mixin Handler<P, R> {
   //   }
   // }
 
-  ErrorOr<HTModuleParseResult> requireParseResult(String path) {
+  ErrorOr<HTSourceParseResult> requireParseResult(String path) {
     final result = server.analysisManager.getParseResult(path);
     if (result == null) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
@@ -144,23 +144,23 @@ mixin Handler<P, R> {
   // }
 }
 
-// mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
-//     on RequestHandlerMixin<T> {
-//   Future<List<Response>> requestFromPlugins(
-//     String path,
-//     RequestParams params, {
-//     int timeout = 500,
-//   }) {
-//     final driver = server.getAnalysisDriver(path);
-//     final pluginFutures = server.pluginManager.broadcastRequest(
-//       params,
-//       contextRoot: driver.analysisContext.contextRoot,
-//     );
+mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
+    on RequestHandlerMixin<T> {
+  Future<List<Response>> requestFromPlugins(
+    String path,
+    RequestParams params, {
+    int timeout = 500,
+  }) {
+    final driver = server.getAnalysisDriver(path);
+    final pluginFutures = server.pluginManager.broadcastRequest(
+      params,
+      contextRoot: driver.analysisContext.contextRoot,
+    );
 
-//     return waitForResponses(pluginFutures,
-//         requestParameters: params, timeout: timeout);
-//   }
-// }
+    return waitForResponses(pluginFutures,
+        requestParameters: params, timeout: timeout);
+  }
+}
 
 /// An object that can handle messages and produce responses for requests.
 ///

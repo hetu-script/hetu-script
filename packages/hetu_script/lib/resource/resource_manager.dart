@@ -1,6 +1,5 @@
 import 'package:path/path.dart' as path;
 
-import '../source/source.dart';
 import '../error/error.dart';
 import 'resource_context.dart';
 
@@ -10,35 +9,34 @@ typedef _RootUpdatedCallback = void Function();
 /// A resource could be hetu source, yaml, json... etc.
 /// Extends this class and provide an implementation of
 /// [createContext] to manage a certain kind of [HTResourceContext]
-abstract class HTResourceManager<T extends HTResourceContext> {
+abstract class HTSourceManager<RT, CT extends HTResourceContext<RT>> {
   bool get isSearchEnabled;
 
-  final _contextRoots = <String, T>{};
+  final _contextRoots = <String, CT>{};
 
-  Iterable<T> get contexts => _contextRoots.values;
+  Iterable<CT> get contexts => _contextRoots.values;
 
-  final _cachedSources = <String, HTSource>{};
+  final _cachedSources = <String, RT>{};
 
-  Map<String, HTSource> get cachedSources => _cachedSources;
+  Map<String, RT> get cachedSources => _cachedSources;
 
   /// Set up a callback for root updated event.
   _RootUpdatedCallback? onRootsUpdated;
 
-  T createContext(String root);
+  CT createContext(String root);
 
   bool hasResource(String fullName) {
     // final normalized = HTResourceContext.getAbsolutePath(key: key);
     return _cachedSources.containsKey(fullName);
   }
 
-  void addResource(String fullName, HTSource resource) {
+  void addResource(String fullName, RT resource) {
     if (!path.isAbsolute(fullName)) {
       throw HTError.notAbsoluteError(fullName);
     }
-    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     for (final context in contexts) {
-      if (context.contains(fullName)) {
-        // final source = context.addResource(normalized, content);
+      final normalized = context.getAbsolutePath(key: fullName);
+      if (context.contains(normalized)) {
         _cachedSources[fullName] = resource;
         if (onRootsUpdated != null) {
           onRootsUpdated!();
@@ -49,49 +47,49 @@ abstract class HTResourceManager<T extends HTResourceContext> {
     final root = path.dirname(fullName);
     final context = createContext(root);
     _contextRoots[context.root] = context;
-    context.addResource(fullName, resource);
+    final normalized = context.getAbsolutePath(key: fullName);
+    context.addResource(normalized, resource);
     _cachedSources[fullName] = resource;
     if (onRootsUpdated != null) {
       onRootsUpdated!();
     }
-    // return source;
   }
 
   void removeResource(String fullName) {
-    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     for (final context in contexts) {
-      if (context.contains(fullName)) {
-        context.removeResource(fullName);
+      final normalized = context.getAbsolutePath(key: fullName);
+      if (context.contains(normalized)) {
+        context.removeResource(normalized);
       }
+      return;
     }
   }
 
   /// Try to get a source by a unique key.
-  HTSource? getResource(String fullName, {bool reload = false}) {
-    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+  RT? getResource(String fullName, {bool reload = false}) {
     if (_cachedSources.containsKey(fullName) && !reload) {
       return _cachedSources[fullName]!;
     } else if (isSearchEnabled) {
       for (final root in _contextRoots.keys) {
         if (path.isWithin(root, fullName)) {
           final context = _contextRoots[root]!;
-          final source = context.getResource(fullName);
+          final normalized = context.getAbsolutePath(key: fullName);
+          final source = context.getResource(normalized);
           return source;
         }
       }
     }
   }
 
-  void updateResource(String fullName, String content) {
-    // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
+  void updateResource(String fullName, RT resource) {
     if (_cachedSources.containsKey(fullName)) {
-      final source = _cachedSources[fullName]!;
-      source.content = content;
+      _cachedSources[fullName] = resource;
     } else if (isSearchEnabled) {
       for (final root in _contextRoots.keys) {
         if (path.isWithin(root, fullName)) {
           final context = _contextRoots[root]!;
-          context.updateResource(fullName, content);
+          final normalized = context.getAbsolutePath(key: fullName);
+          context.updateResource(normalized, resource);
           break;
         }
       }

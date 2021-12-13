@@ -20,8 +20,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   /// Create a standard [HTVariable].
   /// has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
-  HTVariable(
-      String id, Hetu interpreter, String moduleFullName, String libraryName,
+  HTVariable(String id, Hetu interpreter, String filename, String libraryName,
       {String? classId,
       HTNamespace? closure,
       HTType? declType,
@@ -44,7 +43,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             isMutable: isMutable,
             isTopLevel: isTopLevel) {
     this.interpreter = interpreter;
-    this.moduleFullName = moduleFullName;
+    this.filename = filename;
     this.libraryName = libraryName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -78,7 +77,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
-            moduleFullName: moduleFullName,
+            filename: filename,
             libraryName: libraryName,
             ip: definitionIp!,
             namespace: closure,
@@ -158,7 +157,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   // }
 
   @override
-  HTVariable clone() => HTVariable(id, interpreter, moduleFullName, libraryName,
+  HTVariable clone() => HTVariable(id, interpreter, filename, libraryName,
       classId: classId,
       closure: closure,
       declType: declType,

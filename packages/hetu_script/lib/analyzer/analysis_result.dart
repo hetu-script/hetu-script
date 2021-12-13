@@ -6,7 +6,7 @@ import 'analyzer.dart';
 import 'analysis_error.dart';
 
 class HTModuleAnalysisResult {
-  final HTModuleParseResult parseResult;
+  final HTSourceParseResult parseResult;
 
   HTSource get source => parseResult.source;
 

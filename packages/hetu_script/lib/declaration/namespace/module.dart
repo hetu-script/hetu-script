@@ -1,11 +1,11 @@
 import '../../grammar/semantic.dart';
 import 'namespace.dart';
 
-/// [HTLibrary] is the semantic entity of a program or package
+/// [HTModule] is the semantic entity of a program or package
 /// it contains all object and code interpreter generated.
-class HTLibrary extends HTNamespace {
+class HTModule extends HTNamespace {
   @override
-  String toString() => '${SemanticNames.library} $id';
+  String toString() => '${SemanticNames.module} $id';
 
   final String _id;
 
@@ -17,7 +17,7 @@ class HTLibrary extends HTNamespace {
   @override
   Map<String, HTNamespace> get declarations => _namespaces;
 
-  HTLibrary(this._id, {Map<String, HTNamespace>? declarations})
+  HTModule(this._id, {Map<String, HTNamespace>? declarations})
       : _namespaces = declarations ?? <String, HTNamespace>{},
         super(id: _id);
 }

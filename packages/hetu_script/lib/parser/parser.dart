@@ -24,13 +24,13 @@ class HTParser extends HTAbstractParser {
 
   final _curModuleImports = <ImportExportDecl>[];
 
-  String? _curModuleFullName;
+  String? _currrentFileName;
   @override
-  String? get curModuleFullName => _curModuleFullName;
+  String? get currrentFileName => _currrentFileName;
 
   late String _curLibraryName;
   @override
-  String? get curLibraryName => _curLibraryName;
+  String? get currentLibraryName => _curLibraryName;
 
   HTClassDeclaration? _curClass;
   FunctionCategory? _curFuncCategory;
@@ -45,7 +45,7 @@ class HTParser extends HTAbstractParser {
 
   HTSource? _curSource;
 
-  final _cachedResults = <String, HTModuleParseResult>{};
+  final _cachedResults = <String, HTSourceParseResult>{};
 
   final Set<String> _cachedRecursiveParsingTargets = {};
 
@@ -55,12 +55,12 @@ class HTParser extends HTAbstractParser {
   HTParser({HTResourceContext<HTSource>? context})
       : sourceContext = context ?? HTOverlayContext();
 
-  /// Will use [type] when possible, then [source.kType], then [SourceType.module]
-  List<AstNode> parse(List<Token> tokens,
+  /// Will use [type] when possible, then [source.isScript]
+  List<AstNode> parseToken(List<Token> tokens,
       {HTSource? source, SourceType? type, ParserConfig? config}) {
     final nodes = <AstNode>[];
     _curSource = source;
-    _curModuleFullName = source?.name;
+    _currrentFileName = source?.name;
     setTokens(tokens);
     while (curTok.type != SemanticNames.endOfFile) {
       if (curTok.type == SemanticNames.emptyLine) {
@@ -100,41 +100,40 @@ class HTParser extends HTAbstractParser {
     return nodes;
   }
 
-  List<AstNode> parseString(String content, {HTSource? source}) {
+  List<AstNode> parse(String content, {HTSource? source}) {
     final tokens = HTLexer().lex(content);
-    final nodes = parse(tokens, source: source);
+    final nodes = parseToken(tokens, source: source);
     return nodes;
   }
 
-  HTModuleParseResult parseToModule(HTSource source, {String? libraryName}) {
+  HTSourceParseResult parseSource(HTSource source, {String? libraryName}) {
     _curLibraryName = libraryName ?? source.name;
-    _curModuleFullName = source.name;
+    _currrentFileName = source.name;
     _curClass = null;
     _curFuncCategory = null;
-    final nodes = parseString(source.content, source: source);
-    final module = HTModuleParseResult(source, nodes,
+    final nodes = parse(source.content, source: source);
+    final result = HTSourceParseResult(source, nodes,
         hasMetaInfo: _hasMetaInfo,
         packageName: libraryName,
         imports: _curModuleImports.toList(),
         errors: errors); // copy the list);
     _curModuleImports.clear();
-    return module;
+    return result;
   }
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  HTModuleParseResultCompilation parseToCompilation(HTSource source,
-      {String? libraryName}) {
-    final module = parseToModule(source, libraryName: libraryName);
-    final results = <String, HTModuleParseResult>{};
+  HTModuleParseResult parseToModule(HTSource source, {String? libraryName}) {
+    final result = parseSource(source, libraryName: libraryName);
+    final results = <String, HTSourceParseResult>{};
 
-    void handleImport(HTModuleParseResult module) {
-      _cachedRecursiveParsingTargets.add(module.fullName);
-      for (final decl in module.imports) {
+    void handleImport(HTSourceParseResult result) {
+      _cachedRecursiveParsingTargets.add(result.fullName);
+      for (final decl in result.imports) {
         try {
-          late final HTModuleParseResult importModule;
+          late final HTSourceParseResult importModule;
           final importFullName = sourceContext.getAbsolutePath(
-              key: decl.fromPath!, dirName: path.dirname(module.fullName));
+              key: decl.fromPath!, dirName: path.dirname(result.fullName));
           decl.fullName = importFullName;
           if (_cachedRecursiveParsingTargets.contains(importFullName)) {
             continue;
@@ -142,7 +141,7 @@ class HTParser extends HTAbstractParser {
             importModule = _cachedResults[importFullName]!;
           } else {
             final source2 = sourceContext.getResource(importFullName);
-            importModule = parseToModule(source2, libraryName: _curLibraryName);
+            importModule = parseSource(source2, libraryName: _curLibraryName);
             _cachedResults[importFullName] = importModule;
           }
           results[importFullName] = importModule;
@@ -151,33 +150,33 @@ class HTParser extends HTAbstractParser {
           late HTError convertedError;
           if (error is FileSystemException) {
             convertedError = HTError.sourceProviderError(decl.fromPath!,
-                moduleFullName: source.name,
+                filename: source.name,
                 line: decl.line,
                 column: decl.column,
                 offset: decl.offset,
                 length: decl.length);
           } else {
             convertedError = HTError.extern(error.toString(),
-                moduleFullName: source.name,
+                filename: source.name,
                 line: decl.line,
                 column: decl.column,
                 offset: decl.offset,
                 length: decl.length);
           }
-          module.errors.add(convertedError);
+          result.errors.add(convertedError);
         }
       }
-      _cachedRecursiveParsingTargets.remove(module.fullName);
+      _cachedRecursiveParsingTargets.remove(result.fullName);
     }
 
-    handleImport(module);
-    results[module.fullName] = module;
-    final compilation = HTModuleParseResultCompilation(
-        modules: results, isScript: source.isScript);
+    handleImport(result);
+    results[result.fullName] = result;
+    final compilation =
+        HTModuleParseResult(results: results, isScript: source.isScript);
     return compilation;
   }
 
-  AstNode _parseStmt({SourceType sourceType = SourceType.function}) {
+  AstNode _parseStmt({SourceType sourceType = SourceType.functionDefinition}) {
     switch (sourceType) {
       case SourceType.script:
         if (curTok.lexeme == HTLexicon.kImport) {
@@ -208,7 +207,7 @@ class HTParser extends HTAbstractParser {
                 case HTLexicon.kVar:
                 case HTLexicon.kFinal:
                   final err = HTError.externalVar(
-                      moduleFullName: _curModuleFullName,
+                      filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
                       offset: curTok.offset,
@@ -228,7 +227,7 @@ class HTParser extends HTAbstractParser {
                 default:
                   final err = HTError.unexpected(
                       SemanticNames.declStmt, curTok.lexeme,
-                      moduleFullName: _curModuleFullName,
+                      filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
                       offset: curTok.offset,
@@ -323,7 +322,7 @@ class HTParser extends HTAbstractParser {
                   if (curTok.type != HTLexicon.kClass) {
                     final err = HTError.unexpected(
                         SemanticNames.classDeclaration, curTok.lexeme,
-                        moduleFullName: _curModuleFullName,
+                        filename: _currrentFileName,
                         line: curTok.line,
                         column: curTok.column,
                         offset: curTok.offset,
@@ -348,7 +347,7 @@ class HTParser extends HTAbstractParser {
                 case HTLexicon.kVar:
                 case HTLexicon.kFinal:
                   final err = HTError.externalVar(
-                      moduleFullName: _curModuleFullName,
+                      filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
                       offset: curTok.offset,
@@ -363,7 +362,7 @@ class HTParser extends HTAbstractParser {
                 default:
                   final err = HTError.unexpected(
                       SemanticNames.declStmt, curTok.lexeme,
-                      moduleFullName: _curModuleFullName,
+                      filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
                       offset: curTok.offset,
@@ -395,7 +394,7 @@ class HTParser extends HTAbstractParser {
             default:
               final err = HTError.unexpected(
                   SemanticNames.declStmt, curTok.lexeme,
-                  moduleFullName: _curModuleFullName,
+                  filename: _currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
                   offset: curTok.offset,
@@ -409,7 +408,7 @@ class HTParser extends HTAbstractParser {
                   offset: errToken.offset);
           }
         }
-      case SourceType.klass:
+      case SourceType.classDefinition:
         final isOverrided = expect([HTLexicon.kOverride], consume: true);
         final isExternal = expect([HTLexicon.kExternal], consume: true) ||
             (_curClass?.isExternal ?? false);
@@ -417,7 +416,7 @@ class HTParser extends HTAbstractParser {
         if (curTok.lexeme == HTLexicon.kType) {
           if (isExternal) {
             final err = HTError.external(SemanticNames.typeAliasDeclaration,
-                moduleFullName: _curModuleFullName,
+                filename: _currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
                 offset: curTok.offset,
@@ -463,7 +462,7 @@ class HTParser extends HTAbstractParser {
             case HTLexicon.kAsync:
               if (isExternal) {
                 final err = HTError.external(SemanticNames.asyncFunction,
-                    moduleFullName: _curModuleFullName,
+                    filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
                     offset: curTok.offset,
@@ -502,7 +501,7 @@ class HTParser extends HTAbstractParser {
               if (isStatic) {
                 final err = HTError.unexpected(
                     SemanticNames.declStmt, HTLexicon.kConstruct,
-                    moduleFullName: _curModuleFullName,
+                    filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
                     offset: curTok.offset,
@@ -516,7 +515,7 @@ class HTParser extends HTAbstractParser {
                     offset: errToken.offset);
               } else if (isExternal && !_curClass!.isExternal) {
                 final err = HTError.external(SemanticNames.ctorFunction,
-                    moduleFullName: _curModuleFullName,
+                    filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
                     offset: curTok.offset,
@@ -539,7 +538,7 @@ class HTParser extends HTAbstractParser {
               if (isStatic) {
                 final err = HTError.unexpected(
                     SemanticNames.declStmt, HTLexicon.kConstruct,
-                    moduleFullName: _curModuleFullName,
+                    filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
                     offset: curTok.offset,
@@ -553,7 +552,7 @@ class HTParser extends HTAbstractParser {
                     offset: errToken.offset);
               } else if (isExternal && !_curClass!.isExternal) {
                 final err = HTError.external(SemanticNames.factory,
-                    moduleFullName: _curModuleFullName,
+                    filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
                     offset: curTok.offset,
@@ -576,7 +575,7 @@ class HTParser extends HTAbstractParser {
             default:
               final err = HTError.unexpected(
                   SemanticNames.declStmt, curTok.lexeme,
-                  moduleFullName: _curModuleFullName,
+                  filename: _currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
                   offset: curTok.offset,
@@ -590,7 +589,7 @@ class HTParser extends HTAbstractParser {
                   offset: errToken.offset);
           }
         }
-      case SourceType.struct:
+      case SourceType.structDefinition:
         final isExternal = expect([HTLexicon.kExternal], consume: true);
         final isStatic = expect([HTLexicon.kStatic], consume: true);
         switch (curTok.type) {
@@ -621,7 +620,7 @@ class HTParser extends HTAbstractParser {
           case HTLexicon.kAsync:
             if (isExternal) {
               final err = HTError.external(SemanticNames.asyncFunction,
-                  moduleFullName: _curModuleFullName,
+                  filename: _currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
                   offset: curTok.offset,
@@ -660,7 +659,7 @@ class HTParser extends HTAbstractParser {
             if (isStatic) {
               final err = HTError.unexpected(
                   SemanticNames.declStmt, HTLexicon.kConstruct,
-                  moduleFullName: _curModuleFullName,
+                  filename: _currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
                   offset: curTok.offset,
@@ -674,7 +673,7 @@ class HTParser extends HTAbstractParser {
                   offset: errToken.offset);
             } else if (isExternal) {
               final err = HTError.external(SemanticNames.ctorFunction,
-                  moduleFullName: _curModuleFullName,
+                  filename: _currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
                   offset: curTok.offset,
@@ -696,7 +695,7 @@ class HTParser extends HTAbstractParser {
           default:
             final err = HTError.unexpected(
                 SemanticNames.declStmt, curTok.lexeme,
-                moduleFullName: _curModuleFullName,
+                filename: _currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
                 offset: curTok.offset,
@@ -709,7 +708,7 @@ class HTParser extends HTAbstractParser {
                 column: errToken.column,
                 offset: errToken.offset);
         }
-      case SourceType.function:
+      case SourceType.functionDefinition:
         if (curTok.lexeme == HTLexicon.kType) {
           return _parseTypeAliasDecl();
         } else {
@@ -792,7 +791,7 @@ class HTParser extends HTAbstractParser {
                 return _parseReturnStmt();
               } else {
                 final err = HTError.outsideReturn(
-                    moduleFullName: _curModuleFullName,
+                    filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
                     offset: curTok.offset,
@@ -863,7 +862,7 @@ class HTParser extends HTAbstractParser {
     if (HTLexicon.assignments.contains(curTok.type)) {
       if (!_leftValueLegality) {
         final err = HTError.invalidLeftValue(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: left.line,
             column: left.column,
             offset: left.offset,
@@ -1207,12 +1206,12 @@ class HTParser extends HTAbstractParser {
         final interpolation = <AstNode>[];
         for (final tokens in token.interpolations) {
           final exprParser = HTParser(context: sourceContext);
-          final nodes = exprParser.parse(tokens,
+          final nodes = exprParser.parseToken(tokens,
               source: _curSource, type: SourceType.expression);
           errors.addAll(exprParser.errors);
           if (nodes.length > 1) {
             final err = HTError.stringInterpolation(
-                moduleFullName: _curModuleFullName,
+                filename: _currrentFileName,
                 line: nodes.first.line,
                 column: nodes.first.column,
                 offset: nodes.first.offset,
@@ -1228,7 +1227,7 @@ class HTParser extends HTAbstractParser {
             // parser will at least insert a empty line astnode
             if (nodes.first is EmptyExpr) {
               final err = HTError.stringInterpolation(
-                  moduleFullName: _curModuleFullName,
+                  filename: _currrentFileName,
                   line: nodes.first.line,
                   column: nodes.first.column,
                   offset: nodes.first.offset,
@@ -1366,7 +1365,7 @@ class HTParser extends HTAbstractParser {
         }
       default:
         final err = HTError.unexpected(SemanticNames.expression, curTok.lexeme,
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: curTok.offset,
@@ -1456,7 +1455,7 @@ class HTParser extends HTAbstractParser {
       if (expect([HTLexicon.angleLeft], consume: true)) {
         if (curTok.type == HTLexicon.angleRight) {
           final err = HTError.emptyTypeArgs(
-              moduleFullName: _curModuleFullName,
+              filename: _currrentFileName,
               line: curTok.line,
               column: curTok.column,
               offset: curTok.offset,
@@ -1486,7 +1485,7 @@ class HTParser extends HTAbstractParser {
 
   BlockStmt _parseBlockStmt(
       {String? id,
-      SourceType sourceType = SourceType.function,
+      SourceType sourceType = SourceType.functionDefinition,
       bool hasOwnNamespace = true}) {
     final start = match(HTLexicon.curlyLeft);
     final statements = <AstNode>[];
@@ -1585,7 +1584,7 @@ class HTParser extends HTAbstractParser {
         // if (node == null) {
         //   final err = HTError.unexpected(
         //       SemanticNames.statement, SemanticNames.emptyLine,
-        //       moduleFullName: curModuleFullName,
+        //       filename: currrentFileName,
         //       line: curTok.line,
         //       column: curTok.column);
         //   errors.add(err);
@@ -1668,7 +1667,7 @@ class HTParser extends HTAbstractParser {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
         final err = HTError.unexpected(
             SemanticNames.variableDeclaration, curTok.type,
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: curTok.offset,
@@ -1745,7 +1744,7 @@ class HTParser extends HTAbstractParser {
           // if (stmt == null) {
           //   final err = HTError.unexpected(
           //       SemanticNames.statement, SemanticNames.emptyLine,
-          //       moduleFullName: curModuleFullName,
+          //       filename: currrentFileName,
           //       line: curTok.line,
           //       column: curTok.column);
           //   errors.add(err);
@@ -1763,7 +1762,7 @@ class HTParser extends HTAbstractParser {
           // if (stmt == null) {
           //   final err = HTError.unexpected(
           //       SemanticNames.statement, SemanticNames.emptyLine,
-          //       moduleFullName: curModuleFullName,
+          //       filename: currrentFileName,
           //       line: curTok.line,
           //       column: curTok.column);
           //   errors.add(err);
@@ -1808,7 +1807,7 @@ class HTParser extends HTAbstractParser {
   LibraryDecl _parseLibraryDecl() {
     if (_hasMetaInfo) {
       final err = HTError.duplicateLibStmt(
-          moduleFullName: _curModuleFullName,
+          filename: _currrentFileName,
           line: curTok.line,
           column: curTok.column,
           offset: curTok.offset,
@@ -1844,7 +1843,7 @@ class HTParser extends HTAbstractParser {
       final fromKeyword = advance(1).lexeme;
       if (fromKeyword != HTLexicon.kFrom) {
         final err = HTError.unexpected(HTLexicon.kFrom, curTok.lexeme,
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: curTok.offset,
@@ -1956,7 +1955,7 @@ class HTParser extends HTAbstractParser {
         id = IdentifierExpr.fromToken(idTok);
       } else {
         final err = HTError.structMemberId(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: idTok.line,
             column: idTok.column,
             offset: idTok.offset,
@@ -1983,7 +1982,7 @@ class HTParser extends HTAbstractParser {
       if (classId != null && isExternal) {
         if (!(_curClass!.isExternal) && !isStatic) {
           final err = HTError.externalMember(
-              moduleFullName: _curModuleFullName,
+              filename: _currrentFileName,
               line: keyword.line,
               column: keyword.column,
               offset: curTok.offset,
@@ -2134,7 +2133,7 @@ class HTParser extends HTAbstractParser {
           } else {
             final lastTok = peek(-1);
             final err = HTError.argInit(
-                moduleFullName: _curModuleFullName,
+                filename: _currrentFileName,
                 line: lastTok.line,
                 column: lastTok.column,
                 offset: lastTok.offset,
@@ -2176,7 +2175,7 @@ class HTParser extends HTAbstractParser {
       // setter can only have one parameter
       if ((category == FunctionCategory.setter) && (minArity != 1)) {
         final err = HTError.setterArity(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: startTok.line,
             column: startTok.column,
             offset: startTok.offset,
@@ -2192,7 +2191,7 @@ class HTParser extends HTAbstractParser {
           category == FunctionCategory.setter) {
         final err = HTError.unexpected(
             SemanticNames.functionDefinition, SemanticNames.returnType,
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: curTok.offset,
@@ -2206,7 +2205,7 @@ class HTParser extends HTAbstractParser {
       if (category != FunctionCategory.constructor) {
         final lastTok = peek(-1);
         final err = HTError.nonCotrWithReferCtor(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: lastTok.offset,
@@ -2216,7 +2215,7 @@ class HTParser extends HTAbstractParser {
       if (isExternal) {
         final lastTok = peek(-1);
         final err = HTError.externalCtorWithReferCtor(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: lastTok.offset,
@@ -2227,7 +2226,7 @@ class HTParser extends HTAbstractParser {
       if (!HTLexicon.constructorCall.contains(ctorCallee.lexeme)) {
         final err = HTError.unexpected(
             SemanticNames.ctorCallExpr, curTok.lexeme,
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: ctorCallee.offset,
@@ -2267,7 +2266,7 @@ class HTParser extends HTAbstractParser {
     } else if (expect([HTLexicon.assign], consume: true)) {
       final err = HTError.unsupported(
           SemanticNames.redirectingFunctionDefinition,
-          moduleFullName: _curModuleFullName,
+          filename: _currrentFileName,
           line: curTok.line,
           column: curTok.column,
           offset: curTok.offset,
@@ -2279,7 +2278,7 @@ class HTParser extends HTAbstractParser {
           !isExternal &&
           !(_curClass?.isAbstract ?? false)) {
         final err = HTError.missingFuncBody(internalName,
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: curTok.offset,
@@ -2324,7 +2323,7 @@ class HTParser extends HTAbstractParser {
     final keyword = match(HTLexicon.kClass);
     if (_curClass != null && _curClass!.isNested) {
       final err = HTError.nestedClass(
-          moduleFullName: _curModuleFullName,
+          filename: _currrentFileName,
           line: curTok.line,
           column: curTok.column,
           offset: keyword.offset,
@@ -2337,7 +2336,7 @@ class HTParser extends HTAbstractParser {
     if (expect([HTLexicon.kExtends], consume: true)) {
       if (curTok.lexeme == id.lexeme) {
         final err = HTError.extendsSelf(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
             offset: curTok.offset,
@@ -2355,7 +2354,7 @@ class HTParser extends HTAbstractParser {
     final savedHasUsrDefCtor = _hasUserDefinedConstructor;
     _hasUserDefinedConstructor = false;
     final definition = _parseBlockStmt(
-        sourceType: SourceType.klass,
+        sourceType: SourceType.classDefinition,
         hasOwnNamespace: false,
         id: SemanticNames.classDefinition);
     final decl = ClassDecl(IdentifierExpr.fromToken(id), definition,
@@ -2413,7 +2412,7 @@ class HTParser extends HTAbstractParser {
       final prototypeIdTok = match(SemanticNames.identifier);
       if (prototypeIdTok.lexeme == id.id) {
         final err = HTError.extendsSelf(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: keyword.line,
             column: keyword.column,
             offset: keyword.offset,
@@ -2430,7 +2429,7 @@ class HTParser extends HTAbstractParser {
     match(HTLexicon.curlyLeft);
     while (curTok.type != HTLexicon.curlyRight &&
         curTok.type != SemanticNames.endOfFile) {
-      final stmt = _parseStmt(sourceType: SourceType.struct);
+      final stmt = _parseStmt(sourceType: SourceType.structDefinition);
       // if (stmt != null) {
       definition.add(stmt);
       // }
@@ -2498,7 +2497,7 @@ class HTParser extends HTAbstractParser {
       } else {
         final errTok = advance(1);
         final err = HTError.structMemberId(
-            moduleFullName: _curModuleFullName,
+            filename: _currrentFileName,
             line: errTok.line,
             column: errTok.column,
             offset: errTok.offset,

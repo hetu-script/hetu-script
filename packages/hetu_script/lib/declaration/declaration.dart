@@ -45,7 +45,7 @@ abstract class HTDeclaration {
   /// Wether this declaration's value can be assigned to another value.
   final bool isMutable;
 
-  /// Wether this declaration is defined directly under a module.
+  /// Wether this declaration is defined on top level of a source.
   final bool isTopLevel;
 
   /// Wether this declaration is a member of a class.

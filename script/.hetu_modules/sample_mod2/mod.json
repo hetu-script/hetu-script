@@ -1,0 +1,10 @@
+{
+  "name": "hetu-docs",
+  "version": "0.1.0",
+  "description": "Documents of Hetu script language.",
+  "author": "chengfubeiming",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^3.2.24"
+  }
+}

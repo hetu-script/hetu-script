@@ -37,7 +37,7 @@ class HTDiagnostic {
 /// Clients may not extend, implement or mix-in this class.
 class HTDiagnosticMessage {
   /// The absolute and normalized path of the file associated with this message.
-  final String moduleFullName;
+  final String filename;
 
   /// The zero-based offset from the start of the file to the beginning of the
   /// source range associated with this message.
@@ -49,6 +49,5 @@ class HTDiagnosticMessage {
   /// The text of the message.
   final String message;
 
-  HTDiagnosticMessage(
-      this.moduleFullName, this.offset, this.length, this.message);
+  HTDiagnosticMessage(this.filename, this.offset, this.length, this.message);
 }

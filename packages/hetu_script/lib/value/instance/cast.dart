@@ -43,7 +43,7 @@ class HTCast with HTEntity, HetuRef {
     } else if (castee is HTCast) {
       object = castee.object;
     } else {
-      throw HTError.castee(interpreter.curSymbol!);
+      throw HTError.castee(interpreter.localSymbol!);
     }
   }
 

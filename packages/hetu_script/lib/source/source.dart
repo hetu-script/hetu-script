@@ -9,25 +9,25 @@ import 'line_info.dart';
 
 /// Code module types
 enum SourceType {
-  /// An expression.
-  expression,
-
-  /// Module can only have declarations (variables, functions, classes, enums),
+  /// Module source can only have declarations (variables, functions, classes, enums),
   /// import & export statement.
   module,
 
-  /// Function & block can have declarations (variables, functions),
-  /// expression & control statements.
-  function,
-
-  /// A script can have all statements.
+  /// A script can have all statements and expressions, kind of like a funciton body.
   script,
 
+  /// An expression.
+  expression,
+
   /// Class can only have declarations (variables, functions).
-  klass,
+  classDefinition,
 
   /// Struct can not have external members
-  struct
+  structDefinition,
+
+  /// Function & block can have declarations (variables, functions),
+  /// expression & control statements.
+  functionDefinition,
 }
 
 class HTSource {

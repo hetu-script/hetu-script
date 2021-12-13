@@ -8,11 +8,11 @@ void main() {
     var j = 'hi, your number is ${ '#' +     i.toString()   }.'
   ''');
   final parser = HTParser();
-  final module = parser.parseToModule(source);
+  final result = parser.parseSource(source);
   final formatter = HTFormatter();
-  formatter.formatModule(module);
-  print(module.fullName);
+  formatter.formatSource(result);
+  print(result.fullName);
   print('--------------------------------------------------------------------');
-  print(module.source.content);
+  print(result.source.content);
   print('--------------------------------------------------------------------');
 }

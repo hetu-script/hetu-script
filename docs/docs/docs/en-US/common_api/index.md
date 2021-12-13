@@ -32,7 +32,7 @@ To parse, analyze, compile and load a Hetu source from a String literal.
 
 ```dart
 dynamic eval(String content,
-    {String? moduleFullName,
+    {String? filename,
     String? libraryName,
     bool globallyImport = false,
     bool isScript = false,
@@ -45,7 +45,7 @@ dynamic eval(String content,
 ```
 
 - **content**: Hetu source as String literal.
-- **moduleFullName**: The name of this **HTModule**, it will be used when other module try to import from it.
+- **filename**: The name of this **HTModule**, it will be used when other module try to import from it.
 - **globallyImport**: Whether you want the content of this source is visible to **global** namespace. It's a quicker way to let other modules to use without import statement.
 - **isScript**: Whether let the interpreter evaluate this source as a script. For more information, check **source type**(../module/index.md#Source-type).
 - **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.

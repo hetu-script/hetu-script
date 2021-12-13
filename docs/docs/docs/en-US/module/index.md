@@ -4,7 +4,7 @@ title: Module import & export - Hetu Script Language
 
 # Module
 
-Hetu script codes are a batch of **HTSource** files organized in the form of **HTModule**. If a module contains import statement, the parser will try to fetch another module content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
+Hetu script codes are a batch of **HTSource** files. If a source contains import statement, the parser will try to fetch another source content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
 
 ## Source type
 
@@ -31,10 +31,10 @@ fun main {
 
 ## Export
 
-Use export in a module to specify the symbols you wish to let other module access when they import from you.
+Use export in a source to specify the symbols you wish to let other source access when they import from you.
 
 - If there's no path provided, exported the symbols from the source contains this statement.
-- You can give a path after the export keyword, to export other module's content.
+- You can give a path after the export keyword, to export other source's content.
 
 ```javascript
 export {

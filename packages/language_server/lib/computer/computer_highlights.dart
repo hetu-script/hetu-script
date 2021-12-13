@@ -17,9 +17,9 @@ import '../lsp/semantic_tokens/mapping.dart'
 
 import '../protocol/protocol_common.dart';
 
-/// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Hetu [HTModuleParseResult].
+/// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Hetu [HTSourceParseResult].
 class HetuHighlightsComputer {
-  final HTModuleParseResult _parseResult;
+  final HTSourceParseResult _parseResult;
   final SourceRange range;
 
   final _regions = <HighlightRegion>[];
@@ -28,7 +28,7 @@ class HetuHighlightsComputer {
   bool _computeSemanticTokens = false;
 
   /// Creates a computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a
-  /// Hetu [HTModuleParseResult].
+  /// Hetu [HTSourceParseResult].
   ///
   /// If [range] is supplied, tokens outside of this range will not be included
   /// in results.

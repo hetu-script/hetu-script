@@ -68,14 +68,14 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   InterpreterConfig get config;
 
   /// Current line number of execution.
-  int get curLine;
+  int get line;
 
   /// Current column number of execution.
-  int get curColumn;
+  int get column;
 
-  HTNamespace get curNamespace;
+  HTNamespace get namespace;
 
-  String get curModuleFullName;
+  String get fileName;
 
   HTResourceContext<HTSource> get sourceContext;
 
@@ -109,7 +109,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       for (final file in preIncludeModules.keys) {
         eval(
           preIncludeModules[file]!,
-          moduleFullName: file,
+          filename: file,
           globallyImport: true,
         );
       }
@@ -117,7 +117,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       for (final file in includes.keys) {
         eval(
           includes[file]!,
-          moduleFullName: file,
+          filename: file,
           // namespace: global,
         );
       }
@@ -146,7 +146,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool errorHandled = false});
 
   T? eval(String content,
-      {String? moduleFullName,
+      {String? filename,
       String? libraryName,
       bool globallyImport = false,
       bool isScript = false,
@@ -156,8 +156,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    final source = HTSource(content,
-        name: moduleFullName, isScript: isScript ? true : false);
+    final source =
+        HTSource(content, name: filename, isScript: isScript ? true : false);
     final result = evalSource(source,
         libraryName: libraryName,
         globallyImport: globallyImport,

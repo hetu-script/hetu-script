@@ -11,17 +11,17 @@ class ParserConfigImpl implements ParserConfig {}
 
 /// Abstract interface for handling a token list.
 abstract class HTAbstractParser {
-  /// The module current processing, used in error message.
-  String? get curModuleFullName;
+  /// The file current under processing, used in error message.
+  String? get currrentFileName;
 
-  String? get curLibraryName;
+  String? get currentLibraryName;
 
   HTResourceContext get sourceContext;
 
-  int _curLine = 0;
-  int _curColumn = 0;
-  int get curLine => _curLine;
-  int get curColumn => _curColumn;
+  int _line = 0;
+  int _column = 0;
+  int get line => _line;
+  int get column => _column;
 
   final errors = <HTError>[];
 
@@ -35,8 +35,8 @@ abstract class HTAbstractParser {
     tokPos = 0;
     _tokens.clear();
     _tokens.addAll(tokens);
-    _curLine = 0;
-    _curColumn = 0;
+    _line = 0;
+    _column = 0;
 
     endOfFile = Token(
         SemanticNames.endOfFile,
@@ -86,7 +86,7 @@ abstract class HTAbstractParser {
   Token match(String type) {
     if (curTok.type != type) {
       final err = HTError.unexpected(type, curTok.lexeme,
-          moduleFullName: curModuleFullName,
+          filename: currrentFileName,
           line: curTok.line,
           column: curTok.column,
           offset: curTok.offset,
@@ -100,8 +100,8 @@ abstract class HTAbstractParser {
   /// Advance till reach [distance], return the token at original position.
   Token advance(int distance) {
     tokPos += distance;
-    _curLine = curTok.line;
-    _curColumn = curTok.column;
+    _line = curTok.line;
+    _column = curTok.column;
     return peek(-distance);
   }
 

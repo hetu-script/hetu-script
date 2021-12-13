@@ -11,13 +11,14 @@ class HTAnalysisManager {
   final HTErrorHandlerCallback? errorHandler;
 
   /// The underlying context manager for analyzer to access to source.
-  final HTResourceManager<HTResourceContext<HTSource>> sourceContextManager;
+  final HTSourceManager<HTSource, HTResourceContext<HTSource>>
+      sourceContextManager;
 
   final _pathsToAnalyzer = <String, HTAnalyzer>{};
 
   final _analysisResults = <String, HTModuleAnalysisResult>{};
 
-  final _parseResults = <String, HTModuleParseResult>{};
+  final _parseResults = <String, HTSourceParseResult>{};
 
   Iterable<String> get pathsToAnalyze => _pathsToAnalyzer.keys;
 
@@ -32,7 +33,7 @@ class HTAnalysisManager {
     };
   }
 
-  HTModuleParseResult? getParseResult(String fullName) {
+  HTSourceParseResult? getParseResult(String fullName) {
     // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     return _parseResults[fullName];
   }
@@ -42,8 +43,8 @@ class HTAnalysisManager {
     final analyzer = _pathsToAnalyzer[fullName]!;
     final source = sourceContextManager.getResource(fullName)!;
     final result = analyzer.evalSource(source);
-    for (final module in analyzer.compilation.modules.values) {
-      _parseResults[module.fullName] = module;
+    for (final result in analyzer.moduleParseResult.results.values) {
+      _parseResults[result.fullName] = result;
     }
     _analysisResults[fullName] = result;
     return result;

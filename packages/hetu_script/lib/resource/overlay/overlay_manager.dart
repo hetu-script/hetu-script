@@ -1,7 +1,9 @@
 import '../resource_manager.dart';
+import '../../source/source.dart';
 import 'overlay_context.dart';
 
-class HTOverlayContextManager extends HTResourceManager<HTOverlayContext> {
+class HTOverlayContextManager
+    extends HTSourceManager<HTSource, HTOverlayContext> {
   @override
   bool get isSearchEnabled => false;
 

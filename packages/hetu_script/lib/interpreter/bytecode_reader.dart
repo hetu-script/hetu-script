@@ -23,7 +23,7 @@ class BytecodeReader {
       return bytes[ip++];
     } else {
       ip = 0;
-      return HTOpCode.endOfFile;
+      return HTOpCode.endOfCode;
     }
   }
 

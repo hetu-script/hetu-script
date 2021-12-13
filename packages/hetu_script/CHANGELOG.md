@@ -1,8 +1,11 @@
-## 0.3.4
+## 0.4.0
 
+- Added a module host server (mod.hetu.dev).
 - Added for...of syntax for iterate through values of Map or struct literal.
 - When statement now can also be used as expression.
 - Import statement now support 'mod:xxx' syntax. This will search for module under '.hetu_modules' folder.
+- Null check syntax: '?.', '??', '??='.
+- Import and evaluate a json file (get a Map value).
 
 ## 0.3.3
 

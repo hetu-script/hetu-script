@@ -16,7 +16,7 @@ extension HTExtension on Hetu {
     for (final file in extensionModules.keys) {
       eval(
         extensionModules[file]!,
-        moduleFullName: file,
+        filename: file,
         globallyImport: true,
       );
     }

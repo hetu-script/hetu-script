@@ -1232,7 +1232,7 @@ class ImportExportDecl extends AstNode {
 
   final List<IdentifierExpr> showList;
 
-  /// The normalized absolute path of the imported module.
+  /// The normalized absolute path of the imported file.
   /// It is left as null at the first time of parsing,
   /// because at this time we don't know yet.
   String? fullName;

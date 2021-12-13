@@ -171,9 +171,9 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
     if (error) {
       throw HTError.undefined(varName,
-          moduleFullName: interpreter.curModuleFullName,
-          line: interpreter.curLine,
-          column: interpreter.curColumn);
+          filename: interpreter.fileName,
+          line: interpreter.line,
+          column: interpreter.column);
     }
   }
 
@@ -203,9 +203,9 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     }
 
     throw HTError.undefined(varName,
-        moduleFullName: interpreter.curModuleFullName,
-        line: interpreter.curLine,
-        column: interpreter.curColumn);
+        filename: interpreter.fileName,
+        line: interpreter.line,
+        column: interpreter.column);
   }
 
   /// Call a static function of this [HTClass].
@@ -224,9 +224,9 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
             typeArgs: typeArgs);
       } else {
         throw HTError.notCallable(funcName,
-            moduleFullName: interpreter.curModuleFullName,
-            line: interpreter.curLine,
-            column: interpreter.curColumn);
+            filename: interpreter.fileName,
+            line: interpreter.line,
+            column: interpreter.column);
       }
     } catch (error, stackTrace) {
       if (errorHandled) {

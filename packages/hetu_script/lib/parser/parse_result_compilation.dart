@@ -1,10 +1,9 @@
 import 'parse_result.dart';
 
-class HTModuleParseResultCompilation {
-  final Map<String, HTModuleParseResult> modules;
+class HTModuleParseResult {
+  final Map<String, HTSourceParseResult> results;
 
   final bool isScript;
 
-  HTModuleParseResultCompilation(
-      {required this.modules, required this.isScript});
+  HTModuleParseResult({required this.results, required this.isScript});
 }

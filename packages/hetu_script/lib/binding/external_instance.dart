@@ -35,7 +35,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
       externalClass = null;
     }
 
-    final def = interpreter.curNamespace.memberGet(id, error: false);
+    final def = interpreter.namespace.memberGet(id, error: false);
     if (def is HTClass) {
       klass = def;
     } else if (def is HTExternalEnum) {

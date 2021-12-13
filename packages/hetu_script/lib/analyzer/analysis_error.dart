@@ -25,7 +25,7 @@ class HTAnalysisError implements HTError {
   final String? correction;
 
   @override
-  final String moduleFullName;
+  final String filename;
 
   @override
   final int line;
@@ -46,7 +46,7 @@ class HTAnalysisError implements HTError {
       this.extra,
       List<String> interpolations = const [],
       this.correction,
-      required this.moduleFullName,
+      required this.filename,
       required this.line,
       required this.column,
       this.offset = 0,
@@ -58,7 +58,7 @@ class HTAnalysisError implements HTError {
       : this(error.code, error.type,
             message: error.message,
             correction: error.correction,
-            moduleFullName: error.moduleFullName!,
+            filename: error.filename!,
             line: error.line!,
             column: error.column!,
             offset: error.offset!,

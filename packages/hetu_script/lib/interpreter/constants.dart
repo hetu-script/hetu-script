@@ -1,6 +1,6 @@
 /// Operation code used by compiler.
 abstract class HTOpCode {
-  static const endOfFile = -1;
+  static const endOfCode = -1;
 
   /// 1 byte of OpRandType, value
   static const local = 1;
@@ -41,7 +41,7 @@ abstract class HTOpCode {
 
   static const endOfFunc = 23;
 
-  static const endOfModule = 24;
+  static const endOfFile = 24;
 
   static const ifStmt = 26;
 
@@ -55,7 +55,7 @@ abstract class HTOpCode {
 
   static const library = 31;
 
-  static const module = 32;
+  static const file = 32;
 
   static const constTable = 33;
 

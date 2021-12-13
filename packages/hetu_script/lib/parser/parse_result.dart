@@ -19,7 +19,7 @@ class ImportInfo {
 }
 
 /// The parse result of a single file
-class HTModuleParseResult {
+class HTSourceParseResult {
   final HTSource source;
 
   String get fullName => source.name;
@@ -38,7 +38,7 @@ class HTModuleParseResult {
 
   final List<HTError> errors;
 
-  HTModuleParseResult(this.source, this.nodes,
+  HTSourceParseResult(this.source, this.nodes,
       {this.packageName,
       this.hasMetaInfo = false,
       this.imports = const [],

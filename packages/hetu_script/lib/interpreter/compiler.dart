@@ -33,7 +33,7 @@ class HTRegIdx {
 
 // Execution jump point
 mixin GotoInfo {
-  late final String moduleFullName;
+  late final String filename;
   late final String libraryName;
   late final int? definitionIp;
   late final int? definitionLine;
@@ -82,7 +82,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   HTCompiler({CompilerConfig? config})
       : config = config ?? const CompilerConfigImpl();
 
-  Uint8List compile(HTModuleParseResultCompilation compilation) {
+  Uint8List compile(HTModuleParseResult compilation) {
     final mainBytesBuilder = BytesBuilder();
     mainBytesBuilder.addByte(HTOpCode.meta);
     // hetu bytecode signature
@@ -94,18 +94,17 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // bool: isScript
     mainBytesBuilder.addByte(compilation.isScript ? 1 : 0);
     final bytesBuilder = BytesBuilder();
-    for (final module in compilation.modules.values) {
-      bytesBuilder.addByte(HTOpCode.module);
-      final idBytes = module.hasMetaInfo
-          ? _string(module.packageName!)
-          : _string(module.fullName);
+    for (final result in compilation.results.values) {
+      bytesBuilder.addByte(HTOpCode.file);
+      final idBytes = result.hasMetaInfo
+          ? _string(result.packageName!)
+          : _string(result.fullName);
       bytesBuilder.add(idBytes);
-      // bytesBuilder.addByte(module.hasMetaInfo ? 1 : 0);
-      for (final node in module.nodes) {
+      for (final node in result.nodes) {
         final bytes = compileAst(node);
         bytesBuilder.add(bytes);
       }
-      bytesBuilder.addByte(HTOpCode.endOfModule);
+      bytesBuilder.addByte(HTOpCode.endOfFile);
     }
     final code = bytesBuilder.toBytes();
     // const table

@@ -84,7 +84,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
   ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>> _getSymbols(
     LspClientCapabilities capabilities,
     String path,
-    HTModuleParseResult unit,
+    HTSourceParseResult unit,
   ) {
     final computer = HetuModuleOutlineComputer(unit);
     final outline = computer.compute();

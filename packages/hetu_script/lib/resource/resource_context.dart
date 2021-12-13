@@ -84,7 +84,7 @@ abstract class HTResourceContext<T> {
 
   void removeResource(String fullName);
 
-  /// Import a script module with a certain [key], ignore those already imported
+  /// Import a resource with a certain [key], ignore those already imported
   ///
   /// If [from] is provided, the handler will try to get a relative path
   ///

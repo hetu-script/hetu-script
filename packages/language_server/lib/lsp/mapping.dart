@@ -729,7 +729,7 @@ AnalysisError newAnalysisError_fromEngine(
   // prepare location
   Location location;
   {
-    var file = error.moduleFullName;
+    var file = error.filename;
     var offset = error.offset;
     var length = error.length;
     var lineInfo = result.lineInfo;
@@ -775,7 +775,7 @@ AnalysisError newAnalysisError_fromEngine(
 /// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
     HTModuleAnalysisResult result, HTDiagnosticMessage message) {
-  var file = message.moduleFullName;
+  var file = message.filename;
   var offset = message.offset;
   var length = message.length;
 
@@ -1124,7 +1124,7 @@ lsp.Diagnostic toDiagnostic(
 
 lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
     HTModuleAnalysisResult result, HTDiagnosticMessage message) {
-  var file = message.moduleFullName;
+  var file = message.filename;
   var lineInfo = result.lineInfo;
   return lsp.DiagnosticRelatedInformation(
       location: lsp.Location(

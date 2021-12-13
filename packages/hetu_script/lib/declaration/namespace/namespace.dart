@@ -3,7 +3,6 @@ import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
 import '../declaration.dart';
 import '../../value/entity.dart';
-// import 'module.dart';
 
 class ImportDeclaration {
   final String fullName;
@@ -24,7 +23,6 @@ class ImportDeclaration {
 
 /// Namespace is used when importing with a name
 /// or for interpreter searching for symbols
-/// from a certain block or module.
 class HTNamespace extends HTDeclaration with HTEntity {
   @override
   String toString() => '${HTLexicon.kNamespace} $id';

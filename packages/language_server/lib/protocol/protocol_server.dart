@@ -73,8 +73,8 @@ Location newLocation_fromNode(AstNode node) {
 }
 
 /// Create a Location based on an [engine.CompilationUnit].
-Location newLocation_fromNamespace(HTNamespace module, SourceRange range) {
-  return _locationForArgs(module.source!, range);
+Location newLocation_fromNamespace(HTNamespace namespace, SourceRange range) {
+  return _locationForArgs(namespace.source!, range);
 }
 
 /// Construct based on an element from the analyzer engine.

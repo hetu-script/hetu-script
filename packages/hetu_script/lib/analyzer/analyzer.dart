@@ -39,22 +39,22 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   var _curLine = 0;
   @override
-  int get curLine => _curLine;
+  int get line => _curLine;
 
   var _curColumn = 0;
   @override
-  int get curColumn => _curColumn;
+  int get column => _curColumn;
 
   @override
   final HTNamespace global;
 
   late HTNamespace _curNamespace;
   @override
-  HTNamespace get curNamespace => _curNamespace;
+  HTNamespace get namespace => _curNamespace;
 
   late HTSource _curSource;
   @override
-  String get curModuleFullName => _curSource.name;
+  String get fileName => _curSource.name;
 
   bool get isScript => _curSource.isScript;
 
@@ -69,7 +69,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   // late HTTypeChecker _curTypeChecker;
 
-  late HTModuleParseResultCompilation compilation;
+  late HTModuleParseResult moduleParseResult;
 
   @override
   HTResourceContext<HTSource> sourceContext;
@@ -100,19 +100,19 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     errors.clear();
     _curSource = source;
     final parser = HTParser(context: sourceContext);
-    compilation = parser.parseToCompilation(source, libraryName: libraryName);
+    moduleParseResult = parser.parseToModule(source, libraryName: libraryName);
     final results = <String, HTModuleAnalysisResult>{};
-    for (final module in compilation.modules.values) {
+    for (final result in moduleParseResult.results.values) {
       _curErrors.clear();
       final analysisErrors =
-          module.errors.map((err) => HTAnalysisError.fromError(err)).toList();
+          result.errors.map((err) => HTAnalysisError.fromError(err)).toList();
       _curErrors.addAll(analysisErrors);
-      _curNamespace = HTNamespace(id: module.fullName, closure: global);
-      for (final node in module.nodes) {
+      _curNamespace = HTNamespace(id: result.fullName, closure: global);
+      for (final node in result.nodes) {
         analyzeAst(node);
       }
       final moduleAnalysisResult =
-          HTModuleAnalysisResult(module, this, analysisErrors, _curNamespace);
+          HTModuleAnalysisResult(result, this, analysisErrors, _curNamespace);
       results[moduleAnalysisResult.fullName] = moduleAnalysisResult;
       errors.addAll(_curErrors);
     }
@@ -162,7 +162,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitIdentifierExpr(IdentifierExpr expr) {
     expr.analysisNamespace = _curNamespace;
     // print(
-    //     'visited symbol: ${expr.id}, line: ${expr.line}, col: ${expr.column}, file: $curModuleFullName');
+    //     'visited symbol: ${expr.id}, line: ${expr.line}, col: ${expr.column}, file: $currrentFileName');
   }
 
   @override

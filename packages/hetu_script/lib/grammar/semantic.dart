@@ -18,7 +18,6 @@ enum TypeType {
 
 abstract class SemanticNames {
   static const module = 'module';
-  static const library = 'library';
   static const namespace = 'namespace';
 
   static const global = 'global';

@@ -428,8 +428,6 @@ abstract class HTLexicon {
   // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}].';
   static const errorExternal = 'External [{0}] is not allowed.';
-  // static const errorExternalCtor =
-  //     'External constructor on a normal class is not allowed.';
   static const errorNestedClass = 'Nested class within another nested class.';
   static const errorOutsideReturn =
       'Unexpected return statement outside of a function.';
@@ -439,7 +437,6 @@ abstract class HTLexicon {
       'Non-external class cannot have non-static external members.';
   static const errorEmptyTypeArgs = 'Empty type arguments.';
   static const errorExtendsSelf = 'Class try to extends itself.';
-  // static const errorCtorReturn = 'Constructor cannot have a return type.';
   static const errorMissingFuncBody = 'Missing function definition of [{0}].';
   static const errorExternalCtorWithReferCtor =
       'Unexpected refer constructor on external constructor.';
@@ -506,8 +503,6 @@ abstract class HTLexicon {
   static const errorTypeCast = 'Type [{0}] cannot be cast into type [{1}].';
   static const errorCastee = 'Illegal cast target [{0}].';
   static const errorNotSuper = '[{0}] is not a super class of [{1}].';
-  // static const errorSourceType = 'config.sourcetype must be script or module.';
-  // static const errorNonExistModule = 'Could not open file: [{0}].';
   static const errorStructMemberId =
       'Struct member id should be symbol or string.';
   static const errorUnresolvedNamedStruct =

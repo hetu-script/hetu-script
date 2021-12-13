@@ -54,7 +54,7 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(String internalName, String moduleFullName, String libraryName,
+  HTFunction(String internalName, String filename, String libraryName,
       Hetu interpreter,
       {String? id,
       String? classId,
@@ -104,7 +104,7 @@ class HTFunction extends HTFunctionDeclaration
             maxArity: maxArity,
             namespace: namespace) {
     this.interpreter = interpreter;
-    this.moduleFullName = moduleFullName;
+    this.filename = filename;
     this.libraryName = libraryName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
@@ -139,7 +139,7 @@ class HTFunction extends HTFunctionDeclaration
 
   @override
   HTFunction clone() =>
-      HTFunction(internalName, moduleFullName, libraryName, interpreter,
+      HTFunction(internalName, filename, libraryName, interpreter,
           id: id,
           classId: classId,
           closure: closure,
@@ -192,7 +192,7 @@ class HTFunction extends HTFunctionDeclaration
       bool errorHandled = true}) {
     try {
       interpreter.stackTrace.add(
-          '$internalName (${interpreter.curModuleFullName}:${interpreter.curLine}:${interpreter.curColumn})');
+          '$internalName (${interpreter.fileName}:${interpreter.line}:${interpreter.column})');
 
       dynamic result;
       // 如果是脚本函数
@@ -201,17 +201,17 @@ class HTFunction extends HTFunctionDeclaration
           if (positionalArgs.length < minArity ||
               (positionalArgs.length > maxArity && !isVariadic)) {
             throw HTError.arity(internalName, positionalArgs.length, minArity,
-                moduleFullName: interpreter.curModuleFullName,
-                line: interpreter.curLine,
-                column: interpreter.curColumn);
+                filename: interpreter.fileName,
+                line: interpreter.line,
+                column: interpreter.column);
           }
 
           for (final name in namedArgs.keys) {
             if (!paramDecls.containsKey(name)) {
               throw HTError.namedArg(name,
-                  moduleFullName: interpreter.curModuleFullName,
-                  line: interpreter.curLine,
-                  column: interpreter.curColumn);
+                  filename: interpreter.fileName,
+                  line: interpreter.line,
+                  column: interpreter.column);
             }
           }
         }
@@ -273,16 +273,16 @@ class HTFunction extends HTFunctionDeclaration
           final referCtorPosArgs = [];
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
-            final savedModuleFullName = interpreter.curModuleFullName;
-            final savedlibraryName = interpreter.curLibrary.fullName;
-            final savedNamespace = interpreter.curNamespace;
-            final savedIp = interpreter.curLibrary.ip;
+            final savedModuleFullName = interpreter.fileName;
+            final savedlibraryName = interpreter.bytecodeModule.fullName;
+            final savedNamespace = interpreter.namespace;
+            final savedIp = interpreter.bytecodeModule.ip;
             interpreter.newStackFrame(
-                moduleFullName: moduleFullName,
+                filename: filename,
                 libraryName: libraryName,
                 namespace: callClosure,
                 ip: referCtorPosArgIps[i]);
-            final isSpread = interpreter.curLibrary.readBool();
+            final isSpread = interpreter.bytecodeModule.readBool();
             if (!isSpread) {
               final arg = interpreter.execute();
               referCtorPosArgs.add(arg);
@@ -303,7 +303,7 @@ class HTFunction extends HTFunctionDeclaration
           for (final name in referCtorNamedArgIps.keys) {
             final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
             final arg = interpreter.execute(
-                moduleFullName: moduleFullName,
+                filename: filename,
                 libraryName: libraryName,
                 ip: referCtorNamedArgIp,
                 namespace: callClosure);
@@ -354,7 +354,7 @@ class HTFunction extends HTFunctionDeclaration
 
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
-              moduleFullName: moduleFullName,
+              filename: filename,
               libraryName: libraryName,
               ip: definitionIp,
               namespace: callClosure,
@@ -363,7 +363,7 @@ class HTFunction extends HTFunctionDeclaration
               column: definitionColumn);
         } else {
           interpreter.execute(
-              moduleFullName: moduleFullName,
+              filename: filename,
               libraryName: libraryName,
               ip: definitionIp,
               namespace: callClosure,
@@ -381,17 +381,17 @@ class HTFunction extends HTFunctionDeclaration
           if (positionalArgs.length < minArity ||
               (positionalArgs.length > maxArity && !isVariadic)) {
             throw HTError.arity(internalName, positionalArgs.length, minArity,
-                moduleFullName: interpreter.curModuleFullName,
-                line: interpreter.curLine,
-                column: interpreter.curColumn);
+                filename: interpreter.fileName,
+                line: interpreter.line,
+                column: interpreter.column);
           }
 
           for (final name in namedArgs.keys) {
             if (!paramDecls.containsKey(name)) {
               throw HTError.namedArg(name,
-                  moduleFullName: interpreter.curModuleFullName,
-                  line: interpreter.curLine,
-                  column: interpreter.curColumn);
+                  filename: interpreter.fileName,
+                  line: interpreter.line,
+                  column: interpreter.column);
             }
           }
 
@@ -451,7 +451,7 @@ class HTFunction extends HTFunctionDeclaration
             if (category != FunctionCategory.getter) {
               final func = externalFunc!;
               if (func is HTExternalFunction) {
-                result = func(interpreter.curNamespace,
+                result = func(interpreter.namespace,
                     positionalArgs: finalPosArgs,
                     namedArgs: finalNamedArgs,
                     typeArgs: typeArgs);
@@ -463,9 +463,9 @@ class HTFunction extends HTFunctionDeclaration
                         (key, value) => MapEntry(Symbol(key), value)));
               } else {
                 throw HTError.notCallable(internalName,
-                    moduleFullName: interpreter.curModuleFullName,
-                    line: interpreter.curLine,
-                    column: interpreter.curColumn);
+                    filename: interpreter.fileName,
+                    line: interpreter.line,
+                    column: interpreter.column);
               }
             } else {
               result = klass!.externalClass!.memberGet('$classId.$id');
@@ -477,7 +477,7 @@ class HTFunction extends HTFunctionDeclaration
                 interpreter.fetchExternalFunction('$classId.$id');
             if (func is HTExternalFunction) {
               if (isStatic || category == FunctionCategory.constructor) {
-                result = func(interpreter.curNamespace,
+                result = func(interpreter.namespace,
                     positionalArgs: finalPosArgs,
                     namedArgs: finalNamedArgs,
                     typeArgs: typeArgs);
@@ -489,9 +489,9 @@ class HTFunction extends HTFunctionDeclaration
               }
             } else {
               throw HTError.notCallable(internalName,
-                  moduleFullName: interpreter.curModuleFullName,
-                  line: interpreter.curLine,
-                  column: interpreter.curColumn);
+                  filename: interpreter.fileName,
+                  line: interpreter.line,
+                  column: interpreter.column);
             }
           }
         }
@@ -501,7 +501,7 @@ class HTFunction extends HTFunctionDeclaration
           final func = externalFunc!;
           if (func is HTExternalFunction) {
             if (isStatic || category == FunctionCategory.constructor) {
-              result = func(interpreter.curNamespace,
+              result = func(interpreter.namespace,
                   positionalArgs: finalPosArgs,
                   namedArgs: finalNamedArgs,
                   typeArgs: typeArgs);
@@ -519,9 +519,9 @@ class HTFunction extends HTFunctionDeclaration
                     (key, value) => MapEntry(Symbol(key), value)));
           } else {
             throw HTError.notCallable(internalName,
-                moduleFullName: interpreter.curModuleFullName,
-                line: interpreter.curLine,
-                column: interpreter.curColumn);
+                filename: interpreter.fileName,
+                line: interpreter.line,
+                column: interpreter.column);
           }
         }
         // a toplevel external function
@@ -529,7 +529,7 @@ class HTFunction extends HTFunctionDeclaration
           externalFunc ??= interpreter.fetchExternalFunction(id!);
           final func = externalFunc!;
           if (func is HTExternalFunction) {
-            result = func(interpreter.curNamespace,
+            result = func(interpreter.namespace,
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);
@@ -541,9 +541,9 @@ class HTFunction extends HTFunctionDeclaration
                     (key, value) => MapEntry(Symbol(key), value)));
           } else {
             throw HTError.notCallable(internalName,
-                moduleFullName: interpreter.curModuleFullName,
-                line: interpreter.curLine,
-                column: interpreter.curColumn);
+                filename: interpreter.fileName,
+                line: interpreter.line,
+                column: interpreter.column);
           }
         }
       }
