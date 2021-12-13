@@ -42,7 +42,7 @@ print('To kill the ${a}, you have to wait ${6*7} years.')
 
 A little difference from Dart is that you have to write a curly brackets even if you have only one identifier.
 
-You can declare a const int/float/string value by keyword 'const'
+You can declare a const int/float/string value by keyword 'const'.
 
 ## Type declaration
 
