@@ -4,8 +4,14 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    var i
-    i ??= 42
-    print(i)
+    final obj = {
+      name: 'nobody'
+    }
+    final func = () {
+      this.name = 'foobar'
+    }
+    final newfunc =func.bind(obj)
+    newfunc()
+    print(obj.name)
     ''', isScript: true);
 }

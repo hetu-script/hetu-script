@@ -935,8 +935,9 @@ class ReturnStmt extends AstNode {
 
   final bool hasEndOfStmtMark;
 
-  ReturnStmt(this.keyword, this.value,
-      {this.hasEndOfStmtMark = false,
+  ReturnStmt(this.keyword,
+      {this.value,
+      this.hasEndOfStmtMark = false,
       HTSource? source,
       int line = 0,
       int column = 0,

@@ -59,7 +59,6 @@ enum ErrorCode {
   returnType,
   stringInterpolation,
   arity,
-  binding,
   externalVar,
   bytesSig,
   circleInit,
@@ -70,7 +69,8 @@ enum ErrorCode {
   castee,
   notSuper,
   structMemberId,
-  unresolvedNamedStruct
+  unresolvedNamedStruct,
+  binding,
 }
 
 /// The type of an [HTError].
@@ -1198,26 +1198,6 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Missing binding extension on dart object.
-  HTError.binding(String id,
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.binding, ErrorType.runtimeError,
-            message: HTLexicon.errorBinding,
-            interpolations: [id],
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: Can not declare a external variable in global namespace.
   HTError.externalVar(
       {String? extra,
@@ -1452,6 +1432,17 @@ class HTError {
       : this(ErrorCode.unresolvedNamedStruct, ErrorType.runtimeError,
             message: HTLexicon.errorUnresolvedNamedStruct,
             interpolations: [id],
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Bind a non literal function is not allowed.
+  HTError.binding(
+      {String? filename, int? line, int? column, int? offset, int? length})
+      : this(ErrorCode.binding, ErrorType.runtimeError,
+            message: HTLexicon.errorBinding,
             filename: filename,
             line: line,
             column: column,

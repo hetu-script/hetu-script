@@ -6,7 +6,6 @@ import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
 import '../grammar/lexicon.dart';
 import '../lexer/token.dart';
-import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
@@ -1661,13 +1660,25 @@ class HTParser extends HTAbstractParser {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance(1);
     AstNode? expr;
-    if (curTok.type != HTLexicon.bracesRight &&
-        curTok.type != HTLexicon.semicolon &&
-        curTok.type != SemanticNames.endOfFile) {
-      expr = _parseExpr();
+    if (curTok.type == HTLexicon.kSuper) {
+      final err = HTError.unexpected(SemanticNames.expression, curTok.lexeme,
+          filename: _currrentFileName,
+          line: curTok.line,
+          column: curTok.column,
+          offset: curTok.offset,
+          length: curTok.length);
+      errors.add(err);
+      advance(1);
+    } else {
+      if (curTok.type != HTLexicon.bracesRight &&
+          curTok.type != HTLexicon.semicolon &&
+          curTok.type != SemanticNames.endOfFile) {
+        expr = _parseExpr();
+      }
     }
     expect([HTLexicon.semicolon], consume: true);
-    return ReturnStmt(keyword, expr,
+    return ReturnStmt(keyword,
+        value: expr,
         source: _curSource,
         line: keyword.line,
         column: keyword.column,

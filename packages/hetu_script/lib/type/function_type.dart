@@ -135,6 +135,8 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
         }
         return true;
       }
+    } else if (other is HTType && other.id == HTLexicon.object) {
+      return true;
     } else {
       return false;
     }

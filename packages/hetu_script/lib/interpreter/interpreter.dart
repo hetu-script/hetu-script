@@ -6,6 +6,7 @@ import '../declaration/declaration.dart';
 import '../value/struct/named_struct.dart';
 import '../value/entity.dart';
 import '../value/class/class.dart';
+import '../value/instance/instance.dart';
 import '../value/instance/cast.dart';
 import '../value/function/function.dart';
 import '../value/function/parameter.dart';

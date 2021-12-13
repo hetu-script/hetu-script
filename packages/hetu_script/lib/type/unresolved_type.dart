@@ -1,4 +1,3 @@
-import '../grammar/lexicon.dart';
 import '../error/error.dart';
 import '../declaration/class/class_declaration.dart';
 import '../declaration/namespace/namespace.dart';

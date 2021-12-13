@@ -166,6 +166,7 @@ abstract class HTLexicon {
   static const kGet = 'get';
   static const kSet = 'set';
   static const kAsync = 'async';
+  static const bind = 'bind';
 
   static const kAwait = 'await';
   static const kBreak = 'break';
@@ -497,7 +498,6 @@ abstract class HTLexicon {
       'String interpolation has to be a single expression.';
   static const errorArity =
       'Number of arguments [{0}] doesn\'t match function [{1}]\'s parameter requirement [{2}].';
-  static const errorBinding = 'Missing binding extension on dart object';
   static const errorExternalVar = 'External variable is not allowed.';
   static const errorBytesSig = 'Unknown bytecode signature.';
   static const errorCircleInit =
@@ -512,4 +512,6 @@ abstract class HTLexicon {
       'Struct member id should be symbol or string.';
   static const errorUnresolvedNamedStruct =
       'Cannot create struct object from unresolved prototype [{0}].';
+  static const errorBinding =
+      'Binding is not allowed on non-literal function or non-struct object.';
 }

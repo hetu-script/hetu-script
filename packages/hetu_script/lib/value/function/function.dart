@@ -9,12 +9,14 @@ import '../../type/type.dart';
 import '../../value/instance/instance_namespace.dart';
 import '../../value/class/class.dart';
 import '../../value/instance/instance.dart';
+import '../../value/struct/struct.dart';
 import '../../declaration/namespace/namespace.dart';
-import 'parameter.dart';
 import '../../declaration/function/function_declaration.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
+import '../../type/function_type.dart';
 import '../entity.dart';
 import '../const.dart';
+import 'parameter.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
@@ -48,7 +50,7 @@ class HTFunction extends HTFunctionDeclaration
   Function? externalFunc;
 
   @override
-  HTType get valueType => declType;
+  HTFunctionType get valueType => declType;
 
   /// Create a standard [HTFunction].
   ///
@@ -166,6 +168,30 @@ class HTFunction extends HTFunctionDeclaration
           redirectingConstructor: redirectingConstructor,
           klass: klass);
 
+  HTFunction bind(HTStruct struct) {
+    if (category == FunctionCategory.literal) {
+      return clone()
+        ..namespace = struct.namespace
+        ..instance = struct;
+    } else {
+      throw HTError.binding();
+    }
+  }
+
+  @override
+  dynamic memberGet(String varName) {
+    if (varName == HTLexicon.bind) {
+      return (HTEntity entity,
+          {List<dynamic> positionalArgs = const [],
+          Map<String, dynamic> namedArgs = const {},
+          List<HTType> typeArgs = const []}) {
+        return bind(positionalArgs.first);
+      };
+    } else {
+      throw HTError.undefined(varName);
+    }
+  }
+
   /// Call this function with specific arguments.
   /// ```
   /// function<typeArg1, typeArg2>(posArg1, posArg2, name1: namedArg1, name2: namedArg2)
@@ -187,7 +213,6 @@ class HTFunction extends HTFunctionDeclaration
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool createClosure = true,
       bool construct = true,
       bool errorHandled = true}) {
     try {
@@ -216,31 +241,30 @@ class HTFunction extends HTFunctionDeclaration
           }
         }
 
-        if (category == FunctionCategory.constructor &&
-            construct &&
-            klass != null) {
-          result = HTInstance(klass!, interpreter, typeArgs: typeArgs);
+        if (category == FunctionCategory.constructor && construct) {
+          result =
+              instance = HTInstance(klass!, interpreter, typeArgs: typeArgs);
           namespace = result.namespace;
         }
 
         if (definitionIp == null) {
           return result;
         }
+
         // callClosure is a temporary closure created everytime a function is called
-        late HTNamespace callClosure;
-        if (createClosure || namespace == null) {
-          callClosure = HTNamespace(id: id, closure: namespace);
-        }
+        final HTNamespace callClosure =
+            HTNamespace(id: id, closure: namespace ?? closure);
 
         // define this and super keyword
-        if (namespace is HTInstanceNamespace) {
-          final instanceNamespace = namespace as HTInstanceNamespace;
-          if (instanceNamespace.next != null) {
-            callClosure.define(HTLexicon.kSuper,
-                HTConst(HTLexicon.kSuper, value: instanceNamespace.next));
+        if (instance != null) {
+          if (namespace is HTInstanceNamespace) {
+            callClosure.define(
+                HTLexicon.kSuper,
+                HTConst(HTLexicon.kSuper,
+                    value: (namespace as HTInstanceNamespace).next));
           }
-          callClosure.define(HTLexicon.kThis,
-              HTConst(HTLexicon.kThis, value: instanceNamespace));
+          callClosure.define(
+              HTLexicon.kThis, HTConst(HTLexicon.kThis, value: instance));
         }
 
         if (category == FunctionCategory.constructor &&
@@ -269,6 +293,7 @@ class HTFunction extends HTFunctionDeclaration
           // constructor's context is on this newly created instance
           final instanceNamespace = namespace as HTInstanceNamespace;
           constructor.namespace = instanceNamespace.next!;
+          constructor.instance = instance;
 
           final referCtorPosArgs = [];
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
@@ -311,9 +336,9 @@ class HTFunction extends HTFunctionDeclaration
           }
 
           constructor.call(
+              construct: false,
               positionalArgs: referCtorPosArgs,
-              namedArgs: referCtorNamedArgs,
-              construct: false);
+              namedArgs: referCtorNamedArgs);
         }
 
         var variadicStart = -1;

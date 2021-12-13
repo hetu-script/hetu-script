@@ -240,6 +240,26 @@ var lvl = obj.level; // okay, although lvl's value will be null
 - Struct's prototype can be accessed and modified through '$prototype'.
 - Struct's root prototype has two functions: toString() and toJson(). Can be used to easily convert a struct into other code.
 
+### Literal struct and literal function
+
+You can bind a literal function onto a literal struct object and get a new function.
+
+This is useful when you want to seperate data and logic, and still want the function to be able to have 'this' keyword.
+
+Notice that this method won't modify the functio itself. It will give you a new function instead.
+
+```dart
+final obj = {
+  name: 'nobody'
+}
+final func = () {
+  this.name = 'foobar'
+}
+final newfunc =func.bind(obj)
+newfunc()
+print(obj.name) // 'foobar'
+```
+
 ## Control flow
 
 Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as when statement, which works like switch.

@@ -48,7 +48,7 @@ abstract class HTDeclaration {
   /// Wether this declaration is defined on top level of a source.
   final bool isTopLevel;
 
-  /// Wether this declaration is a member of a class.
+  /// Wether this declaration is a member of a class or struct.
   bool get isMember => classId != null;
 
   /// Wether this declaration is only accessible from a same class namespace.
