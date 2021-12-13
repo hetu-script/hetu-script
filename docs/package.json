@@ -2,6 +2,12 @@
   "name": "hetu-docs",
   "version": "0.1.0",
   "description": "Documents of Hetu script language.",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "serve": "vitepress serve docs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hetu-script/hetu-script.git"
