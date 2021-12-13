@@ -662,8 +662,11 @@ class MemberExpr extends AstNode {
 
   final IdentifierExpr key;
 
+  final bool isNullable;
+
   MemberExpr(this.object, this.key,
-      {HTSource? source,
+      {this.isNullable = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
@@ -964,8 +967,9 @@ class IfStmt extends AstNode {
 
   final AstNode? elseBranch;
 
-  IfStmt(this.condition, this.thenBranch, this.elseBranch,
-      {HTSource? source,
+  IfStmt(this.condition, this.thenBranch,
+      {this.elseBranch,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,

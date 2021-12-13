@@ -4,9 +4,24 @@ title: Advanced topics - Hetu Script Language
 
 # Advanced topics
 
+## Null check
+
+The script is not planning to introduce null safety. However, there are some syntax to help do null check:
+
+```dart
+var a // a is null
+// Nullable member get:
+final value = a?.value // value is null and we won't get errors
+// If null then get another value
+final text = a ?? 'hi!' // text is 'hi!'
+// If null then assign
+a ??= 42
+print(a) // a is 42 now
+```
+
 ## Future
 
-The script is single threaded and all functions are sync. We do not support making futures within the script, and not planning to do so.
+All hetu functions are sync. The script do not support async/await functionality, and we are not planning to do so in the near future.
 
 However, it is possible for an external function to return a Future value.
 

@@ -2,6 +2,7 @@
 import '../resource/resource_context.dart';
 import '../error/error.dart';
 // import '../error/error_handler.dart';
+import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../lexer/token.dart';
 
@@ -53,6 +54,40 @@ abstract class HTAbstractParser {
     } else {
       return endOfFile;
     }
+  }
+
+  /// Search for parentheses right token that can closing the current one, return the token next to it.
+  Token seekGroupClosing() {
+    var current = curTok;
+    late String closing;
+    var distance = 0;
+    var depth = 0;
+    if (current.type == HTLexicon.parenthesesLeft) {
+      closing = HTLexicon.parenthesesRight;
+    } else if (current.type == HTLexicon.bracketsLeft) {
+      closing = HTLexicon.bracketsRight;
+    } else if (current.type == HTLexicon.bracesLeft) {
+      closing = HTLexicon.bracesRight;
+    } else if (current.type == HTLexicon.chevronsLeft) {
+      closing = HTLexicon.chevronsRight;
+    } else {
+      return current;
+    }
+    void forward() {
+      current = peek(distance);
+    }
+
+    do {
+      forward();
+      ++distance;
+      if (current.type == HTLexicon.parenthesesLeft) {
+        ++depth;
+      } else if (depth > 0 && current.type == closing) {
+        --depth;
+      }
+    } while ((depth > 0 || current.type != closing) &&
+        current.type != SemanticNames.endOfFile);
+    return peek(distance);
   }
 
   /// Search for a token type, return the token next to it.

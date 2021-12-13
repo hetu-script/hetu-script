@@ -41,17 +41,17 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
   String toString() {
     var result = StringBuffer();
     if (genericTypeParameters.isNotEmpty) {
-      result.write(HTLexicon.angleLeft);
+      result.write(HTLexicon.chevronsLeft);
       for (var i = 0; i < genericTypeParameters.length; ++i) {
         result.write(genericTypeParameters[i]);
         if (i < genericTypeParameters.length - 1) {
           result.write('${HTLexicon.comma} ');
         }
       }
-      result.write(HTLexicon.angleRight);
+      result.write(HTLexicon.chevronsRight);
     }
 
-    result.write(HTLexicon.roundLeft);
+    result.write(HTLexicon.parenthesesLeft);
 
     var i = 0;
     var optionalStarted = false;
@@ -62,24 +62,24 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
       }
       if (param.isOptional && !optionalStarted) {
         optionalStarted = true;
-        result.write(HTLexicon.squareLeft);
+        result.write(HTLexicon.bracketsLeft);
       } else if (param.isNamed && !namedStarted) {
         namedStarted = true;
-        result.write(HTLexicon.curlyLeft);
+        result.write(HTLexicon.bracesLeft);
       }
       result.write(param.toString());
       if (i < parameterTypes.length - 1) {
         result.write('${HTLexicon.comma} ');
       }
       if (optionalStarted) {
-        result.write(HTLexicon.squareRight);
+        result.write(HTLexicon.bracketsRight);
       } else if (namedStarted) {
         namedStarted = true;
-        result.write(HTLexicon.curlyRight);
+        result.write(HTLexicon.bracesRight);
       }
       ++i;
     }
-    result.write('${HTLexicon.roundRight} ${HTLexicon.singleArrow} ' +
+    result.write('${HTLexicon.parenthesesRight} ${HTLexicon.singleArrow} ' +
         returnType.toString());
     return result.toString();
   }

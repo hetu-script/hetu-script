@@ -414,15 +414,16 @@ null, true, false, var, final, const, typeof, class, enum, fun, struct, interfac
 
 ## Operator precedence
 
-| Description    | Operator                  | Associativity | Precedence |
-| :------------- | :------------------------ | :-----------: | :--------: |
-| Unary postfix  | e., e++, e--, e1[e2], e() |     None      |     16     |
-| Unary prefix   | -e, !e, ++e, --e          |     None      |     15     |
-| Multiplicative | \*, /, %                  |     Left      |     14     |
-| Additive       | +, -                      |     Left      |     13     |
-| Relational     | <, >, <=, >=, as, is, is! |     None      |     8      |
-| Equality       | ==, !=                    |     None      |     7      |
-| Logical AND    | &&                        |     Left      |     6      |
-| Logical Or     | \|\|                      |     Left      |     5      |
-| Conditional    | e1 ? e2 : e3              |     Right     |     3      |
-| Assignment     | =, \*=, /=, +=, -=        |     Right     |     1      |
+| Description    | Operator                       | Associativity | Precedence |
+| :------------- | :----------------------------- | :-----------: | :--------: |
+| Unary postfix  | e., e?., e++, e--, e1[e2], e() |     None      |     16     |
+| Unary prefix   | -e, !e, ++e, --e               |     None      |     15     |
+| Multiplicative | \*, /, %                       |     Left      |     14     |
+| Additive       | +, -                           |     Left      |     13     |
+| Relational     | <, >, <=, >=, as, is, is!      |     None      |     8      |
+| Equality       | ==, !=                         |     None      |     7      |
+| Logical AND    | &&                             |     Left      |     6      |
+| Logical Or     | \|\|                           |     Left      |     5      |
+| If null        | \?\?                           |     Left      |     4      |
+| Conditional    | e1 ? e2 : e3                   |     Right     |     3      |
+| Assignment     | =, \*=, /=, +=, -=, ??=        |     Right     |     1      |

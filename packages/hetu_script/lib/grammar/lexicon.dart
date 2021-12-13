@@ -3,7 +3,7 @@ abstract class HTLexicon {
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
       r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(4)
-      r'(\.\.\.|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(5)
+      r'(\.\.\.|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(6)
       r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(8)
       r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(12)
@@ -44,9 +44,9 @@ abstract class HTLexicon {
   /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
   /// This is to avoid ambiguity in parser.
   static const Set<String> defaultSemicolonStart = {
-    curlyLeft,
-    roundLeft,
-    squareLeft,
+    bracesLeft,
+    parenthesesLeft,
+    bracketsLeft,
     preIncrement,
     preDecrement,
   };
@@ -247,6 +247,7 @@ abstract class HTLexicon {
     kFrom,
   };
 
+  static const nullableMemberGet = '?.';
   static const memberGet = '.';
   static const subGet = '[';
   static const call = '(';
@@ -256,6 +257,7 @@ abstract class HTLexicon {
 
   /// 后缀操作符，包含多个符号
   static const Set<String> unaryPostfixs = {
+    nullableMemberGet,
     memberGet,
     subGet,
     call,
@@ -331,8 +333,9 @@ abstract class HTLexicon {
     notEqual,
   };
 
-  static const logicalAnd = '&&';
+  static const ifNull = '??';
   static const logicalOr = '||';
+  static const logicalAnd = '&&';
   static const condition = '?';
   static const elseBranch = ':';
 
@@ -341,6 +344,7 @@ abstract class HTLexicon {
   static const assignDevide = '/=';
   static const assignAdd = '+=';
   static const assignSubtract = '-=';
+  static const assignIfNull = '??=';
 
   /// 赋值类型操作符，包含多个符号
   static const Set<String> assignments = {
@@ -349,6 +353,7 @@ abstract class HTLexicon {
     assignDevide,
     assignAdd,
     assignSubtract,
+    assignIfNull,
   };
 
   static const comma = ',';
@@ -358,14 +363,14 @@ abstract class HTLexicon {
   static const singleQuotationRight = "'";
   static const doubleQuotationLeft = '"';
   static const doubleQuotationRight = '"';
-  static const roundLeft = '(';
-  static const roundRight = ')';
-  static const curlyLeft = '{';
-  static const curlyRight = '}';
-  static const squareLeft = '[';
-  static const squareRight = ']';
-  static const angleLeft = '<';
-  static const angleRight = '>';
+  static const parenthesesLeft = '(';
+  static const parenthesesRight = ')';
+  static const bracesLeft = '{';
+  static const bracesRight = '}';
+  static const bracketsLeft = '[';
+  static const bracketsRight = ']';
+  static const chevronsLeft = '<';
+  static const chevronsRight = '>';
 
   static const Set<String> unfinishedTokens = {
     logicalNot,
@@ -384,9 +389,9 @@ abstract class HTLexicon {
     logicalOr,
     assign,
     memberGet,
-    roundLeft,
-    curlyLeft,
-    squareLeft,
+    parenthesesLeft,
+    bracesLeft,
+    bracketsLeft,
     comma,
     colon,
   };
@@ -409,12 +414,12 @@ abstract class HTLexicon {
     logicalOr,
     assign,
     memberGet,
-    roundLeft,
-    roundRight,
-    curlyLeft,
-    curlyRight,
-    squareLeft,
-    squareRight,
+    parenthesesLeft,
+    parenthesesRight,
+    bracesLeft,
+    bracesRight,
+    bracketsLeft,
+    bracketsRight,
     comma,
     colon,
     semicolon,

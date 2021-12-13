@@ -9,8 +9,8 @@ class HTStructuralType extends HTType with HTEntity {
   @override
   String toString() {
     var typeString = StringBuffer();
-    typeString.write(HTLexicon.curlyLeft);
-    typeString.write(HTLexicon.curlyRight);
+    typeString.write(HTLexicon.bracesLeft);
+    typeString.write(HTLexicon.bracesRight);
     return typeString.toString();
   }
 

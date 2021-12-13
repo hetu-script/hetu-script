@@ -128,4 +128,43 @@ void main() {
       );
     });
   });
+
+  group('null check operator -', () {
+    test('nullable member get', () {
+      final result = hetu.eval(r'''
+        fun nullableMemberGet {
+          var a
+          return a?.value
+        }
+  ''', invokeFunc: 'nullableMemberGet');
+      expect(
+        result,
+        null,
+      );
+    });
+    test('if null', () {
+      final result = hetu.eval(r'''
+        fun ifNull {
+          var a
+          return a ?? true
+        }
+  ''', invokeFunc: 'ifNull');
+      expect(
+        result,
+        true,
+      );
+    });
+    test('null assign', () {
+      final result = hetu.eval(r'''
+        fun nullAssign {
+          var a
+          a ??= 'not null!'
+        }
+  ''', invokeFunc: 'nullAssign');
+      expect(
+        result,
+        'not null!',
+      );
+    });
+  });
 }

@@ -99,14 +99,14 @@ abstract class HTType with HTEntity {
     var typeString = StringBuffer();
     typeString.write(id);
     if (typeArgs.isNotEmpty) {
-      typeString.write(HTLexicon.angleLeft);
+      typeString.write(HTLexicon.chevronsLeft);
       for (var i = 0; i < typeArgs.length; ++i) {
         typeString.write(typeArgs[i]);
         if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
           typeString.write('${HTLexicon.comma} ');
         }
       }
-      typeString.write(HTLexicon.angleRight);
+      typeString.write(HTLexicon.chevronsRight);
     }
     if (isNullable) {
       typeString.write(HTLexicon.nullable);

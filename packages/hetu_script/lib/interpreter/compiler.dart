@@ -681,6 +681,15 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.assign);
         break;
+      case HTLexicon.ifNull:
+        bytesBuilder.add(left);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(HTRegIdx.orLeft);
+        bytesBuilder.addByte(HTOpCode.ifNull);
+        bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.endOfExec);
+        break;
       case HTLexicon.logicalOr:
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.register);
@@ -888,6 +897,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
     bytesBuilder.addByte(HTOpCode.memberGet);
+    bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     return bytesBuilder.toBytes();
   }
 
@@ -1604,7 +1614,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.add(ctorBytes);
 
       final toStringDef = StringInterpolationExpr(
-          '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.curlyLeft}0${HTLexicon.curlyRight}',
+          '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.bracesLeft}0${HTLexicon.bracesRight}',
           HTLexicon.singleQuotationLeft,
           HTLexicon.singleQuotationRight,
           [IdentifierExpr(valueId)]);

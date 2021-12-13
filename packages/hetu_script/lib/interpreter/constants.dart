@@ -105,34 +105,36 @@ abstract class HTOpCode {
 
   static const typeIsNot = 63;
 
+  static const ifNull = 64;
+
   /// add left right store => reg[store] = reg[left] + reg[right]
-  static const add = 64;
+  static const add = 65;
 
   /// subtract left right store => reg[store] = reg[left] + reg[right]
-  static const subtract = 65;
+  static const subtract = 66;
 
   /// multiply left right store => reg[store] = reg[left] * reg[right]
-  static const multiply = 66;
+  static const multiply = 67;
 
   /// devide left right store => reg[store] = reg[left] / reg[right]
-  static const devide = 67;
+  static const devide = 68;
 
   /// modulo left right store => reg[store] = reg[left] % reg[right]
-  static const modulo = 68;
+  static const modulo = 69;
 
   /// modulo value store => reg[store] = -reg[valueOf]
-  static const negative = 69;
+  static const negative = 70;
 
   /// modulo value store => reg[store] = !reg[valueOf]
-  static const logicalNot = 70;
+  static const logicalNot = 71;
 
-  static const typeOf = 71;
+  static const typeOf = 72;
 
-  static const memberGet = 72;
+  static const memberGet = 73;
 
-  static const subGet = 73;
+  static const subGet = 74;
 
-  static const call = 74;
+  static const call = 75;
 
   /// 4 bytes
   static const meta = 200;

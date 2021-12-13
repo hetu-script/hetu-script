@@ -11,7 +11,7 @@ String stringify(dynamic object) {
       output.write("'$object'");
     }
   } else if (object is List) {
-    output.write(HTLexicon.squareLeft);
+    output.write(HTLexicon.bracketsLeft);
     for (var i = 0; i < object.length; ++i) {
       final item = object[i];
       final itemString = stringify(item);
@@ -20,9 +20,9 @@ String stringify(dynamic object) {
         output.write('${HTLexicon.comma} ');
       }
     }
-    output.write(HTLexicon.squareRight);
+    output.write(HTLexicon.bracketsRight);
   } else if (object is Map) {
-    output.write(HTLexicon.curlyLeft);
+    output.write(HTLexicon.bracesLeft);
     final keys = object.keys.toList();
     for (var i = 0; i < keys.length; ++i) {
       final key = keys[i];
@@ -34,7 +34,7 @@ String stringify(dynamic object) {
         output.write('${HTLexicon.comma} ');
       }
     }
-    output.write(HTLexicon.curlyRight);
+    output.write(HTLexicon.bracesRight);
   } else {
     output.write(object.toString());
   }
@@ -72,10 +72,10 @@ String stringifyStruct(HTStruct struct, {HTStruct? from}) {
     final valueBuffer = StringBuffer();
     if (value is HTStruct) {
       final content = stringifyStruct(value, from: from);
-      valueBuffer.writeln(HTLexicon.curlyLeft);
+      valueBuffer.writeln(HTLexicon.bracesLeft);
       valueBuffer.write(content);
       valueBuffer.write(_curIndent());
-      valueBuffer.write(HTLexicon.curlyRight);
+      valueBuffer.write(HTLexicon.bracesRight);
     } else {
       final valueString = stringify(value);
       valueBuffer.write(valueString);

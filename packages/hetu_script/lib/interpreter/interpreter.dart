@@ -866,6 +866,7 @@ class Hetu extends HTAbstractInterpreter {
             _localValue = value;
           }
           break;
+        case HTOpCode.ifNull:
         case HTOpCode.logicalOr:
         case HTOpCode.logicalAnd:
         case HTOpCode.equal:
@@ -890,10 +891,15 @@ class Hetu extends HTAbstractInterpreter {
           _handleUnaryPrefixOp(instruction);
           break;
         case HTOpCode.memberGet:
+          final isNullable = _bytecodeModule.readBool();
           final object = _getRegVal(HTRegIdx.postfixObject);
           if (object == null) {
-            throw HTError.nullObject(
-                filename: _fileName, line: _line, column: _column);
+            if (isNullable) {
+              _localValue = null;
+            } else {
+              throw HTError.nullObject(
+                  filename: _fileName, line: _line, column: _column);
+            }
           } else {
             final key = _getRegVal(HTRegIdx.postfixKey);
             final encap = encapsulate(object);
@@ -1178,6 +1184,17 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleBinaryOp(int opcode) {
     switch (opcode) {
+      case HTOpCode.ifNull:
+        final left = _getRegVal(HTRegIdx.orLeft);
+        final rightValueLength = _bytecodeModule.readUint16();
+        if (left != null) {
+          _bytecodeModule.skip(rightValueLength);
+          _localValue = left;
+        } else {
+          final right = execute();
+          _localValue = right;
+        }
+        break;
       case HTOpCode.logicalOr:
         final left = _getRegVal(HTRegIdx.orLeft);
         final leftTruthValue = _truthy(left);
