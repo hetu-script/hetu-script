@@ -3,12 +3,9 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   var hetu = Hetu();
   hetu.init();
-  final result = hetu.eval(r'''
-    final i = 42
-    when (i) {
-      42 -> 'the meaning!'
-    }
+  hetu.eval(r'''
+    var i
+    i ??= 42
+    print(i)
     ''', isScript: true);
-
-  print(result);
 }

@@ -900,8 +900,8 @@ class HTParser extends HTAbstractParser {
           return IfStmt(
             BinaryExpr(
               left,
-              HTLexicon.notEqual,
-              IdentifierExpr(HTLexicon.kNull),
+              HTLexicon.equal,
+              NullExpr(),
             ),
             MemberAssignExpr(
               left.object,
@@ -918,8 +918,8 @@ class HTParser extends HTAbstractParser {
           return IfStmt(
             BinaryExpr(
               left,
-              HTLexicon.notEqual,
-              IdentifierExpr(HTLexicon.kNull),
+              HTLexicon.equal,
+              NullExpr(),
             ),
             SubAssignExpr(
               left.object,
@@ -936,12 +936,12 @@ class HTParser extends HTAbstractParser {
           return IfStmt(
             BinaryExpr(
               left,
-              HTLexicon.notEqual,
-              IdentifierExpr(HTLexicon.kNull),
+              HTLexicon.equal,
+              NullExpr(),
             ),
             BinaryExpr(
               left,
-              op.lexeme,
+              HTLexicon.assign,
               right,
               source: _curSource,
               line: left.line,

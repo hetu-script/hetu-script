@@ -637,50 +637,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.assign);
         break;
-      case HTLexicon.assignAdd:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.add);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.assign);
-        break;
-      case HTLexicon.assignSubtract:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.subtract);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.assign);
-        break;
-      case HTLexicon.assignMultiply:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.multiply);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.assign);
-        break;
-      case HTLexicon.assignDevide:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.devide);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.assign);
-        break;
       case HTLexicon.ifNull:
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.register);
