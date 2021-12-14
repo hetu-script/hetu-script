@@ -4,15 +4,9 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    struct Person {
-      var _name
-      get name => this._name
-      set name(newName) => this._name = newName
-      
-    }
     fun main {
-      Person.name = 'jimmy'
-      print(Person.name)
+
+      print()
     }
     ''', invokeFunc: 'main');
 }

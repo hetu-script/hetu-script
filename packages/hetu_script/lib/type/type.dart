@@ -130,13 +130,11 @@ abstract class HTType with HTEntity {
       return true;
     } else {
       if (this == HTType.nullType) {
-        // TODO: 这里是 nullable 功能的开关
-        // if (other.isNullable) {
-        //   return true;
-        // } else {
-        //   return false;
-        // }
-        return true;
+        if (other.isNullable) {
+          return true;
+        } else {
+          return false;
+        }
       } else if (id != other.id) {
         return false;
       }
