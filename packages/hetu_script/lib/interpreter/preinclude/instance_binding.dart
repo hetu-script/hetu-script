@@ -29,6 +29,12 @@ extension IntBinding on int {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             clamp(positionalArgs[0], positionalArgs[1]);
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toString();
       case 'toStringAsFixed':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -152,6 +158,87 @@ extension IntBinding on int {
   }
 }
 
+extension BigIntBinding on BigInt {
+  dynamic htFetch(String varName) {
+    switch (varName) {
+      case 'bitLength':
+        return bitLength;
+      case 'sign':
+        return sign;
+      case 'isEven':
+        return isEven;
+      case 'isOdd':
+        return isOdd;
+      case 'isNegative':
+        return isNegative;
+      case 'pow':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            pow(positionalArgs.first);
+      case 'modPow':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            modPow(positionalArgs[0], positionalArgs[1]);
+      case 'modInverse':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            modInverse(positionalArgs.first);
+      case 'gcd':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            gcd(positionalArgs.first);
+      case 'toUnsigned':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toUnsigned(positionalArgs.first);
+      case 'toSigned':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toSigned(positionalArgs.first);
+      case 'isValidInt':
+        return isValidInt;
+      case 'toInt':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toInt();
+      case 'toDouble':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toDouble();
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toString();
+      case 'toRadixString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toRadixString(positionalArgs.first);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
 extension DoubleBinding on double {
   dynamic htFetch(String varName) {
     switch (varName) {
@@ -181,6 +268,12 @@ extension DoubleBinding on double {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             clamp(positionalArgs[0], positionalArgs[1]);
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toString();
       case 'toStringAsFixed':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -265,6 +358,12 @@ extension DoubleBinding on double {
 extension StringBinding on String {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toString();
       case 'compareTo':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -397,6 +496,12 @@ extension StringBinding on String {
 extension ListBinding on List {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            stringify(this);
       case 'isEmpty':
         return isEmpty;
       case 'isNotEmpty':
@@ -509,6 +614,12 @@ extension ListBinding on List {
 extension MapBinding on Map {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toString();
       case 'length':
         return length;
       case 'isEmpty':

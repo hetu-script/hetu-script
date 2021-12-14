@@ -110,11 +110,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     mainBytesBuilder.addByte(HTOpCode.constTable);
     mainBytesBuilder.add(_uint16(_curConstTable.intTable.length));
     for (final value in _curConstTable.intTable) {
-      mainBytesBuilder.add(_int64(value));
+      mainBytesBuilder.add(_int32(value));
+      // mainBytesBuilder.add(_int64(value));
     }
     mainBytesBuilder.add(_uint16(_curConstTable.floatTable.length));
     for (final value in _curConstTable.floatTable) {
-      mainBytesBuilder.add(_float64(value));
+      mainBytesBuilder.add(_float32(value));
+      // mainBytesBuilder.add(_float64(value));
     }
     mainBytesBuilder.add(_uint16(_curConstTable.stringTable.length));
     for (final value in _curConstTable.stringTable) {
@@ -135,12 +137,19 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   /// 0 to 4,294,967,295
   // Uint8List _uint32(int value) => Uint8List(4)..buffer.asByteData().setUint32(0, value, Endian.big);
 
-  /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
-  Uint8List _int64(int value) =>
-      Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
+  /// -2,147,483,648 to 2,147,483,647
+  Uint8List _int32(int value) =>
+      Uint8List(4)..buffer.asByteData().setInt32(0, value, Endian.big);
 
-  Uint8List _float64(double value) =>
-      Uint8List(8)..buffer.asByteData().setFloat64(0, value, Endian.big);
+  Uint8List _float32(double value) =>
+      Uint8List(4)..buffer.asByteData().setFloat32(0, value, Endian.big);
+
+  /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
+  // Uint8List _int64(int value) =>
+  //     Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
+
+  // Uint8List _float64(double value) =>
+  //     Uint8List(4)..buffer.asByteData().setFloat64(0, value, Endian.big);
 
   // Uint8List _string(String value) {
   //   final bytesBuilder = BytesBuilder();
@@ -750,6 +759,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.addByte(HTRegIdx.multiplyLeft);
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.devide);
+        break;
+      case HTLexicon.truncatingDevide:
+        bytesBuilder.add(left);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
+        bytesBuilder.add(right);
+        bytesBuilder.addByte(HTOpCode.truncatingDevide);
         break;
       case HTLexicon.modulo:
         bytesBuilder.add(left);

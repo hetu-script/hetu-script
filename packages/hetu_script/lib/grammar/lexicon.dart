@@ -3,7 +3,7 @@ abstract class HTLexicon {
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
       r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(4)
-      r'(\.\.\.|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(7)
+      r'(\.\.\.|~/=|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|~/|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(7)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(8)
       r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(10)
       r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(14)
@@ -285,12 +285,14 @@ abstract class HTLexicon {
 
   static const multiply = '*';
   static const devide = '/';
+  static const truncatingDevide = '~/';
   static const modulo = '%';
 
   /// 乘除操作符，包含多个符号
   static const Set<String> multiplicatives = {
     multiply,
     devide,
+    truncatingDevide,
     modulo,
   };
 
@@ -344,10 +346,11 @@ abstract class HTLexicon {
   static const elseBranch = ':';
 
   static const assign = '=';
-  static const assignMultiply = '*=';
-  static const assignDevide = '/=';
   static const assignAdd = '+=';
   static const assignSubtract = '-=';
+  static const assignMultiply = '*=';
+  static const assignDevide = '/=';
+  static const assignTruncatingDevide = '~/=';
   static const assignIfNull = '??=';
 
   /// 赋值类型操作符，包含多个符号
@@ -357,6 +360,7 @@ abstract class HTLexicon {
     assignSubtract,
     assignMultiply,
     assignDevide,
+    assignTruncatingDevide,
     assignIfNull,
   };
 

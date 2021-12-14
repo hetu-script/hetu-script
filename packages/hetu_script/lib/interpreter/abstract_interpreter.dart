@@ -94,7 +94,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
         bindExternalFunction(key, preIncludeFunctions[key]!);
       }
       bindExternalClass(HTNumberClass());
-      bindExternalClass(HTIntegerClass());
+      bindExternalClass(HTIntClass());
+      bindExternalClass(HTBigIntClass());
       bindExternalClass(HTFloatClass());
       bindExternalClass(HTBooleanClass());
       bindExternalClass(HTStringClass());

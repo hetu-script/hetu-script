@@ -138,6 +138,88 @@ external class int extends num {
   fun toRadixString(radix: int) -> str
 }
 
+/// An arbitrarily large integer.
+external abstract class BigInt {
+  static get zero
+  static get one
+  static get two
+
+  /// Parses [source] as a, possibly signed, integer literal and returns its
+  /// value.
+  static fun parse(source: str, {radix: int}) -> BigInt
+
+  /// Allocates a big integer from the provided [value] number.
+  static fun from(value: num) -> BigInt
+
+  /// Returns the absolute value of this integer.
+  fun abs() -> BigInt
+
+  /// Returns the remainder of the truncating division of `this` by [other].
+  fun remainder(other: BigInt)
+
+  /// Compares this to `other`.
+  fun compareTo(other: BigInt) -> int
+
+  /// Returns the minimum number of bits required to store this big integer.
+  get bitLength -> int
+
+  /// Returns the sign of this big integer.
+  get sign -> int
+
+  /// Whether this big integer is even.
+  get isEven -> bool
+
+  /// Whether this big integer is odd.
+  get isOdd -> bool
+
+  /// Whether this number is negative.
+  get isNegative -> bool
+
+  /// Returns `this` to the power of [exponent].
+  fun pow(exponent: int) -> BigInt
+
+  /// Returns this integer to the power of [exponent] modulo [modulus].
+  fun modPow(exponent: BigInt, modulus: BigInt) -> BigInt
+
+  /// Returns the modular multiplicative inverse of this big integer
+  /// modulo [modulus].
+  fun modInverse(modulus: BigInt) -> BigInt
+
+  /// Returns the greatest common divisor of this big integer and [other].
+  fun gcd(other: BigInt) -> BigInt
+
+  /// Returns the least significant [width] bits of this big integer as a
+  /// non-negative number (i.e. unsigned representation).  The returned value has
+  /// zeros in all bit positions higher than [width].
+  fun toUnsigned(width: int) -> BigInt
+
+  /// Returns the least significant [width] bits of this integer, extending the
+  /// highest retained bit to the sign.  This is the same as truncating the value
+  /// to fit in [width] bits using an signed 2-s complement representation.  The
+  /// returned value has the same bit value in all positions higher than [width].
+  fun toSigned(width: int) -> BigInt
+
+  /// Whether this big integer can be represented as an `int` without losing
+  /// precision.
+  get isValidInt -> bool
+
+  /// Returns this [BigInt] as an [int].
+  fun toInt() -> int
+
+  /// Returns this [BigInt] as a [double].
+  ///
+  /// If the number is not representable as a [double], an
+  /// approximation is returned. For numerically large integers, the
+  /// approximation may be infinite.
+  fun toDouble() -> float
+
+  /// Returns a String-representation of this integer.
+  fun toString() -> str
+
+  /// Converts [this] to a string representation in the given [radix].
+  fun toRadixString(radix: int) -> String
+}
+
 external class float extends num {
   
   static get nan -> float;

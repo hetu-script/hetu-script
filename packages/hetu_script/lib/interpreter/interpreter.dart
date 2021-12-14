@@ -52,7 +52,7 @@ class Hetu extends HTAbstractInterpreter {
 
   final _cachedModules = <String, HTBytecodeModule>{};
 
-  HTAnalyzer _analyzer;
+  final HTAnalyzer _analyzer;
 
   @override
   InterpreterConfig config;
@@ -765,11 +765,13 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.constTable:
           final int64Length = _bytecodeModule.readUint16();
           for (var i = 0; i < int64Length; ++i) {
-            _bytecodeModule.addInt(_bytecodeModule.readInt64());
+            _bytecodeModule.addInt(_bytecodeModule.readInt32());
+            // _bytecodeModule.addInt(_bytecodeModule.readInt64());
           }
           final float64Length = _bytecodeModule.readUint16();
           for (var i = 0; i < float64Length; ++i) {
-            _bytecodeModule.addFloat(_bytecodeModule.readFloat64());
+            _bytecodeModule.addFloat(_bytecodeModule.readFloat32());
+            // _bytecodeModule.addFloat(_bytecodeModule.readFloat64());
           }
           final utf8StringLength = _bytecodeModule.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
@@ -885,6 +887,7 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.subtract:
         case HTOpCode.multiply:
         case HTOpCode.devide:
+        case HTOpCode.truncatingDevide:
         case HTOpCode.modulo:
           _handleBinaryOp(instruction);
           break;
@@ -1304,15 +1307,23 @@ class Hetu extends HTAbstractInterpreter {
         if (_isZero(left)) {
           left = 0;
         }
-        var right = _localValue;
+        final right = _localValue;
         _localValue = left / right;
+        break;
+      case HTOpCode.truncatingDevide:
+        var left = _getRegVal(HTRegIdx.multiplyLeft);
+        if (_isZero(left)) {
+          left = 0;
+        }
+        final right = _localValue;
+        _localValue = left ~/ right;
         break;
       case HTOpCode.modulo:
         var left = _getRegVal(HTRegIdx.multiplyLeft);
         if (_isZero(left)) {
           left = 0;
         }
-        var right = _localValue;
+        final right = _localValue;
         _localValue = left % right;
         break;
     }

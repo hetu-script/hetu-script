@@ -60,27 +60,32 @@ class BytecodeReader {
     return bytes.buffer.asByteData().getInt16(start);
   }
 
-  /// Fetch a int64 from the bytes list
-  int readInt64() {
+  /// Fetch a int32 from the bytes list
+  int readInt32() {
     final start = ip;
-    ip += 8;
-    return bytes.buffer.asByteData().getInt64(start);
+    ip += 4;
+    return bytes.buffer.asByteData().getInt32(start);
   }
+
+  /// Fetch a float32 from the bytes list
+  double readFloat32() {
+    final start = ip;
+    ip += 4;
+    return bytes.buffer.asByteData().getFloat32(start);
+  }
+
+  /// Fetch a int64 from the bytes list
+  // int readInt64() {
+  //   final start = ip;
+  //   ip += 8;
+  //   return bytes.buffer.asByteData().getInt64(start);
+  // }
 
   /// Fetch a float64 from the bytes list
-  double readFloat64() {
-    final start = ip;
-    ip += 8;
-    return bytes.buffer.asByteData().getFloat64(start);
-  }
-
-  /// Fetch a utf8 string from the bytes list
-  // String _readShortUtf8String() {
-  //   final length = readUint8();
+  // double readFloat64() {
   //   final start = ip;
-  //   ip += length;
-  //   final codeUnits = bytes.sublist(start, ip);
-  //   return utf8.decoder.convert(codeUnits);
+  //   ip += 8;
+  //   return bytes.buffer.asByteData().getFloat64(start);
   // }
 
   /// Fetch a utf8 string from the bytes list

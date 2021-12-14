@@ -941,13 +941,11 @@ class HTParser extends HTAbstractParser {
   ///
   /// 需要判断嵌套赋值、取属性、取下标的叠加
   AstNode _parseExpr() {
-    AstNode? expr;
-
     while (curTok.type == Semantic.singleLineComment ||
         curTok.type == Semantic.multiLineComment) {
       _handleComment();
     }
-
+    AstNode? expr;
     final left = _parserTernaryExpr();
     if (HTLexicon.assignments.contains(curTok.type)) {
       if (!_leftValueLegality) {
@@ -1042,16 +1040,22 @@ class HTParser extends HTAbstractParser {
         }
       } else {
         if (left is MemberExpr) {
-          expr = MemberAssignExpr(left.object, left.key,
-              BinaryExpr(left, op.lexeme.substring(0, 1), right),
+          expr = MemberAssignExpr(
+              left.object,
+              left.key,
+              BinaryExpr(
+                  left, op.lexeme.substring(0, op.lexeme.length - 1), right),
               source: _currentSource,
               line: left.line,
               column: left.column,
               offset: left.offset,
               length: curTok.offset - left.offset);
         } else if (left is SubExpr) {
-          expr = SubAssignExpr(left.object, left.key,
-              BinaryExpr(left, op.lexeme.substring(0, 1), right),
+          expr = SubAssignExpr(
+              left.object,
+              left.key,
+              BinaryExpr(
+                  left, op.lexeme.substring(0, op.lexeme.length - 1), right),
               source: _currentSource,
               line: left.line,
               column: left.column,
@@ -1231,7 +1235,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 乘法 *, /, %, 优先级 14, 左合并
+  /// 乘法 *, /, ~/, %, 优先级 14, 左合并
   AstNode _parseMultiplicativeExpr() {
     var left = _parseUnaryPrefixExpr();
     if (HTLexicon.multiplicatives.contains(curTok.type)) {

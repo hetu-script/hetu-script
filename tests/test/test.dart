@@ -4,10 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    fun main {
-      var a
+      var bi = BigInt.parse("9223372036854775807")
 
-      print(a is function)
-    }
-    ''', invokeFunc: 'main');
+      print(bi)
+    ''', isScript: true);
 }

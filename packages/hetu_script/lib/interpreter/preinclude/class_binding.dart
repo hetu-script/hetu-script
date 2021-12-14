@@ -18,8 +18,8 @@ class HTNumberClass extends HTExternalClass {
   }
 }
 
-class HTIntegerClass extends HTExternalClass {
-  HTIntegerClass() : super('int');
+class HTIntClass extends HTExternalClass {
+  HTIntClass() : super('int');
 
   @override
   dynamic memberGet(String varName) {
@@ -37,6 +37,52 @@ class HTIntegerClass extends HTExternalClass {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as int).htFetch(varName);
+}
+
+class HTBigIntClass extends HTExternalClass {
+  HTBigIntClass() : super('BigInt');
+
+  @override
+  dynamic memberGet(String varName) {
+    switch (varName) {
+      case 'BigInt.zero':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            BigInt.zero;
+      case 'BigInt.one':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            BigInt.one;
+      case 'BigInt.two':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            BigInt.two;
+      case 'BigInt.parse':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            BigInt.tryParse(positionalArgs.first, radix: namedArgs['radix']);
+      case 'BigInt.from':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            BigInt.from(positionalArgs.first);
       default:
         throw HTError.undefined(varName);
     }
