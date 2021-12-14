@@ -18,8 +18,11 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  HTParameter(String id, Hetu interpreter, String filename, String libraryName,
-      {HTNamespace? closure,
+  HTParameter(String id,
+      {Hetu? interpreter,
+      String? fileName,
+      String? moduleName,
+      HTNamespace? closure,
       HTType? declType,
       int? definitionIp,
       int? definitionLine,
@@ -27,7 +30,10 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id, interpreter, filename, libraryName,
+      : super(id,
+            interpreter: interpreter,
+            fileName: fileName,
+            moduleName: moduleName,
             closure: closure,
             declType: declType,
             definitionIp: definitionIp,
@@ -46,7 +52,10 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
 
   @override
   HTParameter clone() {
-    return HTParameter(id, interpreter, filename, libraryName,
+    return HTParameter(id,
+        interpreter: interpreter,
+        fileName: fileName,
+        moduleName: moduleName,
         closure: closure,
         declType: declType,
         definitionIp: definitionIp,

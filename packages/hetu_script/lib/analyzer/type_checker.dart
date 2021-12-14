@@ -26,17 +26,17 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitConstIntExpr(ConstIntExpr expr) {
+  HTType? visitIntLiteralExpr(IntLiteralExpr expr) {
     return HTType.any;
   }
 
   @override
-  HTType? visitConstFloatExpr(ConstFloatExpr expr) {
+  HTType? visitFloatLiteralExpr(FloatLiteralExpr expr) {
     return HTType.any;
   }
 
   @override
-  HTType? visitConstStringExpr(ConstStringExpr expr) {
+  HTType? visitStringLiteralExpr(StringLiteralExpr expr) {
     return HTType.any;
   }
 
@@ -202,6 +202,11 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
 
   @override
   HTType? visitContinueStmt(ContinueStmt stmt) {
+    return HTType.any;
+  }
+
+  @override
+  HTType? visitConstDecl(ConstDecl stmt) {
     return HTType.any;
   }
 

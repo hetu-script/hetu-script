@@ -42,6 +42,10 @@ class HTClassDeclaration extends HTDeclaration
 
   bool get isNested => classId != null;
 
+  bool _isResolved = false;
+  @override
+  bool get isResolved => _isResolved;
+
   HTClassDeclaration(
       {String? id,
       String? classId,
@@ -73,10 +77,13 @@ class HTClassDeclaration extends HTDeclaration
   @override
   @mustCallSuper
   void resolve() {
-    super.resolve();
+    if (_isResolved) {
+      return;
+    }
     if ((closure != null) && (_unresolvedSuperType != null)) {
       _resolvedSuperType = _unresolvedSuperType!.resolve(closure!);
     }
+    _isResolved = true;
   }
 
   @override

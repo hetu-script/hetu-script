@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 // import '../grammar/semantic.dart';
@@ -54,10 +52,9 @@ abstract class HTDeclaration {
   /// Wether this declaration is only accessible from a same class namespace.
   bool get isPrivate => displayName.startsWith(HTLexicon.privatePrefix);
 
-  bool _isResolved = false;
-  bool get isResolved => _isResolved;
+  bool get isResolved => true;
 
-  HTDeclaration(
+  const HTDeclaration(
       {this.id,
       this.classId,
       this.closure,
@@ -76,10 +73,7 @@ abstract class HTDeclaration {
     throw HTError.immutable(displayName);
   }
 
-  @mustCallSuper
-  void resolve() {
-    _isResolved = true;
-  }
+  void resolve() {}
 
   bool isOverrideOf(HTDeclaration decl) => false;
 

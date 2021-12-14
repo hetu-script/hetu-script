@@ -26,8 +26,8 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
   HTNamedStruct(
     this._id,
     Hetu interpreter,
-    String filename,
-    String libraryName,
+    String fileName,
+    String moduleName,
     HTNamespace closure, {
     this.prototypeId,
     HTSource? source,
@@ -37,8 +37,8 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
   }) : super(
             id: _id, closure: closure, source: source, isTopLevel: isTopLevel) {
     this.interpreter = interpreter;
-    this.filename = filename;
-    this.libraryName = libraryName;
+    this.fileName = fileName;
+    this.moduleName = moduleName;
     this.definitionIp = definitionIp;
   }
 
@@ -63,8 +63,8 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
   void resolve() {
     super.resolve();
     HTStruct static = interpreter.execute(
-        filename: filename,
-        libraryName: libraryName,
+        filename: fileName,
+        moduleName: moduleName,
         ip: staticDefinitionIp!,
         namespace: closure);
     if (closure != null) {
@@ -75,8 +75,8 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
       }
     }
     HTStruct self = interpreter.execute(
-        filename: filename,
-        libraryName: libraryName,
+        filename: fileName,
+        moduleName: moduleName,
         ip: definitionIp!,
         namespace: closure);
     self.prototype = static;
@@ -97,8 +97,8 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
   HTNamedStruct clone() => HTNamedStruct(
         id,
         interpreter,
-        filename,
-        libraryName,
+        fileName,
+        moduleName,
         closure!,
         source: source,
         prototypeId: prototypeId,

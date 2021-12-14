@@ -126,13 +126,14 @@ class BooleanExpr extends AstNode {
             length: length);
 }
 
-class ConstIntExpr extends AstNode {
+class IntLiteralExpr extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitConstIntExpr(this);
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitIntLiteralExpr(this);
 
   final int value;
 
-  ConstIntExpr(this.value,
+  IntLiteralExpr(this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -146,14 +147,14 @@ class ConstIntExpr extends AstNode {
             length: length);
 }
 
-class ConstFloatExpr extends AstNode {
+class FloatLiteralExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitConstFloatExpr(this);
+      visitor.visitFloatLiteralExpr(this);
 
   final double value;
 
-  ConstFloatExpr(this.value,
+  FloatLiteralExpr(this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -167,10 +168,10 @@ class ConstFloatExpr extends AstNode {
             length: length);
 }
 
-class ConstStringExpr extends AstNode {
+class StringLiteralExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitConstStringExpr(this);
+      visitor.visitStringLiteralExpr(this);
 
   final String value;
 
@@ -178,7 +179,7 @@ class ConstStringExpr extends AstNode {
 
   final String quotationRight;
 
-  ConstStringExpr(this.value, this.quotationLeft, this.quotationRight,
+  StringLiteralExpr(this.value, this.quotationLeft, this.quotationRight,
       {HTSource? source,
       int line = 0,
       int column = 0,
@@ -1354,6 +1355,42 @@ class TypeAliasDecl extends AstNode {
             length: length);
 }
 
+class ConstDecl extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitConstDecl(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    id.accept(visitor);
+  }
+
+  final IdentifierExpr id;
+
+  final AstNode constExpr;
+
+  final String? classId;
+
+  final bool isStatic;
+
+  final bool isTopLevel;
+
+  ConstDecl(this.id, this.constExpr,
+      {this.classId,
+      this.isStatic = false,
+      this.isTopLevel = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(SemanticNames.constantDeclaration,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class VarDecl extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitVarDecl(this);
@@ -1391,8 +1428,6 @@ class VarDecl extends AstNode {
 
   final bool isMutable;
 
-  final bool isConst;
-
   final bool isPrivate;
 
   final bool isTopLevel;
@@ -1409,7 +1444,6 @@ class VarDecl extends AstNode {
       this.isField = false,
       this.isExternal = false,
       this.isStatic = false,
-      this.isConst = false,
       this.isMutable = false,
       this.isPrivate = false,
       this.isTopLevel = false,
@@ -1444,7 +1478,6 @@ class ParamDecl extends VarDecl {
   ParamDecl(IdentifierExpr id,
       {TypeExpr? declType,
       AstNode? initializer,
-      bool isConst = false,
       bool isMutable = false,
       this.isVariadic = false,
       this.isOptional = false,
@@ -1462,7 +1495,6 @@ class ParamDecl extends VarDecl {
             length: length,
             declType: declType,
             initializer: initializer,
-            isConst: isConst,
             isMutable: isMutable);
 }
 

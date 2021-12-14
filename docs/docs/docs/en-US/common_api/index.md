@@ -33,7 +33,7 @@ To parse, analyze, compile and load a Hetu source from a String literal.
 ```dart
 dynamic eval(String content,
     {String? filename,
-    String? libraryName,
+    String? moduleName,
     bool globallyImport = false,
     bool isScript = false,
     bool isStrictMode = false,

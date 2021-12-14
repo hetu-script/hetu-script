@@ -83,6 +83,10 @@ class HTLexer {
               curColumn,
               curOffset + match.start,
               curOffset + match.end));
+        } else if (match.group(HTLexicon.tokenGroupStringGraveAccent) != null) {
+          final literal = matchString.substring(1, matchString.length - 1);
+          toksOfLine.add(TokenIdentifier(literal, curLine, curColumn,
+              curOffset + match.start, curOffset + match.end));
         } else if (match
                 .group(HTLexicon.tokenGroupStringInterpolationSingleMark) !=
             null) {

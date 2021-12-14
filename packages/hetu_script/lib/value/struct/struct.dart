@@ -1,11 +1,11 @@
 import 'package:hetu_script/value/struct/named_struct.dart';
+import 'package:hetu_script/value/variable/variable.dart';
 
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../entity.dart';
 import '../function/function.dart';
 import '../../declaration/namespace/namespace.dart';
-import '../../value/const.dart';
 import '../../shared/stringify.dart' as util;
 import '../../shared/jsonify.dart' as util;
 import '../../type/structural_type.dart';
@@ -68,6 +68,7 @@ class HTStruct with HTEntity {
       {this.id, this.prototype, Map<String, dynamic>? fields})
       : namespace = HTNamespace(id: id ?? HTLexicon.kStruct, closure: closure),
         valueType = HTStructuralType() {
+    namespace.define(HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: this));
     if (fields != null) {
       this.fields.addAll(fields);
     }

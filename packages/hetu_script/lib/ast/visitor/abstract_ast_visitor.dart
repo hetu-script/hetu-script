@@ -14,11 +14,11 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitBooleanExpr(BooleanExpr node) {}
 
-  T? visitConstIntExpr(ConstIntExpr node) {}
+  T? visitIntLiteralExpr(IntLiteralExpr node) {}
 
-  T? visitConstFloatExpr(ConstFloatExpr node) {}
+  T? visitFloatLiteralExpr(FloatLiteralExpr node) {}
 
-  T? visitConstStringExpr(ConstStringExpr node) {}
+  T? visitStringLiteralExpr(StringLiteralExpr node) {}
 
   T? visitStringInterpolationExpr(StringInterpolationExpr node) {}
 
@@ -89,6 +89,8 @@ abstract class AbstractAstVisitor<T> {
   T? visitNamespaceDecl(NamespaceDecl node) {}
 
   T? visitTypeAliasDecl(TypeAliasDecl node) {}
+
+  T? visitConstDecl(ConstDecl node) {}
 
   T? visitVarDecl(VarDecl node) {}
 

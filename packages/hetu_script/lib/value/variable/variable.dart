@@ -20,14 +20,16 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   /// Create a standard [HTVariable].
   /// has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
-  HTVariable(String id, Hetu interpreter, String filename, String libraryName,
-      {String? classId,
+  HTVariable(String id,
+      {Hetu? interpreter,
+      String? fileName,
+      String? moduleName,
+      String? classId,
       HTNamespace? closure,
       HTType? declType,
       dynamic value,
       bool isExternal = false,
       bool isStatic = false,
-      bool isConst = false,
       bool isMutable = false,
       bool isTopLevel = false,
       int? definitionIp,
@@ -39,12 +41,17 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             declType: declType,
             isExternal: isExternal,
             isStatic: isStatic,
-            isConst: isConst,
             isMutable: isMutable,
             isTopLevel: isTopLevel) {
-    this.interpreter = interpreter;
-    this.filename = filename;
-    this.libraryName = libraryName;
+    if (interpreter != null) {
+      this.interpreter = interpreter;
+    }
+    if (fileName != null) {
+      this.fileName = fileName;
+    }
+    if (moduleName != null) {
+      this.moduleName = moduleName;
+    }
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
@@ -77,8 +84,8 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
-            filename: filename,
-            libraryName: libraryName,
+            filename: fileName,
+            moduleName: moduleName,
             ip: definitionIp!,
             namespace: closure,
             line: definitionLine,
@@ -96,7 +103,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   /// Assign a new value to this variable.
   @override
   set value(dynamic value) {
-    if ((!isMutable || isConst) && (_value != null)) {
+    if (!isMutable && (_value != null)) {
       throw HTError.immutable(id);
     }
     _value = value;
@@ -157,14 +164,16 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   // }
 
   @override
-  HTVariable clone() => HTVariable(id, interpreter, filename, libraryName,
+  HTVariable clone() => HTVariable(id,
+      interpreter: interpreter,
+      fileName: fileName,
+      moduleName: moduleName,
       classId: classId,
       closure: closure,
       declType: declType,
       value: _value,
       isExternal: isExternal,
       isStatic: isStatic,
-      isConst: isConst,
       isMutable: isMutable,
       isTopLevel: isTopLevel,
       definitionIp: definitionIp,

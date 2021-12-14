@@ -15,8 +15,8 @@ import '../../declaration/function/function_declaration.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
 import '../../type/function_type.dart';
 import '../entity.dart';
-import '../const.dart';
 import 'parameter.dart';
+import '../variable/variable.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
@@ -56,8 +56,8 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(String internalName, String filename, String libraryName,
-      Hetu interpreter,
+  HTFunction(
+      String internalName, String fileName, String moduleName, Hetu interpreter,
       {String? id,
       String? classId,
       HTNamespace? closure,
@@ -106,8 +106,8 @@ class HTFunction extends HTFunctionDeclaration
             maxArity: maxArity,
             namespace: namespace) {
     this.interpreter = interpreter;
-    this.filename = filename;
-    this.libraryName = libraryName;
+    this.fileName = fileName;
+    this.moduleName = moduleName;
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
@@ -141,7 +141,7 @@ class HTFunction extends HTFunctionDeclaration
 
   @override
   HTFunction clone() =>
-      HTFunction(internalName, filename, libraryName, interpreter,
+      HTFunction(internalName, fileName, moduleName, interpreter,
           id: id,
           classId: classId,
           closure: closure,
@@ -260,11 +260,11 @@ class HTFunction extends HTFunctionDeclaration
           if (namespace is HTInstanceNamespace) {
             callClosure.define(
                 HTLexicon.kSuper,
-                HTConst(HTLexicon.kSuper,
+                HTVariable(HTLexicon.kSuper,
                     value: (namespace as HTInstanceNamespace).next));
           }
           callClosure.define(
-              HTLexicon.kThis, HTConst(HTLexicon.kThis, value: instance));
+              HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: instance));
         }
 
         if (category == FunctionCategory.constructor &&
@@ -303,8 +303,8 @@ class HTFunction extends HTFunctionDeclaration
             final savedNamespace = interpreter.namespace;
             final savedIp = interpreter.bytecodeModule.ip;
             interpreter.newStackFrame(
-                filename: filename,
-                libraryName: libraryName,
+                filename: fileName,
+                moduleName: moduleName,
                 namespace: callClosure,
                 ip: referCtorPosArgIps[i]);
             final isSpread = interpreter.bytecodeModule.readBool();
@@ -328,8 +328,8 @@ class HTFunction extends HTFunctionDeclaration
           for (final name in referCtorNamedArgIps.keys) {
             final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
             final arg = interpreter.execute(
-                filename: filename,
-                libraryName: libraryName,
+                filename: fileName,
+                moduleName: moduleName,
                 ip: referCtorNamedArgIp,
                 namespace: callClosure);
             referCtorNamedArgs[name] = arg;
@@ -379,8 +379,8 @@ class HTFunction extends HTFunctionDeclaration
 
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
-              filename: filename,
-              libraryName: libraryName,
+              filename: fileName,
+              moduleName: moduleName,
               ip: definitionIp,
               namespace: callClosure,
               function: this,
@@ -388,8 +388,8 @@ class HTFunction extends HTFunctionDeclaration
               column: definitionColumn);
         } else {
           interpreter.execute(
-              filename: filename,
-              libraryName: libraryName,
+              filename: fileName,
+              moduleName: moduleName,
               ip: definitionIp,
               namespace: callClosure,
               function: this,
