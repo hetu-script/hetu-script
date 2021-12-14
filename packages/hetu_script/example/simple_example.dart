@@ -4,9 +4,12 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final game = { };
+    final game = {
+      name: 'Bibble',
+      job: 'Catcher'
+    }
     fun main {
-      print(game)
+      print(game.keys)
 
     }
     ''', invokeFunc: 'main');

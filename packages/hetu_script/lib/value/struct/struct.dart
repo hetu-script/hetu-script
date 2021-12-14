@@ -127,8 +127,12 @@ class HTStruct with HTEntity {
     if (varName == Semantic.prototype) {
       return prototype;
     }
+    final getter = '${Semantic.getter}$varName';
+
     if (fields.containsKey(varName)) {
       value = fields[varName];
+    } else if (fields.containsKey(getter)) {
+      value = fields[getter]!;
     } else if (prototype != null) {
       value = prototype!.memberGet(varName, isSelf: false);
     }
@@ -146,16 +150,28 @@ class HTStruct with HTEntity {
   }
 
   @override
-  void memberSet(String varName, dynamic varValue) {
+  bool memberSet(String varName, dynamic varValue, {bool define = true}) {
+    final setter = '${Semantic.setter}$varName';
     if (fields.containsKey(varName)) {
       fields[varName] = varValue;
-      return;
-    } else if (prototype != null && prototype!.contains(varName)) {
-      prototype!.memberSet(varName, varValue);
-      return;
-    } else {
-      fields[varName] = varValue;
+      return true;
+    } else if (fields.containsKey(setter)) {
+      HTFunction func = fields[setter]!;
+      func.namespace = namespace;
+      func.instance = this;
+      func.call(positionalArgs: [varValue]);
+      return true;
+    } else if (prototype != null) {
+      final success = prototype!.memberSet(varName, varValue, define: false);
+      if (success) {
+        return true;
+      }
     }
+    if (define) {
+      fields[varName] = varValue;
+      return true;
+    }
+    return false;
   }
 
   @override

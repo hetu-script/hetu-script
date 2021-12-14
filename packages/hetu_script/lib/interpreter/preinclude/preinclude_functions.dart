@@ -59,6 +59,7 @@ final Map<String, Function> preIncludeFunctions = {
     final obj = object as HTStruct;
     return obj.fields.values.toList();
   },
+  // TODO: all keys and all values for struct (includes prototype's keys and values)
   'prototype.contains': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},

@@ -151,8 +151,9 @@ class HTInstance with HTEntity, InterpreterRef {
           }
           return value;
         } else if (space.declarations.containsKey(getter)) {
-          HTFunction func = space.declarations[getter]!.value;
+          final func = space.declarations[getter]! as HTFunction;
           func.namespace = namespace;
+          func.instance = this;
           return func.call();
         }
       }
@@ -162,11 +163,13 @@ class HTInstance with HTEntity, InterpreterRef {
         final value = space.declarations[varName]!.value;
         if (value is HTFunction && value.category != FunctionCategory.literal) {
           value.namespace = _namespaces[classId];
+          value.instance = this;
         }
         return value;
       } else if (space.declarations.containsKey(getter)) {
-        HTFunction func = space.declarations[getter]!.value;
+        final func = space.declarations[getter]! as HTFunction;
         func.namespace = _namespaces[classId];
+        func.instance = this;
         return func.call();
       }
     }
@@ -194,6 +197,7 @@ class HTInstance with HTEntity, InterpreterRef {
         } else if (space.declarations.containsKey(setter)) {
           HTFunction method = space.declarations[setter]!.value;
           method.namespace = namespace;
+          method.instance = this;
           method.call(positionalArgs: [varValue]);
           return;
         }
@@ -211,6 +215,7 @@ class HTInstance with HTEntity, InterpreterRef {
       } else if (space.declarations.containsKey(setter)) {
         final method = space.declarations[setter]! as HTFunction;
         method.namespace = _namespaces[cast];
+        method.instance = this;
         method.call(positionalArgs: [varValue]);
         return;
       }
