@@ -1870,15 +1870,12 @@ class StructObjField extends AstNode {
 
   final bool isSpread;
 
-  final bool isComment;
-
   final AstNode? value;
 
   StructObjField(
       {this.key,
       this.value,
       this.isSpread = false,
-      this.isComment = false,
       HTSource? source,
       int line = 0,
       int column = 0,

@@ -410,14 +410,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(StructObjFieldType.spread); // spread another object
       final valueBytes = compileAst(field.value!, endOfExec: true);
       bytesBuilder.add(valueBytes);
-    } else if (!field.isComment) {
-      bytesBuilder.addByte(
-          StructObjFieldType.objectIdentifier); // identifier as key & value
-      // if key is omitted, the value must be a identifier expr.
-      final id = field.value as IdentifierExpr;
-      bytesBuilder.add(_identifierString(id.id));
-      final valueBytes = compileAst(id, endOfExec: true);
-      bytesBuilder.add(valueBytes);
     }
     return bytesBuilder.toBytes();
   }
