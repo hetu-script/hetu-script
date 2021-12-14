@@ -398,6 +398,8 @@ abstract class HTLexicon {
     bracketsLeft,
     comma,
     colon,
+    singleArrow,
+    doubleArrow,
   };
 
   static const Set<String> punctuations = {

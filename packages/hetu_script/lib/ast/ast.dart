@@ -1370,12 +1370,15 @@ class ConstDecl extends AstNode {
 
   final String? classId;
 
+  final bool hasEndOfStmtMark;
+
   final bool isStatic;
 
   final bool isTopLevel;
 
   ConstDecl(this.id, this.constExpr,
       {this.classId,
+      this.hasEndOfStmtMark = false,
       this.isStatic = false,
       this.isTopLevel = false,
       HTSource? source,

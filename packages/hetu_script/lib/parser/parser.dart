@@ -1974,15 +1974,18 @@ class HTParser extends HTAbstractParser {
       }
     }
     final key = match(SemanticNames.stringLiteral);
+    var hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     IdentifierExpr? alias;
-    if (expect([HTLexicon.kAs], consume: true)) {
+    if (!hasEndOfStmtMark && expect([HTLexicon.kAs], consume: true)) {
       final aliasId = match(SemanticNames.identifier);
       alias = IdentifierExpr.fromToken(aliasId);
+      hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     }
     final stmt = ImportExportDecl(
         fromPath: key.literal,
-        alias: alias,
         showList: showList,
+        alias: alias,
+        hasEndOfStmtMark: hasEndOfStmtMark,
         source: _currentSource,
         line: keyword.line,
         column: keyword.column,
@@ -2005,13 +2008,16 @@ class HTParser extends HTAbstractParser {
       } while (expect([HTLexicon.comma], consume: true));
       match(HTLexicon.bracesRight);
       String? fromPath;
-      if (curTok.lexeme == HTLexicon.kFrom) {
+      var hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+      if (!hasEndOfStmtMark && curTok.lexeme == HTLexicon.kFrom) {
         advance(1);
         fromPath = match(SemanticNames.stringLiteral).literal;
+        hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
       }
       final stmt = ImportExportDecl(
-          showList: showList,
           fromPath: fromPath,
+          showList: showList,
+          hasEndOfStmtMark: hasEndOfStmtMark,
           isExported: true,
           source: _currentSource,
           line: keyword.line,
@@ -2024,8 +2030,10 @@ class HTParser extends HTAbstractParser {
       return stmt;
     } else {
       final key = match(SemanticNames.stringLiteral);
+      final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
       final stmt = ImportExportDecl(
           fromPath: key.literal,
+          hasEndOfStmtMark: hasEndOfStmtMark,
           isExported: true,
           source: _currentSource,
           line: keyword.line,
@@ -2063,7 +2071,6 @@ class HTParser extends HTAbstractParser {
     final id = IdentifierExpr.fromToken(idTok);
     match(HTLexicon.assign);
     final constExpr = _parseExpr();
-
     if (constExpr is! IntLiteralExpr &&
         constExpr is! FloatLiteralExpr &&
         constExpr is! StringLiteralExpr) {
@@ -2075,10 +2082,13 @@ class HTParser extends HTAbstractParser {
           length: constExpr.length);
       errors.add(err);
     }
-
+    final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     return ConstDecl(
       id,
       constExpr,
+      classId: classId,
+      hasEndOfStmtMark: hasEndOfStmtMark,
+      isStatic: isStatic,
       source: _currentSource,
       line: keyword.line,
       column: keyword.column,
@@ -2151,16 +2161,18 @@ class HTParser extends HTAbstractParser {
       if (expect([HTLexicon.assign], consume: true)) {
         initializer = _parseExpr();
       }
+      bool hasEndOfStmtMark = hasEndOfStatement;
       if (hasEndOfStatement) {
         match(HTLexicon.semicolon);
       } else {
-        expect([HTLexicon.semicolon], consume: true);
+        hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
       }
       return VarDecl(id,
           internalName: internalName,
           classId: classId,
           declType: declType,
           initializer: initializer,
+          hasEndOfStmtMark: hasEndOfStmtMark,
           isExternal: isExternal,
           isStatic: isStatic,
           isMutable: isMutable,
@@ -2403,6 +2415,8 @@ class HTParser extends HTAbstractParser {
           offset: ctorCallee.offset,
           length: curTok.offset - ctorCallee.offset);
     }
+    bool isExpressionBody = false;
+    bool hasEndOfStmtMark = false;
     AstNode? definition;
     if (curTok.type == HTLexicon.bracesLeft) {
       if (category == FunctionCategory.literal && !hasKeyword) {
@@ -2410,10 +2424,12 @@ class HTParser extends HTAbstractParser {
       }
       definition = _parseBlockStmt(id: SemanticNames.functionCall);
     } else if (expect([HTLexicon.doubleArrow], consume: true)) {
+      isExpressionBody = true;
       if (category == FunctionCategory.literal && !hasKeyword) {
         startTok = curTok;
       }
-      definition = _parseExprStmt();
+      definition = _parseExpr();
+      hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     } else if (expect([HTLexicon.assign], consume: true)) {
       final err = HTError.unsupported(
           SemanticNames.redirectingFunctionDefinition,
@@ -2451,6 +2467,8 @@ class HTParser extends HTAbstractParser {
         hasParamDecls: hasParamDecls,
         minArity: minArity,
         maxArity: maxArity,
+        isExpressionBody: isExpressionBody,
+        hasEndOfStmtMark: hasEndOfStmtMark,
         definition: definition,
         isField: isField,
         isExternal: isExternal,
