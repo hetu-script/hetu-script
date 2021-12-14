@@ -947,7 +947,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       if (block.id != null) {
         bytesBuilder.add(_identifierString(block.id!));
       } else {
-        bytesBuilder.add(_identifierString(SemanticNames.anonymousBlock));
+        bytesBuilder.add(_identifierString(Semantic.anonymousBlock));
       }
     }
     for (final stmt in block.statements) {
@@ -1039,7 +1039,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitForStmt(ForStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
-    bytesBuilder.add(_identifierString(SemanticNames.forStmtInit));
+    bytesBuilder.add(_identifierString(Semantic.forStmtInit));
     late Uint8List condition;
     Uint8List? increment;
     AstNode? capturedDecl;
@@ -1097,11 +1097,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitForRangeStmt(ForRangeStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
-    bytesBuilder.add(_identifierString(SemanticNames.forStmtInit));
+    bytesBuilder.add(_identifierString(Semantic.forStmtInit));
     Uint8List? condition;
     Uint8List? increment;
     // declare the increment variable
-    final increId = SemanticNames.increment;
+    final increId = Semantic.increment;
     final increInit = _assembleLocalConstInt(
         0, stmt.iterator.line, stmt.iterator.column,
         endOfExec: true);
@@ -1111,7 +1111,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.add(increDecl);
     // assemble the condition expression
     final conditionBytesBuilder = BytesBuilder();
-    final collectionId = SemanticNames.collection;
+    final collectionId = Semantic.collection;
     final collectionExpr = stmt.iterateValue
         ? MemberExpr(
             stmt.collection, IdentifierExpr(HTLexicon.values, isLocal: false))
@@ -1572,16 +1572,16 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has super class
       bytesBuilder.addByte(1); // bool: is enum
 
-      final valueId = '${HTLexicon.privatePrefix}${SemanticNames.name}';
+      final valueId = '${HTLexicon.privatePrefix}${Semantic.name}';
       final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
       final valueBytes = visitVarDecl(value);
       bytesBuilder.add(valueBytes);
 
-      final ctorParam = ParamDecl(IdentifierExpr(SemanticNames.name));
+      final ctorParam = ParamDecl(IdentifierExpr(Semantic.name));
       final ctorDef = BinaryExpr(IdentifierExpr(valueId), HTLexicon.assign,
-          IdentifierExpr(SemanticNames.name));
+          IdentifierExpr(Semantic.name));
       final constructor = FuncDecl(
-          '${SemanticNames.constructor}${HTLexicon.privatePrefix}', [ctorParam],
+          '${Semantic.constructor}${HTLexicon.privatePrefix}', [ctorParam],
           id: IdentifierExpr(HTLexicon.privatePrefix),
           classId: stmt.id.id,
           minArity: 1,

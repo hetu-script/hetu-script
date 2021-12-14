@@ -16,7 +16,7 @@ enum TypeType {
   union,
 }
 
-abstract class SemanticNames {
+abstract class Semantic {
   static const module = 'module';
   static const namespace = 'namespace';
 

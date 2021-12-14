@@ -166,7 +166,7 @@ class Hetu extends HTAbstractInterpreter {
   Hetu(
       {HTResourceContext<HTSource>? sourceContext,
       this.config = const InterpreterConfig()})
-      : global = HTNamespace(id: SemanticNames.global),
+      : global = HTNamespace(id: Semantic.global),
         _analyzer =
             HTAnalyzer(sourceContext: sourceContext ?? HTOverlayContext()),
         _sourceContext = sourceContext ?? HTOverlayContext() {
@@ -1395,7 +1395,7 @@ class Hetu extends HTAbstractInterpreter {
         throw HTError.abstracted(
             filename: _fileName, line: _line, column: _column);
       }
-      if (klass.contains(SemanticNames.constructor)) {
+      if (klass.contains(Semantic.constructor)) {
         final constructor = klass.memberGet(klass.id!) as HTFunction;
         _localValue = constructor.call(
             positionalArgs: positionalArgs,
@@ -1723,11 +1723,11 @@ class Hetu extends HTAbstractInterpreter {
     // Add default constructor if non-exist.
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
       final ctor = HTFunction(
-          SemanticNames.constructor, _fileName, _bytecodeModule.id, this,
+          Semantic.constructor, _fileName, _bytecodeModule.id, this,
           classId: klass.id,
           category: FunctionCategory.constructor,
           closure: klass.namespace);
-      klass.namespace.define(SemanticNames.constructor, ctor);
+      klass.namespace.define(Semantic.constructor, ctor);
     }
     if (_isScript || _function != null) {
       klass.resolve();

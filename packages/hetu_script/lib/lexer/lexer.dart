@@ -1,6 +1,42 @@
 import '../grammar/lexicon.dart';
+import '../grammar/semantic.dart';
 // import '../error/error.dart';
 import 'token.dart';
+
+const Set<String> _unfinishedTokens = {
+  HTLexicon.logicalNot,
+  HTLexicon.multiply,
+  HTLexicon.devide,
+  HTLexicon.modulo,
+  HTLexicon.add,
+  HTLexicon.subtract,
+  HTLexicon.lesser, // chevronsLeft,
+  HTLexicon.lesserOrEqual,
+  HTLexicon.greater,
+  HTLexicon.greaterOrEqual,
+  HTLexicon.equal,
+  HTLexicon.notEqual,
+  HTLexicon.ifNull,
+  HTLexicon.logicalAnd,
+  HTLexicon.logicalOr,
+  HTLexicon.assign,
+  HTLexicon.assignAdd,
+  HTLexicon.assignSubtract,
+  HTLexicon.assignMultiply,
+  HTLexicon.assignDevide,
+  HTLexicon.assignIfNull,
+  HTLexicon.memberGet,
+  HTLexicon.parenthesesLeft,
+  HTLexicon.bracesLeft,
+  HTLexicon.bracketsLeft,
+  HTLexicon.comma,
+  HTLexicon.colon,
+  HTLexicon.singleArrow,
+  HTLexicon.doubleArrow,
+  Semantic.singleLineComment,
+  Semantic.multiLineComment,
+  Semantic.consumingLineEndComment,
+};
 
 /// Scans a string content and generates a list of Tokens.
 class HTLexer {
@@ -122,7 +158,7 @@ class HTLexer {
           /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
           if (tokens.isNotEmpty &&
-              !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
+              !_unfinishedTokens.contains(tokens.last.type)) {
             tokens.add(Token(HTLexicon.semicolon, curLine, 1,
                 toksOfLine.first.offset + toksOfLine.first.length, 0));
           }

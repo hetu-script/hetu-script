@@ -77,7 +77,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   final analyzedDeclarations = <String, HTNamespace>{};
 
   HTAnalyzer({HTResourceContext<HTSource>? sourceContext})
-      : global = HTNamespace(id: SemanticNames.global),
+      : global = HTNamespace(id: Semantic.global),
         sourceContext = sourceContext ?? HTOverlayContext() {
     _curNamespace = global;
   }

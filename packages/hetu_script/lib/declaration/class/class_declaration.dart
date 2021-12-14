@@ -11,7 +11,7 @@ import 'class_namespace.dart';
 
 class HTClassDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
-  String get name => id ?? SemanticNames.anonymousClass;
+  String get name => id ?? Semantic.anonymousClass;
 
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;

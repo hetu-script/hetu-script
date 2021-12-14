@@ -75,7 +75,7 @@ class EmptyExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.empty,
+      : super(Semantic.empty,
             source: source,
             line: line,
             column: column,
@@ -93,7 +93,7 @@ class NullExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.nullLiteral,
+      : super(Semantic.nullLiteral,
             source: source,
             line: line,
             column: column,
@@ -113,7 +113,7 @@ class BooleanExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.booleanLiteral,
+      : super(Semantic.booleanLiteral,
             source: source,
             line: line,
             column: column,
@@ -134,7 +134,7 @@ class IntLiteralExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.integerLiteral,
+      : super(Semantic.integerLiteral,
             source: source,
             line: line,
             column: column,
@@ -155,7 +155,7 @@ class FloatLiteralExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.floatLiteral,
+      : super(Semantic.floatLiteral,
             source: source,
             line: line,
             column: column,
@@ -180,7 +180,7 @@ class StringLiteralExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.stringLiteral,
+      : super(Semantic.stringLiteral,
             source: source,
             line: line,
             column: column,
@@ -215,7 +215,7 @@ class StringInterpolationExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.stringInterpolation,
+      : super(Semantic.stringInterpolation,
             source: source,
             line: line,
             column: column,
@@ -248,7 +248,7 @@ class IdentifierExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.symbolExpr,
+      : super(Semantic.symbolExpr,
             source: source,
             line: line,
             column: column,
@@ -257,7 +257,7 @@ class IdentifierExpr extends AstNode {
 
   IdentifierExpr.fromToken(Token id, {HTSource? source})
       : this(id.lexeme,
-            isSymbol: id.type == SemanticNames.identifier,
+            isSymbol: id.type == Semantic.identifier,
             source: source,
             line: id.line,
             column: id.column,
@@ -283,7 +283,7 @@ class SpreadExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.spreadExpr,
+      : super(Semantic.spreadExpr,
             source: source,
             line: line,
             column: column,
@@ -310,7 +310,7 @@ class ListExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.listLiteral,
+      : super(Semantic.listLiteral,
             source: source,
             line: line,
             column: column,
@@ -364,7 +364,7 @@ class GroupExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.groupExpr,
+      : super(Semantic.groupExpr,
             source: source,
             line: line,
             column: column,
@@ -402,7 +402,7 @@ class TypeExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.typeExpr,
+      : super(Semantic.typeExpr,
             source: source,
             line: line,
             column: column,
@@ -443,7 +443,7 @@ class ParamTypeExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.paramTypeExpr,
+      : super(Semantic.paramTypeExpr,
             source: source,
             line: line,
             column: column,
@@ -519,7 +519,7 @@ class GenericTypeParameterExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.genericTypeParamExpr,
+      : super(Semantic.genericTypeParamExpr,
             source: source,
             line: line,
             column: column,
@@ -547,7 +547,7 @@ class UnaryPrefixExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.unaryExpr,
+      : super(Semantic.unaryExpr,
             source: source,
             line: line,
             column: column,
@@ -575,7 +575,7 @@ class UnaryPostfixExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.unaryExpr,
+      : super(Semantic.unaryExpr,
             source: source,
             line: line,
             column: column,
@@ -605,7 +605,7 @@ class BinaryExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.binaryExpr,
+      : super(Semantic.binaryExpr,
             source: source,
             line: line,
             column: column,
@@ -636,7 +636,7 @@ class TernaryExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.binaryExpr,
+      : super(Semantic.binaryExpr,
             source: source,
             line: line,
             column: column,
@@ -667,7 +667,7 @@ class MemberExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.memberGetExpr,
+      : super(Semantic.memberGetExpr,
             source: source,
             line: line,
             column: column,
@@ -699,7 +699,7 @@ class MemberAssignExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.memberSetExpr,
+      : super(Semantic.memberSetExpr,
             source: source,
             line: line,
             column: column,
@@ -740,7 +740,7 @@ class SubExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.subGetExpr,
+      : super(Semantic.subGetExpr,
             source: source,
             line: line,
             column: column,
@@ -772,7 +772,7 @@ class SubAssignExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.subSetExpr,
+      : super(Semantic.subSetExpr,
             source: source,
             line: line,
             column: column,
@@ -819,7 +819,7 @@ class CallExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.callExpr,
+      : super(Semantic.callExpr,
             source: source,
             line: line,
             column: column,
@@ -851,7 +851,7 @@ class AssertStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.exprStmt,
+      : super(Semantic.exprStmt,
             source: source,
             line: line,
             column: column,
@@ -883,7 +883,7 @@ class ExprStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.exprStmt,
+      : super(Semantic.exprStmt,
             source: source,
             line: line,
             column: column,
@@ -919,7 +919,7 @@ class BlockStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.blockStmt,
+      : super(Semantic.blockStmt,
             source: source,
             line: line,
             column: column,
@@ -954,7 +954,7 @@ class ReturnStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.returnStmt,
+      : super(Semantic.returnStmt,
             source: source,
             line: line,
             column: column,
@@ -990,7 +990,7 @@ class IfStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.ifStmt,
+      : super(Semantic.ifStmt,
             source: source,
             line: line,
             column: column,
@@ -1021,7 +1021,7 @@ class WhileStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.whileStmt,
+      : super(Semantic.whileStmt,
             source: source,
             line: line,
             column: column,
@@ -1052,7 +1052,7 @@ class DoStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.doStmt,
+      : super(Semantic.doStmt,
             source: source,
             line: line,
             column: column,
@@ -1092,7 +1092,7 @@ class ForStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.forStmt,
+      : super(Semantic.forStmt,
             source: source,
             line: line,
             column: column,
@@ -1132,7 +1132,7 @@ class ForRangeStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.forInStmt,
+      : super(Semantic.forInStmt,
             source: source,
             line: line,
             column: column,
@@ -1171,7 +1171,7 @@ class WhenStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.whenStmt,
+      : super(Semantic.whenStmt,
             source: source,
             line: line,
             column: column,
@@ -1198,7 +1198,7 @@ class BreakStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.breakStmt,
+      : super(Semantic.breakStmt,
             source: source,
             line: line,
             column: column,
@@ -1225,7 +1225,7 @@ class ContinueStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.continueStmt,
+      : super(Semantic.continueStmt,
             source: source,
             line: line,
             column: column,
@@ -1235,8 +1235,7 @@ class ContinueStmt extends AstNode {
 
 class ImportExportDecl extends AstNode {
   @override
-  String get type =>
-      isExported ? SemanticNames.exportStmt : SemanticNames.importStmt;
+  String get type => isExported ? Semantic.exportStmt : Semantic.importStmt;
 
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
@@ -1280,7 +1279,7 @@ class ImportExportDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.exportImportStmt,
+      : super(Semantic.exportImportStmt,
             source: source,
             line: line,
             column: column,
@@ -1323,7 +1322,7 @@ class NamespaceDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.namespaceDeclaration,
+      : super(Semantic.namespaceDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1376,7 +1375,7 @@ class TypeAliasDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.typeAliasDeclaration,
+      : super(Semantic.typeAliasDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1419,7 +1418,7 @@ class ConstDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.constantDeclaration,
+      : super(Semantic.constantDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1494,7 +1493,7 @@ class VarDecl extends AstNode {
       int offset = 0,
       int length = 0})
       : _internalName = internalName,
-        super(SemanticNames.variableDeclaration,
+        super(Semantic.variableDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1504,7 +1503,7 @@ class VarDecl extends AstNode {
 
 class ParamDecl extends VarDecl {
   @override
-  String get type => SemanticNames.parameterDeclaration;
+  String get type => Semantic.parameterDeclaration;
 
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitParamDecl(this);
@@ -1574,7 +1573,7 @@ class RedirectingConstructorCallExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.redirectingConstructorCallExpression,
+      : super(Semantic.redirectingConstructorCallExpression,
             source: source,
             line: line,
             column: column,
@@ -1681,7 +1680,7 @@ class FuncDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.functionDeclaration,
+      : super(Semantic.functionDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1756,7 +1755,7 @@ class ClassDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.classDeclaration,
+      : super(Semantic.classDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1803,7 +1802,7 @@ class EnumDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.enumDeclaration,
+      : super(Semantic.enumDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1849,7 +1848,7 @@ class StructDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.structDeclaration,
+      : super(Semantic.structDeclaration,
             source: source,
             line: line,
             column: column,
@@ -1885,7 +1884,7 @@ class StructObjField extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.structLiteralField,
+      : super(Semantic.structLiteralField,
             source: source,
             line: line,
             column: column,
@@ -1921,7 +1920,7 @@ class StructObjExpr extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(SemanticNames.structLiteral,
+      : super(Semantic.structLiteral,
             source: source,
             line: line,
             column: column,

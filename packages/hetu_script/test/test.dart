@@ -5,8 +5,10 @@ void main() {
   hetu.init();
   final result = hetu.eval(r'''
       final list = [
-       
-        42, // the meaning
+       // the meaning
+        {
+          meaning: 42,
+        }
       ]
       list
     ''', isScript: true);

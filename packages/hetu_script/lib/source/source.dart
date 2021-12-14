@@ -59,7 +59,7 @@ class HTSource {
     } else {
       final crc32b = Crc32b.compute(content);
       final nameBuilder = StringBuffer();
-      nameBuilder.write('${SemanticNames.anonymousScript}_$crc32b: ');
+      nameBuilder.write('${Semantic.anonymousScript}_$crc32b: ');
       var firstLine =
           content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
       nameBuilder.write(firstLine.substring(

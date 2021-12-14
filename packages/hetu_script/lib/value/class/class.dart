@@ -113,11 +113,11 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   @override
   bool contains(String varName) {
-    final getter = '${SemanticNames.getter}$varName';
-    final setter = '${SemanticNames.setter}$varName';
+    final getter = '${Semantic.getter}$varName';
+    final setter = '${Semantic.setter}$varName';
     final constructor = varName != id
-        ? '${SemanticNames.constructor}$varName'
-        : SemanticNames.constructor;
+        ? '${Semantic.constructor}$varName'
+        : Semantic.constructor;
 
     return namespace.declarations.containsKey(varName) ||
         namespace.declarations.containsKey(getter) ||
@@ -130,10 +130,10 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   @override
   dynamic memberGet(String varName,
       {bool recursive = true, bool error = true, bool internal = true}) {
-    final getter = '${SemanticNames.getter}$varName';
+    final getter = '${Semantic.getter}$varName';
     final constructor = varName != id
-        ? '${SemanticNames.constructor}$varName'
-        : SemanticNames.constructor;
+        ? '${Semantic.constructor}$varName'
+        : Semantic.constructor;
 
     if (isExternal && !internal) {
       final value =
@@ -180,7 +180,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   /// Assign a value to a static member of this [HTClass].
   @override
   void memberSet(String varName, dynamic varValue) {
-    final setter = '${SemanticNames.setter}$varName';
+    final setter = '${Semantic.setter}$varName';
 
     if (isExternal) {
       externalClass!.memberSet('$id.$varName', varValue);

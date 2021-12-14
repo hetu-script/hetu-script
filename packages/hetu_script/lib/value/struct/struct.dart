@@ -124,7 +124,7 @@ class HTStruct with HTEntity {
   @override
   dynamic memberGet(String varName, {bool isSelf = true}) {
     dynamic value;
-    if (varName == SemanticNames.prototype) {
+    if (varName == Semantic.prototype) {
       return prototype;
     }
     if (fields.containsKey(varName)) {

@@ -376,38 +376,6 @@ abstract class HTLexicon {
   static const chevronsLeft = '<';
   static const chevronsRight = '>';
 
-  static const Set<String> unfinishedTokens = {
-    logicalNot,
-    multiply,
-    devide,
-    modulo,
-    add,
-    subtract,
-    lesser, // chevronsLeft,
-    lesserOrEqual,
-    greater,
-    greaterOrEqual,
-    equal,
-    notEqual,
-    ifNull,
-    logicalAnd,
-    logicalOr,
-    assign,
-    assignAdd,
-    assignSubtract,
-    assignMultiply,
-    assignDevide,
-    assignIfNull,
-    memberGet,
-    parenthesesLeft,
-    bracesLeft,
-    bracketsLeft,
-    comma,
-    colon,
-    singleArrow,
-    doubleArrow,
-  };
-
   static const errorBytecode = 'Unrecognizable bytecode.';
   static const errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}].';

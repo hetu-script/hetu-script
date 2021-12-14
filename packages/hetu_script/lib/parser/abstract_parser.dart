@@ -40,7 +40,7 @@ abstract class HTAbstractParser {
     _column = 0;
 
     endOfFile = Token(
-        SemanticNames.endOfFile,
+        Semantic.endOfFile,
         _tokens.isNotEmpty ? _tokens.last.line + 1 : 0,
         0,
         _tokens.isNotEmpty ? _tokens.last.offset + 1 : 0,
@@ -86,7 +86,7 @@ abstract class HTAbstractParser {
         --depth;
       }
     } while ((depth > 0 || current.type != closing) &&
-        current.type != SemanticNames.endOfFile);
+        current.type != Semantic.endOfFile);
     return peek(distance);
   }
 
@@ -97,7 +97,7 @@ abstract class HTAbstractParser {
     do {
       current = peek(distance);
       ++distance;
-    } while (current.type != type && curTok.type != SemanticNames.endOfFile);
+    } while (current.type != type && curTok.type != Semantic.endOfFile);
     return peek(distance);
   }
 

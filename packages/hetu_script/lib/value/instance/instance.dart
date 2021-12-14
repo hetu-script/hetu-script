@@ -50,7 +50,7 @@ class HTInstance with HTEntity, InterpreterRef {
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
     HTInstanceNamespace? curNamespace = HTInstanceNamespace(
-        SemanticNames.instance, this,
+        Semantic.instance, this,
         classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
@@ -76,7 +76,7 @@ class HTInstance with HTEntity, InterpreterRef {
       // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
-        curNamespace.next = HTInstanceNamespace(SemanticNames.instance, this,
+        curNamespace.next = HTInstanceNamespace(Semantic.instance, this,
             classId: curKlass.id, closure: curKlass.namespace);
       } else {
         curNamespace.next = null;
@@ -124,8 +124,8 @@ class HTInstance with HTEntity, InterpreterRef {
   bool contains(String varName) {
     for (final space in _namespaces.values) {
       if (space.declarations.containsKey(varName) ||
-          space.declarations.containsKey('${SemanticNames.getter}$varName') ||
-          space.declarations.containsKey('${SemanticNames.setter}$varName')) {
+          space.declarations.containsKey('${Semantic.getter}$varName') ||
+          space.declarations.containsKey('${Semantic.setter}$varName')) {
         return true;
       }
     }
@@ -138,7 +138,7 @@ class HTInstance with HTEntity, InterpreterRef {
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
   dynamic memberGet(String varName, {String? cast, bool error = true}) {
-    final getter = '${SemanticNames.getter}$varName';
+    final getter = '${Semantic.getter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
@@ -183,7 +183,7 @@ class HTInstance with HTEntity, InterpreterRef {
   @override
   void memberSet(String varName, dynamic varValue,
       {String? cast, bool error = true}) {
-    final setter = '${SemanticNames.setter}$varName';
+    final setter = '${Semantic.setter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {

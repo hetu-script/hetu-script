@@ -276,18 +276,18 @@ class HTFunction extends HTFunctionDeclaration
             final superClass = klass!.superClass!;
             if (key == null) {
               constructor = superClass
-                  .namespace.declarations[SemanticNames.constructor]!.value;
+                  .namespace.declarations[Semantic.constructor]!.value;
             } else {
-              constructor = superClass.namespace
-                  .declarations['${SemanticNames.constructor}$key']!.value;
+              constructor = superClass
+                  .namespace.declarations['${Semantic.constructor}$key']!.value;
             }
           } else if (name == HTLexicon.kThis) {
             if (key == null) {
-              constructor = klass!
-                  .namespace.declarations[SemanticNames.constructor]!.value;
+              constructor =
+                  klass!.namespace.declarations[Semantic.constructor]!.value;
             } else {
-              constructor = klass!.namespace
-                  .declarations['${SemanticNames.constructor}$key']!.value;
+              constructor = klass!
+                  .namespace.declarations['${Semantic.constructor}$key']!.value;
             }
           }
           // constructor's context is on this newly created instance

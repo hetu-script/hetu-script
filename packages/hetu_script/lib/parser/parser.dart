@@ -62,7 +62,7 @@ class HTParser extends HTAbstractParser {
     _currentSource = source;
     _currrentFileName = source?.name;
     setTokens(tokens);
-    while (curTok.type != SemanticNames.endOfFile) {
+    while (curTok.type != Semantic.endOfFile) {
       late SourceType sourceType;
       if (type != null) {
         sourceType = type;
@@ -168,14 +168,14 @@ class HTParser extends HTAbstractParser {
   }
 
   void _handleComment() {
-    if (curTok.type == SemanticNames.singleLineComment) {
+    if (curTok.type == Semantic.singleLineComment) {
       final token = advance(1);
       final comment = Comment(token.literal,
           isMultiline: false,
           isDocumentation: token.lexeme
               .startsWith(HTLexicon.singleLineCommentDocumentationPattern));
       _currentPrecedingComments.add(comment);
-    } else if (curTok.type == SemanticNames.multiLineComment) {
+    } else if (curTok.type == Semantic.multiLineComment) {
       final token = advance(1);
       final comment = Comment(token.literal,
           isMultiline: true,
@@ -186,8 +186,8 @@ class HTParser extends HTAbstractParser {
   }
 
   AstNode? _parseStmt({SourceType sourceType = SourceType.functionDefinition}) {
-    if (curTok.type == SemanticNames.singleLineComment ||
-        curTok.type == SemanticNames.multiLineComment) {
+    if (curTok.type == Semantic.singleLineComment ||
+        curTok.type == Semantic.multiLineComment) {
       _handleComment();
       return null;
     }
@@ -196,7 +196,7 @@ class HTParser extends HTAbstractParser {
     final precedingCommentsOfThisStmt =
         List<Comment>.from(_currentPrecedingComments);
     _currentPrecedingComments.clear();
-    if (curTok.type == SemanticNames.emptyLine) {
+    if (curTok.type == Semantic.emptyLine) {
       advance(1);
       final empty = advance(1);
       stmt = EmptyExpr(
@@ -255,7 +255,7 @@ class HTParser extends HTAbstractParser {
                     break;
                   default:
                     final err = HTError.unexpected(
-                        SemanticNames.declStmt, curTok.lexeme,
+                        Semantic.declStmt, curTok.lexeme,
                         filename: _currrentFileName,
                         line: curTok.line,
                         column: curTok.column,
@@ -290,13 +290,13 @@ class HTParser extends HTAbstractParser {
                 stmt = _parseConstDecl(isTopLevel: true);
                 break;
               case HTLexicon.kFun:
-                if (expect([HTLexicon.kFun, SemanticNames.identifier]) ||
+                if (expect([HTLexicon.kFun, Semantic.identifier]) ||
                     expect([
                       HTLexicon.kFun,
                       HTLexicon.bracketsLeft,
-                      SemanticNames.identifier,
+                      Semantic.identifier,
                       HTLexicon.bracketsRight,
-                      SemanticNames.identifier
+                      Semantic.identifier
                     ])) {
                   stmt = _parseFunction(isTopLevel: true);
                 } else {
@@ -305,13 +305,13 @@ class HTParser extends HTAbstractParser {
                 }
                 break;
               case HTLexicon.kAsync:
-                if (expect([HTLexicon.kAsync, SemanticNames.identifier]) ||
+                if (expect([HTLexicon.kAsync, Semantic.identifier]) ||
                     expect([
                       HTLexicon.kFun,
                       HTLexicon.bracketsLeft,
-                      SemanticNames.identifier,
+                      Semantic.identifier,
                       HTLexicon.bracketsRight,
-                      SemanticNames.identifier
+                      Semantic.identifier
                     ])) {
                   stmt = _parseFunction(isAsync: true, isTopLevel: true);
                 } else {
@@ -364,7 +364,7 @@ class HTParser extends HTAbstractParser {
                     advance(1);
                     if (curTok.type != HTLexicon.kClass) {
                       final err = HTError.unexpected(
-                          SemanticNames.classDeclaration, curTok.lexeme,
+                          Semantic.classDeclaration, curTok.lexeme,
                           filename: _currrentFileName,
                           line: curTok.line,
                           column: curTok.column,
@@ -410,7 +410,7 @@ class HTParser extends HTAbstractParser {
                     break;
                   default:
                     final err = HTError.unexpected(
-                        SemanticNames.declStmt, curTok.lexeme,
+                        Semantic.declStmt, curTok.lexeme,
                         filename: _currrentFileName,
                         line: curTok.line,
                         column: curTok.column,
@@ -452,8 +452,7 @@ class HTParser extends HTAbstractParser {
                 stmt = _parseStructDecl(isTopLevel: true);
                 break;
               default:
-                final err = HTError.unexpected(
-                    SemanticNames.declStmt, curTok.lexeme,
+                final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
                     filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
@@ -476,7 +475,7 @@ class HTParser extends HTAbstractParser {
           final isStatic = expect([HTLexicon.kStatic], consume: true);
           if (curTok.lexeme == HTLexicon.kType) {
             if (isExternal) {
-              final err = HTError.external(SemanticNames.typeAliasDeclaration,
+              final err = HTError.external(Semantic.typeAliasDeclaration,
                   filename: _currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -516,8 +515,7 @@ class HTParser extends HTAbstractParser {
                   stmt = _parseConstDecl(
                       classId: _currentClass?.id, isStatic: isStatic);
                 } else {
-                  final err = HTError.external(
-                      SemanticNames.typeAliasDeclaration,
+                  final err = HTError.external(Semantic.typeAliasDeclaration,
                       filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
@@ -542,7 +540,7 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kAsync:
                 if (isExternal) {
-                  final err = HTError.external(SemanticNames.asyncFunction,
+                  final err = HTError.external(Semantic.asyncFunction,
                       filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
@@ -584,7 +582,7 @@ class HTParser extends HTAbstractParser {
               case HTLexicon.kConstruct:
                 if (isStatic) {
                   final err = HTError.unexpected(
-                      SemanticNames.declStmt, HTLexicon.kConstruct,
+                      Semantic.declStmt, HTLexicon.kConstruct,
                       filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
@@ -598,7 +596,7 @@ class HTParser extends HTAbstractParser {
                       column: errToken.column,
                       offset: errToken.offset);
                 } else if (isExternal && !_currentClass!.isExternal) {
-                  final err = HTError.external(SemanticNames.ctorFunction,
+                  final err = HTError.external(Semantic.ctorFunction,
                       filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
@@ -622,7 +620,7 @@ class HTParser extends HTAbstractParser {
               case HTLexicon.kFactory:
                 if (isStatic) {
                   final err = HTError.unexpected(
-                      SemanticNames.declStmt, HTLexicon.kConstruct,
+                      Semantic.declStmt, HTLexicon.kConstruct,
                       filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
@@ -636,7 +634,7 @@ class HTParser extends HTAbstractParser {
                       column: errToken.column,
                       offset: errToken.offset);
                 } else if (isExternal && !_currentClass!.isExternal) {
-                  final err = HTError.external(SemanticNames.factory,
+                  final err = HTError.external(Semantic.factory,
                       filename: _currrentFileName,
                       line: curTok.line,
                       column: curTok.column,
@@ -659,8 +657,7 @@ class HTParser extends HTAbstractParser {
                 }
                 break;
               default:
-                final err = HTError.unexpected(
-                    SemanticNames.declStmt, curTok.lexeme,
+                final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
                     filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
@@ -709,7 +706,7 @@ class HTParser extends HTAbstractParser {
               break;
             case HTLexicon.kAsync:
               if (isExternal) {
-                final err = HTError.external(SemanticNames.asyncFunction,
+                final err = HTError.external(Semantic.asyncFunction,
                     filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
@@ -751,7 +748,7 @@ class HTParser extends HTAbstractParser {
             case HTLexicon.kConstruct:
               if (isStatic) {
                 final err = HTError.unexpected(
-                    SemanticNames.declStmt, HTLexicon.kConstruct,
+                    Semantic.declStmt, HTLexicon.kConstruct,
                     filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
@@ -765,7 +762,7 @@ class HTParser extends HTAbstractParser {
                     column: errToken.column,
                     offset: errToken.offset);
               } else if (isExternal) {
-                final err = HTError.external(SemanticNames.ctorFunction,
+                final err = HTError.external(Semantic.ctorFunction,
                     filename: _currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
@@ -787,8 +784,7 @@ class HTParser extends HTAbstractParser {
               }
               break;
             default:
-              final err = HTError.unexpected(
-                  SemanticNames.declStmt, curTok.lexeme,
+              final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
                   filename: _currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -831,13 +827,13 @@ class HTParser extends HTAbstractParser {
                 stmt = _parseConstDecl();
                 break;
               case HTLexicon.kFun:
-                if (expect([HTLexicon.kFun, SemanticNames.identifier]) ||
+                if (expect([HTLexicon.kFun, Semantic.identifier]) ||
                     expect([
                       HTLexicon.kFun,
                       HTLexicon.bracketsLeft,
-                      SemanticNames.identifier,
+                      Semantic.identifier,
                       HTLexicon.bracketsRight,
-                      SemanticNames.identifier
+                      Semantic.identifier
                     ])) {
                   stmt = _parseFunction();
                 } else {
@@ -845,13 +841,13 @@ class HTParser extends HTAbstractParser {
                 }
                 break;
               case HTLexicon.kAsync:
-                if (expect([HTLexicon.kAsync, SemanticNames.identifier]) ||
+                if (expect([HTLexicon.kAsync, Semantic.identifier]) ||
                     expect([
                       HTLexicon.kFun,
                       HTLexicon.bracketsLeft,
-                      SemanticNames.identifier,
+                      Semantic.identifier,
                       HTLexicon.bracketsRight,
-                      SemanticNames.identifier
+                      Semantic.identifier
                     ])) {
                   stmt = _parseFunction(isAsync: true);
                 } else {
@@ -930,7 +926,7 @@ class HTParser extends HTAbstractParser {
       _currentPrecedingComments.clear();
     }
 
-    if (curTok.type == SemanticNames.consumingLineEndComment) {
+    if (curTok.type == Semantic.consumingLineEndComment) {
       final token = advance(1);
       stmt.consumingLineEndComment = Comment(token.literal);
     }
@@ -959,8 +955,8 @@ class HTParser extends HTAbstractParser {
   AstNode _parseExpr() {
     AstNode? expr;
 
-    while (curTok.type == SemanticNames.singleLineComment ||
-        curTok.type == SemanticNames.multiLineComment) {
+    while (curTok.type == Semantic.singleLineComment ||
+        curTok.type == Semantic.multiLineComment) {
       _handleComment();
     }
 
@@ -1093,7 +1089,7 @@ class HTParser extends HTAbstractParser {
     expr.precedingComments.addAll(_currentPrecedingComments);
     _currentPrecedingComments.clear();
 
-    if (curTok.type == SemanticNames.consumingLineEndComment) {
+    if (curTok.type == Semantic.consumingLineEndComment) {
       final token = advance(1);
       expr.consumingLineEndComment = Comment(token.literal);
     }
@@ -1290,7 +1286,7 @@ class HTParser extends HTAbstractParser {
       switch (op.type) {
         case HTLexicon.nullableMemberGet:
           _leftValueLegality = false;
-          final name = match(SemanticNames.identifier);
+          final name = match(Semantic.identifier);
           final key = IdentifierExpr(name.lexeme,
               isLocal: false,
               source: _currentSource,
@@ -1310,7 +1306,7 @@ class HTParser extends HTAbstractParser {
           final isNullable =
               (expr is MemberExpr && expr.isNullable) ? true : false;
           _leftValueLegality = true;
-          final name = match(SemanticNames.identifier);
+          final name = match(Semantic.identifier);
           final key = IdentifierExpr(name.lexeme,
               isLocal: false,
               source: _currentSource,
@@ -1379,26 +1375,25 @@ class HTParser extends HTAbstractParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.booleanLiteral:
+      case Semantic.booleanLiteral:
         _leftValueLegality = false;
-        final token =
-            match(SemanticNames.booleanLiteral) as TokenBooleanLiteral;
+        final token = match(Semantic.booleanLiteral) as TokenBooleanLiteral;
         return BooleanExpr(token.literal,
             source: _currentSource,
             line: token.line,
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.integerLiteral:
+      case Semantic.integerLiteral:
         _leftValueLegality = false;
-        final token = match(SemanticNames.integerLiteral) as TokenIntLiteral;
+        final token = match(Semantic.integerLiteral) as TokenIntLiteral;
         return IntLiteralExpr(token.literal,
             source: _currentSource,
             line: token.line,
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.floatLiteral:
+      case Semantic.floatLiteral:
         _leftValueLegality = false;
         final token = advance(1) as TokenFloatLiteral;
         return FloatLiteralExpr(token.literal,
@@ -1407,7 +1402,7 @@ class HTParser extends HTAbstractParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.stringLiteral:
+      case Semantic.stringLiteral:
         _leftValueLegality = false;
         final token = advance(1) as TokenStringLiteral;
         return StringLiteralExpr(
@@ -1417,7 +1412,7 @@ class HTParser extends HTAbstractParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case SemanticNames.stringInterpolation:
+      case Semantic.stringInterpolation:
         _leftValueLegality = false;
         final token = advance(1) as TokenStringInterpolation;
         final interpolation = <AstNode>[];
@@ -1518,7 +1513,7 @@ class HTParser extends HTAbstractParser {
         final start = advance(1);
         var listExpr = <AstNode>[];
         while (curTok.type != HTLexicon.bracketsRight &&
-            curTok.type != SemanticNames.endOfFile) {
+            curTok.type != Semantic.endOfFile) {
           AstNode item;
           if (curTok.type == HTLexicon.spreadSyntax) {
             final spreadTok = advance(1);
@@ -1536,7 +1531,7 @@ class HTParser extends HTAbstractParser {
           if (curTok.type != HTLexicon.bracketsRight) {
             match(HTLexicon.comma);
           }
-          if (curTok.type == SemanticNames.consumingLineEndComment) {
+          if (curTok.type == Semantic.consumingLineEndComment) {
             final token = advance(1);
             item.consumingLineEndComment = Comment(token.literal);
           }
@@ -1573,7 +1568,7 @@ class HTParser extends HTAbstractParser {
       //     length: end.offset + end.length - start.offset);
       case HTLexicon.kFun:
         return _parseFunction(category: FunctionCategory.literal);
-      case SemanticNames.identifier:
+      case Semantic.identifier:
         // literal function type
         if (curTok.lexeme == HTLexicon.kFun) {
           _leftValueLegality = false;
@@ -1587,7 +1582,7 @@ class HTParser extends HTAbstractParser {
           return IdentifierExpr.fromToken(id);
         }
       default:
-        final err = HTError.unexpected(SemanticNames.expression, curTok.lexeme,
+        final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
             filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -1613,7 +1608,7 @@ class HTParser extends HTAbstractParser {
       var isNamed = false;
       var isVariadic = false;
       while (curTok.type != HTLexicon.parenthesesRight &&
-          curTok.type != SemanticNames.endOfFile) {
+          curTok.type != Semantic.endOfFile) {
         final start = curTok;
         if (!isOptional) {
           isOptional = expect([HTLexicon.bracketsLeft], consume: true);
@@ -1626,7 +1621,7 @@ class HTParser extends HTAbstractParser {
         if (!isNamed) {
           isVariadic = expect([HTLexicon.variadicArgs], consume: true);
         } else {
-          final paramId = match(SemanticNames.identifier);
+          final paramId = match(Semantic.identifier);
           paramSymbol = IdentifierExpr.fromToken(paramId);
           match(HTLexicon.colon);
         }
@@ -1647,7 +1642,7 @@ class HTParser extends HTAbstractParser {
         } else if (curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           param.consumingLineEndComment = Comment(token.literal);
         }
@@ -1676,7 +1671,7 @@ class HTParser extends HTAbstractParser {
     // }
     // nominal type
     else {
-      final idTok = match(SemanticNames.identifier);
+      final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok);
       final typeArgs = <TypeExpr>[];
       if (expect([HTLexicon.chevronsLeft], consume: true)) {
@@ -1690,10 +1685,10 @@ class HTParser extends HTAbstractParser {
           errors.add(err);
         }
         while ((curTok.type != HTLexicon.chevronsRight) &&
-            (curTok.type != SemanticNames.endOfFile)) {
+            (curTok.type != Semantic.endOfFile)) {
           final typeArg = _parseTypeExpr();
           expect([HTLexicon.comma], consume: true);
-          if (curTok.type == SemanticNames.consumingLineEndComment) {
+          if (curTok.type == Semantic.consumingLineEndComment) {
             final token = advance(1);
             typeArg.consumingLineEndComment = Comment(token.literal);
           }
@@ -1722,7 +1717,7 @@ class HTParser extends HTAbstractParser {
     final startTok = match(HTLexicon.bracesLeft);
     final statements = <AstNode>[];
     while (curTok.type != HTLexicon.bracesRight &&
-        curTok.type != SemanticNames.endOfFile) {
+        curTok.type != Semantic.endOfFile) {
       final stmt = _parseStmt(sourceType: sourceType);
       if (stmt != null) {
         statements.add(stmt);
@@ -1755,19 +1750,18 @@ class HTParser extends HTAbstractParser {
       List<AstNode> positionalArgs, Map<String, AstNode> namedArgs) {
     var isNamed = false;
     while ((curTok.type != HTLexicon.parenthesesRight) &&
-        (curTok.type != SemanticNames.endOfFile)) {
+        (curTok.type != Semantic.endOfFile)) {
       if ((!isNamed &&
-              expect([SemanticNames.identifier, HTLexicon.colon],
-                  consume: false)) ||
+              expect([Semantic.identifier, HTLexicon.colon], consume: false)) ||
           isNamed) {
         isNamed = true;
-        final name = match(SemanticNames.identifier).lexeme;
+        final name = match(Semantic.identifier).lexeme;
         match(HTLexicon.colon);
         final namedArg = _parseExpr();
         if (curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           namedArg.consumingLineEndComment = Comment(token.literal);
         }
@@ -1789,7 +1783,7 @@ class HTParser extends HTAbstractParser {
         if (curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           positionalArg.consumingLineEndComment = Comment(token.literal);
         }
@@ -1815,7 +1809,7 @@ class HTParser extends HTAbstractParser {
     var keyword = advance(1);
     AstNode? expr;
     if (curTok.type == HTLexicon.kSuper) {
-      final err = HTError.unexpected(SemanticNames.expression, curTok.lexeme,
+      final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
           filename: _currrentFileName,
           line: curTok.line,
           column: curTok.column,
@@ -1826,7 +1820,7 @@ class HTParser extends HTAbstractParser {
     } else {
       if (curTok.type != HTLexicon.bracesRight &&
           curTok.type != HTLexicon.semicolon &&
-          curTok.type != SemanticNames.endOfFile) {
+          curTok.type != Semantic.endOfFile) {
         expr = _parseExpr();
       }
     }
@@ -1843,7 +1837,7 @@ class HTParser extends HTAbstractParser {
 
   AstNode _parseExprOrStmtOrBlock({bool isExpression = false}) {
     if (curTok.type == HTLexicon.bracesLeft) {
-      return _parseBlockStmt(id: SemanticNames.elseBranch);
+      return _parseBlockStmt(id: Semantic.elseBranch);
     } else {
       if (isExpression) {
         return _parseExpr();
@@ -1851,8 +1845,7 @@ class HTParser extends HTAbstractParser {
         final startTok = curTok;
         var node = _parseStmt();
         if (node == null) {
-          final err = HTError.unexpected(
-              SemanticNames.expression, curTok.lexeme,
+          final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
               filename: _currrentFileName,
               line: curTok.line,
               column: curTok.column,
@@ -1903,7 +1896,7 @@ class HTParser extends HTAbstractParser {
     match(HTLexicon.parenthesesLeft);
     final condition = _parseExpr();
     match(HTLexicon.parenthesesRight);
-    final loop = _parseBlockStmt(id: SemanticNames.whileLoop);
+    final loop = _parseBlockStmt(id: Semantic.whileLoop);
     return WhileStmt(condition, loop,
         source: _currentSource,
         line: keyword.line,
@@ -1914,7 +1907,7 @@ class HTParser extends HTAbstractParser {
 
   DoStmt _parseDoStmt() {
     final keyword = advance(1);
-    final loop = _parseBlockStmt(id: SemanticNames.doLoop);
+    final loop = _parseBlockStmt(id: Semantic.doLoop);
     AstNode? condition;
     if (expect([HTLexicon.kWhile], consume: true)) {
       match(HTLexicon.parenthesesLeft);
@@ -1941,7 +1934,7 @@ class HTParser extends HTAbstractParser {
     if (forStmtType == HTLexicon.kIn || forStmtType == HTLexicon.kOf) {
       if (!HTLexicon.varDeclKeywords.contains(curTok.type)) {
         final err = HTError.unexpected(
-            SemanticNames.variableDeclaration, curTok.type,
+            Semantic.variableDeclaration, curTok.type,
             filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -1957,7 +1950,7 @@ class HTParser extends HTAbstractParser {
       if (hasBracket) {
         match(HTLexicon.parenthesesRight);
       }
-      final loop = _parseBlockStmt(id: SemanticNames.forLoop);
+      final loop = _parseBlockStmt(id: Semantic.forLoop);
       return ForRangeStmt(decl, collection, loop,
           hasBracket: hasBracket,
           iterateValue: forStmtType == HTLexicon.kOf,
@@ -1985,7 +1978,7 @@ class HTParser extends HTAbstractParser {
       if (hasBracket) {
         match(HTLexicon.parenthesesRight);
       }
-      final loop = _parseBlockStmt(id: SemanticNames.forLoop);
+      final loop = _parseBlockStmt(id: Semantic.forLoop);
       return ForStmt(decl, condition, increment, loop,
           hasBracket: hasBracket,
           source: _currentSource,
@@ -2008,7 +2001,7 @@ class HTParser extends HTAbstractParser {
     AstNode? elseBranch;
     match(HTLexicon.bracesLeft);
     while (curTok.type != HTLexicon.bracesRight &&
-        curTok.type != SemanticNames.endOfFile) {
+        curTok.type != Semantic.endOfFile) {
       if (curTok.lexeme == HTLexicon.kElse) {
         advance(1);
         match(HTLexicon.singleArrow);
@@ -2034,8 +2027,8 @@ class HTParser extends HTAbstractParser {
     final genericParams = <GenericTypeParameterExpr>[];
     if (expect([HTLexicon.chevronsLeft], consume: true)) {
       while ((curTok.type != HTLexicon.chevronsRight) &&
-          (curTok.type != SemanticNames.endOfFile)) {
-        final idTok = match(SemanticNames.identifier);
+          (curTok.type != Semantic.endOfFile)) {
+        final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok);
         final param = GenericTypeParameterExpr(id,
             source: _currentSource,
@@ -2046,7 +2039,7 @@ class HTParser extends HTAbstractParser {
         if (curTok.type != HTLexicon.chevronsRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           param.consumingLineEndComment = Comment(token.literal);
         }
@@ -2073,13 +2066,13 @@ class HTParser extends HTAbstractParser {
         errors.add(err);
       }
       while (curTok.type != HTLexicon.bracesRight &&
-          curTok.type != SemanticNames.endOfFile) {
-        final idTok = match(SemanticNames.identifier);
+          curTok.type != Semantic.endOfFile) {
+        final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok);
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           id.consumingLineEndComment = Comment(token.literal);
         }
@@ -2098,11 +2091,11 @@ class HTParser extends HTAbstractParser {
         errors.add(err);
       }
     }
-    final key = match(SemanticNames.stringLiteral);
+    final key = match(Semantic.stringLiteral);
     var hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     IdentifierExpr? alias;
     if (!hasEndOfStmtMark && expect([HTLexicon.kAs], consume: true)) {
-      final aliasId = match(SemanticNames.identifier);
+      final aliasId = match(Semantic.identifier);
       alias = IdentifierExpr.fromToken(aliasId);
       hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     }
@@ -2127,13 +2120,13 @@ class HTParser extends HTAbstractParser {
       advance(1);
       final showList = <IdentifierExpr>[];
       while (curTok.type != HTLexicon.bracesRight &&
-          curTok.type != SemanticNames.endOfFile) {
-        final idTok = match(SemanticNames.identifier);
+          curTok.type != Semantic.endOfFile) {
+        final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok);
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           id.consumingLineEndComment = Comment(token.literal);
         }
@@ -2144,7 +2137,7 @@ class HTParser extends HTAbstractParser {
       var hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
       if (!hasEndOfStmtMark && curTok.lexeme == HTLexicon.kFrom) {
         advance(1);
-        fromPath = match(SemanticNames.stringLiteral).literal;
+        fromPath = match(Semantic.stringLiteral).literal;
         hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
       }
       final stmt = ImportExportDecl(
@@ -2162,7 +2155,7 @@ class HTParser extends HTAbstractParser {
       }
       return stmt;
     } else {
-      final key = match(SemanticNames.stringLiteral);
+      final key = match(Semantic.stringLiteral);
       final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
       final stmt = ImportExportDecl(
           fromPath: key.literal,
@@ -2181,7 +2174,7 @@ class HTParser extends HTAbstractParser {
   TypeAliasDecl _parseTypeAliasDecl(
       {String? classId, bool isTopLevel = false}) {
     final keyword = advance(1);
-    final idTok = match(SemanticNames.identifier);
+    final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok);
     final genericParameters = _getGenericParams();
     match(HTLexicon.assign);
@@ -2200,7 +2193,7 @@ class HTParser extends HTAbstractParser {
   ConstDecl _parseConstDecl(
       {String? classId, bool isStatic = false, bool isTopLevel = false}) {
     final keyword = match(HTLexicon.kConst);
-    final idTok = match(SemanticNames.identifier);
+    final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok);
     match(HTLexicon.assign);
     final constExpr = _parseExpr();
@@ -2245,8 +2238,8 @@ class HTParser extends HTAbstractParser {
     if (isField) {
       final idTok = advance(1);
       late IdentifierExpr id;
-      if (idTok.type == SemanticNames.identifier ||
-          idTok.type == SemanticNames.stringLiteral) {
+      if (idTok.type == Semantic.identifier ||
+          idTok.type == Semantic.stringLiteral) {
         id = IdentifierExpr.fromToken(idTok);
       } else {
         final err = HTError.structMemberId(
@@ -2271,7 +2264,7 @@ class HTParser extends HTAbstractParser {
           length: curTok.offset - idTok.offset);
     } else {
       final keyword = advance(1);
-      final idTok = match(SemanticNames.identifier);
+      final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok);
       String? internalName;
       if (classId != null && isExternal) {
@@ -2343,7 +2336,7 @@ class HTParser extends HTAbstractParser {
             category == FunctionCategory.normal ||
             category == FunctionCategory.literal)) {
       if (expect([HTLexicon.bracketsLeft], consume: true)) {
-        externalTypedef = match(SemanticNames.identifier).lexeme;
+        externalTypedef = match(Semantic.identifier).lexeme;
         match(HTLexicon.bracketsRight);
       }
     }
@@ -2353,31 +2346,30 @@ class HTParser extends HTAbstractParser {
     switch (category) {
       case FunctionCategory.constructor:
         _hasUserDefinedConstructor = true;
-        if (curTok.type == SemanticNames.identifier) {
+        if (curTok.type == Semantic.identifier) {
           id = advance(1);
         }
-        internalName = (id == null)
-            ? SemanticNames.constructor
-            : '${SemanticNames.constructor}$id';
+        internalName =
+            (id == null) ? Semantic.constructor : '${Semantic.constructor}$id';
         break;
       case FunctionCategory.literal:
-        if (curTok.type == SemanticNames.identifier) {
+        if (curTok.type == Semantic.identifier) {
           id = advance(1);
         }
         internalName = (id == null)
-            ? '${SemanticNames.anonymousFunction}${HTParser.anonymousFunctionIndex++}'
+            ? '${Semantic.anonymousFunction}${HTParser.anonymousFunctionIndex++}'
             : id.lexeme;
         break;
       case FunctionCategory.getter:
-        id = match(SemanticNames.identifier);
-        internalName = '${SemanticNames.getter}$id';
+        id = match(Semantic.identifier);
+        internalName = '${Semantic.getter}$id';
         break;
       case FunctionCategory.setter:
-        id = match(SemanticNames.identifier);
-        internalName = '${SemanticNames.setter}$id';
+        id = match(Semantic.identifier);
+        internalName = '${Semantic.setter}$id';
         break;
       default:
-        id = match(SemanticNames.identifier);
+        id = match(Semantic.identifier);
         internalName = id.lexeme;
     }
     final genericParameters = _getGenericParams();
@@ -2396,7 +2388,7 @@ class HTParser extends HTAbstractParser {
       while ((curTok.type != HTLexicon.parenthesesRight) &&
           (curTok.type != HTLexicon.bracketsRight) &&
           (curTok.type != HTLexicon.bracesRight) &&
-          (curTok.type != SemanticNames.endOfFile)) {
+          (curTok.type != Semantic.endOfFile)) {
         // 可选参数, 根据是否有方括号判断, 一旦开始了可选参数, 则不再增加参数数量arity要求
         if (!isOptional) {
           isOptional = expect([HTLexicon.bracketsLeft], consume: true);
@@ -2416,7 +2408,7 @@ class HTParser extends HTAbstractParser {
             ++maxArity;
           }
         }
-        final paramId = match(SemanticNames.identifier);
+        final paramId = match(Semantic.identifier);
         final paramSymbol = IdentifierExpr.fromToken(paramId);
         TypeExpr? paramDeclType;
         if (expect([HTLexicon.colon], consume: true)) {
@@ -2453,7 +2445,7 @@ class HTParser extends HTAbstractParser {
             curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           param.consumingLineEndComment = Comment(token.literal);
         }
@@ -2489,7 +2481,7 @@ class HTParser extends HTAbstractParser {
       if (category == FunctionCategory.constructor ||
           category == FunctionCategory.setter) {
         final err = HTError.unexpected(
-            SemanticNames.functionDefinition, SemanticNames.returnType,
+            Semantic.functionDefinition, Semantic.returnType,
             filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -2523,8 +2515,7 @@ class HTParser extends HTAbstractParser {
       }
       final ctorCallee = advance(1);
       if (!HTLexicon.constructorCall.contains(ctorCallee.lexeme)) {
-        final err = HTError.unexpected(
-            SemanticNames.ctorCallExpr, curTok.lexeme,
+        final err = HTError.unexpected(Semantic.ctorCallExpr, curTok.lexeme,
             filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -2534,7 +2525,7 @@ class HTParser extends HTAbstractParser {
       }
       Token? ctorKey;
       if (expect([HTLexicon.memberGet], consume: true)) {
-        ctorKey = match(SemanticNames.identifier);
+        ctorKey = match(Semantic.identifier);
         match(HTLexicon.parenthesesLeft);
       } else {
         match(HTLexicon.parenthesesLeft);
@@ -2558,7 +2549,7 @@ class HTParser extends HTAbstractParser {
       if (category == FunctionCategory.literal && !hasKeyword) {
         startTok = curTok;
       }
-      definition = _parseBlockStmt(id: SemanticNames.functionCall);
+      definition = _parseBlockStmt(id: Semantic.functionCall);
     } else if (expect([HTLexicon.doubleArrow], consume: true)) {
       isExpressionBody = true;
       if (category == FunctionCategory.literal && !hasKeyword) {
@@ -2567,8 +2558,7 @@ class HTParser extends HTAbstractParser {
       definition = _parseExpr();
       hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     } else if (expect([HTLexicon.assign], consume: true)) {
-      final err = HTError.unsupported(
-          SemanticNames.redirectingFunctionDefinition,
+      final err = HTError.unsupported(Semantic.redirectingFunctionDefinition,
           filename: _currrentFileName,
           line: curTok.line,
           column: curTok.column,
@@ -2635,7 +2625,7 @@ class HTParser extends HTAbstractParser {
           length: keyword.length);
       errors.add(err);
     }
-    final id = match(SemanticNames.identifier);
+    final id = match(Semantic.identifier);
     final genericParameters = _getGenericParams();
     TypeExpr? superClassType;
     if (expect([HTLexicon.kExtends], consume: true)) {
@@ -2661,7 +2651,7 @@ class HTParser extends HTAbstractParser {
     final definition = _parseBlockStmt(
         sourceType: SourceType.classDefinition,
         hasOwnNamespace: false,
-        id: SemanticNames.classDefinition);
+        id: Semantic.classDefinition);
     final decl = ClassDecl(IdentifierExpr.fromToken(id), definition,
         genericTypeParameters: genericParameters,
         superType: superClassType,
@@ -2681,17 +2671,17 @@ class HTParser extends HTAbstractParser {
 
   EnumDecl _parseEnumDecl({bool isExternal = false, bool isTopLevel = false}) {
     final keyword = match(HTLexicon.kEnum);
-    final id = match(SemanticNames.identifier);
+    final id = match(Semantic.identifier);
     var enumerations = <IdentifierExpr>[];
     if (expect([HTLexicon.bracesLeft], consume: true)) {
       while (curTok.type != HTLexicon.bracesRight &&
-          curTok.type != SemanticNames.endOfFile) {
-        final enumIdTok = match(SemanticNames.identifier);
+          curTok.type != Semantic.endOfFile) {
+        final enumIdTok = match(Semantic.identifier);
         final enumId = IdentifierExpr.fromToken(enumIdTok);
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           enumId.consumingLineEndComment = Comment(token.literal);
         }
@@ -2714,11 +2704,11 @@ class HTParser extends HTAbstractParser {
   StructDecl _parseStructDecl(
       {bool isTopLevel = false, bool lateInitialize = true}) {
     final keyword = match(HTLexicon.kStruct);
-    final idTok = match(SemanticNames.identifier);
+    final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok);
     IdentifierExpr? prototypeId;
     if (expect([HTLexicon.kExtends], consume: true)) {
-      final prototypeIdTok = match(SemanticNames.identifier);
+      final prototypeIdTok = match(Semantic.identifier);
       if (prototypeIdTok.lexeme == id.id) {
         final err = HTError.extendsSelf(
             filename: _currrentFileName,
@@ -2737,7 +2727,7 @@ class HTParser extends HTAbstractParser {
     final definition = <AstNode>[];
     final startTok = match(HTLexicon.bracesLeft);
     while (curTok.type != HTLexicon.bracesRight &&
-        curTok.type != SemanticNames.endOfFile) {
+        curTok.type != Semantic.endOfFile) {
       final stmt = _parseStmt(sourceType: SourceType.structDefinition);
       if (stmt != null) {
         definition.add(stmt);
@@ -2772,7 +2762,7 @@ class HTParser extends HTAbstractParser {
     if (hasKeyword) {
       match(HTLexicon.kStruct);
       if (hasKeyword && expect([HTLexicon.kExtends], consume: true)) {
-        final idTok = match(SemanticNames.identifier);
+        final idTok = match(Semantic.identifier);
         prototypeId = IdentifierExpr.fromToken(idTok);
       }
     } else {
@@ -2783,9 +2773,9 @@ class HTParser extends HTAbstractParser {
     final structBlockStartTok = match(HTLexicon.bracesLeft);
     final fields = <StructObjField>[];
     while (curTok.type != HTLexicon.bracesRight &&
-        curTok.type != SemanticNames.endOfFile) {
-      if (curTok.type == SemanticNames.identifier ||
-          curTok.type == SemanticNames.stringLiteral) {
+        curTok.type != Semantic.endOfFile) {
+      if (curTok.type == Semantic.identifier ||
+          curTok.type == Semantic.stringLiteral) {
         final keyTok = advance(1);
         late final StructObjField field;
         if (curTok.type == HTLexicon.comma ||
@@ -2800,7 +2790,7 @@ class HTParser extends HTAbstractParser {
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           field.consumingLineEndComment = Comment(token.literal);
         }
@@ -2812,13 +2802,13 @@ class HTParser extends HTAbstractParser {
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == SemanticNames.consumingLineEndComment) {
+        if (curTok.type == Semantic.consumingLineEndComment) {
           final token = advance(1);
           field.consumingLineEndComment = Comment(token.literal);
         }
         fields.add(field);
-      } else if (curTok.type == SemanticNames.singleLineComment ||
-          curTok.type == SemanticNames.multiLineComment) {
+      } else if (curTok.type == Semantic.singleLineComment ||
+          curTok.type == Semantic.multiLineComment) {
         _handleComment();
       } else {
         final errTok = advance(1);

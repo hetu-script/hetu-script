@@ -5,7 +5,7 @@ import 'namespace.dart';
 /// it contains all object and code interpreter generated.
 class HTModule extends HTNamespace {
   @override
-  String toString() => '${SemanticNames.module} $id';
+  String toString() => '${Semantic.module} $id';
 
   final String _id;
 

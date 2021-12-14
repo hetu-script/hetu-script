@@ -28,7 +28,7 @@ class Token {
 
 class TokenEmpty extends Token {
   @override
-  String get type => SemanticNames.empty;
+  String get type => Semantic.empty;
 
   const TokenEmpty(int line, int column, int offset)
       : super('', line, column, offset, 0);
@@ -36,7 +36,7 @@ class TokenEmpty extends Token {
 
 class TokenEmptyLine extends Token {
   @override
-  String get type => SemanticNames.emptyLine;
+  String get type => Semantic.emptyLine;
 
   const TokenEmptyLine(int line, int column, int offset)
       : super('', line, column, offset, 0);
@@ -44,7 +44,7 @@ class TokenEmptyLine extends Token {
 
 class TokenIdentifier extends Token {
   @override
-  String get type => SemanticNames.identifier;
+  String get type => Semantic.identifier;
 
   const TokenIdentifier(
       String lexeme, int line, int column, int offset, int length)
@@ -53,7 +53,7 @@ class TokenIdentifier extends Token {
 
 class TokenBooleanLiteral extends Token {
   @override
-  String get type => SemanticNames.booleanLiteral;
+  String get type => Semantic.booleanLiteral;
 
   @override
   final bool literal;
@@ -65,7 +65,7 @@ class TokenBooleanLiteral extends Token {
 
 class TokenIntLiteral extends Token {
   @override
-  String get type => SemanticNames.integerLiteral;
+  String get type => Semantic.integerLiteral;
 
   @override
   final int literal;
@@ -77,7 +77,7 @@ class TokenIntLiteral extends Token {
 
 class TokenFloatLiteral extends Token {
   @override
-  String get type => SemanticNames.floatLiteral;
+  String get type => Semantic.floatLiteral;
 
   @override
   final double literal;
@@ -89,7 +89,7 @@ class TokenFloatLiteral extends Token {
 
 class TokenStringLiteral extends Token {
   @override
-  String get type => SemanticNames.stringLiteral;
+  String get type => Semantic.stringLiteral;
 
   @override
   final String literal;
@@ -105,7 +105,7 @@ class TokenStringLiteral extends Token {
 
 class TokenStringInterpolation extends TokenStringLiteral {
   @override
-  String get type => SemanticNames.stringInterpolation;
+  String get type => Semantic.stringInterpolation;
 
   final List<List<Token>> interpolations;
 
@@ -127,7 +127,7 @@ class TokenSingleLineComment extends Token {
   final String literal;
 
   @override
-  String get type => SemanticNames.singleLineComment;
+  String get type => Semantic.singleLineComment;
 
   const TokenSingleLineComment(
       this.literal, int line, int column, int offset, int length)
@@ -139,7 +139,7 @@ class TokenMultiLineComment extends Token {
   final String literal;
 
   @override
-  String get type => SemanticNames.multiLineComment;
+  String get type => Semantic.multiLineComment;
 
   const TokenMultiLineComment(
       this.literal, int line, int column, int offset, int length)
@@ -151,7 +151,7 @@ class TokenConsumingLineEndComment extends Token {
   final String literal;
 
   @override
-  String get type => SemanticNames.consumingLineEndComment;
+  String get type => Semantic.consumingLineEndComment;
 
   const TokenConsumingLineEndComment(
       this.literal, int line, int column, int offset, int length)
