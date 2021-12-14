@@ -250,7 +250,7 @@ This is useful when you want to seperate data and logic, and still want the func
 
 Notice that this method won't modify the functio itself. It will give you a new function instead.
 
-````dart
+```dart
 final obj = {
   name: 'nobody'
 }
@@ -260,6 +260,7 @@ final func = () {
 final newfunc =func.bind(obj)
 newfunc()
 print(obj.name) // 'foobar'
+```
 
 ## Identifier
 
@@ -273,7 +274,7 @@ var obj = {
 }
 
 print(obj.`name-#42🍎`) // 'aleph'
-````
+```
 
 ## Control flow
 
