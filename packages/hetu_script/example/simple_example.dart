@@ -5,8 +5,9 @@ void main() {
   hetu.init();
   hetu.eval(r'''
     fun main {
+      var a
 
-      print()
+      print(a is function)
     }
     ''', invokeFunc: 'main');
 }

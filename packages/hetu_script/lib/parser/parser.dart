@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as path;
 
 import '../resource/resource_context.dart';
@@ -138,22 +136,12 @@ class HTParser extends HTAbstractParser {
           results[importFullName] = importModule;
           handleImport(importModule);
         } catch (error) {
-          late HTError convertedError;
-          if (error is FileSystemException) {
-            convertedError = HTError.sourceProviderError(decl.fromPath!,
-                filename: source.name,
-                line: decl.line,
-                column: decl.column,
-                offset: decl.offset,
-                length: decl.length);
-          } else {
-            convertedError = HTError.extern(error.toString(),
-                filename: source.name,
-                line: decl.line,
-                column: decl.column,
-                offset: decl.offset,
-                length: decl.length);
-          }
+          final convertedError = HTError.sourceProviderError(decl.fromPath!,
+              filename: source.name,
+              line: decl.line,
+              column: decl.column,
+              offset: decl.offset,
+              length: decl.length);
           result.errors.add(convertedError);
         }
       }
