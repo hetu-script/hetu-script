@@ -6,7 +6,6 @@ import '../declaration/declaration.dart';
 import '../value/struct/named_struct.dart';
 import '../value/entity.dart';
 import '../value/class/class.dart';
-import '../value/instance/instance.dart';
 import '../value/instance/cast.dart';
 import '../value/function/function.dart';
 import '../value/function/parameter.dart';
@@ -53,7 +52,7 @@ class Hetu extends HTAbstractInterpreter {
 
   final _cachedModules = <String, HTBytecodeModule>{};
 
-  late final HTAnalyzer analyzer;
+  HTAnalyzer _analyzer;
 
   @override
   InterpreterConfig config;
@@ -64,7 +63,7 @@ class Hetu extends HTAbstractInterpreter {
   HTResourceContext<HTSource> get sourceContext => _sourceContext;
 
   set sourceContext(HTResourceContext<HTSource> context) {
-    analyzer.sourceContext = _sourceContext = context;
+    _analyzer.sourceContext = _sourceContext = context;
   }
 
   @override
@@ -168,9 +167,10 @@ class Hetu extends HTAbstractInterpreter {
       {HTResourceContext<HTSource>? sourceContext,
       this.config = const InterpreterConfig()})
       : global = HTNamespace(id: SemanticNames.global),
+        _analyzer =
+            HTAnalyzer(sourceContext: sourceContext ?? HTOverlayContext()),
         _sourceContext = sourceContext ?? HTOverlayContext() {
     _namespace = global;
-    analyzer = HTAnalyzer(sourceContext: this.sourceContext);
   }
 
   @override
@@ -181,7 +181,7 @@ class Hetu extends HTAbstractInterpreter {
     List<HTExternalClass> externalClasses = const [],
   }) {
     if (config.doStaticAnalyze) {
-      analyzer.init(includes: includes);
+      _analyzer.init(includes: includes);
     }
     super.init(
       includes: includes,
@@ -337,9 +337,9 @@ class Hetu extends HTAbstractInterpreter {
       final compileConfig = config ?? this.config;
       final compiler = HTCompiler(config: compileConfig);
       if (compileConfig.doStaticAnalyze) {
-        analyzer.evalSource(source);
-        if (analyzer.errors.isNotEmpty) {
-          for (final error in analyzer.errors) {
+        _analyzer.evalSource(source);
+        if (_analyzer.errors.isNotEmpty) {
+          for (final error in _analyzer.errors) {
             if (errorHandled) {
               throw error;
             } else {
@@ -348,7 +348,7 @@ class Hetu extends HTAbstractInterpreter {
           }
         }
         final bytes = compiler.compile(
-            analyzer.moduleParseResult); //, moduleName ?? source.fullName);
+            _analyzer.moduleParseResult); //, moduleName ?? source.fullName);
         return bytes;
       } else {
         final parser = HTParser(context: _sourceContext);

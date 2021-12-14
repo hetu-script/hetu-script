@@ -21,8 +21,13 @@ class HTLexer {
         final matchString = match.group(0)!;
         curColumn = column + match.start + 1;
         if (match.group(HTLexicon.tokenGroupSingleComment) != null) {
-          toksOfLine.add(TokenSingleLineComment(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end));
+          if (toksOfLine.isEmpty) {
+            toksOfLine.add(TokenSingleLineComment(matchString, curLine,
+                curColumn, curOffset + match.start, curOffset + match.end));
+          } else {
+            toksOfLine.add(TokenConsumingLineEndComment(matchString, curLine,
+                curColumn, curOffset + match.start, curOffset + match.end));
+          }
         } else if (match.group(HTLexicon.tokenGroupBlockComment) != null) {
           toksOfLine.add(TokenMultiLineComment(matchString, curLine, curColumn,
               curOffset + match.start, curOffset + match.end));

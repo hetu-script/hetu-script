@@ -1,6 +1,7 @@
 ## 0.3.5
 
 - Added const declaration for boolean, int, float and string.
+- Fixed comment parsing problems.
 
 ## 0.3.4
 

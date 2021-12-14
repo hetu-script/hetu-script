@@ -23,7 +23,7 @@ abstract class AstNode {
 
   final precedingComments = <Comment>[];
 
-  Comment? consumingEndComment;
+  Comment? consumingLineEndComment;
 
   bool get isExpression => true;
 

@@ -404,11 +404,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder
           .addByte(StructObjFieldType.normal); // normal key: value field
       bytesBuilder.add(_identifierString(field.key!));
-      final valueBytes = compileAst(field.value, endOfExec: true);
+      final valueBytes = compileAst(field.value!, endOfExec: true);
       bytesBuilder.add(valueBytes);
     } else if (field.isSpread) {
       bytesBuilder.addByte(StructObjFieldType.spread); // spread another object
-      final valueBytes = compileAst(field.value, endOfExec: true);
+      final valueBytes = compileAst(field.value!, endOfExec: true);
       bytesBuilder.add(valueBytes);
     } else if (!field.isComment) {
       bytesBuilder.addByte(
@@ -1663,12 +1663,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       AstNode initializer;
       if (node is VarDecl) {
         initializer = node.initializer ?? NullExpr();
-        final field = StructObjField(initializer, key: node.id.id);
+        final field = StructObjField(key: node.id.id, value: initializer);
         node.isStatic ? staticFields.add(field) : fields.add(field);
       } else if (node is FuncDecl) {
         FuncDecl initializer = node;
         final field =
-            StructObjField(initializer, key: initializer.internalName);
+            StructObjField(key: initializer.internalName, value: initializer);
         node.isStatic ? staticFields.add(field) : fields.add(field);
       }
       // Other node type is ignored.

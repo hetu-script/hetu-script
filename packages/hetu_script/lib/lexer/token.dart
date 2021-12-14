@@ -145,3 +145,15 @@ class TokenMultiLineComment extends Token {
       this.literal, int line, int column, int offset, int length)
       : super(literal, line, column, offset, length);
 }
+
+class TokenConsumingLineEndComment extends Token {
+  @override
+  final String literal;
+
+  @override
+  String get type => SemanticNames.consumingLineEndComment;
+
+  const TokenConsumingLineEndComment(
+      this.literal, int line, int column, int offset, int length)
+      : super(literal, line, column, offset, length);
+}

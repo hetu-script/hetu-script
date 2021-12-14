@@ -425,6 +425,7 @@ abstract class HTLexicon {
   static const errorExternalMember =
       'Non-external class cannot have non-static external members.';
   static const errorEmptyTypeArgs = 'Empty type arguments.';
+  static const errorEmptyImportList = 'Empty import list.';
   static const errorExtendsSelf = 'Class try to extends itself.';
   static const errorMissingFuncBody = 'Missing function definition of [{0}].';
   static const errorExternalCtorWithReferCtor =

@@ -19,6 +19,7 @@ enum ErrorCode {
   setterArity,
   externalMember,
   emptyTypeArgs,
+  emptyImportList,
   extendsSelf,
   missingFuncBody,
   externalCtorWithReferCtor,
@@ -388,6 +389,24 @@ class HTError {
       int? length})
       : this(ErrorCode.emptyTypeArgs, ErrorType.syntacticError,
             message: HTLexicon.errorEmptyTypeArgs,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  HTError.emptyImportList(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.emptyImportList, ErrorType.syntacticError,
+            message: HTLexicon.errorEmptyImportList,
             extra: extra,
             correction: correction,
             filename: filename,

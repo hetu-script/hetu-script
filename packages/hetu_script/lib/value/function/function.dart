@@ -480,17 +480,12 @@ class HTFunction extends HTFunctionDeclaration
                     positionalArgs: finalPosArgs,
                     namedArgs: finalNamedArgs,
                     typeArgs: typeArgs);
-              } else if (func is Function) {
+              } else {
                 result = Function.apply(
                     func,
                     finalPosArgs,
                     finalNamedArgs.map<Symbol, dynamic>(
                         (key, value) => MapEntry(Symbol(key), value)));
-              } else {
-                throw HTError.notCallable(internalName,
-                    filename: interpreter.fileName,
-                    line: interpreter.line,
-                    column: interpreter.column);
               }
             } else {
               result = klass!.externalClass!.memberGet('$classId.$id');
@@ -536,17 +531,12 @@ class HTFunction extends HTFunctionDeclaration
                   namedArgs: finalNamedArgs,
                   typeArgs: typeArgs);
             }
-          } else if (func is Function) {
+          } else {
             result = Function.apply(
                 func,
                 finalPosArgs,
                 finalNamedArgs.map<Symbol, dynamic>(
                     (key, value) => MapEntry(Symbol(key), value)));
-          } else {
-            throw HTError.notCallable(internalName,
-                filename: interpreter.fileName,
-                line: interpreter.line,
-                column: interpreter.column);
           }
         }
         // a toplevel external function
@@ -558,17 +548,12 @@ class HTFunction extends HTFunctionDeclaration
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);
-          } else if (func is Function) {
+          } else {
             result = Function.apply(
                 func,
                 finalPosArgs,
                 finalNamedArgs.map<Symbol, dynamic>(
                     (key, value) => MapEntry(Symbol(key), value)));
-          } else {
-            throw HTError.notCallable(internalName,
-                filename: interpreter.fileName,
-                line: interpreter.line,
-                column: interpreter.column);
           }
         }
       }
