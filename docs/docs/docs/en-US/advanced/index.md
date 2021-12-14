@@ -66,3 +66,37 @@ assert 1 > 5
 Will throw an 'assertion failed' error. And the error message will contain the expression string after the keyword to let you know why this happened.
 
 The expression after assert must be a boolean value.
+
+## Automatic semicolon insertion
+
+Automatic semicolon insertion (ASI) is a technique in programming languages that semicolon is optional. [Click here for more information](https://en.wikibooks.org/wiki/JavaScript/Automatic_semicolon_insertion).
+
+If a language has no semicolon and in the same time it also allows for multiline expression. Then there will be times that ambiguity happens.
+
+For example:
+
+```javascript
+function getObject() {
+  if (isReady) return; // a semicolon will always be inserted here automatically by javascript engine
+  {
+    // fileds
+  }
+  // some codes
+}
+```
+
+If there's no ASI, we would never know wether the language use want to return the object after it, or they just want to start a new line after the return keyword.
+
+Similar things also happens when you started a line with brackets, and the interpreter will not knowing if you want to get the subscript value out of the object in the previous line.
+
+In Hetu script, the ASI is slightly different from Javascript's approach (which almost will always add the semicolon).
+
+We would add a 'end of statement mark' after a line, only if the next line starts with one of these tokens '{', '(', '[', '++', '--', **AND** this line is not an **UNFINISHED** line.
+
+A unfinished line ends with one of these tokens: '!', '\*', '/', '%', '+', '-', '<', '<=', '>', '>=', '=', '!=', '??', '&&', '||', '=', '+=', '-=', '\*=', '/=', '??=', '.', '(', '{', '[', ',', ':', '->', '=>'.
+
+And Hetu will always add a 'end of statement mark' after return if there's a new line.
+
+So if you would like to return the value, remember to make the left bracket same line with the return.
+
+And if you want to write function definition, remember to make the left bracket same line with the function parameters.
