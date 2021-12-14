@@ -219,6 +219,8 @@ Named.race = 'Dragon'
 print(n.race) // Dragon
 ```
 
+One important thing worth noted: within a named struct's method, **you cannot omit 'this' when accessing its own members** like you would do in a class method.
+
 ### Literal struct
 
 Literal struct are expressions in the form of '{key: value}'

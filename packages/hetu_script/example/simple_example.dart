@@ -4,13 +4,15 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final game = {
-      name: 'Bibble',
-      job: 'Catcher'
+    struct Person {
+      var _name
+      get name => this._name
+      set name(newName) => this._name = newName
+      
     }
     fun main {
-      print(game.keys)
-
+      Person.name = 'jimmy'
+      print(Person.name)
     }
     ''', invokeFunc: 'main');
 }
