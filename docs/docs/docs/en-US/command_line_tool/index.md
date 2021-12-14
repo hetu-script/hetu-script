@@ -47,7 +47,6 @@ Format a Hetu source file on your disk. You can either just print out to test th
 
 ```
 hetu format [path] [option]
-      --script(-s)
       --print(-p)
       --out(-o) [outpath]
 ```
@@ -57,8 +56,7 @@ hetu format [path] [option]
 Analyze a Hetu source file on your disk.
 
 ```
-analyze [path] [option]
-  --script(-s)
+analyze [path]
 ```
 
 ## Run
@@ -66,6 +64,5 @@ analyze [path] [option]
 Run a Hetu source file on your disk.
 
 ```
-run [path] [option]
-  --script(-s)
+run [path]
 ```

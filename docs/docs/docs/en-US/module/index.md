@@ -8,10 +8,10 @@ Hetu script codes are a batch of **HTSource** files. If a source contains import
 
 ## Source type
 
-Hetu script file have two different way to interpret, controlled by the **isScript** parameter in the eval method of the Interpreter class.
+Hetu script file have two different way to interpret, controlled by the **isScript** parameter in the eval method of the Interpreter class and the extension of the source file.
 
-- When **isScript** is not provided or set to false, interpreter will evaluate the source as **SourceType.module**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
-- When **isScript** is true, interpreter will evaluate the source as **SourceType.script**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
+- When **isScript** is not provided or set to false, or the file is of extension '\*.ht', interpreter will evaluate the source as **SourceType.module**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+- When **isScript** is true, or the file is of extension '\*.hts', interpreter will evaluate the source as **SourceType.script**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
 
 ## Import
 

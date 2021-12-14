@@ -52,6 +52,7 @@ void main() {
   hetu.init();
   final result = hetu.evalFile('import_test1.ht', invokeFunc: 'main');
   print(result);
+}
 ```
 
 content in 'import_test1.ht':

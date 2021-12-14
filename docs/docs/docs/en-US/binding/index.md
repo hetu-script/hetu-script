@@ -139,7 +139,7 @@ It's possible for a Hetu class to have a external method, even if other part of 
 
 For example, we have the following class with a external method:
 
-```
+```dart
 class Someone {
   external fun calculate
 }
@@ -147,7 +147,7 @@ class Someone {
 
 We have to define a external method in Dart code:
 
-```
+```dart
 dynamic calculate(object, {positionalArgs, namedArgs, typeArgs}) {
   // do somthing about the object
 };
@@ -162,14 +162,14 @@ hetu.bindExternalFunction('Someone.calculate', calculate);
 
 Then it's okay to call this in Hetu:
 
-```
+```dart
 var ss = Someone()
 ss.calculate()
 ```
 
 You can also have a external method on a named struct:
 
-```
+```javascript
 struct Person {
   external fun sing
 }
