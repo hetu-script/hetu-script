@@ -1749,12 +1749,12 @@ class Hetu extends HTAbstractInterpreter {
       prototypeId = _readString();
     }
     final lateInitialize = _bytecodeModule.readBool();
-    final staticFiledsLength = _bytecodeModule.readUint16();
+    final staticFieldsLength = _bytecodeModule.readUint16();
     final staticDefinitionIp = _bytecodeModule.ip;
-    _bytecodeModule.skip(staticFiledsLength);
-    final filedsLength = _bytecodeModule.readUint16();
+    _bytecodeModule.skip(staticFieldsLength);
+    final fieldsLength = _bytecodeModule.readUint16();
     final definitionIp = _bytecodeModule.ip;
-    _bytecodeModule.skip(filedsLength);
+    _bytecodeModule.skip(fieldsLength);
     final struct = HTNamedStruct(
       id,
       this,

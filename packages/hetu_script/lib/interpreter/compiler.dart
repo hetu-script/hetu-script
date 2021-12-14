@@ -431,8 +431,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
     }
-    bytesBuilder.addByte(obj.fields.length);
-    for (final field in obj.fields) {
+    final fields = obj.fields.where((field) => field.value != null);
+    bytesBuilder.addByte(fields.length);
+    for (final field in fields) {
       final bytes = visitStructObjField(field);
       bytesBuilder.add(bytes);
     }

@@ -79,7 +79,7 @@ For example:
 function getObject() {
   if (isReady) return; // a semicolon will always be inserted here automatically by javascript engine
   {
-    // fileds
+    // fields
   }
   // some codes
 }
@@ -91,9 +91,7 @@ Similar things also happens when you started a line with brackets, and the inter
 
 In Hetu script, the ASI is slightly different from Javascript's approach (which almost will always add the semicolon).
 
-We would add a 'end of statement mark' after a line, only if the next line starts with one of these tokens '{', '(', '[', '++', '--', **AND** this line is not an **UNFINISHED** line.
-
-A unfinished line ends with one of these tokens: '!', '\*', '/', '%', '+', '-', '<', '<=', '>', '>=', '=', '!=', '??', '&&', '||', '=', '+=', '-=', '\*=', '/=', '??=', '.', '(', '{', '[', ',', ':', '->', '=>'.
+We would add a 'end of statement mark' after a line, only if the next line starts with one of these tokens '{', '(', '[', '++', '--', **AND** this line is not an **UNFINISHED** line that ends with one of these tokens: '!', '\*', '/', '%', '+', '-', '<', '<=', '>', '>=', '=', '!=', '??', '&&', '||', '=', '+=', '-=', '\*=', '/=', '??=', '.', '(', '{', '[', ',', ':', '->', '=>'.
 
 And Hetu will always add a 'end of statement mark' after return if there's a new line.
 
