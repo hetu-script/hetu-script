@@ -147,6 +147,7 @@ class HTInstance with HTEntity, InterpreterRef {
           if (value is HTFunction &&
               value.category != FunctionCategory.literal) {
             value.namespace = namespace;
+            value.instance = this;
           }
           return value;
         } else if (space.declarations.containsKey(getter)) {
