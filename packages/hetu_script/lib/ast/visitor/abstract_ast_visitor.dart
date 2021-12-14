@@ -8,8 +8,6 @@ part of '../ast.dart';
 abstract class AbstractAstVisitor<T> {
   T? visitEmptyExpr(EmptyExpr node) {}
 
-  T? visitCommentExpr(CommentExpr node) {}
-
   T? visitNullExpr(NullExpr node) {}
 
   T? visitBooleanExpr(BooleanExpr node) {}
@@ -81,8 +79,6 @@ abstract class AbstractAstVisitor<T> {
   T? visitBreakStmt(BreakStmt node) {}
 
   T? visitContinueStmt(ContinueStmt node) {}
-
-  T? visitLibraryDecl(LibraryDecl node) {}
 
   T? visitImportExportDecl(ImportExportDecl node) {}
 

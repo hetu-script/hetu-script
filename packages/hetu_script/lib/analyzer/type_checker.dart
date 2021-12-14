@@ -13,9 +13,6 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   HTType? visitEmptyExpr(EmptyExpr expr) {}
 
   @override
-  HTType? visitCommentExpr(CommentExpr expr) {}
-
-  @override
   HTType? visitNullExpr(NullExpr expr) {
     return HTType.nullType;
   }
@@ -132,11 +129,6 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
 
   @override
   HTType? visitSubAssignExpr(SubAssignExpr expr) {
-    return HTType.any;
-  }
-
-  @override
-  HTType? visitLibraryDecl(LibraryDecl stmt) {
     return HTType.any;
   }
 

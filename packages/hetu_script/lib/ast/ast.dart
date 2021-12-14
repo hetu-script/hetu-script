@@ -7,8 +7,29 @@ import '../declaration/declaration.dart';
 
 part 'visitor/abstract_ast_visitor.dart';
 
+class Comment {
+  final String content;
+
+  final bool isMultiline;
+
+  final bool isDocumentation;
+
+  Comment(this.content,
+      {this.isMultiline = false, this.isDocumentation = false});
+}
+
 abstract class AstNode {
   final String type;
+
+  final precedingComments = <Comment>[];
+
+  Comment? consumingEndComment;
+
+  bool get isExpression => true;
+
+  bool get isStatement => !isExpression;
+
+  bool get hasEndOfStmtMark => false;
 
   final HTSource? source;
 
@@ -55,32 +76,6 @@ class EmptyExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(SemanticNames.empty,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class CommentExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitCommentExpr(this);
-
-  final String content;
-
-  final bool isMultiline;
-
-  final bool isDocumentation;
-
-  CommentExpr(this.content,
-      {this.isMultiline = false,
-      this.isDocumentation = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.comment,
             source: source,
             line: line,
             column: column,
@@ -843,6 +838,10 @@ class AssertStmt extends AstNode {
 
   final AstNode expr;
 
+  @override
+  bool get isExpression => false;
+
+  @override
   final bool hasEndOfStmtMark;
 
   AssertStmt(this.expr,
@@ -871,6 +870,10 @@ class ExprStmt extends AstNode {
 
   final AstNode expr;
 
+  @override
+  bool get isExpression => false;
+
+  @override
   final bool hasEndOfStmtMark;
 
   ExprStmt(this.expr,
@@ -905,6 +908,9 @@ class BlockStmt extends AstNode {
 
   final String? id;
 
+  @override
+  bool get isExpression => false;
+
   BlockStmt(this.statements,
       {this.hasOwnNamespace = true,
       this.id,
@@ -934,6 +940,10 @@ class ReturnStmt extends AstNode {
 
   final AstNode? value;
 
+  @override
+  bool get isExpression => false;
+
+  @override
   final bool hasEndOfStmtMark;
 
   ReturnStmt(this.keyword,
@@ -969,8 +979,12 @@ class IfStmt extends AstNode {
 
   final AstNode? elseBranch;
 
+  @override
+  final bool isExpression;
+
   IfStmt(this.condition, this.thenBranch,
       {this.elseBranch,
+      this.isExpression = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -997,6 +1011,9 @@ class WhileStmt extends AstNode {
   final AstNode condition;
 
   final BlockStmt loop;
+
+  @override
+  bool get isExpression => false;
 
   WhileStmt(this.condition, this.loop,
       {HTSource? source,
@@ -1025,6 +1042,9 @@ class DoStmt extends AstNode {
   final BlockStmt loop;
 
   final AstNode? condition;
+
+  @override
+  bool get isExpression => false;
 
   DoStmt(this.loop, this.condition,
       {HTSource? source,
@@ -1062,6 +1082,9 @@ class ForStmt extends AstNode {
 
   final BlockStmt loop;
 
+  @override
+  bool get isExpression => false;
+
   ForStmt(this.init, this.condition, this.increment, this.loop,
       {this.hasBracket = false,
       HTSource? source,
@@ -1097,6 +1120,9 @@ class ForRangeStmt extends AstNode {
   final BlockStmt loop;
 
   final bool iterateValue;
+
+  @override
+  bool get isExpression => false;
 
   ForRangeStmt(this.iterator, this.collection, this.loop,
       {this.hasBracket = false,
@@ -1135,8 +1161,12 @@ class WhenStmt extends AstNode {
 
   final AstNode? elseBranch;
 
+  @override
+  final bool isExpression;
+
   WhenStmt(this.cases, this.elseBranch, this.condition,
-      {HTSource? source,
+      {this.isExpression = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
@@ -1155,6 +1185,10 @@ class BreakStmt extends AstNode {
 
   final Token keyword;
 
+  @override
+  bool get isExpression => false;
+
+  @override
   final bool hasEndOfStmtMark;
 
   BreakStmt(this.keyword,
@@ -1178,6 +1212,10 @@ class ContinueStmt extends AstNode {
 
   final Token keyword;
 
+  @override
+  bool get isExpression => false;
+
+  @override
   final bool hasEndOfStmtMark;
 
   ContinueStmt(this.keyword,
@@ -1188,26 +1226,6 @@ class ContinueStmt extends AstNode {
       int offset = 0,
       int length = 0})
       : super(SemanticNames.continueStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class LibraryDecl extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitLibraryDecl(this);
-
-  final String id;
-
-  LibraryDecl(this.id,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(SemanticNames.libraryStmt,
             source: source,
             line: line,
             column: column,
@@ -1243,6 +1261,10 @@ class ImportExportDecl extends AstNode {
   /// because at this time we don't know yet.
   String? fullName;
 
+  @override
+  bool get isExpression => false;
+
+  @override
   final bool hasEndOfStmtMark;
 
   final bool isExported;
@@ -1289,6 +1311,9 @@ class NamespaceDecl extends AstNode {
 
   final bool isPrivate;
 
+  @override
+  bool get isExpression => false;
+
   NamespaceDecl(this.id, this.definition,
       {this.classId,
       this.isPrivate = false,
@@ -1328,6 +1353,7 @@ class TypeAliasDecl extends AstNode {
 
   final TypeExpr value;
 
+  @override
   final bool hasEndOfStmtMark;
 
   bool get isMember => classId != null;
@@ -1335,6 +1361,9 @@ class TypeAliasDecl extends AstNode {
   final bool isPrivate;
 
   final bool isTopLevel;
+
+  @override
+  bool get isExpression => false;
 
   TypeAliasDecl(this.id, this.value,
       {this.classId,
@@ -1370,11 +1399,15 @@ class ConstDecl extends AstNode {
 
   final String? classId;
 
+  @override
   final bool hasEndOfStmtMark;
 
   final bool isStatic;
 
   final bool isTopLevel;
+
+  @override
+  bool get isExpression => false;
 
   ConstDecl(this.id, this.constExpr,
       {this.classId,
@@ -1417,6 +1450,7 @@ class VarDecl extends AstNode {
 
   final AstNode? initializer;
 
+  @override
   final bool hasEndOfStmtMark;
 
   // final bool typeInferrence;
@@ -1436,6 +1470,9 @@ class VarDecl extends AstNode {
   final bool isTopLevel;
 
   final bool lateInitialize;
+
+  @override
+  bool get isExpression => false;
 
   VarDecl(this.id,
       {String? internalName,
@@ -1477,6 +1514,9 @@ class ParamDecl extends VarDecl {
   final bool isOptional;
 
   final bool isNamed;
+
+  @override
+  bool get isExpression => true;
 
   ParamDecl(IdentifierExpr id,
       {TypeExpr? declType,
@@ -1584,6 +1624,7 @@ class FuncDecl extends AstNode {
 
   final bool isExpressionBody;
 
+  @override
   final bool hasEndOfStmtMark;
 
   final AstNode? definition;
@@ -1609,6 +1650,9 @@ class FuncDecl extends AstNode {
   final bool isTopLevel;
 
   final FunctionCategory category;
+
+  @override
+  bool get isExpression => false;
 
   FuncDecl(this.internalName, this.paramDecls,
       {this.id,
@@ -1693,6 +1737,9 @@ class ClassDecl extends AstNode {
 
   final BlockStmt definition;
 
+  @override
+  bool get isExpression => false;
+
   ClassDecl(this.id, this.definition,
       {this.classId,
       this.genericTypeParameters = const [],
@@ -1743,6 +1790,9 @@ class EnumDecl extends AstNode {
 
   final bool isTopLevel;
 
+  @override
+  bool get isExpression => false;
+
   EnumDecl(this.id, this.enumerations,
       {this.classId,
       this.isExternal = false,
@@ -1786,6 +1836,9 @@ class StructDecl extends AstNode {
 
   final bool lateInitialize;
 
+  @override
+  bool get isExpression => false;
+
   StructDecl(this.id, this.definition,
       {this.prototypeId,
       this.isPrivate = false,
@@ -1811,7 +1864,7 @@ class StructObjField extends AstNode {
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
-    value.accept(visitor);
+    value?.accept(visitor);
   }
 
   final String? key; // if key is omitted, the value must be a identifier expr.
@@ -1820,10 +1873,11 @@ class StructObjField extends AstNode {
 
   final bool isComment;
 
-  final AstNode value;
+  final AstNode? value;
 
-  StructObjField(this.value,
+  StructObjField(
       {this.key,
+      this.value,
       this.isSpread = false,
       this.isComment = false,
       HTSource? source,

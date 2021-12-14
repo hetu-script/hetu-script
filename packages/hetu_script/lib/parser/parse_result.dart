@@ -28,10 +28,6 @@ class HTSourceParseResult {
 
   LineInfo get lineInfo => source.lineInfo;
 
-  final String? packageName;
-
-  final bool hasMetaInfo;
-
   final List<AstNode> nodes;
 
   final List<ImportExportDecl> imports;
@@ -39,8 +35,5 @@ class HTSourceParseResult {
   final List<HTError> errors;
 
   HTSourceParseResult(this.source, this.nodes,
-      {this.packageName,
-      this.hasMetaInfo = false,
-      this.imports = const [],
-      this.errors = const []});
+      {this.imports = const [], this.errors = const []});
 }

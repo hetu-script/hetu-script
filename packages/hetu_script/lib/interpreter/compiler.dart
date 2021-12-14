@@ -97,9 +97,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     for (final result in compilation.results.values) {
       bytesBuilder.addByte(HTOpCode.file);
-      final idBytes = result.hasMetaInfo
-          ? _identifierString(result.packageName!)
-          : _identifierString(result.fullName);
+      final idBytes = _identifierString(result.fullName);
       bytesBuilder.add(idBytes);
       for (final node in result.nodes) {
         final bytes = compileAst(node);
@@ -308,11 +306,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitCommentExpr(CommentExpr expr) {
-    return Uint8List(0);
-  }
-
-  @override
   Uint8List visitNullExpr(NullExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
@@ -446,9 +439,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
     }
-    final fields = obj.fields.where((element) => element.value is! CommentExpr);
-    bytesBuilder.addByte(fields.length);
-    for (final field in fields) {
+    bytesBuilder.addByte(obj.fields.length);
+    for (final field in obj.fields) {
       final bytes = visitStructObjField(field);
       bytesBuilder.add(bytes);
     }
@@ -1263,13 +1255,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitContinueStmt(ContinueStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.continueLoop);
-    return bytesBuilder.toBytes();
-  }
-
-  @override
-  Uint8List visitLibraryDecl(LibraryDecl stmt) {
-    final bytesBuilder = BytesBuilder();
-    // TODO: library decl
     return bytesBuilder.toBytes();
   }
 

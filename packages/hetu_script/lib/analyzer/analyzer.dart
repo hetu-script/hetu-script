@@ -136,9 +136,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitEmptyExpr(EmptyExpr expr) {}
 
   @override
-  void visitCommentExpr(CommentExpr expr) {}
-
-  @override
   void visitNullExpr(NullExpr expr) {}
 
   @override
@@ -307,11 +304,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitContinueStmt(ContinueStmt stmt) {
-    stmt.subAccept(this);
-  }
-
-  @override
-  void visitLibraryDecl(LibraryDecl stmt) {
     stmt.subAccept(this);
   }
 

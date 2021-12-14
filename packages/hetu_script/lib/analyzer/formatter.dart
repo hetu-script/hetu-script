@@ -91,11 +91,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitCommentExpr(CommentExpr expr) {
-    return expr.content;
-  }
-
-  @override
   String visitNullExpr(NullExpr expr) {
     return HTLexicon.kNull;
   }
@@ -508,13 +503,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitLibraryDecl(LibraryDecl stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.library} ${stmt.id}');
-    return output.toString();
-  }
-
-  @override
   String visitImportExportDecl(ImportExportDecl stmt) {
     final output = StringBuffer();
     if (!stmt.isExported) {
@@ -769,15 +757,16 @@ class HTFormatter implements AbstractAstVisitor<String> {
     final output = StringBuffer();
     if (field.key != null) {
       output.write('${field.key}${HTLexicon.colon} ');
-      final valueString = formatAst(field.value);
+      final valueString = formatAst(field.value!);
       output.write(valueString);
     } else if (field.isSpread) {
       output.write(HTLexicon.spreadSyntax);
-      final valueString = formatAst(field.value);
+      final valueString = formatAst(field.value!);
       output.write(valueString);
     } else {
-      final valueString = formatAst(field.value);
-      output.write(valueString);
+      for (final comment in field.precedingComments) {
+        output.writeln(comment.content);
+      }
     }
     return output.toString();
   }

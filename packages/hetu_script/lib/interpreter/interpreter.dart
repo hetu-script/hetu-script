@@ -706,7 +706,6 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.file:
           final id = _readString();
-          // final hasMetaInfo = _curLibrary.readBool();
           _fileName = id;
           _namespace = HTNamespace(id: id, closure: global);
           break;

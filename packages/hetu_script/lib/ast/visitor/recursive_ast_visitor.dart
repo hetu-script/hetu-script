@@ -14,11 +14,6 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitCommentExpr(CommentExpr node) {
-    node.subAccept(this);
-  }
-
-  @override
   T? visitNullExpr(NullExpr node) {
     node.subAccept(this);
   }
@@ -195,11 +190,6 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
 
   @override
   T? visitContinueStmt(ContinueStmt node) {
-    node.subAccept(this);
-  }
-
-  @override
-  T? visitLibraryDecl(LibraryDecl node) {
     node.subAccept(this);
   }
 
