@@ -1,5 +1,5 @@
 ---
-title: Command line tool - Hetu Script Language
+title: Command line tool
 ---
 
 # Hetu Script command line tool

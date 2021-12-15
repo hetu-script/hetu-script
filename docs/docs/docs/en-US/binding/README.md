@@ -1,5 +1,5 @@
 ---
-title: Communicating with Dart - Hetu Script Language
+title: Communicating with Dart
 ---
 
 # Communicating with Dart

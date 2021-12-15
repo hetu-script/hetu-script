@@ -3,9 +3,8 @@
   "version": "0.1.0",
   "description": "Documents of Hetu script language.",
   "scripts": {
-    "dev": "vitepress dev docs",
-    "build": "vitepress build docs",
-    "serve": "vitepress serve docs",
+    "dev": "vuepress dev docs",
+    "build": "vuepress build docs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,9 +18,27 @@
   },
   "homepage": "https://github.com/hetu-script/hetu-script",
   "dependencies": {
-    "vue": "^3.2.24"
+    "vue": "^3.2.26"
   },
   "devDependencies": {
-    "vitepress": "^0.20.2"
+    "@types/react": ">= 16.8.0 < 18.0.0",
+    "@vue/compiler-sfc": "^3.2.26",
+    "@vuepress/client": "^2.0.0-beta.27",
+    "@vuepress/plugin-back-to-top": "^2.0.0-beta.27",
+    "@vuepress/plugin-google-analytics": "^2.0.0-beta.27",
+    "@vuepress/plugin-search": "^2.0.0-beta.27",
+    "css-loader": "^6.5.1",
+    "esbuild-loader": "^2.17.0",
+    "nprogress": "^0.2.0",
+    "postcss": "^8.4.5",
+    "postcss-loader": "^6.2.1",
+    "react": ">= 16.8.0 < 18.0.0",
+    "react-dom": ">= 16.8.0 < 18.0.0",
+    "sass": "^1.45.0",
+    "sass-loader": "^12.4.0",
+    "style-loader": "^3.3.1",
+    "vue-loader": "^17.0.0",
+    "vuepress": "^2.0.0-beta.27",
+    "webpack": "^5.65.0"
   }
 }

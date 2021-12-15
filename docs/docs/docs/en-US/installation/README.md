@@ -1,5 +1,5 @@
 ---
-title: Installation - Hetu Script Language
+title: Installation
 ---
 
 # Installation

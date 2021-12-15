@@ -1,5 +1,5 @@
 ---
-title: Common API - Hetu Script Language
+title: Common API
 ---
 
 # Common API

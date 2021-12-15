@@ -1,5 +1,5 @@
 ---
-title: Language - Hetu Script Language
+title: Language
 ---
 
 # Syntax of Hetu Script Language

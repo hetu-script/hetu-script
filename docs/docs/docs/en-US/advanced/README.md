@@ -1,5 +1,5 @@
 ---
-title: Advanced topics - Hetu Script Language
+title: Advanced topics
 ---
 
 # Advanced topics

@@ -1,5 +1,5 @@
 ---
-title: Introduction - Hetu Script Language
+title: Introduction
 ---
 
 # Introduction

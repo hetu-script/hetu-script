@@ -1,6 +1,5 @@
 module.exports = {
   base: '/',
-  title: 'Hetu Script Language',
   locales: {
     '/docs/en-US/': {
       lang: 'en-US',
@@ -15,13 +14,14 @@ module.exports = {
         selectText: 'Languages',
         label: 'English',
         editLinkText: 'Edit this page on GitHub',
-        nav: [
+        navbar: [
           {
             text: 'Tool',
-            items: [
+            children: [
               {
-                text: 'IDE Extension',
+                text: 'VSCode Extension',
                 link: 'https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript',
+                activeMatch: '/',
               },
             ],
           },
@@ -73,4 +73,25 @@ module.exports = {
       },
     },
   },
+  plugins: [
+    [
+      '@vuepress/plugin-search',
+      {
+        locales: {
+          '/docs/en-US/': {
+            placeholder: 'Search',
+          },
+          '/docs/zh-CN/': {
+            placeholder: '搜索',
+          },
+        },
+      },
+    ],
+    [
+      '@vuepress/plugin-google-analytics',
+      {
+        id: 'G-KFRTSHXYD5',
+      },
+    ],
+  ],
 };

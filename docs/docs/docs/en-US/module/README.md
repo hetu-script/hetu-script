@@ -1,5 +1,5 @@
 ---
-title: Module import & export - Hetu Script Language
+title: Module import & export
 ---
 
 # Module

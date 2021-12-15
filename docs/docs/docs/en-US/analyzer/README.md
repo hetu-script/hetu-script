@@ -1,5 +1,5 @@
 ---
-title: Analyzer - Hetu Script Language
+title: Analyzer
 ---
 
 # Analyzer
