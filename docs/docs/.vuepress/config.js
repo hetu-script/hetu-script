@@ -85,6 +85,8 @@ module.exports = {
             placeholder: '搜索',
           },
         },
+        // allow searching the `tags` frontmatter
+        getExtraFields: (page) => page.frontmatter.tags ?? [],
       },
     ],
     [

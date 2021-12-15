@@ -1,0 +1,3 @@
+import '../outter.ht'
+
+print(Outter.greeting)

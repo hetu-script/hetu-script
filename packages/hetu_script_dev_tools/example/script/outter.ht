@@ -1,0 +1,6 @@
+
+final target = 'Hunter'
+
+namespace Outter {
+  final greeting = 'Hello, world!'
+}

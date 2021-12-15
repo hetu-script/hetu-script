@@ -1,3 +1,8 @@
+## 0.3.7
+
+- Add namespace declaration statement.
+- Now can directly import a JSON file into code. It will become a HTStruct object.
+
 ## 0.3.6
 
 - Due to web support compatibility reasons, changed internal integer bytecode from 64bit to 32bit.
