@@ -53,17 +53,10 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
     if (externalClass != null) {
       final member = externalClass!.instanceMemberGet(externalObject, varName);
       if (member is Function && klass != null) {
-        // final getter = '${SemanticNames.getter}$varName';
-        // if (klass!.namespace.declarations.containsKey(varName)) {
         HTFunction func =
             klass!.memberGet(varName, recursive: false, internal: true);
         func.externalFunc = member;
         return func;
-        // } else if (klass!.namespace.declarations.containsKey(getter)) {
-        //   HTFunction func = klass!.namespace.declarations[getter]!.value;
-        //   func.externalFunc = member;
-        //   return func;
-        // }
       } else {
         return member;
       }

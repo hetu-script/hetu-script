@@ -630,7 +630,7 @@ extension ListBinding on List {
           if (positionalArgs.length >= 2) {
             start = positionalArgs[1];
           }
-          indexWhere((element) {
+          return indexWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, start);
         };
@@ -641,7 +641,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
           int? start = positionalArgs[1];
-          lastIndexWhere((element) {
+          return lastIndexWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, start);
         };
@@ -703,7 +703,7 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          map((element) {
+          return map((element) {
             return func.call(positionalArgs: [element]);
           });
         };
@@ -713,7 +713,7 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          where((element) {
+          return where((element) {
             return func.call(positionalArgs: [element]);
           });
         };
@@ -723,7 +723,7 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          expand((element) {
+          return expand((element) {
             return func.call(positionalArgs: [element]) as Iterable;
           });
         };
@@ -733,7 +733,7 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          reduce((value, element) {
+          return reduce((value, element) {
             return func.call(positionalArgs: [value, element]);
           });
         };
@@ -744,7 +744,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           final initialValue = positionalArgs[0];
           HTFunction func = positionalArgs[1];
-          fold(initialValue, (value, element) {
+          return fold(initialValue, (value, element) {
             return func.call(positionalArgs: [value, element]);
           });
         };
@@ -754,7 +754,7 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          every((element) {
+          return every((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
@@ -764,7 +764,7 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          any((element) {
+          return any((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
@@ -775,7 +775,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs[0];
           HTFunction? orElse = positionalArgs[1];
-          firstWhere((element) {
+          return firstWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, orElse: () {
             return orElse != null ? orElse() : null;
@@ -788,7 +788,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs[0];
           HTFunction? orElse = positionalArgs[1];
-          lastWhere((element) {
+          return lastWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, orElse: () {
             return orElse != null ? orElse() : null;
@@ -801,7 +801,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs[0];
           HTFunction? orElse = positionalArgs[1];
-          singleWhere((element) {
+          return singleWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, orElse: () {
             return orElse != null ? orElse() : null;

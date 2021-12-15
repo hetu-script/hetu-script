@@ -311,9 +311,6 @@ external class List {
   /// The last index in the list that satisfies the provided [test].
   fun lastIndexWhere(test: (any) -> bool, [start: int?]) -> int
 
-  /// The last index of [element] in this list.
-  fun lastIndexOf(element, [start: int?]) -> int
-
   /// Removes all objects from this list that satisfy [test].
   fun removeWhere(test: (any) -> bool)
 
@@ -359,13 +356,13 @@ external class List {
   fun any(test: (any) -> bool) -> bool
 
   /// Returns the first element that satisfies the given predicate [test].
-  fun firstWhere(test: (any) -> bool, {orElse: () -> any)}) -> any
+  fun firstWhere(test: (any) -> bool, {orElse: () -> any}) -> any
 
   /// Returns the last element that satisfies the given predicate [test].
-  fun lastWhere(test: (any) -> bool, {orElse: : () -> any}) -> any
+  fun lastWhere(test: (any) -> bool, {orElse: () -> any}) -> any
 
   /// Returns the single element that satisfies [test].
-  fun singleWhere(test: (any) -> bool, {orElse: : () -> any}) -> any
+  fun singleWhere(test: (any) -> bool, {orElse: () -> any}) -> any
 }
 
 external class Map {

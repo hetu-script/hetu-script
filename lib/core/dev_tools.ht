@@ -1,1 +1,1 @@
-external fun help(value) -> str
+external fun help(value)

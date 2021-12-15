@@ -97,7 +97,7 @@ external class num {
 
 external class int extends num {
   /// Parse [source] as a, possibly signed, integer literal.
-  static fun parse(source: str, {radix: int}) -> int
+  static fun parse(source: str, {radix: int?}) -> int
 	
   /// Returns this integer to the power of [exponent] modulo [modulus].
   fun modPow(exponent: int, modulus: int) -> int
@@ -258,13 +258,13 @@ external class str {
 
 	fun indexOf(pattern: str, [start: num = 0]) -> num
 
-	fun lastIndexOf(pattern, [start: num]) -> num
+	fun lastIndexOf(pattern, [start: num?]) -> num
 
 	get isEmpty -> bool
 
 	get isNotEmpty -> bool
 
-	fun substring(startIndex: num, [endIndex: num]) -> str
+	fun substring(startIndex: num, [endIndex: num?]) -> str
 
 	fun trim() -> str
 
@@ -319,7 +319,7 @@ external class List {
 
 	fun indexOf(value, [start: int = 0]) -> int
 
-	fun lastIndexOf(value, [start: int]) -> int
+	fun lastIndexOf(value, [start: int?]) -> int
 
 	fun insert(index: int, value)
 
@@ -333,9 +333,74 @@ external class List {
 
 	fun removeLast()
 
-  fun sublist(start: int, [end: int]) -> List
+  fun sublist(start: int, [end: int?]) -> List
 
   fun asMap() -> Map
+  
+  /// Sorts this list according to the order specified by the [compare] function.
+  fun sort([compare: (a, b) -> int])
+
+  /// Shuffles the elements of this list randomly.
+  fun shuffle()
+  
+  /// The first index in the list that satisfies the provided [test].
+  fun indexWhere(test: (any) -> bool, [start: int = 0]) -> int
+
+  /// The last index in the list that satisfies the provided [test].
+  fun lastIndexWhere(test: (any) -> bool, [start: int?]) -> int
+
+  /// Removes all objects from this list that satisfy [test].
+  fun removeWhere(test: (any) -> bool)
+
+  /// Removes all objects from this list that fail to satisfy [test].
+  fun retainWhere(test: (any) -> bool)
+
+  /// Creates an [Iterable] that iterates over a range of elements.
+  fun getRange(start: int, end: int) -> List
+  
+  /// Writes some elements of [iterable] into a range of this list.
+  fun setRange(start: int, end: int, list: List, [skipCount: int = 0])
+
+  /// Removes a range of elements from the list.
+  fun removeRange(start: int, end: int)
+
+  /// Overwrites a range of elements with [fillValue].
+  fun fillRange(start: int, end: int, [fillValue: any])
+
+  /// Replaces a range of elements with the elements of [replacements].
+  fun replaceRange(start: int, end: int, replacements: List)
+
+  /// The current elements of this iterable modified by [toElement].
+  fun map(toElement: (any) -> any) -> List
+
+  /// Returns a new lazy [Iterable] with all elements that satisfy the
+  fun where(test: (any) -> bool) -> List
+
+  /// Expands each element of this [Iterable] into zero or more elements.
+  fun expand(toElements: (any) -> List) -> List
+
+  /// Reduces a collection to a single value by iteratively combining elements
+  /// of the collection using the provided function.
+  fun reduce(combine: (any, any) -> any) -> any
+
+  /// Reduces a collection to a single value by iteratively combining each
+  /// element of the collection with an existing value
+  fun fold(initialValue: any, combine: (any, any) -> any) -> any
+
+  /// Checks whether every element of this iterable satisfies [test].
+  fun every(test: (any) -> bool) -> bool
+
+  /// Checks whether any element of this iterable satisfies [test].
+  fun any(test: (any) -> bool) -> bool
+
+  /// Returns the first element that satisfies the given predicate [test].
+  fun firstWhere(test: (any) -> bool, {orElse: () -> any}) -> any
+
+  /// Returns the last element that satisfies the given predicate [test].
+  fun lastWhere(test: (any) -> bool, {orElse: () -> any}) -> any
+
+  /// Returns the single element that satisfies [test].
+  fun singleWhere(test: (any) -> bool, {orElse: () -> any}) -> any
 }
 
 external class Map {
@@ -403,7 +468,7 @@ external class Math {
 
   static fun log(x: num) -> num
 
-  static fun parseInt(source: str, {radix: int}) -> num
+  static fun parseInt(source: str, {radix: int?}) -> num
 
   static fun parseDouble(source: str) -> num
 
@@ -425,5 +490,5 @@ external class Math {
 
 }
 ''',
-  'hetu:dev_tools': r'''external fun help(value) -> str''',
+  'hetu:dev_tools': r'''external fun help(value)''',
 };
