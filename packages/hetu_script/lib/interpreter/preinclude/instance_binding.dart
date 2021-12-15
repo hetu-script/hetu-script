@@ -611,7 +611,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
           sort((a, b) {
-            func.call(positionalArgs: [a, b]);
+            return func.call(positionalArgs: [a, b]) as int;
           });
         };
       case 'shuffle':
@@ -631,7 +631,7 @@ extension ListBinding on List {
             start = positionalArgs[1];
           }
           indexWhere((element) {
-            func.call(positionalArgs: [element]);
+            return func.call(positionalArgs: [element]) as bool;
           }, start);
         };
       case 'lastIndexWhere':
@@ -642,7 +642,7 @@ extension ListBinding on List {
           HTFunction func = positionalArgs.first;
           int? start = positionalArgs[1];
           lastIndexWhere((element) {
-            func.call(positionalArgs: [element]);
+            return func.call(positionalArgs: [element]) as bool;
           }, start);
         };
       case 'removeWhere':
@@ -652,7 +652,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
           removeWhere((element) {
-            func.call(positionalArgs: [element]);
+            return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'retainWhere':
@@ -662,7 +662,7 @@ extension ListBinding on List {
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
           retainWhere((element) {
-            func.call(positionalArgs: [element]);
+            return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'getRange':
@@ -697,6 +697,116 @@ extension ListBinding on List {
                 List<HTType> typeArgs = const []}) =>
             replaceRange(
                 positionalArgs[0], positionalArgs[1], positionalArgs[2]);
+      case 'map':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          map((element) {
+            return func.call(positionalArgs: [element]);
+          });
+        };
+      case 'where':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          where((element) {
+            return func.call(positionalArgs: [element]);
+          });
+        };
+      case 'expand':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          expand((element) {
+            return func.call(positionalArgs: [element]) as Iterable;
+          });
+        };
+      case 'reduce':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          reduce((value, element) {
+            return func.call(positionalArgs: [value, element]);
+          });
+        };
+      case 'fold':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final initialValue = positionalArgs[0];
+          HTFunction func = positionalArgs[1];
+          fold(initialValue, (value, element) {
+            return func.call(positionalArgs: [value, element]);
+          });
+        };
+      case 'every':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          every((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
+      case 'any':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          any((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
+      case 'firstWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs[0];
+          HTFunction? orElse = positionalArgs[1];
+          firstWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, orElse: () {
+            return orElse != null ? orElse() : null;
+          });
+        };
+      case 'lastWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs[0];
+          HTFunction? orElse = positionalArgs[1];
+          lastWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, orElse: () {
+            return orElse != null ? orElse() : null;
+          });
+        };
+      case 'singleWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs[0];
+          HTFunction? orElse = positionalArgs[1];
+          singleWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, orElse: () {
+            return orElse != null ? orElse() : null;
+          });
+        };
       default:
         throw HTError.undefined(varName);
     }

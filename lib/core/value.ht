@@ -359,13 +359,13 @@ external class List {
   fun any(test: (any) -> bool) -> bool
 
   /// Returns the first element that satisfies the given predicate [test].
-  fun firstWhere(test: (any) -> bool, {orElse: function}) -> any
+  fun firstWhere(test: (any) -> bool, {orElse: () -> any)}) -> any
 
   /// Returns the last element that satisfies the given predicate [test].
-  fun lastWhere(test: (any) -> bool, {orElse: : function}) -> any
+  fun lastWhere(test: (any) -> bool, {orElse: : () -> any}) -> any
 
   /// Returns the single element that satisfies [test].
-  fun singleWhere(test: (any) -> bool, {orElse: : function}) -> any
+  fun singleWhere(test: (any) -> bool, {orElse: : () -> any}) -> any
 }
 
 external class Map {
