@@ -289,7 +289,7 @@ class HTMathClass extends HTExternalClass {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             int.tryParse(positionalArgs.first as String,
-                radix: namedArgs['radix'] as int) ??
+                radix: namedArgs['radix']) ??
             0;
       case 'Math.parseDouble':
         return (HTEntity entity,

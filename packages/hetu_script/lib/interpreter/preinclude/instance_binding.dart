@@ -604,6 +604,112 @@ extension ListBinding on List {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             asMap();
+      case 'sort':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          sort((a, b) {
+            func.call(positionalArgs: [a, b]);
+          });
+        };
+      case 'shuffle':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            shuffle();
+      case 'indexWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          int start = 0;
+          if (positionalArgs.length >= 2) {
+            start = positionalArgs[1];
+          }
+          indexWhere((element) {
+            func.call(positionalArgs: [element]);
+          }, start);
+        };
+      case 'lastIndexWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          int? start = positionalArgs[1];
+          lastIndexWhere((element) {
+            func.call(positionalArgs: [element]);
+          }, start);
+        };
+      case 'removeWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          removeWhere((element) {
+            func.call(positionalArgs: [element]);
+          });
+        };
+      case 'retainWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          retainWhere((element) {
+            func.call(positionalArgs: [element]);
+          });
+        };
+      case 'getRange':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            getRange(positionalArgs[0], positionalArgs[1]);
+      case 'setRange':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            setRange(positionalArgs[0], positionalArgs[1], positionalArgs[2],
+                positionalArgs[3]);
+      case 'removeRange':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            removeRange(positionalArgs[0], positionalArgs[1]);
+      case 'fillRange':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            fillRange(positionalArgs[0], positionalArgs[1], positionalArgs[2]);
+      case 'replaceRange':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            replaceRange(
+                positionalArgs[0], positionalArgs[1], positionalArgs[2]);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  dynamic htAssign(String varName, dynamic varValue) {
+    switch (varName) {
+      case 'first':
+        first = varValue;
+        break;
+      case 'last':
+        last = varValue;
+        break;
       default:
         throw HTError.undefined(varName);
     }
@@ -675,7 +781,7 @@ extension FutureBinding on Future {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs[0];
+          HTFunction func = positionalArgs.first;
           then((value) {
             func.call(positionalArgs: [value]);
           });

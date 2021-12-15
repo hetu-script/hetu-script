@@ -26,7 +26,7 @@ external class Math {
 
   static fun log(x: num) -> num
 
-  static fun parseInt(source: str, {radix: int}) -> num
+  static fun parseInt(source: str, {radix: int?}) -> num
 
   static fun parseDouble(source: str) -> num
 
