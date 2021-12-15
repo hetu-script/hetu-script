@@ -1,3 +1,8 @@
+## 0.3.6
+
+- Due to web support compatibility reasons, changed internal integer bytecode from 64bit to 32bit.
+- Added BigInt builtin binding.
+
 ## 0.3.5
 
 - Added const declaration for boolean, int, float and string.
