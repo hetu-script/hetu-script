@@ -24,7 +24,7 @@ class HTInstanceNamespace extends HTNamespace {
   /// try fetching variable from enclosed namespace.
   @override
   dynamic memberGet(String varName,
-      {bool error = true, bool recursive = true}) {
+      {bool recursive = true, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
 
     HTInstanceNamespace? curNamespace = this;
@@ -42,7 +42,7 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      return closure!.memberGet(varName);
+      return closure!.memberGet(varName, recursive: recursive);
     }
 
     if (error) {

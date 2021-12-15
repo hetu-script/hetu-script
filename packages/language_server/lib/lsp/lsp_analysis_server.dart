@@ -1,6 +1,6 @@
 import 'dart:async';
 
-// import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as path;
 
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/analyzer.dart';
@@ -341,10 +341,16 @@ class LspAnalysisServer {
     sendAnalysisErrors(path, errors);
   }
 
-  void onOverlayCreated(String path, String content) {
+  void onOverlayCreated(String filename, String content) {
+    final ext = path.extension(filename);
+
+    // TODO: 这里应该是根据插件的配置中的选项而判断代码文件类型
     final source = HTSource(content,
-        name: path, isScript: path.endsWith(HTSource.hetuScriptFileExtension));
-    contextManager.addResource(path, source);
+        name: filename,
+        type: ext == HTResource.hetuScript
+            ? ResourceType.hetuScript
+            : ResourceType.hetuModule);
+    contextManager.addResource(filename, source);
 
     logger.log('source added: [${source.name}]\n${source.content}');
     logger.log('pathsToAnalyze:\n${analysisManager.pathsToAnalyze}');

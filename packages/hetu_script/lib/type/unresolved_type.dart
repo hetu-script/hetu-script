@@ -23,7 +23,7 @@ class HTUnresolvedType extends HTType {
     if (HTType.primitiveTypes.containsKey(id)) {
       return HTType.primitiveTypes[id]!;
     } else {
-      var type = namespace.memberGet(id);
+      var type = namespace.memberGet(id, recursive: true);
       if (type is HTType && type.isResolved) {
         return type;
       } else if (type is HTAbstractTypeDeclaration) {

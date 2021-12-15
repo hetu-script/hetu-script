@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 import 'dart:math' as math;
 
 import '../source/source.dart';
+import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
@@ -157,8 +158,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    final source =
-        HTSource(content, name: filename, isScript: isScript ? true : false);
+    final source = HTSource(content,
+        name: filename,
+        type: isScript ? ResourceType.hetuScript : ResourceType.hetuModule);
     final result = evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,

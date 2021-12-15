@@ -2,6 +2,7 @@ import '../../source/source.dart';
 import '../../ast/ast.dart' show AstNode, ImportExportDecl;
 import '../error/error.dart';
 import '../../source/line_info.dart';
+import '../../resource/resource.dart';
 
 /// Contains the resolved fullname of a import statement
 class ImportInfo {
@@ -24,7 +25,7 @@ class HTSourceParseResult {
 
   String get fullName => source.name;
 
-  bool get isScript => source.isScript;
+  ResourceType get type => source.type;
 
   LineInfo get lineInfo => source.lineInfo;
 

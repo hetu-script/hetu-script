@@ -127,7 +127,7 @@ class HTFunction extends HTFunctionDeclaration
   void resolve() {
     super.resolve();
     if ((closure != null) && (classId != null) && (klass == null)) {
-      klass = closure!.memberGet(classId!);
+      klass = closure!.memberGet(classId!, recursive: true);
     }
     if (klass != null &&
         klass!.isExternal &&

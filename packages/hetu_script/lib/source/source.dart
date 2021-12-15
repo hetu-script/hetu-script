@@ -6,40 +6,15 @@ import 'package:path/path.dart' as path;
 import '../grammar/semantic.dart';
 import '../shared/crc32b.dart';
 import 'line_info.dart';
-
-/// Code module types
-enum SourceType {
-  /// Module source can only have declarations (variables, functions, classes, enums),
-  /// import & export statement.
-  module,
-
-  /// A script can have all statements and expressions, kind of like a funciton body.
-  script,
-
-  /// An expression.
-  expression,
-
-  /// Class can only have declarations (variables, functions).
-  classDefinition,
-
-  /// Struct can not have external members
-  structDefinition,
-
-  /// Function & block can have declarations (variables, functions),
-  /// expression & control statements.
-  functionDefinition,
-}
+import '../resource/resource.dart';
 
 class HTSource {
   static const _anonymousScriptNameLengthLimit = 72;
 
-  static const hetuModuleFileExtension = '.ht';
-  static const hetuScriptFileExtension = '.hts';
-
   late String name;
   String get basename => path.basename(name);
 
-  final bool isScript;
+  ResourceType type;
 
   String _content;
   String get content => _content;
@@ -51,7 +26,7 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
-  HTSource(String content, {String? name, this.isScript = false})
+  HTSource(String content, {String? name, this.type = ResourceType.hetuModule})
       : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (name != null) {

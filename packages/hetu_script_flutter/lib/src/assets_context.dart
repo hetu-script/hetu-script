@@ -15,7 +15,13 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
 
   /// Create a [HTAssetsSourceContext] with every script file
   /// placed under folder of [root], which defaults to 'scripts/'
-  HTAssetsSourceContext({this.root = 'scripts/'});
+  HTAssetsSourceContext(
+      {this.root = 'scripts/',
+      List<String> expressionModuleExtensions = const [],
+      List<String> binaryModuleExtensions = const []})
+      : super(
+            expressionModuleExtensions: expressionModuleExtensions,
+            binaryModuleExtensions: binaryModuleExtensions);
 
   Future<void> init() async {
     final manifestContent = await rootBundle.loadString('AssetManifest.json');
@@ -24,16 +30,16 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
     final scriptPaths = manifestMap.keys
         .where((String key) => key.contains(root))
         .where((String key) =>
-            key.contains(HTSource.hetuModuleFileExtension) ||
-            key.contains(HTSource.hetuScriptFileExtension))
+            key.contains(HTResource.hetuModule) ||
+            key.contains(HTResource.hetuScript))
         .toList();
 
     for (final fileName in scriptPaths) {
       final content = await rootBundle.loadString(fileName);
       final ext = path.extension(fileName);
       // final name = HTResourceContext.checkHetuModuleName(fileName);
-      final source = HTSource(content,
-          name: fileName, isScript: ext == HTSource.hetuScriptFileExtension);
+      final source =
+          HTSource(content, name: fileName, type: checkExtension(ext));
       addResource(fileName, source);
     }
   }

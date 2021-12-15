@@ -278,6 +278,14 @@ var obj = {
 print(obj.`name-#42🍎`) // 'aleph'
 ```
 
+## Namespace
+
+It's possible to create a code block within a source or a function body, by declaring with keyword 'namespace' and an Identifer as its name.
+
+The namespace code block works like a class definition. It only allows for variable/class/function declaration, but not for expresssions.
+
+Refer [Do statement](#do) for another kind of code block.
+
 ## Control flow
 
 Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as when statement, which works like switch.
@@ -322,13 +330,13 @@ while (condition) {
 
 ### Do
 
-- 'do' statement's 'while' part is optional, if omitted, it will become a anonymous namespace.
-
 ```javascript
 do {
   ...
 } while (condition)
 ```
+
+- 'do' statement's 'while' part is optional, if omitted, it will become a anonymous code block. It's kind of like an anonymous function that immediately calls.
 
 ### Truth value
 

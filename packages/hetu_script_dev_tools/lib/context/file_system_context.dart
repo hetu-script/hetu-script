@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:hetu_script/source/source.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:hetu_script/hetu_script.dart';
@@ -29,8 +30,13 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
       {String? root,
       List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const [],
-      Map<String, HTSource>? cache})
-      : _cached = cache ?? <String, HTSource>{} {
+      Map<String, HTSource>? cache,
+      List<String> expressionModuleExtensions = const [],
+      List<String> binaryModuleExtensions = const []})
+      : _cached = cache ?? <String, HTSource>{},
+        super(
+            expressionModuleExtensions: expressionModuleExtensions,
+            binaryModuleExtensions: binaryModuleExtensions) {
     root = root != null ? path.absolute(root) : path.current;
     this.root = root = getAbsolutePath(dirName: root);
     final dir = Directory(root);
@@ -97,9 +103,9 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
       return _cached[normalized]!;
     } else {
       final content = File(normalized).readAsStringSync();
-      final isScript =
-          path.extension(normalized) == HTSource.hetuScriptFileExtension;
-      final source = HTSource(content, name: normalized, isScript: isScript);
+      final ext = path.extension(normalized);
+      final source =
+          HTSource(content, name: normalized, type: checkExtension(ext));
       addResource(normalized, source);
       return source;
     }
@@ -123,12 +129,12 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
         getAbsolutePath(key: filter.folder, dirName: root);
     if (path.isWithin(normalizedFolderPath, normalizedFilePath)) {
       if (filter.recursive) {
-        return _checkExt(ext, filter.extention);
+        return _checkExt(ext, filter.extension);
       } else {
         final fileDirName = path.basename(path.dirname(fileName));
         final folderDirName = path.basename(normalizedFolderPath);
         if (fileDirName == folderDirName) {
-          return _checkExt(ext, filter.extention);
+          return _checkExt(ext, filter.extension);
         }
       }
     }

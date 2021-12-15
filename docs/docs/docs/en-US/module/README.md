@@ -2,17 +2,6 @@
 title: Module import & export
 ---
 
-# Module
-
-Hetu script codes are a batch of **HTSource** files. If a source contains import statement, the parser will try to fetch another source content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
-
-## Source type
-
-Hetu script file have two different way to interpret, controlled by the **isScript** parameter in the eval method of the Interpreter class and the extension of the source file.
-
-- When **isScript** is not provided or set to false, or the file is of extension '\*.ht', interpreter will evaluate the source as **SourceType.module**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
-- When **isScript** is true, or the file is of extension '\*.hts', interpreter will evaluate the source as **SourceType.script**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
-
 ## Import
 
 Use import statement to import from another script file.
@@ -49,3 +38,52 @@ export { hello } from 'hello.ht'
 If you have at least one export statement, nomatter it's a export + 'path' form or export { namelist } form, you wont' inexplicitly export any of the members.
 
 Otherwise, every top level symbol will be exported by default.
+
+# Module
+
+Hetu script codes are a batch of **HTSource** files. If a source contains import statement, the parser will try to fetch another source content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
+
+## Resource type
+
+Hetu script file have two different way to interpret, controlled by the **isScript** parameter in the eval method of the Interpreter class and the extension of the source file.
+
+- When **isScript** is not provided or set to false, or the file is of extension '\*.ht', interpreter will evaluate the source as **ResourceType.hetuModule**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+- When **isScript** is true, or the file is of extension '\*.hts', interpreter will evaluate the source as **ResourceType.hetuScript**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
+
+It's possible to import a non-hetu source in your code. For example, it's possible to directly import a JSON format file. You will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
+
+However, to do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning.
+
+And you must give the imported JSON a alias name in your namespace.
+
+Example code (dart part):
+
+```dart
+import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
+
+void main() {
+  const root = 'example/script';
+  const filterConfig = HTFilterConfig(root, extension: [
+    HTResource.hetuModule,
+    HTResource.hetuScript,
+    HTResource.json,
+  ]);
+  final sourceContext = HTFileSystemSourceContext(
+      root: root,
+      includedFilter: [filterConfig],
+      expressionModuleExtensions: [HTResource.json]);
+  final hetu = Hetu(sourceContext: sourceContext);
+  hetu.init();
+
+  hetu.evalFile('json.hts');
+}
+```
+
+script code:
+
+```javascript
+import 'values.json' as json
+
+print(json)
+```

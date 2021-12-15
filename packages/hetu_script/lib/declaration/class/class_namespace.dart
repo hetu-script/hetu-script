@@ -29,7 +29,7 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (recursive && (closure != null)) {
-      return closure!.memberGet(varName);
+      return closure!.memberGet(varName, recursive: recursive);
     }
 
     if (error) {

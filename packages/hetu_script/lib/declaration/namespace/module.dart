@@ -17,6 +17,8 @@ class HTModule extends HTNamespace {
   @override
   Map<String, HTNamespace> get declarations => _namespaces;
 
+  final importedExpressionModules = <String, dynamic>{};
+
   HTModule(this._id, {Map<String, HTNamespace>? declarations})
       : _namespaces = declarations ?? <String, HTNamespace>{},
         super(id: _id);

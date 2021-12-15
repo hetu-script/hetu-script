@@ -1,4 +1,5 @@
 import '../source/source.dart';
+import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
 import '../type/type.dart';
@@ -56,7 +57,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   String get fileName => _curSource.name;
 
-  bool get isScript => _curSource.isScript;
+  ResourceType get sourceType => _curSource.type;
 
   // HTClassDeclaration? _curClass;
   // HTFunctionDeclaration? _curFunction;
@@ -69,7 +70,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   // late HTTypeChecker _curTypeChecker;
 
-  late HTModuleParseResult moduleParseResult;
+  late HTModuleParseResult compilation;
 
   @override
   HTResourceContext<HTSource> sourceContext;
@@ -100,9 +101,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     errors.clear();
     _curSource = source;
     final parser = HTParser(context: sourceContext);
-    moduleParseResult = parser.parseToModule(source, moduleName: moduleName);
+    compilation = parser.parseToModule(source, moduleName: moduleName);
     final results = <String, HTModuleAnalysisResult>{};
-    for (final result in moduleParseResult.results.values) {
+    for (final result in compilation.results.values) {
       _curErrors.clear();
       final analysisErrors =
           result.errors.map((err) => HTAnalysisError.fromError(err)).toList();

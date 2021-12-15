@@ -143,8 +143,8 @@ abstract class HTLexicon {
 
   static const kAssert = 'assert';
   static const kTypeof = 'typeof';
-  static const kNamespace = 'namespace';
   static const kAs = 'as';
+  static const kNamespace = 'namespace';
   static const kClass = 'class';
   static const kEnum = 'enum';
   static const kFun = 'fun';
@@ -201,6 +201,7 @@ abstract class HTLexicon {
     kConst,
     kAssert,
     kTypeof,
+    kNamespace,
     kClass,
     kEnum,
     kFun,
@@ -384,6 +385,10 @@ abstract class HTLexicon {
   static const errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}].';
   static const errorAssertionFailed = "Assertion failed on '{0}'.";
+  static const errorUnkownSourceType = 'Unknown source type: [{0}].';
+  static const errorImportListOnNonHetuSource =
+      'Cannot import list from a non hetu source.';
+  static const errorExportNonHetuSource = 'Cannot export a non hetu source.';
 
   // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}].';

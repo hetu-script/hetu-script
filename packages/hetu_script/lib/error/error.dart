@@ -10,6 +10,9 @@ enum ErrorCode {
   bytecode,
   version,
 
+  unkownSourceType,
+  importListOnNonHetuSource,
+  exportNonHetuSource,
   assertionFailed,
   unexpected,
   external,
@@ -223,6 +226,61 @@ class HTError {
       _message = message;
     }
   }
+
+  HTError.unkownSourceType(String ext,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.unkownSourceType, ErrorType.syntacticError,
+            message: HTLexicon.errorUnkownSourceType,
+            interpolations: [ext],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  HTError.importListOnNonHetuSource(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.importListOnNonHetuSource, ErrorType.syntacticError,
+            message: HTLexicon.errorUnkownSourceType,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  HTError.exportNonHetuSource(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.exportNonHetuSource, ErrorType.syntacticError,
+            message: HTLexicon.errorExportNonHetuSource,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 
   /// Error: Expected a token while met another.
   HTError.unexpected(String expected, String met,

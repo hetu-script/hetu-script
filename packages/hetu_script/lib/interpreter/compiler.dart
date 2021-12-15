@@ -93,12 +93,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     mainBytesBuilder.addByte(version.minor);
     mainBytesBuilder.add(_uint16(version.patch));
     // bool: isScript
-    mainBytesBuilder.addByte(compilation.isScript ? 1 : 0);
+    mainBytesBuilder.addByte(compilation.type.index);
     final bytesBuilder = BytesBuilder();
     for (final result in compilation.results.values) {
       bytesBuilder.addByte(HTOpCode.file);
       final idBytes = _identifierString(result.fullName);
       bytesBuilder.add(idBytes);
+      bytesBuilder.addByte(result.type.index);
       for (final node in result.nodes) {
         final bytes = compileAst(node);
         bytesBuilder.add(bytes);
@@ -1295,7 +1296,23 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitNamespaceDecl(NamespaceDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    // TODO: namespace compilation
+    bytesBuilder.addByte(HTOpCode.namespaceDecl);
+    bytesBuilder.add(_identifierString(stmt.id.id));
+    // if (stmt.id != null) {
+    //   bytesBuilder.addByte(1); // bool: has id
+    //   bytesBuilder.add(_identifierString(stmt.id!.id));
+    // } else {
+    //   bytesBuilder.addByte(0); // bool: has class id
+    // }
+    // if (stmt.classId != null) {
+    //   bytesBuilder.addByte(1); // bool: has class id
+    //   bytesBuilder.add(_identifierString(stmt.classId!));
+    // } else {
+    //   bytesBuilder.addByte(0); // bool: has class id
+    // }
+    final bytes = visitBlockStmt(stmt.definition);
+    bytesBuilder.add(bytes);
+    bytesBuilder.addByte(HTOpCode.endOfExec);
     return bytesBuilder.toBytes();
   }
 

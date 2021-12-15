@@ -18,6 +18,7 @@ export 'grammar/semantic.dart';
 export 'source/line_info.dart';
 export 'source/source.dart';
 export 'source/source_range.dart';
+export 'resource/resource.dart';
 export 'resource/resource_context.dart';
 export 'resource/resource_manager.dart';
 export 'resource/overlay/overlay_context.dart';

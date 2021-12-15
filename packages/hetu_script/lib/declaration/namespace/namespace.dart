@@ -5,7 +5,7 @@ import '../declaration.dart';
 import '../../value/entity.dart';
 
 class ImportDeclaration {
-  final String fullName;
+  final String fromPath;
 
   final String? alias;
 
@@ -14,7 +14,7 @@ class ImportDeclaration {
   final bool isExported;
 
   ImportDeclaration(
-    this.fullName, {
+    this.fromPath, {
     this.alias,
     this.showList = const [],
     this.isExported = true,
@@ -77,7 +77,7 @@ class HTNamespace extends HTDeclaration with HTEntity {
   /// if not found and [recursive] is true, will continue search in super namespaces.
   @override
   dynamic memberGet(String varName,
-      {bool recursive = true, bool error = true}) {
+      {bool recursive = false, bool error = true}) {
     // if (varName.startsWith(HTLexicon.privatePrefix) &&
     //     !from.startsWith(fullName)) {
     //   throw HTError.privateMember(varName);
@@ -100,7 +100,7 @@ class HTNamespace extends HTDeclaration with HTEntity {
   /// if not found and [recursive] is true, will continue search in super namespaces,
   /// then assign the value to that declaration.
   @override
-  void memberSet(String varName, dynamic varValue, {bool recursive = true}) {
+  void memberSet(String varName, dynamic varValue, {bool recursive = false}) {
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       decl.value = varValue;
@@ -115,17 +115,8 @@ class HTNamespace extends HTDeclaration with HTEntity {
     throw HTError.undefined(varName);
   }
 
-  void declareImport(String fromPath,
-      {String? alias,
-      List<String> showList = const [],
-      bool isExported = false}) {
-    final decl = ImportDeclaration(
-      fromPath,
-      alias: alias,
-      showList: showList,
-      isExported: isExported,
-    );
-    imports[fromPath] = decl;
+  void declareImport(ImportDeclaration decl) {
+    imports[decl.fromPath] = decl;
   }
 
   void declareExport(String id) {
@@ -155,6 +146,13 @@ class HTNamespace extends HTDeclaration with HTEntity {
       if (isExported && showList.isEmpty) {
         declareExport(decl.id!);
       }
+    }
+  }
+
+  @override
+  void resolve() {
+    for (final decl in declarations.values) {
+      decl.resolve();
     }
   }
 

@@ -1,9 +1,10 @@
 import 'parse_result.dart';
+import '../resource/resource.dart' show ResourceType;
 
 class HTModuleParseResult {
   final Map<String, HTSourceParseResult> results;
 
-  final bool isScript;
+  final ResourceType type;
 
-  HTModuleParseResult({required this.results, required this.isScript});
+  HTModuleParseResult({required this.results, required this.type});
 }

@@ -69,9 +69,10 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         namespace: closure);
     if (closure != null) {
       if (prototypeId != null) {
-        static.prototype = closure!.memberGet(prototypeId!);
+        static.prototype = closure!.memberGet(prototypeId!, recursive: true);
       } else if (id != HTLexicon.prototype) {
-        static.prototype = closure!.memberGet(HTLexicon.prototype);
+        static.prototype =
+            closure!.memberGet(HTLexicon.prototype, recursive: true);
       }
     }
     HTStruct self = interpreter.execute(

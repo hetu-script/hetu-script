@@ -2,21 +2,21 @@
 
 import 'package:path/path.dart' as path;
 
-import '../source/source.dart';
+import '../resource/resource.dart';
 // import 'file_system/file_system_context.dart';
 // import 'overlay/overlay_context.dart';
 
 class HTFilterConfig {
   final String folder;
 
-  final List<String> extention;
+  final List<String> extension;
 
   final bool recursive;
 
-  HTFilterConfig(this.folder,
-      {this.extention = const [
-        HTSource.hetuModuleFileExtension,
-        HTSource.hetuScriptFileExtension,
+  const HTFilterConfig(this.folder,
+      {this.extension = const [
+        HTResource.hetuModule,
+        HTResource.hetuScript,
       ],
       this.recursive = true});
 }
@@ -45,6 +45,28 @@ abstract class HTResourceContext<T> {
   //     return fileName;
   //   }
   // }
+
+  final List<String> expressionModuleExtensions;
+
+  final List<String> binaryModuleExtensions;
+
+  HTResourceContext(
+      {this.expressionModuleExtensions = const [],
+      this.binaryModuleExtensions = const []});
+
+  ResourceType checkExtension(String ext) {
+    if (ext == HTResource.hetuModule) {
+      return ResourceType.hetuModule;
+    } else if (ext == HTResource.hetuScript) {
+      return ResourceType.hetuScript;
+    } else if (expressionModuleExtensions.contains(ext)) {
+      return ResourceType.hetuExpression;
+    } else if (binaryModuleExtensions.contains(ext)) {
+      return ResourceType.binary;
+    } else {
+      return ResourceType.unkown;
+    }
+  }
 
   /// Get a unique absolute normalized path.
   String getAbsolutePath({String key = '', String? dirName, String? fileName}) {

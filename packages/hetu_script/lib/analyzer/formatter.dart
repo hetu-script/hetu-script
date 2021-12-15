@@ -77,8 +77,9 @@ class HTFormatter implements AbstractAstVisitor<String> {
     result.source.content = format(result.nodes, config: config);
   }
 
-  void formatModule(HTModuleParseResult module, {FormatterConfig? config}) {
-    for (final result in module.results.values) {
+  void formatModule(HTModuleParseResult compilation,
+      {FormatterConfig? config}) {
+    for (final result in compilation.results.values) {
       result.source.content = format(result.nodes, config: config);
     }
   }
