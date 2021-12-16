@@ -21,9 +21,14 @@ A lightweight script language written in Dart for embedding in Flutter apps.
 
 ## Introduction
 
-Hetu is a lightweight script language purely written in Dart for embedding in Flutter apps. The main goal is to enable Flutter apps to have hotfix and scripting ability.
+Hetu is a lightweight script language purely written in Dart for embedding in Flutter apps. Our goal is to enable Flutter app & game to have hotfix and scripting ability.
 
-We did not choose to use another existing language to achieve the goal. Because we want to keep it away from interference of other language's complex implementation and their irrelative-to-Flutter eco-system. This will keep this language simple and focus on what we actually need.
+## Feature
+
+- Modern programming language [syntax](https://hetu.dev/docs/en-US/syntax/) likes typescript/kotlin/swift, no need to learn.
+- Minimal library with full scripting language abilities: OOP, FP, module, errors, etc.
+- Runs all platforms that flutter supports, including web browsers and desktop.
+- Extremely easy to [communicate](https://hetu.dev/docs/en-US/binding/). Directly call Dart functions in script or call script functions in Dart.
 
 ## Quick start
 
@@ -36,58 +41,20 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    fun main {
-      var ht = {
-        name: 'Hetu',
-        greeting: () {
-          print('Hi! I\'m', this.name)
-        }
+    var ht = {
+      name: 'Hetu',
+      greeting: () {
+        print('Greetings from ${this.name}!')
       }
-      ht.greeting()
     }
-  ''', invokeFunc: 'main');
-}
-```
-
-Hetu's [grammar](https://hetu.dev/docs/en-US/syntax/) is close to typescript/kotlin/swift and other modern languages.
-
-- Semicolon is optional.
-- Function starts with a keyword like 'fun, get, set, construct'.
-- Support both class based OOP and prototype based OOP, and also functional programming. You can choose whatever style you want.
-- Type annotation is optional. Variable declared will infer its type from its initializer expression. (The static analysis is still WIP.)
-
-## Binding
-
-[Communicating with Dart](https://hetu.dev/docs/en-US/binding/) is very easy. You can directly pass common value types from and to script.
-
-Below is an example to pass a Map to script, modify it in script and get it back:
-
-```dart
-import 'package:hetu_script/hetu_script.dart';
-
-void main() {
-  var hetu = Hetu();
-  hetu.init(externalFunctions: {
-    'hello': () => {'greeting': 'hello'},
-  });
-  hetu.eval(r'''
-      external fun hello
-      fun main {
-        var dartValue = hello()
-        print('dart value:', dartValue)
-        dartValue['foo'] = 'bar'
-        return dartValue
-      }''');
-
-  var hetuValue = hetu.invoke('main');
-
-  print('hetu value: $hetuValue');
+    ht.greeting()
+  ''', isScript: true);
 }
 ```
 
 ## VScode extension
 
-If you are using VSCode as your editor, you can download [this extension](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript) to get basic highlight and snippets features.
+If you are using VS Code, you can download [this extension](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript) to get basic highlight and dart snippets on bindings.
 
 ## Command line tool
 
@@ -95,13 +62,11 @@ We have a command line REPL tool for quick testing. You can activate by the foll
 
 ```
 dart pub global activate hetu_script_dev_tools
-// or you can use a git url or local path:
-// dart pub global activate --source path G:\_dev\hetu-script\packages\hetu_script_dev-tools
 ```
 
 Then you can use command line tool 'hetu' in any directory on your computer.
 
-More information about the command line tool can be found by enter [hetu -h].
+More information about the command line tool can be found by enter 'hetu -h'.
 
 If no arguments is provided, enter REPL mode.
 
@@ -111,24 +76,24 @@ If you want to write multiple line in REPL mode, use '\\' to end a line.
 
 ```typescript
 >>>var a = 42
+null // repl print
 >>>a
-42
->>>fun hello {\
+42 // repl print
+>>>fun meaning {\
 return a }
->>>hello
-function hello() -> any // repl print
+>>>meaning
+meaning() -> any // repl print
 >>>hello()
 42 // repl print
->>>
 ```
 
-If there's any problems, you can check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global).
+You can check this [official document](https://dart.dev/tools/pub/cmd/pub-global) for more information on 'pub global activate'.
 
 ## Discussion group
 
 Discord: https://discord.gg/sTF73qcS
 
-中文交流请加 QQ 群：812529118
+中文交流可以加 QQ 群：812529118
 
 ## Support
 
