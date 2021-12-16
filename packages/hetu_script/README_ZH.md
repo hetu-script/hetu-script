@@ -23,7 +23,7 @@
 
 ## 文档
 
-### 暂时没有中文文档，请参考[英文文档](https://hetu.dev/docs/en-US/)
+暂时没有中文文档，请参考[英文文档](https://hetu.dev/docs/en-US/)
 
 ## 快速上手
 
