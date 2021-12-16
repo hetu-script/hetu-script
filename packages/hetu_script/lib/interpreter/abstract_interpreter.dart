@@ -55,7 +55,7 @@ class InterpreterConfig
       {this.compileWithLineInfo = true,
       this.doStaticAnalyze = true,
       this.showDartStackTrace = true,
-      this.hetuStackTraceDisplayCountLimit = 10,
+      this.hetuStackTraceDisplayCountLimit = 3,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
       this.allowHotReload = false});
 }
@@ -151,7 +151,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {String? filename,
       String? moduleName,
       bool globallyImport = false,
-      bool isScript = false,
+      bool isModule = false,
       bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -160,7 +160,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool errorHandled = false}) {
     final source = HTSource(content,
         name: filename,
-        type: isScript ? ResourceType.hetuScript : ResourceType.hetuModule);
+        type: isModule ? ResourceType.hetuModule : ResourceType.hetuScript);
     final result = evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,

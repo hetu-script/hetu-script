@@ -35,7 +35,7 @@ dynamic eval(String content,
     {String? filename,
     String? moduleName,
     bool globallyImport = false,
-    bool isScript = false,
+    bool isModule = false,
     bool isStrictMode = false,
     String? invokeFunc,
     List<dynamic> positionalArgs = const [],
@@ -47,7 +47,7 @@ dynamic eval(String content,
 - **content**: Hetu source as String literal.
 - **filename**: The name of this **HTModule**, it will be used when other module try to import from it.
 - **globallyImport**: Whether you want the content of this source is visible to **global** namespace. It's a quicker way to let other modules to use without import statement.
-- **isScript**: Whether let the interpreter evaluate this source as a script. For more information, check **source type**(../module/index.md#Source-type).
+- **isModule**: Whether let the interpreter evaluate this source as a module. For more information, check [**source type**](../module/readme.md#Source-type).
 - **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.
 - **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 

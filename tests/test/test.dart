@@ -17,5 +17,5 @@ void main() {
       // Error!
       // print(p._name)
       p.greeting()
-    ''', isScript: true);
+    ''', isModule: true);
 }

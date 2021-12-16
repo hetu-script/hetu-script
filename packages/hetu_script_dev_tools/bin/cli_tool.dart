@@ -52,7 +52,7 @@ void main(List<String> arguments) {
           }
           try {
             final result =
-                hetu.eval(input, isScript: true, globallyImport: true);
+                hetu.eval(input, isModule: true, globallyImport: true);
             print(result);
           } catch (e) {
             if (e is HTError) {

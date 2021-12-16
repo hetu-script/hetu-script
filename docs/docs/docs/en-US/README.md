@@ -32,7 +32,7 @@ void main() {
 }
 ```
 
-Hetu's [grammar](syntax/index.md) is close to typescript/kotlin/swift and other modern languages.
+Hetu's [grammar](syntax/readme.md) is close to typescript/kotlin/swift and other modern languages.
 
 - Semicolon is optional.
 - Function starts with a keyword like 'fun, get, set, construct'.
@@ -41,7 +41,7 @@ Hetu's [grammar](syntax/index.md) is close to typescript/kotlin/swift and other 
 
 ## Binding
 
-[Communicating with Dart](binding/index.md) is very easy. You can directly pass common value types from and to script.
+[Communicating with Dart](binding/readme.md) is very easy. You can directly pass common value types from and to script.
 
 Below is an example to pass a Map to script, modify it in script and get it back:
 

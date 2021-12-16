@@ -15,5 +15,5 @@ void main() {
       future.then((value) {
         print('future completed!')
       })
-  ''', isScript: true);
+  ''', isModule: true);
 }

@@ -16,7 +16,7 @@ void main() {
   hetu.init();
   final result = hetu.eval(r'''
     var i = 'Hello, world!'
-  ''', isScript: true);
+  ''');
   if (result != null) {
     if (result.errors.isNotEmpty) {
       print('Analyzer found ${result.errors.length} problems:');

@@ -73,4 +73,4 @@ fun hello {
 }
 ```
 
-The 'hetu_script_dev_tools' package also provided a [REPL tool](../command_line_tool/index.md#REPL) for quick testing.
+The 'hetu_script_dev_tools' package also provided a [REPL tool](../command_line_tool/readme.md#REPL) for quick testing.
