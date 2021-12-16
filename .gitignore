@@ -5,8 +5,8 @@ node_modules
 dovs
 **/dist/**
 
-.vscode
-.vs
+vscode
+vs
 
 # local env files
 .env.local
