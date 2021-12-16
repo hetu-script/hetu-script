@@ -29,8 +29,8 @@ Hetu is a lightweight script language purely written in Dart for embedding in Fl
 
 - Modern programming language [syntax](https://hetu.dev/docs/en-US/syntax/) likes typescript/kotlin/swift, no need to learn.
 - Minimal library with full scripting language abilities: OOP, FP, module, errors, etc.
-- Runs all platforms that flutter supports, including web browsers and desktop.
-- Extremely easy to [communicate](https://hetu.dev/docs/en-US/binding/). Directly call Dart functions in script or call script functions in Dart.
+- Runs on all platforms that flutter supports, including web browsers and desktop.
+- Extremely easy to [communicate with Flutter](https://hetu.dev/docs/en-US/binding/). Directly call Dart functions in script or call script functions in Dart.
 
 ## Quick start
 
