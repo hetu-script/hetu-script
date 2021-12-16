@@ -6,12 +6,13 @@ import '../../source/source.dart';
 import '../../interpreter/abstract_interpreter.dart';
 import '../../type/type.dart';
 // import '../declaration.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import '../function/function.dart';
 import '../../value/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
 import '../entity.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
+import 'class_namespace.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
@@ -39,6 +40,10 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   // final Iterable<HTClass> implementedClass;
   // final Iterable<HTType> implementedType;
 
+  /// The [HTNamespace] for this class,
+  /// for searching for static variables.
+  final HTClassNamespace namespace;
+
   /// Create a default [HTClass] instance.
   HTClass(HTAbstractInterpreter interpreter,
       {String? id,
@@ -53,7 +58,9 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       bool isAbstract = false,
       bool isEnum = false,
       this.superClass})
-      : super(
+      : namespace = HTClassNamespace(
+            id: id, classId: classId, closure: closure, source: source),
+        super(
             id: id,
             classId: classId,
             closure: closure,
@@ -72,7 +79,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   void resolve() {
     super.resolve();
     if (superType != null) {
-      superClass = namespace.memberGet(superType!.id, recursive: true);
+      superClass = namespace.memberGet(superType!.id,
+          from: namespace.fullName, recursive: true);
     }
     if (isExternal) {
       externalClass = interpreter.fetchExternalClass(id!);
@@ -129,7 +137,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   /// If [internal] is true, will get the hetu definition even if it's a external class.
   @override
   dynamic memberGet(String varName,
-      {bool recursive = true, bool error = true, bool internal = true}) {
+      {String? from, bool error = true, bool internal = true}) {
     final getter = '${Semantic.getter}$varName';
     final constructor = varName != id
         ? '${Semantic.constructor}$varName'
@@ -142,6 +150,11 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     } else {
       if (namespace.declarations.containsKey(varName)) {
         final decl = namespace.declarations[varName]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
         if (isExternal) {
           return decl.value;
         } else {
@@ -151,6 +164,11 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
         }
       } else if (namespace.declarations.containsKey(getter)) {
         final decl = namespace.declarations[getter]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
         final func = decl as HTFunction;
         if (isExternal) {
           return func.call();
@@ -161,11 +179,6 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
         }
       } else if (namespace.declarations.containsKey(constructor)) {
         return namespace.declarations[constructor]!.value as HTFunction;
-      }
-
-      if (superClass != null) {
-        return superClass!.memberGet(varName,
-            recursive: recursive, error: error, internal: internal);
       }
     }
 
@@ -179,7 +192,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   /// Assign a value to a static member of this [HTClass].
   @override
-  void memberSet(String varName, dynamic varValue) {
+  void memberSet(String varName, dynamic varValue, {String? from}) {
     final setter = '${Semantic.setter}$varName';
 
     if (isExternal) {
@@ -188,12 +201,22 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     } else {
       if (namespace.declarations.containsKey(varName)) {
         final decl = namespace.declarations[varName]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
         if (decl.isStatic) {
           decl.value = varValue;
           return;
         }
       } else if (namespace.declarations.containsKey(setter)) {
         final decl = namespace.declarations[setter]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
         if (decl.isStatic) {
           final setterFunc = decl as HTFunction;
           setterFunc.call(positionalArgs: [varValue]);

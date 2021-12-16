@@ -75,7 +75,7 @@ class ProfileClassBinding extends HTExternalClass {
   ProfileClassBinding() : super('Profile');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'Profile':
         return (HTEntity entity,
@@ -101,7 +101,7 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'Person.profile':
         return Person.profile;
@@ -111,7 +111,7 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic memberSet(String varName, dynamic varValue) {
+  dynamic memberSet(String varName, dynamic varValue, {String? from}) {
     switch (varName) {
       case 'Person.profile':
         return Person.profile = varValue;

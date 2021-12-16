@@ -4,6 +4,25 @@ title: Advanced topics
 
 # Advanced topics
 
+## Private members
+
+You can specify a private member of a class/namespace/source by making its name starts with '\_'.
+
+```dart
+class Person {
+  var _name
+  construct (name) {
+    _name = name
+  }
+  fun greeting {
+    print('Hi, I\'m ', _name)
+  }
+}
+final p = Person('jimmy')
+// print(p._name) // Error!
+p.greeting()
+```
+
 ## Big integers
 
 The builtin integers in script are int32, which range from -2,147,483,648 to 2,147,483,647. This is due to the limitation of the runtime.js of Dart.

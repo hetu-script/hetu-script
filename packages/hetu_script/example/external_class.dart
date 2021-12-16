@@ -58,7 +58,7 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'Person':
         return (HTEntity entity,
@@ -87,7 +87,7 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void memberSet(String varName, dynamic varValue) {
+  void memberSet(String varName, dynamic varValue, {String? from}) {
     switch (varName) {
       case 'Person.race':
         throw HTError.immutable(varName);

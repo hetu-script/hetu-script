@@ -32,7 +32,7 @@ class GenericClassBinding extends HTExternalClass {
   GenericClassBinding() : super('Generic');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'Generic':
         return (HTEntity entity,

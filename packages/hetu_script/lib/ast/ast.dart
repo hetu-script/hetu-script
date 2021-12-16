@@ -1,4 +1,4 @@
-import '../declaration/namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 // import '../grammar/lexicon.dart';
 import '../lexer/token.dart';
 import '../grammar/semantic.dart';

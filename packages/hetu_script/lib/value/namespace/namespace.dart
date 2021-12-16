@@ -1,7 +1,7 @@
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
-import '../declaration.dart';
+import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
 
 class ImportDeclaration {
@@ -77,20 +77,17 @@ class HTNamespace extends HTDeclaration with HTEntity {
   /// if not found and [recursive] is true, will continue search in super namespaces.
   @override
   dynamic memberGet(String varName,
-      {bool recursive = false, bool error = true}) {
-    // if (varName.startsWith(HTLexicon.privatePrefix) &&
-    //     !from.startsWith(fullName)) {
-    //   throw HTError.privateMember(varName);
-    // }
+      {String? from, bool recursive = false, bool error = true}) {
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       return decl.value;
     }
-
     if (recursive && (closure != null)) {
-      return closure!.memberGet(varName, recursive: recursive);
+      return closure!.memberGet(varName, from: from, recursive: recursive);
     }
-
     if (error) {
       throw HTError.undefined(varName);
     }
@@ -100,18 +97,20 @@ class HTNamespace extends HTDeclaration with HTEntity {
   /// if not found and [recursive] is true, will continue search in super namespaces,
   /// then assign the value to that declaration.
   @override
-  void memberSet(String varName, dynamic varValue, {bool recursive = false}) {
+  void memberSet(String varName, dynamic varValue,
+      {String? from, bool recursive = false}) {
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       decl.value = varValue;
       return;
     }
-
     if (recursive && (closure != null)) {
-      closure!.memberSet(varName, varValue, recursive: recursive);
+      closure!.memberSet(varName, varValue, from: from, recursive: recursive);
       return;
     }
-
     throw HTError.undefined(varName);
   }
 
@@ -134,6 +133,9 @@ class HTNamespace extends HTDeclaration with HTEntity {
     }
     for (final key in other.declarations.keys) {
       var decl = other.declarations[key]!;
+      if (decl.isPrivate) {
+        continue;
+      }
       if (other.exports.isNotEmpty) {
         if (!other.exports.contains(decl.id)) {
           continue;

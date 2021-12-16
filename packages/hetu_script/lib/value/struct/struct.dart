@@ -5,10 +5,11 @@ import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../entity.dart';
 import '../function/function.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import '../../shared/stringify.dart' as util;
 import '../../shared/jsonify.dart' as util;
 import '../../type/structural_type.dart';
+import '../../error/error.dart';
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -122,7 +123,7 @@ class HTStruct with HTEntity {
 
   /// [isSelf] means wether this is called by the struct itself, or a recursive one
   @override
-  dynamic memberGet(String varName, {bool isSelf = true}) {
+  dynamic memberGet(String varName, {String? from, bool isSelf = true}) {
     dynamic value;
     if (varName == Semantic.prototype) {
       return prototype;
@@ -130,11 +131,21 @@ class HTStruct with HTEntity {
     final getter = '${Semantic.getter}$varName';
 
     if (fields.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
       value = fields[varName];
     } else if (fields.containsKey(getter)) {
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
       value = fields[getter]!;
     } else if (prototype != null) {
-      value = prototype!.memberGet(varName, isSelf: false);
+      value = prototype!.memberGet(varName, from: from, isSelf: false);
     }
     // assign the original struct as instance, not the prototype object
     if (isSelf) {
@@ -150,19 +161,31 @@ class HTStruct with HTEntity {
   }
 
   @override
-  bool memberSet(String varName, dynamic varValue, {bool define = true}) {
+  bool memberSet(String varName, dynamic varValue,
+      {String? from, bool define = true}) {
     final setter = '${Semantic.setter}$varName';
     if (fields.containsKey(varName)) {
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
       fields[varName] = varValue;
       return true;
     } else if (fields.containsKey(setter)) {
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
       HTFunction func = fields[setter]!;
       func.namespace = namespace;
       func.instance = this;
       func.call(positionalArgs: [varValue]);
       return true;
     } else if (prototype != null) {
-      final success = prototype!.memberSet(varName, varValue, define: false);
+      final success =
+          prototype!.memberSet(varName, varValue, from: from, define: false);
       if (success) {
         return true;
       }
@@ -175,11 +198,12 @@ class HTStruct with HTEntity {
   }
 
   @override
-  dynamic subGet(dynamic varName) => memberGet(varName.toString());
+  dynamic subGet(dynamic varName, {String? from}) =>
+      memberGet(varName.toString(), from: from);
 
   @override
-  void subSet(dynamic varName, dynamic varValue) =>
-      memberSet(varName.toString(), varValue);
+  void subSet(dynamic varName, dynamic varValue, {String? from}) =>
+      memberSet(varName.toString(), varValue, from: from);
 
   HTStruct clone() {
     final cloned = HTStruct(closure!, prototype: prototype);

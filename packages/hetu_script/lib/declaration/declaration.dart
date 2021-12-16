@@ -4,7 +4,7 @@ import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
 // import '../type/type.dart';
-import 'namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 
 /// Declaration is a semantic entity in the program that
 /// represents things that are declared with a name
@@ -20,6 +20,12 @@ abstract class HTDeclaration {
   final String? id;
 
   String get displayName => id ?? '';
+
+  final bool _isPrivate;
+
+  /// Wether this declaration is only accessible from a same class namespace.
+  bool get isPrivate =>
+      _isPrivate || id == null || id!.startsWith(HTLexicon.privatePrefix);
 
   final String? classId;
 
@@ -49,9 +55,6 @@ abstract class HTDeclaration {
   /// Wether this declaration is a member of a class or struct.
   bool get isMember => classId != null;
 
-  /// Wether this declaration is only accessible from a same class namespace.
-  bool get isPrivate => displayName.startsWith(HTLexicon.privatePrefix);
-
   bool get isResolved => true;
 
   const HTDeclaration(
@@ -61,11 +64,13 @@ abstract class HTDeclaration {
       this.source,
       this.idRange = SourceRange.empty,
       this.sourceRange = SourceRange.empty,
+      bool isPrivate = false,
       this.isExternal = false,
       this.isStatic = false,
       this.isConst = false,
       this.isMutable = false,
-      this.isTopLevel = false});
+      this.isTopLevel = false})
+      : _isPrivate = isPrivate;
 
   dynamic get value => this;
 

@@ -1,5 +1,5 @@
 import '../../interpreter/interpreter.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import '../../type/type.dart';
 import '../variable/variable.dart';
 import '../../declaration/function/abstract_parameter.dart';

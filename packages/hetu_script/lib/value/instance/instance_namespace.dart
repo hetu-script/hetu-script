@@ -2,7 +2,7 @@ import 'package:hetu_script/value/function/function.dart';
 
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import 'instance.dart';
 
 /// A implementation of [HTNamespace] for [HTInstance].
@@ -24,14 +24,15 @@ class HTInstanceNamespace extends HTNamespace {
   /// try fetching variable from enclosed namespace.
   @override
   dynamic memberGet(String varName,
-      {bool recursive = true, bool error = true}) {
+      {String? from, bool recursive = true, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
       if (curNamespace.declarations.containsKey(varName) ||
           curNamespace.declarations.containsKey(getter)) {
-        final value = instance.memberGet(varName, cast: curNamespace.classId);
+        final value =
+            instance.memberGet(varName, from: from, cast: curNamespace.classId);
         if (value is HTFunction) {
           value.instance = instance;
         }
@@ -42,7 +43,7 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      return closure!.memberGet(varName, recursive: recursive);
+      return closure!.memberGet(varName, from: from, recursive: recursive);
     }
 
     if (error) {
@@ -56,14 +57,15 @@ class HTInstanceNamespace extends HTNamespace {
   /// try assigning variable from enclosed namespace.
   @override
   void memberSet(String varName, dynamic varValue,
-      {bool recursive = true, bool error = true}) {
+      {String? from, bool recursive = true, bool error = true}) {
     final setter = '${Semantic.getter}$varName';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
       if (curNamespace.declarations.containsKey(varName) ||
           curNamespace.declarations.containsKey(setter)) {
-        instance.memberSet(varName, varValue, cast: curNamespace.classId);
+        instance.memberSet(varName, varValue,
+            from: from, cast: curNamespace.classId);
         return;
       } else {
         curNamespace = curNamespace.next;
@@ -71,7 +73,7 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (recursive && closure != null) {
-      closure!.memberSet(varName, varValue);
+      closure!.memberSet(varName, varValue, from: from);
       return;
     }
 

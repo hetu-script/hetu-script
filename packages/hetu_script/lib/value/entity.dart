@@ -30,7 +30,7 @@ abstract class HTEntity {
   /// ```
   /// object.varName
   /// ```
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     throw HTError.undefined(varName);
   }
 
@@ -38,7 +38,7 @@ abstract class HTEntity {
   /// ```
   /// object.varName = varValue
   /// ```
-  void memberSet(String varName, dynamic varValue) {
+  void memberSet(String varName, dynamic varValue, {String? from}) {
     throw HTError.undefined(varName);
   }
 
@@ -46,7 +46,7 @@ abstract class HTEntity {
   /// ```
   /// object[varName]
   /// ```
-  dynamic subGet(dynamic varName) {
+  dynamic subGet(dynamic varName, {String? from}) {
     throw HTError.undefined(varName);
   }
 
@@ -54,7 +54,7 @@ abstract class HTEntity {
   /// ```
   /// object[varName] = varValue
   /// ```
-  void subSet(dynamic varName, dynamic varValue) {
+  void subSet(dynamic varName, dynamic varValue, {String? from}) {
     throw HTError.undefined(varName);
   }
 }

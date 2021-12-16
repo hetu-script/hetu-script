@@ -2,7 +2,7 @@ import '../../declaration/declaration.dart';
 import '../../binding/external_class.dart';
 import '../../interpreter/abstract_interpreter.dart';
 import '../entity.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import '../../source/source.dart';
 
 class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
@@ -31,7 +31,7 @@ class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     final item = externalClass!.memberGet(varName);
     return item;
   }

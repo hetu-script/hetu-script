@@ -1,4 +1,4 @@
-import '../declaration/namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 import '../source/source.dart';
 import '../source/line_info.dart';
 import '../parser/parse_result.dart';

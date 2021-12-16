@@ -4,7 +4,7 @@ import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
 import '../type/type.dart';
 // import '../declaration/generic/generic_type_parameter.dart';
-import '../declaration/namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';

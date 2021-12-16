@@ -4,10 +4,18 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      final l1 = [1, 2, 3, 4, 5, 6]
-
-      final l2  = l1.where((element) => element % 2 == 0)
-
-      print(l2)
+      class Person {
+        var _name
+        construct (name) {
+          _name = name
+        }
+        fun greeting {
+          print('Hi, I\'m ', _name)
+        }
+      }
+      final p = Person('jimmy')
+      // Error!
+      // print(p._name)
+      p.greeting()
     ''', isScript: true);
 }

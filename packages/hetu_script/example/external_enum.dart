@@ -12,7 +12,7 @@ class CountryEnumBinding extends HTExternalClass {
   CountryEnumBinding() : super('Country');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'values':
         return Country.values;

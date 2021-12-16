@@ -10,7 +10,7 @@ import '../../value/instance/instance_namespace.dart';
 import '../../value/class/class.dart';
 import '../../value/instance/instance.dart';
 import '../../value/struct/struct.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import '../../declaration/function/function_declaration.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
 import '../../type/function_type.dart';
@@ -179,7 +179,7 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     if (varName == HTLexicon.bind) {
       return (HTEntity entity,
           {List<dynamic> positionalArgs = const [],
@@ -298,8 +298,8 @@ class HTFunction extends HTFunctionDeclaration
           final referCtorPosArgs = [];
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
-            final savedModuleFullName = interpreter.fileName;
-            final savedlibraryName = interpreter.bytecodeModule.fullName;
+            final savedFileName = interpreter.fileName;
+            final savedlibraryName = interpreter.bytecodeModule.id;
             final savedNamespace = interpreter.namespace;
             final savedIp = interpreter.bytecodeModule.ip;
             interpreter.newStackFrame(
@@ -316,8 +316,8 @@ class HTFunction extends HTFunctionDeclaration
               referCtorPosArgs.addAll(arg);
             }
             interpreter.restoreStackFrame(
-              savedModuleFullName: savedModuleFullName,
-              savedLibraryName: savedlibraryName,
+              savedFileName: savedFileName,
+              savedModuleName: savedlibraryName,
               savedNamespace: savedNamespace,
               savedIp: savedIp,
             );

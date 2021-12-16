@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:hetu_script/source/source.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:hetu_script/hetu_script.dart';

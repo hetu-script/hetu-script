@@ -1,6 +1,6 @@
 import '../../source/source.dart';
 import '../../declaration/declaration.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import 'struct.dart';
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
@@ -69,10 +69,11 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         namespace: closure);
     if (closure != null) {
       if (prototypeId != null) {
-        static.prototype = closure!.memberGet(prototypeId!, recursive: true);
+        static.prototype = closure!
+            .memberGet(prototypeId!, from: closure!.fullName, recursive: true);
       } else if (id != HTLexicon.prototype) {
-        static.prototype =
-            closure!.memberGet(HTLexicon.prototype, recursive: true);
+        static.prototype = closure!.memberGet(HTLexicon.prototype,
+            from: closure!.fullName, recursive: true);
       }
     }
     HTStruct self = interpreter.execute(

@@ -1,6 +1,6 @@
 import '../error/error.dart';
 import '../declaration/class/class_declaration.dart';
-import '../declaration/namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 import '../declaration/type/abstract_type_declaration.dart';
 import '../declaration/type/type_alias_declaration.dart';
 import 'function_type.dart';
@@ -23,7 +23,8 @@ class HTUnresolvedType extends HTType {
     if (HTType.primitiveTypes.containsKey(id)) {
       return HTType.primitiveTypes[id]!;
     } else {
-      var type = namespace.memberGet(id, recursive: true);
+      var type =
+          namespace.memberGet(id, from: namespace.fullName, recursive: true);
       if (type is HTType && type.isResolved) {
         return type;
       } else if (type is HTAbstractTypeDeclaration) {

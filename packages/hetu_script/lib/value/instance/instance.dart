@@ -9,7 +9,7 @@ import '../../type/nominal_type.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import 'cast.dart';
-import '../../declaration/namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import '../entity.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/abstract_interpreter.dart';
@@ -137,19 +137,24 @@ class HTInstance with HTEntity, InterpreterRef {
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  dynamic memberGet(String varName, {String? cast, bool error = true}) {
+  dynamic memberGet(String varName,
+      {String? from, String? cast, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(varName)) {
-          final value = space.declarations[varName]!.value;
-          if (value is HTFunction &&
-              value.category != FunctionCategory.literal) {
-            value.namespace = namespace;
-            value.instance = this;
+          final decl = space.declarations[varName]!;
+          if (decl.isPrivate &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(varName);
           }
-          return value;
+          if (decl is HTFunction && decl.category != FunctionCategory.literal) {
+            decl.namespace = namespace;
+            decl.instance = this;
+          }
+          return decl.value;
         } else if (space.declarations.containsKey(getter)) {
           final func = space.declarations[getter]! as HTFunction;
           func.namespace = namespace;
@@ -160,14 +165,25 @@ class HTInstance with HTEntity, InterpreterRef {
     } else {
       final space = _namespaces[cast]!;
       if (space.declarations.containsKey(varName)) {
-        final value = space.declarations[varName]!.value;
-        if (value is HTFunction && value.category != FunctionCategory.literal) {
-          value.namespace = _namespaces[classId];
-          value.instance = this;
+        final decl = space.declarations[varName]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
         }
-        return value;
+        if (decl is HTFunction && decl.category != FunctionCategory.literal) {
+          decl.namespace = _namespaces[classId];
+          decl.instance = this;
+        }
+        return decl.value;
       } else if (space.declarations.containsKey(getter)) {
-        final func = space.declarations[getter]! as HTFunction;
+        final decl = space.declarations[getter]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
+        final func = decl as HTFunction;
         func.namespace = _namespaces[classId];
         func.instance = this;
         return func.call();
@@ -185,17 +201,28 @@ class HTInstance with HTEntity, InterpreterRef {
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
   void memberSet(String varName, dynamic varValue,
-      {String? cast, bool error = true}) {
+      {String? from, String? cast, bool error = true}) {
     final setter = '${Semantic.setter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
         if (space.declarations.containsKey(varName)) {
-          var decl = space.declarations[varName]!;
+          final decl = space.declarations[varName]!;
+          if (decl.isPrivate &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(varName);
+          }
           decl.value = varValue;
           return;
         } else if (space.declarations.containsKey(setter)) {
-          HTFunction method = space.declarations[setter]!.value;
+          final decl = space.declarations[setter]!;
+          if (decl.isPrivate &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(varName);
+          }
+          final method = decl as HTFunction;
           method.namespace = namespace;
           method.instance = this;
           method.call(positionalArgs: [varValue]);
@@ -210,10 +237,21 @@ class HTInstance with HTEntity, InterpreterRef {
       final space = _namespaces[cast]!;
       if (space.declarations.containsKey(varName)) {
         var decl = space.declarations[varName]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
         decl.value = varValue;
         return;
       } else if (space.declarations.containsKey(setter)) {
-        final method = space.declarations[setter]! as HTFunction;
+        final decl = space.declarations[setter]!;
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(varName);
+        }
+        final method = decl as HTFunction;
         method.namespace = _namespaces[cast];
         method.instance = this;
         method.call(positionalArgs: [varValue]);

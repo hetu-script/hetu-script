@@ -50,12 +50,11 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     if (externalClass != null) {
       final member = externalClass!.instanceMemberGet(externalObject, varName);
       if (member is Function && klass != null) {
-        HTFunction func =
-            klass!.memberGet(varName, recursive: false, internal: true);
+        HTFunction func = klass!.memberGet(varName, internal: true);
         func.externalFunc = member;
         return func;
       } else {
@@ -67,7 +66,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
   }
 
   @override
-  void memberSet(String varName, dynamic varValue) {
+  void memberSet(String varName, dynamic varValue, {String? from}) {
     if (externalClass != null) {
       externalClass!.instanceMemberSet(externalObject, varName, varValue);
     } else {

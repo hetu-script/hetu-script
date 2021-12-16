@@ -3,4 +3,6 @@ final target = 'Hunter'
 
 namespace Outter {
   final greeting = 'Hello, world!'
+  
+  final _secret = 'I\'m a melon'
 }

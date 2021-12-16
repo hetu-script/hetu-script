@@ -2,6 +2,10 @@
 title: Module import & export
 ---
 
+# Module
+
+Hetu script codes are a batch of **HTSource** files. If a source contains import statement, the parser will try to fetch another source content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
+
 ## Import
 
 Use import statement to import from another script file.
@@ -39,10 +43,6 @@ If you have at least one export statement, nomatter it's a export + 'path' form 
 
 Otherwise, every top level symbol will be exported by default.
 
-# Module
-
-Hetu script codes are a batch of **HTSource** files. If a source contains import statement, the parser will try to fetch another source content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
-
 ## Resource type
 
 Hetu script file have two different way to interpret, controlled by the **isScript** parameter in the eval method of the Interpreter class and the extension of the source file.
@@ -50,11 +50,13 @@ Hetu script file have two different way to interpret, controlled by the **isScri
 - When **isScript** is not provided or set to false, or the file is of extension '\*.ht', interpreter will evaluate the source as **ResourceType.hetuModule**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
 - When **isScript** is true, or the file is of extension '\*.hts', interpreter will evaluate the source as **ResourceType.hetuScript**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
 
-It's possible to import a non-hetu source in your code. For example, it's possible to directly import a JSON format file. You will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
+## Import a JSON file
 
-However, to do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning.
+It's possible to import a non-hetu source in your code sometimes. For example, if you imported a JSON file, you will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
 
-And you must give the imported JSON a alias name in your namespace.
+To do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning.
+
+And you have to give the imported JSON a alias name in your namespace.
 
 Example code (dart part):
 

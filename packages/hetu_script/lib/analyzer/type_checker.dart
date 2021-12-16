@@ -1,12 +1,7 @@
 import '../ast/ast.dart';
 import '../type/type.dart';
-import '../declaration/namespace/module.dart';
 
 class HTTypeChecker implements AbstractAstVisitor<HTType?> {
-  final HTModule library;
-
-  HTTypeChecker(this.library);
-
   HTType? visitAstNode(AstNode node) => node.accept(this);
 
   @override

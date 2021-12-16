@@ -1,7 +1,7 @@
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
 import '../../source/source.dart';
-import '../../value/function/function.dart';
+import '../function/function.dart';
 import '../namespace/namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
@@ -13,23 +13,32 @@ class HTClassNamespace extends HTNamespace {
 
   @override
   dynamic memberGet(String varName,
-      {bool recursive = true, bool error = true}) {
+      {String? from, bool recursive = true, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
     final externalStatic = '$id.$varName';
 
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       return decl.value;
     } else if (declarations.containsKey(getter)) {
       final decl = declarations[getter]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       return decl.value;
     } else if (declarations.containsKey(externalStatic)) {
       final decl = declarations[externalStatic]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       return decl.value;
     }
 
     if (recursive && (closure != null)) {
-      return closure!.memberGet(varName, recursive: recursive);
+      return closure!.memberGet(varName, from: from, recursive: recursive);
     }
 
     if (error) {
@@ -39,20 +48,27 @@ class HTClassNamespace extends HTNamespace {
 
   @override
   void memberSet(String varName, dynamic varValue,
-      {bool recursive = true, bool error = true}) {
+      {String? from, bool recursive = true, bool error = true}) {
     final setter = '${Semantic.setter}$varName';
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       decl.value = varValue;
       return;
     } else if (declarations.containsKey(setter)) {
-      final setterFunc = declarations[setter] as HTFunction;
+      final decl = declarations[setter]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final setterFunc = decl as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
       return;
     }
 
     if (recursive && closure != null) {
-      closure!.memberSet(varName, varValue);
+      closure!.memberSet(varName, varValue, from: from);
       return;
     }
 

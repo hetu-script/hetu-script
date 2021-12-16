@@ -5,7 +5,8 @@ node_modules
 dovs
 **/dist/**
 
-pnpm-lock.yaml
+.vscode
+.vs
 
 # local env files
 .env.local

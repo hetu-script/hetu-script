@@ -7,7 +7,7 @@ class HTConsoleClass extends HTExternalClass {
   HTConsoleClass() : super('Console');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'Console.write':
         return (HTEntity entity,

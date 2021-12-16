@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 import '../../source/source.dart';
 import '../../type/type.dart';
 import '../declaration.dart';
-import '../namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 
 class HTVariableDeclaration extends HTDeclaration {
   final String _id;

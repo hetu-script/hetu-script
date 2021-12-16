@@ -4,7 +4,7 @@ class HTNumberClass extends HTExternalClass {
   HTNumberClass() : super('num');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'num.parse':
         return (HTEntity entity,
@@ -22,7 +22,7 @@ class HTIntClass extends HTExternalClass {
   HTIntClass() : super('int');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'int.fromEnvironment':
         return (HTEntity entity,
@@ -51,7 +51,7 @@ class HTBigIntClass extends HTExternalClass {
   HTBigIntClass() : super('BigInt');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'BigInt.zero':
         return (HTEntity entity,
@@ -97,7 +97,7 @@ class HTFloatClass extends HTExternalClass {
   HTFloatClass() : super('float');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'float.nan':
         return double.nan;
@@ -129,7 +129,7 @@ class HTBooleanClass extends HTExternalClass {
   HTBooleanClass() : super('bool');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'bool.parse':
         return (HTEntity entity,
@@ -148,7 +148,7 @@ class HTStringClass extends HTExternalClass {
   HTStringClass() : super('str');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'str.parse':
         return (HTEntity entity,
@@ -171,7 +171,7 @@ class HTListClass extends HTExternalClass {
   HTListClass() : super('List');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       default:
         throw HTError.undefined(varName);
@@ -187,7 +187,7 @@ class HTMapClass extends HTExternalClass {
   HTMapClass() : super('Map');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       default:
         throw HTError.undefined(varName);
@@ -203,7 +203,7 @@ class HTMathClass extends HTExternalClass {
   HTMathClass() : super('Math');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'Math.e':
         return (HTEntity entity,
@@ -358,7 +358,7 @@ class HTSystemClass extends HTExternalClass {
   HTSystemClass() : super('System');
 
   @override
-  dynamic memberGet(String varName) {
+  dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'System.now':
         return DateTime.now().millisecondsSinceEpoch;

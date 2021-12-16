@@ -2,7 +2,7 @@ import 'package:quiver/core.dart';
 
 import '../grammar/lexicon.dart';
 import '../value/entity.dart';
-import '../declaration/namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 import 'unresolved_type.dart';
 import '../ast/ast.dart' show TypeExpr, FuncTypeExpr;
 import 'function_type.dart';

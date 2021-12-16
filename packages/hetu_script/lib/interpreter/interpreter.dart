@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as path;
 
 import '../binding/external_function.dart';
-import '../declaration/namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 import '../declaration/declaration.dart';
 import '../value/struct/named_struct.dart';
 import '../value/entity.dart';
@@ -312,9 +312,9 @@ class Hetu extends HTAbstractInterpreter {
     try {
       if (moduleName != null) {
         _bytecodeModule = _cachedModules[moduleName]!;
-        _namespace = _bytecodeModule.declarations[moduleName]!;
+        _namespace = _bytecodeModule.namespaces[moduleName]!;
       }
-      final func = _namespace.memberGet(funcName);
+      final func = _namespace.memberGet(funcName, from: _fileName);
       if (func is HTFunction) {
         return func.call(
             positionalArgs: positionalArgs,
@@ -405,14 +405,15 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleNamespaceImport(HTNamespace nsp, ImportDeclaration decl) {
-    final importNamespace = _bytecodeModule.declarations[decl.fromPath]!;
+    final importNamespace = _bytecodeModule.namespaces[decl.fromPath]!;
     if (decl.alias == null) {
       if (decl.showList.isEmpty) {
         nsp.import(importNamespace,
             isExported: decl.isExported, showList: decl.showList);
       } else {
         for (final id in decl.showList) {
-          HTDeclaration decl = importNamespace.memberGet(id, recursive: false);
+          HTDeclaration decl =
+              importNamespace.memberGet(id, recursive: false, from: _fileName);
           nsp.define(id, decl);
         }
       }
@@ -424,7 +425,8 @@ class Hetu extends HTAbstractInterpreter {
       } else {
         final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
         for (final id in decl.showList) {
-          HTDeclaration decl = importNamespace.memberGet(id, recursive: false);
+          HTDeclaration decl =
+              importNamespace.memberGet(id, recursive: false, from: _fileName);
           aliasNamespace.define(id, decl);
         }
         nsp.define(decl.alias!, aliasNamespace);
@@ -450,14 +452,14 @@ class Hetu extends HTAbstractInterpreter {
         while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
           final module = execute();
           if (module is HTNamespace) {
-            _bytecodeModule.define(module.id!, module);
+            _bytecodeModule.namespaces[module.id!] = module;
           } else if (module is ExpressionModule) {
             _bytecodeModule.importedExpressionModules[module.fullName] =
                 module.value;
           }
           // TODO: import binary bytes
         }
-        _namespace = _bytecodeModule.declarations.values.last;
+        _namespace = _bytecodeModule.namespaces.values.last;
         if (globallyImport) {
           global.import(_namespace);
         }
@@ -467,21 +469,21 @@ class Hetu extends HTAbstractInterpreter {
       } else {
         while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
           final HTNamespace nsp = execute();
-          _bytecodeModule.define(nsp.id!, nsp);
+          _bytecodeModule.namespaces[nsp.id!] = nsp;
         }
         // handles imports
-        for (final nsp in _bytecodeModule.declarations.values) {
+        for (final nsp in _bytecodeModule.namespaces.values) {
           for (final decl in nsp.imports.values) {
             _handleNamespaceImport(nsp, decl);
           }
         }
-        _namespace = _bytecodeModule.declarations.values.last;
+        _namespace = _bytecodeModule.namespaces.values.last;
         if (globallyImport) {
           global.import(_namespace);
         }
         _cachedModules[_bytecodeModule.id] = _bytecodeModule;
         // resolve each declaration after we get all declarations
-        for (final namespace in _bytecodeModule.declarations.values) {
+        for (final namespace in _bytecodeModule.namespaces.values) {
           for (final decl in namespace.declarations.values) {
             decl.resolve();
           }
@@ -523,7 +525,7 @@ class Hetu extends HTAbstractInterpreter {
     if (namespace != null) {
       _namespace = namespace;
     } else if (libChanged) {
-      _namespace = _bytecodeModule.declarations.values.last;
+      _namespace = _bytecodeModule.namespaces.values.last;
     }
     if (function != null) {
       _function = function;
@@ -550,19 +552,19 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void restoreStackFrame(
-      {String? savedModuleFullName,
-      String? savedLibraryName,
+      {String? savedFileName,
+      String? savedModuleName,
       HTNamespace? savedNamespace,
       HTFunction? savedFunction,
       int? savedIp,
       int? savedLine,
       int? savedColumn}) {
-    if (savedModuleFullName != null) {
-      _fileName = savedModuleFullName;
+    if (savedFileName != null) {
+      _fileName = savedFileName;
     }
-    if (savedLibraryName != null) {
-      if (_bytecodeModule.id != savedLibraryName) {
-        _bytecodeModule = _cachedModules[savedLibraryName]!;
+    if (savedModuleName != null) {
+      if (_bytecodeModule.id != savedModuleName) {
+        _bytecodeModule = _cachedModules[savedModuleName]!;
       }
     }
     if (savedNamespace != null) {
@@ -598,7 +600,7 @@ class Hetu extends HTAbstractInterpreter {
       int? ip,
       int? line,
       int? column}) {
-    final savedModuleFullName = _fileName;
+    final savedFileName = _fileName;
     final savedLibrary = _bytecodeModule;
     final savedNamespace = _namespace;
     final savedFunction = _function;
@@ -644,7 +646,7 @@ class Hetu extends HTAbstractInterpreter {
 
     final result = _execute();
 
-    _fileName = savedModuleFullName;
+    _fileName = savedFileName;
     _bytecodeModule = savedLibrary;
     _namespace = savedNamespace;
     _function = savedFunction;
@@ -954,7 +956,7 @@ class Hetu extends HTAbstractInterpreter {
           } else {
             final key = _getRegVal(HTRegIdx.postfixKey);
             final encap = encapsulate(object);
-            _localValue = encap.memberGet(key);
+            _localValue = encap.memberGet(key, from: _fileName);
           }
           break;
         case HTOpCode.subGet:
@@ -965,7 +967,7 @@ class Hetu extends HTAbstractInterpreter {
           } else {
             final key = execute();
             if (object is HTEntity) {
-              _localValue = object.subGet(key);
+              _localValue = object.subGet(key, from: _fileName);
             } else {
               if (object is List) {
                 if (key is! int) {
@@ -1117,7 +1119,8 @@ class Hetu extends HTAbstractInterpreter {
         final hasPrototypeId = _bytecodeModule.readBool();
         if (hasPrototypeId) {
           final prototypeId = _readIdentifier();
-          prototype = _namespace.memberGet(prototypeId, recursive: true);
+          prototype = _namespace.memberGet(prototypeId,
+              from: _fileName, recursive: true);
         }
         final struct = HTStruct(_namespace, id: id, prototype: prototype);
         final fieldsCount = _bytecodeModule.read();
@@ -1311,7 +1314,8 @@ class Hetu extends HTAbstractInterpreter {
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final type = (_localValue as HTType).resolve(_namespace);
-        final HTClass klass = _namespace.memberGet(type.id, recursive: true);
+        final HTClass klass =
+            _namespace.memberGet(type.id, from: _fileName, recursive: true);
         _localValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:

@@ -1,6 +1,6 @@
 import '../../type/type.dart';
 import '../../source/source.dart';
-import '../namespace/namespace.dart';
+import '../../value/namespace/namespace.dart';
 import '../variable/variable_declaration.dart';
 import 'abstract_parameter.dart';
 

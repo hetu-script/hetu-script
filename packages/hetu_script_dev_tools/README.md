@@ -16,6 +16,7 @@ void main() {
   hetu.init();
   final result = hetu.evalFile('script.ht', invokeFunc: 'main');
   print(result);
+}
 ```
 
 ## Command line tool

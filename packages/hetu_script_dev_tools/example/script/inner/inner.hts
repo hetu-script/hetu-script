@@ -1,3 +1,6 @@
 import '../outter.ht'
 
 print(Outter.greeting)
+
+// Error! It's a private member.
+// print(Outter._secret)

@@ -13,7 +13,7 @@ import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
 import '../type/type.dart';
 import '../value/function/function.dart';
-import '../declaration/namespace/namespace.dart';
+import '../value/namespace/namespace.dart';
 import '../parser/abstract_parser.dart';
 import '../value/entity.dart';
 import '../value/instance/instance.dart';

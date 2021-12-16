@@ -59,8 +59,6 @@ abstract class HTLexicon {
     kReturn,
   };
 
-  static const internalMarker = r'_$';
-
   static const main = 'main';
   static const instanceof = 'instance of';
 
@@ -92,6 +90,8 @@ abstract class HTLexicon {
 
   static const variadicArgs = '...';
   static const privatePrefix = '_';
+  static const privatePrefix2 = r'#';
+  static const internalPrefix = r'$';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
   static const singleArrow = '->';
@@ -99,6 +99,7 @@ abstract class HTLexicon {
   static const decimalPoint = '.';
   static const indentSpaces = '  ';
   static const spreadSyntax = '...';
+  static const internalMarker = r'_$';
 
   static const kNull = 'null';
   static const kTrue = 'true';
