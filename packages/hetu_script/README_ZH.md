@@ -49,11 +49,11 @@ void main() {
 }
 ```
 
-我们可以看到河图的[语法](https://hetu.dev/docs/en-US/syntax/)接近 typescript/kotlin/swift 等现代语言，如果你熟悉 Dart 或者上面几个语言，只要注意下面几点，就可以直接上手。
+我们可以看到河图的[语法](https://hetu.dev/docs/en-US/syntax/)非常简单，如果你熟悉 dart/typescript/kotlin/swift 等现代语言，只要注意下面几点，就可以直接上手。
 
 - 句末分号可选。
-- 函数关键字是 'fun, get, set, construct'。
-- 既可以使用 class 的面向对象，也可以使用 javascript 的对象字面量，也可以使用函数式思想。
+- 函数名字前面要加关键字： 'fun, get, set, construct'。
+- 既可以使用类似 Java 的 class 的继承，也可以使用 javascript 的对象字面量的原型链，也可以使用函数式的写法。
 - 类型注解和 typescript 一样写在关键字后面。（目前静态分析尚未开发完毕，因此类型目前只是纯粹的注解，所有变量实际上都是 dynamic 类型。）
 
 ## 绑定
@@ -97,7 +97,7 @@ dart pub global activate hetu_script_dev_tools
 
 你可以在任何目录下打开命令行工具，然后输入 'hetu -h' 查看可用命令。
 
-直接输入 'hetu' 会进入类似 Python 的 REPL 模式。在这个模式下，可以直接输入脚本语句，并看到解释的结果。如果需要输入多行，可以在句末输入 '\\'。
+直接输入 'hetu' 会进入类似 Python 命令行的 REPL 模式。在这个模式下，可以直接输入脚本语句，并看到解释的结果。如果需要输入多行，可以在句末输入 '\\'。
 
 ```typescript
 >>>var a = 42
