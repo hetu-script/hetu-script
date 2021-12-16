@@ -15,13 +15,9 @@
   <a title="Discord" href="https://discord.gg/sTF73qcS" ><img src="https://img.shields.io/discord/829269197727989760" /></a>
 </p>
 
-## 注意
+## 目的
 
-**目前河图还在开发的早期阶段，很多功能尚不稳定。**
-
-## 介绍
-
-这个库的主要目的是为了实现 Flutter 程序和游戏的热更新和脚本能力。
+为了实现 Flutter 程序和游戏的热更新和脚本能力。
 
 我们没有使用 Javascript 或者 Python 之类的现成脚本语言，主要是为了让这个库保持轻量级。完全用 Dart 写成，也让传递 Flutter 对象和数据变得极为简单。
 
