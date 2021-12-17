@@ -41,6 +41,7 @@ The script is not planning to introduce null safety. However, there are some syn
 var a // a is null
 // Nullable member get:
 final value = a?.value // value is null and we won't get errors
+final result = a?() // nullabla function call
 // If null then get another value
 final text = a ?? 'hi!' // text is 'hi!'
 // If null then assign
@@ -48,11 +49,11 @@ a ??= 42
 print(a) // a is 42 now
 ```
 
-The nullable check will pass to next operator like a chain:
+The nullable check will pass to next unary postfix operator like a chain:
 
 ```dart
 var a // a is null
-final value = a?.collection.dict.value // value is null and we won't get errors
+final value = a?.collection[0].value() // value is null and we won't get errors
 ```
 
 ## Future
