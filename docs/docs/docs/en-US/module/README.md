@@ -47,16 +47,16 @@ Otherwise, every top level symbol will be exported by default.
 
 Hetu script file have two different way to interpret, controlled by the **isModule** parameter in the eval method of the Interpreter class and the extension of the source file.
 
-- When **isModule** is not provided or set to false, or the file is of extension '\*.hts', interpreter will evaluate the source as **ResourceType.hetuScript**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
-- When **isModule** is true, or the file is of extension '\*.ht', interpreter will evaluate the source as **ResourceType.hetuModule**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+- When **isModule** is not provided or set to false, interpreter will evaluate the source as **ResourceType.hetuScript**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
+- When **isModule** is true, interpreter will evaluate the source as **ResourceType.hetuModule**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+
+When using evalFile method on the interpreter, the source type is inferred from the extension of the file name: '\*.hts' is **ResourceType.hetuScript**, and '\*.ht' is **ResourceType.hetuModule**.
 
 ## Import a JSON file
 
 It's possible to import a non-hetu source in your code sometimes. For example, if you imported a JSON file, you will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
 
-To do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning.
-
-And you have to give the imported JSON a alias name in your namespace.
+To do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning. And you have to give the imported JSON a alias name in your namespace.
 
 Example code (dart part):
 
@@ -78,14 +78,9 @@ void main() {
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
 
-  hetu.evalFile('json.hts');
+  hetu.eval('''
+    import 'values.json' as json
+    print(json)
+  ''');
 }
-```
-
-script code:
-
-```javascript
-import 'values.json' as json
-
-print(json)
 ```
