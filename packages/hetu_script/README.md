@@ -75,7 +75,7 @@ void main() {
 }
 ```
 
-You can check the for more information on the [grammar](https://hetu.dev/docs/en-US/syntax/) and [binding](https://hetu.dev/docs/en-US/binding/).
+You can check the [documentation](https://hetu.dev/docs/en-US/) for more information on the [grammar](https://hetu.dev/docs/en-US/syntax/) and [binding](https://hetu.dev/docs/en-US/binding/).
 
 ## VScode extension
 
