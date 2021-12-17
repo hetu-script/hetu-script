@@ -957,7 +957,7 @@ class Hetu extends HTAbstractInterpreter {
                   filename: _fileName, line: _line, column: _column);
             }
           } else {
-            final key = _getRegVal(HTRegIdx.postfixKey);
+            final key = execute();
             final encap = encapsulate(object);
             _localValue = encap.memberGet(key, from: _fileName);
           }

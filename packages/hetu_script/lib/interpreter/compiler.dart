@@ -855,12 +855,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.add(object);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
-    final key = visitIdentifierExpr(expr.key);
-    bytesBuilder.add(key);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixKey);
     bytesBuilder.addByte(HTOpCode.memberGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
+    final key = compileAst(expr.key, endOfExec: true);
+    bytesBuilder.add(key);
     return bytesBuilder.toBytes();
   }
 

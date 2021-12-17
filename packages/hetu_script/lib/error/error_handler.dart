@@ -34,8 +34,8 @@ class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
   final ErrorHanldeApproach errorHanldeApproach;
 
   const ErrorHandlerConfigImpl(
-      {this.showDartStackTrace = true,
-      this.hetuStackTraceDisplayCountLimit = 10,
+      {this.showDartStackTrace = false,
+      this.hetuStackTraceDisplayCountLimit = 3,
       this.errorHanldeApproach = ErrorHanldeApproach.exception});
 }
 
