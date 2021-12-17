@@ -44,6 +44,8 @@ abstract class Semantic {
   static const constructor = r'_$constructor_';
   static const getter = r'_$getter_';
   static const setter = r'_$setter_';
+  static const subGetter = r'_$subscript_getter_';
+  static const subSetter = r'_$subscript_setter_';
 
   static const endOfFile = 'end_of_file';
   static const empty = 'empty';

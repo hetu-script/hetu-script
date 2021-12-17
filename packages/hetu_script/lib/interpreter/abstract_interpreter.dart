@@ -54,7 +54,7 @@ class InterpreterConfig
   const InterpreterConfig(
       {this.compileWithLineInfo = true,
       this.doStaticAnalyze = true,
-      this.showDartStackTrace = true,
+      this.showDartStackTrace = false,
       this.hetuStackTraceDisplayCountLimit = 10,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
       this.allowHotReload = false});

@@ -1120,6 +1120,15 @@ class HTParser extends HTAbstractParser {
       final right = _parseExpr();
       if (op.type == HTLexicon.assign) {
         if (left is MemberExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = MemberAssignExpr(left.object, left.key, right,
               source: _currentSource,
               line: left.line,
@@ -1127,6 +1136,15 @@ class HTParser extends HTAbstractParser {
               offset: left.offset,
               length: curTok.offset - left.offset);
         } else if (left is SubExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = SubAssignExpr(left.object, left.key, right,
               source: _currentSource,
               line: left.line,
@@ -1143,6 +1161,15 @@ class HTParser extends HTAbstractParser {
         }
       } else if (op.type == HTLexicon.assignIfNull) {
         if (left is MemberExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = IfStmt(
             BinaryExpr(
               left,
@@ -1161,6 +1188,15 @@ class HTParser extends HTAbstractParser {
             ),
           );
         } else if (left is SubExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = IfStmt(
             BinaryExpr(
               left,
@@ -1199,6 +1235,15 @@ class HTParser extends HTAbstractParser {
         }
       } else {
         if (left is MemberExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = MemberAssignExpr(
               left.object,
               left.key,
@@ -1210,6 +1255,15 @@ class HTParser extends HTAbstractParser {
               offset: left.offset,
               length: curTok.offset - left.offset);
         } else if (left is SubExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = SubAssignExpr(
               left.object,
               left.key,
@@ -1429,12 +1483,36 @@ class HTParser extends HTAbstractParser {
     }
   }
 
-  /// 后缀 e., e?., e[], e(), e++, e-- 优先级 16, 右合并
+  /// 后缀 e., e?., e[], e?[], e(), e?(), e++, e-- 优先级 16, 右合并
   AstNode _parseUnaryPostfixExpr() {
     var expr = _parsePrimaryExpr();
     while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
       final op = advance(1);
       switch (op.type) {
+        case HTLexicon.memberGet:
+          var isNullable = false;
+          if ((expr is MemberExpr && expr.isNullable) ||
+              (expr is SubExpr && expr.isNullable) ||
+              (expr is CallExpr && expr.isNullable)) {
+            isNullable = true;
+          }
+          _leftValueLegality = true;
+          final name = match(Semantic.identifier);
+          final key = IdentifierExpr(name.lexeme,
+              isLocal: false,
+              source: _currentSource,
+              line: name.line,
+              column: name.column,
+              offset: name.offset,
+              length: name.length);
+          expr = MemberExpr(expr, key,
+              isNullable: isNullable,
+              source: _currentSource,
+              line: expr.line,
+              column: expr.column,
+              offset: expr.offset,
+              length: curTok.offset - expr.offset);
+          break;
         case HTLexicon.nullableMemberGet:
           _leftValueLegality = false;
           final name = match(Semantic.identifier);
@@ -1453,19 +1531,17 @@ class HTParser extends HTAbstractParser {
               offset: expr.offset,
               length: curTok.offset - expr.offset);
           break;
-        case HTLexicon.memberGet:
-          final isNullable =
-              (expr is MemberExpr && expr.isNullable) ? true : false;
+        case HTLexicon.subGet:
+          var isNullable = false;
+          if ((expr is MemberExpr && expr.isNullable) ||
+              (expr is SubExpr && expr.isNullable) ||
+              (expr is CallExpr && expr.isNullable)) {
+            isNullable = true;
+          }
+          var indexExpr = _parseExpr();
           _leftValueLegality = true;
-          final name = match(Semantic.identifier);
-          final key = IdentifierExpr(name.lexeme,
-              isLocal: false,
-              source: _currentSource,
-              line: name.line,
-              column: name.column,
-              offset: name.offset,
-              length: name.length);
-          expr = MemberExpr(expr, key,
+          match(HTLexicon.bracketsRight);
+          expr = SubExpr(expr, indexExpr,
               isNullable: isNullable,
               source: _currentSource,
               line: expr.line,
@@ -1473,11 +1549,25 @@ class HTParser extends HTAbstractParser {
               offset: expr.offset,
               length: curTok.offset - expr.offset);
           break;
-        case HTLexicon.subGet:
+        case HTLexicon.nullableSubGet:
           var indexExpr = _parseExpr();
           _leftValueLegality = true;
           match(HTLexicon.bracketsRight);
           expr = SubExpr(expr, indexExpr,
+              isNullable: true,
+              source: _currentSource,
+              line: expr.line,
+              column: expr.column,
+              offset: expr.offset,
+              length: curTok.offset - expr.offset);
+          break;
+        case HTLexicon.nullableCall:
+          _leftValueLegality = false;
+          var positionalArgs = <AstNode>[];
+          var namedArgs = <String, AstNode>{};
+          _handleCallArguments(positionalArgs, namedArgs);
+          expr = CallExpr(expr, positionalArgs, namedArgs,
+              isNullable: true,
               source: _currentSource,
               line: expr.line,
               column: expr.column,
@@ -1485,12 +1575,18 @@ class HTParser extends HTAbstractParser {
               length: curTok.offset - expr.offset);
           break;
         case HTLexicon.call:
-          // TODO: typeArgs: typeArgs
+          var isNullable = false;
+          if ((expr is MemberExpr && expr.isNullable) ||
+              (expr is SubExpr && expr.isNullable) ||
+              (expr is CallExpr && expr.isNullable)) {
+            isNullable = true;
+          }
           _leftValueLegality = false;
           var positionalArgs = <AstNode>[];
           var namedArgs = <String, AstNode>{};
           _handleCallArguments(positionalArgs, namedArgs);
           expr = CallExpr(expr, positionalArgs, namedArgs,
+              isNullable: isNullable,
               source: _currentSource,
               line: expr.line,
               column: expr.column,

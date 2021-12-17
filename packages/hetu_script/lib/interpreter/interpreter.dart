@@ -122,7 +122,7 @@ class Hetu extends HTAbstractInterpreter {
   set _localValue(dynamic value) =>
       _stackFrames[_currentStackIndex][HTRegIdx.value] = value;
   dynamic get _localValue => _stackFrames[_currentStackIndex][HTRegIdx.value];
-  set _localSymbol(String? value) =>
+  set localSymbol(String? value) =>
       _stackFrames[_currentStackIndex][HTRegIdx.identifier] = value;
   String? get localSymbol =>
       _stackFrames[_currentStackIndex][HTRegIdx.identifier];
@@ -767,7 +767,7 @@ class Hetu extends HTAbstractInterpreter {
         // 语句结束
         case HTOpCode.endOfStmt:
           _localValue = null;
-          _localSymbol = null;
+          localSymbol = null;
           // _curLeftValue = null;
           _localTypeArgs = [];
           break;
@@ -882,6 +882,7 @@ class Hetu extends HTAbstractInterpreter {
           final object = _getRegVal(HTRegIdx.postfixObject);
           if (object == null) {
             throw HTError.nullObject(
+                localSymbol ?? HTLexicon.kNull, Semantic.setter,
                 filename: _fileName, line: _line, column: _column);
           } else {
             final key = _getRegVal(HTRegIdx.postfixKey);
@@ -895,6 +896,7 @@ class Hetu extends HTAbstractInterpreter {
           final object = _getRegVal(HTRegIdx.postfixObject);
           if (object == null) {
             throw HTError.nullObject(
+                localSymbol ?? HTLexicon.kNull, Semantic.subSetter,
                 filename: _fileName, line: _line, column: _column);
           } else {
             final key = execute();
@@ -951,6 +953,7 @@ class Hetu extends HTAbstractInterpreter {
               _localValue = null;
             } else {
               throw HTError.nullObject(
+                  localSymbol ?? HTLexicon.kNull, Semantic.getter,
                   filename: _fileName, line: _line, column: _column);
             }
           } else {
@@ -960,10 +963,16 @@ class Hetu extends HTAbstractInterpreter {
           }
           break;
         case HTOpCode.subGet:
+          final isNullable = _bytecodeModule.readBool();
           final object = _getRegVal(HTRegIdx.postfixObject);
           if (object == null) {
-            throw HTError.nullObject(
-                filename: _fileName, line: _line, column: _column);
+            if (isNullable) {
+              _localValue = null;
+            } else {
+              throw HTError.nullObject(
+                  localSymbol ?? HTLexicon.kNull, Semantic.subGetter,
+                  filename: _fileName, line: _line, column: _column);
+            }
           } else {
             final key = execute();
             if (object is HTEntity) {
@@ -1072,7 +1081,7 @@ class Hetu extends HTAbstractInterpreter {
         _localValue = literal;
         break;
       case HTValueTypeCode.identifier:
-        final symbol = _localSymbol = _readIdentifier();
+        final symbol = localSymbol = _readIdentifier();
         final isLocal = _bytecodeModule.readBool();
         if (isLocal) {
           _localValue = _namespace.memberGet(symbol, recursive: true);
@@ -1408,7 +1417,19 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleCallExpr() {
-    var callee = _getRegVal(HTRegIdx.postfixObject);
+    final isNullable = _bytecodeModule.readBool();
+    final callee = _getRegVal(HTRegIdx.postfixObject);
+    final argsBytesLength = _bytecodeModule.readUint16();
+    if (callee == null) {
+      if (isNullable) {
+        _localValue = null;
+        _bytecodeModule.skip(argsBytesLength);
+        return;
+      } else {
+        throw HTError.nullObject(localSymbol ?? HTLexicon.kNull, Semantic.call,
+            filename: _fileName, line: _line, column: _column);
+      }
+    }
     final positionalArgs = [];
     final positionalArgsLength = _bytecodeModule.read();
     for (var i = 0; i < positionalArgsLength; ++i) {
