@@ -908,7 +908,7 @@ class Hetu extends HTAbstractInterpreter {
                 if (key is! int) {
                   throw HTError.subGetKey(
                       filename: _fileName, line: _line, column: _column);
-                } else if (key >= object.length) {
+                } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
                       filename: _fileName, line: _line, column: _column);
                 }
@@ -946,11 +946,13 @@ class Hetu extends HTAbstractInterpreter {
           _handleUnaryPrefixOp(instruction);
           break;
         case HTOpCode.memberGet:
-          final isNullable = _bytecodeModule.readBool();
           final object = _getRegVal(HTRegIdx.postfixObject);
+          final isNullable = _bytecodeModule.readBool();
+          final keyBytesLength = _bytecodeModule.readUint16();
           if (object == null) {
             if (isNullable) {
               _localValue = null;
+              _bytecodeModule.skip(keyBytesLength);
             } else {
               throw HTError.nullObject(
                   localSymbol ?? HTLexicon.kNull, Semantic.getter,
@@ -963,11 +965,13 @@ class Hetu extends HTAbstractInterpreter {
           }
           break;
         case HTOpCode.subGet:
-          final isNullable = _bytecodeModule.readBool();
           final object = _getRegVal(HTRegIdx.postfixObject);
+          final isNullable = _bytecodeModule.readBool();
+          final keyBytesLength = _bytecodeModule.readUint16();
           if (object == null) {
             if (isNullable) {
               _localValue = null;
+              _bytecodeModule.skip(keyBytesLength);
             } else {
               throw HTError.nullObject(
                   localSymbol ?? HTLexicon.kNull, Semantic.subGetter,
@@ -982,7 +986,7 @@ class Hetu extends HTAbstractInterpreter {
                 if (key is! int) {
                   throw HTError.subGetKey(
                       filename: _fileName, line: _line, column: _column);
-                } else if (key >= object.length) {
+                } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
                       filename: _fileName, line: _line, column: _column);
                 }

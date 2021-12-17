@@ -858,6 +858,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.memberGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     final key = compileAst(expr.key, endOfExec: true);
+    bytesBuilder.add(_uint16(key.length));
     bytesBuilder.add(key);
     return bytesBuilder.toBytes();
   }
@@ -889,6 +890,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final key = compileAst(expr.key, endOfExec: true);
     bytesBuilder.addByte(HTOpCode.subGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
+    bytesBuilder.add(_uint16(key.length));
     bytesBuilder.add(key);
     return bytesBuilder.toBytes();
   }

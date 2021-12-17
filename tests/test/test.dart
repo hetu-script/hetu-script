@@ -5,7 +5,7 @@ void main() {
   hetu.init();
   hetu.eval(r'''
       var a // a is null
-      final value = a?.collection.dict.value // value is null and we won't get errors
+      final value = a?.collection.dict[0].value() // value is null and we won't get errors
       print(value)
     ''');
 }
