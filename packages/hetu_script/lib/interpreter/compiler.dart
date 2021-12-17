@@ -85,14 +85,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   Uint8List compile(HTModuleParseResult compilation) {
     final mainBytesBuilder = BytesBuilder();
-    mainBytesBuilder.addByte(HTOpCode.meta);
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
     // hetu bytecode version
     mainBytesBuilder.addByte(version.major);
     mainBytesBuilder.addByte(version.minor);
     mainBytesBuilder.add(_uint16(version.patch));
-    // bool: isScript
+    // index: ResourceType
     mainBytesBuilder.addByte(compilation.type.index);
     final bytesBuilder = BytesBuilder();
     for (final result in compilation.results.values) {
@@ -787,12 +786,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.ifStmt);
     final thenBranch = compileAst(expr.thenBranch);
     final elseBranch = compileAst(expr.elseBranch);
-    final thenBranchLength = thenBranch.length + 3;
-    final elseBranchLength = elseBranch.length;
-    bytesBuilder.add(_uint16(thenBranchLength));
+    bytesBuilder.add(_uint16(thenBranch.length + 3));
     bytesBuilder.add(thenBranch);
     bytesBuilder.addByte(HTOpCode.skip); // 执行完 then 之后，直接跳过 else block
-    bytesBuilder.add(_int16(elseBranchLength));
+    bytesBuilder.add(_int16(elseBranch.length));
     bytesBuilder.add(elseBranch);
     return bytesBuilder.toBytes();
   }
@@ -893,8 +890,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = compileAst(expr.key, endOfExec: true);
     bytesBuilder.addByte(HTOpCode.subGet);
-    // sub get key is after opcode
-    // it has to be exec with 'move reg index'
+    bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     bytesBuilder.add(key);
     return bytesBuilder.toBytes();
   }
@@ -924,7 +920,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     bytesBuilder.addByte(HTOpCode.call);
+    bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     final argBytes = _parseCallArguments(expr.positionalArgs, expr.namedArgs);
+    bytesBuilder.add(_uint16(argBytes.length));
     bytesBuilder.add(argBytes);
     return bytesBuilder.toBytes();
   }

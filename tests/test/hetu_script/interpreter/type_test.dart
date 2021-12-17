@@ -14,11 +14,9 @@ void main() {
         class Extend2 extends Super2 {
           var name = 'Extend'
         }
-        fun extendsCheck {
-          var a = Extend2()
-          return a is Super2
-        }
-      ''', invokeFunc: 'extendsCheck');
+        var a = Extend2()
+        a is Super2
+      ''');
       expect(
         result,
         true,
@@ -53,14 +51,12 @@ void main() {
     // });
     test('function type', () {
       final result = hetu.eval('''
-        fun functionType {
-          var numparse: (str) -> num = fun (value: str) -> num { return num.parse(value) }
-          var getType = fun { typeof numparse }
-          var funcTypedef2 = getType()
-          var strlength: funcTypedef2 = fun (value: str) -> num { return value.length }
-          return strlength('hello world')
-        }
-      ''', invokeFunc: 'functionType');
+        var numparse: (str) -> num = fun (value: str) -> num { return num.parse(value) }
+        var getType = fun { typeof numparse }
+        var funcTypedef2 = getType()
+        var strlength: funcTypedef2 = fun (value: str) -> num { return value.length }
+        strlength('hello world')
+      ''');
       expect(
         result,
         11,
@@ -68,18 +64,16 @@ void main() {
     });
     test('type alias class', () {
       final result = hetu.eval('''
-        fun typeAlias1 {
-          class A {
-            var name: str
-            construct (name: str) {
-              this.name = name
-            }
+        class A {
+          var name: str
+          construct (name: str) {
+            this.name = name
           }
-          type Alias = A
-          var aa = Alias('jimmy')
-          return aa.name
         }
-      ''', invokeFunc: 'typeAlias1');
+        type Alias = A
+        var aa = Alias('jimmy')
+        aa.name
+      ''');
       expect(
         result,
         'jimmy',
@@ -87,12 +81,10 @@ void main() {
     });
     test('type alias function', () {
       final result = hetu.eval('''
-        fun typeAlias2 {
-          type MyFuncType = (num, num) -> num
-          var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
-          return func(6, 7)
-        }
-      ''', invokeFunc: 'typeAlias2');
+        type MyFuncType = (num, num) -> num
+        var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
+        func(6, 7)
+      ''');
       expect(
         result,
         13,

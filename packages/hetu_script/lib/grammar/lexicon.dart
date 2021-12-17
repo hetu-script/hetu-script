@@ -3,7 +3,7 @@ abstract class HTLexicon {
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
       r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(4)
-      r'(\.\.\.|~/=|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|~/|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(7)
+      r'(\.\.\.|~/=|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|\?\[|\?\(|~/|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(7)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(8)
       r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(10)
       r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(14)
@@ -110,6 +110,7 @@ abstract class HTLexicon {
   static const kVar = 'var';
   static const kFinal = 'final';
   static const kConst = 'const';
+  static const kDefine = 'def';
   static const kDelete = 'delete';
 
   /// 变量声明
@@ -200,6 +201,8 @@ abstract class HTLexicon {
     kVar,
     kFinal,
     kConst,
+    kDefine,
+    kDelete,
     kAssert,
     kTypeof,
     kNamespace,
@@ -207,7 +210,7 @@ abstract class HTLexicon {
     kEnum,
     kFun,
     kStruct,
-    kInterface,
+    // kInterface,
     kThis,
     kSuper,
     kAbstract,
@@ -235,10 +238,10 @@ abstract class HTLexicon {
     kWhen,
     kIs,
     kAs,
-    kTry,
-    kCatch,
-    kFinally,
-    kThrow,
+    // kTry,
+    // kCatch,
+    // kFinally,
+    // kThrow,
   };
 
   static const Set<String> contextualKeyword = {
@@ -255,7 +258,9 @@ abstract class HTLexicon {
 
   static const nullableMemberGet = '?.';
   static const memberGet = '.';
+  static const nullableSubGet = '?[';
   static const subGet = '[';
+  static const nullableCall = '?(';
   static const call = '(';
   static const nullable = '?';
   static const postIncrement = '++';
@@ -265,7 +270,9 @@ abstract class HTLexicon {
   static const Set<String> unaryPostfixs = {
     nullableMemberGet,
     memberGet,
+    nullableSubGet,
     subGet,
+    nullableCall,
     call,
     postIncrement,
     postDecrement,
@@ -415,6 +422,7 @@ abstract class HTLexicon {
   static const errorNotAbsoluteError =
       'Adding source failed, not a absolute path: [{0}].';
   static const errorInvalidLeftValue = 'Illegal left value.';
+  static const errorNullableAssign = 'Cannot assign to a nullable value.';
   static const errorPrivateMember = 'Could not acess private member [{0}].';
   static const errorConstMustBeStatic =
       'Constant class member [{0}] must also be declared as static.';
@@ -444,7 +452,7 @@ abstract class HTLexicon {
   static const errorUndefinedMember = '[{0}] isn\'t defined for the class.';
   static const errorCondition =
       'Condition expression must evaluate to type [bool]';
-  static const errorNullObject = 'Calling method on null object.';
+  static const errorNullObject = 'Calling method [{1}] on null object [{0}].';
   static const errorSubGetKey = 'Sub get key is not of type [int]';
   static const errorOutOfRange = 'Index [{0}] is out of range [{1}].';
   static const errorAssignType =

@@ -9,7 +9,7 @@ class HTBytecodeModule with BytecodeReader, ConstTable {
 
   final Map<String, HTNamespace> namespaces;
 
-  final importedExpressionModules = <String, dynamic>{};
+  final expressions = <String, dynamic>{};
 
   HTBytecodeModule(this.id, Uint8List bytes,
       {Map<String, HTNamespace>? declarations})

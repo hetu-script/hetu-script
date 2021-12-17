@@ -8,17 +8,15 @@ void main() {
   group('edge cases -', () {
     test('automatic semicolon insertion', () {
       final result = hetu.eval(r'''
-        fun asi {
           var j = 3
           var i =
             ('all' 
             + 'oha')
           ++j
           if (i is num) 
-        return
+        ;
             return j
-        }
-  ''', invokeFunc: 'asi');
+        ''');
       expect(
         result,
         4,
@@ -26,16 +24,14 @@ void main() {
     });
     test('late initialization', () {
       final result = hetu.eval(r'''
-      fun getIndex {
-        return 2
-      }
-      fun lateInit {
+        fun getIndex {
+          return 2
+        }
         var tables = { 'weapon': [1,2,3] }
         var rows = tables['weapon'];
         var i = getIndex()
-        return rows[i]
-      }
-  ''', invokeFunc: 'lateInit');
+        rows[i]
+      ''');
       expect(
         result,
         3,
@@ -43,13 +39,11 @@ void main() {
     });
     test('late initialization 2', () {
       final result = hetu.eval(r'''
-      fun lateInit2 {
         var list = [1,2,3,4]
         var item = list[3]
         list.removeLast()
-        return item
-      }
-  ''', invokeFunc: 'lateInit2');
+        item
+      ''');
       expect(
         result,
         4,
@@ -75,12 +69,10 @@ void main() {
             f(5)
           }
         }
-        fun lambdaVar() {
-          var a = Left()
-          a.m()
-          return a.age
-        }
-  ''', invokeFunc: 'lambdaVar');
+        var a = Left()
+        a.m()
+        a.age
+      ''');
       expect(
         result,
         5,
@@ -88,13 +80,11 @@ void main() {
     });
     test('forward declaration 1', () {
       final result = hetu.eval(r'''
-      fun forwardDecl1 {
         var i = 42
         var j = i
         i = 4
-        return j
-      }
-  ''', invokeFunc: 'forwardDecl1');
+        j
+      ''');
       expect(
         result,
         42,
@@ -102,13 +92,11 @@ void main() {
     });
     test('forward declaration 2', () {
       final result = hetu.eval(r'''
-      fun forwardDecl2 {
         var i = 42
         i = 4
         var j = i
-        return j
-      }
-  ''', invokeFunc: 'forwardDecl2');
+        j
+      ''');
       expect(
         result,
         4,
@@ -116,12 +104,10 @@ void main() {
     });
     test('subget as left value', () {
       final result = hetu.eval(r'''
-      fun subGetAsLeftValue {
         var list = [1,2,3]
         list[0]--
-        return list[0]
-      }
-  ''', invokeFunc: 'subGetAsLeftValue');
+        list[0]
+      ''');
       expect(
         result,
         0,
@@ -132,11 +118,9 @@ void main() {
   group('null check operator -', () {
     test('nullable member get', () {
       final result = hetu.eval(r'''
-        fun nullableMemberGet {
-          var a
-          return a?.value
-        }
-  ''', invokeFunc: 'nullableMemberGet');
+        var a
+        a?.value
+      ''');
       expect(
         result,
         null,
@@ -144,11 +128,9 @@ void main() {
     });
     test('if null', () {
       final result = hetu.eval(r'''
-        fun ifNull {
-          var a
-          return a ?? true
-        }
-  ''', invokeFunc: 'ifNull');
+        var a
+        a ?? true
+      ''');
       expect(
         result,
         true,
@@ -156,11 +138,9 @@ void main() {
     });
     test('null assign', () {
       final result = hetu.eval(r'''
-        fun nullAssign {
-          var a
-          a ??= 'not null!'
-        }
-  ''', invokeFunc: 'nullAssign');
+        var a
+        a ??= 'not null!'
+      ''');
       expect(
         result,
         'not null!',

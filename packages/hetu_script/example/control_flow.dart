@@ -4,21 +4,19 @@ void main() {
   final hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    fun main {
-      var j = 1
-      var i = 0
-      for (;;) {
-        ++i
-        when (i % 2) {
-          0 -> j += i
-          1 -> j *= i
-        }
-        if (i > 5) {
-          break
-        }
+    var j = 1
+    var i = 0
+    for (;;) {
+      ++i
+      when (i % 2) {
+        0 -> j += i
+        1 -> j *= i
       }
-      print(i)
-      print(j)
+      if (i > 5) {
+        break
+      }
     }
-  ''', invokeFunc: 'main');
+    print(i)
+    print(j)
+  ''');
 }

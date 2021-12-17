@@ -30,6 +30,7 @@ enum ErrorCode {
   sourceProviderError,
   notAbsoluteError,
   invalidLeftValue,
+  nullableAssign,
   privateMember,
   constMustBeStatic,
   constMustInit,
@@ -607,6 +608,25 @@ class HTError {
             offset: offset,
             length: length);
 
+  /// Error: Cannot ssign to a nullable value.
+  HTError.nullableAssign(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.nullableAssign, ErrorType.syntacticError,
+            message: HTLexicon.errorNullableAssign,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
   /// Error: Illegal value appeared on left of assignment.
   HTError.invalidLeftValue(
       {String? extra,
@@ -1099,7 +1119,7 @@ class HTError {
             length: length);
 
   /// Error: Calling method on null object.
-  HTError.nullObject(
+  HTError.nullObject(String symbol, String method,
       {String? extra,
       String? correction,
       String? filename,
@@ -1109,6 +1129,7 @@ class HTError {
       int? length})
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
             message: HTLexicon.errorNullObject,
+            interpolations: [symbol, method],
             extra: extra,
             correction: correction,
             filename: filename,

@@ -8,17 +8,17 @@ Add the packages in your pubspec.yaml.
 
 ```yaml
 dependencies:
-  hetu_script: ^0.3.2
+  hetu_script: ^0.3.7
   # optional:
-  # hetu_script_dev_tools: ^0.0.1
+  # hetu_script_dev_tools: ^0.0.3+1
   # optional:
-  # hetu_script_flutter: ^0.0.1
+  # hetu_script_flutter: ^0.0.3
 ```
 
 ## Flutter project
 
 To load a script file from assets, add the script file's path into your pubspec.yaml like other assets.
-The default folder is 'scripts/',
+The default folder is 'scripts/', directly under your project root.
 
 ```yaml
 assets:

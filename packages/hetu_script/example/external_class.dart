@@ -127,22 +127,20 @@ void main() {
         var name
         fun greeting(tag: str)
       }
-      fun main {
-        var p1: Person = Person()
-        p1.greeting('jimmy')
-        print(Person.meaning(42))
-        print(typeof p1)
-        print(p1.name)
-        print(p1.child)
-        print('My race is', p1.race)
-        p1.race = 'Reptile'
-        print('Oh no! My race turned into', p1.race)
-        Person.level = '3'
-        print(Person.level)
+      var p1: Person = Person()
+      p1.greeting('jimmy')
+      print(Person.meaning(42))
+      print(typeof p1)
+      print(p1.name)
+      print(p1.child)
+      print('My race is', p1.race)
+      p1.race = 'Reptile'
+      print('Oh no! My race turned into', p1.race)
+      Person.level = '3'
+      print(Person.level)
 
-        var p2 = Person.withName('Jimmy')
-        print(p2.name)
-        p2.name = 'John'
-      }
-      ''', invokeFunc: 'main');
+      var p2 = Person.withName('Jimmy')
+      print(p2.name)
+      p2.name = 'John'
+      ''');
 }

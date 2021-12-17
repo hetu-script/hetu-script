@@ -110,7 +110,7 @@ class HTFunctionDeclaration extends HTDeclaration
   @override
   String toString() {
     var result = StringBuffer();
-    // result.write(HTLexicon.FUNCTION);
+    result.write(Semantic.function);
     if (id != null) {
       result.write(' $id');
     }

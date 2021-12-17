@@ -734,8 +734,11 @@ class SubExpr extends AstNode {
 
   final AstNode key;
 
+  final bool isNullable;
+
   SubExpr(this.object, this.key,
-      {HTSource? source,
+      {this.isNullable = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
@@ -813,8 +816,11 @@ class CallExpr extends AstNode {
 
   final Map<String, AstNode> namedArgs;
 
+  final bool isNullable;
+
   CallExpr(this.callee, this.positionalArgs, this.namedArgs,
-      {HTSource? source,
+      {this.isNullable = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,

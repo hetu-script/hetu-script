@@ -4,8 +4,8 @@
 part of '../abstract_interpreter.dart';
 
 /// The pre-included modules of Hetu scripting language.
-final Map<String, String> preIncludeModules = const {
-  'hetu:core': r'''// print values of any type into lines
+final List<HTSource> preIncludeModules = [
+  HTSource(r'''// print values of any type into lines
 external fun print(... args: any)
 
 external fun stringify(obj: any)
@@ -35,8 +35,8 @@ struct prototype {
   fun toJson() -> Map => jsonify(this)
 
   fun toString() -> str => stringify(this)
-}''',
-  'hetu:value': r'''/// The apis here are named based on Dart SDK's
+}''', name: 'hetu:core', type: ResourceType.hetuModule),
+  HTSource(r'''/// The apis here are named based on Dart SDK's
 /// [num], [int], [double], [bool], [String], [List] and [Map]
 
 // external class ExternalObject {
@@ -426,22 +426,21 @@ external class Map {
 	fun remove(key)
 
   fun putIfAbsent(key, value) -> any
-}''',
-  'hetu:async': r'''external class Future {
+}''', name: 'hetu:value', type: ResourceType.hetuModule),
+  HTSource(r'''external class Future {
 
   fun then(func: (value) -> any)
 }
-''',
-  'hetu:system': r'''external class System {
+''', name: 'hetu:async', type: ResourceType.hetuModule),
+  HTSource(r'''external class System {
 
   static get now -> num
 
   // static fun tik()
 
   // static fun tok()
-}''',
-  'hetu:math': r'''
-external class Math {
+}''', name: 'hetu:system', type: ResourceType.hetuModule),
+  HTSource(r'''external class Math {
   static final e: num = 2.718281828459045;
   
   static final pi: num = 3.1415926535897932;
@@ -489,6 +488,5 @@ external class Math {
   static fun bitXor(x: num, y: num) -> bool
 
 }
-''',
-  'hetu:dev_tools': r'''external fun help(value)''',
-};
+''', name: 'hetu:math', type: ResourceType.hetuModule),
+];

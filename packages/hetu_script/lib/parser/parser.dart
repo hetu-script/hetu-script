@@ -219,7 +219,8 @@ class HTParser extends HTAbstractParser {
     final precedingCommentsOfThisStmt =
         List<Comment>.from(_currentPrecedingComments);
     _currentPrecedingComments.clear();
-    if (curTok.type == Semantic.emptyLine) {
+    if (curTok.type == HTLexicon.semicolon ||
+        curTok.type == Semantic.emptyLine) {
       advance(1);
       final empty = advance(1);
       stmt = EmptyExpr(
@@ -947,123 +948,119 @@ class HTParser extends HTAbstractParser {
           }
           break;
         case ParseStyle.functionDefinition:
-          if (curTok.lexeme == HTLexicon.kType) {
-            stmt = _parseTypeAliasDecl();
-          } else {
-            switch (curTok.type) {
-              case HTLexicon.kNamespace:
-                stmt = _parseNamespaceDecl();
-                break;
-              case HTLexicon.kAssert:
-                stmt = _parseAssertStmt();
-                break;
-              case HTLexicon.kAbstract:
-                advance(1);
-                stmt = _parseClassDecl(isAbstract: true);
-                break;
-              case HTLexicon.kEnum:
-                stmt = _parseEnumDecl();
-                break;
-              case HTLexicon.kClass:
-                stmt = _parseClassDecl();
-                break;
-              case HTLexicon.kVar:
-                stmt = _parseVarDecl(isMutable: true);
-                break;
-              case HTLexicon.kFinal:
-                stmt = _parseVarDecl();
-                break;
-              case HTLexicon.kConst:
-                stmt = _parseConstDecl();
-                break;
-              case HTLexicon.kFun:
-                if (expect([HTLexicon.kFun, Semantic.identifier]) ||
-                    expect([
-                      HTLexicon.kFun,
-                      HTLexicon.bracketsLeft,
-                      Semantic.identifier,
-                      HTLexicon.bracketsRight,
-                      Semantic.identifier
-                    ])) {
-                  stmt = _parseFunction();
-                } else {
-                  stmt = _parseFunction(category: FunctionCategory.literal);
-                }
-                break;
-              case HTLexicon.kAsync:
-                if (expect([HTLexicon.kAsync, Semantic.identifier]) ||
-                    expect([
-                      HTLexicon.kFun,
-                      HTLexicon.bracketsLeft,
-                      Semantic.identifier,
-                      HTLexicon.bracketsRight,
-                      Semantic.identifier
-                    ])) {
-                  stmt = _parseFunction(isAsync: true);
-                } else {
-                  stmt = _parseFunction(
-                      category: FunctionCategory.literal, isAsync: true);
-                }
-                break;
-              case HTLexicon.kStruct:
-                stmt = _parseStructDecl(lateInitialize: false);
-                break;
-              case HTLexicon.kIf:
-                stmt = _parseIf();
-                break;
-              case HTLexicon.kWhile:
-                stmt = _parseWhileStmt();
-                break;
-              case HTLexicon.kDo:
-                stmt = _parseDoStmt();
-                break;
-              case HTLexicon.kFor:
-                stmt = _parseForStmt();
-                break;
-              case HTLexicon.kWhen:
-                stmt = _parseWhen();
-                break;
-              case HTLexicon.kBreak:
-                final keyword = advance(1);
-                stmt = BreakStmt(keyword,
+          switch (curTok.type) {
+            case HTLexicon.kNamespace:
+              stmt = _parseNamespaceDecl();
+              break;
+            case HTLexicon.kAssert:
+              stmt = _parseAssertStmt();
+              break;
+            case HTLexicon.kAbstract:
+              advance(1);
+              stmt = _parseClassDecl(isAbstract: true);
+              break;
+            case HTLexicon.kEnum:
+              stmt = _parseEnumDecl();
+              break;
+            case HTLexicon.kClass:
+              stmt = _parseClassDecl();
+              break;
+            case HTLexicon.kVar:
+              stmt = _parseVarDecl(isMutable: true);
+              break;
+            case HTLexicon.kFinal:
+              stmt = _parseVarDecl();
+              break;
+            case HTLexicon.kConst:
+              stmt = _parseConstDecl();
+              break;
+            case HTLexicon.kFun:
+              if (expect([HTLexicon.kFun, Semantic.identifier]) ||
+                  expect([
+                    HTLexicon.kFun,
+                    HTLexicon.bracketsLeft,
+                    Semantic.identifier,
+                    HTLexicon.bracketsRight,
+                    Semantic.identifier
+                  ])) {
+                stmt = _parseFunction();
+              } else {
+                stmt = _parseFunction(category: FunctionCategory.literal);
+              }
+              break;
+            case HTLexicon.kAsync:
+              if (expect([HTLexicon.kAsync, Semantic.identifier]) ||
+                  expect([
+                    HTLexicon.kFun,
+                    HTLexicon.bracketsLeft,
+                    Semantic.identifier,
+                    HTLexicon.bracketsRight,
+                    Semantic.identifier
+                  ])) {
+                stmt = _parseFunction(isAsync: true);
+              } else {
+                stmt = _parseFunction(
+                    category: FunctionCategory.literal, isAsync: true);
+              }
+              break;
+            case HTLexicon.kStruct:
+              stmt = _parseStructDecl(lateInitialize: false);
+              break;
+            case HTLexicon.kIf:
+              stmt = _parseIf();
+              break;
+            case HTLexicon.kWhile:
+              stmt = _parseWhileStmt();
+              break;
+            case HTLexicon.kDo:
+              stmt = _parseDoStmt();
+              break;
+            case HTLexicon.kFor:
+              stmt = _parseForStmt();
+              break;
+            case HTLexicon.kWhen:
+              stmt = _parseWhen();
+              break;
+            case HTLexicon.kBreak:
+              final keyword = advance(1);
+              stmt = BreakStmt(keyword,
+                  source: _currentSource,
+                  line: keyword.line,
+                  column: keyword.column,
+                  offset: keyword.offset,
+                  length: keyword.length);
+              break;
+            case HTLexicon.kContinue:
+              final keyword = advance(1);
+              stmt = ContinueStmt(keyword,
+                  source: _currentSource,
+                  line: keyword.line,
+                  column: keyword.column,
+                  offset: keyword.offset,
+                  length: keyword.length);
+              break;
+            case HTLexicon.kReturn:
+              if (_currentFunctionCategory != null &&
+                  _currentFunctionCategory != FunctionCategory.constructor) {
+                stmt = _parseReturnStmt();
+              } else {
+                final err = HTError.outsideReturn(
+                    filename: _currrentFileName,
+                    line: curTok.line,
+                    column: curTok.column,
+                    offset: curTok.offset,
+                    length: curTok.length);
+                errors.add(err);
+                final errToken = advance(1);
+                stmt = EmptyExpr(
                     source: _currentSource,
-                    line: keyword.line,
-                    column: keyword.column,
-                    offset: keyword.offset,
-                    length: keyword.length);
-                break;
-              case HTLexicon.kContinue:
-                final keyword = advance(1);
-                stmt = ContinueStmt(keyword,
-                    source: _currentSource,
-                    line: keyword.line,
-                    column: keyword.column,
-                    offset: keyword.offset,
-                    length: keyword.length);
-                break;
-              case HTLexicon.kReturn:
-                if (_currentFunctionCategory != null &&
-                    _currentFunctionCategory != FunctionCategory.constructor) {
-                  stmt = _parseReturnStmt();
-                } else {
-                  final err = HTError.outsideReturn(
-                      filename: _currrentFileName,
-                      line: curTok.line,
-                      column: curTok.column,
-                      offset: curTok.offset,
-                      length: curTok.length);
-                  errors.add(err);
-                  final errToken = advance(1);
-                  stmt = EmptyExpr(
-                      source: _currentSource,
-                      line: errToken.line,
-                      column: errToken.column,
-                      offset: errToken.offset);
-                }
-                break;
-              default:
-                stmt = _parseExprStmt();
-            }
+                    line: errToken.line,
+                    column: errToken.column,
+                    offset: errToken.offset);
+              }
+              break;
+            default:
+              stmt = _parseExprStmt();
           }
           break;
         case ParseStyle.expression:
@@ -1123,6 +1120,15 @@ class HTParser extends HTAbstractParser {
       final right = _parseExpr();
       if (op.type == HTLexicon.assign) {
         if (left is MemberExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = MemberAssignExpr(left.object, left.key, right,
               source: _currentSource,
               line: left.line,
@@ -1130,6 +1136,15 @@ class HTParser extends HTAbstractParser {
               offset: left.offset,
               length: curTok.offset - left.offset);
         } else if (left is SubExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = SubAssignExpr(left.object, left.key, right,
               source: _currentSource,
               line: left.line,
@@ -1146,6 +1161,15 @@ class HTParser extends HTAbstractParser {
         }
       } else if (op.type == HTLexicon.assignIfNull) {
         if (left is MemberExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = IfStmt(
             BinaryExpr(
               left,
@@ -1164,6 +1188,15 @@ class HTParser extends HTAbstractParser {
             ),
           );
         } else if (left is SubExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = IfStmt(
             BinaryExpr(
               left,
@@ -1202,6 +1235,15 @@ class HTParser extends HTAbstractParser {
         }
       } else {
         if (left is MemberExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = MemberAssignExpr(
               left.object,
               left.key,
@@ -1213,6 +1255,15 @@ class HTParser extends HTAbstractParser {
               offset: left.offset,
               length: curTok.offset - left.offset);
         } else if (left is SubExpr) {
+          if (left.isNullable) {
+            final err = HTError.nullableAssign(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors.add(err);
+          }
           expr = SubAssignExpr(
               left.object,
               left.key,
@@ -1432,12 +1483,36 @@ class HTParser extends HTAbstractParser {
     }
   }
 
-  /// 后缀 e., e?., e[], e(), e++, e-- 优先级 16, 右合并
+  /// 后缀 e., e?., e[], e?[], e(), e?(), e++, e-- 优先级 16, 右合并
   AstNode _parseUnaryPostfixExpr() {
     var expr = _parsePrimaryExpr();
     while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
       final op = advance(1);
       switch (op.type) {
+        case HTLexicon.memberGet:
+          var isNullable = false;
+          if ((expr is MemberExpr && expr.isNullable) ||
+              (expr is SubExpr && expr.isNullable) ||
+              (expr is CallExpr && expr.isNullable)) {
+            isNullable = true;
+          }
+          _leftValueLegality = true;
+          final name = match(Semantic.identifier);
+          final key = IdentifierExpr(name.lexeme,
+              isLocal: false,
+              source: _currentSource,
+              line: name.line,
+              column: name.column,
+              offset: name.offset,
+              length: name.length);
+          expr = MemberExpr(expr, key,
+              isNullable: isNullable,
+              source: _currentSource,
+              line: expr.line,
+              column: expr.column,
+              offset: expr.offset,
+              length: curTok.offset - expr.offset);
+          break;
         case HTLexicon.nullableMemberGet:
           _leftValueLegality = false;
           final name = match(Semantic.identifier);
@@ -1456,19 +1531,17 @@ class HTParser extends HTAbstractParser {
               offset: expr.offset,
               length: curTok.offset - expr.offset);
           break;
-        case HTLexicon.memberGet:
-          final isNullable =
-              (expr is MemberExpr && expr.isNullable) ? true : false;
+        case HTLexicon.subGet:
+          var isNullable = false;
+          if ((expr is MemberExpr && expr.isNullable) ||
+              (expr is SubExpr && expr.isNullable) ||
+              (expr is CallExpr && expr.isNullable)) {
+            isNullable = true;
+          }
+          var indexExpr = _parseExpr();
           _leftValueLegality = true;
-          final name = match(Semantic.identifier);
-          final key = IdentifierExpr(name.lexeme,
-              isLocal: false,
-              source: _currentSource,
-              line: name.line,
-              column: name.column,
-              offset: name.offset,
-              length: name.length);
-          expr = MemberExpr(expr, key,
+          match(HTLexicon.bracketsRight);
+          expr = SubExpr(expr, indexExpr,
               isNullable: isNullable,
               source: _currentSource,
               line: expr.line,
@@ -1476,11 +1549,25 @@ class HTParser extends HTAbstractParser {
               offset: expr.offset,
               length: curTok.offset - expr.offset);
           break;
-        case HTLexicon.subGet:
+        case HTLexicon.nullableSubGet:
           var indexExpr = _parseExpr();
           _leftValueLegality = true;
           match(HTLexicon.bracketsRight);
           expr = SubExpr(expr, indexExpr,
+              isNullable: true,
+              source: _currentSource,
+              line: expr.line,
+              column: expr.column,
+              offset: expr.offset,
+              length: curTok.offset - expr.offset);
+          break;
+        case HTLexicon.nullableCall:
+          _leftValueLegality = false;
+          var positionalArgs = <AstNode>[];
+          var namedArgs = <String, AstNode>{};
+          _handleCallArguments(positionalArgs, namedArgs);
+          expr = CallExpr(expr, positionalArgs, namedArgs,
+              isNullable: true,
               source: _currentSource,
               line: expr.line,
               column: expr.column,
@@ -1488,12 +1575,18 @@ class HTParser extends HTAbstractParser {
               length: curTok.offset - expr.offset);
           break;
         case HTLexicon.call:
-          // TODO: typeArgs: typeArgs
+          var isNullable = false;
+          if ((expr is MemberExpr && expr.isNullable) ||
+              (expr is SubExpr && expr.isNullable) ||
+              (expr is CallExpr && expr.isNullable)) {
+            isNullable = true;
+          }
           _leftValueLegality = false;
           var positionalArgs = <AstNode>[];
           var namedArgs = <String, AstNode>{};
           _handleCallArguments(positionalArgs, namedArgs);
           expr = CallExpr(expr, positionalArgs, namedArgs,
+              isNullable: isNullable,
               source: _currentSource,
               line: expr.line,
               column: expr.column,

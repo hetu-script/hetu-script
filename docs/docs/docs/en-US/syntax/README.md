@@ -4,14 +4,15 @@ title: Language
 
 # Syntax of Hetu Script Language
 
-Hetu's grammar is close to most modern languages, it need very little time to get familar with.
+Hetu's grammar is close to most modern languages, with a few key characteristics:
 
-Key characteristics of Hetu:
+Declarations starts with a keyword before the identifier: var, final, const, fun, construct, get, set, class, type, etc.
 
-- Declarations starts with a keyword before the identifier: var, final, const, fun, construct, get, set, class, type, etc.
-- Semicolon is optional. In most cases, the interpreter will know when a statement is finished. In rare cases, the lexer will implicitly add "end of statement token" (a semicolon in default lexicon) to avoid ambiguities. For example, before a line when the line starts with one of '++, --, (, [, {', or after a line when the line ends with 'return'.
-- Type annotation is optional. Type is annotated **with a colon after the identifier** like typescript/kotlin/swift.
-- Use **when** instead of **switch**
+Semicolon is optional. In most cases, the interpreter will know when a statement is finished. In rare cases, the lexer will implicitly add "end of statement token" (a semicolon in default lexicon) to avoid ambiguities. For example, before a line when the line starts with one of '++, --, (, [, {', or after a line when the line ends with 'return'.
+
+Type annotation is optional. Type is annotated **with a colon after the identifier** like typescript/kotlin/swift.
+
+Use **when** instead of **switch**
 
 ## Comments
 
@@ -57,9 +58,11 @@ var name = 'naruto';
 // name = 2020 // error!
 ```
 
-- Type is a variable in Hetu, it can be assigned and returned.
-- The type of a type is always 'type', no matter it's a primitive, instance, or function type.
-- Use 'typeof' keyword to get the runtime type of a value.
+Type is a variable in Hetu, it can be assigned and returned.
+
+The type of a type is always 'type', no matter it's a primitive, instance, or function type.
+
+Use 'typeof' keyword to get the runtime type of a value.
 
 ```typescript
 fun main {
@@ -94,14 +97,21 @@ fun main {
 }
 ```
 
-- For functions declared with **fun**, when no return type is provided in declaration, it will have a return type of **any**. And it will return null if you didn't write return statement within the definition body.
-- Member functions can also be declared with **get**, **set**, **construct**, they literally means getter, setter and contructor function.
-- If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
-- Function can have no name, it will then become a literal function expression (anonymous function). And a literal function can have no keyword, in this situation, the parameter brackets are not omittable even if it's empty.
-- Functions can be nested, and nested functions can have names.
-- Function are first class, you can use function as parameter, return value and store them in variables.
-- Function body could be a block statement (within '{' and '}'), or a single line expression after '=>'.
-- Return type is marked by a single arrow ('->') after the parameters brackets.
+For functions declared with **fun**, when no return type is provided in declaration, it will have a return type of **any**. And it will return null if you didn't write return statement within the definition body.
+
+Member functions can also be declared with **get**, **set**, **construct**, they literally means getter, setter and contructor function.
+
+If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
+
+Function can have no name, it will then become a literal function expression (anonymous function). And a literal function can have no keyword, in this situation, the parameter brackets are not omittable even if it's empty.
+
+Functions can be nested, and nested functions can have names.
+
+Function are first class, you can use function as parameter, return value and store them in variables.
+
+Function body could be a block statement (within '{' and '}'), or a single line expression after '=>'.
+
+Return type is marked by a single arrow ('->') after the parameters brackets.
 
 ```typescript
 fun closure(func) {
@@ -129,13 +139,23 @@ external fun print(... args: any)
 print('hello', 'world!', 42) // okay!
 ```
 
+### Return value
+
+If there's a return statement is the function body, it will return the value of the expression after the keyword.
+
+If there's none return statement, functions will return the last expression's value as it return value. Note that for control statement, it will also return the last statement within it's code block.
+
 ## Class
 
-- Class can have static variables and methods. Which can be accessed through the class name.
-- Class's member functions use special keyword: **construct, get, set**, to define a constructor, getter, setter function.
-- Constructors can be with no function name and cannot return values. When calling they will always return a instance.
-- Getter & setter functions can be used feels like a member variable. They can be accessed without brackets.
-- Use 'extends' to inherits other class's members
+Class can have static variables and methods. Which can be accessed through the class name.
+
+Class's member functions use special keyword: **construct, get, set**, to define a constructor, getter, setter function.
+
+Constructors can be with no function name and cannot return values. When calling they will always return a instance.
+
+Getter & setter functions can be used feels like a member variable. They can be accessed without brackets.
+
+Use 'extends' to inherits other class's members
 
 ```typescript
 // class definition
@@ -241,8 +261,8 @@ obj.race = 'dragon'; // okay, this will define a new member on obj.
 var lvl = obj.level; // okay, although lvl's value will be null
 ```
 
-- Struct's prototype can be accessed and modified through '$prototype'.
-- Struct's root prototype has two functions: toString() and toJson(). Can be used to easily convert a struct into other code.
+Struct's prototype can be accessed and modified through '$prototype'.
+Struct's root prototype has two functions: toString() and toJson(). Can be used to easily convert a struct into other code.
 
 ### Literal struct and literal function
 
@@ -307,37 +327,6 @@ fun main {
 }
 ```
 
-### If
-
-- 'if' statement's branches could be a single statement without brackets.
-- 'if' can also be an expression which will have a value, in this case else branch is not omitable.
-
-```javascript
-if (condition) {
-  ...
-} else {
-  ...
-}
-```
-
-### While
-
-```javascript
-while (condition) {
-  ...
-}
-```
-
-### Do
-
-```javascript
-do {
-  ...
-} while (condition)
-```
-
-- 'do' statement's 'while' part is optional, if omitted, it will become a anonymous code block. It's kind of like an anonymous function that immediately calls.
-
 ### Truth value
 
 If the interpreter is in non strict mode, the if/do/while statement's condition expression will be inexplicitly converted to boolean.
@@ -360,12 +349,48 @@ if (condition == null ||
 }
 ```
 
+### If
+
+'if' statement's branches could be a single statement without brackets.
+'if' can also be an expression which will have a value, in this case else branch is not omitable.
+
+```javascript
+if (condition) {
+  ...
+} else {
+  ...
+}
+```
+
+### Loop
+
+#### While
+
+```javascript
+while (condition) {
+  ...
+}
+```
+
+#### Do
+
+```javascript
+do {
+  ...
+} while (condition)
+```
+
+'do' statement's 'while' part is optional, if omitted, it will become a anonymous code block. It's kind of like an anonymous function that immediately calls.
+
 ### For
 
-- 'for' statement's expr must be separated with ';'.
-- The expression itself is optional. If you write 'for ( ; ; )', it will be the same to 'while (true)'
-- When use for...in, the loop will iterate through the keys of a list.
-- When use for...of, the loop will iterate through the values of a struct literal/Dart Map.
+'for' statement's expr must be separated with ';'.
+
+The expression itself is optional. If you write 'for ( ; ; )', it will be the same to 'while (true)'
+
+When use for...in, the loop will iterate through the keys of a list.
+
+When use for...of, the loop will iterate through the values of a struct literal/Dart Map.
 
 ```dart
 for (init; condition; increment) {
@@ -385,10 +410,13 @@ for (var item of obj) {
 
 When is the substitue for 'switch' in older programming languages, we change its name to indicate more complex usages.
 
-- 'when' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true. In this case, the when statement is more like a if else statement except with a little more efficiency because it won't go through every branch.
-- 'when' statement's case could be non-const expression or variables;
-- 'when' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
-- 'when' statement's else branch is optional.
+'when' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true. In this case, the when statement is more like a if else statement except with a little more efficiency because it won't go through every branch.
+
+'when' statement's case could be non-const expression or variables;
+
+'when' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
+
+'when' statement's else branch is optional.
 
 ```javascript
 when (condition) {
@@ -453,10 +481,11 @@ var person = {
 
 ## Keywords
 
-Some of the keywords only used in specific places, hence can be used as normal identifiers (variable names & class members, etc.).
-Some of the keywords have no meaning right now, they are reserved for future development.
+**null, true, false, void<sup>1</sup>, type<sup>1</sup>, import<sup>1</sup>, export<sup>1</sup>, from<sup>1</sup>, any<sup>1</sup>, unknown<sup>12</sup>, never<sup>12</sup>, var, final, const, def<sup>2</sup>, delete<sup>2</sup>, typeof, namespace, class, enum, fun, struct, this, super, abstract, override<sup>2</sup>, external, static, extends, implements<sup>2</sup>, with<sup>2</sup>, construct, factory, get, set, async<sup>2</sup>, await<sup>2</sup>, break, continue, return, for, in, of<sup>1</sup>, if, else, while, do, when, is, as**
 
-null, true, false, var, final, const, typeof, class, enum, fun, struct, interface, this, super, abstract, override, external, static, extends, implements, with, construct, factory, get, set, async, break, continue, return, for, in, of, if, else, while, do, when, is, as
+1: These keywords are contextual. they only used in specific places, hence can be used as normal identifiers (class members, etc.).
+
+2: These keywords have no really effect for now, they are reserved for future development.
 
 ## Operator precedence
 
@@ -465,7 +494,7 @@ null, true, false, var, final, const, typeof, class, enum, fun, struct, interfac
 | Unary postfix  | e., e?., e++, e--, e1[e2], e() |     None      |     16     |
 | Unary prefix   | -e, !e, ++e, --e               |     None      |     15     |
 | Multiplicative | \*, /, ~/, %                   |     Left      |     14     |
-| Additive       | +, -                           |     Left      |     13     |
+| Additive       | +,                             |     Left      |     13     |
 | Relational     | <, >, <=, >=, as, is, is!      |     None      |     8      |
 | Equality       | ==, !=                         |     None      |     7      |
 | Logical AND    | &&                             |     Left      |     6      |

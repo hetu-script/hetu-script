@@ -9,7 +9,7 @@ import 'line_info.dart';
 import '../resource/resource.dart';
 
 class HTSource {
-  static const _anonymousScriptNameLengthLimit = 72;
+  static const _anonymousScriptNameLengthLimit = 18;
 
   late String name;
   String get basename => path.basename(name);
@@ -26,8 +26,11 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
-  HTSource(String content, {String? name, this.type = ResourceType.hetuModule})
-      : _content = content,
+  HTSource(
+    String content, {
+    String? name,
+    this.type = ResourceType.hetuModule,
+  })  : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (name != null) {
       this.name = name;
