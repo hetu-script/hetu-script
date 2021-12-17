@@ -1086,7 +1086,7 @@ class Hetu extends HTAbstractInterpreter {
         _localValue = literal;
         break;
       case HTValueTypeCode.identifier:
-        final symbol = _readIdentifier();
+        final symbol = localSymbol = _readIdentifier();
         final isLocal = _bytecodeModule.readBool();
         if (isLocal) {
           _localValue = _namespace.memberGet(symbol, recursive: true);
