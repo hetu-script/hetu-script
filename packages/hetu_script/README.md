@@ -27,14 +27,14 @@ Hetu is a lightweight script language purely written in Dart for embedding in Fl
 
 ## Features
 
-- Modern programming language [syntax](https://hetu.dev/docs/en-US/syntax/) likes typescript/kotlin/swift, no need to learn.
-- Minimal library with full scripting language abilities: OOP, FP, module, errors, etc.
+- Modern programming language likes typescript/kotlin/swift, need very little time to get familiar with.
+- Minimal library with full scripting language abilities: class OOP, prototype OOP, FP, module, errors, etc.
 - Runs on all platforms that flutter supports, including web browsers and desktop.
-- Extremely easy to [communicate with Flutter](https://hetu.dev/docs/en-US/binding/). Directly call Dart functions in script or call script functions in Dart.
+- Extremely easy to communicate with Dart, call Dart functions in script or call script functions in Dart with just one line.
 
 ## Quick start
 
-Below is an example to eval a string literal of Hetu code in Dart.
+To eval a string literal of Hetu code in Dart.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -53,6 +53,29 @@ void main() {
   ''');
 }
 ```
+
+To pass a Map to script, modify it in script and get it back:
+
+```dart
+import 'package:hetu_script/hetu_script.dart';
+
+void main() {
+  var hetu = Hetu();
+  hetu.init(externalFunctions: {
+    'hello': () => {'greetings': 'greetings from Dart!'},
+  });
+  var hetuValue = hetu.eval(r'''
+      external fun hello
+      var dartValue = hello()
+      dartValue['reply'] = 'Hi, this is Hetu.'
+      dartValue // the script will return the value of it's last expression
+      ''');
+
+  print('hetu value: $hetuValue');
+}
+```
+
+You can check the for more information on the [grammar](https://hetu.dev/docs/en-US/syntax/) and [binding](https://hetu.dev/docs/en-US/binding/).
 
 ## VScode extension
 

@@ -911,6 +911,8 @@ class Hetu extends HTAbstractInterpreter {
                       filename: _fileName, line: _line, column: _column);
                 }
                 object[key] = value;
+              } else if (object is Map) {
+                object[key] = value;
               }
             }
             _localValue = value;

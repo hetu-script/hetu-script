@@ -44,23 +44,19 @@ Hetu's [grammar](syntax/index.md) is close to typescript/kotlin/swift and other 
 Below is an example to pass a Map to script, modify it in script and get it back:
 
 ```dart
-import 'package:hetu_script/hetu_script.dart'
+import 'package:hetu_script/hetu_script.dart';
 
 void main() {
   var hetu = Hetu();
   hetu.init(externalFunctions: {
-    'hello': () => {'greeting': 'hello'},
+    'hello': () => {'greetings': 'greetings from Dart!'},
   });
-  hetu.eval(r'''
+  var hetuValue = hetu.eval(r'''
       external fun hello
-      fun main {
-        var dartValue = hello()
-        print('dart value:', dartValue)
-        dartValue['foo'] = 'bar'
-        return dartValue
-      }''');
-
-  var hetuValue = hetu.invoke('main');
+      var dartValue = hello()
+      dartValue['reply'] = 'Hi, this is Hetu.'
+      dartValue // the script will return the value of it's last expression
+      ''');
 
   print('hetu value: $hetuValue');
 }
