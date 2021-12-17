@@ -19,16 +19,14 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    fun main {
-      var ht = {
-        name: 'Hetu',
-        greeting: () {
-          print('Hi! I\'m', this.name)
-        }
+    var ht = {
+      name: 'Hetu',
+      greeting: () {
+        print('Hi! I\'m', this.name)
       }
-      ht.greeting()
     }
-  ''', invokeFunc: 'main');
+    ht.greeting()
+  ''', isModule: true);
 }
 ```
 

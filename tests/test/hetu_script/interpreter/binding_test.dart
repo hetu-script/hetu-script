@@ -150,11 +150,8 @@ void main() {
   group('binding -', () {
     test('get & set', () {
       final result = hetu.eval('''
-        fun bindingTest {
-          Person.profile.isCivilian = false
-          return Person.profile.isCivilian
-        }
-      ''', invokeFunc: 'bindingTest');
+        Person.profile.isCivilian = false
+      ''');
       expect(
         result,
         false,

@@ -79,9 +79,7 @@ void main() {
         construct (value)
         final value
       }
-      fun main {
-        var obj = Generic<str>('hello world')
-        print(obj.value)
-      }
-      ''', invokeFunc: 'main');
+      var obj = Generic<str>('hello world')
+      print(obj.value)
+      ''');
 }

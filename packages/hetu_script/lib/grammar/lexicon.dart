@@ -110,6 +110,7 @@ abstract class HTLexicon {
   static const kVar = 'var';
   static const kFinal = 'final';
   static const kConst = 'const';
+  static const kDefine = 'def';
   static const kDelete = 'delete';
 
   /// 变量声明
@@ -200,6 +201,8 @@ abstract class HTLexicon {
     kVar,
     kFinal,
     kConst,
+    kDefine,
+    kDelete,
     kAssert,
     kTypeof,
     kNamespace,
@@ -207,7 +210,7 @@ abstract class HTLexicon {
     kEnum,
     kFun,
     kStruct,
-    kInterface,
+    // kInterface,
     kThis,
     kSuper,
     kAbstract,
@@ -235,10 +238,10 @@ abstract class HTLexicon {
     kWhen,
     kIs,
     kAs,
-    kTry,
-    kCatch,
-    kFinally,
-    kThrow,
+    // kTry,
+    // kCatch,
+    // kFinally,
+    // kThrow,
   };
 
   static const Set<String> contextualKeyword = {

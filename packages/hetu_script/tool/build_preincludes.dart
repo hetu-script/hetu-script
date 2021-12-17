@@ -6,7 +6,7 @@ final Map<String, String> builtInModules = const {
   'hetu:async': '../../lib/core/async.ht',
   'hetu:system': '../../lib/core/system.ht',
   'hetu:math': '../../lib/core/math.ht',
-  'hetu:dev_tools': '../../lib/core/dev_tools.ht',
+  // 'hetu:tools': '../../lib/core/dev_tools.ht',
 };
 
 final Map<String, String> optionalModules = const {};
@@ -14,21 +14,21 @@ final Map<String, String> optionalModules = const {};
 void main() {
   stdout.write('Converting files in \'lib\' folder into Dart strings...');
   final output = StringBuffer();
-  output.write('''
+  output.writeln('''
 /// This file has been automatically generated
 /// from files in [hetu_lib] folder.
 /// Please do not edit manually.
 part of '../abstract_interpreter.dart';
 
 /// The pre-included modules of Hetu scripting language.
-final Map<String, String> preIncludeModules = const {
-''');
+final List<HTSource> preIncludeModules = [''');
   final file = File('lib/interpreter/preinclude/preinclude_modules.dart');
   for (final key in builtInModules.keys) {
     final data = File(builtInModules[key]!).readAsStringSync();
-    output.writeln("  '$key': r'''" + data + "''',");
+    output.writeln(
+        "  HTSource(r'''$data''', name: '$key', type: ResourceType.hetuModule),");
   }
-  output.writeln('};');
+  output.writeln('];');
   final content = output.toString();
   file.writeAsStringSync(content);
   stdout.writeln(' done!');

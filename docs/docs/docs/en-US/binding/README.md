@@ -340,7 +340,7 @@ void main() {
         print(p2.name)
         p2.name = 'John'
       }
-      ''', invokeFunc: 'main');
+      ''', isModule: true, invokeFunc: 'main');
 }
 ```
 

@@ -84,7 +84,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   @mustCallSuper
   void init({
-    Map<String, String> includes = const {},
+    List<HTSource> preincludeModules = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
@@ -108,20 +108,12 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       // bindExternalClass(HTConsoleClass());
 
       // load classes and functions in core library.
-      for (final file in preIncludeModules.keys) {
-        eval(
-          preIncludeModules[file]!,
-          filename: file,
-          globallyImport: true,
-        );
+      for (final file in preIncludeModules) {
+        evalSource(file, globallyImport: true);
       }
 
-      for (final file in includes.keys) {
-        eval(
-          includes[file]!,
-          filename: file,
-          // namespace: global,
-        );
+      for (final file in preincludeModules) {
+        evalSource(file, globallyImport: true);
       }
       for (final key in externalFunctions.keys) {
         bindExternalFunction(key, externalFunctions[key]!);
@@ -151,7 +143,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {String? filename,
       String? moduleName,
       bool globallyImport = false,
-      bool isScript = false,
+      bool isModule = false,
       bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -160,7 +152,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool errorHandled = false}) {
     final source = HTSource(content,
         name: filename,
-        type: isScript ? ResourceType.hetuScript : ResourceType.hetuModule);
+        type: isModule ? ResourceType.hetuModule : ResourceType.hetuScript);
     final result = evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,

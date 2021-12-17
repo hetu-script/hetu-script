@@ -8,8 +8,8 @@ void main() {
   group('buildin values -', () {
     test('escape char in string', () {
       final result = hetu.eval(r'''
-      fun escapeChar => 'Alice\'s world.'
-    ''', invokeFunc: 'escapeChar');
+        'Alice\'s world.'
+      ''');
       expect(
         result,
         "Alice's world.",
@@ -17,12 +17,10 @@ void main() {
     });
     test('string interpolation', () {
       final result = hetu.eval(r'''
-      fun interpolation {
         var a = 'dragon'
         var b
-        return ('To kill the ${a}, you have to wait ${b} years.')
-      }
-    ''', invokeFunc: 'interpolation');
+        'To kill the ${a}, you have to wait ${b} years.'
+      ''');
       expect(
         result,
         'To kill the dragon, you have to wait null years.',
@@ -33,7 +31,6 @@ void main() {
   group('spread - ', () {
     test('spread in struct', () {
       final result = hetu.eval(r'''
-      fun spread {
         var name = {
           familyName: 'Hord',
           firstName: 'Luk'
@@ -42,9 +39,8 @@ void main() {
           ...name,
           age: 23,
         }
-        return person.firstName
-      }
-    ''', invokeFunc: 'spread');
+        person.firstName
+      ''');
       expect(
         result,
         'Luk',
@@ -52,12 +48,10 @@ void main() {
     });
     test('spread in list', () {
       final result = hetu.eval(r'''
-      fun spread {
         var list = [5, 6]
         var ht = [1, 2, ...[3, 4], ...list]
-        return stringify(ht)
-      }
-    ''', invokeFunc: 'spread');
+        stringify(ht)
+      ''');
       expect(
         result,
         '[1, 2, 3, 4, 5, 6]',
@@ -65,14 +59,12 @@ void main() {
     });
     test('spread in function call', () {
       final result = hetu.eval(r'''
-      fun someFunc(a, b) {
-        return a + b
-      }
-      fun spreadInCallArg {
+        fun someFunc(a, b) {
+          return a + b
+        }
         var list = [5, 6]
-        return someFunc(...list)
-      }
-    ''', invokeFunc: 'spreadInCallArg');
+        someFunc(...list)
+      ''');
       expect(
         result,
         11,
@@ -83,10 +75,8 @@ void main() {
   group('operators -', () {
     test('brackets', () {
       final result = hetu.eval(r'''
-      fun math1 { 
-        return 3 - (2 * 3 - 5)
-      }
-    ''', invokeFunc: 'math1');
+        3 - (2 * 3 - 5)
+      ''');
       expect(
         result,
         2,
@@ -94,13 +84,11 @@ void main() {
     });
     test('null checker', () {
       final result = hetu.eval(r'''
-      fun nullChecker {
         var kek = null
         if (kek == null || true) {
-          return('is null')
+          'is null'
         }
-      }
-    ''', invokeFunc: 'nullChecker');
+      ''');
       expect(
         result,
         'is null',
@@ -108,13 +96,11 @@ void main() {
     });
     test('ternary operator', () {
       final result = hetu.eval(r'''
-      fun ternary {
-       return ((5 > 4 ? true ? 'certainly' : 'yeah' : 'ha') + ', eva!')
-      }
-    ''', invokeFunc: 'ternary');
+        (5 > 4 ? true ? 'certainly' : 'yeah' : 'ha') + ', Eva!'
+      ''');
       expect(
         result,
-        'certainly, eva!',
+        'certainly, Eva!',
       );
     });
     test('member and sub get', () {
@@ -126,11 +112,9 @@ void main() {
           var array = {'tom': 'kaine'}
           var name = Ming()
         }
-        fun subGet() {
-          var m = Member()
-          return m.array[m.name.first]
-        }
-    ''', invokeFunc: 'subGet');
+        var m = Member()
+        m.array[m.name.first]
+      ''');
       expect(
         result,
         'kaine',
@@ -138,15 +122,13 @@ void main() {
     });
     test('complex assign', () {
       final result = hetu.eval(r'''
-        fun complexAssign() {
-          var jimmy = {
-            age: 17
-          }
-          jimmy.age -= 10
-          jimmy.age *= 6
-          return jimmy.age
+        var jimmy = {
+          age: 17
         }
-    ''', invokeFunc: 'complexAssign');
+        jimmy.age -= 10
+        jimmy.age *= 6
+        jimmy.age
+      ''');
       expect(
         result,
         42,
@@ -157,7 +139,6 @@ void main() {
   group('control flow -', () {
     test('loop', () {
       final result = hetu.eval(r'''
-      fun loop {
         var j = 1
         var i = 0
         for (;;) {
@@ -170,9 +151,8 @@ void main() {
             break
           }
         }
-        return j
-      }
-    ''', invokeFunc: 'loop');
+        j
+      ''');
       expect(
         result,
         71,
@@ -180,7 +160,6 @@ void main() {
     });
     test('for in', () {
       final result = hetu.eval(r'''
-      fun forIn {
         var value = ['', 'hello', 'world']
         var result = ''
         for (var item in value) {
@@ -189,9 +168,7 @@ void main() {
             break
           }
         }
-        return result
-      }
-    ''', invokeFunc: 'forIn');
+      ''');
       expect(
         result,
         'hello',
@@ -199,7 +176,6 @@ void main() {
     });
     test('continue', () {
       final result = hetu.eval(r'''
-      fun continueLoop {
         var j = 0
         for (var i = 0; i < 5; ++i) {
           if (i % 2 == 0){
@@ -207,9 +183,8 @@ void main() {
           }
           j += i
         }
-        return j
-      }
-    ''', invokeFunc: 'continueLoop');
+        j
+      ''');
       expect(
         result,
         4,
@@ -217,17 +192,15 @@ void main() {
     });
     test('when', () {
       final result = hetu.eval(r'''
-        fun swtich(expr) {
+        fun switch(expr) {
           when(expr) {
             0-> return '0'
             1-> return '1'
           }
           return ''
         }
-        fun whenStmt {
-          return swtich(5 - 4)
-        }
-    ''', invokeFunc: 'whenStmt');
+        switch(5 - 4)
+      ''');
       expect(
         result,
         '1',
@@ -238,23 +211,21 @@ void main() {
   group('variables -', () {
     test('global var', () {
       final result = hetu.eval(r'''
-      var globalVar = 0
-      class GetGlobal {
-        construct {
-          globalVar = 2
+        var globalVar = 0
+        class GetGlobal {
+          construct {
+            globalVar = 2
+          }
+          fun test {
+            return (globalVar * globalVar)
+          }
+          static fun staticTest {
+            return (globalVar + 1)
+          }
         }
-        fun test {
-          return (globalVar * globalVar)
-        }
-        static fun staticTest {
-          return (globalVar + 1)
-        }
-      }
-      fun getGlobalVar() {
         var a = GetGlobal()
-        return a.test() + GetGlobal.staticTest()
-      }
-    ''', invokeFunc: 'getGlobalVar');
+        a.test() + GetGlobal.staticTest()
+      ''');
       expect(
         result,
         7,

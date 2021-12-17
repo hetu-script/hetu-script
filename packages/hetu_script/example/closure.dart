@@ -13,9 +13,7 @@ void main() {
         return nested
       }
 
-      fun main {
-        var func = closure( (n) => n * n )
-        func()
-      }
-      ''', invokeFunc: 'main');
+      var func = closure( (n) => n * n )
+      func()
+      ''');
 }

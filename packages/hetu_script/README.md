@@ -50,7 +50,7 @@ void main() {
       }
     }
     ht.greeting()
-  ''', isScript: true);
+  ''');
 }
 ```
 

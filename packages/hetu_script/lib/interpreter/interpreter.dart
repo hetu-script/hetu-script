@@ -48,11 +48,11 @@ class _LoopInfo {
   _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
-class ExpressionModule {
-  final String fullName;
+class ExpressionSource {
+  final String id;
   final dynamic value;
 
-  const ExpressionModule(this.fullName, this.value);
+  const ExpressionSource(this.id, this.value);
 }
 
 /// A bytecode implementation of a Hetu script interpreter
@@ -186,16 +186,16 @@ class Hetu extends HTAbstractInterpreter {
 
   @override
   void init({
-    Map<String, String> includes = const {},
+    List<HTSource> preincludeModules = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
   }) {
     if (config.doStaticAnalyze) {
-      _analyzer.init(includes: includes);
+      _analyzer.init(preincludeModules: preincludeModules);
     }
     super.init(
-      includes: includes,
+      preincludeModules: preincludeModules,
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
@@ -381,11 +381,11 @@ class Hetu extends HTAbstractInterpreter {
   Uint8List? compile(String content,
       {String? filename,
       String? moduleName,
-      bool isScript = false,
+      bool isModule = false,
       bool errorHandled = false}) {
     final source = HTSource(content,
         name: filename,
-        type: isScript ? ResourceType.hetuScript : ResourceType.hetuModule);
+        type: isModule ? ResourceType.hetuModule : ResourceType.hetuScript);
     final result = compileSource(source,
         moduleName: moduleName, errorHandled: errorHandled);
     return result;
@@ -434,7 +434,7 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  /// Load a pre-compiled bytecode module.
+  /// Load a pre-compiled bytecode file as a module.
   /// If [invokeFunc] is true, execute the bytecode immediately.
   dynamic loadBytecode(Uint8List bytes, String moduleName,
       {bool globallyImport = false,
@@ -445,31 +445,53 @@ class Hetu extends HTAbstractInterpreter {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     _isStrictMode = isStrictMode;
-
     try {
       _bytecodeModule = HTBytecodeModule(moduleName, bytes);
+      final signature = _bytecodeModule.readUint32();
+      if (signature != HTCompiler.hetuSignature) {
+        throw HTError.bytecode(
+            filename: _fileName, line: _line, column: _column);
+      }
+      final major = _bytecodeModule.read();
+      final minor = _bytecodeModule.read();
+      final patch = _bytecodeModule.readUint16();
+      var incompatible = false;
+      if (major > 0) {
+        if (major != HTCompiler.version.major) {
+          incompatible = true;
+        }
+      } else {
+        if (major != HTCompiler.version.major ||
+            minor != HTCompiler.version.minor ||
+            patch != HTCompiler.version.patch) {
+          incompatible = true;
+        }
+      }
+      if (incompatible) {
+        throw HTError.version('$major.$minor.$patch', '${HTCompiler.version}',
+            filename: _fileName, line: _line, column: _column);
+      }
+      final sourceType = ResourceType.values.elementAt(_bytecodeModule.read());
+      _isModuleEntryScript = sourceType == ResourceType.hetuScript ||
+          sourceType == ResourceType.hetuExpression;
       if (_isModuleEntryScript) {
         while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
-          final module = execute();
-          if (module is HTNamespace) {
-            _bytecodeModule.namespaces[module.id!] = module;
-          } else if (module is ExpressionModule) {
-            _bytecodeModule.importedExpressionModules[module.fullName] =
-                module.value;
+          final result = execute();
+          if (result is HTNamespace) {
+            _bytecodeModule.namespaces[result.id!] = result;
+          } else if (result is ExpressionSource) {
+            _bytecodeModule.expressions[result.id] = result.value;
           }
           // TODO: import binary bytes
         }
-        _namespace = _bytecodeModule.namespaces.values.last;
-        if (globallyImport) {
-          global.import(_namespace);
-        }
-        _cachedModules[_bytecodeModule.id] = _bytecodeModule;
-        // return the last expression's value
-        return _stackFrames.first.first;
       } else {
         while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
-          final HTNamespace nsp = execute();
-          _bytecodeModule.namespaces[nsp.id!] = nsp;
+          final result = execute();
+          if (result is HTNamespace) {
+            _bytecodeModule.namespaces[result.id!] = result;
+          } else if (result is ExpressionSource) {
+            _bytecodeModule.expressions[result.id] = result.value;
+          }
         }
         // handles imports
         for (final nsp in _bytecodeModule.namespaces.values) {
@@ -477,24 +499,27 @@ class Hetu extends HTAbstractInterpreter {
             _handleNamespaceImport(nsp, decl);
           }
         }
-        _namespace = _bytecodeModule.namespaces.values.last;
-        if (globallyImport) {
-          global.import(_namespace);
-        }
-        _cachedModules[_bytecodeModule.id] = _bytecodeModule;
         // resolve each declaration after we get all declarations
         for (final namespace in _bytecodeModule.namespaces.values) {
           for (final decl in namespace.declarations.values) {
             decl.resolve();
           }
         }
-        if (invokeFunc != null) {
-          final result = invoke(invokeFunc,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              errorHandled: true);
-          return result;
-        }
+      }
+      _namespace = _bytecodeModule.namespaces.values.last;
+      if (globallyImport) {
+        global.import(_namespace);
+      }
+      _cachedModules[_bytecodeModule.id] = _bytecodeModule;
+      if (invokeFunc != null) {
+        final result = invoke(invokeFunc,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            errorHandled: true);
+        return result;
+      }
+      if (_isModuleEntryScript) {
+        return _stackFrames.first.first;
       }
     } catch (error) {
       if (errorHandled) {
@@ -677,34 +702,6 @@ class Hetu extends HTAbstractInterpreter {
           _line = _bytecodeModule.readUint16();
           _column = _bytecodeModule.readUint16();
           break;
-        case HTOpCode.meta:
-          final signature = _bytecodeModule.readUint32();
-          if (signature != HTCompiler.hetuSignature) {
-            throw HTError.bytecode(
-                filename: _fileName, line: _line, column: _column);
-          }
-          final major = _bytecodeModule.read();
-          final minor = _bytecodeModule.read();
-          final patch = _bytecodeModule.readUint16();
-          var incompatible = false;
-          if (major > 0) {
-            if (major != HTCompiler.version.major) {
-              incompatible = true;
-            }
-          } else {
-            if (major != HTCompiler.version.major ||
-                minor != HTCompiler.version.minor ||
-                patch != HTCompiler.version.patch) {
-              incompatible = true;
-            }
-          }
-          if (incompatible) {
-            throw HTError.version(
-                '$major.$minor.$patch', '${HTCompiler.version}',
-                filename: _fileName, line: _line, column: _column);
-          }
-          _isModuleEntryScript = _bytecodeModule.readBool();
-          break;
         // 将字面量存储在本地变量中
         case HTOpCode.local:
           _storeLocal();
@@ -788,7 +785,7 @@ class Hetu extends HTAbstractInterpreter {
               _currentFileResourceType == ResourceType.hetuScript) {
             return _namespace;
           } else if (_currentFileResourceType == ResourceType.hetuExpression) {
-            final module = ExpressionModule(_fileName, _localValue);
+            final module = ExpressionSource(_fileName, _localValue);
             return module;
           }
           // TODO: binary bytes module
@@ -891,6 +888,7 @@ class Hetu extends HTAbstractInterpreter {
             final value = execute();
             final encap = encapsulate(object);
             encap.memberSet(key, value);
+            _localValue = value;
           }
           break;
         case HTOpCode.subSet:
@@ -1018,7 +1016,7 @@ class Hetu extends HTAbstractInterpreter {
       final ext = path.extension(fromPath);
       if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
         // TODO: binary bytes import
-        final value = _bytecodeModule.importedExpressionModules[fromPath];
+        final value = _bytecodeModule.expressions[fromPath];
         _namespace.define(alias!, HTVariable(alias, value: value));
       } else {
         final decl = ImportDeclaration(

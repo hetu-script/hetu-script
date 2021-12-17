@@ -85,14 +85,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   Uint8List compile(HTModuleParseResult compilation) {
     final mainBytesBuilder = BytesBuilder();
-    mainBytesBuilder.addByte(HTOpCode.meta);
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
     // hetu bytecode version
     mainBytesBuilder.addByte(version.major);
     mainBytesBuilder.addByte(version.minor);
     mainBytesBuilder.add(_uint16(version.patch));
-    // bool: isScript
+    // index: ResourceType
     mainBytesBuilder.addByte(compilation.type.index);
     final bytesBuilder = BytesBuilder();
     for (final result in compilation.results.values) {

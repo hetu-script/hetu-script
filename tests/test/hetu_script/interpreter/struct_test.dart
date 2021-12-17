@@ -8,16 +8,14 @@ void main() {
   group('struct -', () {
     test('basics', () {
       final result = hetu.eval(r'''
-        fun structBasicTest {
-          var foo = {
-            value: 42,
-            greeting: 'hi!'
-          }
-          foo.value = 'ha!'
-          foo.world = 'everything'
-          return foo.toString()
+        var foo = {
+          value: 42,
+          greeting: 'hi!'
         }
-      ''', invokeFunc: 'structBasicTest');
+        foo.value = 'ha!'
+        foo.world = 'everything'
+        foo.toString()
+      ''');
       expect(
         result,
         r'''{
@@ -35,11 +33,11 @@ void main() {
       };
       final result = hetu.eval(
           r'''
-        fun fromJsonTest(data) {
-          final obj = prototype.fromJson(data)
-          return obj.volumes
-        }
-      ''',
+            fun fromJsonTest(data) {
+              final obj = prototype.fromJson(data)
+              return obj.volumes
+            }
+          ''',
           invokeFunc: 'fromJsonTest',
           positionalArgs: [jsonData]);
       expect(
@@ -49,14 +47,12 @@ void main() {
     });
     test('owns', () {
       final result = hetu.eval(r'''
-        fun ownsTest {
-          var ht = {
-            name: 'Hetu',
-            age: 1
-          }
-          return ht.owns('toJson') // false
+        var ht = {
+          name: 'Hetu',
+          age: 1
         }
-      ''', invokeFunc: 'ownsTest');
+        ht.owns('toJson') // false
+      ''');
       expect(
         result,
         false,
@@ -64,16 +60,14 @@ void main() {
     });
     test('named', () {
       final result = hetu.eval(r'''
-        fun namedStructTest {
-          struct Named {
-            var name = 'Unity'
-            var age = 17
-          }
-          final n = Named()
-          n.age = 42
-          return Named.age
+        struct Named {
+          var name = 'Unity'
+          var age = 17
         }
-      ''', invokeFunc: 'namedStructTest');
+        final n = Named()
+        n.age = 42
+        Named.age
+      ''');
       expect(
         result,
         17,

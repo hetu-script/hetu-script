@@ -14,11 +14,9 @@ void main() {
             this.name = name
           }
         }
-        fun namedConstructor {
-          var p = AGuy.withName('harry')
-          return p.name
-        }
-      ''', invokeFunc: 'namedConstructor');
+        var p = AGuy.withName('harry')
+        p.name
+      ''');
       expect(
         result,
         'harry',
@@ -38,12 +36,10 @@ void main() {
             a()
           }
         }
-        fun getStatic {
-          var a = StaticField('yellow')
-          a.b()
-          return StaticField.field
-        }
-      ''', invokeFunc: 'getStatic');
+        var a = StaticField('yellow')
+        a.b()
+        StaticField.field
+      ''');
       expect(
         result,
         'yellow',
@@ -52,22 +48,20 @@ void main() {
 
     test('override', () {
       final result = hetu.eval('''
-      class Guy {
-        fun meaning {
-          return null
+        class Guy {
+          fun meaning {
+            return null
+          }
         }
-      }
-      class John extends Guy {
-        get number { return 42 }
-        fun meaning {
-          return number
+        class John extends Guy {
+          get number { return 42 }
+          fun meaning {
+            return number
+          }
         }
-      }
-      fun overrideTest {
         var j = John()
-        return j.meaning();
-      }
-      ''', invokeFunc: 'overrideTest');
+        j.meaning();
+      ''');
       expect(
         result,
         42,
@@ -76,26 +70,24 @@ void main() {
 
     test('inherits', () {
       final result = hetu.eval('''
-      class Super1 {
-        var name = 'Super'
-        var age = 1
-        fun addAge() {
-          age = age + 1
+        class Super1 {
+          var name = 'Super'
+          var age = 1
+          fun addAge() {
+            age = age + 1
+          }
         }
-      }
-      class Extend1 extends Super1 {
-        var name = 'Extend'
-        fun addAge() {
-          age = age + 1
-          super.addAge()
+        class Extend1 extends Super1 {
+          var name = 'Extend'
+          fun addAge() {
+            age = age + 1
+            super.addAge()
+          }
         }
-      }
-      fun inherits {
         var a = Extend1()
         a.addAge()
-        return a.age
-      }
-      ''', invokeFunc: 'inherits');
+        a.age
+      ''');
       expect(
         result,
         3,
@@ -109,13 +101,11 @@ void main() {
         class Extend3 extends Super3 {
           var name = 'Extend'
         }
-        fun superMember {
-          var a = Extend3()
-          var b = a as Super3
-          b.name = 'changed'
-          return (a as Super3).name
-        }
-      ''', invokeFunc: 'superMember');
+        var a = Extend3()
+        var b = a as Super3
+        b.name = 'changed'
+        (a as Super3).name
+      ''');
       expect(
         result,
         'changed',
@@ -134,11 +124,9 @@ void main() {
             name += 'Sequence'
           }
         }
-        fun cotrSequence {
-          var d = DerivedC1()
-          return d.name
-        }
-      ''', invokeFunc: 'cotrSequence');
+        var d = DerivedC1()
+        d.name
+      ''');
       expect(
         result,
         'DerivedSequence',
@@ -155,11 +143,9 @@ void main() {
             this.name = name
           }
         }
-        fun factoryCtor {
-          var d = Choclate.Factory();
-          return d.name
-        }
-      ''', invokeFunc: 'factoryCtor');
+        var d = Choclate.Factory();
+        d.name
+      ''');
       expect(
         result,
         'Choclate',
@@ -172,11 +158,9 @@ void main() {
           mongolian,
           african,
         }
-        fun enumTest {
-          var race: Race = Race.african
-          return race.toString()
-        }
-      ''', invokeFunc: 'enumTest');
+        var race: Race = Race.african
+        race.toString()
+      ''');
       expect(
         result,
         'Race.african',

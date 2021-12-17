@@ -13,9 +13,11 @@ void main() {
           print('Hi, I\'m ', _name)
         }
       }
-      final p = Person('jimmy')
-      // Error!
-      // print(p._name)
-      p.greeting()
-    ''', isScript: true);
+      fun test {
+        final p = Person('jimmy')
+        // Error!
+        // print(p._name)
+        p.greeting()
+      }
+    ''', invokeFunc: 'test');
 }

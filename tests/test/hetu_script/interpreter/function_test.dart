@@ -8,20 +8,18 @@ void main() {
   group('functions -', () {
     test('nested & anonymous', () {
       final result = hetu.eval('''
-            fun literalFunction(func) {
-              var i = 42
-              fun nested() {
-                i = i + 1
-                return (func(i))
-              }
-              return nested
-            }
-            fun closure {
-              var func = literalFunction( fun (n) { return n * n } )
-              func()
-              return func()
-            }
-      ''', invokeFunc: 'closure');
+        fun literalFunction(func) {
+          var i = 42
+          fun nested() {
+            i = i + 1
+            return (func(i))
+          }
+          return nested
+        }
+        var func = literalFunction( fun (n) { return n * n } )
+        func()
+        func()
+      ''');
       expect(
         result,
         1936,
@@ -29,25 +27,23 @@ void main() {
     });
     test('closure in loop', () {
       final result = hetu.eval('''
-        fun closureInLoop {
-          var list = [];
-          var builders = [];
-          fun build(i, add) {
-            builders.add(fun () {
-              add(i);
-            });
-          }
-          for (var i = 0; i < 5; ++i) {
-            build(i, fun (n)  {
-              list.add(n);
-            });
-          }
-          for (var func in builders) {
-            func();
-          }
-          return list[1]
+        var list = [];
+        var builders = [];
+        fun build(i, add) {
+          builders.add(fun () {
+            add(i);
+          });
         }
-      ''', invokeFunc: 'closureInLoop');
+        for (var i = 0; i < 5; ++i) {
+          build(i, fun (n)  {
+            list.add(n);
+          });
+        }
+        for (var func in builders) {
+          func();
+        }
+        list[1]
+      ''');
       expect(
         result,
         1,
@@ -59,11 +55,8 @@ void main() {
         fun namedArgFun({a: num, b: num = 2, c: num}) {
           return a * b
         }
-
-        fun namedArgFunTest {
-          return namedArgFun(a: 21)
-        }
-      ''', invokeFunc: 'namedArgFunTest');
+        namedArgFun(a: 21)
+      ''');
       expect(
         result,
         42,
