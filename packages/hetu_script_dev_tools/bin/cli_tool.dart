@@ -51,8 +51,7 @@ void main(List<String> arguments) {
             input += '\n' + stdin.readLineSync()!;
           }
           try {
-            final result =
-                hetu.eval(input, isModule: true, globallyImport: true);
+            final result = hetu.eval(input, globallyImport: true);
             print(result);
           } catch (e) {
             if (e is HTError) {
