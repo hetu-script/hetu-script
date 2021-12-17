@@ -8,11 +8,11 @@ Add the packages in your pubspec.yaml.
 
 ```yaml
 dependencies:
-  hetu_script: ^0.3.2
+  hetu_script: ^0.3.7
   # optional:
-  # hetu_script_dev_tools: ^0.0.1
+  # hetu_script_dev_tools: ^0.0.3+1
   # optional:
-  # hetu_script_flutter: ^0.0.1
+  # hetu_script_flutter: ^0.0.3
 ```
 
 ## Flutter project
