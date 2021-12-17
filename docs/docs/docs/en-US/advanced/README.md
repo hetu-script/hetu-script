@@ -48,6 +48,13 @@ a ??= 42
 print(a) // a is 42 now
 ```
 
+The nullable check will pass to next operator like a chain:
+
+```dart
+var a // a is null
+final value = a?.collection.dict.value // value is null and we won't get errors
+```
+
 ## Future
 
 All hetu functions are sync. The script do not support async/await functionality, and we are not planning to do so in the near future.

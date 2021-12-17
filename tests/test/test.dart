@@ -4,8 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      var a
-
-      print(a?())
+      var a // a is null
+      final value = a?.collection.dict.value // value is null and we won't get errors
+      print(value)
     ''');
 }
