@@ -479,25 +479,16 @@ class Hetu extends HTAbstractInterpreter {
       final sourceType = ResourceType.values.elementAt(_bytecodeModule.read());
       _isModuleEntryScript = sourceType == ResourceType.hetuScript ||
           sourceType == ResourceType.hetuExpression;
-      if (_isModuleEntryScript) {
-        while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
-          final result = execute();
-          if (result is HTNamespace) {
-            _bytecodeModule.namespaces[result.id!] = result;
-          } else if (result is ExpressionSource) {
-            _bytecodeModule.expressions[result.id] = result.value;
-          }
-          // TODO: import binary bytes
+      while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
+        final result = execute();
+        if (result is HTNamespace) {
+          _bytecodeModule.namespaces[result.id!] = result;
+        } else if (result is ExpressionSource) {
+          _bytecodeModule.expressions[result.id] = result.value;
         }
-      } else {
-        while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
-          final result = execute();
-          if (result is HTNamespace) {
-            _bytecodeModule.namespaces[result.id!] = result;
-          } else if (result is ExpressionSource) {
-            _bytecodeModule.expressions[result.id] = result.value;
-          }
-        }
+        // TODO: import binary bytes
+      }
+      if (!_isModuleEntryScript) {
         // handles imports
         for (final nsp in _bytecodeModule.namespaces.values) {
           for (final decl in nsp.imports.values) {

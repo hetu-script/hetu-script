@@ -8,9 +8,9 @@ import 'package:hetu_script/analyzer.dart';
 
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
-const cliHelpText = r'''
+var cliHelp = r'''
 Hetu Script Command-line Tool
-Version: 0.1.0
+Version: {0}
 Usage:
 hetu [command] [option]
   command:
@@ -25,7 +25,7 @@ hetu [option]
     --version(-v)
 ''';
 
-const replInfoText = r'''
+var replInfo = r'''
 Hetu Script Read-Evaluate-Print-Loop Tool
 Version: {0}
 Enter expression to evaluate.
@@ -38,38 +38,18 @@ void main(List<String> arguments) {
     final currentDir = Directory.current;
     final sourceContext = HTFileSystemResourceContext(
         root: currentDir.path, expressionModuleExtensions: [HTResource.json]);
-    final hetu = Hetu(sourceContext: sourceContext);
+    hetu = Hetu(sourceContext: sourceContext);
     hetu.init();
     final version = HTCompiler.version.toString();
-    final replInfo = replInfoText.replaceAll('{0}', version);
+    cliHelp = cliHelp.replaceAll('{0}', version);
+    replInfo = replInfo.replaceAll('{0}', version);
+
     if (arguments.isEmpty) {
-      print(replInfo);
-      var exit = false;
-      while (!exit) {
-        stdout.write('>>>');
-        var input = stdin.readLineSync();
-        if (input == '.exit') {
-          exit = true;
-        } else {
-          if (input!.endsWith('\\')) {
-            input += '\n' + stdin.readLineSync()!;
-          }
-          try {
-            final result = hetu.eval(input, globallyImport: true);
-            print(result);
-          } catch (e) {
-            if (e is HTError) {
-              print(e.message);
-            } else {
-              print(e);
-            }
-          }
-        }
-      }
+      enterReplMode();
     } else {
       final results = parseArg(arguments);
       if (results['help']) {
-        print(cliHelpText);
+        print(cliHelp);
       } else if (results['version']) {
         print('Hetu Script Language, version: $version');
       } else if (results.command != null) {
@@ -82,7 +62,8 @@ void main(List<String> arguments) {
         }
         switch (cmd.name) {
           case 'run':
-            run(cmdArgs);
+            final result = run(cmdArgs);
+            enterReplMode(prompt: 'Loaded module: [${cmdArgs.first}]\n$result');
             break;
           case 'format':
             format(cmdArgs, cmd['out'], cmd['print']);
@@ -92,11 +73,42 @@ void main(List<String> arguments) {
             break;
         }
       } else {
-        run(arguments);
+        final result = run(arguments);
+        enterReplMode(prompt: 'Loaded module: [${arguments.first}]\n$result');
       }
     }
   } catch (e) {
     print(e);
+  }
+}
+
+void enterReplMode({String? prompt}) {
+  print(replInfo);
+  print('------------------------------------')
+  if (prompt != null) {
+    print(prompt);
+  }
+  var exit = false;
+  while (!exit) {
+    stdout.write('>>>');
+    var input = stdin.readLineSync();
+    if (input == '.exit') {
+      exit = true;
+    } else {
+      if (input!.endsWith('\\')) {
+        input += '\n' + stdin.readLineSync()!;
+      }
+      try {
+        final result = hetu.eval(input, globallyImport: true);
+        print(result);
+      } catch (e) {
+        if (e is HTError) {
+          print(e.message);
+        } else {
+          print(e);
+        }
+      }
+    }
   }
 }
 
@@ -112,15 +124,26 @@ ArgResults parseArg(List<String> args) {
   return parser.parse(args);
 }
 
-void run(List<String> args) {
+String run(List<String> args) {
+  if (args.isEmpty) {
+    throw 'Error: no path specified to run.';
+  }
   dynamic result;
   if (args.length == 1) {
-    result = hetu.evalFile(args.first);
+    result = hetu.evalFile(args.first, globallyImport: true);
   } else {
-    result = hetu.evalFile(args.first, invokeFunc: args[1]);
+    final scriptInvocationArgs = <String>[];
+    if (args.length > 2) {
+      for (var i = 2; i < args.length; ++i) {
+        scriptInvocationArgs.add(args[i]);
+      }
+    }
+    result = hetu.evalFile(args.first,
+        globallyImport: true,
+        invokeFunc: args[1],
+        positionalArgs: scriptInvocationArgs);
   }
-  print('Execution result:');
-  print(result);
+  return 'Execution result:\n$result';
 }
 
 void format(List<String> args, [String? outPath, bool printResult = true]) {

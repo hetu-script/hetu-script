@@ -62,7 +62,7 @@ class CompilerConfigImpl implements CompilerConfig {
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
-  static final version = Version(0, 3, 5);
+  static final version = Version(0, 3, 7);
   static const constStringLengthLimit = 128;
 
   /// Hetu script bytecode's bytecode signature
