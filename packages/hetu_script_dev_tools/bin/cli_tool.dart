@@ -84,7 +84,7 @@ void main(List<String> arguments) {
 
 void enterReplMode({String? prompt}) {
   print(replInfo);
-  print('------------------------------------')
+  print('------------------------------------------------');
   if (prompt != null) {
     print(prompt);
   }
