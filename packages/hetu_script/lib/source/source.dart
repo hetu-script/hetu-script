@@ -49,3 +49,12 @@ class HTSource {
     }
   }
 }
+
+class HTValueSource {
+  final String id;
+  final String moduleName;
+  final dynamic value;
+
+  const HTValueSource(
+      {required this.id, required this.moduleName, required this.value});
+}

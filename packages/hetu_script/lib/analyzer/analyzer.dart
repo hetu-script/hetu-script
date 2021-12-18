@@ -103,7 +103,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     final parser = HTParser(context: sourceContext);
     compilation = parser.parseToModule(source, moduleName: moduleName);
     final results = <String, HTModuleAnalysisResult>{};
-    for (final result in compilation.results.values) {
+    for (final result in compilation.sources.values) {
       _curErrors.clear();
       final analysisErrors =
           result.errors.map((err) => HTAnalysisError.fromError(err)).toList();

@@ -48,13 +48,6 @@ class _LoopInfo {
   _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
-class ExpressionSource {
-  final String id;
-  final dynamic value;
-
-  const ExpressionSource(this.id, this.value);
-}
-
 /// A bytecode implementation of a Hetu script interpreter
 class Hetu extends HTAbstractInterpreter {
   @override
@@ -478,12 +471,12 @@ class Hetu extends HTAbstractInterpreter {
       }
       final sourceType = ResourceType.values.elementAt(_bytecodeModule.read());
       _isModuleEntryScript = sourceType == ResourceType.hetuScript ||
-          sourceType == ResourceType.hetuExpression;
+          sourceType == ResourceType.hetuValue;
       while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
         final result = execute();
         if (result is HTNamespace) {
           _bytecodeModule.namespaces[result.id!] = result;
-        } else if (result is ExpressionSource) {
+        } else if (result is HTValueSource) {
           _bytecodeModule.expressions[result.id] = result.value;
         }
         // TODO: import binary bytes
@@ -780,8 +773,11 @@ class Hetu extends HTAbstractInterpreter {
           if (_currentFileResourceType == ResourceType.hetuModule ||
               _currentFileResourceType == ResourceType.hetuScript) {
             return _namespace;
-          } else if (_currentFileResourceType == ResourceType.hetuExpression) {
-            final module = ExpressionSource(_fileName, _localValue);
+          } else if (_currentFileResourceType == ResourceType.hetuValue) {
+            final module = HTValueSource(
+                id: _fileName,
+                moduleName: _bytecodeModule.id,
+                value: _localValue);
             return module;
           }
           // TODO: binary bytes module
@@ -1028,6 +1024,7 @@ class Hetu extends HTAbstractInterpreter {
       final ext = path.extension(fromPath);
       if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
         // TODO: binary bytes import
+        // final module = _cachedModules[];
         final value = _bytecodeModule.expressions[fromPath];
         _namespace.define(alias!, HTVariable(alias, value: value));
       } else {

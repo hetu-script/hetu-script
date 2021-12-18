@@ -87,7 +87,7 @@ abstract class HTResourceContext<T> {
     } else if (ext == HTResource.hetuScript) {
       return ResourceType.hetuScript;
     } else if (expressionModuleExtensions.contains(ext)) {
-      return ResourceType.hetuExpression;
+      return ResourceType.hetuValue;
     } else if (binaryModuleExtensions.contains(ext)) {
       return ResourceType.binary;
     } else {

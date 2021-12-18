@@ -43,7 +43,7 @@ class HTAnalysisManager {
     final analyzer = _pathsToAnalyzer[fullName]!;
     final source = sourceContextManager.getResource(fullName)!;
     final result = analyzer.evalSource(source);
-    for (final result in analyzer.compilation.results.values) {
+    for (final result in analyzer.compilation.sources.values) {
       _parseResults[result.fullName] = result;
     }
     _analysisResults[fullName] = result;

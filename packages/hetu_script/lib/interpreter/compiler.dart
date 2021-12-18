@@ -11,6 +11,7 @@ import '../grammar/semantic.dart';
 // import '../source/source.dart';
 import '../shared/constants.dart';
 import 'const_table.dart';
+import '../parser/parse_result.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -94,7 +95,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // index: ResourceType
     mainBytesBuilder.addByte(compilation.type.index);
     final bytesBuilder = BytesBuilder();
-    for (final result in compilation.results.values) {
+    void compileSource(HTSourceParseResult result) {
       bytesBuilder.addByte(HTOpCode.file);
       final idBytes = _identifierString(result.fullName);
       bytesBuilder.add(idBytes);
@@ -104,6 +105,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.add(bytes);
       }
       bytesBuilder.addByte(HTOpCode.endOfFile);
+    }
+
+    for (final value in compilation.values.values) {
+      compileSource(value);
+    }
+    for (final value in compilation.sources.values) {
+      compileSource(value);
     }
     final code = bytesBuilder.toBytes();
     // const table

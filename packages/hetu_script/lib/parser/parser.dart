@@ -97,7 +97,7 @@ class HTParser extends HTAbstractParser {
             parseStyle = ParseStyle.module;
           } else if (sourceType == ResourceType.hetuScript) {
             parseStyle = ParseStyle.script;
-          } else if (sourceType == ResourceType.hetuExpression) {
+          } else if (sourceType == ResourceType.hetuValue) {
             parseStyle = ParseStyle.expression;
           } else {
             return nodes;
@@ -149,7 +149,8 @@ class HTParser extends HTAbstractParser {
   /// will import other files.
   HTModuleParseResult parseToModule(HTSource source, {String? moduleName}) {
     final result = parseSource(source, moduleName: moduleName);
-    final results = <String, HTSourceParseResult>{};
+    final values = <String, HTSourceParseResult>{};
+    final sources = <String, HTSourceParseResult>{};
 
     void handleImport(HTSourceParseResult result) {
       _cachedRecursiveParsingTargets.add(result.fullName);
@@ -168,8 +169,12 @@ class HTParser extends HTAbstractParser {
             importModule = parseSource(source2, moduleName: _currentModuleName);
             _cachedParseResults[importFullName] = importModule;
           }
-          results[importFullName] = importModule;
-          handleImport(importModule);
+          if (importModule.type == ResourceType.hetuValue) {
+            values[importFullName] = importModule;
+          } else {
+            handleImport(importModule);
+            sources[importFullName] = importModule;
+          }
         } catch (error) {
           final convertedError = HTError.sourceProviderError(decl.fromPath!,
               filename: source.name,
@@ -183,10 +188,15 @@ class HTParser extends HTAbstractParser {
       _cachedRecursiveParsingTargets.remove(result.fullName);
     }
 
-    handleImport(result);
-    results[result.fullName] = result;
-    final compilation =
-        HTModuleParseResult(results: results, type: source.type);
+    if (result.type == ResourceType.hetuValue) {
+      values[result.fullName] = result;
+    } else if (result.type == ResourceType.hetuModule ||
+        result.type == ResourceType.hetuScript) {
+      handleImport(result);
+      sources[result.fullName] = result;
+    }
+    final compilation = HTModuleParseResult(
+        values: values, sources: sources, type: source.type);
     return compilation;
   }
 
