@@ -102,24 +102,22 @@ class HTLexer {
                 curOffset + match.start,
                 curOffset + match.end));
           }
-        } else if (match.group(HTLexicon.tokenGroupStringSingleQuotation) !=
-            null) {
+        } else if (match.group(HTLexicon.tokenGroupApostropheString) != null) {
           final literal = matchString.substring(1, matchString.length - 1);
           toksOfLine.add(TokenStringLiteral(
               literal,
-              HTLexicon.singleQuotationLeft,
-              HTLexicon.singleQuotationRight,
+              HTLexicon.apostropheLeft,
+              HTLexicon.apostropheRight,
               curLine,
               curColumn,
               curOffset + match.start,
               curOffset + match.end));
-        } else if (match.group(HTLexicon.tokenGroupStringDoubleQuotation) !=
-            null) {
+        } else if (match.group(HTLexicon.tokenGroupQuotationString) != null) {
           final literal = matchString.substring(1, matchString.length - 1);
           toksOfLine.add(TokenStringLiteral(
               literal,
-              HTLexicon.doubleQuotationLeft,
-              HTLexicon.doubleQuotationRight,
+              HTLexicon.quotationLeft,
+              HTLexicon.quotationRight,
               curLine,
               curColumn,
               curOffset + match.start,
@@ -129,25 +127,25 @@ class HTLexer {
           toksOfLine.add(TokenIdentifier(literal, curLine, curColumn,
               curOffset + match.start, curOffset + match.end));
         } else if (match
-                .group(HTLexicon.tokenGroupStringInterpolationSingleMark) !=
+                .group(HTLexicon.tokenGroupApostropheStringInterpolation) !=
             null) {
           final token = _hanldeStringInterpolation(
               matchString,
-              HTLexicon.singleQuotationLeft,
-              HTLexicon.singleQuotationRight,
+              HTLexicon.apostropheLeft,
+              HTLexicon.apostropheRight,
               curLine,
-              curColumn + HTLexicon.singleQuotationLeft.length,
+              curColumn + HTLexicon.apostropheLeft.length,
               curOffset + match.start);
           toksOfLine.add(token);
         } else if (match
-                .group(HTLexicon.tokenGroupStringInterpolationDoubleMark) !=
+                .group(HTLexicon.tokenGroupQuotationStringInterpolation) !=
             null) {
           final token = _hanldeStringInterpolation(
               matchString,
-              HTLexicon.doubleQuotationLeft,
-              HTLexicon.doubleQuotationRight,
+              HTLexicon.quotationLeft,
+              HTLexicon.quotationRight,
               curLine,
-              curColumn + HTLexicon.doubleQuotationLeft.length,
+              curColumn + HTLexicon.quotationLeft.length,
               curOffset + match.start);
           toksOfLine.add(token);
         }

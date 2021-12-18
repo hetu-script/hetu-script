@@ -9,15 +9,17 @@ import '../shared/stringify.dart';
 
 class FormatterConfig {
   final int pageWidth;
-  final bool formatQuotationMark;
-  final bool singleQuotationMark;
+  final bool formatStringMark;
+  final bool useApostrophe;
   final bool removeTrailingComma;
+  final bool removeSemicolon;
 
   const FormatterConfig(
       {this.pageWidth = 80,
-      this.formatQuotationMark = true,
-      this.singleQuotationMark = true,
-      this.removeTrailingComma = true});
+      this.formatStringMark = true,
+      this.useApostrophe = true,
+      this.removeTrailingComma = true,
+      this.removeSemicolon = true});
 }
 
 /// Class for printing out formatted string content of a ast root
@@ -514,7 +516,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
         output.write(' ${HTLexicon.bracesRight} ${HTLexicon.kFrom} ');
       }
       output.write(
-          '${HTLexicon.singleQuotationLeft}${stmt.fromPath}${HTLexicon.singleQuotationRight}');
+          '${HTLexicon.apostropheLeft}${stmt.fromPath}${HTLexicon.apostropheRight}');
       if (stmt.alias != null) {
         output.write(' ${HTLexicon.kAs} ${stmt.alias}');
       }
@@ -529,7 +531,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
           output.write(' ${HTLexicon.bracesRight} ${HTLexicon.kFrom} ');
         }
         output.write(
-            '${HTLexicon.singleQuotationLeft}${stmt.fromPath}${HTLexicon.singleQuotationRight}');
+            '${HTLexicon.apostropheLeft}${stmt.fromPath}${HTLexicon.apostropheRight}');
       }
     }
     return output.toString();

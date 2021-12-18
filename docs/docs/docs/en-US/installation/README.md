@@ -4,15 +4,18 @@ title: Installation
 
 # Installation
 
-Add the packages in your pubspec.yaml.
+Input this command in your terminal under the project folder to add the package to your project.
 
 ```yaml
-dependencies:
-  hetu_script: ^0.3.7
-  # optional:
-  # hetu_script_dev_tools: ^0.0.3+1
-  # optional:
-  # hetu_script_flutter: ^0.0.3
+dart pub add hetu_script
+```
+
+Or use flutter version command:
+
+```yaml
+flutter pub add hetu_script
+flutter pub add hetu_script_dev_tools
+flutter pub add hetu_script_flutter
 ```
 
 ## Flutter project

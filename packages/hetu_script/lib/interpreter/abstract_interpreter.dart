@@ -54,10 +54,10 @@ class InterpreterConfig
   const InterpreterConfig(
       {this.compileWithLineInfo = true,
       this.doStaticAnalyze = true,
-      this.showDartStackTrace = true,
+      this.showDartStackTrace = false,
       this.hetuStackTraceDisplayCountLimit = 3,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.allowHotReload = false});
+      this.allowHotReload = true});
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.

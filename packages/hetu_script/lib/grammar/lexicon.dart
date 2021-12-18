@@ -16,10 +16,10 @@ abstract class HTLexicon {
   static const tokenGroupIdentifier = 4;
   static const tokenGroupPunctuation = 7;
   static const tokenGroupNumber = 8;
-  static const tokenGroupStringInterpolationSingleMark = 10;
-  static const tokenGroupStringInterpolationDoubleMark = 14;
-  static const tokenGroupStringSingleQuotation = 18;
-  static const tokenGroupStringDoubleQuotation = 20;
+  static const tokenGroupApostropheStringInterpolation = 10;
+  static const tokenGroupQuotationStringInterpolation = 14;
+  static const tokenGroupApostropheString = 18;
+  static const tokenGroupQuotationString = 20;
   static const tokenGroupStringGraveAccent = 22;
 
   static const singleLineCommentDocumentationPattern = r'///';
@@ -376,10 +376,10 @@ abstract class HTLexicon {
   static const comma = ',';
   static const colon = ':';
   static const semicolon = ';';
-  static const singleQuotationLeft = "'";
-  static const singleQuotationRight = "'";
-  static const doubleQuotationLeft = '"';
-  static const doubleQuotationRight = '"';
+  static const apostropheLeft = "'";
+  static const apostropheRight = "'";
+  static const quotationLeft = '"';
+  static const quotationRight = '"';
   static const parenthesesLeft = '(';
   static const parenthesesRight = ')';
   static const bracesLeft = '{';

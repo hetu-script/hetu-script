@@ -7,11 +7,11 @@ enum ErrorHanldeApproach {
 
 abstract class ErrorHandlerConfig {
   factory ErrorHandlerConfig(
-      {bool stackTrace = true,
-      int hetuStackTraceThreshhold = 10,
+      {bool showDartStackTrace = false,
+      int hetuStackTraceThreshhold = 3,
       ErrorHanldeApproach approach = ErrorHanldeApproach.exception}) {
     return ErrorHandlerConfigImpl(
-        showDartStackTrace: stackTrace,
+        showDartStackTrace: showDartStackTrace,
         hetuStackTraceDisplayCountLimit: hetuStackTraceThreshhold,
         errorHanldeApproach: approach);
   }

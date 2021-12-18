@@ -31,10 +31,14 @@ Version: {0}
 Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
-final hetu = Hetu(config: InterpreterConfig(showDartStackTrace: false));
+late Hetu hetu;
 
 void main(List<String> arguments) {
   try {
+    final currentDir = Directory.current;
+    final sourceContext = HTFileSystemResourceContext(
+        root: currentDir.path, expressionModuleExtensions: [HTResource.json]);
+    final hetu = Hetu(sourceContext: sourceContext);
     hetu.init();
     final version = HTCompiler.version.toString();
     final replInfo = replInfoText.replaceAll('{0}', version);
