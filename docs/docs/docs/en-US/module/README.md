@@ -71,7 +71,7 @@ void main() {
     HTResource.hetuScript,
     HTResource.json,
   ]);
-  final sourceContext = HTFileSystemSourceContext(
+  final sourceContext = HTFileSystemResourceContext(
       root: root,
       includedFilter: [filterConfig],
       expressionModuleExtensions: [HTResource.json]);

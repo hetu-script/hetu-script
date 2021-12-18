@@ -122,7 +122,7 @@ void run(List<String> args) {
 void format(List<String> args, [String? outPath, bool printResult = true]) {
   // final parser = HTAstParser();
   final formatter = HTFormatter();
-  final context = HTFileSystemSourceContext();
+  final context = HTFileSystemResourceContext();
   final source = context.getResource(args.first);
   // final config = ParserConfig(sourceType: sourceType);
   // final compilation = parser.parseToCompilation(source); //, config);

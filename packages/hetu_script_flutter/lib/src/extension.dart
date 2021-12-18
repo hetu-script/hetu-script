@@ -7,11 +7,9 @@ extension HTFlutterExtension on Hetu {
       Map<String, Function> externalFunctions = const {},
       Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
           const {}}) async {
-    final assetsContext = HTAssetsSourceContext();
-    await assetsContext.init();
-
-    sourceContext = assetsContext;
-
+    if (sourceContext is HTAssetResourceContext) {
+      await (sourceContext as HTAssetResourceContext).init();
+    }
     init(
         preincludeModules: preincludeModules,
         externalClasses: externalClasses,

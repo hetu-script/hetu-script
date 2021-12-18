@@ -4,7 +4,7 @@ import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 void main() {
   // Run this program from terminal.
 
-  final sourceContext = HTFileSystemSourceContext(root: 'script');
+  final sourceContext = HTFileSystemResourceContext(root: 'script');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
   hetu.loadExtensions();

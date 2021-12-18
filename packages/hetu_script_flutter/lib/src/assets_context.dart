@@ -4,7 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as path;
 import 'package:hetu_script/hetu_script.dart';
 
-class HTAssetsSourceContext extends HTResourceContext<HTSource> {
+class HTAssetResourceContext extends HTResourceContext<HTSource> {
   @override
   final String root;
 
@@ -13,34 +13,61 @@ class HTAssetsSourceContext extends HTResourceContext<HTSource> {
 
   final _cached = <String, HTSource>{};
 
-  /// Create a [HTAssetsSourceContext] with every script file
-  /// placed under folder of [root], which defaults to 'scripts/'
-  HTAssetsSourceContext(
-      {this.root = 'scripts/',
-      List<String> expressionModuleExtensions = const [],
-      List<String> binaryModuleExtensions = const []})
-      : super(
-            expressionModuleExtensions: expressionModuleExtensions,
-            binaryModuleExtensions: binaryModuleExtensions);
+  final List<HTFilterConfig> _includedFilter;
+  final List<HTFilterConfig> _excludedFilter;
+  @override
+  final List<String> expressionModuleExtensions;
+  @override
+  final List<String> binaryModuleExtensions;
 
+  /// Create a [HTAssetResourceContext] with every script file
+  /// placed under folder of [root], which defaults to 'scripts/'
+  HTAssetResourceContext(
+      {this.root = 'scripts/',
+      List<HTFilterConfig> includedFilter = const [],
+      List<HTFilterConfig> excludedFilter = const [],
+      this.expressionModuleExtensions = const [],
+      this.binaryModuleExtensions = const []})
+      : _includedFilter = includedFilter,
+        _excludedFilter = excludedFilter;
+
+  @override
   Future<void> init() async {
     final manifestContent = await rootBundle.loadString('AssetManifest.json');
     final Map<String, dynamic> manifestMap = json.decode(manifestContent);
-
-    final scriptPaths = manifestMap.keys
-        .where((String key) => key.contains(root))
-        .where((String key) =>
-            key.contains(HTResource.hetuModule) ||
-            key.contains(HTResource.hetuScript))
-        .toList();
-
-    for (final fileName in scriptPaths) {
-      final content = await rootBundle.loadString(fileName);
-      final ext = path.extension(fileName);
-      // final name = HTResourceContext.checkHetuModuleName(fileName);
-      final source =
-          HTSource(content, name: fileName, type: checkExtension(ext));
-      addResource(fileName, source);
+    final assetKeys = manifestMap.keys;
+    final folderFilter = HTFilterConfig(root);
+    final includedKeys = <String>[];
+    for (final key in assetKeys) {
+      var isIncluded = false;
+      if (_includedFilter.isEmpty) {
+        isIncluded = folderFilter.isWithin(key);
+      } else {
+        for (final filter in _includedFilter) {
+          if (filter.isWithin(key)) {
+            isIncluded = true;
+            break;
+          }
+        }
+      }
+      if (isIncluded) {
+        for (final filter in _excludedFilter) {
+          final isExcluded = filter.isWithin(key);
+          if (isExcluded) {
+            isIncluded = false;
+            break;
+          }
+        }
+      }
+      if (isIncluded) {
+        includedKeys.add(key);
+      }
+    }
+    for (final key in includedKeys) {
+      final content = await rootBundle.loadString(key);
+      final ext = path.extension(key);
+      final source = HTSource(content, name: key, type: checkExtension(ext));
+      addResource(key, source);
     }
   }
 

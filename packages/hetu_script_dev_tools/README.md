@@ -4,14 +4,14 @@ This is an extension for [hetu_script](https://pub.dev/packages/hetu_script).
 
 ## File system source context
 
-Within the script, if you imported from other script file on your physical disk, you should use [HTFileSystemSourceContext] instead of the default implementation.
+Within the script, if you imported from other script file on your physical disk, you should use [HTFileSystemResourceContext] instead of the default implementation.
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
-  final sourceContext = HTFileSystemSourceContext(root: 'script/');
+  final sourceContext = HTFileSystemResourceContext(root: 'script/');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
   final result = hetu.evalFile('script.ht', invokeFunc: 'main');

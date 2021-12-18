@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:hetu_script/hetu_script.dart';
 
 /// [HTResourceContext] are a set of files and folders under a folder or a path.
-class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
+class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
   @override
   late final String root;
 
@@ -15,6 +15,64 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
   final Map<String, HTSource> _cached;
 
   @override
+  final List<String> expressionModuleExtensions;
+
+  @override
+  final List<String> binaryModuleExtensions;
+
+  HTFileSystemResourceContext(
+      {String? root,
+      Map<String, HTSource>? cache,
+      List<HTFilterConfig> includedFilter = const [],
+      List<HTFilterConfig> excludedFilter = const [],
+      this.expressionModuleExtensions = const [],
+      this.binaryModuleExtensions = const []})
+      : _cached = cache ?? <String, HTSource>{} {
+    root = root != null ? path.absolute(root) : path.current;
+    this.root = root = getAbsolutePath(dirName: root);
+    final dir = Directory(root);
+    final folderFilter = HTFilterConfig(root);
+    final entities = dir.listSync(recursive: true);
+    for (final filter in includedFilter) {
+      filter.folder = getAbsolutePath(key: filter.folder, dirName: root);
+    }
+    for (final filter in excludedFilter) {
+      filter.folder = getAbsolutePath(key: filter.folder, dirName: root);
+    }
+    for (final entity in entities) {
+      if (entity is! File) {
+        continue;
+      }
+      final fileFullName = getAbsolutePath(key: entity.path, dirName: root);
+      var isIncluded = false;
+      if (includedFilter.isEmpty) {
+        isIncluded = folderFilter.isWithin(fileFullName);
+      } else {
+        for (final filter in includedFilter) {
+          if (filter.isWithin(fileFullName)) {
+            isIncluded = true;
+            break;
+          }
+        }
+      }
+      if (isIncluded) {
+        if (excludedFilter.isNotEmpty) {
+          for (final filter in excludedFilter) {
+            final isExcluded = filter.isWithin(fileFullName);
+            if (isExcluded) {
+              isIncluded = false;
+              break;
+            }
+          }
+        }
+      }
+      if (isIncluded) {
+        included.add(fileFullName);
+      }
+    }
+  }
+
+  @override
   String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
     final normalized =
         super.getAbsolutePath(key: key, dirName: dirName, fileName: fileName);
@@ -22,54 +80,6 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
       return normalized.substring(1);
     } else {
       return normalized;
-    }
-  }
-
-  HTFileSystemSourceContext(
-      {String? root,
-      List<HTFilterConfig> includedFilter = const [],
-      List<HTFilterConfig> excludedFilter = const [],
-      Map<String, HTSource>? cache,
-      List<String> expressionModuleExtensions = const [],
-      List<String> binaryModuleExtensions = const []})
-      : _cached = cache ?? <String, HTSource>{},
-        super(
-            expressionModuleExtensions: expressionModuleExtensions,
-            binaryModuleExtensions: binaryModuleExtensions) {
-    root = root != null ? path.absolute(root) : path.current;
-    this.root = root = getAbsolutePath(dirName: root);
-    final dir = Directory(root);
-    final folderFilter = HTFilterConfig(root);
-    final entities = dir.listSync(recursive: true);
-    for (final entity in entities) {
-      if (entity is File) {
-        final fileFullName = getAbsolutePath(key: entity.path, dirName: root);
-        var isIncluded = false;
-        if (includedFilter.isEmpty) {
-          isIncluded = _filterFile(fileFullName, folderFilter);
-        } else {
-          for (final filter in includedFilter) {
-            if (_filterFile(fileFullName, filter)) {
-              isIncluded = true;
-              break;
-            }
-          }
-        }
-        if (isIncluded) {
-          if (excludedFilter.isNotEmpty) {
-            for (final filter in excludedFilter) {
-              final isExcluded = _filterFile(fileFullName, filter);
-              if (isExcluded) {
-                isIncluded = false;
-                break;
-              }
-            }
-          }
-        }
-        if (isIncluded) {
-          included.add(fileFullName);
-        }
-      }
     }
   }
 
@@ -117,39 +127,6 @@ class HTFileSystemSourceContext extends HTResourceContext<HTSource> {
       throw HTError.sourceProviderError(normalized);
     } else {
       _cached[normalized] = resource;
-    }
-  }
-
-  // [fullPath] must be a normalized absolute path
-  bool _filterFile(String fileName, HTFilterConfig filter) {
-    final ext = path.extension(fileName);
-    final normalizedFilePath = getAbsolutePath(key: fileName, dirName: root);
-    final normalizedFolderPath =
-        getAbsolutePath(key: filter.folder, dirName: root);
-    if (path.isWithin(normalizedFolderPath, normalizedFilePath)) {
-      if (filter.recursive) {
-        return _checkExt(ext, filter.extension);
-      } else {
-        final fileDirName = path.basename(path.dirname(fileName));
-        final folderDirName = path.basename(normalizedFolderPath);
-        if (fileDirName == folderDirName) {
-          return _checkExt(ext, filter.extension);
-        }
-      }
-    }
-    return false;
-  }
-
-  bool _checkExt(String ext, List<String> extList) {
-    if (extList.isEmpty) {
-      return true;
-    } else {
-      for (final includedExt in extList) {
-        if (ext == includedExt) {
-          return true;
-        }
-      }
-      return false;
     }
   }
 }

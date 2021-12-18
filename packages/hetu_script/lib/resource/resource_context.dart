@@ -7,18 +7,48 @@ import '../resource/resource.dart';
 // import 'overlay/overlay_context.dart';
 
 class HTFilterConfig {
-  final String folder;
+  String folder;
 
-  final List<String> extension;
+  List<String> extension;
 
-  final bool recursive;
+  bool recursive;
 
-  const HTFilterConfig(this.folder,
+  HTFilterConfig(this.folder,
       {this.extension = const [
         HTResource.hetuModule,
         HTResource.hetuScript,
       ],
       this.recursive = true});
+
+  // [fullPath] must be a normalized absolute path
+  bool isWithin(String fileName) {
+    final ext = path.extension(fileName);
+    if (path.isWithin(folder, fileName)) {
+      if (recursive) {
+        return _checkExt(ext, extension);
+      } else {
+        final fileDirName = path.basename(path.dirname(fileName));
+        final folderDirName = path.basename(folder);
+        if (fileDirName == folderDirName) {
+          return _checkExt(ext, extension);
+        }
+      }
+    }
+    return false;
+  }
+
+  bool _checkExt(String ext, List<String> extList) {
+    if (extList.isEmpty) {
+      return true;
+    } else {
+      for (final includedExt in extList) {
+        if (ext == includedExt) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
 }
 
 /// [HTResourceContext] are a set of resources, each has a unique path.
@@ -46,13 +76,10 @@ abstract class HTResourceContext<T> {
   //   }
   // }
 
-  final List<String> expressionModuleExtensions;
+  List<String> get expressionModuleExtensions => const [];
+  List<String> get binaryModuleExtensions => const [];
 
-  final List<String> binaryModuleExtensions;
-
-  HTResourceContext(
-      {this.expressionModuleExtensions = const [],
-      this.binaryModuleExtensions = const []});
+  void init() {}
 
   ResourceType checkExtension(String ext) {
     if (ext == HTResource.hetuModule) {

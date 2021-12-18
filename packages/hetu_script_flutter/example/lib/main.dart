@@ -32,13 +32,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final hetu = Hetu();
+  late final Hetu hetu;
 
   bool _isHetuReady = false;
 
   String _scriptResult = '';
 
   void init() async {
+    const root = 'scripts/';
+    final filterConfig = HTFilterConfig(root, extension: [
+      HTResource.hetuModule,
+      HTResource.hetuScript,
+      HTResource.json,
+    ]);
+    final sourceContext = HTAssetResourceContext(
+        root: root,
+        includedFilter: [filterConfig],
+        expressionModuleExtensions: [HTResource.json]);
+    hetu = Hetu(sourceContext: sourceContext);
     await hetu.initFlutter();
     _isHetuReady = true;
   }

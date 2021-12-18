@@ -18,6 +18,7 @@ dependencies:
 ## Flutter project
 
 To load a script file from assets, add the script file's path into your pubspec.yaml like other assets.
+
 The default folder is 'scripts/', directly under your project root.
 
 ```yaml
@@ -25,12 +26,15 @@ assets:
   - scripts/main.ht
 ```
 
-Those script will be pre-loaded by the new init method on Hetu class: **initFlutter**. You don't need to use old **init**. Also note that this is an async function.
+You have to use the class **HTAssetResourceContext** provided by this package, to replace the default one:
 
-Then you can load a asset script file by **evalFile** method:
+Then use the new method on Hetu class: **initFlutter** to init instead the old method. Those scripts in assets will be pre-loaded. Note that this is an async function.
+
+Then you can load a asset script file directly by **evalFile** method, you can omit the root part in the path:
 
 ```dart
-final hetu = Hetu();
+final sourceContext = HTAssetResourceContext(root: 'scripts/');
+final hetu = Hetu(sourceContext: sourceContext);
 await hetu.initFlutter();
 
 final result = hetu.evalFile('main.ht', invokeFunc: 'main');
@@ -40,14 +44,14 @@ final result = hetu.evalFile('main.ht', invokeFunc: 'main');
 
 To handle module import from physical disk within the script, there's another package called: 'hetu_script_dev_tools'.
 
-You have to use the class **HTFileSystemSourceContext** provided by this package, to replace the default one:
+You have to use the class **HTFileSystemResourceContext** provided by this package, to replace the default one:
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
-  final sourceContext = HTFileSystemSourceContext(root: '../../script/');
+  final sourceContext = HTFileSystemResourceContext(root: '../../script/');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
   final result = hetu.evalFile('import_test1.ht', invokeFunc: 'main');

@@ -3,12 +3,12 @@ import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
   const root = 'example/script';
-  const filterConfig = HTFilterConfig(root, extension: [
+  final filterConfig = HTFilterConfig(root, extension: [
     HTResource.hetuModule,
     HTResource.hetuScript,
     HTResource.json,
   ]);
-  final sourceContext = HTFileSystemSourceContext(
+  final sourceContext = HTFileSystemResourceContext(
       root: root,
       includedFilter: [filterConfig],
       expressionModuleExtensions: [HTResource.json]);

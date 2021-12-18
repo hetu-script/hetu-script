@@ -192,7 +192,12 @@ class Hetu extends HTAbstractInterpreter {
     List<HTExternalClass> externalClasses = const [],
   }) {
     if (config.doStaticAnalyze) {
-      _analyzer.init(preincludeModules: preincludeModules);
+      _analyzer.init(
+        preincludeModules: preincludeModules,
+        externalFunctions: externalFunctions,
+        externalFunctionTypedef: externalFunctionTypedef,
+        externalClasses: externalClasses,
+      );
     }
     super.init(
       preincludeModules: preincludeModules,
