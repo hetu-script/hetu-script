@@ -6,9 +6,13 @@
 //   fun toString() -> str
 // }
 
-external class num {
+class num {
+  
+}
 
-	static fun parse(value: str) -> num
+external class int extends num {
+  /// Parse [source] as a, possibly signed, integer literal.
+  static fun parse(source: str, {radix: int?}) -> int
 
   fun compareTo(compareTo: num) -> int
 
@@ -55,11 +59,6 @@ external class num {
   fun toStringAsExponential([fractionDigits: int]) -> str
 
   fun toStringAsPrecision(precision: int) -> str
-}
-
-external class int extends num {
-  /// Parse [source] as a, possibly signed, integer literal.
-  static fun parse(source: str, {radix: int?}) -> int
 	
   /// Returns this integer to the power of [exponent] modulo [modulus].
   fun modPow(exponent: int, modulus: int) -> int
@@ -183,6 +182,52 @@ external abstract class BigInt {
 }
 
 external class float extends num {
+
+  fun compareTo(compareTo: num) -> int
+
+  fun remainder(other: num) -> num
+
+  /// Returns the integer closest to this number.
+  fun round() -> int
+
+  /// Returns the greatest integer no greater than this number.
+  fun floor() -> int
+
+  /// Returns the least integer which is not smaller than this number.
+  fun ceil() -> int
+
+  /// Returns the integer obtained by discarding any fractional
+  /// part of this number.
+  fun truncate() -> int
+
+  /// Returns the integer double value closest to `this`.
+  fun roundToDouble() -> float
+
+  /// Returns the greatest integer double value no greater than `this`.
+  fun floorToDouble() -> float
+
+  /// Returns the least integer double value no smaller than `this`.
+  fun ceilToDouble() -> float
+
+  /// Returns the integer double value obtained by discarding any fractional
+  /// digits from `this`.
+  fun truncateToDouble() -> float
+
+  get isNaN -> bool
+
+  get isNegative -> bool
+
+  get isInfinite -> bool
+
+  get isFinite -> bool
+
+  fun clamp(lowerLimit: num, upperLimit: num) -> num
+
+  fun toStringAsFixed(fractionDigits: int) -> str
+
+  fun toStringAsExponential([fractionDigits: int]) -> str
+
+  fun toStringAsPrecision(precision: int) -> str
   
   static get nan -> float;
   static get infinity -> float;

@@ -1147,8 +1147,8 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.nullObject, ErrorType.runtimeError,
-            message: HTLexicon.errorNullObject,
+      : this(ErrorCode.subGetKey, ErrorType.runtimeError,
+            message: HTLexicon.errorSubGetKey,
             extra: extra,
             correction: correction,
             filename: filename,

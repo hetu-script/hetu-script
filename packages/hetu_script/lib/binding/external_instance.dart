@@ -54,7 +54,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
     if (externalClass != null) {
       final member = externalClass!.instanceMemberGet(externalObject, varName);
       if (member is Function && klass != null) {
-        HTFunction func = klass!.memberGet(varName, internal: true);
+        HTFunction func = klass!.memberGet(varName);
         func.externalFunc = member;
         return func;
       } else {

@@ -4,11 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      var s = 'hi!'
-      var a = {
-        s,
-      }
-      
-      print(a)
+      var s = 24.23
+      print(s.truncate())
     ''');
 }
