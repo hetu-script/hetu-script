@@ -43,6 +43,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.15.0"
+  cupertino_icons:
+    dependency: "direct main"
+    description:
+      name: cupertino_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.4"
   fake_async:
     dependency: transitive
     description:
@@ -70,10 +77,17 @@ packages:
   hetu_script:
     dependency: "direct main"
     description:
-      path: "../hetu_script"
+      path: "../../hetu_script"
       relative: true
     source: path
     version: "0.3.7+1"
+  hetu_script_flutter:
+    dependency: "direct main"
+    description:
+      path: ".."
+      relative: true
+    source: path
+    version: "0.0.4"
   lints:
     dependency: transitive
     description:
@@ -96,7 +110,7 @@ packages:
     source: hosted
     version: "1.7.0"
   path:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: path
       url: "https://pub.dartlang.org"

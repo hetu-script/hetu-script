@@ -14,7 +14,7 @@ environment:
 dependencies:
   path: ^1.8.0
   args: ^2.1.0
-  # hetu_script: ^0.3.7
+  # hetu_script: ^0.3.7+1
   hetu_script:
     path: ../hetu_script
 
