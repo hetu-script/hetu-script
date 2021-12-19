@@ -5,6 +5,6 @@ void main() {
   hetu.init();
   hetu.eval(r'''
       var s = 24.23
-      print(s.truncate())
+      print(s.toString())
     ''');
 }
