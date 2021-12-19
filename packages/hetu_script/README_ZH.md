@@ -61,21 +61,17 @@ void main() {
 ```dart
 import 'package:hetu_script/hetu_script.dart';
 
-void main() {
+void main() async {
   var hetu = Hetu();
-  hetu.init(externalFunctions: {
-    'hello': () => {'greeting': 'hello'},
+  await hetu.init(externalFunctions: {
+    'hello': () => {'greeting': 'Hello from Dart!'},
   });
-  hetu.eval(r'''
+  final hetuValue = hetu.eval(r'''
       external fun hello
-      fun main {
-        var dartValue = hello()
-        print('dart value:', dartValue)
-        dartValue['foo'] = 'bar'
-        return dartValue
-      }''');
-
-  var hetuValue = hetu.invoke('main');
+      var dartValue = hello()
+      dartValue['reply'] = 'Hi, this is Hetu.'
+      dartValue // the script will return the value of it's last expression
+      ''');
 
   print('hetu value: $hetuValue');
 }
@@ -99,15 +95,16 @@ dart pub global activate hetu_script_dev_tools
 
 ```typescript
 >>>var a = 42
+null // repl print
 >>>a
-42
->>>fun hello {\
+42 // repl print
+>>>fun meaning {\
 return a }
->>>hello
-function hello() -> any // repl print
+null // repl print
+>>>meaning
+meaning() -> any // repl print
 >>>hello()
 42 // repl print
->>>
 ```
 
 可以在这里查看关于 Dart 的 [pub global activate](https://dart.dev/tools/pub/cmd/pub-global) 功能的更多信息。

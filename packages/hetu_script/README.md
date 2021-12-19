@@ -106,6 +106,7 @@ null // repl print
 42 // repl print
 >>>fun meaning {\
 return a }
+null // repl print
 >>>meaning
 meaning() -> any // repl print
 >>>hello()

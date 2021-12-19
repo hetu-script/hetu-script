@@ -109,18 +109,14 @@ void main() async {
     'hello': (HTEntity entity,
         {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const []}) => {'greeting': 'hello'},
+            List<HTTypeId> typeArgs = const []}) => {'greeting': 'Hello from Dart!'},
   });
-  await hetu.eval(r'''
+  final hetuValue = hetu.eval(r'''
       external fun hello
-      fun main {
-        var dartValue = hello()
-        print('dart value:', dartValue)
-        dartValue['foo'] = 'bar'
-        return dartValue
-      }''');
-
-  var hetuValue = hetu.invoke('main');
+      var dartValue = hello()
+      dartValue['reply'] = 'Hi, this is Hetu.'
+      dartValue // the script will return the value of it's last expression
+      ''');
 
   print('hetu value: $hetuValue');
 }
@@ -129,8 +125,7 @@ void main() async {
 And the output should be:
 
 ```
-dart value: {greeting: hello}
-hetu value: {greeting: hello, foo: bar}
+hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 ```
 
 ## External methods in classes
