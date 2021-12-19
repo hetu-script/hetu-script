@@ -4,10 +4,11 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
+      var s = 'hi!'
       var a = {
-        collection: {}
+        s,
       }
-      final value = a.collection.value() // value is null and we won't get errors
-      print(value)
+      
+      print(a)
     ''');
 }

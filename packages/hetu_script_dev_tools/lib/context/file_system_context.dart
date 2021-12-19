@@ -26,48 +26,52 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
       List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const [],
       this.expressionModuleExtensions = const [],
-      this.binaryModuleExtensions = const []})
+      this.binaryModuleExtensions = const [],
+      bool doScanRoot = false})
       : _cached = cache ?? <String, HTSource>{} {
     root = root != null ? path.absolute(root) : path.current;
     this.root = root = getAbsolutePath(dirName: root);
-    final dir = Directory(root);
-    final folderFilter = HTFilterConfig(root);
-    final entities = dir.listSync(recursive: true);
-    for (final filter in includedFilter) {
-      filter.folder = getAbsolutePath(key: filter.folder, dirName: root);
-    }
-    for (final filter in excludedFilter) {
-      filter.folder = getAbsolutePath(key: filter.folder, dirName: root);
-    }
-    for (final entity in entities) {
-      if (entity is! File) {
-        continue;
+
+    if (doScanRoot) {
+      final dir = Directory(root);
+      final folderFilter = HTFilterConfig(root);
+      final entities = dir.listSync(recursive: true);
+      for (final filter in includedFilter) {
+        filter.folder = getAbsolutePath(key: filter.folder, dirName: root);
       }
-      final fileFullName = getAbsolutePath(key: entity.path, dirName: root);
-      var isIncluded = false;
-      if (includedFilter.isEmpty) {
-        isIncluded = folderFilter.isWithin(fileFullName);
-      } else {
-        for (final filter in includedFilter) {
-          if (filter.isWithin(fileFullName)) {
-            isIncluded = true;
-            break;
-          }
+      for (final filter in excludedFilter) {
+        filter.folder = getAbsolutePath(key: filter.folder, dirName: root);
+      }
+      for (final entity in entities) {
+        if (entity is! File) {
+          continue;
         }
-      }
-      if (isIncluded) {
-        if (excludedFilter.isNotEmpty) {
-          for (final filter in excludedFilter) {
-            final isExcluded = filter.isWithin(fileFullName);
-            if (isExcluded) {
-              isIncluded = false;
+        final fileFullName = getAbsolutePath(key: entity.path, dirName: root);
+        var isIncluded = false;
+        if (includedFilter.isEmpty) {
+          isIncluded = folderFilter.isWithin(fileFullName);
+        } else {
+          for (final filter in includedFilter) {
+            if (filter.isWithin(fileFullName)) {
+              isIncluded = true;
               break;
             }
           }
         }
-      }
-      if (isIncluded) {
-        included.add(fileFullName);
+        if (isIncluded) {
+          if (excludedFilter.isNotEmpty) {
+            for (final filter in excludedFilter) {
+              final isExcluded = filter.isWithin(fileFullName);
+              if (isExcluded) {
+                isIncluded = false;
+                break;
+              }
+            }
+          }
+        }
+        if (isIncluded) {
+          included.add(fileFullName);
+        }
       }
     }
   }
@@ -94,7 +98,6 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
     resource.name = fullName;
     _cached[fullName] = resource;
     included.add(fullName);
-    // return source;
   }
 
   @override
