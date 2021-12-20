@@ -97,12 +97,12 @@ The script doesn't support 'try...catch' functionality. However, it's possible t
 For example, a statement like:
 
 ```dart
-assert 1 > 5
+assert(1 > 5)
 ```
 
 Will throw an 'assertion failed' error. And the error message will contain the expression string after the keyword to let you know why this happened.
 
-The expression after assert must be a boolean value.
+The expression within the parentheses must be a boolean value.
 
 ## Automatic semicolon insertion
 

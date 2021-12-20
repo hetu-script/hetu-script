@@ -285,8 +285,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   /// Register a external class into scrfipt.
   /// For acessing static members and constructors of this class,
   /// there must also be a declaraction in script
-  void bindExternalClass(HTExternalClass externalClass) {
-    if (_externClasses.containsKey(externalClass.valueType)) {
+  void bindExternalClass(HTExternalClass externalClass,
+      {bool override = false}) {
+    if (_externClasses.containsKey(externalClass.valueType) && !override) {
       throw HTError.definedRuntime(externalClass.valueType.toString());
     }
     _externClasses[externalClass.id] = externalClass;
@@ -307,8 +308,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   /// Register a external function into scrfipt
   /// there must be a declaraction also in script for using this
-  void bindExternalFunction(String id, Function function) {
-    if (_externFuncs.containsKey(id)) {
+  void bindExternalFunction(String id, Function function,
+      {bool override = false}) {
+    if (_externFuncs.containsKey(id) && !override) {
       throw HTError.definedRuntime(id);
     }
     _externFuncs[id] = function;
@@ -323,8 +325,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   }
 
   /// Register a external function typedef into scrfipt
-  void bindExternalFunctionType(String id, HTExternalFunctionTypedef function) {
-    if (_externFuncTypeUnwrappers.containsKey(id)) {
+  void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
+      {bool override = false}) {
+    if (_externFuncTypeUnwrappers.containsKey(id) && !override) {
       throw HTError.definedRuntime(id);
     }
     _externFuncTypeUnwrappers[id] = function;

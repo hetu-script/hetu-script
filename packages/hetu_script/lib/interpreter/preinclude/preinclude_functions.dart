@@ -11,11 +11,8 @@ final Map<String, Function> preIncludeFunctions = {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    var sb = StringBuffer();
-    for (final arg in positionalArgs.first) {
-      sb.write('$arg ');
-    }
-    print(sb.toString().trimRight());
+    List args = positionalArgs.first;
+    print(args.join(' '));
   },
   'stringify': (HTEntity entity,
       {List<dynamic> positionalArgs = const [],

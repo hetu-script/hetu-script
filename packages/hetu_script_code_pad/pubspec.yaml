@@ -1,5 +1,5 @@
 name: hetu_script_code_pad
-description: Run Hetu script in your browser.
+description: Hetu Script Code Pad.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 

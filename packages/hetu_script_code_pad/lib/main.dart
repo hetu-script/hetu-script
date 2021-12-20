@@ -21,7 +21,7 @@ void main() async {
   await hetu.initFlutter();
   runApp(
     MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Hetu Script Code Pad',
       theme: ThemeData.light().copyWith(
           scrollbarTheme: const ScrollbarThemeData().copyWith(
         thumbColor: MaterialStateProperty.all(Colors.grey),

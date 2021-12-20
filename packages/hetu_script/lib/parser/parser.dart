@@ -1093,7 +1093,9 @@ class HTParser extends HTAbstractParser {
 
   AssertStmt _parseAssertStmt() {
     final keyword = match(HTLexicon.kAssert);
+    match(HTLexicon.parenthesesLeft);
     final expr = _parseExpr();
+    match(HTLexicon.parenthesesRight);
     expect([HTLexicon.semicolon], consume: true);
     final stmt = AssertStmt(expr,
         source: _currentSource,
