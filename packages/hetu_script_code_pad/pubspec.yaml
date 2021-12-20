@@ -1,0 +1,41 @@
+name: hetu_script_code_pad
+description: Run Hetu script in your browser.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 0.0.1
+
+environment:
+  sdk: '>=2.15.0 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+
+  code_text_field: ^1.0.2
+  highlight: ^0.7.0
+  flutter_highlight: ^0.7.0
+
+  hetu_script:
+    path: ../hetu_script
+  hetu_script_flutter:
+    path: ../hetu_script_flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^1.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: NotoSansMono
+      fonts:
+        - asset: assets/fonts/NotoSansMonoCJKsc-Regular.otf
+    - family: UbuntuMono
+      fonts:
+        - asset: assets/fonts/UbuntuMonoDerivativePowerline.ttf

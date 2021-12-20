@@ -49,6 +49,9 @@ class num {
 }
 
 external class int extends num {
+
+  fun toString() -> str
+  
   /// Parse [source] as a, possibly signed, integer literal.
   static fun parse(source: str, {radix: int?}) -> int
 
@@ -221,6 +224,8 @@ external abstract class BigInt {
 
 external class float extends num {
 
+  fun toString() -> str
+
   fun compareTo(compareTo: num) -> int
 
   fun remainder(other: num) -> num
@@ -284,10 +289,14 @@ external class float extends num {
 
 external class bool {
 
+  fun toString() -> str
+
 	static fun parse(value: str) -> bool
 }
 
 external class str {
+
+  fun toString() -> str
 
 	static fun parse(value) -> str
 
@@ -337,6 +346,8 @@ external class str {
 }
 
 external class List {
+
+  fun toString() -> str
 
   fun toJson() => jsonify(this)
 
@@ -449,6 +460,8 @@ external class List {
 }
 
 external class Map {
+
+  fun toString() -> str
 
 	get length -> num
 
