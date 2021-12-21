@@ -7,11 +7,15 @@ void main() {
     HTResource.hetuModule,
     HTResource.hetuScript,
     HTResource.json,
+    HTResource.jsonWithComments,
   ]);
-  final sourceContext = HTFileSystemResourceContext(
-      root: root,
-      includedFilter: [filterConfig],
-      expressionModuleExtensions: [HTResource.json]);
+  final sourceContext =
+      HTFileSystemResourceContext(root: root, includedFilter: [
+    filterConfig
+  ], expressionModuleExtensions: [
+    HTResource.json,
+    HTResource.jsonWithComments,
+  ]);
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
 
