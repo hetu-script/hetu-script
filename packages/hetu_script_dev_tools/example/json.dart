@@ -3,15 +3,15 @@ import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
   const root = 'example/script';
-  final filterConfig = HTFilterConfig(root, extension: [
-    HTResource.hetuModule,
-    HTResource.hetuScript,
-    HTResource.json,
-    HTResource.jsonWithComments,
-  ]);
+  // final filterConfig = HTFilterConfig(root, extension: [
+  //   HTResource.hetuModule,
+  //   HTResource.hetuScript,
+  //   HTResource.json,
+  //   HTResource.jsonWithComments,
+  // ]);
   final sourceContext =
       HTFileSystemResourceContext(root: root, includedFilter: [
-    filterConfig
+    // filterConfig
   ], expressionModuleExtensions: [
     HTResource.json,
     HTResource.jsonWithComments,
@@ -20,7 +20,7 @@ void main() {
   hetu.init();
 
   hetu.eval(r'''
-    import 'values.jsonc' as json
+    import 'inner/values.jsonc' as json
 
     print(json)
   ''');

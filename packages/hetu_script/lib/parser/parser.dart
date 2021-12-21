@@ -157,8 +157,14 @@ class HTParser extends HTAbstractParser {
       for (final decl in result.imports) {
         try {
           late final HTSourceParseResult importModule;
+          String currentDir;
+          if (result.fullName.startsWith(Semantic.anonymousScript)) {
+            currentDir = sourceContext.root;
+          } else {
+            currentDir = path.dirname(result.fullName);
+          }
           final importFullName = sourceContext.getAbsolutePath(
-              key: decl.fromPath!, dirName: path.dirname(result.fullName));
+              key: decl.fromPath!, dirName: currentDir);
           decl.fullName = importFullName;
           if (_cachedRecursiveParsingTargets.contains(importFullName)) {
             continue;
