@@ -1526,7 +1526,6 @@ class ParamDecl extends VarDecl {
   ParamDecl(IdentifierExpr id,
       {TypeExpr? declType,
       AstNode? initializer,
-      bool isMutable = false,
       this.isVariadic = false,
       this.isOptional = false,
       this.isNamed = false,
@@ -1543,7 +1542,7 @@ class ParamDecl extends VarDecl {
             length: length,
             declType: declType,
             initializer: initializer,
-            isMutable: isMutable);
+            isMutable: true);
 }
 
 class RedirectingConstructorCallExpr extends AstNode {
