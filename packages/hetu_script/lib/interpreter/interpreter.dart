@@ -1025,7 +1025,16 @@ class Hetu extends HTAbstractInterpreter {
       if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
         // TODO: binary bytes import
         // final module = _cachedModules[];
-        final value = _bytecodeModule.expressions[fromPath];
+
+        String currentDir;
+        if (_fileName.startsWith(Semantic.anonymousScript)) {
+          currentDir = _sourceContext.root;
+        } else {
+          currentDir = path.dirname(_fileName);
+        }
+        final normalized =
+            _sourceContext.getAbsolutePath(key: fromPath, dirName: currentDir);
+        final value = _bytecodeModule.expressions[normalized];
         _namespace.define(alias!, HTVariable(alias, value: value));
       } else {
         final decl = ImportDeclaration(

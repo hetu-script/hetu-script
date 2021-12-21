@@ -19,5 +19,9 @@ void main() {
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
 
-  hetu.evalFile('json.hts');
+  hetu.eval(r'''
+    import 'values.jsonc' as json
+
+    print(json)
+  ''');
 }
