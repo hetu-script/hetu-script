@@ -38,7 +38,10 @@ void main(List<String> arguments) {
     final currentDir = Directory.current;
     final sourceContext = HTFileSystemResourceContext(
         root: currentDir.path,
-        expressionModuleExtensions: [HTResource.json, HTResource.jsonc]);
+        expressionModuleExtensions: [
+          HTResource.json,
+          HTResource.jsonWithComments,
+        ]);
     hetu = Hetu(sourceContext: sourceContext);
     hetu.init();
     final version = HTCompiler.version.toString();
