@@ -105,7 +105,7 @@ packages:
       path: "../hetu_script"
       relative: true
     source: path
-    version: "0.3.7+2"
+    version: "0.3.7+3"
   http_multi_server:
     dependency: transitive
     description:
