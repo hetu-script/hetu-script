@@ -31,6 +31,8 @@ Version: {0}
 Enter expression to evaluate.
 Enter '\' for multiline, enter '.exit' to quit.''';
 
+const kSeperator = '------------------------------------------------';
+
 late Hetu hetu;
 
 void main(List<String> arguments) {
@@ -58,27 +60,26 @@ void main(List<String> arguments) {
         print('Hetu Script Language, version: $version');
       } else if (results.command != null) {
         final cmd = results.command!;
-        final cmdArgs = cmd.arguments;
-        final targetPath = cmdArgs.first;
+        final targetPath = cmd.arguments.first;
         final ext = path.extension(targetPath);
         if (ext != HTResource.hetuScript && ext != HTResource.hetuModule) {
           throw 'Error: target is not Hetu source code file.';
         }
         switch (cmd.name) {
           case 'run':
-            final result = run(cmdArgs);
-            enterReplMode(prompt: 'Loaded module: [${cmdArgs.first}]\n$result');
+            print(cmd['repl']);
+            run(cmd.arguments, enterRepl: cmd['repl']);
             break;
           case 'format':
-            format(cmdArgs, cmd['out'], cmd['print']);
+            format(cmd.arguments,
+                outPath: cmd['out'], printResult: cmd['print']);
             break;
           case 'analyze':
-            analyze(cmdArgs);
+            analyze(cmd.arguments);
             break;
         }
       } else {
-        final result = run(arguments);
-        enterReplMode(prompt: 'Loaded module: [${arguments.first}]\n$result');
+        run(arguments);
       }
     }
   } catch (e) {
@@ -88,9 +89,11 @@ void main(List<String> arguments) {
 
 void enterReplMode({String? prompt}) {
   print(replInfo);
-  print('------------------------------------------------');
+  print(kSeperator);
   if (prompt != null) {
-    print(prompt);
+    print('Module execution result:\n');
+    print([prompt]);
+    print(kSeperator);
   }
   var exit = false;
   while (!exit) {
@@ -120,7 +123,8 @@ ArgResults parseArg(List<String> args) {
   final parser = ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false);
   parser.addFlag('version', abbr: 'v', negatable: false);
-  parser.addCommand('run');
+  final runCmd = parser.addCommand('run');
+  runCmd.addFlag('repl');
   final fmtCmd = parser.addCommand('format');
   fmtCmd.addFlag('print', abbr: 'p');
   fmtCmd.addOption('out', abbr: 'o');
@@ -128,7 +132,7 @@ ArgResults parseArg(List<String> args) {
   return parser.parse(args);
 }
 
-String run(List<String> args) {
+void run(List<String> args, {bool enterRepl = false}) {
   if (args.isEmpty) {
     throw 'Error: no path specified to run.';
   }
@@ -147,10 +151,15 @@ String run(List<String> args) {
         invokeFunc: args[1],
         positionalArgs: scriptInvocationArgs);
   }
-  return 'Execution result:\n$result';
+  if (enterRepl) {
+    enterReplMode(prompt: 'Loaded module: [${args.first}]\n$result');
+  } else {
+    print('Loaded module: \n[${args.first}]');
+    print('Module execution result:\n[$result]');
+  }
 }
 
-void format(List<String> args, [String? outPath, bool printResult = true]) {
+void format(List<String> args, {String? outPath, bool printResult = true}) {
   // final parser = HTAstParser();
   final formatter = HTFormatter();
   final context = HTFileSystemResourceContext();
