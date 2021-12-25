@@ -2,11 +2,6 @@ part of '../abstract_interpreter.dart';
 
 /// Core exernal functions for use globally in Hetu script.
 final Map<String, Function> preIncludeFunctions = {
-  // TODO: 读取注释
-  'help': (HTEntity entity,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {},
   'print': (HTEntity entity,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -83,5 +78,22 @@ final Map<String, Function> preIncludeFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     return (object as HTInstance).getTypeString();
+  },
+  'uid': (HTEntity entity,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    return util.uid();
+  },
+  'crc32b': (HTEntity entity,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final data = positionalArgs.first;
+    var crc = 0;
+    if (positionalArgs.length > 1) {
+      crc = positionalArgs[1];
+    }
+    return util.crc32b(data, crc);
   },
 };

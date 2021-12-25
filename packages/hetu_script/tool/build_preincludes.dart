@@ -6,10 +6,11 @@ final Map<String, String> builtInModules = const {
   'hetu:async': '../../lib/core/async.ht',
   'hetu:system': '../../lib/core/system.ht',
   'hetu:math': '../../lib/core/math.ht',
-  // 'hetu:tools': '../../lib/core/dev_tools.ht',
 };
 
-final Map<String, String> optionalModules = const {};
+final Map<String, String> optionalModules = const {
+  'hetu:tools': '../../lib/core/tools.ht',
+};
 
 void main() {
   stdout.write('Converting files in \'lib\' folder into Dart strings...');

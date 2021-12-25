@@ -16,5 +16,6 @@ final Map<String, String> extensionModules = const {
 	
 	static fun cls()
 }
-'''
+''',
+  'hetu:tools': r'''external fun help(value)''',
 };

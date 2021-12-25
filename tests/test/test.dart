@@ -4,6 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      export 'none.ht'
+      a = 3
+      
     ''');
 }

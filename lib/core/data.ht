@@ -1,0 +1,3 @@
+external fun uniqueId() -> str
+
+external fun crc32b(data: str, [crc: str = 0]) -> str

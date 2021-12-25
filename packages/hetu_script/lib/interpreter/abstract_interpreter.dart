@@ -21,6 +21,7 @@ import 'compiler.dart';
 import '../value/struct/struct.dart';
 import '../shared/stringify.dart';
 import '../shared/jsonify.dart';
+import '../shared/uid.dart' as util;
 
 part 'preinclude/preinclude_modules.dart';
 part 'preinclude/preinclude_functions.dart';
