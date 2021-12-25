@@ -106,8 +106,8 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     for (final result in compilation.sources.values) {
       _curErrors.clear();
       final analysisErrors =
-          result.errors.map((err) => HTAnalysisError.fromError(err)).toList();
-      _curErrors.addAll(analysisErrors);
+          result.errors?.map((err) => HTAnalysisError.fromError(err)).toList();
+      _curErrors.addAll(analysisErrors!);
       _curNamespace = HTNamespace(id: result.fullName, closure: global);
       for (final node in result.nodes) {
         analyzeAst(node);

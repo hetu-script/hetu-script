@@ -33,7 +33,7 @@ class HTSourceParseResult {
 
   final List<ImportExportDecl> imports;
 
-  final List<HTError> errors;
+  final List<HTError>? errors;
 
   HTSourceParseResult(this.source, this.nodes,
       {this.imports = const [], this.errors = const []});

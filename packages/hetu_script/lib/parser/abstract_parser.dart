@@ -24,7 +24,7 @@ abstract class HTAbstractParser {
   int get line => _line;
   int get column => _column;
 
-  final errors = <HTError>[];
+  List<HTError>? errors;
 
   var tokPos = 0;
 
@@ -126,7 +126,7 @@ abstract class HTAbstractParser {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.length);
-      errors.add(err);
+      errors?.add(err);
     }
 
     return advance(1);

@@ -4,7 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      var s = 24.23
-      print(s.toString())
+      export 'none.ht'
     ''');
 }
