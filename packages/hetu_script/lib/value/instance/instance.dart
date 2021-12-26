@@ -294,9 +294,9 @@ class HTInstance with HTEntity, InterpreterRef {
 
   @override
   int get hashCode {
-    final hashList = <int>[];
-    hashList.add(classId.hashCode);
-    hashList.add(index.hashCode);
+    final hashList = [];
+    hashList.add(classId);
+    hashList.add(index);
     final hash = hashObjects(hashList);
     return hash;
   }

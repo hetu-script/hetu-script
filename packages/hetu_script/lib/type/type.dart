@@ -82,11 +82,11 @@ abstract class HTType with HTEntity {
 
   @override
   int get hashCode {
-    final hashList = <int>[];
-    hashList.add(id.hashCode);
-    hashList.add(isNullable.hashCode);
+    final hashList = [];
+    hashList.add(id);
+    hashList.add(isNullable);
     for (final typeArg in typeArgs) {
-      hashList.add(typeArg.hashCode);
+      hashList.add(typeArg);
     }
     final hash = hashObjects(hashList);
     return hash;

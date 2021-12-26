@@ -91,16 +91,16 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
 
   @override
   int get hashCode {
-    final hashList = <int>[];
-    hashList.add(id.hashCode);
+    final hashList = [];
+    hashList.add(id);
     // for (final typeArg in typeArgs) {
     //   hashList.add(typeArg.hashCode);
     // }
     hashList.add(genericTypeParameters.length.hashCode);
     for (final paramType in parameterTypes) {
-      hashList.add(paramType.hashCode);
+      hashList.add(paramType);
     }
-    hashList.add(returnType.hashCode);
+    hashList.add(returnType);
     final hash = hashObjects(hashList);
     return hash;
   }

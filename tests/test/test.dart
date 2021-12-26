@@ -4,7 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      a = 3
-      
+
     ''');
 }

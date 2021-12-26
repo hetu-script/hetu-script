@@ -34,11 +34,11 @@ class HTNominalType extends HTType {
 
   @override
   int get hashCode {
-    final hashList = <int>[];
-    hashList.add(id.hashCode);
+    final hashList = [];
+    hashList.add(id);
     // hashList.add(isNullable.hashCode);
     for (final typeArg in typeArgs) {
-      hashList.add(typeArg.hashCode);
+      hashList.add(typeArg);
     }
     // if (superType != null) {
     //   hashList.add(superType.hashCode);

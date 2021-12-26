@@ -1653,7 +1653,7 @@ class Hetu extends HTAbstractInterpreter {
           isMutable: isMutable);
     }
     if (!isField) {
-      _namespace.define(id, decl);
+      _namespace.define(id, decl, override: true);
     }
   }
 
