@@ -120,8 +120,6 @@ class HTStruct with HTEntity {
   void delete(String id) {
     if (fields.containsKey(id)) {
       fields.remove(id);
-    } else {
-      throw HTError.undefined(id);
     }
   }
 
