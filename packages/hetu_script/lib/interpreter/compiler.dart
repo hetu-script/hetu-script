@@ -419,12 +419,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     if (field.key != null) {
       bytesBuilder
-          .addByte(StructObjFieldType.normal); // normal key: value field
+          .addByte(StructObjFieldTypeCode.normal); // normal key: value field
       bytesBuilder.add(_identifierString(field.key!));
       final valueBytes = compileAst(field.value!, endOfExec: true);
       bytesBuilder.add(valueBytes);
     } else if (field.isSpread) {
-      bytesBuilder.addByte(StructObjFieldType.spread); // spread another object
+      bytesBuilder
+          .addByte(StructObjFieldTypeCode.spread); // spread another object
       final valueBytes = compileAst(field.value!, endOfExec: true);
       bytesBuilder.add(valueBytes);
     }
@@ -1271,6 +1272,38 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitContinueStmt(ContinueStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.continueLoop);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitDeleteStmt(DeleteStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.delete);
+    bytesBuilder.addByte(DeletingTypeCode.local);
+    bytesBuilder.add(_identifierString(stmt.symbol));
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitDeleteMemberStmt(DeleteMemberStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.delete);
+    bytesBuilder.addByte(DeletingTypeCode.member);
+    final objectBytes = compileAst(stmt.object, endOfExec: true);
+    bytesBuilder.add(objectBytes);
+    bytesBuilder.add(_identifierString(stmt.key));
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitDeleteSubStmt(DeleteSubStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.delete);
+    bytesBuilder.addByte(DeletingTypeCode.sub);
+    final objectBytes = compileAst(stmt.object, endOfExec: true);
+    bytesBuilder.add(objectBytes);
+    final keyBytes = compileAst(stmt.key, endOfExec: true);
+    bytesBuilder.add(keyBytes);
     return bytesBuilder.toBytes();
   }
 

@@ -838,6 +838,31 @@ class Hetu extends HTAbstractInterpreter {
           execute(namespace: namespace);
           _namespace.define(internalName, namespace);
           break;
+        case HTOpCode.delete:
+          final deletingType = _bytecodeModule.read();
+          if (deletingType == DeletingTypeCode.member) {
+            final object = execute();
+            if (object is HTStruct) {
+              final symbol = _readIdentifier();
+              object.delete(symbol);
+            } else {
+              throw HTError.delete(
+                  filename: _fileName, line: _line, column: _column);
+            }
+          } else if (deletingType == DeletingTypeCode.sub) {
+            final object = execute();
+            if (object is HTStruct) {
+              final symbol = execute().toString();
+              object.delete(symbol);
+            } else {
+              throw HTError.delete(
+                  filename: _fileName, line: _line, column: _column);
+            }
+          } else {
+            final symbol = _readIdentifier();
+            _namespace.delete(symbol);
+          }
+          break;
         case HTOpCode.ifStmt:
           final thenBranchLength = _bytecodeModule.readUint16();
           final truthValue = _truthy(_localValue);
@@ -1142,12 +1167,12 @@ class Hetu extends HTAbstractInterpreter {
         final fieldsCount = _bytecodeModule.read();
         for (var i = 0; i < fieldsCount; ++i) {
           final fieldType = _bytecodeModule.read();
-          if (fieldType == StructObjFieldType.normal ||
-              fieldType == StructObjFieldType.objectIdentifier) {
+          if (fieldType == StructObjFieldTypeCode.normal ||
+              fieldType == StructObjFieldTypeCode.objectIdentifier) {
             final key = _readIdentifier();
             final value = execute();
             struct.fields[key] = value;
-          } else if (fieldType == StructObjFieldType.spread) {
+          } else if (fieldType == StructObjFieldTypeCode.spread) {
             final HTStruct value = execute();
             for (final key in value.fields.keys) {
               final copiedValue =

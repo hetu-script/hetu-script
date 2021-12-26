@@ -509,6 +509,33 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitDeleteStmt(DeleteStmt stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.kDelete} ${stmt.symbol}');
+    return output.toString();
+  }
+
+  @override
+  String visitDeleteMemberStmt(DeleteMemberStmt stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.kDelete} ');
+    final objectString = formatAst(stmt.object);
+    output.write('$objectString${HTLexicon.memberGet}${stmt.key}');
+    return output.toString();
+  }
+
+  @override
+  String visitDeleteSubStmt(DeleteSubStmt stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.kDelete} ');
+    final objectString = formatAst(stmt.object);
+    final keyString = formatAst(stmt.key);
+    output.write(
+        '$objectString${HTLexicon.bracketsLeft}$keyString${HTLexicon.bracketsRight}');
+    return output.toString();
+  }
+
+  @override
   String visitImportExportDecl(ImportExportDecl stmt) {
     final output = StringBuffer();
     if (!stmt.isExported) {

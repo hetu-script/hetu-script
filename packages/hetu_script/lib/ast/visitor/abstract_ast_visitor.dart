@@ -80,6 +80,12 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitContinueStmt(ContinueStmt node) {}
 
+  T? visitDeleteStmt(DeleteStmt node) {}
+
+  T? visitDeleteMemberStmt(DeleteMemberStmt node) {}
+
+  T? visitDeleteSubStmt(DeleteSubStmt node) {}
+
   T? visitImportExportDecl(ImportExportDecl node) {}
 
   T? visitNamespaceDecl(NamespaceDecl node) {}

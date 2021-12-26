@@ -45,6 +45,25 @@ A little difference from Dart is that you have to write a curly brackets even if
 
 You can declare a const int/float/string value by keyword 'const'.
 
+## Shadowing
+
+It is possible to shadow a variable by defining another variable with the same name.
+
+```dart
+var a = 42
+var a = 'yay!' /// not an error, this is another variable
+```
+
+## Delete
+
+It is possible to delete a variable using 'delete' keyword.
+
+```dart
+var a = 42
+delete a
+print(a) // error: a is undefined!
+```
+
 ## Type declaration
 
 **WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them currently.**
@@ -282,6 +301,19 @@ final func = () {
 final newfunc =func.bind(obj)
 newfunc()
 print(obj.name) // 'foobar'
+```
+
+### Delete a struct member
+
+It is possible to delete a struct field using 'delete' keyword.
+
+```javascript
+var a = {
+  name: 'the world',
+  meaning: 42,
+};
+delete a.meaning;
+print(a); // { name: 'the world' }
 ```
 
 ## Identifier

@@ -38,7 +38,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitGroupExpr(GroupExpr expr) {
+  HTType? visitIdentifierExpr(IdentifierExpr expr) {
     return HTType.any;
   }
 
@@ -58,22 +58,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   // }
 
   @override
-  HTType? visitIdentifierExpr(IdentifierExpr expr) {
-    return HTType.any;
-  }
-
-  @override
-  HTType? visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
-    return HTType.any;
-  }
-
-  @override
-  HTType? visitBinaryExpr(BinaryExpr expr) {
-    return HTType.any;
-  }
-
-  @override
-  HTType? visitTernaryExpr(TernaryExpr expr) {
+  HTType? visitGroupExpr(GroupExpr expr) {
     return HTType.any;
   }
 
@@ -98,12 +83,22 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitCallExpr(CallExpr expr) {
+  HTType? visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     return HTType.any;
   }
 
   @override
   HTType? visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
+    return HTType.any;
+  }
+
+  @override
+  HTType? visitBinaryExpr(BinaryExpr expr) {
+    return HTType.any;
+  }
+
+  @override
+  HTType? visitTernaryExpr(TernaryExpr expr) {
     return HTType.any;
   }
 
@@ -128,7 +123,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitImportExportDecl(ImportExportDecl stmt) {
+  HTType? visitCallExpr(CallExpr expr) {
     return HTType.any;
   }
 
@@ -193,6 +188,31 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
+  HTType? visitDeleteStmt(DeleteStmt stmt) {
+    return HTType.any;
+  }
+
+  @override
+  HTType? visitDeleteMemberStmt(DeleteMemberStmt stmt) {
+    return HTType.any;
+  }
+
+  @override
+  HTType? visitImportExportDecl(ImportExportDecl stmt) {
+    return HTType.any;
+  }
+
+  @override
+  HTType? visitNamespaceDecl(NamespaceDecl stmt) {
+    return HTType.any;
+  }
+
+  @override
+  HTType? visitTypeAliasDecl(TypeAliasDecl stmt) {
+    return HTType.any;
+  }
+
+  @override
   HTType? visitConstDecl(ConstDecl stmt) {
     return HTType.any;
   }
@@ -218,22 +238,12 @@ class HTTypeChecker implements AbstractAstVisitor<HTType?> {
   }
 
   @override
-  HTType? visitNamespaceDecl(NamespaceDecl stmt) {
-    return HTType.any;
-  }
-
-  @override
   HTType? visitClassDecl(ClassDecl stmt) {
     return HTType.any;
   }
 
   @override
   HTType? visitEnumDecl(EnumDecl stmt) {
-    return HTType.any;
-  }
-
-  @override
-  HTType? visitTypeAliasDecl(TypeAliasDecl stmt) {
     return HTType.any;
   }
 

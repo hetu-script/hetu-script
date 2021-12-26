@@ -26,6 +26,7 @@ abstract class HTOpCode {
   static const library = 31;
   static const file = 32;
   static const constTable = 33;
+  static const delete = 39;
   static const importExportDecl = 40;
   static const libraryDecl = 41;
   static const namespaceDecl = 42;
@@ -84,8 +85,14 @@ abstract class HTValueTypeCode {
   static const type = 13;
 }
 
-abstract class StructObjFieldType {
+abstract class StructObjFieldTypeCode {
   static const normal = 0;
   static const spread = 1;
   static const objectIdentifier = 2;
+}
+
+abstract class DeletingTypeCode {
+  static const local = 0;
+  static const member = 1;
+  static const sub = 2;
 }

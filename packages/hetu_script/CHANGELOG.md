@@ -1,3 +1,8 @@
+## 0.3.8
+
+- Add variable shadowing.
+- Add 'delete' keyword, works on local variable or struct field.
+
 ## 0.3.7
 
 - Add namespace declaration statement.

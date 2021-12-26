@@ -118,7 +118,11 @@ class HTStruct with HTEntity {
   }
 
   void delete(String id) {
-    fields.remove(id);
+    if (fields.containsKey(id)) {
+      fields.remove(id);
+    } else {
+      throw HTError.undefined(id);
+    }
   }
 
   /// [isSelf] means wether this is called by the struct itself, or a recursive one

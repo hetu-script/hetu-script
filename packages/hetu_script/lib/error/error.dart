@@ -15,6 +15,7 @@ enum ErrorCode {
   exportNonHetuSource,
   assertionFailed,
   unexpected,
+  delete,
   external,
   nestedClass,
   constInClass,
@@ -295,6 +296,25 @@ class HTError {
       : this(ErrorCode.unexpected, ErrorType.syntacticError,
             message: HTLexicon.errorUnexpected,
             interpolations: [expected, met],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Can only delete a identifier.
+  HTError.delete(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.delete, ErrorType.syntacticError,
+            message: HTLexicon.errorDelete,
             extra: extra,
             correction: correction,
             filename: filename,

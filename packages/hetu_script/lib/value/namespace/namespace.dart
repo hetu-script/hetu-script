@@ -62,13 +62,23 @@ class HTNamespace extends HTDeclaration with HTEntity {
   /// define a declaration in this namespace,
   /// the defined id could be different from
   /// declaration's id
-  void define(String id, HTDeclaration decl,
+  void define(String varName, HTDeclaration decl,
       {bool override = false, bool error = true}) {
-    if (!declarations.containsKey(id) || override) {
-      declarations[id] = decl;
+    if (!declarations.containsKey(varName) || override) {
+      declarations[varName] = decl;
     } else {
       if (error) {
-        throw HTError.definedRuntime(id);
+        throw HTError.definedRuntime(varName);
+      }
+    }
+  }
+
+  void delete(String varName, {bool error = true}) {
+    if (declarations.containsKey(varName)) {
+      declarations.remove(varName);
+    } else {
+      if (error) {
+        throw HTError.undefined(varName);
       }
     }
   }

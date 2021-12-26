@@ -231,5 +231,21 @@ void main() {
         7,
       );
     });
+    test('delete', () {
+      final result = hetu.eval(r'''
+        var a = {
+          age: 17,
+          meaning: 42
+        }
+        delete a['meaning']
+        a.toString()
+      ''');
+      expect(
+        result,
+        '''{
+  age: 17
+}''',
+      );
+    });
   });
 }

@@ -142,4 +142,6 @@ abstract class Semantic {
   static const forStmt = 'for_statement';
   static const forInStmt = 'for_in_statement';
   static const whenStmt = 'when_statement';
+  static const deleteStmt = 'delete_statement';
+  static const deleteMemberStmt = 'delete_member_statement';
 }

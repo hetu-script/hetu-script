@@ -400,6 +400,8 @@ abstract class HTLexicon {
 
   // syntactic errors
   static const errorUnexpected = 'Expected [{0}], met [{1}].';
+  static const errorDelete =
+      'Can only delete a local variable or a struct member.';
   static const errorExternal = 'External [{0}] is not allowed.';
   static const errorNestedClass = 'Nested class within another nested class.';
   static const errorConstInClass = 'Const value in class must be also static.';

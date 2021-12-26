@@ -366,6 +366,9 @@ class HTParser extends HTAbstractParser {
                 stmt =
                     _parseStructDecl(isTopLevel: true, lateInitialize: false);
                 break;
+              case HTLexicon.kDelete:
+                stmt = _parseDeleteStmt();
+                break;
               case HTLexicon.kIf:
                 stmt = _parseIf();
                 break;
@@ -1019,6 +1022,9 @@ class HTParser extends HTAbstractParser {
               break;
             case HTLexicon.kStruct:
               stmt = _parseStructDecl(lateInitialize: false);
+              break;
+            case HTLexicon.kDelete:
+              stmt = _parseDeleteStmt();
               break;
             case HTLexicon.kIf:
               stmt = _parseIf();
@@ -2462,6 +2468,57 @@ class HTParser extends HTAbstractParser {
           length: curTok.offset - keyword.offset);
       _currentModuleImports.add(stmt);
       return stmt;
+    }
+  }
+
+  AstNode _parseDeleteStmt() {
+    var keyword = advance(1);
+    final nextTok = peek(1);
+    if (curTok.type == Semantic.identifier &&
+        nextTok.type != HTLexicon.memberGet &&
+        nextTok.type != HTLexicon.subGet) {
+      final id = advance(1).lexeme;
+      final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+      return DeleteStmt(id,
+          source: _currentSource,
+          hasEndOfStmtMark: hasEndOfStmtMark,
+          line: keyword.line,
+          column: keyword.column,
+          offset: keyword.offset,
+          length: curTok.offset - keyword.offset);
+    } else {
+      final expr = _parseExpr();
+      final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+      if (expr is MemberExpr) {
+        return DeleteMemberStmt(expr.object, expr.key.id,
+            hasEndOfStmtMark: hasEndOfStmtMark,
+            line: keyword.line,
+            column: keyword.column,
+            offset: keyword.offset,
+            length: curTok.offset - keyword.offset);
+      } else if (expr is SubExpr) {
+        return DeleteSubStmt(expr.object, expr.key,
+            hasEndOfStmtMark: hasEndOfStmtMark,
+            line: keyword.line,
+            column: keyword.column,
+            offset: keyword.offset,
+            length: curTok.offset - keyword.offset);
+      } else {
+        final err = HTError.delete(
+            filename: _currrentFileName,
+            line: curTok.line,
+            column: curTok.column,
+            offset: curTok.offset,
+            length: curTok.length);
+        errors?.add(err);
+        final empty = EmptyExpr(
+            source: _currentSource,
+            line: keyword.line,
+            column: keyword.column,
+            offset: keyword.offset,
+            length: curTok.offset - keyword.offset);
+        return empty;
+      }
     }
   }
 

@@ -1239,6 +1239,102 @@ class ContinueStmt extends AstNode {
             length: length);
 }
 
+class DeleteStmt extends AstNode {
+  @override
+  String get type => Semantic.deleteStmt;
+
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitDeleteStmt(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {}
+
+  final String symbol;
+
+  @override
+  final bool hasEndOfStmtMark;
+
+  DeleteStmt(this.symbol,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.deleteStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class DeleteMemberStmt extends AstNode {
+  @override
+  String get type => Semantic.deleteMemberStmt;
+
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitDeleteMemberStmt(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {}
+
+  final AstNode object;
+
+  final String key;
+
+  @override
+  final bool hasEndOfStmtMark;
+
+  DeleteMemberStmt(this.object, this.key,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.deleteStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class DeleteSubStmt extends AstNode {
+  @override
+  String get type => Semantic.deleteMemberStmt;
+
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitDeleteSubStmt(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {}
+
+  final AstNode object;
+
+  final AstNode key;
+
+  @override
+  final bool hasEndOfStmtMark;
+
+  DeleteSubStmt(this.object, this.key,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.deleteStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class ImportExportDecl extends AstNode {
   @override
   String get type => isExported ? Semantic.exportStmt : Semantic.importStmt;
