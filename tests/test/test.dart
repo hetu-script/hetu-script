@@ -4,7 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      var a
-      print(Math.random() * (a || 1.0))
+      print([1,2,'sdf'], 'df')
     ''');
 }

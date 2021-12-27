@@ -7,7 +7,7 @@ final Map<String, Function> preincludeFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     List args = positionalArgs.first;
-    print(args.join(' '));
+    print(args.map((e) => e is String ? e : stringify(e)).join(' '));
   },
   'stringify': (HTEntity entity,
       {List<dynamic> positionalArgs = const [],

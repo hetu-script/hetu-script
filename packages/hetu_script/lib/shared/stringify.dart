@@ -1,6 +1,18 @@
 import '../grammar/lexicon.dart';
 import '../value/struct/struct.dart';
 
+var _curIndentCount = 0;
+
+String _curIndent() {
+  final output = StringBuffer();
+  var i = _curIndentCount;
+  while (i > 0) {
+    output.write(HTLexicon.indentSpaces);
+    --i;
+  }
+  return output.toString();
+}
+
 String stringify(dynamic object) {
   final output = StringBuffer();
   if (object is String) {
@@ -11,16 +23,8 @@ String stringify(dynamic object) {
       output.write("'$object'");
     }
   } else if (object is List) {
-    output.write(HTLexicon.bracketsLeft);
-    for (var i = 0; i < object.length; ++i) {
-      final item = object[i];
-      final itemString = stringify(item);
-      output.write(itemString);
-      if (i < object.length - 1) {
-        output.write('${HTLexicon.comma} ');
-      }
-    }
-    output.write(HTLexicon.bracketsRight);
+    final listString = stringifyList(object);
+    output.write(listString);
   } else if (object is Map) {
     output.write(HTLexicon.bracesLeft);
     final keys = object.keys.toList();
@@ -41,15 +45,22 @@ String stringify(dynamic object) {
   return output.toString();
 }
 
-var _curIndentCount = 0;
-
-String _curIndent() {
+String stringifyList(List list) {
   final output = StringBuffer();
-  var i = _curIndentCount;
-  while (i > 0) {
-    output.write(HTLexicon.indentSpaces);
-    --i;
+  output.writeln(HTLexicon.bracketsLeft);
+  ++_curIndentCount;
+  for (var i = 0; i < list.length; ++i) {
+    final item = list[i];
+    final itemString = stringify(item);
+    output.write(_curIndent());
+    output.write(itemString);
+    if (i < list.length - 1) {
+      output.write(HTLexicon.comma);
+    }
+    output.writeln();
   }
+  --_curIndentCount;
+  output.write(HTLexicon.bracketsRight);
   return output.toString();
 }
 
