@@ -22,6 +22,12 @@ String stringify(dynamic object) {
     } else {
       output.write("'$object'");
     }
+  } else if (object is HTStruct) {
+    output.writeln(HTLexicon.bracesLeft);
+    final structString = stringifyStruct(object);
+    output.write(structString);
+    output.write(_curIndent());
+    output.write(HTLexicon.bracesRight);
   } else if (object is List) {
     final listString = stringifyList(object);
     output.write(listString);
@@ -51,8 +57,8 @@ String stringifyList(List list) {
   ++_curIndentCount;
   for (var i = 0; i < list.length; ++i) {
     final item = list[i];
-    final itemString = stringify(item);
     output.write(_curIndent());
+    final itemString = stringify(item);
     output.write(itemString);
     if (i < list.length - 1) {
       output.write(HTLexicon.comma);
@@ -97,10 +103,10 @@ String stringifyStruct(HTStruct struct, {HTStruct? from}) {
     }
     output.writeln();
   }
-  --_curIndentCount;
   if (struct.prototype != null && struct.prototype!.id != HTLexicon.prototype) {
     final inherits = stringifyStruct(struct.prototype!, from: struct);
     output.write(inherits);
   }
+  --_curIndentCount;
   return output.toString();
 }

@@ -4,6 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      print([1,2,'sdf'], 'df')
+      print([{d:'df', p: { p: 3}}, 3, 'df'])
     ''');
 }
