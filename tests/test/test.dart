@@ -4,7 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      var a = 42
-      delete a
+      var a
+      print(a || 1)
     ''');
 }

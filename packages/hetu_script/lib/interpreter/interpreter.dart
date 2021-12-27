@@ -1321,8 +1321,7 @@ class Hetu extends HTAbstractInterpreter {
           _localValue = true;
         } else {
           final right = execute();
-          final rightTruthValue = _truthy(right);
-          _localValue = rightTruthValue;
+          _localValue = right;
         }
         break;
       case HTOpCode.logicalAnd:
