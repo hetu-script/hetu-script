@@ -78,7 +78,7 @@ void main(List<String> arguments) {
             break;
         }
       } else {
-        print('Unrecognized commands: $arguments');
+        throw 'Unrecognized commands: $arguments';
       }
     }
   } catch (e) {
