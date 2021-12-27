@@ -155,7 +155,7 @@ void run(List<String> args, {bool enterRepl = false}) {
   if (enterRepl) {
     enterReplMode(prompt: 'Loaded module: [${args.first}]\n$result');
   } else {
-    print('Loaded module: \n[${args.first}] with execution result: [$result]');
+    print('Loaded module: [${args.first}] with execution result: [$result]');
   }
 }
 

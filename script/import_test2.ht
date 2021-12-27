@@ -1,5 +1,0 @@
-import { value } from 'hello.ht'
-
-fun main {
-  return value
-}

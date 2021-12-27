@@ -5,7 +5,7 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: '../../script/');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  final result = hetu.evalFile('import_test2.ht', invokeFunc: 'main');
+  final result = hetu.evalFile('import_test2.hts', invokeFunc: 'main');
   print(result);
 
   // final result2 = hetu.evalFile('import_test.ht', invokeFunc: 'importTest');

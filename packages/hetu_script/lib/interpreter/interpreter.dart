@@ -479,18 +479,16 @@ class Hetu extends HTAbstractInterpreter {
         }
         // TODO: import binary bytes
       }
-      if (!_isModuleEntryScript) {
-        // handles imports
-        for (final nsp in _bytecodeModule.namespaces.values) {
-          for (final decl in nsp.imports.values) {
-            _handleNamespaceImport(nsp, decl);
-          }
+      // handles imports
+      for (final nsp in _bytecodeModule.namespaces.values) {
+        for (final decl in nsp.imports.values) {
+          _handleNamespaceImport(nsp, decl);
         }
-        // resolve each declaration after we get all declarations
-        for (final namespace in _bytecodeModule.namespaces.values) {
-          for (final decl in namespace.declarations.values) {
-            decl.resolve();
-          }
+      }
+      // resolve each declaration after we get all declarations
+      for (final namespace in _bytecodeModule.namespaces.values) {
+        for (final decl in namespace.declarations.values) {
+          decl.resolve();
         }
       }
       _namespace = _bytecodeModule.namespaces.values.last;

@@ -1,3 +1,7 @@
 export 'hello2.ht'
 
-final value = 42
+import 'hello2.ht'
+
+fun h2 {
+  print(meaning)
+}
