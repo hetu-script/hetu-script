@@ -12,7 +12,7 @@ The most common class you will be using is the Interpreter, it is named as 'Hetu
 
 This method is a convenient way to load some shared modules together before you can use them.
 
-- **includes**: Hetu source in String literal form. You can also use **eval** methods to load them later.
+- **preincludes**: Hetu source in String literal form. You can also use **eval** methods to load them later.
 - **externalFunctions**: Dart functions to be binded with a external function declaration in Hetu. You can also use **bindExternalFunction** methods to load them later.
 - **HTExternalFunctionTypedef**: Dart typedefs to be used when a Hetu function want to be converted to a Dart function when evaluated. You can also use **bindExternalFunctionType** methods to load them later.
 - **HTExternalClass**: Dart class bindings to be used by Hetu to get class definitions. You can also use **bindExternalClass** methods to load them later.
@@ -32,7 +32,7 @@ To parse, analyze, compile and load a Hetu source from a String literal.
 
 ```dart
 dynamic eval(String content,
-    {String? filename,
+    {String? fileName,
     String? moduleName,
     bool globallyImport = false,
     bool isModule = false,
@@ -45,13 +45,10 @@ dynamic eval(String content,
 ```
 
 - **content**: Hetu source as String literal.
-- **filename**: The name of this **HTModule**, it will be used when other module try to import from it.
+- **fileName**: The name of this source, it will be used when other source try to import from it.
+- **moduleName**: The name of the compilation result, i.e. the program or library's name.
 - **globallyImport**: Whether you want the content of this source is visible to **global** namespace. It's a quicker way to let other modules to use without import statement.
-<<<<<<< HEAD
 - **isModule**: Whether let the interpreter evaluate this source as a module. For more information, check [**source type**](../module/readme.md#Source-type).
-=======
-- **isModule**: Whether let the interpreter evaluate this source as a module. For more information, check **source type**(../module/index.md#Source-type).
->>>>>>> 8088931f8cb3f7549b089e54de9363c527bdd4e4
 - **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.
 - **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 

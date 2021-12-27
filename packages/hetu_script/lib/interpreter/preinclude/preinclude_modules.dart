@@ -4,7 +4,7 @@
 part of '../abstract_interpreter.dart';
 
 /// The pre-included modules of Hetu scripting language.
-final List<HTSource> preIncludeModules = [
+final List<HTSource> preincludeModules = [
   HTSource(r'''// print values of any type into lines
 external fun print(... args: any)
 

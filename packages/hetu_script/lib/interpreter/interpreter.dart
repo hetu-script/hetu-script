@@ -115,7 +115,7 @@ class Hetu extends HTAbstractInterpreter {
   set _localValue(dynamic value) =>
       _stackFrames[_currentStackIndex][HTRegIdx.value] = value;
   dynamic get _localValue => _stackFrames[_currentStackIndex][HTRegIdx.value];
-  set localSymbol(String? value) =>
+  set _localSymbol(String? value) =>
       _stackFrames[_currentStackIndex][HTRegIdx.identifier] = value;
   String? get localSymbol =>
       _stackFrames[_currentStackIndex][HTRegIdx.identifier];
@@ -179,21 +179,21 @@ class Hetu extends HTAbstractInterpreter {
 
   @override
   void init({
-    List<HTSource> preincludeModules = const [],
+    List<HTSource> preincludes = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
   }) {
     if (config.doStaticAnalyze) {
       _analyzer.init(
-        preincludeModules: preincludeModules,
+        preincludes: preincludes,
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef,
         externalClasses: externalClasses,
       );
     }
     super.init(
-      preincludeModules: preincludeModules,
+      preincludes: preincludes,
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
@@ -272,7 +272,6 @@ class Hetu extends HTAbstractInterpreter {
     if (source.content.isEmpty) {
       return null;
     }
-    _isModuleEntryScript = source.type == ResourceType.hetuScript;
     _fileName = source.name;
     _isStrictMode = isStrictMode;
     try {
@@ -471,6 +470,7 @@ class Hetu extends HTAbstractInterpreter {
       }
       final sourceType = ResourceType.values.elementAt(_bytecodeModule.read());
       _isModuleEntryScript = sourceType == ResourceType.hetuScript ||
+          sourceType == ResourceType.hetuLiteralCode ||
           sourceType == ResourceType.hetuValue;
       while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
         final result = execute();
@@ -716,7 +716,11 @@ class Hetu extends HTAbstractInterpreter {
           final resourceTypeIndex = _bytecodeModule.read();
           _currentFileResourceType =
               ResourceType.values.elementAt(resourceTypeIndex);
-          _namespace = HTNamespace(id: _fileName, closure: global);
+          if (_currentFileResourceType != ResourceType.hetuLiteralCode) {
+            _namespace = HTNamespace(id: _fileName, closure: global);
+          } else {
+            _namespace = global;
+          }
           break;
         case HTOpCode.loopPoint:
           final continueLength = _bytecodeModule.readUint16();
@@ -756,8 +760,7 @@ class Hetu extends HTAbstractInterpreter {
         // 语句结束
         case HTOpCode.endOfStmt:
           _localValue = null;
-          localSymbol = null;
-          // _curLeftValue = null;
+          _localSymbol = null;
           _localTypeArgs = [];
           break;
         case HTOpCode.endOfExec:
@@ -770,18 +773,15 @@ class Hetu extends HTAbstractInterpreter {
           _loopCount = 0;
           return _localValue;
         case HTOpCode.endOfFile:
-          if (_currentFileResourceType == ResourceType.hetuModule ||
-              _currentFileResourceType == ResourceType.hetuScript) {
-            return _namespace;
-          } else if (_currentFileResourceType == ResourceType.hetuValue) {
+          if (_currentFileResourceType == ResourceType.hetuValue) {
             final module = HTValueSource(
                 id: _fileName,
                 moduleName: _bytecodeModule.id,
                 value: _localValue);
             return module;
+          } else {
+            return _namespace;
           }
-          // TODO: binary bytes module
-          return null;
         case HTOpCode.constTable:
           final int64Length = _bytecodeModule.readUint16();
           for (var i = 0; i < int64Length; ++i) {
@@ -862,6 +862,9 @@ class Hetu extends HTAbstractInterpreter {
             final symbol = _readIdentifier();
             _namespace.delete(symbol);
           }
+          _localValue = null;
+          _localSymbol = null;
+          _localTypeArgs = [];
           break;
         case HTOpCode.ifStmt:
           final thenBranchLength = _bytecodeModule.readUint16();
@@ -977,7 +980,7 @@ class Hetu extends HTAbstractInterpreter {
             }
           } else {
             final key = execute();
-            localSymbol = key;
+            _localSymbol = key;
             final encap = encapsulate(object);
             _localValue = encap.memberGet(key, from: _fileName);
           }
@@ -1070,7 +1073,7 @@ class Hetu extends HTAbstractInterpreter {
         );
         if (_currentFileResourceType == ResourceType.hetuModule) {
           _namespace.declareImport(decl);
-        } else if (_currentFileResourceType == ResourceType.hetuScript) {
+        } else {
           _handleNamespaceImport(_namespace, decl);
         }
       }
@@ -1113,7 +1116,7 @@ class Hetu extends HTAbstractInterpreter {
         _localValue = literal;
         break;
       case HTValueTypeCode.identifier:
-        final symbol = localSymbol = _readIdentifier();
+        final symbol = _localSymbol = _readIdentifier();
         final isLocal = _bytecodeModule.readBool();
         if (isLocal) {
           _localValue = _namespace.memberGet(symbol, recursive: true);

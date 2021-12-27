@@ -67,7 +67,6 @@ void main(List<String> arguments) {
         }
         switch (cmd.name) {
           case 'run':
-            print(cmd['repl']);
             run(cmd.arguments, enterRepl: cmd['repl']);
             break;
           case 'format':
@@ -79,7 +78,7 @@ void main(List<String> arguments) {
             break;
         }
       } else {
-        run(arguments);
+        print('Unrecognized commands: $arguments');
       }
     }
   } catch (e) {
@@ -114,6 +113,7 @@ void enterReplMode({String? prompt}) {
         } else {
           print(e);
         }
+        print(''); // flush the std to prevent unintended input capture.
       }
     }
   }

@@ -11,7 +11,7 @@ extension HTFlutterExtension on Hetu {
       await (sourceContext as HTAssetResourceContext).init();
     }
     init(
-        preincludeModules: preincludeModules,
+        preincludes: preincludeModules,
         externalClasses: externalClasses,
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef);

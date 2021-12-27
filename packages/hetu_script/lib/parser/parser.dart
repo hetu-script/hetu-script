@@ -96,7 +96,8 @@ class HTParser extends HTAbstractParser {
           final sourceType = _currentSource!.type;
           if (sourceType == ResourceType.hetuModule) {
             parseStyle = ParseStyle.module;
-          } else if (sourceType == ResourceType.hetuScript) {
+          } else if (sourceType == ResourceType.hetuScript ||
+              sourceType == ResourceType.hetuLiteralCode) {
             parseStyle = ParseStyle.script;
           } else if (sourceType == ResourceType.hetuValue) {
             parseStyle = ParseStyle.expression;
@@ -104,7 +105,7 @@ class HTParser extends HTAbstractParser {
             return nodes;
           }
         } else {
-          parseStyle = ParseStyle.module;
+          parseStyle = ParseStyle.script;
         }
       }
       final stmt = _parseStmt(sourceType: parseStyle);
@@ -194,8 +195,7 @@ class HTParser extends HTAbstractParser {
 
     if (result.type == ResourceType.hetuValue) {
       values[result.fullName] = result;
-    } else if (result.type == ResourceType.hetuModule ||
-        result.type == ResourceType.hetuScript) {
+    } else {
       handleImport(result);
       sources[result.fullName] = result;
     }

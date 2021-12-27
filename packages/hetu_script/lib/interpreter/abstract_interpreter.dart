@@ -85,15 +85,15 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   @mustCallSuper
   void init({
-    List<HTSource> preincludeModules = const [],
+    List<HTSource> preincludes = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
   }) {
     try {
       // bind externals before any eval
-      for (var key in preIncludeFunctions.keys) {
-        bindExternalFunction(key, preIncludeFunctions[key]!);
+      for (var key in preincludeFunctions.keys) {
+        bindExternalFunction(key, preincludeFunctions[key]!);
       }
       bindExternalClass(HTNumberClass());
       bindExternalClass(HTIntClass());
@@ -109,11 +109,11 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       // bindExternalClass(HTConsoleClass());
 
       // load classes and functions in core library.
-      for (final file in preIncludeModules) {
+      for (final file in preincludeModules) {
         evalSource(file, globallyImport: true);
       }
 
-      for (final file in preincludeModules) {
+      for (final file in preincludes) {
         evalSource(file, globallyImport: true);
       }
       for (final key in externalFunctions.keys) {
@@ -141,19 +141,17 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bool errorHandled = false});
 
   T? eval(String content,
-      {String? filename,
+      {String? fileName,
       String? moduleName,
       bool globallyImport = false,
-      bool isModule = false,
+      ResourceType type = ResourceType.hetuLiteralCode,
       bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    final source = HTSource(content,
-        name: filename,
-        type: isModule ? ResourceType.hetuModule : ResourceType.hetuScript);
+    final source = HTSource(content, name: fileName, type: type);
     final result = evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,

@@ -1,6 +1,7 @@
 enum ResourceType {
   hetuModule,
   hetuScript,
+  hetuLiteralCode,
   hetuValue,
   binary,
   unkown,

@@ -90,6 +90,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   HTModuleAnalysisResult evalSource(HTSource source,
       {String? moduleName,
+      HTNamespace? namespace,
       bool globallyImport = false,
       bool isStrictMode = false,
       String? invokeFunc, // ignored in analyzer

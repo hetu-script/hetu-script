@@ -4,12 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      var a = {
-        age: 17,
-        meaning: 42
-      }
-      print(a)
-      delete a['meaning']
-      print(a)
+      var a = 42
+      delete a
     ''');
 }

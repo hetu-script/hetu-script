@@ -95,10 +95,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // index: ResourceType
     mainBytesBuilder.addByte(compilation.type.index);
     final bytesBuilder = BytesBuilder();
+
     void compileSource(HTSourceParseResult result) {
       bytesBuilder.addByte(HTOpCode.file);
-      final idBytes = _identifierString(result.fullName);
-      bytesBuilder.add(idBytes);
+      bytesBuilder.add(_identifierString(result.fullName));
       bytesBuilder.addByte(result.type.index);
       for (final node in result.nodes) {
         final bytes = compileAst(node);
