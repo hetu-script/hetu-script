@@ -85,7 +85,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   /// Analyzer should never throw.
   @override
-  void handleError(Object error, {Object? externalStackTrace}) {}
+  void handleError(Object error, {Object? externalStackTrace}) {
+    throw error;
+  }
 
   @override
   HTModuleAnalysisResult evalSource(HTSource source,

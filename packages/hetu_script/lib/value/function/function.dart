@@ -222,24 +222,24 @@ class HTFunction extends HTFunctionDeclaration
       dynamic result;
       // 如果是脚本函数
       if (!isExternal) {
-        if (hasParamDecls) {
-          if (positionalArgs.length < minArity ||
-              (positionalArgs.length > maxArity && !isVariadic)) {
-            throw HTError.arity(internalName, positionalArgs.length, minArity,
-                filename: interpreter.fileName,
-                line: interpreter.line,
-                column: interpreter.column);
-          }
+        // if (hasParamDecls) {
+        //   if (positionalArgs.length < minArity ||
+        //       (positionalArgs.length > maxArity && !isVariadic)) {
+        //     throw HTError.arity(internalName, positionalArgs.length, minArity,
+        //         filename: interpreter.fileName,
+        //         line: interpreter.line,
+        //         column: interpreter.column);
+        //   }
 
-          for (final name in namedArgs.keys) {
-            if (!paramDecls.containsKey(name)) {
-              throw HTError.namedArg(name,
-                  filename: interpreter.fileName,
-                  line: interpreter.line,
-                  column: interpreter.column);
-            }
-          }
-        }
+        //   for (final name in namedArgs.keys) {
+        //     if (!paramDecls.containsKey(name)) {
+        //       throw HTError.namedArg(name,
+        //           filename: interpreter.fileName,
+        //           line: interpreter.line,
+        //           column: interpreter.column);
+        //     }
+        //   }
+        // }
 
         if (category == FunctionCategory.constructor && construct) {
           result =
@@ -403,22 +403,22 @@ class HTFunction extends HTFunctionDeclaration
         late final Map<String, dynamic> finalNamedArgs;
 
         if (hasParamDecls) {
-          if (positionalArgs.length < minArity ||
-              (positionalArgs.length > maxArity && !isVariadic)) {
-            throw HTError.arity(internalName, positionalArgs.length, minArity,
-                filename: interpreter.fileName,
-                line: interpreter.line,
-                column: interpreter.column);
-          }
-
-          for (final name in namedArgs.keys) {
-            if (!paramDecls.containsKey(name)) {
-              throw HTError.namedArg(name,
-                  filename: interpreter.fileName,
-                  line: interpreter.line,
-                  column: interpreter.column);
-            }
-          }
+          // TODO: these should be checked in analyzer
+          // if (positionalArgs.length < minArity ||
+          //     (positionalArgs.length > maxArity && !isVariadic)) {
+          //   throw HTError.arity(internalName, positionalArgs.length, minArity,
+          //       filename: interpreter.fileName,
+          //       line: interpreter.line,
+          //       column: interpreter.column);
+          // }
+          // for (final name in namedArgs.keys) {
+          //   if (!paramDecls.containsKey(name)) {
+          //     throw HTError.namedArg(name,
+          //         filename: interpreter.fileName,
+          //         line: interpreter.line,
+          //         column: interpreter.column);
+          //   }
+          // }
 
           finalPosArgs = [];
           finalNamedArgs = {};

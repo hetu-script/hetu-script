@@ -35,15 +35,16 @@ const kSeperator = '------------------------------------------------';
 
 late Hetu hetu;
 
+final currentDir = Directory.current;
+final sourceContext = HTFileSystemResourceContext(
+    root: currentDir.path,
+    expressionModuleExtensions: [
+      HTResource.json,
+      HTResource.jsonWithComments,
+    ]);
+
 void main(List<String> arguments) {
   try {
-    final currentDir = Directory.current;
-    final sourceContext = HTFileSystemResourceContext(
-        root: currentDir.path,
-        expressionModuleExtensions: [
-          HTResource.json,
-          HTResource.jsonWithComments,
-        ]);
     hetu = Hetu(sourceContext: sourceContext);
     hetu.init();
     final version = HTCompiler.version.toString();
@@ -63,7 +64,7 @@ void main(List<String> arguments) {
         final targetPath = cmd.arguments.first;
         final ext = path.extension(targetPath);
         if (ext != HTResource.hetuScript && ext != HTResource.hetuModule) {
-          throw 'Error: target is not Hetu source code file.';
+          throw 'Error: $targetPath is not a Hetu source code file.';
         }
         switch (cmd.name) {
           case 'run':
@@ -78,7 +79,7 @@ void main(List<String> arguments) {
             break;
         }
       } else {
-        throw 'Unrecognized commands: $arguments';
+        throw 'Error: Unrecognizable commands: $arguments.';
       }
     }
   } catch (e) {
@@ -134,7 +135,7 @@ ArgResults parseArg(List<String> args) {
 
 void run(List<String> args, {bool enterRepl = false}) {
   if (args.isEmpty) {
-    throw 'Error: no path specified to run.';
+    throw 'Error: Path argument is required for \'run\' command.';
   }
   dynamic result;
   if (args.length == 1) {
@@ -154,8 +155,7 @@ void run(List<String> args, {bool enterRepl = false}) {
   if (enterRepl) {
     enterReplMode(prompt: 'Loaded module: [${args.first}]\n$result');
   } else {
-    print('Loaded module: \n[${args.first}]');
-    print('Module execution result:\n[$result]');
+    print('Loaded module: \n[${args.first}] with execution result: [$result]');
   }
 }
 
@@ -187,19 +187,23 @@ void format(List<String> args, {String? outPath, bool printResult = true}) {
 }
 
 void analyze(List<String> args) {
-  final analyzer = HTAnalyzer();
-  analyzer.init();
-  final result = analyzer.evalFile(args.first);
-  if (result != null) {
-    if (result.errors.isNotEmpty) {
-      print('Analyzer found ${result.errors.length} problems:');
-      for (final err in result.errors) {
-        print(err);
+  try {
+    final analyzer = HTAnalyzer(sourceContext: sourceContext);
+    analyzer.init();
+    final result = analyzer.evalFile(args.first);
+    if (result != null) {
+      if (result.errors.isNotEmpty) {
+        print('Analyzer found ${result.errors.length} problems:');
+        for (final err in result.errors) {
+          print(err);
+        }
+      } else {
+        print('Analyzer found 0 problem.');
       }
     } else {
-      print('Analyzer found 0 problem.');
+      print('Unkown error occurred during analysis.');
     }
-  } else {
-    print('Unkown error occurred during analysis.');
+  } catch (e) {
+    print(e);
   }
 }
