@@ -1318,7 +1318,11 @@ class Hetu extends HTAbstractInterpreter {
         final rightValueLength = _bytecodeModule.readUint16();
         if (leftTruthValue) {
           _bytecodeModule.skip(rightValueLength);
-          _localValue = true;
+          if (_isStrictMode) {
+            _localValue = true;
+          } else {
+            _localValue = left;
+          }
         } else {
           final right = execute();
           if (_isStrictMode) {

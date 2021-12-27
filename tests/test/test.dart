@@ -5,6 +5,6 @@ void main() {
   hetu.init();
   hetu.eval(r'''
       var a
-      print(a || 1)
+      print(Math.random() * (a || 1.0))
     ''');
 }
