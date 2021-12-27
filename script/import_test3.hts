@@ -1,5 +1,3 @@
 import 'hello.ht'
 
-fun main {
-  h2()
-}
+print(h2())

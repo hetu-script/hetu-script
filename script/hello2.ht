@@ -1,7 +1,3 @@
-final meaning = {
-  value: 42
-}
-
 fun hello {
   return 'Hello, world!'
 }

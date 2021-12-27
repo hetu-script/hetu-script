@@ -403,6 +403,15 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleNamespaceImport(HTNamespace nsp, ImportDeclaration decl) {
     final importNamespace = _bytecodeModule.namespaces[decl.fromPath]!;
+    if (_currentFileResourceType == ResourceType.hetuScript) {
+      for (final importDecl in importNamespace.imports.values) {
+        _handleNamespaceImport(importNamespace, importDecl);
+      }
+      for (final declaration in importNamespace.declarations.values) {
+        declaration.resolve();
+      }
+    }
+
     if (decl.alias == null) {
       if (decl.showList.isEmpty) {
         nsp.import(importNamespace,
@@ -479,16 +488,18 @@ class Hetu extends HTAbstractInterpreter {
         }
         // TODO: import binary bytes
       }
-      // handles imports
-      for (final nsp in _bytecodeModule.namespaces.values) {
-        for (final decl in nsp.imports.values) {
-          _handleNamespaceImport(nsp, decl);
+      if (!_isModuleEntryScript) {
+        // handles imports
+        for (final nsp in _bytecodeModule.namespaces.values) {
+          for (final decl in nsp.imports.values) {
+            _handleNamespaceImport(nsp, decl);
+          }
         }
-      }
-      // resolve each declaration after we get all declarations
-      for (final namespace in _bytecodeModule.namespaces.values) {
-        for (final decl in namespace.declarations.values) {
-          decl.resolve();
+        // resolve each declaration after we get all declarations
+        for (final namespace in _bytecodeModule.namespaces.values) {
+          for (final decl in namespace.declarations.values) {
+            decl.resolve();
+          }
         }
       }
       _namespace = _bytecodeModule.namespaces.values.last;

@@ -3,5 +3,5 @@ export 'hello2.ht'
 import 'hello2.ht'
 
 fun h2 {
-  print(meaning)
+  return hello()
 }
