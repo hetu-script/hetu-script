@@ -409,8 +409,7 @@ class Hetu extends HTAbstractInterpreter {
             isExported: decl.isExported, showList: decl.showList);
       } else {
         for (final id in decl.showList) {
-          HTDeclaration decl =
-              importNamespace.memberGet(id, recursive: false, from: _fileName);
+          HTDeclaration decl = importNamespace.declarations[id]!;
           nsp.define(id, decl);
         }
       }
@@ -422,8 +421,7 @@ class Hetu extends HTAbstractInterpreter {
       } else {
         final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
         for (final id in decl.showList) {
-          HTDeclaration decl =
-              importNamespace.memberGet(id, recursive: false, from: _fileName);
+          HTDeclaration decl = importNamespace.declarations[id]!;
           aliasNamespace.define(id, decl);
         }
         nsp.define(decl.alias!, aliasNamespace);

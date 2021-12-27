@@ -1,5 +1,5 @@
-import 'hello.ht' as h
+import { value } from 'hello.ht'
 
 fun main {
-  return h.hello()
+  return value
 }

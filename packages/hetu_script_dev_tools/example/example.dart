@@ -8,9 +8,9 @@ void main() {
   final result = hetu.evalFile('import_test2.ht', invokeFunc: 'main');
   print(result);
 
-  final result2 = hetu.evalFile('import_test.ht', invokeFunc: 'importTest');
-  print(result2);
+  // final result2 = hetu.evalFile('import_test.ht', invokeFunc: 'importTest');
+  // print(result2);
 
-  final result3 = hetu.evalFile('mod.ht', invokeFunc: 'modTest');
-  print(result3);
+  // final result3 = hetu.evalFile('mod.ht', invokeFunc: 'modTest');
+  // print(result3);
 }

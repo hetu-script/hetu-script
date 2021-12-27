@@ -1,1 +1,3 @@
 export 'hello2.ht'
+
+final value = 42
