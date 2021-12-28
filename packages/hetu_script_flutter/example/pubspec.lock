@@ -80,14 +80,14 @@ packages:
       path: "../../hetu_script"
       relative: true
     source: path
-    version: "0.3.8"
+    version: "0.3.8+1"
   hetu_script_flutter:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.0.4"
+    version: "0.0.5"
   lints:
     dependency: transitive
     description:

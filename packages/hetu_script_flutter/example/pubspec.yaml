@@ -12,7 +12,7 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
-  # hetu_script: ^0.3.7+1
+  # hetu_script: ^0.3.8+1
   hetu_script:
     path: ../../hetu_script
   hetu_script_flutter:
