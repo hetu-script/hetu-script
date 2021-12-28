@@ -54,7 +54,14 @@ void main() {
       ''');
       expect(
         result,
-        '[1, 2, 3, 4, 5, 6]',
+        r'''[
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+]''',
       );
     });
     test('spread in function call', () {

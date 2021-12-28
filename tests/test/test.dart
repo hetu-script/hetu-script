@@ -4,6 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      print([{d:'df', p: { p: 3}}, 3, 'df'])
+              var list = [5, 6]
+        var ht = [1, 2, ...[3, 4], ...list]
+        print(stringify(ht))
     ''');
 }
