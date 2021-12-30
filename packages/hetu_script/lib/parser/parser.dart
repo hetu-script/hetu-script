@@ -1043,7 +1043,10 @@ class HTParser extends HTAbstractParser {
               break;
             case HTLexicon.kBreak:
               final keyword = advance(1);
+              final hasEndOfStmtMark =
+                  expect([HTLexicon.semicolon], consume: true);
               stmt = BreakStmt(keyword,
+                  hasEndOfStmtMark: hasEndOfStmtMark,
                   source: _currentSource,
                   line: keyword.line,
                   column: keyword.column,
@@ -1052,7 +1055,10 @@ class HTParser extends HTAbstractParser {
               break;
             case HTLexicon.kContinue:
               final keyword = advance(1);
+              final hasEndOfStmtMark =
+                  expect([HTLexicon.semicolon], consume: true);
               stmt = ContinueStmt(keyword,
+                  hasEndOfStmtMark: hasEndOfStmtMark,
                   source: _currentSource,
                   line: keyword.line,
                   column: keyword.column,

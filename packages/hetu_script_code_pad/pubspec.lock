@@ -94,14 +94,14 @@ packages:
       path: "../hetu_script"
       relative: true
     source: path
-    version: "0.3.7+2"
+    version: "0.3.8+1"
   hetu_script_flutter:
     dependency: "direct main"
     description:
       path: "../hetu_script_flutter"
       relative: true
     source: path
-    version: "0.0.4"
+    version: "0.0.5"
   highlight:
     dependency: "direct main"
     description:
@@ -130,6 +130,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.12.11"
+  material_color_utilities:
+    dependency: transitive
+    description:
+      name: material_color_utilities
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.1.2"
   meta:
     dependency: transitive
     description:
@@ -211,7 +218,7 @@ packages:
       name: test_api
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.4.3"
+    version: "0.4.8"
   typed_data:
     dependency: transitive
     description:

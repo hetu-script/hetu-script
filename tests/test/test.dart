@@ -4,8 +4,12 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-              var list = [5, 6]
-        var ht = [1, 2, ...[3, 4], ...list]
-        print(stringify(ht))
+        final list = [1, 2, 3]
+        for (final pos in list) {
+          if (pos % 2 == 0) {
+            print('2!')
+            break;
+          }
+        }
     ''');
 }
