@@ -1,4 +1,4 @@
 language: dart
-before_install: cd tests
+before_install: cd tools
 dart_task:
   - test

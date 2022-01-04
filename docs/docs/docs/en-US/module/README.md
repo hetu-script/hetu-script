@@ -45,10 +45,13 @@ Otherwise, every top level symbol will be exported by default.
 
 ## Resource type
 
-Hetu script file have two different way to interpret, controlled by the **isModule** parameter in the eval method of the Interpreter class and the extension of the source file.
+Hetu script file have 3 way to interpret, controlled by the **ResourceType type** parameter in the eval method of the Interpreter class or the extension of the source file.
 
-- When **isModule** is not provided or set to false, interpreter will evaluate the source as **ResourceType.hetuScript**. This kind of source file is organized like a Javascript, Python and Lua file. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
-- When **isModule** is true, interpreter will evaluate the source as **ResourceType.hetuModule**. This kind of source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+- For **ResourceType.hetuScript**, the source file is organized like a Javascript, Python and Lua file. It has its own namespace. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
+
+- When **ResourceType** is not provided in interpreter's 'eval' method, interpreter will evaluate the string provided as **ResourceType.hetuLiteralCode**. Other than the code has no namespace. It is the same to **ResourceType.hetuScript**.
+
+-For **ResourceType.hetuModule**, the source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
 
 When using evalFile method on the interpreter, the source type is inferred from the extension of the file name: '\*.hts' is **ResourceType.hetuScript**, and '\*.ht' is **ResourceType.hetuModule**.
 
@@ -66,15 +69,8 @@ import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
   const root = 'example/script';
-  const filterConfig = HTFilterConfig(root, extension: [
-    HTResource.hetuModule,
-    HTResource.hetuScript,
-    HTResource.json,
-    HTResource.jsonWithComments,
-  ]);
   final sourceContext = HTFileSystemResourceContext(
       root: root,
-      includedFilter: [filterConfig],
       expressionModuleExtensions: [HTResource.json, HTResource.jsonWithComments]);
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
