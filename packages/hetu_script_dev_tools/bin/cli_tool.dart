@@ -55,6 +55,7 @@ void main(List<String> arguments) {
     } else {
       final results = parseArg(arguments);
       if (results['help']) {
+        print(cliHelp);
         print(argParser.usage);
       } else if (results['version']) {
         print('Hetu Script Language, version: $version');

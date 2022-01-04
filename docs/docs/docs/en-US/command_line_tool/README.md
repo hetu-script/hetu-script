@@ -41,6 +41,14 @@ function hello() -> any // repl print
 >>>
 ```
 
+## Run
+
+Run a Hetu source file on your disk.
+
+```
+run [path]
+```
+
 ## Format
 
 Format a Hetu source file on your disk. You can either just print out to test the function. Or to export the result and save to file.
@@ -59,10 +67,10 @@ Analyze a Hetu source file on your disk.
 analyze [path]
 ```
 
-## Run
+## Compile
 
-Run a Hetu source file on your disk.
+Compile a Hetu source file on your disk.
 
 ```
-run [path]
+compile [path] [output_path] [option]
 ```

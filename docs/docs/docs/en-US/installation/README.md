@@ -6,15 +6,14 @@ title: Installation
 
 Input this command in your terminal under the project folder to add the package to your project.
 
-```yaml
+```
 dart pub add hetu_script
 ```
 
 Or use flutter version command:
 
-```yaml
+```
 flutter pub add hetu_script
-flutter pub add hetu_script_dev_tools
 flutter pub add hetu_script_flutter
 ```
 
@@ -45,7 +44,11 @@ final result = hetu.evalFile('main.ht', invokeFunc: 'main');
 
 ## File system and module import
 
-To handle module import from physical disk within the script, there's another package called: 'hetu_script_dev_tools'.
+To handle module import from physical disk within the script. Install another package called: 'hetu_script_dev_tools'.
+
+```
+dart pub add hetu_script
+```
 
 You have to use the class **HTFileSystemResourceContext** provided by this package, to replace the default one:
 
@@ -64,7 +67,7 @@ void main() {
 
 content in 'import_test1.ht':
 
-```kotlin
+```javascript
 import 'hello.ht' as h
 
 fun main {
@@ -80,4 +83,4 @@ fun hello {
 }
 ```
 
-The 'hetu_script_dev_tools' package also provided a [REPL tool](../command_line_tool/readme.md#REPL) for quick testing.
+This package also provided a [REPL tool](../command_line_tool/readme.md#REPL) for quick testing.
