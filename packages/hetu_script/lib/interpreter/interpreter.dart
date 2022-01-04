@@ -34,6 +34,7 @@ import '../shared/constants.dart';
 import 'bytecode_module.dart';
 import 'abstract_interpreter.dart';
 import 'compiler.dart';
+import 'preinclude/preinclude_module.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -186,18 +187,23 @@ class Hetu extends HTAbstractInterpreter {
   }) {
     if (config.doStaticAnalyze) {
       _analyzer.init(
-        preincludes: preincludes,
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef,
         externalClasses: externalClasses,
       );
     }
     super.init(
-      preincludes: preincludes,
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
     );
+    // load precompiled core module.
+    final coreModule = Uint8List.fromList(preincludeModule);
+    loadBytecode(
+        bytes: coreModule, moduleName: 'hetu:main', globallyImport: true);
+    for (final file in preincludes) {
+      evalSource(file, globallyImport: true);
+    }
   }
 
   @override
@@ -272,7 +278,7 @@ class Hetu extends HTAbstractInterpreter {
     if (source.content.isEmpty) {
       return null;
     }
-    _fileName = source.name;
+    _fileName = source.fullName;
     _isStrictMode = isStrictMode;
     try {
       final bytes = compileSource(
@@ -281,7 +287,9 @@ class Hetu extends HTAbstractInterpreter {
         config: config,
         errorHandled: true,
       );
-      final result = loadBytecode(bytes, moduleName ?? source.name,
+      final result = loadBytecode(
+          bytes: bytes,
+          moduleName: moduleName ?? source.fullName,
           globallyImport: globallyImport,
           invokeFunc: invokeFunc,
           positionalArgs: positionalArgs,
@@ -344,7 +352,7 @@ class Hetu extends HTAbstractInterpreter {
     try {
       final compileConfig = config ?? this.config;
       final compiler = HTCompiler(config: compileConfig);
-      if (compileConfig.doStaticAnalyze) {
+      if (this.config.doStaticAnalyze) {
         _analyzer.evalSource(source);
         if (_analyzer.errors.isNotEmpty) {
           for (final error in _analyzer.errors) {
@@ -355,14 +363,12 @@ class Hetu extends HTAbstractInterpreter {
             }
           }
         }
-        final bytes = compiler
-            .compile(_analyzer.compilation); //, moduleName ?? source.fullName);
+        final bytes = compiler.compile(_analyzer.compilation);
         return bytes;
       } else {
         final parser = HTParser(context: _sourceContext);
         final module = parser.parseToModule(source, moduleName: moduleName);
-        final bytes =
-            compiler.compile(module); //, moduleName ?? source.fullName);
+        final bytes = compiler.compile(module);
         return bytes;
       }
     } catch (error) {
@@ -381,7 +387,7 @@ class Hetu extends HTAbstractInterpreter {
       bool isModule = false,
       bool errorHandled = false}) {
     final source = HTSource(content,
-        name: filename,
+        fullName: filename,
         type: isModule ? ResourceType.hetuModule : ResourceType.hetuScript);
     final result = compileSource(source,
         moduleName: moduleName, errorHandled: errorHandled);
@@ -440,8 +446,10 @@ class Hetu extends HTAbstractInterpreter {
 
   /// Load a pre-compiled bytecode file as a module.
   /// If [invokeFunc] is true, execute the bytecode immediately.
-  dynamic loadBytecode(Uint8List bytes, String moduleName,
-      {bool globallyImport = false,
+  dynamic loadBytecode(
+      {required Uint8List bytes,
+      required String moduleName,
+      bool globallyImport = false,
       bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -495,16 +503,18 @@ class Hetu extends HTAbstractInterpreter {
             _handleNamespaceImport(nsp, decl);
           }
         }
+      }
+      _namespace = _bytecodeModule.namespaces.values.last;
+      if (globallyImport) {
+        global.import(_namespace);
+      }
+      if (!_isModuleEntryScript) {
         // resolve each declaration after we get all declarations
         for (final namespace in _bytecodeModule.namespaces.values) {
           for (final decl in namespace.declarations.values) {
             decl.resolve();
           }
         }
-      }
-      _namespace = _bytecodeModule.namespaces.values.last;
-      if (globallyImport) {
-        global.import(_namespace);
       }
       _cachedModules[_bytecodeModule.id] = _bytecodeModule;
       if (invokeFunc != null) {

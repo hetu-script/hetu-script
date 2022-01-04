@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/parser.dart';
 import 'package:hetu_script/analyzer.dart';
 
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
@@ -13,16 +14,13 @@ Hetu Script Command-line Tool
 Version: {0}
 Usage:
 hetu [command] [option]
-  command:
-    format [path] [option]
-      --print(-p)
-      --out(-o) [outpath]
-    analyze [path] [option]
-    run [path] [option]
-hetu [option]
-  option:
-    --help(-h)
-    --version(-v)
+For [command] usage, you can type '--help' after it, example:
+hetu run -h
+commands:
+  run [path] [option]
+  format [path] [option]
+  analyze [path] [option]
+  compile [path] [output_path] [option]
 ''';
 
 var replInfo = r'''
@@ -33,8 +31,9 @@ Enter '\' for multiline, enter '.exit' to quit.''';
 
 const kSeperator = '------------------------------------------------';
 
-late Hetu hetu;
+final argParser = ArgParser();
 
+late Hetu hetu;
 final currentDir = Directory.current;
 final sourceContext = HTFileSystemResourceContext(
     root: currentDir.path,
@@ -48,34 +47,51 @@ void main(List<String> arguments) {
     hetu = Hetu(sourceContext: sourceContext);
     hetu.init();
     final version = HTCompiler.version.toString();
-    cliHelp = cliHelp.replaceAll('{0}', version);
     replInfo = replInfo.replaceAll('{0}', version);
+    cliHelp = cliHelp.replaceAll('{0}', version);
 
     if (arguments.isEmpty) {
       enterReplMode();
     } else {
       final results = parseArg(arguments);
       if (results['help']) {
-        print(cliHelp);
+        print(argParser.usage);
       } else if (results['version']) {
         print('Hetu Script Language, version: $version');
       } else if (results.command != null) {
         final cmd = results.command!;
-        final targetPath = cmd.arguments.first;
-        final ext = path.extension(targetPath);
-        if (ext != HTResource.hetuScript && ext != HTResource.hetuModule) {
-          throw 'Error: $targetPath is not a Hetu source code file.';
-        }
         switch (cmd.name) {
           case 'run':
-            run(cmd.arguments, enterRepl: cmd['repl']);
+            if (cmd['help']) {
+              print(
+                  'hetu run [path] [option]\nInterpret a Hetu script file and print its result to terminal.');
+            } else {
+              run(cmd.arguments, enterRepl: cmd['repl']);
+            }
             break;
           case 'format':
-            format(cmd.arguments,
-                outPath: cmd['out'], printResult: cmd['print']);
+            if (cmd['help']) {
+              print('hetu format [path] [option]\nFormat a Hetu script file.');
+            } else {
+              format(cmd.arguments,
+                  outPath: cmd['out'], printResult: cmd['print']);
+            }
             break;
           case 'analyze':
-            analyze(cmd.arguments);
+            if (cmd['help']) {
+              print(
+                  'hetu analyze [path] [option]\nAnalyze a Hetu script file.');
+            } else {
+              analyze(cmd.arguments);
+            }
+            break;
+          case 'compile':
+            if (cmd['help']) {
+              print(
+                  'hetu compile [path] [output_path] [option]\nCompile a Hetu script file.');
+            } else {
+              compile(cmd.arguments);
+            }
             break;
         }
       } else {
@@ -121,16 +137,30 @@ void enterReplMode({String? prompt}) {
 }
 
 ArgResults parseArg(List<String> args) {
-  final parser = ArgParser();
-  parser.addFlag('help', abbr: 'h', negatable: false);
-  parser.addFlag('version', abbr: 'v', negatable: false);
-  final runCmd = parser.addCommand('run');
-  runCmd.addFlag('repl');
-  final fmtCmd = parser.addCommand('format');
-  fmtCmd.addFlag('print', abbr: 'p');
-  fmtCmd.addOption('out', abbr: 'o');
-  parser.addCommand('analyze');
-  return parser.parse(args);
+  argParser.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show command help.');
+  argParser.addFlag('version',
+      abbr: 'v',
+      negatable: false,
+      help: 'Show version of current using hetu_script package.');
+  final runCmd = argParser.addCommand('run');
+  runCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show run command help.');
+  runCmd.addFlag('repl',
+      abbr: 'r', negatable: false, help: 'Enter REPL mode after evaluation.');
+  final fmtCmd = argParser.addCommand('format');
+  fmtCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show format command help.');
+  fmtCmd.addFlag('print',
+      abbr: 'p', negatable: false, help: 'Print format result to terminal.');
+  fmtCmd.addOption('out', abbr: 'o', help: 'Save format result to file.');
+  final analyzeCmd = argParser.addCommand('analyze');
+  analyzeCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show analyze command help.');
+  final compileCmd = argParser.addCommand('compile');
+  compileCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show compile command help.');
+  return argParser.parse(args);
 }
 
 void run(List<String> args, {bool enterRepl = false}) {
@@ -138,24 +168,49 @@ void run(List<String> args, {bool enterRepl = false}) {
     throw 'Error: Path argument is required for \'run\' command.';
   }
   dynamic result;
-  if (args.length == 1) {
-    result = hetu.evalFile(args.first, globallyImport: true);
-  } else {
-    final scriptInvocationArgs = <String>[];
-    if (args.length > 2) {
-      for (var i = 2; i < args.length; ++i) {
-        scriptInvocationArgs.add(args[i]);
+  final ext = path.extension(args.first);
+  if (ext == HTResource.hetuModule || ext == HTResource.hetuScript) {
+    if (args.length == 1) {
+      result = hetu.evalFile(args.first, globallyImport: true);
+    } else {
+      final scriptInvocationArgs = <String>[];
+      if (args.length > 2) {
+        for (var i = 2; i < args.length; ++i) {
+          scriptInvocationArgs.add(args[i]);
+        }
       }
+      result = hetu.evalFile(args.first,
+          globallyImport: true,
+          invokeFunc: args[1],
+          positionalArgs: scriptInvocationArgs);
     }
-    result = hetu.evalFile(args.first,
-        globallyImport: true,
-        invokeFunc: args[1],
-        positionalArgs: scriptInvocationArgs);
-  }
-  if (enterRepl) {
-    enterReplMode(prompt: 'Loaded module: [${args.first}]\n$result');
   } else {
-    print('Loaded module: [${args.first}] with execution result: [$result]');
+    final file = File(args.first);
+    final bytes = file.readAsBytesSync();
+    if (args.length == 1) {
+      result = hetu.loadBytecode(
+          bytes: bytes, moduleName: args.first, globallyImport: true);
+    } else {
+      final scriptInvocationArgs = <String>[];
+      if (args.length > 2) {
+        for (var i = 2; i < args.length; ++i) {
+          scriptInvocationArgs.add(args[i]);
+        }
+      }
+      result = hetu.loadBytecode(
+          bytes: bytes,
+          moduleName: args.first,
+          globallyImport: true,
+          invokeFunc: args[1],
+          positionalArgs: scriptInvocationArgs);
+    }
+  }
+  final prompt =
+      'Loaded module: [${args.first}] with execution result:\n[$result]';
+  if (enterRepl) {
+    enterReplMode(prompt: prompt);
+  } else {
+    print(prompt);
   }
 }
 
@@ -173,12 +228,12 @@ void format(List<String> args, {String? outPath, bool printResult = true}) {
   }
   if (outPath != null) {
     if (!path.isAbsolute(outPath)) {
-      final curPath = path.dirname(source.name);
+      final curPath = path.dirname(source.fullName);
       final name = path.basenameWithoutExtension(outPath);
       outPath = path.join(curPath, '$name.ht');
     }
   } else {
-    outPath = source.name;
+    outPath = source.fullName;
   }
   final outFile = File(outPath);
   outFile.writeAsStringSync(fmtResult);
@@ -205,5 +260,46 @@ void analyze(List<String> args) {
     }
   } catch (e) {
     print(e);
+  }
+}
+
+void compile(List<String> args, {String? outPath}) {
+  if (args.isEmpty) {
+    throw 'Error: Path argument is required for \'compile\' command.';
+  }
+  final source = sourceContext.getResource(args.first);
+  stdout.write('Compiling [${source.fullName}] ...');
+  String? moduleName;
+  if (args.length > 1) {
+    moduleName = args[1];
+  }
+
+  final parser = HTParser(context: sourceContext);
+  final module = parser.parseToModule(source, moduleName: moduleName);
+  if (parser.errors!.isNotEmpty) {
+    for (final err in parser.errors!) {
+      print(err);
+    }
+    throw 'Syntactic error(s) occurred while parsing.';
+  } else {
+    final compileConfig = CompilerConfig(compileWithLineInfo: false);
+    final compiler = HTCompiler(config: compileConfig);
+    final bytes = compiler.compile(module);
+    final curPath = path.dirname(source.fullName);
+    late String outName;
+    if (outPath != null) {
+      if (!path.isAbsolute(outPath)) {
+        final name = path.basename(outPath);
+        outName = path.join(curPath, name);
+      } else {
+        outName = outPath;
+      }
+    } else {
+      outName = path.join(
+          curPath, path.basenameWithoutExtension(source.fullName) + '.out');
+    }
+    final outFile = File(outName);
+    outFile.writeAsBytesSync(bytes);
+    stdout.writeln(' done!');
   }
 }

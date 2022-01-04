@@ -346,16 +346,16 @@ class LspAnalysisServer {
 
     // TODO: 这里应该是根据插件的配置中的选项而判断代码文件类型
     final source = HTSource(content,
-        name: filename,
+        fullName: filename,
         type: ext == HTResource.hetuScript
             ? ResourceType.hetuScript
             : ResourceType.hetuModule);
     contextManager.addResource(filename, source);
 
-    logger.log('source added: [${source.name}]\n${source.content}');
+    logger.log('source added: [${source.fullName}]\n${source.content}');
     logger.log('pathsToAnalyze:\n${analysisManager.pathsToAnalyze}');
 
-    doAnalyze(source.name);
+    doAnalyze(source.fullName);
     // _afterOverlayChanged(path, plugin.AddContentOverlay(content));
   }
 

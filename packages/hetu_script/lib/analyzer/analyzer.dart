@@ -21,6 +21,8 @@ import 'analysis_error.dart';
 // import 'type_checker.dart';
 import '../grammar/semantic.dart';
 // import '../ast/visitor/recursive_ast_visitor.dart';
+import '../binding/external_class.dart';
+import '../binding/external_function.dart';
 
 class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     implements AbstractAstVisitor<void> {
@@ -55,7 +57,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   late HTSource _curSource;
   @override
-  String get fileName => _curSource.name;
+  String get fileName => _curSource.fullName;
 
   ResourceType get sourceType => _curSource.type;
 
@@ -81,6 +83,23 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       : global = HTNamespace(id: Semantic.global),
         sourceContext = sourceContext ?? HTOverlayContext() {
     _curNamespace = global;
+  }
+
+  @override
+  void init({
+    List<HTSource> preincludes = const [],
+    Map<String, Function> externalFunctions = const {},
+    Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
+    List<HTExternalClass> externalClasses = const [],
+  }) {
+    super.init(
+      externalFunctions: externalFunctions,
+      externalFunctionTypedef: externalFunctionTypedef,
+      externalClasses: externalClasses,
+    );
+    for (final file in preincludes) {
+      evalSource(file, globallyImport: true);
+    }
   }
 
   /// Analyzer should never throw.
@@ -120,7 +139,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       results[moduleAnalysisResult.fullName] = moduleAnalysisResult;
       errors.addAll(_curErrors);
     }
-    final result = results[source.name]!;
+    final result = results[source.fullName]!;
     if (globallyImport) {
       global.import(result.namespace);
     }

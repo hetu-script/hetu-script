@@ -15,5 +15,5 @@ void main() {
   final bytes = hetu.compileSource(source,
       moduleName: appName, config: CompilerConfig(compileWithLineInfo: false));
 
-  hetu.loadBytecode(bytes, appName, invokeFunc: 'main');
+  hetu.loadBytecode(bytes: bytes, moduleName: appName, invokeFunc: 'main');
 }

@@ -23,7 +23,7 @@ class ImportInfo {
 class HTSourceParseResult {
   final HTSource source;
 
-  String get fullName => source.name;
+  String get fullName => source.fullName;
 
   ResourceType get type => source.type;
 

@@ -33,10 +33,8 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
 
   @override
   void addResource(String fullName, HTSource resource) {
-    final normalized = getAbsolutePath(key: fullName, dirName: root);
-    resource.name = normalized;
-    _cached[normalized] = resource;
-    included.add(normalized);
+    _cached[resource.fullName] = resource;
+    included.add(resource.fullName);
     // return source;
   }
 

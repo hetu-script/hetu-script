@@ -66,7 +66,8 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
     for (final key in includedKeys) {
       final content = await rootBundle.loadString(key);
       final ext = path.extension(key);
-      final source = HTSource(content, name: key, type: checkExtension(ext));
+      final source =
+          HTSource(content, fullName: key, type: checkExtension(ext));
       addResource(key, source);
     }
   }
@@ -88,7 +89,6 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
 
   @override
   void addResource(String fullName, HTSource resource) {
-    resource.name = fullName;
     _cached[fullName] = resource;
   }
 

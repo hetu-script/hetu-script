@@ -43,23 +43,16 @@ mixin GotoInfo {
 }
 
 abstract class CompilerConfig {
-  factory CompilerConfig({bool compileWithLineInfo, bool doStaticAnalyze}) =
-      CompilerConfigImpl;
+  factory CompilerConfig({bool compileWithLineInfo}) = CompilerConfigImpl;
 
   bool get compileWithLineInfo;
-
-  bool get doStaticAnalyze;
 }
 
 class CompilerConfigImpl implements CompilerConfig {
   @override
   final bool compileWithLineInfo;
 
-  @override
-  final bool doStaticAnalyze;
-
-  const CompilerConfigImpl(
-      {this.compileWithLineInfo = true, this.doStaticAnalyze = true});
+  const CompilerConfigImpl({this.compileWithLineInfo = true});
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {

@@ -11,8 +11,11 @@ import '../resource/resource.dart';
 class HTSource {
   static const _anonymousScriptNameLengthLimit = 18;
 
-  late String name;
-  String get basename => path.basename(name);
+  String get basename => path.basename(_fullName);
+
+  late final String _fullName;
+
+  String get fullName => _fullName;
 
   ResourceType type;
 
@@ -28,12 +31,12 @@ class HTSource {
 
   HTSource(
     String content, {
-    String? name,
+    String? fullName,
     this.type = ResourceType.hetuModule,
   })  : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
-    if (name != null) {
-      this.name = name;
+    if (fullName != null) {
+      _fullName = fullName;
     } else {
       final crc32b = Crc32b.compute(content);
       final nameBuilder = StringBuffer();
@@ -45,7 +48,7 @@ class HTSource {
       if (firstLine.length > _anonymousScriptNameLengthLimit) {
         nameBuilder.write('...');
       }
-      this.name = nameBuilder.toString();
+      _fullName = nameBuilder.toString();
     }
   }
 }

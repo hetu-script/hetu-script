@@ -23,7 +23,6 @@ import '../shared/stringify.dart';
 import '../shared/jsonify.dart';
 import '../shared/uid.dart' as util;
 
-part 'preinclude/preinclude_modules.dart';
 part 'preinclude/preinclude_functions.dart';
 part 'preinclude/class_binding.dart';
 part 'preinclude/instance_binding.dart';
@@ -39,9 +38,6 @@ class InterpreterConfig
   final bool compileWithLineInfo;
 
   @override
-  final bool doStaticAnalyze;
-
-  @override
   final bool showDartStackTrace;
 
   @override
@@ -50,14 +46,16 @@ class InterpreterConfig
   @override
   final ErrorHanldeApproach errorHanldeApproach;
 
+  final bool doStaticAnalyze;
+
   final bool allowHotReload;
 
   const InterpreterConfig(
       {this.compileWithLineInfo = true,
-      this.doStaticAnalyze = true,
       this.showDartStackTrace = false,
       this.hetuStackTraceDisplayCountLimit = 3,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
+      this.doStaticAnalyze = true,
       this.allowHotReload = true});
 }
 
@@ -85,7 +83,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   @mustCallSuper
   void init({
-    List<HTSource> preincludes = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
@@ -108,14 +105,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTFutureClass());
       // bindExternalClass(HTConsoleClass());
 
-      // load classes and functions in core library.
-      for (final file in preincludeModules) {
-        evalSource(file, globallyImport: true);
-      }
-
-      for (final file in preincludes) {
-        evalSource(file, globallyImport: true);
-      }
       for (final key in externalFunctions.keys) {
         bindExternalFunction(key, externalFunctions[key]!);
       }
@@ -151,7 +140,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    final source = HTSource(content, name: fileName, type: type);
+    final source = HTSource(content, fullName: fileName, type: type);
     final result = evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,

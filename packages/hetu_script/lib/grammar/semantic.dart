@@ -28,13 +28,11 @@ abstract class Semantic {
   static const newLine = '\n';
 
   static const analysisResult = r'analysis_result';
-  static const anonymousLibrary = r'anonymous_library';
   static const anonymousScript = r'anonymous_script';
   static const anonymousClass = r'$anonymous_class';
   static const anonymousNamespace = r'_$anonymous_namespace';
   static const anonymousFunction = r'_$anonymous_function';
   static const anonymousBlock = r'_$anonymous_block';
-  static const anonymousStruct = r'_$anonymous_struct';
   static const name = r'name';
   static const increment = r'_$increment';
   static const collection = r'_$collection';

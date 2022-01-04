@@ -85,7 +85,7 @@ class HTParser extends HTAbstractParser {
     errors = <HTError>[];
     final nodes = <AstNode>[];
     _currentSource = source;
-    _currrentFileName = source?.name;
+    _currrentFileName = source?.fullName;
     setTokens(tokens);
     while (curTok.type != Semantic.endOfFile) {
       late ParseStyle parseStyle;
@@ -133,9 +133,8 @@ class HTParser extends HTAbstractParser {
     return nodes;
   }
 
-  HTSourceParseResult parseSource(HTSource source, {String? moduleName}) {
-    _currentModuleName = moduleName ?? source.name;
-    _currrentFileName = source.name;
+  HTSourceParseResult parseSource(HTSource source) {
+    _currrentFileName = source.fullName;
     _currentClass = null;
     _currentFunctionCategory = null;
     final nodes = parse(source.content, source: source);
@@ -149,7 +148,8 @@ class HTParser extends HTAbstractParser {
   /// Parse a string content and generate a library,
   /// will import other files.
   HTModuleParseResult parseToModule(HTSource source, {String? moduleName}) {
-    final result = parseSource(source, moduleName: moduleName);
+    _currentModuleName = moduleName ?? source.fullName;
+    final result = parseSource(source);
     final values = <String, HTSourceParseResult>{};
     final sources = <String, HTSourceParseResult>{};
 
@@ -171,7 +171,7 @@ class HTParser extends HTAbstractParser {
             importModule = _cachedParseResults[importFullName]!;
           } else {
             final source2 = sourceContext.getResource(importFullName);
-            importModule = parseSource(source2, moduleName: _currentModuleName);
+            importModule = parseSource(source2);
             _cachedParseResults[importFullName] = importModule;
           }
           if (importModule.type == ResourceType.hetuValue) {
@@ -182,7 +182,7 @@ class HTParser extends HTAbstractParser {
           }
         } catch (error) {
           final convertedError = HTError.sourceProviderError(decl.fromPath!,
-              filename: source.name,
+              filename: source.fullName,
               line: decl.line,
               column: decl.column,
               offset: decl.offset,

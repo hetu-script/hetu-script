@@ -95,7 +95,6 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
 
   @override
   void addResource(String fullName, HTSource resource) {
-    resource.name = fullName;
     _cached[fullName] = resource;
     included.add(fullName);
   }
@@ -117,7 +116,7 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
       final content = File(normalized).readAsStringSync();
       final ext = path.extension(normalized);
       final source =
-          HTSource(content, name: normalized, type: checkExtension(ext));
+          HTSource(content, fullName: normalized, type: checkExtension(ext));
       addResource(normalized, source);
       return source;
     }
