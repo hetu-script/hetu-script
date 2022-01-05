@@ -1,4 +1,4 @@
 external class Future {
 
-  fun then(func: (value) -> any)
+  fun then(func: (value) -> any) -> Future
 }

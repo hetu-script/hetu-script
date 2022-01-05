@@ -11,9 +11,9 @@ void main() {
   hetu.init(externalFunctions: {'fetch': fetch});
   hetu.eval(r'''
       external fun fetch
-      final future = fetch()
-      future.then((value) {
-        print('future completed!')
-      })
+      final future = fetch().then((value) {
+          print('future completed!')
+        })
+        .then((value) => print('Even more complete'))
   ''');
 }

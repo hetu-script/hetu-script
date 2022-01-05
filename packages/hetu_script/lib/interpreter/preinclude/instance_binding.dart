@@ -898,7 +898,7 @@ extension FutureBinding on Future {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          then((value) {
+          return then((value) {
             func.call(positionalArgs: [value]);
           });
         };
