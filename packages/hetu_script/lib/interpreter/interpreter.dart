@@ -4,7 +4,6 @@ import 'package:path/path.dart' as path;
 
 import '../binding/external_function.dart';
 import '../value/namespace/namespace.dart';
-import '../declaration/declaration.dart';
 import '../value/struct/named_struct.dart';
 import '../value/entity.dart';
 import '../value/class/class.dart';
@@ -139,6 +138,7 @@ class Hetu extends HTAbstractInterpreter {
   /// [_loopCount] in current stack frame.
   final _loops = <_LoopInfo>[];
 
+  /// inexpicit type conversion for zero or null values
   bool _isZero(dynamic condition) {
     if (_isStrictMode) {
       return condition == 0;
@@ -147,23 +147,21 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  /// inexpicit type conversion for truthy values
   bool _truthy(dynamic condition) {
-    if (_isStrictMode) {
+    if (_isStrictMode || condition is bool) {
       return condition;
+    } else if (condition == null ||
+        condition == 0 ||
+        condition == '' ||
+        condition == '0' ||
+        condition == 'false' ||
+        (condition is List && condition.isEmpty) ||
+        (condition is Map && condition.isEmpty) ||
+        (condition is HTStruct && condition.fields.isEmpty)) {
+      return false;
     } else {
-      if ((condition is bool && !condition) ||
-          condition == null ||
-          condition == 0 ||
-          condition == '' ||
-          condition == '0' ||
-          condition == 'false' ||
-          (condition is List && condition.isEmpty) ||
-          (condition is Map && condition.isEmpty) ||
-          (condition is HTStruct && condition.fields.isEmpty)) {
-        return false;
-      } else {
-        return true;
-      }
+      return true;
     }
   }
 
@@ -424,7 +422,7 @@ class Hetu extends HTAbstractInterpreter {
             isExported: decl.isExported, showList: decl.showList);
       } else {
         for (final id in decl.showList) {
-          HTDeclaration decl = importNamespace.declarations[id]!;
+          final decl = importNamespace.declarations[id]!;
           nsp.define(id, decl);
         }
       }
@@ -436,7 +434,7 @@ class Hetu extends HTAbstractInterpreter {
       } else {
         final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
         for (final id in decl.showList) {
-          HTDeclaration decl = importNamespace.declarations[id]!;
+          final decl = importNamespace.declarations[id]!;
           aliasNamespace.define(id, decl);
         }
         nsp.define(decl.alias!, aliasNamespace);
@@ -1070,16 +1068,8 @@ class Hetu extends HTAbstractInterpreter {
       if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
         // TODO: binary bytes import
         // final module = _cachedModules[];
-
-        String currentDir;
-        if (_fileName.startsWith(Semantic.anonymousScript)) {
-          currentDir = _sourceContext.root;
-        } else {
-          currentDir = path.dirname(_fileName);
-        }
-        final normalized =
-            _sourceContext.getAbsolutePath(key: fromPath, dirName: currentDir);
-        final value = _bytecodeModule.expressions[normalized];
+        final value = _bytecodeModule.expressions[fromPath];
+        assert(value != null);
         _namespace.define(alias!, HTVariable(alias, value: value));
       } else {
         final decl = ImportDeclaration(

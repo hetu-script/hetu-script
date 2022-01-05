@@ -22,6 +22,6 @@ void main() {
   hetu.eval(r'''
     import 'inner/values.jsonc' as json
 
-    print(json)
+    print(json.name)
   ''');
 }

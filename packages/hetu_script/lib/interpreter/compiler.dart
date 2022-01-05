@@ -1311,7 +1311,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     }
     if (stmt.fromPath != null) {
       bytesBuilder.addByte(1); // bool: hasFromPath
-      // use the normalized absolute name here instead of the key
+      // use the normalized absolute name here instead of relative path
       bytesBuilder.add(_identifierString(stmt.fullName!));
     } else {
       bytesBuilder.addByte(0); // bool: hasFromPath
