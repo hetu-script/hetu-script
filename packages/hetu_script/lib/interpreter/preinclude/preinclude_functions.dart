@@ -66,6 +66,27 @@ final Map<String, Function> preincludeFunctions = {
     final obj = object as HTStruct;
     return obj.owns(positionalArgs.first);
   },
+  'prototype.isEmpty': (HTEntity object,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final obj = object as HTStruct;
+    return obj.fields.isEmpty;
+  },
+  'prototype.isNotEmpty': (HTEntity object,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final obj = object as HTStruct;
+    return obj.fields.isNotEmpty;
+  },
+  'prototype.length': (HTEntity object,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final obj = object as HTStruct;
+    return obj.fields.length;
+  },
   'prototype.clone': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},

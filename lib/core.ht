@@ -23,6 +23,13 @@ struct prototype {
   /// Check if this struct has the key in its own fields or its prototypes' fields
   external fun contains(key: str) -> bool
 
+	external get isEmpty -> bool
+
+	external get isNotEmpty -> bool
+
+	external get length -> int
+
+  /// Create a new struct form deepcopying this struct
   external fun clone() // -> {}
 
   fun toJson() -> Map => jsonify(this)

@@ -159,7 +159,7 @@ class Hetu extends HTAbstractInterpreter {
           condition == 'false' ||
           (condition is List && condition.isEmpty) ||
           (condition is Map && condition.isEmpty) ||
-          (condition is HTStruct && condition.isEmpty)) {
+          (condition is HTStruct && condition.fields.isEmpty)) {
         return false;
       } else {
         return true;

@@ -311,7 +311,7 @@ external class List {
 
   fun toString() -> str
 
-  fun toJson() => jsonify(this)
+  fun toJson() -> Map
 
 	get isEmpty -> bool
 
@@ -323,11 +323,11 @@ external class List {
 
 	fun join(separator: str) -> str
 
-	get first
+	get first -> any
 
-	get last
+	get last -> any
 
-	get length
+	get length -> int
 
 	fun add(value)
 

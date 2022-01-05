@@ -6,14 +6,9 @@ bool isJsonDataType(dynamic object) {
       object is num ||
       object is bool ||
       object is String ||
-      object is HTStruct) {
-    return true;
-  } else if (object is Iterable) {
-    for (final value in object) {
-      if (!isJsonDataType(value)) {
-        return false;
-      }
-    }
+      object is HTStruct ||
+      object is Iterable ||
+      object is Map<String, dynamic>) {
     return true;
   } else {
     return false;
@@ -27,7 +22,7 @@ List<dynamic> jsonifyList(Iterable list) {
       output.add(jsonifyStruct(value));
     } else if (value is Iterable) {
       output.add(jsonifyList(value));
-    } else {
+    } else if (isJsonDataType(value)) {
       output.add(value);
     }
   }

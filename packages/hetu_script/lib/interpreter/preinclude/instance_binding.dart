@@ -502,6 +502,12 @@ extension ListBinding on List {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             stringify(this);
+      case 'toJson':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            jsonifyList(this);
       case 'isEmpty':
         return isEmpty;
       case 'isNotEmpty':
@@ -773,8 +779,8 @@ extension ListBinding on List {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs[0];
-          HTFunction? orElse = positionalArgs[1];
+          HTFunction func = positionalArgs.first;
+          HTFunction? orElse = namedArgs['orElse'];
           return firstWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, orElse: () {
@@ -786,8 +792,8 @@ extension ListBinding on List {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs[0];
-          HTFunction? orElse = positionalArgs[1];
+          HTFunction func = positionalArgs.first;
+          HTFunction? orElse = namedArgs['orElse'];
           return lastWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, orElse: () {
@@ -799,8 +805,8 @@ extension ListBinding on List {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs[0];
-          HTFunction? orElse = positionalArgs[1];
+          HTFunction func = positionalArgs.first;
+          HTFunction? orElse = namedArgs['orElse'];
           return singleWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, orElse: () {
