@@ -2,11 +2,18 @@
 .cache
 .DS_Store
 node_modules
-dovs
 **/dist/**
 
-.vscode
-.vs
+# Files and directories created by pub
+.dart_tool/
+.packages
+
+# Omit commiting pubspec.lock for library packages:
+# https://dart.dev/guides/libraries/private-files#pubspeclock
+pubspec.lock
+
+# Directory created by dartdoc
+doc/api/
 
 # local env files
 .env.local
@@ -21,6 +28,7 @@ pnpm-debug.log*
 # Editor directories and files
 .idea
 .vscode
+.vs
 *.suo
 *.ntvs*
 *.njsproj

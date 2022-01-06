@@ -16,7 +16,7 @@ import 'parse_result_compilation.dart';
 import 'abstract_parser.dart';
 import '../lexer/lexer.dart';
 
-/// How to parse a piece of code
+/// Determines how to parse a piece of code
 enum ParseStyle {
   /// Module source can only have declarations (variables, functions, classes, enums),
   /// import & export statement.
@@ -46,6 +46,7 @@ enum ParseStyle {
 class HTParser extends HTAbstractParser {
   static var anonymousFunctionIndex = 0;
 
+  // All import decl in this list must have non-null [fromPath]
   final _currentModuleImports = <ImportExportDecl>[];
 
   String? _currrentFileName;
@@ -82,6 +83,7 @@ class HTParser extends HTAbstractParser {
   /// Will use [style] when possible, then [source.sourceType]
   List<AstNode> parseToken(List<Token> tokens,
       {HTSource? source, ParseStyle? style, ParserConfig? config}) {
+    // create new list of errors here, old error list is still usable
     errors = <HTError>[];
     final nodes = <AstNode>[];
     _currentSource = source;
@@ -1822,40 +1824,13 @@ class HTParser extends HTAbstractParser {
         return _parseStructObj();
       case HTLexicon.kStruct:
         return _parseStructObj(hasKeyword: true);
-      // _leftValueLegality = false;
-      // final start = advance(1);
-      // var mapExpr = <AstNode, AstNode>{};
-      // while (curTok.type != HTLexicon.curlyRight) {
-      //   var keyExpr = _parseExpr();
-      //   match(HTLexicon.colon);
-      //   var valueExpr = _parseExpr();
-      //   mapExpr[keyExpr] = valueExpr;
-      //   if (curTok.type != HTLexicon.curlyRight) {
-      //     match(HTLexicon.comma);
-      //   }
-      // }
-      // final end = match(HTLexicon.curlyRight);
-      // return MapExpr(mapExpr,
-      //     source: _curSource,
-      //     line: start.line,
-      //     column: start.column,
-      //     offset: start.offset,
-      //     length: end.offset + end.length - start.offset);
       case HTLexicon.kFun:
         return _parseFunction(category: FunctionCategory.literal);
       case Semantic.identifier:
-        // literal function type
-        if (curTok.lexeme == HTLexicon.kFun) {
-          _leftValueLegality = false;
-          return _parseTypeExpr();
-        }
-        // TODO: literal interface type
-        else {
-          _leftValueLegality = true;
-          final id = advance(1);
-          // TODO: type arguments
-          return IdentifierExpr.fromToken(id, source: _currentSource);
-        }
+        _leftValueLegality = true;
+        final id = advance(1);
+        // TODO: type arguments
+        return IdentifierExpr.fromToken(id, source: _currentSource);
       default:
         final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
             filename: _currrentFileName,
@@ -2702,18 +2677,18 @@ class HTParser extends HTAbstractParser {
     final savedCurFuncType = _currentFunctionCategory;
     _currentFunctionCategory = category;
     late Token startTok;
+    String? externalTypedef;
     if (category != FunctionCategory.literal || hasKeyword) {
       // there are multiple keyword for function, so don't use match here.
       startTok = advance(1);
-    }
-    String? externalTypedef;
-    if (!isExternal &&
-        (isStatic ||
-            category == FunctionCategory.normal ||
-            category == FunctionCategory.literal)) {
-      if (expect([HTLexicon.bracketsLeft], consume: true)) {
-        externalTypedef = match(Semantic.identifier).lexeme;
-        match(HTLexicon.bracketsRight);
+      if (!isExternal &&
+          (isStatic ||
+              category == FunctionCategory.normal ||
+              category == FunctionCategory.literal)) {
+        if (expect([HTLexicon.bracketsLeft], consume: true)) {
+          externalTypedef = match(Semantic.identifier).lexeme;
+          match(HTLexicon.bracketsRight);
+        }
       }
     }
     Token? id;
@@ -2851,6 +2826,7 @@ class HTParser extends HTAbstractParser {
         errors?.add(err);
       }
     }
+
     TypeExpr? returnType;
     RedirectingConstructorCallExpr? referCtor;
     // the return value type declaration

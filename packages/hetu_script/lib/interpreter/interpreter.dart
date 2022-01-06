@@ -839,17 +839,13 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.namespaceDecl:
           final internalName = _readIdentifier();
-          // String? id;
-          // final hasId = _bytecodeModule.readBool();
-          // if (hasId) {
-          //   id = _readIdentifier();
-          // }
-          // String? classId;
-          // final hasClassId = _bytecodeModule.readBool();
-          // if (hasClassId) {
-          //   classId = _readIdentifier();
-          // }
-          final namespace = HTNamespace(id: internalName, closure: _namespace);
+          String? classId;
+          final hasClassId = _bytecodeModule.readBool();
+          if (hasClassId) {
+            classId = _readIdentifier();
+          }
+          final namespace = HTNamespace(
+              id: internalName, classId: classId, closure: _namespace);
           execute(namespace: namespace);
           _namespace.define(internalName, namespace);
           break;

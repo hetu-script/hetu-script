@@ -101,12 +101,10 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
   @override
   HTSource getResource(String key, {String? from}) {
     var normalized = key;
-    // if (!key.startsWith(HTResourceContext.hetuModulesPrefix)) {
     if (!key.startsWith(root)) {
       normalized = getAbsolutePath(
           key: key, dirName: from != null ? path.dirname(from) : root);
     }
-    // }
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
     }

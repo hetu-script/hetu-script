@@ -2,9 +2,8 @@ import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
-  const root = 'example/script';
   final sourceContext =
-      HTFileSystemResourceContext(root: root, expressionModuleExtensions: [
+      HTFileSystemResourceContext(expressionModuleExtensions: [
     HTResource.json,
     HTResource.jsonWithComments,
   ]);
@@ -12,8 +11,8 @@ void main() {
   hetu.init();
 
   hetu.eval(r'''
-    import 'inner/values.jsonc' as json
+    import 'https://random-data-api.com/api/internet_stuff/random_internet_stuff' as json
 
-    print(json.name)
+    print(json.username)
   ''');
 }

@@ -6,12 +6,12 @@ import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
   final sourceContext =
-      HTFileSystemResourceContext(root: '../lib/', expressionModuleExtensions: [
+      HTFileSystemResourceContext(root: 'lib/', expressionModuleExtensions: [
     HTResource.json,
     HTResource.jsonWithComments,
   ]);
 
-  final sourceFile = File('../lib/main.ht');
+  final sourceFile = File('lib/main.ht');
   final sourceContent = sourceFile.readAsStringSync();
   final source = HTSource(sourceContent);
 
@@ -44,7 +44,7 @@ final preincludeModule = [''');
 
     final content = output.toString();
     final file = File(
-        '../packages/hetu_script/lib/interpreter/preinclude/preinclude_module.dart');
+        'packages/hetu_script/lib/interpreter/preinclude/preinclude_module.dart');
     file.writeAsStringSync(content);
     stdout.writeln(' done!');
   }

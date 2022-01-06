@@ -1330,18 +1330,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.namespaceDecl);
     bytesBuilder.add(_identifierString(stmt.id.id));
-    // if (stmt.id != null) {
-    //   bytesBuilder.addByte(1); // bool: has id
-    //   bytesBuilder.add(_identifierString(stmt.id!.id));
-    // } else {
-    //   bytesBuilder.addByte(0); // bool: has class id
-    // }
-    // if (stmt.classId != null) {
-    //   bytesBuilder.addByte(1); // bool: has class id
-    //   bytesBuilder.add(_identifierString(stmt.classId!));
-    // } else {
-    //   bytesBuilder.addByte(0); // bool: has class id
-    // }
+    if (stmt.classId != null) {
+      bytesBuilder.addByte(1); // bool: has class id
+      bytesBuilder.add(_identifierString(stmt.classId!));
+    } else {
+      bytesBuilder.addByte(0); // bool: has class id
+    }
     final bytes = visitBlockStmt(stmt.definition);
     bytesBuilder.add(bytes);
     bytesBuilder.addByte(HTOpCode.endOfExec);

@@ -373,20 +373,49 @@ abstract class HTLexicon {
     assignIfNull,
   };
 
+  /// ','
   static const comma = ',';
+
+  /// ':'
   static const colon = ':';
+
+  /// ';'
   static const semicolon = ';';
+
+  /// "'"
   static const apostropheLeft = "'";
+
+  /// "'"
   static const apostropheRight = "'";
+
+  /// '"'
   static const quotationLeft = '"';
+
+  /// '"'
   static const quotationRight = '"';
+
+  /// '('
   static const parenthesesLeft = '(';
+
+  /// ')'
   static const parenthesesRight = ')';
+
+  /// '{'
   static const bracesLeft = '{';
+
+  /// '}'
   static const bracesRight = '}';
+
+  /// '['
   static const bracketsLeft = '[';
+
+  /// ']'
   static const bracketsRight = ']';
+
+  /// '<'
   static const chevronsLeft = '<';
+
+  /// '>'
   static const chevronsRight = '>';
 
   static const errorBytecode = 'Unrecognizable bytecode.';
