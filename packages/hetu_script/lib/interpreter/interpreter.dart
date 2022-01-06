@@ -893,6 +893,7 @@ class Hetu extends HTAbstractInterpreter {
             _bytecodeModule.ip = _loops.last.breakIp;
             _loops.removeLast();
             --_loopCount;
+            clearLocals();
           }
           break;
         case HTOpCode.doStmt:

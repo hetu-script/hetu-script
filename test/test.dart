@@ -4,9 +4,12 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-       if (2 > 1) {
 
-       }
+  var generatedIndexes = 0
+  while (generatedIndexes++ < 10) {
+    
+    print(generatedIndexes)
+  }
     ''');
 
   print(result);
