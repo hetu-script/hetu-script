@@ -698,6 +698,12 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  void clearLocals() {
+    _localValue = null;
+    _localSymbol = null;
+    _localTypeArgs = [];
+  }
+
   dynamic _execute() {
     var instruction = _bytecodeModule.read();
     while (instruction != HTOpCode.endOfCode) {
@@ -771,12 +777,11 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.endOfBlock:
           _namespace = _namespace.closure!;
+          clearLocals();
           break;
         // 语句结束
         case HTOpCode.endOfStmt:
-          _localValue = null;
-          _localSymbol = null;
-          _localTypeArgs = [];
+          clearLocals();
           break;
         case HTOpCode.endOfExec:
           return _localValue;
@@ -873,9 +878,7 @@ class Hetu extends HTAbstractInterpreter {
             final symbol = _readIdentifier();
             _namespace.delete(symbol);
           }
-          _localValue = null;
-          _localSymbol = null;
-          _localTypeArgs = [];
+          clearLocals();
           break;
         case HTOpCode.ifStmt:
           final thenBranchLength = _bytecodeModule.readUint16();
@@ -982,8 +985,8 @@ class Hetu extends HTAbstractInterpreter {
           final keyBytesLength = _bytecodeModule.readUint16();
           if (object == null) {
             if (isNullable) {
-              _localValue = null;
               _bytecodeModule.skip(keyBytesLength);
+              _localValue = null;
             } else {
               throw HTError.nullObject(
                   localSymbol ?? HTLexicon.kNull, Semantic.getter,
@@ -1002,8 +1005,8 @@ class Hetu extends HTAbstractInterpreter {
           final keyBytesLength = _bytecodeModule.readUint16();
           if (object == null) {
             if (isNullable) {
-              _localValue = null;
               _bytecodeModule.skip(keyBytesLength);
+              _localValue = null;
             } else {
               throw HTError.nullObject(
                   localSymbol ?? HTLexicon.kNull, Semantic.subGetter,
@@ -1468,8 +1471,8 @@ class Hetu extends HTAbstractInterpreter {
     final argsBytesLength = _bytecodeModule.readUint16();
     if (callee == null) {
       if (isNullable) {
-        _localValue = null;
         _bytecodeModule.skip(argsBytesLength);
+        _localValue = null;
         return;
       } else {
         throw HTError.nullObject(localSymbol ?? HTLexicon.kNull, Semantic.call,

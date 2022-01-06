@@ -243,24 +243,20 @@ void format(List<String> args, {String? outPath, bool printResult = true}) {
 }
 
 void analyze(List<String> args) {
-  try {
-    final analyzer = HTAnalyzer(sourceContext: sourceContext);
-    analyzer.init();
-    final result = analyzer.evalFile(args.first);
-    if (result != null) {
-      if (result.errors.isNotEmpty) {
-        print('Analyzer found ${result.errors.length} problems:');
-        for (final err in result.errors) {
-          print(err);
-        }
-      } else {
-        print('Analyzer found 0 problem.');
+  final analyzer = HTAnalyzer(sourceContext: sourceContext);
+  analyzer.init();
+  final result = analyzer.evalFile(args.first);
+  if (result != null) {
+    if (result.errors.isNotEmpty) {
+      print('Analyzer found ${result.errors.length} problems:');
+      for (final err in result.errors) {
+        print(err);
       }
     } else {
-      print('Unkown error occurred during analysis.');
+      print('Analyzer found 0 problem.');
     }
-  } catch (e) {
-    print(e);
+  } else {
+    print('Unkown error occurred during analysis.');
   }
 }
 
