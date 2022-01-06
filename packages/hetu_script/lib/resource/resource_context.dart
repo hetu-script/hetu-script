@@ -107,7 +107,7 @@ abstract class HTResourceContext<T> {
       if (fileName != null) {
         name = path.join(name, fileName);
       }
-      final normalized = Uri.parse(name).path;
+      final normalized = Uri.file(name).path;
       return normalized;
     }
   }
