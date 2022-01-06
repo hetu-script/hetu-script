@@ -55,12 +55,12 @@ class Hetu extends HTAbstractInterpreter {
 
   final _cachedModules = <String, HTBytecodeModule>{};
 
-  final HTAnalyzer _analyzer;
+  late final HTAnalyzer _analyzer;
 
   @override
   InterpreterConfig config;
 
-  HTResourceContext<HTSource> _sourceContext;
+  late HTResourceContext<HTSource> _sourceContext;
 
   @override
   HTResourceContext<HTSource> get sourceContext => _sourceContext;
@@ -169,10 +169,9 @@ class Hetu extends HTAbstractInterpreter {
   Hetu(
       {HTResourceContext<HTSource>? sourceContext,
       this.config = const InterpreterConfig()})
-      : global = HTNamespace(id: Semantic.global),
-        _analyzer =
-            HTAnalyzer(sourceContext: sourceContext ?? HTOverlayContext()),
-        _sourceContext = sourceContext ?? HTOverlayContext() {
+      : global = HTNamespace(id: Semantic.global) {
+    _sourceContext = sourceContext ?? HTOverlayContext();
+    _analyzer = HTAnalyzer(sourceContext: _sourceContext);
     _namespace = global;
   }
 
