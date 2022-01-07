@@ -776,7 +776,6 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.endOfBlock:
           _namespace = _namespace.closure!;
-          clearLocals();
           break;
         // 语句结束
         case HTOpCode.endOfStmt:

@@ -75,18 +75,18 @@ module.exports = {
   },
   plugins: [
     [
-      '@vuepress/docsearch',
+      '@vuepress/plugin-search',
       {
-        apiKey: '29e16def0c1d45632b141951e56e7189',
-        indexName: 'hetu',
         locales: {
           '/': {
-            placeholder: 'Search Documentation',
+            placeholder: 'Search',
           },
           '/zh/': {
-            placeholder: '搜索文档',
+            placeholder: '搜索',
           },
         },
+        // allow searching the `tags` frontmatter
+        getExtraFields: (page) => page.frontmatter.tags ?? [],
       },
     ],
     [

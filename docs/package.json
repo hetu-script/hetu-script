@@ -27,6 +27,7 @@
     "@vuepress/plugin-back-to-top": "^2.0.0-beta.32",
     "@vuepress/plugin-docsearch": "^2.0.0-beta.32",
     "@vuepress/plugin-google-analytics": "^2.0.0-beta.32",
+    "@vuepress/plugin-search": "^2.0.0-beta.32",
     "@vuepress/shared": "^2.0.0-beta.32",
     "css-loader": "^6.5.1",
     "esbuild-loader": "^2.18.0",
