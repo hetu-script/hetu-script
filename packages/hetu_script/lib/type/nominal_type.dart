@@ -57,24 +57,22 @@ class HTNominalType extends HTType {
   }
 
   @override
-  bool isA(dynamic other) {
-    if (other is HTType) {
-      if (other == HTType.any) {
-        return true;
-      } else if (this == other) {
-        return true;
-      } else {
-        var curSuperType = klass.superType;
-        while (curSuperType != null) {
-          var curSuperClass = (curSuperType as HTNominalType).klass;
-          if (curSuperType.isA(other)) {
-            return true;
-          }
-          curSuperType = curSuperClass.superType;
-        }
-        return false;
-      }
+  bool isA(HTType? other) {
+    if (other == null) {
+      return true;
+    } else if (other == HTType.any) {
+      return true;
+    } else if (this == other) {
+      return true;
     } else {
+      var curSuperType = klass.superType;
+      while (curSuperType != null) {
+        var curSuperClass = (curSuperType as HTNominalType).klass;
+        if (curSuperType.isA(other)) {
+          return true;
+        }
+        curSuperType = curSuperClass.superType;
+      }
       return false;
     }
   }

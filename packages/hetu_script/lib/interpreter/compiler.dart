@@ -354,7 +354,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     if (literal.length > constStringLengthLimit) {
       final bytesBuilder = BytesBuilder();
       bytesBuilder.addByte(HTOpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.string);
+      bytesBuilder.addByte(HTValueTypeCode.longString);
       bytesBuilder.add(_utf8String(literal));
       return bytesBuilder.toBytes();
     } else {
@@ -544,13 +544,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
-    final bytesBuilder = BytesBuilder();
-    // TODO: generic type params
-    return bytesBuilder.toBytes();
-  }
-
-  @override
   Uint8List visitFunctionTypeExpr(FuncTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
     if (expr.isLocal) {
@@ -566,6 +559,48 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     }
     final returnType = visitTypeExpr(expr.returnType);
     bytesBuilder.add(returnType);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitFieldTypeExpr(FieldTypeExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    final idBytes = _identifierString(expr.id);
+    bytesBuilder.add(idBytes);
+    final typeBytes = visitTypeExpr(expr.fieldType);
+    bytesBuilder.add(typeBytes);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitStructuralTypeExpr(StructuralTypeExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    if (expr.isLocal) {
+      bytesBuilder.addByte(HTOpCode.local);
+      bytesBuilder.addByte(HTValueTypeCode.type);
+    }
+    bytesBuilder.addByte(TypeType.structural.index); // enum: type type
+    bytesBuilder
+        .add(_uint16(expr.fieldTypes.length)); // uint8: length of param types
+    for (final field in expr.fieldTypes) {
+      final bytes = visitFieldTypeExpr(field);
+      bytesBuilder.add(bytes);
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    final idBytes = visitIdentifierExpr(expr.id);
+    bytesBuilder.add(idBytes);
+    if (expr.superType != null) {
+      bytesBuilder.addByte(1); // bool: hasSuperType
+      final superTypeBytes = visitTypeExpr(expr.superType!);
+      bytesBuilder.add(superTypeBytes);
+    } else {
+      bytesBuilder.addByte(0); // bool: hasSuperType
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1710,18 +1745,18 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
     final staticFields = <StructObjField>[];
     final fields = <StructObjField>[];
-    // TODO: deal with comments
     for (final node in stmt.definition) {
       AstNode initializer;
-      if (node is VarDecl) {
-        initializer = node.initializer ?? NullExpr();
-        final field = StructObjField(key: node.id.id, value: initializer);
-        node.isStatic ? staticFields.add(field) : fields.add(field);
-      } else if (node is FuncDecl) {
+      if (node is FuncDecl) {
         FuncDecl initializer = node;
         final field =
             StructObjField(key: initializer.internalName, value: initializer);
         node.isStatic ? staticFields.add(field) : fields.add(field);
+      } else {
+        final varDecl = node as VarDecl;
+        initializer = varDecl.initializer ?? NullExpr();
+        final field = StructObjField(key: varDecl.id.id, value: initializer);
+        varDecl.isStatic ? staticFields.add(field) : fields.add(field);
       }
       // Other node type is ignored.
     }

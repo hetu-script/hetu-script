@@ -8,10 +8,6 @@ node_modules
 .dart_tool/
 .packages
 
-# Omit commiting pubspec.lock for library packages:
-# https://dart.dev/guides/libraries/private-files#pubspeclock
-pubspec.lock
-
 # Directory created by dartdoc
 doc/api/
 

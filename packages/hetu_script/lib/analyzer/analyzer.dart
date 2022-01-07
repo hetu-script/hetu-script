@@ -221,6 +221,16 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
+  void visitFieldTypeExpr(FieldTypeExpr expr) {
+    expr.subAccept(this);
+  }
+
+  @override
+  void visitStructuralTypeExpr(StructuralTypeExpr expr) {
+    expr.subAccept(this);
+  }
+
+  @override
   void visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
     expr.subAccept(this);
   }

@@ -89,7 +89,7 @@ class BytecodeReader {
   // }
 
   /// Fetch a utf8 string from the bytes list
-  String readUtf8String() {
+  String readLongString() {
     final length = readUint16();
     final start = ip;
     ip += length;

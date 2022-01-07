@@ -106,8 +106,10 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
   }
 
   @override
-  bool isA(dynamic other) {
-    if (other == HTType.any) {
+  bool isA(HTType? other) {
+    if (other == null) {
+      return true;
+    } else if (other == HTType.any) {
       return true;
     } else if (other == HTType.function) {
       return true;

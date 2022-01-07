@@ -468,6 +468,65 @@ class FuncTypeExpr extends TypeExpr {
             length: length);
 }
 
+class FieldTypeExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitFieldTypeExpr(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    fieldType.accept(visitor);
+  }
+
+  final String id;
+
+  final TypeExpr fieldType;
+
+  FieldTypeExpr(this.id, this.fieldType,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.fieldTypeExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class StructuralTypeExpr extends TypeExpr {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitStructuralTypeExpr(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    for (final field in fieldTypes) {
+      field.accept(visitor);
+    }
+  }
+
+  final List<FieldTypeExpr> fieldTypes;
+
+  StructuralTypeExpr(
+      {this.fieldTypes = const [],
+      bool isLocal = true,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(
+            isLocal: isLocal,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class GenericTypeParameterExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>

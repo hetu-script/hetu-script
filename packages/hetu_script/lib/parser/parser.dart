@@ -1916,11 +1916,33 @@ class HTParser extends HTAbstractParser {
           offset: startTok.offset,
           length: curTok.offset - startTok.offset);
     }
-    // TODO: interface type
-    // else if (curTok.type == HTLexicon.curlyLeft) {
-    //   return StructuralTypeExpr();
-    // }
-    // nominal type
+    // structural type (struct)
+    else if (curTok.type == HTLexicon.bracesLeft) {
+      final startTok = advance(1);
+      final fieldTypes = <FieldTypeExpr>[];
+      while (curTok.type != HTLexicon.bracesRight &&
+          curTok.type != Semantic.endOfFile) {
+        late Token idTok;
+        if (curTok.type == Semantic.stringLiteral) {
+          idTok = advance(1);
+        } else {
+          idTok = match(Semantic.identifier);
+        }
+        final typeExpr = _parseTypeExpr();
+        fieldTypes.add(FieldTypeExpr(idTok.literal, typeExpr));
+        expect([HTLexicon.comma], consume: true);
+      }
+      match(HTLexicon.bracesRight);
+      return StructuralTypeExpr(
+        fieldTypes: fieldTypes,
+        isLocal: isLocal,
+        source: _currentSource,
+        line: startTok.line,
+        column: startTok.column,
+        length: curTok.offset - startTok.offset,
+      );
+    }
+    // nominal type (class)
     else {
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
@@ -1957,6 +1979,7 @@ class HTParser extends HTAbstractParser {
         line: idTok.line,
         column: idTok.column,
         offset: idTok.offset,
+        length: curTok.offset - idTok.offset,
       );
     }
   }

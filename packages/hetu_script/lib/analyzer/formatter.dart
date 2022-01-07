@@ -264,6 +264,34 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitFieldTypeExpr(FieldTypeExpr expr) {
+    final output = StringBuffer();
+    output.write(expr.id);
+    final typeString = visitTypeExpr(expr.fieldType);
+    output.write('${HTLexicon.colon} $typeString');
+    return output.toString();
+  }
+
+  @override
+  String visitStructuralTypeExpr(StructuralTypeExpr expr) {
+    final output = StringBuffer();
+    output.writeln(HTLexicon.bracesLeft);
+    ++_curIndentCount;
+    for (var i = 0; i < expr.fieldTypes.length; ++i) {
+      final field = expr.fieldTypes[i];
+      final fieldString = visitFieldTypeExpr(field);
+      output.write(curIndent);
+      output.write(fieldString);
+      if (i < expr.fieldTypes.length - 1) {
+        output.writeln(HTLexicon.comma);
+      }
+    }
+    --_curIndentCount;
+    output.writeln(HTLexicon.bracesRight);
+    return output.toString();
+  }
+
+  @override
   String visitGenericTypeParamExpr(GenericTypeParameterExpr expr) {
     return expr.id.id;
   }

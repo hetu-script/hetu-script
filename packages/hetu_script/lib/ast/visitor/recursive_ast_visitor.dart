@@ -58,11 +58,6 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
     node.subAccept(this);
   }
 
-  // @override
-  // T? visitMapExpr(MapExpr node) {
-  //   node.subAccept(this);
-  // }
-
   @override
   T? visitGroupExpr(GroupExpr node) {
     node.subAccept(this);
@@ -80,6 +75,16 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
 
   @override
   T? visitFunctionTypeExpr(FuncTypeExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
+  T? visitFieldTypeExpr(FieldTypeExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
+  T? visitStructuralTypeExpr(StructuralTypeExpr node) {
     node.subAccept(this);
   }
 

@@ -4,9 +4,13 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-    if (2 > 1) {
-      'hi'
+    var a: {} = {
+      name: 'jimmy',
+      greeting: () {
+        print('hi! I\'m ${this.name}')
+      }
     }
+    print(typeof a)
     ''');
 
   print(result);

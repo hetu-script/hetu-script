@@ -36,6 +36,10 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitFunctionTypeExpr(FuncTypeExpr node) {}
 
+  T? visitFieldTypeExpr(FieldTypeExpr node) {}
+
+  T? visitStructuralTypeExpr(StructuralTypeExpr node) {}
+
   T? visitGenericTypeParamExpr(GenericTypeParameterExpr node) {}
 
   T? visitUnaryPrefixExpr(UnaryPrefixExpr node) {}

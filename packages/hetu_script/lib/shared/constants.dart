@@ -74,7 +74,7 @@ abstract class HTValueTypeCode {
   static const constInt = 2;
   static const constFloat = 3;
   static const constString = 4;
-  static const string = 5;
+  static const longString = 5;
   static const stringInterpolation = 6;
   static const identifier = 7;
   static const subValue = 8;

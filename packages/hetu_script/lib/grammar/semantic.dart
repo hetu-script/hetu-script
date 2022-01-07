@@ -12,7 +12,7 @@ enum FunctionCategory {
 enum TypeType {
   normal, // HTTypeid
   function, // HTFunctionTypeid
-  struct,
+  structural,
   union,
 }
 
@@ -88,11 +88,13 @@ abstract class Semantic {
   static const spreadExpr = 'spread_expression';
 
   static const typeExpr = 'type_expression';
-  static const genericTypeParamExpr = 'generic_type_parameter_expression';
   static const literalTypeExpr = 'literal_type_expression';
   static const unionTypeExpr = 'union_type_expression';
   static const paramTypeExpr = 'parameter_type_expression';
   static const funcTypeExpr = 'function_type_expression';
+  static const fieldTypeExpr = 'field_type_expression';
+  static const structuralTypeExpr = 'structural_type_expression';
+  static const genericTypeParamExpr = 'generic_type_parameter_expression';
   static const groupExpr = 'group_expression';
   static const blockExpr = 'block_expression';
   static const symbolExpr = 'symbol_expression';
