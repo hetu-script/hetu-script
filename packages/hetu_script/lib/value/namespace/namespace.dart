@@ -38,6 +38,8 @@ class HTNamespace extends HTDeclaration with HTEntity {
 
   final exports = <String>[];
 
+  bool get willExportAll => exports.isEmpty;
+
   HTNamespace(
       {String? id,
       String? classId,
@@ -136,17 +138,12 @@ class HTNamespace extends HTDeclaration with HTEntity {
       {bool clone = false,
       bool isExported = false,
       List<String> showList = const []}) {
-    if (isExported && showList.isNotEmpty) {
-      for (final id in showList) {
-        declareExport(id);
-      }
-    }
     for (final key in other.declarations.keys) {
       var decl = other.declarations[key]!;
       if (decl.isPrivate) {
         continue;
       }
-      if (other.exports.isNotEmpty) {
+      if (!other.willExportAll) {
         if (!other.exports.contains(decl.id)) {
           continue;
         }
@@ -155,9 +152,6 @@ class HTNamespace extends HTDeclaration with HTEntity {
         decl = decl.clone();
       }
       define(key, decl, error: false);
-      if (isExported && showList.isEmpty) {
-        declareExport(decl.id!);
-      }
     }
   }
 

@@ -1308,7 +1308,7 @@ class DeleteSubStmt extends AstNode {
 
 class ImportExportDecl extends AstNode {
   @override
-  String get type => isExported ? Semantic.exportStmt : Semantic.importStmt;
+  String get type => isExport ? Semantic.exportStmt : Semantic.importStmt;
 
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
@@ -1339,14 +1339,14 @@ class ImportExportDecl extends AstNode {
   @override
   final bool hasEndOfStmtMark;
 
-  final bool isExported;
+  final bool isExport;
 
   ImportExportDecl(
       {this.fromPath,
       this.showList = const [],
       this.alias,
       this.hasEndOfStmtMark = false,
-      this.isExported = false,
+      this.isExport = false,
       HTSource? source,
       int line = 0,
       int column = 0,

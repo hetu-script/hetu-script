@@ -27,6 +27,7 @@ fun main {
 Use export in a source to specify the symbols you wish to let other source access when they import from you.
 
 - If there's no path provided, exported the symbols from the source contains this statement.
+
 - You can give a path after the export keyword, to export other source's content.
 
 ```javascript
@@ -39,7 +40,7 @@ export 'game.ht'
 export { hello } from 'hello.ht'
 ```
 
-If you have at least one export statement, nomatter it's a export + 'path' form or export { namelist } form, you wont' inexplicitly export any of the members.
+If you have at least one export statement that is not export from other sources (export 'path'), you wont' inexplicitly export the members of this namespace.
 
 Otherwise, every top level symbol will be exported by default.
 
@@ -51,9 +52,13 @@ Hetu script file have 3 way to interpret, controlled by the **ResourceType type*
 
 - When **ResourceType** is not provided in interpreter's 'eval' method, interpreter will evaluate the string provided as **ResourceType.hetuLiteralCode**. Other than the code has no namespace. It is the same to **ResourceType.hetuScript**.
 
--For **ResourceType.hetuModule**, the source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+- For **ResourceType.hetuModule**, the source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
 
 When using evalFile method on the interpreter, the source type is inferred from the extension of the file name: '\*.hts' is **ResourceType.hetuScript**, and '\*.ht' is **ResourceType.hetuModule**.
+
+## Recursive import
+
+For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the meantime, B import from A) is allowed. However, for **ResourceType.hetuScript**, recursive import would cause stack overflow errors. **You have to manually avoid recursive import in '\*.hts' files.**
 
 ## Import a JSON file
 

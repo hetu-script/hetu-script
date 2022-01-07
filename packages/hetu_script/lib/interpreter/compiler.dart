@@ -1304,7 +1304,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitImportExportDecl(ImportExportDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.importExportDecl);
-    bytesBuilder.addByte(stmt.isExported ? 1 : 0); // bool: isExported
+    bytesBuilder.addByte(stmt.isExport ? 1 : 0); // bool: isExport
     bytesBuilder.addByte(stmt.showList.length);
     for (final id in stmt.showList) {
       bytesBuilder.add(_identifierString(id.id));

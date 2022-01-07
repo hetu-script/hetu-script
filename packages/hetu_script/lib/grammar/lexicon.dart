@@ -139,6 +139,7 @@ abstract class HTLexicon {
   static const object = 'object';
   static const prototype = 'prototype';
   static const library = 'library';
+  static const asterisk = '*';
   static const kImport = 'import';
   static const kExport = 'export';
   static const kFrom = 'from';

@@ -2387,6 +2387,8 @@ class HTParser extends HTAbstractParser {
 
   ImportExportDecl _parseExportStmt() {
     final keyword = advance(1); // not a keyword so don't use match
+    late final ImportExportDecl stmt;
+    // export some of the symbols from this or other source
     if (curTok.type == HTLexicon.bracesLeft) {
       advance(1);
       final showList = <IdentifierExpr>[];
@@ -2421,11 +2423,11 @@ class HTParser extends HTAbstractParser {
         }
         hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
       }
-      final stmt = ImportExportDecl(
+      stmt = ImportExportDecl(
           fromPath: fromPath,
           showList: showList,
           hasEndOfStmtMark: hasEndOfStmtMark,
-          isExported: true,
+          isExport: true,
           source: _currentSource,
           line: keyword.line,
           column: keyword.column,
@@ -2434,22 +2436,23 @@ class HTParser extends HTAbstractParser {
       if (fromPath != null) {
         _currentModuleImports.add(stmt);
       }
-      return stmt;
-    } else {
+    }
+    // export all of the symbols from other source
+    else {
       final key = match(Semantic.stringLiteral);
       final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
-      final stmt = ImportExportDecl(
+      stmt = ImportExportDecl(
           fromPath: key.literal,
           hasEndOfStmtMark: hasEndOfStmtMark,
-          isExported: true,
+          isExport: true,
           source: _currentSource,
           line: keyword.line,
           column: keyword.column,
           offset: keyword.offset,
           length: curTok.offset - keyword.offset);
       _currentModuleImports.add(stmt);
-      return stmt;
     }
+    return stmt;
   }
 
   AstNode _parseDeleteStmt() {

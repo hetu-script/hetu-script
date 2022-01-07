@@ -538,7 +538,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitImportExportDecl(ImportExportDecl stmt) {
     final output = StringBuffer();
-    if (!stmt.isExported) {
+    if (!stmt.isExport) {
       output.write('${HTLexicon.kImport} ');
       if (stmt.showList.isNotEmpty) {
         output.write('${HTLexicon.bracesLeft} ');
