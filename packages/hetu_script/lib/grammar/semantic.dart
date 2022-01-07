@@ -33,7 +33,6 @@ abstract class Semantic {
   static const anonymousNamespace = r'_$anonymous_namespace';
   static const anonymousFunction = r'_$anonymous_function';
   static const anonymousBlock = r'_$anonymous_block';
-  static const name = r'name';
   static const increment = r'_$increment';
   static const collection = r'_$collection';
   static const instance = r'_$instance';
@@ -46,6 +45,7 @@ abstract class Semantic {
   static const subSetter = r'_$subscript_setter_';
 
   static const endOfFile = 'end_of_file';
+  static const name = 'name';
   static const empty = 'empty';
   static const emptyLine = 'empty_line';
   static const comment = 'comment';

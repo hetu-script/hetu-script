@@ -203,6 +203,7 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  /// Catch errors throwed by other code, and wrap them with detailed informations.
   @override
   void handleError(Object error, {Object? externalStackTrace}) {
     final sb = StringBuffer();

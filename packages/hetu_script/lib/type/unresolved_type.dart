@@ -8,8 +8,8 @@ import 'nominal_type.dart';
 import 'type.dart';
 
 /// A supposed type generated from ast,
-/// will resolved to a concrete type form as
-/// nominal(class), function, etc...
+/// the interpreter will later trying to resolved it
+/// to a concrete nominal(class) type.
 class HTUnresolvedType extends HTType {
   @override
   bool get isResolved => false;

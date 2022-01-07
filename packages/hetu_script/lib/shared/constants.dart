@@ -67,7 +67,7 @@ abstract class HTOpCode {
   static const lineInfo = 205;
 }
 
-/// Following a local OpCode, tells the value type, used by compiler.
+/// Following [HTOpCode.local], tells the value type, used by compiler.
 abstract class HTValueTypeCode {
   static const nullValue = 0;
   static const boolean = 1;

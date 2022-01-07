@@ -4,10 +4,12 @@ import 'package:path/path.dart' as path;
 
 // import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../shared/crc32b.dart';
+import '../shared/uid.dart' as util;
 import 'line_info.dart';
 import '../resource/resource.dart';
 
+/// A piece of code, with extra informations like:
+/// [fullName], [type], [lineInfo], etc.
 class HTSource {
   static const _anonymousScriptNameLengthLimit = 18;
 
@@ -38,7 +40,7 @@ class HTSource {
     if (fullName != null) {
       _fullName = fullName;
     } else {
-      final crc32b = Crc32b.compute(content);
+      final crc32b = util.crc32b(content);
       final nameBuilder = StringBuffer();
       nameBuilder.write('${Semantic.anonymousScript}_$crc32b: ');
       var firstLine =
@@ -53,6 +55,8 @@ class HTSource {
   }
 }
 
+/// A value, however it can be imported like a source.
+/// Typically a json file, which is a [HTStruct] value in Hetu Script.
 class HTValueSource {
   final String id;
   final String moduleName;

@@ -81,6 +81,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
 
   HTNamespace get global;
 
+  /// Initialize the interpreter,
+  /// prepare it with preincluded modules,
+  /// bind it with external functions and classes, etc.
   @mustCallSuper
   void init({
     Map<String, Function> externalFunctions = const {},
@@ -119,6 +122,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     }
   }
 
+  /// Evaluate a [HTSource].
   T? evalSource(HTSource source,
       {String? moduleName,
       bool globallyImport = false,
@@ -129,6 +133,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false});
 
+  /// Evaluate a code in the form of literal string
   T? eval(String content,
       {String? fileName,
       String? moduleName,
@@ -152,7 +157,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     return result;
   }
 
-  /// 解析文件
+  /// Evaluate a file, [key] is a possibly relative path,
+  /// content of the file will be provided by [sourceContext]
   T? evalFile(String key,
       {String? moduleName,
       bool globallyImport = false,
@@ -182,7 +188,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     }
   }
 
-  /// 调用一个全局函数或者类、对象上的函数
+  /// Invoke a function by its name.
+  /// The function is normally defined on global namespace.
   dynamic invoke(String funcName,
       {String? moduleName,
       List<dynamic> positionalArgs = const [],
@@ -190,6 +197,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {}
 
+  /// Wrap any dart value to a Hetu object.
   HTEntity encapsulate(dynamic object) {
     if (object is HTEntity) {
       return object;
@@ -268,6 +276,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   final _externFuncs = <String, Function>{};
   final _externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
 
+  /// Wether the interpreter has a certain external class binding.
   bool containsExternalClass(String id) => _externClasses.containsKey(id);
 
   /// Register a external class into scrfipt.
