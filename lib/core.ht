@@ -3,7 +3,6 @@ external fun print(... args: any)
 
 external fun stringify(obj: any)
 
-// TODO: obj's type here should be '{}' (empty interface)
 external fun jsonify(obj)
 
 abstract class object {
@@ -11,7 +10,7 @@ abstract class object {
 }
 
 struct prototype {
-  external static fun fromJson(data) // -> {}
+  external static fun fromJson(data) -> {}
 
   external get keys -> List
 
@@ -30,7 +29,7 @@ struct prototype {
 	external get length -> int
 
   /// Create a new struct form deepcopying this struct
-  external fun clone() // -> {}
+  external fun clone() -> {}
 
   fun toJson() -> Map => jsonify(this)
 
