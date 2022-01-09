@@ -152,14 +152,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   // Uint8List _float64(double value) =>
   //     Uint8List(4)..buffer.asByteData().setFloat64(0, value, Endian.big);
 
-  // Uint8List _string(String value) {
-  //   final bytesBuilder = BytesBuilder();
-  //   final stringData = utf8.encoder.convert(value);
-  //   bytesBuilder.addByte(stringData.length);
-  //   bytesBuilder.add(stringData);
-  //   return bytesBuilder.toBytes();
-  // }
-
   Uint8List _lineInfo(int line, int column) {
     final bytesBuilder = BytesBuilder();
     if (config.compileWithLineInfo) {
@@ -191,11 +183,11 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List _identifierString(String value) {
     final bytesBuilder = BytesBuilder();
     if (value.length > constStringLengthLimit) {
-      bytesBuilder.addByte(1); // bool: isLocal
+      bytesBuilder.addByte(1); // bool: is long String
       final bytes = _utf8String(value);
       bytesBuilder.add(bytes);
     } else {
-      bytesBuilder.addByte(0); // bool: isLocal
+      bytesBuilder.addByte(0); // bool: is long String
       final index = _curConstTable.addString(value);
       bytesBuilder.add(_uint16(index));
     }
@@ -1624,8 +1616,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitEnumDecl(EnumDecl stmt) {
     final bytesBuilder = BytesBuilder();
 
-    // Script enum are compiled to a class with static members
-    // and a private constructor.
+    // Compile Enum to a class with static members and a private constructor.
     //
     // For example:
     // ```dart

@@ -1,7 +1,3 @@
----
-title: Advanced topics
----
-
 # Advanced topics
 
 ## Private members
@@ -122,15 +118,21 @@ function getObject() {
 }
 ```
 
-If there's no ASI, we would never know wether the language use want to return the object after it, or they just want to start a new line after the return keyword.
+If there's no ASI, we would never know if you want to return the object after it, or you just want to start a new line after the return keyword.
 
 Similar things also happens when you started a line with brackets, and the interpreter will not knowing if you want to get the subscript value out of the object in the previous line.
 
-In Hetu script, the ASI is slightly different from Javascript's approach (which almost will always add the semicolon).
+In Hetu script, the ASI is slightly different from Javascript's approach (which almost will always add the semicolon at the end of a line).
 
-We would add a 'end of statement mark' after a line, only if the next line starts with one of these tokens '{', '(', '[', '++', '--', **AND** this line is not an **UNFINISHED** line that ends with one of these tokens: '!', '\*', '/', '%', '+', '-', '<', '<=', '>', '>=', '=', '!=', '??', '&&', '||', '=', '+=', '-=', '\*=', '/=', '??=', '.', '(', '{', '[', ',', ':', '->', '=>'.
+We would only add a 'end of statement mark' after a line, if the next line starts with one of these tokens:
 
-And Hetu will always add a 'end of statement mark' after return if there's a new line.
+'{', '(', '[', '++', '--'
+
+**AND** this line is not an **UNFINISHED** line, which ends with one of these tokens:
+
+'!', '\*', '/', '%', '+', '-', '<', '<=', '>', '>=', '=', '!=', '??', '&&', '||', '=', '+=', '-=', '\*=', '/=', '??=', '.', '(', '{', '[', ',', ':', '->', '=>'.
+
+Besides, Hetu will also add a 'end of statement mark' after return if there's a new line immediately after it.
 
 So if you would like to return the value, remember to make the left bracket same line with the return.
 

@@ -689,9 +689,9 @@ class Hetu extends HTAbstractInterpreter {
     return result;
   }
 
-  String _readString() {
-    final isLocal = _bytecodeModule.readBool();
-    if (isLocal) {
+  String _readIdentifier() {
+    final isLongString = _bytecodeModule.readBool();
+    if (isLongString) {
       return _bytecodeModule.readLongString();
     } else {
       final index = _bytecodeModule.readUint16();
@@ -734,7 +734,7 @@ class Hetu extends HTAbstractInterpreter {
           _bytecodeModule.ip = _anchor + distance;
           break;
         case HTOpCode.file:
-          _fileName = _readString();
+          _fileName = _readIdentifier();
           final resourceTypeIndex = _bytecodeModule.read();
           _currentFileResourceType =
               ResourceType.values.elementAt(resourceTypeIndex);
@@ -765,7 +765,7 @@ class Hetu extends HTAbstractInterpreter {
           _namespace = _loops.last.namespace;
           break;
         case HTOpCode.assertion:
-          final text = _readString();
+          final text = _readIdentifier();
           final value = execute();
           if (!value) {
             throw HTError.assertionFailed(text);
@@ -773,7 +773,7 @@ class Hetu extends HTAbstractInterpreter {
           break;
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
-          final id = _readString();
+          final id = _readIdentifier();
           _namespace = HTNamespace(id: id, closure: _namespace);
           break;
         case HTOpCode.endOfBlock:
@@ -843,11 +843,11 @@ class Hetu extends HTAbstractInterpreter {
           _handleConstDecl();
           break;
         case HTOpCode.namespaceDecl:
-          final internalName = _readString();
+          final internalName = _readIdentifier();
           String? classId;
           final hasClassId = _bytecodeModule.readBool();
           if (hasClassId) {
-            classId = _readString();
+            classId = _readIdentifier();
           }
           final namespace = HTNamespace(
               id: internalName, classId: classId, closure: _namespace);
@@ -859,7 +859,7 @@ class Hetu extends HTAbstractInterpreter {
           if (deletingType == DeletingTypeCode.member) {
             final object = execute();
             if (object is HTStruct) {
-              final symbol = _readString();
+              final symbol = _readIdentifier();
               object.delete(symbol);
             } else {
               throw HTError.delete(
@@ -875,7 +875,7 @@ class Hetu extends HTAbstractInterpreter {
                   filename: _fileName, line: _line, column: _column);
             }
           } else {
-            final symbol = _readString();
+            final symbol = _readIdentifier();
             _namespace.delete(symbol);
           }
           clearLocals();
@@ -1047,7 +1047,7 @@ class Hetu extends HTAbstractInterpreter {
     final showList = <String>[];
     final showListLength = _bytecodeModule.read();
     for (var i = 0; i < showListLength; ++i) {
-      final id = _readString();
+      final id = _readIdentifier();
       showList.add(id);
       if (isExported) {
         _namespace.declareExport(id);
@@ -1056,12 +1056,12 @@ class Hetu extends HTAbstractInterpreter {
     final hasFromPath = _bytecodeModule.readBool();
     String? fromPath;
     if (hasFromPath) {
-      fromPath = _readString();
+      fromPath = _readIdentifier();
     }
     String? alias;
     final hasAlias = _bytecodeModule.readBool();
     if (hasAlias) {
-      alias = _readString();
+      alias = _readIdentifier();
     }
     if (fromPath != null) {
       final ext = path.extension(fromPath);
@@ -1122,7 +1122,7 @@ class Hetu extends HTAbstractInterpreter {
         _localValue = literal;
         break;
       case HTValueTypeCode.identifier:
-        final symbol = _localSymbol = _readString();
+        final symbol = _localSymbol = _readIdentifier();
         final isLocal = _bytecodeModule.readBool();
         if (isLocal) {
           _localValue = _namespace.memberGet(symbol, recursive: true);
@@ -1163,12 +1163,12 @@ class Hetu extends HTAbstractInterpreter {
         String? id;
         final hasId = _bytecodeModule.readBool();
         if (hasId) {
-          id = _readString();
+          id = _readIdentifier();
         }
         HTStruct? prototype;
         final hasPrototypeId = _bytecodeModule.readBool();
         if (hasPrototypeId) {
-          final prototypeId = _readString();
+          final prototypeId = _readIdentifier();
           prototype = _namespace.memberGet(prototypeId,
               from: _fileName, recursive: true);
         }
@@ -1178,7 +1178,7 @@ class Hetu extends HTAbstractInterpreter {
           final fieldType = _bytecodeModule.read();
           if (fieldType == StructObjFieldTypeCode.normal ||
               fieldType == StructObjFieldTypeCode.objectIdentifier) {
-            final key = _readString();
+            final key = _readIdentifier();
             final value = execute();
             struct.fields[key] = value;
           } else if (fieldType == StructObjFieldTypeCode.spread) {
@@ -1204,11 +1204,11 @@ class Hetu extends HTAbstractInterpreter {
       //   _curValue = map;
       //   break;
       case HTValueTypeCode.function:
-        final internalName = _readString();
+        final internalName = _readIdentifier();
         final hasExternalTypedef = _bytecodeModule.readBool();
         String? externalTypedef;
         if (hasExternalTypedef) {
-          externalTypedef = _readString();
+          externalTypedef = _readIdentifier();
         }
         final hasParamDecls = _bytecodeModule.readBool();
         final isVariadic = _bytecodeModule.readBool();
@@ -1494,7 +1494,7 @@ class Hetu extends HTAbstractInterpreter {
     final namedArgs = <String, dynamic>{};
     final namedArgsLength = _bytecodeModule.read();
     for (var i = 0; i < namedArgsLength; ++i) {
-      final name = _readString();
+      final name = _readIdentifier();
       final arg = execute();
       // final arg = execute(moveRegIndex: true);
       namedArgs[name] = arg;
@@ -1564,7 +1564,7 @@ class Hetu extends HTAbstractInterpreter {
     final typeType = TypeType.values.elementAt(index);
     switch (typeType) {
       case TypeType.normal:
-        final typeName = _readString();
+        final typeName = _readIdentifier();
         final typeArgsLength = _bytecodeModule.read();
         final typeArgs = <HTUnresolvedType>[];
         for (var i = 0; i < typeArgsLength; ++i) {
@@ -1584,7 +1584,7 @@ class Hetu extends HTAbstractInterpreter {
           final isNamed = _bytecodeModule.read() == 0 ? false : true;
           String? paramId;
           if (isNamed) {
-            paramId = _readString();
+            paramId = _readIdentifier();
           }
           final decl = HTParameterType(declType,
               isOptional: isOptional, isVariadic: isVariadic, id: paramId);
@@ -1597,7 +1597,7 @@ class Hetu extends HTAbstractInterpreter {
         final fieldsLength = _bytecodeModule.readUint16();
         final fieldTypes = <String, HTType>{};
         for (var i = 0; i < fieldsLength; ++i) {
-          final id = _readString();
+          final id = _readIdentifier();
           final typeExpr = _handleTypeExpr();
           fieldTypes[id] = typeExpr;
         }
@@ -1608,11 +1608,11 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleTypeAliasDecl() {
-    final id = _readString();
+    final id = _readIdentifier();
     String? classId;
     final hasClassId = _bytecodeModule.readBool();
     if (hasClassId) {
-      classId = _readString();
+      classId = _readIdentifier();
     }
     final value = _handleTypeExpr();
     final decl =
@@ -1621,11 +1621,11 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleConstDecl() {
-    final id = _readString();
+    final id = _readIdentifier();
     String? classId;
     final hasClassId = _bytecodeModule.readBool();
     if (hasClassId) {
-      classId = _readString();
+      classId = _readIdentifier();
     }
     final isStatic = _bytecodeModule.readBool();
     final typeIndex = _bytecodeModule.read();
@@ -1638,11 +1638,11 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleVarDecl() {
-    final id = _readString();
+    final id = _readIdentifier();
     String? classId;
     final hasClassId = _bytecodeModule.readBool();
     if (hasClassId) {
-      classId = _readString();
+      classId = _readIdentifier();
     }
     final isField = _bytecodeModule.readBool();
     final isExternal = _bytecodeModule.readBool();
@@ -1710,7 +1710,7 @@ class Hetu extends HTAbstractInterpreter {
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
     final paramDecls = <String, HTParameter>{};
     for (var i = 0; i < paramDeclsLength; ++i) {
-      final id = _readString();
+      final id = _readIdentifier();
       final isOptional = _bytecodeModule.readBool();
       final isVariadic = _bytecodeModule.readBool();
       final isNamed = _bytecodeModule.readBool();
@@ -1747,21 +1747,21 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleFuncDecl() {
-    final internalName = _readString();
+    final internalName = _readIdentifier();
     String? id;
     final hasId = _bytecodeModule.readBool();
     if (hasId) {
-      id = _readString();
+      id = _readIdentifier();
     }
     String? classId;
     final hasClassId = _bytecodeModule.readBool();
     if (hasClassId) {
-      classId = _readString();
+      classId = _readIdentifier();
     }
     String? externalTypeId;
     final hasExternalTypedef = _bytecodeModule.readBool();
     if (hasExternalTypedef) {
-      externalTypeId = _readString();
+      externalTypeId = _readIdentifier();
     }
     final category = FunctionCategory.values[_bytecodeModule.read()];
     final isField = _bytecodeModule.readBool();
@@ -1780,11 +1780,11 @@ class Hetu extends HTAbstractInterpreter {
     if (category == FunctionCategory.constructor) {
       final hasRedirectingCtor = _bytecodeModule.readBool();
       if (hasRedirectingCtor) {
-        final calleeId = _readString();
+        final calleeId = _readIdentifier();
         final hasCtorName = _bytecodeModule.readBool();
         String? ctorName;
         if (hasCtorName) {
-          ctorName = _readString();
+          ctorName = _readIdentifier();
         }
         final positionalArgIpsLength = _bytecodeModule.read();
         for (var i = 0; i < positionalArgIpsLength; ++i) {
@@ -1794,7 +1794,7 @@ class Hetu extends HTAbstractInterpreter {
         }
         final namedArgsLength = _bytecodeModule.read();
         for (var i = 0; i < namedArgsLength; ++i) {
-          final argName = _readString();
+          final argName = _readIdentifier();
           final argLength = _bytecodeModule.readUint16();
           namedArgIps[argName] = _bytecodeModule.ip;
           _bytecodeModule.skip(argLength);
@@ -1844,7 +1844,7 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleClassDecl() {
-    final id = _readString();
+    final id = _readIdentifier();
     final isExternal = _bytecodeModule.readBool();
     final isAbstract = _bytecodeModule.readBool();
     final hasUserDefinedConstructor = _bytecodeModule.readBool();
@@ -1886,17 +1886,17 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   void _handleExternalEnumDecl() {
-    final id = _readString();
+    final id = _readIdentifier();
     final enumClass = HTExternalEnum(id, this);
     _namespace.define(id, enumClass);
   }
 
   void _handleStructDecl() {
-    final id = _readString();
+    final id = _readIdentifier();
     String? prototypeId;
     final hasPrototypeId = _bytecodeModule.readBool();
     if (hasPrototypeId) {
-      prototypeId = _readString();
+      prototypeId = _readIdentifier();
     }
     final lateInitialize = _bytecodeModule.readBool();
     final staticFieldsLength = _bytecodeModule.readUint16();

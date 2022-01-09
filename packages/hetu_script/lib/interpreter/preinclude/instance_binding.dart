@@ -496,6 +496,15 @@ extension StringBinding on String {
 extension ListBinding on List {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'random':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          assert(isNotEmpty);
+          final index = math.Random().nextInt(length);
+          return elementAt(index);
+        };
       case 'toString':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

@@ -1,7 +1,3 @@
----
-title: Module import & export
----
-
 # Module
 
 Hetu script codes are a batch of **HTSource** files. If a source contains import statement, the parser will try to fetch another source content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.

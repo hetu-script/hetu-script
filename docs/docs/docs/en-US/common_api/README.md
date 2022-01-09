@@ -1,14 +1,12 @@
----
-title: Common API
----
-
 # Common API
 
-## Interpreter
+## API for dart code
+
+### Interpreter
 
 The most common class you will be using is the Interpreter, it is named as 'Hetu' in this library.
 
-### init()
+#### init()
 
 This method is a convenient way to load some shared modules together before you can use them.
 
@@ -26,7 +24,7 @@ void init({
 })
 ```
 
-### eval()
+#### eval()
 
 To parse, analyze, compile and load a Hetu source from a String literal.
 
@@ -52,17 +50,17 @@ dynamic eval(String content,
 - **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.
 - **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 
-### compile(), loadBytecode()
+#### compile(), loadBytecode()
 
 These methods is useful if you wish for more efficient runtime of the script. You can compile a source into bytecode. And run it at another time so that the interpreter will skip the parsing, analyzing and compiling process.
 
 If you would like to compile and store the result as physical files. You can check [command line tool](../command_line_tool/readme.md#compile) in the hetu_script_dev_tools package.
 
-## Invoke a method on Hetu object
+### Invoke a method on Hetu object
 
 Besides the **invoke** method on interpreter, you can also use the same named methods on **HTClass** and **HTInstance** and **call** on **HTFunction**, if you have those object passed from script into the Dart.
 
-## ResourceContext
+### ResourceContext
 
 If you installed 'hetu_script_dev_tools' or 'hetu_script_flutter', they will handle the source context for you so you won't need to add the source file into the context manually. However if you cannot use these packages(for example if your code are on web browser), you can use methods below on **HTOverlayContext** to manage sources.
 
@@ -73,3 +71,59 @@ void removeResource(String fullName)
 
 void updateResource(String fullName, HTSource resource)
 ```
+
+## API for script code
+
+### Preincluded values
+
+Most of the preincluded values' apis are named based on Dart SDK's Classes:
+[num], [int], [double], [bool], [String], [List] and [Map]
+
+There are also some original methods, like List.random, to get a random item out of a List.
+
+### Struct
+
+````typescript
+
+struct prototype {
+  /// Create a struct from a dart Json data
+  /// Usage:
+  /// ```
+  /// var obj = prototype.fromJson(jsonDataFromDart)
+  /// ```
+  external static fun fromJson(data) -> {}
+
+  /// Get the List of the keys of this struct
+  external get keys -> List
+
+  /// Get the List of the values of this struct
+  /// The values are copied,
+  /// you cannot modify the struct in this way
+  external get values -> List
+
+  /// Check if this struct has a key in its own fields.
+  external fun owns(key: str) -> bool
+
+  /// Check if this struct has a key
+  /// in its own fields or its prototypes' fields.
+  external fun contains(key: str) -> bool
+
+  /// Check if this struct is empty.
+	external get isEmpty -> bool
+
+  /// Check if this struct is not empty.
+	external get isNotEmpty -> bool
+
+  /// Get the number of the members of this struct.
+  /// Will not include the members of its prototypes.
+	external get length -> int
+
+  /// Create a new struct form deepcopying this struct
+  external fun clone() -> {}
+
+  /// Create dart Json data from this struct
+  fun toJson() -> Map => jsonify(this)
+
+  fun toString() -> str => stringify(this)
+}
+````

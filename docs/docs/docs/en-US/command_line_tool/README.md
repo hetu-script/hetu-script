@@ -1,7 +1,3 @@
----
-title: Command line tool
----
-
 # Hetu Script command line tool
 
 A command line REPL tool for testing.

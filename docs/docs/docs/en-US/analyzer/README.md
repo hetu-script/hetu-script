@@ -1,7 +1,3 @@
----
-title: Analyzer
----
-
 # Analyzer
 
 Analyzer is a standalone utility class for analyze a Hetu source.

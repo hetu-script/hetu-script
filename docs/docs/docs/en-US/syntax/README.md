@@ -1,7 +1,3 @@
----
-title: Language
----
-
 # Syntax of Hetu Script Language
 
 Hetu's grammar is close to most modern languages, with a few key characteristics:

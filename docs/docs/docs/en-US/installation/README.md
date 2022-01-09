@@ -1,7 +1,3 @@
----
-title: Installation
----
-
 # Installation
 
 Input this command in your terminal under the project folder to add the package to your project.

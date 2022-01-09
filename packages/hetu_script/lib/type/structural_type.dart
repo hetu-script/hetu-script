@@ -13,7 +13,7 @@ class HTStructuralType extends HTType with HTEntity {
   String toString() {
     var typeString = StringBuffer();
     if (fieldTypes.isEmpty) {
-      typeString.writeln('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+      typeString.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
     } else {
       typeString.writeln(HTLexicon.bracesLeft);
       for (var i = 0; i < fieldTypes.length; ++i) {

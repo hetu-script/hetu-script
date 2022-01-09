@@ -1,10 +1,7 @@
-/// The apis here are named based on Dart SDK's
+/// Most of the apis here are named based on Dart SDK's Classes:
 /// [num], [int], [double], [bool], [String], [List] and [Map]
 
-// external class ExternalObject {
-
-//   fun toString() -> str
-// }
+/// There are some original methods, like List.random, etc...
 
 class num {
   
@@ -308,6 +305,8 @@ external class str {
 }
 
 external class List {
+
+  get random -> any
 
   fun toString() -> str
 

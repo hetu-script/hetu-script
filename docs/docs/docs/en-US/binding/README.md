@@ -1,7 +1,3 @@
----
-title: Communicating with Dart
----
-
 # Communicating with Dart
 
 There are three ways to communicate with Dart: Primitive value, Json, Binding. They have pros and cons respectively. You can choose the style best suits your needs.
