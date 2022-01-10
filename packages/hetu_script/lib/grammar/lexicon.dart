@@ -66,22 +66,12 @@ abstract class HTLexicon {
   static const number = 'num';
   static const integer = 'int';
   static const float = 'float';
-  static const str = 'str';
-  static const list = 'List';
-  static const map = 'Map';
+  static const string = 'str';
 
-  static const double = 'double';
-  static const string = 'String';
-
-  static const json = 'json';
-  static const keys = 'keys';
   static const values = 'values';
-  static const first = 'first';
-  static const last = 'last';
-  static const length = 'length';
-  static const isEmpty = 'isEmpty';
-  static const isNotEmpty = 'isNotEmpty';
-  static const elementAt = 'elementAt';
+  static const iterator = 'iterator';
+  static const moveNext = 'moveNext';
+  static const current = 'current';
   static const parse = 'parse';
   static const tostring = 'toString';
 

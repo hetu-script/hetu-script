@@ -31,7 +31,7 @@ String stringify(dynamic object) {
       output.write(structString);
       output.write(HTLexicon.bracesRight);
     }
-  } else if (object is List) {
+  } else if (object is Iterable) {
     final listString = stringifyList(object);
     output.write(listString);
   } else if (object is Map) {
@@ -54,7 +54,7 @@ String stringify(dynamic object) {
   return output.toString();
 }
 
-String stringifyList(List list) {
+String stringifyList(Iterable list) {
   if (list.isEmpty) {
     return '${HTLexicon.bracketsLeft}${HTLexicon.bracketsRight}';
   }
@@ -62,7 +62,7 @@ String stringifyList(List list) {
   output.writeln(HTLexicon.bracketsLeft);
   ++_curIndentCount;
   for (var i = 0; i < list.length; ++i) {
-    final item = list[i];
+    final item = list.elementAt(i);
     output.write(_curIndent());
     final itemString = stringify(item);
     output.write(itemString);

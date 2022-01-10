@@ -1621,7 +1621,9 @@ class HTParser extends HTAbstractParser {
           var positionalArgs = <AstNode>[];
           var namedArgs = <String, AstNode>{};
           _handleCallArguments(positionalArgs, namedArgs);
-          expr = CallExpr(expr, positionalArgs, namedArgs,
+          expr = CallExpr(expr,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
               isNullable: true,
               source: _currentSource,
               line: expr.line,
@@ -1640,7 +1642,9 @@ class HTParser extends HTAbstractParser {
           var positionalArgs = <AstNode>[];
           var namedArgs = <String, AstNode>{};
           _handleCallArguments(positionalArgs, namedArgs);
-          expr = CallExpr(expr, positionalArgs, namedArgs,
+          expr = CallExpr(expr,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
               isNullable: isNullable,
               source: _currentSource,
               line: expr.line,

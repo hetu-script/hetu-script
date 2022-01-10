@@ -33,8 +33,9 @@ abstract class Semantic {
   static const anonymousNamespace = r'_$anonymous_namespace';
   static const anonymousFunction = r'_$anonymous_function';
   static const anonymousBlock = r'_$anonymous_block';
-  static const increment = r'_$increment';
-  static const collection = r'_$collection';
+  static const iterator = r'_$iterator';
+  static const iteratorMoveResult = r'_$iterator_move_result';
+  static const current = r'_$current';
   static const instance = r'_$instance';
   static const prototype = r'$prototype';
   static const call = r'_$call_';

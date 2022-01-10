@@ -4,14 +4,14 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-      fun getMeaning => 42
-      struct Person {
-        construct {
-          this.meaning = getMeaning()
-        }
+      final obj = {
+        name: 'Jay',
+        age: 17,
       }
-      var p = Person()
-      print(p)
+
+      for (final i of obj) {
+        print(i)
+      }
     ''');
 
   print(result);

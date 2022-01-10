@@ -41,14 +41,14 @@ final Map<String, Function> preincludeFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.keys.toList();
+    return obj.fields.keys;
   },
   'prototype.values': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.values.toList();
+    return obj.fields.values;
   },
   // TODO: all keys and all values for struct (includes prototype's keys and values)
   'prototype.contains': (HTEntity object,

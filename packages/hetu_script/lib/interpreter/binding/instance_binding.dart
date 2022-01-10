@@ -510,54 +510,235 @@ extension StringBinding on String {
   }
 }
 
-/// Binding object for dart list.
-extension ListBinding on List {
+/// Binding object for dart [Iterator]
+extension IteratorBinding on Iterator {
+  dynamic htFetch(String varName) {
+    switch (varName) {
+      case 'moveNext':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          return moveNext();
+        };
+      case 'current':
+        return current;
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
+/// Binding object for dart [Iterable].
+extension IterableBinding on Iterable {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'random':
         assert(isNotEmpty);
         final index = math.Random().nextInt(length);
         return elementAt(index);
-      case 'toString':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            stringify(this);
       case 'toJson':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             jsonifyList(this);
-      case 'isEmpty':
-        return isEmpty;
-      case 'isNotEmpty':
-        return isNotEmpty;
+      case 'iterator':
+        return iterator;
+      case 'map':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return map((element) {
+            return func.call(positionalArgs: [element]);
+          });
+        };
+      case 'where':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return where((element) {
+            return func.call(positionalArgs: [element]);
+          });
+        };
+      case 'expand':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return expand((element) {
+            return func.call(positionalArgs: [element]) as Iterable;
+          });
+        };
       case 'contains':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             contains(positionalArgs.first);
-      case 'elementAt':
+      case 'reduce':
         return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            elementAt(positionalArgs.first);
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return reduce((value, element) {
+            return func.call(positionalArgs: [value, element]);
+          });
+        };
+      case 'fold':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final initialValue = positionalArgs[0];
+          HTFunction func = positionalArgs[1];
+          return fold(initialValue, (value, element) {
+            return func.call(positionalArgs: [value, element]);
+          });
+        };
+      case 'every':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return every((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
       case 'join':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             join(positionalArgs.first);
+      case 'any':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return any((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
+      case 'toList':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toList();
+      case 'length':
+        return length;
+      case 'isEmpty':
+        return isEmpty;
+      case 'isNotEmpty':
+        return isNotEmpty;
+      case 'take':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            take(positionalArgs.first);
+      case 'takeWhile':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return takeWhile((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
+      case 'skip':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            skip(positionalArgs.first);
+      case 'skipWhile':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          return skipWhile((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
       case 'first':
         return first;
       case 'last':
         return last;
-      case 'length':
-        return length;
+      case 'single':
+        return single;
+      case 'firstWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          HTFunction? orElse = namedArgs['orElse'];
+          return firstWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, orElse: () {
+            return orElse != null ? orElse() : null;
+          });
+        };
+      case 'lastWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          HTFunction? orElse = namedArgs['orElse'];
+          return lastWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, orElse: () {
+            return orElse != null ? orElse() : null;
+          });
+        };
+      case 'singleWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          HTFunction? orElse = namedArgs['orElse'];
+          return singleWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, orElse: () {
+            return orElse != null ? orElse() : null;
+          });
+        };
+      case 'elementAt':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            elementAt(positionalArgs.first);
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            stringify(this);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
+/// Binding object for dart list.
+extension ListBinding on List {
+  dynamic htFetch(String varName) {
+    switch (varName) {
       case 'add':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -725,118 +906,9 @@ extension ListBinding on List {
                 List<HTType> typeArgs = const []}) =>
             replaceRange(
                 positionalArgs[0], positionalArgs[1], positionalArgs[2]);
-      case 'map':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          return map((element) {
-            return func.call(positionalArgs: [element]);
-          });
-        };
-      case 'where':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          return where((element) {
-            return func.call(positionalArgs: [element]);
-          });
-        };
-      case 'expand':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          return expand((element) {
-            return func.call(positionalArgs: [element]) as Iterable;
-          });
-        };
-      case 'reduce':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          return reduce((value, element) {
-            return func.call(positionalArgs: [value, element]);
-          });
-        };
-      case 'fold':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          final initialValue = positionalArgs[0];
-          HTFunction func = positionalArgs[1];
-          return fold(initialValue, (value, element) {
-            return func.call(positionalArgs: [value, element]);
-          });
-        };
-      case 'every':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          return every((element) {
-            return func.call(positionalArgs: [element]) as bool;
-          });
-        };
-      case 'any':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          return any((element) {
-            return func.call(positionalArgs: [element]) as bool;
-          });
-        };
-      case 'firstWhere':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          HTFunction? orElse = namedArgs['orElse'];
-          return firstWhere((element) {
-            return func.call(positionalArgs: [element]) as bool;
-          }, orElse: () {
-            return orElse != null ? orElse() : null;
-          });
-        };
-      case 'lastWhere':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          HTFunction? orElse = namedArgs['orElse'];
-          return lastWhere((element) {
-            return func.call(positionalArgs: [element]) as bool;
-          }, orElse: () {
-            return orElse != null ? orElse() : null;
-          });
-        };
-      case 'singleWhere':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
-          HTFunction? orElse = namedArgs['orElse'];
-          return singleWhere((element) {
-            return func.call(positionalArgs: [element]) as bool;
-          }, orElse: () {
-            return orElse != null ? orElse() : null;
-          });
-        };
       default:
-        throw HTError.undefined(varName);
+        // ignore: unnecessary_cast
+        return (this as Iterable).htFetch(varName);
     }
   }
 
@@ -871,9 +943,9 @@ extension MapBinding on Map {
       case 'isNotEmpty':
         return isNotEmpty;
       case 'keys':
-        return keys.toList();
+        return keys;
       case 'values':
-        return values.toList();
+        return values;
       case 'containsKey':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -910,7 +982,7 @@ extension MapBinding on Map {
   }
 }
 
-/// Binding object for dart future.
+/// Binding object for dart [Future].
 extension FutureBinding on Future {
   dynamic htFetch(String varName) {
     switch (varName) {

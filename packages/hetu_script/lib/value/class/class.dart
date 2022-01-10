@@ -134,53 +134,51 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   }
 
   /// Get a value of a static member from this [HTClass].
-  /// If [internal] is true, will get the hetu definition even if it's a external class.
   @override
-  dynamic memberGet(String varName,
-      {String? from, bool error = true, bool internal = true}) {
+  dynamic memberGet(String varName, {String? from, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
     final constructor = varName != id
         ? '${Semantic.constructor}$varName'
         : Semantic.constructor;
 
-    if (isExternal && !internal) {
-      final value =
-          externalClass!.memberGet(varName != id ? '$id.$varName' : varName);
-      return value;
-    } else {
-      if (namespace.declarations.containsKey(varName)) {
-        final decl = namespace.declarations[varName]!;
-        if (decl.isPrivate &&
-            from != null &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
-        }
-        if (isExternal) {
-          return decl.value;
-        } else {
-          if (decl.isStatic) {
-            return decl.value;
-          }
-        }
-      } else if (namespace.declarations.containsKey(getter)) {
-        final decl = namespace.declarations[getter]!;
-        if (decl.isPrivate &&
-            from != null &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
-        }
-        final func = decl as HTFunction;
-        if (isExternal) {
-          return func.call();
-        } else {
-          if (decl.isStatic) {
-            return func.call();
-          }
-        }
-      } else if (namespace.declarations.containsKey(constructor)) {
-        return namespace.declarations[constructor]!.value as HTFunction;
+    // if (isExternal && !internal) {
+    //   final value =
+    //       externalClass!.memberGet(varName != id ? '$id.$varName' : varName);
+    //   return value;
+    // } else {
+    if (namespace.declarations.containsKey(varName)) {
+      final decl = namespace.declarations[varName]!;
+      if (decl.isPrivate &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
       }
+      if (isExternal) {
+        return decl.value;
+      } else {
+        if (decl.isStatic) {
+          return decl.value;
+        }
+      }
+    } else if (namespace.declarations.containsKey(getter)) {
+      final decl = namespace.declarations[getter]!;
+      if (decl.isPrivate &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final func = decl as HTFunction;
+      if (isExternal) {
+        return func.call();
+      } else {
+        if (decl.isStatic) {
+          return func.call();
+        }
+      }
+    } else if (namespace.declarations.containsKey(constructor)) {
+      return namespace.declarations[constructor]!.value as HTFunction;
     }
+    // }
 
     if (error) {
       throw HTError.undefined(varName,

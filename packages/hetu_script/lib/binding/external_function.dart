@@ -18,12 +18,4 @@ typedef HTExternalFunction = dynamic Function(HTEntity object,
 /// native function as parameter.
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
-class DartObjectTypeReflectResult {
-  final bool success;
-  final String typeString;
-
-  DartObjectTypeReflectResult(this.success, this.typeString);
-}
-
-typedef HTExternalTypeReflection = DartObjectTypeReflectResult Function(
-    dynamic object);
+typedef HTExternalTypeReflection = String? Function(dynamic object);

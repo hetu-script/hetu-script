@@ -167,6 +167,22 @@ class HTStringClassBinding extends HTExternalClass {
       (object as String).htFetch(varName);
 }
 
+class HTIteratorClassBinding extends HTExternalClass {
+  HTIteratorClassBinding() : super('Iterator');
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as Iterator).htFetch(varName);
+}
+
+class HTIterableClassBinding extends HTExternalClass {
+  HTIterableClassBinding() : super('Iterable');
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as Iterable).htFetch(varName);
+}
+
 class HTListClassBinding extends HTExternalClass {
   HTListClassBinding() : super('List');
 

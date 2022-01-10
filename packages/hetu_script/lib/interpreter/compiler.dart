@@ -228,33 +228,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _assembleLocalConstInt(int value, int line, int column,
-      {bool endOfExec = false}) {
-    final bytesBuilder = BytesBuilder();
-    final index = _curConstTable.addInt(value);
-    final constExpr =
-        _localConst(HTValueTypeCode.constInt, index, line, column);
-    bytesBuilder.add(constExpr);
-    if (endOfExec) {
-      bytesBuilder.addByte(HTOpCode.endOfExec);
-    }
-    return bytesBuilder.toBytes();
-  }
-
-  Uint8List _assembleLocalIdentifier(String id,
-      {bool isLocal = true, bool endOfExec = false}) {
-    final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.identifier);
-    bytesBuilder.add(_parseIdentifier(id));
-    bytesBuilder.addByte(isLocal ? 1 : 0); // bool: isLocal
-    // bytesBuilder.addByte(0); // bool: has type args
-    if (endOfExec) {
-      bytesBuilder.addByte(HTOpCode.endOfExec);
-    }
-    return bytesBuilder.toBytes();
-  }
-
   Uint8List _assembleVarDeclStmt(String id, int line, int column,
       {Uint8List? initializer,
       bool isMutable = true,
@@ -1116,88 +1089,54 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_parseIdentifier(Semantic.forStmtInit));
-    Uint8List? condition;
-    Uint8List? increment;
-    // declare the increment variable
-    final increId = Semantic.increment;
-    final increInit = _assembleLocalConstInt(
-        0, stmt.iterator.line, stmt.iterator.column,
-        endOfExec: true);
-    final increDecl = _assembleVarDeclStmt(
-        increId, stmt.iterator.line, stmt.iterator.column,
-        initializer: increInit);
-    bytesBuilder.add(increDecl);
-    // assemble the condition expression
-    final conditionBytesBuilder = BytesBuilder();
-    final collectionId = Semantic.collection;
-    final collectionExpr = stmt.iterateValue
+
+    final collection = stmt.iterateValue
         ? MemberExpr(
             stmt.collection, IdentifierExpr(HTLexicon.values, isLocal: false))
         : stmt.collection;
-    final collectionInit = compileAst(collectionExpr, endOfExec: true);
-    final collectionDecl = _assembleVarDeclStmt(
-        collectionId, stmt.collection.line, stmt.collection.column,
-        initializer: collectionInit);
-    bytesBuilder.add(collectionDecl);
-    final isNotEmptyExpr = MemberExpr(IdentifierExpr(collectionId),
-        IdentifierExpr(HTLexicon.isNotEmpty, isLocal: false));
-    final isNotEmptyByte = compileAst(isNotEmptyExpr);
-    conditionBytesBuilder.add(isNotEmptyByte);
-    conditionBytesBuilder.addByte(HTOpCode.register);
-    conditionBytesBuilder.addByte(HTRegIdx.andLeft);
-    conditionBytesBuilder.addByte(HTOpCode.logicalAnd);
-    final lesserLeftExpr = _assembleLocalIdentifier(increId);
-    final lengthExpr = MemberExpr(IdentifierExpr(collectionId),
-        IdentifierExpr(HTLexicon.length, isLocal: false));
-    final lengthByte = compileAst(lengthExpr);
-    final logicalAndRightLength = lesserLeftExpr.length + lengthByte.length + 4;
-    conditionBytesBuilder.add(_uint16(logicalAndRightLength));
-    conditionBytesBuilder.add(lesserLeftExpr);
-    conditionBytesBuilder.addByte(HTOpCode.register);
-    conditionBytesBuilder.addByte(HTRegIdx.relationLeft);
-    conditionBytesBuilder.add(lengthByte);
-    conditionBytesBuilder.addByte(HTOpCode.lesser);
-    conditionBytesBuilder.addByte(HTOpCode.endOfExec);
-    condition = conditionBytesBuilder.toBytes();
 
-    // assemble the initializer of the captured variable
-    final capturedDeclInit = CallExpr(
-        MemberExpr(collectionExpr,
-            IdentifierExpr(HTLexicon.elementAt, isLocal: false)),
-        [IdentifierExpr(increId)],
-        const {});
-    // declared the captured variable
-    final capturedDecl = VarDecl(stmt.iterator.id,
-        initializer: capturedDeclInit, isMutable: stmt.iterator.isMutable);
-    final incrementBytesBuilder = BytesBuilder();
-    final preIncreExpr = _assembleLocalIdentifier(increId);
-    incrementBytesBuilder.addByte(HTOpCode.local);
-    incrementBytesBuilder.addByte(HTValueTypeCode.group);
-    incrementBytesBuilder.add(preIncreExpr);
-    incrementBytesBuilder.addByte(HTOpCode.register);
-    incrementBytesBuilder.addByte(HTRegIdx.addLeft);
-    final valueOne =
-        _assembleLocalConstInt(1, capturedDecl.line, capturedDecl.column);
-    incrementBytesBuilder.add(valueOne);
-    incrementBytesBuilder.addByte(HTOpCode.add);
-    incrementBytesBuilder.addByte(HTOpCode.register);
-    incrementBytesBuilder.addByte(HTRegIdx.assign);
-    incrementBytesBuilder.add(preIncreExpr);
-    incrementBytesBuilder.addByte(HTOpCode.assign);
-    incrementBytesBuilder.addByte(HTOpCode.endOfExec);
-    increment = incrementBytesBuilder.toBytes();
+    // declare the iterator
+    final iterInit = MemberExpr(
+        collection, IdentifierExpr(HTLexicon.iterator, isLocal: false));
+    final iterInitBytes = compileAst(iterInit, endOfExec: true);
+    final iterDecl = _assembleVarDeclStmt(
+        Semantic.iterator, stmt.iterator.line, stmt.iterator.column,
+        initializer: iterInitBytes);
+    bytesBuilder.add(iterDecl);
 
+    // calls iterator.moveNext()
+    final iterMoveNextCall = CallExpr(MemberExpr(
+        IdentifierExpr(Semantic.iterator),
+        IdentifierExpr(HTLexicon.moveNext, isLocal: false)));
+    final iterMoveResultInitBytes =
+        compileAst(iterMoveNextCall, endOfExec: true);
+    final moveResultDeclBytes = _assembleVarDeclStmt(
+        Semantic.iteratorMoveResult, stmt.iterator.line, stmt.iterator.column,
+        initializer: iterMoveResultInitBytes);
+    bytesBuilder.add(moveResultDeclBytes);
+
+    // assemble the condition expression, i.e., checks iterator.moveNext() result
+    final moveResult = IdentifierExpr(Semantic.iteratorMoveResult);
+    final condition = visitIdentifierExpr(moveResult);
+
+    // get current item value
+    stmt.iterator.initializer = MemberExpr(IdentifierExpr(Semantic.iterator),
+        IdentifierExpr(HTLexicon.current, isLocal: false));
+
+    // update iter move result
+    final moveIter = BinaryExpr(IdentifierExpr(Semantic.iteratorMoveResult),
+        HTLexicon.assign, iterMoveNextCall);
     bytesBuilder.addByte(HTOpCode.loopPoint);
-    stmt.loop.statements.insert(0, capturedDecl);
+    stmt.loop.statements.insert(0, stmt.iterator);
+    stmt.loop.statements.add(moveIter);
     final loop = visitBlockStmt(stmt.loop);
     final continueLength = condition.length + loop.length + 1;
-    final breakLength = continueLength + increment.length + 3;
+    final breakLength = continueLength + 3;
     bytesBuilder.add(_uint16(continueLength));
     bytesBuilder.add(_uint16(breakLength));
     bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.whileStmt);
     bytesBuilder.add(loop);
-    bytesBuilder.add(increment);
     bytesBuilder.addByte(HTOpCode.skip);
     bytesBuilder.add(_int16(-breakLength));
     bytesBuilder.addByte(HTOpCode.endOfBlock);
@@ -1659,7 +1598,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       final toStringFunc = FuncDecl(HTLexicon.tostring, [],
           id: IdentifierExpr(HTLexicon.tostring),
           classId: stmt.id.id,
-          returnType: TypeExpr(id: IdentifierExpr(HTLexicon.str)),
+          returnType: TypeExpr(id: IdentifierExpr(HTLexicon.string)),
           hasParamDecls: true,
           definition: toStringDef);
       final toStringBytes = visitFuncDecl(toStringFunc);
@@ -1671,11 +1610,10 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         final itemInit = CallExpr(
             MemberExpr(stmt.id,
                 IdentifierExpr(HTLexicon.privatePrefix, isLocal: false)),
-            [
+            positionalArgs: [
               StringLiteralExpr(
                   item.id, HTLexicon.apostropheLeft, HTLexicon.apostropheRight)
-            ],
-            const {});
+            ]);
         final itemDecl = VarDecl(item,
             classId: stmt.classId,
             initializer: itemInit,

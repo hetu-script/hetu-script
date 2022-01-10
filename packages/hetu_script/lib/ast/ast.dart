@@ -837,8 +837,10 @@ class CallExpr extends AstNode {
 
   final bool isNullable;
 
-  CallExpr(this.callee, this.positionalArgs, this.namedArgs,
-      {this.isNullable = false,
+  CallExpr(this.callee,
+      {this.positionalArgs = const [],
+      this.namedArgs = const {},
+      this.isNullable = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1573,7 +1575,7 @@ class VarDecl extends AstNode {
 
   final TypeExpr? declType;
 
-  final AstNode? initializer;
+  AstNode? initializer;
 
   @override
   final bool hasEndOfStmtMark;

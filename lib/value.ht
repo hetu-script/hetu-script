@@ -304,30 +304,88 @@ external class str {
 	fun toUpperCase() -> str
 }
 
-external class List {
+external class Iterator {
+  /// Advances the iterator to the next element of the iteration.
+  fun moveNext() -> bool
+
+  /// The current element.
+  get current -> any
+}
+
+external class Iterable {
+
+  /// Returns a new `Iterator` that allows iterating the Iterable's elements.
+  get iterator -> Iterator
 
   get random -> any
 
-  fun toString() -> str
-
   fun toJson() -> Map
+
+  /// The current elements of this iterable modified by [toElement].
+  fun map(toElement: (any) -> any) -> Iterable
+
+  /// Returns a new lazy [Iterable] with all elements that satisfy the
+  fun where(test: (any) -> bool) -> Iterable
+
+  /// Expands each element of this [Iterable] into zero or more elements.
+  fun expand(toElements: (any) -> Iterable) -> Iterable
+
+	fun contains(value) -> bool
+  
+  /// Reduces a collection to a single value by iteratively combining elements
+  /// of the collection using the provided function.
+  fun reduce(combine: (any, any) -> any) -> any
+
+  /// Reduces a collection to a single value by iteratively combining each
+  /// element of the collection with an existing value
+  fun fold(initialValue: any, combine: (any, any) -> any) -> any
+
+  /// Checks whether every element of this iterable satisfies [test].
+  fun every(test: (any) -> bool) -> bool
+
+	fun join(separator: str) -> str
+
+  /// Checks whether any element of this iterable satisfies [test].
+  fun any(test: (any) -> bool) -> bool
+
+  fun toList() -> List
+
+	get length -> int
 
 	get isEmpty -> bool
 
 	get isNotEmpty -> bool
 
-	fun contains(value) -> bool
+  fun take(count: int) -> Iterable
 
-	fun elementAt(index: int) -> any
+  fun takeWhile(test: (any) -> bool) -> Iterable
 
-	fun join(separator: str) -> str
+  fun skip(count: int) -> Iterable
+
+  fun skipWhile(test: (any) -> bool) -> Iterable
 
 	get first -> any
 
 	get last -> any
 
-	get length -> int
+	get single -> any
 
+  /// Returns the first element that satisfies the given predicate [test].
+  fun firstWhere(test: (any) -> bool, {orElse: () -> any}) -> any
+
+  /// Returns the last element that satisfies the given predicate [test].
+  fun lastWhere(test: (any) -> bool, {orElse: () -> any}) -> any
+
+  /// Returns the single element that satisfies [test].
+  fun singleWhere(test: (any) -> bool, {orElse: () -> any}) -> any
+
+	fun elementAt(index: int) -> any
+
+  fun toString() -> str
+}
+
+external class List extends Iterable {
+  
 	fun add(value)
 
   fun addAll(iterable)
@@ -386,38 +444,6 @@ external class List {
 
   /// Replaces a range of elements with the elements of [replacements].
   fun replaceRange(start: int, end: int, replacements: List)
-
-  /// The current elements of this iterable modified by [toElement].
-  fun map(toElement: (any) -> any) -> List
-
-  /// Returns a new lazy [Iterable] with all elements that satisfy the
-  fun where(test: (any) -> bool) -> List
-
-  /// Expands each element of this [Iterable] into zero or more elements.
-  fun expand(toElements: (any) -> List) -> List
-
-  /// Reduces a collection to a single value by iteratively combining elements
-  /// of the collection using the provided function.
-  fun reduce(combine: (any, any) -> any) -> any
-
-  /// Reduces a collection to a single value by iteratively combining each
-  /// element of the collection with an existing value
-  fun fold(initialValue: any, combine: (any, any) -> any) -> any
-
-  /// Checks whether every element of this iterable satisfies [test].
-  fun every(test: (any) -> bool) -> bool
-
-  /// Checks whether any element of this iterable satisfies [test].
-  fun any(test: (any) -> bool) -> bool
-
-  /// Returns the first element that satisfies the given predicate [test].
-  fun firstWhere(test: (any) -> bool, {orElse: () -> any}) -> any
-
-  /// Returns the last element that satisfies the given predicate [test].
-  fun lastWhere(test: (any) -> bool, {orElse: () -> any}) -> any
-
-  /// Returns the single element that satisfies [test].
-  fun singleWhere(test: (any) -> bool, {orElse: () -> any}) -> any
 }
 
 external class Map {

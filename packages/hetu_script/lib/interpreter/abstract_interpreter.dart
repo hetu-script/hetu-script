@@ -98,6 +98,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTFloatClassBinding());
       bindExternalClass(HTBooleanClassBinding());
       bindExternalClass(HTStringClassBinding());
+      bindExternalClass(HTIteratorClassBinding());
+      bindExternalClass(HTIterableClassBinding());
+      bindExternalClass(HTListClassBinding());
       bindExternalClass(HTListClassBinding());
       bindExternalClass(HTMapClassBinding());
       bindExternalClass(HTMathClassBinding());
@@ -209,9 +212,9 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     } else if (object is double) {
       typeString = HTLexicon.float;
     } else if (object is String) {
-      typeString = HTLexicon.str;
+      typeString = HTLexicon.string;
     } else if (object is List) {
-      typeString = HTLexicon.list;
+      typeString = 'List';
       // var valueType = HTType.ANY;
       // if (object.isNotEmpty) {
       //   valueType = encapsulate(object.first).valueType;
@@ -225,7 +228,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       // }
       // return HTList(object, this, valueType: valueType);
     } else if (object is Map) {
-      typeString = HTLexicon.map;
+      typeString = 'Map';
       // var keyType = HTType.ANY;
       // var valueType = HTType.ANY;
       // if (object.keys.isNotEmpty) {
@@ -249,13 +252,17 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       //   }
       // }
       // return HTMap(object, this, keyType: keyType, valueType: valueType);
+    } else if (object is Iterable) {
+      typeString = 'Iterable';
+    } else if (object is Iterator) {
+      typeString = 'Iterator';
     } else {
       var reflected = false;
       for (final reflect in _externTypeReflection) {
         final result = reflect(object);
-        if (result.success) {
+        if (result != null) {
           reflected = true;
-          typeString = result.typeString;
+          typeString = result;
           break;
         }
       }

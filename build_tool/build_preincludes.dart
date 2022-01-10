@@ -8,6 +8,9 @@ const kDest =
     'packages/hetu_script/lib/interpreter/preincludes/preinclude_module.dart';
 
 void main() {
+  print('Compiling Core library for Hetu version \'${kHetuVersion}\'.');
+  stdout.write('Processing files under \'lib\' folder...');
+
   final sourceContext =
       HTFileSystemResourceContext(root: 'lib/', expressionModuleExtensions: [
     HTResource.json,
@@ -29,8 +32,6 @@ void main() {
     final compiler = HTCompiler(config: compileConfig);
     final bytes = compiler.compile(module);
 
-    print('Compiling Core library for Hetu version \'${kHetuVersion}\' .');
-    stdout.write('Processing files under \'lib\' folder...');
     final output = StringBuffer();
     output.writeln(
         '''/// The pre-compiled binary code of the core module of Hetu scripting language.
@@ -50,5 +51,6 @@ final preincludeModule = [''');
     file.writeAsStringSync(content);
     stdout.writeln(' done!');
     print('Saved to:\n - $kDest');
+    print('Compilation finished: [SUCCESS].');
   }
 }

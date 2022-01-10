@@ -1708,7 +1708,7 @@ class Hetu extends HTAbstractInterpreter {
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
       } else {
-        final value = execute();
+        final initValue = execute();
         decl = HTVariable(id,
             interpreter: this,
             fileName: _fileName,
@@ -1716,7 +1716,7 @@ class Hetu extends HTAbstractInterpreter {
             classId: classId,
             closure: _namespace,
             declType: declType,
-            value: value,
+            value: initValue,
             isExternal: isExternal,
             isStatic: isStatic,
             isMutable: isMutable);
