@@ -726,7 +726,7 @@ class Hetu extends HTAbstractInterpreter {
     return result;
   }
 
-  void clearLocals() {
+  void _clearLocals() {
     _localValue = null;
     _localSymbol = null;
     _localTypeArgs = [];
@@ -801,13 +801,14 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.block:
           final id = _bytecodeModule.readString();
           _namespace = HTNamespace(id: id, closure: _namespace);
+          _clearLocals();
           break;
         case HTOpCode.endOfBlock:
           _namespace = _namespace.closure!;
           break;
         // 语句结束
         case HTOpCode.endOfStmt:
-          clearLocals();
+          _clearLocals();
           break;
         case HTOpCode.endOfExec:
           return _localValue;
@@ -904,7 +905,7 @@ class Hetu extends HTAbstractInterpreter {
             final symbol = _bytecodeModule.readString();
             _namespace.delete(symbol);
           }
-          clearLocals();
+          _clearLocals();
           break;
         case HTOpCode.ifStmt:
           final thenBranchLength = _bytecodeModule.readUint16();

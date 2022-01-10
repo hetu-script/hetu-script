@@ -2169,6 +2169,7 @@ class HTParser extends HTAbstractParser {
     final condition = _parseExpr();
     match(HTLexicon.parenthesesRight);
     var thenBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
+    _handleComment();
     AstNode? elseBranch;
     if (isExpression) {
       match(HTLexicon.kElse);

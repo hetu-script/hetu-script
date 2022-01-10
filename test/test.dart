@@ -5,11 +5,14 @@ void main() {
   hetu.init();
 
   final result = hetu.eval(r'''
-        enum a {
-          m
+        if (2 < 1) {
+
         }
-        var b = a.m
-        print(b)
+        // comments between if else
+        else {
+          print('always')
+        }
+        
     ''');
 
   print(result);
