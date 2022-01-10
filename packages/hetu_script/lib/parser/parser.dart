@@ -2636,86 +2636,58 @@ class HTParser extends HTAbstractParser {
       bool lateInitialize = false,
       AstNode? additionalInitializer,
       bool hasEndOfStatement = false}) {
-    if (isField) {
-      final idTok = advance(1);
-      late IdentifierExpr id;
-      if (idTok.type == Semantic.identifier ||
-          idTok.type == Semantic.stringLiteral) {
-        id = IdentifierExpr.fromToken(idTok, source: _currentSource);
-      } else {
-        final err = HTError.structMemberId(
+    final keyword = advance(1);
+    final idTok = match(Semantic.identifier);
+    final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
+    String? internalName;
+    if (classId != null && isExternal) {
+      if (!(_currentClass!.isExternal) && !isStatic) {
+        final err = HTError.externalMember(
             filename: _currrentFileName,
-            line: idTok.line,
-            column: idTok.column,
-            offset: idTok.offset,
-            length: idTok.length);
+            line: keyword.line,
+            column: keyword.column,
+            offset: curTok.offset,
+            length: curTok.length);
         errors?.add(err);
       }
-      match(HTLexicon.colon);
-      final initializer = _parseExpr();
-      return VarDecl(id,
-          classId: classId,
-          initializer: initializer,
-          isMutable: isMutable,
-          lateInitialize: lateInitialize,
-          source: _currentSource,
-          line: idTok.line,
-          column: idTok.column,
-          offset: idTok.offset,
-          length: curTok.offset - idTok.offset);
-    } else {
-      final keyword = advance(1);
-      final idTok = match(Semantic.identifier);
-      final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
-      String? internalName;
-      if (classId != null && isExternal) {
-        if (!(_currentClass!.isExternal) && !isStatic) {
-          final err = HTError.externalMember(
-              filename: _currrentFileName,
-              line: keyword.line,
-              column: keyword.column,
-              offset: curTok.offset,
-              length: curTok.length);
-          errors?.add(err);
-        }
-        internalName = '$classId.${idTok.lexeme}';
-      }
-      TypeExpr? declType;
-      if (expect([HTLexicon.colon], consume: true)) {
-        declType = _parseTypeExpr();
-      }
-      AstNode? initializer;
-      if (!lateFinalize) {
-        if (expect([HTLexicon.assign], consume: true)) {
-          initializer = _parseExpr();
-        } else {
-          initializer = additionalInitializer;
-        }
-      }
-      bool hasEndOfStmtMark = hasEndOfStatement;
-      if (hasEndOfStatement) {
-        match(HTLexicon.semicolon);
-      } else {
-        hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
-      }
-      return VarDecl(id,
-          internalName: internalName,
-          classId: classId,
-          declType: declType,
-          initializer: initializer,
-          hasEndOfStmtMark: hasEndOfStmtMark,
-          isExternal: isExternal,
-          isStatic: isStatic,
-          isMutable: isMutable,
-          isTopLevel: isTopLevel,
-          lateFinalize: lateFinalize,
-          lateInitialize: lateInitialize,
-          source: _currentSource,
-          line: keyword.line,
-          column: keyword.column,
-          offset: keyword.offset,
-          length: curTok.offset - keyword.offset);
+      internalName = '$classId.${idTok.lexeme}';
     }
+    TypeExpr? declType;
+    if (expect([HTLexicon.colon], consume: true)) {
+      declType = _parseTypeExpr();
+    }
+    AstNode? initializer;
+    if (!lateFinalize) {
+      if (expect([HTLexicon.assign], consume: true)) {
+        initializer = _parseExpr();
+      } else {
+        initializer = additionalInitializer;
+      }
+    }
+    bool hasEndOfStmtMark = hasEndOfStatement;
+    if (hasEndOfStatement) {
+      match(HTLexicon.semicolon);
+    } else {
+      hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+    }
+    return VarDecl(id,
+        internalName: internalName,
+        classId: classId,
+        declType: declType,
+        initializer: initializer,
+        hasEndOfStmtMark: hasEndOfStmtMark,
+        isField: isField,
+        isExternal: isExternal,
+        isStatic: isStatic,
+        isMutable: isMutable,
+        isTopLevel: isTopLevel,
+        lateFinalize: lateFinalize,
+        lateInitialize: lateInitialize,
+        source: _currentSource,
+        line: keyword.line,
+        column: keyword.column,
+        offset: keyword.offset,
+        length: curTok.offset - keyword.offset);
   }
 
   FuncDecl _parseFunction(

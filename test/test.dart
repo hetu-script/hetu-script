@@ -5,11 +5,11 @@ void main() {
   hetu.init();
 
   final result = hetu.eval(r'''
-    late a
-    // print(a) // Error: [a] is not initialized yet.
-    a = 42
-    print(a)
-    // a = 'dragon' // Error: [a] is immutable.
+        enum a {
+          m
+        }
+        var b = a.m
+        print(b)
     ''');
 
   print(result);
