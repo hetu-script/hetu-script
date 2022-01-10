@@ -105,10 +105,9 @@ abstract class HTLexicon {
   static const kTrue = 'true';
   static const kFalse = 'false';
 
-  static const kLate = 'late';
-
   static const kVar = 'var';
   static const kFinal = 'final';
+  static const kLate = 'late';
   static const kConst = 'const';
   static const kDefine = 'def';
   static const kDelete = 'delete';
@@ -201,6 +200,7 @@ abstract class HTLexicon {
     kFalse,
     kVar,
     kFinal,
+    kLate,
     kConst,
     kDefine,
     kDelete,
@@ -482,6 +482,7 @@ abstract class HTLexicon {
   static const errorUndefinedOperator = 'Undefined operator: [{0}].';
   static const errorNotCallable = '[{0}] is not callable.';
   static const errorUndefinedMember = '[{0}] isn\'t defined for the class.';
+  static const errorUninitialized = 'Varialbe [{0}] is not initialized yet.';
   static const errorCondition =
       'Condition expression must evaluate to type [bool]';
   static const errorNullObject = 'Calling method [{1}] on null object [{0}].';

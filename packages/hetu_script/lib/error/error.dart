@@ -55,6 +55,7 @@ enum ErrorCode {
   undefinedOperator,
   notCallable,
   undefinedMember,
+  uninitialized,
   condition,
   nullObject,
   subGetKey,
@@ -1110,6 +1111,26 @@ class HTError {
       int? length})
       : this(ErrorCode.undefinedMember, ErrorType.runtimeError,
             message: HTLexicon.errorUndefinedMember,
+            interpolations: [id],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Undefined member of a class/enum.
+  HTError.uninitialized(String id,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.uninitialized, ErrorType.runtimeError,
+            message: HTLexicon.errorUninitialized,
             interpolations: [id],
             extra: extra,
             correction: correction,

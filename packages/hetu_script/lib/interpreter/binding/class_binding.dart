@@ -1,7 +1,7 @@
 part of '../abstract_interpreter.dart';
 
-class HTNumberClass extends HTExternalClass {
-  HTNumberClass() : super('num');
+class HTNumberClassBinding extends HTExternalClass {
+  HTNumberClassBinding() : super('num');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -18,8 +18,8 @@ class HTNumberClass extends HTExternalClass {
   }
 }
 
-class HTIntClass extends HTExternalClass {
-  HTIntClass() : super('int');
+class HTIntClassBinding extends HTExternalClass {
+  HTIntClassBinding() : super('int');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -47,8 +47,8 @@ class HTIntClass extends HTExternalClass {
       (object as int).htFetch(varName);
 }
 
-class HTBigIntClass extends HTExternalClass {
-  HTBigIntClass() : super('BigInt');
+class HTBigIntClassBinding extends HTExternalClass {
+  HTBigIntClassBinding() : super('BigInt');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -93,8 +93,8 @@ class HTBigIntClass extends HTExternalClass {
       (object as int).htFetch(varName);
 }
 
-class HTFloatClass extends HTExternalClass {
-  HTFloatClass() : super('float');
+class HTFloatClassBinding extends HTExternalClass {
+  HTFloatClassBinding() : super('float');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -125,8 +125,8 @@ class HTFloatClass extends HTExternalClass {
       (object as double).htFetch(varName);
 }
 
-class HTBooleanClass extends HTExternalClass {
-  HTBooleanClass() : super('bool');
+class HTBooleanClassBinding extends HTExternalClass {
+  HTBooleanClassBinding() : super('bool');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -144,8 +144,8 @@ class HTBooleanClass extends HTExternalClass {
   }
 }
 
-class HTStringClass extends HTExternalClass {
-  HTStringClass() : super('str');
+class HTStringClassBinding extends HTExternalClass {
+  HTStringClassBinding() : super('str');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -167,8 +167,8 @@ class HTStringClass extends HTExternalClass {
       (object as String).htFetch(varName);
 }
 
-class HTListClass extends HTExternalClass {
-  HTListClass() : super('List');
+class HTListClassBinding extends HTExternalClass {
+  HTListClassBinding() : super('List');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -183,8 +183,8 @@ class HTListClass extends HTExternalClass {
       (object as List).htFetch(varName);
 }
 
-class HTMapClass extends HTExternalClass {
-  HTMapClass() : super('Map');
+class HTMapClassBinding extends HTExternalClass {
+  HTMapClassBinding() : super('Map');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -199,8 +199,8 @@ class HTMapClass extends HTExternalClass {
       (object as Map).htFetch(varName);
 }
 
-class HTMathClass extends HTExternalClass {
-  HTMathClass() : super('Math');
+class HTMathClassBinding extends HTExternalClass {
+  HTMathClassBinding() : super('Math');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -354,8 +354,8 @@ class HTMathClass extends HTExternalClass {
   }
 }
 
-class HTSystemClass extends HTExternalClass {
-  HTSystemClass() : super('System');
+class HTSystemClassBinding extends HTExternalClass {
+  HTSystemClassBinding() : super('OS');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
@@ -368,8 +368,8 @@ class HTSystemClass extends HTExternalClass {
   }
 }
 
-class HTFutureClass extends HTExternalClass {
-  HTFutureClass() : super('Future');
+class HTFutureClassBinding extends HTExternalClass {
+  HTFutureClassBinding() : super('Future');
 
   @override
   dynamic instanceMemberGet(dynamic object, String varName) =>

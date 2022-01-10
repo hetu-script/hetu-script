@@ -11,6 +11,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 
+  var _isInitialized = false;
   var _isInitializing = false;
 
   HTExternalClass? externalClass;
@@ -32,6 +33,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       bool isStatic = false,
       bool isMutable = false,
       bool isTopLevel = false,
+      bool lateFinalize = false,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
@@ -42,7 +44,8 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             isExternal: isExternal,
             isStatic: isStatic,
             isMutable: isMutable,
-            isTopLevel: isTopLevel) {
+            isTopLevel: isTopLevel,
+            lateFinalize: lateFinalize) {
     if (interpreter != null) {
       this.interpreter = interpreter;
     }
@@ -58,6 +61,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
 
     if (value != null) {
       _value = value;
+      _isInitialized = true;
     }
 
     // if (declType != null) {
@@ -91,26 +95,31 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             line: definitionLine,
             column: definitionColumn);
         value = initVal;
+        _isInitialized = true;
         _isInitializing = false;
       } else {
         throw HTError.circleInit(id);
       }
     } else {
-      value = null; // assign it even if it's null, for static type check
+      value = null; // assign it even if it's null, for type check
     }
   }
 
   /// Assign a new value to this variable.
   @override
   set value(dynamic value) {
-    if (!isMutable && (_value != null)) {
+    if (!isMutable && _isInitialized) {
       throw HTError.immutable(id);
     }
     _value = value;
+    _isInitialized = true;
   }
 
   @override
   dynamic get value {
+    if (lateFinalize && !_isInitialized) {
+      throw HTError.uninitialized(id);
+    }
     if (!isExternal) {
       if (_value == null && (definitionIp != null)) {
         initialize();
@@ -176,6 +185,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       isStatic: isStatic,
       isMutable: isMutable,
       isTopLevel: isTopLevel,
+      lateFinalize: lateFinalize,
       definitionIp: definitionIp,
       definitionLine: definitionLine,
       definitionColumn: definitionColumn);

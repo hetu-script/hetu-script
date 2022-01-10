@@ -24,6 +24,8 @@ class HTVariableDeclaration extends HTDeclaration {
   @override
   bool get isResolved => _isResolved;
 
+  final bool lateFinalize;
+
   HTVariableDeclaration(this._id,
       {String? classId,
       HTNamespace? closure,
@@ -32,7 +34,8 @@ class HTVariableDeclaration extends HTDeclaration {
       bool isExternal = false,
       bool isStatic = false,
       bool isMutable = false,
-      bool isTopLevel = false})
+      bool isTopLevel = false,
+      this.lateFinalize = false})
       : _declType = declType,
         super(
             id: _id,

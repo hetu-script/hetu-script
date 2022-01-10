@@ -1,5 +1,4 @@
 import '../value/namespace/namespace.dart';
-// import '../grammar/lexicon.dart';
 import '../lexer/token.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
@@ -255,15 +254,16 @@ class IdentifierExpr extends AstNode {
             offset: offset,
             length: length);
 
-  IdentifierExpr.fromToken(Token id, {HTSource? source})
+  IdentifierExpr.fromToken(Token id, {bool isLocal = false, HTSource? source})
       : this(id.lexeme,
             isSymbol: id.type == Semantic.identifier,
+            isKeyword: id.isKeyword,
+            isLocal: isLocal,
             source: source,
             line: id.line,
             column: id.column,
             offset: id.offset,
-            length: id.length,
-            isKeyword: id.isKeyword);
+            length: id.length);
 }
 
 class SpreadExpr extends AstNode {
@@ -1600,6 +1600,8 @@ class VarDecl extends AstNode {
 
   final bool isTopLevel;
 
+  final bool lateFinalize;
+
   final bool lateInitialize;
 
   @override
@@ -1618,6 +1620,7 @@ class VarDecl extends AstNode {
       this.isMutable = false,
       this.isPrivate = false,
       this.isTopLevel = false,
+      this.lateFinalize = false,
       this.lateInitialize = false,
       HTSource? source,
       int line = 0,

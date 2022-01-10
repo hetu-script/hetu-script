@@ -1,6 +1,5 @@
-import 'package:hetu_script/value/struct/named_struct.dart';
-import 'package:hetu_script/value/variable/variable.dart';
-
+import '../struct/named_struct.dart';
+import '../variable/variable.dart';
 import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../entity.dart';
@@ -8,8 +7,10 @@ import '../function/function.dart';
 import '../../value/namespace/namespace.dart';
 import '../../shared/stringify.dart' as util;
 import '../../shared/jsonify.dart' as util;
+import '../../type/type.dart';
 import '../../type/structural_type.dart';
 import '../../error/error.dart';
+import '../../interpreter/interpreter.dart';
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -18,57 +19,39 @@ import '../../error/error.dart';
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
 class HTStruct with HTEntity {
-  static dynamic toStructValue(dynamic value, HTNamespace closure) {
-    if (value is Iterable) {
-      final list = [];
-      for (final item in value) {
-        final result = toStructValue(item, closure);
-        list.add(result);
-      }
-      return list;
-    } else if (value is Map) {
-      final struct = HTStruct(closure);
-      for (final key in value.keys) {
-        final fieldKey = key.toString();
-        final fieldValue = toStructValue(value[key], closure);
-        struct.define(fieldKey, fieldValue);
-      }
-      return struct;
-    } else if (value is HTStruct) {
-      return value.clone();
-    } else {
-      return value;
-    }
-  }
+  final Hetu interpreter;
 
-  static HTStruct fromJson(Map<String, dynamic> jsonData, HTNamespace closure) {
-    final struct = HTStruct(closure);
-    for (final key in jsonData.keys) {
-      var value = toStructValue(jsonData[key], closure);
-      struct.define(key, value);
-    }
-    return struct;
-  }
-
-  String? id;
+  final String? id;
 
   HTStruct? prototype;
 
-  HTNamedStruct? definition;
+  HTNamedStruct? declaration;
 
   final fields = <String, dynamic>{};
 
-  HTNamespace namespace;
+  final HTNamespace namespace;
 
-  HTNamespace? get closure => namespace.closure;
+  HTNamespace? _closure;
+  HTNamespace? get closure => _closure;
 
   @override
-  final HTStructuralType valueType;
+  HTStructuralType get valueType {
+    final fieldTypes = <String, HTType>{};
+    for (final key in fields.keys) {
+      final value = fields[key];
+      final encap = interpreter.encapsulate(value);
+      final unresolvedType = encap.valueType;
+      fieldTypes[key] = unresolvedType.resolve(namespace);
+    }
+    return HTStructuralType(namespace, fieldTypes: fieldTypes);
+  }
 
-  HTStruct(HTNamespace closure,
-      {this.id, this.prototype, Map<String, dynamic>? fields})
-      : namespace = HTNamespace(id: id ?? HTLexicon.kStruct, closure: closure),
-        valueType = HTStructuralType() {
+  HTStruct(this.interpreter,
+      {this.id,
+      this.prototype,
+      Map<String, dynamic>? fields,
+      HTNamespace? closure})
+      : namespace = HTNamespace(id: id ?? HTLexicon.kStruct, closure: closure) {
     namespace.define(HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: this));
     if (fields != null) {
       this.fields.addAll(fields);
@@ -204,10 +187,11 @@ class HTStruct with HTEntity {
       memberSet(varName.toString(), varValue, from: from);
 
   HTStruct clone() {
-    final cloned = HTStruct(closure!, prototype: prototype);
+    final cloned =
+        HTStruct(interpreter, prototype: prototype, closure: _closure);
     for (final key in fields.keys) {
       final value = fields[key];
-      final copiedValue = toStructValue(value, closure!);
+      final copiedValue = interpreter.toStructValue(value);
       cloned.define(key, copiedValue);
     }
     return cloned;

@@ -82,7 +82,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         ip: definitionIp!,
         namespace: closure);
     self.prototype = static;
-    self.definition = this;
+    self.declaration = this;
     _self = self;
   }
 

@@ -329,6 +329,9 @@ class HTParser extends HTAbstractParser {
               case HTLexicon.kFinal:
                 stmt = _parseVarDecl(isTopLevel: true);
                 break;
+              case HTLexicon.kLate:
+                stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
+                break;
               case HTLexicon.kConst:
                 stmt = _parseConstDecl(isTopLevel: true);
                 break;
@@ -439,6 +442,7 @@ class HTParser extends HTAbstractParser {
                     break;
                   case HTLexicon.kVar:
                   case HTLexicon.kFinal:
+                  case HTLexicon.kLate:
                   case HTLexicon.kConst:
                     final err = HTError.externalVar(
                         filename: _currrentFileName,
@@ -487,6 +491,9 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kFinal:
                 stmt = _parseVarDecl(lateInitialize: true, isTopLevel: true);
+                break;
+              case HTLexicon.kLate:
+                stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
                 break;
               case HTLexicon.kConst:
                 stmt = _parseConstDecl(isTopLevel: true);
@@ -561,6 +568,7 @@ class HTParser extends HTAbstractParser {
                     break;
                   case HTLexicon.kVar:
                   case HTLexicon.kFinal:
+                  case HTLexicon.kLate:
                   case HTLexicon.kConst:
                     final err = HTError.externalVar(
                         filename: _currrentFileName,
@@ -608,6 +616,9 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kFinal:
                 stmt = _parseVarDecl(lateInitialize: true);
+                break;
+              case HTLexicon.kLate:
+                stmt = _parseVarDecl(lateFinalize: true);
                 break;
               case HTLexicon.kConst:
                 stmt = _parseConstDecl();
@@ -676,6 +687,14 @@ class HTParser extends HTAbstractParser {
                     isExternal: isExternal,
                     isStatic: isStatic,
                     lateInitialize: true);
+                break;
+              case HTLexicon.kLate:
+                stmt = _parseVarDecl(
+                    classId: _currentClass?.id,
+                    isOverrided: isOverrided,
+                    isExternal: isExternal,
+                    isStatic: isStatic,
+                    lateFinalize: true);
                 break;
               case HTLexicon.kConst:
                 if (isStatic) {
@@ -847,6 +866,7 @@ class HTParser extends HTAbstractParser {
             case HTLexicon.kVar:
               stmt = _parseVarDecl(
                   classId: _currentStructId,
+                  isField: true,
                   isExternal: isExternal,
                   isMutable: true,
                   isStatic: isStatic,
@@ -855,13 +875,10 @@ class HTParser extends HTAbstractParser {
             case HTLexicon.kFinal:
               stmt = _parseVarDecl(
                   classId: _currentStructId,
+                  isField: true,
                   isExternal: isExternal,
                   isStatic: isStatic,
                   lateInitialize: true);
-              break;
-            case HTLexicon.kConst:
-              stmt = _parseConstDecl(
-                  classId: _currentStructId, isStatic: isStatic);
               break;
             case HTLexicon.kFun:
               stmt = _parseFunction(
@@ -891,8 +908,8 @@ class HTParser extends HTAbstractParser {
                     category: FunctionCategory.method,
                     classId: _currentStructId,
                     isAsync: true,
-                    isExternal: isExternal,
                     isField: true,
+                    isExternal: isExternal,
                     isStatic: isStatic);
               }
               break;
@@ -900,16 +917,16 @@ class HTParser extends HTAbstractParser {
               stmt = _parseFunction(
                   category: FunctionCategory.getter,
                   classId: _currentStructId,
-                  isExternal: isExternal,
                   isField: true,
+                  isExternal: isExternal,
                   isStatic: isStatic);
               break;
             case HTLexicon.kSet:
               stmt = _parseFunction(
                   category: FunctionCategory.setter,
                   classId: _currentStructId,
-                  isExternal: isExternal,
                   isField: true,
+                  isExternal: isExternal,
                   isStatic: isStatic);
               break;
             case HTLexicon.kConstruct:
@@ -989,6 +1006,9 @@ class HTParser extends HTAbstractParser {
               break;
             case HTLexicon.kFinal:
               stmt = _parseVarDecl();
+              break;
+            case HTLexicon.kLate:
+              stmt = _parseVarDecl(lateFinalize: true);
               break;
             case HTLexicon.kConst:
               stmt = _parseConstDecl();
@@ -1829,8 +1849,10 @@ class HTParser extends HTAbstractParser {
       case Semantic.identifier:
         _leftValueLegality = true;
         final id = advance(1);
+        final isLocal = curTok.type != HTLexicon.assign;
         // TODO: type arguments
-        return IdentifierExpr.fromToken(id, source: _currentSource);
+        return IdentifierExpr.fromToken(id,
+            isLocal: isLocal, source: _currentSource);
       default:
         final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
             filename: _currrentFileName,
@@ -1916,7 +1938,7 @@ class HTParser extends HTAbstractParser {
           offset: startTok.offset,
           length: curTok.offset - startTok.offset);
     }
-    // structural type (struct)
+    // structural type (interface of struct)
     else if (curTok.type == HTLexicon.bracesLeft) {
       final startTok = advance(1);
       final fieldTypes = <FieldTypeExpr>[];
@@ -1928,6 +1950,7 @@ class HTParser extends HTAbstractParser {
         } else {
           idTok = match(Semantic.identifier);
         }
+        match(HTLexicon.colon);
         final typeExpr = _parseTypeExpr();
         fieldTypes.add(FieldTypeExpr(idTok.literal, typeExpr));
         expect([HTLexicon.comma], consume: true);
@@ -2609,6 +2632,7 @@ class HTParser extends HTAbstractParser {
       bool isStatic = false,
       bool isMutable = false,
       bool isTopLevel = false,
+      bool lateFinalize = false,
       bool lateInitialize = false,
       AstNode? additionalInitializer,
       bool hasEndOfStatement = false}) {
@@ -2660,9 +2684,13 @@ class HTParser extends HTAbstractParser {
       if (expect([HTLexicon.colon], consume: true)) {
         declType = _parseTypeExpr();
       }
-      var initializer = additionalInitializer;
-      if (expect([HTLexicon.assign], consume: true)) {
-        initializer = _parseExpr();
+      AstNode? initializer;
+      if (!lateFinalize) {
+        if (expect([HTLexicon.assign], consume: true)) {
+          initializer = _parseExpr();
+        } else {
+          initializer = additionalInitializer;
+        }
       }
       bool hasEndOfStmtMark = hasEndOfStatement;
       if (hasEndOfStatement) {
@@ -2680,6 +2708,7 @@ class HTParser extends HTAbstractParser {
           isStatic: isStatic,
           isMutable: isMutable,
           isTopLevel: isTopLevel,
+          lateFinalize: lateFinalize,
           lateInitialize: lateInitialize,
           source: _currentSource,
           line: keyword.line,

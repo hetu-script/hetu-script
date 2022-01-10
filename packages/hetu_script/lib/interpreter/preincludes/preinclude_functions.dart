@@ -1,4 +1,10 @@
-part of '../abstract_interpreter.dart';
+import '../../value/entity.dart';
+import '../../type/type.dart';
+import '../../shared/jsonify.dart';
+import '../../shared/stringify.dart';
+import '../../shared/uid.dart';
+import '../../value/struct/struct.dart';
+import '../../value/instance/instance.dart';
 
 /// Core exernal functions for use globally in Hetu script.
 final Map<String, Function> preincludeFunctions = {
@@ -29,13 +35,6 @@ final Map<String, Function> preincludeFunctions = {
     } else {
       return null;
     }
-  },
-  'prototype.fromJson': (HTEntity entity,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    final context = entity as HTNamespace;
-    return HTStruct.fromJson(positionalArgs.first, context);
   },
   'prototype.keys': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
@@ -104,7 +103,7 @@ final Map<String, Function> preincludeFunctions = {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    return util.uid();
+    return uid();
   },
   'crc32b': (HTEntity entity,
       {List<dynamic> positionalArgs = const [],
@@ -115,6 +114,6 @@ final Map<String, Function> preincludeFunctions = {
     if (positionalArgs.length > 1) {
       crc = positionalArgs[1];
     }
-    return util.crc32b(data, crc);
+    return crc32b(data, crc);
   },
 };

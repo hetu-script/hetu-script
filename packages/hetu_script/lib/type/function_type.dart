@@ -39,49 +39,50 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
 
   @override
   String toString() {
-    var result = StringBuffer();
+    var output = StringBuffer();
+    output.write('${HTLexicon.kFunction} ');
     if (genericTypeParameters.isNotEmpty) {
-      result.write(HTLexicon.chevronsLeft);
+      output.write(HTLexicon.chevronsLeft);
       for (var i = 0; i < genericTypeParameters.length; ++i) {
-        result.write(genericTypeParameters[i]);
+        output.write(genericTypeParameters[i]);
         if (i < genericTypeParameters.length - 1) {
-          result.write('${HTLexicon.comma} ');
+          output.write('${HTLexicon.comma} ');
         }
       }
-      result.write(HTLexicon.chevronsRight);
+      output.write(HTLexicon.chevronsRight);
     }
 
-    result.write(HTLexicon.parenthesesLeft);
+    output.write(HTLexicon.parenthesesLeft);
 
     var i = 0;
     var optionalStarted = false;
     var namedStarted = false;
     for (final param in parameterTypes) {
       if (param.isVariadic) {
-        result.write(HTLexicon.variadicArgs + ' ');
+        output.write(HTLexicon.variadicArgs + ' ');
       }
       if (param.isOptional && !optionalStarted) {
         optionalStarted = true;
-        result.write(HTLexicon.bracketsLeft);
+        output.write(HTLexicon.bracketsLeft);
       } else if (param.isNamed && !namedStarted) {
         namedStarted = true;
-        result.write(HTLexicon.bracesLeft);
+        output.write(HTLexicon.bracesLeft);
       }
-      result.write(param.toString());
+      output.write(param.toString());
       if (i < parameterTypes.length - 1) {
-        result.write('${HTLexicon.comma} ');
+        output.write('${HTLexicon.comma} ');
       }
       if (optionalStarted) {
-        result.write(HTLexicon.bracketsRight);
+        output.write(HTLexicon.bracketsRight);
       } else if (namedStarted) {
         namedStarted = true;
-        result.write(HTLexicon.bracesRight);
+        output.write(HTLexicon.bracesRight);
       }
       ++i;
     }
-    result.write('${HTLexicon.parenthesesRight} ${HTLexicon.singleArrow} ' +
+    output.write('${HTLexicon.parenthesesRight} ${HTLexicon.singleArrow} ' +
         returnType.toString());
-    return result.toString();
+    return output.toString();
   }
 
   @override

@@ -1,3 +1,4 @@
+export 'hetu.ht'
 export 'core.ht'
 export 'value.ht'
 export 'math.ht'

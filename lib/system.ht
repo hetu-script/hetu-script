@@ -1,4 +1,4 @@
-external class System {
+external class OS {
 
   static get now -> num
 

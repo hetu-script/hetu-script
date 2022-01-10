@@ -16,16 +16,13 @@ import '../value/function/function.dart';
 import '../value/namespace/namespace.dart';
 import '../parser/abstract_parser.dart';
 import '../value/entity.dart';
-import '../value/instance/instance.dart';
 import 'compiler.dart';
-import '../value/struct/struct.dart';
 import '../shared/stringify.dart';
 import '../shared/jsonify.dart';
-import '../shared/uid.dart' as util;
+import 'preincludes/preinclude_functions.dart';
 
-part 'preinclude/preinclude_functions.dart';
-part 'preinclude/class_binding.dart';
-part 'preinclude/instance_binding.dart';
+part 'binding/class_binding.dart';
+part 'binding/instance_binding.dart';
 
 /// Mixin for classes want to use a shared interpreter referrence.
 mixin InterpreterRef {
@@ -95,17 +92,17 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       for (var key in preincludeFunctions.keys) {
         bindExternalFunction(key, preincludeFunctions[key]!);
       }
-      bindExternalClass(HTNumberClass());
-      bindExternalClass(HTIntClass());
-      bindExternalClass(HTBigIntClass());
-      bindExternalClass(HTFloatClass());
-      bindExternalClass(HTBooleanClass());
-      bindExternalClass(HTStringClass());
-      bindExternalClass(HTListClass());
-      bindExternalClass(HTMapClass());
-      bindExternalClass(HTMathClass());
-      bindExternalClass(HTSystemClass());
-      bindExternalClass(HTFutureClass());
+      bindExternalClass(HTNumberClassBinding());
+      bindExternalClass(HTIntClassBinding());
+      bindExternalClass(HTBigIntClassBinding());
+      bindExternalClass(HTFloatClassBinding());
+      bindExternalClass(HTBooleanClassBinding());
+      bindExternalClass(HTStringClassBinding());
+      bindExternalClass(HTListClassBinding());
+      bindExternalClass(HTMapClassBinding());
+      bindExternalClass(HTMathClassBinding());
+      bindExternalClass(HTSystemClassBinding());
+      bindExternalClass(HTFutureClassBinding());
       // bindExternalClass(HTConsoleClass());
 
       for (final key in externalFunctions.keys) {

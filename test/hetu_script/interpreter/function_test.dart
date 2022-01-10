@@ -7,7 +7,7 @@ void main() {
 
   group('functions -', () {
     test('nested & anonymous', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         fun literalFunction(func) {
           var i = 42
           fun nested() {
@@ -26,7 +26,7 @@ void main() {
       );
     });
     test('closure in loop', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         var list = [];
         var builders = [];
         fun build(i, add) {
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('named args', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         fun namedArgFun({a: num, b: num = 2, c: num}) {
           return a * b
         }

@@ -23,7 +23,7 @@ void main() {
       );
     });
     // test('arguments', () {
-    //   final result = hetu.eval('''
+    //   final result = hetu.eval(r'''
     //     fun functionAssign1 {
     //       fun convert(n) -> num {
     //         return num.parse(n)
@@ -38,7 +38,7 @@ void main() {
     //   );
     // });
     // test('return type', () {
-    //   final result = hetu.eval('''
+    //   final result = hetu.eval(r'''
     //     fun functionAssign2 {
     //       var a: fun (num) -> num = fun (n: any) -> num { return n }
     //       return a.valueType.toString()
@@ -50,7 +50,7 @@ void main() {
     //   );
     // });
     test('function type', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         var numparse: (str) -> num = fun (value: str) -> num { return num.parse(value) }
         var getType = fun { typeof numparse }
         var funcTypedef2 = getType()
@@ -63,7 +63,7 @@ void main() {
       );
     });
     test('type alias class', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         class A {
           var name: str
           construct (name: str) {
@@ -80,7 +80,7 @@ void main() {
       );
     });
     test('type alias function', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         type MyFuncType = (num, num) -> num
         var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
         func(6, 7)
@@ -88,6 +88,25 @@ void main() {
       expect(
         result,
         13,
+      );
+    });
+    test('structural type', () {
+      final result = hetu.eval(r'''
+        type ObjType = {
+          name: str,
+          greeting: () -> any,
+        }
+        var aObj: {} = {
+          name: 'jimmy',
+          greeting: () {
+            print('hi! I\'m ${this.name}')
+          }
+        }
+        aObj is ObjType
+      ''');
+      expect(
+        result,
+        true,
       );
     });
   });

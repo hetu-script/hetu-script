@@ -274,6 +274,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(0); // bool: isExternal
     bytesBuilder.addByte(0); // bool: isStatic
     bytesBuilder.addByte(isMutable ? 1 : 0); // bool: isMutable
+    bytesBuilder.addByte(0); // bool: lateFinalize
     bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
     bytesBuilder.addByte(0); // bool: has type decl
     if (initializer != null) {
@@ -541,7 +542,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     final idBytes = _identifierString(expr.id);
     bytesBuilder.add(idBytes);
-    final typeBytes = visitTypeExpr(expr.fieldType);
+    Uint8List typeBytes;
+    if (expr.fieldType is FuncTypeExpr) {
+      typeBytes = visitFunctionTypeExpr(expr.fieldType as FuncTypeExpr);
+    } else {
+      typeBytes = visitTypeExpr(expr.fieldType);
+    }
     bytesBuilder.add(typeBytes);
     return bytesBuilder.toBytes();
   }
@@ -1413,6 +1419,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
     bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
+    bytesBuilder.addByte(stmt.lateFinalize ? 1 : 0);
     bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
     if (stmt.declType != null) {
       bytesBuilder.addByte(1); // bool: has type decl

@@ -34,8 +34,10 @@ import '../shared/constants.dart';
 import 'bytecode_module.dart';
 import 'abstract_interpreter.dart';
 import 'compiler.dart';
-import 'preinclude/preinclude_module.dart';
+import 'preincludes/preinclude_module.dart';
 import '../version.dart';
+
+part 'binding/interpreter_binding.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -196,10 +198,12 @@ class Hetu extends HTAbstractInterpreter {
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
     );
+    bindExternalClass(HTHetuClassBinding());
     // load precompiled core module.
     final coreModule = Uint8List.fromList(preincludeModule);
     loadBytecode(
         bytes: coreModule, moduleName: 'hetu:main', globallyImport: true);
+    invoke('setInterpreter', positionalArgs: [this]);
     for (final file in preincludes) {
       evalSource(file, globallyImport: true);
     }
@@ -405,6 +409,38 @@ class Hetu extends HTAbstractInterpreter {
 
   HTBytecodeModule? getBytecode(String moduleName) {
     return _cachedModules[moduleName];
+  }
+
+  dynamic toStructValue(dynamic value) {
+    if (value is Iterable) {
+      final list = [];
+      for (final item in value) {
+        final result = toStructValue(item);
+        list.add(result);
+      }
+      return list;
+    } else if (value is Map) {
+      final struct = HTStruct(this, closure: namespace);
+      for (final key in value.keys) {
+        final fieldKey = key.toString();
+        final fieldValue = toStructValue(value[key]);
+        struct.define(fieldKey, fieldValue);
+      }
+      return struct;
+    } else if (value is HTStruct) {
+      return value.clone();
+    } else {
+      return value;
+    }
+  }
+
+  HTStruct createStructfromJson(Map<String, dynamic> jsonData) {
+    final struct = HTStruct(this, closure: namespace);
+    for (final key in jsonData.keys) {
+      var value = toStructValue(jsonData[key]);
+      struct.define(key, value);
+    }
+    return struct;
   }
 
   void _handleNamespaceImport(HTNamespace nsp, ImportDeclaration decl) {
@@ -760,7 +796,6 @@ class Hetu extends HTAbstractInterpreter {
           _namespace = _loops.last.namespace;
           _loops.removeLast();
           --_loopCount;
-          clearLocals();
           break;
         case HTOpCode.continueLoop:
           _bytecodeModule.ip = _loops.last.continueIp;
@@ -895,7 +930,6 @@ class Hetu extends HTAbstractInterpreter {
             _namespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
-            clearLocals();
           }
           break;
         case HTOpCode.doStmt:
@@ -908,7 +942,6 @@ class Hetu extends HTAbstractInterpreter {
             _namespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
-            clearLocals();
           }
           break;
         case HTOpCode.whenStmt:
@@ -1178,7 +1211,8 @@ class Hetu extends HTAbstractInterpreter {
           prototype = _namespace.memberGet(prototypeId,
               from: _fileName, recursive: true);
         }
-        final struct = HTStruct(_namespace, id: id, prototype: prototype);
+        final struct =
+            HTStruct(this, id: id, prototype: prototype, closure: _namespace);
         final fieldsCount = _bytecodeModule.read();
         for (var i = 0; i < fieldsCount; ++i) {
           final fieldType = _bytecodeModule.read();
@@ -1190,8 +1224,7 @@ class Hetu extends HTAbstractInterpreter {
           } else if (fieldType == StructObjFieldTypeCode.spread) {
             final HTStruct value = execute();
             for (final key in value.fields.keys) {
-              final copiedValue =
-                  HTStruct.toStructValue(value.fields[key], value.closure!);
+              final copiedValue = toStructValue(value.fields[key]);
               struct.define(key, copiedValue);
             }
           }
@@ -1553,8 +1586,8 @@ class Hetu extends HTAbstractInterpreter {
         throw HTError.notCallable(klass.id!,
             filename: _fileName, line: _line, column: _column);
       }
-    } else if (callee is HTStruct && callee.definition != null) {
-      HTNamedStruct def = callee.definition!;
+    } else if (callee is HTStruct && callee.declaration != null) {
+      HTNamedStruct def = callee.declaration!;
       _localValue = def.createObject(
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
@@ -1607,7 +1640,7 @@ class Hetu extends HTAbstractInterpreter {
           final typeExpr = _handleTypeExpr();
           fieldTypes[id] = typeExpr;
         }
-        return HTStructuralType(fieldTypes: fieldTypes);
+        return HTStructuralType(namespace, fieldTypes: fieldTypes);
       case TypeType.union:
         throw 'Union Type is not implemented yet in this version of Hetu.';
     }
@@ -1654,6 +1687,7 @@ class Hetu extends HTAbstractInterpreter {
     final isExternal = _bytecodeModule.readBool();
     final isStatic = _bytecodeModule.readBool();
     final isMutable = _bytecodeModule.readBool();
+    final lateFinalize = _bytecodeModule.readBool();
     final lateInitialize = _bytecodeModule.readBool();
     HTType? declType;
     final hasTypeDecl = _bytecodeModule.readBool();
@@ -1706,7 +1740,8 @@ class Hetu extends HTAbstractInterpreter {
           declType: declType,
           isExternal: isExternal,
           isStatic: isStatic,
-          isMutable: isMutable);
+          isMutable: isMutable,
+          lateFinalize: lateFinalize);
     }
     if (!isField) {
       _namespace.define(id, decl, override: true);

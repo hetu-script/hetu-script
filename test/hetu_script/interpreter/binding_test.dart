@@ -129,7 +129,7 @@ void main() {
     PersonClassBinding()
   ]);
 
-  hetu.eval('''
+  hetu.eval(r'''
   external class Name {
     var familyName: str;
     var firstName: str;
@@ -149,7 +149,7 @@ void main() {
 
   group('binding -', () {
     test('get & set', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         Person.profile.isCivilian = false
       ''');
       expect(

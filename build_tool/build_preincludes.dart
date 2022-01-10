@@ -5,7 +5,7 @@ import 'package:hetu_script/parser.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 const kDest =
-    'packages/hetu_script/lib/interpreter/preinclude/preinclude_module.dart';
+    'packages/hetu_script/lib/interpreter/preincludes/preinclude_module.dart';
 
 void main() {
   final sourceContext =

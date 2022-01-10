@@ -1,3 +1,5 @@
+import 'hetu.ht'
+
 // print values of any type into lines
 external fun print(... args: any)
 
@@ -10,7 +12,7 @@ abstract class object {
 }
 
 struct prototype {
-  external static fun fromJson(data) -> {}
+  static fun fromJson(data) => createStructfromJson(data)
 
   external get keys -> List
 

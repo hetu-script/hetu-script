@@ -23,7 +23,7 @@ void main() {
       );
     });
     test('static member', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         class StaticField {
           static var field: str
           construct ([field: str = 'a']) {
@@ -47,7 +47,7 @@ void main() {
     });
 
     test('override', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         class Guy {
           fun meaning {
             return null
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('inherits', () {
-      final result = hetu.eval('''
+      final result = hetu.eval(r'''
         class Super1 {
           var name = 'Super'
           var age = 1

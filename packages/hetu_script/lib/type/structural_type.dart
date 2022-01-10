@@ -1,33 +1,40 @@
 import '../value/entity.dart';
 import '../../grammar/lexicon.dart';
 import 'type.dart';
+import '../value/namespace/namespace.dart';
 
 /// A type checks interfaces rather than type ids.
 class HTStructuralType extends HTType with HTEntity {
-  final Map<String, HTType> fieldTypes;
+  late final Map<String, HTType> fieldTypes;
 
-  const HTStructuralType({this.fieldTypes = const {}})
-      : super(HTLexicon.kStruct);
+  HTStructuralType(HTNamespace closure,
+      {Map<String, HTType> fieldTypes = const {}})
+      : super(HTLexicon.kStruct) {
+    this.fieldTypes =
+        fieldTypes.map((key, value) => MapEntry(key, value.resolve(closure)));
+  }
 
   @override
   String toString() {
-    var typeString = StringBuffer();
+    var output = StringBuffer();
+    output.write('${HTLexicon.kStruct} ');
     if (fieldTypes.isEmpty) {
-      typeString.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+      output.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
     } else {
-      typeString.writeln(HTLexicon.bracesLeft);
+      output.writeln(HTLexicon.bracesLeft);
       for (var i = 0; i < fieldTypes.length; ++i) {
         final key = fieldTypes.keys.elementAt(i);
-        typeString.write('  $key');
+        output.write('  $key${HTLexicon.colon}');
         final fieldTypeString = fieldTypes[key].toString();
-        typeString.write(' $fieldTypeString');
+        output.write(' $fieldTypeString');
         if (i < fieldTypes.length - 1) {
-          typeString.writeln(HTLexicon.comma);
+          output.write(HTLexicon.comma);
         }
+        output.writeln();
       }
-      typeString.write(HTLexicon.bracesRight);
+      output.write(HTLexicon.bracesRight);
     }
-    return typeString.toString();
+    return output.toString();
   }
 
   @override
@@ -43,8 +50,8 @@ class HTStructuralType extends HTType with HTEntity {
         if (other.fieldTypes.length != fieldTypes.length) {
           return false;
         } else {
-          for (final key in fieldTypes.keys) {
-            if (!other.fieldTypes.containsKey(key)) {
+          for (final key in other.fieldTypes.keys) {
+            if (!fieldTypes.containsKey(key)) {
               return false;
             } else {
               if (fieldTypes[key]!.isNotA(other.fieldTypes[key])) {

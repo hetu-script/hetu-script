@@ -1,5 +1,23 @@
 part of '../abstract_interpreter.dart';
 
+class HTHetuClass extends HTExternalClass {
+  HTHetuClass() : super('Hetu');
+
+  @override
+  dynamic memberGet(String varName, {String? from}) {
+    switch (varName) {
+      case 'num.parse':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            num.tryParse(positionalArgs.first);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
 extension IntBinding on int {
   dynamic htFetch(String varName) {
     switch (varName) {
