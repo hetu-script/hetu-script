@@ -30,6 +30,8 @@ abstract class AstNode {
 
   bool get hasEndOfStmtMark => false;
 
+  final bool isConst;
+
   final HTSource? source;
 
   final int line;
@@ -55,7 +57,8 @@ abstract class AstNode {
   void subAccept(AbstractAstVisitor visitor) {}
 
   AstNode(this.type,
-      {this.source,
+      {this.isConst = false,
+      this.source,
       this.line = 0,
       this.column = 0,
       this.offset = 0,
@@ -75,6 +78,7 @@ class EmptyExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.empty,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -93,6 +97,7 @@ class NullExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.nullLiteral,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -100,19 +105,20 @@ class NullExpr extends AstNode {
             length: length);
 }
 
-class BooleanExpr extends AstNode {
+class BooleanLiteralExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitBooleanExpr(this);
 
   final bool value;
 
-  BooleanExpr(this.value,
+  BooleanLiteralExpr(this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0})
       : super(Semantic.booleanLiteral,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -134,6 +140,7 @@ class IntLiteralExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.integerLiteral,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -155,6 +162,7 @@ class FloatLiteralExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.floatLiteral,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -180,6 +188,7 @@ class StringLiteralExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.stringLiteral,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -248,6 +257,7 @@ class IdentifierExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.symbolExpr,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -374,6 +384,7 @@ class TypeExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.typeExpr,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -415,6 +426,7 @@ class ParamTypeExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.paramTypeExpr,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -489,6 +501,7 @@ class FieldTypeExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.fieldTypeExpr,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -550,6 +563,7 @@ class GenericTypeParameterExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.genericTypeParamExpr,
+            isConst: true,
             source: source,
             line: line,
             column: column,
@@ -737,19 +751,6 @@ class MemberAssignExpr extends AstNode {
             length: length);
 }
 
-// class MemberCallExpr extends AstNode {
-//   @override
-//   dynamic accept(AbstractAstVisitor visitor) =>
-//       visitor.visitMemberCallExpr(this);
-
-//   final AstNode collection;
-
-//   final String key;
-
-//   MemberCallExpr(this.collection, this.key, int line, int column, int offset, int length, {HTSource? source})
-//       : super(SemanticType.memberGetExpr, source: source, line: line, column: column, offset: offset, length: length);
-// }
-
 class SubExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubExpr(this);
@@ -812,18 +813,6 @@ class SubAssignExpr extends AstNode {
             offset: offset,
             length: length);
 }
-
-// class SubCallExpr extends AstNode {
-//   @override
-//   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubCallExpr(this);
-
-//   final AstNode collection;
-
-//   final AstNode key;
-
-//   SubCallExpr(this.collection, this.key, int line, int column, int offset, int length, {HTSource? source})
-//       : super(SemanticType.subGetExpr, source: source, line: line, column: column, offset: offset, length: length);
-// }
 
 class CallExpr extends AstNode {
   @override
@@ -1522,13 +1511,17 @@ class ConstDecl extends AstNode {
   @override
   void subAccept(AbstractAstVisitor visitor) {
     id.accept(visitor);
+    declType?.accept(visitor);
+    constExpr.accept(visitor);
   }
 
   final IdentifierExpr id;
 
-  final AstNode constExpr;
-
   final String? classId;
+
+  final TypeExpr? declType;
+
+  final AstNode constExpr;
 
   @override
   final bool hasEndOfStmtMark;
@@ -1541,7 +1534,8 @@ class ConstDecl extends AstNode {
   bool get isExpression => false;
 
   ConstDecl(this.id, this.constExpr,
-      {this.classId,
+      {this.declType,
+      this.classId,
       this.hasEndOfStmtMark = false,
       this.isStatic = false,
       this.isTopLevel = false,

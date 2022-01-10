@@ -20,8 +20,8 @@ void main() {
 
   final parser = HTParser(context: sourceContext);
   final module = parser.parseToModule(source, moduleName: 'hetu:main');
-  if (parser.errors!.isNotEmpty) {
-    for (final err in parser.errors!) {
+  if (module.errors.isNotEmpty) {
+    for (final err in module.errors) {
       print(err);
     }
   } else {

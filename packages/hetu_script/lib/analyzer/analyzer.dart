@@ -162,7 +162,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitNullExpr(NullExpr expr) {}
 
   @override
-  void visitBooleanExpr(BooleanExpr expr) {}
+  void visitBooleanExpr(BooleanLiteralExpr expr) {}
 
   @override
   void visitIntLiteralExpr(IntLiteralExpr expr) {}

@@ -102,7 +102,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitBooleanExpr(BooleanExpr expr) {
+  String visitBooleanExpr(BooleanLiteralExpr expr) {
     return expr.value ? HTLexicon.kTrue : HTLexicon.kFalse;
   }
 

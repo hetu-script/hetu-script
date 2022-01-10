@@ -308,7 +308,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitBooleanExpr(BooleanExpr expr) {
+  Uint8List visitBooleanExpr(BooleanLiteralExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.boolean);
@@ -1083,7 +1083,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     if (stmt.condition != null) {
       condition = compileAst(stmt.condition!);
     } else {
-      final boolExpr = BooleanExpr(true);
+      final boolExpr = BooleanLiteralExpr(true);
       condition = visitBooleanExpr(boolExpr);
     }
     if (stmt.increment != null) {

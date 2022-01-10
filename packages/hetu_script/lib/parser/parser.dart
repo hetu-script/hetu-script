@@ -152,6 +152,7 @@ class HTParser extends HTAbstractParser {
   HTModuleParseResult parseToModule(HTSource source, {String? moduleName}) {
     _currentModuleName = moduleName ?? source.fullName;
     final result = parseSource(source);
+    final moduleErrors = result.errors!;
     final values = <String, HTSourceParseResult>{};
     final sources = <String, HTSourceParseResult>{};
 
@@ -174,6 +175,7 @@ class HTParser extends HTAbstractParser {
           } else {
             final source2 = sourceContext.getResource(importFullName);
             importModule = parseSource(source2);
+            moduleErrors.addAll(importModule.errors!);
             _cachedParseResults[importFullName] = importModule;
           }
           if (importModule.type == ResourceType.hetuValue) {
@@ -189,7 +191,7 @@ class HTParser extends HTAbstractParser {
               column: decl.column,
               offset: decl.offset,
               length: decl.length);
-          result.errors?.add(convertedError);
+          moduleErrors.add(convertedError);
         }
       }
       _cachedRecursiveParsingTargets.remove(result.fullName);
@@ -202,7 +204,10 @@ class HTParser extends HTAbstractParser {
       sources[result.fullName] = result;
     }
     final compilation = HTModuleParseResult(
-        values: values, sources: sources, type: source.type);
+        values: values,
+        sources: sources,
+        type: source.type,
+        errors: moduleErrors);
     return compilation;
   }
 
@@ -1675,7 +1680,7 @@ class HTParser extends HTAbstractParser {
       case Semantic.booleanLiteral:
         _leftValueLegality = false;
         final token = match(Semantic.booleanLiteral) as TokenBooleanLiteral;
-        return BooleanExpr(token.literal,
+        return BooleanLiteralExpr(token.literal,
             source: _currentSource,
             line: token.line,
             column: token.column,
@@ -2596,11 +2601,13 @@ class HTParser extends HTAbstractParser {
     final keyword = match(HTLexicon.kConst);
     final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
+    TypeExpr? declType;
+    if (expect([HTLexicon.colon], consume: true)) {
+      declType = _parseTypeExpr();
+    }
     match(HTLexicon.assign);
     final constExpr = _parseExpr();
-    if (constExpr is! IntLiteralExpr &&
-        constExpr is! FloatLiteralExpr &&
-        constExpr is! StringLiteralExpr) {
+    if (!constExpr.isConst) {
       final err = HTError.notConstValue(
           filename: _currrentFileName,
           line: constExpr.line,
@@ -2614,6 +2621,7 @@ class HTParser extends HTAbstractParser {
       id,
       constExpr,
       classId: classId,
+      declType: declType,
       hasEndOfStmtMark: hasEndOfStmtMark,
       isStatic: isStatic,
       source: _currentSource,

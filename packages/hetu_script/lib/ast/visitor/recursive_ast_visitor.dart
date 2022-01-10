@@ -19,7 +19,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitBooleanExpr(BooleanExpr node) {
+  T? visitBooleanExpr(BooleanLiteralExpr node) {
     node.subAccept(this);
   }
 
