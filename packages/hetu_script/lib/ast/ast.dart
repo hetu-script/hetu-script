@@ -254,7 +254,7 @@ class IdentifierExpr extends AstNode {
             offset: offset,
             length: length);
 
-  IdentifierExpr.fromToken(Token id, {bool isLocal = false, HTSource? source})
+  IdentifierExpr.fromToken(Token id, {bool isLocal = true, HTSource? source})
       : this(id.lexeme,
             isSymbol: id.type == Semantic.identifier,
             isKeyword: id.isKeyword,

@@ -1669,7 +1669,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       for (final item in stmt.enumerations) {
         itemList.add(item);
         final itemInit = CallExpr(
-            MemberExpr(IdentifierExpr(stmt.id.id),
+            MemberExpr(stmt.id,
                 IdentifierExpr(HTLexicon.privatePrefix, isLocal: false)),
             [
               StringLiteralExpr(
