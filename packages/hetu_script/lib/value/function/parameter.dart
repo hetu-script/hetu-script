@@ -36,6 +36,7 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
             moduleName: moduleName,
             closure: closure,
             declType: declType,
+            isMutable: true,
             definitionIp: definitionIp,
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
