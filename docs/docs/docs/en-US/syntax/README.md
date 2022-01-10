@@ -20,7 +20,7 @@ another line.*/
 
 ## Variable
 
-Variable is declared with 'var', 'final'. The type annotation and initialize expression is optional.
+Variable is declared with 'var', 'final', 'late'. The type annotation and initialize expression is optional.
 
 ```typescript
 var person;
@@ -39,7 +39,25 @@ print('To kill the ${a}, you have to wait ${6*7} years.')
 
 A little difference from Dart is that you have to write a curly brackets even if you have only one identifier.
 
+### Late finalize
+
+It's possible to declare a final variable while not assign it with a value when declared using keyword 'late'.
+
+You can assign it later, and then it will become immutable.
+
+```dart
+late a
+// print(a) // Error: [a] is not initialized yet.
+a = 42
+print(a)
+// a = 'dragon' // Error: [a] is immutable.
+```
+
+## Const
+
 You can declare a const int/float/string value by keyword 'const'.
+
+**You cannot declare a const expressions or functions for now. They are still WIP.**
 
 ## Shadowing
 

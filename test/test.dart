@@ -5,17 +5,11 @@ void main() {
   hetu.init();
 
   final result = hetu.eval(r'''
-    type AType = {
-      name: str,
-      greeting: () -> any,
-    }
-    var a: {} = {
-      name: 'jimmy',
-      greeting: () {
-        print('hi! I\'m ${this.name}')
-      }
-    }
-    print(a is AType)
+    late a
+    // print(a) // Error: [a] is not initialized yet.
+    a = 42
+    print(a)
+    // a = 'dragon' // Error: [a] is immutable.
     ''');
 
   print(result);
