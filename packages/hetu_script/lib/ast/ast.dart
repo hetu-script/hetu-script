@@ -1768,8 +1768,6 @@ class FuncDecl extends AstNode {
 
   final bool isStatic;
 
-  final bool isConst;
-
   final bool isVariadic;
 
   final bool isPrivate;
@@ -1798,17 +1796,18 @@ class FuncDecl extends AstNode {
       this.isField = false,
       this.isExternal = false,
       this.isStatic = false,
-      this.isConst = false,
       this.isVariadic = false,
       this.isPrivate = false,
       this.isTopLevel = false,
       this.category = FunctionCategory.normal,
+      bool isConst = false,
       HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0})
       : super(Semantic.functionDeclaration,
+            isConst: isConst,
             source: source,
             line: line,
             column: column,

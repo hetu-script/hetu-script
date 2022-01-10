@@ -1,6 +1,6 @@
 name: hetu_script_dev_tools
 description: Extensions for Hetu Script dart package. Includes file system resource context helper class and command line REPL for Hetu Script.
-version: 0.0.6
+version: 0.0.7
 homepage: https://github.com/hetu-script/hetu-script
 # publish_to: https://pub.dartlang.org
 publish_to: none
@@ -15,7 +15,7 @@ dependencies:
   path: ^1.8.0
   args: ^2.1.0
   http: ^0.13.4
-  # hetu_script: '^0.3.9'
+  # hetu_script: '^0.3.10'
   hetu_script:
     path: ../hetu_script
 

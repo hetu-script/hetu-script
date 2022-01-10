@@ -31,8 +31,7 @@ class HTStruct with HTEntity {
 
   final HTNamespace namespace;
 
-  HTNamespace? _closure;
-  HTNamespace? get closure => _closure;
+  final HTNamespace? closure;
 
   @override
   HTStructuralType get valueType {
@@ -47,10 +46,7 @@ class HTStruct with HTEntity {
   }
 
   HTStruct(this.interpreter,
-      {this.id,
-      this.prototype,
-      Map<String, dynamic>? fields,
-      HTNamespace? closure})
+      {this.id, this.prototype, Map<String, dynamic>? fields, this.closure})
       : namespace = HTNamespace(id: id ?? HTLexicon.kStruct, closure: closure) {
     namespace.define(HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: this));
     if (fields != null) {
@@ -188,7 +184,7 @@ class HTStruct with HTEntity {
 
   HTStruct clone() {
     final cloned =
-        HTStruct(interpreter, prototype: prototype, closure: _closure);
+        HTStruct(interpreter, prototype: prototype, closure: closure);
     for (final key in fields.keys) {
       final value = fields[key];
       final copiedValue = interpreter.toStructValue(value);

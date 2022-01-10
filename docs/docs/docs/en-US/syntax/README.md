@@ -232,9 +232,10 @@ Struct are a prototype base object system. This is mainly borrowed from Javascri
 
 Named struct's declaration are like class, you can have constructors, getter and setters.
 
+You don't have to declare the fields before assign it like you must do in Class declarations. This is useful for constructor.
+
 ```javascript
 struct Named {
-  var name: str
   construct (name: str) {
     this.name = name
   }
@@ -253,7 +254,7 @@ print(n.name) // 'Jimmy'
 
 You can define static fields on a named struct.
 
-Unlike static members in class, the object created by the struct constructor can also access these fields through '.' operator on the instance.
+Unlike class static members, the object created by the struct constructor can also access these fields through '.' operator.
 
 And if you changed the static fields in a named struct. All the object created from this named struct, nomatter it was created before or after the change, will be getting the new value.
 
