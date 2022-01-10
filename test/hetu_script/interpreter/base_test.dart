@@ -175,6 +175,7 @@ void main() {
             break
           }
         }
+        result
       ''');
       expect(
         result,

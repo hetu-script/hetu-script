@@ -235,9 +235,9 @@ print(n.name) // 'Jimmy'
 
 You can define static fields on a named struct.
 
-Unlike static members in class, the object created by the struct constructor can access the static fields through '.' operator.
+Unlike static members in class, the object created by the struct constructor can also access these fields through '.' operator on the instance.
 
-And if you changed the static fields in a named struct. All the object created from this named struct, will be getting the new value.
+And if you changed the static fields in a named struct. All the object created from this named struct, nomatter it was created before or after the change, will be getting the new value.
 
 ```javascript
 struct Named {
