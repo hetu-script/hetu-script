@@ -46,7 +46,7 @@ void main(List<String> arguments) {
   try {
     hetu = Hetu(sourceContext: sourceContext);
     hetu.init();
-    final version = HTCompiler.version.toString();
+    final version = kHetuVersion.toString();
     replInfo = replInfo.replaceAll('{0}', version);
     cliHelp = cliHelp.replaceAll('{0}', version);
 

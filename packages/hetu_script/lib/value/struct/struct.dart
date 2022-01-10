@@ -79,7 +79,7 @@ class HTStruct with HTEntity {
 
   @override
   String toString() {
-    final content = util.stringifyStruct(this, from: this);
+    final content = util.stringifyStructMembers(this, from: this);
     return '{\n$content}';
   }
 

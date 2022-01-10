@@ -12,11 +12,27 @@ void main() {
     // }
     // print(typeof a)
 
-    var l = [1, 2, 3, 4, 5]
+    // final list = [1,2,3,4,5]
+    // final locationNumber = 4
+    // var generatedIndexes = []
+    // while (generatedIndexes.length < locationNumber) {
+    //   var index
+    //   do {
+    //     index = list.random
+    //   } while (generatedIndexes.contains(index))
+    //   generatedIndexes.add(index)
+    // }
 
-    print(l.random)
-    print(l.random)
+    var a = 0
+    do {
+      var b = 0
+      do {
+        print(a, b++)
+      } while (b < 2)
+      a++
+    } while (a < 2)
 
+    print('done!')
     ''');
 
   print(result);

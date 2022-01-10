@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:pub_semver/pub_semver.dart';
-
 import '../ast/ast.dart';
 import '../value/const.dart';
 import '../parser/parse_result_compilation.dart';
@@ -12,6 +10,7 @@ import '../grammar/semantic.dart';
 import '../shared/constants.dart';
 import 'const_table.dart';
 import '../parser/parse_result.dart';
+import '../version.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -56,7 +55,6 @@ class CompilerConfigImpl implements CompilerConfig {
 }
 
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
-  static final version = Version(0, 3, 9);
   static const constStringLengthLimit = 128;
 
   /// Hetu script bytecode's bytecode signature
@@ -82,9 +80,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
     // hetu bytecode version
-    mainBytesBuilder.addByte(version.major);
-    mainBytesBuilder.addByte(version.minor);
-    mainBytesBuilder.add(_uint16(version.patch));
+    mainBytesBuilder.addByte(kHetuVersion.major);
+    mainBytesBuilder.addByte(kHetuVersion.minor);
+    mainBytesBuilder.add(_uint16(kHetuVersion.patch));
     // index: ResourceType
     mainBytesBuilder.addByte(compilation.type.index);
     final bytesBuilder = BytesBuilder();
@@ -442,22 +440,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     }
     return bytesBuilder.toBytes();
   }
-
-  // @override
-  // Uint8List visitMapExpr(MapExpr expr) {
-  //   final bytesBuilder = BytesBuilder();
-  //   bytesBuilder.add(_lineInfo(expr.line, expr.column));
-  //   bytesBuilder.addByte(HTOpCode.local);
-  //   bytesBuilder.addByte(HTValueTypeCode.map);
-  //   bytesBuilder.add(_uint16(expr.map.length));
-  //   for (final ast in expr.map.keys) {
-  //     final key = compileAst(ast, endOfExec: true);
-  //     bytesBuilder.add(key);
-  //     final value = compileAst(expr.map[ast]!, endOfExec: true);
-  //     bytesBuilder.add(value);
-  //   }
-  //   return bytesBuilder.toBytes();
-  // }
 
   @override
   Uint8List visitGroupExpr(GroupExpr expr) {
@@ -1057,7 +1039,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     if (stmt.condition != null) {
       condition = compileAst(stmt.condition!);
     }
-    final loopLength = loop.length + (condition?.length ?? 0) + 1;
+    final loopLength = loop.length + (condition?.length ?? 0) + 2;
     bytesBuilder.add(_uint16(0)); // while loop continue ip
     bytesBuilder.add(_uint16(loopLength)); // while loop break ip
     bytesBuilder.add(loop);

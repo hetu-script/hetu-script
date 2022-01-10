@@ -1,3 +1,7 @@
+## 0.3.10
+
+- Add 'List.random' api.
+
 ## 0.3.8
 
 - Add variable shadowing.

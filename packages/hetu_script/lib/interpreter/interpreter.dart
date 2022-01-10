@@ -35,6 +35,7 @@ import 'bytecode_module.dart';
 import 'abstract_interpreter.dart';
 import 'compiler.dart';
 import 'preinclude/preinclude_module.dart';
+import '../version.dart';
 
 /// Mixin for classes that holds a ref of Interpreter
 mixin HetuRef {
@@ -468,18 +469,18 @@ class Hetu extends HTAbstractInterpreter {
       final patch = _bytecodeModule.readUint16();
       var incompatible = false;
       if (major > 0) {
-        if (major != HTCompiler.version.major) {
+        if (major != kHetuVersion.major) {
           incompatible = true;
         }
       } else {
-        if (major != HTCompiler.version.major ||
-            minor != HTCompiler.version.minor ||
-            patch != HTCompiler.version.patch) {
+        if (major != kHetuVersion.major ||
+            minor != kHetuVersion.minor ||
+            patch != kHetuVersion.patch) {
           incompatible = true;
         }
       }
       if (incompatible) {
-        throw HTError.version('$major.$minor.$patch', '${HTCompiler.version}',
+        throw HTError.version('$major.$minor.$patch', '$kHetuVersion',
             filename: _fileName, line: _line, column: _column);
       }
       final sourceType = ResourceType.values.elementAt(_bytecodeModule.read());
@@ -759,10 +760,10 @@ class Hetu extends HTAbstractInterpreter {
           _namespace = _loops.last.namespace;
           _loops.removeLast();
           --_loopCount;
+          clearLocals();
           break;
         case HTOpCode.continueLoop:
           _bytecodeModule.ip = _loops.last.continueIp;
-          _namespace = _loops.last.namespace;
           break;
         case HTOpCode.assertion:
           final text = _readIdentifier();
@@ -891,6 +892,7 @@ class Hetu extends HTAbstractInterpreter {
           final truthValue = _truthy(_localValue);
           if (!truthValue) {
             _bytecodeModule.ip = _loops.last.breakIp;
+            _namespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
             clearLocals();
@@ -898,11 +900,15 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.doStmt:
           final hasCondition = _bytecodeModule.readBool();
-          if (hasCondition) {
-            final truthValue = _truthy(_localValue);
-            if (truthValue) {
-              _bytecodeModule.ip = _loops.last.startIp;
-            }
+          final truthValue = hasCondition ? _truthy(_localValue) : false;
+          if (truthValue) {
+            _bytecodeModule.ip = _loops.last.startIp;
+          } else {
+            _bytecodeModule.ip = _loops.last.breakIp;
+            _namespace = _loops.last.namespace;
+            _loops.removeLast();
+            --_loopCount;
+            clearLocals();
           }
           break;
         case HTOpCode.whenStmt:

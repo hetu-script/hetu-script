@@ -241,7 +241,9 @@ class HTFunction extends HTFunctionDeclaration
         //   }
         // }
 
-        if (category == FunctionCategory.constructor && construct) {
+        if (category == FunctionCategory.constructor &&
+            construct &&
+            klass != null) {
           result =
               instance = HTInstance(klass!, interpreter, typeArgs: typeArgs);
           namespace = result.namespace;

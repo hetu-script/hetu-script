@@ -23,11 +23,14 @@ String stringify(dynamic object) {
       output.write("'$object'");
     }
   } else if (object is HTStruct) {
-    output.writeln(HTLexicon.bracesLeft);
-    final structString = stringifyStruct(object);
-    output.write(structString);
-    output.write(_curIndent());
-    output.write(HTLexicon.bracesRight);
+    if (object.fields.isEmpty) {
+      output.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+    } else {
+      output.writeln(HTLexicon.bracesLeft);
+      final structString = stringifyStructMembers(object);
+      output.write(structString);
+      output.write(HTLexicon.bracesRight);
+    }
   } else if (object is List) {
     final listString = stringifyList(object);
     output.write(listString);
@@ -52,6 +55,9 @@ String stringify(dynamic object) {
 }
 
 String stringifyList(List list) {
+  if (list.isEmpty) {
+    return '${HTLexicon.bracketsLeft}${HTLexicon.bracketsRight}';
+  }
   final output = StringBuffer();
   output.writeln(HTLexicon.bracketsLeft);
   ++_curIndentCount;
@@ -71,7 +77,7 @@ String stringifyList(List list) {
 }
 
 /// Print all members of a struct object to a string.
-String stringifyStruct(HTStruct struct, {HTStruct? from}) {
+String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
   final output = StringBuffer();
   ++_curIndentCount;
   for (var i = 0; i < struct.fields.length; ++i) {
@@ -88,7 +94,7 @@ String stringifyStruct(HTStruct struct, {HTStruct? from}) {
     final value = struct.fields[key];
     final valueBuffer = StringBuffer();
     if (value is HTStruct) {
-      final content = stringifyStruct(value, from: from);
+      final content = stringifyStructMembers(value, from: from);
       valueBuffer.writeln(HTLexicon.bracesLeft);
       valueBuffer.write(content);
       valueBuffer.write(_curIndent());
@@ -104,7 +110,7 @@ String stringifyStruct(HTStruct struct, {HTStruct? from}) {
     output.writeln();
   }
   if (struct.prototype != null && struct.prototype!.id != HTLexicon.prototype) {
-    final inherits = stringifyStruct(struct.prototype!, from: struct);
+    final inherits = stringifyStructMembers(struct.prototype!, from: struct);
     output.write(inherits);
   }
   --_curIndentCount;
