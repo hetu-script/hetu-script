@@ -4,14 +4,9 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-        var id = 'terrain'
-
-        var tile = {
-          id,
-        }
-
-        print(tile)
-        
+      var meaning
+      eval("meaning = 'hello from a deeper dream!'")
+      meaning
     ''');
 
   print(result);

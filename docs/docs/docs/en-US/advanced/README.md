@@ -52,7 +52,7 @@ var a // a is null
 final value = a?.collection[0].value() // value is null and we won't get errors
 ```
 
-## Future
+## Future, async & await
 
 All hetu functions are sync. The script do not support async/await functionality, and we are not planning to do so in the near future.
 
@@ -84,7 +84,7 @@ void main() {
 }
 ```
 
-## Error hanlding
+## Error hanlding & assert
 
 It's not recommended to try to handle error in the script. You should do this in the Dart code.
 
@@ -137,3 +137,23 @@ Besides, Hetu will also add a 'end of statement mark' after return if there's a 
 So if you would like to return the value, remember to make the left bracket same line with the return.
 
 And if you want to write function definition, remember to make the left bracket same line with the function parameters.
+
+## Eval within script
+
+It's possible to use eval method of the interpreter within the script itself:
+
+```dart
+import 'package:hetu_script/hetu_script.dart';
+
+void main() {
+  var hetu = Hetu();
+  hetu.init();
+  final result = hetu.eval(r'''
+      var meaning
+      eval("meaning = 'hello from a deeper dream!'")
+      meaning
+    ''');
+
+  print(result);
+}
+```
