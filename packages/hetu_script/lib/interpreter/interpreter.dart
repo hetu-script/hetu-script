@@ -881,6 +881,7 @@ class Hetu extends HTAbstractInterpreter {
               id: internalName, classId: classId, closure: _namespace);
           execute(namespace: namespace);
           _namespace.define(internalName, namespace);
+          _localValue = namespace;
           break;
         case HTOpCode.delete:
           final deletingType = _bytecodeModule.read();
@@ -1117,6 +1118,7 @@ class Hetu extends HTAbstractInterpreter {
         }
       }
     }
+    _clearLocals();
   }
 
   void _storeLocal() {
@@ -1651,6 +1653,7 @@ class Hetu extends HTAbstractInterpreter {
     final decl =
         HTVariable(id, classId: classId, closure: _namespace, value: value);
     _namespace.define(id, decl);
+    _clearLocals();
   }
 
   void _handleConstDecl() {
@@ -1664,10 +1667,10 @@ class Hetu extends HTAbstractInterpreter {
     final typeIndex = _bytecodeModule.read();
     final type = ConstType.values.elementAt(typeIndex);
     final index = _bytecodeModule.readInt16();
-
     final decl = HTConst(id, type, index, _bytecodeModule,
         classId: classId, isStatic: isStatic);
     _namespace.define(id, decl);
+    _clearLocals();
   }
 
   void _handleVarDecl() {
@@ -1740,6 +1743,7 @@ class Hetu extends HTAbstractInterpreter {
     if (!isField) {
       _namespace.define(id, decl, override: true);
     }
+    _clearLocals();
   }
 
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
@@ -1876,6 +1880,7 @@ class Hetu extends HTAbstractInterpreter {
       }
       _namespace.define(func.internalName, func);
     }
+    _localValue = func;
   }
 
   void _handleClassDecl() {
@@ -1918,12 +1923,14 @@ class Hetu extends HTAbstractInterpreter {
       klass.resolve();
     }
     _class = savedClass;
+    _localValue = klass;
   }
 
   void _handleExternalEnumDecl() {
     final id = _bytecodeModule.readString();
     final enumClass = HTExternalEnum(id, this);
     _namespace.define(id, enumClass);
+    _localValue = enumClass;
   }
 
   void _handleStructDecl() {
@@ -1954,5 +1961,6 @@ class Hetu extends HTAbstractInterpreter {
       struct.resolve();
     }
     _namespace.define(id, struct);
+    _localValue = struct;
   }
 }

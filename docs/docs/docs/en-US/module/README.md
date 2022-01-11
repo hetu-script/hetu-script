@@ -58,7 +58,7 @@ For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the m
 
 ## Import a JSON file
 
-It's possible to import a non-hetu source in your code sometimes. For example, if you imported a JSON file, you will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
+Sometimes we need to import a non-hetu source in your code. For example, if you imported a JSON file, you will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
 
 To do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning. And you have to give the imported JSON a alias name in your namespace.
 

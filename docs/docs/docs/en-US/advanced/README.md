@@ -86,9 +86,9 @@ void main() {
 
 ## Error hanlding & assert
 
-It's not recommended to try to handle error in the script. You should do this in the Dart code.
+The script doesn't support 'try...catch' functionality. It's not recommended to try to handle error in the script. You should do this in the Dart code.
 
-The script doesn't support 'try...catch' functionality. However, it's possible to throw a error within the script using the Assert keyword.
+You can manually throw a dart exception within the script using the **assert** keyword.
 
 For example, a statement like:
 
@@ -96,7 +96,7 @@ For example, a statement like:
 assert(1 > 5)
 ```
 
-Will throw an 'assertion failed' error. And the error message will contain the expression string after the keyword to let you know why this happened.
+Will throw an 'assertion failed' error. And the error message will contain the source code text in the parentheses to let you know why this happened.
 
 The expression within the parentheses must be a boolean value.
 
@@ -140,7 +140,7 @@ And if you want to write function definition, remember to make the left bracket 
 
 ## Eval within script
 
-It's possible to use eval method of the interpreter within the script itself:
+You can use eval method within the script itself just like in Javascript:
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';

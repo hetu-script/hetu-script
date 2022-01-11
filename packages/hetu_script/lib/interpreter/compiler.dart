@@ -1538,7 +1538,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final classDefinition = visitBlockStmt(stmt.definition);
     bytesBuilder.add(classDefinition);
     bytesBuilder.addByte(HTOpCode.endOfExec);
-    bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
 

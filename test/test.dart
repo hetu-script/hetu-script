@@ -4,7 +4,9 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-      print(typeof {})
+      class P {
+        
+      }
     ''');
 
   print(result);

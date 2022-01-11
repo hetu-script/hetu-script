@@ -126,7 +126,9 @@ hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 
 ## External methods in classes
 
-It's possible for a Hetu class to have a external method, even if other part of this class is Hetu. In this case, the first argument passed from the script will be the instance instead of the namespace.
+A Hetu class could have a external method, even if other part of this class is all Hetu.
+
+When called, the first argument passed from the script will be the instance instead of the namespace.
 
 For example, we have the following class with a external method:
 
@@ -174,7 +176,7 @@ For external getter, you don't need to have a external function or external meth
 
 ## Binding a full class
 
-It's possible to use Dart object with full class definition in Hetu.
+You can use a Dart object with full class definition in Hetu.
 
 To achieve this, you have to write a full definition of that class in Hetu, which includes 4 parts of code:
 

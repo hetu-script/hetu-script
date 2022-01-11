@@ -155,6 +155,7 @@ abstract class HTLexicon {
   static const kImplements = 'implements';
   static const kWith = 'with';
   static const kRequired = 'required';
+  static const kReadonly = 'readonly';
 
   static const kConstruct = 'construct';
   static const kFactory = 'factory';
@@ -245,6 +246,8 @@ abstract class HTLexicon {
     kUnknown,
     kNever,
     kFrom,
+    kRequired,
+    kReadonly,
   };
 
   static const nullableMemberGet = '?.';

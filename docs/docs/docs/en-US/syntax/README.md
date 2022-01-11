@@ -41,9 +41,9 @@ A little difference from Dart is that you have to write a curly brackets even if
 
 ### Late finalize
 
-It's possible to declare a final variable while not assign it with a value when declared using keyword 'late'.
+You can declare a immutable symbol while not assign it with a value immediately by using keyword **late**.
 
-You can assign it later, and then it will become immutable.
+It will become immutable after the first assignment.
 
 ```dart
 late a
@@ -56,6 +56,10 @@ print(a)
 ## Const
 
 You can declare a const int/float/string value by keyword 'const'.
+
+```dart
+const pi = 3.1415926
+```
 
 **You cannot declare a const expressions or functions for now. They are still WIP.**
 
@@ -378,7 +382,7 @@ print(a); // { name: 'the world' }
 
 Identifiers are the names of classes, functions, types, members and fields. In common situations, you can only use letters or characters from any language, plus underscore and dollor sign.
 
-However, it's possible to get a identifier from any possible characters within a pair grave accent mark.
+You can define a identifier with a pair grave accent mark, then you can use any possible characters within it.
 
 ```dart
 var obj = {
@@ -390,9 +394,17 @@ print(obj.`name-#42🍎`) // 'aleph'
 
 ## Namespace
 
-It's possible to create a code block within a source or a function body, by declaring with keyword 'namespace' and an Identifer as its name.
+You can create a code block within a source or a function body, by declaring with keyword **namespace** and an Identifer as its name.
 
 The namespace code block works like a class definition. It only allows for variable/class/function declaration, but not for expresssions.
+
+```c++
+namespace universe {
+  var meaning = 42
+}
+
+print(universe.meaning)
+```
 
 Refer [Do statement](#do) for another kind of code block.
 
