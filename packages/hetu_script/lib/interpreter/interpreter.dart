@@ -786,6 +786,7 @@ class Hetu extends HTAbstractInterpreter {
           _namespace = _loops.last.namespace;
           _loops.removeLast();
           --_loopCount;
+          _clearLocals();
           break;
         case HTOpCode.continueLoop:
           _bytecodeModule.ip = _loops.last.continueIp;
@@ -921,6 +922,7 @@ class Hetu extends HTAbstractInterpreter {
             _namespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
+            _clearLocals();
           }
           break;
         case HTOpCode.doStmt:
@@ -933,6 +935,7 @@ class Hetu extends HTAbstractInterpreter {
             _namespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
+            _clearLocals();
           }
           break;
         case HTOpCode.whenStmt:

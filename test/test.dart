@@ -4,12 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-      final obj = {
-        name: 'Jay',
-        age: 17,
-      }
+      final list = [1,2,3,4,5,6,7,8,9,10]
 
-      for (final i of obj) {
+      for (final i in list) {
+        if (i.isEven) continue
         print(i)
       }
     ''');

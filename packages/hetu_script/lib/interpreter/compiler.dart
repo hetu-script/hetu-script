@@ -61,6 +61,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
 
+  static var iterIndex = 0;
+
   CompilerConfig config;
 
   final _curConstTable = ConstTable();
@@ -1087,6 +1089,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitForRangeStmt(ForRangeStmt stmt) {
     final bytesBuilder = BytesBuilder();
+
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_parseIdentifier(Semantic.forStmtInit));
 
@@ -1099,46 +1102,52 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final iterInit = MemberExpr(
         collection, IdentifierExpr(HTLexicon.iterator, isLocal: false));
     final iterInitBytes = compileAst(iterInit, endOfExec: true);
+    final iterId = '${Semantic.iterator}${iterIndex++}';
     final iterDecl = _assembleVarDeclStmt(
-        Semantic.iterator, stmt.iterator.line, stmt.iterator.column,
+        iterId, stmt.iterator.line, stmt.iterator.column,
         initializer: iterInitBytes);
     bytesBuilder.add(iterDecl);
 
-    // calls iterator.moveNext()
-    final iterMoveNextCall = CallExpr(MemberExpr(
-        IdentifierExpr(Semantic.iterator),
-        IdentifierExpr(HTLexicon.moveNext, isLocal: false)));
-    final iterMoveResultInitBytes =
-        compileAst(iterMoveNextCall, endOfExec: true);
     final moveResultDeclBytes = _assembleVarDeclStmt(
-        Semantic.iteratorMoveResult, stmt.iterator.line, stmt.iterator.column,
-        initializer: iterMoveResultInitBytes);
+        Semantic.iteratorMoveResult, stmt.iterator.line, stmt.iterator.column);
     bytesBuilder.add(moveResultDeclBytes);
 
+    // update iter move result
+    // calls iterator.moveNext()
+    final moveIter = BinaryExpr(
+        IdentifierExpr(Semantic.iteratorMoveResult),
+        HTLexicon.assign,
+        CallExpr(MemberExpr(IdentifierExpr(iterId),
+            IdentifierExpr(HTLexicon.moveNext, isLocal: false))));
+    final moveIterBytes = visitBinaryExpr(moveIter);
+    bytesBuilder.add(moveIterBytes);
+
+    final conditionBuilder = BytesBuilder();
+    // conditionBuilder.add(moveIterBytes);
     // assemble the condition expression, i.e., checks iterator.moveNext() result
     final moveResult = IdentifierExpr(Semantic.iteratorMoveResult);
-    final condition = visitIdentifierExpr(moveResult);
+    final moveResultBytes = visitIdentifierExpr(moveResult);
+    conditionBuilder.add(moveResultBytes);
+    final condition = conditionBuilder.toBytes();
 
     // get current item value
-    stmt.iterator.initializer = MemberExpr(IdentifierExpr(Semantic.iterator),
+    stmt.iterator.initializer = MemberExpr(IdentifierExpr(iterId),
         IdentifierExpr(HTLexicon.current, isLocal: false));
-
-    // update iter move result
-    final moveIter = BinaryExpr(IdentifierExpr(Semantic.iteratorMoveResult),
-        HTLexicon.assign, iterMoveNextCall);
-    bytesBuilder.addByte(HTOpCode.loopPoint);
     stmt.loop.statements.insert(0, stmt.iterator);
-    stmt.loop.statements.add(moveIter);
     final loop = visitBlockStmt(stmt.loop);
-    final continueLength = condition.length + loop.length + 1;
-    final breakLength = continueLength + 3;
+
+    bytesBuilder.addByte(HTOpCode.loopPoint);
+    final continueLength = condition.length + 1 + loop.length;
+    final loopLength =
+        condition.length + 1 + loop.length + moveIterBytes.length + 3;
     bytesBuilder.add(_uint16(continueLength));
-    bytesBuilder.add(_uint16(breakLength));
+    bytesBuilder.add(_uint16(loopLength));
     bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.whileStmt);
     bytesBuilder.add(loop);
+    bytesBuilder.add(moveIterBytes);
     bytesBuilder.addByte(HTOpCode.skip);
-    bytesBuilder.add(_int16(-breakLength));
+    bytesBuilder.add(_int16(-loopLength));
     bytesBuilder.addByte(HTOpCode.endOfBlock);
     return bytesBuilder.toBytes();
   }
