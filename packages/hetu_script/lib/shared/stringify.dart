@@ -29,6 +29,7 @@ String stringify(dynamic object) {
       output.writeln(HTLexicon.bracesLeft);
       final structString = stringifyStructMembers(object);
       output.write(structString);
+      output.write(_curIndent());
       output.write(HTLexicon.bracesRight);
     }
   } else if (object is Iterable) {
@@ -72,6 +73,7 @@ String stringifyList(Iterable list) {
     output.writeln();
   }
   --_curIndentCount;
+  output.write(_curIndent());
   output.write(HTLexicon.bracketsRight);
   return output.toString();
 }
