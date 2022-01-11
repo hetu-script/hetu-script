@@ -136,11 +136,7 @@ Member functions can also be declared with **get**, **set**, **construct**, they
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
 
-Function can have no name, it will then become a literal function expression (anonymous function). And a literal function can have no keyword, in this situation, the parameter brackets are not omittable even if it's empty.
-
 Functions can be nested, and nested functions can have names.
-
-Function are first class, you can use function as parameter, return value and store them in variables.
 
 Function body could be a block statement (within '{' and '}'), or a single line expression after '=>'.
 
@@ -162,6 +158,8 @@ fun main {
 }
 ```
 
+Function are first class in Hetu script, you can pass them as arguments, return value and store/rebind them to variables.
+
 ### Variadic parameter
 
 In function declaration's parameters. '...' means you can pass as many positional arguments as you wish.
@@ -176,7 +174,32 @@ print('hello', 'world!', 42) // okay!
 
 If there's a return statement is the function body, it will return the value of the expression after the keyword.
 
-If there's none return statement, functions will return the last expression's value as it return value. Note that for control statement, it will also return the last statement within it's code block.
+If there's no return type declaration nor return statement in the actual function body. Functions will inexplicitly return the last expression's value as its return value.
+
+### Literal function (sometimes called function expression, anonymous function or lambda)
+
+```javascript
+fun closure(func) {
+  var i = 42
+  fun nested () {
+    i = i + 1
+    print(func(i))
+  }
+  return nested
+}
+
+var func = closure( (n) => n * n )
+func()
+```
+
+A literal function can have no keyword, in this situation, the parameter brackets are not omittable even if it's empty. The following way to define a function is all okay and they are the same to the compiler.
+
+```dart
+final func1 = fun { return 42 }
+final func2 = fun => 42
+final func3 = () { 42 }
+final func4 = () => 42
+```
 
 ## Class
 
@@ -186,9 +209,9 @@ Class's member functions use special keyword: **construct, get, set**, to define
 
 Constructors can be with no function name and cannot return values. When calling they will always return a instance.
 
-Getter & setter functions can be used feels like a member variable. They can be accessed without brackets.
+Getter & setter functions is used like a member variable. They can be accessed without brackets.
 
-Use 'extends' to inherits other class's members
+Use 'extends' to inherit other class's members
 
 ```typescript
 // class definition
@@ -218,7 +241,7 @@ class Calculator {
   }
   // method with return type
   fun meaning -> num {
-    // when no shadowing, `this` keyword can be omitted
+    // when there's no shadowing, `this` keyword can be omitted
     return x * y
   }
 }
@@ -275,6 +298,26 @@ print(n.race) // Dragon
 
 One important thing worth noted: within a named struct's method, **you cannot omit 'this' when accessing its own members** like you would do in a class method.
 
+### Struct inherit
+
+Named struct can declare its prototype same way as a class.
+
+```javascript
+struct Animal {
+  walk: () {
+    print('Animal walking.')
+  }
+}
+struct Bird extends Animal {
+  fly: () {
+    print('Bird flying.')
+  }
+  walk: () {
+    print('Bird walking.')
+  }
+}
+```
+
 ### Literal struct
 
 Literal struct are expressions in the form of '{key: value}'
@@ -300,11 +343,11 @@ Struct's root prototype has two functions: toString() and toJson(). Can be used 
 
 ### Literal struct and literal function
 
-You can bind a literal function onto a literal struct object and get a new function.
+You can bind a literal function (and only a literal function) onto a literal struct object and get a new function.
 
 This is useful when you want to seperate data and logic, and still want the function to be able to have 'this' keyword.
 
-Notice that this method won't modify the functio itself. It will give you a new function instead.
+Notice that this method won't modify the function itself. It will give you a new function instead.
 
 ```dart
 final obj = {
@@ -381,18 +424,22 @@ If the interpreter is in non strict mode, the if/do/while statement's condition 
 The conversion rules is:
 
 ```dart
-if (condition == null ||
-    !condition ||
-    condition == 0 ||
-    condition == '' ||
-    condition == '0' ||
-    condition == 'false' ||
-    (condition is List && condition.isEmpty) ||
-    (condition is Map && condition.isEmpty) ||
-    (condition is HTStruct && condition.isEmpty)) {
-  return false;
-} else {
-  return true;
+/// inexpicit type conversion for truthy values
+bool _truthy(dynamic condition) {
+  if (_isStrictMode || condition is bool) {
+    return condition;
+  } else if (condition == null ||
+      condition == 0 ||
+      condition == '' ||
+      condition == '0' ||
+      condition == 'false' ||
+      (condition is Iterable && condition.isEmpty) ||
+      (condition is Map && condition.isEmpty) ||
+      (condition is HTStruct && condition.fields.isEmpty)) {
+    return false;
+  } else {
+    return true;
+  }
 }
 ```
 

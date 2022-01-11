@@ -2,6 +2,7 @@ import 'package:quiver/core.dart';
 
 import '../declaration/class/class_declaration.dart';
 import 'type.dart';
+import '../grammar/lexicon.dart';
 
 /// A type checks ids and its super types.
 class HTNominalType extends HTType {
@@ -26,6 +27,11 @@ class HTNominalType extends HTType {
   //   curKlass = curKlass.superClass;
   // }
   // }
+
+  @override
+  String toString() {
+    return '${HTLexicon.kClass} ${super.toString()}';
+  }
 
   @override
   bool operator ==(Object other) {
