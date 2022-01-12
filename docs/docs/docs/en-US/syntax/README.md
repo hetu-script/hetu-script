@@ -10,6 +10,61 @@ Type annotation is optional. Type is annotated **with a colon after the identifi
 
 Use **when** instead of **switch**
 
+## Primitive (buildin) types and classes
+
+- null
+- bool
+- int
+- float (i.e. double is Dart)
+- String
+- List\<dynamic\>
+- Set\<dynamic\>
+- Map\<dynamic, dynamic\>
+- Function
+
+There's no literal syntax for Set & Map, you have to create them by using constructors.
+
+## Buildin modules
+
+### Math
+
+```javascript
+external class Math {
+  static const e: num = 2.718281828459045
+  static const pi: num = 3.1415926535897932
+
+  static fun radiusToSigma(radius: float) -> float
+
+  // Box–Muller transform for generating normally distributed random numbers
+  static fun gaussianNoise(mean: float, variance: float) -> float
+
+  // Compute Perlin noise at coordinates x, y
+  static fun perlinNoise(x: float, y: float) -> float
+
+  static fun min(a, b)
+  static fun max(a, b)
+  static fun random() -> num
+  static fun randomInt(max: num) -> num
+  static fun sqrt(x: num) -> num
+  static fun pow(x: num, exponent: num) -> num
+  static fun sin(x: num) -> num
+  static fun cos(x: num) -> num
+  static fun tan(x: num) -> num
+  static fun exp(x: num) -> num
+  static fun log(x: num) -> num
+  static fun parseInt(source: str, {radix: int?}) -> num
+  static fun parseDouble(source: str) -> num
+  static fun sum(list: List<num>) -> num
+  static fun checkBit(index: num, check: num) -> bool
+  static fun bitLS(x: num, distance: num) -> bool
+  static fun bitRS(x: num, distance: num) -> bool
+  static fun bitAnd(x: num, y: num) -> bool
+  static fun bitOr(x: num, y: num) -> bool
+  static fun bitNot(x: num) -> bool
+  static fun bitXor(x: num, y: num) -> bool
+}
+```
+
 ## Comments
 
 ```typescript

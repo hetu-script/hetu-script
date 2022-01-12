@@ -204,10 +204,7 @@ class HTFunction extends HTFunctionDeclaration
   /// ```
   /// variadic calling:
   /// ```
-  /// function(posArg1, posArg2...)
-  /// ```
-  /// ```
-  /// args = [posArg1, posArg2...];
+  /// function(posArg1, ...posArg2)
   /// ```
   dynamic call(
       {List<dynamic> positionalArgs = const [],
@@ -486,7 +483,7 @@ class HTFunction extends HTFunctionDeclaration
               variadicArg.add(positionalArgs[i]);
             }
 
-            finalPosArgs.add(variadicArg);
+            finalPosArgs.addAll(variadicArg);
           }
         } else {
           finalPosArgs = positionalArgs;

@@ -1,5 +1,23 @@
 part of '../abstract_interpreter.dart';
 
+class HTHetuClass extends HTExternalClass {
+  HTHetuClass() : super('Hetu');
+
+  @override
+  dynamic memberGet(String varName, {String? from}) {
+    switch (varName) {
+      case 'num.parse':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            num.tryParse(positionalArgs.first);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
 class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('num');
 
@@ -189,6 +207,12 @@ class HTListClassBinding extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
+      case 'List':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            List.from(positionalArgs);
       default:
         throw HTError.undefined(varName);
     }
@@ -199,12 +223,40 @@ class HTListClassBinding extends HTExternalClass {
       (object as List).htFetch(varName);
 }
 
+class HTSetClassBinding extends HTExternalClass {
+  HTSetClassBinding() : super('Set');
+
+  @override
+  dynamic memberGet(String varName, {String? from}) {
+    switch (varName) {
+      case 'Set':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            Set.from(positionalArgs);
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as Set).htFetch(varName);
+}
+
 class HTMapClassBinding extends HTExternalClass {
   HTMapClassBinding() : super('Map');
 
   @override
   dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
+      case 'Map':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            {};
       default:
         throw HTError.undefined(varName);
     }
@@ -222,17 +274,45 @@ class HTMathClassBinding extends HTExternalClass {
   dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
       case 'Math.e':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            math.e;
+        return math.e;
       case 'Math.pi':
+        return math.pi;
+      case 'Math.uid':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            math.pi;
+            uid();
+      case 'Math.crc32b':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final data = positionalArgs.first;
+          var crc = 0;
+          if (positionalArgs.length > 1) {
+            crc = positionalArgs[1];
+          }
+          return crc32b(data, crc);
+        };
+      case 'Math.radiusToSigma':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            radiusToSigma(positionalArgs.first);
+      case 'Math.gaussianNoise':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            gaussianNoise(positionalArgs[0], positionalArgs[1]);
+      case 'Math.perlinNoise':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            perlinNoise(positionalArgs[0], positionalArgs[1]);
       case 'Math.min':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

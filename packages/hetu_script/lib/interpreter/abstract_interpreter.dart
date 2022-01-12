@@ -20,6 +20,10 @@ import 'compiler.dart';
 import '../shared/stringify.dart';
 import '../shared/jsonify.dart';
 import 'preincludes/preinclude_functions.dart';
+import '../shared/gaussian_noise.dart';
+import '../shared/perlin_noise.dart';
+import '../shared/math.dart';
+import '../shared/uid.dart';
 
 part 'binding/class_binding.dart';
 part 'binding/instance_binding.dart';
@@ -101,7 +105,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTIteratorClassBinding());
       bindExternalClass(HTIterableClassBinding());
       bindExternalClass(HTListClassBinding());
-      bindExternalClass(HTListClassBinding());
+      bindExternalClass(HTSetClassBinding());
       bindExternalClass(HTMapClassBinding());
       bindExternalClass(HTMathClassBinding());
       bindExternalClass(HTSystemClassBinding());

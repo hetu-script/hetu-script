@@ -1,38 +1,20 @@
 part of '../abstract_interpreter.dart';
 
-class HTHetuClass extends HTExternalClass {
-  HTHetuClass() : super('Hetu');
-
-  @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
-      case 'num.parse':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            num.tryParse(positionalArgs.first);
-      default:
-        throw HTError.undefined(varName);
-    }
-  }
-}
-
-extension IntBinding on int {
+extension NumBinding on num {
   dynamic htFetch(String varName) {
     switch (varName) {
-      case 'remainder':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            remainder(positionalArgs[0]);
       case 'compareTo':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             compareTo(positionalArgs[0]);
+      case 'remainder':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            remainder(positionalArgs[0]);
       case 'isNaN':
         return isNaN;
       case 'isNegative':
@@ -41,73 +23,6 @@ extension IntBinding on int {
         return isInfinite;
       case 'isFinite':
         return isFinite;
-      case 'clamp':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            clamp(positionalArgs[0], positionalArgs[1]);
-      case 'toString':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toString();
-      case 'toStringAsFixed':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toStringAsFixed(positionalArgs[0]);
-      case 'toStringAsExponential':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toStringAsExponential(positionalArgs[0]);
-      case 'toStringAsPrecision':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toStringAsPrecision(positionalArgs[0]);
-
-      case 'modPow':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            modPow(positionalArgs[0], positionalArgs[1]);
-      case 'modInverse':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            modInverse(positionalArgs[0]);
-      case 'gcd':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            gcd(positionalArgs[0]);
-      case 'isEven':
-        return isEven;
-      case 'isOdd':
-        return isOdd;
-      case 'bitLength':
-        return bitLength;
-      case 'toUnsigned':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toUnsigned(positionalArgs[0]);
-      case 'toSigned':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toSigned(positionalArgs[0]);
       case 'abs':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -164,6 +79,87 @@ extension IntBinding on int {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             truncateToDouble();
+      case 'toInt':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toInt();
+      case 'toDouble':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toDouble();
+      case 'toStringAsFixed':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toStringAsFixed(positionalArgs[0]);
+      case 'toStringAsExponential':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toStringAsExponential(positionalArgs[0]);
+      case 'toStringAsPrecision':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toStringAsPrecision(positionalArgs[0]);
+      case 'toString':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toString();
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
+extension IntBinding on int {
+  dynamic htFetch(String varName) {
+    switch (varName) {
+      case 'modPow':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            modPow(positionalArgs[0], positionalArgs[1]);
+      case 'modInverse':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            modInverse(positionalArgs[0]);
+      case 'gcd':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            gcd(positionalArgs[0]);
+      case 'isEven':
+        return isEven;
+      case 'isOdd':
+        return isOdd;
+      case 'bitLength':
+        return bitLength;
+      case 'toUnsigned':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toUnsigned(positionalArgs[0]);
+      case 'toSigned':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toSigned(positionalArgs[0]);
       case 'toRadixString':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -171,7 +167,8 @@ extension IntBinding on int {
                 List<HTType> typeArgs = const []}) =>
             toRadixString(positionalArgs[0]);
       default:
-        throw HTError.undefined(varName);
+        // ignore: unnecessary_cast
+        return (this as num).htFetch(varName);
     }
   }
 }
@@ -260,115 +257,9 @@ extension BigIntBinding on BigInt {
 extension DoubleBinding on double {
   dynamic htFetch(String varName) {
     switch (varName) {
-      case 'remainder':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            remainder(positionalArgs[0]);
-      case 'compareTo':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            compareTo(positionalArgs[0]);
-      case 'isNaN':
-        return isNaN;
-      case 'isNegative':
-        return isNegative;
-      case 'isInfinite':
-        return isInfinite;
-      case 'isFinite':
-        return isFinite;
-      case 'clamp':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            clamp(positionalArgs[0], positionalArgs[1]);
-      case 'toString':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toString();
-      case 'toStringAsFixed':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toStringAsFixed(positionalArgs[0]);
-      case 'toStringAsExponential':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toStringAsExponential(positionalArgs[0]);
-      case 'toStringAsPrecision':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            toStringAsPrecision(positionalArgs[0]);
-
-      case 'abs':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            abs();
-      case 'sign':
-        return sign;
-      case 'round':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            round();
-      case 'floor':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            floor();
-      case 'ceil':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            ceil();
-      case 'truncate':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            truncate();
-      case 'roundToDouble':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            roundToDouble();
-      case 'floorToDouble':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            floorToDouble();
-      case 'ceilToDouble':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            ceilToDouble();
-      case 'truncateToDouble':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            truncateToDouble();
       default:
-        throw HTError.undefined(varName);
+        // ignore: unnecessary_cast
+        return (this as num).htFetch(varName);
     }
   }
 }
@@ -922,6 +813,108 @@ extension ListBinding on List {
         break;
       default:
         throw HTError.undefined(varName);
+    }
+  }
+}
+
+extension SetBinding on Set {
+  dynamic htFetch(String varName) {
+    switch (varName) {
+      case 'add':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            add(positionalArgs.first);
+      case 'addAll':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            addAll(positionalArgs.first);
+      case 'remove':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            remove(positionalArgs.first);
+      case 'lookup':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            lookup(positionalArgs[0]);
+      case 'removeAll':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            removeAll(positionalArgs.first);
+      case 'retainAll':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            retainAll(positionalArgs.first);
+      case 'removeWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          removeWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
+      case 'retainWhere':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          HTFunction func = positionalArgs.first;
+          retainWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
+      case 'containsAll':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            containsAll(positionalArgs.first);
+      case 'intersection':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            intersection(positionalArgs.first);
+      case 'union':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            union(positionalArgs.first);
+      case 'difference':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            difference(positionalArgs.first);
+      case 'clear':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            clear();
+      case 'toSet':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            toSet();
+      default:
+        // ignore: unnecessary_cast
+        return (this as Iterable).htFetch(varName);
     }
   }
 }

@@ -12,8 +12,7 @@ final Map<String, Function> preincludeFunctions = {
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    List args = positionalArgs.first;
-    print(args.map((e) => e is String ? e : stringify(e)).join(' '));
+    print(positionalArgs.map((e) => e is String ? e : stringify(e)).join(' '));
   },
   'stringify': (HTEntity entity,
       {List<dynamic> positionalArgs = const [],
@@ -98,22 +97,5 @@ final Map<String, Function> preincludeFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     return (object as HTInstance).getTypeString();
-  },
-  'uid': (HTEntity entity,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    return uid();
-  },
-  'crc32b': (HTEntity entity,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    final data = positionalArgs.first;
-    var crc = 0;
-    if (positionalArgs.length > 1) {
-      crc = positionalArgs[1];
-    }
-    return crc32b(data, crc);
   },
 };

@@ -3,20 +3,25 @@
 
 /// There are some original methods, like List.random, etc...
 
-class num {
-  
-}
-
-external class int extends num {
-
-  fun toString() -> str
-  
-  /// Parse [source] as a, possibly signed, integer literal.
-  static fun parse(source: str, {radix: int?}) -> int
+external class num {
 
   fun compareTo(compareTo: num) -> int
 
   fun remainder(other: num) -> num
+
+  get isNaN -> bool
+
+  get isNegative -> bool
+
+  get isInfinite -> bool
+
+  get isFinite -> bool
+
+  /// Returns the absolute value of this integer.
+  fun abs() -> int
+
+  /// Returns the sign of this integer.
+  get sign -> int
 
   /// Returns the integer closest to this number.
   fun round() -> int
@@ -44,21 +49,25 @@ external class int extends num {
   /// digits from `this`.
   fun truncateToDouble() -> float
 
-  get isNaN -> bool
+  fun toInt() -> int
 
-  get isNegative -> bool
-
-  get isInfinite -> bool
-
-  get isFinite -> bool
-
-  fun clamp(lowerLimit: num, upperLimit: num) -> num
+  fun toDouble() -> float
 
   fun toStringAsFixed(fractionDigits: int) -> str
 
   fun toStringAsExponential([fractionDigits: int]) -> str
 
   fun toStringAsPrecision(precision: int) -> str
+  
+  fun toString() -> str
+}
+
+external class int extends num {
+  
+  /// Parse [source] as a, possibly signed, integer literal.
+  static fun parse(source: str, {radix: int?}) -> int
+
+  fun clamp(lowerLimit: num, upperLimit: num) -> num
 	
   /// Returns this integer to the power of [exponent] modulo [modulus].
   fun modPow(exponent: int, modulus: int) -> int
@@ -89,21 +98,15 @@ external class int extends num {
   /// returned value has the same bit value in all positions higher than [width].
   fun toSigned(width: int) -> int
 
-  /// Returns the absolute value of this integer.
-  fun abs() -> int
-
-  /// Returns the sign of this integer.
-  get sign -> int
-
   /// Converts [this] to a string representation in the given [radix].
   fun toRadixString(radix: int) -> str
 }
 
 /// An arbitrarily large integer.
-external abstract class BigInt {
-  static get zero
-  static get one
-  static get two
+external class BigInt {
+  static get zero -> BigInt;
+  static get one -> BigInt;
+  static get two -> BigInt;
 
   /// Parses [source] as a, possibly signed, integer literal and returns its
   /// value.
@@ -385,16 +388,18 @@ external class Iterable {
 }
 
 external class List extends Iterable {
+
+  construct (... args: any)
   
-	fun add(value)
+	fun add(value: any)
 
-  fun addAll(iterable)
+  fun addAll(iterable: Iterable)
 
-  get reversed
+  get reversed -> Iterable
 
-	fun indexOf(value, [start: int = 0]) -> int
+	fun indexOf(value: any, [start: int = 0]) -> int
 
-	fun lastIndexOf(value, [start: int?]) -> int
+	fun lastIndexOf(value: any, [start: int?]) -> int
 
 	fun insert(index: int, value)
 
@@ -402,7 +407,7 @@ external class List extends Iterable {
 
 	fun clear()
 
-	fun remove(value)
+	fun remove(value: any)
 
 	fun removeAt(index: int)
 
@@ -413,7 +418,7 @@ external class List extends Iterable {
   fun asMap() -> Map
   
   /// Sorts this list according to the order specified by the [compare] function.
-  fun sort([compare: (a, b) -> int])
+  fun sort([compare: (any, any) -> int])
 
   /// Shuffles the elements of this list randomly.
   fun shuffle()
@@ -446,6 +451,39 @@ external class List extends Iterable {
   fun replaceRange(start: int, end: int, replacements: List)
 }
 
+external class Set extends Iterable {
+
+  construct (... args: any)
+
+  fun add(value: any) -> bool
+
+  fun addAll(elements: Iterable)
+
+  fun remove(value: any) -> bool
+
+  fun lookup(value: any) -> any
+
+  fun removeAll(elements: Iterable)
+
+  fun retainAll(elements: Iterable)
+
+  fun removeWhere(test: (any) -> bool)
+  
+  fun retainWhere(test: (any) -> bool)
+
+  fun containsAll(other: Iterable)
+
+  fun intersection(other: Set) -> Set
+
+  fun union(other: Set) -> Set
+
+  fun difference(other: Set) -> Set
+
+  fun clear()
+
+  fun toSet() -> Set
+}
+
 external class Map {
 
   fun toString() -> str
@@ -456,19 +494,19 @@ external class Map {
 
 	get isNotEmpty -> bool
 
-  get keys -> List
+  get keys -> Iterable
 
-  get values -> List
+  get values -> Iterable
 
-	fun containsKey(value) -> bool
+	fun containsKey(value: any) -> bool
 
-	fun containsValue(value) -> bool
+	fun containsValue(value: any) -> bool
 
 	fun addAll(other: Map)
 
 	fun clear()
 
-	fun remove(key)
+	fun remove(key: any)
 
-  fun putIfAbsent(key, value) -> any
+  fun putIfAbsent(key: any, value: any) -> any
 }

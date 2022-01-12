@@ -14,9 +14,9 @@ abstract class object {
 struct prototype {
   static fun fromJson(data) => createStructfromJson(data)
 
-  external get keys -> List
+  external get keys -> Iterable
 
-  external get values -> List
+  external get values -> Iterable
 
   /// Check if this struct has the key in its own fields
   external fun owns(key: str) -> bool

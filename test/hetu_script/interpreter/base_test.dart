@@ -255,5 +255,21 @@ void main() {
 }''',
       );
     });
+    test('set', () {
+      final result = hetu.eval(r'''
+        final list = [1, 2, 1, 3, 2, 5, 1]
+        final s = Set(...list)
+        s.toString()
+      ''');
+      expect(
+        result,
+        '''[
+  1,
+  2,
+  3,
+  5
+]''',
+      );
+    });
   });
 }
