@@ -29,8 +29,8 @@ abstract class Semantic {
 
   static const analysisResult = r'analysis_result';
   static const anonymousScript = r'anonymous_script';
-  static const anonymousClass = r'$anonymous_class';
-  static const anonymousNamespace = r'_$anonymous_namespace';
+  static const anonymousClass = r'anonymous_class';
+  static const anonymousStruct = r'anonymous_struct';
   static const anonymousFunction = r'_$anonymous_function';
   static const anonymousBlock = r'_$anonymous_block';
   static const iterator = r'_$iterator';

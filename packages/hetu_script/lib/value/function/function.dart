@@ -241,16 +241,19 @@ class HTFunction extends HTFunctionDeclaration
         //   }
         // }
 
-        if (category == FunctionCategory.constructor &&
-            construct &&
-            klass != null) {
-          result =
-              instance = HTInstance(klass!, interpreter, typeArgs: typeArgs);
-          namespace = result.namespace;
-        }
-
-        if (definitionIp == null) {
-          return result;
+        if (category == FunctionCategory.constructor && construct) {
+          // a class method
+          if (klass != null) {
+            result =
+                instance = HTInstance(klass!, interpreter, typeArgs: typeArgs);
+            namespace = (result as HTInstance).namespace;
+          }
+          // a struct method
+          else {
+            final prototype = (instance as HTStruct);
+            result = instance = prototype.clone();
+            namespace = (instance as HTStruct).namespace;
+          }
         }
 
         // callClosure is a temporary closure created everytime a function is called
@@ -269,33 +272,84 @@ class HTFunction extends HTFunctionDeclaration
               HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: instance));
         }
 
-        if (category == FunctionCategory.constructor &&
-            redirectingConstructor != null) {
-          late final HTFunction constructor;
-          final name = redirectingConstructor!.name;
-          final key = redirectingConstructor!.key;
-          if (name == HTLexicon.kSuper) {
-            final superClass = klass!.superClass!;
-            if (key == null) {
-              constructor = superClass
-                  .namespace.declarations[Semantic.constructor]!.value;
+        var variadicStart = -1;
+        HTParameter? variadicParam;
+        for (var i = 0; i < paramDecls.length; ++i) {
+          var decl = paramDecls.values.elementAt(i).clone();
+          final paramId = paramDecls.keys.elementAt(i);
+          callClosure.define(paramId, decl);
+
+          if (decl.isVariadic) {
+            variadicStart = i;
+            variadicParam = decl;
+            break;
+          } else {
+            if (i < maxArity) {
+              if (i < positionalArgs.length) {
+                decl.value = positionalArgs[i];
+              } else {
+                decl.initialize();
+              }
             } else {
-              constructor = superClass
-                  .namespace.declarations['${Semantic.constructor}$key']!.value;
-            }
-          } else if (name == HTLexicon.kThis) {
-            if (key == null) {
-              constructor =
-                  klass!.namespace.declarations[Semantic.constructor]!.value;
-            } else {
-              constructor = klass!
-                  .namespace.declarations['${Semantic.constructor}$key']!.value;
+              if (namedArgs.containsKey(decl.id)) {
+                decl.value = namedArgs[decl.id];
+              } else {
+                decl.initialize();
+              }
             }
           }
-          // constructor's context is on this newly created instance
-          final instanceNamespace = namespace as HTInstanceNamespace;
-          constructor.namespace = instanceNamespace.next!;
-          constructor.instance = instance;
+        }
+
+        if (variadicStart >= 0) {
+          final variadicArg = <dynamic>[];
+          for (var i = variadicStart; i < positionalArgs.length; ++i) {
+            variadicArg.add(positionalArgs[i]);
+          }
+          variadicParam!.value = variadicArg;
+        }
+
+        if (category == FunctionCategory.constructor &&
+            redirectingConstructor != null) {
+          final name = redirectingConstructor!.name;
+          final key = redirectingConstructor!.key;
+
+          late final HTFunction constructor;
+          if (klass != null) {
+            if (name == HTLexicon.kSuper) {
+              final superClass = klass!.superClass!;
+              if (key == null) {
+                constructor = superClass
+                    .namespace.declarations[Semantic.constructor]!.value;
+              } else {
+                constructor = superClass.namespace
+                    .declarations['${Semantic.constructor}$key']!.value;
+              }
+            } else if (name == HTLexicon.kThis) {
+              if (key == null) {
+                constructor =
+                    klass!.namespace.declarations[Semantic.constructor]!.value;
+              } else {
+                constructor = klass!.namespace
+                    .declarations['${Semantic.constructor}$key']!.value;
+              }
+            }
+            // constructor's context is on this newly created instance
+            final instanceNamespace = namespace as HTInstanceNamespace;
+            constructor.namespace = instanceNamespace.next!;
+            constructor.instance = instance;
+          } else {
+            if (name == HTLexicon.kThis) {
+              final prototype = (instance as HTStruct);
+              if (key == null) {
+                constructor = prototype.memberGet(Semantic.constructor);
+              } else {
+                constructor =
+                    prototype.memberGet('${Semantic.constructor}$key');
+              }
+              constructor.instance = instance;
+              constructor.namespace = namespace;
+            }
+          }
 
           final referCtorPosArgs = [];
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
@@ -343,40 +397,8 @@ class HTFunction extends HTFunctionDeclaration
               namedArgs: referCtorNamedArgs);
         }
 
-        var variadicStart = -1;
-        HTParameter? variadicParam;
-        for (var i = 0; i < paramDecls.length; ++i) {
-          var decl = paramDecls.values.elementAt(i).clone();
-          final paramId = paramDecls.keys.elementAt(i);
-          callClosure.define(paramId, decl);
-
-          if (decl.isVariadic) {
-            variadicStart = i;
-            variadicParam = decl;
-            break;
-          } else {
-            if (i < maxArity) {
-              if (i < positionalArgs.length) {
-                decl.value = positionalArgs[i];
-              } else {
-                decl.initialize();
-              }
-            } else {
-              if (namedArgs.containsKey(decl.id)) {
-                decl.value = namedArgs[decl.id];
-              } else {
-                decl.initialize();
-              }
-            }
-          }
-        }
-
-        if (variadicStart >= 0) {
-          final variadicArg = <dynamic>[];
-          for (var i = variadicStart; i < positionalArgs.length; ++i) {
-            variadicArg.add(positionalArgs[i]);
-          }
-          variadicParam!.value = variadicArg;
+        if (definitionIp == null) {
+          return result;
         }
 
         if (category != FunctionCategory.constructor) {

@@ -176,7 +176,14 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
         }
       }
     } else if (namespace.declarations.containsKey(constructor)) {
-      return namespace.declarations[constructor]!.value as HTFunction;
+      final decl = namespace.declarations[constructor]!.value;
+      if (decl.isPrivate &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      final func = decl as HTFunction;
+      return func;
     }
     // }
 

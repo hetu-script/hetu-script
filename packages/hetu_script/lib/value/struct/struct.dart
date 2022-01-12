@@ -19,6 +19,8 @@ import '../../interpreter/interpreter.dart';
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
 class HTStruct with HTEntity {
+  static var structLiteralIndex = 0;
+
   final Hetu interpreter;
 
   final String? id;
@@ -29,7 +31,7 @@ class HTStruct with HTEntity {
 
   final fields = <String, dynamic>{};
 
-  final HTNamespace namespace;
+  late final HTNamespace namespace;
 
   final HTNamespace? closure;
 
@@ -46,8 +48,9 @@ class HTStruct with HTEntity {
   }
 
   HTStruct(this.interpreter,
-      {this.id, this.prototype, Map<String, dynamic>? fields, this.closure})
-      : namespace = HTNamespace(id: id ?? HTLexicon.kStruct, closure: closure) {
+      {String? id, this.prototype, Map<String, dynamic>? fields, this.closure})
+      : id = id ?? '${Semantic.anonymousStruct}${structLiteralIndex++}' {
+    namespace = HTNamespace(id: this.id, closure: closure);
     namespace.define(HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: this));
     if (fields != null) {
       this.fields.addAll(fields);
@@ -106,6 +109,9 @@ class HTStruct with HTEntity {
       return prototype;
     }
     final getter = '${Semantic.getter}$varName';
+    final constructor = varName != id
+        ? '${Semantic.constructor}$varName'
+        : Semantic.constructor;
 
     if (fields.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
@@ -121,6 +127,13 @@ class HTStruct with HTEntity {
         throw HTError.privateMember(varName);
       }
       value = fields[getter]!;
+    } else if (fields.containsKey(constructor)) {
+      if (varName.startsWith(HTLexicon.privatePrefix) &&
+          from != null &&
+          !from.startsWith(namespace.fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      value = fields[constructor]!;
     } else if (prototype != null) {
       value = prototype!.memberGet(varName, from: from, isSelf: false);
     }

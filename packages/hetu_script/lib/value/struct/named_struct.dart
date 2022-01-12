@@ -53,7 +53,10 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     if (structObj.owns(Semantic.constructor)) {
       final constructor =
           structObj.memberGet(Semantic.constructor) as HTFunction;
-      constructor.call(positionalArgs: positionalArgs, namedArgs: namedArgs);
+      constructor.call(
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          construct: false);
     }
     // TODO: even if there's none constructor, you can still create a struct through the named arguments
     return structObj;

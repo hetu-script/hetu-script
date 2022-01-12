@@ -322,6 +322,24 @@ struct Bird extends Animal {
 }
 ```
 
+Redirecting constructors also works in struct. Except you cannot redirect to **super**, usage is same to class constructors.
+
+```javascript
+struct Tile {
+  construct (left, top) {
+    this.left = left
+    this.top = top
+  }
+
+  construct fromPosition(position) : this(position.left, position.top)
+}
+
+final t1 = Tile(5, 5)
+final t2 = Tile.fromPosition({left: 5, top: 5})
+
+print(t1, t2)
+```
+
 ### Literal struct
 
 Literal struct are expressions in the form of '{key: value}'
