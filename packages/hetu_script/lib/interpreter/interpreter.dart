@@ -323,7 +323,7 @@ class Hetu extends HTAbstractInterpreter {
         _bytecodeModule = _cachedModules[moduleName]!;
         _namespace = _bytecodeModule.namespaces[moduleName]!;
       }
-      final func = _namespace.memberGet(funcName, from: _fileName);
+      final func = _namespace.memberGet(funcName);
       if (func is HTFunction) {
         return func.call(
             positionalArgs: positionalArgs,
@@ -1031,7 +1031,7 @@ class Hetu extends HTAbstractInterpreter {
             final key = execute();
             _localSymbol = key;
             final encap = encapsulate(object);
-            _localValue = encap.memberGet(key, from: _fileName);
+            _localValue = encap.memberGet(key, from: _namespace.fullName);
           }
           break;
         case HTOpCode.subGet:
@@ -1050,7 +1050,7 @@ class Hetu extends HTAbstractInterpreter {
           } else {
             final key = execute();
             if (object is HTEntity) {
-              _localValue = object.subGet(key, from: _fileName);
+              _localValue = object.subGet(key, from: _namespace.fullName);
             } else {
               if (object is List) {
                 if (key is! int) {
@@ -1205,7 +1205,7 @@ class Hetu extends HTAbstractInterpreter {
         if (hasPrototypeId) {
           final prototypeId = _bytecodeModule.readString();
           prototype = _namespace.memberGet(prototypeId,
-              from: _fileName, recursive: true);
+              from: _namespace.fullName, recursive: true);
         }
         final struct =
             HTStruct(this, id: id, prototype: prototype, closure: _namespace);
@@ -1407,8 +1407,8 @@ class Hetu extends HTAbstractInterpreter {
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final type = (_localValue as HTType).resolve(_namespace);
-        final HTClass klass =
-            _namespace.memberGet(type.id, from: _fileName, recursive: true);
+        final HTClass klass = _namespace.memberGet(type.id,
+            from: _namespace.fullName, recursive: true);
         _localValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
