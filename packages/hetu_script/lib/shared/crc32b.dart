@@ -12,7 +12,8 @@ import 'dart:convert';
 /// The return value is an unsigned integer.
 ///
 /// You may optionally specify the beginning CRC value.
-String crc32b(String data, [int crc = 0]) {
+String crc32b(String data, [int? crc]) {
+  crc ??= 0;
   final input = utf8.encode(data);
 
   var checksum = crc ^ (0xffffffff);

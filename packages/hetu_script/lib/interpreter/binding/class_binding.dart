@@ -443,8 +443,7 @@ class HTHashClassBinding extends HTExternalClass {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
-          int repeat = positionalArgs.first ?? 1;
-          return uid4(repeat);
+          return uid4(positionalArgs.first);
         };
       case 'Hash.crc32b':
         return (HTEntity entity,
