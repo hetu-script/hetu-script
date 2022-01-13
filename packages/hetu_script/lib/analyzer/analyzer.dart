@@ -195,11 +195,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     expr.subAccept(this);
   }
 
-  // @override
-  // void visitMapExpr(MapExpr expr) {
-  //   expr.subAccept(this);
-  // }
-
   @override
   void visitGroupExpr(GroupExpr expr) {
     expr.subAccept(this);

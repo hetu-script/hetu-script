@@ -162,24 +162,6 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return output.toString();
   }
 
-  // @override
-  // String visitMapExpr(MapExpr expr) {
-  //   final output = StringBuffer();
-  //   output.write(HTLexicon.curlyLeft);
-  //   if (expr.map.keys.isNotEmpty) {
-  //     output.writeln();
-  //     ++_curIndentCount;
-  //     output.write(expr.map.entries
-  //         .map((entry) =>
-  //             '${formatAst(entry.key)}${HTLexicon.colon} ${formatAst(entry.value)}')
-  //         .join('${HTLexicon.comma}\n'));
-  //     --_curIndentCount;
-  //   }
-  //   output.write(curIndent);
-  //   output.write(HTLexicon.curlyRight);
-  //   return output.toString();
-  // }
-
   @override
   String visitIdentifierExpr(IdentifierExpr expr) {
     return expr.id;

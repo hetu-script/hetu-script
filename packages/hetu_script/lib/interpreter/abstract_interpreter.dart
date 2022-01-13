@@ -24,6 +24,7 @@ import '../shared/gaussian_noise.dart';
 import '../shared/perlin_noise.dart';
 import '../shared/math.dart';
 import '../shared/uid.dart';
+import '../shared/crc32b.dart';
 
 part 'binding/class_binding.dart';
 part 'binding/instance_binding.dart';
@@ -108,6 +109,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       bindExternalClass(HTSetClassBinding());
       bindExternalClass(HTMapClassBinding());
       bindExternalClass(HTMathClassBinding());
+      bindExternalClass(HTHashClassBinding());
       bindExternalClass(HTSystemClassBinding());
       bindExternalClass(HTFutureClassBinding());
       // bindExternalClass(HTConsoleClass());

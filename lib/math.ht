@@ -2,10 +2,6 @@ external class Math {
   static const e: num = 2.718281828459045
   
   static const pi: num = 3.1415926535897932external
-  
-  static fun uid() -> str
-
-  static fun crc32b(data: str, [crc: str = 0]) -> str
 
   static fun radiusToSigma(radius: float) -> float
   
@@ -56,5 +52,4 @@ external class Math {
   static fun bitNot(x: num) -> bool
 
   static fun bitXor(x: num, y: num) -> bool
-
 }

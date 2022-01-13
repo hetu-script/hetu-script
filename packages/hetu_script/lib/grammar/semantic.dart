@@ -85,8 +85,9 @@ abstract class Semantic {
   static const stringInterpolation = 'string_interpolation';
   static const functionLiteral = 'function_literal_expression';
   static const listLiteral = 'list_expression';
-  static const mapLiteral = 'map_expression';
   static const spreadExpr = 'spread_expression';
+  static const rangeExpr = 'range_expression';
+  static const groupExpr = 'group_expression';
 
   static const typeExpr = 'type_expression';
   static const literalTypeExpr = 'literal_type_expression';
@@ -96,7 +97,6 @@ abstract class Semantic {
   static const fieldTypeExpr = 'field_type_expression';
   static const structuralTypeExpr = 'structural_type_expression';
   static const genericTypeParamExpr = 'generic_type_parameter_expression';
-  static const groupExpr = 'group_expression';
   static const blockExpr = 'block_expression';
   static const symbolExpr = 'symbol_expression';
   static const unaryExpr = 'unary_expression';

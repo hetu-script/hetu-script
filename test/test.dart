@@ -4,10 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final list = [1, 2, 1, 3, 2, 5, 1]
-
-    final s = Set(...list)
-
-    print(s)
+    for (final i in range(1, 10)) {
+      print(i)
+    }
   ''');
 }

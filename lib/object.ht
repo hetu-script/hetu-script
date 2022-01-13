@@ -1,0 +1,5 @@
+import 'hetu.ht'
+
+abstract class object {
+  external fun toString() -> str
+}

@@ -77,9 +77,9 @@ abstract class HTValueTypeCode {
   static const longString = 5;
   static const stringInterpolation = 6;
   static const identifier = 7;
-  static const subValue = 8;
-  static const group = 9;
-  static const list = 10;
+  static const list = 8;
+  static const range = 9;
+  static const group = 10;
   static const struct = 11;
   static const function = 12;
   static const type = 13;

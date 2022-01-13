@@ -277,24 +277,6 @@ class HTMathClassBinding extends HTExternalClass {
         return math.e;
       case 'Math.pi':
         return math.pi;
-      case 'Math.uid':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            uid();
-      case 'Math.crc32b':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          final data = positionalArgs.first;
-          var crc = 0;
-          if (positionalArgs.length > 1) {
-            crc = positionalArgs[1];
-          }
-          return crc32b(data, crc);
-        };
       case 'Math.radiusToSigma':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -444,6 +426,35 @@ class HTMathClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
 
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
+class HTHashClassBinding extends HTExternalClass {
+  HTHashClassBinding() : super('Hash');
+
+  @override
+  dynamic memberGet(String varName, {String? from}) {
+    switch (varName) {
+      case 'Hash.uid4':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          int repeat = positionalArgs.first ?? 1;
+          return uid4(repeat);
+        };
+      case 'Hash.crc32b':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          String data = positionalArgs[0];
+          int crc = positionalArgs[1] ?? 0;
+          return crc32b(data, crc);
+        };
       default:
         throw HTError.undefined(varName);
     }

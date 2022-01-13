@@ -36,9 +36,9 @@ dynamic eval(String content,
     ResourceType type = ResourceType.hetuLiteralCode,
     bool isStrictMode = false,
     String? invokeFunc,
-    List<dynamic> positionalArgs = const [],
+    List<dynamic> positionalArgs = const ****,
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
+    List<HTType> typeArgs = const ****,
     bool errorHandled = false})
 ```
 
@@ -54,7 +54,7 @@ dynamic eval(String content,
 
 These methods is useful if you wish for more efficient runtime of the script. You can compile a source into bytecode. And run it at another time so that the interpreter will skip the parsing, analyzing and compiling process.
 
-If you would like to compile and store the result as physical files. You can check [command line tool](../command_line_tool/readme.md#compile) in the hetu_script_dev_tools package.
+If you would like to compile and store the result as physical files. You can check **command line tool**(../command_line_tool/readme.md#compile) in the hetu_script_dev_tools package.
 
 ### Invoke a method on Hetu object
 
@@ -77,11 +77,23 @@ void updateResource(String fullName, HTSource resource)
 ### Preincluded values
 
 Most of the preincluded values' apis are named based on Dart SDK's Classes:
-[num], [int], [double], [bool], [String], [List] and [Map]
+**num**, **int**, **double**, **bool**, **String**, **List**, **Set** and **Map**
 
-There are also some original methods, like List.random, to get a random item out of a List.
+There are also some hetu exclusive methods, like **List.random**, to get a random item out of a List.
 
-### Struct
+### Core functions
+
+```javascript
+external fun print(... args: any)
+
+external fun stringify(obj: any)
+
+external fun jsonify(obj)
+
+fun range(min: int, max: int)
+```
+
+### object & struct
 
 ````typescript
 
@@ -127,3 +139,74 @@ struct prototype {
   fun toString() -> str => stringify(this)
 }
 ````
+
+### Math
+
+```javascript
+external class Math {
+  static const e: num = 2.718281828459045
+
+  static const pi: num = 3.1415926535897932external
+
+  static fun radiusToSigma(radius: float) -> float
+
+  // Box–Muller transform for generating normally distributed random numbers
+  static fun gaussianNoise(mean: float, variance: float) -> float
+
+  // Compute Perlin noise at coordinates x, y
+  static fun perlinNoise(x: float, y: float) -> float
+
+  static fun min(a, b)
+
+  static fun max(a, b)
+
+  static fun random() -> num
+
+  static fun randomInt(max: num) -> num
+
+  static fun sqrt(x: num) -> num
+
+  static fun pow(x: num, exponent: num) -> num
+
+  static fun sin(x: num) -> num
+
+  static fun cos(x: num) -> num
+
+  static fun tan(x: num) -> num
+
+  static fun exp(x: num) -> num
+
+  static fun log(x: num) -> num
+
+  static fun parseInt(source: str, {radix: int?}) -> num
+
+  static fun parseDouble(source: str) -> num
+
+  static fun sum(list: List<num>) -> num
+
+  static fun checkBit(index: num, check: num) -> bool
+
+  static fun bitLS(x: num, distance: num) -> bool
+
+  static fun bitRS(x: num, distance: num) -> bool
+
+  static fun bitAnd(x: num, y: num) -> bool
+
+  static fun bitOr(x: num, y: num) -> bool
+
+  static fun bitNot(x: num) -> bool
+
+  static fun bitXor(x: num, y: num) -> bool
+}
+```
+
+### Hash
+
+```javascript
+external class Hash {
+
+  static fun uid4(repeat: int) -> str
+
+  static fun crc32b(data: str, [crc: str = 0]) -> str
+}
+```

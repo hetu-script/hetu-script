@@ -2,7 +2,6 @@ import '../../value/entity.dart';
 import '../../type/type.dart';
 import '../../shared/jsonify.dart';
 import '../../shared/stringify.dart';
-import '../../shared/uid.dart';
 import '../../value/struct/struct.dart';
 import '../../value/instance/instance.dart';
 

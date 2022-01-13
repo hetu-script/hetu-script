@@ -4,7 +4,7 @@ import 'package:path/path.dart' as path;
 
 // import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../shared/uid.dart' as util;
+import '../shared/crc32b.dart';
 import 'line_info.dart';
 import '../resource/resource.dart';
 
@@ -40,9 +40,9 @@ class HTSource {
     if (fullName != null) {
       _fullName = fullName;
     } else {
-      final crc32b = util.crc32b(content);
+      final hash = crc32b(content);
       final nameBuilder = StringBuffer();
-      nameBuilder.write('${Semantic.anonymousScript}_$crc32b: ');
+      nameBuilder.write('${Semantic.anonymousScript}_$hash: ');
       var firstLine =
           content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
       nameBuilder.write(firstLine.substring(

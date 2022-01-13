@@ -1817,7 +1817,7 @@ class HTParser extends HTAbstractParser {
       case HTLexicon.bracketsLeft:
         _leftValueLegality = false;
         final start = advance(1);
-        var listExpr = <AstNode>[];
+        final listExpr = <AstNode>[];
         while (curTok.type != HTLexicon.bracketsRight &&
             curTok.type != Semantic.endOfFile) {
           AstNode item;
