@@ -104,10 +104,6 @@ module.exports = {
               link: '/docs/en-US/syntax/future/',
             },
             {
-              text: 'Module, import & export',
-              link: '/docs/en-US/syntax/module/',
-            },
-            {
               text: 'Assert & error',
               link: '/docs/en-US/syntax/error/',
             },
@@ -130,6 +126,10 @@ module.exports = {
             {
               text: 'Installation',
               link: '/docs/en-US/installation/',
+            },
+            {
+              text: 'Module, import & export',
+              link: '/docs/en-US/module/',
             },
             {
               text: 'Communicating with Dart',

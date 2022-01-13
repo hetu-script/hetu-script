@@ -7,11 +7,12 @@ Hetu script codes are a batch of **HTSource** files. If a source contains import
 Use import statement to import from another script file.
 
 - You can specify a list to limit the symbols imported.
-- You can set aliases for the imported symbols as well as the namespace as a whole.
+
+- You can set an aliases for the imported namespace.
 
 ```javascript
 import 'game.ht'
-import { hello as greeting, calculator } from 'hello.ht' as h
+import { hello, calculator } from 'hello.ht' as h
 
 fun main {
   h.greeting()
