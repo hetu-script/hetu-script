@@ -86,6 +86,8 @@ abstract class Semantic {
   static const spreadExpr = 'spread_expression';
   static const rangeExpr = 'range_expression';
   static const groupExpr = 'group_expression';
+  static const commaExpr = 'comma_expression';
+  static const inExpr = 'in_expression';
 
   static const typeExpr = 'type_expression';
   static const literalTypeExpr = 'literal_type_expression';

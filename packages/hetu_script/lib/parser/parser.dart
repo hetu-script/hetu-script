@@ -1149,11 +1149,9 @@ class HTParser extends HTAbstractParser {
     return stmt;
   }
 
-  /// 使用递归向下的方法生成表达式, 不断调用更底层的, 优先级更高的子Parser
+  /// Recursive descent parsing technique
   ///
-  /// 赋值 = , 优先级 1, 右合并
-  ///
-  /// 需要判断嵌套赋值、取属性、取下标的叠加
+  /// Assignment operator =, precedence 1, associativity right
   AstNode _parseExpr() {
     while (curTok.type == Semantic.singleLineComment ||
         curTok.type == Semantic.multiLineComment) {
@@ -1897,6 +1895,34 @@ class HTParser extends HTAbstractParser {
     }
   }
 
+  CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {
+    final list = <AstNode>[];
+    while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
+      if (list.isNotEmpty) {
+        match(HTLexicon.comma);
+      }
+      final item = _parseExpr();
+      list.add(item);
+    }
+    return CommaExpr(list,
+        isLocal: isLocal,
+        source: _currentSource,
+        line: list.first.line,
+        column: list.first.column,
+        offset: list.first.offset,
+        length: curTok.offset - list.first.offset);
+  }
+
+  InOfExpr _handleInOfExpr() {
+    final opTok = advance(1);
+    final collection = _parseExpr();
+    return InOfExpr(collection, opTok.lexeme == HTLexicon.kOf ? true : false,
+        line: collection.line,
+        column: collection.column,
+        offset: collection.offset,
+        length: curTok.offset - collection.offset);
+  }
+
   TypeExpr _parseTypeExpr({bool isLocal = false}) {
     // function type
     if (curTok.type == HTLexicon.parenthesesLeft) {
@@ -2332,7 +2358,18 @@ class HTParser extends HTAbstractParser {
         match(HTLexicon.singleArrow);
         elseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
       } else {
-        final caseExpr = _parseExpr();
+        AstNode caseExpr;
+        if (condition != null) {
+          if (peek(1).type == HTLexicon.comma) {
+            caseExpr = _handleCommaExpr(HTLexicon.singleArrow, isLocal: false);
+          } else if (curTok.type == HTLexicon.kIn) {
+            caseExpr = _handleInOfExpr();
+          } else {
+            caseExpr = _parseExpr();
+          }
+        } else {
+          caseExpr = _parseExpr();
+        }
         match(HTLexicon.singleArrow);
         var caseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
         options[caseExpr] = caseBranch;

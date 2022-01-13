@@ -191,7 +191,17 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
+  void visitCommaExpr(CommaExpr expr) {
+    expr.subAccept(this);
+  }
+
+  @override
   void visitListExpr(ListExpr expr) {
+    expr.subAccept(this);
+  }
+
+  @override
+  void visitInOfExpr(InOfExpr expr) {
     expr.subAccept(this);
   }
 
@@ -296,7 +306,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitIfStmt(IfStmt ifStmt) {
+  void visitIf(IfStmt ifStmt) {
     ifStmt.subAccept(this);
   }
 
@@ -321,7 +331,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitWhenStmt(WhenStmt stmt) {
+  void visitWhen(WhenStmt stmt) {
     stmt.subAccept(this);
   }
 

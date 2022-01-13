@@ -79,12 +79,13 @@ abstract class HTValueTypeCode {
   static const longString = 5;
   static const stringInterpolation = 6;
   static const identifier = 7;
-  static const list = 8;
-  static const range = 9;
-  static const group = 10;
-  static const struct = 11;
-  static const function = 12;
-  static const type = 13;
+  static const commaExprList = 8;
+  static const list = 9;
+  static const range = 10;
+  static const group = 11;
+  static const struct = 12;
+  static const function = 13;
+  static const type = 14;
 }
 
 abstract class StructObjFieldTypeCode {
@@ -97,4 +98,10 @@ abstract class DeletingTypeCode {
   static const local = 0;
   static const member = 1;
   static const sub = 2;
+}
+
+abstract class WhenCaseTypeCode {
+  static const equals = 0;
+  static const eigherEquals = 1;
+  static const elementIn = 2;
 }

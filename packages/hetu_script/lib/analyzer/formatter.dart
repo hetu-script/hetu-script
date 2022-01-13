@@ -138,17 +138,19 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitGroupExpr(GroupExpr expr) {
-    final inner = formatAst(expr.inner);
-    return '${HTLexicon.parenthesesLeft}$inner${HTLexicon.parenthesesRight}';
-  }
-
-  @override
   String visitSpreadExpr(SpreadExpr expr) {
     final output = StringBuffer();
     output.write(HTLexicon.spreadSyntax);
     final valueString = formatAst(expr.value);
     output.write(valueString);
+    return output.toString();
+  }
+
+  @override
+  String visitCommaExpr(CommaExpr expr) {
+    final output = StringBuffer();
+    output.write(
+        expr.list.map((item) => formatAst(item)).join('${HTLexicon.comma} '));
     return output.toString();
   }
 
@@ -160,6 +162,18 @@ class HTFormatter implements AbstractAstVisitor<String> {
         expr.list.map((item) => formatAst(item)).join('${HTLexicon.comma} '));
     output.write(HTLexicon.bracketsRight);
     return output.toString();
+  }
+
+  @override
+  String visitInOfExpr(InOfExpr expr) {
+    final collection = formatAst(expr.collection);
+    return '${HTLexicon.kIn} $collection';
+  }
+
+  @override
+  String visitGroupExpr(GroupExpr expr) {
+    final inner = formatAst(expr.inner);
+    return '${HTLexicon.parenthesesLeft}$inner${HTLexicon.parenthesesRight}';
   }
 
   @override
@@ -389,7 +403,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitIfStmt(IfStmt ifStmt) {
+  String visitIf(IfStmt ifStmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.kIf} ${HTLexicon.parenthesesLeft}');
     final conditionString = formatAst(ifStmt.condition);
@@ -479,7 +493,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitWhenStmt(WhenStmt stmt) {
+  String visitWhen(WhenStmt stmt) {
     final output = StringBuffer();
     output.write(HTLexicon.kWhen);
     if (stmt.condition != null) {

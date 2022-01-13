@@ -49,7 +49,6 @@ void main() {
         1,
       );
     });
-
     test('named args', () {
       final result = hetu.eval(r'''
         fun namedArgFun({a: num, b: num = 2, c: num}) {
@@ -60,6 +59,21 @@ void main() {
       expect(
         result,
         42,
+      );
+    });
+    test('function.apply()', () {
+      final result = hetu.eval(r'''
+        final obj = {
+          name: 'jimmy'
+        }
+        final greeting = () {
+          return this.name
+        }
+        greeting.apply(obj)
+      ''');
+      expect(
+        result,
+        'jimmy',
       );
     });
   });

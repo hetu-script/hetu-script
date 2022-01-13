@@ -940,7 +940,7 @@ class Hetu extends HTAbstractInterpreter {
           }
           break;
         case HTOpCode.whenStmt:
-          _handleWhenStmt();
+          _handleWhen();
           break;
         case HTOpCode.assign:
           final value = _getRegVal(HTRegIdx.assign);
@@ -1289,45 +1289,50 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  void _handleWhenStmt() {
+  void _handleWhen() {
     var condition = _localValue;
     final hasCondition = _bytecodeModule.readBool();
     final casesCount = _bytecodeModule.read();
-    final branchesIpList = <int>[];
-    final cases = <dynamic, int>{};
     for (var i = 0; i < casesCount; ++i) {
-      branchesIpList.add(_bytecodeModule.readUint16());
-    }
-    final elseBranchIp = _bytecodeModule.readUint16();
-    final endIp = _bytecodeModule.readUint16();
-    for (var i = 0; i < casesCount; ++i) {
-      final value = execute();
-      cases[value] = branchesIpList[i];
-    }
-    if (hasCondition) {
-      if (cases.containsKey(condition)) {
-        final distance = cases[condition]!;
-        _bytecodeModule.skip(distance);
-      } else if (elseBranchIp > 0) {
-        _bytecodeModule.skip(elseBranchIp);
-      } else {
-        _bytecodeModule.skip(endIp);
-      }
-    } else {
-      var condition = false;
-      for (final key in cases.keys) {
-        if (key) {
-          final distance = cases[key]!;
-          _bytecodeModule.skip(distance);
-          condition = true;
+      final caseType = _bytecodeModule.read();
+      // If condition expression is provided,
+      // jump to the first case branch where its value equals condition.
+      // If condition expression is not provided,
+      // jump to the first case branch where its value is true.
+      // If no case branch matches condition and else branch is provided,
+      // will jump to else branch.
+      if (caseType == WhenCaseTypeCode.equals) {
+        final value = execute();
+        if (hasCondition) {
+          if (condition == value) {
+            break;
+          }
+        } else if (value) {
           break;
         }
-      }
-      if (!condition) {
-        if (elseBranchIp > 0) {
-          _bytecodeModule.skip(elseBranchIp);
+        // skip jumpping to branch
+        _bytecodeModule.skip(3);
+      } else if (caseType == WhenCaseTypeCode.eigherEquals) {
+        assert(hasCondition);
+        final count = _bytecodeModule.read();
+        final values = [];
+        for (var i = 0; i < count; ++i) {
+          values.add(execute());
+        }
+        if (values.contains(condition)) {
+          break;
         } else {
-          _bytecodeModule.skip(endIp);
+          // skip jumpping to branch
+          _bytecodeModule.skip(3);
+        }
+      } else if (caseType == WhenCaseTypeCode.elementIn) {
+        assert(hasCondition);
+        final Iterable value = execute();
+        if (value.contains(condition)) {
+          break;
+        } else {
+          // skip jumpping to branch
+          _bytecodeModule.skip(3);
         }
       }
     }

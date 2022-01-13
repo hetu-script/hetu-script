@@ -301,6 +301,36 @@ class SpreadExpr extends AstNode {
             length: length);
 }
 
+class CommaExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitCommaExpr(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    for (final item in list) {
+      item.accept(visitor);
+    }
+  }
+
+  final List<AstNode> list;
+
+  final bool isLocal;
+
+  CommaExpr(this.list,
+      {this.isLocal = true,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.commaExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class ListExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitListExpr(this);
@@ -321,6 +351,33 @@ class ListExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.listLiteral,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class InOfExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitInOfExpr(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    collection.accept(visitor);
+  }
+
+  final AstNode collection;
+
+  final bool valueOf;
+
+  InOfExpr(this.collection, this.valueOf,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.inExpr,
             source: source,
             line: line,
             column: column,
@@ -991,7 +1048,7 @@ class ReturnStmt extends AstNode {
 
 class IfStmt extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitIfStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitIf(this);
 
   @override
   void subAccept(AbstractAstVisitor visitor) {
@@ -1169,7 +1226,7 @@ class ForRangeStmt extends AstNode {
 
 class WhenStmt extends AstNode {
   @override
-  dynamic accept(AbstractAstVisitor visitor) => visitor.visitWhenStmt(this);
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitWhen(this);
 
   @override
   void subAccept(AbstractAstVisitor visitor) {

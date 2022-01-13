@@ -81,7 +81,9 @@ for (var item of obj) {
 
 When is the substitue for 'switch' in older programming languages, we change its name to indicate more complex usages.
 
-'when' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true. In this case, the when statement is more like a if else statement except with a little more efficiency because it won't go through every branch.
+'when' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true, just like a if else statement.
+
+However for when statement's cases, interpreter won't [inexplicitly convert non-boolean values](../strict_mode/readme.md#truth-value).
 
 'when' statement's case could be non-const expression or variables;
 
@@ -89,15 +91,25 @@ When is the substitue for 'switch' in older programming languages, we change its
 
 'when' statement's else branch is optional.
 
+If you want to match multiple values in one branch, use comma expression.
+
+If you want to check if an iterable/object contains the value, use in/of expression.
+
 ```javascript
-when (condition) {
-  expr -> expr // ...single expression...
-  expr -> {
-    // ...block statement...
-  }
-  // will not fall through here
-  else -> {
-    // ...
+for (final i in range(0, 10)) {
+  when (i) {
+    0 -> {
+      print('number: 0')
+    }
+    2, 3, 5, 7 -> {
+      print('prime: ${i}')
+    }
+    in [4, 9] -> {
+      print('square: ${i}')
+    }
+    else -> {
+      print('other: ${i}')
+    }
   }
 }
 ```

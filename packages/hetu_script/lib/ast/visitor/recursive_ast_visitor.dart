@@ -54,7 +54,17 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
+  T? visitCommaExpr(CommaExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
   T? visitListExpr(ListExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
+  T? visitInOfExpr(InOfExpr node) {
     node.subAccept(this);
   }
 
@@ -159,7 +169,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitIfStmt(IfStmt node) {
+  T? visitIf(IfStmt node) {
     node.subAccept(this);
   }
 
@@ -184,7 +194,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitWhenStmt(WhenStmt node) {
+  T? visitWhen(WhenStmt node) {
     node.subAccept(this);
   }
 

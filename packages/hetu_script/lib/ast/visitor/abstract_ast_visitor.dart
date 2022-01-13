@@ -24,7 +24,11 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitSpreadExpr(SpreadExpr node) {}
 
+  T? visitCommaExpr(CommaExpr node) {}
+
   T? visitListExpr(ListExpr node) {}
+
+  T? visitInOfExpr(InOfExpr node) {}
 
   T? visitGroupExpr(GroupExpr node) {}
 
@@ -66,7 +70,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitReturnStmt(ReturnStmt node) {}
 
-  T? visitIfStmt(IfStmt node) {}
+  T? visitIf(IfStmt node) {}
 
   T? visitWhileStmt(WhileStmt node) {}
 
@@ -76,7 +80,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitForRangeStmt(ForRangeStmt node) {}
 
-  T? visitWhenStmt(WhenStmt node) {}
+  T? visitWhen(WhenStmt node) {}
 
   T? visitBreakStmt(BreakStmt node) {}
 

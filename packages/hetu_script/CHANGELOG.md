@@ -1,6 +1,11 @@
 ## 0.3.10
 
-- Add 'List.random' api.
+- Added 'range(a, b)', 'List.random', 'eval(code)', 'Math.radiusToSigma(radius)', 'Math.gaussianNoise(mean, variance)', 'Math.perlinNoise(x, y)', 'Hash.uid4()', 'Hash.crc32b(data)' apis.
+- Added Dart Set & Iterable, Iterator support.
+- Added 'x in Iterable' boolean expression.
+- Added interface typealias and runtime type check on struct literal.
+- Added Function.apply() method on struct literal.
+- When statement's cases now support advance usage including multiple value (comma expression) and in/of expression.
 
 ## 0.3.8
 

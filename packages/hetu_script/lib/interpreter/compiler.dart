@@ -351,6 +351,21 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitCommaExpr(CommaExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    if (expr.isLocal) {
+      bytesBuilder.addByte(HTOpCode.local);
+      bytesBuilder.addByte(HTValueTypeCode.commaExprList);
+    }
+    bytesBuilder.addByte(expr.list.length);
+    for (final item in expr.list) {
+      final bytes = compileAst(item, endOfExec: true);
+      bytesBuilder.add(bytes);
+    }
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitListExpr(ListExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
@@ -407,6 +422,15 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       final bytes = visitStructObjField(field);
       bytesBuilder.add(bytes);
     }
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitInOfExpr(InOfExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(expr.valueOf ? 1 : 0); // bool: in is 0, of is 1
+    final collectionExpr = compileAst(expr.collection, endOfExec: true);
+    bytesBuilder.add(collectionExpr);
     return bytesBuilder.toBytes();
   }
 
@@ -982,7 +1006,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitIfStmt(IfStmt stmt) {
+  Uint8List visitIf(IfStmt stmt) {
     final bytesBuilder = BytesBuilder();
     final condition = compileAst(stmt.condition);
     bytesBuilder.add(condition);
@@ -1170,7 +1194,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitWhenStmt(WhenStmt stmt) {
+  Uint8List visitWhen(WhenStmt stmt) {
     final bytesBuilder = BytesBuilder();
     Uint8List? condition;
     if (stmt.condition != null) {
@@ -1183,8 +1207,34 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       elseBranch = compileAst(stmt.elseBranch!);
     }
     for (final ast in stmt.cases.keys) {
-      final caseBytes = compileAst(ast, endOfExec: true);
-      cases.add(caseBytes);
+      final caseBytesBuilder = BytesBuilder();
+      if (condition != null) {
+        if (ast is CommaExpr) {
+          caseBytesBuilder.addByte(WhenCaseTypeCode.eigherEquals);
+          final bytes = visitCommaExpr(ast);
+          caseBytesBuilder.add(bytes);
+        } else if (ast is InOfExpr) {
+          caseBytesBuilder.addByte(WhenCaseTypeCode.elementIn);
+          Uint8List bytes;
+          if (ast.valueOf) {
+            final getValues = MemberExpr(ast.collection,
+                IdentifierExpr(HTLexicon.values, isLocal: false));
+            bytes = compileAst(getValues, endOfExec: true);
+          } else {
+            bytes = compileAst(ast.collection, endOfExec: true);
+          }
+          caseBytesBuilder.add(bytes);
+        } else {
+          caseBytesBuilder.addByte(WhenCaseTypeCode.equals);
+          final bytes = compileAst(ast, endOfExec: true);
+          caseBytesBuilder.add(bytes);
+        }
+      } else {
+        caseBytesBuilder.addByte(WhenCaseTypeCode.equals);
+        final bytes = compileAst(ast, endOfExec: true);
+        caseBytesBuilder.add(bytes);
+      }
+      cases.add(caseBytesBuilder.toBytes());
       final branchBytes = compileAst(stmt.cases[ast]!);
       branches.add(branchBytes);
     }
@@ -1195,27 +1245,32 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.whenStmt);
     bytesBuilder.addByte(condition != null ? 1 : 0);
     bytesBuilder.addByte(cases.length);
-    var curIp = 0;
-    // the first ip in the branches list
-    bytesBuilder.add(_uint16(0));
+    var curBranchIp = 0;
+    var caseJumpIps = List.filled(branches.length, 0);
     for (var i = 1; i < branches.length; ++i) {
-      curIp = curIp + branches[i - 1].length + 3;
-      bytesBuilder.add(_uint16(curIp));
+      curBranchIp += branches[i - 1].length + 3;
+      caseJumpIps[i] = curBranchIp;
     }
-    curIp = curIp + branches.last.length + 3;
-    if (elseBranch != null) {
-      bytesBuilder.add(_uint16(curIp)); // else branch ip
-    } else {
-      bytesBuilder.add(_uint16(0)); // has no else
-    }
-    final endIp = curIp + (elseBranch?.length ?? 0);
-    bytesBuilder.add(_uint16(endIp));
-    // calculate the length of the code, for goto the specific location of branches
-    var offsetIp = (condition?.length ?? 0) + 3 + branches.length * 2 + 4;
+    curBranchIp += branches.last.length + 3;
+    final endIp = curBranchIp + (elseBranch?.length ?? 0);
+    // calculate the length of the code since the anchor,
+    // for goto the specific location of branches.
+    var offsetIp = (condition?.length ?? 0) + 3;
+    // calculate the length of all cases end else jump code first
     for (final expr in cases) {
-      bytesBuilder.add(expr);
-      offsetIp += expr.length;
+      offsetIp += expr.length + 3;
     }
+    offsetIp += 3;
+    // for each case, if true, will jump to a certain branch.
+    for (var i = 0; i < cases.length; ++i) {
+      final expr = cases[i];
+      bytesBuilder.add(expr);
+      bytesBuilder.addByte(HTOpCode.goto);
+      bytesBuilder.add(_uint16(offsetIp + caseJumpIps[i]));
+    }
+    bytesBuilder.addByte(HTOpCode.goto);
+    bytesBuilder.add(_uint16(offsetIp + curBranchIp));
+    // for each branch, after execution, will jump to end of statement.
     for (var i = 0; i < branches.length; ++i) {
       bytesBuilder.add(branches[i]);
       bytesBuilder.addByte(HTOpCode.goto);
