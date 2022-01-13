@@ -4,8 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    for (final i in range(1, 10)) {
-      print(i)
-    }
+  
+  print(12 in range(1, 20))
   ''');
 }

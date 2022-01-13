@@ -64,6 +64,8 @@ abstract class HTOpCode {
   static const typeAs = 74;
   static const typeIs = 75;
   static const typeIsNot = 76;
+  static const isIn = 77;
+  static const isNotIn = 78;
   static const lineInfo = 205;
 }
 

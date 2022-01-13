@@ -759,6 +759,23 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.modulo);
         break;
+      case HTLexicon.kIn:
+        final containsCallExpr = CallExpr(
+            MemberExpr(
+                expr.right, IdentifierExpr(HTLexicon.contains, isLocal: false)),
+            positionalArgs: [expr.left]);
+        final containsCallExprBytes = visitCallExpr(containsCallExpr);
+        bytesBuilder.add(containsCallExprBytes);
+        break;
+      case HTLexicon.kNotIn:
+        final containsCallExpr = CallExpr(
+            MemberExpr(
+                expr.right, IdentifierExpr(HTLexicon.contains, isLocal: false)),
+            positionalArgs: [expr.left]);
+        final containsCallExprBytes = visitCallExpr(containsCallExpr);
+        bytesBuilder.add(containsCallExprBytes);
+        bytesBuilder.addByte(HTOpCode.logicalNot);
+        break;
     }
     return bytesBuilder.toBytes();
   }

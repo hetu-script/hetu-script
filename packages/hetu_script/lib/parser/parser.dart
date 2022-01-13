@@ -1449,7 +1449,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 逻辑比较 <, >, <=, >=, as, is, is! 优先级 8, 不合并
+  /// 逻辑比较 <, >, <=, >=, as, is, is!, in, in! 优先级 8, 不合并
   AstNode _parseRelationalExpr() {
     var left = _parseAdditiveExpr();
     if (HTLexicon.logicalRelationals.contains(curTok.type)) {
@@ -1457,6 +1457,24 @@ class HTParser extends HTAbstractParser {
       final op = advance(1);
       final right = _parseAdditiveExpr();
       left = BinaryExpr(left, op.lexeme, right,
+          source: _currentSource,
+          line: left.line,
+          column: left.column,
+          offset: left.offset,
+          length: curTok.offset - left.offset);
+    } else if (HTLexicon.setRelationals.contains(curTok.type)) {
+      _leftValueLegality = false;
+      final op = advance(1);
+      late final String opLexeme;
+      if (op.lexeme == HTLexicon.kIn) {
+        opLexeme = expect([HTLexicon.logicalNot], consume: true)
+            ? HTLexicon.kNotIn
+            : HTLexicon.kIn;
+      } else {
+        opLexeme = op.lexeme;
+      }
+      final right = _parseAdditiveExpr();
+      left = BinaryExpr(left, opLexeme, right,
           source: _currentSource,
           line: left.line,
           column: left.column,

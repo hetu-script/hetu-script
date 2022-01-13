@@ -73,6 +73,7 @@ abstract class HTLexicon {
   static const moveNext = 'moveNext';
   static const current = 'current';
   static const parse = 'parse';
+  static const contains = 'contains';
   static const tostring = 'toString';
 
   static const scriptStackTrace = 'Hetu stack trace';
@@ -170,6 +171,7 @@ abstract class HTLexicon {
   static const kReturn = 'return';
   static const kFor = 'for';
   static const kIn = 'in';
+  static const kNotIn = 'in!';
   static const kOf = 'of';
   static const kIf = 'if';
   static const kElse = 'else';
@@ -328,10 +330,12 @@ abstract class HTLexicon {
     greater,
     greaterOrEqual,
     lesser,
-    lesserOrEqual
+    lesserOrEqual,
   };
 
   static const Set<String> typeRelationals = {kAs, kIs};
+
+  static const Set<String> setRelationals = {kIn};
 
   static const equal = '==';
   static const notEqual = '!=';
