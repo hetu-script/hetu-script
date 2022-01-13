@@ -110,7 +110,7 @@ class HTStruct with HTEntity {
     }
     final getter = '${Semantic.getter}$varName';
     final constructor = varName != id
-        ? '${Semantic.constructor}$varName'
+        ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
         : Semantic.constructor;
 
     if (fields.containsKey(varName)) {

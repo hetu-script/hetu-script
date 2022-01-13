@@ -164,6 +164,7 @@ abstract class HTLexicon {
   static const kSet = 'set';
   static const kAsync = 'async';
   static const bind = 'bind';
+  static const apply = 'apply';
 
   static const kAwait = 'await';
   static const kBreak = 'break';

@@ -4,7 +4,14 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-  
-  print(12 in range(1, 20))
+    final obj = {
+      name: 'jimmy'
+    }
+
+    final greeting = () {
+      print('Hi! I\'m ${this.name}')
+    }
+
+    greeting.apply(obj)
   ''');
 }

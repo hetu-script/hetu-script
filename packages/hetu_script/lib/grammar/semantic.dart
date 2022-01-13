@@ -27,23 +27,21 @@ abstract class Semantic {
   static const multiLine = r'\';
   static const newLine = '\n';
 
-  static const analysisResult = r'analysis_result';
-  static const anonymousScript = r'anonymous_script';
-  static const anonymousClass = r'anonymous_class';
-  static const anonymousStruct = r'anonymous_struct';
-  static const anonymousFunction = r'_$anonymous_function';
-  static const anonymousBlock = r'_$anonymous_block';
-  static const iterator = r'_$iterator';
-  static const iteratorMoveResult = r'_$iterator_move_result';
-  static const current = r'_$current';
-  static const instance = r'_$instance';
+  static const anonymousScript = r'$anonymous_script';
+  static const anonymousClass = r'$anonymous_class';
+  static const anonymousStruct = r'$anonymous_struct';
+  static const anonymousFunction = r'$anonymous_function';
+  static const anonymousBlock = r'$anonymous_block';
+  static const iterator = r'$iterator';
+  static const iteratorMoveResult = r'$iterator_move_result';
+  static const instance = r'$instance';
   static const prototype = r'$prototype';
-  static const call = r'_$call_';
-  static const constructor = r'_$constructor_';
-  static const getter = r'_$getter_';
-  static const setter = r'_$setter_';
-  static const subGetter = r'_$subscript_getter_';
-  static const subSetter = r'_$subscript_setter_';
+  static const call = r'$call';
+  static const constructor = r'$construct';
+  static const getter = r'$getter_';
+  static const setter = r'$setter_';
+  static const subGetter = r'$subscript_getter_';
+  static const subSetter = r'$subscript_setter_';
 
   static const endOfFile = 'end_of_file';
   static const name = 'name';

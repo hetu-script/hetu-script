@@ -25,7 +25,7 @@ abstract class HTDeclaration {
 
   /// Wether this declaration is only accessible from a same class namespace.
   bool get isPrivate =>
-      _isPrivate || id == null || id!.startsWith(HTLexicon.privatePrefix);
+      _isPrivate || (id != null && id!.startsWith(HTLexicon.privatePrefix));
 
   final String? classId;
 

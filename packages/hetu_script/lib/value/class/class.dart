@@ -124,7 +124,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     final getter = '${Semantic.getter}$varName';
     final setter = '${Semantic.setter}$varName';
     final constructor = varName != id
-        ? '${Semantic.constructor}$varName'
+        ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
         : Semantic.constructor;
 
     return namespace.declarations.containsKey(varName) ||
@@ -138,7 +138,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   dynamic memberGet(String varName, {String? from, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
     final constructor = varName != id
-        ? '${Semantic.constructor}$varName'
+        ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
         : Semantic.constructor;
 
     // if (isExternal && !internal) {
@@ -156,7 +156,9 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       if (isExternal) {
         return decl.value;
       } else {
-        if (decl.isStatic) {
+        if (decl.isStatic ||
+            (decl is HTFunction &&
+                decl.category == FunctionCategory.constructor)) {
           return decl.value;
         }
       }

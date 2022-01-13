@@ -1605,7 +1605,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       final ctorDef = BinaryExpr(IdentifierExpr(valueId), HTLexicon.assign,
           IdentifierExpr(Semantic.name));
       final constructor = FuncDecl(
-          '${Semantic.constructor}${HTLexicon.privatePrefix}', [ctorParam],
+          '${Semantic.constructor}${HTLexicon.privatePrefix}${HTLexicon.privatePrefix}',
+          [ctorParam],
           id: IdentifierExpr(HTLexicon.privatePrefix),
           classId: stmt.id.id,
           minArity: 1,

@@ -2758,8 +2758,9 @@ class HTParser extends HTAbstractParser {
         if (curTok.type == Semantic.identifier) {
           id = advance(1);
         }
-        internalName =
-            (id == null) ? Semantic.constructor : '${Semantic.constructor}$id';
+        internalName = (id == null)
+            ? Semantic.constructor
+            : '${Semantic.constructor}${HTLexicon.privatePrefix}$id';
         break;
       case FunctionCategory.literal:
         if (curTok.type == Semantic.identifier) {

@@ -178,17 +178,43 @@ class HTFunction extends HTFunctionDeclaration
     }
   }
 
+  dynamic apply(HTStruct struct,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final savedNamespace = namespace;
+    final savedInstance = instance;
+    namespace = struct.namespace;
+    instance = struct;
+    final result = call(
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs);
+    namespace = savedNamespace;
+    instance = savedInstance;
+    return result;
+  }
+
   @override
   dynamic memberGet(String varName, {String? from}) {
-    if (varName == HTLexicon.bind) {
-      return (HTEntity entity,
-          {List<dynamic> positionalArgs = const [],
-          Map<String, dynamic> namedArgs = const {},
-          List<HTType> typeArgs = const []}) {
-        return bind(positionalArgs.first);
-      };
-    } else {
-      throw HTError.undefined(varName);
+    switch (varName) {
+      case HTLexicon.bind:
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            bind(positionalArgs.first);
+      case HTLexicon.apply:
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            apply(positionalArgs.first,
+                positionalArgs: positionalArgs,
+                namedArgs: namedArgs,
+                typeArgs: typeArgs);
+      default:
+        throw HTError.undefined(varName);
     }
   }
 
@@ -318,16 +344,22 @@ class HTFunction extends HTFunctionDeclaration
                 constructor = superClass
                     .namespace.declarations[Semantic.constructor]!.value;
               } else {
-                constructor = superClass.namespace
-                    .declarations['${Semantic.constructor}$key']!.value;
+                constructor = superClass
+                    .namespace
+                    .declarations[
+                        '${Semantic.constructor}${HTLexicon.privatePrefix}$key']!
+                    .value;
               }
             } else if (name == HTLexicon.kThis) {
               if (key == null) {
                 constructor =
                     klass!.namespace.declarations[Semantic.constructor]!.value;
               } else {
-                constructor = klass!.namespace
-                    .declarations['${Semantic.constructor}$key']!.value;
+                constructor = klass!
+                    .namespace
+                    .declarations[
+                        '${Semantic.constructor}${HTLexicon.privatePrefix}$key']!
+                    .value;
               }
             }
             // constructor's context is on this newly created instance
@@ -340,8 +372,8 @@ class HTFunction extends HTFunctionDeclaration
               if (key == null) {
                 constructor = prototype.memberGet(Semantic.constructor);
               } else {
-                constructor =
-                    prototype.memberGet('${Semantic.constructor}$key');
+                constructor = prototype.memberGet(
+                    '${Semantic.constructor}${HTLexicon.privatePrefix}$key');
               }
               constructor.instance = instance;
               constructor.namespace = namespace;
