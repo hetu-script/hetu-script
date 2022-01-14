@@ -73,7 +73,7 @@ packages:
       path: "../hetu_script"
       relative: true
     source: path
-    version: "0.3.11"
+    version: "0.3.10+1"
   lints:
     dependency: transitive
     description:
