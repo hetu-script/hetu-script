@@ -709,9 +709,9 @@ extension ListBinding on List {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
-          HTFunction func = positionalArgs.first;
+          HTFunction? func = positionalArgs.first;
           sort((a, b) {
-            return func.call(positionalArgs: [a, b]) as int;
+            return func?.call(positionalArgs: [a, b]) as int;
           });
         };
       case 'shuffle':
@@ -726,10 +726,7 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          int start = 0;
-          if (positionalArgs.length >= 2) {
-            start = positionalArgs[1];
-          }
+          int start = positionalArgs[1];
           return indexWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           }, start);

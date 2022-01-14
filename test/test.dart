@@ -4,8 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final ss = Map()
-    ss[1] = 2
-    print(ss)
+    'world'.padLeft()
   ''');
 }
