@@ -61,14 +61,6 @@ module.exports = {
               link: '/docs/en-US/syntax/identifier/',
             },
             {
-              text: 'Semicolon',
-              link: '/docs/en-US/syntax/semicolon/',
-            },
-            {
-              text: 'Comment',
-              link: '/docs/en-US/syntax/comment/',
-            },
-            {
               text: 'Builtin types',
               link: '/docs/en-US/syntax/builtin_types/',
             },
@@ -93,10 +85,6 @@ module.exports = {
               link: '/docs/en-US/syntax/class/',
             },
             {
-              text: 'Namespace',
-              link: '/docs/en-US/syntax/namespace/',
-            },
-            {
               text: 'Struct',
               link: '/docs/en-US/syntax/struct/',
             },
@@ -105,16 +93,24 @@ module.exports = {
               link: '/docs/en-US/syntax/type_system/',
             },
             {
-              text: 'Strict mode',
-              link: '/docs/en-US/syntax/strict_mode/',
-            },
-            {
               text: 'Future, async & await',
               link: '/docs/en-US/syntax/future/',
             },
             {
+              text: 'Import & export',
+              link: '/docs/en-US/syntax/module/',
+            },
+            {
+              text: 'Strict mode',
+              link: '/docs/en-US/syntax/strict_mode/',
+            },
+            {
               text: 'Assert & error',
               link: '/docs/en-US/syntax/error/',
+            },
+            {
+              text: 'ASI',
+              link: '/docs/en-US/syntax/semicolon/',
             },
           ],
           '/docs/en-US/api_reference/': [

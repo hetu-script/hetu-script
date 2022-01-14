@@ -62,3 +62,21 @@ final ctor = Person.$construct
 final p = ['jimmy', 'wang', 'naruto']
 final objectList = p.map((element) {ctor(element)})
 ```
+
+## Namespace
+
+You can create a code block within a source or a function body, by declaring with keyword **namespace** and an Identifer as its name.
+
+This is equivalent to define a abstract class with only static members in Dart.
+
+The namespace code block only allows for variable/class/function declaration, no import, export, expresssions allowed.
+
+```c++
+namespace universe {
+  var meaning = 42
+}
+
+print(universe.meaning)
+```
+
+Refer [Do statement](../control_flow/readme.md#do) for another kind of code block.
