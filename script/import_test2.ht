@@ -1,6 +1,6 @@
-import { h2 as h } 'hello.ht'
+import { h2 } from 'hello.ht'
 
 fun main {
 
-  return h()
+  return h2()
 }
