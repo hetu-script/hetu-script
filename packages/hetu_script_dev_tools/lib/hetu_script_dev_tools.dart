@@ -11,7 +11,6 @@ export 'context/file_system_context.dart';
 export 'logger/logger.dart';
 
 extension HTExtension on Hetu {
-  // TODO: add extension config, if there's more than one extension
   void loadExtensions(Iterable<String> extensions) {
     if (extensions.contains('console')) {
       bindExternalClass(HTConsoleClass());

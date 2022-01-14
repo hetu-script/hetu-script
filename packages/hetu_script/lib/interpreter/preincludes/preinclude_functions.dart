@@ -8,17 +8,16 @@ import '../../value/instance/instance.dart';
 /// Core exernal functions for use globally in Hetu script.
 final Map<String, Function> preincludeFunctions = {
   'print': (HTEntity entity,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    print(positionalArgs.map((e) => e is String ? e : stringify(e)).join(' '));
-  },
+          {List<dynamic> positionalArgs = const [],
+          Map<String, dynamic> namedArgs = const {},
+          List<HTType> typeArgs = const []}) =>
+      print(
+          positionalArgs.map((e) => e is String ? e : stringify(e)).join(' ')),
   'stringify': (HTEntity entity,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
-    return stringify(positionalArgs.first);
-  },
+          {List<dynamic> positionalArgs = const [],
+          Map<String, dynamic> namedArgs = const {},
+          List<HTType> typeArgs = const []}) =>
+      stringify(positionalArgs.first),
   'jsonify': (HTEntity entity,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -34,6 +33,16 @@ final Map<String, Function> preincludeFunctions = {
       return null;
     }
   },
+  'range': (HTEntity entity,
+          {List<dynamic> positionalArgs = const [],
+          Map<String, dynamic> namedArgs = const {},
+          List<HTType> typeArgs = const []}) =>
+      [
+        for (var i = positionalArgs[0];
+            i < positionalArgs[1];
+            i += positionalArgs[2])
+          i
+      ],
   'prototype.keys': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -48,7 +57,6 @@ final Map<String, Function> preincludeFunctions = {
     final obj = object as HTStruct;
     return obj.fields.values;
   },
-  // TODO: all keys and all values for struct (includes prototype's keys and values)
   'prototype.contains': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},

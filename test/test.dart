@@ -4,9 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final a = Set(3,2,1)
-    final b = a.toList()
-    b.sort()
-    print(b)
+    for (final i in range(1,10)) {
+      print(i)
+    }
   ''');
 }

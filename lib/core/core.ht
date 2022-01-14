@@ -4,13 +4,4 @@ external fun stringify(obj: any)
 
 external fun jsonify(obj)
 
-fun range(min: int, max: int) {
-  assert(min is int)
-  assert(max is int)
-  assert(min < max)
-  final array = []
-  for (var i = min; i < max; ++i) {
-    array.add(i)
-  }
-  return array
-}
+external fun range(min: int, max: int, [step: int = 1]) -> Iterable
