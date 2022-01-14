@@ -259,6 +259,7 @@ void main() {
       final result = hetu.eval(r'''
         final list = [1, 2, 1, 3, 2, 5, 1]
         final s = Set(...list)
+        s.add(7)
         s.toString()
       ''');
       expect(
@@ -267,8 +268,20 @@ void main() {
   1,
   2,
   3,
-  5
+  5,
+  7,
 ]''',
+      );
+    });
+    test('map', () {
+      final result = hetu.eval(r'''
+        final m = Map()
+        m[1] = 2
+        m.toString()
+      ''');
+      expect(
+        result,
+        '''{1: 2}''',
       );
     });
   });

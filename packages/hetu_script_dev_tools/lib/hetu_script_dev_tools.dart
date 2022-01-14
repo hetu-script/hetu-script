@@ -12,11 +12,13 @@ export 'logger/logger.dart';
 
 extension HTExtension on Hetu {
   // TODO: add extension config, if there's more than one extension
-  void loadExtensions() {
-    bindExternalClass(HTConsoleClass());
-    // load precompiled core module.
-    final coreModule = Uint8List.fromList(consoleModule);
-    loadBytecode(
-        bytes: coreModule, moduleName: 'hetu:console', globallyImport: true);
+  void loadExtensions(Iterable<String> extensions) {
+    if (extensions.contains('console')) {
+      bindExternalClass(HTConsoleClass());
+      // load precompiled core module.
+      final coreModule = Uint8List.fromList(consoleModule);
+      loadBytecode(
+          bytes: coreModule, moduleName: 'hetu:console', globallyImport: true);
+    }
   }
 }

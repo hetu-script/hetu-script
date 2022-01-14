@@ -486,6 +486,8 @@ external class Set extends Iterable {
 
 external class Map {
 
+  construct
+
   fun toString() -> str
 
 	get length -> num

@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
 
   path: ^1.8.0
-  # hetu_script: '^0.3.10'
+  # hetu_script: '^0.3.11'
   hetu_script:
     path: ../hetu_script
 

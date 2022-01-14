@@ -324,7 +324,7 @@ final $compileToIntArrayWithName = [''');
         outFile.createSync(recursive: true);
       }
       outFile.writeAsStringSync(content);
-      stdout.write('done!');
+      print('done!');
     } else {
       final outFile = File(outName);
       if (!outFile.existsSync()) {
@@ -332,7 +332,7 @@ final $compileToIntArrayWithName = [''');
         outFile.createSync(recursive: true);
       }
       outFile.writeAsBytesSync(bytes);
-      stdout.write('done!');
+      print('done!');
     }
   }
 }

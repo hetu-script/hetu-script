@@ -15,7 +15,7 @@ dependencies:
   path: ^1.8.0
   args: ^2.1.0
   http: ^0.13.4
-  # hetu_script: '^0.3.10'
+  # hetu_script: '^0.3.11'
   hetu_script:
     path: ../hetu_script
 

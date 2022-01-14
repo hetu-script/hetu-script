@@ -67,7 +67,7 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: 'example/script');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  hetu.loadExtensions();
+  hetu.loadExtensions(['console']);
 
   hetu.evalFile('console.ht', invokeFunc: 'main');
 }

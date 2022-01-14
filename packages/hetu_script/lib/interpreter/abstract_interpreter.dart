@@ -233,6 +233,8 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       //   }
       // }
       // return HTList(object, this, valueType: valueType);
+    } else if (object is Set) {
+      typeString = 'Set';
     } else if (object is Map) {
       typeString = 'Map';
       // var keyType = HTType.ANY;
