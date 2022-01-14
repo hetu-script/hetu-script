@@ -21,11 +21,20 @@ module.exports = {
           },
           {
             text: 'Language',
-            link: '/docs/en-US/syntax/',
+            link: '/docs/en-US/syntax/introduction/',
           },
           {
             text: 'API Reference',
-            link: '/docs/en-US/api_reference/',
+            children: [
+              {
+                text: 'Dart APIs',
+                link: '/docs/en-US/api_reference/dart/',
+              },
+              {
+                text: 'Hetu APIs',
+                link: '/docs/en-US/api_reference/hetu/',
+              },
+            ],
           },
           {
             text: 'IDE Tool',
@@ -43,6 +52,10 @@ module.exports = {
         ],
         sidebar: {
           '/docs/en-US/syntax/': [
+            {
+              text: 'Introduction',
+              link: '/docs/en-US/syntax/introduction/',
+            },
             {
               text: 'Identifier & keywords',
               link: '/docs/en-US/syntax/identifier/',
@@ -88,10 +101,6 @@ module.exports = {
               link: '/docs/en-US/syntax/struct/',
             },
             {
-              text: 'Private',
-              link: '/docs/en-US/syntax/private/',
-            },
-            {
               text: 'Type system',
               link: '/docs/en-US/syntax/type_system/',
             },
@@ -128,7 +137,7 @@ module.exports = {
               link: '/docs/en-US/installation/',
             },
             {
-              text: 'Module, import & export',
+              text: 'Resource & Module',
               link: '/docs/en-US/module/',
             },
             {
@@ -145,11 +154,11 @@ module.exports = {
             },
             {
               text: 'Language',
-              link: '/docs/en-US/language/',
+              link: '/docs/en-US/syntax/introduction/',
             },
             {
               text: 'API Reference',
-              link: '/docs/en-US/api_reference/',
+              link: '/docs/en-US/api_reference/dart/',
             },
           ],
         },

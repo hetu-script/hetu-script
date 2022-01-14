@@ -8,6 +8,8 @@ enum ResourceType {
 }
 
 abstract class HTResource {
+  static const hetuInternalModulePrefix = 'hetu:';
+
   static const hetuModule = '.ht';
   static const hetuScript = '.hts';
   static const json = '.json';

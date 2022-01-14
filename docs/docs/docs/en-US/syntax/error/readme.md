@@ -1,4 +1,4 @@
-# Error hanlding & assert
+# Assert & error hanlding
 
 The script doesn't support 'try...catch' functionality. It's not recommended to try to handle error in the script. You should do this in the Dart code.
 

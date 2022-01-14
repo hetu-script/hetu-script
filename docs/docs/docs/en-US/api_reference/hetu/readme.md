@@ -92,7 +92,7 @@ struct prototype {
 }
 ````
 
-### Math
+## Math
 
 ```javascript
 external class Math {
@@ -152,7 +152,7 @@ external class Math {
 }
 ```
 
-### Hash
+## Hash
 
 ```javascript
 external class Hash {

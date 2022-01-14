@@ -200,7 +200,7 @@ class Hetu extends HTAbstractInterpreter {
     );
     bindExternalClass(HTHetuClassBinding());
     // load precompiled core module.
-    final coreModule = Uint8List.fromList(preincludeModule);
+    final coreModule = Uint8List.fromList(hetuCoreModule);
     loadBytecode(
         bytes: coreModule, moduleName: 'hetu:main', globallyImport: true);
     invoke('setInterpreter', positionalArgs: [this]);

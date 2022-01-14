@@ -51,3 +51,40 @@ function hello() -> any // repl print
 42 // repl print
 >>>
 ```
+
+## Console extension on Hetu api
+
+This packages also added a console extension to Hetu's internal api, for writing console apps.
+
+Example:
+
+```dart
+import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
+
+// Run this program from terminal.
+void main() {
+  final sourceContext = HTFileSystemResourceContext(root: 'example/script');
+  final hetu = Hetu(sourceContext: sourceContext);
+  hetu.init();
+  hetu.loadExtensions();
+
+  hetu.evalFile('console.ht', invokeFunc: 'main');
+}
+```
+
+Content in 'console.ht'
+
+```javascript
+fun main {
+  final username = Console.getln('What\'s your name? ...')
+  print('Hi! ${username}.')
+}
+```
+
+Output:
+
+```
+What's your name? ...Ryan
+Hi! Ryan.
+```

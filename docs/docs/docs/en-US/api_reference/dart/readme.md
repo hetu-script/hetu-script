@@ -1,10 +1,10 @@
-## API for dart code
+# API for dart code
 
-### Interpreter
+## Interpreter
 
 The most common class you will be using is the Interpreter, it is named as 'Hetu' in this library.
 
-#### init()
+### init()
 
 A convenient way to load some shared modules all together when Hetu initted.
 
@@ -25,7 +25,7 @@ void init({
 
 - **HTExternalClass**: Dart class bindings to be used by Hetu to get class definitions. You can also use **bindExternalClass** methods to load them later.
 
-#### eval()
+### eval()
 
 To parse, analyze, compile and load a Hetu source from a String literal.
 
@@ -51,17 +51,17 @@ dynamic eval(String content,
 - **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.
 - **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 
-#### compile(), loadBytecode()
+### compile(), loadBytecode()
 
 These methods is useful if you want a more efficient runtime for the script. You can compile a source into bytecode. And run it at another time so that the interpreter will skip the parsing, analyzing and compiling process.
 
 If you would like to compile and store the result as physical files. You can check **command line tool**(../command_line_tool/readme.md#compile) in the hetu_script_dev_tools package.
 
-### Invoke a method on Hetu object
+## Invoke a method on Hetu object
 
 Besides the **invoke** method on interpreter, you can also use the same named methods on **HTClass** and **HTInstance** and **call** on **HTFunction**, if you have those object passed from script into the Dart.
 
-### ResourceContext
+## ResourceContext
 
 If you installed 'hetu_script_dev_tools' or 'hetu_script_flutter', they will handle the source context for you so you won't need to add the source file into the context manually. However if you cannot use these packages(for example if your code are running on web browser), you can use methods below on **HTOverlayContext** to manage sources.
 

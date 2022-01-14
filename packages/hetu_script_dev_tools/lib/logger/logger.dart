@@ -4,7 +4,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:hetu_script/hetu_script.dart';
 
-import '../util/uuid.dart';
+import '../util/uid.dart';
 
 abstract class HTLogger {
   String? folder;
@@ -44,7 +44,6 @@ class HTFileSystemLogger implements HTLogger {
     final hour = now.hour.toString().padLeft(2, '0');
     final minute = now.minute.toString().padLeft(2, '0');
     final second = now.second.toString().padLeft(2, '0');
-    _fileName =
-        '$year$month$day$hour$minute$second-${UUID.char4() + UUID.char4()}.txt';
+    _fileName = '$year$month$day$hour$minute$second-${uid4() + uid4()}.txt';
   }
 }

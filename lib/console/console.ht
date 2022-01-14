@@ -1,7 +1,4 @@
-part of hetu_script_dev_tools;
-
-final Map<String, String> extensionModules = const {
-  'hetu:console': r'''external class Console {
+external class Console {
 	// write a line without return
 	static fun write(line: str)
 	
@@ -14,8 +11,5 @@ final Map<String, String> extensionModules = const {
 	
 	static fun setTitle(title: str)
 	
-	static fun cls()
+	static fun clear()
 }
-''',
-  'hetu:tools': r'''external fun help(value)''',
-};

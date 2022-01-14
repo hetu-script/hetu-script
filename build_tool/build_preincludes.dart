@@ -17,7 +17,7 @@ void main() {
     HTResource.jsonWithComments,
   ]);
 
-  final sourceFile = File('lib/main.ht');
+  final sourceFile = File('lib/core/main.ht');
   final sourceContent = sourceFile.readAsStringSync();
   final source = HTSource(sourceContent);
 
@@ -49,8 +49,6 @@ final preincludeModule = [''');
     final content = output.toString();
     final file = File(kDest);
     file.writeAsStringSync(content);
-    stdout.writeln(' done!');
-    print('Saved to:\n - $kDest');
-    print('Compilation finished: [SUCCESS].');
+    print('Done!');
   }
 }

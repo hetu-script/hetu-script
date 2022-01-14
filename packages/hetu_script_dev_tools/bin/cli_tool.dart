@@ -18,8 +18,8 @@ For [command] usage, you can type '--help' after it, example:
 hetu run -h
 commands:
   run [path] [option]
-  format [path] [option]
   analyze [path] [option]
+  format [path] [output_path] [option]
   compile [path] [output_path] [option]
 ''';
 
@@ -34,13 +34,10 @@ const kSeperator = '------------------------------------------------';
 final argParser = ArgParser();
 
 late Hetu hetu;
-final currentDir = Directory.current;
-final sourceContext = HTFileSystemResourceContext(
-    root: currentDir.path,
-    expressionModuleExtensions: [
-      HTResource.json,
-      HTResource.jsonWithComments,
-    ]);
+final sourceContext = HTFileSystemResourceContext(expressionModuleExtensions: [
+  HTResource.json,
+  HTResource.jsonWithComments,
+]);
 
 void main(List<String> arguments) {
   try {
@@ -70,14 +67,6 @@ void main(List<String> arguments) {
               run(cmd.arguments, enterRepl: cmd['repl']);
             }
             break;
-          case 'format':
-            if (cmd['help']) {
-              print('hetu format [path] [option]\nFormat a Hetu script file.');
-            } else {
-              format(cmd.arguments,
-                  outPath: cmd['out'], printResult: cmd['print']);
-            }
-            break;
           case 'analyze':
             if (cmd['help']) {
               print(
@@ -86,12 +75,25 @@ void main(List<String> arguments) {
               analyze(cmd.arguments);
             }
             break;
+          case 'format':
+            if (cmd['help']) {
+              print('hetu format [path] [option]\nFormat a Hetu script file.');
+            } else {
+              format(cmd.arguments, cmd['out']);
+            }
+            break;
           case 'compile':
             if (cmd['help']) {
               print(
                   'hetu compile [path] [output_path] [option]\nCompile a Hetu script file.');
             } else {
-              compile(cmd.arguments);
+              final outPath = cmd['out'];
+              if (outPath == null) {
+                throw 'Error: Outpath argument is required for \'compile\' command.';
+              }
+              compile(cmd.arguments, outPath,
+                  moduleName: cmd['module'],
+                  compileToIntArrayWithName: cmd['array']);
             }
             break;
         }
@@ -152,8 +154,6 @@ ArgResults parseArg(List<String> args) {
   final fmtCmd = argParser.addCommand('format');
   fmtCmd.addFlag('help',
       abbr: 'h', negatable: false, help: 'Show format command help.');
-  fmtCmd.addFlag('print',
-      abbr: 'p', negatable: false, help: 'Print format result to terminal.');
   fmtCmd.addOption('out', abbr: 'o', help: 'Save format result to file.');
   final analyzeCmd = argParser.addCommand('analyze');
   analyzeCmd.addFlag('help',
@@ -161,6 +161,10 @@ ArgResults parseArg(List<String> args) {
   final compileCmd = argParser.addCommand('compile');
   compileCmd.addFlag('help',
       abbr: 'h', negatable: false, help: 'Show compile command help.');
+  compileCmd.addOption('out', abbr: 'o', help: 'Save compile result to file.');
+  compileCmd.addOption('module',
+      abbr: 'm', help: 'Module name of the library to be compiled.');
+  compileCmd.addOption('array', abbr: 'a', help: 'Compile to dart array.');
   return argParser.parse(args);
 }
 
@@ -215,31 +219,27 @@ void run(List<String> args, {bool enterRepl = false}) {
   }
 }
 
-void format(List<String> args, {String? outPath, bool printResult = true}) {
+void format(List<String> args, String outPath) {
   // final parser = HTAstParser();
   final formatter = HTFormatter();
   final context = HTFileSystemResourceContext();
   final source = context.getResource(args.first);
+  stdout.write('Formating: [${source.fullName}] ... ');
   // final config = ParserConfig(sourceType: sourceType);
   // final compilation = parser.parseToCompilation(source); //, config);
   // final module = compilation.modules[source.fullName]!;
   final fmtResult = formatter.formatString(source.content);
-  if (printResult) {
-    print(fmtResult);
-  }
-  if (outPath != null) {
-    if (!path.isAbsolute(outPath)) {
-      final curPath = path.dirname(source.fullName);
-      final name = path.basenameWithoutExtension(outPath);
-      outPath = path.join(curPath, '$name.ht');
-    }
-  } else {
-    outPath = source.fullName;
+  if (!path.isAbsolute(outPath)) {
+    final joined = path.join(sourceContext.root, outPath);
+    outPath = sourceContext.getAbsolutePath(key: joined);
   }
   final outFile = File(outPath);
+  if (!outFile.existsSync()) {
+    stdout.write('path not exist, creating file ...');
+    outFile.createSync(recursive: true);
+  }
   outFile.writeAsStringSync(fmtResult);
-  print('Saved formatted file to:');
-  print(outPath);
+  stdout.writeln('done!');
 }
 
 void analyze(List<String> args) {
@@ -260,21 +260,24 @@ void analyze(List<String> args) {
   }
 }
 
-void compile(List<String> args, {String? outPath}) {
+void compile(List<String> args, String? outPath,
+    {String? moduleName, String? compileToIntArrayWithName}) {
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'compile\' command.';
   }
+
   final source = sourceContext.getResource(args.first);
-  stdout.write('Compiling [${source.fullName}] ...');
-  String? moduleName;
-  if (args.length > 1) {
-    moduleName = args[1];
+  stdout.write('Compiling [${source.fullName}] ');
+  if (moduleName != null) {
+    stdout.write('with module name: [$moduleName] ...');
+  } else {
+    stdout.write('with module name: [${source.fullName}] ...');
   }
 
   final parser = HTParser(context: sourceContext);
   final module = parser.parseToModule(source, moduleName: moduleName);
-  if (parser.errors!.isNotEmpty) {
-    for (final err in parser.errors!) {
+  if (module.errors.isNotEmpty) {
+    for (final err in module.errors) {
       print(err);
     }
     throw 'Syntactic error(s) occurred while parsing.';
@@ -282,21 +285,54 @@ void compile(List<String> args, {String? outPath}) {
     final compileConfig = CompilerConfig(compileWithLineInfo: false);
     final compiler = HTCompiler(config: compileConfig);
     final bytes = compiler.compile(module);
+
     final curPath = path.dirname(source.fullName);
     late String outName;
     if (outPath != null) {
       if (!path.isAbsolute(outPath)) {
-        final name = path.basename(outPath);
-        outName = path.join(curPath, name);
+        final joined = path.join(sourceContext.root, outPath);
+        outName = sourceContext.getAbsolutePath(key: joined);
       } else {
         outName = outPath;
       }
     } else {
       outName = path.join(
-          curPath, path.basenameWithoutExtension(source.fullName) + '.out');
+          curPath,
+          path.basenameWithoutExtension(source.fullName) +
+              (compileToIntArrayWithName != null ? '.dart' : '.out'));
     }
-    final outFile = File(outName);
-    outFile.writeAsBytesSync(bytes);
-    stdout.writeln(' done!');
+
+    if (compileToIntArrayWithName != null) {
+      final output = StringBuffer();
+      output.writeln(
+          '''/// The pre-compiled binary code of [${moduleName ?? source.basename}].
+/// This file has been automatically generated, please do not edit manually.
+final $compileToIntArrayWithName = [''');
+      for (var i = 0; i < bytes.length; ++i) {
+        output.write('  ${bytes[i]}');
+        if (i < bytes.length - 1) {
+          output.write(',');
+        }
+        output.writeln();
+      }
+      output.writeln('];');
+
+      final content = output.toString();
+      final outFile = File(outName);
+      if (!outFile.existsSync()) {
+        stdout.write('path not exist, creating file ...');
+        outFile.createSync(recursive: true);
+      }
+      outFile.writeAsStringSync(content);
+      stdout.write('done!');
+    } else {
+      final outFile = File(outName);
+      if (!outFile.existsSync()) {
+        stdout.write('path not exist, creating file ...');
+        outFile.createSync(recursive: true);
+      }
+      outFile.writeAsBytesSync(bytes);
+      stdout.write('done!');
+    }
   }
 }
