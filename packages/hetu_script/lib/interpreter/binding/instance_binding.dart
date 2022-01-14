@@ -710,9 +710,13 @@ extension ListBinding on List {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction? func = positionalArgs.first;
-          sort((a, b) {
-            return func?.call(positionalArgs: [a, b]) as int;
-          });
+          int Function(dynamic, dynamic)? sortFunc;
+          if (func != null) {
+            sortFunc = (a, b) {
+              return func.call(positionalArgs: [a, b]) as int;
+            };
+          }
+          sort(sortFunc);
         };
       case 'shuffle':
         return (HTEntity entity,

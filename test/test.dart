@@ -4,6 +4,9 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    'world'.padLeft()
+    final a = Set(3,2,1)
+    final b = a.toList()
+    b.sort()
+    print(b)
   ''');
 }
