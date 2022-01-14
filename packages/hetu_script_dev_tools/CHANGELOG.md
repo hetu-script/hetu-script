@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Pre-compiled console module.
+
 ## 0.0.6
 
 - Command line tool now can compile and run bytecode binary file.

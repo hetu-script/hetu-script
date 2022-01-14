@@ -102,9 +102,9 @@ packages:
   hetu_script:
     dependency: "direct main"
     description:
-      name: hetu_script
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../hetu_script"
+      relative: true
+    source: path
     version: "0.3.10"
   http:
     dependency: "direct main"
