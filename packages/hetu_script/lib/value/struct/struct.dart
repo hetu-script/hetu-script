@@ -101,9 +101,18 @@ class HTStruct with HTEntity {
     }
   }
 
+  operator [](String key) {
+    return memberGet(key);
+  }
+
+  operator []=(String key, dynamic value) {
+    memberSet(key, value);
+  }
+
   /// [isSelf] means wether this is called by the struct itself, or a recursive one
   @override
-  dynamic memberGet(String varName, {String? from, bool isSelf = true}) {
+  dynamic memberGet(String varName,
+      {String? from, bool isRecursivelyGet = false}) {
     dynamic value;
     if (varName == Semantic.prototype) {
       return prototype;
@@ -135,10 +144,10 @@ class HTStruct with HTEntity {
       }
       value = fields[constructor]!;
     } else if (prototype != null) {
-      value = prototype!.memberGet(varName, from: from, isSelf: false);
+      value = prototype!.memberGet(varName, from: from, isRecursivelyGet: true);
     }
     // assign the original struct as instance, not the prototype object
-    if (isSelf) {
+    if (!isRecursivelyGet) {
       if (value is HTFunction) {
         value.namespace = namespace;
         value.instance = this;
@@ -152,7 +161,7 @@ class HTStruct with HTEntity {
 
   @override
   bool memberSet(String varName, dynamic varValue,
-      {String? from, bool define = true}) {
+      {String? from, bool defineIfAbsent = true}) {
     final setter = '${Semantic.setter}$varName';
     if (fields.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
@@ -174,13 +183,13 @@ class HTStruct with HTEntity {
       func.call(positionalArgs: [varValue]);
       return true;
     } else if (prototype != null) {
-      final success =
-          prototype!.memberSet(varName, varValue, from: from, define: false);
+      final success = prototype!
+          .memberSet(varName, varValue, from: from, defineIfAbsent: false);
       if (success) {
         return true;
       }
     }
-    if (define) {
+    if (defineIfAbsent) {
       fields[varName] = varValue;
       return true;
     }

@@ -3,9 +3,11 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   var hetu = Hetu();
   hetu.init();
-  hetu.eval(r'''
-    for (final i in range(1,10)) {
-      print(i)
-    }
+  final result = hetu.eval(r'''
+    final obj = {}
+    obj
   ''');
+
+  result['name'] = 'hetu';
+  print(result);
 }
