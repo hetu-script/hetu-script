@@ -38,8 +38,8 @@ final Map<String, Function> preincludeFunctions = {
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
       [
-        for (var i = positionalArgs[0];
-            i < positionalArgs[1];
+        for (var i = positionalArgs[1];
+            i < positionalArgs[0];
             i += positionalArgs[2])
           i
       ],
