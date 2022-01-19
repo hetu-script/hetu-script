@@ -4,6 +4,17 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    print(Math.randomColorHex(hasAlpha: true))
+    struct Tile {
+      construct (l, t) {
+        this.left = l
+        this.top = t
+      }
+    }
+
+    final obj = {
+      name: 'tile',
+      ...Tile(2,3)
+    }
+    print(obj)
   ''');
 }

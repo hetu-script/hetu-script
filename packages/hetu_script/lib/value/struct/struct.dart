@@ -112,6 +112,7 @@ class HTStruct with HTEntity {
   }
 
   Iterable<String> get keys => _fields.keys;
+  // .where((element) => !element.startsWith(HTLexicon.internalPrefix));
 
   Iterable<dynamic> get values => _fields.values;
 

@@ -1218,9 +1218,11 @@ class Hetu extends HTAbstractInterpreter {
             final value = execute();
             struct[key] = value;
           } else if (fieldType == StructObjFieldTypeCode.spread) {
-            final HTStruct struct = execute();
-            for (final key in struct.keys) {
-              final copiedValue = toStructValue(struct[key]);
+            final HTStruct spreadingStruct = execute();
+            for (final key in spreadingStruct.keys) {
+              // skip internal apis
+              if (key.startsWith(HTLexicon.internalPrefix)) continue;
+              final copiedValue = toStructValue(spreadingStruct[key]);
               struct.define(key, copiedValue);
             }
           }
