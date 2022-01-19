@@ -4,10 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final obj = {
-      a: {}
-    }
-
-    print(obj)
+    print(Math.randomColorHex())
   ''');
 }

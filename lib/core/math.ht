@@ -19,6 +19,8 @@ external class Math {
 
   static fun randomInt(max: num) -> num
 
+  static fun randomColorHex() -> str
+
   static fun sqrt(x: num) -> num
 
   static fun pow(x: num, exponent: num) -> num
