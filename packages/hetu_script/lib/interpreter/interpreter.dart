@@ -975,7 +975,7 @@ class Hetu extends HTAbstractInterpreter {
             } else {
               if (object is List) {
                 if (key is! int) {
-                  throw HTError.subGetKey(
+                  throw HTError.subGetKey(key,
                       filename: _fileName, line: _line, column: _column);
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
@@ -1054,7 +1054,7 @@ class Hetu extends HTAbstractInterpreter {
             } else {
               if (object is List) {
                 if (key is! int) {
-                  throw HTError.subGetKey(
+                  throw HTError.subGetKey(key,
                       filename: _fileName, line: _line, column: _column);
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,

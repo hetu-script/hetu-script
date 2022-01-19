@@ -61,8 +61,12 @@ class HTStruct with HTEntity {
 
   @override
   String toString() {
-    final content = util.stringifyStructMembers(this, from: this);
-    return '{\n$content}';
+    if (fields.isNotEmpty) {
+      final content = util.stringifyStructMembers(this, from: this);
+      return '${HTLexicon.bracesLeft}\n$content${HTLexicon.bracesRight}';
+    } else {
+      return '${HTLexicon.bracesLeft}${HTLexicon.bracesRight}';
+    }
   }
 
   /// Check if this struct has the key in its own fields

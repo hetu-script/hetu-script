@@ -96,11 +96,15 @@ String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
     final value = struct.fields[key];
     final valueBuffer = StringBuffer();
     if (value is HTStruct) {
-      final content = stringifyStructMembers(value, from: from);
-      valueBuffer.writeln(HTLexicon.bracesLeft);
-      valueBuffer.write(content);
-      valueBuffer.write(_curIndent());
-      valueBuffer.write(HTLexicon.bracesRight);
+      if (value.fields.isEmpty) {
+        valueBuffer.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+      } else {
+        final content = stringifyStructMembers(value, from: from);
+        valueBuffer.writeln(HTLexicon.bracesLeft);
+        valueBuffer.write(content);
+        valueBuffer.write(_curIndent());
+        valueBuffer.write(HTLexicon.bracesRight);
+      }
     } else {
       final valueString = stringify(value);
       valueBuffer.write(valueString);

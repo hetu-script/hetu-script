@@ -4,8 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    for (var i in range(5)) {
-      print(i)
+    final obj = {
+      a: {}
     }
+
+    print(obj)
   ''');
 }
