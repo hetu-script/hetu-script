@@ -19,7 +19,7 @@ external class Math {
 
   static fun randomInt(max: num) -> num
 
-  static fun randomColorHex() -> str
+  static fun randomColorHex({hasAlpha: bool = false}) -> str
 
   static fun sqrt(x: num) -> num
 

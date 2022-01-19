@@ -321,14 +321,19 @@ class HTMathClassBinding extends HTExternalClass {
             math.Random().nextInt(positionalArgs.first as int);
       case 'Math.randomColorHex':
         return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            '#' +
-            (math.Random().nextDouble() * 16777215)
-                .truncate()
-                .toRadixString(16)
-                .padLeft(6, '0');
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          var prefix = '#';
+          if (namedArgs['hasAlpha']) {
+            prefix += 'ff';
+          }
+          return prefix +
+              (math.Random().nextDouble() * 16777215)
+                  .truncate()
+                  .toRadixString(16)
+                  .padLeft(6, '0');
+        };
       case 'Math.sqrt':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

@@ -4,6 +4,6 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    print(Math.randomColorHex())
+    print(Math.randomColorHex(hasAlpha: true))
   ''');
 }
