@@ -162,7 +162,7 @@ class Hetu extends HTAbstractInterpreter {
         condition == 'false' ||
         (condition is Iterable && condition.isEmpty) ||
         (condition is Map && condition.isEmpty) ||
-        (condition is HTStruct && condition.fields.isEmpty)) {
+        (condition is HTStruct && condition.isEmpty)) {
       return false;
     } else {
       return true;
@@ -1216,11 +1216,11 @@ class Hetu extends HTAbstractInterpreter {
               fieldType == StructObjFieldTypeCode.objectIdentifier) {
             final key = _bytecodeModule.readString();
             final value = execute();
-            struct.fields[key] = value;
+            struct[key] = value;
           } else if (fieldType == StructObjFieldTypeCode.spread) {
-            final HTStruct value = execute();
-            for (final key in value.fields.keys) {
-              final copiedValue = toStructValue(value.fields[key]);
+            final HTStruct struct = execute();
+            for (final key in struct.keys) {
+              final copiedValue = toStructValue(struct[key]);
               struct.define(key, copiedValue);
             }
           }

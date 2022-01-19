@@ -29,7 +29,7 @@ class HTStruct with HTEntity {
 
   HTNamedStruct? declaration;
 
-  final fields = <String, dynamic>{};
+  final Map<String, dynamic> _fields;
 
   late final HTNamespace namespace;
 
@@ -38,8 +38,8 @@ class HTStruct with HTEntity {
   @override
   HTStructuralType get valueType {
     final fieldTypes = <String, HTType>{};
-    for (final key in fields.keys) {
-      final value = fields[key];
+    for (final key in _fields.keys) {
+      final value = _fields[key];
       final encap = interpreter.encapsulate(value);
       final unresolvedType = encap.valueType;
       fieldTypes[key] = unresolvedType.resolve(namespace);
@@ -49,19 +49,17 @@ class HTStruct with HTEntity {
 
   HTStruct(this.interpreter,
       {String? id, this.prototype, Map<String, dynamic>? fields, this.closure})
-      : id = id ?? '${Semantic.anonymousStruct}${structLiteralIndex++}' {
+      : id = id ?? '${Semantic.anonymousStruct}${structLiteralIndex++}',
+        _fields = fields ?? {} {
     namespace = HTNamespace(id: this.id, closure: closure);
     namespace.define(HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: this));
-    if (fields != null) {
-      this.fields.addAll(fields);
-    }
   }
 
   Map<String, dynamic> toJson() => util.jsonifyStruct(this);
 
   @override
   String toString() {
-    if (fields.isNotEmpty) {
+    if (_fields.isNotEmpty) {
       final content = util.stringifyStructMembers(this, from: this);
       return '${HTLexicon.bracesLeft}\n$content${HTLexicon.bracesRight}';
     } else {
@@ -69,15 +67,15 @@ class HTStruct with HTEntity {
     }
   }
 
-  /// Check if this struct has the key in its own fields
+  /// Check if this struct has the key in its own _fields
   bool owns(String varName) {
-    return fields.containsKey(varName);
+    return _fields.containsKey(varName);
   }
 
-  /// Check if this struct has the key in its own fields or its prototypes' fields
+  /// Check if this struct has the key in its own _fields or its prototypes' _fields
   @override
   bool contains(String varName) {
-    if (fields.containsKey(varName)) {
+    if (_fields.containsKey(varName)) {
       return true;
     } else if (prototype != null && prototype!.contains(varName)) {
       return true;
@@ -87,21 +85,21 @@ class HTStruct with HTEntity {
   }
 
   void import(HTStruct other, {bool clone = false}) {
-    for (final key in other.fields.keys) {
-      if (!fields.keys.contains(key)) {
-        define(key, other.fields[key]);
+    for (final key in other._fields.keys) {
+      if (!_fields.keys.contains(key)) {
+        define(key, other._fields[key]);
       }
     }
   }
 
   void define(String id, dynamic value,
       {bool override = false, bool error = true}) {
-    fields[id] = value;
+    _fields[id] = value;
   }
 
   void delete(String id) {
-    if (fields.containsKey(id)) {
-      fields.remove(id);
+    if (_fields.containsKey(id)) {
+      _fields.remove(id);
     }
   }
 
@@ -112,6 +110,19 @@ class HTStruct with HTEntity {
   operator []=(String key, dynamic value) {
     memberSet(key, value);
   }
+
+  Iterable<String> get keys => _fields.keys;
+
+  Iterable<dynamic> get values => _fields.values;
+
+  /// The number of key/value pairs in the map.
+  int get length => _fields.length;
+
+  /// Whether there is no key/value pair in the map.
+  bool get isEmpty => _fields.isEmpty;
+
+  /// Whether there is at least one key/value pair in the map.
+  bool get isNotEmpty => _fields.isNotEmpty;
 
   /// [isSelf] means wether this is called by the struct itself, or a recursive one
   @override
@@ -126,27 +137,27 @@ class HTStruct with HTEntity {
         ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
         : Semantic.constructor;
 
-    if (fields.containsKey(varName)) {
+    if (_fields.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      value = fields[varName];
-    } else if (fields.containsKey(getter)) {
+      value = _fields[varName];
+    } else if (_fields.containsKey(getter)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      value = fields[getter]!;
-    } else if (fields.containsKey(constructor)) {
+      value = _fields[getter]!;
+    } else if (_fields.containsKey(constructor)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      value = fields[constructor]!;
+      value = _fields[constructor]!;
     } else if (prototype != null) {
       value = prototype!.memberGet(varName, from: from, isRecursivelyGet: true);
     }
@@ -167,21 +178,21 @@ class HTStruct with HTEntity {
   bool memberSet(String varName, dynamic varValue,
       {String? from, bool defineIfAbsent = true}) {
     final setter = '${Semantic.setter}$varName';
-    if (fields.containsKey(varName)) {
+    if (_fields.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      fields[varName] = varValue;
+      _fields[varName] = varValue;
       return true;
-    } else if (fields.containsKey(setter)) {
+    } else if (_fields.containsKey(setter)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      HTFunction func = fields[setter]!;
+      HTFunction func = _fields[setter]!;
       func.namespace = namespace;
       func.instance = this;
       func.call(positionalArgs: [varValue]);
@@ -194,7 +205,7 @@ class HTStruct with HTEntity {
       }
     }
     if (defineIfAbsent) {
-      fields[varName] = varValue;
+      _fields[varName] = varValue;
       return true;
     }
     return false;
@@ -211,8 +222,8 @@ class HTStruct with HTEntity {
   HTStruct clone() {
     final cloned =
         HTStruct(interpreter, prototype: prototype, closure: closure);
-    for (final key in fields.keys) {
-      final value = fields[key];
+    for (final key in _fields.keys) {
+      final value = _fields[key];
       final copiedValue = interpreter.toStructValue(value);
       cloned.define(key, copiedValue);
     }

@@ -48,14 +48,14 @@ final Map<String, Function> preincludeFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.keys;
+    return obj.keys;
   },
   'prototype.values': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.values;
+    return obj.values;
   },
   'prototype.contains': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
@@ -76,21 +76,21 @@ final Map<String, Function> preincludeFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.isEmpty;
+    return obj.isEmpty;
   },
   'prototype.isNotEmpty': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.isNotEmpty;
+    return obj.isNotEmpty;
   },
   'prototype.length': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.length;
+    return obj.length;
   },
   'prototype.clone': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
