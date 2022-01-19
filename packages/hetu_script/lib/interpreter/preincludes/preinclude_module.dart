@@ -8,7 +8,7 @@ final hetuCoreModule = [
   0,
   3,
   0,
-  10,
+  11,
   0,
   33,
   0,

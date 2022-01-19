@@ -42,7 +42,6 @@ final sourceContext = HTFileSystemResourceContext(expressionModuleExtensions: [
 void main(List<String> arguments) {
   try {
     hetu = Hetu(sourceContext: sourceContext);
-    hetu.init();
     final version = kHetuVersion.toString();
     replInfo = replInfo.replaceAll('{0}', version);
     cliHelp = cliHelp.replaceAll('{0}', version);
