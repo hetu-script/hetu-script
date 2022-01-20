@@ -224,6 +224,7 @@ class HTStruct with HTEntity {
     final cloned =
         HTStruct(interpreter, prototype: prototype, closure: closure);
     for (final key in _fields.keys) {
+      if (key.startsWith(HTLexicon.internalPrefix)) continue;
       final value = _fields[key];
       final copiedValue = interpreter.toStructValue(value);
       cloned.define(key, copiedValue);
