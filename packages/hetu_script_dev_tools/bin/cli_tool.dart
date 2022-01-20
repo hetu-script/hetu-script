@@ -106,6 +106,7 @@ void main(List<String> arguments) {
 }
 
 void enterReplMode({String? prompt}) {
+  hetu.init();
   print(replInfo);
   print(kSeperator);
   if (prompt != null) {
