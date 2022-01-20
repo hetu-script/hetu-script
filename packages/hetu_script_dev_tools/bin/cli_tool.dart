@@ -169,6 +169,7 @@ ArgResults parseArg(List<String> args) {
 }
 
 void run(List<String> args, {bool enterRepl = false}) {
+  hetu.init();
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'run\' command.';
   }
