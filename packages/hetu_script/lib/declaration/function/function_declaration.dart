@@ -146,13 +146,12 @@ class HTFunctionDeclaration extends HTDeclaration
       if (i < paramDecls.length - 1) {
         result.write('${HTLexicon.comma} ');
       }
-      if (optionalStarted) {
-        result.write(HTLexicon.bracketsRight);
-      } else if (namedStarted) {
-        namedStarted = true;
-        result.write(HTLexicon.bracesRight);
-      }
       ++i;
+    }
+    if (optionalStarted) {
+      result.write(HTLexicon.bracketsRight);
+    } else if (namedStarted) {
+      result.write(HTLexicon.bracesRight);
     }
     result.write('${HTLexicon.parenthesesRight} ${HTLexicon.singleArrow} ' +
         returnType.toString());

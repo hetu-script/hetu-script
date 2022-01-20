@@ -4,7 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final a = {}
+    final a = (a, {b, c}) {}
     print(a)
   ''');
 }
