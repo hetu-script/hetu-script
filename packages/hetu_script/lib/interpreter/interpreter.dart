@@ -420,7 +420,9 @@ class Hetu extends HTAbstractInterpreter {
       }
       return list;
     } else if (value is Map) {
-      final struct = HTStruct(this, closure: namespace);
+      final prototype =
+          _namespace.memberGet(HTLexicon.prototype, recursive: true);
+      final struct = HTStruct(this, prototype: prototype, closure: namespace);
       for (final key in value.keys) {
         final fieldKey = key.toString();
         final fieldValue = toStructValue(value[key]);
