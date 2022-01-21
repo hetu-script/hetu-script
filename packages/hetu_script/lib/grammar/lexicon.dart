@@ -83,6 +83,7 @@ abstract class HTLexicon {
   static const privatePrefix = '_';
   static const privatePrefix2 = r'#';
   static const internalPrefix = r'$';
+  static const percentageMark = r'%';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
   static const singleArrow = '->';

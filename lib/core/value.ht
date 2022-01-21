@@ -5,6 +5,8 @@
 
 external class num {
 
+  fun toPercentageString([fractionDigits: int = 0]) -> str
+
   fun compareTo(compareTo: num) -> int
 
   fun remainder(other: num) -> num
