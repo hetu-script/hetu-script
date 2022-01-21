@@ -119,7 +119,7 @@ You can check this [official document](https://dart.dev/tools/pub/cmd/pub-global
 
 ## Discussion group
 
-Discord: https://discord.gg/sTF73qcS
+Discord: [https://discord.gg/aJedwcRPr8](https://discord.gg/aJedwcRPr8)
 
 中文交流可以加 QQ 群：812529118
 
