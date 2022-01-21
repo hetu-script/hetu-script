@@ -20,7 +20,7 @@ class HTHetuClassBinding extends HTExternalClass {
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
-          final jsonData = positionalArgs.first as Map<String, dynamic>;
+          final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
           return interpreter.createStructfromJson(jsonData);
         };
       default:

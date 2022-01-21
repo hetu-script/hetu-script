@@ -4,7 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final a = (a, {b, c}) {}
-    print(a)
+    final m = Map()
+    m['aaa'] = 222
+
+    final obj = prototype.fromJson(m)
+    print(obj.toJson())
   ''');
 }

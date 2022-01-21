@@ -434,11 +434,13 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  HTStruct createStructfromJson(Map<String, dynamic> jsonData) {
-    final struct = HTStruct(this, closure: namespace);
+  HTStruct createStructfromJson(Map<dynamic, dynamic> jsonData) {
+    final prototype =
+        _namespace.memberGet(HTLexicon.prototype, recursive: true);
+    final struct = HTStruct(this, prototype: prototype, closure: namespace);
     for (final key in jsonData.keys) {
       var value = toStructValue(jsonData[key]);
-      struct.define(key, value);
+      struct.define(key.toString(), value);
     }
     return struct;
   }
