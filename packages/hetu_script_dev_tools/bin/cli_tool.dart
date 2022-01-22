@@ -114,12 +114,11 @@ void enterReplMode({String? prompt}) {
     print([prompt]);
     print(kSeperator);
   }
-  var exit = false;
-  while (!exit) {
+  while (true) {
     stdout.write('>>>');
     var input = stdin.readLineSync();
     if (input == '.exit') {
-      exit = true;
+      break;
     } else {
       if (input!.endsWith('\\')) {
         input += '\n' + stdin.readLineSync()!;
@@ -133,7 +132,7 @@ void enterReplMode({String? prompt}) {
         } else {
           print(e);
         }
-        print(''); // flush the std to prevent unintended input capture.
+        print('');
       }
     }
   }
