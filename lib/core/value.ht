@@ -260,6 +260,8 @@ external class bool {
 
 external class str {
 
+  get characters -> Iterable
+
   fun toString() -> str
 
 	static fun parse(value) -> str

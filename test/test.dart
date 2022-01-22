@@ -4,10 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final m = Map()
-    m['aaa'] = 222
 
-    final obj = prototype.fromJson(m)
-    print(obj.toJson())
+    final iter = 'Hello, world!'.characters.iterator;
+    while (iter.moveNext()) {
+      print(iter.current);
+    }
   ''');
 }

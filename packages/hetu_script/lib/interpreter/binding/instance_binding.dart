@@ -276,6 +276,8 @@ extension DoubleBinding on double {
 extension StringBinding on String {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'characters':
+        return Characters(this);
       case 'toString':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

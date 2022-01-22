@@ -13,6 +13,7 @@ dependencies:
   path: ^1.8.0
   recase: ^4.0.0
   meta: ^1.7.0
+  characters: ^1.2.0
 
 dev_dependencies:
   lints: ^1.0.0
