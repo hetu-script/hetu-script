@@ -68,7 +68,7 @@ class HTStruct with HTEntity {
   }
 
   /// Check if this struct has the key in its own _fields
-  bool owns(String varName) {
+  bool containsKey(String varName) {
     return _fields.containsKey(varName);
   }
 

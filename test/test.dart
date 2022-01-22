@@ -3,11 +3,12 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   var hetu = Hetu();
   hetu.init();
-  try {
-    hetu.eval('d');
-  } catch (e) {
-    print(e);
-    final r = hetu.eval('Math.random()');
-    print(r);
-  }
+  final r = hetu.eval(r'''
+    fun func() {
+      final a = false
+      if (!a) {}
+    }
+  ''');
+
+  print(r);
 }

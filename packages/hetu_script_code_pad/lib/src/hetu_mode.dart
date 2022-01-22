@@ -42,7 +42,7 @@ final hetuscript = Mode(refs: {
         "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
     "literal": "true false null",
     "built_in":
-        "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values owns contains length fromJson clone"
+        "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
   }, contains: [
     CommonModes.stringMode,
     Mode(ref: '~contains~3'),
@@ -54,7 +54,7 @@ final hetuscript = Mode(refs: {
         "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
     "literal": "true false null",
     "built_in":
-        "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values owns contains length fromJson clone"
+        "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
   }, contains: [
     Mode(self: true),
     CommonModes.stringMode,
@@ -71,7 +71,7 @@ final hetuscript = Mode(refs: {
             "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
         "literal": "true false null",
         "built_in":
-            "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values owns contains length fromJson clone"
+            "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
       },
       contains: [
         CommonModes.cLineCommentMode,
@@ -85,7 +85,7 @@ final hetuscript = Mode(refs: {
       "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
   "literal": "true false null",
   "built_in":
-      "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values owns contains length fromJson clone"
+      "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
 }, contains: [
   CommonModes.stringMode,
   CommonModes.cLineCommentMode,
@@ -117,7 +117,7 @@ final hetuscript = Mode(refs: {
                           "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
                       "literal": "true false null",
                       "built_in":
-                          "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values owns contains length fromJson clone"
+                          "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
                     },
                     contains: [
                       Mode(self: true),
@@ -138,7 +138,7 @@ final hetuscript = Mode(refs: {
             "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
         "literal": "true false null",
         "built_in":
-            "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values owns contains length fromJson clone"
+            "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
       },
       contains: [
         Mode(self: true),
