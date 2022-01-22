@@ -3,11 +3,11 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   var hetu = Hetu();
   hetu.init();
-  hetu.eval(r'''
-
-    final iter = 'Hello, world!'.characters.iterator;
-    while (iter.moveNext()) {
-      print(iter.current);
-    }
-  ''');
+  try {
+    hetu.eval('d');
+  } catch (e) {
+    print(e);
+    final r = hetu.eval('Math.random()');
+    print(r);
+  }
 }

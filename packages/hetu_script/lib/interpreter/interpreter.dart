@@ -528,7 +528,7 @@ class Hetu extends HTAbstractInterpreter {
           sourceType == ResourceType.hetuLiteralCode ||
           sourceType == ResourceType.hetuValue;
       while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
-        final result = execute();
+        final result = execute(clearStack: false);
         if (result is HTNamespace) {
           _bytecodeModule.namespaces[result.id!] = result;
         } else if (result is HTValueSource) {
@@ -565,7 +565,7 @@ class Hetu extends HTAbstractInterpreter {
         return result;
       }
       if (_isModuleEntryScript) {
-        return _stackFrames.first.first;
+        return _stackFrames.last.first;
       }
     } catch (error) {
       if (errorHandled) {
@@ -664,7 +664,8 @@ class Hetu extends HTAbstractInterpreter {
   /// Changing library will create new stack frame for new register values.
   /// Such as currrent value, current symbol, current line & column, etc.
   dynamic execute(
-      {String? filename,
+      {bool clearStack = true,
+      String? filename,
       String? moduleName,
       HTNamespace? namespace,
       HTFunction? function,
@@ -727,6 +728,9 @@ class Hetu extends HTAbstractInterpreter {
     _line = savedLine;
     _column = savedColumn;
     --_currentStackIndex;
+    if (clearStack) {
+      _stackFrames.removeLast();
+    }
     return result;
   }
 
