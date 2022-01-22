@@ -319,6 +319,12 @@ class HTMathClassBinding extends HTExternalClass {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.Random().nextInt(positionalArgs.first as int);
+      case 'Math.randomBool':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            math.Random().nextBool();
       case 'Math.randomColorHex':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],

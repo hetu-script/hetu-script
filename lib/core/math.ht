@@ -6,7 +6,7 @@ external class Math {
   static fun radiusToSigma(radius: float) -> float
   
   // Box–Muller transform for generating normally distributed random numbers
-  static fun gaussianNoise(mean: float, variance: float) -> float
+  static fun gaussianNoise(mean: float, standardDeviation: float) -> float
   
   // Compute Perlin noise at coordinates x, y
   static fun perlinNoise(x: float, y: float) -> float
@@ -18,6 +18,8 @@ external class Math {
   static fun random() -> num
 
   static fun randomInt(max: num) -> num
+
+  static fun randomBool() -> bool
 
   static fun randomColorHex({hasAlpha: bool = false}) -> str
 
