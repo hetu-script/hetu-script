@@ -465,21 +465,21 @@ class Hetu extends HTAbstractInterpreter {
       } else {
         for (final id in decl.showList) {
           final decl = importNamespace.declarations[id]!;
-          nsp.define(id, decl);
+          nsp.defineImport(id, decl);
         }
       }
     } else {
       if (decl.showList.isEmpty) {
         final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
         aliasNamespace.import(importNamespace);
-        nsp.define(decl.alias!, aliasNamespace);
+        nsp.defineImport(decl.alias!, aliasNamespace);
       } else {
         final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
         for (final id in decl.showList) {
           final decl = importNamespace.declarations[id]!;
           aliasNamespace.define(id, decl);
         }
-        nsp.define(decl.alias!, aliasNamespace);
+        nsp.defineImport(decl.alias!, aliasNamespace);
       }
     }
   }
@@ -1086,7 +1086,7 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleImportExport() {
     final isExported = _bytecodeModule.readBool();
-    final showList = <String>[];
+    final showList = <String>{};
     final showListLength = _bytecodeModule.read();
     for (var i = 0; i < showListLength; ++i) {
       final id = _bytecodeModule.readString();
@@ -1112,6 +1112,9 @@ class Hetu extends HTAbstractInterpreter {
         final value = _bytecodeModule.expressions[fromPath];
         assert(value != null);
         _namespace.define(alias!, HTVariable(alias, value: value));
+        if (isExported) {
+          _namespace.declareExport(alias);
+        }
       } else {
         final decl = ImportDeclaration(
           fromPath,
