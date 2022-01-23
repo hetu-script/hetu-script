@@ -1082,7 +1082,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     if (stmt.init != null) {
       // TODO: 如果有多个变量同时声明?
       final userDecl = stmt.init as VarDecl;
-      final markedId = '${HTLexicon.internalMarker}${userDecl.id}';
+      final markedId = '${HTLexicon.internalPrefix}${userDecl.id}';
       newSymbolMap[userDecl.id.id] = markedId;
       Uint8List? initializer;
       if (userDecl.initializer != null) {

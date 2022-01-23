@@ -84,7 +84,7 @@ String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
   ++_curIndentCount;
   for (var i = 0; i < struct.length; ++i) {
     final key = struct.keys.elementAt(i);
-    if (key.startsWith(HTLexicon.internalMarker)) {
+    if (key.startsWith(HTLexicon.internalPrefix)) {
       continue;
     }
     if (from != null && from != struct) {

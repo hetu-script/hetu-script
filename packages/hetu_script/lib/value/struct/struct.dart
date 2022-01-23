@@ -230,4 +230,13 @@ class HTStruct with HTEntity {
     }
     return cloned;
   }
+
+  void assign(HTStruct other) {
+    for (final key in other._fields.keys) {
+      if (key.startsWith(HTLexicon.internalPrefix)) continue;
+      final value = other._fields[key];
+      final copiedValue = interpreter.toStructValue(value);
+      define(key, copiedValue);
+    }
+  }
 }

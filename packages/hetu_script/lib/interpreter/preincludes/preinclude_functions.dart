@@ -99,6 +99,14 @@ final Map<String, Function> preincludeFunctions = {
     final obj = object as HTStruct;
     return obj.clone();
   },
+  'prototype.assign': (HTEntity object,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final obj = object as HTStruct;
+    final other = positionalArgs.first as HTStruct;
+    obj.assign(other);
+  },
   'object.toString': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},

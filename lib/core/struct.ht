@@ -20,6 +20,9 @@ struct prototype {
   /// Create a new struct form deepcopying this struct
   external fun clone() -> {}
 
+  /// Assign another struct's value to this struct
+  external fun assign(other)
+
   fun toJson() -> Map => jsonify(this)
 
   fun toString() -> str => stringify(this)

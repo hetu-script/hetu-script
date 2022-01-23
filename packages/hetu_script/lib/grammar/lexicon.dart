@@ -82,6 +82,8 @@ abstract class HTLexicon {
   static const variadicArgs = '...';
   static const privatePrefix = '_';
   static const privatePrefix2 = r'#';
+
+  /// '$'
   static const internalPrefix = r'$';
   static const percentageMark = r'%';
   static const typesBracketLeft = '<';
@@ -91,7 +93,6 @@ abstract class HTLexicon {
   static const decimalPoint = '.';
   static const indentSpaces = '  ';
   static const spreadSyntax = '...';
-  static const internalMarker = r'_$';
 
   static const kNull = 'null';
   static const kTrue = 'true';
