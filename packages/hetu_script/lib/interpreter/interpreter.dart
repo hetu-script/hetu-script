@@ -527,9 +527,12 @@ class Hetu extends HTAbstractInterpreter {
       _isModuleEntryScript = sourceType == ResourceType.hetuScript ||
           sourceType == ResourceType.hetuLiteralCode ||
           sourceType == ResourceType.hetuValue;
+      if (sourceType == ResourceType.hetuLiteralCode) {
+        _namespace = global;
+      }
       while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
         final result = execute(clearStack: false);
-        if (result is HTNamespace) {
+        if (result is HTNamespace && result != global) {
           _bytecodeModule.namespaces[result.id!] = result;
         } else if (result is HTValueSource) {
           _bytecodeModule.expressions[result.id] = result.value;
@@ -544,9 +547,11 @@ class Hetu extends HTAbstractInterpreter {
           }
         }
       }
-      _namespace = _bytecodeModule.namespaces.values.last;
-      if (globallyImport) {
-        global.import(_namespace);
+      if (_bytecodeModule.namespaces.isNotEmpty) {
+        _namespace = _bytecodeModule.namespaces.values.last;
+        if (globallyImport) {
+          global.import(_namespace);
+        }
       }
       if (!_isModuleEntryScript) {
         // resolve each declaration after we get all declarations
@@ -775,8 +780,6 @@ class Hetu extends HTAbstractInterpreter {
               ResourceType.values.elementAt(resourceTypeIndex);
           if (_currentFileResourceType != ResourceType.hetuLiteralCode) {
             _namespace = HTNamespace(id: _fileName, closure: global);
-          } else {
-            _namespace = global;
           }
           break;
         case HTOpCode.loopPoint:
