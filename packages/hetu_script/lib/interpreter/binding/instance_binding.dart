@@ -986,9 +986,7 @@ extension FutureBinding on Future {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           HTFunction func = positionalArgs.first;
-          return then((value) {
-            func.call(positionalArgs: [value]);
-          });
+          return then((value) => func.call(positionalArgs: [value]));
         };
       default:
         throw HTError.undefined(varName);
