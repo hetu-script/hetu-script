@@ -1,5 +1,6 @@
-export 'hello2.ht'
+
+import 'hello3.ht' as meaning
 
 fun h2 {
-  return hello()
+  return 'h2'
 }

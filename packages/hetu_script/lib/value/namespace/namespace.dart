@@ -9,14 +9,14 @@ class ImportDeclaration {
 
   final String? alias;
 
-  final List<String> showList;
+  final Set<String> showList;
 
   final bool isExported;
 
   ImportDeclaration(
     this.fromPath, {
     this.alias,
-    this.showList = const [],
+    this.showList = const {},
     this.isExported = true,
   });
 }
@@ -39,6 +39,8 @@ class HTNamespace extends HTDeclaration with HTEntity {
   final exports = <String>[];
 
   bool get willExportAll => exports.isEmpty;
+
+  final importedDeclarations = <String, HTDeclaration>{};
 
   HTNamespace(
       {String? id,
@@ -97,6 +99,13 @@ class HTNamespace extends HTDeclaration with HTEntity {
       }
       return decl.value;
     }
+    if (importedDeclarations.containsKey(varName)) {
+      final decl = importedDeclarations[varName]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      return decl.value;
+    }
     if (recursive && (closure != null)) {
       return closure!.memberGet(varName, from: from, recursive: recursive);
     }
@@ -119,6 +128,14 @@ class HTNamespace extends HTDeclaration with HTEntity {
       decl.value = varValue;
       return;
     }
+    if (importedDeclarations.containsKey(varName)) {
+      final decl = importedDeclarations[varName]!;
+      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
+      decl.value = varValue;
+      return;
+    }
     if (recursive && (closure != null)) {
       closure!.memberSet(varName, varValue, from: from, recursive: recursive);
       return;
@@ -134,10 +151,18 @@ class HTNamespace extends HTDeclaration with HTEntity {
     exports.add(id);
   }
 
+  void defineImport(String key, HTDeclaration decl) {
+    if (!importedDeclarations.containsKey(key)) {
+      importedDeclarations[key] = decl;
+    } else {
+      throw HTError.definedRuntime(key);
+    }
+  }
+
   void import(HTNamespace other,
       {bool clone = false,
       bool isExported = false,
-      List<String> showList = const []}) {
+      Set<String> showList = const {}}) {
     for (final key in other.declarations.keys) {
       var decl = other.declarations[key]!;
       if (decl.isPrivate) {
@@ -151,7 +176,26 @@ class HTNamespace extends HTDeclaration with HTEntity {
       if (clone) {
         decl = decl.clone();
       }
-      define(key, decl, error: false);
+      defineImport(key, decl);
+      if (isExported) {
+        declareExport(key);
+      }
+    }
+    for (final key in other.importedDeclarations.keys) {
+      var decl = other.importedDeclarations[key]!;
+      if (decl.isPrivate) {
+        continue;
+      }
+      if (!other.exports.contains(decl.id)) {
+        continue;
+      }
+      if (clone) {
+        decl = decl.clone();
+      }
+      defineImport(key, decl);
+      if (isExported) {
+        declareExport(key);
+      }
     }
   }
 

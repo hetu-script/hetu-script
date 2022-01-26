@@ -50,7 +50,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
       throw HTError.unresolvedNamedStruct(id);
     }
     HTStruct structObj = _self!.clone();
-    if (structObj.owns(Semantic.constructor)) {
+    if (structObj.containsKey(Semantic.constructor)) {
       final constructor =
           structObj.memberGet(Semantic.constructor) as HTFunction;
       constructor.call(

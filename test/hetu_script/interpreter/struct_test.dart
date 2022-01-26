@@ -45,13 +45,13 @@ void main() {
         7,
       );
     });
-    test('owns', () {
+    test('containsKey', () {
       final result = hetu.eval(r'''
         var ht = {
           name: 'Hetu',
           age: 1
         }
-        ht.owns('toJson') // false
+        ht.containsKey('toJson') // false
       ''');
       expect(
         result,

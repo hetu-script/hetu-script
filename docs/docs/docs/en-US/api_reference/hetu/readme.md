@@ -66,7 +66,7 @@ struct prototype {
   external get values -> List
 
   /// Check if this struct has a key in its own fields.
-  external fun owns(key: str) -> bool
+  external fun containsKey(key: str) -> bool
 
   /// Check if this struct has a key
   /// in its own fields or its prototypes' fields.

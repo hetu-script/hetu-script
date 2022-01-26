@@ -19,7 +19,7 @@ void main() {
       final result = hetu.evalFile('import_test2.ht', invokeFunc: 'main');
       expect(
         result,
-        'Hello, world!',
+        'another hello!',
       );
     });
     test('recursive import', () {

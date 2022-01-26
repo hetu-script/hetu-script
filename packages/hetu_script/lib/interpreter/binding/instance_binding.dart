@@ -3,6 +3,15 @@ part of '../abstract_interpreter.dart';
 extension NumBinding on num {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'toPercentageString':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final fractionDigits = positionalArgs.first;
+          return (this * 100).toStringAsFixed(fractionDigits).toString() +
+              HTLexicon.percentageMark;
+        };
       case 'compareTo':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -267,6 +276,8 @@ extension DoubleBinding on double {
 extension StringBinding on String {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'characters':
+        return Characters(this);
       case 'toString':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

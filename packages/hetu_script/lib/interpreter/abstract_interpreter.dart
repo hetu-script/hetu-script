@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:characters/characters.dart';
 
 import 'dart:math' as math;
 

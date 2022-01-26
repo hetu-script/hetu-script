@@ -42,7 +42,6 @@ final sourceContext = HTFileSystemResourceContext(expressionModuleExtensions: [
 void main(List<String> arguments) {
   try {
     hetu = Hetu(sourceContext: sourceContext);
-    hetu.init();
     final version = kHetuVersion.toString();
     replInfo = replInfo.replaceAll('{0}', version);
     cliHelp = cliHelp.replaceAll('{0}', version);
@@ -107,6 +106,7 @@ void main(List<String> arguments) {
 }
 
 void enterReplMode({String? prompt}) {
+  hetu.init();
   print(replInfo);
   print(kSeperator);
   if (prompt != null) {
@@ -114,12 +114,11 @@ void enterReplMode({String? prompt}) {
     print([prompt]);
     print(kSeperator);
   }
-  var exit = false;
-  while (!exit) {
+  while (true) {
     stdout.write('>>>');
     var input = stdin.readLineSync();
     if (input == '.exit') {
-      exit = true;
+      break;
     } else {
       if (input!.endsWith('\\')) {
         input += '\n' + stdin.readLineSync()!;
@@ -133,7 +132,7 @@ void enterReplMode({String? prompt}) {
         } else {
           print(e);
         }
-        print(''); // flush the std to prevent unintended input capture.
+        print('');
       }
     }
   }
@@ -169,6 +168,7 @@ ArgResults parseArg(List<String> args) {
 }
 
 void run(List<String> args, {bool enterRepl = false}) {
+  hetu.init();
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'run\' command.';
   }

@@ -162,7 +162,7 @@ class Hetu extends HTAbstractInterpreter {
         condition == 'false' ||
         (condition is Iterable && condition.isEmpty) ||
         (condition is Map && condition.isEmpty) ||
-        (condition is HTStruct && condition.fields.isEmpty)) {
+        (condition is HTStruct && condition.isEmpty)) {
       return false;
     } else {
       return true;
@@ -420,7 +420,9 @@ class Hetu extends HTAbstractInterpreter {
       }
       return list;
     } else if (value is Map) {
-      final struct = HTStruct(this, closure: namespace);
+      final prototype =
+          _namespace.memberGet(HTLexicon.prototype, recursive: true);
+      final struct = HTStruct(this, prototype: prototype, closure: namespace);
       for (final key in value.keys) {
         final fieldKey = key.toString();
         final fieldValue = toStructValue(value[key]);
@@ -434,11 +436,13 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  HTStruct createStructfromJson(Map<String, dynamic> jsonData) {
-    final struct = HTStruct(this, closure: namespace);
+  HTStruct createStructfromJson(Map<dynamic, dynamic> jsonData) {
+    final prototype =
+        _namespace.memberGet(HTLexicon.prototype, recursive: true);
+    final struct = HTStruct(this, prototype: prototype, closure: namespace);
     for (final key in jsonData.keys) {
       var value = toStructValue(jsonData[key]);
-      struct.define(key, value);
+      struct.define(key.toString(), value);
     }
     return struct;
   }
@@ -461,21 +465,21 @@ class Hetu extends HTAbstractInterpreter {
       } else {
         for (final id in decl.showList) {
           final decl = importNamespace.declarations[id]!;
-          nsp.define(id, decl);
+          nsp.defineImport(id, decl);
         }
       }
     } else {
       if (decl.showList.isEmpty) {
         final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
         aliasNamespace.import(importNamespace);
-        nsp.define(decl.alias!, aliasNamespace);
+        nsp.defineImport(decl.alias!, aliasNamespace);
       } else {
         final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
         for (final id in decl.showList) {
           final decl = importNamespace.declarations[id]!;
           aliasNamespace.define(id, decl);
         }
-        nsp.define(decl.alias!, aliasNamespace);
+        nsp.defineImport(decl.alias!, aliasNamespace);
       }
     }
   }
@@ -523,9 +527,12 @@ class Hetu extends HTAbstractInterpreter {
       _isModuleEntryScript = sourceType == ResourceType.hetuScript ||
           sourceType == ResourceType.hetuLiteralCode ||
           sourceType == ResourceType.hetuValue;
+      if (sourceType == ResourceType.hetuLiteralCode) {
+        _namespace = global;
+      }
       while (_bytecodeModule.ip < _bytecodeModule.bytes.length) {
-        final result = execute();
-        if (result is HTNamespace) {
+        final result = execute(clearStack: false);
+        if (result is HTNamespace && result != global) {
           _bytecodeModule.namespaces[result.id!] = result;
         } else if (result is HTValueSource) {
           _bytecodeModule.expressions[result.id] = result.value;
@@ -540,9 +547,11 @@ class Hetu extends HTAbstractInterpreter {
           }
         }
       }
-      _namespace = _bytecodeModule.namespaces.values.last;
-      if (globallyImport) {
-        global.import(_namespace);
+      if (_bytecodeModule.namespaces.isNotEmpty) {
+        _namespace = _bytecodeModule.namespaces.values.last;
+        if (globallyImport) {
+          global.import(_namespace);
+        }
       }
       if (!_isModuleEntryScript) {
         // resolve each declaration after we get all declarations
@@ -561,7 +570,7 @@ class Hetu extends HTAbstractInterpreter {
         return result;
       }
       if (_isModuleEntryScript) {
-        return _stackFrames.first.first;
+        return _stackFrames.last.first;
       }
     } catch (error) {
       if (errorHandled) {
@@ -660,7 +669,8 @@ class Hetu extends HTAbstractInterpreter {
   /// Changing library will create new stack frame for new register values.
   /// Such as currrent value, current symbol, current line & column, etc.
   dynamic execute(
-      {String? filename,
+      {bool clearStack = true,
+      String? filename,
       String? moduleName,
       HTNamespace? namespace,
       HTFunction? function,
@@ -723,6 +733,9 @@ class Hetu extends HTAbstractInterpreter {
     _line = savedLine;
     _column = savedColumn;
     --_currentStackIndex;
+    if (clearStack) {
+      _stackFrames.removeLast();
+    }
     return result;
   }
 
@@ -767,8 +780,6 @@ class Hetu extends HTAbstractInterpreter {
               ResourceType.values.elementAt(resourceTypeIndex);
           if (_currentFileResourceType != ResourceType.hetuLiteralCode) {
             _namespace = HTNamespace(id: _fileName, closure: global);
-          } else {
-            _namespace = global;
           }
           break;
         case HTOpCode.loopPoint:
@@ -975,7 +986,7 @@ class Hetu extends HTAbstractInterpreter {
             } else {
               if (object is List) {
                 if (key is! int) {
-                  throw HTError.subGetKey(
+                  throw HTError.subGetKey(key,
                       filename: _fileName, line: _line, column: _column);
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
@@ -1054,7 +1065,7 @@ class Hetu extends HTAbstractInterpreter {
             } else {
               if (object is List) {
                 if (key is! int) {
-                  throw HTError.subGetKey(
+                  throw HTError.subGetKey(key,
                       filename: _fileName, line: _line, column: _column);
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
@@ -1078,7 +1089,7 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleImportExport() {
     final isExported = _bytecodeModule.readBool();
-    final showList = <String>[];
+    final showList = <String>{};
     final showListLength = _bytecodeModule.read();
     for (var i = 0; i < showListLength; ++i) {
       final id = _bytecodeModule.readString();
@@ -1104,6 +1115,9 @@ class Hetu extends HTAbstractInterpreter {
         final value = _bytecodeModule.expressions[fromPath];
         assert(value != null);
         _namespace.define(alias!, HTVariable(alias, value: value));
+        if (isExported) {
+          _namespace.declareExport(alias);
+        }
       } else {
         final decl = ImportDeclaration(
           fromPath,
@@ -1216,11 +1230,13 @@ class Hetu extends HTAbstractInterpreter {
               fieldType == StructObjFieldTypeCode.objectIdentifier) {
             final key = _bytecodeModule.readString();
             final value = execute();
-            struct.fields[key] = value;
+            struct[key] = value;
           } else if (fieldType == StructObjFieldTypeCode.spread) {
-            final HTStruct value = execute();
-            for (final key in value.fields.keys) {
-              final copiedValue = toStructValue(value.fields[key]);
+            final HTStruct spreadingStruct = execute();
+            for (final key in spreadingStruct.keys) {
+              // skip internal apis
+              if (key.startsWith(HTLexicon.internalPrefix)) continue;
+              final copiedValue = toStructValue(spreadingStruct[key]);
               struct.define(key, copiedValue);
             }
           }

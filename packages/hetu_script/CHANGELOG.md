@@ -1,3 +1,11 @@
+## 0.3.11
+
+- You can now directly use operator '[]' & '[]=' on HTStruct object like a Map in Dart code.
+- Changed range(start, end, [step]) to range(end, [start, step]), make it even simpler to use.
+- Add api randomColorHex(), randomBool() on Math class.
+- Add str.characters Iterable api for iterating through Strings.
+- Add toPercentageString() on num.
+
 ## 0.3.10
 
 - Added 'range(a, b)', 'List.random', 'eval(code)', 'Math.radiusToSigma(radius)', 'Math.gaussianNoise(mean, variance)', 'Math.perlinNoise(x, y)', 'Hash.uid4()', 'Hash.crc32b(data)' apis.

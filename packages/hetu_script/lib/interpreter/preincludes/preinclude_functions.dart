@@ -48,14 +48,14 @@ final Map<String, Function> preincludeFunctions = {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.keys;
+    return obj.keys;
   },
   'prototype.values': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.values;
+    return obj.values;
   },
   'prototype.contains': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
@@ -64,33 +64,33 @@ final Map<String, Function> preincludeFunctions = {
     final obj = object as HTStruct;
     return obj.contains(positionalArgs.first);
   },
-  'prototype.owns': (HTEntity object,
+  'prototype.containsKey': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.owns(positionalArgs.first);
+    return obj.containsKey(positionalArgs.first);
   },
   'prototype.isEmpty': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.isEmpty;
+    return obj.isEmpty;
   },
   'prototype.isNotEmpty': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.isNotEmpty;
+    return obj.isNotEmpty;
   },
   'prototype.length': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
-    return obj.fields.length;
+    return obj.length;
   },
   'prototype.clone': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
@@ -98,6 +98,14 @@ final Map<String, Function> preincludeFunctions = {
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.clone();
+  },
+  'prototype.assign': (HTEntity object,
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    final obj = object as HTStruct;
+    final other = positionalArgs.first as HTStruct;
+    obj.assign(other);
   },
   'object.toString': (HTEntity object,
       {List<dynamic> positionalArgs = const [],

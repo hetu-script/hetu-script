@@ -4,8 +4,12 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    for (var i in range(5)) {
-      print(i)
+    fun test(t) {
+      return when (t) {
+        1 -> {'odd'}
+        2 -> {'even'}
+      }
     }
+    print(test(2))
   ''');
 }

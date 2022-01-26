@@ -1,6 +1,8 @@
-import { h2 } from 'hello.ht'
+import 'hello.ht'
+import 'hello2.ht'
+import 'hello3.ht' as meaning
 
 fun main {
 
-  return h2()
+  return hello()
 }

@@ -7,14 +7,14 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "33.0.0"
+    version: "34.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "3.1.0"
+    version: "3.2.0"
   args:
     dependency: transitive
     description:
@@ -36,6 +36,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.0"
+  characters:
+    dependency: transitive
+    description:
+      name: characters
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.2.0"
   charcode:
     dependency: transitive
     description:
@@ -70,7 +77,7 @@ packages:
       name: coverage
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.0.4"
+    version: "1.1.0"
   crypto:
     dependency: transitive
     description:
@@ -112,7 +119,7 @@ packages:
       path: "packages/hetu_script_dev_tools"
       relative: true
     source: path
-    version: "0.0.7"
+    version: "0.0.7+1"
   http:
     dependency: transitive
     description:

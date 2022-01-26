@@ -82,7 +82,10 @@ abstract class HTLexicon {
   static const variadicArgs = '...';
   static const privatePrefix = '_';
   static const privatePrefix2 = r'#';
+
+  /// '$'
   static const internalPrefix = r'$';
+  static const percentageMark = r'%';
   static const typesBracketLeft = '<';
   static const typesBracketRight = '>';
   static const singleArrow = '->';
@@ -90,7 +93,6 @@ abstract class HTLexicon {
   static const decimalPoint = '.';
   static const indentSpaces = '  ';
   static const spreadSyntax = '...';
-  static const internalMarker = r'_$';
 
   static const kNull = 'null';
   static const kTrue = 'true';
@@ -484,7 +486,7 @@ abstract class HTLexicon {
   static const errorCondition =
       'Condition expression must evaluate to type [bool]';
   static const errorNullObject = 'Calling method [{1}] on null object [{0}].';
-  static const errorSubGetKey = 'Sub get key is not of type [int]';
+  static const errorSubGetKey = 'Sub get key [{0}] is not of type [int]';
   static const errorOutOfRange = 'Index [{0}] is out of range [{1}].';
   static const errorAssignType =
       'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}].';

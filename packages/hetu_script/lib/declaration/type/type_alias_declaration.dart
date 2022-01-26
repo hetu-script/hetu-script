@@ -54,14 +54,15 @@ class HTTypeAliasDeclaration extends HTDeclaration
 
   @override
   void resolve() {
-    if (_isResolved) {
-      return;
-    }
-    if (closure != null) {
-      _resolvedDeclType = _declType.resolve(closure!);
-    } else {
-      _resolvedDeclType = HTType.any;
-    }
+    // TODO: should move these code to compiler time
+    // if (_isResolved) {
+    //   return;
+    // }
+    // if (closure != null) {
+    //   _resolvedDeclType = _declType.resolve(closure!);
+    // } else {
+    //   _resolvedDeclType = HTType.any;
+    // }
     _isResolved = true;
   }
 

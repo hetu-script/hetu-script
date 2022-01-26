@@ -23,7 +23,7 @@ String stringify(dynamic object) {
       output.write("'$object'");
     }
   } else if (object is HTStruct) {
-    if (object.fields.isEmpty) {
+    if (object.isEmpty) {
       output.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
     } else {
       output.writeln(HTLexicon.bracesLeft);
@@ -82,9 +82,9 @@ String stringifyList(Iterable list) {
 String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
   final output = StringBuffer();
   ++_curIndentCount;
-  for (var i = 0; i < struct.fields.length; ++i) {
-    final key = struct.fields.keys.elementAt(i);
-    if (key.startsWith(HTLexicon.internalMarker)) {
+  for (var i = 0; i < struct.length; ++i) {
+    final key = struct.keys.elementAt(i);
+    if (key.startsWith(HTLexicon.internalPrefix)) {
       continue;
     }
     if (from != null && from != struct) {
@@ -93,20 +93,24 @@ String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
       }
     }
     output.write(_curIndent());
-    final value = struct.fields[key];
+    final value = struct[key];
     final valueBuffer = StringBuffer();
     if (value is HTStruct) {
-      final content = stringifyStructMembers(value, from: from);
-      valueBuffer.writeln(HTLexicon.bracesLeft);
-      valueBuffer.write(content);
-      valueBuffer.write(_curIndent());
-      valueBuffer.write(HTLexicon.bracesRight);
+      if (value.isEmpty) {
+        valueBuffer.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+      } else {
+        final content = stringifyStructMembers(value, from: from);
+        valueBuffer.writeln(HTLexicon.bracesLeft);
+        valueBuffer.write(content);
+        valueBuffer.write(_curIndent());
+        valueBuffer.write(HTLexicon.bracesRight);
+      }
     } else {
       final valueString = stringify(value);
       valueBuffer.write(valueString);
     }
     output.write('$key${HTLexicon.colon} $valueBuffer');
-    if (i < struct.fields.length - 1) {
+    if (i < struct.length - 1) {
       output.write(HTLexicon.comma);
     }
     output.writeln();

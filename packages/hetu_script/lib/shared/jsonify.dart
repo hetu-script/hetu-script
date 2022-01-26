@@ -31,8 +31,8 @@ List<dynamic> jsonifyList(Iterable list) {
 
 Map<String, dynamic> jsonifyStruct(HTStruct struct) {
   final output = <String, dynamic>{};
-  for (final key in struct.fields.keys) {
-    var value = struct.fields[key];
+  for (final key in struct.keys) {
+    var value = struct[key];
     // ignore none json data value
     if (isJsonDataType(value)) {
       if (value is Iterable) {

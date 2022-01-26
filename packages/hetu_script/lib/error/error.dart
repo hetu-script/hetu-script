@@ -214,7 +214,7 @@ class HTError {
   HTError(this.code, this.type,
       {String? message,
       this.extra,
-      List<Object> interpolations = const [],
+      List interpolations = const [],
       this.correction,
       this.filename,
       this.line,
@@ -1180,7 +1180,7 @@ class HTError {
             length: length);
 
   /// Error: Subget key is not int
-  HTError.subGetKey(
+  HTError.subGetKey(dynamic key,
       {String? extra,
       String? correction,
       String? filename,
@@ -1190,6 +1190,7 @@ class HTError {
       int? length})
       : this(ErrorCode.subGetKey, ErrorType.runtimeError,
             message: HTLexicon.errorSubGetKey,
+            interpolations: [key],
             extra: extra,
             correction: correction,
             filename: filename,
