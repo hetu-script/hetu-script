@@ -20,10 +20,10 @@ For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the m
 
 ## Import a pre-compiled binary module
 
-You can pre-compiled a hetu script package into a binary module for better performance. If you have a such module. You can import it by using special prefix in import path:
+You can [pre-compiled a hetu script package](../command_line_tool/readme.md#compile) into a binary module for better performance. If you have a such module. You can import it by using special prefix in import path:
 
 ```dart
-import 'modules:calculate';
+import 'module:calculate';
 
 final result = calculate()
 ```
