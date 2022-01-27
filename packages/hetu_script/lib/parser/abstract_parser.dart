@@ -15,8 +15,6 @@ abstract class HTAbstractParser {
   /// The file current under processing, used in error message.
   String? get currrentFileName;
 
-  String? get currentModuleName;
-
   HTResourceContext get sourceContext;
 
   int _line = 0;

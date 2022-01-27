@@ -1435,6 +1435,8 @@ class ImportExportDecl extends AstNode {
 
   final List<IdentifierExpr> showList;
 
+  final bool isPreloadedModule;
+
   /// The normalized absolute path of the imported file.
   /// It is left as null at the first time of parsing,
   /// because at this time we don't know yet.
@@ -1454,6 +1456,7 @@ class ImportExportDecl extends AstNode {
       this.alias,
       this.hasEndOfStmtMark = false,
       this.isExport = false,
+      this.isPreloadedModule = false,
       HTSource? source,
       int line = 0,
       int column = 0,

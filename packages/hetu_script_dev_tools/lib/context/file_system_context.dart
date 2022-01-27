@@ -29,8 +29,11 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
       this.binaryModuleExtensions = const [],
       bool doScanRoot = false})
       : _cached = cache ?? <String, HTSource>{} {
-    root = root != null ? path.absolute(root) : path.current;
-    this.root = root = getAbsolutePath(dirName: root);
+    if (root != null) {
+      this.root = root = getAbsolutePath(dirName: root);
+    } else {
+      this.root = root = getAbsolutePath(dirName: path.current);
+    }
 
     if (doScanRoot) {
       final dir = Directory(root);

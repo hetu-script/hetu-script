@@ -91,7 +91,6 @@ void main(List<String> arguments) {
                 throw 'Error: Outpath argument is required for \'compile\' command.';
               }
               compile(cmd.arguments, outPath,
-                  moduleName: cmd['module'],
                   compileToIntArrayWithName: cmd['array']);
             }
             break;
@@ -161,8 +160,6 @@ ArgResults parseArg(List<String> args) {
   compileCmd.addFlag('help',
       abbr: 'h', negatable: false, help: 'Show compile command help.');
   compileCmd.addOption('out', abbr: 'o', help: 'Save compile result to file.');
-  compileCmd.addOption('module',
-      abbr: 'm', help: 'Module name of the library to be compiled.');
   compileCmd.addOption('array', abbr: 'a', help: 'Compile to dart array.');
   return argParser.parse(args);
 }
@@ -261,21 +258,16 @@ void analyze(List<String> args) {
 }
 
 void compile(List<String> args, String? outPath,
-    {String? moduleName, String? compileToIntArrayWithName}) {
+    {String? compileToIntArrayWithName}) {
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'compile\' command.';
   }
 
   final source = sourceContext.getResource(args.first);
-  stdout.write('Compiling [${source.fullName}] ');
-  if (moduleName != null) {
-    stdout.write('with module name: [$moduleName] ...');
-  } else {
-    stdout.write('with module name: [${source.fullName}] ...');
-  }
+  stdout.write('Compiling [${source.fullName}] ...');
 
   final parser = HTParser(context: sourceContext);
-  final module = parser.parseToModule(source, moduleName: moduleName);
+  final module = parser.parseToModule(source);
   if (module.errors.isNotEmpty) {
     for (final err in module.errors) {
       print(err);
@@ -304,8 +296,8 @@ void compile(List<String> args, String? outPath,
 
     if (compileToIntArrayWithName != null) {
       final output = StringBuffer();
-      output.writeln(
-          '''/// The pre-compiled binary code of [${moduleName ?? source.basename}].
+      output
+          .writeln('''/// The pre-compiled binary code of [${source.fullName}].
 /// This file has been automatically generated, please do not edit manually.
 final $compileToIntArrayWithName = [''');
       for (var i = 0; i < bytes.length; ++i) {

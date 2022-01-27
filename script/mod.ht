@@ -1,4 +1,4 @@
-import 'mod:sample_mod' as mod
+import 'module:sample_mod' as mod
 
 fun modTest {
   return mod.hello()

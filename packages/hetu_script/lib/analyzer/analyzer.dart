@@ -123,7 +123,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     errors.clear();
     _curSource = source;
     final parser = HTParser(context: sourceContext);
-    compilation = parser.parseToModule(source, moduleName: moduleName);
+    compilation = parser.parseToModule(source);
     final results = <String, HTModuleAnalysisResult>{};
     for (final result in compilation.sources.values) {
       _curErrors.clear();

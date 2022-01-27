@@ -56,11 +56,15 @@ class HTFilterConfig {
 /// an URL, or a remote database... any thing that provide
 /// create, read, update, delete services could be a resource context.
 ///
-/// If the import path starts with 'mod:',
+/// If the import path starts with 'local:',
 /// will try to fetch the source file from '.hetu_modules' under root
+///
+/// If the import path starts with 'module:', then the module should be
+/// already loaded by the loadBytecode() method.
 abstract class HTResourceContext<T> {
-  static const hetuModulesPrefix = 'mod:';
-  static const defaultLocalModulesFolder = '.hetu_modules';
+  static const hetuPreloadedModulesPrefix = 'module:';
+  static const hetuLocalPackagePrefix = 'package:';
+  static const defaultLocalPackagesFolder = '.hetu_packages';
   static const hetuModuleEntryFileName = 'main.ht';
 
   // static String checkHetuModuleName(String fileName) {
@@ -97,19 +101,24 @@ abstract class HTResourceContext<T> {
 
   /// Get a unique absolute normalized path.
   String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
-    if (key.startsWith(HTResourceContext.hetuModulesPrefix)) {
-      return '$root$defaultLocalModulesFolder/${key.substring(4)}/$hetuModuleEntryFileName';
-    } else {
-      var name = key;
-      if (!path.isAbsolute(name) && dirName != null) {
+    // if (key.startsWith(HTResourceContext.hetuLocalPackagePrefix)) {
+    //   return '$root$defaultLocalPackagesFolder/${key.substring(4)}/$hetuModuleEntryFileName';
+    // } else {
+    var name = key;
+    if (!path.isAbsolute(name)) {
+      if (dirName != null) {
         name = path.join(dirName, name);
       }
-      if (fileName != null) {
-        name = path.join(name, fileName);
+      if (!path.isAbsolute(name)) {
+        name = path.join(path.current, name);
       }
-      final normalized = Uri.file(name).path;
-      return normalized;
     }
+    if (fileName != null) {
+      name = path.join(name, fileName);
+    }
+    final normalized = Uri.file(name).path;
+    return normalized;
+    // }
   }
 
   /// Create a [HTFileSystemContext]

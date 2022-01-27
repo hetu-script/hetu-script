@@ -79,6 +79,7 @@ abstract class HTSourceManager<RT, CT extends HTResourceContext<RT>> {
         }
       }
     }
+    return null;
   }
 
   void updateResource(String fullName, RT resource) {

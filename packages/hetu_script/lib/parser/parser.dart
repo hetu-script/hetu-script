@@ -53,10 +53,6 @@ class HTParser extends HTAbstractParser {
   @override
   String? get currrentFileName => _currrentFileName;
 
-  late String _currentModuleName;
-  @override
-  String? get currentModuleName => _currentModuleName;
-
   final _currentPrecedingComments = <Comment>[];
 
   HTClassDeclaration? _currentClass;
@@ -149,9 +145,8 @@ class HTParser extends HTAbstractParser {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  HTModuleParseResult parseToModule(HTSource source, {String? moduleName}) {
-    _currentModuleName = moduleName ?? source.fullName;
-    final result = parseSource(source);
+  HTModuleParseResult parseToModule(HTSource entry) {
+    final result = parseSource(entry);
     final moduleErrors = result.errors!;
     final values = <String, HTSourceParseResult>{};
     final sources = <String, HTSourceParseResult>{};
@@ -159,6 +154,10 @@ class HTParser extends HTAbstractParser {
     void handleImport(HTSourceParseResult result) {
       _cachedRecursiveParsingTargets.add(result.fullName);
       for (final decl in result.imports) {
+        if (decl.isPreloadedModule) {
+          decl.fullName = decl.fromPath;
+          continue;
+        }
         try {
           late final HTSourceParseResult importModule;
           final currentDir =
@@ -186,7 +185,7 @@ class HTParser extends HTAbstractParser {
           }
         } catch (error) {
           final convertedError = HTError.sourceProviderError(decl.fromPath!,
-              filename: source.fullName,
+              filename: entry.fullName,
               line: decl.line,
               column: decl.column,
               offset: decl.offset,
@@ -206,7 +205,7 @@ class HTParser extends HTAbstractParser {
     final compilation = HTModuleParseResult(
         values: values,
         sources: sources,
-        type: source.type,
+        type: entry.type,
         errors: moduleErrors);
     return compilation;
   }
@@ -2462,30 +2461,42 @@ class HTParser extends HTAbstractParser {
     }
 
     final fromPathTok = match(Semantic.stringLiteral);
-    final ext = path.extension(fromPathTok.lexeme);
-    if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
-      if (showList.isNotEmpty) {
-        final err = HTError.importListOnNonHetuSource(
-            filename: _currrentFileName,
-            line: fromPathTok.line,
-            column: fromPathTok.column,
-            offset: fromPathTok.offset,
-            length: fromPathTok.length);
-        errors?.add(err);
-      }
-      match(HTLexicon.kAs);
-      _handleAlias();
-    } else {
+    String fromPathRaw = fromPathTok.literal;
+    String fromPath;
+    bool isPreloadedModule = false;
+    if (fromPathRaw.startsWith(HTResourceContext.hetuPreloadedModulesPrefix)) {
+      isPreloadedModule = true;
+      fromPath = fromPathRaw
+          .substring(HTResourceContext.hetuPreloadedModulesPrefix.length);
       hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
-      if (!hasEndOfStmtMark && expect([HTLexicon.kAs], consume: true)) {
+    } else {
+      fromPath = fromPathRaw;
+      final ext = path.extension(fromPathTok.lexeme);
+      if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
+        if (showList.isNotEmpty) {
+          final err = HTError.importListOnNonHetuSource(
+              filename: _currrentFileName,
+              line: fromPathTok.line,
+              column: fromPathTok.column,
+              offset: fromPathTok.offset,
+              length: fromPathTok.length);
+          errors?.add(err);
+        }
+        match(HTLexicon.kAs);
         _handleAlias();
+      } else {
+        hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+        if (!hasEndOfStmtMark && expect([HTLexicon.kAs], consume: true)) {
+          _handleAlias();
+        }
       }
     }
     final stmt = ImportExportDecl(
-        fromPath: fromPathTok.literal,
+        fromPath: fromPath,
         showList: showList,
         alias: alias,
         hasEndOfStmtMark: hasEndOfStmtMark,
+        isPreloadedModule: isPreloadedModule,
         source: _currentSource,
         line: keyword.line,
         column: keyword.column,

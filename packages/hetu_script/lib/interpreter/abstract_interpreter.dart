@@ -191,6 +191,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
         rethrow;
       } else {
         handleError(error, externalStackTrace: stackTrace);
+        return null;
       }
     }
   }

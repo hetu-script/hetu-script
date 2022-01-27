@@ -1,3 +1,5 @@
+// ignore_for_file: body_might_complete_normally_nullable
+
 import '../ast.dart';
 
 /// An AST visitor that will recursively visit all of the sub nodes in an AST

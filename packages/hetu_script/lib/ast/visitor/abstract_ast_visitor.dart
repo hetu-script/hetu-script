@@ -1,3 +1,5 @@
+// ignore_for_file: body_might_complete_normally_nullable
+
 part of '../ast.dart';
 
 /// An object that can be used to visit an AST structure.

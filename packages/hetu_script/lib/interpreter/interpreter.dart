@@ -202,7 +202,7 @@ class Hetu extends HTAbstractInterpreter {
     // load precompiled core module.
     final coreModule = Uint8List.fromList(hetuCoreModule);
     loadBytecode(
-        bytes: coreModule, moduleName: 'hetu:main', globallyImport: true);
+        bytes: coreModule, moduleName: 'hetu_main', globallyImport: true);
     invoke('setInterpreter', positionalArgs: [this]);
     for (final file in preincludes) {
       evalSource(file, globallyImport: true);
@@ -371,7 +371,7 @@ class Hetu extends HTAbstractInterpreter {
         return bytes;
       } else {
         final parser = HTParser(context: _sourceContext);
-        final module = parser.parseToModule(source, moduleName: moduleName);
+        final module = parser.parseToModule(source);
         final bytes = compiler.compile(module);
         return bytes;
       }
@@ -1089,6 +1089,7 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleImportExport() {
     final isExported = _bytecodeModule.readBool();
+    final isPreloadedModule = _bytecodeModule.readBool();
     final showList = <String>{};
     final showListLength = _bytecodeModule.read();
     for (var i = 0; i < showListLength; ++i) {
@@ -1108,27 +1109,34 @@ class Hetu extends HTAbstractInterpreter {
     if (hasAlias) {
       alias = _bytecodeModule.readString();
     }
-    if (fromPath != null) {
-      final ext = path.extension(fromPath);
-      if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
-        // TODO: binary bytes import
-        final value = _bytecodeModule.expressions[fromPath];
-        assert(value != null);
-        _namespace.define(alias!, HTVariable(alias, value: value));
-        if (isExported) {
-          _namespace.declareExport(alias);
-        }
-      } else {
-        final decl = ImportDeclaration(
-          fromPath,
-          alias: alias,
-          showList: showList,
-          isExported: isExported,
-        );
-        if (_currentFileResourceType == ResourceType.hetuModule) {
-          _namespace.declareImport(decl);
+    if (isPreloadedModule) {
+      assert(fromPath != null);
+      final importedModule = _cachedModules[fromPath]!;
+      final importedNamespace = importedModule.namespaces.values.last;
+      _namespace.import(importedNamespace);
+    } else {
+      if (fromPath != null) {
+        final ext = path.extension(fromPath);
+        if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
+          // TODO: binary bytes import
+          final value = _bytecodeModule.expressions[fromPath];
+          assert(value != null);
+          _namespace.define(alias!, HTVariable(alias, value: value));
+          if (isExported) {
+            _namespace.declareExport(alias);
+          }
         } else {
-          _handleNamespaceImport(_namespace, decl);
+          final decl = ImportDeclaration(
+            fromPath,
+            alias: alias,
+            showList: showList,
+            isExported: isExported,
+          );
+          if (_currentFileResourceType == ResourceType.hetuModule) {
+            _namespace.declareImport(decl);
+          } else {
+            _handleNamespaceImport(_namespace, decl);
+          }
         }
       }
     }

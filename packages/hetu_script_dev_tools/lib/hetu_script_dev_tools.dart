@@ -17,7 +17,7 @@ extension HTExtension on Hetu {
       // load precompiled core module.
       final coreModule = Uint8List.fromList(consoleModule);
       loadBytecode(
-          bytes: coreModule, moduleName: 'hetu:console', globallyImport: true);
+          bytes: coreModule, moduleName: 'hetu_console', globallyImport: true);
     }
   }
 }

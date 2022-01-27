@@ -18,6 +18,35 @@ When using evalFile method on the interpreter, the source type is inferred from 
 
 For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the meantime, B import from A) is allowed. However, for **ResourceType.hetuScript**, recursive import would cause stack overflow errors. **You have to manually avoid recursive import in '\*.hts' files.**
 
+## Import a pre-compiled binary module
+
+You can pre-compiled a hetu script package into a binary module for better performance. If you have a such module. You can import it by using special prefix in import path:
+
+```dart
+import 'modules:calculate';
+
+final result = calculate()
+```
+
+However, to do so, you have to load the bytecode before you can import it in your script. This is a example to pre-load a pre-compiled binary file:
+
+```dart
+import 'dart:io';
+
+import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
+
+void main() {
+  final sourceContext = HTFileSystemResourceContext(root: 'example/script/');
+  final hetu = Hetu(sourceContext: sourceContext);
+  hetu.init();
+  final binaryFile = File('example/script/module.out');
+  final bytes = binaryFile.readAsBytesSync();
+  hetu.loadBytecode(bytes: bytes, moduleName: 'calculate');
+  hetu.evalFile('import_binary_module.hts');
+}
+```
+
 ## Import a JSON file
 
 Sometimes we need to import a non-hetu source in your code. For example, if you imported a JSON file, you will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.

@@ -91,6 +91,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
     void compileSource(HTSourceParseResult result) {
       bytesBuilder.addByte(HTOpCode.file);
+      // if the relativeName is null then it is the entry file of this module.
       bytesBuilder.add(_parseIdentifier(result.fullName));
       bytesBuilder.addByte(result.type.index);
       for (final node in result.nodes) {
@@ -1333,6 +1334,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.importExportDecl);
     bytesBuilder.addByte(stmt.isExport ? 1 : 0); // bool: isExport
+    bytesBuilder
+        .addByte(stmt.isPreloadedModule ? 1 : 0); // bool: isPreloadedModule
     bytesBuilder.addByte(stmt.showList.length);
     for (final id in stmt.showList) {
       bytesBuilder.add(_parseIdentifier(id.id));
