@@ -72,19 +72,25 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
     }
   }
 
-  String getFullName(String name) {
-    late String fullName;
-    if (name.startsWith(root)) {
-      fullName = name;
-    } else {
-      fullName = path.join(root, name);
+  @override
+  String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
+    String fullName = key;
+    if (dirName != null) {
+      assert(dirName.startsWith(root));
+      fullName = path.join(dirName, key);
+    } else if (!key.startsWith(root)) {
+      fullName = path.join(root, key);
     }
-    return fullName;
+    if (fileName != null) {
+      fullName = path.join(fullName, fileName);
+    }
+    final normalized = Uri.file(fullName).path;
+    return normalized;
   }
 
   @override
   bool contains(String key) {
-    return _cached.keys.contains(getFullName(key));
+    return _cached.keys.contains(getAbsolutePath(key: key));
   }
 
   @override
@@ -100,11 +106,7 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
 
   @override
   HTSource getResource(String key, {String? from}) {
-    var normalized = key;
-    if (!key.startsWith(root)) {
-      normalized = getAbsolutePath(
-          key: key, dirName: from != null ? path.dirname(from) : root);
-    }
+    var normalized = getAbsolutePath(key: key);
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
     }
