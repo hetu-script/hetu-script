@@ -935,7 +935,37 @@ class AssertStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(Semantic.exprStmt,
+      : super(Semantic.assertStmt,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class ThrowStmt extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitThrowStmt(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {}
+
+  final AstNode message;
+
+  @override
+  bool get isExpression => false;
+
+  @override
+  final bool hasEndOfStmtMark;
+
+  ThrowStmt(this.message,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.throwStmt,
             source: source,
             line: line,
             column: column,

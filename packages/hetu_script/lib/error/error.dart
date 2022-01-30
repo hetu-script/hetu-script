@@ -13,6 +13,7 @@ enum ErrorCode {
   unkownSourceType,
   importListOnNonHetuSource,
   exportNonHetuSource,
+  scriptThrows,
   assertionFailed,
   unexpected,
   delete,
@@ -882,25 +883,6 @@ class HTError {
             offset: offset,
             length: length);
 
-  HTError.assertionFailed(String message,
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.assertionFailed, ErrorType.runtimeError,
-            message: HTLexicon.errorAssertionFailed,
-            interpolations: [message],
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: unsupported runtime operation
   HTError.unsupported(String name,
       {String? extra,
@@ -913,6 +895,43 @@ class HTError {
       : this(ErrorCode.unsupported, ErrorType.syntacticError,
             message: HTLexicon.errorUnsupported,
             interpolations: [name],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  HTError.scriptThrows(Object message,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.scriptThrows, ErrorType.runtimeError,
+            message: message.toString(),
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  HTError.assertionFailed(String message,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.assertionFailed, ErrorType.runtimeError,
+            message: HTLexicon.errorAssertionFailed,
+            interpolations: [message],
             extra: extra,
             correction: correction,
             filename: filename,

@@ -362,6 +362,15 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitThrowStmt(ThrowStmt stmt) {
+    final output = StringBuffer();
+    output.write('${HTLexicon.kThrow} ');
+    final messageString = formatAst(stmt.message);
+    output.write(messageString);
+    return output.toString();
+  }
+
+  @override
   String visitExprStmt(ExprStmt stmt) {
     final output = StringBuffer();
     final exprString = formatAst(stmt.expr);

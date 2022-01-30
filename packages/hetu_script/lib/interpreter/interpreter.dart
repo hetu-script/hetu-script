@@ -809,6 +809,8 @@ class Hetu extends HTAbstractInterpreter {
             throw HTError.assertionFailed(text);
           }
           break;
+        case HTOpCode.throws:
+          throw HTError.scriptThrows(_localValue);
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
           final id = _bytecodeModule.readString();

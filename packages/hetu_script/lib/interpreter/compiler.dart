@@ -957,6 +957,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitAssertStmt(AssertStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.assertion);
     final source = stmt.source!;
     final text = source.content.substring(stmt.expr.offset, stmt.expr.end);
@@ -967,8 +968,19 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitThrowStmt(ThrowStmt stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
+    final messageBytes = compileAst(stmt.message);
+    bytesBuilder.add(messageBytes);
+    bytesBuilder.addByte(HTOpCode.throws);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitExprStmt(ExprStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     final bytes = compileAst(stmt.expr);
     bytesBuilder.add(bytes);
     return bytesBuilder.toBytes();
@@ -977,6 +989,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitBlockStmt(BlockStmt block) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(block.line, block.column));
     if (block.hasOwnNamespace) {
       bytesBuilder.addByte(HTOpCode.block);
       if (block.id != null) {
@@ -998,6 +1011,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitReturnStmt(ReturnStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     if (stmt.value != null) {
       final bytes = compileAst(stmt.value!);
       bytesBuilder.add(bytes);
@@ -1009,6 +1023,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitIf(IfStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     final condition = compileAst(stmt.condition);
     bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.ifStmt);
@@ -1032,6 +1047,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitWhileStmt(WhileStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final condition = compileAst(stmt.condition);
     final loop = compileAst(stmt.loop);
@@ -1049,6 +1065,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitDoStmt(DoStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.loopPoint);
     final loop = compileAst(stmt.loop);
     Uint8List? condition;
@@ -1073,6 +1090,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitForStmt(ForStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_parseIdentifier(Semantic.forStmtInit));
     late Uint8List condition;
@@ -1131,7 +1149,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitForRangeStmt(ForRangeStmt stmt) {
     final bytesBuilder = BytesBuilder();
-
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.block);
     bytesBuilder.add(_parseIdentifier(Semantic.forStmtInit));
 
@@ -1197,6 +1215,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitWhen(WhenStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     Uint8List? condition;
     if (stmt.condition != null) {
       condition = compileAst(stmt.condition!);
@@ -1300,6 +1319,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitDeleteStmt(DeleteStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.delete);
     bytesBuilder.addByte(DeletingTypeCode.local);
     bytesBuilder.add(_parseIdentifier(stmt.symbol));
@@ -1309,6 +1329,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitDeleteMemberStmt(DeleteMemberStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.delete);
     bytesBuilder.addByte(DeletingTypeCode.member);
     final objectBytes = compileAst(stmt.object, endOfExec: true);
@@ -1320,6 +1341,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitDeleteSubStmt(DeleteSubStmt stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.delete);
     bytesBuilder.addByte(DeletingTypeCode.sub);
     final objectBytes = compileAst(stmt.object, endOfExec: true);
@@ -1332,6 +1354,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitImportExportDecl(ImportExportDecl stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.importExportDecl);
     bytesBuilder.addByte(stmt.isExport ? 1 : 0); // bool: isExport
     bytesBuilder

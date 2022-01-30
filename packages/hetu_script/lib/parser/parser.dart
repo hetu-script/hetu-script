@@ -262,6 +262,9 @@ class HTParser extends HTAbstractParser {
               case HTLexicon.kAssert:
                 stmt = _parseAssertStmt();
                 break;
+              case HTLexicon.kThrow:
+                stmt = _parseThrowStmt();
+                break;
               case HTLexicon.kExternal:
                 advance(1);
                 switch (curTok.type) {
@@ -535,6 +538,9 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kAssert:
                 stmt = _parseAssertStmt();
+                break;
+              case HTLexicon.kThrow:
+                stmt = _parseThrowStmt();
                 break;
               case HTLexicon.kExternal:
                 advance(1);
@@ -995,6 +1001,9 @@ class HTParser extends HTAbstractParser {
             case HTLexicon.kAssert:
               stmt = _parseAssertStmt();
               break;
+            case HTLexicon.kThrow:
+              stmt = _parseThrowStmt();
+              break;
             case HTLexicon.kAbstract:
               advance(1);
               stmt = _parseClassDecl(isAbstract: true);
@@ -1138,13 +1147,28 @@ class HTParser extends HTAbstractParser {
     match(HTLexicon.parenthesesLeft);
     final expr = _parseExpr();
     match(HTLexicon.parenthesesRight);
-    expect([HTLexicon.semicolon], consume: true);
+    final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     final stmt = AssertStmt(expr,
+        hasEndOfStmtMark: hasEndOfStmtMark,
         source: _currentSource,
         line: keyword.line,
         column: keyword.column,
         offset: keyword.offset,
         length: expr.end - keyword.offset);
+    return stmt;
+  }
+
+  ThrowStmt _parseThrowStmt() {
+    final keyword = match(HTLexicon.kThrow);
+    final message = _parseExpr();
+    final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+    final stmt = ThrowStmt(message,
+        hasEndOfStmtMark: hasEndOfStmtMark,
+        source: _currentSource,
+        line: keyword.line,
+        column: keyword.column,
+        offset: keyword.offset,
+        length: message.end - keyword.offset);
     return stmt;
   }
 

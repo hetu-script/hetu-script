@@ -238,7 +238,7 @@ abstract class HTLexicon {
     // kTry,
     // kCatch,
     // kFinally,
-    // kThrow,
+    kThrow,
   };
 
   static const Set<String> contextualKeyword = {

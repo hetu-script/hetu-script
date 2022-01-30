@@ -13,6 +13,7 @@ abstract class HTOpCode {
   static const breakLoop = 11;
   static const continueLoop = 12;
   static const assertion = 13;
+  static const throws = 14;
   static const endOfStmt = 20;
   static const endOfBlock = 21;
   static const endOfExec = 22;

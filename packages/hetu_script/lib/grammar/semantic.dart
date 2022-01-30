@@ -133,6 +133,8 @@ abstract class Semantic {
   static const exportImportStmt = 'export_import_statement';
   static const exprStmt = 'expression_statement';
   static const blockStmt = 'block_statement';
+  static const assertStmt = 'assert_statement';
+  static const throwStmt = 'throw_statement';
   static const returnStmt = 'return_statement';
   static const breakStmt = 'break_statement';
   static const continueStmt = 'continue_statement';
