@@ -198,7 +198,7 @@ abstract class HTLexicon {
     kFinal,
     kLate,
     kConst,
-    kDefine,
+    // kDefine,
     kDelete,
     kAssert,
     kTypeof,

@@ -4,6 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    throw 'manually thrown error message'
+    var n
+    final a = {
+      n
+    }
+    print(a)
   ''');
 }
