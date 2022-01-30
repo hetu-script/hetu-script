@@ -4,10 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    var n
-    final a = {
-      n
-    }
-    print(a)
+    final a = 'test'
+    print(stringify(a))
   ''');
 }

@@ -13,14 +13,18 @@ String _curIndent() {
   return output.toString();
 }
 
-String stringify(dynamic object) {
+String stringify(dynamic object, {bool asStringLiteral = false}) {
   final output = StringBuffer();
   if (object is String) {
-    if (object.contains("'")) {
-      final objString = object.replaceAll(r"'", r"\'");
-      output.write("'$objString'");
+    if (asStringLiteral) {
+      if (object.contains("'")) {
+        final objString = object.replaceAll(r"'", r"\'");
+        return "'$objString'";
+      } else {
+        return "'$object'";
+      }
     } else {
-      output.write("'$object'");
+      return object;
     }
   } else if (object is HTStruct) {
     if (object.isEmpty) {
@@ -65,7 +69,7 @@ String stringifyList(Iterable list) {
   for (var i = 0; i < list.length; ++i) {
     final item = list.elementAt(i);
     output.write(_curIndent());
-    final itemString = stringify(item);
+    final itemString = stringify(item, asStringLiteral: true);
     output.write(itemString);
     if (i < list.length - 1) {
       output.write(HTLexicon.comma);
@@ -106,7 +110,7 @@ String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
         valueBuffer.write(HTLexicon.bracesRight);
       }
     } else {
-      final valueString = stringify(value);
+      final valueString = stringify(value, asStringLiteral: true);
       valueBuffer.write(valueString);
     }
     output.write('$key${HTLexicon.colon} $valueBuffer');
