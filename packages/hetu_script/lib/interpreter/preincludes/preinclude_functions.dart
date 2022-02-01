@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../value/entity.dart';
 import '../../type/type.dart';
 import '../../shared/jsonify.dart';
@@ -30,7 +32,7 @@ final Map<String, Function> preincludeFunctions = {
     } else if (isJsonDataType(object)) {
       return stringify(object);
     } else {
-      return null;
+      return jsonEncode(object);
     }
   },
   'range': (HTEntity entity,
