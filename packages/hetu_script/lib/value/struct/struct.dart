@@ -107,11 +107,11 @@ class HTStruct with HTEntity {
     }
   }
 
-  operator [](String key) {
+  operator [](dynamic? key) {
     return memberGet(key);
   }
 
-  operator []=(String key, dynamic value) {
+  operator []=(dynamic key, dynamic value) {
     memberSet(key, value);
   }
 
