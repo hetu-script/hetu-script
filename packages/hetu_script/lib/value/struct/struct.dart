@@ -68,13 +68,17 @@ class HTStruct with HTEntity {
   }
 
   /// Check if this struct has the key in its own _fields
-  bool containsKey(String varName) {
+  bool containsKey(String? varName) {
     return _fields.containsKey(varName);
   }
 
   /// Check if this struct has the key in its own _fields or its prototypes' _fields
   @override
-  bool contains(String varName) {
+  bool contains(String? varName) {
+    if (varName == null) {
+      return false;
+    }
+
     if (_fields.containsKey(varName)) {
       return true;
     } else if (prototype != null && prototype!.contains(varName)) {
@@ -127,12 +131,19 @@ class HTStruct with HTEntity {
 
   /// [isSelf] means wether this is called by the struct itself, or a recursive one
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(dynamic varName,
       {String? from, bool isRecursivelyGet = false}) {
-    dynamic value;
+    if (varName == null) {
+      return null;
+    }
+    if (varName is! String) {
+      varName = varName.toString();
+    }
     if (varName == Semantic.prototype) {
       return prototype;
     }
+
+    dynamic value;
     final getter = '${Semantic.getter}$varName';
     final constructor = varName != id
         ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
@@ -176,8 +187,15 @@ class HTStruct with HTEntity {
   }
 
   @override
-  bool memberSet(String varName, dynamic varValue,
+  bool memberSet(dynamic varName, dynamic varValue,
       {String? from, bool defineIfAbsent = true}) {
+    if (varName == null) {
+      throw HTError.nullSubSetKey();
+    }
+    if (varName is! String) {
+      varName = varName.toString();
+    }
+
     final setter = '${Semantic.setter}$varName';
     if (_fields.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
@@ -214,11 +232,11 @@ class HTStruct with HTEntity {
 
   @override
   dynamic subGet(dynamic varName, {String? from}) =>
-      memberGet(varName.toString(), from: from);
+      memberGet(varName, from: from);
 
   @override
   void subSet(dynamic varName, dynamic varValue, {String? from}) =>
-      memberSet(varName.toString(), varValue, from: from);
+      memberSet(varName, varValue, from: from);
 
   HTStruct clone() {
     final cloned =

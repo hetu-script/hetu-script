@@ -59,6 +59,7 @@ enum ErrorCode {
   uninitialized,
   condition,
   nullObject,
+  nullSubSetKey,
   subGetKey,
   outOfRange,
   assignType,
@@ -1190,6 +1191,24 @@ class HTError {
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
             message: HTLexicon.errorNullObject,
             interpolations: [symbol, method],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  HTError.nullSubSetKey(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.nullSubSetKey, ErrorType.runtimeError,
+            message: HTLexicon.errorNullSubSetKey,
             extra: extra,
             correction: correction,
             filename: filename,
