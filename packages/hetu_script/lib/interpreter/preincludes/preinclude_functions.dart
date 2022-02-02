@@ -13,8 +13,7 @@ final Map<String, Function> preincludeFunctions = {
           {List<dynamic> positionalArgs = const [],
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
-      print(
-          positionalArgs.map((e) => e is String ? e : stringify(e)).join(' ')),
+      print(positionalArgs.map((e) => stringify(e)).join(' ')),
   'stringify': (HTEntity entity,
           {List<dynamic> positionalArgs = const [],
           Map<String, dynamic> namedArgs = const {},
@@ -27,7 +26,7 @@ final Map<String, Function> preincludeFunctions = {
     final object = positionalArgs.first;
     if (object is HTStruct) {
       return jsonifyStruct(object);
-    } else if (object is List) {
+    } else if (object is Iterable) {
       return jsonifyList(object);
     } else if (isJsonDataType(object)) {
       return stringify(object);

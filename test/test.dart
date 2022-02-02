@@ -4,7 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final a = 'test'
-    print(stringify(a))
+    final a = Set(1,2,3)
+    final b = jsonify(a)
+    print(b)
   ''');
 }
