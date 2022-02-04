@@ -1,3 +1,9 @@
+## 0.3.12
+
+- Added destructuring declaration: 'var { a, b } = { a: 1, b: 2 }'
+- Added throw statement to throw a error within the script to be dealt with in Dart code.
+- Added import syntax for pre-compiled binary module.
+
 ## 0.3.11
 
 - You can now directly use operator '[]' & '[]=' on HTStruct object like a Map in Dart code.
