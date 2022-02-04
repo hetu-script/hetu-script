@@ -48,8 +48,12 @@ abstract class Semantic {
   static const empty = 'empty';
   static const emptyLine = 'empty_line';
   static const comment = 'comment';
+
   static const singleLineComment = 'single_line_comment';
   static const multiLineComment = 'multi_line_comment';
+
+  static const Set<String> comments = {singleLineComment, multiLineComment};
+
   static const consumingLineEndComment = 'consuming_line_end_comment';
 
   static const keyword = 'keyword';
@@ -112,6 +116,7 @@ abstract class Semantic {
 
   static const constantDeclaration = 'constant_declaration';
   static const variableDeclaration = 'variable_declaration';
+  static const destructuringDeclaration = 'destructuring_declaration';
   static const parameterDeclaration = 'parameter_declaration';
   static const namespaceDeclaration = 'namespace_declaration';
   static const classDeclaration = 'class_declaration';
@@ -147,4 +152,5 @@ abstract class Semantic {
   static const whenStmt = 'when_statement';
   static const deleteStmt = 'delete_statement';
   static const deleteMemberStmt = 'delete_member_statement';
+  static const deleteSubMemberStmt = 'delete_subscript_member_statement';
 }

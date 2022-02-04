@@ -17,7 +17,7 @@ import '../value/external_enum/external_enum.dart';
 import '../value/const.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
-import '../type/unresolved_type.dart';
+import '../type/unresolved_nominal_type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
 import '../grammar/lexicon.dart';
@@ -880,6 +880,9 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.varDecl:
           _handleVarDecl();
           break;
+        case HTOpCode.destructuringDecl:
+          _handleDestructuringDecl();
+          break;
         case HTOpCode.constDecl:
           _handleConstDecl();
           break;
@@ -960,48 +963,6 @@ class Hetu extends HTAbstractInterpreter {
           _namespace.memberSet(localSymbol!, value, recursive: true);
           _localValue = value;
           break;
-        case HTOpCode.memberSet:
-          final object = _getRegVal(HTRegIdx.postfixObject);
-          if (object == null) {
-            throw HTError.nullObject(
-                localSymbol ?? HTLexicon.kNull, Semantic.setter,
-                filename: _fileName, line: _line, column: _column);
-          } else {
-            final key = _getRegVal(HTRegIdx.postfixKey);
-            final value = execute();
-            final encap = encapsulate(object);
-            encap.memberSet(key, value);
-            _localValue = value;
-          }
-          break;
-        case HTOpCode.subSet:
-          final object = _getRegVal(HTRegIdx.postfixObject);
-          if (object == null) {
-            throw HTError.nullObject(
-                localSymbol ?? HTLexicon.kNull, Semantic.subSetter,
-                filename: _fileName, line: _line, column: _column);
-          } else {
-            final key = execute();
-            final value = execute();
-            if (object is HTEntity) {
-              object.subSet(key, value);
-            } else {
-              if (object is List) {
-                if (key is! int) {
-                  throw HTError.subGetKey(key,
-                      filename: _fileName, line: _line, column: _column);
-                } else if (key < 0 || key >= object.length) {
-                  throw HTError.outOfRange(key, object.length,
-                      filename: _fileName, line: _line, column: _column);
-                }
-                object[key] = value;
-              } else if (object is Map) {
-                object[key] = value;
-              }
-            }
-            _localValue = value;
-          }
-          break;
         case HTOpCode.ifNull:
         case HTOpCode.logicalOr:
         case HTOpCode.logicalAnd:
@@ -1076,6 +1037,48 @@ class Hetu extends HTAbstractInterpreter {
               }
               _localValue = object[key];
             }
+          }
+          break;
+        case HTOpCode.memberSet:
+          final object = _getRegVal(HTRegIdx.postfixObject);
+          if (object == null) {
+            throw HTError.nullObject(
+                localSymbol ?? HTLexicon.kNull, Semantic.setter,
+                filename: _fileName, line: _line, column: _column);
+          } else {
+            final key = _getRegVal(HTRegIdx.postfixKey);
+            final value = execute();
+            final encap = encapsulate(object);
+            encap.memberSet(key, value);
+            _localValue = value;
+          }
+          break;
+        case HTOpCode.subSet:
+          final object = _getRegVal(HTRegIdx.postfixObject);
+          if (object == null) {
+            throw HTError.nullObject(
+                localSymbol ?? HTLexicon.kNull, Semantic.subSetter,
+                filename: _fileName, line: _line, column: _column);
+          } else {
+            final key = execute();
+            final value = execute();
+            if (object is HTEntity) {
+              object.subSet(key, value);
+            } else {
+              if (object is List) {
+                if (key is! int) {
+                  throw HTError.subGetKey(key,
+                      filename: _fileName, line: _line, column: _column);
+                } else if (key < 0 || key >= object.length) {
+                  throw HTError.outOfRange(key, object.length,
+                      filename: _fileName, line: _line, column: _column);
+                }
+                object[key] = value;
+              } else if (object is Map) {
+                object[key] = value;
+              }
+            }
+            _localValue = value;
           }
           break;
         case HTOpCode.call:
@@ -1632,13 +1635,13 @@ class Hetu extends HTAbstractInterpreter {
       case TypeType.normal:
         final typeName = _bytecodeModule.readString();
         final typeArgsLength = _bytecodeModule.read();
-        final typeArgs = <HTUnresolvedType>[];
+        final typeArgs = <HTUnresolvedNominalType>[];
         for (var i = 0; i < typeArgsLength; ++i) {
-          final typearg = _handleTypeExpr() as HTUnresolvedType;
+          final typearg = _handleTypeExpr() as HTUnresolvedNominalType;
           typeArgs.add(typearg);
         }
         final isNullable = (_bytecodeModule.read() == 0) ? false : true;
-        return HTUnresolvedType(typeName,
+        return HTUnresolvedNominalType(typeName,
             typeArgs: typeArgs, isNullable: isNullable);
       case TypeType.function:
         final paramsLength = _bytecodeModule.read();
@@ -1772,6 +1775,46 @@ class Hetu extends HTAbstractInterpreter {
           lateFinalize: lateFinalize);
     }
     if (!isField) {
+      _namespace.define(id, decl, override: true);
+    }
+    _clearLocals();
+  }
+
+  void _handleDestructuringDecl() {
+    final idCount = _bytecodeModule.read();
+    final ids = <String, HTType?>{};
+    for (var i = 0; i < idCount; ++i) {
+      final id = _bytecodeModule.readString();
+      HTType? declType;
+      final hasTypeDecl = _bytecodeModule.readBool();
+      if (hasTypeDecl) {
+        declType = _handleTypeExpr();
+      }
+      ids[id] = declType;
+    }
+    final isVector = _bytecodeModule.readBool();
+    final isMutable = _bytecodeModule.readBool();
+    final collection = execute();
+    for (var i = 0; i < ids.length; ++i) {
+      final id = ids.keys.elementAt(i);
+      dynamic initValue;
+      if (isVector) {
+        initValue = (collection as Iterable).elementAt(i);
+      } else {
+        if (collection is HTEntity) {
+          initValue = collection.memberGet(id);
+        } else {
+          initValue = collection[id];
+        }
+      }
+      final decl = HTVariable(id,
+          interpreter: this,
+          fileName: _fileName,
+          moduleName: _bytecodeModule.id,
+          closure: _namespace,
+          declType: ids[id],
+          value: initValue,
+          isMutable: isMutable);
       _namespace.define(id, decl, override: true);
     }
     _clearLocals();

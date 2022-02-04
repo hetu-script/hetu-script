@@ -411,6 +411,11 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
+  void visitDestructuringDecl(DestructuringDecl stmt) {
+    stmt.subAccept(this);
+  }
+
+  @override
   void visitParamDecl(ParamDecl stmt) {
     // stmt.declaration = HTParameterDeclaration(stmt.id.id,
     //     closure: _curNamespace,

@@ -1,15 +1,17 @@
 # Variable
 
-Variable is declared with 'var', 'final', 'late'. The type annotation and initialize expression is optional.
+Variable is declared with 'var', 'final', 'late', 'const'. The type annotation and initialize expression is optional.
 
 ```dart
-var person;
-var fineStructureConstant: num = 1 / 137;
-final isTimeTravelSuccessful: bool = true;
-final skill: List = ['attack', 'defense'];
+var person
+var fineStructureConstant: num = 1 / 137
+final isTimeTravelSuccessful: bool = true
+final skill: List = ['attack', 'defense']
 ```
 
-String literal can have interpolation the same to Javascript:
+## String interpolation
+
+String literal can have interpolation the same to Javascript, you can use any expression within '${}':
 
 ```dart
 var a = 'dragon'
@@ -17,11 +19,11 @@ var a = 'dragon'
 print('To kill the ${a}, you have to wait ${6*7} years.')
 ```
 
-A little difference from Dart is that you have to write a curly brackets even if you have only one identifier.
+Note it's different to Dart that you have to write a curly brackets even if you have only one identifier.
 
 ## Late finalize
 
-You can declare a immutable symbol while not assign it with a value immediately by using keyword **late**.
+You can declare a **immutable** variable while not initialize it immediately, by using keyword **late**.
 
 It will become immutable after the first assignment.
 
@@ -30,18 +32,22 @@ late a
 // print(a) // Error: [a] is not initialized yet.
 a = 42
 print(a)
-// a = 'dragon' // Error: [a] is immutable.
+a = 'dragon' // Error: [a] is immutable.
 ```
 
 ## Const
 
-You can declare a const int/float/string value by keyword 'const'.
+You can declare a const literal int/float/string value by keyword 'const'.
 
 ```dart
 const pi = 3.1415926
 ```
 
 **You cannot declare a const expressions or functions for now. They are still WIP.**
+
+```dart
+const pi2 = 3.1415926 * 2 // error!
+```
 
 ## Shadowing
 
@@ -60,4 +66,25 @@ It is possible to delete a variable using 'delete' keyword.
 var a = 42
 delete a
 print(a) // error: a is undefined!
+```
+
+## Destructuring declaration (destructural assign, structured binding)
+
+Destructuring declaration is a syntax for assigning multiple values from an array or a map.
+
+```javascript
+var [a, b, c] = [1, 2, 3]; // a = 1, b = 2, c = 3
+var { x, y } = { x: 6, y: 7 }; // x = 6, y = 7
+```
+
+Destructuring declarations have to have a initializer and have to be initialized immediately, hence you can only use them within a script or a function body.
+
+**You cannot use them within Class, Named struct and Namespace's definition.**
+
+## Multiple declaration
+
+You **cannot** define multiple variables at the same time like you would in C++ and Java. This is for the sake of clarity.
+
+```dart
+var a,b,c// error
 ```

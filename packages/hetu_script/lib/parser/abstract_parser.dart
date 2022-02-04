@@ -127,11 +127,11 @@ abstract class HTAbstractParser {
       errors?.add(err);
     }
 
-    return advance(1);
+    return advance();
   }
 
   /// Advance till reach [distance], return the token at original position.
-  Token advance(int distance) {
+  Token advance([int distance = 1]) {
     tokPos += distance;
     _line = curTok.line;
     _column = curTok.column;

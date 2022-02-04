@@ -284,5 +284,22 @@ void main() {
         '''{1: 2}''',
       );
     });
+
+    test('destructuring', () {
+      final result = hetu.eval(r'''
+        final obj = {
+          a: 6,
+          b: 7,
+        }
+        final { a, b } = obj
+        final list = [1, 2, 3]
+        final [ x, y, z ] = list
+        a * z
+      ''');
+      expect(
+        result,
+        18,
+      );
+    });
   });
 }

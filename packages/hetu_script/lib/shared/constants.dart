@@ -27,7 +27,8 @@ abstract class HTOpCode {
   static const library = 31;
   static const file = 32;
   static const constTable = 33;
-  static const delete = 39;
+  static const delete = 35;
+  static const constDecl = 39;
   static const importExportDecl = 40;
   static const libraryDecl = 41;
   static const namespaceDecl = 42;
@@ -37,7 +38,7 @@ abstract class HTOpCode {
   static const externalEnumDecl = 46;
   static const structDecl = 47;
   static const varDecl = 48;
-  static const constDecl = 49;
+  static const destructuringDecl = 49;
   static const assign = 50;
   static const memberSet = 51;
   static const subSet = 52;

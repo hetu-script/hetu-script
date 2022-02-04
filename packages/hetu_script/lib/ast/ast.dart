@@ -264,16 +264,16 @@ class IdentifierExpr extends AstNode {
             offset: offset,
             length: length);
 
-  IdentifierExpr.fromToken(Token id, {bool isLocal = true, HTSource? source})
-      : this(id.lexeme,
-            isSymbol: id.type == Semantic.identifier,
-            isKeyword: id.isKeyword,
+  IdentifierExpr.fromToken(Token idTok, {bool isLocal = true, HTSource? source})
+      : this(idTok.lexeme,
+            isSymbol: idTok.type == Semantic.identifier,
+            isKeyword: idTok.isKeyword,
             isLocal: isLocal,
             source: source,
-            line: id.line,
-            column: id.column,
-            offset: id.offset,
-            length: id.length);
+            line: idTok.line,
+            column: idTok.column,
+            offset: idTok.offset,
+            length: idTok.length);
 }
 
 class SpreadExpr extends AstNode {
@@ -1349,9 +1349,6 @@ class ContinueStmt extends AstNode {
 
 class DeleteStmt extends AstNode {
   @override
-  String get type => Semantic.deleteStmt;
-
-  @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitDeleteStmt(this);
 
   @override
@@ -1379,9 +1376,6 @@ class DeleteStmt extends AstNode {
 
 class DeleteMemberStmt extends AstNode {
   @override
-  String get type => Semantic.deleteMemberStmt;
-
-  @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitDeleteMemberStmt(this);
 
@@ -1402,7 +1396,7 @@ class DeleteMemberStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(Semantic.deleteStmt,
+      : super(Semantic.deleteMemberStmt,
             source: source,
             line: line,
             column: column,
@@ -1411,9 +1405,6 @@ class DeleteMemberStmt extends AstNode {
 }
 
 class DeleteSubStmt extends AstNode {
-  @override
-  String get type => Semantic.deleteMemberStmt;
-
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitDeleteSubStmt(this);
@@ -1435,7 +1426,7 @@ class DeleteSubStmt extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(Semantic.deleteStmt,
+      : super(Semantic.deleteSubMemberStmt,
             source: source,
             line: line,
             column: column,
@@ -1444,9 +1435,6 @@ class DeleteSubStmt extends AstNode {
 }
 
 class ImportExportDecl extends AstNode {
-  @override
-  String get type => isExport ? Semantic.exportStmt : Semantic.importStmt;
-
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitImportExportDecl(this);
@@ -1492,7 +1480,7 @@ class ImportExportDecl extends AstNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(Semantic.exportImportStmt,
+      : super(isExport ? Semantic.exportStmt : Semantic.importStmt,
             source: source,
             line: line,
             column: column,
@@ -1667,9 +1655,6 @@ class VarDecl extends AstNode {
 
   AstNode? initializer;
 
-  @override
-  final bool hasEndOfStmtMark;
-
   // final bool typeInferrence;
 
   bool get isMember => classId != null;
@@ -1693,6 +1678,9 @@ class VarDecl extends AstNode {
   @override
   bool get isExpression => false;
 
+  @override
+  final bool hasEndOfStmtMark;
+
   VarDecl(this.id,
       {String? internalName,
       this.classId,
@@ -1715,6 +1703,53 @@ class VarDecl extends AstNode {
       int length = 0})
       : _internalName = internalName,
         super(Semantic.variableDeclaration,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class DestructuringDecl extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) =>
+      visitor.visitDestructuringDecl(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    for (final id in ids.keys) {
+      id.accept(visitor);
+      final typeExpr = ids[id];
+      typeExpr?.accept(visitor);
+    }
+  }
+
+  final Map<IdentifierExpr, TypeExpr?> ids;
+
+  AstNode initializer;
+
+  final bool isVector;
+
+  final bool isMutable;
+
+  @override
+  bool get isExpression => false;
+
+  @override
+  final bool hasEndOfStmtMark;
+
+  DestructuringDecl(
+      {required this.ids,
+      required this.isVector,
+      required this.initializer,
+      this.hasEndOfStmtMark = false,
+      this.isMutable = false,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.destructuringDeclaration,
             source: source,
             line: line,
             column: column,

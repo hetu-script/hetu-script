@@ -105,6 +105,11 @@ abstract class HTLexicon {
   static const kDefine = 'def';
   static const kDelete = 'delete';
 
+  static const Set<String> destructuringDeclarationMark = {
+    bracketsLeft,
+    bracesLeft,
+  };
+
   /// 变量声明
   static const Set<String> varDeclKeywords = {
     kVar,

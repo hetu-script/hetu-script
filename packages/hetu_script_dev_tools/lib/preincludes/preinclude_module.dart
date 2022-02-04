@@ -8,7 +8,7 @@ final consoleModule = [
   0,
   3,
   0,
-  11,
+  12,
   0,
   33,
   0,

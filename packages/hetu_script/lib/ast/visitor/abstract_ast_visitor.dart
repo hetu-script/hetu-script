@@ -106,6 +106,8 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitVarDecl(VarDecl node) {}
 
+  T? visitDestructuringDecl(DestructuringDecl node) {}
+
   T? visitParamDecl(ParamDecl node) {}
 
   T? visitReferConstructCallExpr(RedirectingConstructorCallExpr node) {}

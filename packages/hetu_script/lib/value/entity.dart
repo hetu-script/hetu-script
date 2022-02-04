@@ -1,7 +1,7 @@
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 import '../type/type.dart';
-import '../type/unresolved_type.dart';
+import '../type/unresolved_nominal_type.dart';
 
 class _HTNull with HTEntity {
   const _HTNull();
@@ -15,7 +15,7 @@ class _HTNull with HTEntity {
 
 /// A collection of various symbols & value pairs.
 abstract class HTEntity {
-  static const type = HTUnresolvedType(HTLexicon.object);
+  static const type = HTUnresolvedNominalType(HTLexicon.object);
 
   /// The [null] in Hetu is a static const variable of [HTEntity].
   /// Hence every null is the same object.

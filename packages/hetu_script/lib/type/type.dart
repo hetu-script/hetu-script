@@ -3,7 +3,7 @@ import 'package:quiver/core.dart';
 import '../grammar/lexicon.dart';
 import '../value/entity.dart';
 import '../value/namespace/namespace.dart';
-import 'unresolved_type.dart';
+import 'unresolved_nominal_type.dart';
 import '../ast/ast.dart' show TypeExpr, FuncTypeExpr;
 import 'function_type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
@@ -69,7 +69,7 @@ abstract class HTType with HTEntity {
         if (HTType.primitiveTypes.containsKey(ast.id)) {
           return HTType.primitiveTypes[ast.id]!;
         } else {
-          return HTUnresolvedType(ast.id!.id,
+          return HTUnresolvedNominalType(ast.id!.id,
               typeArgs:
                   ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
               isNullable: ast.isNullable);

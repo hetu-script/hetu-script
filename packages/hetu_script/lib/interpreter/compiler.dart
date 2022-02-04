@@ -1484,6 +1484,30 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitDestructuringDecl(DestructuringDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.destructuringDecl);
+    bytesBuilder.addByte(stmt.ids.length);
+    for (final id in stmt.ids.keys) {
+      bytesBuilder.add(_parseIdentifier(id.id));
+      final typeExpr = stmt.ids[id];
+      if (typeExpr != null) {
+        bytesBuilder.addByte(1); // bool: has type decl
+        final typeDecl = compileAst(typeExpr);
+        bytesBuilder.add(typeDecl);
+      } else {
+        bytesBuilder.addByte(0); // bool: has type decl
+      }
+    }
+    bytesBuilder.addByte(stmt.isVector ? 1 : 0);
+    bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
+    final initializer = compileAst(stmt.initializer, endOfExec: true);
+    bytesBuilder.add(initializer);
+    bytesBuilder.addByte(HTOpCode.endOfStmt);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitParamDecl(ParamDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_parseIdentifier(stmt.id.id));
