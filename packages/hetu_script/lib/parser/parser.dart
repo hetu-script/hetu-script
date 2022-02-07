@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../resource/resource.dart';
@@ -2793,15 +2792,10 @@ class HTParser extends HTAbstractParser {
     }
     AstNode? initializer;
     if (!lateFinalize) {
-      if (!isMutable) {
-        match(HTLexicon.assign);
+      if (expect([HTLexicon.assign], consume: true)) {
         initializer = _parseExpr();
       } else {
-        if (expect([HTLexicon.assign], consume: true)) {
-          initializer = _parseExpr();
-        } else {
-          initializer = additionalInitializer;
-        }
+        initializer = additionalInitializer;
       }
     }
     bool hasEndOfStmtMark = hasEndOfStatement;
