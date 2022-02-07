@@ -7,8 +7,11 @@ import 'package:flutter_highlight/themes/monokai-sublime.dart';
 
 import 'hetu_mode.dart';
 
+const _kMiddleDot = '·';
+
 class CodeEditor extends StatefulWidget {
-  static const _helloWorld = "print('Hello, world!')";
+  static const _helloWorld =
+      r'''range(10).map((value) => print('hello, ${value}'))''';
 
   const CodeEditor(
       {required this.interpreter, this.initialValue = _helloWorld, Key? key})
@@ -30,26 +33,35 @@ class _CodeEditorState extends State<CodeEditor> {
   final _resultPanelWidth = 300.0;
 
   String _result = '';
+  final _resultScrollController = ScrollController();
 
   String _errors = '';
+  final _errorsScrollController = ScrollController();
 
   void _log(String message) {
     if (_result.isEmpty) {
       _result = message;
     } else {
-      _result += '/n$message';
+      _result += '\n$message';
     }
+    _resultScrollController
+        .jumpTo(_resultScrollController.position.maxScrollExtent);
   }
 
   void _error(String message) {
     if (_errors.isEmpty) {
       _errors = message;
     } else {
-      _errors += '/n$message';
+      _errors += '\n$message';
     }
+    _errorsScrollController
+        .jumpTo(_resultScrollController.position.maxScrollExtent);
   }
 
-  late final CodeController _codeController;
+  final CodeController _codeController = CodeController(
+    language: hetuscript,
+    theme: monokaiSublimeTheme,
+  );
 
   final _textFieldFocusNode = FocusNode();
 
@@ -67,25 +79,23 @@ class _CodeEditorState extends State<CodeEditor> {
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
         List<HTType> typeArgs = const []}) {
-      setState(() {
-        List args = positionalArgs.first;
-        final result = args.join(' ');
-        _log(result);
-      });
+      var result = positionalArgs.join('\n');
+
+      /// On web, replace spaces with invisible dots “·” to fix the current issue with spaces
+      ///
+      /// https://github.com/flutter/flutter/issues/77929
+      result = result.replaceAll(_kMiddleDot, ' ');
+      _log(result);
     }, override: true);
 
-    _codeController = CodeController(
-      text: widget.initialValue,
-      language: hetuscript,
-      theme: monokaiSublimeTheme,
-    );
+    _codeController.text = widget.initialValue;
   }
 
   @override
   Widget build(BuildContext context) {
     _textFieldFocusNode.requestFocus();
     return Container(
-      color: const Color.fromARGB(255, 89, 96, 102),
+      color: Colors.black26,
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           return Stack(
@@ -98,7 +108,7 @@ class _CodeEditorState extends State<CodeEditor> {
                   child: Row(
                     children: <Widget>[
                       const Text(
-                        'Hetu Script',
+                        'Hetu Script Online REPL',
                         style: TextStyle(
                           fontSize: 26,
                           color: Colors.green,
@@ -130,10 +140,11 @@ class _CodeEditorState extends State<CodeEditor> {
                           _result = '';
                           setState(() {
                             try {
-                              interpreter.eval(_codeController.text);
+                              final result =
+                                  interpreter.eval(_codeController.text);
+                              _log(result.toString());
                             } catch (e) {
-                              final message = e.toString();
-                              _error(message);
+                              _error(e.toString());
                             }
                           });
                         },
@@ -176,6 +187,7 @@ class _CodeEditorState extends State<CodeEditor> {
                   padding: const EdgeInsets.all(10.0),
                   color: const Color(0xff23241f),
                   child: SingleChildScrollView(
+                    controller: _resultScrollController,
                     child: Text(
                       _result,
                       style: const TextStyle(
@@ -198,6 +210,7 @@ class _CodeEditorState extends State<CodeEditor> {
                   padding: const EdgeInsets.all(10.0),
                   color: const Color(0xff23241f),
                   child: SingleChildScrollView(
+                    controller: _errorsScrollController,
                     child: Text(
                       _errors,
                       style: const TextStyle(

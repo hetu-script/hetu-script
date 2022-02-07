@@ -69,6 +69,10 @@ module.exports = {
               link: '/docs/en-US/syntax/operators/',
             },
             {
+              text: 'Variable',
+              link: '/docs/en-US/syntax/variable/',
+            },
+            {
               text: 'Control flow',
               link: '/docs/en-US/syntax/control_flow/',
             },
