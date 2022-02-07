@@ -137,9 +137,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   @override
   dynamic memberGet(String varName, {String? from, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
-    final constructor = varName != id
-        ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
-        : Semantic.constructor;
+    final constructor =
+        '${Semantic.constructor}${HTLexicon.privatePrefix}$varName';
 
     // if (isExternal && !internal) {
     //   final value =

@@ -55,6 +55,25 @@ external fun print(... args: any)
 print('hello', 'world!', 42) // okay!
 ```
 
+## Omit parameter
+
+In function declaration's parameters. '\_' means you won't use this positional parameter in this implementation of a function type. This is useful in functional programming.
+
+```javascript
+fun test1(expect, value, [arg]) {
+  print('running test1 with ${arg}: expect ${expect}, value ${value}')
+}
+
+fun test2(_, value, [_]) {
+  print(value)
+}
+
+fun run(expect, value) {
+  test1(expect, value, 'test1')
+  test2(expect, value, 'test2')
+}
+```
+
 ## Return value
 
 If there's a return statement is the function body, it will return the value of the expression after the keyword.

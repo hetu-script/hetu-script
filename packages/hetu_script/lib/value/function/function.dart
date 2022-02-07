@@ -127,7 +127,7 @@ class HTFunction extends HTFunctionDeclaration
   void resolve() {
     super.resolve();
     if ((closure != null) && (classId != null) && (klass == null)) {
-      klass = closure!.memberGet(classId!, recursive: true);
+      klass = closure!.closure!.memberGet(classId!, recursive: true);
     }
     if (klass != null &&
         klass!.isExternal &&
@@ -280,8 +280,9 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         // callClosure is a temporary closure created everytime a function is called
-        final HTNamespace callClosure =
-            HTNamespace(id: id, closure: namespace ?? closure);
+        final HTNamespace callClosure = HTNamespace(
+            id: '${internalName}_${Semantic.functionCall}',
+            closure: namespace ?? closure);
 
         // define this and super keyword
         if (instance != null) {
@@ -301,7 +302,7 @@ class HTFunction extends HTFunctionDeclaration
           var decl = paramDecls.values.elementAt(i).clone();
           final paramId = paramDecls.keys.elementAt(i);
           // omit params with '_' as id
-          if (paramId == HTLexicon.ommittedMark) {
+          if (!decl.isNamed && paramId == HTLexicon.omittedMark) {
             continue;
           }
           callClosure.define(paramId, decl);
@@ -345,25 +346,21 @@ class HTFunction extends HTFunctionDeclaration
             if (name == HTLexicon.kSuper) {
               final superClass = klass!.superClass!;
               if (key == null) {
-                constructor = superClass
-                    .namespace.declarations[Semantic.constructor]!.value;
+                constructor = superClass.namespace
+                    .memberGet(Semantic.constructor, recursive: false);
               } else {
-                constructor = superClass
-                    .namespace
-                    .declarations[
-                        '${Semantic.constructor}${HTLexicon.privatePrefix}$key']!
-                    .value;
+                constructor = superClass.namespace.memberGet(
+                    '${Semantic.constructor}${HTLexicon.privatePrefix}$key',
+                    recursive: false);
               }
             } else if (name == HTLexicon.kThis) {
               if (key == null) {
-                constructor =
-                    klass!.namespace.declarations[Semantic.constructor]!.value;
+                constructor = klass!.namespace
+                    .memberGet(Semantic.constructor, recursive: false);
               } else {
-                constructor = klass!
-                    .namespace
-                    .declarations[
-                        '${Semantic.constructor}${HTLexicon.privatePrefix}$key']!
-                    .value;
+                constructor = klass!.namespace.memberGet(
+                    '${Semantic.constructor}${HTLexicon.privatePrefix}$key',
+                    recursive: false);
               }
             }
             // constructor's context is on this newly created instance

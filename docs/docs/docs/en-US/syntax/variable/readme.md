@@ -79,6 +79,12 @@ var { x, y } = { x: 6, y: 7 }; // x = 6, y = 7
 
 Destructuring declarations have to have a initializer and have to be initialized immediately, hence you can only use them within a script or a function body.
 
+You can **omit** a declaration when you use destructuring declaration on a iterable.
+
+```javascript
+var [_, _, z] = [1, 2, 3]; // z = 3
+```
+
 **You cannot use them within Class, Named struct and Namespace's definition.**
 
 ## Multiple declaration

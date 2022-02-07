@@ -81,7 +81,7 @@ abstract class HTLexicon {
 
   static const variadicArgs = '...';
   static const privatePrefix = '_';
-  static const ommittedMark = '_';
+  static const omittedMark = '_';
 
   /// '$'
   static const internalPrefix = r'$';

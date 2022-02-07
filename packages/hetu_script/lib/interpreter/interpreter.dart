@@ -753,11 +753,11 @@ class Hetu extends HTAbstractInterpreter {
           _line = _bytecodeModule.readUint16();
           _column = _bytecodeModule.readUint16();
           break;
-        // 将字面量存储在本地变量中
+        // store a local value in interpreter
         case HTOpCode.local:
           _storeLocal();
           break;
-        // 将本地变量存入下一个字节代表的寄存器位置中
+        // store current local value to a register position
         case HTOpCode.register:
           final index = _bytecodeModule.read();
           _setRegVal(index, _localValue);
@@ -766,6 +766,7 @@ class Hetu extends HTAbstractInterpreter {
           final distance = _bytecodeModule.readInt16();
           _bytecodeModule.ip += distance;
           break;
+        // store the current ip position
         case HTOpCode.anchor:
           _anchor = _bytecodeModule.ip;
           break;
@@ -1607,7 +1608,7 @@ class Hetu extends HTAbstractInterpreter {
             filename: _fileName, line: _line, column: _column);
       }
       if (klass.contains(Semantic.constructor)) {
-        final constructor = klass.memberGet(klass.id!) as HTFunction;
+        final constructor = klass.memberGet(Semantic.constructor) as HTFunction;
         _localValue = constructor.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
@@ -1783,13 +1784,13 @@ class Hetu extends HTAbstractInterpreter {
   void _handleDestructuringDecl() {
     final idCount = _bytecodeModule.read();
     final ids = <String, HTType?>{};
-    final ommittedPrefix = '##';
+    final omittedPrefix = '##';
     var omittedIndex = 0;
     for (var i = 0; i < idCount; ++i) {
       var id = _bytecodeModule.readString();
       // omit '_' symbols
-      if (id == HTLexicon.ommittedMark) {
-        id = ommittedPrefix + (omittedIndex++).toString();
+      if (id == HTLexicon.omittedMark) {
+        id = omittedPrefix + (omittedIndex++).toString();
       }
       HTType? declType;
       final hasTypeDecl = _bytecodeModule.readBool();
@@ -1806,7 +1807,7 @@ class Hetu extends HTAbstractInterpreter {
       dynamic initValue;
       if (isVector) {
         // omit '_' symbols
-        if (id.startsWith(ommittedPrefix)) {
+        if (id.startsWith(omittedPrefix)) {
           continue;
         }
         initValue = (collection as Iterable).elementAt(i);

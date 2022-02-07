@@ -2905,6 +2905,7 @@ class HTParser extends HTAbstractParser {
     late String internalName;
     // to distinguish getter and setter, and to give default constructor a name
     switch (category) {
+      case FunctionCategory.factoryConstructor:
       case FunctionCategory.constructor:
         _hasUserDefinedConstructor = true;
         if (curTok.type == Semantic.identifier) {

@@ -4,8 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    final list = [4,33,1]
-    final [_,_,z] = list
-    print(z)
+  fun test2(_, value, [_]) {
+    print(value)
+  }
+
+  test2(1, 2, 'test2')
   ''');
 }

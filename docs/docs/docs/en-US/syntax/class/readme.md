@@ -8,14 +8,9 @@ Constructors can be with no function name and cannot return values. When calling
 
 Getter & setter functions is used like a member variable. They can be accessed without brackets.
 
-Use 'extends' to inherit other class's members
-
 ```typescript
 // class definition
 class Calculator {
-  // instance member
-  var x: num
-  var y: num
   // static private member
   static var _name = 'the calculator'
   // static get function
@@ -30,13 +25,16 @@ class Calculator {
   static fun greeting {
     print('hello! I\'m ' + name)
   }
+
+  // instance member
+  var x: num
+  var y: num
   // constructor with parameters
   construct (x: num, y: num) {
-    // use this to access instance members with same names
+    // use this to access instance members shadowed by function parameters
     this.x = x
     this.y = y
   }
-  // method with return type
   fun meaning -> num {
     // when there's no shadowing, `this` keyword can be omitted
     return x * y
@@ -44,9 +42,49 @@ class Calculator {
 }
 ```
 
+## Inheritance
+
+Use 'extends' to inherit other class's members.
+
+```typescript
+class Animal {
+  fun walk {
+    print('animal walking')
+  }
+
+  var kind
+
+  construct (kind) {
+    this.kind = kind
+  }
+}
+
+class Bird extends Animal {
+  fun animalWalk {
+    // You can access a overrided member in super class by the super keyword within a method body.
+    super.walk()
+  }
+  // override super class's member
+  fun walk {
+    print('bird walking')
+  }
+  fun fly {
+    print('bird flying')
+  }
+
+  // You can use super class's constructor by the super keyword after a constructor declaration.
+  construct _: super('bird')
+
+  // factory is a special kind of contructor that returns values
+  factory {
+    return _()
+  }
+}
+```
+
 ## Constructor tear off
 
-Sometimes, we would like to use Class constructors in functional programming situations. However it normally doesn't work because if you directly pass a class name into a place where a function is needed, you won't get what you want: to call this class's name as a function and get a instance as its result.
+Sometimes, we would like to use Class constructors in functional programming situations. However it normally doesn't work because a class name resolves into a 'class' or 'type' object rather than a function which is needed.
 
 However, we can achieve this by accessing the internal name of the constructor(**$construct**):
 
@@ -65,11 +103,11 @@ final objectList = p.map((element) {ctor(element)})
 
 ## Namespace
 
-You can create a code block within a source or a function body, by declaring with keyword **namespace** and an Identifer as its name.
+It's common in Dart to define a abstract class with only static members for restricting some values or methods to a namespace.
 
-This is equivalent to define a abstract class with only static members in Dart.
+In Hetu script, you can directly create a code block with keyword **namespace** to achieve this.
 
-The namespace code block only allows for variable/class/function declaration, no import, export, expresssions allowed.
+The namespace code block only allows for variable/class/function declaration, cannot have import statement or expresssions.
 
 ```c++
 namespace universe {
