@@ -16,9 +16,6 @@ class HTClassNamespace extends HTNamespace {
   dynamic memberGet(String varName,
       {String? from, bool recursive = true, bool error = true}) {
     final getter = '${Semantic.getter}$varName';
-    final constructor = varName != id
-        ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
-        : Semantic.constructor;
     final externalStatic = '$id.$varName';
 
     if (declarations.containsKey(varName)) {
@@ -29,12 +26,6 @@ class HTClassNamespace extends HTNamespace {
       return decl.value;
     } else if (declarations.containsKey(getter)) {
       final decl = declarations[getter]!;
-      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
-      }
-      return decl.value;
-    } else if (declarations.containsKey(constructor)) {
-      final decl = declarations[constructor]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }

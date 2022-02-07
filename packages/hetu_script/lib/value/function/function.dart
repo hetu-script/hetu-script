@@ -280,9 +280,8 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         // callClosure is a temporary closure created everytime a function is called
-        final HTNamespace callClosure = HTNamespace(
-            id: '${internalName}_${Semantic.functionCall}',
-            closure: namespace ?? closure);
+        final HTNamespace callClosure =
+            HTNamespace(id: internalName, closure: namespace ?? closure);
 
         // define this and super keyword
         if (instance != null) {

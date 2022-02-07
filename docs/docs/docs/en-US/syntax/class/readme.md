@@ -75,9 +75,10 @@ class Bird extends Animal {
   // You can use super class's constructor by the super keyword after a constructor declaration.
   construct _: super('bird')
 
-  // factory is a special kind of contructor that returns values
+  // factory is a special kind of contructor that returns values.
+  // factory are static and cannot directly access instance members and constructors.
   factory {
-    return _()
+    return Bird._()
   }
 }
 ```
