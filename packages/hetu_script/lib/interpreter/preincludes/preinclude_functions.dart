@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:quiver/iterables.dart';
 
 import '../../value/entity.dart';
 import '../../type/type.dart';
@@ -38,12 +39,7 @@ final Map<String, Function> preincludeFunctions = {
           {List<dynamic> positionalArgs = const [],
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
-      [
-        for (var i = positionalArgs[1];
-            i < positionalArgs[0];
-            i += positionalArgs[2])
-          i
-      ],
+      range(positionalArgs[0], positionalArgs[1], positionalArgs[2]),
   'prototype.keys': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},

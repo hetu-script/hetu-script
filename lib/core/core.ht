@@ -4,4 +4,4 @@ external fun stringify(obj: any)
 
 external fun jsonify(obj)
 
-external fun range(to: int, [from: int = 0, step: int = 1]) -> Iterable
+external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable

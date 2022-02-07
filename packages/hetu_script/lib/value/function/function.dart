@@ -300,6 +300,10 @@ class HTFunction extends HTFunctionDeclaration
         for (var i = 0; i < paramDecls.length; ++i) {
           var decl = paramDecls.values.elementAt(i).clone();
           final paramId = paramDecls.keys.elementAt(i);
+          // omit params with '_' as id
+          if (paramId == HTLexicon.ommittedMark) {
+            continue;
+          }
           callClosure.define(paramId, decl);
 
           if (decl.isVariadic) {

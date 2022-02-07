@@ -1783,8 +1783,14 @@ class Hetu extends HTAbstractInterpreter {
   void _handleDestructuringDecl() {
     final idCount = _bytecodeModule.read();
     final ids = <String, HTType?>{};
+    final ommittedPrefix = '##';
+    var omittedIndex = 0;
     for (var i = 0; i < idCount; ++i) {
-      final id = _bytecodeModule.readString();
+      var id = _bytecodeModule.readString();
+      // omit '_' symbols
+      if (id == HTLexicon.ommittedMark) {
+        id = ommittedPrefix + (omittedIndex++).toString();
+      }
       HTType? declType;
       final hasTypeDecl = _bytecodeModule.readBool();
       if (hasTypeDecl) {
@@ -1799,6 +1805,10 @@ class Hetu extends HTAbstractInterpreter {
       final id = ids.keys.elementAt(i);
       dynamic initValue;
       if (isVector) {
+        // omit '_' symbols
+        if (id.startsWith(ommittedPrefix)) {
+          continue;
+        }
         initValue = (collection as Iterable).elementAt(i);
       } else {
         if (collection is HTEntity) {
