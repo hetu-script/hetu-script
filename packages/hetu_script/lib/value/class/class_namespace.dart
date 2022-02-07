@@ -3,7 +3,6 @@ import '../../grammar/semantic.dart';
 import '../../source/source.dart';
 import '../function/function.dart';
 import '../namespace/namespace.dart';
-import '../../grammar/lexicon.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.

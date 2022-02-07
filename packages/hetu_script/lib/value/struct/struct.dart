@@ -107,7 +107,7 @@ class HTStruct with HTEntity {
     }
   }
 
-  operator [](dynamic? key) {
+  operator [](dynamic key) {
     return memberGet(key);
   }
 
