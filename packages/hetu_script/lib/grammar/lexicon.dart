@@ -458,7 +458,7 @@ abstract class HTLexicon {
       'Context error: could not load file: [{0}].';
   static const errorNotAbsoluteError =
       'Adding source failed, not a absolute path: [{0}].';
-  static const errorInvalidLeftValue = 'Illegal left value.';
+  static const errorInvalidLeftValue = 'Value cannot be assigned.';
   static const errorNullableAssign = 'Cannot assign to a nullable value.';
   static const errorPrivateMember = 'Could not acess private member [{0}].';
   static const errorConstMustBeStatic =

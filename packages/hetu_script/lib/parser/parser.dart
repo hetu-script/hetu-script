@@ -1591,6 +1591,17 @@ class HTParser extends HTAbstractParser {
     } else {
       final op = advance();
       final value = _parseUnaryPostfixExpr();
+      if (op.type != HTLexicon.logicalNot && op.type != HTLexicon.negative) {
+        if (!_leftValueLegality) {
+          final err = HTError.invalidLeftValue(
+              filename: _currrentFileName,
+              line: value.line,
+              column: value.column,
+              offset: value.offset,
+              length: value.length);
+          errors?.add(err);
+        }
+      }
       return UnaryPrefixExpr(op.lexeme, value,
           source: _currentSource,
           line: op.line,
