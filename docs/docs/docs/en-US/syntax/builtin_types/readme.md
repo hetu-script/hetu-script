@@ -21,8 +21,6 @@ Note:
 
 ## Big integers
 
-Both of the literal form of float and integer numbers in script are stored as 32 byte sized, which range from -2,147,483,648 to 2,147,483,647 for int and . This is due to the limitation of the runtime.js of Dart.
-
 To manipulate bigger numbers, you can use preincluded class BigInt.
 
 ```dart
