@@ -112,7 +112,7 @@ packages:
       path: "../hetu_script"
       relative: true
     source: path
-    version: "0.3.12"
+    version: "0.4.0-pre1"
   http:
     dependency: "direct main"
     description:
