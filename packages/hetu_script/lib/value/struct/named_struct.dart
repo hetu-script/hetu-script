@@ -6,7 +6,7 @@ import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../interpreter/interpreter.dart';
-import '../../interpreter/compiler.dart' show GotoInfo;
+import '../../bytecode/goto_info.dart';
 import '../function/function.dart';
 
 /// Unlike class and function, the declaration of a struct is a value

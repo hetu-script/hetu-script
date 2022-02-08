@@ -4,7 +4,7 @@ import '../../grammar/semantic.dart';
 import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
-import '../../interpreter/compiler.dart' show GotoInfo;
+import '../../bytecode/goto_info.dart';
 import '../../type/type.dart';
 import '../../value/instance/instance_namespace.dart';
 import '../../value/class/class.dart';

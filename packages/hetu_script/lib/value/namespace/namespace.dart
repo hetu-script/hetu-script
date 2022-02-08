@@ -2,7 +2,7 @@ import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
 import '../../source/source.dart';
 import '../../declaration/declaration.dart';
-import '../../value/entity.dart';
+import '../entity.dart';
 
 class ImportDeclaration {
   final String fromPath;

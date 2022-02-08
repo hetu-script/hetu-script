@@ -14,7 +14,6 @@ abstract class HTType with HTEntity {
   static const nullType = _PrimitiveType(HTLexicon.kNull);
   static const voidType = _PrimitiveType(HTLexicon.kVoid);
   static const unknownType = _PrimitiveType(HTLexicon.kUnknown);
-  // static const object = _PrimitiveType(HTLexicon.object);
   static const function = _PrimitiveType(HTLexicon.kFunction);
 
   static const Map<String, HTType> primitiveTypes = {
@@ -23,7 +22,6 @@ abstract class HTType with HTEntity {
     HTLexicon.kNull: nullType,
     HTLexicon.kVoid: voidType,
     HTLexicon.kUnknown: unknownType,
-    // HTLexicon.object: object,
     HTLexicon.kFunction: function,
   };
 

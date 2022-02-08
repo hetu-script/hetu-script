@@ -282,9 +282,16 @@ abstract class HTLexicon {
     postDecrement,
   };
 
+  /// '!'
   static const logicalNot = '!';
+
+  /// '-'
   static const negative = '-';
+
+  /// '++'
   static const preIncrement = '++';
+
+  /// '--'
   static const preDecrement = '--';
 
   /// 前缀操作符，包含多个符号

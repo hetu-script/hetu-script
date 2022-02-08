@@ -12,7 +12,7 @@ export 'version.dart';
 export 'type/type.dart';
 export 'value/entity.dart';
 export 'interpreter/abstract_interpreter.dart' show InterpreterConfig;
-export 'interpreter/compiler.dart';
+export 'bytecode/compiler.dart';
 export 'interpreter/interpreter.dart';
 export 'grammar/lexicon.dart';
 export 'grammar/semantic.dart';

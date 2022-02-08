@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import '../value/namespace/namespace.dart';
 import 'bytecode_reader.dart';
-import 'const_table.dart';
+import '../constant/constant_module.dart';
 
-class HTBytecodeModule with BytecodeReader, ConstTable {
+class HTBytecodeModule with BytecodeReader, HTConstantModule {
   final String id;
 
   final Map<String, HTNamespace> namespaces;
@@ -13,7 +13,7 @@ class HTBytecodeModule with BytecodeReader, ConstTable {
 
   String readString() {
     final index = readUint16();
-    return getUtf8String(index);
+    return getConstant(String, index);
   }
 
   HTBytecodeModule(this.id, Uint8List bytes,
