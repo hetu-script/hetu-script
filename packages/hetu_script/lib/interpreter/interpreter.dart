@@ -14,7 +14,7 @@ import '../value/function/parameter.dart';
 import '../value/variable/variable.dart';
 import '../value/struct/struct.dart';
 import '../value/external_enum/external_enum.dart';
-import '../value/const.dart';
+import '../constant/constant.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
 import '../type/unresolved_nominal_type.dart';
@@ -31,9 +31,9 @@ import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
 import '../parser/parser.dart';
 import '../shared/constants.dart';
-import 'bytecode_module.dart';
+import '../bytecode/bytecode_module.dart';
 import 'abstract_interpreter.dart';
-import 'compiler.dart';
+import '../bytecode/compiler.dart';
 import 'preincludes/preinclude_module.dart';
 import '../version.dart';
 
@@ -844,20 +844,25 @@ class Hetu extends HTAbstractInterpreter {
           } else {
             return _namespace;
           }
-        case HTOpCode.constTable:
+        case HTOpCode.constIntTable:
           final int64Length = _bytecodeModule.readUint16();
           for (var i = 0; i < int64Length; ++i) {
-            _bytecodeModule.addInt(_bytecodeModule.readInt32());
+            _bytecodeModule.addConstant<int>(_bytecodeModule.readInt32());
             // _bytecodeModule.addInt(_bytecodeModule.readInt64());
           }
+          break;
+        case HTOpCode.constFloatTable:
           final float64Length = _bytecodeModule.readUint16();
           for (var i = 0; i < float64Length; ++i) {
-            _bytecodeModule.addFloat(_bytecodeModule.readFloat32());
+            _bytecodeModule.addConstant<double>(_bytecodeModule.readFloat32());
             // _bytecodeModule.addFloat(_bytecodeModule.readFloat64());
           }
+          break;
+        case HTOpCode.constStringTable:
           final utf8StringLength = _bytecodeModule.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
-            _bytecodeModule.addString(_bytecodeModule.readLongString());
+            _bytecodeModule
+                .addConstant<String>(_bytecodeModule.readLongString());
           }
           break;
         case HTOpCode.importExportDecl:
@@ -1162,15 +1167,15 @@ class Hetu extends HTAbstractInterpreter {
         break;
       case HTValueTypeCode.constInt:
         final index = _bytecodeModule.readUint16();
-        _localValue = _bytecodeModule.getInt64(index);
+        _localValue = _bytecodeModule.getConstant(int, index);
         break;
       case HTValueTypeCode.constFloat:
         final index = _bytecodeModule.readUint16();
-        _localValue = _bytecodeModule.getFloat64(index);
+        _localValue = _bytecodeModule.getConstant(double, index);
         break;
       case HTValueTypeCode.constString:
         final index = _bytecodeModule.readUint16();
-        _localValue = _bytecodeModule.getUtf8String(index);
+        _localValue = _bytecodeModule.getConstant(String, index);
         break;
       case HTValueTypeCode.longString:
         _localValue = _bytecodeModule.readLongString();
@@ -1700,10 +1705,15 @@ class Hetu extends HTAbstractInterpreter {
     }
     final isStatic = _bytecodeModule.readBool();
     final typeIndex = _bytecodeModule.read();
-    final type = ConstType.values.elementAt(typeIndex);
+    final type = HTConstantType.values.elementAt(typeIndex);
     final index = _bytecodeModule.readInt16();
-    final decl = HTConst(id, type, index, _bytecodeModule,
-        classId: classId, isStatic: isStatic);
+    final decl = HTConstant(
+        id: id,
+        type: getConstantType(type),
+        index: index,
+        module: _bytecodeModule,
+        classId: classId,
+        isStatic: isStatic);
     _namespace.define(id, decl);
     _clearLocals();
   }

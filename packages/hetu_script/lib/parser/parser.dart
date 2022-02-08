@@ -1457,7 +1457,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 逻辑和 && , 优先级 6, 左合并
+  /// Logical and: && , precedence 6, associativity left
   AstNode _parseLogicalAndExpr() {
     var left = _parseEqualityExpr();
     if (curTok.type == HTLexicon.logicalAnd) {
@@ -1476,7 +1476,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 逻辑相等 ==, !=, 优先级 7, 不合并
+  /// Logical equal: ==, !=, precedence 7, associativity none
   AstNode _parseEqualityExpr() {
     var left = _parseRelationalExpr();
     if (HTLexicon.equalitys.contains(curTok.type)) {
@@ -1493,7 +1493,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 逻辑比较 <, >, <=, >=, as, is, is!, in, in! 优先级 8, 不合并
+  /// Logical compare: <, >, <=, >=, as, is, is!, in, in!, precedence 8, associativity none
   AstNode _parseRelationalExpr() {
     var left = _parseAdditiveExpr();
     if (HTLexicon.logicalRelationals.contains(curTok.type)) {
@@ -1546,7 +1546,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 加法 +, -, 优先级 13, 左合并
+  /// Add: +, -, precedence 13, associativity left
   AstNode _parseAdditiveExpr() {
     var left = _parseMultiplicativeExpr();
     if (HTLexicon.additives.contains(curTok.type)) {
@@ -1565,7 +1565,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 乘法 *, /, ~/, %, 优先级 14, 左合并
+  /// Multiply *, /, ~/, %, precedence 14, associativity left
   AstNode _parseMultiplicativeExpr() {
     var left = _parseUnaryPrefixExpr();
     if (HTLexicon.multiplicatives.contains(curTok.type)) {
@@ -1584,7 +1584,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// 前缀 -e, !e，++e, --e, 优先级 15, 不合并
+  /// Prefix -e, !e，++e, --e, precedence 15, associativity none
   AstNode _parseUnaryPrefixExpr() {
     if (!(HTLexicon.unaryPrefixs.contains(curTok.type))) {
       return _parseUnaryPostfixExpr();
@@ -1611,7 +1611,7 @@ class HTParser extends HTAbstractParser {
     }
   }
 
-  /// 后缀 e., e?., e[], e?[], e(), e?(), e++, e-- 优先级 16, 右合并
+  /// Postfix e., e?., e[], e?[], e(), e?(), e++, e-- precedence 16, associativity right
   AstNode _parseUnaryPostfixExpr() {
     var expr = _parsePrimaryExpr();
     while (HTLexicon.unaryPostfixs.contains(curTok.type)) {

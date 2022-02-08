@@ -628,6 +628,7 @@ class GenericTypeParameterExpr extends AstNode {
             length: length);
 }
 
+/// -e, !e，++e, --e
 class UnaryPrefixExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>

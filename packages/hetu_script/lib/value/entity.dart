@@ -13,13 +13,11 @@ class _HTNull with HTEntity {
   HTType get valueType => HTType.nullType;
 }
 
-/// A collection of various symbols & value pairs.
+/// A interface for store and access symbols from a collection.
 abstract class HTEntity {
   static const type = HTUnresolvedNominalType(HTLexicon.object);
 
-  /// The [null] in Hetu is a static const variable of [HTEntity].
-  /// Hence every null is the same object.
-  // ignore: constant_identifier_names
+  /// The encapsulated null object, used when try to interact with a null value.
   static const nullValue = _HTNull();
 
   HTType get valueType => type;

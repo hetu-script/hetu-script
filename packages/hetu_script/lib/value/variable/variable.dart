@@ -1,7 +1,7 @@
 import '../../binding/external_class.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
-import '../../interpreter/compiler.dart' show GotoInfo;
+import '../../bytecode/goto_info.dart';
 import '../../value/namespace/namespace.dart';
 import '../../type/type.dart';
 import '../../declaration/variable/variable_declaration.dart';

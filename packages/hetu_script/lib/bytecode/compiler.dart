@@ -2,13 +2,12 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../value/const.dart';
+import '../constant/constant.dart';
 import '../parser/parse_result_compilation.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-// import '../source/source.dart';
 import '../shared/constants.dart';
-import 'const_table.dart';
+import '../constant/constant_module.dart';
 import '../parser/parse_result.dart';
 import '../version.dart';
 
@@ -30,15 +29,6 @@ class HTRegIdx {
   static const postfixObject = 14;
   static const postfixKey = 15;
   static const length = 16;
-}
-
-// Execution jump point
-mixin GotoInfo {
-  late final String fileName;
-  late final String moduleName;
-  late final int? definitionIp;
-  late final int? definitionLine;
-  late final int? definitionColumn;
 }
 
 abstract class CompilerConfig {
@@ -65,7 +55,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   CompilerConfig config;
 
-  final _curConstTable = ConstTable();
+  late HTConstantModule _currentConstantModule;
 
   int _curLine = 0;
   int _curColumn = 0;
@@ -78,6 +68,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       : config = config ?? const CompilerConfigImpl();
 
   Uint8List compile(HTModuleParseResult compilation) {
+    _currentConstantModule = HTConstantModule();
     final mainBytesBuilder = BytesBuilder();
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
@@ -108,21 +99,30 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       compileSource(value);
     }
     final code = bytesBuilder.toBytes();
-    // const table
-    mainBytesBuilder.addByte(HTOpCode.constTable);
-    mainBytesBuilder.add(_uint16(_curConstTable.intTable.length));
-    for (final value in _curConstTable.intTable) {
-      mainBytesBuilder.add(_int32(value));
-      // mainBytesBuilder.add(_int64(value));
-    }
-    mainBytesBuilder.add(_uint16(_curConstTable.floatTable.length));
-    for (final value in _curConstTable.floatTable) {
-      mainBytesBuilder.add(_float32(value));
-      // mainBytesBuilder.add(_float64(value));
-    }
-    mainBytesBuilder.add(_uint16(_curConstTable.stringTable.length));
-    for (final value in _curConstTable.stringTable) {
-      mainBytesBuilder.add(_utf8String(value));
+    // const tables
+    for (final type in _currentConstantModule.values.keys) {
+      final table = _currentConstantModule.values[type]!;
+      if (type == int) {
+        mainBytesBuilder.addByte(HTOpCode.constIntTable);
+        mainBytesBuilder.add(_uint16(table.length));
+        for (final value in table) {
+          mainBytesBuilder.add(_int32(value));
+        }
+      } else if (type == double) {
+        mainBytesBuilder.addByte(HTOpCode.constFloatTable);
+        mainBytesBuilder.add(_uint16(table.length));
+        for (final value in table) {
+          mainBytesBuilder.add(_float32(value));
+        }
+      } else if (type == String) {
+        mainBytesBuilder.addByte(HTOpCode.constStringTable);
+        mainBytesBuilder.add(_uint16(table.length));
+        for (final value in table) {
+          mainBytesBuilder.add(_utf8String(value));
+        }
+      } else {
+        continue;
+      }
     }
     mainBytesBuilder.add(code);
     return mainBytesBuilder.toBytes();
@@ -153,6 +153,21 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   // Uint8List _float64(double value) =>
   //     Uint8List(4)..buffer.asByteData().setFloat64(0, value, Endian.big);
 
+  Uint8List _utf8String(String value) {
+    final bytesBuilder = BytesBuilder();
+    final stringData = utf8.encoder.convert(value);
+    bytesBuilder.add(_uint16(stringData.length));
+    bytesBuilder.add(stringData);
+    return bytesBuilder.toBytes();
+  }
+
+  Uint8List _parseIdentifier(String value) {
+    final bytesBuilder = BytesBuilder();
+    final index = _currentConstantModule.addConstant<String>(value);
+    bytesBuilder.add(_uint16(index));
+    return bytesBuilder.toBytes();
+  }
+
   Uint8List _lineInfo(int line, int column) {
     final bytesBuilder = BytesBuilder();
     if (config.compileWithLineInfo) {
@@ -170,21 +185,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(type);
     bytesBuilder.add(_uint16(constIndex));
-    return bytesBuilder.toBytes();
-  }
-
-  Uint8List _utf8String(String value) {
-    final bytesBuilder = BytesBuilder();
-    final stringData = utf8.encoder.convert(value);
-    bytesBuilder.add(_uint16(stringData.length));
-    bytesBuilder.add(stringData);
-    return bytesBuilder.toBytes();
-  }
-
-  Uint8List _parseIdentifier(String value) {
-    final bytesBuilder = BytesBuilder();
-    final index = _curConstTable.addString(value);
-    bytesBuilder.add(_uint16(index));
     return bytesBuilder.toBytes();
   }
 
@@ -294,13 +294,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   @override
   Uint8List visitIntLiteralExpr(IntLiteralExpr expr) {
-    final index = _curConstTable.addInt(expr.value);
+    final index = _currentConstantModule.addConstant<int>(expr.value);
     return _localConst(HTValueTypeCode.constInt, index, expr.line, expr.column);
   }
 
   @override
   Uint8List visitFloatLiteralExpr(FloatLiteralExpr expr) {
-    final index = _curConstTable.addFloat(expr.value);
+    final index = _currentConstantModule.addConstant<double>(expr.value);
     return _localConst(
         HTValueTypeCode.constFloat, index, expr.line, expr.column);
   }
@@ -318,7 +318,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.add(_utf8String(literal));
       return bytesBuilder.toBytes();
     } else {
-      final index = _curConstTable.addString(literal);
+      final index = _currentConstantModule.addConstant<String>(literal);
       return _localConst(
           HTValueTypeCode.constString, index, expr.line, expr.column);
     }
@@ -577,6 +577,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
+  /// -e, !e，++e, --e
   @override
   Uint8List visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     final bytesBuilder = BytesBuilder();
@@ -1427,16 +1428,17 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isStatic ? 1 : 0); // bool: isStatic
     late int type, index;
     if (stmt.constExpr is IntLiteralExpr) {
-      type = ConstType.intValue.index;
-      index = _curConstTable.addInt((stmt.constExpr as IntLiteralExpr).value);
+      type = HTConstantType.integer.index;
+      index = _currentConstantModule
+          .addConstant<int>((stmt.constExpr as IntLiteralExpr).value);
     } else if (stmt.constExpr is FloatLiteralExpr) {
-      type = ConstType.floatValue.index;
-      index =
-          _curConstTable.addFloat((stmt.constExpr as FloatLiteralExpr).value);
+      type = HTConstantType.float.index;
+      index = _currentConstantModule
+          .addConstant<double>((stmt.constExpr as FloatLiteralExpr).value);
     } else if (stmt.constExpr is StringLiteralExpr) {
-      type = ConstType.stringValue.index;
-      index =
-          _curConstTable.addString((stmt.constExpr as StringLiteralExpr).value);
+      type = HTConstantType.string.index;
+      index = _currentConstantModule
+          .addConstant<String>((stmt.constExpr as StringLiteralExpr).value);
     }
     bytesBuilder.addByte(type);
     bytesBuilder.add(_uint16(index));

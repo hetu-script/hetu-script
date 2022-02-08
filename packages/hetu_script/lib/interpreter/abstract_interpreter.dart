@@ -17,7 +17,7 @@ import '../value/function/function.dart';
 import '../value/namespace/namespace.dart';
 import '../parser/abstract_parser.dart';
 import '../value/entity.dart';
-import 'compiler.dart';
+import '../bytecode/compiler.dart';
 import '../shared/stringify.dart';
 import '../shared/jsonify.dart';
 import 'preincludes/preinclude_functions.dart';
