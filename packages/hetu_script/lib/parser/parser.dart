@@ -1746,8 +1746,8 @@ class HTParser extends HTAbstractParser {
   AstNode _parsePrimaryExpr() {
     switch (curTok.type) {
       case HTLexicon.kNull:
-        _leftValueLegality = false;
         final token = advance();
+        _leftValueLegality = false;
         return NullExpr(
             source: _currentSource,
             line: token.line,
@@ -1755,8 +1755,8 @@ class HTParser extends HTAbstractParser {
             offset: token.offset,
             length: token.length);
       case Semantic.booleanLiteral:
-        _leftValueLegality = false;
         final token = match(Semantic.booleanLiteral) as TokenBooleanLiteral;
+        _leftValueLegality = false;
         return BooleanLiteralExpr(token.literal,
             source: _currentSource,
             line: token.line,
@@ -1764,8 +1764,8 @@ class HTParser extends HTAbstractParser {
             offset: token.offset,
             length: token.length);
       case Semantic.integerLiteral:
-        _leftValueLegality = false;
         final token = match(Semantic.integerLiteral) as TokenIntLiteral;
+        _leftValueLegality = false;
         return IntLiteralExpr(token.literal,
             source: _currentSource,
             line: token.line,
@@ -1773,8 +1773,8 @@ class HTParser extends HTAbstractParser {
             offset: token.offset,
             length: token.length);
       case Semantic.floatLiteral:
-        _leftValueLegality = false;
         final token = advance() as TokenFloatLiteral;
+        _leftValueLegality = false;
         return FloatLiteralExpr(token.literal,
             source: _currentSource,
             line: token.line,
@@ -1782,8 +1782,8 @@ class HTParser extends HTAbstractParser {
             offset: token.offset,
             length: token.length);
       case Semantic.stringLiteral:
-        _leftValueLegality = false;
         final token = advance() as TokenStringLiteral;
+        _leftValueLegality = false;
         return StringLiteralExpr(
             token.literal, token.quotationLeft, token.quotationRight,
             source: _currentSource,
@@ -1792,7 +1792,6 @@ class HTParser extends HTAbstractParser {
             offset: token.offset,
             length: token.length);
       case Semantic.stringInterpolation:
-        _leftValueLegality = false;
         final token = advance() as TokenStringInterpolation;
         final interpolation = <AstNode>[];
         for (final tokens in token.interpolations) {
@@ -1835,6 +1834,7 @@ class HTParser extends HTAbstractParser {
             RegExp(HTLexicon.stringInterpolationPattern),
             (Match m) =>
                 '${HTLexicon.bracesLeft}${i++}${HTLexicon.bracesRight}');
+        _leftValueLegality = false;
         return StringInterpolationExpr(
             value, token.quotationLeft, token.quotationRight, interpolation,
             source: _currentSource,
@@ -1843,8 +1843,8 @@ class HTParser extends HTAbstractParser {
             offset: token.offset,
             length: token.length);
       case HTLexicon.kThis:
-        _leftValueLegality = false;
         final keyword = advance();
+        _leftValueLegality = false;
         return IdentifierExpr(keyword.lexeme,
             source: _currentSource,
             line: keyword.line,
@@ -1853,8 +1853,8 @@ class HTParser extends HTAbstractParser {
             length: keyword.length,
             isKeyword: true);
       case HTLexicon.kSuper:
-        _leftValueLegality = false;
         final keyword = advance();
+        _leftValueLegality = false;
         return IdentifierExpr(keyword.lexeme,
             source: _currentSource,
             line: keyword.line,
@@ -1863,15 +1863,17 @@ class HTParser extends HTAbstractParser {
             length: keyword.length,
             isKeyword: true);
       case HTLexicon.kIf:
+        _leftValueLegality = false;
         return _parseIf(isExpression: true);
       case HTLexicon.kWhen:
+        _leftValueLegality = false;
         return _parseWhen(isExpression: true);
       case HTLexicon.parenthesesLeft:
-        _leftValueLegality = false;
         // a literal function expression
         final token = seekGroupClosing();
         if (token.type == HTLexicon.bracesLeft ||
             token.type == HTLexicon.doubleArrow) {
+          _leftValueLegality = false;
           return _parseFunction(
               category: FunctionCategory.literal, hasKeyword: false);
         }
@@ -1880,6 +1882,7 @@ class HTParser extends HTAbstractParser {
           final start = advance();
           final innerExpr = _parseExpr();
           final end = match(HTLexicon.parenthesesRight);
+          _leftValueLegality = false;
           return GroupExpr(innerExpr,
               source: _currentSource,
               line: start.line,
@@ -1888,7 +1891,6 @@ class HTParser extends HTAbstractParser {
               length: end.offset + end.length - start.offset);
         }
       case HTLexicon.bracketsLeft:
-        _leftValueLegality = false;
         final start = advance();
         final listExpr = <AstNode>[];
         while (curTok.type != HTLexicon.bracketsRight &&
@@ -1916,6 +1918,7 @@ class HTParser extends HTAbstractParser {
           }
         }
         final end = match(HTLexicon.bracketsRight);
+        _leftValueLegality = false;
         return ListExpr(listExpr,
             source: _currentSource,
             line: start.line,
@@ -1923,16 +1926,19 @@ class HTParser extends HTAbstractParser {
             offset: start.offset,
             length: end.end - start.offset);
       case HTLexicon.bracesLeft:
+        _leftValueLegality = false;
         return _parseStructObj();
       case HTLexicon.kStruct:
+        _leftValueLegality = false;
         return _parseStructObj(hasKeyword: true);
       case HTLexicon.kFun:
+        _leftValueLegality = false;
         return _parseFunction(category: FunctionCategory.literal);
       case Semantic.identifier:
-        _leftValueLegality = true;
         final id = advance();
         final isLocal = curTok.type != HTLexicon.assign;
         // TODO: type arguments
+        _leftValueLegality = true;
         return IdentifierExpr.fromToken(id,
             isLocal: isLocal, source: _currentSource);
       default:

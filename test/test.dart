@@ -4,6 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    --1
+    var a = 1
+    var b = 2
+    [a,b] = [b,a]
   ''');
 }
