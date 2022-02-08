@@ -9,7 +9,7 @@ import 'dart:math' as math;
 
 // import 'package:hetu_script/source/line_info.dart';
 
-import 'package:hetu_script/parser/parse_result.dart';
+import 'package:hetu_script/parser.dart';
 
 import '../../utils/json_parsing.dart';
 import '../../protocol/protocol_generated.dart';

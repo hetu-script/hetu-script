@@ -1,4 +1,4 @@
-import 'parse_result.dart';
+import 'source_parse_result.dart';
 import '../resource/resource.dart' show ResourceType;
 import '../error/error.dart';
 

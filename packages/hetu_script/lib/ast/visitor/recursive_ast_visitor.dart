@@ -26,7 +26,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitIntLiteralExpr(IntLiteralExpr node) {
+  T? visitIntLiteralExpr(IntegerLiteralExpr node) {
     node.subAccept(this);
   }
 

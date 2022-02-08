@@ -303,9 +303,16 @@ abstract class HTLexicon {
     kTypeof,
   };
 
+  /// '*'
   static const multiply = '*';
+
+  /// '/'
   static const devide = '/';
+
+  /// '~/'
   static const truncatingDevide = '~/';
+
+  /// '%'
   static const modulo = '%';
 
   /// 乘除操作符，包含多个符号

@@ -126,14 +126,14 @@ class BooleanLiteralExpr extends AstNode {
             length: length);
 }
 
-class IntLiteralExpr extends AstNode {
+class IntegerLiteralExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitIntLiteralExpr(this);
 
   final int value;
 
-  IntLiteralExpr(this.value,
+  IntegerLiteralExpr(this.value,
       {HTSource? source,
       int line = 0,
       int column = 0,

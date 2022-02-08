@@ -13,7 +13,7 @@ class HTBytecodeModule with BytecodeReader, HTConstantModule {
 
   String readString() {
     final index = readUint16();
-    return getConstant(String, index);
+    return getGlobalConstant(String, index);
   }
 
   HTBytecodeModule(this.id, Uint8List bytes,

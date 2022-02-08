@@ -10,8 +10,8 @@ import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
-import 'parse_result.dart';
-import 'parse_result_compilation.dart';
+import 'source_parse_result.dart';
+import 'module_parse_result.dart';
 // import '../error/error_handler.dart';
 import 'abstract_parser.dart';
 import '../lexer/lexer.dart';
@@ -1438,7 +1438,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// Logical or: || , precedence 5, associativity left
+  /// Logical or: ||, precedence 5, associativity left
   AstNode _parseLogicalOrExpr() {
     var left = _parseLogicalAndExpr();
     if (curTok.type == HTLexicon.logicalOr) {
@@ -1457,7 +1457,7 @@ class HTParser extends HTAbstractParser {
     return left;
   }
 
-  /// Logical and: && , precedence 6, associativity left
+  /// Logical and: &&, precedence 6, associativity left
   AstNode _parseLogicalAndExpr() {
     var left = _parseEqualityExpr();
     if (curTok.type == HTLexicon.logicalAnd) {
@@ -1766,7 +1766,7 @@ class HTParser extends HTAbstractParser {
       case Semantic.integerLiteral:
         final token = match(Semantic.integerLiteral) as TokenIntLiteral;
         _leftValueLegality = false;
-        return IntLiteralExpr(token.literal,
+        return IntegerLiteralExpr(token.literal,
             source: _currentSource,
             line: token.line,
             column: token.column,

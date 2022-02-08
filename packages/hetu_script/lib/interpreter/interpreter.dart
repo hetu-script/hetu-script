@@ -14,7 +14,7 @@ import '../value/function/parameter.dart';
 import '../value/variable/variable.dart';
 import '../value/struct/struct.dart';
 import '../value/external_enum/external_enum.dart';
-import '../constant/constant.dart';
+import '../value/constant.dart';
 import '../binding/external_class.dart';
 import '../type/type.dart';
 import '../type/unresolved_nominal_type.dart';
@@ -847,14 +847,15 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.constIntTable:
           final int64Length = _bytecodeModule.readUint16();
           for (var i = 0; i < int64Length; ++i) {
-            _bytecodeModule.addConstant<int>(_bytecodeModule.readInt32());
+            _bytecodeModule.addGlobalConstant<int>(_bytecodeModule.readInt64());
             // _bytecodeModule.addInt(_bytecodeModule.readInt64());
           }
           break;
         case HTOpCode.constFloatTable:
           final float64Length = _bytecodeModule.readUint16();
           for (var i = 0; i < float64Length; ++i) {
-            _bytecodeModule.addConstant<double>(_bytecodeModule.readFloat32());
+            _bytecodeModule
+                .addGlobalConstant<double>(_bytecodeModule.readFloat64());
             // _bytecodeModule.addFloat(_bytecodeModule.readFloat64());
           }
           break;
@@ -862,7 +863,7 @@ class Hetu extends HTAbstractInterpreter {
           final utf8StringLength = _bytecodeModule.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
             _bytecodeModule
-                .addConstant<String>(_bytecodeModule.readLongString());
+                .addGlobalConstant<String>(_bytecodeModule.readLongString());
           }
           break;
         case HTOpCode.importExportDecl:
@@ -1167,15 +1168,15 @@ class Hetu extends HTAbstractInterpreter {
         break;
       case HTValueTypeCode.constInt:
         final index = _bytecodeModule.readUint16();
-        _localValue = _bytecodeModule.getConstant(int, index);
+        _localValue = _bytecodeModule.getGlobalConstant(int, index);
         break;
       case HTValueTypeCode.constFloat:
         final index = _bytecodeModule.readUint16();
-        _localValue = _bytecodeModule.getConstant(double, index);
+        _localValue = _bytecodeModule.getGlobalConstant(double, index);
         break;
       case HTValueTypeCode.constString:
         final index = _bytecodeModule.readUint16();
-        _localValue = _bytecodeModule.getConstant(String, index);
+        _localValue = _bytecodeModule.getGlobalConstant(String, index);
         break;
       case HTValueTypeCode.longString:
         _localValue = _bytecodeModule.readLongString();
@@ -1707,7 +1708,7 @@ class Hetu extends HTAbstractInterpreter {
     final typeIndex = _bytecodeModule.read();
     final type = HTConstantType.values.elementAt(typeIndex);
     final index = _bytecodeModule.readInt16();
-    final decl = HTConstant(
+    final decl = HTConstantDeclaration(
         id: id,
         type: getConstantType(type),
         index: index,
