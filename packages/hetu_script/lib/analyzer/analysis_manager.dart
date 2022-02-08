@@ -1,4 +1,4 @@
-import '../parser/parse_result.dart';
+import '../parser/source_parse_result.dart';
 import '../resource/resource_manager.dart';
 import '../resource/resource_context.dart';
 import '../source/source.dart';

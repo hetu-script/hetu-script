@@ -1,8 +1,8 @@
 import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../parser/parse_result_compilation.dart';
-import '../parser/parse_result.dart';
+import '../parser/module_parse_result.dart';
+import '../parser/source_parse_result.dart';
 import '../lexer/lexer.dart';
 import '../parser/parser.dart';
 import '../shared/stringify.dart';
@@ -107,7 +107,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitIntLiteralExpr(IntLiteralExpr expr) {
+  String visitIntLiteralExpr(IntegerLiteralExpr expr) {
     return expr.value.toString();
   }
 

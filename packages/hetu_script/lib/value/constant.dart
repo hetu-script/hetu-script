@@ -1,7 +1,8 @@
-import 'constant_module.dart';
+import '../constant/constant_module.dart';
 import '../declaration/declaration.dart';
 
 enum HTConstantType {
+  nullValue,
   boolean,
   integer,
   float,
@@ -10,6 +11,8 @@ enum HTConstantType {
 
 Type getConstantType(HTConstantType type) {
   switch (type) {
+    case HTConstantType.nullValue:
+      return Null;
     case HTConstantType.boolean:
       return bool;
     case HTConstantType.integer:
@@ -21,7 +24,7 @@ Type getConstantType(HTConstantType type) {
   }
 }
 
-class HTConstant extends HTDeclaration {
+class HTConstantDeclaration extends HTDeclaration {
   final String _id;
 
   @override
@@ -36,7 +39,7 @@ class HTConstant extends HTDeclaration {
 
   final HTConstantModule module;
 
-  HTConstant({
+  HTConstantDeclaration({
     required String id,
     required this.type,
     required this.index,
@@ -53,9 +56,9 @@ class HTConstant extends HTDeclaration {
 
   @override
   dynamic get value {
-    return module.getConstant(type, index);
+    return module.getGlobalConstant(type, index);
   }
 
   @override
-  HTConstant clone() => this;
+  HTConstantDeclaration clone() => this;
 }

@@ -14,7 +14,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitBooleanExpr(BooleanLiteralExpr node) {}
 
-  T? visitIntLiteralExpr(IntLiteralExpr node) {}
+  T? visitIntLiteralExpr(IntegerLiteralExpr node) {}
 
   T? visitFloatLiteralExpr(FloatLiteralExpr node) {}
 

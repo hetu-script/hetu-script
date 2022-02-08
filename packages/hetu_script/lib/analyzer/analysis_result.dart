@@ -1,7 +1,7 @@
 import '../value/namespace/namespace.dart';
 import '../source/source.dart';
 import '../source/line_info.dart';
-import '../parser/parse_result.dart';
+import '../parser/source_parse_result.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 

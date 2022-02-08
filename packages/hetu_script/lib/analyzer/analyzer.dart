@@ -15,7 +15,7 @@ import '../parser/parser.dart';
 // import '../declaration/function/function_declaration.dart';
 // import '../declaration/function/parameter_declaration.dart';
 import '../declaration/variable/variable_declaration.dart';
-import '../parser/parse_result_compilation.dart';
+import '../parser/module_parse_result.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
 // import 'type_checker.dart';
@@ -165,7 +165,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitBooleanExpr(BooleanLiteralExpr expr) {}
 
   @override
-  void visitIntLiteralExpr(IntLiteralExpr expr) {}
+  void visitIntLiteralExpr(IntegerLiteralExpr expr) {}
 
   @override
   void visitFloatLiteralExpr(FloatLiteralExpr expr) {}

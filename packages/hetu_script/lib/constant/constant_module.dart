@@ -4,7 +4,7 @@ class HTConstantModule {
   final values = <Type, List>{};
 
   /// Add a constant value with type T to the table.
-  int addConstant<T>(T value) {
+  int addGlobalConstant<T>(T value) {
     var table = values[T];
     if (table == null) {
       values[T] = table = <T>[];
@@ -19,7 +19,7 @@ class HTConstantModule {
   }
 
   /// Get a constant value in the table at the [index].
-  dynamic getConstant(Type type, int index) {
+  dynamic getGlobalConstant(Type type, int index) {
     assert(values.keys.contains(type));
     return values[type]![index]!;
   }
