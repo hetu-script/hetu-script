@@ -82,6 +82,22 @@ class BytecodeReader {
   // }
 
   /// Fetch a int64 from the bytes list
+  // int readInt64() {
+  //   final signMask = 1 << 31;
+  //   final highBits = bytes.buffer.asByteData().getUint32(ip, Endian.big);
+  //   final isNegative = (highBits & signMask) >> 31 == 1 ? -1 : 1;
+  //   final littleEnd = bytes.buffer.asByteData().getUint32(ip + 4, Endian.big);
+  //   ip += 8;
+  //   var bigEnd = highBits;
+  //   if (isNegative < 0) {
+  //     bigEnd = highBits - signMask;
+  //     return ((bigEnd << 32) + littleEnd) * -1 - 1;
+  //   } else {
+  //     return (bigEnd << 32) + littleEnd;
+  //   }
+  // }
+
+  /// Fetch a int64 from the bytes list
   int readInt64() {
     final data = readLongString();
     final number = int.parse(data);
@@ -97,7 +113,7 @@ class BytecodeReader {
 
   /// Fetch a utf8 string from the bytes list
   String readLongString() {
-    final length = readUint16();
+    final length = readUint32();
     final start = ip;
     ip += length;
     final codeUnits = bytes.sublist(start, ip);

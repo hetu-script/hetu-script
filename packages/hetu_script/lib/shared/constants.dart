@@ -93,9 +93,9 @@ abstract class HTValueTypeCode {
 }
 
 abstract class StructObjFieldTypeCode {
-  static const normal = 0;
-  static const spread = 1;
-  static const objectIdentifier = 2;
+  static const empty = 0;
+  static const normal = 1;
+  static const spread = 2;
 }
 
 abstract class DeletingTypeCode {

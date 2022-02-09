@@ -16,7 +16,7 @@ packages:
     source: hosted
     version: "3.2.0"
   args:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: args
       url: "https://pub.dartlang.org"
@@ -109,19 +109,12 @@ packages:
   hetu_script:
     dependency: "direct main"
     description:
-      path: "packages/hetu_script"
+      path: "../hetu_script"
       relative: true
     source: path
     version: "0.4.0-pre1"
-  hetu_script_dev_tools:
-    dependency: "direct main"
-    description:
-      path: "packages/hetu_script_dev_tools"
-      relative: true
-    source: path
-    version: "0.0.9"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -205,7 +198,7 @@ packages:
     source: hosted
     version: "2.0.2"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       url: "https://pub.dartlang.org"

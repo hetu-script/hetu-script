@@ -9,7 +9,7 @@ import 'dart:math' as math;
 
 // import 'package:hetu_script/source/line_info.dart';
 
-import 'package:hetu_script/parser.dart';
+import 'package:hetu_script/ast/ast.dart';
 
 import '../../utils/json_parsing.dart';
 import '../../protocol/protocol_generated.dart';
@@ -127,7 +127,7 @@ mixin Handler<P, R> {
   //   }
   // }
 
-  ErrorOr<HTSourceParseResult> requireParseResult(String path) {
+  ErrorOr<AstCompilationUnit> requireParseResult(String path) {
     final result = server.analysisManager.getParseResult(path);
     if (result == null) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);

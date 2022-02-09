@@ -28,6 +28,7 @@ class HTVariableDeclaration extends HTDeclaration {
       HTType? declType,
       bool isExternal = false,
       bool isStatic = false,
+      bool isConst = false,
       bool isMutable = false,
       bool isTopLevel = false,
       this.lateFinalize = false})
@@ -39,6 +40,7 @@ class HTVariableDeclaration extends HTDeclaration {
             source: source,
             isExternal: isExternal,
             isStatic: isStatic,
+            isConst: isConst,
             isMutable: isMutable,
             isTopLevel: isTopLevel) {
     if (_declType != null && _declType!.isResolved) {

@@ -1,4 +1,6 @@
-import '../parser/source_parse_result.dart';
+import 'package:hetu_script/ast/ast.dart';
+
+import '../ast/ast.dart';
 import '../resource/resource_manager.dart';
 import '../resource/resource_context.dart';
 import '../source/source.dart';
@@ -18,7 +20,7 @@ class HTAnalysisManager {
 
   final _analysisResults = <String, HTModuleAnalysisResult>{};
 
-  final _parseResults = <String, HTSourceParseResult>{};
+  final _parseResults = <String, AstCompilationUnit>{};
 
   Iterable<String> get pathsToAnalyze => _pathsToAnalyzer.keys;
 
@@ -33,7 +35,7 @@ class HTAnalysisManager {
     };
   }
 
-  HTSourceParseResult? getParseResult(String fullName) {
+  AstCompilationUnit? getParseResult(String fullName) {
     // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     return _parseResults[fullName];
   }

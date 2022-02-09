@@ -1,8 +1,6 @@
 import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
-import '../parser/module_parse_result.dart';
-import '../parser/source_parse_result.dart';
 import '../lexer/lexer.dart';
 import '../parser/parser.dart';
 import '../shared/stringify.dart';
@@ -75,21 +73,30 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return result;
   }
 
-  void formatSource(HTSourceParseResult result, {FormatterConfig? config}) {
-    result.source.content = format(result.nodes, config: config);
+  void formatSource(AstCompilationUnit result, {FormatterConfig? config}) {
+    result.source!.content = format(result.nodes, config: config);
   }
 
-  void formatModule(HTModuleParseResult compilation,
-      {FormatterConfig? config}) {
+  void formatModule(AstCompilation compilation, {FormatterConfig? config}) {
     for (final result in compilation.values.values) {
-      result.source.content = format(result.nodes, config: config);
+      result.source!.content = format(result.nodes, config: config);
     }
     for (final result in compilation.sources.values) {
-      result.source.content = format(result.nodes, config: config);
+      result.source!.content = format(result.nodes, config: config);
     }
   }
 
-  String formatAst(AstNode ast) => ast.accept(this);
+  String formatAst(AstNode node) => node.accept(this);
+
+  @override
+  String visitCompilation(AstCompilation node) {
+    return '';
+  }
+
+  @override
+  String visitCompilationUnit(AstCompilationUnit node) {
+    return '';
+  }
 
   @override
   String visitEmptyExpr(EmptyExpr expr) {
@@ -124,7 +131,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   @override
   String visitStringInterpolationExpr(StringInterpolationExpr expr) {
     final interpolation = <String>[];
-    for (final node in expr.interpolation) {
+    for (final node in expr.interpolations) {
       final nodeString = formatAst(node);
       interpolation.add(nodeString);
     }
@@ -655,17 +662,17 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return output.toString();
   }
 
-  @override
-  String visitConstDecl(ConstDecl stmt) {
-    final output = StringBuffer();
-    output.write('${HTLexicon.kConst} ${stmt.id.id} ${HTLexicon.assign} ');
-    final valueString = formatAst(stmt.constExpr);
-    output.write(valueString);
-    if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.semicolon);
-    }
-    return output.toString();
-  }
+  // @override
+  // String visitConstDecl(ConstDecl stmt) {
+  //   final output = StringBuffer();
+  //   output.write('${HTLexicon.kConst} ${stmt.id.id} ${HTLexicon.assign} ');
+  //   final valueString = formatAst(stmt.constExpr);
+  //   output.write(valueString);
+  //   if (stmt.hasEndOfStmtMark) {
+  //     output.write(HTLexicon.semicolon);
+  //   }
+  //   return output.toString();
+  // }
 
   @override
   String visitVarDecl(VarDecl stmt) {
@@ -676,7 +683,9 @@ class HTFormatter implements AbstractAstVisitor<String> {
     if (stmt.isStatic) {
       output.write('${HTLexicon.kStatic} ');
     }
-    if (!stmt.isMutable) {
+    if (stmt.isConst) {
+      output.write('${HTLexicon.kConst} ');
+    } else if (!stmt.isMutable) {
       output.write('${HTLexicon.kFinal} ');
     } else {
       output.write('${HTLexicon.kVar} ');

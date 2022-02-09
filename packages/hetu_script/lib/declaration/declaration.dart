@@ -42,7 +42,7 @@ abstract class HTDeclaration {
   /// Wether this declaration is static in a class.
   final bool isStatic;
 
-  /// Wether this declaration is a compile time const value.
+  /// Wether this declaration is a const value.
   final bool isConst;
 
   /// Wether this declaration's value can be assigned to another value.
@@ -71,13 +71,13 @@ abstract class HTDeclaration {
       this.isTopLevel = false})
       : _isPrivate = isPrivate;
 
+  void resolve() {}
+
   dynamic get value => this;
 
   set value(dynamic newVal) {
     throw HTError.immutable(displayName);
   }
-
-  void resolve() {}
 
   /// Create a copy of this declaration,
   /// mainly used on class member inheritance and function arguments passing.

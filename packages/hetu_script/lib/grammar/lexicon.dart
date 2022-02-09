@@ -98,11 +98,11 @@ abstract class HTLexicon {
   static const kTrue = 'true';
   static const kFalse = 'false';
 
+  // static const kDefine = 'def';
   static const kVar = 'var';
   static const kFinal = 'final';
   static const kLate = 'late';
   static const kConst = 'const';
-  static const kDefine = 'def';
   static const kDelete = 'delete';
 
   static const Set<String> destructuringDeclarationMark = {
@@ -149,7 +149,7 @@ abstract class HTLexicon {
   static const kEnum = 'enum';
   static const kFun = 'fun';
   static const kStruct = 'struct';
-  static const kInterface = 'inteface';
+  // static const kInterface = 'inteface';
   static const kThis = 'this';
   static const kSuper = 'super';
 
@@ -203,7 +203,6 @@ abstract class HTLexicon {
     kFinal,
     kLate,
     kConst,
-    // kDefine,
     kDelete,
     kAssert,
     kTypeof,
@@ -212,7 +211,6 @@ abstract class HTLexicon {
     kEnum,
     kFun,
     kStruct,
-    // kInterface,
     kThis,
     kSuper,
     kAbstract,
@@ -226,7 +224,7 @@ abstract class HTLexicon {
     kFactory,
     kGet,
     kSet,
-    kAsync, // TODO: async单独可以用作函数声明关键字
+    kAsync,
     kAwait,
     kBreak,
     kContinue,

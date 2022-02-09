@@ -10,9 +10,6 @@ import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
-import 'source_parse_result.dart';
-import 'module_parse_result.dart';
-// import '../error/error_handler.dart';
 import 'abstract_parser.dart';
 import '../lexer/lexer.dart';
 
@@ -47,7 +44,7 @@ class HTParser extends HTAbstractParser {
   static var anonymousFunctionIndex = 0;
 
   // All import decl in this list must have non-null [fromPath]
-  final _currentModuleImports = <ImportExportDecl>[];
+  late List<ImportExportDecl> _currentModuleImports;
 
   String? _currrentFileName;
   @override
@@ -66,7 +63,7 @@ class HTParser extends HTAbstractParser {
 
   HTSource? _currentSource;
 
-  final _cachedParseResults = <String, HTSourceParseResult>{};
+  final _cachedParseResults = <String, AstCompilationUnit>{};
 
   final Set<String> _cachedRecursiveParsingTargets = {};
 
@@ -125,33 +122,30 @@ class HTParser extends HTAbstractParser {
     return nodes;
   }
 
-  List<AstNode> parse(String content, {HTSource? source}) {
-    final tokens = HTLexer().lex(content);
-    final nodes = parseToken(tokens, source: source);
-    return nodes;
-  }
-
-  HTSourceParseResult parseSource(HTSource source) {
+  AstCompilationUnit parseSource(HTSource source) {
     _currrentFileName = source.fullName;
     _currentClass = null;
     _currentFunctionCategory = null;
-    final nodes = parse(source.content, source: source);
-    final result = HTSourceParseResult(source, nodes,
-        imports: _currentModuleImports.toList(),
+    _currentModuleImports = <ImportExportDecl>[];
+    final tokens = HTLexer().lex(source.content);
+    final nodes = parseToken(tokens, source: source);
+    final result = AstCompilationUnit(
+        nodes: nodes,
+        source: source,
+        imports: _currentModuleImports,
         errors: errors); // copy the list);
-    _currentModuleImports.clear();
     return result;
   }
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  HTModuleParseResult parseToModule(HTSource entry) {
+  AstCompilation parseToModule(HTSource entry) {
     final result = parseSource(entry);
     final parserErrors = result.errors!;
-    final values = <String, HTSourceParseResult>{};
-    final sources = <String, HTSourceParseResult>{};
+    final values = <String, AstCompilationUnit>{};
+    final sources = <String, AstCompilationUnit>{};
 
-    void handleImport(HTSourceParseResult result) {
+    void handleImport(AstCompilationUnit result) {
       _cachedRecursiveParsingTargets.add(result.fullName);
       for (final decl in result.imports) {
         if (decl.isPreloadedModule) {
@@ -159,7 +153,7 @@ class HTParser extends HTAbstractParser {
           continue;
         }
         try {
-          late final HTSourceParseResult importModule;
+          late final AstCompilationUnit importUnit;
           final currentDir =
               result.fullName.startsWith(Semantic.anonymousScript)
                   ? sourceContext.root
@@ -170,18 +164,18 @@ class HTParser extends HTAbstractParser {
           if (_cachedRecursiveParsingTargets.contains(importFullName)) {
             continue;
           } else if (_cachedParseResults.containsKey(importFullName)) {
-            importModule = _cachedParseResults[importFullName]!;
+            importUnit = _cachedParseResults[importFullName]!;
           } else {
             final source2 = sourceContext.getResource(importFullName);
-            importModule = parseSource(source2);
-            parserErrors.addAll(importModule.errors!);
-            _cachedParseResults[importFullName] = importModule;
+            importUnit = parseSource(source2);
+            parserErrors.addAll(importUnit.errors!);
+            _cachedParseResults[importFullName] = importUnit;
           }
-          if (importModule.type == ResourceType.hetuValue) {
-            values[importFullName] = importModule;
+          if (importUnit.resourceType == ResourceType.hetuValue) {
+            values[importFullName] = importUnit;
           } else {
-            handleImport(importModule);
-            sources[importFullName] = importModule;
+            handleImport(importUnit);
+            sources[importFullName] = importUnit;
           }
         } catch (error) {
           final convertedError = HTError.sourceProviderError(decl.fromPath!,
@@ -196,16 +190,16 @@ class HTParser extends HTAbstractParser {
       _cachedRecursiveParsingTargets.remove(result.fullName);
     }
 
-    if (result.type == ResourceType.hetuValue) {
+    if (result.resourceType == ResourceType.hetuValue) {
       values[result.fullName] = result;
     } else {
       handleImport(result);
       sources[result.fullName] = result;
     }
-    final compilation = HTModuleParseResult(
+    final compilation = AstCompilation(
         values: values,
         sources: sources,
-        type: entry.type,
+        entryResourceType: entry.type,
         errors: parserErrors);
     return compilation;
   }
@@ -353,7 +347,7 @@ class HTParser extends HTAbstractParser {
                 stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
                 break;
               case HTLexicon.kConst:
-                stmt = _parseConstDecl(isTopLevel: true);
+                stmt = _parseVarDecl(isTopLevel: true);
                 break;
               case HTLexicon.kFun:
                 if (expect([HTLexicon.kFun, Semantic.identifier]) ||
@@ -516,7 +510,7 @@ class HTParser extends HTAbstractParser {
                 stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
                 break;
               case HTLexicon.kConst:
-                stmt = _parseConstDecl(isTopLevel: true);
+                stmt = _parseVarDecl(isConst: true, isTopLevel: true);
                 break;
               case HTLexicon.kFun:
                 stmt = _parseFunction(isTopLevel: true);
@@ -644,7 +638,7 @@ class HTParser extends HTAbstractParser {
                 stmt = _parseVarDecl(lateFinalize: true);
                 break;
               case HTLexicon.kConst:
-                stmt = _parseConstDecl();
+                stmt = _parseVarDecl(isConst: true);
                 break;
               case HTLexicon.kFun:
                 stmt = _parseFunction();
@@ -721,7 +715,8 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kConst:
                 if (isStatic) {
-                  stmt = _parseConstDecl(classId: _currentClass?.id);
+                  stmt =
+                      _parseVarDecl(isConst: true, classId: _currentClass?.id);
                 } else {
                   final err = HTError.external(Semantic.typeAliasDeclaration,
                       filename: _currrentFileName,
@@ -1046,7 +1041,7 @@ class HTParser extends HTAbstractParser {
               stmt = _parseVarDecl(lateFinalize: true);
               break;
             case HTLexicon.kConst:
-              stmt = _parseConstDecl();
+              stmt = _parseVarDecl(isConst: true);
               break;
             case HTLexicon.kFun:
               if (expect([HTLexicon.kFun, Semantic.identifier]) ||
@@ -2737,39 +2732,39 @@ class HTParser extends HTAbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
-  ConstDecl _parseConstDecl({String? classId, bool isTopLevel = false}) {
-    final keyword = match(HTLexicon.kConst);
-    final idTok = match(Semantic.identifier);
-    final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
-    TypeExpr? declType;
-    if (expect([HTLexicon.colon], consume: true)) {
-      declType = _parseTypeExpr();
-    }
-    match(HTLexicon.assign);
-    final constExpr = _parseExpr();
-    if (!constExpr.isConst) {
-      final err = HTError.notConstValue(
-          filename: _currrentFileName,
-          line: constExpr.line,
-          column: constExpr.column,
-          offset: constExpr.offset,
-          length: constExpr.length);
-      errors?.add(err);
-    }
-    final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
-    return ConstDecl(
-      id,
-      constExpr,
-      classId: classId,
-      declType: declType,
-      hasEndOfStmtMark: hasEndOfStmtMark,
-      source: _currentSource,
-      line: keyword.line,
-      column: keyword.column,
-      offset: keyword.offset,
-      length: constExpr.end - keyword.offset,
-    );
-  }
+  // ConstDecl _parseConstDecl({String? classId, bool isTopLevel = false}) {
+  //   final keyword = match(HTLexicon.kConst);
+  //   final idTok = match(Semantic.identifier);
+  //   final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
+  //   TypeExpr? declType;
+  //   if (expect([HTLexicon.colon], consume: true)) {
+  //     declType = _parseTypeExpr();
+  //   }
+  //   match(HTLexicon.assign);
+  //   final constExpr = _parseExpr();
+  //   if (!constExpr.isConst) {
+  //     final err = HTError.notConstValue(
+  //         filename: _currrentFileName,
+  //         line: constExpr.line,
+  //         column: constExpr.column,
+  //         offset: constExpr.offset,
+  //         length: constExpr.length);
+  //     errors?.add(err);
+  //   }
+  //   final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+  //   return ConstDecl(
+  //     id,
+  //     constExpr,
+  //     classId: classId,
+  //     declType: declType,
+  //     hasEndOfStmtMark: hasEndOfStmtMark,
+  //     source: _currentSource,
+  //     line: keyword.line,
+  //     column: keyword.column,
+  //     offset: keyword.offset,
+  //     length: constExpr.end - keyword.offset,
+  //   );
+  // }
 
   VarDecl _parseVarDecl(
       {String? classId,
@@ -2778,6 +2773,7 @@ class HTParser extends HTAbstractParser {
       bool isOverrided = false,
       bool isExternal = false,
       bool isStatic = false,
+      bool isConst = false,
       bool isMutable = false,
       bool isTopLevel = false,
       bool lateFinalize = false,
@@ -2826,8 +2822,9 @@ class HTParser extends HTAbstractParser {
         hasEndOfStmtMark: hasEndOfStmtMark,
         isField: isField,
         isExternal: isExternal,
-        isStatic: isStatic,
-        isMutable: isMutable,
+        isStatic: isConst && classId != null ? true : isStatic,
+        isConst: isConst,
+        isMutable: !isConst && isMutable,
         isTopLevel: isTopLevel,
         lateFinalize: lateFinalize,
         lateInitialize: lateInitialize,
@@ -3370,11 +3367,23 @@ class HTParser extends HTAbstractParser {
         if (curTok.type == HTLexicon.comma ||
             curTok.type == HTLexicon.bracesRight) {
           final id = IdentifierExpr.fromToken(keyTok, source: _currentSource);
-          field = StructObjField(key: keyTok.lexeme, value: id);
+          field = StructObjField(
+              key: IdentifierExpr.fromToken(
+                keyTok,
+                isLocal: false,
+                source: _currentSource,
+              ),
+              value: id);
         } else {
           match(HTLexicon.colon);
           final value = _parseExpr();
-          field = StructObjField(key: keyTok.lexeme, value: value);
+          field = StructObjField(
+              key: IdentifierExpr.fromToken(
+                keyTok,
+                isLocal: false,
+                source: _currentSource,
+              ),
+              value: value);
         }
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);

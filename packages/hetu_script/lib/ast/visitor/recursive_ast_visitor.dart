@@ -11,6 +11,16 @@ import '../ast.dart';
 /// Otherwise the children of the visited node might not be visited.
 abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   @override
+  T? visitCompilation(AstCompilation node) {
+    node.subAccept(this);
+  }
+
+  @override
+  T? visitCompilationUnit(AstCompilationUnit node) {
+    node.subAccept(this);
+  }
+
+  @override
   T? visitEmptyExpr(EmptyExpr node) {
     node.subAccept(this);
   }
@@ -245,10 +255,10 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
     node.subAccept(this);
   }
 
-  @override
-  T? visitConstDecl(ConstDecl node) {
-    node.subAccept(this);
-  }
+  // @override
+  // T? visitConstDecl(ConstDecl node) {
+  //   node.subAccept(this);
+  // }
 
   @override
   T? visitVarDecl(VarDecl node) {
