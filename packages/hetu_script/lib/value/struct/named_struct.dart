@@ -12,30 +12,24 @@ import '../function/function.dart';
 /// Unlike class and function, the declaration of a struct is a value
 /// and struct object does not extends from this.
 class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
-  final String _id;
-
-  @override
-  String get id => _id;
-
   final String? prototypeId;
 
   HTStruct? _self;
 
   final int? staticDefinitionIp;
 
-  HTNamedStruct(
-    this._id,
-    Hetu interpreter,
-    String fileName,
-    String moduleName,
-    HTNamespace closure, {
+  HTNamedStruct({
+    required String id,
+    required Hetu interpreter,
+    required String fileName,
+    required String moduleName,
+    required HTNamespace closure,
     this.prototypeId,
     HTSource? source,
     bool isTopLevel = false,
     this.staticDefinitionIp,
     int? definitionIp,
-  }) : super(
-            id: _id, closure: closure, source: source, isTopLevel: isTopLevel) {
+  }) : super(id: id, closure: closure, source: source, isTopLevel: isTopLevel) {
     this.interpreter = interpreter;
     this.fileName = fileName;
     this.moduleName = moduleName;
@@ -47,7 +41,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     Map<String, dynamic> namedArgs = const {},
   }) {
     if (!isResolved) {
-      throw HTError.unresolvedNamedStruct(id);
+      throw HTError.unresolvedNamedStruct(id!);
     }
     HTStruct structObj = _self!.clone();
     if (structObj.containsKey(Semantic.constructor)) {
@@ -94,17 +88,17 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     if (isResolved) {
       return _self!;
     } else {
-      throw HTError.unresolvedNamedStruct(id);
+      throw HTError.unresolvedNamedStruct(id!);
     }
   }
 
   @override
   HTNamedStruct clone() => HTNamedStruct(
-        id,
-        interpreter,
-        fileName,
-        moduleName,
-        closure!,
+        id: id!,
+        interpreter: interpreter,
+        fileName: fileName,
+        moduleName: moduleName,
+        closure: closure!,
         source: source,
         prototypeId: prototypeId,
         isTopLevel: isTopLevel,

@@ -1607,8 +1607,6 @@ class ConstDecl extends AstNode {
   @override
   final bool hasEndOfStmtMark;
 
-  final bool isStatic;
-
   final bool isTopLevel;
 
   @override
@@ -1618,7 +1616,6 @@ class ConstDecl extends AstNode {
       {this.declType,
       this.classId,
       this.hasEndOfStmtMark = false,
-      this.isStatic = false,
       this.isTopLevel = false,
       HTSource? source,
       int line = 0,

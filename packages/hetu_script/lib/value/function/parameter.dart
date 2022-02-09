@@ -53,7 +53,7 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
 
   @override
   HTParameter clone() {
-    return HTParameter(id,
+    return HTParameter(id!,
         interpreter: interpreter,
         fileName: fileName,
         moduleName: moduleName,

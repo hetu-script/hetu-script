@@ -2,15 +2,14 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../value/constant.dart';
+import '../declaration/constant.dart';
 import '../parser/module_parse_result.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../shared/constants.dart';
-import '../constant/constant_module.dart';
+import '../constant/global_constant_table.dart';
 import '../parser/source_parse_result.dart';
 import '../version.dart';
-import '../constant/constant_interpreter.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -56,7 +55,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   CompilerConfig config;
 
-  late HTConstantModule _currentConstantModule;
+  late HTGlobalConstantTable _currentConstantTable;
 
   int _curLine = 0;
   int _curColumn = 0;
@@ -69,8 +68,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       : config = config ?? const CompilerConfigImpl();
 
   Uint8List compile(HTModuleParseResult compilation) {
-    final constantInterpreter = HTConstantInterpreter();
-    _currentConstantModule = constantInterpreter.compute(compilation);
+    _currentConstantTable = HTGlobalConstantTable();
 
     final mainBytesBuilder = BytesBuilder();
     // hetu bytecode signature
@@ -103,8 +101,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     }
     final code = bytesBuilder.toBytes();
     // const tables
-    for (final type in _currentConstantModule.values.keys) {
-      final table = _currentConstantModule.values[type]!;
+    for (final type in _currentConstantTable.constants.keys) {
+      final table = _currentConstantTable.constants[type]!;
       if (type == int) {
         mainBytesBuilder.addByte(HTOpCode.constIntTable);
         mainBytesBuilder.add(_uint16(table.length));
@@ -176,7 +174,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   Uint8List _parseIdentifier(String value) {
     final bytesBuilder = BytesBuilder();
-    final index = _currentConstantModule.addGlobalConstant<String>(value);
+    final index = _currentConstantTable.addGlobalConstant<String>(value);
     bytesBuilder.add(_uint16(index));
     return bytesBuilder.toBytes();
   }
@@ -307,13 +305,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
   @override
   Uint8List visitIntLiteralExpr(IntegerLiteralExpr expr) {
-    final index = _currentConstantModule.addGlobalConstant<int>(expr.value);
+    final index = _currentConstantTable.addGlobalConstant<int>(expr.value);
     return _localConst(HTValueTypeCode.constInt, index, expr.line, expr.column);
   }
 
   @override
   Uint8List visitFloatLiteralExpr(FloatLiteralExpr expr) {
-    final index = _currentConstantModule.addGlobalConstant<double>(expr.value);
+    final index = _currentConstantTable.addGlobalConstant<double>(expr.value);
     return _localConst(
         HTValueTypeCode.constFloat, index, expr.line, expr.column);
   }
@@ -331,7 +329,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.add(_utf8String(literal));
       return bytesBuilder.toBytes();
     } else {
-      final index = _currentConstantModule.addGlobalConstant<String>(literal);
+      final index = _currentConstantTable.addGlobalConstant<String>(literal);
       return _localConst(
           HTValueTypeCode.constString, index, expr.line, expr.column);
     }
@@ -1438,19 +1436,18 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
-    bytesBuilder.addByte(stmt.isStatic ? 1 : 0); // bool: isStatic
     late int type, index;
     if (stmt.constExpr is IntegerLiteralExpr) {
       type = HTConstantType.integer.index;
-      index = _currentConstantModule
+      index = _currentConstantTable
           .addGlobalConstant<int>((stmt.constExpr as IntegerLiteralExpr).value);
     } else if (stmt.constExpr is FloatLiteralExpr) {
       type = HTConstantType.float.index;
-      index = _currentConstantModule.addGlobalConstant<double>(
+      index = _currentConstantTable.addGlobalConstant<double>(
           (stmt.constExpr as FloatLiteralExpr).value);
     } else if (stmt.constExpr is StringLiteralExpr) {
       type = HTConstantType.string.index;
-      index = _currentConstantModule.addGlobalConstant<String>(
+      index = _currentConstantTable.addGlobalConstant<String>(
           (stmt.constExpr as StringLiteralExpr).value);
     }
     bytesBuilder.addByte(type);

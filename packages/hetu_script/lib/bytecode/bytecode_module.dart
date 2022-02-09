@@ -2,23 +2,24 @@ import 'dart:typed_data';
 
 import '../value/namespace/namespace.dart';
 import 'bytecode_reader.dart';
-import '../constant/constant_module.dart';
+import '../constant/global_constant_table.dart';
 
-class HTBytecodeModule with BytecodeReader, HTConstantModule {
+class HTBytecodeModule with BytecodeReader, HTGlobalConstantTable {
   final String id;
 
-  final Map<String, HTNamespace> namespaces;
+  final Map<String, HTNamespace> namespaces = {};
 
-  final expressions = <String, dynamic>{};
+  final Map<String, dynamic> expressions = {};
 
-  String readString() {
+  String readShortString() {
     final index = readUint16();
     return getGlobalConstant(String, index);
   }
 
-  HTBytecodeModule(this.id, Uint8List bytes,
-      {Map<String, HTNamespace>? declarations})
-      : namespaces = declarations ?? <String, HTNamespace>{} {
+  HTBytecodeModule({
+    required this.id,
+    required Uint8List bytes,
+  }) {
     this.bytes = bytes;
   }
 }

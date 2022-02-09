@@ -6,11 +6,6 @@ import 'abstract_parameter.dart';
 
 class HTParameterDeclaration extends HTVariableDeclaration
     implements HTAbstractParameter {
-  final String _id;
-
-  @override
-  String get id => _id;
-
   @override
   final bool isOptional;
 
@@ -21,14 +16,14 @@ class HTParameterDeclaration extends HTVariableDeclaration
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  HTParameterDeclaration(this._id,
+  HTParameterDeclaration(String id,
       {HTNamespace? closure,
       HTSource? source,
       HTType? declType,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(_id,
+      : super(id,
             closure: closure,
             source: source,
             declType: declType,
@@ -46,7 +41,7 @@ class HTParameterDeclaration extends HTVariableDeclaration
 
   @override
   HTParameterDeclaration clone() {
-    return HTParameterDeclaration(id,
+    return HTParameterDeclaration(id!,
         closure: closure,
         declType: declType,
         isOptional: isOptional,

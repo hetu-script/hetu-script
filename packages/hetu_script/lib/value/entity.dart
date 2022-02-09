@@ -3,6 +3,7 @@ import '../grammar/lexicon.dart';
 import '../type/type.dart';
 import '../type/unresolved_nominal_type.dart';
 
+/// The encapsulated null object, used when try to interact with a null value.
 class _HTNull with HTEntity {
   const _HTNull();
 
@@ -17,7 +18,7 @@ class _HTNull with HTEntity {
 abstract class HTEntity {
   static const type = HTUnresolvedNominalType(HTLexicon.object);
 
-  /// The encapsulated null object, used when try to interact with a null value.
+  /// An constant null object.
   static const nullValue = _HTNull();
 
   HTType get valueType => type;
@@ -28,6 +29,7 @@ abstract class HTEntity {
   /// ```
   /// object.varName
   /// ```
+  /// [varName] must be of String type.
   dynamic memberGet(String varName, {String? from}) {
     throw HTError.undefined(varName);
   }
@@ -36,6 +38,7 @@ abstract class HTEntity {
   /// ```
   /// object.varName = varValue
   /// ```
+  /// [varName] must be of String type.
   void memberSet(String varName, dynamic varValue, {String? from}) {
     throw HTError.undefined(varName);
   }
@@ -44,6 +47,7 @@ abstract class HTEntity {
   /// ```
   /// object[varName]
   /// ```
+  /// [varName] is of dynamic type, and will be converted to String by [toString] method.
   dynamic subGet(dynamic varName, {String? from}) {
     throw HTError.undefined(varName);
   }
@@ -52,6 +56,7 @@ abstract class HTEntity {
   /// ```
   /// object[varName] = varValue
   /// ```
+  /// [varName] is of dynamic type, and will be converted to String by [toString] method.
   void subSet(dynamic varName, dynamic varValue, {String? from}) {
     throw HTError.undefined(varName);
   }

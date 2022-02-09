@@ -98,7 +98,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
         _isInitialized = true;
         _isInitializing = false;
       } else {
-        throw HTError.circleInit(id);
+        throw HTError.circleInit(id!);
       }
     } else {
       value = null; // assign it even if it's null, for type check
@@ -109,7 +109,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   @override
   set value(dynamic value) {
     if (!isMutable && _isInitialized) {
-      throw HTError.immutable(id);
+      throw HTError.immutable(id!);
     }
     _value = value;
     _isInitialized = true;
@@ -118,7 +118,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   @override
   dynamic get value {
     if (lateFinalize && !_isInitialized) {
-      throw HTError.uninitialized(id);
+      throw HTError.uninitialized(id!);
     }
     if (!isExternal) {
       if (_value == null && (definitionIp != null)) {
@@ -127,7 +127,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       return _value;
     } else {
       final externalClass = interpreter.fetchExternalClass(classId!);
-      final value = externalClass.memberGet(id);
+      final value = externalClass.memberGet(id!);
       return value;
     }
   }
@@ -173,7 +173,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   // }
 
   @override
-  HTVariable clone() => HTVariable(id,
+  HTVariable clone() => HTVariable(id!,
       interpreter: interpreter,
       fileName: fileName,
       moduleName: moduleName,

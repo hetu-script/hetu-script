@@ -14,8 +14,7 @@ import '../value/namespace/namespace.dart';
 /// and is not necessarily exists in compiled bytecode
 /// some declaration are generated purely for analysis purpose.
 ///
-/// Declaration can have a value, but it has to be resolved
-/// after the source is interpreted once.
+/// Declaration's value may need to be resolved before first use.
 abstract class HTDeclaration {
   final String? id;
 
@@ -23,7 +22,7 @@ abstract class HTDeclaration {
 
   final bool _isPrivate;
 
-  /// Wether this declaration is only accessible from a same class namespace.
+  /// Wether this declaration is only accessible from the same namespace.
   bool get isPrivate =>
       _isPrivate || (id != null && id!.startsWith(HTLexicon.privatePrefix));
 
@@ -79,8 +78,6 @@ abstract class HTDeclaration {
   }
 
   void resolve() {}
-
-  bool isOverrideOf(HTDeclaration decl) => false;
 
   /// Create a copy of this declaration,
   /// mainly used on class member inheritance and function arguments passing.

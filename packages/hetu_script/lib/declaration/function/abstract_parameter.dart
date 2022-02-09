@@ -2,9 +2,6 @@ import '../../type/type.dart';
 import '../declaration.dart';
 
 abstract class HTAbstractParameter implements HTDeclaration {
-  @override
-  String get id;
-
   bool get isOptional;
 
   bool get isNamed;
