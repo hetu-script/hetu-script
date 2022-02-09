@@ -10,7 +10,7 @@ A lightweight script language written in Dart for embedding in Flutter apps.
 </p>
 
 <p align="center">
-  <a href="https://github.com/hetu-script/hetu-script/blob/master/packages/hetu_script/README_ZH.md">简体中文页面</a>
+  <a href="https://github.com/hetu-script/hetu-script/blob/main/packages/hetu_script/README_ZH.md">简体中文页面</a>
 </p>
 
 <p align="center">

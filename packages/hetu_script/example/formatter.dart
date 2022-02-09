@@ -13,6 +13,6 @@ void main() {
   formatter.formatSource(result);
   print(result.fullName);
   print('--------------------------------------------------------------------');
-  print(result.source.content);
+  print(result.source!.content);
   print('--------------------------------------------------------------------');
 }

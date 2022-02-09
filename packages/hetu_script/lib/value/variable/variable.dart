@@ -31,6 +31,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       dynamic value,
       bool isExternal = false,
       bool isStatic = false,
+      bool isConst = false,
       bool isMutable = false,
       bool isTopLevel = false,
       bool lateFinalize = false,
@@ -43,6 +44,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
             declType: declType,
             isExternal: isExternal,
             isStatic: isStatic,
+            isConst: isConst,
             isMutable: isMutable,
             isTopLevel: isTopLevel,
             lateFinalize: lateFinalize) {

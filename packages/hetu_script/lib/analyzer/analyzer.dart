@@ -15,7 +15,6 @@ import '../parser/parser.dart';
 // import '../declaration/function/function_declaration.dart';
 // import '../declaration/function/parameter_declaration.dart';
 import '../declaration/variable/variable_declaration.dart';
-import '../parser/module_parse_result.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
 // import 'type_checker.dart';
@@ -72,7 +71,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   // late HTTypeChecker _curTypeChecker;
 
-  late HTModuleParseResult compilation;
+  late AstCompilation compilation;
 
   @override
   HTResourceContext<HTSource> sourceContext;
@@ -154,6 +153,12 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void analyzeAst(AstNode node) {
     node.accept(this);
   }
+
+  @override
+  void visitCompilation(AstCompilation node) {}
+
+  @override
+  void visitCompilationUnit(AstCompilationUnit node) {}
 
   @override
   void visitEmptyExpr(EmptyExpr expr) {}
@@ -385,13 +390,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     stmt.subAccept(this);
   }
 
-  @override
-  void visitConstDecl(ConstDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+  // @override
+  // void visitConstDecl(ConstDecl stmt) {
+  //   _curLine = stmt.line;
+  //   _curColumn = stmt.column;
 
-    stmt.subAccept(this);
-  }
+  //   stmt.subAccept(this);
+  // }
 
   @override
   void visitVarDecl(VarDecl stmt) {

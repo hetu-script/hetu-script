@@ -8,6 +8,10 @@ part of '../ast.dart';
 /// * RecursiveAstVisitor which will visit every sub node in a structure,
 /// * GeneralizingAstVisitor which will visit a node AND its every sub node.
 abstract class AbstractAstVisitor<T> {
+  T? visitCompilation(AstCompilation node) {}
+
+  T? visitCompilationUnit(AstCompilationUnit node) {}
+
   T? visitEmptyExpr(EmptyExpr node) {}
 
   T? visitNullExpr(NullExpr node) {}
@@ -102,7 +106,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitTypeAliasDecl(TypeAliasDecl node) {}
 
-  T? visitConstDecl(ConstDecl node) {}
+  // T? visitConstDecl(ConstDecl node) {}
 
   T? visitVarDecl(VarDecl node) {}
 

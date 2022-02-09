@@ -9,12 +9,12 @@ import 'type.dart';
 
 /// A supposed type generated from ast,
 /// the interpreter will later trying to resolved it
-/// to a concrete nominal(class) type.
-class HTUnresolvedNominalType extends HTType {
+/// to a concrete type.
+class HTUnresolvedType extends HTType {
   @override
   bool get isResolved => false;
 
-  const HTUnresolvedNominalType(String id,
+  const HTUnresolvedType(String id,
       {List<HTType> typeArgs = const [], bool isNullable = false})
       : super(id, typeArgs: typeArgs, isNullable: isNullable);
 

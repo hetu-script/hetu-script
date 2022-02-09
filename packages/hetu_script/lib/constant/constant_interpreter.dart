@@ -1,18 +1,23 @@
 import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import 'global_constant_table.dart';
-import '../parser/module_parse_result.dart';
 
 /// A interpreter that computes the constant value before compilation.
 /// If the AstNode provided is non-constant value, return null.
 class HTConstantInterpreter implements AbstractAstVisitor<dynamic> {
-  HTGlobalConstantTable compute(HTModuleParseResult parseResult) {
+  HTGlobalConstantTable compute(AstCompilationUnit parseResult) {
     final result = HTGlobalConstantTable();
 
     return result;
   }
 
   dynamic evalAstNode(AstNode node) => node.accept(this);
+
+  @override
+  dynamic visitCompilation(AstCompilation node) => null;
+
+  @override
+  dynamic visitCompilationUnit(AstCompilationUnit node) => null;
 
   @override
   dynamic visitEmptyExpr(EmptyExpr node) => null;
@@ -174,8 +179,8 @@ class HTConstantInterpreter implements AbstractAstVisitor<dynamic> {
   @override
   dynamic visitTypeAliasDecl(TypeAliasDecl node) => null;
 
-  @override
-  dynamic visitConstDecl(ConstDecl node) => null;
+  // @override
+  // dynamic visitConstDecl(ConstDecl node) => null;
 
   @override
   dynamic visitVarDecl(VarDecl node) => null;

@@ -1,14 +1,14 @@
 import '../value/namespace/namespace.dart';
 import '../source/source.dart';
 import '../source/line_info.dart';
-import '../parser/source_parse_result.dart';
+import '../ast/ast.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
 class HTModuleAnalysisResult {
-  final HTSourceParseResult parseResult;
+  final AstCompilationUnit parseResult;
 
-  HTSource get source => parseResult.source;
+  HTSource get source => parseResult.source!;
 
   String get fullName => source.fullName;
 

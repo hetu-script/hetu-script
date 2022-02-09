@@ -1,7 +1,7 @@
 import '../error/error.dart';
 import '../grammar/lexicon.dart';
 import '../type/type.dart';
-import '../type/unresolved_nominal_type.dart';
+import '../type/unresolved_type.dart';
 
 /// The encapsulated null object, used when try to interact with a null value.
 class _HTNull with HTEntity {
@@ -16,7 +16,7 @@ class _HTNull with HTEntity {
 
 /// A interface for store and access symbols from a collection.
 abstract class HTEntity {
-  static const type = HTUnresolvedNominalType(HTLexicon.object);
+  static const type = HTUnresolvedType(HTLexicon.object);
 
   /// An constant null object.
   static const nullValue = _HTNull();

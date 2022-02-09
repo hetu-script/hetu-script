@@ -17,7 +17,8 @@ enum TypeType {
 }
 
 abstract class Semantic {
-  static const module = 'module';
+  static const compilation = 'ast_compilation';
+  static const compilationUnit = 'ast_compilation_unit';
   static const namespace = 'namespace';
 
   static const global = 'global';
