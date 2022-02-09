@@ -1,24 +1,16 @@
-import '../../error/error.dart';
-import '../../grammar/lexicon.dart';
-import '../../source/source.dart';
-import '../../declaration/declaration.dart';
-import '../entity.dart';
-import '../unresolved_import_statement.dart';
+import '../declaration/constant.dart';
+import '../value/unresolved_import_statement.dart';
+import '../error/error.dart';
 
-/// Namespace is used when importing with a name
-/// or for interpreter searching for symbols
-class HTNamespace extends HTDeclaration with HTEntity {
-  @override
-  String toString() => '${HTLexicon.kNamespace} $id';
+class HTConstantNamespace {
+  /// The resource context key of this namespace
+  final String fullName;
 
-  late String _fullName;
+  final HTConstantNamespace? closure;
 
-  /// The full closure path of this namespace
-  String get fullName => _fullName;
+  final declarations = <String, HTConstantDeclaration>{};
 
-  final declarations = <String, HTDeclaration>{};
-
-  final importedDeclarations = <String, HTDeclaration>{};
+  final importedDeclarations = <String, HTConstantDeclaration>{};
 
   final imports = <String, UnresolvedImportStatement>{};
 
@@ -26,31 +18,15 @@ class HTNamespace extends HTDeclaration with HTEntity {
 
   bool get willExportAll => exports.isEmpty;
 
-  HTNamespace(
-      {String? id,
-      String? classId,
-      HTNamespace? closure,
-      HTSource? source,
-      bool isTopLevel = false})
-      : super(
-            id: id,
-            classId: classId,
-            closure: closure,
-            source: source,
-            isTopLevel: isTopLevel) {
-    // calculate the full name of this namespace
-    _fullName = displayName;
-    var curSpace = closure;
-    while (curSpace != null) {
-      _fullName = curSpace.displayName + HTLexicon.memberGet + fullName;
-      curSpace = curSpace.closure;
-    }
-  }
+  HTConstantNamespace({
+    required this.fullName,
+    required this.closure,
+  });
 
   /// define a declaration in this namespace,
   /// the defined id could be different from
   /// declaration's id
-  void define(String varName, HTDeclaration decl,
+  void define(String varName, HTConstantDeclaration decl,
       {bool override = false, bool error = true}) {
     if (!declarations.containsKey(varName) || override) {
       declarations[varName] = decl;
@@ -61,19 +37,8 @@ class HTNamespace extends HTDeclaration with HTEntity {
     }
   }
 
-  void delete(String varName, {bool error = true}) {
-    if (declarations.containsKey(varName)) {
-      declarations.remove(varName);
-    } else {
-      if (error) {
-        throw HTError.undefined(varName);
-      }
-    }
-  }
-
   /// Fetch a value from this namespace,
   /// if not found and [recursive] is true, will continue search in super namespaces.
-  @override
   dynamic memberGet(String varName,
       {String? from, bool recursive = false, bool error = true}) {
     if (declarations.containsKey(varName)) {
@@ -101,7 +66,6 @@ class HTNamespace extends HTDeclaration with HTEntity {
   /// Fetch a declaration from this namespace,
   /// if not found and [recursive] is true, will continue search in super namespaces,
   /// then assign the value to that declaration.
-  @override
   void memberSet(String varName, dynamic varValue,
       {String? from, bool recursive = false}) {
     if (declarations.containsKey(varName)) {
@@ -135,7 +99,7 @@ class HTNamespace extends HTDeclaration with HTEntity {
     exports.add(id);
   }
 
-  void defineImport(String key, HTDeclaration decl) {
+  void defineImport(String key, HTConstantDeclaration decl) {
     if (!importedDeclarations.containsKey(key)) {
       importedDeclarations[key] = decl;
     } else {
@@ -143,7 +107,7 @@ class HTNamespace extends HTDeclaration with HTEntity {
     }
   }
 
-  void import(HTNamespace other,
+  void import(HTConstantNamespace other,
       {bool clone = false,
       bool isExported = false,
       Set<String> showList = const {}}) {
@@ -183,18 +147,9 @@ class HTNamespace extends HTDeclaration with HTEntity {
     }
   }
 
-  @override
   void resolve() {
     for (final decl in declarations.values) {
       decl.resolve();
     }
-  }
-
-  @override
-  HTNamespace clone() {
-    final cloned =
-        HTNamespace(id: id, classId: classId, closure: closure, source: source);
-    cloned.import(this, clone: true);
-    return cloned;
   }
 }

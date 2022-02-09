@@ -147,7 +147,7 @@ class HTParser extends HTAbstractParser {
   /// will import other files.
   HTModuleParseResult parseToModule(HTSource entry) {
     final result = parseSource(entry);
-    final moduleErrors = result.errors!;
+    final parserErrors = result.errors!;
     final values = <String, HTSourceParseResult>{};
     final sources = <String, HTSourceParseResult>{};
 
@@ -174,7 +174,7 @@ class HTParser extends HTAbstractParser {
           } else {
             final source2 = sourceContext.getResource(importFullName);
             importModule = parseSource(source2);
-            moduleErrors.addAll(importModule.errors!);
+            parserErrors.addAll(importModule.errors!);
             _cachedParseResults[importFullName] = importModule;
           }
           if (importModule.type == ResourceType.hetuValue) {
@@ -190,7 +190,7 @@ class HTParser extends HTAbstractParser {
               column: decl.column,
               offset: decl.offset,
               length: decl.length);
-          moduleErrors.add(convertedError);
+          parserErrors.add(convertedError);
         }
       }
       _cachedRecursiveParsingTargets.remove(result.fullName);
@@ -206,7 +206,7 @@ class HTParser extends HTAbstractParser {
         values: values,
         sources: sources,
         type: entry.type,
-        errors: moduleErrors);
+        errors: parserErrors);
     return compilation;
   }
 
@@ -721,8 +721,7 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kConst:
                 if (isStatic) {
-                  stmt = _parseConstDecl(
-                      classId: _currentClass?.id, isStatic: isStatic);
+                  stmt = _parseConstDecl(classId: _currentClass?.id);
                 } else {
                   final err = HTError.external(Semantic.typeAliasDeclaration,
                       filename: _currrentFileName,
@@ -2738,8 +2737,7 @@ class HTParser extends HTAbstractParser {
         length: curTok.offset - keyword.offset);
   }
 
-  ConstDecl _parseConstDecl(
-      {String? classId, bool isStatic = false, bool isTopLevel = false}) {
+  ConstDecl _parseConstDecl({String? classId, bool isTopLevel = false}) {
     final keyword = match(HTLexicon.kConst);
     final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
@@ -2765,7 +2763,6 @@ class HTParser extends HTAbstractParser {
       classId: classId,
       declType: declType,
       hasEndOfStmtMark: hasEndOfStmtMark,
-      isStatic: isStatic,
       source: _currentSource,
       line: keyword.line,
       column: keyword.column,

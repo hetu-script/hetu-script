@@ -6,11 +6,6 @@ import '../declaration.dart';
 import '../../value/namespace/namespace.dart';
 
 class HTVariableDeclaration extends HTDeclaration {
-  final String _id;
-
-  @override
-  String get id => _id;
-
   final HTType? _declType;
 
   HTType? _resolvedDeclType;
@@ -26,7 +21,7 @@ class HTVariableDeclaration extends HTDeclaration {
 
   final bool lateFinalize;
 
-  HTVariableDeclaration(this._id,
+  HTVariableDeclaration(String id,
       {String? classId,
       HTNamespace? closure,
       HTSource? source,
@@ -38,7 +33,7 @@ class HTVariableDeclaration extends HTDeclaration {
       this.lateFinalize = false})
       : _declType = declType,
         super(
-            id: _id,
+            id: id,
             classId: classId,
             closure: closure,
             source: source,
@@ -67,7 +62,7 @@ class HTVariableDeclaration extends HTDeclaration {
   }
 
   @override
-  HTVariableDeclaration clone() => HTVariableDeclaration(id,
+  HTVariableDeclaration clone() => HTVariableDeclaration(id!,
       classId: classId,
       closure: closure,
       source: source,

@@ -1,13 +1,13 @@
 import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
-import 'constant_module.dart';
+import 'global_constant_table.dart';
 import '../parser/module_parse_result.dart';
 
 /// A interpreter that computes the constant value before compilation.
 /// If the AstNode provided is non-constant value, return null.
 class HTConstantInterpreter implements AbstractAstVisitor<dynamic> {
-  HTConstantModule compute(HTModuleParseResult parseResult) {
-    final result = HTConstantModule();
+  HTGlobalConstantTable compute(HTModuleParseResult parseResult) {
+    final result = HTGlobalConstantTable();
 
     return result;
   }

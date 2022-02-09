@@ -498,10 +498,10 @@ class HTFunction extends HTFunctionDeclaration
               } else {
                 if (namedArgs.containsKey(decl.id)) {
                   decl.value = namedArgs[decl.id];
-                  finalNamedArgs[decl.id] = decl.value;
+                  finalNamedArgs[decl.id!] = decl.value;
                 } else {
                   decl.initialize();
-                  finalNamedArgs[decl.id] = decl.value;
+                  finalNamedArgs[decl.id!] = decl.value;
                 }
               }
             }

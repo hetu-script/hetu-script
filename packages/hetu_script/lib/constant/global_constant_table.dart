@@ -1,13 +1,13 @@
 /// All constant values of a compilation module.
-class HTConstantModule {
+class HTGlobalConstantTable {
   /// Const tables stored by its type.
-  final values = <Type, List>{};
+  final Map<Type, List> constants = {};
 
   /// Add a constant value with type T to the table.
   int addGlobalConstant<T>(T value) {
-    var table = values[T];
+    var table = constants[T];
     if (table == null) {
-      values[T] = table = <T>[];
+      constants[T] = table = <T>[];
     }
     final index = table.indexOf(value);
     if (index == -1) {
@@ -20,7 +20,7 @@ class HTConstantModule {
 
   /// Get a constant value in the table at the [index].
   dynamic getGlobalConstant(Type type, int index) {
-    assert(values.keys.contains(type));
-    return values[type]![index]!;
+    assert(constants.keys.contains(type));
+    return constants[type]![index]!;
   }
 }
