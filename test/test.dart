@@ -4,8 +4,7 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-        final a = 42
-        const b = a
-        print(b)
+        const a = 'age: ${6 * 7}'
+        print(a)
   ''');
 }
