@@ -1,5 +1,6 @@
 /// All lexicons used by hetu
 abstract class HTLexicon {
+  /// Regular expression used by lexer.
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
       r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(4)
@@ -321,21 +322,32 @@ abstract class HTLexicon {
     modulo,
   };
 
+  /// '+'
   static const add = '+';
+
+  /// '-'
   static const subtract = '-';
 
-  /// 加减操作符，包含多个符号
+  /// +, -
   static const Set<String> additives = {
     add,
     subtract,
   };
 
+  /// '>'
   static const greater = '>';
+
+  /// '>='
   static const greaterOrEqual = '>=';
+
+  /// '<'
   static const lesser = '<';
+
+  /// '<='
   static const lesserOrEqual = '<=';
 
-  /// 大小判断操作符，包含多个符号
+  /// \>, >=, <, <=
+  /// 'is!' is handled in parser, not included here.
   static const Set<String> relationals = {
     greater,
     greaterOrEqual,
@@ -343,7 +355,6 @@ abstract class HTLexicon {
     lesserOrEqual,
     kAs,
     kIs
-    // is! is handled in parser
   };
 
   static const Set<String> logicalRelationals = {
@@ -357,10 +368,13 @@ abstract class HTLexicon {
 
   static const Set<String> setRelationals = {kIn};
 
+  /// '=='
   static const equal = '==';
+
+  /// '!='
   static const notEqual = '!=';
 
-  /// 相等判断操作符，包含多个符号
+  /// ==, !=
   static const Set<String> equalitys = {
     equal,
     notEqual,
@@ -536,4 +550,7 @@ abstract class HTLexicon {
       'Cannot create struct object from unresolved prototype [{0}].';
   static const errorBinding =
       'Binding is not allowed on non-literal function or non-struct object.';
+
+  static const errorConstValue =
+      'Initializer of const declaration is not constant value.';
 }

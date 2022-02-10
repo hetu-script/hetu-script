@@ -9,7 +9,13 @@ class HTGlobalConstantTable {
     if (table == null) {
       constants[T] = table = <T>[];
     }
-    final index = table.indexOf(value);
+    int index;
+    if (value is bool || value is int || value is double || value is String) {
+      index = table.indexOf(value);
+    } else {
+      index = table.length;
+      table.add(value);
+    }
     if (index == -1) {
       table.add(value);
       return table.length - 1;

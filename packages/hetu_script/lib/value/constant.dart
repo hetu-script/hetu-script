@@ -1,23 +1,6 @@
 import '../constant/global_constant_table.dart';
 import '../declaration/declaration.dart';
 
-enum HTConstantType {
-  integer,
-  float,
-  string,
-}
-
-Type getConstantType(HTConstantType type) {
-  switch (type) {
-    case HTConstantType.integer:
-      return int;
-    case HTConstantType.float:
-      return double;
-    case HTConstantType.string:
-      return String;
-  }
-}
-
 class HTConstantValue extends HTDeclaration {
   @override
   bool get isConst => true;

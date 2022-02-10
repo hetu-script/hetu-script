@@ -16,25 +16,25 @@ import '../parser/parser.dart';
 // import '../declaration/function/parameter_declaration.dart';
 import '../declaration/variable/variable_declaration.dart';
 import 'analysis_result.dart';
-import 'analysis_error.dart';
+import 'analysis_warning.dart';
 // import 'type_checker.dart';
 import '../grammar/semantic.dart';
 // import '../ast/visitor/recursive_ast_visitor.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
+import '../grammar/lexicon.dart';
 
+/// A Ast interpreter for pre-compile-processing
+/// such as constant values compute, type check and
+/// declaration names resolve (wont evaluate their values).
 class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     implements AbstractAstVisitor<void> {
-  @override
-  final stackTrace = const <String>[];
-
   final errorProcessors = <ErrorProcessor>[];
 
-  @override
-  final config = InterpreterConfig();
+  // final config = InterpreterConfig();
 
   @override
-  ErrorHandlerConfig get errorConfig => config;
+  ErrorHandlerConfig? get errorConfig => null;
 
   String? _curSymbol;
   String? get curSymbol => _curSymbol;
@@ -62,7 +62,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   // HTFunctionDeclaration? _curFunction;
 
   /// Errors of a single file
-  late List<HTAnalysisError>? _curErrors;
+  late List<HTAnalysisWarning>? _curErrors;
 
   // late HTTypeChecker _curTypeChecker;
 
@@ -94,11 +94,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     }
   }
 
-  /// Analyzer should never throw.
+  /// Analyzer should never throw,
+  /// instead it will store all errors as a list in analysis result.
   @override
-  void handleError(Object error, {Object? externalStackTrace}) {
-    throw error;
-  }
+  void handleError(Object error, {Object? externalStackTrace}) {}
 
   @override
   HTModuleAnalysisResult evalSource(HTSource source,
@@ -112,16 +111,14 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       bool errorHandled = false // ignored in analyzer
       }) {
     _curSource = source;
-    final errors = <HTAnalysisError>[];
+    final syntacticErrors = <HTError>[];
+    final analysisErrors = <HTAnalysisWarning>[];
     final parser = HTParser(context: sourceContext);
     final compilation = parser.parseToModule(source);
     final Map<String, HTSourceAnalysisResult> sourceAnalysisResults = {};
     for (final parseResult in compilation.sources.values) {
-      _curErrors = <HTAnalysisError>[];
-      final analysisErrors = parseResult.errors
-          ?.map((err) => HTAnalysisError.fromError(err))
-          .toList();
-      _curErrors!.addAll(analysisErrors!);
+      _curErrors = <HTAnalysisWarning>[];
+      syntacticErrors.addAll(parseResult.errors!);
       _curNamespace =
           HTDeclarationNamespace(id: parseResult.fullName, closure: global);
       for (final node in parseResult.nodes) {
@@ -134,33 +131,36 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
           namespace: _curNamespace);
       sourceAnalysisResults[sourceAnalysisResult.fullName] =
           sourceAnalysisResult;
-      errors.addAll(_curErrors!);
+      analysisErrors.addAll(_curErrors!);
       _curErrors = null;
     }
     if (globallyImport) {
       global.import(sourceAnalysisResults.values.last.namespace);
     }
-    // walk through ast again to set each symbol's declaration referrence.
+    // walk through ast again to resolve each symbol's declaration referrence.
     // final visitor = _OccurrencesVisitor();
     // for (final node in result.parseResult.nodes) {
     //   node.accept(visitor);
     // }
     return HTModuleAnalysisResult(
       sourceAnalysisResults: sourceAnalysisResults,
-      errors: errors,
+      syntacticErrors: syntacticErrors,
+      analysisWarnings: analysisErrors,
       compilation: compilation,
     );
   }
 
-  void analyzeAst(AstNode node) {
-    node.accept(this);
+  void analyzeAst(AstNode node) => node.accept(this);
+
+  @override
+  void visitCompilation(AstCompilation node) {
+    throw 'Use evalSource instead of this method.';
   }
 
   @override
-  void visitCompilation(AstCompilation node) {}
-
-  @override
-  void visitCompilationUnit(AstSource node) {}
+  void visitCompilationUnit(AstSource node) {
+    throw 'Use evalSource instead of this method.';
+  }
 
   @override
   void visitEmptyExpr(EmptyExpr expr) {}
@@ -182,7 +182,21 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitStringInterpolationExpr(StringInterpolationExpr expr) {
-    expr.subAccept(this);
+    final interpolations = <String>[];
+    for (final expr in expr.interpolations) {
+      expr.accept(this);
+      if (!expr.isConstValue) {
+        return;
+      }
+      interpolations.add(expr.value);
+    }
+    var text = expr.text;
+    for (var i = 0; i < interpolations.length; ++i) {
+      text = text.replaceAll(
+          '${HTLexicon.bracesLeft}$i${HTLexicon.bracesRight}',
+          interpolations[i]);
+    }
+    expr.value = text;
   }
 
   @override
@@ -214,7 +228,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitGroupExpr(GroupExpr expr) {
-    expr.subAccept(this);
+    expr.inner.accept(this);
+    if (expr.inner.isConstValue) {
+      expr.value = expr.inner.value;
+    }
   }
 
   @override
@@ -247,9 +264,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     expr.subAccept(this);
   }
 
+  /// -e, !e，++e, --e
   @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     expr.subAccept(this);
+    if (expr.op == HTLexicon.logicalNot && expr.object is BooleanLiteralExpr) {
+      expr.value = !(expr.object as BooleanLiteralExpr).value;
+    }
   }
 
   @override
@@ -257,9 +278,84 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     expr.subAccept(this);
   }
 
+  /// *, /, ~/, %, +, -, <, >, <=, >=, ==, !=, &&, ||
   @override
   void visitBinaryExpr(BinaryExpr expr) {
     expr.subAccept(this);
+    final left = expr.left.value;
+    final right = expr.right.value;
+    switch (expr.op) {
+      case HTLexicon.multiply:
+        if (left != null && right != null) {
+          expr.value = left * right;
+        }
+        break;
+      case HTLexicon.devide:
+        if (left != null && right != null) {
+          expr.value = left / right;
+        }
+        break;
+      case HTLexicon.truncatingDevide:
+        if (left != null && right != null) {
+          expr.value = left ~/ right;
+        }
+        break;
+      case HTLexicon.modulo:
+        if (left != null && right != null) {
+          expr.value = left % right;
+        }
+        break;
+      case HTLexicon.add:
+        if (left != null && right != null) {
+          expr.value = left + right;
+        }
+        break;
+      case HTLexicon.subtract:
+        if (left != null && right != null) {
+          expr.value = left - right;
+        }
+        break;
+      case HTLexicon.lesser:
+        if (left != null && right != null) {
+          expr.value = left < right;
+        }
+        break;
+      case HTLexicon.lesserOrEqual:
+        if (left != null && right != null) {
+          expr.value = left <= right;
+        }
+        break;
+      case HTLexicon.greater:
+        if (left != null && right != null) {
+          expr.value = left > right;
+        }
+        break;
+      case HTLexicon.greaterOrEqual:
+        if (left != null && right != null) {
+          expr.value = left >= right;
+        }
+        break;
+      case HTLexicon.equal:
+        if (left != null && right != null) {
+          expr.value = left == right;
+        }
+        break;
+      case HTLexicon.notEqual:
+        if (left != null && right != null) {
+          expr.value = left != right;
+        }
+        break;
+      case HTLexicon.logicalAnd:
+        if (left != null && right != null) {
+          expr.value = left && right;
+        }
+        break;
+      case HTLexicon.logicalOr:
+        if (left != null && right != null) {
+          expr.value = left || right;
+        }
+        break;
+    }
   }
 
   @override
@@ -384,8 +480,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitTypeAliasDecl(TypeAliasDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     stmt.declaration = HTVariableDeclaration(stmt.id.id,
         classId: stmt.classId, closure: _curNamespace, source: _curSource);
     _curNamespace.define(stmt.id.id, stmt.declaration!);
@@ -402,8 +496,16 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitVarDecl(VarDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
+    if (stmt.isConst && !stmt.initializer!.isConstValue) {
+      final err = HTAnalysisWarning.constValue(
+          filename: fileName,
+          line: stmt.line,
+          column: stmt.column,
+          offset: stmt.offset,
+          length: stmt.length);
+      _curErrors?.add(err);
+    }
+    // if (stmt.isConst && stmt.initializer)
     // stmt.declaration = HTVariableDeclaration(stmt.id.id,
     //     classId: stmt.classId,
     //     closure: _curNamespace,
@@ -442,8 +544,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitFuncDecl(FuncDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     stmt.id?.accept(this);
     for (final param in stmt.genericTypeParameters) {
       visitGenericTypeParamExpr(param);
@@ -489,8 +589,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitClassDecl(ClassDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     visitIdentifierExpr(stmt.id);
     for (final param in stmt.genericTypeParameters) {
       visitGenericTypeParamExpr(param);
@@ -528,8 +626,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitEnumDecl(EnumDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     visitIdentifierExpr(stmt.id);
     // stmt.declaration = HTClassDeclaration(
     //     id: stmt.id.id,
@@ -542,8 +638,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitStructDecl(StructDecl stmt) {
-    _curLine = stmt.line;
-    _curColumn = stmt.column;
     stmt.id.accept(this);
     // final savedCurNamespace = _curNamespace;
     // _curNamespace = HTNamespace(id: stmt.id.id, closure: _curNamespace);
@@ -565,14 +659,12 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitStructObjField(StructObjField field) {
     _curLine = field.line;
     _curColumn = field.column;
-    // TODO: analyze struct object
   }
 
   @override
   void visitStructObjExpr(StructObjExpr obj) {
     _curLine = obj.line;
     _curColumn = obj.column;
-    // TODO: analyze struct object
   }
 }
 
@@ -581,19 +673,19 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
 //   @override
 //   void visitIdentifierExpr(IdentifierExpr expr) {
-// if (expr.isLocal && !expr.isKeyword) {
-//   // TODO: deal with instance members
-//   try {
-//     expr.declaration =
-//         expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
-//   } catch (e) {
-//     if (e is HTError && e.code == ErrorCode.undefined) {
-//       print(
-//           'Unable to resolve [${expr.id}] in [${expr.analysisNamespace!.id}] , is this an instance member?');
-//     } else {
-//       rethrow;
+//     if (expr.isLocal && !expr.isKeyword) {
+//       // TODO: deal with instance members
+//       try {
+//         expr.declaration =
+//             expr.analysisNamespace!.memberGet(expr.id) as HTDeclaration;
+//       } catch (e) {
+//         if (e is HTError && e.code == ErrorCode.undefined) {
+//           print(
+//               'Unable to resolve [${expr.id}] in [${expr.analysisNamespace!.id}] , is this an instance member?');
+//         } else {
+//           rethrow;
+//         }
+//       }
 //     }
-//   }
-// }
 //   }
 // }

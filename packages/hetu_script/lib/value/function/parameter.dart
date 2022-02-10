@@ -8,6 +8,11 @@ import '../../declaration/function/abstract_parameter.dart';
 
 /// An implementation of [HTVariable] for function parameter declaration.
 class HTParameter extends HTVariable implements HTAbstractParameter {
+  final HTNamespace? _closure;
+
+  @override
+  HTNamespace? get closure => _closure;
+
   @override
   final bool isOptional;
 
@@ -30,7 +35,8 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id,
+      : _closure = closure,
+        super(id,
             interpreter: interpreter,
             fileName: fileName,
             moduleName: moduleName,

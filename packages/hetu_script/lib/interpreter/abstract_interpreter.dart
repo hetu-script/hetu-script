@@ -49,8 +49,6 @@ class InterpreterConfig
   @override
   final ErrorHanldeApproach errorHanldeApproach;
 
-  final bool doStaticAnalyze;
-
   final bool allowHotReload;
 
   const InterpreterConfig(
@@ -58,7 +56,6 @@ class InterpreterConfig
       this.showDartStackTrace = false,
       this.hetuStackTraceDisplayCountLimit = 3,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.doStaticAnalyze = true,
       this.allowHotReload = true});
 }
 
@@ -66,25 +63,24 @@ class InterpreterConfig
 ///
 /// Each instance of a interpreter has a independent global [HTNamespace].
 abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
-  List<String> get stackTrace;
-
-  InterpreterConfig get config;
-
-  /// Current line number of execution.
+  /// Current line number.
   int get line;
 
-  /// Current column number of execution.
+  /// Current column number.
   int get column;
 
+  /// Current file name.
   String get fileName;
 
+  /// [HTResourceContext] manages imported sources.
   HTResourceContext<HTSource> get sourceContext;
 
+  /// The global namespace.
   HTDeclarationNamespace get global;
 
   /// Initialize the interpreter,
   /// prepare it with preincluded modules,
-  /// bind it with external functions and classes, etc.
+  /// bind it with HTExternalFunction, HTExternalFunctionTypedef, HTExternalClass, etc.
   @mustCallSuper
   void init({
     Map<String, Function> externalFunctions = const {},
@@ -138,7 +134,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false});
 
-  /// Evaluate a code in the form of literal string
+  /// Evaluate a literal string code
   T? eval(String content,
       {String? fileName,
       String? moduleName,
@@ -163,7 +159,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   }
 
   /// Evaluate a file, [key] is a possibly relative path,
-  /// content of the file will be provided by [sourceContext]
+  /// file content will be searched by [sourceContext].
   T? evalFile(String key,
       {String? moduleName,
       bool globallyImport = false,
@@ -194,8 +190,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
     }
   }
 
-  /// Invoke a function by its name.
-  /// The function is normally defined on global namespace.
+  /// Invoke a function in global namespace by its name.
   dynamic invoke(String funcName,
       {String? moduleName,
       List<dynamic> positionalArgs = const [],
@@ -203,7 +198,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {}
 
-  /// Wrap any dart value to a Hetu object.
+  /// Encapsulate any value to a Hetu object, for members accessing and type check.
   HTEntity encapsulate(dynamic object) {
     if (object is HTEntity) {
       return object;

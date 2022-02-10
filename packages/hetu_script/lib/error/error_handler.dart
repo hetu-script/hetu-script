@@ -44,7 +44,7 @@ typedef HTErrorHandlerCallback = void Function(Object error,
 
 /// Abstract error handler class
 abstract class HTErrorHandler {
-  ErrorHandlerConfig get errorConfig;
+  ErrorHandlerConfig? get errorConfig;
 
   void handleError(Object error, {Object? externalStackTrace});
 }

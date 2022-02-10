@@ -1,8 +1,9 @@
 import '../error/error.dart';
 import '../error/error_severity.dart';
 import 'diagnostic.dart';
+import '../grammar/lexicon.dart';
 
-class HTAnalysisError implements HTError {
+class HTAnalysisWarning implements HTError {
   @override
   final ErrorCode code;
 
@@ -41,7 +42,7 @@ class HTAnalysisError implements HTError {
 
   final List<HTDiagnosticMessage> contextMessages;
 
-  HTAnalysisError(this.code, this.type,
+  HTAnalysisWarning(this.code, this.type,
       {this.message,
       this.extra,
       List<String> interpolations = const [],
@@ -53,7 +54,14 @@ class HTAnalysisError implements HTError {
       this.length = 0,
       this.contextMessages = const []});
 
-  HTAnalysisError.fromError(HTError error,
+  @override
+  String toString() {
+    final output = StringBuffer();
+    output.writeln("- $message (at [$filename:$line:$column])");
+    return output.toString();
+  }
+
+  HTAnalysisWarning.fromError(HTError error,
       {List<HTDiagnosticMessage> contextMessages = const []})
       : this(error.code, error.type,
             message: error.message,
@@ -64,4 +72,22 @@ class HTAnalysisError implements HTError {
             offset: error.offset!,
             length: error.length!,
             contextMessages: contextMessages);
+
+  HTAnalysisWarning.constValue(
+      {String? extra,
+      String? correction,
+      required String filename,
+      required int line,
+      required int column,
+      required int offset,
+      required int length})
+      : this(ErrorCode.constValue, ErrorType.staticWarning,
+            message: HTLexicon.errorConstValue,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 }

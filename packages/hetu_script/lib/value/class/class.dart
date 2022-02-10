@@ -3,7 +3,7 @@ import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../error/error.dart';
 import '../../source/source.dart';
-import '../../interpreter/abstract_interpreter.dart';
+import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
 // import '../declaration.dart';
 import '../../value/namespace/namespace.dart';
@@ -15,7 +15,7 @@ import '../../declaration/generic/generic_type_parameter.dart';
 import 'class_namespace.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
-class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
+class HTClass extends HTClassDeclaration with HTEntity, HetuRef {
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
 
@@ -42,7 +42,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   final HTClassNamespace namespace;
 
   /// Create a default [HTClass] instance.
-  HTClass(HTAbstractInterpreter interpreter,
+  HTClass(Hetu interpreter,
       {String? id,
       String? classId,
       HTNamespace? closure,
@@ -91,7 +91,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   HTClass clone() => HTClass(interpreter,
       id: id,
       classId: classId,
-      closure: closure,
+      closure: closure != null ? closure as HTNamespace : null,
       source: source,
       genericTypeParameters: genericTypeParameters,
       superType: superType,

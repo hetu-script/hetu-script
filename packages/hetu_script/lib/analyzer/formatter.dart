@@ -90,12 +90,12 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitCompilation(AstCompilation node) {
-    return '';
+    throw 'Use formatModule instead of this method.';
   }
 
   @override
   String visitCompilationUnit(AstSource node) {
-    return '';
+    throw 'Use formatSource instead of this method.';
   }
 
   @override
@@ -125,7 +125,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitStringLiteralExpr(StringLiteralExpr expr) {
-    return stringify(expr.value);
+    return stringify(expr.value, asStringLiteral: true);
   }
 
   @override
@@ -135,7 +135,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
       final nodeString = formatAst(node);
       interpolation.add(nodeString);
     }
-    var output = expr.value;
+    var output = expr.text;
     for (var i = 0; i < interpolation.length; ++i) {
       output = output.replaceAll(
           '${HTLexicon.bracesLeft}$i${HTLexicon.bracesRight}',
@@ -148,7 +148,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitSpreadExpr(SpreadExpr expr) {
     final output = StringBuffer();
     output.write(HTLexicon.spreadSyntax);
-    final valueString = formatAst(expr.value);
+    final valueString = formatAst(expr.collection);
     output.write(valueString);
     return output.toString();
   }
@@ -190,7 +190,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
-    final valueString = formatAst(expr.value);
+    final valueString = formatAst(expr.object);
     return '${expr.op}$valueString';
   }
 
@@ -325,7 +325,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
-    final valueString = formatAst(expr.value);
+    final valueString = formatAst(expr.object);
     return '$valueString${expr.op}';
   }
 
@@ -340,7 +340,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitMemberAssignExpr(MemberAssignExpr expr) {
     final collectionString = formatAst(expr.object);
     final keyString = visitIdentifierExpr(expr.key);
-    final valueString = formatAst(expr.value);
+    final valueString = formatAst(expr.assignValue);
     return '$collectionString${HTLexicon.memberGet}$keyString ${HTLexicon.assign} $valueString';
   }
 
@@ -355,7 +355,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitSubAssignExpr(SubAssignExpr expr) {
     final collectionString = formatAst(expr.array);
     final keyString = formatAst(expr.key);
-    final valueString = formatAst(expr.value);
+    final valueString = formatAst(expr.assignValue);
     return '$collectionString${HTLexicon.bracketsLeft}$keyString${HTLexicon.bracketsRight} ${HTLexicon.assign} $valueString';
   }
 
@@ -420,8 +420,8 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitReturnStmt(ReturnStmt stmt) {
     final output = StringBuffer();
     output.write(HTLexicon.kReturn);
-    if (stmt.value != null) {
-      final valueString = formatAst(stmt.value!);
+    if (stmt.returnValue != null) {
+      final valueString = formatAst(stmt.returnValue!);
       output.write(' $valueString');
     }
     if (stmt.hasEndOfStmtMark) {
@@ -654,7 +654,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   String visitTypeAliasDecl(TypeAliasDecl stmt) {
     final output = StringBuffer();
     output.write('${HTLexicon.kType} ${stmt.id.id} ${HTLexicon.assign} ');
-    final valueString = formatAst(stmt.value);
+    final valueString = formatAst(stmt.typeValue);
     output.write(valueString);
     if (stmt.hasEndOfStmtMark) {
       output.write(HTLexicon.semicolon);
@@ -913,11 +913,11 @@ class HTFormatter implements AbstractAstVisitor<String> {
     final output = StringBuffer();
     if (field.key != null) {
       output.write('${field.key}${HTLexicon.colon} ');
-      final valueString = formatAst(field.value!);
+      final valueString = formatAst(field.fieldValue!);
       output.write(valueString);
     } else if (field.isSpread) {
       output.write(HTLexicon.spreadSyntax);
-      final valueString = formatAst(field.value!);
+      final valueString = formatAst(field.fieldValue!);
       output.write(valueString);
     } else {
       for (final comment in field.precedingComments) {

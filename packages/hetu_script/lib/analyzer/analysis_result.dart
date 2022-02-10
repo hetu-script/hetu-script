@@ -3,7 +3,8 @@ import '../source/source.dart';
 import '../source/line_info.dart';
 import '../ast/ast.dart';
 import 'analyzer.dart';
-import 'analysis_error.dart';
+import 'analysis_warning.dart';
+import '../error/error.dart';
 
 class HTSourceAnalysisResult {
   final AstSource parseResult;
@@ -16,7 +17,7 @@ class HTSourceAnalysisResult {
 
   final HTAnalyzer analyzer;
 
-  final List<HTAnalysisError> errors;
+  final List<HTAnalysisWarning> errors;
 
   final HTDeclarationNamespace namespace;
 
@@ -31,13 +32,16 @@ class HTSourceAnalysisResult {
 class HTModuleAnalysisResult {
   final Map<String, HTSourceAnalysisResult> sourceAnalysisResults;
 
-  final List<HTAnalysisError> errors;
+  final List<HTError> syntacticErrors;
+
+  final List<HTAnalysisWarning> analysisWarnings;
 
   final AstCompilation compilation;
 
   HTModuleAnalysisResult({
     required this.sourceAnalysisResults,
-    required this.errors,
+    required this.syntacticErrors,
+    required this.analysisWarnings,
     required this.compilation,
   });
 }

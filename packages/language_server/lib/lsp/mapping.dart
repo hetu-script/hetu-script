@@ -716,7 +716,7 @@ ErrorOr<String> pathOfUri(Uri uri) {
 /// Returns a list of AnalysisErrors corresponding to the given list of Engine
 /// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
-    HTModuleAnalysisResult result) {
+    HTSourceAnalysisResult result) {
   return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
 }
 
@@ -724,7 +724,7 @@ List<AnalysisError> doAnalysisError_listFromEngine(
 ///
 /// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
-    HTModuleAnalysisResult result, HTAnalysisError error,
+    HTSourceAnalysisResult result, HTAnalysisWarning error,
     [ErrorSeverity errorSeverity]) {
   // prepare location
   Location location;
@@ -774,7 +774,7 @@ AnalysisError newAnalysisError_fromEngine(
 
 /// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
-    HTModuleAnalysisResult result, HTDiagnosticMessage message) {
+    HTSourceAnalysisResult result, HTDiagnosticMessage message) {
   var file = message.filename;
   var offset = message.offset;
   var length = message.length;
@@ -795,9 +795,9 @@ DiagnosticMessage newDiagnosticMessage(
 
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
-    HTModuleAnalysisResult result,
-    List<HTAnalysisError> errors,
-    T Function(HTModuleAnalysisResult result, HTAnalysisError error,
+    HTSourceAnalysisResult result,
+    List<HTAnalysisWarning> errors,
+    T Function(HTSourceAnalysisResult result, HTAnalysisWarning error,
             [ErrorSeverity errorSeverity])
         constructor) {
   var serverErrors = <T>[];
@@ -1091,8 +1091,8 @@ lsp.DiagnosticSeverity analysisErrorSeverityToDiagnosticSeverity(
 // }
 
 lsp.Diagnostic toDiagnostic(
-  HTModuleAnalysisResult result,
-  HTAnalysisError error, {
+  HTSourceAnalysisResult result,
+  HTAnalysisWarning error, {
   // Set<lsp.DiagnosticTag> supportedTags,
   ErrorSeverity errorSeverity,
 }) {
@@ -1123,7 +1123,7 @@ lsp.Diagnostic toDiagnostic(
 }
 
 lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
-    HTModuleAnalysisResult result, HTDiagnosticMessage message) {
+    HTSourceAnalysisResult result, HTDiagnosticMessage message) {
   var file = message.filename;
   var lineInfo = result.lineInfo;
   return lsp.DiagnosticRelatedInformation(

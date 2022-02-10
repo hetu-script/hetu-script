@@ -7,9 +7,7 @@ import 'error_severity.dart';
 part 'error_processor.dart';
 
 enum ErrorCode {
-  bytecode,
-  version,
-
+  // Syntactic errors
   unkownSourceType,
   importListOnNonHetuSource,
   exportNonHetuSource,
@@ -45,8 +43,11 @@ enum ErrorCode {
   notClass,
   abstracted,
   interfaceCtor,
-
   unsupported,
+
+  // Runtime errors
+  bytecode,
+  version,
   extern,
   unknownOpCode,
   notInitialized,
@@ -82,6 +83,9 @@ enum ErrorCode {
   structMemberId,
   unresolvedNamedStruct,
   binding,
+
+  // Analysis errors
+  constValue,
 }
 
 /// The type of an [HTError].

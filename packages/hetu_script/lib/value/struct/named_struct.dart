@@ -23,7 +23,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     required Hetu interpreter,
     required String fileName,
     required String moduleName,
-    required HTNamespace closure,
+    HTNamespace? closure,
     this.prototypeId,
     HTSource? source,
     bool isTopLevel = false,
@@ -62,7 +62,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         filename: fileName,
         moduleName: moduleName,
         ip: staticDefinitionIp!,
-        namespace: closure);
+        namespace: closure != null ? closure as HTNamespace : null);
     if (closure != null) {
       if (prototypeId != null) {
         static.prototype = closure!
@@ -76,7 +76,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
         filename: fileName,
         moduleName: moduleName,
         ip: definitionIp!,
-        namespace: closure);
+        namespace: closure != null ? closure as HTNamespace : null);
     self.prototype = static;
     self.declaration = this;
     _self = self;
@@ -93,15 +93,14 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
 
   @override
   HTNamedStruct clone() => HTNamedStruct(
-        id: id!,
-        interpreter: interpreter,
-        fileName: fileName,
-        moduleName: moduleName,
-        closure: closure!,
-        source: source,
-        prototypeId: prototypeId,
-        isTopLevel: isTopLevel,
-        staticDefinitionIp: staticDefinitionIp,
-        definitionIp: definitionIp,
-      );
+      id: id!,
+      interpreter: interpreter,
+      fileName: fileName,
+      moduleName: moduleName,
+      closure: closure != null ? closure as HTNamespace : null,
+      source: source,
+      prototypeId: prototypeId,
+      isTopLevel: isTopLevel,
+      staticDefinitionIp: staticDefinitionIp,
+      definitionIp: definitionIp);
 }

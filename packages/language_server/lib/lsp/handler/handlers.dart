@@ -127,7 +127,7 @@ mixin Handler<P, R> {
   //   }
   // }
 
-  ErrorOr<AstCompilationUnit> requireParseResult(String path) {
+  ErrorOr<AstSource> requireParseResult(String path) {
     final result = server.analysisManager.getParseResult(path);
     if (result == null) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
