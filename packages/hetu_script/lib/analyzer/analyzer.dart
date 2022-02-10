@@ -22,7 +22,7 @@ import '../grammar/semantic.dart';
 // import '../ast/visitor/recursive_ast_visitor.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
-import '../grammar/lexicon.dart';
+import '../constant/constant_interpreter.dart';
 
 /// A Ast interpreter for pre-compile-processing
 /// such as constant values compute, type check and
@@ -121,9 +121,21 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       syntacticErrors.addAll(parseResult.errors!);
       _curNamespace =
           HTDeclarationNamespace(id: parseResult.fullName, closure: global);
+      // the first scan, create namespaces
       for (final node in parseResult.nodes) {
-        analyzeAst(node);
+        //
       }
+
+      final constantInterpreter = HTConstantInterpreter();
+      for (final node in parseResult.nodes) {
+        node.accept(constantInterpreter);
+      }
+
+      // the second scan, static analysis
+      for (final node in parseResult.nodes) {
+        node.accept(this);
+      }
+
       final sourceAnalysisResult = HTSourceAnalysisResult(
           parseResult: parseResult,
           analyzer: this,
@@ -182,21 +194,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitStringInterpolationExpr(StringInterpolationExpr expr) {
-    final interpolations = <String>[];
-    for (final expr in expr.interpolations) {
-      expr.accept(this);
-      if (!expr.isConstValue) {
-        return;
-      }
-      interpolations.add(expr.value);
-    }
-    var text = expr.text;
-    for (var i = 0; i < interpolations.length; ++i) {
-      text = text.replaceAll(
-          '${HTLexicon.bracesLeft}$i${HTLexicon.bracesRight}',
-          interpolations[i]);
-    }
-    expr.value = text;
+    expr.subAccept(this);
   }
 
   @override
@@ -264,13 +262,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     expr.subAccept(this);
   }
 
-  /// -e, !e，++e, --e
   @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     expr.subAccept(this);
-    if (expr.op == HTLexicon.logicalNot && expr.object is BooleanLiteralExpr) {
-      expr.value = !(expr.object as BooleanLiteralExpr).value;
-    }
   }
 
   @override
@@ -278,84 +272,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     expr.subAccept(this);
   }
 
-  /// *, /, ~/, %, +, -, <, >, <=, >=, ==, !=, &&, ||
   @override
   void visitBinaryExpr(BinaryExpr expr) {
     expr.subAccept(this);
-    final left = expr.left.value;
-    final right = expr.right.value;
-    switch (expr.op) {
-      case HTLexicon.multiply:
-        if (left != null && right != null) {
-          expr.value = left * right;
-        }
-        break;
-      case HTLexicon.devide:
-        if (left != null && right != null) {
-          expr.value = left / right;
-        }
-        break;
-      case HTLexicon.truncatingDevide:
-        if (left != null && right != null) {
-          expr.value = left ~/ right;
-        }
-        break;
-      case HTLexicon.modulo:
-        if (left != null && right != null) {
-          expr.value = left % right;
-        }
-        break;
-      case HTLexicon.add:
-        if (left != null && right != null) {
-          expr.value = left + right;
-        }
-        break;
-      case HTLexicon.subtract:
-        if (left != null && right != null) {
-          expr.value = left - right;
-        }
-        break;
-      case HTLexicon.lesser:
-        if (left != null && right != null) {
-          expr.value = left < right;
-        }
-        break;
-      case HTLexicon.lesserOrEqual:
-        if (left != null && right != null) {
-          expr.value = left <= right;
-        }
-        break;
-      case HTLexicon.greater:
-        if (left != null && right != null) {
-          expr.value = left > right;
-        }
-        break;
-      case HTLexicon.greaterOrEqual:
-        if (left != null && right != null) {
-          expr.value = left >= right;
-        }
-        break;
-      case HTLexicon.equal:
-        if (left != null && right != null) {
-          expr.value = left == right;
-        }
-        break;
-      case HTLexicon.notEqual:
-        if (left != null && right != null) {
-          expr.value = left != right;
-        }
-        break;
-      case HTLexicon.logicalAnd:
-        if (left != null && right != null) {
-          expr.value = left && right;
-        }
-        break;
-      case HTLexicon.logicalOr:
-        if (left != null && right != null) {
-          expr.value = left || right;
-        }
-        break;
-    }
   }
 
   @override
@@ -496,6 +415,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitVarDecl(VarDecl stmt) {
+    stmt.subAccept(this);
     if (stmt.isConst && !stmt.initializer!.isConstValue) {
       final err = HTAnalysisWarning.constValue(
           filename: fileName,
@@ -516,7 +436,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     //     isConst: stmt.isConst,
     //     isMutable: stmt.isMutable);
     // _curNamespace.define(stmt.id.id, stmt.declaration!);
-    stmt.subAccept(this);
   }
 
   @override
