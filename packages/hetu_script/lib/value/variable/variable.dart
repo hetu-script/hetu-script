@@ -8,6 +8,11 @@ import '../../declaration/variable/variable_declaration.dart';
 
 /// Variable is a binding between an symbol and a value
 class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
+  final HTNamespace? _closure;
+
+  @override
+  HTNamespace? get closure => _closure;
+
   // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
   dynamic _value;
 
@@ -38,7 +43,8 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
-      : super(id,
+      : _closure = closure,
+        super(id,
             classId: classId,
             closure: closure,
             declType: declType,

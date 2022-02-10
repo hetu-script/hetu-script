@@ -41,6 +41,15 @@ class CompilerConfigImpl implements CompilerConfig {
   const CompilerConfigImpl({this.compileWithLineInfo = true});
 }
 
+/// Compiles source code into bytecode.
+///
+/// DON'T USE THIS CLASS DIRECTLY!
+///
+/// Rather, use interpreter or
+/// command line tools to compile,
+/// they would use analyzer to try to find errors,
+/// and compute constant values,
+/// before actual compilation.
 class HTCompiler implements AbstractAstVisitor<Uint8List> {
   static const constStringLengthLimit = 128;
 
@@ -64,66 +73,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   HTCompiler({CompilerConfig? config})
       : config = config ?? const CompilerConfigImpl();
 
-  Uint8List compile(AstCompilation compilation) {
-    _currentConstantTable = HTGlobalConstantTable();
-
-    final mainBytesBuilder = BytesBuilder();
-    // hetu bytecode signature
-    mainBytesBuilder.add(hetuSignatureData);
-    // hetu bytecode version
-    mainBytesBuilder.addByte(kHetuVersion.major);
-    mainBytesBuilder.addByte(kHetuVersion.minor);
-    mainBytesBuilder.add(_uint16(kHetuVersion.patch));
-    // index: ResourceType
-    mainBytesBuilder.addByte(compilation.entryResourceType.index);
-    final bytesBuilder = BytesBuilder();
-    void compileSource(AstSource result) {
-      bytesBuilder.addByte(HTOpCode.file);
-      // if the relativeName is null then it is the entry file of this module.
-      bytesBuilder.add(_parseIdentifier(result.fullName));
-      bytesBuilder.addByte(result.resourceType.index);
-      for (final node in result.nodes) {
-        final bytes = compileAst(node);
-        bytesBuilder.add(bytes);
-      }
-      bytesBuilder.addByte(HTOpCode.endOfFile);
-    }
-
-    for (final value in compilation.values.values) {
-      compileSource(value);
-    }
-    for (final value in compilation.sources.values) {
-      compileSource(value);
-    }
-    final code = bytesBuilder.toBytes();
-    // const tables
-    for (final type in _currentConstantTable.constants.keys) {
-      final table = _currentConstantTable.constants[type]!;
-      if (type == int) {
-        mainBytesBuilder.addByte(HTOpCode.constIntTable);
-        mainBytesBuilder.add(_uint16(table.length));
-        for (final value in table) {
-          mainBytesBuilder.add(_int64(value));
-        }
-      } else if (type == double) {
-        mainBytesBuilder.addByte(HTOpCode.constFloatTable);
-        mainBytesBuilder.add(_uint16(table.length));
-        for (final value in table) {
-          mainBytesBuilder.add(_float64(value));
-        }
-      } else if (type == String) {
-        mainBytesBuilder.addByte(HTOpCode.constStringTable);
-        mainBytesBuilder.add(_uint16(table.length));
-        for (final value in table) {
-          mainBytesBuilder.add(_utf8String(value));
-        }
-      } else {
-        continue;
-      }
-    }
-    mainBytesBuilder.add(code);
-    return mainBytesBuilder.toBytes();
-  }
+  Uint8List compile(AstCompilation compilation) => compilation.accept(this);
 
   /// -32768 to 32767
   Uint8List _int16(int value) =>
@@ -154,8 +104,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   // }
 
   /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
-  /// This method store any number as 64bit,
-  /// will occupied more spaces if the number's bitlength is smaller.
+  /// Because Dart on web does not support ByteData.setInt64,
+  /// This function uses another way to store any number as 64bit,
+  /// However this method will occupied more spaces if it's a small number.
   // Uint8List _int64(int number) {
   //   var isNegative = 0;
   //   if (number < 0) {
@@ -172,12 +123,13 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   // }
 
   /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
-  /// This method store any number as utf8string,
-  /// will occupied more spaces if the number's bitlength is bigger.
+  /// This method store any integer number as utf8string,
+  /// will occupied more spaces if it's a big number, which is rare.
   Uint8List _int64(int value) {
     return _utf8String(value.toString());
   }
 
+  /// This method store any float number as utf8string,
   Uint8List _float64(double value) {
     return _utf8String(value.toString());
   }
@@ -300,13 +252,70 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitCompilation(AstCompilation node) {
-    return Uint8List(0);
+  Uint8List visitCompilation(AstCompilation compilation) {
+    _currentConstantTable = HTGlobalConstantTable();
+
+    final mainBytesBuilder = BytesBuilder();
+    // hetu bytecode signature
+    mainBytesBuilder.add(hetuSignatureData);
+    // hetu bytecode version
+    mainBytesBuilder.addByte(kHetuVersion.major);
+    mainBytesBuilder.addByte(kHetuVersion.minor);
+    mainBytesBuilder.add(_uint16(kHetuVersion.patch));
+    // index: ResourceType
+    mainBytesBuilder.addByte(compilation.entryResourceType.index);
+    final sourceBytesBuilder = BytesBuilder();
+    for (final value in compilation.values.values) {
+      final bytes = value.accept(this);
+      sourceBytesBuilder.add(bytes);
+    }
+    for (final value in compilation.sources.values) {
+      final bytes = value.accept(this);
+      sourceBytesBuilder.add(bytes);
+    }
+    final code = sourceBytesBuilder.toBytes();
+    // const tables
+    for (final type in _currentConstantTable.constants.keys) {
+      final table = _currentConstantTable.constants[type]!;
+      if (type == int) {
+        mainBytesBuilder.addByte(HTOpCode.constIntTable);
+        mainBytesBuilder.add(_uint16(table.length));
+        for (final value in table) {
+          mainBytesBuilder.add(_int64(value));
+        }
+      } else if (type == double) {
+        mainBytesBuilder.addByte(HTOpCode.constFloatTable);
+        mainBytesBuilder.add(_uint16(table.length));
+        for (final value in table) {
+          mainBytesBuilder.add(_float64(value));
+        }
+      } else if (type == String) {
+        mainBytesBuilder.addByte(HTOpCode.constStringTable);
+        mainBytesBuilder.add(_uint16(table.length));
+        for (final value in table) {
+          mainBytesBuilder.add(_utf8String(value));
+        }
+      } else {
+        continue;
+      }
+    }
+    mainBytesBuilder.add(code);
+    return mainBytesBuilder.toBytes();
   }
 
   @override
-  Uint8List visitCompilationUnit(AstSource node) {
-    return Uint8List(0);
+  Uint8List visitCompilationUnit(AstSource unit) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(HTOpCode.file);
+    // if the relativeName is null then it is the entry file of this module.
+    bytesBuilder.add(_parseIdentifier(unit.fullName));
+    bytesBuilder.addByte(unit.resourceType.index);
+    for (final node in unit.nodes) {
+      final bytes = compileAst(node);
+      bytesBuilder.add(bytes);
+    }
+    bytesBuilder.addByte(HTOpCode.endOfFile);
+    return bytesBuilder.toBytes();
   }
 
   @override
@@ -368,7 +377,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.stringInterpolation);
-    var literal = expr.value;
+    var literal = expr.text;
     HTLexicon.stringEscapes.forEach((key, value) {
       literal = literal.replaceAll(key, value);
     });
@@ -385,7 +394,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitSpreadExpr(SpreadExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(1); // bool: isSpread
-    final bytes = compileAst(expr.value);
+    final bytes = compileAst(expr.collection);
     bytesBuilder.add(bytes);
     return bytesBuilder.toBytes();
   }
@@ -428,12 +437,12 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder
           .addByte(StructObjFieldTypeCode.normal); // normal key: value field
       bytesBuilder.add(_parseIdentifier(field.key!.id));
-      final valueBytes = compileAst(field.value!, endOfExec: true);
+      final valueBytes = compileAst(field.fieldValue!, endOfExec: true);
       bytesBuilder.add(valueBytes);
     } else if (field.isSpread) {
       bytesBuilder
           .addByte(StructObjFieldTypeCode.spread); // spread another object
-      final valueBytes = compileAst(field.value!, endOfExec: true);
+      final valueBytes = compileAst(field.fieldValue!, endOfExec: true);
       bytesBuilder.add(valueBytes);
     } else {
       bytesBuilder
@@ -459,7 +468,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
     }
-    final fields = obj.fields.where((field) => field.value != null);
+    final fields = obj.fields.where((field) => field.fieldValue != null);
     bytesBuilder.addByte(fields.length);
     for (final field in fields) {
       final bytes = visitStructObjField(field);
@@ -623,7 +632,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     final bytesBuilder = BytesBuilder();
-    final value = compileAst(expr.value);
+    final value = compileAst(expr.object);
     switch (expr.op) {
       case HTLexicon.negative:
         bytesBuilder.add(value);
@@ -636,17 +645,17 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       case HTLexicon.preIncrement:
         final constOne = IntegerLiteralExpr(1);
         late final AstNode value;
-        if (expr.value is MemberExpr) {
-          final memberExpr = expr.value as MemberExpr;
+        if (expr.object is MemberExpr) {
+          final memberExpr = expr.object as MemberExpr;
           final add = BinaryExpr(memberExpr, HTLexicon.add, constOne);
           value = MemberAssignExpr(memberExpr.object, memberExpr.key, add);
-        } else if (expr.value is SubExpr) {
-          final subExpr = expr.value as SubExpr;
+        } else if (expr.object is SubExpr) {
+          final subExpr = expr.object as SubExpr;
           final add = BinaryExpr(subExpr, HTLexicon.add, constOne);
           value = SubAssignExpr(subExpr.object, subExpr.key, add);
         } else {
-          final add = BinaryExpr(expr.value, HTLexicon.add, constOne);
-          value = BinaryExpr(expr.value, HTLexicon.assign, add);
+          final add = BinaryExpr(expr.object, HTLexicon.add, constOne);
+          value = BinaryExpr(expr.object, HTLexicon.assign, add);
         }
         final group = GroupExpr(value);
         final bytes = compileAst(group);
@@ -655,17 +664,18 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       case HTLexicon.preDecrement:
         final constOne = IntegerLiteralExpr(1);
         late final AstNode value;
-        if (expr.value is MemberExpr) {
-          final memberExpr = expr.value as MemberExpr;
+        if (expr.object is MemberExpr) {
+          final memberExpr = expr.object as MemberExpr;
           final subtract = BinaryExpr(memberExpr, HTLexicon.subtract, constOne);
           value = MemberAssignExpr(memberExpr.object, memberExpr.key, subtract);
-        } else if (expr.value is SubExpr) {
-          final subExpr = expr.value as SubExpr;
+        } else if (expr.object is SubExpr) {
+          final subExpr = expr.object as SubExpr;
           final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne);
           value = SubAssignExpr(subExpr.object, subExpr.key, subtract);
         } else {
-          final subtract = BinaryExpr(expr.value, HTLexicon.subtract, constOne);
-          value = BinaryExpr(expr.value, HTLexicon.assign, subtract);
+          final subtract =
+              BinaryExpr(expr.object, HTLexicon.subtract, constOne);
+          value = BinaryExpr(expr.object, HTLexicon.assign, subtract);
         }
         final group = GroupExpr(value);
         final bytes = compileAst(group);
@@ -867,7 +877,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
     final bytesBuilder = BytesBuilder();
-    final value = compileAst(expr.value);
+    final value = compileAst(expr.object);
     bytesBuilder.add(value);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
@@ -875,17 +885,17 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       case HTLexicon.postIncrement:
         final constOne = IntegerLiteralExpr(1);
         late final AstNode value;
-        if (expr.value is MemberExpr) {
-          final memberExpr = expr.value as MemberExpr;
+        if (expr.object is MemberExpr) {
+          final memberExpr = expr.object as MemberExpr;
           final add = BinaryExpr(memberExpr, HTLexicon.add, constOne);
           value = MemberAssignExpr(memberExpr.object, memberExpr.key, add);
-        } else if (expr.value is SubExpr) {
-          final subExpr = expr.value as SubExpr;
+        } else if (expr.object is SubExpr) {
+          final subExpr = expr.object as SubExpr;
           final add = BinaryExpr(subExpr, HTLexicon.add, constOne);
           value = SubAssignExpr(subExpr.object, subExpr.key, add);
         } else {
-          final add = BinaryExpr(expr.value, HTLexicon.add, constOne);
-          value = BinaryExpr(expr.value, HTLexicon.assign, add);
+          final add = BinaryExpr(expr.object, HTLexicon.add, constOne);
+          value = BinaryExpr(expr.object, HTLexicon.assign, add);
         }
         final group = GroupExpr(value);
         final subtract = BinaryExpr(group, HTLexicon.subtract, constOne);
@@ -896,17 +906,18 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       case HTLexicon.postDecrement:
         final constOne = IntegerLiteralExpr(1);
         late final AstNode value;
-        if (expr.value is MemberExpr) {
-          final memberExpr = expr.value as MemberExpr;
+        if (expr.object is MemberExpr) {
+          final memberExpr = expr.object as MemberExpr;
           final subtract = BinaryExpr(memberExpr, HTLexicon.subtract, constOne);
           value = MemberAssignExpr(memberExpr.object, memberExpr.key, subtract);
-        } else if (expr.value is SubExpr) {
-          final subExpr = expr.value as SubExpr;
+        } else if (expr.object is SubExpr) {
+          final subExpr = expr.object as SubExpr;
           final subtract = BinaryExpr(subExpr, HTLexicon.subtract, constOne);
           value = SubAssignExpr(subExpr.object, subExpr.key, subtract);
         } else {
-          final subtract = BinaryExpr(expr.value, HTLexicon.subtract, constOne);
-          value = BinaryExpr(expr.value, HTLexicon.assign, subtract);
+          final subtract =
+              BinaryExpr(expr.object, HTLexicon.subtract, constOne);
+          value = BinaryExpr(expr.object, HTLexicon.assign, subtract);
         }
         final group = GroupExpr(value);
         final add = BinaryExpr(group, HTLexicon.add, constOne);
@@ -945,7 +956,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixKey);
     bytesBuilder.addByte(HTOpCode.memberSet);
-    final value = compileAst(expr.value, endOfExec: true);
+    final value = compileAst(expr.assignValue, endOfExec: true);
     bytesBuilder.add(value);
     return bytesBuilder.toBytes();
   }
@@ -977,7 +988,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // it has to be exec with 'move reg index'
     final key = compileAst(expr.key, endOfExec: true);
     bytesBuilder.add(key);
-    final value = compileAst(expr.value, endOfExec: true);
+    final value = compileAst(expr.assignValue, endOfExec: true);
     bytesBuilder.add(value);
     return bytesBuilder.toBytes();
   }
@@ -1055,8 +1066,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitReturnStmt(ReturnStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
-    if (stmt.value != null) {
-      final bytes = compileAst(stmt.value!);
+    if (stmt.returnValue != null) {
+      final bytes = compileAst(stmt.returnValue!);
       bytesBuilder.add(bytes);
     }
     bytesBuilder.addByte(HTOpCode.endOfFunc);
@@ -1142,7 +1153,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final newSymbolMap = <String, String>{};
     _markedSymbolsList.add(newSymbolMap);
     if (stmt.init != null) {
-      // TODO: 如果有多个变量同时声明?
       final userDecl = stmt.init as VarDecl;
       final markedId = '${HTLexicon.internalPrefix}${userDecl.id}';
       newSymbolMap[userDecl.id.id] = markedId;
@@ -1451,76 +1461,76 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has class id
     }
     // do not use visitTypeExpr here because the value could be a function type
-    final bytes = compileAst(stmt.value);
+    final bytes = compileAst(stmt.typeValue);
     bytesBuilder.add(bytes);
     return bytesBuilder.toBytes();
   }
 
-  // @override
-  // Uint8List visitConstDecl(ConstDecl stmt) {
-  //   final bytesBuilder = BytesBuilder();
-  //   bytesBuilder.addByte(HTOpCode.constDecl);
-  //   bytesBuilder.add(_parseIdentifier(stmt.id.id));
-  //   if (stmt.classId != null) {
-  //     bytesBuilder.addByte(1); // bool: has class id
-  //     bytesBuilder.add(_parseIdentifier(stmt.classId!));
-  //   } else {
-  //     bytesBuilder.addByte(0); // bool: has class id
-  //   }
-  //   late int type, index;
-  //   if (stmt.constExpr is IntegerLiteralExpr) {
-  //     type = HTConstantType.integer.index;
-  //     index = _currentConstantTable
-  //         .addGlobalConstant<int>((stmt.constExpr as IntegerLiteralExpr).value);
-  //   } else if (stmt.constExpr is FloatLiteralExpr) {
-  //     type = HTConstantType.float.index;
-  //     index = _currentConstantTable.addGlobalConstant<double>(
-  //         (stmt.constExpr as FloatLiteralExpr).value);
-  //   } else if (stmt.constExpr is StringLiteralExpr) {
-  //     type = HTConstantType.string.index;
-  //     index = _currentConstantTable.addGlobalConstant<String>(
-  //         (stmt.constExpr as StringLiteralExpr).value);
-  //   }
-  //   bytesBuilder.addByte(type);
-  //   bytesBuilder.add(_uint16(index));
-  //   return bytesBuilder.toBytes();
-  // }
-
   @override
   Uint8List visitVarDecl(VarDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.varDecl);
-    bytesBuilder.add(_parseIdentifier(stmt.id.id));
-    if (stmt.classId != null) {
-      bytesBuilder.addByte(1); // bool: has class id
-      bytesBuilder.add(_parseIdentifier(stmt.classId!));
-    } else {
-      bytesBuilder.addByte(0); // bool: has class id
-    }
-    bytesBuilder.addByte(stmt.isField ? 1 : 0);
-    bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
-    bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
-    bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
-    bytesBuilder.addByte(stmt.lateFinalize ? 1 : 0);
-    bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
-    if (stmt.declType != null) {
-      bytesBuilder.addByte(1); // bool: has type decl
-      final typeDecl = compileAst(stmt.declType!);
-      bytesBuilder.add(typeDecl);
-    } else {
-      bytesBuilder.addByte(0); // bool: has type decl
-    }
-    if (stmt.initializer != null) {
-      bytesBuilder.addByte(1); // bool: has initializer
-      final initializer = compileAst(stmt.initializer!, endOfExec: true);
-      if (stmt.lateInitialize) {
-        bytesBuilder.add(_uint16(stmt.initializer!.line));
-        bytesBuilder.add(_uint16(stmt.initializer!.column));
-        bytesBuilder.add(_uint16(initializer.length));
+    if (stmt.isConst &&
+        stmt.initializer != null &&
+        stmt.initializer!.isConstValue) {
+      final constValue = stmt.initializer!.value;
+      bytesBuilder.addByte(HTOpCode.constDecl);
+      bytesBuilder.add(_parseIdentifier(stmt.id.id));
+      if (stmt.classId != null) {
+        bytesBuilder.addByte(1); // bool: has class id
+        bytesBuilder.add(_parseIdentifier(stmt.classId!));
+      } else {
+        bytesBuilder.addByte(0); // bool: has class id
       }
-      bytesBuilder.add(initializer);
+      late int type, index;
+      if (constValue is bool) {
+        type = HTConstantType.boolean.index;
+        index = _currentConstantTable.addGlobalConstant<bool>(constValue);
+      } else if (constValue is int) {
+        type = HTConstantType.integer.index;
+        index = _currentConstantTable.addGlobalConstant<int>(constValue);
+      } else if (constValue is double) {
+        type = HTConstantType.float.index;
+        index = _currentConstantTable.addGlobalConstant<double>(constValue);
+      } else if (constValue is String) {
+        type = HTConstantType.string.index;
+        index = _currentConstantTable.addGlobalConstant<String>(constValue);
+      }
+      bytesBuilder.addByte(type);
+      bytesBuilder.add(_uint16(index));
     } else {
-      bytesBuilder.addByte(0); // bool: has initializer
+      bytesBuilder.addByte(HTOpCode.varDecl);
+      bytesBuilder.add(_parseIdentifier(stmt.id.id));
+      if (stmt.classId != null) {
+        bytesBuilder.addByte(1); // bool: has class id
+        bytesBuilder.add(_parseIdentifier(stmt.classId!));
+      } else {
+        bytesBuilder.addByte(0); // bool: has class id
+      }
+      bytesBuilder.addByte(stmt.isField ? 1 : 0);
+      bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
+      bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
+      bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
+      bytesBuilder.addByte(stmt.lateFinalize ? 1 : 0);
+      bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
+      if (stmt.declType != null) {
+        bytesBuilder.addByte(1); // bool: has type decl
+        final typeDecl = compileAst(stmt.declType!);
+        bytesBuilder.add(typeDecl);
+      } else {
+        bytesBuilder.addByte(0); // bool: has type decl
+      }
+      if (stmt.initializer != null) {
+        bytesBuilder.addByte(1); // bool: has initializer
+        final initializer = compileAst(stmt.initializer!, endOfExec: true);
+        if (stmt.lateInitialize) {
+          bytesBuilder.add(_uint16(stmt.initializer!.line));
+          bytesBuilder.add(_uint16(stmt.initializer!.column));
+          bytesBuilder.add(_uint16(initializer.length));
+        }
+        bytesBuilder.add(initializer);
+      } else {
+        bytesBuilder.addByte(0); // bool: has initializer
+      }
     }
     bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
@@ -1603,7 +1613,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   Uint8List visitFuncDecl(FuncDecl stmt) {
     // final savedCurFunc = _curFunc;
     final bytesBuilder = BytesBuilder();
-    // TODO: 泛型param
+    // TODO: generic param
     if (stmt.category != FunctionCategory.literal) {
       bytesBuilder.addByte(HTOpCode.funcDecl);
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
@@ -1630,7 +1640,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.addByte(stmt.isField ? 1 : 0);
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
-      bytesBuilder.addByte(stmt.isConst ? 1 : 0);
+      bytesBuilder.addByte(stmt.isConstValue ? 1 : 0);
     } else {
       bytesBuilder.addByte(HTOpCode.local);
       bytesBuilder.addByte(HTValueTypeCode.function);
@@ -1686,7 +1696,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
     bytesBuilder.add(_parseIdentifier(stmt.id.id));
-    // TODO: 泛型param
+    // TODO: generic param
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isAbstract ? 1 : 0);
     bytesBuilder.addByte(stmt.hasUserDefinedConstructor ? 1 : 0);
@@ -1839,7 +1849,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
               initializer.internalName,
               isLocal: false,
             ),
-            value: initializer);
+            fieldValue: initializer);
         node.isStatic ? staticFields.add(field) : fields.add(field);
       } else {
         final varDecl = node as VarDecl;
@@ -1849,7 +1859,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
               varDecl.id.id,
               isLocal: false,
             ),
-            value: initializer);
+            fieldValue: initializer);
         varDecl.isStatic ? staticFields.add(field) : fields.add(field);
       }
       // Other node type is ignored.

@@ -109,3 +109,23 @@ abstract class WhenCaseTypeCode {
   static const eigherEquals = 1;
   static const elementIn = 2;
 }
+
+enum HTConstantType {
+  boolean,
+  integer,
+  float,
+  string,
+}
+
+Type getConstantType(HTConstantType type) {
+  switch (type) {
+    case HTConstantType.boolean:
+      return bool;
+    case HTConstantType.integer:
+      return int;
+    case HTConstantType.float:
+      return double;
+    case HTConstantType.string:
+      return String;
+  }
+}

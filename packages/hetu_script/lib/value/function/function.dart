@@ -144,7 +144,7 @@ class HTFunction extends HTFunctionDeclaration
       HTFunction(internalName, fileName, moduleName, interpreter,
           id: id,
           classId: classId,
-          closure: closure,
+          closure: closure != null ? closure as HTNamespace : null,
           source: source,
           isExternal: isExternal,
           isStatic: isStatic,
@@ -164,7 +164,7 @@ class HTFunction extends HTFunctionDeclaration
           definitionIp: definitionIp,
           definitionLine: definitionLine,
           definitionColumn: definitionColumn,
-          namespace: namespace,
+          namespace: namespace != null ? namespace as HTNamespace : null,
           redirectingConstructor: redirectingConstructor,
           klass: klass);
 
@@ -280,8 +280,13 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         // callClosure is a temporary closure created everytime a function is called
-        final HTNamespace callClosure =
-            HTNamespace(id: internalName, closure: namespace ?? closure);
+        final HTNamespace callClosure = HTNamespace(
+            id: internalName,
+            closure: namespace != null
+                ? namespace as HTNamespace
+                : closure != null
+                    ? closure as HTNamespace
+                    : null);
 
         // define this and super keyword
         if (instance != null) {

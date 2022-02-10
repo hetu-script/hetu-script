@@ -29,7 +29,6 @@ import '../resource/overlay/overlay_context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
-import '../parser/parser.dart';
 import '../shared/constants.dart';
 import '../bytecode/bytecode_module.dart';
 import 'abstract_interpreter.dart';
@@ -40,7 +39,7 @@ import '../value/unresolved_import_statement.dart';
 
 part 'binding/interpreter_binding.dart';
 
-/// Mixin for classes that holds a ref of Interpreter
+/// Mixin for classes that want to hold a ref of a bytecode interpreter
 mixin HetuRef {
   late final Hetu interpreter;
 }
@@ -53,19 +52,17 @@ class _LoopInfo {
   _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
-/// A bytecode implementation of a Hetu script interpreter
+/// A bytecode implementation of Hetu Script interpreter
 class Hetu extends HTAbstractInterpreter {
-  @override
   final stackTrace = <String>[];
 
   final _cachedModules = <String, HTBytecodeModule>{};
 
   late final HTAnalyzer _analyzer;
 
-  @override
   InterpreterConfig config;
 
-  late HTResourceContext<HTSource> _sourceContext;
+  HTResourceContext<HTSource> _sourceContext;
 
   @override
   HTResourceContext<HTSource> get sourceContext => _sourceContext;
@@ -175,8 +172,8 @@ class Hetu extends HTAbstractInterpreter {
   Hetu(
       {HTResourceContext<HTSource>? sourceContext,
       this.config = const InterpreterConfig()})
-      : global = HTNamespace(id: Semantic.global) {
-    _sourceContext = sourceContext ?? HTOverlayContext();
+      : _sourceContext = sourceContext ?? HTOverlayContext(),
+        global = HTNamespace(id: Semantic.global) {
     _analyzer = HTAnalyzer(sourceContext: _sourceContext);
     _namespace = global;
   }
@@ -188,13 +185,11 @@ class Hetu extends HTAbstractInterpreter {
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
   }) {
-    if (config.doStaticAnalyze) {
-      _analyzer.init(
-        externalFunctions: externalFunctions,
-        externalFunctionTypedef: externalFunctionTypedef,
-        externalClasses: externalClasses,
-      );
-    }
+    _analyzer.init(
+      externalFunctions: externalFunctions,
+      externalFunctionTypedef: externalFunctionTypedef,
+      externalClasses: externalClasses,
+    );
     super.init(
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
@@ -358,25 +353,23 @@ class Hetu extends HTAbstractInterpreter {
     try {
       final compileConfig = config ?? this.config;
       final compiler = HTCompiler(config: compileConfig);
-      if (this.config.doStaticAnalyze) {
-        final result = _analyzer.evalSource(source);
-        if (result.errors.isNotEmpty) {
-          for (final error in result.errors) {
-            if (errorHandled) {
-              throw error;
-            } else {
-              handleError(error);
-            }
+      final result = _analyzer.evalSource(source);
+      if (result.syntacticErrors.isNotEmpty) {
+        for (final error in result.syntacticErrors) {
+          if (errorHandled) {
+            throw error;
+          } else {
+            handleError(error);
           }
         }
-        final bytes = compiler.compile(result.compilation);
-        return bytes;
-      } else {
-        final parser = HTParser(context: _sourceContext);
-        final module = parser.parseToModule(source);
-        final bytes = compiler.compile(module);
-        return bytes;
       }
+      if (result.analysisWarnings.isNotEmpty) {
+        print('Hetu analysis warning:');
+        for (final warning in result.analysisWarnings) {
+          print(warning);
+        }
+      }
+      return compiler.compile(result.compilation);
     } catch (error) {
       if (errorHandled) {
         rethrow;
@@ -849,11 +842,10 @@ class Hetu extends HTAbstractInterpreter {
           return _localValue;
         case HTOpCode.endOfFile:
           if (_currentFileResourceType == ResourceType.hetuValue) {
-            final module = HTValueSource(
+            return HTValueSource(
                 id: _fileName,
                 moduleName: _currentBytecodeModule.id,
                 value: _localValue);
-            return module;
           } else {
             return _namespace;
           }
@@ -904,9 +896,9 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.destructuringDecl:
           _handleDestructuringDecl();
           break;
-        // case HTOpCode.constDecl:
-        //   _handleConstDecl();
-        //   break;
+        case HTOpCode.constDecl:
+          _handleConstDecl();
+          break;
         case HTOpCode.namespaceDecl:
           final internalName = _currentBytecodeModule.readShortString();
           String? classId;
@@ -1144,7 +1136,7 @@ class Hetu extends HTAbstractInterpreter {
       if (fromPath != null) {
         final ext = path.extension(fromPath);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
-          // TODO: binary bytes import
+          // TODO: import binary bytes
           final value = _currentBytecodeModule.expressions[fromPath];
           assert(value != null);
           _namespace.define(alias!, HTVariable(alias, value: value));
@@ -1200,7 +1192,9 @@ class Hetu extends HTAbstractInterpreter {
         final interpolationLength = _currentBytecodeModule.read();
         for (var i = 0; i < interpolationLength; ++i) {
           final value = execute();
-          literal = literal.replaceAll('{$i}', value.toString());
+          literal = literal.replaceAll(
+              '${HTLexicon.bracesLeft}$i${HTLexicon.bracesRight}',
+              value.toString());
         }
         _localValue = literal;
         break;
@@ -1712,25 +1706,25 @@ class Hetu extends HTAbstractInterpreter {
     _clearLocals();
   }
 
-  // void _handleConstDecl() {
-  //   final id = _currentBytecodeModule.readShortString();
-  //   String? classId;
-  //   final hasClassId = _currentBytecodeModule.readBool();
-  //   if (hasClassId) {
-  //     classId = _currentBytecodeModule.readShortString();
-  //   }
-  //   final typeIndex = _currentBytecodeModule.read();
-  //   final type = HTConstantType.values.elementAt(typeIndex);
-  //   final index = _currentBytecodeModule.readInt16();
-  //   final decl = HTConstantValue(
-  //       id: id,
-  //       type: getConstantType(type),
-  //       index: index,
-  //       classId: classId,
-  //       module: _currentBytecodeModule);
-  //   _namespace.define(id, decl);
-  //   _clearLocals();
-  // }
+  void _handleConstDecl() {
+    final id = _currentBytecodeModule.readShortString();
+    String? classId;
+    final hasClassId = _currentBytecodeModule.readBool();
+    if (hasClassId) {
+      classId = _currentBytecodeModule.readShortString();
+    }
+    final typeIndex = _currentBytecodeModule.read();
+    final type = HTConstantType.values.elementAt(typeIndex);
+    final index = _currentBytecodeModule.readInt16();
+    final decl = HTConstantValue(
+        id: id,
+        type: getConstantType(type),
+        index: index,
+        classId: classId,
+        module: _currentBytecodeModule);
+    _namespace.define(id, decl);
+    _clearLocals();
+  }
 
   void _handleVarDecl() {
     final id = _currentBytecodeModule.readShortString();

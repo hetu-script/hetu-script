@@ -63,9 +63,7 @@ class HTParser extends HTAbstractParser {
 
   HTSource? _currentSource;
 
-  final _cachedParseResults = <String, AstSource>{};
-
-  final Set<String> _cachedRecursiveParsingTargets = {};
+  // final _cachedParseResults = <String, AstSource>{};
 
   @override
   final HTResourceContext<HTSource> sourceContext;
@@ -144,16 +142,16 @@ class HTParser extends HTAbstractParser {
     final parserErrors = result.errors!;
     final values = <String, AstSource>{};
     final sources = <String, AstSource>{};
-
+    final Set _cachedParsingTargets = <String>{};
     void handleImport(AstSource result) {
-      _cachedRecursiveParsingTargets.add(result.fullName);
+      _cachedParsingTargets.add(result.fullName);
       for (final decl in result.imports) {
         if (decl.isPreloadedModule) {
           decl.fullName = decl.fromPath;
           continue;
         }
         try {
-          late final AstSource importUnit;
+          late final AstSource importedSource;
           final currentDir =
               result.fullName.startsWith(Semantic.anonymousScript)
                   ? sourceContext.root
@@ -161,21 +159,23 @@ class HTParser extends HTAbstractParser {
           final importFullName = sourceContext.getAbsolutePath(
               key: decl.fromPath!, dirName: currentDir);
           decl.fullName = importFullName;
-          if (_cachedRecursiveParsingTargets.contains(importFullName)) {
+          if (_cachedParsingTargets.contains(importFullName)) {
             continue;
-          } else if (_cachedParseResults.containsKey(importFullName)) {
-            importUnit = _cachedParseResults[importFullName]!;
-          } else {
-            final source2 = sourceContext.getResource(importFullName);
-            importUnit = parseSource(source2);
-            parserErrors.addAll(importUnit.errors!);
-            _cachedParseResults[importFullName] = importUnit;
           }
-          if (importUnit.resourceType == ResourceType.hetuValue) {
-            values[importFullName] = importUnit;
+          // else if (_cachedParseResults.containsKey(importFullName)) {
+          //   importedSource = _cachedParseResults[importFullName]!;
+          // }
+          else {
+            final source2 = sourceContext.getResource(importFullName);
+            importedSource = parseSource(source2);
+            parserErrors.addAll(importedSource.errors!);
+            // _cachedParseResults[importFullName] = importedSource;
+          }
+          if (importedSource.resourceType == ResourceType.hetuValue) {
+            values[importFullName] = importedSource;
           } else {
-            handleImport(importUnit);
-            sources[importFullName] = importUnit;
+            handleImport(importedSource);
+            sources[importFullName] = importedSource;
           }
         } catch (error) {
           final convertedError = HTError.sourceProviderError(decl.fromPath!,
@@ -187,7 +187,7 @@ class HTParser extends HTAbstractParser {
           parserErrors.add(convertedError);
         }
       }
-      _cachedRecursiveParsingTargets.remove(result.fullName);
+      _cachedParsingTargets.remove(result.fullName);
     }
 
     if (result.resourceType == ResourceType.hetuValue) {
@@ -347,7 +347,7 @@ class HTParser extends HTAbstractParser {
                 stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
                 break;
               case HTLexicon.kConst:
-                stmt = _parseVarDecl(isTopLevel: true);
+                stmt = _parseVarDecl(isConst: true, isTopLevel: true);
                 break;
               case HTLexicon.kFun:
                 if (expect([HTLexicon.kFun, Semantic.identifier]) ||
@@ -1189,7 +1189,7 @@ class HTParser extends HTAbstractParser {
     return stmt;
   }
 
-  /// Recursive descent parsing technique
+  /// Recursive descent parsing
   ///
   /// Assignment operator =, precedence 1, associativity right
   AstNode _parseExpr() {
@@ -1787,7 +1787,7 @@ class HTParser extends HTAbstractParser {
             length: token.length);
       case Semantic.stringInterpolation:
         final token = advance() as TokenStringInterpolation;
-        final interpolation = <AstNode>[];
+        final interpolations = <AstNode>[];
         for (final tokens in token.interpolations) {
           final exprParser = HTParser(context: sourceContext);
           final nodes = exprParser.parseToken(tokens,
@@ -1806,7 +1806,7 @@ class HTParser extends HTAbstractParser {
                 line: token.line,
                 column: token.column,
                 offset: token.offset);
-            interpolation.add(errNode);
+            interpolations.add(errNode);
           } else {
             // parser will at least insert a empty line astnode
             if (nodes.first is EmptyExpr) {
@@ -1820,17 +1820,17 @@ class HTParser extends HTAbstractParser {
                       HTLexicon.stringInterpolationEnd.length);
               errors?.add(err);
             }
-            interpolation.add(nodes.first);
+            interpolations.add(nodes.first);
           }
         }
         var i = 0;
-        final value = token.literal.replaceAllMapped(
+        final text = token.literal.replaceAllMapped(
             RegExp(HTLexicon.stringInterpolationPattern),
             (Match m) =>
                 '${HTLexicon.bracesLeft}${i++}${HTLexicon.bracesRight}');
         _leftValueLegality = false;
         return StringInterpolationExpr(
-            value, token.quotationLeft, token.quotationRight, interpolation,
+            text, token.quotationLeft, token.quotationRight, interpolations,
             source: _currentSource,
             line: token.line,
             column: token.column,
@@ -1988,7 +1988,7 @@ class HTParser extends HTAbstractParser {
     // function type
     if (curTok.type == HTLexicon.parenthesesLeft) {
       final startTok = advance();
-      // TODO: genericTypeParameters 泛型参数
+      // TODO: generic parameters
       final parameters = <ParamTypeExpr>[];
       var isOptional = false;
       var isNamed = false;
@@ -2238,7 +2238,7 @@ class HTParser extends HTAbstractParser {
     }
     final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     return ReturnStmt(keyword,
-        value: expr,
+        returnValue: expr,
         source: _currentSource,
         hasEndOfStmtMark: hasEndOfStmtMark,
         line: keyword.line,
@@ -2802,10 +2802,15 @@ class HTParser extends HTAbstractParser {
     }
     AstNode? initializer;
     if (!lateFinalize) {
-      if (expect([HTLexicon.assign], consume: true)) {
+      if (isConst) {
+        match(HTLexicon.assign);
         initializer = _parseExpr();
       } else {
-        initializer = additionalInitializer;
+        if (expect([HTLexicon.assign], consume: true)) {
+          initializer = _parseExpr();
+        } else {
+          initializer = additionalInitializer;
+        }
       }
     }
     bool hasEndOfStmtMark = hasEndOfStatement;
@@ -3373,7 +3378,7 @@ class HTParser extends HTAbstractParser {
                 isLocal: false,
                 source: _currentSource,
               ),
-              value: id);
+              fieldValue: id);
         } else {
           match(HTLexicon.colon);
           final value = _parseExpr();
@@ -3383,7 +3388,7 @@ class HTParser extends HTAbstractParser {
                 isLocal: false,
                 source: _currentSource,
               ),
-              value: value);
+              fieldValue: value);
         }
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
@@ -3396,7 +3401,7 @@ class HTParser extends HTAbstractParser {
       } else if (curTok.type == HTLexicon.spreadSyntax) {
         advance();
         final value = _parseExpr();
-        final field = StructObjField(value: value, isSpread: true);
+        final field = StructObjField(fieldValue: value, isSpread: true);
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }

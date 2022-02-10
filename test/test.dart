@@ -4,7 +4,8 @@ void main() {
   var hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-    const a = (){}
-    print(typeof a)
+        final a = 42
+        const b = a
+        print(b)
   ''');
 }
