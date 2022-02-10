@@ -5,7 +5,7 @@ import 'global_constant_table.dart';
 /// A interpreter that computes the constant value before compilation.
 /// If the AstNode provided is non-constant value, return null.
 class HTConstantInterpreter implements AbstractAstVisitor<dynamic> {
-  HTGlobalConstantTable compute(AstCompilationUnit parseResult) {
+  HTGlobalConstantTable compute(AstSource parseResult) {
     final result = HTGlobalConstantTable();
 
     return result;
@@ -17,7 +17,7 @@ class HTConstantInterpreter implements AbstractAstVisitor<dynamic> {
   dynamic visitCompilation(AstCompilation node) => null;
 
   @override
-  dynamic visitCompilationUnit(AstCompilationUnit node) => null;
+  dynamic visitCompilationUnit(AstSource node) => null;
 
   @override
   dynamic visitEmptyExpr(EmptyExpr node) => null;

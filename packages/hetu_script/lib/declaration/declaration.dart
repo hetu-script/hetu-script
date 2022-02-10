@@ -4,17 +4,14 @@ import '../grammar/lexicon.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
 // import '../type/type.dart';
-import '../value/namespace/namespace.dart';
+import 'namespace/declaration_namespace.dart';
 
 /// Declaration is a semantic entity in the program that
 /// represents things that are declared with a name
 /// and hence can be referenced elsewhere in the code.
 ///
 /// Declaration is not necessarily exists in actual source,
-/// and is not necessarily exists in compiled bytecode
 /// some declaration are generated purely for analysis purpose.
-///
-/// Declaration's value may need to be resolved before first use.
 abstract class HTDeclaration {
   final String? id;
 
@@ -28,7 +25,7 @@ abstract class HTDeclaration {
 
   final String? classId;
 
-  final HTNamespace? closure;
+  final HTDeclarationNamespace? closure;
 
   final HTSource? source;
 

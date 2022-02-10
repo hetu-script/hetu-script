@@ -9,6 +9,8 @@ import '../value/function/function.dart';
 import '../value/class/class.dart';
 import 'external_class.dart';
 import '../value/external_enum/external_enum.dart';
+import '../interpreter/interpreter.dart';
+import '../declaration/class/class_declaration.dart';
 
 /// Class for external object.
 class HTExternalInstance<T> with HTEntity, InterpreterRef {
@@ -20,7 +22,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
   final String typeString;
   late final HTExternalClass? externalClass;
 
-  HTClass? klass;
+  HTClassDeclaration? klass;
 
   HTExternalEnum? enumClass;
 
@@ -35,9 +37,10 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
       externalClass = null;
     }
 
-    final def =
-        interpreter.namespace.memberGet(id, recursive: true, error: false);
-    if (def is HTClass) {
+    final def = (interpreter as Hetu)
+        .namespace
+        .memberGet(id, recursive: true, error: false);
+    if (def is HTClassDeclaration) {
       klass = def;
     } else if (def is HTExternalEnum) {
       enumClass = def;
@@ -54,7 +57,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
     if (externalClass != null) {
       final member = externalClass!.instanceMemberGet(externalObject, varName);
       if (member is Function && klass != null) {
-        HTClass? currentKlass = klass!;
+        HTClass? currentKlass = klass! as HTClass;
         HTFunction? func;
         while (func == null && currentKlass != null) {
           func = currentKlass.memberGet(varName, error: false);

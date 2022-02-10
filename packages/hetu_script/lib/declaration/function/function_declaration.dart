@@ -7,7 +7,7 @@ import '../../type/function_type.dart';
 import '../../source/source.dart';
 import '../type/abstract_type_declaration.dart';
 import '../declaration.dart';
-import '../../value/namespace/namespace.dart';
+import '../namespace/declaration_namespace.dart';
 import 'abstract_parameter.dart';
 import '../generic/generic_type_parameter.dart';
 import '../../value/entity.dart';
@@ -58,7 +58,7 @@ class HTFunctionDeclaration extends HTDeclaration
 
   final int maxArity;
 
-  HTNamespace? namespace;
+  HTDeclarationNamespace? namespace;
 
   HTEntity? instance;
 
@@ -69,7 +69,7 @@ class HTFunctionDeclaration extends HTDeclaration
   HTFunctionDeclaration(this.internalName,
       {String? id,
       String? classId,
-      HTNamespace? closure,
+      HTDeclarationNamespace? closure,
       HTSource? source,
       bool isExternal = false,
       bool isStatic = false,

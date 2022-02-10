@@ -1,4 +1,4 @@
-import '../value/namespace/namespace.dart';
+import '../declaration/namespace/declaration_namespace.dart';
 import '../lexer/token.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
@@ -50,7 +50,7 @@ abstract class AstNode {
   int get end => offset + length;
 
   /// This value is null untill assigned by an analyzer
-  HTNamespace? analysisNamespace;
+  HTDeclarationNamespace? analysisNamespace;
 
   /// This value is null untill assigned by an analyzer
   HTDeclaration? declaration;
@@ -84,9 +84,9 @@ class AstCompilation extends AstNode {
     }
   }
 
-  final Map<String, AstCompilationUnit> values;
+  final Map<String, AstSource> values;
 
-  final Map<String, AstCompilationUnit> sources;
+  final Map<String, AstSource> sources;
 
   final ResourceType entryResourceType;
 
@@ -121,7 +121,7 @@ class AstCompilation extends AstNode {
 }
 
 /// The parse result of a single file
-class AstCompilationUnit extends AstNode {
+class AstSource extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) =>
       visitor.visitCompilationUnit(this);
@@ -148,7 +148,7 @@ class AstCompilationUnit extends AstNode {
   @override
   bool get isExpression => false;
 
-  AstCompilationUnit(
+  AstSource(
       {required this.nodes,
       required HTSource source,
       this.imports = const [],

@@ -10,7 +10,7 @@ part of '../ast.dart';
 abstract class AbstractAstVisitor<T> {
   T? visitCompilation(AstCompilation node) {}
 
-  T? visitCompilationUnit(AstCompilationUnit node) {}
+  T? visitCompilationUnit(AstSource node) {}
 
   T? visitEmptyExpr(EmptyExpr node) {}
 

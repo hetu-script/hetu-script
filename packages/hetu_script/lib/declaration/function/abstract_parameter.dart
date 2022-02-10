@@ -1,6 +1,8 @@
 import '../../type/type.dart';
 import '../declaration.dart';
 
+/// A interface shared by parameter declaration and parameter
+/// this is to fix mulitple inheritance issue.
 abstract class HTAbstractParameter implements HTDeclaration {
   bool get isOptional;
 

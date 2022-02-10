@@ -4,7 +4,7 @@ import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
 import '../type/type.dart';
 // import '../declaration/generic/generic_type_parameter.dart';
-import '../value/namespace/namespace.dart';
+import '../declaration/namespace/declaration_namespace.dart';
 import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
@@ -48,11 +48,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   int get column => _curColumn;
 
   @override
-  final HTNamespace global;
+  final HTDeclarationNamespace global;
 
-  late HTNamespace _curNamespace;
-  @override
-  HTNamespace get namespace => _curNamespace;
+  late HTDeclarationNamespace _curNamespace;
 
   late HTSource _curSource;
   @override
@@ -64,22 +62,17 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   // HTFunctionDeclaration? _curFunction;
 
   /// Errors of a single file
-  final _curErrors = <HTAnalysisError>[];
-
-  /// Errors of an analyis context.
-  final errors = <HTAnalysisError>[];
+  late List<HTAnalysisError>? _curErrors;
 
   // late HTTypeChecker _curTypeChecker;
-
-  late AstCompilation compilation;
 
   @override
   HTResourceContext<HTSource> sourceContext;
 
-  final analyzedDeclarations = <String, HTNamespace>{};
+  final analyzedDeclarations = <String, HTDeclarationNamespace>{};
 
   HTAnalyzer({HTResourceContext<HTSource>? sourceContext})
-      : global = HTNamespace(id: Semantic.global),
+      : global = HTDeclarationNamespace(id: Semantic.global),
         sourceContext = sourceContext ?? HTOverlayContext() {
     _curNamespace = global;
   }
@@ -110,7 +103,6 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   @override
   HTModuleAnalysisResult evalSource(HTSource source,
       {String? moduleName,
-      HTNamespace? namespace,
       bool globallyImport = false,
       bool isStrictMode = false,
       String? invokeFunc, // ignored in analyzer
@@ -119,35 +111,45 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       List<HTType> typeArgs = const [], // ignored in analyzer
       bool errorHandled = false // ignored in analyzer
       }) {
-    errors.clear();
     _curSource = source;
+    final errors = <HTAnalysisError>[];
     final parser = HTParser(context: sourceContext);
-    compilation = parser.parseToModule(source);
-    final results = <String, HTModuleAnalysisResult>{};
-    for (final result in compilation.sources.values) {
-      _curErrors.clear();
-      final analysisErrors =
-          result.errors?.map((err) => HTAnalysisError.fromError(err)).toList();
-      _curErrors.addAll(analysisErrors!);
-      _curNamespace = HTNamespace(id: result.fullName, closure: global);
-      for (final node in result.nodes) {
+    final compilation = parser.parseToModule(source);
+    final Map<String, HTSourceAnalysisResult> sourceAnalysisResults = {};
+    for (final parseResult in compilation.sources.values) {
+      _curErrors = <HTAnalysisError>[];
+      final analysisErrors = parseResult.errors
+          ?.map((err) => HTAnalysisError.fromError(err))
+          .toList();
+      _curErrors!.addAll(analysisErrors!);
+      _curNamespace =
+          HTDeclarationNamespace(id: parseResult.fullName, closure: global);
+      for (final node in parseResult.nodes) {
         analyzeAst(node);
       }
-      final moduleAnalysisResult =
-          HTModuleAnalysisResult(result, this, analysisErrors, _curNamespace);
-      results[moduleAnalysisResult.fullName] = moduleAnalysisResult;
-      errors.addAll(_curErrors);
+      final sourceAnalysisResult = HTSourceAnalysisResult(
+          parseResult: parseResult,
+          analyzer: this,
+          errors: _curErrors!,
+          namespace: _curNamespace);
+      sourceAnalysisResults[sourceAnalysisResult.fullName] =
+          sourceAnalysisResult;
+      errors.addAll(_curErrors!);
+      _curErrors = null;
     }
-    final result = results[source.fullName]!;
     if (globallyImport) {
-      global.import(result.namespace);
+      global.import(sourceAnalysisResults.values.last.namespace);
     }
     // walk through ast again to set each symbol's declaration referrence.
     // final visitor = _OccurrencesVisitor();
     // for (final node in result.parseResult.nodes) {
     //   node.accept(visitor);
     // }
-    return result;
+    return HTModuleAnalysisResult(
+      sourceAnalysisResults: sourceAnalysisResults,
+      errors: errors,
+      compilation: compilation,
+    );
   }
 
   void analyzeAst(AstNode node) {
@@ -158,7 +160,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   void visitCompilation(AstCompilation node) {}
 
   @override
-  void visitCompilationUnit(AstCompilationUnit node) {}
+  void visitCompilationUnit(AstSource node) {}
 
   @override
   void visitEmptyExpr(EmptyExpr expr) {}

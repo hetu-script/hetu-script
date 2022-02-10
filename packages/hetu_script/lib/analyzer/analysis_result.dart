@@ -1,12 +1,12 @@
-import '../value/namespace/namespace.dart';
+import '../declaration/namespace/declaration_namespace.dart';
 import '../source/source.dart';
 import '../source/line_info.dart';
 import '../ast/ast.dart';
 import 'analyzer.dart';
 import 'analysis_error.dart';
 
-class HTModuleAnalysisResult {
-  final AstCompilationUnit parseResult;
+class HTSourceAnalysisResult {
+  final AstSource parseResult;
 
   HTSource get source => parseResult.source!;
 
@@ -18,8 +18,26 @@ class HTModuleAnalysisResult {
 
   final List<HTAnalysisError> errors;
 
-  final HTNamespace namespace;
+  final HTDeclarationNamespace namespace;
 
-  HTModuleAnalysisResult(
-      this.parseResult, this.analyzer, this.errors, this.namespace);
+  HTSourceAnalysisResult({
+    required this.parseResult,
+    required this.analyzer,
+    required this.errors,
+    required this.namespace,
+  });
+}
+
+class HTModuleAnalysisResult {
+  final Map<String, HTSourceAnalysisResult> sourceAnalysisResults;
+
+  final List<HTAnalysisError> errors;
+
+  final AstCompilation compilation;
+
+  HTModuleAnalysisResult({
+    required this.sourceAnalysisResults,
+    required this.errors,
+    required this.compilation,
+  });
 }

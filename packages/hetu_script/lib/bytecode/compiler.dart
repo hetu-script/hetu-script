@@ -77,7 +77,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     // index: ResourceType
     mainBytesBuilder.addByte(compilation.entryResourceType.index);
     final bytesBuilder = BytesBuilder();
-    void compileSource(AstCompilationUnit result) {
+    void compileSource(AstSource result) {
       bytesBuilder.addByte(HTOpCode.file);
       // if the relativeName is null then it is the entry file of this module.
       bytesBuilder.add(_parseIdentifier(result.fullName));
@@ -305,7 +305,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitCompilationUnit(AstCompilationUnit node) {
+  Uint8List visitCompilationUnit(AstSource node) {
     return Uint8List(0);
   }
 
