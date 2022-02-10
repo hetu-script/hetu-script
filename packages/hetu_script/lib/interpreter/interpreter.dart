@@ -89,7 +89,6 @@ class Hetu extends HTAbstractInterpreter {
   final HTNamespace global;
 
   late HTNamespace _namespace;
-  @override
   HTNamespace get namespace => _namespace;
 
   String _fileName = '';
@@ -360,9 +359,9 @@ class Hetu extends HTAbstractInterpreter {
       final compileConfig = config ?? this.config;
       final compiler = HTCompiler(config: compileConfig);
       if (this.config.doStaticAnalyze) {
-        _analyzer.evalSource(source);
-        if (_analyzer.errors.isNotEmpty) {
-          for (final error in _analyzer.errors) {
+        final result = _analyzer.evalSource(source);
+        if (result.errors.isNotEmpty) {
+          for (final error in result.errors) {
             if (errorHandled) {
               throw error;
             } else {
@@ -370,7 +369,7 @@ class Hetu extends HTAbstractInterpreter {
             }
           }
         }
-        final bytes = compiler.compile(_analyzer.compilation);
+        final bytes = compiler.compile(result.compilation);
         return bytes;
       } else {
         final parser = HTParser(context: _sourceContext);

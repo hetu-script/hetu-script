@@ -2,7 +2,7 @@ import 'package:quiver/core.dart';
 
 import '../grammar/lexicon.dart';
 import '../value/entity.dart';
-import '../value/namespace/namespace.dart';
+import '../declaration/namespace/declaration_namespace.dart';
 import 'unresolved_type.dart';
 import '../ast/ast.dart' show TypeExpr, FuncTypeExpr;
 import 'function_type.dart';
@@ -37,7 +37,7 @@ abstract class HTType with HTEntity {
 
   bool get isResolved => true;
 
-  HTType resolve(HTNamespace namespace) => this;
+  HTType resolve(HTDeclarationNamespace namespace) => this;
 
   @override
   HTType get valueType => HTType.type;

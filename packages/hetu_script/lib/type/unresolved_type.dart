@@ -1,6 +1,6 @@
 import '../error/error.dart';
 import '../declaration/class/class_declaration.dart';
-import '../value/namespace/namespace.dart';
+import '../declaration/namespace/declaration_namespace.dart';
 import '../declaration/type/abstract_type_declaration.dart';
 import '../declaration/type/type_alias_declaration.dart';
 import 'function_type.dart';
@@ -19,7 +19,7 @@ class HTUnresolvedType extends HTType {
       : super(id, typeArgs: typeArgs, isNullable: isNullable);
 
   @override
-  HTType resolve(HTNamespace namespace) {
+  HTType resolve(HTDeclarationNamespace namespace) {
     if (HTType.primitiveTypes.containsKey(id)) {
       return HTType.primitiveTypes[id]!;
     } else {

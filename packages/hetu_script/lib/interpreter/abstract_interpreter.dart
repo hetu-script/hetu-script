@@ -14,7 +14,7 @@ import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
 import '../type/type.dart';
 import '../value/function/function.dart';
-import '../value/namespace/namespace.dart';
+import '../declaration/namespace/declaration_namespace.dart';
 import '../parser/abstract_parser.dart';
 import '../value/entity.dart';
 import '../bytecode/compiler.dart';
@@ -76,13 +76,11 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   /// Current column number of execution.
   int get column;
 
-  HTNamespace get namespace;
-
   String get fileName;
 
   HTResourceContext<HTSource> get sourceContext;
 
-  HTNamespace get global;
+  HTDeclarationNamespace get global;
 
   /// Initialize the interpreter,
   /// prepare it with preincluded modules,

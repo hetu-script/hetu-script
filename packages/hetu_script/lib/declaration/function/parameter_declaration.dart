@@ -1,6 +1,6 @@
 import '../../type/type.dart';
 import '../../source/source.dart';
-import '../../value/namespace/namespace.dart';
+import '../namespace/declaration_namespace.dart';
 import '../variable/variable_declaration.dart';
 import 'abstract_parameter.dart';
 
@@ -17,7 +17,7 @@ class HTParameterDeclaration extends HTVariableDeclaration
 
   /// Create a standard [HTParameter].
   HTParameterDeclaration(String id,
-      {HTNamespace? closure,
+      {HTDeclarationNamespace? closure,
       HTSource? source,
       HTType? declType,
       this.isOptional = false,

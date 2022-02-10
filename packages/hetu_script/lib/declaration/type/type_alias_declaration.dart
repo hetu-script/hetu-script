@@ -2,7 +2,7 @@ import '../../source/source.dart';
 import '../../type/type.dart';
 import '../generic/generic_type_parameter.dart';
 import '../declaration.dart';
-import '../../value/namespace/namespace.dart';
+import '../namespace/declaration_namespace.dart';
 import 'abstract_type_declaration.dart';
 
 /// Similar to variable, but the value is a type.
@@ -27,7 +27,7 @@ class HTTypeAliasDeclaration extends HTDeclaration
 
   HTTypeAliasDeclaration(String id, HTType declType,
       {String? classId,
-      HTNamespace? closure,
+      HTDeclarationNamespace? closure,
       HTSource? source,
       this.genericTypeParameters = const [],
       bool isExternal = false,

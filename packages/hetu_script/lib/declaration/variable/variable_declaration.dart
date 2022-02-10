@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 import '../../source/source.dart';
 import '../../type/type.dart';
 import '../declaration.dart';
-import '../../value/namespace/namespace.dart';
+import '../namespace/declaration_namespace.dart';
 
 class HTVariableDeclaration extends HTDeclaration {
   final HTType? _declType;
@@ -23,7 +23,7 @@ class HTVariableDeclaration extends HTDeclaration {
 
   HTVariableDeclaration(String id,
       {String? classId,
-      HTNamespace? closure,
+      HTDeclarationNamespace? closure,
       HTSource? source,
       HTType? declType,
       bool isExternal = false,

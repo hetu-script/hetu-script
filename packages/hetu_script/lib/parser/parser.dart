@@ -63,7 +63,7 @@ class HTParser extends HTAbstractParser {
 
   HTSource? _currentSource;
 
-  final _cachedParseResults = <String, AstCompilationUnit>{};
+  final _cachedParseResults = <String, AstSource>{};
 
   final Set<String> _cachedRecursiveParsingTargets = {};
 
@@ -122,14 +122,14 @@ class HTParser extends HTAbstractParser {
     return nodes;
   }
 
-  AstCompilationUnit parseSource(HTSource source) {
+  AstSource parseSource(HTSource source) {
     _currrentFileName = source.fullName;
     _currentClass = null;
     _currentFunctionCategory = null;
     _currentModuleImports = <ImportExportDecl>[];
     final tokens = HTLexer().lex(source.content);
     final nodes = parseToken(tokens, source: source);
-    final result = AstCompilationUnit(
+    final result = AstSource(
         nodes: nodes,
         source: source,
         imports: _currentModuleImports,
@@ -142,10 +142,10 @@ class HTParser extends HTAbstractParser {
   AstCompilation parseToModule(HTSource entry) {
     final result = parseSource(entry);
     final parserErrors = result.errors!;
-    final values = <String, AstCompilationUnit>{};
-    final sources = <String, AstCompilationUnit>{};
+    final values = <String, AstSource>{};
+    final sources = <String, AstSource>{};
 
-    void handleImport(AstCompilationUnit result) {
+    void handleImport(AstSource result) {
       _cachedRecursiveParsingTargets.add(result.fullName);
       for (final decl in result.imports) {
         if (decl.isPreloadedModule) {
@@ -153,7 +153,7 @@ class HTParser extends HTAbstractParser {
           continue;
         }
         try {
-          late final AstCompilationUnit importUnit;
+          late final AstSource importUnit;
           final currentDir =
               result.fullName.startsWith(Semantic.anonymousScript)
                   ? sourceContext.root

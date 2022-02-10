@@ -73,7 +73,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return result;
   }
 
-  void formatSource(AstCompilationUnit result, {FormatterConfig? config}) {
+  void formatSource(AstSource result, {FormatterConfig? config}) {
     result.source!.content = format(result.nodes, config: config);
   }
 
@@ -94,7 +94,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitCompilationUnit(AstCompilationUnit node) {
+  String visitCompilationUnit(AstSource node) {
     return '';
   }
 

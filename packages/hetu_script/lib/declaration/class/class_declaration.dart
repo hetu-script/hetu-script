@@ -1,9 +1,10 @@
 import 'package:meta/meta.dart';
 
+import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../source/source.dart';
 import '../../grammar/semantic.dart';
-import '../../value/namespace/namespace.dart';
+import '../namespace/declaration_namespace.dart';
 import '../declaration.dart';
 import '../type/abstract_type_declaration.dart';
 import '../generic/generic_type_parameter.dart';
@@ -11,6 +12,9 @@ import '../generic/generic_type_parameter.dart';
 class HTClassDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
   String get name => id ?? Semantic.anonymousClass;
+
+  @override
+  String toString() => '${HTLexicon.kClass} $name';
 
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;
@@ -44,7 +48,7 @@ class HTClassDeclaration extends HTDeclaration
   HTClassDeclaration(
       {String? id,
       String? classId,
-      HTNamespace? closure,
+      HTDeclarationNamespace? closure,
       HTSource? source,
       this.genericTypeParameters = const [],
       HTType? superType,

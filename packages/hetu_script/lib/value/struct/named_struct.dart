@@ -52,7 +52,6 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
           namedArgs: namedArgs,
           construct: false);
     }
-    // TODO: even if there's none constructor, you can still create a struct through the named arguments
     return structObj;
   }
 

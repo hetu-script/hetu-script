@@ -18,9 +18,7 @@ class HTAnalysisManager {
 
   final _pathsToAnalyzer = <String, HTAnalyzer>{};
 
-  final _analysisResults = <String, HTModuleAnalysisResult>{};
-
-  final _parseResults = <String, AstCompilationUnit>{};
+  final _cachedSourceAnalysisResults = <String, HTSourceAnalysisResult>{};
 
   Iterable<String> get pathsToAnalyze => _pathsToAnalyzer.keys;
 
@@ -35,20 +33,17 @@ class HTAnalysisManager {
     };
   }
 
-  AstCompilationUnit? getParseResult(String fullName) {
+  AstSource? getParseResult(String fullName) {
     // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
-    return _parseResults[fullName];
+    return _cachedSourceAnalysisResults[fullName]!.parseResult;
   }
 
-  HTModuleAnalysisResult analyze(String fullName) {
+  HTSourceAnalysisResult analyze(String fullName) {
     // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     final analyzer = _pathsToAnalyzer[fullName]!;
     final source = sourceContextManager.getResource(fullName)!;
     final result = analyzer.evalSource(source);
-    for (final result in analyzer.compilation.sources.values) {
-      _parseResults[result.fullName] = result;
-    }
-    _analysisResults[fullName] = result;
-    return result;
+    _cachedSourceAnalysisResults.addAll(result.sourceAnalysisResults);
+    return result.sourceAnalysisResults.values.last;
   }
 }

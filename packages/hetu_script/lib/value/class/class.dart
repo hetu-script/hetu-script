@@ -16,9 +16,6 @@ import 'class_namespace.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
-  @override
-  String toString() => '${HTLexicon.kClass} $id';
-
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
 
