@@ -3,7 +3,7 @@
 - Added destructuring declaration: 'var { a, b } = { a: 1, b: 2 }; var [ _, x, y ] = [ 1, 2, 3 ]'.
 - Added '\_' syntax to omit function parameters or to omit positional value in destructuring declarations.
 - Added 'throw' statement to throw a error within the script. (It has to be handled within Dart code).
-- Added import syntax for pre-compiled binary module. "import 'modules:module-name'".
+- Added import syntax for pre-compiled binary module. "import 'module:module-name'".
 
 ## 0.3.11
 

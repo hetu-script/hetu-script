@@ -39,7 +39,7 @@ function hello() -> any // repl print
 
 ## Run
 
-Run a Hetu source file on your disk.
+Run a Hetu source file on your disk. The file could be a script source or a compiled bytecode.
 
 ```
 run [path]
@@ -47,17 +47,16 @@ run [path]
 
 ## Format
 
-Format a Hetu source file on your disk. You can either just print out to test the function. Or to export the result and save to file.
+Format a Hetu source file on your disk and save the result to file.
 
 ```
 hetu format [path] [option]
-      --print(-p)
       --out(-o) [outpath]
 ```
 
 ## Analyze
 
-Analyze a Hetu source file on your disk.
+Analyze a Hetu source file on your disk. List all warnings and errors.
 
 ```
 analyze [path]
@@ -65,7 +64,7 @@ analyze [path]
 
 ## Compile
 
-Compile a Hetu source file on your disk.
+Compile a Hetu source file on your disk into bytecode.
 
 ```
 compile [path] [output_path] [option]

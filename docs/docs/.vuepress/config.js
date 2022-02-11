@@ -102,7 +102,7 @@ module.exports = {
             },
             {
               text: 'Import & export',
-              link: '/docs/en-US/syntax/module/',
+              link: '/docs/en-US/syntax/import/',
             },
             {
               text: 'Strict mode',
@@ -133,8 +133,8 @@ module.exports = {
               link: '/docs/en-US/installation/',
             },
             {
-              text: 'Resource & Module',
-              link: '/docs/en-US/module/',
+              text: 'Package & Module',
+              link: '/docs/en-US/package/',
             },
             {
               text: 'Communicating with Dart',
