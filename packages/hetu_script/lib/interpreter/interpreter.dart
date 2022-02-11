@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:hetu_script/type/structural_type.dart';
 import 'package:path/path.dart' as path;
 
 import '../binding/external_function.dart';
@@ -20,6 +19,7 @@ import '../type/type.dart';
 import '../type/unresolved_type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
+import '../type/structural_type.dart';
 import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
@@ -36,6 +36,8 @@ import '../bytecode/compiler.dart';
 import 'preincludes/preinclude_module.dart';
 import '../version.dart';
 import '../value/unresolved_import_statement.dart';
+import '../error/error_severity.dart';
+import '../binding/external_instance.dart';
 
 part 'binding/interpreter_binding.dart';
 
@@ -74,26 +76,22 @@ class Hetu extends HTAbstractInterpreter {
   @override
   ErrorHandlerConfig get errorConfig => config;
 
-  var _line = 0;
-  @override
-  int get line => _line;
+  var _currentLine = 0;
+  int get currentLine => _currentLine;
 
   var _column = 0;
-  @override
-  int get column => _column;
+  int get currentColumn => _column;
 
-  @override
-  final HTNamespace global;
+  final HTNamespace globalNamespace;
 
-  late HTNamespace _namespace;
-  HTNamespace get namespace => _namespace;
+  late HTNamespace _currentNamespace;
+  HTNamespace get currentNamespace => _currentNamespace;
 
-  String _fileName = '';
-  @override
-  String get fileName => _fileName;
+  String _currentFileName = '';
+  String get currentFileName => _currentFileName;
 
   bool _isModuleEntryScript = false;
-  late ResourceType _currentFileResourceType;
+  late HTResourceType _currentFileResourceType;
 
   late HTBytecodeModule _currentBytecodeModule;
   HTBytecodeModule get bytecodeModule => _currentBytecodeModule;
@@ -173,9 +171,9 @@ class Hetu extends HTAbstractInterpreter {
       {HTResourceContext<HTSource>? sourceContext,
       this.config = const InterpreterConfig()})
       : _sourceContext = sourceContext ?? HTOverlayContext(),
-        global = HTNamespace(id: Semantic.global) {
+        globalNamespace = HTNamespace(id: Semantic.global) {
     _analyzer = HTAnalyzer(sourceContext: _sourceContext);
-    _namespace = global;
+    _currentNamespace = globalNamespace;
   }
 
   @override
@@ -244,8 +242,8 @@ class Hetu extends HTAbstractInterpreter {
         error.type,
         message: error.message,
         extra: errorConfig.showDartStackTrace ? stackTraceString : null,
-        filename: error.filename ?? _fileName,
-        line: error.line ?? _line,
+        filename: error.filename ?? _currentFileName,
+        line: error.line ?? _currentLine,
         column: error.column ?? _column,
       );
       throw wrappedError;
@@ -253,9 +251,9 @@ class Hetu extends HTAbstractInterpreter {
       final hetuError = HTError.extern(
         error.toString(),
         extra: errorConfig.showDartStackTrace ? stackTraceString : null,
-        filename: _fileName,
-        line: line,
-        column: column,
+        filename: _currentFileName,
+        line: currentLine,
+        column: currentColumn,
       );
       throw hetuError;
     }
@@ -279,7 +277,7 @@ class Hetu extends HTAbstractInterpreter {
     if (source.content.isEmpty) {
       return null;
     }
-    _fileName = source.fullName;
+    _currentFileName = source.fullName;
     _isStrictMode = isStrictMode;
     try {
       final bytes = compileSource(
@@ -318,9 +316,9 @@ class Hetu extends HTAbstractInterpreter {
     try {
       if (moduleName != null) {
         _currentBytecodeModule = _cachedModules[moduleName]!;
-        _namespace = _currentBytecodeModule.namespaces[moduleName]!;
+        _currentNamespace = _currentBytecodeModule.namespaces.values.last;
       }
-      final func = _namespace.memberGet(funcName);
+      final func = _currentNamespace.memberGet(funcName);
       if (func is HTFunction) {
         return func.call(
             positionalArgs: positionalArgs,
@@ -354,19 +352,17 @@ class Hetu extends HTAbstractInterpreter {
       final compileConfig = config ?? this.config;
       final compiler = HTCompiler(config: compileConfig);
       final result = _analyzer.evalSource(source);
-      if (result.syntacticErrors.isNotEmpty) {
-        for (final error in result.syntacticErrors) {
-          if (errorHandled) {
-            throw error;
+      if (result.errors.isNotEmpty) {
+        for (final error in result.errors) {
+          if (error.severity >= ErrorSeverity.error) {
+            if (errorHandled) {
+              throw error;
+            } else {
+              handleError(error);
+            }
           } else {
-            handleError(error);
+            print('WARNING: $error');
           }
-        }
-      }
-      if (result.analysisWarnings.isNotEmpty) {
-        print('Hetu analysis warning:');
-        for (final warning in result.analysisWarnings) {
-          print(warning);
         }
       }
       return compiler.compile(result.compilation);
@@ -387,7 +383,7 @@ class Hetu extends HTAbstractInterpreter {
       bool errorHandled = false}) {
     final source = HTSource(content,
         fullName: filename,
-        type: isModule ? ResourceType.hetuModule : ResourceType.hetuScript);
+        type: isModule ? HTResourceType.hetuModule : HTResourceType.hetuScript);
     final result = compileSource(source,
         moduleName: moduleName, errorHandled: errorHandled);
     return result;
@@ -416,8 +412,9 @@ class Hetu extends HTAbstractInterpreter {
       return list;
     } else if (value is Map) {
       final prototype =
-          _namespace.memberGet(HTLexicon.prototype, recursive: true);
-      final struct = HTStruct(this, prototype: prototype, closure: namespace);
+          _currentNamespace.memberGet(HTLexicon.prototype, recursive: true);
+      final struct =
+          HTStruct(this, prototype: prototype, closure: currentNamespace);
       for (final key in value.keys) {
         final fieldKey = key.toString();
         final fieldValue = toStructValue(value[key]);
@@ -431,10 +428,91 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  /// Encapsulate any value to a Hetu object, for members accessing and type check.
+  HTEntity encapsulate(dynamic object) {
+    if (object is HTEntity) {
+      return object;
+    } else if ((object == null) || (object is NullThrownError)) {
+      return HTEntity.nullValue;
+    }
+    late String typeString;
+    if (object is bool) {
+      typeString = HTLexicon.boolean;
+    } else if (object is int) {
+      typeString = HTLexicon.integer;
+    } else if (object is double) {
+      typeString = HTLexicon.float;
+    } else if (object is String) {
+      typeString = HTLexicon.string;
+    } else if (object is List) {
+      typeString = 'List';
+      // var valueType = HTType.ANY;
+      // if (object.isNotEmpty) {
+      //   valueType = encapsulate(object.first).valueType;
+      //   for (final item in object) {
+      //     final value = encapsulate(item).valueType;
+      //     if (value.isNotA(valueType)) {
+      //       valueType = HTType.ANY;
+      //       break;
+      //     }
+      //   }
+      // }
+      // return HTList(object, this, valueType: valueType);
+    } else if (object is Set) {
+      typeString = 'Set';
+    } else if (object is Map) {
+      typeString = 'Map';
+      // var keyType = HTType.ANY;
+      // var valueType = HTType.ANY;
+      // if (object.keys.isNotEmpty) {
+      //   keyType = encapsulate(object.keys.first).valueType;
+      //   for (final item in object.keys) {
+      //     final value = encapsulate(item).valueType;
+      //     if (value.isNotA(keyType)) {
+      //       keyType = HTType.ANY;
+      //       break;
+      //     }
+      //   }
+      // }
+      // if (object.values.isNotEmpty) {
+      //   valueType = encapsulate(object.values.first).valueType;
+      //   for (final item in object.values) {
+      //     final value = encapsulate(item).valueType;
+      //     if (value.isNotA(valueType)) {
+      //       valueType = HTType.ANY;
+      //       break;
+      //     }
+      //   }
+      // }
+      // return HTMap(object, this, keyType: keyType, valueType: valueType);
+    } else if (object is Iterable) {
+      typeString = 'Iterable';
+    } else if (object is Iterator) {
+      typeString = 'Iterator';
+    } else {
+      var reflected = false;
+      for (final reflect in externTypeReflection) {
+        final result = reflect(object);
+        if (result != null) {
+          reflected = true;
+          typeString = result;
+          break;
+        }
+      }
+      if (!reflected) {
+        typeString = object.runtimeType.toString();
+        typeString = HTType.parseBaseType(typeString);
+      }
+    }
+
+    return HTExternalInstance(object, this, typeString);
+  }
+
   HTStruct createStructfromJson(Map<dynamic, dynamic> jsonData) {
     final prototype =
-        _namespace.memberGet(HTLexicon.prototype, recursive: true);
-    final struct = HTStruct(this, prototype: prototype, closure: namespace);
+        _currentNamespace.memberGet(HTLexicon.prototype, recursive: true);
+    final struct =
+        HTStruct(this, prototype: prototype, closure: currentNamespace);
     for (final key in jsonData.keys) {
       var value = toStructValue(jsonData[key]);
       struct.define(key.toString(), value);
@@ -444,7 +522,7 @@ class Hetu extends HTAbstractInterpreter {
 
   void _handleNamespaceImport(HTNamespace nsp, UnresolvedImportStatement decl) {
     final importNamespace = _currentBytecodeModule.namespaces[decl.fromPath]!;
-    if (_currentFileResourceType == ResourceType.hetuScript) {
+    if (_currentFileResourceType == HTResourceType.hetuScript) {
       for (final importDecl in importNamespace.imports.values) {
         _handleNamespaceImport(importNamespace, importDecl);
       }
@@ -465,11 +543,13 @@ class Hetu extends HTAbstractInterpreter {
       }
     } else {
       if (decl.showList.isEmpty) {
-        final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
+        final aliasNamespace =
+            HTNamespace(id: decl.alias!, closure: globalNamespace);
         aliasNamespace.import(importNamespace);
         nsp.defineImport(decl.alias!, aliasNamespace);
       } else {
-        final aliasNamespace = HTNamespace(id: decl.alias!, closure: global);
+        final aliasNamespace =
+            HTNamespace(id: decl.alias!, closure: globalNamespace);
         for (final id in decl.showList) {
           final decl = importNamespace.declarations[id]!;
           aliasNamespace.define(id, decl);
@@ -497,7 +577,7 @@ class Hetu extends HTAbstractInterpreter {
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
         throw HTError.bytecode(
-            filename: _fileName, line: _line, column: _column);
+            filename: _currentFileName, line: _currentLine, column: _column);
       }
       final major = _currentBytecodeModule.read();
       final minor = _currentBytecodeModule.read();
@@ -516,19 +596,19 @@ class Hetu extends HTAbstractInterpreter {
       }
       if (incompatible) {
         throw HTError.version('$major.$minor.$patch', '$kHetuVersion',
-            filename: _fileName, line: _line, column: _column);
+            filename: _currentFileName, line: _currentLine, column: _column);
       }
       final sourceType =
-          ResourceType.values.elementAt(_currentBytecodeModule.read());
-      _isModuleEntryScript = sourceType == ResourceType.hetuScript ||
-          sourceType == ResourceType.hetuLiteralCode ||
-          sourceType == ResourceType.hetuValue;
-      if (sourceType == ResourceType.hetuLiteralCode) {
-        _namespace = global;
+          HTResourceType.values.elementAt(_currentBytecodeModule.read());
+      _isModuleEntryScript = sourceType == HTResourceType.hetuScript ||
+          sourceType == HTResourceType.hetuLiteralCode ||
+          sourceType == HTResourceType.hetuValue;
+      if (sourceType == HTResourceType.hetuLiteralCode) {
+        _currentNamespace = globalNamespace;
       }
       while (_currentBytecodeModule.ip < _currentBytecodeModule.bytes.length) {
         final result = execute(clearStack: false);
-        if (result is HTNamespace && result != global) {
+        if (result is HTNamespace && result != globalNamespace) {
           _currentBytecodeModule.namespaces[result.id!] = result;
         } else if (result is HTValueSource) {
           _currentBytecodeModule.expressions[result.id] = result.value;
@@ -544,9 +624,9 @@ class Hetu extends HTAbstractInterpreter {
         }
       }
       if (_currentBytecodeModule.namespaces.isNotEmpty) {
-        _namespace = _currentBytecodeModule.namespaces.values.last;
+        _currentNamespace = _currentBytecodeModule.namespaces.values.last;
         if (globallyImport) {
-          global.import(_namespace);
+          globalNamespace.import(_currentNamespace);
         }
       }
       // resolve each declaration after we get all declarations
@@ -588,16 +668,16 @@ class Hetu extends HTAbstractInterpreter {
     // var ipChanged = false;
     var libChanged = false;
     if (filename != null) {
-      _fileName = filename;
+      _currentFileName = filename;
     }
     if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
       _currentBytecodeModule = _cachedModules[moduleName]!;
       libChanged = true;
     }
     if (namespace != null) {
-      _namespace = namespace;
+      _currentNamespace = namespace;
     } else if (libChanged) {
-      _namespace = _currentBytecodeModule.namespaces.values.last;
+      _currentNamespace = _currentBytecodeModule.namespaces.values.last;
     }
     if (function != null) {
       _function = function;
@@ -608,9 +688,9 @@ class Hetu extends HTAbstractInterpreter {
       _currentBytecodeModule.ip = 0;
     }
     if (line != null) {
-      _line = line;
+      _currentLine = line;
     } else if (libChanged) {
-      _line = 0;
+      _currentLine = 0;
     }
     if (column != null) {
       _column = column;
@@ -633,7 +713,7 @@ class Hetu extends HTAbstractInterpreter {
       int? savedLine,
       int? savedColumn}) {
     if (savedFileName != null) {
-      _fileName = savedFileName;
+      _currentFileName = savedFileName;
     }
     if (savedModuleName != null) {
       if (_currentBytecodeModule.id != savedModuleName) {
@@ -641,7 +721,7 @@ class Hetu extends HTAbstractInterpreter {
       }
     }
     if (savedNamespace != null) {
-      _namespace = savedNamespace;
+      _currentNamespace = savedNamespace;
     }
     if (savedFunction != null) {
       _function = savedFunction;
@@ -650,7 +730,7 @@ class Hetu extends HTAbstractInterpreter {
       _currentBytecodeModule.ip = savedIp;
     }
     if (savedLine != null) {
-      _line = savedLine;
+      _currentLine = savedLine;
     }
     if (savedColumn != null) {
       _column = savedColumn;
@@ -678,25 +758,25 @@ class Hetu extends HTAbstractInterpreter {
       int? column,
       bool? asConstantInterpreter,
       bool clearStack = true}) {
-    final savedFileName = _fileName;
+    final savedFileName = _currentFileName;
     final savedLibrary = _currentBytecodeModule;
-    final savedNamespace = _namespace;
+    final savedNamespace = _currentNamespace;
     final savedFunction = _function;
     final savedIp = _currentBytecodeModule.ip;
-    final savedLine = _line;
+    final savedLine = _currentLine;
     final savedColumn = _column;
     final savedConstantInterpreterConfig = _asConstantInterpreter;
     var libChanged = false;
     var ipChanged = false;
     if (filename != null) {
-      _fileName = filename;
+      _currentFileName = filename;
     }
     if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
       _currentBytecodeModule = _cachedModules[moduleName]!;
       libChanged = true;
     }
     if (namespace != null) {
-      _namespace = namespace;
+      _currentNamespace = namespace;
     }
     if (function != null) {
       _function = function;
@@ -709,9 +789,9 @@ class Hetu extends HTAbstractInterpreter {
       ipChanged = true;
     }
     if (line != null) {
-      _line = line;
+      _currentLine = line;
     } else if (libChanged) {
-      _line = 0;
+      _currentLine = 0;
     }
     if (column != null) {
       _column = column;
@@ -728,14 +808,14 @@ class Hetu extends HTAbstractInterpreter {
 
     final result = _execute();
 
-    _fileName = savedFileName;
+    _currentFileName = savedFileName;
     _currentBytecodeModule = savedLibrary;
-    _namespace = savedNamespace;
+    _currentNamespace = savedNamespace;
     _function = savedFunction;
     if (ipChanged) {
       _currentBytecodeModule.ip = savedIp;
     }
-    _line = savedLine;
+    _currentLine = savedLine;
     _column = savedColumn;
     --_currentStackIndex;
     if (clearStack) {
@@ -756,7 +836,7 @@ class Hetu extends HTAbstractInterpreter {
     while (instruction != HTOpCode.endOfCode) {
       switch (instruction) {
         case HTOpCode.lineInfo:
-          _line = _currentBytecodeModule.readUint16();
+          _currentLine = _currentBytecodeModule.readUint16();
           _column = _currentBytecodeModule.readUint16();
           break;
         // store a local value in interpreter
@@ -781,12 +861,13 @@ class Hetu extends HTAbstractInterpreter {
           _currentBytecodeModule.ip = _anchor + distance;
           break;
         case HTOpCode.file:
-          _fileName = _currentBytecodeModule.readShortString();
+          _currentFileName = _currentBytecodeModule.readShortString();
           final resourceTypeIndex = _currentBytecodeModule.read();
           _currentFileResourceType =
-              ResourceType.values.elementAt(resourceTypeIndex);
-          if (_currentFileResourceType != ResourceType.hetuLiteralCode) {
-            _namespace = HTNamespace(id: _fileName, closure: global);
+              HTResourceType.values.elementAt(resourceTypeIndex);
+          if (_currentFileResourceType != HTResourceType.hetuLiteralCode) {
+            _currentNamespace =
+                HTNamespace(id: _currentFileName, closure: globalNamespace);
           }
           break;
         case HTOpCode.loopPoint:
@@ -796,12 +877,12 @@ class Hetu extends HTAbstractInterpreter {
               _currentBytecodeModule.ip,
               _currentBytecodeModule.ip + continueLength,
               _currentBytecodeModule.ip + breakLength,
-              _namespace));
+              _currentNamespace));
           ++_loopCount;
           break;
         case HTOpCode.breakLoop:
           _currentBytecodeModule.ip = _loops.last.breakIp;
-          _namespace = _loops.last.namespace;
+          _currentNamespace = _loops.last.namespace;
           _loops.removeLast();
           --_loopCount;
           _clearLocals();
@@ -821,11 +902,11 @@ class Hetu extends HTAbstractInterpreter {
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
           final id = _currentBytecodeModule.readShortString();
-          _namespace = HTNamespace(id: id, closure: _namespace);
+          _currentNamespace = HTNamespace(id: id, closure: _currentNamespace);
           _clearLocals();
           break;
         case HTOpCode.endOfBlock:
-          _namespace = _namespace.closure!;
+          _currentNamespace = _currentNamespace.closure!;
           break;
         // 语句结束
         case HTOpCode.endOfStmt:
@@ -841,13 +922,13 @@ class Hetu extends HTAbstractInterpreter {
           _loopCount = 0;
           return _localValue;
         case HTOpCode.endOfFile:
-          if (_currentFileResourceType == ResourceType.hetuValue) {
+          if (_currentFileResourceType == HTResourceType.hetuValue) {
             return HTValueSource(
-                id: _fileName,
+                id: _currentFileName,
                 moduleName: _currentBytecodeModule.id,
                 value: _localValue);
           } else {
-            return _namespace;
+            return _currentNamespace;
           }
         case HTOpCode.constIntTable:
           final int64Length = _currentBytecodeModule.readUint16();
@@ -907,9 +988,9 @@ class Hetu extends HTAbstractInterpreter {
             classId = _currentBytecodeModule.readShortString();
           }
           final namespace = HTNamespace(
-              id: internalName, classId: classId, closure: _namespace);
+              id: internalName, classId: classId, closure: _currentNamespace);
           execute(namespace: namespace);
-          _namespace.define(internalName, namespace);
+          _currentNamespace.define(internalName, namespace);
           _localValue = namespace;
           break;
         case HTOpCode.delete:
@@ -921,7 +1002,9 @@ class Hetu extends HTAbstractInterpreter {
               object.delete(symbol);
             } else {
               throw HTError.delete(
-                  filename: _fileName, line: _line, column: _column);
+                  filename: _currentFileName,
+                  line: _currentLine,
+                  column: _column);
             }
           } else if (deletingType == DeletingTypeCode.sub) {
             final object = execute();
@@ -930,11 +1013,13 @@ class Hetu extends HTAbstractInterpreter {
               object.delete(symbol);
             } else {
               throw HTError.delete(
-                  filename: _fileName, line: _line, column: _column);
+                  filename: _currentFileName,
+                  line: _currentLine,
+                  column: _column);
             }
           } else {
             final symbol = _currentBytecodeModule.readShortString();
-            _namespace.delete(symbol);
+            _currentNamespace.delete(symbol);
           }
           _clearLocals();
           break;
@@ -949,7 +1034,7 @@ class Hetu extends HTAbstractInterpreter {
           final truthValue = _truthy(_localValue);
           if (!truthValue) {
             _currentBytecodeModule.ip = _loops.last.breakIp;
-            _namespace = _loops.last.namespace;
+            _currentNamespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
             _clearLocals();
@@ -962,7 +1047,7 @@ class Hetu extends HTAbstractInterpreter {
             _currentBytecodeModule.ip = _loops.last.startIp;
           } else {
             _currentBytecodeModule.ip = _loops.last.breakIp;
-            _namespace = _loops.last.namespace;
+            _currentNamespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
             _clearLocals();
@@ -973,7 +1058,7 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.assign:
           final value = _getRegVal(HTRegIdx.assign);
-          _namespace.memberSet(localSymbol!, value, recursive: true);
+          _currentNamespace.memberSet(localSymbol!, value, recursive: true);
           _localValue = value;
           break;
         case HTOpCode.ifNull:
@@ -1012,13 +1097,16 @@ class Hetu extends HTAbstractInterpreter {
             } else {
               throw HTError.nullObject(
                   localSymbol ?? HTLexicon.kNull, Semantic.getter,
-                  filename: _fileName, line: _line, column: _column);
+                  filename: _currentFileName,
+                  line: _currentLine,
+                  column: _column);
             }
           } else {
             final key = execute();
             _localSymbol = key;
             final encap = encapsulate(object);
-            _localValue = encap.memberGet(key, from: _namespace.fullName);
+            _localValue =
+                encap.memberGet(key, from: _currentNamespace.fullName);
           }
           break;
         case HTOpCode.subGet:
@@ -1032,20 +1120,27 @@ class Hetu extends HTAbstractInterpreter {
             } else {
               throw HTError.nullObject(
                   localSymbol ?? HTLexicon.kNull, Semantic.subGetter,
-                  filename: _fileName, line: _line, column: _column);
+                  filename: _currentFileName,
+                  line: _currentLine,
+                  column: _column);
             }
           } else {
             final key = execute();
             if (object is HTEntity) {
-              _localValue = object.subGet(key, from: _namespace.fullName);
+              _localValue =
+                  object.subGet(key, from: _currentNamespace.fullName);
             } else {
               if (object is List) {
                 if (key is! int) {
                   throw HTError.subGetKey(key,
-                      filename: _fileName, line: _line, column: _column);
+                      filename: _currentFileName,
+                      line: _currentLine,
+                      column: _column);
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
-                      filename: _fileName, line: _line, column: _column);
+                      filename: _currentFileName,
+                      line: _currentLine,
+                      column: _column);
                 }
               }
               _localValue = object[key];
@@ -1057,7 +1152,9 @@ class Hetu extends HTAbstractInterpreter {
           if (object == null) {
             throw HTError.nullObject(
                 localSymbol ?? HTLexicon.kNull, Semantic.setter,
-                filename: _fileName, line: _line, column: _column);
+                filename: _currentFileName,
+                line: _currentLine,
+                column: _column);
           } else {
             final key = _getRegVal(HTRegIdx.postfixKey);
             final value = execute();
@@ -1071,7 +1168,9 @@ class Hetu extends HTAbstractInterpreter {
           if (object == null) {
             throw HTError.nullObject(
                 localSymbol ?? HTLexicon.kNull, Semantic.subSetter,
-                filename: _fileName, line: _line, column: _column);
+                filename: _currentFileName,
+                line: _currentLine,
+                column: _column);
           } else {
             final key = execute();
             final value = execute();
@@ -1081,10 +1180,14 @@ class Hetu extends HTAbstractInterpreter {
               if (object is List) {
                 if (key is! int) {
                   throw HTError.subGetKey(key,
-                      filename: _fileName, line: _line, column: _column);
+                      filename: _currentFileName,
+                      line: _currentLine,
+                      column: _column);
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
-                      filename: _fileName, line: _line, column: _column);
+                      filename: _currentFileName,
+                      line: _currentLine,
+                      column: _column);
                 }
                 object[key] = value;
               } else if (object is Map) {
@@ -1099,7 +1202,7 @@ class Hetu extends HTAbstractInterpreter {
           break;
         default:
           throw HTError.unknownOpCode(instruction,
-              filename: _fileName, line: _line, column: _column);
+              filename: _currentFileName, line: _currentLine, column: _column);
       }
       instruction = _currentBytecodeModule.read();
     }
@@ -1114,7 +1217,7 @@ class Hetu extends HTAbstractInterpreter {
       final id = _currentBytecodeModule.readShortString();
       showList.add(id);
       if (isExported) {
-        _namespace.declareExport(id);
+        _currentNamespace.declareExport(id);
       }
     }
     final hasFromPath = _currentBytecodeModule.readBool();
@@ -1131,7 +1234,7 @@ class Hetu extends HTAbstractInterpreter {
       assert(fromPath != null);
       final importedModule = _cachedModules[fromPath]!;
       final importedNamespace = importedModule.namespaces.values.last;
-      _namespace.import(importedNamespace);
+      _currentNamespace.import(importedNamespace);
     } else {
       if (fromPath != null) {
         final ext = path.extension(fromPath);
@@ -1139,9 +1242,9 @@ class Hetu extends HTAbstractInterpreter {
           // TODO: import binary bytes
           final value = _currentBytecodeModule.expressions[fromPath];
           assert(value != null);
-          _namespace.define(alias!, HTVariable(alias, value: value));
+          _currentNamespace.define(alias!, HTVariable(alias, value: value));
           if (isExported) {
-            _namespace.declareExport(alias);
+            _currentNamespace.declareExport(alias);
           }
         } else {
           final decl = UnresolvedImportStatement(
@@ -1150,10 +1253,10 @@ class Hetu extends HTAbstractInterpreter {
             showList: showList,
             isExported: isExported,
           );
-          if (_currentFileResourceType == ResourceType.hetuModule) {
-            _namespace.declareImport(decl);
+          if (_currentFileResourceType == HTResourceType.hetuModule) {
+            _currentNamespace.declareImport(decl);
           } else {
-            _handleNamespaceImport(_namespace, decl);
+            _handleNamespaceImport(_currentNamespace, decl);
           }
         }
       }
@@ -1202,7 +1305,7 @@ class Hetu extends HTAbstractInterpreter {
         final symbol = _localSymbol = _currentBytecodeModule.readShortString();
         final isLocal = _currentBytecodeModule.readBool();
         if (isLocal) {
-          _localValue = _namespace.memberGet(symbol, recursive: true);
+          _localValue = _currentNamespace.memberGet(symbol, recursive: true);
           // _curLeftValue = _curNamespace;
         } else {
           _localValue = symbol;
@@ -1246,11 +1349,11 @@ class Hetu extends HTAbstractInterpreter {
         final hasPrototypeId = _currentBytecodeModule.readBool();
         if (hasPrototypeId) {
           final prototypeId = _currentBytecodeModule.readShortString();
-          prototype = _namespace.memberGet(prototypeId,
-              from: _namespace.fullName, recursive: true);
+          prototype = _currentNamespace.memberGet(prototypeId,
+              from: _currentNamespace.fullName, recursive: true);
         }
-        final struct =
-            HTStruct(this, id: id, prototype: prototype, closure: _namespace);
+        final struct = HTStruct(this,
+            id: id, prototype: prototype, closure: _currentNamespace);
         final fieldsCount = _currentBytecodeModule.read();
         for (var i = 0; i < fieldsCount; ++i) {
           final fieldType = _currentBytecodeModule.read();
@@ -1305,8 +1408,8 @@ class Hetu extends HTAbstractInterpreter {
           _currentBytecodeModule.skip(length);
         }
         final func = HTFunction(
-            internalName, _fileName, _currentBytecodeModule.id, this,
-            closure: _namespace,
+            internalName, _currentFileName, _currentBytecodeModule.id, this,
+            closure: _currentNamespace,
             category: FunctionCategory.literal,
             externalTypeId: externalTypedef,
             hasParamDecls: hasParamDecls,
@@ -1317,7 +1420,7 @@ class Hetu extends HTAbstractInterpreter {
             definitionIp: definitionIp,
             definitionLine: line,
             definitionColumn: column,
-            namespace: _namespace);
+            namespace: _currentNamespace);
         if (!hasExternalTypedef) {
           _localValue = func;
         } else {
@@ -1330,7 +1433,7 @@ class Hetu extends HTAbstractInterpreter {
         break;
       default:
         throw HTError.unkownValueType(valueType,
-            filename: _fileName, line: _line, column: _column);
+            filename: _currentFileName, line: _currentLine, column: _column);
     }
   }
 
@@ -1457,19 +1560,19 @@ class Hetu extends HTAbstractInterpreter {
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final type =
-            (_localValue as HTType).resolve(_namespace) as HTNominalType;
+            (_localValue as HTType).resolve(_currentNamespace) as HTNominalType;
         final klass = type.klass as HTClass;
         _localValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final type = (_localValue as HTType).resolve(_namespace);
+        final type = (_localValue as HTType).resolve(_currentNamespace);
         final encapsulated = encapsulate(object);
         _localValue = encapsulated.valueType.isA(type);
         break;
       case HTOpCode.typeIsNot:
         final object = _getRegVal(HTRegIdx.relationLeft);
-        final type = (_localValue as HTType).resolve(_namespace);
+        final type = (_localValue as HTType).resolve(_currentNamespace);
         final encapsulated = encapsulate(object);
         _localValue = encapsulated.valueType.isNotA(type);
         break;
@@ -1561,7 +1664,7 @@ class Hetu extends HTAbstractInterpreter {
         return;
       } else {
         throw HTError.nullObject(localSymbol ?? HTLexicon.kNull, Semantic.call,
-            filename: _fileName, line: _line, column: _column);
+            filename: _currentFileName, line: _currentLine, column: _column);
       }
     }
     final positionalArgs = [];
@@ -1595,7 +1698,7 @@ class Hetu extends HTAbstractInterpreter {
     // calle is a dart function
     else if (callee is Function) {
       if (callee is HTExternalFunction) {
-        _localValue = callee(_namespace,
+        _localValue = callee(_currentNamespace,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
             typeArgs: typeArgs);
@@ -1609,7 +1712,7 @@ class Hetu extends HTAbstractInterpreter {
     } else if ((callee is HTClass) || (callee is HTType)) {
       late HTClass klass;
       if (callee is HTType) {
-        final resolvedType = callee.resolve(_namespace) as HTNominalType;
+        final resolvedType = callee.resolve(_currentNamespace) as HTNominalType;
         // if (resolvedType is! HTNominalType) {
         //   throw HTError.notCallable(callee.toString(),
         //       filename: _fileName, line: _line, column: _column);
@@ -1620,7 +1723,7 @@ class Hetu extends HTAbstractInterpreter {
       }
       if (klass.isAbstract) {
         throw HTError.abstracted(
-            filename: _fileName, line: _line, column: _column);
+            filename: _currentFileName, line: _currentLine, column: _column);
       }
       if (klass.contains(Semantic.constructor)) {
         final constructor = klass.memberGet(Semantic.constructor) as HTFunction;
@@ -1630,7 +1733,7 @@ class Hetu extends HTAbstractInterpreter {
             typeArgs: typeArgs);
       } else {
         throw HTError.notCallable(klass.id!,
-            filename: _fileName, line: _line, column: _column);
+            filename: _currentFileName, line: _currentLine, column: _column);
       }
     } else if (callee is HTStruct && callee.declaration != null) {
       HTNamedStruct def = callee.declaration!;
@@ -1640,7 +1743,7 @@ class Hetu extends HTAbstractInterpreter {
       );
     } else {
       throw HTError.notCallable(callee.toString(),
-          filename: _fileName, line: _line, column: _column);
+          filename: _currentFileName, line: _currentLine, column: _column);
     }
   }
 
@@ -1686,7 +1789,7 @@ class Hetu extends HTAbstractInterpreter {
           final typeExpr = _handleTypeExpr();
           fieldTypes[id] = typeExpr;
         }
-        return HTStructuralType(namespace, fieldTypes: fieldTypes);
+        return HTStructuralType(currentNamespace, fieldTypes: fieldTypes);
       case TypeType.union:
         throw 'Union Type is not implemented yet in this version of Hetu.';
     }
@@ -1700,9 +1803,9 @@ class Hetu extends HTAbstractInterpreter {
       classId = _currentBytecodeModule.readShortString();
     }
     final value = _handleTypeExpr();
-    final decl =
-        HTVariable(id, classId: classId, closure: _namespace, value: value);
-    _namespace.define(id, decl);
+    final decl = HTVariable(id,
+        classId: classId, closure: _currentNamespace, value: value);
+    _currentNamespace.define(id, decl);
     _clearLocals();
   }
 
@@ -1722,7 +1825,7 @@ class Hetu extends HTAbstractInterpreter {
         index: index,
         classId: classId,
         module: _currentBytecodeModule);
-    _namespace.define(id, decl);
+    _currentNamespace.define(id, decl);
     _clearLocals();
   }
 
@@ -1755,10 +1858,10 @@ class Hetu extends HTAbstractInterpreter {
         _currentBytecodeModule.skip(length);
         decl = HTVariable(id,
             interpreter: this,
-            fileName: _fileName,
+            fileName: _currentFileName,
             moduleName: _currentBytecodeModule.id,
             classId: classId,
-            closure: _namespace,
+            closure: _currentNamespace,
             declType: declType,
             isExternal: isExternal,
             isStatic: isStatic,
@@ -1770,10 +1873,10 @@ class Hetu extends HTAbstractInterpreter {
         final initValue = execute();
         decl = HTVariable(id,
             interpreter: this,
-            fileName: _fileName,
+            fileName: _currentFileName,
             moduleName: _currentBytecodeModule.id,
             classId: classId,
-            closure: _namespace,
+            closure: _currentNamespace,
             declType: declType,
             value: initValue,
             isExternal: isExternal,
@@ -1783,10 +1886,10 @@ class Hetu extends HTAbstractInterpreter {
     } else {
       decl = HTVariable(id,
           interpreter: this,
-          fileName: _fileName,
+          fileName: _currentFileName,
           moduleName: _currentBytecodeModule.id,
           classId: classId,
-          closure: _namespace,
+          closure: _currentNamespace,
           declType: declType,
           isExternal: isExternal,
           isStatic: isStatic,
@@ -1794,7 +1897,7 @@ class Hetu extends HTAbstractInterpreter {
           lateFinalize: lateFinalize);
     }
     if (!isField) {
-      _namespace.define(id, decl, override: true);
+      _currentNamespace.define(id, decl, override: true);
     }
     _clearLocals();
   }
@@ -1838,13 +1941,13 @@ class Hetu extends HTAbstractInterpreter {
       }
       final decl = HTVariable(id,
           interpreter: this,
-          fileName: _fileName,
+          fileName: _currentFileName,
           moduleName: _currentBytecodeModule.id,
-          closure: _namespace,
+          closure: _currentNamespace,
           declType: ids[id],
           value: initValue,
           isMutable: isMutable);
-      _namespace.define(id, decl, override: true);
+      _currentNamespace.define(id, decl, override: true);
     }
     _clearLocals();
   }
@@ -1874,9 +1977,9 @@ class Hetu extends HTAbstractInterpreter {
       }
       paramDecls[id] = HTParameter(id,
           interpreter: this,
-          fileName: _fileName,
+          fileName: _currentFileName,
           moduleName: _currentBytecodeModule.id,
-          closure: _namespace,
+          closure: _currentNamespace,
           declType: declType,
           definitionIp: definitionIp,
           definitionLine: definitionLine,
@@ -1957,10 +2060,10 @@ class Hetu extends HTAbstractInterpreter {
       _currentBytecodeModule.skip(length);
     }
     final func = HTFunction(
-        internalName, _fileName, _currentBytecodeModule.id, this,
+        internalName, _currentFileName, _currentBytecodeModule.id, this,
         id: id,
         classId: classId,
-        closure: _namespace,
+        closure: _currentNamespace,
         isField: isField,
         isExternal: isExternal,
         isStatic: isStatic,
@@ -1980,9 +2083,9 @@ class Hetu extends HTAbstractInterpreter {
       _localValue = func;
     } else {
       if ((category != FunctionCategory.constructor) || isStatic) {
-        func.namespace = _namespace;
+        func.namespace = _currentNamespace;
       }
-      _namespace.define(func.internalName, func);
+      _currentNamespace.define(func.internalName, func);
     }
     _localValue = func;
   }
@@ -2004,20 +2107,20 @@ class Hetu extends HTAbstractInterpreter {
     final isEnum = _currentBytecodeModule.readBool();
     final klass = HTClass(this,
         id: id,
-        closure: _namespace,
+        closure: _currentNamespace,
         superType: superType,
         isExternal: isExternal,
         isAbstract: isAbstract,
         isEnum: isEnum);
-    _namespace.define(id, klass);
+    _currentNamespace.define(id, klass);
     final savedClass = _class;
     _class = klass;
     // deal with definition block
     execute(namespace: klass.namespace);
     // Add default constructor if non-exist.
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
-      final ctor = HTFunction(
-          Semantic.constructor, _fileName, _currentBytecodeModule.id, this,
+      final ctor = HTFunction(Semantic.constructor, _currentFileName,
+          _currentBytecodeModule.id, this,
           classId: klass.id,
           category: FunctionCategory.constructor,
           closure: klass.namespace);
@@ -2033,7 +2136,7 @@ class Hetu extends HTAbstractInterpreter {
   void _handleExternalEnumDecl() {
     final id = _currentBytecodeModule.readShortString();
     final enumClass = HTExternalEnum(id, this);
-    _namespace.define(id, enumClass);
+    _currentNamespace.define(id, enumClass);
     _localValue = enumClass;
   }
 
@@ -2054,17 +2157,17 @@ class Hetu extends HTAbstractInterpreter {
     final struct = HTNamedStruct(
       id: id,
       interpreter: this,
-      fileName: _fileName,
+      fileName: _currentFileName,
       moduleName: _currentBytecodeModule.id,
-      closure: _namespace,
+      closure: _currentNamespace,
       prototypeId: prototypeId,
       staticDefinitionIp: staticDefinitionIp,
       definitionIp: definitionIp,
     );
-    if (!lateInitialize) {
+    if (_isModuleEntryScript || !lateInitialize) {
       struct.resolve();
     }
-    _namespace.define(id, struct);
+    _currentNamespace.define(id, struct);
     _localValue = struct;
   }
 }

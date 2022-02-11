@@ -112,10 +112,6 @@ module.exports = {
               text: 'Assert & error',
               link: '/docs/en-US/syntax/error/',
             },
-            {
-              text: 'ASI',
-              link: '/docs/en-US/syntax/semicolon/',
-            },
           ],
           '/docs/en-US/api_reference/': [
             {
@@ -159,6 +155,10 @@ module.exports = {
             {
               text: 'API Reference',
               link: '/docs/en-US/api_reference/dart/',
+            },
+            {
+              text: 'Implementation detail',
+              link: '/docs/en-US/implementation_detail/',
             },
           ],
         },

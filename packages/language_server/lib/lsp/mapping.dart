@@ -724,7 +724,7 @@ List<AnalysisError> doAnalysisError_listFromEngine(
 ///
 /// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
-    HTSourceAnalysisResult result, HTAnalysisWarning error,
+    HTSourceAnalysisResult result, HTAnalysisError error,
     [ErrorSeverity errorSeverity]) {
   // prepare location
   Location location;
@@ -796,8 +796,8 @@ DiagnosticMessage newDiagnosticMessage(
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
     HTSourceAnalysisResult result,
-    List<HTAnalysisWarning> errors,
-    T Function(HTSourceAnalysisResult result, HTAnalysisWarning error,
+    List<HTAnalysisError> errors,
+    T Function(HTSourceAnalysisResult result, HTAnalysisError error,
             [ErrorSeverity errorSeverity])
         constructor) {
   var serverErrors = <T>[];
@@ -1092,7 +1092,7 @@ lsp.DiagnosticSeverity analysisErrorSeverityToDiagnosticSeverity(
 
 lsp.Diagnostic toDiagnostic(
   HTSourceAnalysisResult result,
-  HTAnalysisWarning error, {
+  HTAnalysisError error, {
   // Set<lsp.DiagnosticTag> supportedTags,
   ErrorSeverity errorSeverity,
 }) {

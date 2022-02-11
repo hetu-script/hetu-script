@@ -1719,32 +1719,6 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   @override
   Uint8List visitEnumDecl(EnumDecl stmt) {
     final bytesBuilder = BytesBuilder();
-
-    // Compile Enum to a class with static members and a private constructor.
-    //
-    // For example:
-    // ```dart
-    // enum ENUM {
-    //   value1,
-    //   value2,
-    //   value3
-    // }
-    // ```
-    //
-    // are compiled into:
-    // ```dart
-    // class ENUM {
-    //   final _name;
-    //   ENUM._(name) {
-    //     _name = name;
-    //   }
-    //   fun toString = 'ENUM.${_name}'
-    //   static final value1 = ENUM._('value1')
-    //   static final value2 = ENUM._('value2')
-    //   static final value3 = ENUM._('value3')
-    //   static final values = [value1, value2, value3]
-    // }
-    // ```
     if (!stmt.isExternal) {
       bytesBuilder.addByte(HTOpCode.classDecl);
       bytesBuilder.add(_parseIdentifier(stmt.id.id));

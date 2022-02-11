@@ -3,7 +3,7 @@ import '../lexer/token.dart';
 import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../declaration/declaration.dart';
-import '../../resource/resource.dart' show ResourceType;
+import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
 
@@ -88,7 +88,7 @@ class AstSource extends AstNode {
 
   String get fullName => source!.fullName;
 
-  ResourceType get resourceType => source!.type;
+  HTResourceType get resourceType => source!.type;
 
   LineInfo get lineInfo => source!.lineInfo;
 
@@ -144,7 +144,7 @@ class AstCompilation extends AstNode {
 
   final Map<String, AstSource> sources;
 
-  final ResourceType entryResourceType;
+  final HTResourceType entryResourceType;
 
   final List<HTError> errors;
 
@@ -2106,6 +2106,8 @@ class ClassDecl extends AstNode {
 
   final bool hasUserDefinedConstructor;
 
+  final bool lateResolve;
+
   final BlockStmt definition;
 
   @override
@@ -2122,6 +2124,7 @@ class ClassDecl extends AstNode {
       this.isPrivate = false,
       this.isTopLevel = false,
       this.hasUserDefinedConstructor = false,
+      this.lateResolve = true,
       HTSource? source,
       int line = 0,
       int column = 0,

@@ -1,4 +1,4 @@
-enum ResourceType {
+enum HTResourceType {
   hetuModule,
   hetuScript,
   hetuLiteralCode,

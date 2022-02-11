@@ -1,11 +1,12 @@
 import '../ast/ast.dart';
-import '../grammar/lexicon.dart';
-import '../shared/stringify.dart';
+import 'analysis_error.dart';
 
-/// A interpreter that computes the constant value before compilation.
-/// If the AstNode provided is non-constant value, return null.
-class HTConstantInterpreter implements AbstractAstVisitor<void> {
-  void evalAstNode(AstNode node) => node.accept(this);
+/// A Ast interpreter for static analysis.
+class HTAnalyzerImpl implements AbstractAstVisitor<void> {
+  /// Errors of a single file
+  late List<HTAnalysisError> errors = [];
+
+  void analyzeAst(AstNode node) => node.accept(this);
 
   @override
   void visitCompilation(AstCompilation node) {
@@ -37,21 +38,7 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
 
   @override
   void visitStringInterpolationExpr(StringInterpolationExpr node) {
-    final interpolations = <String>[];
-    for (final expr in node.interpolations) {
-      expr.accept(this);
-      if (!expr.isConstValue) {
-        return;
-      }
-      interpolations.add(stringify(expr.value));
-    }
-    var text = node.text;
-    for (var i = 0; i < interpolations.length; ++i) {
-      text = text.replaceAll(
-          '${HTLexicon.bracesLeft}$i${HTLexicon.bracesRight}',
-          interpolations[i]);
-    }
-    node.value = text;
+    node.subAccept(this);
   }
 
   @override
@@ -82,9 +69,6 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
   @override
   void visitGroupExpr(GroupExpr node) {
     node.subAccept(this);
-    if (node.inner.isConstValue) {
-      node.value = node.inner.value;
-    }
   }
 
   @override
@@ -121,12 +105,6 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
   @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr node) {
     node.subAccept(this);
-    if (node.op == HTLexicon.logicalNot && node.object is BooleanLiteralExpr) {
-      node.value = !(node.object as BooleanLiteralExpr).value;
-    } else if (node.op == HTLexicon.negative &&
-        node.object is IntegerLiteralExpr) {
-      node.value = -(node.object as IntegerLiteralExpr).value;
-    }
   }
 
   @override
@@ -137,80 +115,7 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
   /// *, /, ~/, %, +, -, <, >, <=, >=, ==, !=, &&, ||
   @override
   void visitBinaryExpr(BinaryExpr node) {
-    final left = node.left.value;
-    final right = node.right.value;
-    switch (node.op) {
-      case HTLexicon.multiply:
-        if (left != null && right != null) {
-          node.value = left * right;
-        }
-        break;
-      case HTLexicon.devide:
-        if (left != null && right != null) {
-          node.value = left / right;
-        }
-        break;
-      case HTLexicon.truncatingDevide:
-        if (left != null && right != null) {
-          node.value = left ~/ right;
-        }
-        break;
-      case HTLexicon.modulo:
-        if (left != null && right != null) {
-          node.value = left % right;
-        }
-        break;
-      case HTLexicon.add:
-        if (left != null && right != null) {
-          node.value = left + right;
-        }
-        break;
-      case HTLexicon.subtract:
-        if (left != null && right != null) {
-          node.value = left - right;
-        }
-        break;
-      case HTLexicon.lesser:
-        if (left != null && right != null) {
-          node.value = left < right;
-        }
-        break;
-      case HTLexicon.lesserOrEqual:
-        if (left != null && right != null) {
-          node.value = left <= right;
-        }
-        break;
-      case HTLexicon.greater:
-        if (left != null && right != null) {
-          node.value = left > right;
-        }
-        break;
-      case HTLexicon.greaterOrEqual:
-        if (left != null && right != null) {
-          node.value = left >= right;
-        }
-        break;
-      case HTLexicon.equal:
-        if (left != null && right != null) {
-          node.value = left == right;
-        }
-        break;
-      case HTLexicon.notEqual:
-        if (left != null && right != null) {
-          node.value = left != right;
-        }
-        break;
-      case HTLexicon.logicalAnd:
-        if (left != null && right != null) {
-          node.value = left && right;
-        }
-        break;
-      case HTLexicon.logicalOr:
-        if (left != null && right != null) {
-          node.value = left || right;
-        }
-        break;
-    }
+    node.subAccept(this);
   }
 
   /// e1 ? e2 : e3
@@ -347,6 +252,15 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
   @override
   void visitVarDecl(VarDecl node) {
     node.subAccept(this);
+    if (node.isConst && !node.initializer!.isConstValue) {
+      final err = HTAnalysisError.constValue(
+          filename: node.source!.fullName,
+          line: node.initializer!.line,
+          column: node.initializer!.column,
+          offset: node.initializer!.offset,
+          length: node.initializer!.length);
+      errors.add(err);
+    }
   }
 
   @override

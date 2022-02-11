@@ -85,17 +85,17 @@ abstract class HTResourceContext<T> {
 
   void init() {}
 
-  ResourceType checkExtension(String ext) {
+  HTResourceType checkExtension(String ext) {
     if (ext == HTResource.hetuModule) {
-      return ResourceType.hetuModule;
+      return HTResourceType.hetuModule;
     } else if (ext == HTResource.hetuScript) {
-      return ResourceType.hetuScript;
+      return HTResourceType.hetuScript;
     } else if (expressionModuleExtensions.contains(ext)) {
-      return ResourceType.hetuValue;
+      return HTResourceType.hetuValue;
     } else if (binaryModuleExtensions.contains(ext)) {
-      return ResourceType.binary;
+      return HTResourceType.binary;
     } else {
-      return ResourceType.unkown;
+      return HTResourceType.unkown;
     }
   }
 

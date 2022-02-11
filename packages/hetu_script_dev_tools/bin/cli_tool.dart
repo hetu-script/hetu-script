@@ -244,23 +244,15 @@ void analyze(List<String> args) {
   analyzer.init();
   final result = analyzer.evalFile(args.first);
   if (result != null) {
-    var hasError = false;
-    if (result.syntacticErrors.isNotEmpty) {
-      print(
-          'Analyzer found ${result.syntacticErrors.length} syntactic errors:');
-      for (final err in result.syntacticErrors) {
-        print(err);
+    if (result.errors.isNotEmpty) {
+      for (final error in result.errors) {
+        if (error.severity >= ErrorSeverity.error) {
+          print('Error: $error');
+        } else {
+          print('Warning: $error');
+        }
       }
-      hasError = true;
-    }
-    if (result.analysisWarnings.isNotEmpty) {
-      print('Analyzer gives ${result.syntacticErrors.length} static warnings:');
-      for (final err in result.analysisWarnings) {
-        print(err);
-      }
-      hasError = true;
-    }
-    if (!hasError) {
+    } else {
       print('Analyzer found 0 problem.');
     }
   } else {

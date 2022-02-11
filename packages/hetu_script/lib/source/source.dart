@@ -19,7 +19,7 @@ class HTSource {
 
   String get fullName => _fullName;
 
-  ResourceType type;
+  HTResourceType type;
 
   String _content;
   String get content => _content;
@@ -34,7 +34,7 @@ class HTSource {
   HTSource(
     String content, {
     String? fullName,
-    this.type = ResourceType.hetuModule,
+    this.type = HTResourceType.hetuModule,
   })  : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (fullName != null) {
