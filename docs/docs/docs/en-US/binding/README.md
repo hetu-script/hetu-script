@@ -2,7 +2,7 @@
 
 There are three ways to communicate with Dart: Builtin value, Json, Binding. They have pros and cons respectively. You can choose the style best suits your needs.
 
-##
+## How to pass values
 
 You can get value from Hetu by the return value of Interpreter's **invoke** function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
 
