@@ -2,11 +2,11 @@
 
 Class can have static variables and methods. Which can be accessed through the class name.
 
-Class's member functions use special keyword: **construct, get, set**, to define a constructor, getter, setter function.
+Member functions can also be declared with **get**, **set**, **construct**, they means getter, setter and contructor function.
+
+If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty parentheses.
 
 Constructors can be with no function name and cannot return values. When calling they will always return a instance.
-
-Getter & setter functions is used like a member variable. They can be accessed without brackets.
 
 ```typescript
 // class definition

@@ -15,15 +15,9 @@ fun main {
 }
 ```
 
-For functions declared with **fun**, when no return type is provided in declaration, it will have a return type of **any**. And it will return null if you didn't write return statement within the definition body.
-
-Member functions can also be declared with **get**, **set**, **construct**, they literally means getter, setter and contructor function.
-
-If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty brackets.
+For functions declared with **fun**, when no return type is provided in declaration, it will have a return type of **any**. And it will return the last expression's value if you didn't write return statement within the definition body.
 
 Functions can be nested, and nested functions can have names.
-
-Function body could be a block statement (within '{' and '}'), or a single line expression after '=>'.
 
 Return type is marked by a single arrow ('->') after the parameters brackets.
 
@@ -44,6 +38,33 @@ fun main {
 ```
 
 Function are first class in Hetu script, you can pass them as arguments, return value and store/rebind them to variables.
+
+## Single line function body
+
+Just like in Dart, you can write a single line expression after '=>' as function body.
+
+```dart
+var func = (x) => x * x
+final sq = func(4) // sq = 16
+```
+
+## Optional parameter
+
+You can use positional parameter or named parameter in your parameter declarations, and you can give them default values.
+
+```javascript
+fun posParam(a, [b = 7]) {
+  return a * b
+}
+
+final r1 = posParam(6) // r1 = 42
+
+fun namedParam({a = 3, b = 9}) {
+  return a * b
+}
+
+final r2 = namedParam(b: 10) // r2 = 30
+```
 
 ## Variadic parameter
 
@@ -99,6 +120,7 @@ func()
 A literal function can have no keyword, in this situation, the parameter brackets are not omittable even if it's empty. The following way to define a function is all okay and they are the same to the compiler.
 
 ```dart
+final func0 = fun meaning { return 42 }
 final func1 = fun { return 42 }
 final func2 = fun => 42
 final func3 = () { 42 }

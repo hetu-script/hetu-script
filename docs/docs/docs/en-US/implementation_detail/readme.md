@@ -1,6 +1,6 @@
 # Implementation detail
 
-Hetu coce's bytecode implementation has some underlying rules. Normally they won't affect common users. We listed them here in case you are interested or encountered some bottom layer issues.
+Hetu's bytecode implementation has some inexplicit rules. Normally they won't affect language users. We listed them here in case you are interested or encountered some bytecode issues.
 
 ## String interpolation
 
@@ -46,6 +46,8 @@ class Country {
 
 in bytecode.
 
+However, a external Dart enum will exist as a standalone object in the runtime.
+
 ## Automatic semicolon insertion
 
 Automatic semicolon insertion (ASI) is a technique in programming languages that semicolon is optional. [Click here for more information](https://en.wikibooks.org/wiki/JavaScript/Automatic_semicolon_insertion).
@@ -83,3 +85,7 @@ Besides, Hetu will also add a 'end of statement mark' after return if there's a 
 So if you would like to return the value, remember to make the left bracket same line with the return.
 
 And if you want to write function definition, remember to make the left bracket same line with the function parameters.
+
+## Recursive import
+
+For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the meantime, B import from A) is allowed. However, for **ResourceType.hetuScript**, recursive import would cause stack overflow errors. **You have to manually avoid recursive import in '\*.hts' files.**

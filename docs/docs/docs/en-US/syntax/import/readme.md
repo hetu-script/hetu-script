@@ -1,10 +1,10 @@
 ## Import
 
-Use import statement to import from another script file.
+Use import statement to import from another source file.
 
-- You can specify a list to limit the symbols imported.
+You can specify a list to limit the symbols imported.
 
-- You can set an aliases for the imported namespace.
+You can set an aliases for the imported namespace.
 
 ```javascript
 import 'game.ht'
@@ -19,9 +19,9 @@ fun main {
 
 Use export in a source to specify the symbols you wish to let other source access when they import from you.
 
-- If there's no path provided, exported the symbols from the source contains this statement.
+If there's no path provided, exported the symbols from the source contains this statement.
 
-- You can give a path after the export keyword, to export other source's content.
+You can give a path after the export keyword, to export other source's content.
 
 ```javascript
 export {

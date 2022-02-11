@@ -79,7 +79,7 @@ void main() {
 
 You can check the [documentation](https://hetu.dev/docs/en-US/) for more information on the [grammar](https://hetu.dev/docs/en-US/syntax/) and [binding](https://hetu.dev/docs/en-US/binding/).
 
-## VScode extension
+## IDE extension
 
 If you are using VS Code, you can download [this extension](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript) to get basic highlight and dart snippets on bindings.
 

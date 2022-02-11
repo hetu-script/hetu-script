@@ -16,7 +16,9 @@ Most of the common primitive types in Hetu is in fact Dart values, you can use m
 Note:
 
 1, The type name for float numbers in Hetu is 'float'.
+
 2, There's no literal syntax for Set & Map, you have to create them by using constructors.
+
 3, All List\Set\Map created from the script side is of dynamic types.
 
 ## Big integers

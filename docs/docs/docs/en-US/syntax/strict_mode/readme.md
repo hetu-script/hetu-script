@@ -2,7 +2,7 @@
 
 ## Zero value
 
-In non-strict mode, null can be treated as 0.
+In non-strict mode, variable with null value can be treated as 0.
 
 ```javascript
 final obj = {}
@@ -11,7 +11,19 @@ final obj = {}
 
 ## Truth value
 
-In non-strict mode, the if/do/while statement's condition expression will be inexplicitly converted to boolean.
+In non-strict mode, some expressions will be inexplicitly converted to boolean:
+
+1, if (expr)
+
+2, (expr) ? //... : //...
+
+2, do { //... } while (expr)
+
+3, while (expr)
+
+4, expr1 && expr2
+
+5, expr1 || expr2
 
 The conversion rules is:
 
@@ -34,3 +46,5 @@ bool _truthy(dynamic condition) {
   }
 }
 ```
+
+**In other situations boolean won't be inexplicitly converted**.

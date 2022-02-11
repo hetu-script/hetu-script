@@ -1,21 +1,10 @@
 # Communicating with Dart
 
-There are three ways to communicate with Dart: Primitive value, Json, Binding. They have pros and cons respectively. You can choose the style best suits your needs.
+There are three ways to communicate with Dart: Builtin value, Json, Binding. They have pros and cons respectively. You can choose the style best suits your needs.
 
-# Primitive value
+##
 
-For these kind of values, their bindings are pre-included within the script source. And they are specificaly handled by the interpreter. Thus you can pass and get them directly.
-
-- null
-- bool
-- int
-- double (it is called float in the script)
-- String
-- List\<dynamic\>
-- Map\<dynamic, dynamic\>
-- Function
-
-You can get primitive value from Hetu by the return value of Interpreter's **invoke** function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
+You can get value from Hetu by the return value of Interpreter's **invoke** function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
 
 ```dart
 final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isFloat': true};
@@ -23,9 +12,23 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 // final result = calculate(6, 7, isFloat: true)
 ```
 
+## Builtin values
+
+For these kind of values, their bindings are pre-included within the interpreter. Thus you can pass, get and modify them directly within script.
+
+- null
+- bool
+- int
+- double (it is called float in the script)
+- String
+- List\<dynamic\>
+- Set\<dynamic>
+- Map\<dynamic, dynamic\>
+- Function
+
 You can directly access and set the sub value of a List and Map directly by '[]' operator and call a Dart Function by '()' operator in script.
 
-# Json
+## Json
 
 The HTStruct object in Dart code, or a struct object in the script, has builtin method: toJson() and fromJson() on its root prototype. So you can pass complex data set in this form between script and Dart.
 
@@ -59,9 +62,9 @@ output:
 
 Primitives and Json are a quick way to pass around values without any binding. However, if you want to create a Dart object, or to call a Dart function more efficiently, you have to tell the script the exact definition of the external functions and classes.
 
-# Binding
+## Binding
 
-## External function
+### External function
 
 External functions in dart for use in Hetu have following type:
 
@@ -124,7 +127,7 @@ And the output should be:
 hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 ```
 
-## External methods in classes
+### External methods in classes
 
 A Hetu class could have a external method, even if other part of this class is all Hetu.
 
@@ -170,11 +173,11 @@ struct Person {
 
 Everything else you should do is the same to a external method on a class.
 
-## External getter
+### External getter
 
 For external getter, you don't need to have a external function or external method typed function. You can directly return the value in the dart code.
 
-## Binding a full class
+### Binding a full class
 
 You can use a Dart object with full class definition in Hetu.
 
@@ -337,7 +340,7 @@ void main() {
 }
 ```
 
-## Typedef of Dart function
+### Typedef of Dart function
 
 It is possible to return a pure Dart function from the script side.
 
@@ -384,7 +387,7 @@ The typedef of the unwrapper is:
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 ```
 
-## Auto-Binding tools
+### Auto-Binding tools
 
 **This tool is outdated and not suitable for this version of Hetu, we may fix it some time in the future.**
 

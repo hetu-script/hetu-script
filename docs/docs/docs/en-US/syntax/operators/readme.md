@@ -73,6 +73,8 @@ final value = a?.collection[0].value() // value is null and we won't get errors
 
 ## Operator precedence
 
+Operators in Hetu is a subset of Dart:
+
 | Description    | Operator                           | Associativity | Precedence |
 | :------------- | :--------------------------------- | :-----------: | :--------: |
 | Unary postfix  | e., e?., e++, e--, e1[e2], e()     |     None      |     16     |

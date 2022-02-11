@@ -1,22 +1,22 @@
-# Module
+# Package & Module
 
-Hetu script codes are a batch of **HTSource** files. If a source contains import statement, the parser will try to fetch another source content by the import path through the **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context for modules to import from.
+We use **package** to refer to a source code bundle organized as a project. And **module** to refer to the compiled package in bytecode form.
+
+## Resource context
+
+If a source contains import statement, the parser will try to fetch another source content by the import path through a helper class **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context before you run the script for it to import from.
 
 ## Resource type
 
 Hetu script file have 3 way to interpret, controlled by the **ResourceType type** parameter in the eval method of the Interpreter class or the extension of the source file.
 
-- For **ResourceType.hetuScript**, the source file is organized like a Javascript, Python and Lua file. It has its own namespace. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
+- When **ResourceType** is not provided in interpreter's 'eval' method, interpreter will evaluate the string provided as **ResourceType.hetuLiteralCode**. Other than the code use **global** as its namespace. It is the same to **ResourceType.hetuScript**.
 
-- When **ResourceType** is not provided in interpreter's 'eval' method, interpreter will evaluate the string provided as **ResourceType.hetuLiteralCode**. Other than the code has no namespace. It is the same to **ResourceType.hetuScript**.
+- For **ResourceType.hetuScript**, the source file is organized like a Javascript, Python and Lua file. It has its own namespace. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
 
 - For **ResourceType.hetuModule**, the source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
 
-When using evalFile method on the interpreter, the source type is inferred from the extension of the file name: '\*.hts' is **ResourceType.hetuScript**, and '\*.ht' is **ResourceType.hetuModule**.
-
-## Recursive import
-
-For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the meantime, B import from A) is allowed. However, for **ResourceType.hetuScript**, recursive import would cause stack overflow errors. **You have to manually avoid recursive import in '\*.hts' files.**
+When using **evalFile** method on the interpreter, the source type is inferred from the extension of the file name: '\*.hts' is **ResourceType.hetuScript**, and '\*.ht' is **ResourceType.hetuModule**.
 
 ## Import a pre-compiled binary module
 

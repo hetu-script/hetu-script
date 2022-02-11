@@ -64,6 +64,6 @@ void main() {
 }
 ```
 
-## VScode extension
+## VS Code extension
 
 If you are using VSCode as your editor, you can download [this extension](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript) to get highlight for hetu code and some useful snippets for Dart code.

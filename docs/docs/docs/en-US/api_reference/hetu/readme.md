@@ -14,7 +14,7 @@ external fun stringify(obj: any)
 
 external fun jsonify(obj)
 
-fun range(min: int, max: int)
+external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
 ```
 
 ### eval()
