@@ -348,8 +348,8 @@ class LspAnalysisServer {
     final source = HTSource(content,
         fullName: filename,
         type: ext == HTResource.hetuScript
-            ? ResourceType.hetuScript
-            : ResourceType.hetuModule);
+            ? HTResourceType.hetuScript
+            : HTResourceType.hetuModule);
     contextManager.addResource(filename, source);
 
     logger.log('source added: [${source.fullName}]\n${source.content}');

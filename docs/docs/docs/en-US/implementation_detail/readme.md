@@ -1,4 +1,52 @@
-# Automatic semicolon insertion
+# Implementation detail
+
+Hetu coce's bytecode implementation has some underlying rules. Normally they won't affect common users. We listed them here in case you are interested or encountered some bottom layer issues.
+
+## String interpolation
+
+The string iterpolation's underlying implementation is kind of like C#'s String.format() or python's str.format(). The compiler will replaces those '${expression}' into '{0}', '{1}' forms.
+
+```python
+"{0} {1}".format("hello", "world")
+```
+
+The interpreter will replace those with actual values in runtime.
+
+So you should avoid having literal '{0}', '{1}' sub strings in a String interpolation, it might cause unintended effects.
+
+## Enum
+
+The enum is compiled into class, so there's no 'enum' object exists in runtime.
+
+For example, a enum declaration in Hetu:
+
+```dart
+enum Country {
+  kHungary,
+  kJapan,
+  kIndia,
+}
+```
+
+is compiled into:
+
+```dart
+class Country {
+  final _name;
+  Country._(name) {
+    _name = name;
+  }
+  fun toString = 'Country.${_name}'
+  static final kHungary = ENUM._('kHungary')
+  static final kJapan = ENUM._('kJapan')
+  static final kIndia = ENUM._('kIndia')
+  static final values = [kHungary, kJapan, kIndia]
+}
+```
+
+in bytecode.
+
+## Automatic semicolon insertion
 
 Automatic semicolon insertion (ASI) is a technique in programming languages that semicolon is optional. [Click here for more information](https://en.wikibooks.org/wiki/JavaScript/Automatic_semicolon_insertion).
 

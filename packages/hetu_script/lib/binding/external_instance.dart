@@ -38,7 +38,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
     }
 
     final def = (interpreter as Hetu)
-        .namespace
+        .currentNamespace
         .memberGet(id, recursive: true, error: false);
     if (def is HTClassDeclaration) {
       klass = def;

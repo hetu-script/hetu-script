@@ -63,6 +63,17 @@ class HTParser extends HTAbstractParser {
 
   HTSource? _currentSource;
 
+  bool get _isWithinModuleNamespace {
+    if (_currentFunctionCategory != null) {
+      return false;
+    } else if (_currentSource != null) {
+      if (_currentSource!.type == HTResourceType.hetuModule) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // final _cachedParseResults = <String, AstSource>{};
 
   @override
@@ -87,12 +98,12 @@ class HTParser extends HTAbstractParser {
       } else {
         if (_currentSource != null) {
           final sourceType = _currentSource!.type;
-          if (sourceType == ResourceType.hetuModule) {
+          if (sourceType == HTResourceType.hetuModule) {
             parseStyle = ParseStyle.module;
-          } else if (sourceType == ResourceType.hetuScript ||
-              sourceType == ResourceType.hetuLiteralCode) {
+          } else if (sourceType == HTResourceType.hetuScript ||
+              sourceType == HTResourceType.hetuLiteralCode) {
             parseStyle = ParseStyle.script;
-          } else if (sourceType == ResourceType.hetuValue) {
+          } else if (sourceType == HTResourceType.hetuValue) {
             parseStyle = ParseStyle.expression;
           } else {
             return nodes;
@@ -171,7 +182,7 @@ class HTParser extends HTAbstractParser {
             parserErrors.addAll(importedSource.errors!);
             // _cachedParseResults[importFullName] = importedSource;
           }
-          if (importedSource.resourceType == ResourceType.hetuValue) {
+          if (importedSource.resourceType == HTResourceType.hetuValue) {
             values[importFullName] = importedSource;
           } else {
             handleImport(importedSource);
@@ -190,7 +201,7 @@ class HTParser extends HTAbstractParser {
       _cachedParsingTargets.remove(result.fullName);
     }
 
-    if (result.resourceType == ResourceType.hetuValue) {
+    if (result.resourceType == HTResourceType.hetuValue) {
       values[result.fullName] = result;
     } else {
       handleImport(result);
@@ -319,13 +330,14 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kAbstract:
                 advance();
-                stmt = _parseClassDecl(isAbstract: true, isTopLevel: true);
+                stmt = _parseClassDecl(
+                    isAbstract: true, isTopLevel: true, lateResolve: false);
+                break;
+              case HTLexicon.kClass:
+                stmt = _parseClassDecl(isTopLevel: true, lateResolve: false);
                 break;
               case HTLexicon.kEnum:
                 stmt = _parseEnumDecl(isTopLevel: true);
-                break;
-              case HTLexicon.kClass:
-                stmt = _parseClassDecl(isTopLevel: true);
                 break;
               case HTLexicon.kVar:
                 if (HTLexicon.destructuringDeclarationMark
@@ -493,11 +505,11 @@ class HTParser extends HTAbstractParser {
                 advance();
                 stmt = _parseClassDecl(isAbstract: true, isTopLevel: true);
                 break;
-              case HTLexicon.kEnum:
-                stmt = _parseEnumDecl(isTopLevel: true);
-                break;
               case HTLexicon.kClass:
                 stmt = _parseClassDecl(isTopLevel: true);
+                break;
+              case HTLexicon.kEnum:
+                stmt = _parseEnumDecl(isTopLevel: true);
                 break;
               case HTLexicon.kVar:
                 stmt = _parseVarDecl(
@@ -620,22 +632,21 @@ class HTParser extends HTAbstractParser {
                 break;
               case HTLexicon.kAbstract:
                 advance();
-                stmt = _parseClassDecl(isAbstract: true);
+                stmt = _parseClassDecl(
+                    isAbstract: true, lateResolve: _isWithinModuleNamespace);
+                break;
+              case HTLexicon.kClass:
+                stmt = _parseClassDecl(lateResolve: _isWithinModuleNamespace);
                 break;
               case HTLexicon.kEnum:
                 stmt = _parseEnumDecl();
                 break;
-              case HTLexicon.kClass:
-                stmt = _parseClassDecl();
-                break;
               case HTLexicon.kVar:
-                stmt = _parseVarDecl(isMutable: true, lateInitialize: true);
+                stmt = _parseVarDecl(
+                    isMutable: true, lateInitialize: _isWithinModuleNamespace);
                 break;
               case HTLexicon.kFinal:
-                stmt = _parseVarDecl(lateInitialize: true);
-                break;
-              case HTLexicon.kLate:
-                stmt = _parseVarDecl(lateFinalize: true);
+                stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace);
                 break;
               case HTLexicon.kConst:
                 stmt = _parseVarDecl(isConst: true);
@@ -1013,13 +1024,13 @@ class HTParser extends HTAbstractParser {
               break;
             case HTLexicon.kAbstract:
               advance();
-              stmt = _parseClassDecl(isAbstract: true);
+              stmt = _parseClassDecl(isAbstract: true, lateResolve: false);
+              break;
+            case HTLexicon.kClass:
+              stmt = _parseClassDecl(lateResolve: false);
               break;
             case HTLexicon.kEnum:
               stmt = _parseEnumDecl();
-              break;
-            case HTLexicon.kClass:
-              stmt = _parseClassDecl();
               break;
             case HTLexicon.kVar:
               if (HTLexicon.destructuringDeclarationMark
@@ -3202,7 +3213,8 @@ class HTParser extends HTAbstractParser {
       {String? classId,
       bool isExternal = false,
       bool isAbstract = false,
-      bool isTopLevel = false}) {
+      bool isTopLevel = false,
+      bool lateResolve = true}) {
     final keyword = match(HTLexicon.kClass);
     if (_currentClass != null && _currentClass!.isNested) {
       final err = HTError.nestedClass(
@@ -3248,6 +3260,7 @@ class HTParser extends HTAbstractParser {
         isAbstract: isAbstract,
         isTopLevel: isTopLevel,
         hasUserDefinedConstructor: _hasUserDefinedConstructor,
+        lateResolve: lateResolve,
         source: _currentSource,
         line: keyword.line,
         column: keyword.column,

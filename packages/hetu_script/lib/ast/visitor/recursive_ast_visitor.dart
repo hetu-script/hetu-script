@@ -255,11 +255,6 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
     node.subAccept(this);
   }
 
-  // @override
-  // T? visitConstDecl(ConstDecl node) {
-  //   node.subAccept(this);
-  // }
-
   @override
   T? visitVarDecl(VarDecl node) {
     node.subAccept(this);

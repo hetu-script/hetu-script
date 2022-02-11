@@ -28,10 +28,17 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   /// Initialize a newly created severity with the given names.
   const ErrorSeverity(this.name, this.weight, this.displayName);
 
+  bool operator >(ErrorSeverity other) => weight > other.weight;
+
+  bool operator >=(ErrorSeverity other) => weight >= other.weight;
+
+  bool operator <(ErrorSeverity other) => weight < other.weight;
+
+  bool operator <=(ErrorSeverity other) => weight <= other.weight;
+
   @override
-  bool operator ==(Object other) {
-    return other is ErrorSeverity && weight == other.weight;
-  }
+  bool operator ==(Object other) =>
+      other is ErrorSeverity && weight == other.weight;
 
   @override
   int get hashCode => weight;

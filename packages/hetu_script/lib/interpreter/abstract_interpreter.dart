@@ -8,13 +8,11 @@ import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../binding/external_class.dart';
 import '../binding/external_function.dart';
-import '../binding/external_instance.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
 import '../type/type.dart';
 import '../value/function/function.dart';
-import '../declaration/namespace/declaration_namespace.dart';
 import '../parser/abstract_parser.dart';
 import '../value/entity.dart';
 import '../bytecode/compiler.dart';
@@ -63,20 +61,8 @@ class InterpreterConfig
 ///
 /// Each instance of a interpreter has a independent global [HTNamespace].
 abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
-  /// Current line number.
-  int get line;
-
-  /// Current column number.
-  int get column;
-
-  /// Current file name.
-  String get fileName;
-
   /// [HTResourceContext] manages imported sources.
   HTResourceContext<HTSource> get sourceContext;
-
-  /// The global namespace.
-  HTDeclarationNamespace get global;
 
   /// Initialize the interpreter,
   /// prepare it with preincluded modules,
@@ -139,7 +125,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       {String? fileName,
       String? moduleName,
       bool globallyImport = false,
-      ResourceType type = ResourceType.hetuLiteralCode,
+      HTResourceType type = HTResourceType.hetuLiteralCode,
       bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
@@ -198,151 +184,71 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {}
 
-  /// Encapsulate any value to a Hetu object, for members accessing and type check.
-  HTEntity encapsulate(dynamic object) {
-    if (object is HTEntity) {
-      return object;
-    } else if ((object == null) || (object is NullThrownError)) {
-      return HTEntity.nullValue;
-    }
-    late String typeString;
-    if (object is bool) {
-      typeString = HTLexicon.boolean;
-    } else if (object is int) {
-      typeString = HTLexicon.integer;
-    } else if (object is double) {
-      typeString = HTLexicon.float;
-    } else if (object is String) {
-      typeString = HTLexicon.string;
-    } else if (object is List) {
-      typeString = 'List';
-      // var valueType = HTType.ANY;
-      // if (object.isNotEmpty) {
-      //   valueType = encapsulate(object.first).valueType;
-      //   for (final item in object) {
-      //     final value = encapsulate(item).valueType;
-      //     if (value.isNotA(valueType)) {
-      //       valueType = HTType.ANY;
-      //       break;
-      //     }
-      //   }
-      // }
-      // return HTList(object, this, valueType: valueType);
-    } else if (object is Set) {
-      typeString = 'Set';
-    } else if (object is Map) {
-      typeString = 'Map';
-      // var keyType = HTType.ANY;
-      // var valueType = HTType.ANY;
-      // if (object.keys.isNotEmpty) {
-      //   keyType = encapsulate(object.keys.first).valueType;
-      //   for (final item in object.keys) {
-      //     final value = encapsulate(item).valueType;
-      //     if (value.isNotA(keyType)) {
-      //       keyType = HTType.ANY;
-      //       break;
-      //     }
-      //   }
-      // }
-      // if (object.values.isNotEmpty) {
-      //   valueType = encapsulate(object.values.first).valueType;
-      //   for (final item in object.values) {
-      //     final value = encapsulate(item).valueType;
-      //     if (value.isNotA(valueType)) {
-      //       valueType = HTType.ANY;
-      //       break;
-      //     }
-      //   }
-      // }
-      // return HTMap(object, this, keyType: keyType, valueType: valueType);
-    } else if (object is Iterable) {
-      typeString = 'Iterable';
-    } else if (object is Iterator) {
-      typeString = 'Iterator';
-    } else {
-      var reflected = false;
-      for (final reflect in _externTypeReflection) {
-        final result = reflect(object);
-        if (result != null) {
-          reflected = true;
-          typeString = result;
-          break;
-        }
-      }
-      if (!reflected) {
-        typeString = object.runtimeType.toString();
-        typeString = HTType.parseBaseType(typeString);
-      }
-    }
-
-    return HTExternalInstance(object, this, typeString);
-  }
-
-  final _externClasses = <String, HTExternalClass>{};
-  final _externTypeReflection = <HTExternalTypeReflection>[];
-  final _externFuncs = <String, Function>{};
-  final _externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
+  final externClasses = <String, HTExternalClass>{};
+  final externTypeReflection = <HTExternalTypeReflection>[];
+  final externFuncs = <String, Function>{};
+  final externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
 
   /// Wether the interpreter has a certain external class binding.
-  bool containsExternalClass(String id) => _externClasses.containsKey(id);
+  bool containsExternalClass(String id) => externClasses.containsKey(id);
 
   /// Register a external class into scrfipt.
   /// For acessing static members and constructors of this class,
   /// there must also be a declaraction in script
   void bindExternalClass(HTExternalClass externalClass,
       {bool override = false}) {
-    if (_externClasses.containsKey(externalClass.valueType) && !override) {
+    if (externClasses.containsKey(externalClass.valueType) && !override) {
       throw HTError.definedRuntime(externalClass.valueType.toString());
     }
-    _externClasses[externalClass.id] = externalClass;
+    externClasses[externalClass.id] = externalClass;
   }
 
   /// Fetch a external class instance
   HTExternalClass fetchExternalClass(String id) {
-    if (!_externClasses.containsKey(id)) {
+    if (!externClasses.containsKey(id)) {
       throw HTError.undefinedExternal(id);
     }
-    return _externClasses[id]!;
+    return externClasses[id]!;
   }
 
   /// Bind a external class name to a abstract class name for interpreter get dart class name by reflection
   void bindExternalReflection(HTExternalTypeReflection reflection) {
-    _externTypeReflection.add(reflection);
+    externTypeReflection.add(reflection);
   }
 
   /// Register a external function into scrfipt
   /// there must be a declaraction also in script for using this
   void bindExternalFunction(String id, Function function,
       {bool override = false}) {
-    if (_externFuncs.containsKey(id) && !override) {
+    if (externFuncs.containsKey(id) && !override) {
       throw HTError.definedRuntime(id);
     }
-    _externFuncs[id] = function;
+    externFuncs[id] = function;
   }
 
   /// Fetch a external function
   Function fetchExternalFunction(String id) {
-    if (!_externFuncs.containsKey(id)) {
+    if (!externFuncs.containsKey(id)) {
       throw HTError.undefinedExternal(id);
     }
-    return _externFuncs[id]!;
+    return externFuncs[id]!;
   }
 
   /// Register a external function typedef into scrfipt
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
       {bool override = false}) {
-    if (_externFuncTypeUnwrappers.containsKey(id) && !override) {
+    if (externFuncTypeUnwrappers.containsKey(id) && !override) {
       throw HTError.definedRuntime(id);
     }
-    _externFuncTypeUnwrappers[id] = function;
+    externFuncTypeUnwrappers[id] = function;
   }
 
   /// Using unwrapper to turn a script function into a external function
   Function unwrapExternalFunctionType(HTFunction func) {
-    if (!_externFuncTypeUnwrappers.containsKey(func.externalTypeId)) {
+    if (!externFuncTypeUnwrappers.containsKey(func.externalTypeId)) {
       throw HTError.undefinedExternal(func.externalTypeId!);
     }
-    final unwrapFunc = _externFuncTypeUnwrappers[func.externalTypeId]!;
+    final unwrapFunc = externFuncTypeUnwrappers[func.externalTypeId]!;
     return unwrapFunc(func);
   }
 }

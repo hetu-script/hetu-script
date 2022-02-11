@@ -240,7 +240,7 @@ class HTFunction extends HTFunctionDeclaration
       bool errorHandled = true}) {
     try {
       interpreter.stackTrace.add(
-          '$internalName (${interpreter.fileName}:${interpreter.line}:${interpreter.column})');
+          '$internalName (${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn})');
 
       dynamic result;
       // 如果是脚本函数
@@ -388,9 +388,9 @@ class HTFunction extends HTFunctionDeclaration
           final referCtorPosArgs = [];
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
-            final savedFileName = interpreter.fileName;
+            final savedFileName = interpreter.currentFileName;
             final savedlibraryName = interpreter.bytecodeModule.id;
-            final savedNamespace = interpreter.namespace;
+            final savedNamespace = interpreter.currentNamespace;
             final savedIp = interpreter.bytecodeModule.ip;
             interpreter.newStackFrame(
                 filename: fileName,
@@ -534,7 +534,7 @@ class HTFunction extends HTFunctionDeclaration
             if (category != FunctionCategory.getter) {
               final func = externalFunc!;
               if (func is HTExternalFunction) {
-                result = func(interpreter.namespace,
+                result = func(interpreter.currentNamespace,
                     positionalArgs: finalPosArgs,
                     namedArgs: finalNamedArgs,
                     typeArgs: typeArgs);
@@ -555,7 +555,7 @@ class HTFunction extends HTFunctionDeclaration
                 interpreter.fetchExternalFunction('$classId.$id');
             if (func is HTExternalFunction) {
               if (isStatic || category == FunctionCategory.constructor) {
-                result = func(interpreter.namespace,
+                result = func(interpreter.currentNamespace,
                     positionalArgs: finalPosArgs,
                     namedArgs: finalNamedArgs,
                     typeArgs: typeArgs);
@@ -567,9 +567,9 @@ class HTFunction extends HTFunctionDeclaration
               }
             } else {
               throw HTError.notCallable(internalName,
-                  filename: interpreter.fileName,
-                  line: interpreter.line,
-                  column: interpreter.column);
+                  filename: interpreter.currentFileName,
+                  line: interpreter.currentLine,
+                  column: interpreter.currentColumn);
             }
           }
         }
@@ -579,7 +579,7 @@ class HTFunction extends HTFunctionDeclaration
           final func = externalFunc!;
           if (func is HTExternalFunction) {
             if (isStatic || category == FunctionCategory.constructor) {
-              result = func(interpreter.namespace,
+              result = func(interpreter.currentNamespace,
                   positionalArgs: finalPosArgs,
                   namedArgs: finalNamedArgs,
                   typeArgs: typeArgs);
@@ -602,7 +602,7 @@ class HTFunction extends HTFunctionDeclaration
           externalFunc ??= interpreter.fetchExternalFunction(id!);
           final func = externalFunc!;
           if (func is HTExternalFunction) {
-            result = func(interpreter.namespace,
+            result = func(interpreter.currentNamespace,
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
                 typeArgs: typeArgs);

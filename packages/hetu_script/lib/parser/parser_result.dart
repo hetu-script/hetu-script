@@ -10,7 +10,7 @@ class HTSourceParseResult {
 
   String get fullName => source.fullName;
 
-  ResourceType get resourceType => source.type;
+  HTResourceType get resourceType => source.type;
 
   LineInfo get lineInfo => source.lineInfo;
 
@@ -33,7 +33,7 @@ class HTModuleParseResult {
 
   final Map<String, HTSourceParseResult> sources;
 
-  final ResourceType entryResourceType;
+  final HTResourceType entryResourceType;
 
   final List<HTError> errors;
 

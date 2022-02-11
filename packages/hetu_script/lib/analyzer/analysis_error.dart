@@ -3,7 +3,7 @@ import '../error/error_severity.dart';
 import 'diagnostic.dart';
 import '../grammar/lexicon.dart';
 
-class HTAnalysisWarning implements HTError {
+class HTAnalysisError implements HTError {
   @override
   final ErrorCode code;
 
@@ -42,7 +42,7 @@ class HTAnalysisWarning implements HTError {
 
   final List<HTDiagnosticMessage> contextMessages;
 
-  HTAnalysisWarning(this.code, this.type,
+  HTAnalysisError(this.code, this.type,
       {this.message,
       this.extra,
       List<String> interpolations = const [],
@@ -57,11 +57,11 @@ class HTAnalysisWarning implements HTError {
   @override
   String toString() {
     final output = StringBuffer();
-    output.writeln("- $message (at [$filename:$line:$column])");
+    output.writeln("$message (at [$filename:$line:$column])");
     return output.toString();
   }
 
-  HTAnalysisWarning.fromError(HTError error,
+  HTAnalysisError.fromError(HTError error,
       {List<HTDiagnosticMessage> contextMessages = const []})
       : this(error.code, error.type,
             message: error.message,
@@ -73,7 +73,7 @@ class HTAnalysisWarning implements HTError {
             length: error.length!,
             contextMessages: contextMessages);
 
-  HTAnalysisWarning.constValue(
+  HTAnalysisError.constValue(
       {String? extra,
       String? correction,
       required String filename,
