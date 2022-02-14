@@ -29,7 +29,7 @@ void main() {
 Hetu's [grammar](syntax/readme.md) is close to typescript/kotlin/swift and other modern languages.
 
 - Semicolon is optional.
-- Function starts with a keyword like 'fun, get, set, construct'.
+- Function starts with a keyword like **fun, get, set, construct**.
 - Support both class based OOP and prototype based OOP, and also functional programming. You can choose whatever style you want.
 - Type annotation is optional. Variable declared will infer its type from its initializer expression. (The static analysis is still WIP.)
 
