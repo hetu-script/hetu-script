@@ -125,15 +125,9 @@ void main() async {
 hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 ```
 
-### 绑定一个外部成员函数
+### 绑定一个外部方法
 
-你可以在脚本中的类定义中，定义外部函数
-
-A Hetu class could have a external method, even if other part of this class is all Hetu.
-
-When called, the first argument passed from the script will be the instance instead of the namespace.
-
-For example, we have the following class with a external method:
+你可以在脚本中的类定义中，定义外部方法（外部成员函数）。
 
 ```dart
 class Someone {
@@ -141,7 +135,7 @@ class Someone {
 }
 ```
 
-We have to define a external method in Dart code:
+对于脚本类中的外部成员函数，在 Dart 侧的定义和普通函数一样：
 
 ```dart
 dynamic calculate(object, {positionalArgs, namedArgs, typeArgs}) {
@@ -149,21 +143,21 @@ dynamic calculate(object, {positionalArgs, namedArgs, typeArgs}) {
 };
 ```
 
-We have to bind this external method some where in the Dart code, before we can use it in Hetu:
+但在绑定时，约定使用 className.funcName 的形式作为绑定名：
 
 ```dart
 // the key of this external method have to be in the form of 'className.methodName'
 hetu.bindExternalFunction('Someone.calculate', calculate);
 ```
 
-Then it's okay to call this in Hetu:
+然后在脚本中，外部方法就可以和普通脚本函数一样使用了：
 
 ```dart
 var ss = Someone()
 ss.calculate()
 ```
 
-You can also have a external method on a named struct:
+对于命名构造体（named struct），可以使用相同的方式来绑定外部成员函数：
 
 ```javascript
 struct Person {
@@ -171,24 +165,21 @@ struct Person {
 }
 ```
 
-Everything else you should do is the same to a external method on a class.
+### 外部类绑定的定义和声明
 
-### External getter
+你可以在脚本中定义一个外部类，然后通过绑定的方式来访问它的静态成员或者实例成员。
 
-For external getter, you don't need to have a external function or external method typed function. You can directly return the value in the dart code.
+外部类的绑定包含下面四部分的代码：
 
-### 完整的绑定类的定义和声明
+- 一个 Dart class 的声明。这部分是纯粹的 Dart。通常你已经写好了这部分代码，而且也无须作任何修改。
 
-You can use a Dart object with full class definition in Hetu.
+- 你需要写一个针对这个 Dart class 的 [extension](https://dart.dev/guides/language/extension-methods)，提供两个方法：**htFetch 和 htAssign**。 这是为了让解释器可以以某种类似反射的方法获取 Dart 对象的成员。
 
-To achieve this, you have to write a full definition of that class in Hetu, which includes 4 parts of code:
+- 你需要通过继承 **HTExternalClass** 类定义一个外部类，包含 **memberGet, memberSet, instanceMemberGet, instanceMemberSet** 等函数。这个外部类需要使用解释器的 [**bindExternalClass()**](../../api_reference/dart/readme.md) 方法进行绑定，从而让解释器可以访问这个类的静态成员，以及其构造函数。
 
-- Original class definition of the class you intended to use in Hetu. For Dart & Flutter, this is the part where you already have when you import a library.
-- An extension on that class. This part is used for dynamic reflection in Hetu and should return members of this class.
-- A binding definition of that class, which extends **HTExternalClass** interface provided by Hetu's dart lib. This part is used for access to the constructor and static members of that class.
-- A Hetu version of class definition of that class. This part is used for Hetu to understand the structure and type of this class.
+- 你还需要在脚本中使用 **external** 关键字声明这个类和其成员。这可以让脚本本身进行语法检查、函数参数赋初值等。
 
-You can check the following example for how to bind a class and its various kinds of members.
+下面是一个定义并使用一个外部类的完整例子：
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -340,11 +331,23 @@ void main() {
 }
 ```
 
-### Typedef of Dart function
+#### 外部 Getter
 
-It is possible to return a pure Dart function from the script side.
+Getter 是用来访问对象属性的特殊函数。对于此种函数，你无须在 **external class binding** 或者 **extension on instance** 上定义完整的函数，而只需直接返回其对应的值即可。
 
-For example, in Hetu script, we have this function typedef:
+#### 部分绑定
+
+你无需让每个绑定定义都完全包含上述的四个部分。
+
+- 如果你只定义了**外部类（external class binding）**，并没有定义**对象扩展方法（extension on instance）**，这意味着你可以在脚本中**以 className.memberName 的形式访问类静态成员**。
+
+- 如果你在外部类中**不定义 memberGet 和 memberSet**，而**只定义 instanceMemberGet 和 instanceMemberSet**，这样你可以在脚本中直接使用这个 Dart 对象，只是**不能通过构造函数创建这个对象，或者访问静态成员**。
+
+### Dart 函数解包装定义
+
+某些情况下，你可能希望将一个脚本函数，当作普通的 Dart 函数，作为参数传递给另一个 Dart 函数（例如在 Flutter 的 Widget 构造函数中的 onPressed 之类的场合）。
+
+你可以通过绑定一个解包装函数来实现这个目的。在脚本中，在函数名之前可以加上一个 **[]** 用来定义解包装函数：
 
 ```dart
 fun [DartFunction] add(a: num, b: num) -> num {
@@ -356,18 +359,9 @@ fun getFunc {
 }
 ```
 
-Then when you evaluate this _add_ function in Hetu, you will get a native Dart function. This grammar could also be used on literal function, this is especially usefull when you try to bind callback function to a dart widget.
+你可以使用解释器上的 **bindExternalFunctionType()** 来绑定这个解包装函数。当然也可以直接在解释器初始化时，作为参数传入 **init()** 方法。
 
-```dart
-typedef DartFunction = int Function(int a, int b);
-
-int hetuAdd(DartFunction func) {
-  var func = hetu.invoke('getFunc');
-  return func(6, 7);
-}
-```
-
-You have to bind the Dart typedef in **init** method of the interpreter before you can use it.
+下面的例子展示了如何定义 **DartFunction** 这个解包装函数：
 
 ```dart
 await hetu.init(externalFunctions: {
@@ -381,16 +375,27 @@ await hetu.init(externalFunctions: {
 });
 ```
 
-The typedef of the unwrapper is:
+之后，当你在脚本中传递 **add** 函数时，就可以获得一个符合定义的 Dart 函数。
+
+下面是一个例子。我们定义了另一个 Dart 函数。它需要一个函数作为传入的参数。此时我们就可以将刚才在脚本中定义的 **add** 函数直接传给他。
+
+```dart
+typedef DartFunction = int Function(int a, int b);
+
+int hetuAdd(DartFunction func) {
+  var func = hetu.invoke('getFunc');
+  return func(6, 7);
+}
+```
+
+对于解包装函数，我们通常使用如下的定义：
 
 ```dart
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 ```
 
-### Auto-Binding tools
+### 自动绑定工具
 
-**This tool is outdated and not suitable for this version of Hetu, we may fix it some time in the future.**
+_这个工具的贡献者目前很久没有更新了，并不适用于当前版本的河图和 Flutter。我们可能会在晚些时候更新它。_
 
-Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
-
-Please check out this repository: [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)
+感谢[rockingdice](https://github.com/rockingdice)的贡献，我们现在有一个自动化工具 [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding) 用来生成一个 Dart 类的完整外部类绑定定义。

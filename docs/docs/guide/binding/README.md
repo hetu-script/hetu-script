@@ -173,10 +173,6 @@ struct Person {
 
 Everything else you should do is the same to a external method on a class.
 
-### External getter
-
-For external getter, you don't need to have a external function or external method typed function. You can directly return the value in the dart code.
-
 ### Binding a full class
 
 You can use a Dart object with full class definition in Hetu.
@@ -184,9 +180,12 @@ You can use a Dart object with full class definition in Hetu.
 To achieve this, you have to write a full definition of that class in Hetu, which includes 4 parts of code:
 
 - Original class definition of the class you intended to use in Hetu. For Dart & Flutter, this is the part where you already have when you import a library.
-- An extension on that class. This part is used for dynamic reflection in Hetu and should return members of this class.
-- A binding definition of that class, which extends **HTExternalClass** interface provided by Hetu's dart lib. This part is used for access to the constructor and static members of that class.
-- A Hetu version of class definition of that class. This part is used for Hetu to understand the structure and type of this class.
+
+- An extension on that class, providing **htFetch & htAssign** methods. This part is used for dynamic reflection in Hetu and should return members of this class.
+
+- A binding definition of that class, which extends **HTExternalClass** interface provided by Hetu's dart lib, and provides **memberGet, memberSet, instanceMemberGet, instanceMemberSet** methods. You have to bind a instance of this class with method [**bindExternalClass()**](../../api_reference/dart/readme.md) on the interpreter. This part is used for access to the constructor and static members of that class.
+
+- A Hetu version of class definition of that class. This part is used for Hetu to understand the structure and type of this class, and is used for syntax check and argument default values, etc.
 
 You can check the following example for how to bind a class and its various kinds of members.
 
@@ -339,6 +338,18 @@ void main() {
       ''', isModule: true, invokeFunc: 'main');
 }
 ```
+
+#### External getter
+
+For external getter, you don't need to have a external function or external method typed function. You can directly return the value in the dart code.
+
+#### Partial binding
+
+You don't always need all of the definitions and declarations as the example above.
+
+If you defined an external class binding without instanceMemberGet, instanceMemberSet and the extension on instance, you will limited to access this class's static members and constructors with className.memberName.
+
+If you omit the memberGet & memberSet on external class binding, and just define instanceMemberGet, instanceMemberSet and the extension on instance, you can access the instance member of this Dart instance, but cannot use its static class member & constructors.
 
 ### Typedef of Dart function
 

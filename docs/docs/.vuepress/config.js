@@ -26,8 +26,8 @@ module.exports = {
             link: '/guide/installation/',
           },
           {
-            text: 'Language',
-            link: '/syntax/introduction/',
+            text: 'Grammar',
+            link: '/grammar/introduction/',
           },
           {
             text: 'API Reference',
@@ -83,66 +83,66 @@ module.exports = {
               link: '/guide/implementation_detail/',
             },
           ],
-          '/syntax/': [
+          '/grammar/': [
             {
               text: 'Introduction',
-              link: '/syntax/introduction/',
+              link: '/grammar/introduction/',
             },
             {
               text: 'Identifier & keywords',
-              link: '/syntax/identifier/',
+              link: '/grammar/identifier/',
             },
             {
               text: 'Builtin types',
-              link: '/syntax/builtin_types/',
+              link: '/grammar/builtin_types/',
             },
             {
               text: 'Operators',
-              link: '/syntax/operators/',
+              link: '/grammar/operators/',
             },
             {
               text: 'Variable',
-              link: '/syntax/variable/',
+              link: '/grammar/variable/',
             },
             {
               text: 'Control flow',
-              link: '/syntax/control_flow/',
+              link: '/grammar/control_flow/',
             },
             {
               text: 'Function',
-              link: '/syntax/function/',
+              link: '/grammar/function/',
             },
             {
               text: 'Enum',
-              link: '/syntax/enum/',
+              link: '/grammar/enum/',
             },
             {
               text: 'Class',
-              link: '/syntax/class/',
+              link: '/grammar/class/',
             },
             {
               text: 'Struct',
-              link: '/syntax/struct/',
+              link: '/grammar/struct/',
             },
             {
               text: 'Type system',
-              link: '/syntax/type_system/',
+              link: '/grammar/type_system/',
             },
             {
               text: 'Future, async & await',
-              link: '/syntax/future/',
+              link: '/grammar/future/',
             },
             {
               text: 'Import & export',
-              link: '/syntax/import/',
+              link: '/grammar/import/',
             },
             {
               text: 'Strict mode',
-              link: '/syntax/strict_mode/',
+              link: '/grammar/strict_mode/',
             },
             {
               text: 'Assert & error',
-              link: '/syntax/error/',
+              link: '/grammar/error/',
             },
           ],
           '/api_reference/': [
@@ -168,7 +168,7 @@ module.exports = {
           },
           {
             text: '语法',
-            link: '/zh-Hans/syntax/introduction/',
+            link: '/zh-Hans/grammar/introduction/',
           },
           {
             text: 'API 参考',
@@ -224,66 +224,66 @@ module.exports = {
               link: '/zh-Hans/guide/implementation_detail/',
             },
           ],
-          '/zh-Hans/syntax/': [
+          '/zh-Hans/grammar/': [
             {
               text: '语法简介',
-              link: '/zh-Hans/syntax/introduction/',
+              link: '/zh-Hans/grammar/introduction/',
             },
             {
               text: '标识符和关键字',
-              link: '/zh-Hans/syntax/identifier/',
+              link: '/zh-Hans/grammar/identifier/',
             },
             {
               text: '内置类型',
-              link: '/zh-Hans/syntax/builtin_types/',
+              link: '/zh-Hans/grammar/builtin_types/',
             },
             {
               text: '特殊语法和操作符',
-              link: '/zh-Hans/syntax/operators/',
+              link: '/zh-Hans/grammar/operators/',
             },
             {
               text: '变量',
-              link: '/zh-Hans/syntax/variable/',
+              link: '/zh-Hans/grammar/variable/',
             },
             {
               text: '控制流程',
-              link: '/zh-Hans/syntax/control_flow/',
+              link: '/zh-Hans/grammar/control_flow/',
             },
             {
               text: '函数',
-              link: '/zh-Hans/syntax/function/',
+              link: '/zh-Hans/grammar/function/',
             },
             {
               text: '枚举类',
-              link: '/zh-Hans/syntax/enum/',
+              link: '/zh-Hans/grammar/enum/',
             },
             {
               text: '类',
-              link: '/zh-Hans/syntax/class/',
+              link: '/zh-Hans/grammar/class/',
             },
             {
               text: '结构体',
-              link: '/zh-Hans/syntax/struct/',
+              link: '/zh-Hans/grammar/struct/',
             },
             {
               text: '类型系统',
-              link: '/zh-Hans/syntax/type_system/',
+              link: '/zh-Hans/grammar/type_system/',
             },
             {
               text: '异步操作',
-              link: '/zh-Hans/syntax/future/',
+              link: '/zh-Hans/grammar/future/',
             },
             {
               text: '导入其他代码文件',
-              link: '/zh-Hans/syntax/import/',
+              link: '/zh-Hans/grammar/import/',
             },
             {
               text: '严格模式',
-              link: '/zh-Hans/syntax/strict_mode/',
+              link: '/zh-Hans/grammar/strict_mode/',
             },
             {
               text: '断言和错误处理',
-              link: '/zh-Hans/syntax/error/',
+              link: '/zh-Hans/grammar/error/',
             },
           ],
           '/zh-Hans/api_reference/': [
