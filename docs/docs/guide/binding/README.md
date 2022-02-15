@@ -30,7 +30,7 @@ You can directly access and set the sub value of a List and Map directly by '[]'
 
 ## Json
 
-The HTStruct object in Dart code, or a struct object in the script, has builtin method: toJson() and fromJson() on its root prototype. So you can pass complex data set in this form between script and Dart.
+The HTStruct object in Dart code can be used like a map to get and set members by **[]** operator in Dart. And it has builtin method: toJson() and fromJson() on its root prototype in script. So you can pass complex data set in this form between script and Dart.
 
 In script:
 
@@ -60,13 +60,23 @@ output:
 }
 ```
 
-Primitives and Json are a quick way to pass around values without any binding. However, if you want to create a Dart object, or to call a Dart function more efficiently, you have to tell the script the exact definition of the external functions and classes.
-
 ## Binding
+
+Primitives and Json are a quick way to pass around values without any binding. However, if you want to create a Dart object, or to call a Dart function more efficiently, you have to tell the script the exact definition of the external functions and classes.
 
 ### External function
 
-External functions in dart for use in Hetu have following type:
+You can directy bind a Dart function as it is:
+
+```dart
+await hetu.init(externalFunctions: {
+  'hello': () => {'greeting': 'hello'},
+});
+```
+
+It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's **Function.apply** feature to call it. This is normally slower and inefficient than direct call.
+
+Or you can define a external functions in dart for use in Hetu with following type:
 
 ```dart
 /// typedef of external function for binding.
@@ -77,17 +87,7 @@ typedef HTExternalFunction = dynamic Function(
     List<HTType> typeArgs});
 ```
 
-or even you can directy write it as a Dart Function:
-
-```dart
-await hetu.init(externalFunctions: {
-  'hello': () => {'greeting': 'hello'},
-});
-```
-
-It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's **Function.apply** feature to call it. This is normally slower and inefficient than direct call.
-
-To call Dart functions in Hetu, define those dart funtion in Hetu with **external** keyword and init Hetu with **externalFunctions** argument.
+Then define those dart funtion in Hetu with **external** keyword and init Hetu with **externalFunctions** argument.
 
 ```dart
 await hetu.init(externalFunctions: {
