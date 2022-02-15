@@ -1,11 +1,12 @@
-# API for use in Hetu script
+# 河图中提供的 API
 
-Most of the preincluded values' apis are kept the same name as the Dart SDK:
-**num**, **int**, **double**, **bool**, **String**, **List**, **Set** and **Map**
+河图中的一些基础类型本身是 Dart 类型，同时也默认绑定了大多数 Dart 中的 api。例如下面这些类型和其对象都可以在脚本中直接使用：**num**, **int**, **double**, **bool**, **String**, **List**, **Set**, **Map**。
 
-There are also some hetu exclusive methods, like **List.random**, to get a random item out of a List.
+为了方便，河图中也添加了一些额外的接口，例如 **Iterable.random** 用以获得某个数组中的一个随机对象。
 
-## Global functions
+## 全局函数
+
+下面是一些脚本中可以直接使用的函数：
 
 ```javascript
 external fun print(... args: any)
@@ -19,7 +20,7 @@ external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
 
 ### eval()
 
-You can use **eval** method within the script itself to evaluate a string, just like in Javascript:
+此外，和 javascript 一样，脚本中包含一个用以解释自己的接口 **eval()**：
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -37,15 +38,11 @@ void main() {
 }
 ```
 
-## object
+## 对象字面量
 
-```javascript
-abstract class object {
-  external fun toString() -> str
-}
-```
+河图中包含类似 javascript 的对象字面量语法。并且也实现了基本的原型链。
 
-## struct
+河图中所有的对象字面量都有一个原型对象，并且在这个原型对象上预先定义了一些常用接口：
 
 ````typescript
 
@@ -92,7 +89,23 @@ struct prototype {
 }
 ````
 
+大多数上面这些方法都可以直接在对象上调用。例如：
+
+```javascript
+final obj = { a: 42 }
+
+obj.contains('a') // true
+```
+
+对于 static 方法，需要通过原型的名字来调用：
+
+```dart
+final book = prototype.fromJson(data);
+```
+
 ## Math
+
+脚本中定义了一个静态类 Math ，内置了一些数学相关的常数和接口。
 
 ```javascript
 external class Math {
@@ -153,6 +166,8 @@ external class Math {
 ```
 
 ## Hash
+
+脚本中定义了一个静态类 Hash ，内置了一些字符串加密相关的接口。
 
 ```javascript
 external class Hash {

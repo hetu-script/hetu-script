@@ -1,10 +1,10 @@
-# Communicating with Dart
+# 和 Dart 代码的交互
 
-There are three ways to communicate with Dart: Builtin value, Json, Binding. They have pros and cons respectively. You can choose the style best suits your needs.
+在脚本中可以用三种方式和 Dart 代码进行交互：内置类，Json 和绑定。这三种方法各有优劣，可以根据实际需求选择。
 
-## How to pass values
+## 和 Dart 传递值
 
-You can get value from Hetu by the return value of Interpreter's **invoke** function, and pass object from Dart to Hetu by the positionalArgs and namedArgs of the invoke function methods:
+你可以通过 **invoke()** 接口的参数来向脚本函数传递值。脚本会将这个函数的返回值直接返回到 Dart 这边。
 
 ```dart
 final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isFloat': true};
@@ -12,9 +12,9 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 // final result = calculate(6, 7, isFloat: true)
 ```
 
-## Builtin values
+## 内置类
 
-For these kind of values, their bindings are pre-included within the interpreter. Thus you can pass, get and modify them directly within script.
+河图已经内置下面这些类的绑定，因此你可以直接在脚本中传递、修改这些对象：
 
 - null
 - bool
@@ -26,13 +26,13 @@ For these kind of values, their bindings are pre-included within the interpreter
 - Map\<dynamic, dynamic\>
 - Function
 
-You can directly access and set the sub value of a List and Map directly by '[]' operator and call a Dart Function by '()' operator in script.
+你可以直接在脚本中使用 **[]** 语法来访问和修改 Dart 中的 **List, Map** 对象。也可以直接使用 **()** 来调用 Dart 中的函数。
 
 ## Json
 
-The HTStruct object in Dart code, or a struct object in the script, has builtin method: toJson() and fromJson() on its root prototype. So you can pass complex data set in this form between script and Dart.
+脚本中的对象字面量，在 Dart 中体现为 **HTStruct** 对象。这个对象在 Dart 中可以像 Map 那样直接使用 **[]** 来修改其成员。在脚本中则具有 **toJson()** 和 **fromJson()** 接口。因此可以使用这个对象来在 Dart 和脚本之间传递数值。
 
-In script:
+例如我们在脚本中有如下定义：
 
 ```kotlin
 fun main (data) {
@@ -41,7 +41,7 @@ fun main (data) {
 }
 ```
 
-In dart:
+在 Dart 代码中有如下定义：
 
 ```dart
 final Map<String, dynamic> data = {
@@ -51,7 +51,7 @@ final Map<String, dynamic> data = {
 hetu.invoke('main', positionalArgs: [data]);
 ```
 
-output:
+我们将会在 Dart 中获得下面的输出结果：
 
 ```javascript
 {
@@ -60,13 +60,29 @@ output:
 }
 ```
 
-Primitives and Json are a quick way to pass around values without any binding. However, if you want to create a Dart object, or to call a Dart function more efficiently, you have to tell the script the exact definition of the external functions and classes.
-
 ## Binding
+
+使用内置类和对象字面量来传递值比较简单快捷。但如果你想要使用 Dart 中的已有类定义，或者想要调用 Dart 函数，则需要通过绑定的方式。
 
 ### External function
 
-External functions in dart for use in Hetu have following type:
+你可以直接将任意 Dart 函数绑定到脚本中：
+
+```dart
+await hetu.init(externalFunctions: {
+  'hello': () => {'greeting': 'hello'},
+});
+```
+
+这样写比较简明易懂，但通过这种方式定义的外部函数绑定，将会使用 Dart 中的 **Function.apply** 功能调用，相比直接调用，这个功能的运行效率通常比较低下（大约慢 10 倍左右）。因此，建议以如下形式定义一个外部函数：
+
+```dart
+await hetu.init(externalFunctions: {
+  'hello': (context, {positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
+});
+```
+
+包含类型的外部函数完整定义如下：
 
 ```dart
 /// typedef of external function for binding.
@@ -77,27 +93,9 @@ typedef HTExternalFunction = dynamic Function(
     List<HTType> typeArgs});
 ```
 
-or even you can directy write it as a Dart Function:
+要使用你刚才定义的外部函数，需要在脚本中使用 **external** 关键字声明这个函数。
 
-```dart
-await hetu.init(externalFunctions: {
-  'hello': () => {'greeting': 'hello'},
-});
-```
-
-It's easier to write and read in Dart Function form. However, this way the Interpreter will have to use Dart's **Function.apply** feature to call it. This is normally slower and inefficient than direct call.
-
-To call Dart functions in Hetu, define those dart funtion in Hetu with **external** keyword and init Hetu with **externalFunctions** argument.
-
-```dart
-await hetu.init(externalFunctions: {
-  // you can omit the type, and keep the correct type parameter names,
-  // this way Dart will still count it as HTExternalFunction
-  'hello': (context, {positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
-});
-```
-
-Then you can call those functions in Hetu.
+下面是一个绑定并使用外部函数的完整例子：
 
 ```typescript
 import 'package:hetu_script/hetu_script.dart';
@@ -121,13 +119,15 @@ void main() async {
 }
 ```
 
-And the output should be:
+上面的程序的输出结果是：
 
 ```
 hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 ```
 
-### External methods in classes
+### 绑定一个外部成员函数
+
+你可以在脚本中的类定义中，定义外部函数
 
 A Hetu class could have a external method, even if other part of this class is all Hetu.
 
@@ -177,7 +177,7 @@ Everything else you should do is the same to a external method on a class.
 
 For external getter, you don't need to have a external function or external method typed function. You can directly return the value in the dart code.
 
-### Binding a full class
+### 完整的绑定类的定义和声明
 
 You can use a Dart object with full class definition in Hetu.
 

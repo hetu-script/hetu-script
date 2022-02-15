@@ -17,9 +17,11 @@
 
 ## 目的
 
-为了实现 Flutter 程序和游戏的热更新和脚本能力。
+河图是一个专为 Flutter 打造的轻量型嵌入式脚本语言。它用纯 Dart 写成，因此可以非常轻易的嵌入 Flutter APP，和你的现有代码交互。开发这个语言的主要目的是为了实现 APP 动态布局、对已经发布的程序进行轻量级热更新、以及游戏程序的脚本框架等等在 FLutter 中受限制的语言能力。
 
-我们没有使用 Javascript 或者 Python 之类的现成脚本语言，主要是为了让这个库保持轻量级。完全用 Dart 写成，也让传递 Flutter 对象和数据变得极为简单。
+目前已经有一些框架为了相似的目的而存在，例如可以动态调用 Lua 语言的[Lua Dardo](https://pub.dev/packages/lua_dardo)，可以根据 Json 生成界面的[Flutter Fair](https://fair.58.com/zh/)，等等。还有一些如 [Kraken](https://openkraken.com/) 和 [MXFlutter](https://github.com/tencent/mxflutter) 等方案试图完全将 Flutter APP 以 javascript 的生态进行开发。这些方案都会让 APP 包变得很大（需要依托于 V8 等 Javascript 引擎），并且需要开发者维护一整套胶水方案来达到目的，脱离了 Flutter 生态环境，无论是开发、调试，难度都很高。
+
+因此河图脚本语言希望保持简单纯粹：只需要引入一个库 + 一行代码即可动态化。
 
 ## 文档
 

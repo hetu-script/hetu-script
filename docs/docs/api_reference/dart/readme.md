@@ -1,8 +1,8 @@
-# Dart API 参考
+# Dart 中的解释器 API
 
-## 解释器
+## Interpreter
 
-使用河图脚本库的时候，在 Dart 中的最常用类是解释器（interpreter）。它的名字就叫做 **Hetu**。
+The most common class you will be using is the Interpreter, it is named as 'Hetu' in this library.
 
 ### init()
 
@@ -45,7 +45,7 @@ dynamic eval(String content,
 
 - **content**: Hetu source as String literal.
 - **fileName**: The name of this source, it will be used when other source try to import from it.
-- **moduleName**: The name of the compilation result, i.e. the program or library's name.
+- **moduleName**: The name of the compiled bytecode module.
 - **globallyImport**: Whether you want the content of this source is visible to **global** namespace. It's a quicker way to let other modules to use without import statement.
 - **type**: How the interpreter evaluate this source. For more information, check [**source type**](../../module/readme.md#Source-type).
 - **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.
