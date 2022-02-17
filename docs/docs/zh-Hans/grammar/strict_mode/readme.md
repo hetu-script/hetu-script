@@ -1,8 +1,10 @@
-# Strict mode
+# 严格模式
 
-## Zero value
+在解释器的 eval() 方法的参数列表中，可以指定以严格模式或者非严格模式进行解释。
 
-In non-strict mode, variable with null value can be treated as 0.
+## 空值和零
+
+在非严格模式下，null 可以被隐式转换为 0：
 
 ```javascript
 final obj = {}
@@ -11,7 +13,7 @@ final obj = {}
 
 ## Truth value
 
-In non-strict mode, some expressions will be inexplicitly converted to boolean:
+在非严格模式下，下列表达式的值可以被隐式转换为布尔值。
 
 1, if (expr)
 
@@ -25,7 +27,7 @@ In non-strict mode, some expressions will be inexplicitly converted to boolean:
 
 5, expr1 || expr2
 
-The conversion rules is:
+布尔值隐式转换的规则如下：
 
 ```dart
 /// inexpicit type conversion for truthy values
@@ -47,4 +49,4 @@ bool _truthy(dynamic condition) {
 }
 ```
 
-**In other situations boolean won't be inexplicitly converted**.
+**除了上述情况之外，其他场合并不会进行隐式类型转换。**

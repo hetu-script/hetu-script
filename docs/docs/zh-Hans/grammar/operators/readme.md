@@ -1,12 +1,12 @@
-# Syntax and operators
+# 特殊语法和标识符
 
-## Spread syntax
+## 展开语法
 
-You can use spread syntax ('...') in three places:
+你可以在三种场合使用展开（'...'）：
 
-### Function call argument
+### 函数调用时的参数
 
-In function call's arguments. This means to 'spread' the list object here to fill in the positional argument list.
+你可以将一个 Iterable 展开后作为位置参数传入一个函数调用的参数列表。
 
 ```javascript
 fun someFunc(a, b) {
@@ -16,18 +16,18 @@ var list = [5, 6]
 someFunc(...list) // same to 'someFunc(5, 6)'
 ```
 
-### List literal
+### 列表字面量
 
-In list literal's value list, This means to 'spread' the list object here to fill in the items.
+你可以在定义一个列表字面量时展开另一个列表，将其成员填充进去。
 
 ```javascript
 var list = [5, 6];
 var ht = [1, 2, ...[3, 4], ...list]; // same to [1, 2, 3, 4, 5, 6]
 ```
 
-### Struct literal
+### 结构体（struct）字面量
 
-In struct literal's value list, This means to 'spread' the struct object here to fill in the field.
+你可以在定义一个结构体字面量时展开另一个结构体，将其成员填充进去。
 
 ```javascript
 var name = {
@@ -48,9 +48,9 @@ var person = {
 // }
 ```
 
-## Null check syntax
+## 空值检查
 
-The script is not planning to introduce null safety. However, there are some syntax to help do null check:
+目前河图没有使用 “空安全” 的设定。但你可以使用一些语法来进行快速的空值检查：
 
 ```dart
 var a // a is null
@@ -64,16 +64,16 @@ a ??= 42
 print(a) // a is 42 now
 ```
 
-The nullable check will pass to next unary postfix operator like a chain:
+空值检查具有传递性。'?'之后的所有可以进行控制检查的表达式都会默认允许空值。
 
 ```dart
 var a // a is null
 final value = a?.collection[0].value() // value is null and we won't get errors
 ```
 
-## Operator precedence
+## 操作符优先级
 
-Operators in Hetu is a subset of Dart:
+河图中的操作符优先级是 Dart 的操作符优先级表的一个子集。
 
 | Description    | Operator                           | Associativity | Precedence |
 | :------------- | :--------------------------------- | :-----------: | :--------: |

@@ -58,7 +58,7 @@ For example:
 
 ```javascript
 function getObject() {
-  if (isReady) return; // a semicolon will always be inserted here automatically by javascript engine
+  if (isReady) return; // a semicolon will always be inserted here automatically by Javascript engine
   {
     // fields
   }

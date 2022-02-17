@@ -1,6 +1,6 @@
-# Error & exception
+# 错误和异常的处理
 
-You can manually throw a dart exception within the script using the **assert** or **throw** keyword.
+目前不能在脚本中处理异常，建议在 Dart 代码中进行处理。但你可以在脚本中手动抛出一个异常。
 
 ## assert
 
@@ -8,9 +8,11 @@ You can manually throw a dart exception within the script using the **assert** o
 assert(1 > 5)
 ```
 
-Will throw an 'assertion failed' error. And the error message will contain the source code text in the parentheses to let you know why this happened.
+assert 语句，当括号中的表达式值为 false 时，将会抛出异常。
 
-The expression within the parentheses must be a boolean value.
+无论是否在严格模式下，表达式的值都必须是 boolean 类型。
+
+括号中的代码的文本将会被记录在字节码中，在抛出时会显示，用来了解抛出异常的原因。
 
 ## throw
 
@@ -19,10 +21,6 @@ var i = 42
 throw 'i is ${i}!'
 ```
 
-Will throw an 'script throws' error. And the error message will contain the toString() value of the expression after the keyword.
+throw 语句用来抛出一个对象，典型用法是抛出一个字符串。如果是非字符串对象，将会使用 Dart 对象的 toString() 方法来转换为字符串。
 
-You have to provided a expression after the throw, although the value of that expression might be null.
-
-## Error handling
-
-The script doesn't support 'try...catch' functionality. It's not recommended to try to handle error within the script.
+throw 语句后必须显示提供一个表达式，但这个表达式的值可以是 null。

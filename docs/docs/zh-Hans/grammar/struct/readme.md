@@ -1,12 +1,12 @@
-# Struct
+# 结构体（struct）
 
-Struct are a prototype base object system. This is mainly borrowed from Javascript.
+河图中的结构体等同于 Javascript 中的对象字面量。是一种以原型继承为基础，可以更自由的访问和创建对象成员的面向对象模式。
 
-## Named struct
+## 命名结构体（named struct）
 
-Named struct's declaration are like class, you can have constructors, getter and setters.
+命名结构体的声明方式类似 class。可以包含 cosntruct/get/set 等 class 特有的方法关键字。
 
-You don't have to declare the fields before assign it like you must do in Class declarations. This is useful for constructor.
+在命名结构体的构造函数中，可以通过 this 关键字，省略掉成员声明，而直接给一个不存在的成员赋值。
 
 ```javascript
 struct Named {
@@ -16,9 +16,9 @@ struct Named {
 }
 ```
 
-The named struct declaration itself is also a struct. you can access and modify its member.
+访问命名结构体的标识符，可以得到一个对象字面量，你也可以直接修改它的成员。
 
-However this kind of modification won't affect the object that created before.
+但这种形式的修改，不会影响到之前通过构造函数创造的对象。
 
 ```dart
 final n = Named('Jimmy')

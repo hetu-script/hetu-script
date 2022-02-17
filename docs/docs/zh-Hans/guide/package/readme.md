@@ -1,34 +1,28 @@
-# Package & Module
+# 代码的模块化
 
-We use **package** to refer to a source code bundle organized as a project. And **module** to refer to the compiled package in bytecode form.
+在本文档中，**module** 指使用 compile() 方法编译后的单一字节码文件。在编译字节码时，编译器会自动将代码中使用 **import** 语句导入的所有其他代码文件一并编译，这样在再分发时只需要发布单一的字节码模块即可。
 
-## Resource context
+## 资源空间
 
-If a source contains import statement, the parser will try to fetch another source content by the import path through a helper class **HTResourceContext**. The default **HTResourceContext** provided by the Interpreter is **HTOverlayContext**, it will not handle physical files and you need to manually add String content into the context before you run the script for it to import from.
+资源空间（HTResourceContext）是一个抽象接口，指编译器获取代码文件的辅助类。默认的资源空间的实现是 **HTOverlayContext**。这个实现不会自动读取任何资源。用户需要提前手动添加代码文件，才可以让 import 语句生效。
 
-## Resource type
+## 资源类型
 
-Hetu script file have 3 way to interpret, controlled by the **ResourceType type** parameter in the eval method of the Interpreter class or the extension of the source file.
+资源类型（ResourceType）决定了解释器如何看待代码以及如何看待 import 语句引入的文件。在解释器的 **eval()** 方法中包含这个参数。
 
-- When **ResourceType** is not provided in interpreter's 'eval' method, interpreter will evaluate the string provided as **ResourceType.hetuLiteralCode**. Other than the code use **global** as its namespace. It is the same to **ResourceType.hetuScript**.
+- 当省略掉 eval() 方法的 **ResourceType type** 参数时，解释器会以字面量的形式解释字符串（**ResourceType.hetuLiteralCode**）。这种类型的代码不会生成自己的命名空间，而是直接使用全局命名空间。
 
-- For **ResourceType.hetuScript**, the source file is organized like a Javascript, Python and Lua file. It has its own namespace. It may contain any expression and control statement that is allowed in a function body (including nested function and class declaration). And every expression is immediately evaluated.
+- 当 eval() 方法的代码类型参数为 **ResourceType.hetuScript** 时，解释器会使用类似 Javascript, Python 和 Lua 那样的形式来解释。除了声明语句之外，代码中可以直接执行表达式语句，例如在代码顶层直接调用某个函数。这种类型的代码会使用单独的命名空间。执行这种代码的效果类似于执行一个匿名函数。代码中的变量的初始化值会被立即运算。代码按照书写的顺序执行。
 
-- For **ResourceType.hetuModule**, the source file is organized like a C++, Java or Dart app. It only contains import statement and declarations(variable, function and class). The top level variables are lazily initialized (initialize when first used).
+- 当 eval() 方法的代码类型参数为 **ResourceType.hetuModule** 时，解释器会使用类似 C++, Java 和 Dart 那样的 APP 的形式来解释。代码中只允许包含导入导出语句，以及声明语句。代码中的变量的初始化值在调用时才会被计算出来。代码的执行顺序也并不一定是书写顺序。可以通过传入 invokeFunc 参数来立即调用一个函数。但不要求这个函数一定是 'main' 函数。
 
-When using **evalFile** method on the interpreter, the source type is inferred from the extension of the file name: '\*.hts' is **ResourceType.hetuScript**, and '\*.ht' is **ResourceType.hetuModule**.
+对于解释器的 **evalFile()** 方法，代码文件类型将以文件名后缀作为判断基准：'\*.hts' 对应了 **ResourceType.hetuScript**，而 '\*.ht' 对应了 **ResourceType.hetuModule**。
 
-## Import a pre-compiled binary module
+## 导入字节码文件
 
-You can [pre-compiled a hetu script package](../command_line_tool/readme.md#compile) into a binary module for better performance. If you have a such module. You can import it by using special prefix in import path:
+一个已经编译成了[字节码文件](../command_line_tool/readme.md#compile)的模块也可以被导入。但只能以整个模块导入，其作为入口代码的文件指定了你可以导入的内容。使用这种单一字节码文件可以提交一些效率，因为这样解释器无需进行 parse, analyze, compile 的过程。
 
-```dart
-import 'module:calculate';
-
-final result = calculate()
-```
-
-However, to do so, you have to load the bytecode before you can import it in your script. This is a example to pre-load a pre-compiled binary file:
+在脚本代码文件中导入前，你需要通过解释器上的 **loadBytecode()** 方法来载入这个文件。下面是一个例子：
 
 ```dart
 import 'dart:io';
@@ -47,13 +41,19 @@ void main() {
 }
 ```
 
-## Import a JSON file
+然后你可以在代码中使用 import 加上 'module:' 开头的路径来导入它：
 
-Sometimes we need to import a non-hetu source in your code. For example, if you imported a JSON file, you will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
+```dart
+import 'module:calculate';
 
-To do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning. And you have to give the imported JSON a alias name in your namespace.
+final result = calculate()
+```
 
-Example code (dart part):
+## 导入 JSON 文件
+
+因为和 Javascript 一样，河图中的对象字面量语法和 JSON 完全兼容，因此你可以直接导入一个 JSON 文件，而无需进行任何类型转换。
+
+要做到这点，你需要在创建 **HTResourceContext** 对象时指定 **expressionModuleExtensions**：
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -66,10 +66,13 @@ void main() {
       expressionModuleExtensions: [HTResource.json, HTResource.jsonWithComments]);
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-
-  hetu.eval('''
-    import 'values.json' as json
-    print(json)
-  ''');
+  hetu.eval('readjson.hts');
 }
+```
+
+注意，json 资源文件并非代码文件，没有命名空间，因此在导入时必须指定一个别名才可以使用。
+
+```dart
+import 'values.json' as json
+print(json.name) // use json value like a struct
 ```

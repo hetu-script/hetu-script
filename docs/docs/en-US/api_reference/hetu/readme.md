@@ -20,7 +20,7 @@ external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
 
 ### eval()
 
-此外，和 javascript 一样，脚本中包含一个用以解释自己的接口 **eval()**：
+此外，和 Javascript 一样，脚本中包含一个用以解释自己的接口 **eval()**：
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
@@ -40,7 +40,7 @@ void main() {
 
 ## 对象字面量
 
-河图中包含类似 javascript 的对象字面量语法。并且也实现了基本的原型链。
+河图中包含类似 Javascript 的对象字面量语法。并且也实现了基本的原型链。
 
 河图中所有的对象字面量都有一个原型对象，并且在这个原型对象上预先定义了一些常用接口：
 

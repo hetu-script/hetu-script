@@ -1,10 +1,10 @@
-# Identifier & keywords
+# 标识符
 
-Identifiers (sometimes called symbols) are the names of classes, functions, types, members and fields. In common situations, you can only use letters or characters from any language, plus underscore and dollor sign.
+标识符指变量、函数、类的名字。
 
-## Explicitly define an identifier
+河图中的标识符可以使用任何语言中的文字，以及 '\_' 和 '$' 这两个特殊符号。
 
-You can get a literal identifier with a pair grave accent mark. In this way, you can use any possible characters for its name.
+但你可以通过 '``' 符号（键盘左上角 1 左边的按键）来定义一个标识符字面量。此时你将不受上述限制，可以使用任何字符，包括 emoji 等 unicode 字符。
 
 ```dart
 var obj = {
@@ -14,14 +14,12 @@ var obj = {
 print(obj.`name-#42🍎`) // 'aleph'
 ```
 
-## Keywords
+## 关键字
 
-You cannot use reserved keywords as identifiers.
-
-The full list of current keywords are:
+河图的保留关键字不能用作普通的标识符。下面是完整的关键字列表：
 
 **null, true, false, void<sup>1</sup>, type<sup>1</sup>, import<sup>1</sup>, export<sup>1</sup>, from<sup>1</sup>, any<sup>1</sup>, unknown<sup>12</sup>, never<sup>12</sup>, var, final, const, def<sup>2</sup>, delete<sup>2</sup>, typeof, namespace, class, enum, fun, struct, this, super, abstract, override<sup>2</sup>, external, static, extends, implements<sup>2</sup>, with<sup>2</sup>, construct, factory, get, set, async<sup>2</sup>, await<sup>2</sup>, break, continue, return, for, in, of<sup>1</sup>, if, else, while, do, when, is, as**
 
-1: These keywords are **contextual**. they only used in specific places, hence can be used as normal identifiers.
+1: 这些关键字是 “上下文” 关键字，只有在特定场合使用。因此可以用作普通的标识符。
 
-2: These keywords have no really effect for now, they are reserved for future development.
+2: 这些关键字目前没有任何意义，只是为了未来的语言功能开发提前保留的。
