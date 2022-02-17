@@ -1,26 +1,28 @@
-# Syntax of Hetu Script Language
+# 语法概要
 
-Hetu's grammar is close to most modern languages, with a few key characteristics:
+河图的语法类似 typescript/kotlin/swift 等现代语言，通常只需要了解一些关键点即可直接上手使用：
 
-## Declaration keyword first
+## 声明以关键字开头
 
-Declarations starts with a keyword before the identifier: var, final, const, fun, construct, get, set, class, type, etc.
+河图中所有的声明都以关键字开头。例如：
 
-## Semicolon
+**var, final, const, fun, construct, get, set, class, type**
 
-Semicolon is optional. In most cases, the interpreter will know when a statement is finished. In rare cases, the lexer will implicitly add "end of statement token" (a semicolon in default lexicon) to avoid ambiguities. For example, before a line when the line starts with one of '++, --, (, [, {', or after a line when the line ends with 'return'.
+## 分号可选
 
-## Type annotation writes after identifiers
+河图中的分号是可选的。大多数时候编译器和解释器会自动分清语句的间隔。
 
-Type annotation is optional. Type is annotated **with a colon after the identifier** like typescript/kotlin/swift.
+## 类型注解
 
-## Some keyword are different
+类型注解是可选的，以冒号形式写在标识符后面。
 
-Use **when** instead of **switch**, with [more complex usage](../control_flow/readme.md#when) to match the condition value. This is borrowed from kotlin.
+## 模式匹配
 
-## Comments
+河图没有使用 switch，而是使用 [when 语句](../control_flow/readme.md#when) 进行简单的模式匹配。
 
-Normal comments:
+## 注释
+
+普通注释：
 
 ```typescript
 // This is a comment.
@@ -28,18 +30,18 @@ Normal comments:
 another line.*/
 ```
 
-Documentation comments:
+文档注释：
 
 ```typescript
 /// This is a documentation comment
 fun myFunc() -> int {
-  // some code
+  ...
 }
 ```
 
-## Private members
+## 私有标识符
 
-You can specify a private member of a class/namespace/source by making its name starts with '\_'.
+以 '\_' 开头的标识符作为私有标识符。只能在其声明的命名空间才可以访问。
 
 ```dart
 class Person {

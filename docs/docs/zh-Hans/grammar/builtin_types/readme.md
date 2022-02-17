@@ -1,6 +1,6 @@
-# Builtin types and classes
+# 内置类型
 
-Most of the common primitive types in Hetu is in fact Dart values, you can use most of their apis directly and return them to Dart as it is.
+河图的基础类型本身就是 Dart 的对象。因此你可以直接在脚本中传递、修改这些对象，或者使用他们的 api：
 
 - null
 - bool
@@ -13,17 +13,17 @@ Most of the common primitive types in Hetu is in fact Dart values, you can use m
 - Map\<dynamic, dynamic\>
 - Function (the Dart function object)
 
-Note:
+注意：
 
-1, The type name for float numbers in Hetu is 'float'.
+1, 河图脚本中的浮点数类型名字使用 float，而不是 double，（实际类型的数值大小会根据平台而定）。
 
-2, There's no literal syntax for Set & Map, you have to create them by using constructors.
+2, 河图中没有提供 Set 和 Map 的字面量写法。你需要通过普通构造函数的形式来创建他们的对象。
 
-3, All List\Set\Map created from the script side is of dynamic types.
+3, 河图中创建的 List/Set/Map 的泛型参数在 Dart 中全都是 dynamic 类型。
 
-## Big integers
+## 大整数
 
-To manipulate bigger numbers, you can use preincluded class BigInt.
+河图中默认加入了 Dart 中的大整数类型。使用方法和 Dart 中相同：
 
 ```dart
 final bi = BigInt.parse("9223372036854775807")
@@ -31,4 +31,4 @@ final bi = BigInt.parse("9223372036854775807")
 
 ## Future
 
-Check [this page](../future/readme.md).
+参考[这个页面](../future/readme.md)。

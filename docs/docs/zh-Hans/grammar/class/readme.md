@@ -1,12 +1,10 @@
-# Class
+# 类（class）
 
-Class can have static variables and methods. Which can be accessed through the class name.
+河图中的类是类似 C++/Java/Dart 中的 class 的一种名义类型（nominal type）。支持大多数 Dart 中的 class 的功能，例如构造函数，属性（get/set），继承（extends）等。但 mixin 和 implements 用法暂时不支持。
 
-Member functions can also be declared with **get**, **set**, **construct**, they means getter, setter and contructor function.
+类中的方法声明使用专门的关键字：construct/get/set/factory 等等。
 
-If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty parentheses.
-
-Constructors can be with no function name and cannot return values. When calling they will always return a instance.
+下面是一个完整的例子：
 
 ```typescript
 // class definition
@@ -42,9 +40,9 @@ class Calculator {
 }
 ```
 
-## Inheritance
+## 继承
 
-Use 'extends' to inherit other class's members.
+河图中类的继承使用 **extends** 关键字：
 
 ```typescript
 class Animal {
@@ -83,11 +81,11 @@ class Bird extends Animal {
 }
 ```
 
-## Constructor tear off
+## 函数式的构造函数
 
-Sometimes, we would like to use Class constructors in functional programming situations. However it normally doesn't work because a class name resolves into a 'class' or 'type' object rather than a function which is needed.
+某些时候我们想要在某些函数式编程的场景使用构造函数，例如我们想要向数组的 map 方法传入一个构造函数。通常情况下这不可行。因为直接传递类名，得到的是一个类型，而不是构造函数本身。要实现这一点，在 Dart 中使用的是 [constructor tear-off](https://medium.com/dartlang/dart-2-15-7e7a598e508a#9c16) 的方法。
 
-However, we can achieve this by accessing the internal name of the constructor(**$construct**):
+在河图中，可以通过内部关键字 **$construct** 实现相同的用法：
 
 ```javascript
 class Person {
@@ -102,13 +100,15 @@ final p = ['jimmy', 'wang', 'naruto']
 final objectList = p.map((element) {ctor(element)})
 ```
 
-## Namespace
+## 命名空间
 
-It's common in Dart to define a abstract class with only static members for restricting some values or methods to a namespace.
+在 Java/Dart 中，经常会创建一个只包含静态成员的抽象类，来将一些函数或者常量限制到一个命名空间中。
 
-In Hetu script, you can directly create a code block with keyword **namespace** to achieve this.
+在河图中，可以直接使用命名空间声明（namespace）实现相同的用法：
 
-The namespace code block only allows for variable/class/function declaration, cannot have import statement or expresssions.
+命名空间声明的语句块只能包含变量/类/函数声明，不能包含导入导出语句，以及表达式语句。
+
+下面是一个例子：
 
 ```c++
 namespace universe {
@@ -117,5 +117,3 @@ namespace universe {
 
 print(universe.meaning)
 ```
-
-Refer [Do statement](../control_flow/readme.md#do) for another kind of code block.

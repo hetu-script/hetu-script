@@ -1,6 +1,6 @@
-# Control flow
+# 流程控制
 
-Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as when statement, which works like switch.
+河图中包含大多数常见的流程控制语句。需要注意的是河图用 when 取代了 switch。
 
 ```dart
 fun main {
@@ -19,9 +19,7 @@ fun main {
 }
 ```
 
-## If
-
-**if** statement's branches could be a single statement without brackets.
+## 条件判断语句（if）
 
 ```javascript
 if (condition) {
@@ -31,11 +29,13 @@ if (condition) {
 }
 ```
 
-**if** can also be an expression which will have a value, in this case else branch is not omitable.
+**if** 语句的分支可以是一个表达式，也可以是一个 '{}' 语句块。
 
-## Loop
+**if** 语句本身也可以直接作为一个表达式使用，等同于三目表达式。此时不能忽略 else 分支。
 
-### While
+## 循环语句（while, do, for）
+
+### while
 
 ```javascript
 while (condition) {
@@ -43,7 +43,7 @@ while (condition) {
 }
 ```
 
-### Do
+### do
 
 ```javascript
 do {
@@ -51,49 +51,45 @@ do {
 } while (condition)
 ```
 
-'do' statement's 'while' part is optional, if omitted, it will become a anonymous code block. It's kind of like an anonymous function that immediately calls.
+do 循环的 while 语句可以省略，此时这个语句块类似于一个立即执行的匿名函数。
 
-### For
+### for
 
-'for' statement's expr must be separated with ';'.
-
-The expression itself is optional. If you write 'for ( ; ; )', it will be the same to 'while (true)'
-
-When use for...in, the loop will iterate through the keys of a list.
-
-When use for...of, the loop will iterate through the values of a struct literal/Dart Map.
+C++ 的传统三段式 for，以 ';' 分隔，并且每个表达式都可以省略。'for ( ; ; )' 等同于 'while (true)'。
 
 ```dart
 for (init; condition; increment) {
   ...
 }
 
+for...in, 遍历查询某个 Iterable 的成员。
+
 for (var item in list) {
   ...
 }
+
+for...of, 遍历查询某个 struct/Map 的 values。
 
 for (var item of obj) {
   ...
 }
 ```
 
-## When
+## when
 
-When is the substitue for 'switch' in older programming languages, we change its name to indicate more complex usages.
+when 是用来取代 switch 的关键字，这个语法主要参考自 kotlin。
 
-'when' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true, just like a if else statement.
+when 关键字之后，可以跟随一个可选的圆括号内的 condition 表达式。
 
-However for when statement's cases, interpreter won't [inexplicitly convert non-boolean values](../strict_mode/readme.md#truth-value).
+如果提供了这个表达式，则会将这个表达式的值和各个分支的值进行匹配。并且跳转到第一个匹配的分支。
 
-'when' statement's case could be non-const expression or variables;
+每个分支的语句，可以只是一个单独的表达式，也可以是一个 '{}' 语句块。
 
-'when' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
+**else** 是一个可选的特殊的分支，当其他所有分支都匹配失败，并且提供了 else 分支时，将会进入 else 分支。
 
-'when' statement's else branch is optional.
+使用逗号表达式来匹配多个可能的值。
 
-If you want to match multiple values in one branch, use comma expression.
-
-If you want to check if an iterable/object contains the value, use in/of expression.
+使用 in 表达式来匹配一个 Iterable 中的值；使用 of 表达式来匹配一个 struct/Map 的 values 中的值
 
 ```javascript
 for (final i in range(0, 10)) {

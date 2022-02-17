@@ -4,7 +4,7 @@
 
 目前已经有一些框架为了相似的目的而存在，例如可以动态调用 Lua 语言的[Lua Dardo](https://pub.dev/packages/lua_dardo)，可以根据 Json 生成界面的[Flutter Fair](https://fair.58.com/zh/)，等等。还有一些如 [Kraken](https://openkraken.com/) 和 [MXFlutter](https://github.com/tencent/mxflutter) 等方案试图完全将 Flutter APP 前端化。这些方案大多都极为笨重（依托于 V8 等 Javascript 引擎）。并且需要开发者维护一整套胶水方案来达到目的。
 
-而河图脚本语言的目的则是为了以最小代价实现类似的目的：只需要引入一个库 + 一行代码即可动态化。
+而河图脚本语言的目的则是为了以最小代价实现类似的目的：只需要导入一个库 + 一行代码即可动态化。
 
 ## 快速上手
 

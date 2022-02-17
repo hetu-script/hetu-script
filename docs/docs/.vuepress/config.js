@@ -1,9 +1,9 @@
 const { path } = require('@vuepress/utils');
 
 module.exports = {
-  base: '/script/',
+  base: '/docs/',
   locales: {
-    '/': {
+    '/en-US/': {
       lang: 'en-US',
       title: 'Hetu Script Language',
       description:
@@ -17,28 +17,28 @@ module.exports = {
   },
   themeConfig: {
     locales: {
-      '/': {
+      '/en-US/': {
         selectLanguageText: 'Select languages',
         selectLanguageName: 'English',
         navbar: [
           {
             text: 'Guide',
-            link: '/guide/installation/',
+            link: '/en-US/guide/installation/',
           },
           {
             text: 'Grammar',
-            link: '/grammar/introduction/',
+            link: '/en-US/grammar/introduction/',
           },
           {
             text: 'API Reference',
             children: [
               {
                 text: 'Dart APIs',
-                link: '/api_reference/dart/',
+                link: '/en-US/api_reference/dart/',
               },
               {
                 text: 'Hetu APIs',
-                link: '/api_reference/hetu/',
+                link: '/en-US/api_reference/hetu/',
               },
             ],
           },
@@ -57,102 +57,102 @@ module.exports = {
           },
         ],
         sidebar: {
-          '/guide/': [
+          '/en-US/guide/': [
             {
               text: 'Installation',
-              link: '/guide/installation/',
+              link: '/en-US/guide/installation/',
             },
             {
               text: 'Package & Module',
-              link: '/guide/package/',
+              link: '/en-US/guide/package/',
             },
             {
               text: 'Communicating with Dart',
-              link: '/guide/binding/',
+              link: '/en-US/guide/binding/',
             },
             {
               text: 'Command line tool',
-              link: '/guide/command_line_tool/',
+              link: '/en-US/guide/command_line_tool/',
             },
             {
               text: 'Analyzer',
-              link: '/guide/analyzer/',
+              link: '/en-US/guide/analyzer/',
             },
             {
               text: 'Implementation detail',
-              link: '/guide/implementation_detail/',
+              link: '/en-US/guide/implementation_detail/',
             },
           ],
-          '/grammar/': [
+          '/en-US/grammar/': [
             {
               text: 'Introduction',
-              link: '/grammar/introduction/',
+              link: '/en-US/grammar/introduction/',
             },
             {
               text: 'Identifier & keywords',
-              link: '/grammar/identifier/',
+              link: '/en-US/grammar/identifier/',
             },
             {
               text: 'Builtin types',
-              link: '/grammar/builtin_types/',
+              link: '/en-US/grammar/builtin_types/',
             },
             {
               text: 'Operators',
-              link: '/grammar/operators/',
+              link: '/en-US/grammar/operators/',
             },
             {
               text: 'Variable',
-              link: '/grammar/variable/',
+              link: '/en-US/grammar/variable/',
             },
             {
               text: 'Control flow',
-              link: '/grammar/control_flow/',
+              link: '/en-US/grammar/control_flow/',
             },
             {
               text: 'Function',
-              link: '/grammar/function/',
+              link: '/en-US/grammar/function/',
             },
             {
               text: 'Enum',
-              link: '/grammar/enum/',
+              link: '/en-US/grammar/enum/',
             },
             {
               text: 'Class',
-              link: '/grammar/class/',
+              link: '/en-US/grammar/class/',
             },
             {
               text: 'Struct',
-              link: '/grammar/struct/',
+              link: '/en-US/grammar/struct/',
             },
             {
               text: 'Type system',
-              link: '/grammar/type_system/',
+              link: '/en-US/grammar/type_system/',
             },
             {
               text: 'Future, async & await',
-              link: '/grammar/future/',
+              link: '/en-US/grammar/future/',
             },
             {
               text: 'Import & export',
-              link: '/grammar/import/',
+              link: '/en-US/grammar/import/',
             },
             {
               text: 'Strict mode',
-              link: '/grammar/strict_mode/',
+              link: '/en-US/grammar/strict_mode/',
             },
             {
               text: 'Assert & error',
-              link: '/grammar/error/',
+              link: '/en-US/grammar/error/',
             },
           ],
-          '/api_reference/': [
+          '/en-US/api_reference/': [
             {
               text: 'Dart APIs',
-              link: '/api_reference/dart/',
+              link: '/en-US/api_reference/dart/',
             },
             {
               text: 'Hetu APIs',
-              link: '/api_reference/hetu/',
+              link: '/en-US/api_reference/hetu/',
             },
           ],
         },
@@ -282,7 +282,7 @@ module.exports = {
               link: '/zh-Hans/grammar/strict_mode/',
             },
             {
-              text: '断言和错误处理',
+              text: '错误和异常的处理',
               link: '/zh-Hans/grammar/error/',
             },
           ],

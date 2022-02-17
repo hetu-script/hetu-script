@@ -1,24 +1,22 @@
-# Implementation detail
+# 语言实现细节
 
-Hetu's bytecode implementation has some inexplicit rules. Normally they won't affect language users. We listed them here in case you are interested or encountered some bytecode issues.
+大部分情况下，你无须具体了解河图的解释器和编译器等工具是如何实现的。但如果你遇到了一些设计实现底层的问题，可以参考这里的一些介绍。
 
-## String interpolation
+## 字符串插值（格式化）
 
-The string iterpolation's underlying implementation is kind of like C#'s String.format() or python's str.format(). The compiler will replaces those '${expression}' into '{0}', '{1}' forms.
+河图使用和 Javascript 类似的字符串插值语法。但在编译阶段，实际上这些语句将会编译为类似 C# 的 String.format() 或者 python 的 str.format() 那样的格式。也就是说，在编译时，字符串插值将会用 '{0}', '{1}' 来替换掉原本的 '${expression}' 表达式。
 
 ```python
-"{0} {1}".format("hello", "world")
+"{0}, {1}".format("hello", "world")
 ```
 
-The interpreter will replace those with actual values in runtime.
+解释器会在运行时用运算出的实际值进行替换。所以为了避免出现意料之外的格式化结果，请不要在字符串插值中自己手动写 '{0}', '{1}' 等，如果有此种需求，要改用普通字符串。
 
-So you should avoid having literal '{0}', '{1}' sub strings in a String interpolation, it might cause unintended effects.
+## 枚举
 
-## Enum
+枚举值在编译时会被编译成普通的 class。因此所有的枚举值本质上都是普通对象。
 
-The enum is compiled into class, so there's no 'enum' object exists in runtime.
-
-For example, a enum declaration in Hetu:
+例如，下面这个枚举声明：
 
 ```dart
 enum Country {
@@ -28,7 +26,7 @@ enum Country {
 }
 ```
 
-is compiled into:
+会被编译成：
 
 ```dart
 class Country {
@@ -44,21 +42,19 @@ class Country {
 }
 ```
 
-in bytecode.
+但枚举值在声明时也可以加 external 关键字，这表明这是一个 Dart 中的枚举值。
 
-However, a external Dart enum will exist as a standalone object in the runtime.
+## 自动分号插入
 
-## Automatic semicolon insertion
+自动分号插入（Automatic semicolon insertion，缩写 ASI）是一个常见的程序语言技术。主要用于那些可以省略分号，同时又允许多行语句的编程语言中。要了解更多，可以参考[这个页面](https://en.wikibooks.org/wiki/JavaScript/Automatic_semicolon_insertion)。
 
-Automatic semicolon insertion (ASI) is a technique in programming languages that semicolon is optional. [Click here for more information](https://en.wikibooks.org/wiki/JavaScript/Automatic_semicolon_insertion).
+使用自动分号插入技术的目的是为了避免出现多重语义，也就是编译器对语句的理解可能和用户想要达到的效果不同。
 
-If a language has no semicolon and in the same time it also allows for multiline expression. Then there will be times that ambiguity happens.
-
-For example:
+例如下面的代码中，javascript 会在 return 关键字后插入分号。
 
 ```javascript
 function getObject() {
-  if (isReady) return; // a semicolon will always be inserted here automatically by javascript engine
+  if (isReady) return; // a semicolon will always be inserted here automatically by Javascript engine
   {
     // fields
   }
@@ -66,26 +62,34 @@ function getObject() {
 }
 ```
 
-If there's no ASI, we would never know if you want to return the object after it, or you just want to start a new line after the return keyword.
+如果这里没有分号，则会有两种不同理解：
 
-Similar things also happens when you started a line with brackets, and the interpreter will not knowing if you want to get the subscript value out of the object in the previous line.
+1，如果 if 判断为真，函数返回的是一个对象字面量。
 
-In Hetu script, the ASI is slightly different from Javascript's approach (which almost will always add the semicolon at the end of a line).
+2，如果 if 判断为真，函数在这里直接返回空值。否则，继续执行下面的语句。
 
-We would only add a 'end of statement mark' after a line, if the next line starts with one of these tokens:
+类似的多重语义还会发生在圆括号开头的段落中。因为有圆括号除了用来作为表达式分组，也有把前面的表达式当做函数直接执行的意思。
+
+在 Javascript 中，只要你进行了换行，多数情况下都会自动插入一个分号。在河图中，规则则略有变化。
+
+我们只会在以下面这些 token 开头的一行的**上一行**末尾加入分号：
 
 '{', '(', '[', '++', '--'
 
-**AND** this line is not an **UNFINISHED** line, which ends with one of these tokens:
+但如果**上一行**是一个**未结束**语句，则不会加入分号。
+
+未结束语句的意思是以下面这些 token 结尾的行：
 
 '!', '\*', '/', '%', '+', '-', '<', '<=', '>', '>=', '=', '!=', '??', '&&', '||', '=', '+=', '-=', '\*=', '/=', '??=', '.', '(', '{', '[', ',', ':', '->', '=>'.
 
-Besides, Hetu will also add a 'end of statement mark' after return if there's a new line immediately after it.
+除此之外，对于 return 关键字。如果后面是新的一行，则我们一定会插入一个分号。
 
-So if you would like to return the value, remember to make the left bracket same line with the return.
+因此如果你想要 return 一个对象字面量，需要其左边的花括号写在 return 的同一行。
 
-And if you want to write function definition, remember to make the left bracket same line with the function parameters.
+类似的，需要将函数定义的左边的花括号写在函数名字或者函数参数的同一行。
 
-## Recursive import
+## 循环导入
 
-For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the meantime, B import from A) is allowed. However, for **ResourceType.hetuScript**, recursive import would cause stack overflow errors. **You have to manually avoid recursive import in '\*.hts' files.**
+循环导入的意思是，对于代码文件 A 和 B，在 A 中包含了 'import B'的声明，同时在 B 中包含了 'import A'的声明。
+
+如果一个代码文件是 **ResourceType.hetuModule** 类型，解释器会自动处理循环引入问题。但如果代码文件的类型是 **ResourceType.hetuScript**，循环引用会造成 stack overflow 错误，因此你需要自行小心处理这个问题。

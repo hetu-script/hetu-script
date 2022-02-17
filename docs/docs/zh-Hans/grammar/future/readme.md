@@ -1,12 +1,10 @@
-# Future, async & await
+# 异步操作（Future）
 
-All hetu functions are sync. The script do not support async/await functionality, and we are not planning to do so in the near future.
+河图脚本是完全同步的，也不支持 async/await 语法。
 
-However, it is possible for an external function to return a Future value.
+但河图脚本有可能获得一个 Dart 中的 Future 对象。为了方便起见，我们提供了一个简单的封装，让脚本可以和 Future 交互。
 
-To make things easy, we added a simple wrapper for Dart's Future object. You can use the 'then' method to do something when the Dart Future is completed.
-
-Example:
+你可以在脚本中通过 then() 来传递一个脚本中的函数，它将会在这个 Future 完成后被执行：
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
