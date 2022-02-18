@@ -13,5 +13,23 @@ actions:
   - text: Github
     link: https://github.com/hetu-script/hetu-script/
     type: secondary
-footer: MIT Licensed | Copyright © 2020-present hetu.dev
+footerHtml: true
+footer: <div>
+  <div>
+  <a href="https://pub.dev/packages/hetu_script">
+  <img src="https://img.shields.io/pub/v/hetu_script" />
+  </a>
+  <a
+  href="https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript"
+  >
+  <img
+  src="https://vsmarketplacebadge.apphb.com/version/hetu-script.hetuscript.svg"
+  />
+  </a>
+  <a href="https://discord.gg/sTF73qcS">
+  <img src="https://img.shields.io/discord/829269197727989760" />
+  </a>
+  </div>
+  <div>MIT Licensed | Copyright © 2020-present hetu.dev</div>
+  </div>
 ---
