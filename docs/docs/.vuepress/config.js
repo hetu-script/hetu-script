@@ -23,11 +23,11 @@ module.exports = {
         navbar: [
           {
             text: 'Guide',
-            link: '/en-US/guide/installation/',
+            link: '/en-US/guide/',
           },
           {
             text: 'Grammar',
-            link: '/en-US/grammar/introduction/',
+            link: '/en-US/grammar/',
           },
           {
             text: 'API Reference',
@@ -164,11 +164,11 @@ module.exports = {
         navbar: [
           {
             text: '指南',
-            link: '/zh-Hans/guide/installation/',
+            link: '/zh-Hans/guide/',
           },
           {
             text: '语法',
-            link: '/zh-Hans/grammar/introduction/',
+            link: '/zh-Hans/grammar/',
           },
           {
             text: 'API 参考',
@@ -305,7 +305,7 @@ module.exports = {
       '@vuepress/plugin-search',
       {
         locales: {
-          '/': {
+          '/en-US/': {
             placeholder: 'Search',
           },
           '/zh-Hans/': {

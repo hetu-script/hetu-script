@@ -62,7 +62,3 @@ void main() {
   print('hetu value: $hetuValue');
 }
 ```
-
-## VS Code 语法高亮扩展
-
-如果你目前使用的编辑器是 VS Code，你可以下载这个[扩展](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript)来获得河图脚本语言的语法高亮功能。这个扩展同时也提供了 Dart 中的 class 绑定所需要的一些代码片段的快捷输入。

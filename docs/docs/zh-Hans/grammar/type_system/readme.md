@@ -1,21 +1,29 @@
-# Type declaration
+# 类型
 
-**WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them currently.**
+**注意: 河图的类型系统的实现目前并不完整，目前只起到注解的作用，并不能提供静态分析等帮助。**
 
-Variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
+## 类型字面量
 
-However, if you declare a variable with no initialize expression, the variable will be considered as having a **any** type (equals to dart's dynamic type).
+类型本身在河图中也是一个一等公民，可以作为表达式的值传递。
+
+## 类型声明
+
+类型声明以 type 作为关键字，用法类似变量声明，但类型声明必须提供一个初始化值。
 
 ```typescript
-var name = 'naruto';
-// name = 2020 // error!
+class Person {}
+
+type PType = Person
+type funcTypedef = fun(str) -> num
+type structTypedef = {
+  name: str,
+  age: num,
+}
 ```
 
-Type is a variable in Hetu, it can be assigned and returned.
+## typeof
 
-The type of a type is always 'type', no matter it's a primitive, instance, or function type.
-
-Use 'typeof' keyword to get the runtime type of a value.
+使用 **typeof** 关键字可以在运行时动态获取某个值对应的类型。
 
 ```typescript
 fun main {
@@ -31,4 +39,12 @@ fun main {
   // expected output: 11
   print(strlength('hello world'))
 }
+```
+
+类型本身的类型永远是 'type'。
+
+```typescript
+type functype = ()->any
+print(typeof functype) // type
+>>>
 ```

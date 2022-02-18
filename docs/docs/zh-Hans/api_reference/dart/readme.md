@@ -47,7 +47,7 @@ dynamic eval(String content,
 - **fileName**: 文件名。如果其他代码文件使用了 import，将会参考这个名字。如果忽略，将会以字符串的头部内容加上 Hash 生成。
 - **moduleName**: 模块名。整个代码文件编译后的字节码整体称作一个模块。
 - **globallyImport**: 是否将这个模块的内容直接导入到全局命名空间。这样做可以让其他模块以后无需导入即可使用这个代码文件的内容。
-- **type**: [**代码文件类型**](../../module/readme.md#Source-type)。决定了解释器的行为模式
+- **type**: [**代码文件类型**](../../guide/package/README.md#资源类型)。决定了解释器的行为模式
 - **isStrictMode**: 严格模式。在严格模式下，对于流程控制和逻辑和、或等场合，不会进行布尔值的隐式转换。
 - **invokeFunc**: 在解析完毕后，直接执行这个代码文件中的一个函数。函数的参数用 **positionalArgs** 和 **namedArgs** 传递。效果等同于在 **eval()** 执行过后，再手动调用 **invoke()**。
 
@@ -55,7 +55,7 @@ dynamic eval(String content,
 
 这一对方法可以用于需要更高运行效率的场合。**compile()** 将一个代码文件编码为字节码。随后可以在另外的场合获取这段字节码然后调用 **loadBytecode()** 执行。在执行时，将无需再进行 parse, analyze, compile 的过程。
 
-可以参考 hetu_script_dev_tools 包提供的[**命令行工具**](../../command_line_tool/readme.md#compile)中附带的编译功能。
+可以参考 hetu_script_dev_tools 包提供的[**命令行工具**](../../guide/command_line_tool/readme.md#compile)中附带的编译功能。
 
 ### invoke()
 
