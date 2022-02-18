@@ -25,7 +25,7 @@
 
 ## 文档
 
-请参考中文[官方文档](https://hetu.dev/docs/zh-CN/)。
+请参考中文[官方文档](https://hetu.dev/docs/zh-Hans/)。
 
 ## 快速上手
 

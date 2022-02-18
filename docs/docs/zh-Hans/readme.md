@@ -7,7 +7,11 @@ actions:
   - text: 快速上手
     link: /zh-Hans/guide/
     type: primary
+  - text: 在线版本
+    link: https://hetu.dev/codepad/
+    type: secondary
   - text: Github
     link: https://github.com/hetu-script/hetu-script/
     type: secondary
+footer: MIT Licensed | Copyright © 2020-present hetu.dev
 ---
