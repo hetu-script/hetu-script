@@ -47,7 +47,7 @@ dynamic eval(String content,
 - **fileName**: The name of this source, it will be used when other source try to import from it.
 - **moduleName**: The name of the compiled bytecode module.
 - **globallyImport**: Whether you want the content of this source is visible to **global** namespace. It's a quicker way to let other modules to use without import statement.
-- **type**: How the interpreter evaluate this source. For more information, check [**source type**](../../module/readme.md#Source-type).
+- **type**: How the interpreter evaluate this source. For more information, check [**source type**](../../guide/package/readme.md#resource-type).
 - **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.
 - **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 
@@ -55,7 +55,7 @@ dynamic eval(String content,
 
 These methods is useful if you want a more efficient runtime for the script. You can compile a source into bytecode. And run it at another time so that the interpreter will skip the parsing, analyzing and compiling process.
 
-If you would like to compile and store the result as physical files. You can check [**command line tool**](../../command_line_tool/readme.md#compile) in the hetu_script_dev_tools package.
+If you would like to compile and store the result as physical files. You can check [**command line tool**](../../guide/command_line_tool/readme.md#compile) in the hetu_script_dev_tools package.
 
 ## Invoke a method on Hetu object
 

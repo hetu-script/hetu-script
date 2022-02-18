@@ -1,6 +1,40 @@
-# 结构体（struct）
+# 结构体对象（struct）
 
-河图中的结构体等同于 Javascript 中的对象字面量。是一种以原型继承为基础，可以更自由的访问和创建对象成员的面向对象模式。
+河图中的结构体对象等同于 Javascript 中的对象。是一种以原型继承为基础，可以更自由的访问和创建对象成员的面向对象模式。
+
+在任何时候，通过内部成员 '$prototype'，你都可以手动访问和修改一个结构体对象的原型对象。
+
+结构体对象的最大特点是，访问和修改不存在的成员，将会创造新成员。
+
+```javascript
+final obj = {}
+obj.race = 'dragon' // okay, this will define a new member on obj.
+var lvl = obj.level // okay, although lvl's value will be null
+```
+
+使用 delete 关键字可以删除一个结构体对象上的成员。
+
+```javascript
+var a = {
+  name: 'the world',
+  meaning: 42,
+};
+delete a.meaning;
+print(a); // { name: 'the world' }
+```
+
+## 结构体对象字面量
+
+结构体对象字面量，等同于 Javascript 中的对象字面量，本身是一个表达式，以 '{key: value}' 的形式定义。
+
+```javascript
+var obj = {
+  name: 'jimmy'
+  age: 17
+}
+```
+
+对象字面量的 key 必须是一个合法的标识符，或者是一个字符串（不能使用字符串插值）。
 
 ## 命名结构体（named struct）
 
@@ -16,7 +50,7 @@ struct Named {
 }
 ```
 
-访问命名结构体的标识符，可以得到一个对象字面量，你也可以直接修改它的成员。
+访问命名结构体的标识符，也可以得到一个对象字面量，你也可以直接修改它的成员。
 
 但这种形式的修改，不会影响到之前通过构造函数创造的对象。
 
@@ -26,11 +60,9 @@ Named.name = 'Jones'
 print(n.name) // 'Jimmy'
 ```
 
-You can define static fields on a named struct.
+在命名结构体中，也可以定义一个静态（static）变量。在类（class）中定义的静态变量，只能通过 '类名.静态成员名' 的方式访问。但命名结构体中的静态变量是可以通过 '对象名.静态成员名' 的方式访问的。
 
-Unlike class static members, the object created by the struct constructor can also access these fields through '.' operator.
-
-And if you changed the static fields in a named struct. All the object created from this named struct, nomatter it was created before or after the change, will be getting the new value.
+并且，如果你修改了这个静态成员的值，所有从这个命名结构体的构造函数获得的结构体对象，都可以访问到修改后的新值。
 
 ```javascript
 struct Named {
@@ -47,11 +79,11 @@ Named.race = 'Dragon'
 print(n.race) // Dragon
 ```
 
-One important thing worth noted: within a named struct's method, **you cannot omit 'this' when accessing its own members** like you would do in a class method.
+另外一点要注意的是，类的成员方法，在没有同名变量的时候，可以不通过 **this** 关键字，直接访问类成员。但命名结构体的函数，在任何时候都必须通过 **this** 才能访问到这个结构体对象的成员。
 
-## Struct inherit
+### 命名结构体的继承
 
-Named struct can declare its prototype same way as a class.
+命名结构体可以声明继承的对象。
 
 ```javascript
 struct Animal {
@@ -69,7 +101,7 @@ struct Bird extends Animal {
 }
 ```
 
-Redirecting constructors also works in struct. Except you cannot redirect to **super**, usage is same to class constructors.
+命名结构体也可以像类那样在命名构造函数之后使用 **this** 关键字转移到默认构造函数上去（但不能使用 **super** 关键字）。
 
 ```javascript
 struct Tile {
@@ -85,40 +117,4 @@ final t1 = Tile(5, 5)
 final t2 = Tile.fromPosition({left: 5, top: 5})
 
 print(t1, t2)
-```
-
-## Literal struct
-
-Literal struct are expressions in the form of '{key: value}'
-
-```javascript
-var obj = {
-  name: 'jimmy'
-  age: 17
-}
-```
-
-The key must be either a identifier, or a string literal (not includes string interpolation).
-
-Struct are different from class, that you wont get errors when you visit a non-exist member.
-
-```javascript
-obj.race = 'dragon'; // okay, this will define a new member on obj.
-var lvl = obj.level; // okay, although lvl's value will be null
-```
-
-Struct's prototype can be accessed and modified through '$prototype'.
-Struct's root prototype has two functions: toString() and toJson(). Can be used to easily convert a struct into other code.
-
-## Delete a struct member
-
-It is possible to delete a struct field using 'delete' keyword.
-
-```javascript
-var a = {
-  name: 'the world',
-  meaning: 42,
-};
-delete a.meaning;
-print(a); // { name: 'the world' }
 ```
