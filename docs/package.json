@@ -21,8 +21,8 @@
     "vue": "^3.2.31"
   },
   "devDependencies": {
-    "@algolia/client-search": "^4.12.1",
     "@vue/compiler-sfc": "^3.2.31",
+    "@vuepress/bundler-vite": "^2.0.0-beta.35",
     "@vuepress/client": "^2.0.0-beta.35",
     "@vuepress/plugin-back-to-top": "^2.0.0-beta.35",
     "@vuepress/plugin-docsearch": "^2.0.0-beta.35",
@@ -31,18 +31,7 @@
     "@vuepress/plugin-search": "^2.0.0-beta.35",
     "@vuepress/shared": "^2.0.0-beta.35",
     "@vuepress/utils": "^2.0.0-beta.35",
-    "css-loader": "^6.6.0",
-    "esbuild-loader": "^2.18.0",
     "nprogress": "^0.2.0",
-    "postcss": "^8.4.6",
-    "postcss-loader": "^6.2.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "sass": "^1.49.7",
-    "sass-loader": "^12.5.0",
-    "style-loader": "^3.3.1",
-    "vue-loader": "^17.0.0",
-    "vuepress": "^2.0.0-beta.35",
-    "webpack": "^5.68.0"
+    "vuepress": "^2.0.0-beta.35"
   }
 }

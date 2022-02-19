@@ -2,6 +2,7 @@ const { path } = require('@vuepress/utils');
 
 module.exports = {
   base: '/docs/',
+  bundler: '@vuepress/bundler-vite',
   locales: {
     '/en-US/': {
       lang: 'en-US',
@@ -59,6 +60,10 @@ module.exports = {
         sidebar: {
           '/en-US/guide/': [
             {
+              text: 'Introduction',
+              link: '/en-US/guide/',
+            },
+            {
               text: 'Installation',
               link: '/en-US/guide/installation/',
             },
@@ -86,7 +91,7 @@ module.exports = {
           '/en-US/grammar/': [
             {
               text: 'Introduction',
-              link: '/en-US/grammar/introduction/',
+              link: '/en-US/grammar/',
             },
             {
               text: 'Identifier & keywords',
@@ -200,6 +205,10 @@ module.exports = {
         sidebar: {
           '/zh-Hans/': [
             {
+              text: '简介',
+              link: '/zh-Hans/guide/',
+            },
+            {
               text: '安装',
               link: '/zh-Hans/guide/installation/',
             },
@@ -226,8 +235,8 @@ module.exports = {
           ],
           '/zh-Hans/grammar/': [
             {
-              text: '语法简介',
-              link: '/zh-Hans/grammar/introduction/',
+              text: '语法概要',
+              link: '/zh-Hans/grammar/',
             },
             {
               text: '标识符和关键字',
@@ -306,10 +315,10 @@ module.exports = {
       {
         locales: {
           '/en-US/': {
-            placeholder: 'Search',
+            placeholder: 'Search...',
           },
           '/zh-Hans/': {
-            placeholder: '搜索',
+            placeholder: '搜索...',
           },
         },
         // allow searching the `tags` frontmatter
