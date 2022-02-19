@@ -60,13 +60,10 @@ module.exports = {
         sidebar: {
           '/en-US/guide/': [
             {
-<<<<<<< HEAD
               text: 'Introduction',
               link: '/en-US/guide/',
             },
             {
-=======
->>>>>>> 9f63f4f0cc7d98eb641a92a9557316268bbb7abe
               text: 'Installation',
               link: '/en-US/guide/installation/',
             },
