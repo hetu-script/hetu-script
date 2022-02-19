@@ -60,10 +60,13 @@ module.exports = {
         sidebar: {
           '/en-US/guide/': [
             {
+<<<<<<< HEAD
               text: 'Introduction',
               link: '/en-US/guide/',
             },
             {
+=======
+>>>>>>> 9f63f4f0cc7d98eb641a92a9557316268bbb7abe
               text: 'Installation',
               link: '/en-US/guide/installation/',
             },
@@ -91,7 +94,11 @@ module.exports = {
           '/en-US/grammar/': [
             {
               text: 'Introduction',
+<<<<<<< HEAD
               link: '/en-US/grammar/',
+=======
+              link: '/en-US/grammar/introduction/',
+>>>>>>> 9f63f4f0cc7d98eb641a92a9557316268bbb7abe
             },
             {
               text: 'Identifier & keywords',
@@ -158,6 +165,7 @@ module.exports = {
             {
               text: 'Hetu APIs',
               link: '/en-US/api_reference/hetu/',
+<<<<<<< HEAD
             },
           ],
         },
@@ -287,6 +295,133 @@ module.exports = {
               link: '/zh-Hans/grammar/import/',
             },
             {
+=======
+            },
+          ],
+        },
+      },
+      '/zh-Hans/': {
+        selectLanguageText: '选择语言',
+        selectLanguageName: '简体中文',
+        editLinkText: '在 GitHub 上编辑这个页面',
+        navbar: [
+          {
+            text: '指南',
+            link: '/zh-Hans/guide/',
+          },
+          {
+            text: '语法',
+            link: '/zh-Hans/grammar/',
+          },
+          {
+            text: 'API 参考',
+            children: [
+              {
+                text: 'Dart API',
+                link: '/zh-Hans/api_reference/dart/',
+              },
+              {
+                text: '河图 API',
+                link: '/zh-Hans/api_reference/hetu/',
+              },
+            ],
+          },
+          {
+            text: 'IDE 工具',
+            children: [
+              {
+                text: 'VS Code 扩展',
+                link: 'https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript',
+              },
+            ],
+          },
+          {
+            text: 'Github',
+            link: 'https://github.com/hetu-script/hetu-script',
+          },
+        ],
+        sidebar: {
+          '/zh-Hans/': [
+            {
+              text: '安装',
+              link: '/zh-Hans/guide/installation/',
+            },
+            {
+              text: '和 Dart 的交互',
+              link: '/zh-Hans/guide/binding/',
+            },
+            {
+              text: '代码模块',
+              link: '/zh-Hans/guide/package/',
+            },
+            {
+              text: '命令行工具',
+              link: '/zh-Hans/guide/command_line_tool/',
+            },
+            {
+              text: '语法分析工具',
+              link: '/zh-Hans/guide/analyzer/',
+            },
+            {
+              text: '语言实现细节',
+              link: '/zh-Hans/guide/implementation_detail/',
+            },
+          ],
+          '/zh-Hans/grammar/': [
+            {
+              text: '语法简介',
+              link: '/zh-Hans/grammar/introduction/',
+            },
+            {
+              text: '标识符和关键字',
+              link: '/zh-Hans/grammar/identifier/',
+            },
+            {
+              text: '内置类型',
+              link: '/zh-Hans/grammar/builtin_types/',
+            },
+            {
+              text: '特殊语法和操作符',
+              link: '/zh-Hans/grammar/operators/',
+            },
+            {
+              text: '变量',
+              link: '/zh-Hans/grammar/variable/',
+            },
+            {
+              text: '控制流程',
+              link: '/zh-Hans/grammar/control_flow/',
+            },
+            {
+              text: '函数',
+              link: '/zh-Hans/grammar/function/',
+            },
+            {
+              text: '枚举类',
+              link: '/zh-Hans/grammar/enum/',
+            },
+            {
+              text: '类',
+              link: '/zh-Hans/grammar/class/',
+            },
+            {
+              text: '结构体',
+              link: '/zh-Hans/grammar/struct/',
+            },
+            {
+              text: '类型系统',
+              link: '/zh-Hans/grammar/type_system/',
+            },
+            {
+              text: '异步操作',
+              link: '/zh-Hans/grammar/future/',
+            },
+            {
+              text: '导入其他代码文件',
+              link: '/zh-Hans/grammar/import/',
+            },
+            {
+>>>>>>> 9f63f4f0cc7d98eb641a92a9557316268bbb7abe
               text: '严格模式',
               link: '/zh-Hans/grammar/strict_mode/',
             },
@@ -315,10 +450,17 @@ module.exports = {
       {
         locales: {
           '/en-US/': {
+<<<<<<< HEAD
             placeholder: 'Search...',
           },
           '/zh-Hans/': {
             placeholder: '搜索...',
+=======
+            placeholder: 'Search',
+          },
+          '/zh-Hans/': {
+            placeholder: '搜索',
+>>>>>>> 9f63f4f0cc7d98eb641a92a9557316268bbb7abe
           },
         },
         // allow searching the `tags` frontmatter

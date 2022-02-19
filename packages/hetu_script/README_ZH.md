@@ -25,7 +25,11 @@
 
 ## 文档
 
+<<<<<<< HEAD
 [英文](https://hetu.dev/docs/en-US/) [简体中文](https://hetu.dev/docs/zh-Hans/)
+=======
+请参考中文[官方文档](https://hetu.dev/docs/zh-Hans/)。
+>>>>>>> 9f63f4f0cc7d98eb641a92a9557316268bbb7abe
 
 ## 快速上手
 
