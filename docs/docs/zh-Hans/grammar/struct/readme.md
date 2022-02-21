@@ -12,6 +12,8 @@ obj.race = 'dragon' // okay, this will define a new member on obj.
 var lvl = obj.level // okay, although lvl's value will be null
 ```
 
+## 动态删除结构体的成员
+
 使用 delete 关键字可以删除一个结构体对象上的成员。
 
 ```javascript
@@ -25,7 +27,7 @@ print(a); // { name: 'the world' }
 
 ## 结构体对象字面量
 
-结构体对象字面量，等同于 Javascript 中的对象字面量，本身是一个表达式，以 '{key: value}' 的形式定义。
+结构体对象字面量本身是一个表达式，以 '{key: value}' 的形式定义。
 
 ```javascript
 var obj = {
@@ -79,11 +81,11 @@ Named.race = 'Dragon'
 print(n.race) // Dragon
 ```
 
-另外一点要注意的是，类的成员方法，在没有同名变量的时候，可以不通过 **this** 关键字，直接访问类成员。但命名结构体的函数，在任何时候都必须通过 **this** 才能访问到这个结构体对象的成员。
+另外一点要注意的是，命名结构体的函数在任何时候都必须通过 **this** 才能访问到这个结构体对象的成员。这一点和类不同。
 
 ### 命名结构体的继承
 
-命名结构体可以声明继承的对象。
+命名结构体可以声明继承的对象。本质上就是指定这个结构体的原型对象。继承可以是任何结构体对象。并不一定要求是另一个命名结构体。
 
 ```javascript
 struct Animal {

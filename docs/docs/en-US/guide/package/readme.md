@@ -1,6 +1,12 @@
 # Package & Module
 
-We use **package** to refer to a source code bundle organized as a project. And **module** to refer to the compiled package in bytecode form.
+## Source code module
+
+You can use **import** declaration within your code to include other source. The interpreter will interpret those imported sources first.
+
+## Bytecode module
+
+You can use **compile()** to make a single file bytecode module. The compiler with automatically compile every other source that the code imported.
 
 ## Resource context
 

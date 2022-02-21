@@ -21,6 +21,18 @@ Note:
 
 3, All List\Set\Map created from the script side is of dynamic types.
 
+## String interpolation
+
+String literal can have interpolation the same to Javascript, you can use any expression within '${}':
+
+```dart
+var a = 'dragon'
+// print: To kill the dragon, you have to wait 42 years.
+print('To kill the ${a}, you have to wait ${6*7} years.')
+```
+
+Note it's different to Dart that you have to write a curly brackets even if you have only one identifier.
+
 ## Big integers
 
 To manipulate bigger numbers, you can use preincluded class BigInt.

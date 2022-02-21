@@ -60,11 +60,11 @@ hetu.invoke('main', positionalArgs: [data]);
 }
 ```
 
-## Binding
+## 绑定
 
-使用内置类和对象字面量来传递值比较简单快捷。但如果你想要使用 Dart 中的已有类定义，或者想要调用 Dart 函数，则需要通过绑定的方式。
+使用内置类和对象字面量来传递值比较简单快捷。但如果你想要使用 Dart 中的已有类定义，或者想要调用 Dart 函数，则需要通过**绑定**的方式。
 
-### External function
+### 外部函数
 
 你可以直接将任意 Dart 函数绑定到脚本中：
 
@@ -335,19 +335,34 @@ void main() {
 
 Getter 是用来访问对象属性的特殊函数。对于此种函数，你无须在 **external class binding** 或者 **extension on instance** 上定义完整的函数，而只需直接返回其对应的值即可。
 
+```dart
+class PersonClassBinding extends HTExternalClass {
+  PersonClassBinding() : super('Person');
+
+  @override
+  dynamic memberGet(String varName) {
+    case 'Person.level':
+        return Person.level;
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+```
+
 #### 部分绑定
 
 你无需让每个绑定定义都完全包含上述的四个部分。
 
-- 如果你只定义了**外部类（external class binding）**，并没有定义**对象扩展方法（extension on instance）**，这意味着你可以在脚本中**以 className.memberName 的形式访问类静态成员**。
+- 如果你只定义了外部类（external class binding），并没有定义对象扩展方法（extension on instance），这意味着你可以在脚本中**以 className.memberName 的形式访问类静态成员**。
 
-- 如果你在外部类中**不定义 memberGet 和 memberSet**，而**只定义 instanceMemberGet 和 instanceMemberSet**，这样你可以在脚本中直接使用这个 Dart 对象，只是**不能通过构造函数创建这个对象，或者访问静态成员**。
+- 如果你在外部类中不定义 memberGet 和 memberSet，而只定义 instanceMemberGet 和 instanceMemberSet，这样你可以在脚本中直接使用这个 Dart 对象，只是**不能通过构造函数创建这个对象，或者访问静态成员**。
 
 ### Dart 函数解包装定义
 
 某些情况下，你可能希望将一个脚本函数，当作普通的 Dart 函数，作为参数传递给另一个 Dart 函数（例如在 Flutter 的 Widget 构造函数中的 onPressed 之类的场合）。
 
-你可以通过绑定一个解包装函数来实现这个目的。在脚本中，在函数名之前可以加上一个 **[]** 用来定义解包装函数：
+你可以通过绑定一个**外部解包装函数定义**来实现这个目的。在脚本中，在函数名之前的 **[]** 用来定义外部解包装函数定义：
 
 ```dart
 fun [DartFunction] add(a: num, b: num) -> num {

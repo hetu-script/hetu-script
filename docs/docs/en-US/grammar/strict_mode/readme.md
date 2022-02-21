@@ -1,5 +1,7 @@
 # Strict mode
 
+You can set the strict mode flag in interpreter's eval() method's parameter list.
+
 ## Zero value
 
 In non-strict mode, variable with null value can be treated as 0.

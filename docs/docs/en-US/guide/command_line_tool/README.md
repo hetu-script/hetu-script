@@ -42,7 +42,7 @@ function hello() -> any // repl print
 Run a Hetu source file on your disk. The file could be a script source or a compiled bytecode.
 
 ```
-run [path]
+hetu run [path]
 ```
 
 ## Format
@@ -59,7 +59,7 @@ hetu format [path] [option]
 Analyze a Hetu source file on your disk. List all warnings and errors.
 
 ```
-analyze [path]
+hetu analyze [path]
 ```
 
 ## Compile
@@ -67,5 +67,5 @@ analyze [path]
 Compile a Hetu source file on your disk into bytecode.
 
 ```
-compile [path] [output_path] [option]
+hetu compile [path] [output_path] [option]
 ```

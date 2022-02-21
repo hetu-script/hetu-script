@@ -87,17 +87,7 @@ typedef HTExternalFunction = dynamic Function(
     List<HTType> typeArgs});
 ```
 
-Then define those dart funtion in Hetu with **external** keyword and init Hetu with **externalFunctions** argument.
-
-```dart
-await hetu.init(externalFunctions: {
-  // you can omit the type, and keep the correct type parameter names,
-  // this way Dart will still count it as HTExternalFunction
-  'hello': (context, {positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
-});
-```
-
-Then you can call those functions in Hetu.
+Then define those dart funtion in Hetu with **external** keyword and init Hetu with **externalFunctions** argument. Then you can call those functions in Hetu.
 
 ```typescript
 import 'package:hetu_script/hetu_script.dart';
@@ -173,7 +163,7 @@ struct Person {
 
 Everything else you should do is the same to a external method on a class.
 
-### Binding a full class
+### External class
 
 You can use a Dart object with full class definition in Hetu.
 
@@ -181,11 +171,11 @@ To achieve this, you have to write a full definition of that class in Hetu, whic
 
 - Original class definition of the class you intended to use in Hetu. For Dart & Flutter, this is the part where you already have when you import a library.
 
-- An extension on that class, providing **htFetch & htAssign** methods. This part is used for dynamic reflection in Hetu and should return members of this class.
+- An [extension](https://dart.dev/guides/language/extension-methods) on that class which providing **htFetch & htAssign** methods. This part is used for dynamic reflection in Hetu and should return members of this class.
 
 - A binding definition of that class, which extends **HTExternalClass** interface provided by Hetu's dart lib, and provides **memberGet, memberSet, instanceMemberGet, instanceMemberSet** methods. You have to bind a instance of this class with method [**bindExternalClass()**](../../api_reference/dart/readme.md) on the interpreter. This part is used for access to the constructor and static members of that class.
 
-- A Hetu version of class definition of that class. This part is used for Hetu to understand the structure and type of this class, and is used for syntax check and argument default values, etc.
+- Declare that class with keyword **external** in Hetu script (includes its members' declaration). This part is used for Hetu to understand the structure and type of this class, and is used for syntax check and argument default values, etc.
 
 You can check the following example for how to bind a class and its various kinds of members.
 
@@ -341,21 +331,36 @@ void main() {
 
 #### External getter
 
-For external getter, you don't need to have a external function or external method typed function. You can directly return the value in the dart code.
+For external getter, you don't need a full external function definition on **external class binding** or **extension on instance**. You can directly return the value in the dart code.
+
+```dart
+class PersonClassBinding extends HTExternalClass {
+  PersonClassBinding() : super('Person');
+
+  @override
+  dynamic memberGet(String varName) {
+    case 'Person.level':
+        return Person.level;
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+```
 
 #### Partial binding
 
 You don't always need all of the definitions and declarations as the example above.
 
-If you defined an external class binding without instanceMemberGet, instanceMemberSet and the extension on instance, you will limited to access this class's static members and constructors with className.memberName.
+If you defined an external class binding without instanceMemberGet, instanceMemberSet and the extension on instance, you **are limited to access this class's static members and constructors with 'className.memberName'**.
 
-If you omit the memberGet & memberSet on external class binding, and just define instanceMemberGet, instanceMemberSet and the extension on instance, you can access the instance member of this Dart instance, but cannot use its static class member & constructors.
+If you omit the memberGet & memberSet on external class binding, and just define instanceMemberGet, instanceMemberSet and the extension on instance, you can access the instance member of this Dart instance, but **cannot access to its static class member & constructors**.
 
 ### Typedef of Dart function
 
-It is possible to return a pure Dart function from the script side.
+Sometimes, we want to return a pure Dart function from the script side.For example, the onPressed parameter of a Widget's constructor. It is possible to do so with a **external function typedef declaration**, it is a brackets after the fun keyword.
 
-For example, in Hetu script, we have this function typedef:
+In Hetu script, we have this function typedef:
 
 ```dart
 fun [DartFunction] add(a: num, b: num) -> num {

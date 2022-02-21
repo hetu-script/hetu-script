@@ -6,13 +6,7 @@ Hetu's bytecode implementation has some inexplicit rules. Normally they won't af
 
 The string iterpolation's underlying implementation is kind of like C#'s String.format() or python's str.format(). The compiler will replaces those '${expression}' into '{0}', '{1}' forms.
 
-```python
-"{0} {1}".format("hello", "world")
-```
-
-The interpreter will replace those with actual values in runtime.
-
-So you should avoid having literal '{0}', '{1}' sub strings in a String interpolation, it might cause unintended effects.
+The interpreter will replace those with actual values in runtime. So you should avoid having literal '{0}', '{1}' sub strings in a String interpolation, it might cause unintended effects.
 
 ## Enum
 

@@ -1,21 +1,35 @@
-# Type declaration
+# Type system
 
 **WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them currently.**
 
-Variables will be given a type if it has an initialize expression. And you cannot re-assign it with another type.
+## Type as a value
 
-However, if you declare a variable with no initialize expression, the variable will be considered as having a **any** type (equals to dart's dynamic type).
+Type is a top class value in Hetu, it can be assigned and returned.
+
+You can assign a type value to a name with **type** declaration.
+
+And you can get a type value after **is** keyword.
+
+In other situations, you cannot use type values within expressions.
+
+## Type declaration
+
+Type declaration is similar to a variable declaration, except it used keyword **type** and must has a initializer type expression.
 
 ```typescript
-var name = 'naruto';
-// name = 2020 // error!
+class Person {}
+
+type PType = Person
+type funcTypedef = fun(str) -> num
+type structTypedef = {
+  name: str,
+  age: num,
+}
 ```
 
-Type is a variable in Hetu, it can be assigned and returned.
+## typeof
 
-The type of a type is always 'type', no matter it's a primitive, instance, or function type.
-
-Use 'typeof' keyword to get the runtime type of a value.
+Use **typeof** keyword to dynamically get the runtime type of a value.
 
 ```typescript
 fun main {
@@ -31,4 +45,12 @@ fun main {
   // expected output: 11
   print(strlength('hello world'))
 }
+```
+
+The type of a type is always 'type', no matter it's a primitive, instance, or function type.
+
+```typescript
+type functype = ()->any
+print(typeof functype) // type
+>>>
 ```

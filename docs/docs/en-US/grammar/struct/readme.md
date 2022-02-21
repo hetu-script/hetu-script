@@ -1,6 +1,41 @@
 # Struct
 
-Struct are a prototype base object system. This is mainly borrowed from Javascript.
+Struct are a prototype base object similar to Javascript's object. It is a prototype based object system.
+
+You can change a struct's prototype by internal member '$prototype'.
+
+The most significant difference between struct and class, is that struct's member can be created and modified during runtime. And you won't get errors when accessing a non-exist struct member, you simply got a null value.
+
+```javascript
+obj.race = 'dragon'; // okay, this will define a new member on obj.
+var lvl = obj.level; // okay, although lvl's value will be null
+```
+
+## Dynamically delete a struct member
+
+It is possible to delete a struct field using 'delete' keyword.
+
+```javascript
+var a = {
+  name: 'the world',
+  meaning: 42,
+};
+delete a.meaning;
+print(a); // { name: 'the world' }
+```
+
+## Literal struct
+
+Literal struct are expressions in the form of '{key: value}'
+
+```javascript
+var obj = {
+  name: 'jimmy'
+  age: 17
+}
+```
+
+The key must be either a identifier, or a string literal (not includes string interpolation).
 
 ## Named struct
 
@@ -51,7 +86,9 @@ One important thing worth noted: within a named struct's method, **you cannot om
 
 ## Struct inherit
 
-Named struct can declare its prototype same way as a class.
+Named struct can declare its prototype same way as a class declare its super class.
+
+The extended struct are not necessarily be another named struct, you can inherit a variable with a value of a struct literal.
 
 ```javascript
 struct Animal {
@@ -85,40 +122,4 @@ final t1 = Tile(5, 5)
 final t2 = Tile.fromPosition({left: 5, top: 5})
 
 print(t1, t2)
-```
-
-## Literal struct
-
-Literal struct are expressions in the form of '{key: value}'
-
-```javascript
-var obj = {
-  name: 'jimmy'
-  age: 17
-}
-```
-
-The key must be either a identifier, or a string literal (not includes string interpolation).
-
-Struct are different from class, that you wont get errors when you visit a non-exist member.
-
-```javascript
-obj.race = 'dragon'; // okay, this will define a new member on obj.
-var lvl = obj.level; // okay, although lvl's value will be null
-```
-
-Struct's prototype can be accessed and modified through '$prototype'.
-Struct's root prototype has two functions: toString() and toJson(). Can be used to easily convert a struct into other code.
-
-## Delete a struct member
-
-It is possible to delete a struct field using 'delete' keyword.
-
-```javascript
-var a = {
-  name: 'the world',
-  meaning: 42,
-};
-delete a.meaning;
-print(a); // { name: 'the world' }
 ```
