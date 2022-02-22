@@ -47,7 +47,7 @@ void main() {
 }
 ```
 
-我们可以看到河图的[语法](https://hetu.dev/docs/en-US/syntax/)非常简单，如果你熟悉 dart/typescript/kotlin/swift 等现代语言，只要注意下面几点，就可以直接上手。
+我们可以看到河图的[语法](https://hetu.dev/docs/zh-Hans/grammar/)非常简单，如果你熟悉 dart/typescript/kotlin/swift 等现代语言，只要注意下面几点，就可以直接上手。
 
 - 句末分号可选。
 - 函数名字前面要加关键字： 'fun, get, set, construct'。
@@ -56,7 +56,7 @@ void main() {
 
 ## 绑定
 
-[河图和 Dart 交换数据和调用函数](https://hetu.dev/docs/en-US/binding/)简单到令人发指。下面是一个脚本调用 Dart 函数，并且直接操作 Dart 的 Map 对象的例子。
+[河图和 Dart 交换数据和调用函数](https://hetu.dev/docs/zh-Hans/guide/binding/)简单到令人发指。下面是一个脚本调用 Dart 函数，并且直接操作 Dart 的 Map 对象的例子。
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
