@@ -40,8 +40,6 @@ abstract class AstNode {
   // for constant expressions, this value is not null
   dynamic value;
 
-  HTType? valueType;
-
   final HTSource? source;
 
   AstNode? parent;

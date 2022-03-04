@@ -5,8 +5,8 @@ import '../value/entity.dart';
 /// Typedef of external function for binding.
 /// Can be used on normal external function or external method of a script class,
 /// The first argument could be a instance like [HTInstance] or [HTStruct],
-/// or be a [HTNamespace] of the function's closure when called.
-typedef HTExternalFunction = dynamic Function(HTEntity object,
+/// or a [HTNamespace] of the function's closure when called.
+typedef HTExternalFunction = dynamic Function(HTEntity entity,
     {List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
     List<HTType> typeArgs});
