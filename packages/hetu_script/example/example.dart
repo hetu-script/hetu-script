@@ -1,9 +1,9 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = Hetu(config: InterpreterConfig(showDartStackTrace: true));
+  var hetu = Hetu();
   hetu.init(externalFunctions: {
-    'hello': () => throw 'error!',
+    'hello': () => {'greetings': 'greetings from Dart!'},
   });
   var hetuValue = hetu.eval(r'''
       external fun hello
