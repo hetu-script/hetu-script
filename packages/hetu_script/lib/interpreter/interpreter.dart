@@ -56,7 +56,7 @@ class _LoopInfo {
 
 /// A bytecode implementation of Hetu Script interpreter
 class Hetu extends HTAbstractInterpreter {
-  final stackTrace = <String>[];
+  final stackTraceList = <String>[];
 
   final _cachedModules = <String, HTBytecodeModule>{};
 
@@ -208,33 +208,50 @@ class Hetu extends HTAbstractInterpreter {
   @override
   void handleError(Object error, {Object? externalStackTrace}) {
     final sb = StringBuffer();
-    if (stackTrace.isNotEmpty) {
-      sb.writeln('${HTLexicon.scriptStackTrace}${HTLexicon.colon}');
-      if (stackTrace.length > errorConfig.hetuStackTraceDisplayCountLimit * 2) {
-        for (var i = stackTrace.length - 1;
-            i >=
-                stackTrace.length -
-                    1 -
-                    errorConfig.hetuStackTraceDisplayCountLimit;
-            --i) {
-          sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
+
+    void handleStackTrace(List<String> stackTrace,
+        {bool withLineNumber = false}) {
+      if (errorConfig.stackTraceDisplayCountLimit > 0) {
+        if (stackTrace.length > errorConfig.stackTraceDisplayCountLimit) {
+          for (var i = stackTrace.length - 1;
+              i >= stackTrace.length - errorConfig.stackTraceDisplayCountLimit;
+              --i) {
+            if (withLineNumber) {
+              sb.write('#${stackTrace.length - 1 - i}\t');
+            }
+            sb.writeln(stackTrace[i]);
+          }
+          sb.writeln(
+              '...(and other ${stackTrace.length - errorConfig.stackTraceDisplayCountLimit} messages)');
+        } else {
+          for (var i = stackTrace.length - 1; i >= 0; --i) {
+            if (withLineNumber) {
+              sb.write('#${stackTrace.length - 1 - i}\t');
+            }
+            sb.writeln(stackTrace[i]);
+          }
         }
-        sb.writeln('...\n...');
-        for (var i = errorConfig.hetuStackTraceDisplayCountLimit - 1;
-            i >= 0;
-            --i) {
-          sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
-        }
-      } else {
+      } else if (errorConfig.stackTraceDisplayCountLimit < 0) {
         for (var i = stackTrace.length - 1; i >= 0; --i) {
-          sb.writeln('#${stackTrace.length - 1 - i}\t${stackTrace[i]}');
+          if (withLineNumber) {
+            sb.write('#${stackTrace.length - 1 - i}\t');
+          }
+          sb.writeln(stackTrace[i]);
         }
       }
     }
+
+    if (stackTraceList.isNotEmpty && errorConfig.showHetuStackTrace) {
+      sb.writeln('${HTLexicon.scriptStackTrace}${HTLexicon.colon}');
+      handleStackTrace(stackTraceList, withLineNumber: true);
+    }
     if (externalStackTrace != null && errorConfig.showDartStackTrace) {
       sb.writeln('${HTLexicon.externalStackTrace}${HTLexicon.colon}');
-      sb.writeln(externalStackTrace);
+      final externalStackTraceList =
+          externalStackTrace.toString().trim().split('\n').reversed.toList();
+      handleStackTrace(externalStackTraceList);
     }
+
     final stackTraceString = sb.toString().trimRight();
     if (error is HTError) {
       final wrappedError = HTError(

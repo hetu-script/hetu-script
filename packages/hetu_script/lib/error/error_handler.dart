@@ -5,37 +5,48 @@ enum ErrorHanldeApproach {
   log,
 }
 
+const kStackTraceDisplayCountLimit = 5;
+
 abstract class ErrorHandlerConfig {
   factory ErrorHandlerConfig(
-      {bool showDartStackTrace = false,
-      int hetuStackTraceThreshhold = 3,
-      ErrorHanldeApproach approach = ErrorHanldeApproach.exception}) {
+      {bool showHetuStackTrace = true,
+      bool showDartStackTrace = false,
+      int stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+      ErrorHanldeApproach errorHanldeApproach =
+          ErrorHanldeApproach.exception}) {
     return ErrorHandlerConfigImpl(
+        showHetuStackTrace: showHetuStackTrace,
         showDartStackTrace: showDartStackTrace,
-        hetuStackTraceDisplayCountLimit: hetuStackTraceThreshhold,
-        errorHanldeApproach: approach);
+        stackTraceDisplayCountLimit: stackTraceDisplayCountLimit,
+        errorHanldeApproach: errorHanldeApproach);
   }
+
+  bool get showHetuStackTrace;
 
   bool get showDartStackTrace;
 
-  int get hetuStackTraceDisplayCountLimit;
+  int get stackTraceDisplayCountLimit;
 
   ErrorHanldeApproach get errorHanldeApproach;
 }
 
 class ErrorHandlerConfigImpl implements ErrorHandlerConfig {
   @override
+  final bool showHetuStackTrace;
+
+  @override
   final bool showDartStackTrace;
 
   @override
-  final int hetuStackTraceDisplayCountLimit;
+  final int stackTraceDisplayCountLimit;
 
   @override
   final ErrorHanldeApproach errorHanldeApproach;
 
   const ErrorHandlerConfigImpl(
-      {this.showDartStackTrace = false,
-      this.hetuStackTraceDisplayCountLimit = 3,
+      {this.showHetuStackTrace = true,
+      this.showDartStackTrace = false,
+      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
       this.errorHanldeApproach = ErrorHanldeApproach.exception});
 }
 

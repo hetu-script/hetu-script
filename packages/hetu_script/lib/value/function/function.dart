@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import '../../binding/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';
@@ -239,7 +241,7 @@ class HTFunction extends HTFunctionDeclaration
       bool construct = true,
       bool errorHandled = true}) {
     try {
-      interpreter.stackTrace.add(
+      interpreter.stackTraceList.insert(0,
           '$internalName (${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn})');
 
       dynamic result;
@@ -627,8 +629,8 @@ class HTFunction extends HTFunctionDeclaration
       //   }
       // }
 
-      if (interpreter.stackTrace.isNotEmpty) {
-        interpreter.stackTrace.removeLast();
+      if (interpreter.stackTraceList.isNotEmpty) {
+        interpreter.stackTraceList.removeLast();
       }
 
       return result;

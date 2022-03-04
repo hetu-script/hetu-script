@@ -1,4 +1,3 @@
-import 'package:hetu_script/analyzer/analyzer.dart';
 import 'package:meta/meta.dart';
 import 'package:characters/characters.dart';
 
@@ -25,6 +24,7 @@ import '../shared/perlin_noise.dart';
 import '../shared/math.dart';
 import '../shared/uid.dart';
 import '../shared/crc32b.dart';
+import '../analyzer/analyzer.dart';
 
 part 'binding/class_binding.dart';
 part 'binding/instance_binding.dart';
@@ -50,10 +50,13 @@ class InterpreterConfig
   final bool compileWithLineInfo;
 
   @override
+  final bool showHetuStackTrace;
+
+  @override
   final bool showDartStackTrace;
 
   @override
-  final int hetuStackTraceDisplayCountLimit;
+  final int stackTraceDisplayCountLimit;
 
   @override
   final ErrorHanldeApproach errorHanldeApproach;
@@ -64,8 +67,9 @@ class InterpreterConfig
       {this.checkTypeErrors = true,
       this.computeConstantExpressionValue = true,
       this.compileWithLineInfo = true,
+      this.showHetuStackTrace = true,
       this.showDartStackTrace = false,
-      this.hetuStackTraceDisplayCountLimit = 3,
+      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
       this.allowHotReload = true});
 }
