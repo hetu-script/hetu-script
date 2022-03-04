@@ -208,7 +208,7 @@ class Hetu extends HTAbstractInterpreter {
   @override
   void handleError(Object error, {Object? externalStackTrace}) {
     final sb = StringBuffer();
-    if (stackTrace.isNotEmpty && errorConfig.showDartStackTrace) {
+    if (stackTrace.isNotEmpty) {
       sb.writeln('${HTLexicon.scriptStackTrace}${HTLexicon.colon}');
       if (stackTrace.length > errorConfig.hetuStackTraceDisplayCountLimit * 2) {
         for (var i = stackTrace.length - 1;
@@ -231,7 +231,7 @@ class Hetu extends HTAbstractInterpreter {
         }
       }
     }
-    if (externalStackTrace != null) {
+    if (externalStackTrace != null && errorConfig.showDartStackTrace) {
       sb.writeln('${HTLexicon.externalStackTrace}${HTLexicon.colon}');
       sb.writeln(externalStackTrace);
     }
@@ -241,7 +241,7 @@ class Hetu extends HTAbstractInterpreter {
         error.code,
         error.type,
         message: error.message,
-        extra: errorConfig.showDartStackTrace ? stackTraceString : null,
+        extra: stackTraceString,
         filename: error.filename ?? _currentFileName,
         line: error.line ?? _currentLine,
         column: error.column ?? _column,
@@ -250,7 +250,7 @@ class Hetu extends HTAbstractInterpreter {
     } else {
       final hetuError = HTError.extern(
         error.toString(),
-        extra: errorConfig.showDartStackTrace ? stackTraceString : null,
+        extra: stackTraceString,
         filename: _currentFileName,
         line: currentLine,
         column: currentColumn,
