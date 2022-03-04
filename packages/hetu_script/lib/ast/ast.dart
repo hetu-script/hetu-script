@@ -6,6 +6,7 @@ import '../declaration/declaration.dart';
 import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
+import '../type/type.dart';
 
 part 'visitor/abstract_ast_visitor.dart';
 
@@ -36,7 +37,10 @@ abstract class AstNode {
 
   bool get isConstValue => value != null;
 
+  // for constant expressions, this value is not null
   dynamic value;
+
+  HTType? valueType;
 
   final HTSource? source;
 

@@ -13,7 +13,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   @override
   HTNamespace? get closure => _closure;
 
-  // 为了允许保存宿主程序变量，这里是dynamic，而不是HTObject
+  // Use dynamic type to save external values
   dynamic _value;
 
   var _isInitialized = false;
@@ -23,8 +23,10 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
 
   // var _isTypeInitialized = false;
 
-  /// Create a standard [HTVariable].
-  /// has to be defined in a [HTNamespace] of an [Interpreter]
+  /// Create a [HTVariable].
+  ///
+  /// If it has initializer code, it will
+  /// have to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
   HTVariable(String id,
       {Hetu? interpreter,

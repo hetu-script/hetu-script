@@ -172,7 +172,7 @@ class Hetu extends HTAbstractInterpreter {
       this.config = const InterpreterConfig()})
       : _sourceContext = sourceContext ?? HTOverlayContext(),
         globalNamespace = HTNamespace(id: Semantic.global) {
-    _analyzer = HTAnalyzer(sourceContext: _sourceContext);
+    _analyzer = HTAnalyzer(sourceContext: _sourceContext, config: config);
     _currentNamespace = globalNamespace;
   }
 
@@ -1760,8 +1760,12 @@ class Hetu extends HTAbstractInterpreter {
           typeArgs.add(typearg);
         }
         final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
-        return HTUnresolvedType(typeName,
-            typeArgs: typeArgs, isNullable: isNullable);
+        if (HTType.primitiveTypes.containsKey(typeName)) {
+          return HTType.primitiveTypes[typeName]!;
+        } else {
+          return HTUnresolvedType(typeName,
+              typeArgs: typeArgs, isNullable: isNullable);
+        }
       case TypeType.function:
         final paramsLength = _currentBytecodeModule.read();
         final parameterTypes = <HTParameterType>[];

@@ -56,7 +56,7 @@ class HTFilterConfig {
 /// an URL, or a remote database... any thing that provide
 /// create, read, update, delete services could be a resource context.
 ///
-/// If the import path starts with 'local:',
+/// If the import path starts with 'package:',
 /// will try to fetch the source file from '.hetu_modules' under root
 ///
 /// If the import path starts with 'module:', then the module should be

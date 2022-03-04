@@ -1,8 +1,11 @@
 import '../ast/ast.dart';
 import 'analysis_error.dart';
+import 'type_checker.dart';
 
 /// A Ast interpreter for static analysis.
 class HTAnalyzerImpl implements AbstractAstVisitor<void> {
+  final typeChecker = HTTypeChecker();
+
   /// Errors of a single file
   late List<HTAnalysisError> errors = [];
 

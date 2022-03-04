@@ -121,8 +121,8 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
   @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr node) {
     node.subAccept(this);
-    if (node.op == HTLexicon.logicalNot && node.object is BooleanLiteralExpr) {
-      node.value = !(node.object as BooleanLiteralExpr).value;
+    if (node.op == HTLexicon.logicalNot && node.object.isConstValue) {
+      node.value = !node.object.value;
     } else if (node.op == HTLexicon.negative &&
         node.object is IntegerLiteralExpr) {
       node.value = -(node.object as IntegerLiteralExpr).value;

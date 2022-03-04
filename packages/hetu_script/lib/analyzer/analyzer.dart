@@ -25,13 +25,33 @@ import '../binding/external_function.dart';
 import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
 
+abstract class AnalyzerConfig {
+  factory AnalyzerConfig({bool computeConstantExpressionValue}) =
+      AnalyzerConfigImpl;
+
+  bool get checkTypeErrors;
+
+  bool get computeConstantExpressionValue;
+}
+
+class AnalyzerConfigImpl implements AnalyzerConfig {
+  @override
+  final bool checkTypeErrors;
+  @override
+  final bool computeConstantExpressionValue;
+
+  const AnalyzerConfigImpl(
+      {this.checkTypeErrors = true,
+      this.computeConstantExpressionValue = true});
+}
+
 /// A ast visitor that create declarative-only namespaces on all astnode,
 /// for analysis purpose, the true analyzer is a underlying
 class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     implements AbstractAstVisitor<void> {
   final errorProcessors = <ErrorProcessor>[];
 
-  // final config = InterpreterConfig();
+  AnalyzerConfig config;
 
   @override
   ErrorHandlerConfig? get errorConfig => null;
@@ -54,8 +74,10 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   final analyzedDeclarations = <String, HTDeclarationNamespace>{};
 
-  HTAnalyzer({HTResourceContext<HTSource>? sourceContext})
-      : globalNamespace = HTDeclarationNamespace(id: Semantic.global),
+  HTAnalyzer(
+      {HTResourceContext<HTSource>? sourceContext, AnalyzerConfig? config})
+      : config = config ?? AnalyzerConfig(),
+        globalNamespace = HTDeclarationNamespace(id: Semantic.global),
         sourceContext = sourceContext ?? HTOverlayContext() {
     _currentNamespace = globalNamespace;
   }
@@ -109,7 +131,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       }
       HTDeclarationNamespace(
           id: parseResult.fullName, closure: globalNamespace);
-      // the first scan, create namespaces
+      // the first scan, namespaces & declarations are created
       for (final node in parseResult.nodes) {
         node.accept(this);
       }
@@ -120,11 +142,13 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       sourceErrors.addAll(
           parseResult.errors!.map((err) => HTAnalysisError.fromError(err)));
 
-      // Compute constant values
-      final constantInterpreter = HTConstantInterpreter();
-      parseResult.accept(constantInterpreter);
+      // the second scan, compute constant values
+      if (config.computeConstantExpressionValue) {
+        final constantInterpreter = HTConstantInterpreter();
+        parseResult.accept(constantInterpreter);
+      }
 
-      // Static analysis
+      // the third scan, do static analysis
       final analyzer = HTAnalyzerImpl();
       parseResult.accept(analyzer);
       sourceErrors.addAll(analyzer.errors);

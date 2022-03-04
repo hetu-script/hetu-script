@@ -105,11 +105,11 @@ abstract class Semantic {
   static const blockExpr = 'block_expression';
   static const symbolExpr = 'symbol_expression';
   static const unaryExpr = 'unary_expression';
+  static const assignExpr = 'assign_expression';
   static const binaryExpr = 'binary_expression';
   static const ternaryExpr = 'ternary_expression';
   static const callExpr = 'call_expression';
   static const thisExpr = 'this_expression';
-  static const assignExpr = 'assign_expression';
   static const subGetExpr = 'subscript_get_expression';
   static const subSetExpr = 'subscript_set_expression';
   static const memberGetExpr = 'member_get_expression';

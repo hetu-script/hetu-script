@@ -1,3 +1,4 @@
+import 'package:hetu_script/analyzer/analyzer.dart';
 import 'package:meta/meta.dart';
 import 'package:characters/characters.dart';
 
@@ -34,7 +35,17 @@ mixin InterpreterRef {
 }
 
 class InterpreterConfig
-    implements ParserConfig, CompilerConfig, ErrorHandlerConfig {
+    implements
+        ParserConfig,
+        AnalyzerConfig,
+        CompilerConfig,
+        ErrorHandlerConfig {
+  @override
+  final bool checkTypeErrors;
+
+  @override
+  final bool computeConstantExpressionValue;
+
   @override
   final bool compileWithLineInfo;
 
@@ -50,7 +61,9 @@ class InterpreterConfig
   final bool allowHotReload;
 
   const InterpreterConfig(
-      {this.compileWithLineInfo = true,
+      {this.checkTypeErrors = true,
+      this.computeConstantExpressionValue = true,
+      this.compileWithLineInfo = true,
       this.showDartStackTrace = false,
       this.hetuStackTraceDisplayCountLimit = 3,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,

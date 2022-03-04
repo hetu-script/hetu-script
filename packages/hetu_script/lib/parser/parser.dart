@@ -1211,15 +1211,6 @@ class HTParser extends HTAbstractParser {
     AstNode? expr;
     final left = _parserTernaryExpr();
     if (HTLexicon.assignments.contains(curTok.type)) {
-      if (!_leftValueLegality) {
-        final err = HTError.invalidLeftValue(
-            filename: _currrentFileName,
-            line: left.line,
-            column: left.column,
-            offset: left.offset,
-            length: left.length);
-        errors?.add(err);
-      }
       final op = advance();
       final right = _parseExpr();
       if (op.type == HTLexicon.assign) {
@@ -1256,6 +1247,15 @@ class HTParser extends HTAbstractParser {
               offset: left.offset,
               length: curTok.offset - left.offset);
         } else {
+          if (left is! IdentifierExpr) {
+            final err = HTError.invalidLeftValue(
+                filename: _currrentFileName,
+                line: left.line,
+                column: left.column,
+                offset: left.offset,
+                length: left.length);
+            errors?.add(err);
+          }
           expr = BinaryExpr(left, op.lexeme, right,
               source: _currentSource,
               line: left.line,
@@ -1263,7 +1263,10 @@ class HTParser extends HTAbstractParser {
               offset: left.offset,
               length: curTok.offset - left.offset);
         }
-      } else if (op.type == HTLexicon.assignIfNull) {
+      }
+      // TODO: 这里的写法有错误，不应该在Parser阶段修改代码本身的结构
+      // 应该将这些转换放到编译时进行
+      else if (op.type == HTLexicon.assignIfNull) {
         if (left is MemberExpr) {
           if (left.isNullable) {
             final err = HTError.nullableAssign(
