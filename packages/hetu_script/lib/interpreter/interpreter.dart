@@ -345,6 +345,28 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  Uint8List? compile(String content,
+      {String? filename,
+      String? moduleName,
+      CompilerConfig? config,
+      bool isModuleEntryScript = false}) {
+    final source = HTSource(content,
+        fullName: filename,
+        type: isModuleEntryScript
+            ? HTResourceType.hetuScript
+            : HTResourceType.hetuModule);
+    final result = compileSource(source, moduleName: moduleName);
+    return result;
+  }
+
+  /// Compile a script content into bytecode for later use.
+  Uint8List? compileFile(String key,
+      {String? moduleName, CompilerConfig? config}) {
+    final source = _sourceContext.getResource(key);
+    final bytes = compileSource(source, moduleName: moduleName, config: config);
+    return bytes;
+  }
+
   /// Compile a [HTSource] into bytecode for later use.
   Uint8List compileSource(HTSource source,
       {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
@@ -374,28 +396,6 @@ class Hetu extends HTAbstractInterpreter {
         return Uint8List.fromList([]);
       }
     }
-  }
-
-  Uint8List? compile(String content,
-      {String? filename,
-      String? moduleName,
-      bool isModule = false,
-      bool errorHandled = false}) {
-    final source = HTSource(content,
-        fullName: filename,
-        type: isModule ? HTResourceType.hetuModule : HTResourceType.hetuScript);
-    final result = compileSource(source,
-        moduleName: moduleName, errorHandled: errorHandled);
-    return result;
-  }
-
-  /// Compile a script content into bytecode for later use.
-  Uint8List? compileFile(String key,
-      {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
-    final source = _sourceContext.getResource(key);
-    final bytes = compileSource(source,
-        moduleName: moduleName, config: config, errorHandled: errorHandled);
-    return bytes;
   }
 
   HTBytecodeModule? getBytecode(String moduleName) {

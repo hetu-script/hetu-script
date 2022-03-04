@@ -5,7 +5,7 @@ void ext(entity, {positionalArgs, namedArgs, typeArgs}) {
 }
 
 void main() {
-  var hetu = Hetu();
+  var hetu = Hetu(config: InterpreterConfig(showDartStackTrace: true));
   hetu.init(externalFunctions: {
     'ext': ext,
   });
