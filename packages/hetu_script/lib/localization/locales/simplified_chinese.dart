@@ -18,37 +18,27 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   String get errorUnexpected => '意料之外的字符：[{1}]，[{0}]';
   @override
-  String get errorDelete =>
-      'Can only delete a local variable or a struct member.';
+  String get errorDelete => '只能对普通变量和类成员的标识符使用 delete 关键字。';
   @override
-  String get errorExternal => 'External [{0}] is not allowed.';
+  String get errorExternal => '对 [{0}] 的外部声明无效';
   @override
-  String get errorNestedClass => 'Nested class within another nested class.';
+  String get errorNestedClass => '当前版本不支持嵌套类声明。';
   @override
-  String get errorConstInClass => 'Const value in class must be also static.';
+  String get errorConstInClass => '类成员声明如果是 const，则一定也要是 static 的。';
   @override
-  String get errorOutsideReturn =>
-      'Unexpected return statement outside of a function.';
+  String get errorOutsideReturn => '不能在非函数定义的场合使用 return 语句。';
   @override
-  String get errorSetterArity =>
-      'Setter function must have exactly one parameter.';
+  String get errorSetterArity => 'setter 函数只能有且只有一个参数。';
   @override
-  String get errorExternalMember =>
-      'Non-external class cannot have non-static external members.';
+  String get errorEmptyTypeArgs => '类型参数列表是空的。';
   @override
-  String get errorEmptyTypeArgs => 'Empty type arguments.';
+  String get errorEmptyImportList => '导入关键字列表是空的。';
   @override
-  String get errorEmptyImportList => 'Empty import list.';
+  String get errorExtendsSelf => '类不能继承自己。';
   @override
-  String get errorExtendsSelf => 'Class try to extends itself.';
+  String get errorMissingFuncBody => '缺少函数定义：[{0}]。';
   @override
-  String get errorMissingFuncBody => 'Missing function definition of [{0}].';
-  @override
-  String get errorExternalCtorWithReferCtor =>
-      'Unexpected refer constructor on external constructor.';
-  @override
-  String get errorNonCotrWithReferCtor =>
-      'Unexpected refer constructor on normal function.';
+  String get errorExternalCtorWithReferCtor => '外部构造函数不能重定向。';
   @override
   String get errorSourceProviderError =>
       'Context error: could not load file: [{0}].';

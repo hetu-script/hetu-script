@@ -17,13 +17,11 @@ abstract class HTLocale {
   String get errorConstInClass;
   String get errorOutsideReturn;
   String get errorSetterArity;
-  String get errorExternalMember;
   String get errorEmptyTypeArgs;
   String get errorEmptyImportList;
   String get errorExtendsSelf;
   String get errorMissingFuncBody;
   String get errorExternalCtorWithReferCtor;
-  String get errorNonCotrWithReferCtor;
   String get errorSourceProviderError;
   String get errorNotAbsoluteError;
   String get errorInvalidLeftValue;

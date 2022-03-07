@@ -35,9 +35,6 @@ class HTLocaleEnglish implements HTLocale {
   String get errorSetterArity =>
       'Setter function must have exactly one parameter.';
   @override
-  String get errorExternalMember =>
-      'Non-external class cannot have non-static external members.';
-  @override
   String get errorEmptyTypeArgs => 'Empty type arguments.';
   @override
   String get errorEmptyImportList => 'Empty import list.';
@@ -48,9 +45,6 @@ class HTLocaleEnglish implements HTLocale {
   @override
   String get errorExternalCtorWithReferCtor =>
       'Unexpected refer constructor on external constructor.';
-  @override
-  String get errorNonCotrWithReferCtor =>
-      'Unexpected refer constructor on normal function.';
   @override
   String get errorSourceProviderError =>
       'Context error: could not load file: [{0}].';

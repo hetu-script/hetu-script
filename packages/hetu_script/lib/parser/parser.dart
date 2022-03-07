@@ -2770,15 +2770,15 @@ class HTParser extends TokenReader {
     final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
     String? internalName;
     if (classId != null && isExternal) {
-      if (!(_currentClass!.isExternal) && !isStatic) {
-        final err = HTError.externalMember(
-            filename: _currrentFileName,
-            line: keyword.line,
-            column: keyword.column,
-            offset: curTok.offset,
-            length: curTok.length);
-        errors?.add(err);
-      }
+      // if (!(_currentClass!.isExternal) && !isStatic) {
+      //   final err = HTError.externalMember(
+      //       filename: _currrentFileName,
+      //       line: keyword.line,
+      //       column: keyword.column,
+      //       offset: curTok.offset,
+      //       length: curTok.length);
+      //   errors?.add(err);
+      // }
       internalName = '$classId.${idTok.lexeme}';
     }
     TypeExpr? declType;
@@ -3056,7 +3056,7 @@ class HTParser extends TokenReader {
     else if (expect([HTLexicon.colon], consume: true)) {
       if (category != FunctionCategory.constructor) {
         final lastTok = peek(-1);
-        final err = HTError.nonCotrWithReferCtor(
+        final err = HTError.unexpected(HTLexicon.bracesLeft, HTLexicon.colon,
             filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,

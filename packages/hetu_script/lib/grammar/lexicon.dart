@@ -470,16 +470,12 @@ class HTLexicon {
       'Unexpected return statement outside of a function.';
   static const errorSetterArity =
       'Setter function must have exactly one parameter.';
-  static const errorExternalMember =
-      'Non-external class cannot have non-static external members.';
   static const errorEmptyTypeArgs = 'Empty type arguments.';
   static const errorEmptyImportList = 'Empty import list.';
   static const errorExtendsSelf = 'Class try to extends itself.';
   static const errorMissingFuncBody = 'Missing function definition of [{0}].';
   static const errorExternalCtorWithReferCtor =
       'Unexpected refer constructor on external constructor.';
-  static const errorNonCotrWithReferCtor =
-      'Unexpected refer constructor on normal function.';
   static const errorSourceProviderError =
       'Context error: could not load file: [{0}].';
   static const errorNotAbsoluteError =

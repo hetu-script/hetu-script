@@ -20,13 +20,11 @@ enum ErrorCode {
   constInClass,
   outsideReturn,
   setterArity,
-  externalMember,
   emptyTypeArgs,
   emptyImportList,
   extendsSelf,
   missingFuncBody,
   externalCtorWithReferCtor,
-  nonCotrWithReferCtor,
   sourceProviderError,
   notAbsoluteError,
   invalidLeftValue,
@@ -445,25 +443,6 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Illegal external member.
-  HTError.externalMember(
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.externalMember, ErrorType.syntacticError,
-            message: HTLocalization.errorExternalMember,
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: Type arguments is emtpy brackets.
   HTError.emptyTypeArgs(
       {String? extra,
@@ -569,24 +548,6 @@ class HTError {
       int? length})
       : this(ErrorCode.externalCtorWithReferCtor, ErrorType.syntacticError,
             message: HTLocalization.errorExternalCtorWithReferCtor,
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  HTError.nonCotrWithReferCtor(
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.nonCotrWithReferCtor, ErrorType.syntacticError,
-            message: HTLocalization.errorNonCotrWithReferCtor,
             extra: extra,
             correction: correction,
             filename: filename,

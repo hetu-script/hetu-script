@@ -30,14 +30,12 @@ abstract class HTLocalization {
   static String get errorConstInClass => data.errorConstInClass;
   static String get errorOutsideReturn => data.errorOutsideReturn;
   static String get errorSetterArity => data.errorSetterArity;
-  static String get errorExternalMember => data.errorExternalMember;
   static String get errorEmptyTypeArgs => data.errorEmptyTypeArgs;
   static String get errorEmptyImportList => data.errorEmptyImportList;
   static String get errorExtendsSelf => data.errorExtendsSelf;
   static String get errorMissingFuncBody => data.errorMissingFuncBody;
   static String get errorExternalCtorWithReferCtor =>
       data.errorExternalCtorWithReferCtor;
-  static String get errorNonCotrWithReferCtor => data.errorNonCotrWithReferCtor;
   static String get errorSourceProviderError => data.errorSourceProviderError;
   static String get errorNotAbsoluteError => data.errorNotAbsoluteError;
   static String get errorInvalidLeftValue => data.errorInvalidLeftValue;

@@ -566,10 +566,11 @@ class HTFunction extends HTFunctionDeclaration
                     typeArgs: typeArgs);
               }
             } else {
-              throw HTError.notCallable(internalName,
-                  filename: interpreter.currentFileName,
-                  line: interpreter.currentLine,
-                  column: interpreter.currentColumn);
+              result = Function.apply(
+                  func,
+                  finalPosArgs,
+                  finalNamedArgs.map<Symbol, dynamic>(
+                      (key, value) => MapEntry(Symbol(key), value)));
             }
           }
         }
