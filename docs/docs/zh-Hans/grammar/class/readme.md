@@ -81,6 +81,39 @@ class Bird extends Animal {
 }
 ```
 
+## super
+
+在类的成员函数中可以使用 **super** 访问父类的成员
+
+```dart
+class Super3 {
+  var name = 'Super'
+}
+class Extend3 extends Super3 {
+  var name = 'Extend'
+  fun getSuperName() {
+    return super.name
+  }
+}
+```
+
+## 类型转换
+
+使用 **as** 关键字可以将一个子类临时转换为任意一个父类，使用这种方式可以访问到多个继承关系之上的某个类的成员。
+
+```dart
+class Super3 {
+  var name = 'Super'
+}
+class Extend3 extends Super3 {
+  var name = 'Extend'
+}
+var a = Extend3()
+var b = a as Super3
+b.name = 'Changed'
+print((a as Super3).name) // 'Changed'
+```
+
 ## 函数式的构造函数
 
 某些时候我们想要在某些函数式编程的场景使用构造函数，例如我们想要向数组的 map 方法传入一个构造函数。通常情况下这不可行。因为直接传递类名，得到的是一个类型，而不是构造函数本身。要实现这一点，在 Dart 中使用的是 [constructor tear-off](https://medium.com/dartlang/dart-2-15-7e7a598e508a#9c16) 的方法。

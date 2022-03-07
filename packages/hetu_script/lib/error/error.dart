@@ -1,6 +1,6 @@
 import 'package:recase/recase.dart';
 
-import '../grammar/lexicon.dart';
+import '../localization/localization.dart';
 import '../analyzer/analyzer.dart';
 import 'error_severity.dart';
 
@@ -245,7 +245,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.unkownSourceType, ErrorType.syntacticError,
-            message: HTLexicon.errorUnkownSourceType,
+            message: HTLocalization.errorUnkownSourceType,
             interpolations: [ext],
             extra: extra,
             correction: correction,
@@ -264,7 +264,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.importListOnNonHetuSource, ErrorType.syntacticError,
-            message: HTLexicon.errorUnkownSourceType,
+            message: HTLocalization.errorUnkownSourceType,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -282,7 +282,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.exportNonHetuSource, ErrorType.syntacticError,
-            message: HTLexicon.errorExportNonHetuSource,
+            message: HTLocalization.errorExportNonHetuSource,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -301,7 +301,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.unexpected, ErrorType.syntacticError,
-            message: HTLexicon.errorUnexpected,
+            message: HTLocalization.errorUnexpected,
             interpolations: [expected, met],
             extra: extra,
             correction: correction,
@@ -321,7 +321,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.delete, ErrorType.syntacticError,
-            message: HTLexicon.errorDelete,
+            message: HTLocalization.errorDelete,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -340,7 +340,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.external, ErrorType.syntacticError,
-            message: HTLexicon.errorExternal,
+            message: HTLocalization.errorExternal,
             interpolations: [semanticName],
             extra: extra,
             correction: correction,
@@ -360,7 +360,7 @@ class HTError {
   //     int? offset,
   //     int? length})
   //     : this(ErrorCode.external, ErrorType.syntacticError,
-  //           message: HTLexicon.errorExternalCtor,
+  //           message: HTLocalization.errorExternalCtor,
   //           extra: extra,
   //           correction: correction,
   //           filename: filename,
@@ -379,7 +379,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.nestedClass, ErrorType.syntacticError,
-            message: HTLexicon.errorNestedClass,
+            message: HTLocalization.errorNestedClass,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -398,7 +398,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.constInClass, ErrorType.syntacticError,
-            message: HTLexicon.errorConstInClass,
+            message: HTLocalization.errorConstInClass,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -417,7 +417,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.outsideReturn, ErrorType.syntacticError,
-            message: HTLexicon.errorOutsideReturn,
+            message: HTLocalization.errorOutsideReturn,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -436,7 +436,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.setterArity, ErrorType.syntacticError,
-            message: HTLexicon.errorSetterArity,
+            message: HTLocalization.errorSetterArity,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -455,7 +455,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.externalMember, ErrorType.syntacticError,
-            message: HTLexicon.errorExternalMember,
+            message: HTLocalization.errorExternalMember,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -474,7 +474,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.emptyTypeArgs, ErrorType.syntacticError,
-            message: HTLexicon.errorEmptyTypeArgs,
+            message: HTLocalization.errorEmptyTypeArgs,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -492,7 +492,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.emptyImportList, ErrorType.syntacticError,
-            message: HTLexicon.errorEmptyImportList,
+            message: HTLocalization.errorEmptyImportList,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -511,7 +511,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.extendsSelf, ErrorType.syntacticError,
-            message: HTLexicon.errorExtendsSelf,
+            message: HTLocalization.errorExtendsSelf,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -530,7 +530,7 @@ class HTError {
   //     int? offset,
   //     int? length})
   //     : this(ErrorCode.ctorReturn, ErrorType.syntacticError,
-  //           message: HTLexicon.errorCtorReturn,
+  //           message: HTLocalization.errorCtorReturn,
   //           extra: extra,
   //           correction: correction,
   //           filename: filename,
@@ -549,7 +549,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
-            message: HTLexicon.errorMissingFuncBody,
+            message: HTLocalization.errorMissingFuncBody,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -568,7 +568,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.externalCtorWithReferCtor, ErrorType.syntacticError,
-            message: HTLexicon.errorExternalCtorWithReferCtor,
+            message: HTLocalization.errorExternalCtorWithReferCtor,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -586,7 +586,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.nonCotrWithReferCtor, ErrorType.syntacticError,
-            message: HTLexicon.errorNonCotrWithReferCtor,
+            message: HTLocalization.errorNonCotrWithReferCtor,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -605,7 +605,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.sourceProviderError, ErrorType.externalError,
-            message: HTLexicon.errorSourceProviderError,
+            message: HTLocalization.errorSourceProviderError,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -625,7 +625,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notAbsoluteError, ErrorType.externalError,
-            message: HTLexicon.errorNotAbsoluteError,
+            message: HTLocalization.errorNotAbsoluteError,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -645,7 +645,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.nullableAssign, ErrorType.syntacticError,
-            message: HTLexicon.errorNullableAssign,
+            message: HTLocalization.errorNullableAssign,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -664,7 +664,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.invalidLeftValue, ErrorType.syntacticError,
-            message: HTLexicon.errorInvalidLeftValue,
+            message: HTLocalization.errorInvalidLeftValue,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -683,7 +683,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.privateMember, ErrorType.syntacticError,
-            message: HTLexicon.errorPrivateMember,
+            message: HTLocalization.errorPrivateMember,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -703,7 +703,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.constMustBeStatic, ErrorType.syntacticError,
-            message: HTLexicon.errorConstMustBeStatic,
+            message: HTLocalization.errorConstMustBeStatic,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -723,7 +723,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.constMustInit, ErrorType.syntacticError,
-            message: HTLexicon.errorConstMustInit,
+            message: HTLocalization.errorConstMustInit,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -743,7 +743,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.duplicateLibStmt, ErrorType.syntacticError,
-            message: HTLexicon.errorDuplicateLibStmt,
+            message: HTLocalization.errorDuplicateLibStmt,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -762,7 +762,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notConstValue, ErrorType.syntacticError,
-            message: HTLexicon.errorNotConstValue,
+            message: HTLocalization.errorNotConstValue,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -781,7 +781,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.defined, ErrorType.compileTimeError,
-            message: HTLexicon.errorDefined,
+            message: HTLocalization.errorDefined,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -801,7 +801,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.outsideThis, ErrorType.compileTimeError,
-            message: HTLexicon.errorOutsideThis,
+            message: HTLocalization.errorOutsideThis,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -820,7 +820,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notMember, ErrorType.compileTimeError,
-            message: HTLexicon.errorNotMember,
+            message: HTLocalization.errorNotMember,
             interpolations: [id, className],
             extra: extra,
             correction: correction,
@@ -840,7 +840,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notClass, ErrorType.compileTimeError,
-            message: HTLexicon.errorNotClass,
+            message: HTLocalization.errorNotClass,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -860,7 +860,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.abstracted, ErrorType.compileTimeError,
-            message: HTLexicon.errorAbstracted,
+            message: HTLocalization.errorAbstracted,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -879,7 +879,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.interfaceCtor, ErrorType.compileTimeError,
-            message: HTLexicon.errorInterfaceCtor,
+            message: HTLocalization.errorInterfaceCtor,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -898,7 +898,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.unsupported, ErrorType.syntacticError,
-            message: HTLexicon.errorUnsupported,
+            message: HTLocalization.errorUnsupported,
             interpolations: [name],
             extra: extra,
             correction: correction,
@@ -935,7 +935,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.assertionFailed, ErrorType.runtimeError,
-            message: HTLexicon.errorAssertionFailed,
+            message: HTLocalization.errorAssertionFailed,
             interpolations: [message],
             extra: extra,
             correction: correction,
@@ -974,7 +974,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
-            message: HTLexicon.errorUnknownOpCode,
+            message: HTLocalization.errorUnknownOpCode,
             interpolations: [opcode],
             extra: extra,
             correction: correction,
@@ -994,7 +994,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notInitialized, ErrorType.runtimeError,
-            message: HTLexicon.errorNotInitialized,
+            message: HTLocalization.errorNotInitialized,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1014,7 +1014,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.undefined, ErrorType.runtimeError,
-            message: HTLexicon.errorUndefined,
+            message: HTLocalization.errorUndefined,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1034,7 +1034,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.undefinedExternal, ErrorType.runtimeError,
-            message: HTLexicon.errorUndefinedExternal,
+            message: HTLocalization.errorUndefinedExternal,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1054,7 +1054,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.unknownTypeName, ErrorType.runtimeError,
-            message: HTLexicon.errorUnknownTypeName,
+            message: HTLocalization.errorUnknownTypeName,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1074,7 +1074,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.undefinedOperator, ErrorType.runtimeError,
-            message: HTLexicon.errorUndefinedOperator,
+            message: HTLocalization.errorUndefinedOperator,
             interpolations: [id, op],
             extra: extra,
             correction: correction,
@@ -1094,7 +1094,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.defined, ErrorType.runtimeError,
-            message: HTLexicon.errorDefined,
+            message: HTLocalization.errorDefined,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1114,7 +1114,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notCallable, ErrorType.runtimeError,
-            message: HTLexicon.errorNotCallable,
+            message: HTLocalization.errorNotCallable,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1134,7 +1134,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.undefinedMember, ErrorType.runtimeError,
-            message: HTLexicon.errorUndefinedMember,
+            message: HTLocalization.errorUndefinedMember,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1154,7 +1154,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.uninitialized, ErrorType.runtimeError,
-            message: HTLexicon.errorUninitialized,
+            message: HTLocalization.errorUninitialized,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1174,7 +1174,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.condition, ErrorType.staticWarning,
-            message: HTLexicon.errorCondition,
+            message: HTLocalization.errorCondition,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -1193,7 +1193,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.nullObject, ErrorType.runtimeError,
-            message: HTLexicon.errorNullObject,
+            message: HTLocalization.errorNullObject,
             interpolations: [symbol, method],
             extra: extra,
             correction: correction,
@@ -1212,7 +1212,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.nullSubSetKey, ErrorType.runtimeError,
-            message: HTLexicon.errorNullSubSetKey,
+            message: HTLocalization.errorNullSubSetKey,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -1231,7 +1231,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.subGetKey, ErrorType.runtimeError,
-            message: HTLexicon.errorSubGetKey,
+            message: HTLocalization.errorSubGetKey,
             interpolations: [key],
             extra: extra,
             correction: correction,
@@ -1251,7 +1251,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.outOfRange, ErrorType.runtimeError,
-            message: HTLexicon.errorOutOfRange,
+            message: HTLocalization.errorOutOfRange,
             interpolations: [index, range],
             extra: extra,
             correction: correction,
@@ -1271,7 +1271,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.assignType, ErrorType.staticTypeWarning,
-            message: HTLexicon.errorAssignType,
+            message: HTLocalization.errorAssignType,
             interpolations: [id, valueType, declValue],
             extra: extra,
             correction: correction,
@@ -1291,7 +1291,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.immutable, ErrorType.runtimeError,
-            message: HTLexicon.errorImmutable,
+            message: HTLocalization.errorImmutable,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1311,7 +1311,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notType, ErrorType.runtimeError,
-            message: HTLexicon.errorNotType,
+            message: HTLocalization.errorNotType,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1331,7 +1331,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.argType, ErrorType.runtimeError,
-            message: HTLexicon.errorArgType,
+            message: HTLocalization.errorArgType,
             interpolations: [id, assignType, declValue],
             extra: extra,
             correction: correction,
@@ -1351,7 +1351,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.argInit, ErrorType.syntacticError,
-            message: HTLexicon.errorArgInit,
+            message: HTLocalization.errorArgInit,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -1371,7 +1371,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.returnType, ErrorType.staticTypeWarning,
-            message: HTLexicon.errorReturnType,
+            message: HTLocalization.errorReturnType,
             interpolations: [returnedType, funcName, declReturnType],
             extra: extra,
             correction: correction,
@@ -1391,7 +1391,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.stringInterpolation, ErrorType.syntacticError,
-            message: HTLexicon.errorStringInterpolation,
+            message: HTLocalization.errorStringInterpolation,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -1410,7 +1410,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.arity, ErrorType.staticWarning,
-            message: HTLexicon.errorArity,
+            message: HTLocalization.errorArity,
             interpolations: [argsCount, id, paramsCount],
             extra: extra,
             correction: correction,
@@ -1430,7 +1430,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.externalVar, ErrorType.syntacticError,
-            message: HTLexicon.errorExternalVar,
+            message: HTLocalization.errorExternalVar,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -1449,7 +1449,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.bytesSig, ErrorType.runtimeError,
-            message: HTLexicon.errorBytesSig,
+            message: HTLocalization.errorBytesSig,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -1468,7 +1468,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.circleInit, ErrorType.runtimeError,
-            message: HTLexicon.errorCircleInit,
+            message: HTLocalization.errorCircleInit,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1488,7 +1488,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.namedArg, ErrorType.staticTypeWarning,
-            message: HTLexicon.errorNamedArg,
+            message: HTLocalization.errorNamedArg,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1508,7 +1508,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.iterable, ErrorType.staticTypeWarning,
-            message: HTLexicon.errorIterable,
+            message: HTLocalization.errorIterable,
             interpolations: [id],
             extra: extra,
             correction: correction,
@@ -1528,7 +1528,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.unkownValueType, ErrorType.runtimeError,
-            message: HTLexicon.errorUnkownValueType,
+            message: HTLocalization.errorUnkownValueType,
             interpolations: [valType],
             extra: extra,
             correction: correction,
@@ -1548,7 +1548,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.typeCast, ErrorType.staticTypeWarning,
-            message: HTLexicon.errorTypeCast,
+            message: HTLocalization.errorTypeCast,
             interpolations: [from, to],
             extra: extra,
             correction: correction,
@@ -1568,7 +1568,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.castee, ErrorType.runtimeError,
-            message: HTLexicon.errorCastee,
+            message: HTLocalization.errorCastee,
             interpolations: [varName],
             extra: extra,
             correction: correction,
@@ -1588,7 +1588,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.notSuper, ErrorType.staticTypeWarning,
-            message: HTLexicon.errorNotSuper,
+            message: HTLocalization.errorNotSuper,
             interpolations: [classId, id],
             extra: extra,
             correction: correction,
@@ -1608,7 +1608,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.bytecode, ErrorType.runtimeError,
-            message: HTLexicon.errorBytecode,
+            message: HTLocalization.errorBytecode,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -1627,7 +1627,7 @@ class HTError {
       int? offset,
       int? length})
       : this(ErrorCode.version, ErrorType.runtimeError,
-            message: HTLexicon.errorVersion,
+            message: HTLocalization.errorVersion,
             interpolations: [codeVer, itpVer],
             extra: extra,
             correction: correction,
@@ -1641,7 +1641,7 @@ class HTError {
   HTError.structMemberId(
       {String? filename, int? line, int? column, int? offset, int? length})
       : this(ErrorCode.structMemberId, ErrorType.runtimeError,
-            message: HTLexicon.errorStructMemberId,
+            message: HTLocalization.errorStructMemberId,
             filename: filename,
             line: line,
             column: column,
@@ -1652,7 +1652,7 @@ class HTError {
   HTError.unresolvedNamedStruct(String id,
       {String? filename, int? line, int? column, int? offset, int? length})
       : this(ErrorCode.unresolvedNamedStruct, ErrorType.runtimeError,
-            message: HTLexicon.errorUnresolvedNamedStruct,
+            message: HTLocalization.errorUnresolvedNamedStruct,
             interpolations: [id],
             filename: filename,
             line: line,
@@ -1664,7 +1664,7 @@ class HTError {
   HTError.binding(
       {String? filename, int? line, int? column, int? offset, int? length})
       : this(ErrorCode.binding, ErrorType.runtimeError,
-            message: HTLexicon.errorBinding,
+            message: HTLocalization.errorBinding,
             filename: filename,
             line: line,
             column: column,

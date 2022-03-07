@@ -1,5 +1,5 @@
 /// All lexicons used by hetu
-abstract class HTLexicon {
+class HTLexicon {
   /// Regular expression used by lexer.
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
@@ -25,8 +25,7 @@ abstract class HTLexicon {
   static const tokenGroupStringGraveAccent = 22;
   static const tokenGroupNewline = 24;
 
-  static const singleLineCommentDocumentationPattern = r'///';
-  static const multiLineCommentDocumentationPattern = r'/**';
+  static const documentationCommentPattern = r'///';
 
   static const libraryNamePattern = r"(library '((\\'|[^'])*)')|"
       r'(library "((\\"|[^"])*)")';
@@ -113,11 +112,11 @@ abstract class HTLexicon {
     bracesLeft,
   };
 
-  /// 变量声明
+  /// Variable declaration keyword
+  /// used in for statement's declaration part
   static const Set<String> varDeclKeywords = {
     kVar,
     kFinal,
-    kConst,
   };
 
   static const Set<String> primitiveTypes = {
@@ -197,7 +196,7 @@ abstract class HTLexicon {
   static const kFinally = 'finally';
   static const kThrow = 'throw';
 
-  /// 内置关键字
+  /// keywords
   static const Set<String> keywords = {
     kNull,
     kTrue,
@@ -271,7 +270,7 @@ abstract class HTLexicon {
   static const postIncrement = '++';
   static const postDecrement = '--';
 
-  /// 后缀操作符，包含多个符号
+  /// postfix operators
   static const Set<String> unaryPostfixs = {
     nullableMemberGet,
     memberGet,
@@ -295,7 +294,7 @@ abstract class HTLexicon {
   /// '--'
   static const preDecrement = '--';
 
-  /// 前缀操作符，包含多个符号
+  /// prefix operators
   static const Set<String> unaryPrefixs = {
     logicalNot,
     negative,
@@ -316,7 +315,6 @@ abstract class HTLexicon {
   /// '%'
   static const modulo = '%';
 
-  /// 乘除操作符，包含多个符号
   static const Set<String> multiplicatives = {
     multiply,
     devide,
@@ -396,7 +394,7 @@ abstract class HTLexicon {
   static const assignTruncatingDevide = '~/=';
   static const assignIfNull = '??=';
 
-  /// 赋值类型操作符，包含多个符号
+  /// assign operators
   static const Set<String> assignments = {
     assign,
     assignAdd,
@@ -504,6 +502,8 @@ abstract class HTLexicon {
   static const errorNotClass = '[{0}] is not a class.';
   static const errorAbstracted = 'Cannot create instance from abstract class.';
   static const errorInterfaceCtor = 'Cannot create contructor for interfaces.';
+  static const errorConstValue =
+      'Initializer of const declaration is not constant value.';
 
   // runtime errors
   static const errorUnsupported = 'Unsupported operation: [{0}].';
@@ -552,7 +552,4 @@ abstract class HTLexicon {
       'Cannot create struct object from unresolved prototype [{0}].';
   static const errorBinding =
       'Binding is not allowed on non-literal function or non-struct object.';
-
-  static const errorConstValue =
-      'Initializer of const declaration is not constant value.';
 }

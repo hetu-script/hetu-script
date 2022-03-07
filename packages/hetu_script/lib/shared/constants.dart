@@ -129,3 +129,9 @@ Type getConstantType(HTConstantType type) {
       return String;
   }
 }
+
+enum CommentType {
+  singleLine,
+  multiLine,
+  documentation,
+}

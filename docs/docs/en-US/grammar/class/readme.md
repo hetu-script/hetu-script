@@ -83,6 +83,39 @@ class Bird extends Animal {
 }
 ```
 
+## super
+
+在类的成员函数中可以使用 **super** 访问父类的成员
+
+```dart
+class Super3 {
+  var name = 'Super'
+}
+class Extend3 extends Super3 {
+  var name = 'Extend'
+  fun getSuperName() {
+    return super.name
+  }
+}
+```
+
+## 类型转换
+
+使用 **as** 关键字可以将一个子类临时转换为任意一个父类，使用这种方式可以访问到多个继承关系之上的某个类的成员。
+
+```dart
+class Super3 {
+  var name = 'Super'
+}
+class Extend3 extends Super3 {
+  var name = 'Extend'
+}
+var a = Extend3()
+var b = a as Super3
+b.name = 'Changed'
+print((a as Super3).name) // 'Changed'
+```
+
 ## Constructor tear off
 
 Sometimes, we would like to use Class constructors in functional programming situations. However it normally doesn't work because a class name resolves into a 'class' or 'type' object rather than a function which is needed.

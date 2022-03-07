@@ -25,8 +25,6 @@ abstract class Semantic {
   static const extern = 'external';
   static const preclude = 'preclude';
   static const anonymous = 'anonymous';
-  static const multiLine = r'\';
-  static const newLine = '\n';
 
   static const anonymousScript = r'$anonymous_script';
   static const anonymousClass = r'$anonymous_class';
@@ -50,14 +48,10 @@ abstract class Semantic {
   static const emptyLine = 'empty_line';
   static const comment = 'comment';
 
-  static const singleLineComment = 'single_line_comment';
-  static const multiLineComment = 'multi_line_comment';
-
-  static const consumingLineEndComment = 'consuming_line_end_comment';
-
   static const keyword = 'keyword';
   static const identifier = 'identifier';
   static const punctuation = 'punctuation';
+
   static const expression = 'expression';
   static const statement = 'statement';
 

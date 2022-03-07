@@ -1,4 +1,5 @@
 import '../grammar/semantic.dart';
+import '../shared/constants.dart' show CommentType;
 
 class Token {
   final String lexeme;
@@ -122,38 +123,18 @@ class TokenStringInterpolation extends TokenStringLiteral {
             length);
 }
 
-class TokenSingleLineComment extends Token {
+class TokenComment extends Token {
   @override
   final String literal;
 
   @override
-  String get type => Semantic.singleLineComment;
+  String get type => Semantic.comment;
 
-  const TokenSingleLineComment(
-      this.literal, int line, int column, int offset, int length)
-      : super(literal, line, column, offset, length);
-}
+  final CommentType commentType;
 
-class TokenMultiLineComment extends Token {
-  @override
-  final String literal;
+  final bool isTrailing;
 
-  @override
-  String get type => Semantic.multiLineComment;
-
-  const TokenMultiLineComment(
-      this.literal, int line, int column, int offset, int length)
-      : super(literal, line, column, offset, length);
-}
-
-class TokenConsumingLineEndComment extends Token {
-  @override
-  final String literal;
-
-  @override
-  String get type => Semantic.consumingLineEndComment;
-
-  const TokenConsumingLineEndComment(
-      this.literal, int line, int column, int offset, int length)
+  const TokenComment(this.literal, int line, int column, int offset, int length,
+      {required this.commentType, this.isTrailing = false})
       : super(literal, line, column, offset, length);
 }

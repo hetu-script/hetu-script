@@ -6,18 +6,22 @@ import '../declaration/declaration.dart';
 import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
+import '../shared/constants.dart' show CommentType;
 
 part 'visitor/abstract_ast_visitor.dart';
 
 class Comment {
   final String content;
 
-  final bool isMultiline;
+  final CommentType type;
 
-  final bool isDocumentation;
+  final bool isTrailing;
 
-  Comment(this.content,
-      {this.isMultiline = false, this.isDocumentation = false});
+  Comment(this.content, {required this.type, this.isTrailing = false});
+
+  Comment.fromToken(TokenComment token)
+      : this(token.literal,
+            type: token.commentType, isTrailing: token.isTrailing);
 }
 
 /// Root object of all ast node
@@ -26,7 +30,7 @@ abstract class AstNode {
 
   final precedingComments = <Comment>[];
 
-  Comment? consumingLineEndComment;
+  Comment? trailingComment;
 
   bool get isExpression => true;
 

@@ -215,32 +215,31 @@ class HTParser extends TokenReader {
     return compilation;
   }
 
-  bool _handleComment() {
-    bool handled = true;
-    switch (curTok.type) {
-      case Semantic.singleLineComment:
-        final comment = Comment(curTok.literal,
-            isDocumentation: curTok.lexeme
-                .startsWith(HTLexicon.singleLineCommentDocumentationPattern));
-        _currentPrecedingComments.add(comment);
-        advance();
-        break;
-      case Semantic.multiLineComment:
-        final comment = Comment(curTok.literal,
-            isMultiline: true,
-            isDocumentation: curTok.lexeme
-                .startsWith(HTLexicon.multiLineCommentDocumentationPattern));
-        _currentPrecedingComments.add(comment);
-        advance();
-        break;
-      default:
-        handled = false;
+  bool _handlePrecedingComment() {
+    bool handled = false;
+    while (curTok is TokenComment) {
+      handled = true;
+      final comment = Comment.fromToken(curTok as TokenComment);
+      _currentPrecedingComments.add(comment);
+      advance();
     }
     return handled;
   }
 
+  bool _handleTrailingComment(AstNode expr) {
+    if (curTok is TokenComment) {
+      final tokenComment = curTok as TokenComment;
+      if (tokenComment.isTrailing) {
+        advance();
+        expr.trailingComment = Comment.fromToken(tokenComment);
+      }
+      return true;
+    }
+    return false;
+  }
+
   AstNode? _parseStmt({ParseStyle sourceType = ParseStyle.functionDefinition}) {
-    if (_handleComment()) {
+    if (_handlePrecedingComment()) {
       return null;
     }
 
@@ -1161,9 +1160,9 @@ class HTParser extends TokenReader {
       _currentPrecedingComments.clear();
     }
 
-    if (curTok.type == Semantic.consumingLineEndComment) {
+    if (curTok is TokenComment) {
       final token = advance();
-      stmt.consumingLineEndComment = Comment(token.literal);
+      stmt.trailingComment = Comment.fromToken(token as TokenComment);
     }
 
     return stmt;
@@ -1203,10 +1202,7 @@ class HTParser extends TokenReader {
   ///
   /// Assignment operator =, precedence 1, associativity right
   AstNode _parseExpr() {
-    while (curTok.type == Semantic.singleLineComment ||
-        curTok.type == Semantic.multiLineComment) {
-      _handleComment();
-    }
+    _handlePrecedingComment();
     AstNode? expr;
     final left = _parserTernaryExpr();
     if (HTLexicon.assignments.contains(curTok.type)) {
@@ -1399,11 +1395,6 @@ class HTParser extends TokenReader {
 
     expr.precedingComments.addAll(_currentPrecedingComments);
     _currentPrecedingComments.clear();
-
-    if (curTok.type == Semantic.consumingLineEndComment) {
-      final token = advance();
-      expr.consumingLineEndComment = Comment(token.literal);
-    }
 
     return expr;
   }
@@ -1914,10 +1905,7 @@ class HTParser extends TokenReader {
           if (curTok.type != HTLexicon.bracketsRight) {
             match(HTLexicon.comma);
           }
-          if (curTok.type == Semantic.consumingLineEndComment) {
-            final token = advance();
-            item.consumingLineEndComment = Comment(token.literal);
-          }
+          _handleTrailingComment(item);
         }
         final end = match(HTLexicon.bracketsRight);
         _leftValueLegality = false;
@@ -1967,10 +1955,7 @@ class HTParser extends TokenReader {
         match(HTLexicon.comma);
       }
       final item = _parseExpr();
-      if (curTok.type == Semantic.consumingLineEndComment) {
-        final token = advance();
-        item.consumingLineEndComment = Comment(token.literal);
-      }
+      _handleTrailingComment(item);
       list.add(item);
     }
     return CommaExpr(list,
@@ -2037,10 +2022,7 @@ class HTParser extends TokenReader {
         } else if (curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          param.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(param);
         parameters.add(param);
         if (isVariadic) {
           break;
@@ -2066,7 +2048,7 @@ class HTParser extends TokenReader {
       final fieldTypes = <FieldTypeExpr>[];
       while (curTok.type != HTLexicon.bracesRight &&
           curTok.type != Semantic.endOfFile) {
-        _handleComment();
+        _handlePrecedingComment();
         late Token idTok;
         if (curTok.type == Semantic.stringLiteral) {
           idTok = advance();
@@ -2107,10 +2089,7 @@ class HTParser extends TokenReader {
             (curTok.type != Semantic.endOfFile)) {
           final typeArg = _parseTypeExpr();
           expect([HTLexicon.comma], consume: true);
-          if (curTok.type == Semantic.consumingLineEndComment) {
-            final token = advance();
-            typeArg.consumingLineEndComment = Comment(token.literal);
-          }
+          _handleTrailingComment(typeArg);
           typeArgs.add(typeArg);
         }
         match(HTLexicon.chevronsRight);
@@ -2181,10 +2160,7 @@ class HTParser extends TokenReader {
         if (curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          namedArg.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(namedArg);
         namedArgs[name] = namedArg;
       } else {
         late AstNode positionalArg;
@@ -2203,10 +2179,7 @@ class HTParser extends TokenReader {
         if (curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          positionalArg.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(positionalArg);
         positionalArgs.add(positionalArg);
       }
     }
@@ -2305,7 +2278,7 @@ class HTParser extends TokenReader {
     final condition = _parseExpr();
     match(HTLexicon.parenthesesRight);
     var thenBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
-    _handleComment();
+    _handlePrecedingComment();
     AstNode? elseBranch;
     if (isExpression) {
       match(HTLexicon.kElse);
@@ -2436,7 +2409,7 @@ class HTParser extends TokenReader {
     match(HTLexicon.bracesLeft);
     while (curTok.type != HTLexicon.bracesRight &&
         curTok.type != Semantic.endOfFile) {
-      _handleComment();
+      _handlePrecedingComment();
       if (curTok.lexeme == HTLexicon.kElse) {
         advance();
         match(HTLexicon.singleArrow);
@@ -2485,10 +2458,7 @@ class HTParser extends TokenReader {
         if (curTok.type != HTLexicon.chevronsRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          param.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(param);
         genericParams.add(param);
       }
       match(HTLexicon.chevronsRight);
@@ -2513,16 +2483,13 @@ class HTParser extends TokenReader {
       }
       while (curTok.type != HTLexicon.bracesRight &&
           curTok.type != Semantic.endOfFile) {
-        _handleComment();
+        _handlePrecedingComment();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          id.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(id);
         showList.add(id);
       }
       match(HTLexicon.bracesRight);
@@ -2602,16 +2569,13 @@ class HTParser extends TokenReader {
       final showList = <IdentifierExpr>[];
       while (curTok.type != HTLexicon.bracesRight &&
           curTok.type != Semantic.endOfFile) {
-        _handleComment();
+        _handlePrecedingComment();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          id.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(id);
         showList.add(id);
       }
       match(HTLexicon.bracesRight);
@@ -2873,7 +2837,7 @@ class HTParser extends TokenReader {
       endMark = HTLexicon.bracesRight;
     }
     while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
-      _handleComment();
+      _handlePrecedingComment();
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
       TypeExpr? declType;
@@ -2883,13 +2847,10 @@ class HTParser extends TokenReader {
       if (curTok.type != endMark) {
         match(HTLexicon.comma);
       }
-      if (curTok.type == Semantic.consumingLineEndComment) {
-        final token = advance();
-        if (declType == null) {
-          id.consumingLineEndComment = Comment(token.literal);
-        } else {
-          declType.consumingLineEndComment = Comment(token.literal);
-        }
+      if (declType == null) {
+        _handleTrailingComment(id);
+      } else {
+        _handleTrailingComment(declType);
       }
       ids[id] = declType;
     }
@@ -2989,7 +2950,7 @@ class HTParser extends TokenReader {
           (curTok.type != HTLexicon.bracketsRight) &&
           (curTok.type != HTLexicon.bracesRight) &&
           (curTok.type != Semantic.endOfFile)) {
-        _handleComment();
+        _handlePrecedingComment();
         // 可选参数, 根据是否有方括号判断, 一旦开始了可选参数, 则不再增加参数数量arity要求
         if (!isOptional) {
           isOptional = expect([HTLexicon.bracketsLeft], consume: true);
@@ -3047,10 +3008,7 @@ class HTParser extends TokenReader {
             curTok.type != HTLexicon.parenthesesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          param.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(param);
         paramDecls.add(param);
         if (isVariadic) {
           isFuncVariadic = true;
@@ -3286,7 +3244,7 @@ class HTParser extends TokenReader {
     final id = match(Semantic.identifier);
     var enumerations = <IdentifierExpr>[];
     if (expect([HTLexicon.bracesLeft], consume: true)) {
-      _handleComment();
+      _handlePrecedingComment();
       while (curTok.type != HTLexicon.bracesRight &&
           curTok.type != Semantic.endOfFile) {
         final enumIdTok = match(Semantic.identifier);
@@ -3295,10 +3253,7 @@ class HTParser extends TokenReader {
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          enumId.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(enumId);
         enumerations.add(enumId);
       }
       match(HTLexicon.bracesRight);
@@ -3416,10 +3371,7 @@ class HTParser extends TokenReader {
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          field.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(field);
         fields.add(field);
       } else if (curTok.type == HTLexicon.spreadSyntax) {
         advance();
@@ -3428,14 +3380,10 @@ class HTParser extends TokenReader {
         if (curTok.type != HTLexicon.bracesRight) {
           match(HTLexicon.comma);
         }
-        if (curTok.type == Semantic.consumingLineEndComment) {
-          final token = advance();
-          field.consumingLineEndComment = Comment(token.literal);
-        }
+        _handleTrailingComment(field);
         fields.add(field);
-      } else if (curTok.type == Semantic.singleLineComment ||
-          curTok.type == Semantic.multiLineComment) {
-        _handleComment();
+      } else if (curTok is TokenComment) {
+        _handlePrecedingComment();
       } else {
         final errTok = advance();
         final err = HTError.structMemberId(

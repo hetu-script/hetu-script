@@ -1,7 +1,7 @@
 import '../grammar/lexicon.dart';
-import '../grammar/semantic.dart';
 // import '../error/error.dart';
 import 'token.dart';
+import '../shared/constants.dart' show CommentType;
 
 const Set<String> _unfinishedTokens = {
   HTLexicon.logicalNot,
@@ -33,9 +33,6 @@ const Set<String> _unfinishedTokens = {
   HTLexicon.colon,
   HTLexicon.singleArrow,
   HTLexicon.doubleArrow,
-  Semantic.singleLineComment,
-  Semantic.multiLineComment,
-  Semantic.consumingLineEndComment,
 };
 
 /// Scans a string content and generates a list of Tokens.
@@ -89,15 +86,27 @@ class HTLexer {
       curColumn = column + match.start + 1;
       if (match.group(HTLexicon.tokenGroupSingleComment) != null) {
         if (toksOfLine.isEmpty) {
-          toksOfLine.add(TokenSingleLineComment(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end));
+          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
+              curOffset + match.start, curOffset + match.end,
+              commentType:
+                  matchString.startsWith(HTLexicon.documentationCommentPattern)
+                      ? CommentType.documentation
+                      : CommentType.singleLine));
         } else {
-          toksOfLine.add(TokenConsumingLineEndComment(matchString, curLine,
-              curColumn, curOffset + match.start, curOffset + match.end));
+          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
+              curOffset + match.start, curOffset + match.end,
+              commentType: CommentType.singleLine, isTrailing: true));
         }
       } else if (match.group(HTLexicon.tokenGroupBlockComment) != null) {
-        toksOfLine.add(TokenMultiLineComment(matchString, curLine, curColumn,
-            curOffset + match.start, curOffset + match.end));
+        if (toksOfLine.isEmpty) {
+          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
+              curOffset + match.start, curOffset + match.end,
+              commentType: CommentType.multiLine));
+        } else {
+          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
+              curOffset + match.start, curOffset + match.end,
+              commentType: CommentType.multiLine, isTrailing: true));
+        }
       } else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
         if (matchString == HTLexicon.kTrue) {
           toksOfLine.add(TokenBooleanLiteral(matchString, true, curLine,

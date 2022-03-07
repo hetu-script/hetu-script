@@ -10,7 +10,7 @@ fun doubleIt(n: num) -> num {
 }
 
 fun main {
-  def x = doubleIt(7) // expect 14
+  var x = doubleIt(7) // expect 14
   print(x)
 }
 ```
