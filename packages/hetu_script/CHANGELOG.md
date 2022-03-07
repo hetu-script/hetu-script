@@ -1,6 +1,8 @@
 ## 0.4.0
 
-- String literal now support multiline, syntax is the same to normal string.
+- Added support for const expression interpreter and type checker.
+- Now suport multiline String literal, syntax is the same to normal string.
+- Now support user-defined lexicon.
 
 ## 0.3.12
 
