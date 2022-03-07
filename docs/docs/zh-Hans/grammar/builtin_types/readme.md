@@ -15,20 +15,45 @@
 
 注意：
 
-1, 河图脚本中的浮点数类型名字使用 float，而不是 double，（实际类型的数值大小会根据平台而定）。
+1, 浮点数类型名字使用 float，而不是 double，（实际类型的数值大小会根据平台而定）。
 
-2, 河图中没有提供 Set 和 Map 的字面量写法。你需要通过普通构造函数的形式来创建他们的对象。
+3, 河图中没有提供 Set 和 Map 的字面量写法。你需要通过普通构造函数的形式来创建他们的对象。
 
-3, 河图中创建的 List/Set/Map 的泛型参数在 Dart 中全都是 dynamic 类型。
+4, 河图中创建的 List/Set/Map 的泛型参数在 Dart 中全都是 dynamic 类型。
 
-## 字符串插值
+## 字符串
 
-河图中的字符串字面量使用和 Javascript 相同的字符串插值写法。在 '${} 中可以写任何合法的表达式，表达式的值类型可以不是字符串，运行时将自动为其转换。
+河图中的字符串类型名字使用 str，而不是 String。
+
+### 字符串插值
+
+字面量使用和 Javascript 相同的字符串插值写法。在 '${} 中可以写任何合法的表达式，表达式的值类型可以不是字符串，运行时将自动为其转换。
 
 ```dart
 var a = 'dragon'
 // print: To kill the dragon, you have to wait 42 years.
 print('To kill the ${a}, you have to wait ${6*7} years.')
+```
+
+### 多行字符串
+
+河图 0.4.0 版本之后的字符串，默认写法可以支持跨行。
+
+```dart
+var p = 'PPP'
+var m = 'MMM'
+final s = '
+
+${
+  p
+  +
+  m
+}'
+print(s)
+print('a
+multiline
+string
+')
 ```
 
 和 Dart 的字符串插值的区别在于，即便括号中只有一个标识符，你也不能省略 '{}'。

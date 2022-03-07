@@ -64,8 +64,8 @@ class InterpreterConfig
   final bool allowHotReload;
 
   const InterpreterConfig(
-      {this.checkTypeErrors = true,
-      this.computeConstantExpressionValue = true,
+      {this.checkTypeErrors = false,
+      this.computeConstantExpressionValue = false,
       this.compileWithLineInfo = true,
       this.showHetuStackTrace = true,
       this.showDartStackTrace = false,
@@ -80,6 +80,8 @@ class InterpreterConfig
 abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   /// [HTResourceContext] manages imported sources.
   HTResourceContext<HTSource> get sourceContext;
+
+  bool strictMode = false;
 
   /// Initialize the interpreter,
   /// prepare it with preincluded modules,
@@ -130,7 +132,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   T? evalSource(HTSource source,
       {String? moduleName,
       bool globallyImport = false,
-      bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -143,7 +144,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
       String? moduleName,
       bool globallyImport = false,
       HTResourceType type = HTResourceType.hetuLiteralCode,
-      bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -166,7 +166,6 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   T? evalFile(String key,
       {String? moduleName,
       bool globallyImport = false,
-      bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},

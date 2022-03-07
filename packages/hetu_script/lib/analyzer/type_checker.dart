@@ -21,7 +21,7 @@ class HTTypeChecker implements AbstractAstVisitor<HTType> {
   }
 
   @override
-  HTType visitEmptyExpr(EmptyExpr node) {
+  HTType visitEmptyExpr(EmptyLine node) {
     throw 'Not a value';
   }
 

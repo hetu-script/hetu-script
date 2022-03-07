@@ -1,3 +1,7 @@
+## 0.4.0
+
+- String literal now support multiline, syntax is the same to normal string.
+
 ## 0.3.12
 
 - Added destructuring declaration: 'var { a, b } = { a: 1, b: 2 }; var [ _, x, y ] = [ 1, 2, 3 ]'.

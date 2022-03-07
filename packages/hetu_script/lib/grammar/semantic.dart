@@ -53,8 +53,6 @@ abstract class Semantic {
   static const singleLineComment = 'single_line_comment';
   static const multiLineComment = 'multi_line_comment';
 
-  static const Set<String> comments = {singleLineComment, multiLineComment};
-
   static const consumingLineEndComment = 'consuming_line_end_comment';
 
   static const keyword = 'keyword';

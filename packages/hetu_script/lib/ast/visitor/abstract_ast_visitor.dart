@@ -12,7 +12,7 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitCompilationUnit(AstSource node) {}
 
-  T? visitEmptyExpr(EmptyExpr node) {}
+  T? visitEmptyExpr(EmptyLine node) {}
 
   T? visitNullExpr(NullExpr node) {}
 

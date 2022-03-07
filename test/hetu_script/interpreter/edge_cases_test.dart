@@ -15,7 +15,7 @@ void main() {
           ++j
           if (i is num) 
         ;
-            return j
+            j
         ''');
       expect(
         result,

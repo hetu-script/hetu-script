@@ -99,7 +99,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
-  String visitEmptyExpr(EmptyExpr expr) {
+  String visitEmptyExpr(EmptyLine expr) {
     return '';
   }
 

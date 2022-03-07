@@ -1,6 +1,10 @@
 # Strict mode
 
-You can set the strict mode flag in interpreter's eval() method's parameter list.
+You can set the strict mode flag on Hetu. Its default value is false.
+
+```dart
+final hetu = Hetu()..strictMode = true;
+```
 
 ## Zero value
 
@@ -32,7 +36,7 @@ The conversion rules is:
 ```dart
 /// inexpicit type conversion for truthy values
 bool _truthy(dynamic condition) {
-  if (_isStrictMode || condition is bool) {
+  if (strictMode || condition is bool) {
     return condition;
   } else if (condition == null ||
       condition == 0 ||

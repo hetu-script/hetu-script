@@ -18,7 +18,7 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
   }
 
   @override
-  void visitEmptyExpr(EmptyExpr node) {}
+  void visitEmptyExpr(EmptyLine node) {}
 
   @override
   void visitNullExpr(NullExpr node) {}

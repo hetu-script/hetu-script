@@ -1,5 +1,4 @@
 // import '../source/source.dart';
-import '../resource/resource_context.dart';
 import '../error/error.dart';
 // import '../error/error_handler.dart';
 import '../grammar/lexicon.dart';
@@ -11,11 +10,9 @@ abstract class ParserConfig {}
 class ParserConfigImpl implements ParserConfig {}
 
 /// Abstract interface for handling a token list.
-abstract class HTAbstractParser {
+abstract class TokenReader {
   /// The file current under processing, used in error message.
   String? get currrentFileName;
-
-  HTResourceContext get sourceContext;
 
   int _line = 0;
   int _column = 0;

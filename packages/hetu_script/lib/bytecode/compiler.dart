@@ -319,7 +319,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitEmptyExpr(EmptyExpr expr) {
+  Uint8List visitEmptyExpr(EmptyLine expr) {
     return Uint8List(0);
   }
 

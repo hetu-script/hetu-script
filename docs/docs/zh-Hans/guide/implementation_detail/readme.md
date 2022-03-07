@@ -91,3 +91,9 @@ function getObject() {
 循环导入的意思是，对于代码文件 A 和 B，在 A 中包含了 'import B'的声明，同时在 B 中包含了 'import A'的声明。
 
 如果一个代码文件是 **ResourceType.hetuModule** 类型，解释器会自动处理循环引入问题。但如果代码文件的类型是 **ResourceType.hetuScript**，循环引用会造成 stack overflow 错误，因此你需要自行小心处理这个问题。
+
+## 闭包
+
+在河图中，每一个函数在每次执行时都会创建一个新的命名空间。同时这些命名空间可以访问上层命名空间。这样就会让函数闭包可以直接访问和修改外部定义的变量。
+
+这类似于 Javascript，是一种动态化、运行时的实现方式。而区别于 C++/Rust 中的语法意义上的闭包（lexical closure），后者使用 move 以及按值传递参数等功能实现。

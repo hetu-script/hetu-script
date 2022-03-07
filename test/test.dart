@@ -1,11 +1,21 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = Hetu();
+  var hetu = Hetu()..strictMode = true;
   hetu.init();
   hetu.eval(r'''
-        final n = 6
-        const a = 'age: ${n * 7}'
-        print(a)
+    var p = 'PPP'
+    var m = 'MMM'
+    final s = '
+${
+      p
+      +
+      m
+    }'
+    print(s)
+    print('a
+multiline
+string
+')
   ''');
 }

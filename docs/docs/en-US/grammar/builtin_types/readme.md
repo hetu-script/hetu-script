@@ -21,7 +21,11 @@ Note:
 
 3, All List\Set\Map created from the script side is of dynamic types.
 
-## String interpolation
+## String
+
+The type name for String in Hetu is 'str'.
+
+### Interpolation
 
 String literal can have interpolation the same to Javascript, you can use any expression within '${}':
 
@@ -32,6 +36,27 @@ print('To kill the ${a}, you have to wait ${6*7} years.')
 ```
 
 Note it's different to Dart that you have to write a curly brackets even if you have only one identifier.
+
+### Multiline
+
+After version 0.4.0, string literal in Hetu support multiline, and you can use the same syntax.
+
+```dart
+var p = 'PPP'
+var m = 'MMM'
+final s = '
+
+${
+  p
+  +
+  m
+}'
+print(s)
+print('a
+multiline
+string
+')
+```
 
 ## Big integers
 

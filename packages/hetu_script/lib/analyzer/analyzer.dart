@@ -41,8 +41,8 @@ class AnalyzerConfigImpl implements AnalyzerConfig {
   final bool computeConstantExpressionValue;
 
   const AnalyzerConfigImpl(
-      {this.checkTypeErrors = true,
-      this.computeConstantExpressionValue = true});
+      {this.checkTypeErrors = false,
+      this.computeConstantExpressionValue = false});
 }
 
 /// A ast visitor that create declarative-only namespaces on all astnode,
@@ -191,7 +191,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
-  void visitEmptyExpr(EmptyExpr node) {}
+  void visitEmptyExpr(EmptyLine node) {}
 
   @override
   void visitNullExpr(NullExpr node) {}

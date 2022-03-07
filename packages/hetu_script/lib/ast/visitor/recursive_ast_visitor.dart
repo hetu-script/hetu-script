@@ -21,7 +21,7 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
-  T? visitEmptyExpr(EmptyExpr node) {
+  T? visitEmptyExpr(EmptyLine node) {
     node.subAccept(this);
   }
 

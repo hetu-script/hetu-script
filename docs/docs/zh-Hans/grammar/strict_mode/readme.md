@@ -1,6 +1,10 @@
 # 严格模式
 
-在解释器的 eval() 方法的参数列表中，可以指定以严格模式或者非严格模式进行解释。
+可以通过修改 Hetu 解释器对象上的 strictMode 属性来指定以严格模式或者非严格模式进行解释。
+
+```dart
+final hetu = Hetu()..strictMode = true;
+```
 
 ## 空值和零
 
@@ -11,7 +15,7 @@ final obj = {}
 ++obj.count // obj = { count: 1 }
 ```
 
-## Truth value
+## 布尔值
 
 在非严格模式下，下列表达式的值可以被隐式转换为布尔值。
 
@@ -32,7 +36,7 @@ final obj = {}
 ```dart
 /// inexpicit type conversion for truthy values
 bool _truthy(dynamic condition) {
-  if (_isStrictMode || condition is bool) {
+  if (strictMode || condition is bool) {
     return condition;
   } else if (condition == null ||
       condition == 0 ||

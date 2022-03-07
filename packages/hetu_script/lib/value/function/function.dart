@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import '../../binding/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/semantic.dart';

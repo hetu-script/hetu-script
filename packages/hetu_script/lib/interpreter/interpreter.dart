@@ -101,8 +101,6 @@ class Hetu extends HTAbstractInterpreter {
   HTClass? _class;
   HTFunction? _function;
 
-  bool _isStrictMode = false;
-
   var _currentStackIndex = -1;
 
   /// Register values are stored by groups.
@@ -141,7 +139,7 @@ class Hetu extends HTAbstractInterpreter {
 
   /// inexpicit type conversion for zero or null values
   bool _isZero(dynamic condition) {
-    if (_isStrictMode) {
+    if (strictMode) {
       return condition == 0;
     } else {
       return condition == 0 || condition == null;
@@ -150,7 +148,7 @@ class Hetu extends HTAbstractInterpreter {
 
   /// inexpicit type conversion for truthy values
   bool _truthy(dynamic condition) {
-    if (_isStrictMode || condition is bool) {
+    if (strictMode || condition is bool) {
       return condition;
     } else if (condition == null ||
         condition == 0 ||
@@ -285,7 +283,6 @@ class Hetu extends HTAbstractInterpreter {
   dynamic evalSource(HTSource source,
       {String? moduleName,
       bool globallyImport = false,
-      bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -295,7 +292,6 @@ class Hetu extends HTAbstractInterpreter {
       return null;
     }
     _currentFileName = source.fullName;
-    _isStrictMode = isStrictMode;
     try {
       final bytes = compileSource(
         source,
@@ -588,7 +584,6 @@ class Hetu extends HTAbstractInterpreter {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
-    _isStrictMode = isStrictMode;
     try {
       _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
       final signature = _currentBytecodeModule.readUint32();
@@ -1522,14 +1517,14 @@ class Hetu extends HTAbstractInterpreter {
         final rightValueLength = _currentBytecodeModule.readUint16();
         if (leftTruthValue) {
           _currentBytecodeModule.skip(rightValueLength);
-          if (_isStrictMode) {
+          if (strictMode) {
             _localValue = true;
           } else {
             _localValue = left;
           }
         } else {
           final right = execute();
-          if (_isStrictMode) {
+          if (strictMode) {
             final rightTruthValue = _truthy(right);
             _localValue = rightTruthValue;
           } else {

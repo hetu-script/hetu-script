@@ -15,6 +15,24 @@ void main() {
         "Alice's world.",
       );
     });
+
+    test('multiline string', () {
+      final result = hetu.eval(r'''
+    var p = 'PPP'
+    var m = 'MMM'
+    final s = '
+${
+      p
+      +
+      m
+    }'
+    s
+      ''');
+      expect(
+        result,
+        "\nPPPMMM",
+      );
+    });
     test('string interpolation', () {
       final result = hetu.eval(r'''
         var a = 'dragon'

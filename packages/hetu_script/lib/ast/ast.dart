@@ -6,7 +6,6 @@ import '../declaration/declaration.dart';
 import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
-import '../type/type.dart';
 
 part 'visitor/abstract_ast_visitor.dart';
 
@@ -178,13 +177,19 @@ class AstCompilation extends AstNode {
   }
 }
 
-// Has no meaning, a helper for parser to recover from errors.
-class EmptyExpr extends AstNode {
+class EmptyLine extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitEmptyExpr(this);
 
-  EmptyExpr(
-      {HTSource? source,
+  @override
+  bool get isExpression => false;
+
+  @override
+  final bool hasEndOfStmtMark;
+
+  EmptyLine(
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,

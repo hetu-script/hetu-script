@@ -40,7 +40,7 @@ enum ParseStyle {
 }
 
 /// Walk through a token list and generates a abstract syntax tree.
-class HTParser extends HTAbstractParser {
+class HTParser extends TokenReader {
   static var anonymousFunctionIndex = 0;
 
   // All import decl in this list must have non-null [fromPath]
@@ -76,7 +76,6 @@ class HTParser extends HTAbstractParser {
 
   // final _cachedParseResults = <String, AstSource>{};
 
-  @override
   final HTResourceContext<HTSource> sourceContext;
 
   HTParser({HTResourceContext<HTSource>? context})
@@ -88,37 +87,38 @@ class HTParser extends HTAbstractParser {
     // create new list of errors here, old error list is still usable
     errors = <HTError>[];
     final nodes = <AstNode>[];
+    setTokens(tokens);
     _currentSource = source;
     _currrentFileName = source?.fullName;
-    setTokens(tokens);
-    while (curTok.type != Semantic.endOfFile) {
-      late ParseStyle parseStyle;
-      if (style != null) {
-        parseStyle = style;
-      } else {
-        if (_currentSource != null) {
-          final sourceType = _currentSource!.type;
-          if (sourceType == HTResourceType.hetuModule) {
-            parseStyle = ParseStyle.module;
-          } else if (sourceType == HTResourceType.hetuScript ||
-              sourceType == HTResourceType.hetuLiteralCode) {
-            parseStyle = ParseStyle.script;
-          } else if (sourceType == HTResourceType.hetuValue) {
-            parseStyle = ParseStyle.expression;
-          } else {
-            return nodes;
-          }
-        } else {
+    late ParseStyle parseStyle;
+    if (style != null) {
+      parseStyle = style;
+    } else {
+      if (_currentSource != null) {
+        final sourceType = _currentSource!.type;
+        if (sourceType == HTResourceType.hetuModule) {
+          parseStyle = ParseStyle.module;
+        } else if (sourceType == HTResourceType.hetuScript ||
+            sourceType == HTResourceType.hetuLiteralCode) {
           parseStyle = ParseStyle.script;
+        } else if (sourceType == HTResourceType.hetuValue) {
+          parseStyle = ParseStyle.expression;
+        } else {
+          return nodes;
         }
+      } else {
+        parseStyle = ParseStyle.script;
       }
+    }
+
+    while (curTok.type != Semantic.endOfFile) {
       final stmt = _parseStmt(sourceType: parseStyle);
       if (stmt != null) {
         nodes.add(stmt);
       }
     }
     if (nodes.isEmpty) {
-      final empty = EmptyExpr(
+      final empty = EmptyLine(
           source: _currentSource,
           line: curTok.line,
           column: curTok.column,
@@ -216,24 +216,25 @@ class HTParser extends HTAbstractParser {
   }
 
   bool _handleComment() {
-    bool handled = false;
-    while (Semantic.comments.contains(curTok.type)) {
-      if (curTok.type == Semantic.singleLineComment) {
-        final token = advance();
-        final comment = Comment(token.literal,
-            isMultiline: false,
-            isDocumentation: token.lexeme
+    bool handled = true;
+    switch (curTok.type) {
+      case Semantic.singleLineComment:
+        final comment = Comment(curTok.literal,
+            isDocumentation: curTok.lexeme
                 .startsWith(HTLexicon.singleLineCommentDocumentationPattern));
         _currentPrecedingComments.add(comment);
-      } else {
-        final token = match(Semantic.multiLineComment);
-        final comment = Comment(token.literal,
+        advance();
+        break;
+      case Semantic.multiLineComment:
+        final comment = Comment(curTok.literal,
             isMultiline: true,
-            isDocumentation: token.lexeme
+            isDocumentation: curTok.lexeme
                 .startsWith(HTLexicon.multiLineCommentDocumentationPattern));
         _currentPrecedingComments.add(comment);
-      }
-      handled = true;
+        advance();
+        break;
+      default:
+        handled = false;
     }
     return handled;
   }
@@ -247,11 +248,9 @@ class HTParser extends HTAbstractParser {
     final precedingCommentsOfThisStmt =
         List<Comment>.from(_currentPrecedingComments);
     _currentPrecedingComments.clear();
-    if (curTok.type == HTLexicon.semicolon ||
-        curTok.type == Semantic.emptyLine) {
-      advance();
+    if (curTok.type == Semantic.emptyLine) {
       final empty = advance();
-      stmt = EmptyExpr(
+      stmt = EmptyLine(
           line: empty.line, column: empty.column, offset: empty.offset);
     } else {
       switch (sourceType) {
@@ -298,7 +297,7 @@ class HTParser extends HTAbstractParser {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyExpr(
+                    stmt = EmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -321,7 +320,7 @@ class HTParser extends HTAbstractParser {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyExpr(
+                    stmt = EmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -447,7 +446,7 @@ class HTParser extends HTAbstractParser {
                           length: curTok.length);
                       errors?.add(err);
                       final errToken = advance();
-                      stmt = EmptyExpr(
+                      stmt = EmptyLine(
                           source: _currentSource,
                           line: errToken.line,
                           column: errToken.column,
@@ -478,7 +477,7 @@ class HTParser extends HTAbstractParser {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyExpr(
+                    stmt = EmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -494,7 +493,7 @@ class HTParser extends HTAbstractParser {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyExpr(
+                    stmt = EmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -539,7 +538,7 @@ class HTParser extends HTAbstractParser {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyExpr(
+                stmt = EmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -576,7 +575,7 @@ class HTParser extends HTAbstractParser {
                           length: curTok.length);
                       errors?.add(err);
                       final errToken = advance();
-                      stmt = EmptyExpr(
+                      stmt = EmptyLine(
                           source: _currentSource,
                           line: errToken.line,
                           column: errToken.column,
@@ -607,7 +606,7 @@ class HTParser extends HTAbstractParser {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyExpr(
+                    stmt = EmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -623,7 +622,7 @@ class HTParser extends HTAbstractParser {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyExpr(
+                    stmt = EmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -666,7 +665,7 @@ class HTParser extends HTAbstractParser {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyExpr(
+                stmt = EmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -689,7 +688,7 @@ class HTParser extends HTAbstractParser {
                   length: curTok.length);
               errors?.add(err);
               final errToken = advance();
-              stmt = EmptyExpr(
+              stmt = EmptyLine(
                   source: _currentSource,
                   line: errToken.line,
                   column: errToken.column,
@@ -737,7 +736,7 @@ class HTParser extends HTAbstractParser {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyExpr(
+                  stmt = EmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -762,7 +761,7 @@ class HTParser extends HTAbstractParser {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyExpr(
+                  stmt = EmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -804,7 +803,7 @@ class HTParser extends HTAbstractParser {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyExpr(
+                  stmt = EmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -818,7 +817,7 @@ class HTParser extends HTAbstractParser {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyExpr(
+                  stmt = EmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -842,7 +841,7 @@ class HTParser extends HTAbstractParser {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyExpr(
+                  stmt = EmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -856,7 +855,7 @@ class HTParser extends HTAbstractParser {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyExpr(
+                  stmt = EmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -879,7 +878,7 @@ class HTParser extends HTAbstractParser {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyExpr(
+                stmt = EmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -926,7 +925,7 @@ class HTParser extends HTAbstractParser {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyExpr(
+                stmt = EmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -968,7 +967,7 @@ class HTParser extends HTAbstractParser {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyExpr(
+                stmt = EmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -982,7 +981,7 @@ class HTParser extends HTAbstractParser {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyExpr(
+                stmt = EmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -1004,7 +1003,7 @@ class HTParser extends HTAbstractParser {
                   length: curTok.length);
               errors?.add(err);
               final errToken = advance();
-              stmt = EmptyExpr(
+              stmt = EmptyLine(
                   source: _currentSource,
                   line: errToken.line,
                   column: errToken.column,
@@ -1141,7 +1140,7 @@ class HTParser extends HTAbstractParser {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyExpr(
+                stmt = EmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -1807,33 +1806,28 @@ class HTParser extends HTAbstractParser {
           final nodes = exprParser.parseToken(tokens,
               source: _currentSource, style: ParseStyle.expression);
           errors?.addAll(exprParser.errors!);
-          if (nodes.length > 1) {
-            final err = HTError.stringInterpolation(
-                filename: _currrentFileName,
-                line: nodes.first.line,
-                column: nodes.first.column,
-                offset: nodes.first.offset,
-                length: nodes.last.end - nodes.first.offset);
-            errors?.add(err);
-            final errNode = EmptyExpr(
-                source: _currentSource,
-                line: token.line,
-                column: token.column,
-                offset: token.offset);
-            interpolations.add(errNode);
-          } else {
-            // parser will at least insert a empty line astnode
-            if (nodes.first is EmptyExpr) {
-              final err = HTError.stringInterpolation(
-                  filename: _currrentFileName,
-                  line: nodes.first.line,
-                  column: nodes.first.column,
-                  offset: nodes.first.offset,
-                  length: nodes.first.length +
-                      HTLexicon.stringInterpolationStart.length +
-                      HTLexicon.stringInterpolationEnd.length);
-              errors?.add(err);
+
+          AstNode? expr;
+          for (final node in nodes) {
+            if (node is! EmptyLine) {
+              if (expr == null) {
+                expr = node;
+              } else {
+                final err = HTError.stringInterpolation(
+                    filename: _currrentFileName,
+                    line: node.line,
+                    column: node.column,
+                    offset: node.offset,
+                    length: node.length);
+                errors?.add(err);
+                break;
+              }
             }
+          }
+          if (expr != null) {
+            interpolations.add(expr);
+          } else {
+            // parser will always contain at least a empty line expr
             interpolations.add(nodes.first);
           }
         }
@@ -1958,7 +1952,7 @@ class HTParser extends HTAbstractParser {
             length: curTok.length);
         errors?.add(err);
         final errToken = advance();
-        return EmptyExpr(
+        return EmptyLine(
             source: _currentSource,
             line: errToken.line,
             column: errToken.column,
@@ -2151,7 +2145,7 @@ class HTParser extends HTAbstractParser {
     }
     final endTok = match(HTLexicon.bracesRight);
     if (statements.isEmpty) {
-      final empty = EmptyExpr(
+      final empty = EmptyLine(
           source: _currentSource,
           line: endTok.line,
           column: endTok.column,
@@ -2220,15 +2214,28 @@ class HTParser extends HTAbstractParser {
   }
 
   AstNode _parseExprStmt() {
-    final expr = _parseExpr();
-    expect([HTLexicon.semicolon], consume: true);
-    final stmt = ExprStmt(expr,
-        source: _currentSource,
-        line: expr.line,
-        column: expr.column,
-        offset: expr.offset,
-        length: curTok.offset - expr.offset);
-    return stmt;
+    if (curTok.type == HTLexicon.semicolon) {
+      final empty = advance();
+      final stmt = EmptyLine(
+          hasEndOfStmtMark: true,
+          source: _currentSource,
+          line: empty.line,
+          column: empty.column,
+          offset: empty.offset,
+          length: curTok.offset - empty.offset);
+      return stmt;
+    } else {
+      final expr = _parseExpr();
+      final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
+      final stmt = ExprStmt(expr,
+          hasEndOfStmtMark: hasEndOfStmtMark,
+          source: _currentSource,
+          line: expr.line,
+          column: expr.column,
+          offset: expr.offset,
+          length: curTok.offset - expr.offset);
+      return stmt;
+    }
   }
 
   ReturnStmt _parseReturnStmt() {
@@ -2278,7 +2285,7 @@ class HTParser extends HTAbstractParser {
               offset: curTok.offset,
               length: curTok.length);
           errors?.add(err);
-          node = EmptyExpr(
+          node = EmptyLine(
               source: _currentSource,
               line: curTok.line,
               column: curTok.column,
@@ -2697,7 +2704,7 @@ class HTParser extends HTAbstractParser {
             offset: curTok.offset,
             length: curTok.length);
         errors?.add(err);
-        final empty = EmptyExpr(
+        final empty = EmptyLine(
             source: _currentSource,
             line: keyword.line,
             column: keyword.column,
@@ -3344,7 +3351,7 @@ class HTParser extends HTAbstractParser {
     }
     final endTok = match(HTLexicon.bracesRight);
     if (definition.isEmpty) {
-      final empty = EmptyExpr(
+      final empty = EmptyLine(
           source: _currentSource,
           line: endTok.line,
           column: endTok.column,

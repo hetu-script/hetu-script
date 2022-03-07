@@ -83,3 +83,9 @@ And if you want to write function definition, remember to make the left bracket 
 ## Recursive import
 
 For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the meantime, B import from A) is allowed. However, for **ResourceType.hetuScript**, recursive import would cause stack overflow errors. **You have to manually avoid recursive import in '\*.hts' files.**
+
+## Closure
+
+In Hetu, invoke a function will always create a new namespace. And within a namespace, you can access the declarations within its upper namespace.
+
+This kind of implementation likes Javascript's style, it is different from C++/Rust, which provide lexical closure, that you can use **move** and value arguments to create a independent namespace while also capture outter declarations.

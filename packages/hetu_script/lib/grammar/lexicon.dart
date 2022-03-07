@@ -8,9 +8,10 @@ abstract class HTLexicon {
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(8)
       r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(10)
       r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(14)
-      r"('(\\'|[^'])*')|" // string with single quotation mark group(18)
-      r'("(\\"|[^"])*")|' // string with double quotation mark group(20)
-      r'(`(\\`|[^`])*`)'; // string with grave accent mark group(22)
+      r"('(\\'|[^'])*')|" // string with apostrophe mark group(18)
+      r'("(\\"|[^"])*")|' // string with quotation mark group(20)
+      r'(`(\\`|[^`])*`)|' // string with grave accent mark group(22)
+      r'(\n)'; // new line group(24)
 
   static const tokenGroupSingleComment = 2;
   static const tokenGroupBlockComment = 3;
@@ -22,6 +23,7 @@ abstract class HTLexicon {
   static const tokenGroupApostropheString = 18;
   static const tokenGroupQuotationString = 20;
   static const tokenGroupStringGraveAccent = 22;
+  static const tokenGroupNewline = 24;
 
   static const singleLineCommentDocumentationPattern = r'///';
   static const multiLineCommentDocumentationPattern = r'/**';
